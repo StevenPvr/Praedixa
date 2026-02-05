@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
@@ -19,6 +20,11 @@ const config: NextConfig = {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+
+  // Ensure Sentry server files are included in Cloudflare Workers bundle
+  outputFileTracingIncludes: {
+    "/": ["./sentry.server.config.ts"],
   },
 
   // Caching headers for static assets + security headers
@@ -48,10 +54,61 @@ const config: NextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://browser.sentry-cdn.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.ingest.de.sentry.io",
+              "worker-src 'self' blob:",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join("; "),
+          },
+          {
+            key: "Permissions-Policy",
+            value:
+              "geolocation=(), microphone=(), camera=(), payment=(), usb=()",
+          },
+          {
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
+          },
         ],
       },
     ];
   },
 };
 
-export default withBundleAnalyzer(config);
+export default withSentryConfig(withBundleAnalyzer(config), {
+  // Upload source maps for readable stack traces
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Route Sentry events through /monitoring to bypass ad-blockers
+  tunnelRoute: "/monitoring",
+
+  // Upload larger set of source maps for better stack traces
+  widenClientFileUpload: true,
+
+  // Delete source maps after upload (keeps them out of browser devtools)
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
+
+  // Remove Sentry debug logger from production bundle
+  bundleSizeOptimizations: {
+    excludeDebugStatements: true,
+  },
+
+  // Only upload source maps in CI (requires SENTRY_AUTH_TOKEN)
+  silent: !process.env.SENTRY_AUTH_TOKEN,
+});

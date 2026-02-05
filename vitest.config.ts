@@ -27,6 +27,12 @@ export default defineConfig({
         "apps/*/components/**/*.{ts,tsx}",
       ],
       exclude: ["**/*.d.ts", "**/*.config.*", "**/node_modules/**"],
+      thresholds: {
+        statements: 50,
+        branches: 50,
+        functions: 50,
+        lines: 50,
+      },
     },
   },
 });

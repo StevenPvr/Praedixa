@@ -18,6 +18,7 @@
     "@opennextjs/cloudflare": "^0.5.0",
     "@praedixa/shared-types": "workspace:*",
     "@praedixa/ui": "workspace:*",
+    "@sentry/nextjs": "^10.38.0",
     "framer-motion": "^12.31.0",
     "lenis": "^1.3.17",
     "lucide-react": "^0.563.0",

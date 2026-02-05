@@ -47,17 +47,11 @@ jobs:
       - name: Run pre-commit (all files)
         run: pre-commit run --all-files
 
-  deploy:
-    name: Build & Deploy (Cloudflare Workers)
-    needs: checks
-    if: github.ref == 'refs/heads/main'
+  security-audit:
+    name: Security audit
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    concurrency:
-      group: production
-      cancel-in-progress: false
-
     steps:
       - uses: actions/checkout@v4
 
@@ -73,8 +67,94 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Audit dependencies (high + critical)
+        run: pnpm audit --audit-level=high
+
+  deploy:
+    name: Build & Deploy (Cloudflare Workers)
+    needs: [checks, security-audit]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    concurrency:
+      group: production
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Restore Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: apps/landing/.next/cache
+          key: nextjs-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/landing/**/*.ts', 'apps/landing/**/*.tsx') }}
+          restore-keys: |
+            nextjs-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            nextjs-cache-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Deploy to Cloudflare Workers
         run: pnpm run deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+
+      - name: Create Sentry release
+        if: env.SENTRY_AUTH_TOKEN != ''
+        uses: getsentry/action-release@v3
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        with:
+          environment: production
+
+      - name: Verify deployment (health check)
+        run: |
+          echo "Waiting for Cloudflare Workers propagation..."
+          sleep 15
+          MAX_RETRIES=5
+          RETRY_DELAY=10
+          for i in $(seq 1 $MAX_RETRIES); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://www.praedixa.com/api/health)
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Health check passed (HTTP $HTTP_CODE)"
+              HEALTH_BODY=$(curl -s https://www.praedixa.com/api/health)
+              echo "Response: $HEALTH_BODY"
+              break
+            fi
+            echo "Attempt $i/$MAX_RETRIES: HTTP $HTTP_CODE - retrying in ${RETRY_DELAY}s..."
+            sleep $RETRY_DELAY
+            if [ "$i" = "$MAX_RETRIES" ]; then
+              echo "::error::Health check failed after $MAX_RETRIES attempts (last HTTP $HTTP_CODE)"
+              exit 1
+            fi
+          done
+
+      - name: Verify homepage accessibility
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://www.praedixa.com/)
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Homepage returned HTTP $HTTP_CODE"
+            exit 1
+          fi
+          echo "Homepage accessible (HTTP $HTTP_CODE)"

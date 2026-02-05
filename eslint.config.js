@@ -24,11 +24,11 @@ export default [
     },
     rules: {
       "@typescript-eslint/no-unused-vars": [
-        "warn",
+        "error",
         { argsIgnorePattern: "^_" },
       ],
-      "@typescript-eslint/no-explicit-any": "warn",
-      "no-console": "warn",
+      "@typescript-eslint/no-explicit-any": "error",
+      "no-console": "error",
     },
   },
 ];
