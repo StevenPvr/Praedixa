@@ -15,7 +15,7 @@
     "deploy": "pnpm cf:build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^0.5.0",
+    "@opennextjs/cloudflare": "^1.16.0",
     "@praedixa/shared-types": "workspace:*",
     "@praedixa/ui": "workspace:*",
     "@sentry/nextjs": "^10.38.0",

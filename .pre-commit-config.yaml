@@ -58,3 +58,10 @@ repos:
         entry: pnpm build
         language: system
         pass_filenames: false
+
+      - id: audit
+        name: pnpm audit (high/critical)
+        entry: pnpm audit --audit-level=high
+        language: system
+        always_run: true
+        pass_filenames: false
