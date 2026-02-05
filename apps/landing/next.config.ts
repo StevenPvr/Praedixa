@@ -6,6 +6,25 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
+// ---------------------------------------------------------------------------
+// CSP violation reporting → Sentry
+// Parses the Sentry DSN to build the security report-uri endpoint.
+// See https://docs.sentry.io/product/security-policy-reporting/
+// ---------------------------------------------------------------------------
+function buildCspReportUri(dsn: string | undefined): string | null {
+  if (!dsn) return null;
+  try {
+    const url = new URL(dsn);
+    const projectId = url.pathname.replace("/", "");
+    const key = url.username;
+    return `https://${url.hostname}/api/${projectId}/security/?sentry_key=${key}`;
+  } catch {
+    return null;
+  }
+}
+
+const cspReportUri = buildCspReportUri(process.env.NEXT_PUBLIC_SENTRY_DSN);
+
 const config: NextConfig = {
   output: "standalone",
   transpilePackages: ["@praedixa/ui", "@praedixa/shared-types"],
@@ -75,8 +94,21 @@ const config: NextConfig = {
               "form-action 'self'",
               // Prevent the page from being embedded as an object/embed
               "object-src 'none'",
+              // CSP violation reporting → Sentry (only when DSN is set)
+              ...(cspReportUri
+                ? [`report-uri ${cspReportUri}`, "report-to csp-endpoint"]
+                : []),
             ].join("; "),
           },
+          // Reporting API v1 endpoint for CSP report-to directive
+          ...(cspReportUri
+            ? [
+                {
+                  key: "Reporting-Endpoints",
+                  value: `csp-endpoint="${cspReportUri}"`,
+                },
+              ]
+            : []),
           {
             key: "Permissions-Policy",
             value:

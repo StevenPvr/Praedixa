@@ -3,7 +3,7 @@
   "short_name": "Praedixa",
   "description": "Plan de couverture chiffré pour PME/ETI multi-sites",
   "start_url": "/",
-  "display": "standalone",
+  "display": "browser",
   "background_color": "#FAF9F6",
   "theme_color": "#0f0f0f",
   "icons": [

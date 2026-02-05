@@ -244,6 +244,11 @@ export async function POST(request: Request) {
 
     // Rate limiting check
     if (isRateLimited(ip)) {
+      Sentry.captureMessage("Rate limit hit", {
+        level: "warning",
+        tags: { endpoint: "pilot-application", reason: "rate-limit" },
+        fingerprint: ["rate-limit", "pilot-application"],
+      });
       return NextResponse.json(
         { error: "Trop de requêtes. Veuillez réessayer plus tard." },
         { status: 429 },
@@ -278,6 +283,11 @@ export async function POST(request: Request) {
     // Honeypot check: if website field is filled, it is likely a bot.
     // Return success silently so the bot cannot adapt.
     if (website !== "") {
+      Sentry.captureMessage("Honeypot triggered", {
+        level: "info",
+        tags: { endpoint: "pilot-application", reason: "honeypot" },
+        fingerprint: ["honeypot", "pilot-application"],
+      });
       return NextResponse.json({ success: true });
     }
 
@@ -372,6 +382,12 @@ export async function POST(request: Request) {
           </p>
         </div>
       `,
+    });
+
+    Sentry.captureMessage("Pilot application submitted", {
+      level: "info",
+      tags: { endpoint: "pilot-application", sector, employeeRange },
+      fingerprint: ["pilot-application", "success"],
     });
 
     return NextResponse.json({ success: true });

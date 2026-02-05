@@ -1,0 +1,7 @@
+# Default: all files
+* @StevenPvr
+
+# CI/CD & infrastructure
+.github/ @StevenPvr
+pnpm-lock.yaml @StevenPvr
+wrangler.jsonc @StevenPvr

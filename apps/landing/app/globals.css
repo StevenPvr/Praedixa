@@ -145,21 +145,6 @@
       animation: none !important;
     }
   }
-
-  /* Parallax helper - will be controlled via JS for broader support */
-  .parallax-slow {
-    will-change: transform;
-  }
-}
-
-/* Hero section specific styles */
-.hero-gradient {
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.4) 0%,
-    rgba(0, 0, 0, 0.5) 50%,
-    rgba(0, 0, 0, 0.7) 100%
-  );
 }
 
 /* Section divider */
@@ -186,67 +171,14 @@
   @apply absolute left-6 top-12 h-full w-0.5 -translate-x-1/2 bg-gradient-to-b from-amber-500/50 to-transparent;
 }
 
-/* Dark mode support for hero section */
-@media (prefers-color-scheme: dark) {
-  .dark\:bg-\[rgb\(8\,9\,10\)\] {
-    background-color: rgb(8, 9, 10);
+/* Navbar slideDown entrance animation (replaces Framer Motion) */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
   }
-}
-
-/* ============================================
-   SPLASH SCREEN STYLES
-   ============================================ */
-
-.splash-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #0a0a0a;
-}
-
-.splash-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-}
-
-.splash-logo {
-  filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.12));
-}
-
-.splash-text-container {
-  margin-top: 1rem;
-}
-
-.splash-letter {
-  display: inline-block;
-  font-family: var(--font-sans);
-  font-size: 1.5rem;
-  font-weight: 600;
-  letter-spacing: 0.3em;
-  color: #ffffff;
-}
-
-@media (min-width: 640px) {
-  .splash-letter {
-    font-size: 2rem;
-    letter-spacing: 0.4em;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-}
-
-/* Screen reader only */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
 }

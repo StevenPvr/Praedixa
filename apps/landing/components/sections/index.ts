@@ -1,8 +1,8 @@
 export { HeroSection } from "./HeroSection";
-export { ImpactRevealSection } from "./ImpactRevealSection";
-export { PainPointsScrollSection } from "./PainPointsScrollSection";
+export { ProblemSection } from "./ProblemSection";
 export { SolutionSection } from "./SolutionSection";
-export { HowItWorksSection } from "./HowItWorksSection";
-export { ProofSection } from "./ProofSection";
+export { PipelineSection } from "./PipelineSection";
+export { DeliverablesSection } from "./DeliverablesSection";
+export { PilotSection } from "./PilotSection";
 export { FaqSection } from "./FaqSection";
 export { ContactSection } from "./ContactSection";

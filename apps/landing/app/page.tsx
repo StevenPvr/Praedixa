@@ -1,39 +1,25 @@
 import { lazy, Suspense } from "react";
 import { Navbar, Footer, HeroSection } from "../components";
+import { SolutionSection } from "../components/sections/SolutionSection";
+import { FaqSection } from "../components/sections/FaqSection";
+import { ContactSection } from "../components/sections/ContactSection";
+import { PilotSection } from "../components/sections/PilotSection";
+import { StickyMobileCTA } from "../components/layout/StickyMobileCTA";
 
-const ImpactRevealSection = lazy(() =>
-  import("../components/sections/ImpactRevealSection").then((m) => ({
-    default: m.ImpactRevealSection,
+// Lazy-load visually heavy sections (SVG illustrations, mockup graphics)
+const ProblemSection = lazy(() =>
+  import("../components/sections/ProblemSection").then((m) => ({
+    default: m.ProblemSection,
   })),
 );
-const PainPointsScrollSection = lazy(() =>
-  import("../components/sections/PainPointsScrollSection").then((m) => ({
-    default: m.PainPointsScrollSection,
+const PipelineSection = lazy(() =>
+  import("../components/sections/PipelineSection").then((m) => ({
+    default: m.PipelineSection,
   })),
 );
-const SolutionSection = lazy(() =>
-  import("../components/sections/SolutionSection").then((m) => ({
-    default: m.SolutionSection,
-  })),
-);
-const HowItWorksSection = lazy(() =>
-  import("../components/sections/HowItWorksSection").then((m) => ({
-    default: m.HowItWorksSection,
-  })),
-);
-const ProofSection = lazy(() =>
-  import("../components/sections/ProofSection").then((m) => ({
-    default: m.ProofSection,
-  })),
-);
-const FaqSection = lazy(() =>
-  import("../components/sections/FaqSection").then((m) => ({
-    default: m.FaqSection,
-  })),
-);
-const ContactSection = lazy(() =>
-  import("../components/sections/ContactSection").then((m) => ({
-    default: m.ContactSection,
+const DeliverablesSection = lazy(() =>
+  import("../components/sections/DeliverablesSection").then((m) => ({
+    default: m.DeliverablesSection,
   })),
 );
 
@@ -44,16 +30,21 @@ export default function LandingPage() {
       <main>
         <HeroSection />
         <Suspense fallback={null}>
-          <ImpactRevealSection />
-          <PainPointsScrollSection />
-          <SolutionSection />
-          <HowItWorksSection />
-          <ProofSection />
-          <FaqSection />
-          <ContactSection />
+          <ProblemSection />
         </Suspense>
+        <SolutionSection />
+        <Suspense fallback={null}>
+          <PipelineSection />
+        </Suspense>
+        <Suspense fallback={null}>
+          <DeliverablesSection />
+        </Suspense>
+        <PilotSection />
+        <FaqSection />
+        <ContactSection />
       </main>
       <Footer />
+      <StickyMobileCTA />
     </>
   );
 }

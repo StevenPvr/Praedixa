@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { PraedixaLogo } from "../../components/logo/PraedixaLogo";
 
 type Step =
   | "company"
@@ -47,6 +48,9 @@ const PILOT_BENEFITS = [
   "Résultat en 48h",
   "Sans engagement",
   "Accompagnement personnalisé",
+  "Tarif préférentiel 1 an",
+  "Support premium 1 an",
+  "Co-construction du produit",
 ] as const;
 
 export default function DevenirPilotePage() {
@@ -143,9 +147,13 @@ export default function DevenirPilotePage() {
       <nav className="fixed left-0 right-0 top-0 z-50 px-4 pt-4 md:px-6 md:pt-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-charcoal/10 bg-white/80 px-4 py-2.5 shadow-sm backdrop-blur-md md:px-6 md:py-3">
           <Link href="/" className="group flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/20 transition-transform duration-200 group-hover:scale-105">
-              <span className="text-sm font-bold text-white">P</span>
-            </div>
+            <PraedixaLogo
+              variant="industrial"
+              size={32}
+              color="#0f0f0f"
+              strokeWidth={1}
+              className="transition-transform duration-200 group-hover:scale-105"
+            />
             <span className="font-serif text-lg font-semibold tracking-tight text-charcoal">
               Praedixa
             </span>
@@ -557,6 +565,10 @@ export default function DevenirPilotePage() {
                   <li className="flex items-start gap-2">
                     <span className="mt-1 text-amber-600">3.</span>
                     Un premier échange pour comprendre vos besoins
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 text-amber-600">4.</span>
+                    Déploiement progressif de la solution complète
                   </li>
                 </ul>
               </div>

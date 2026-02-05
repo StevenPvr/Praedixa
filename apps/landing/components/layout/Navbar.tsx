@@ -6,9 +6,10 @@ import { motion, AnimatePresence, useScroll } from "framer-motion";
 import { PraedixaLogo } from "../logo/PraedixaLogo";
 
 const NAV_LINKS = [
-  { href: "#solution", label: "Solution" },
-  { href: "#how-it-works", label: "Comment ça marche" },
-  { href: "#proof", label: "Preuve" },
+  { href: "#problem", label: "Le problème" },
+  { href: "#solution", label: "La solution" },
+  { href: "#pipeline", label: "La vision" },
+  { href: "#pilot", label: "Programme pilote" },
   { href: "#faq", label: "FAQ" },
 ] as const;
 
@@ -18,10 +19,8 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
 
-  // Track scroll for background effect
   const { scrollY } = useScroll();
 
-  // Add background when scrolling
   useEffect(() => {
     const unsubscribe = scrollY.on("change", (latest) => {
       setHasScrolled(latest > 20);
@@ -29,30 +28,24 @@ export function Navbar() {
     return () => unsubscribe();
   }, [scrollY]);
 
-  // Close mobile menu on resize
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 768) {
         setIsMobileMenuOpen(false);
       }
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
     <>
-      <motion.nav
-        className="fixed left-0 right-0 top-0 z-50"
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      >
+      {/* CSS slideDown animation replaces Framer Motion initial entrance */}
+      <nav className="fixed left-0 right-0 top-0 z-50 animate-[slideDown_0.5s_ease-out]">
         <div
           className={`mx-auto flex max-w-7xl items-center justify-between px-6 py-4 transition-all duration-300 ${
             hasScrolled
-              ? "bg-white/80 backdrop-blur-lg shadow-sm border-b border-neutral-200/50 mx-4 mt-2 rounded-2xl"
+              ? "mx-4 mt-2 rounded-2xl border-b border-neutral-200/50 bg-white/80 shadow-sm backdrop-blur-lg"
               : "bg-transparent"
           }`}
         >
@@ -76,30 +69,24 @@ export function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                className="relative rounded-lg px-4 py-2 text-sm font-medium text-gray-secondary transition-all duration-200 hover:bg-charcoal/5 hover:text-charcoal"
+                className="relative rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 transition-all duration-200 hover:bg-charcoal/5 hover:text-charcoal"
               >
                 {link.label}
               </a>
             ))}
           </div>
 
-          {/* Desktop CTA */}
-          <div className="hidden items-center gap-4 md:flex">
-            <a
-              href="#contact"
-              className="text-sm font-medium text-gray-secondary transition-colors hover:text-charcoal"
-            >
-              Contact
-            </a>
+          {/* Desktop CTA — single amber button */}
+          <div className="hidden md:flex">
             <Link
               href={PILOT_HREF}
-              className="group relative overflow-hidden rounded-lg bg-charcoal px-5 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-charcoal/90 hover:shadow-lg hover:shadow-charcoal/25"
+              className="rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-charcoal transition-all duration-200 hover:bg-amber-400 hover:shadow-lg hover:shadow-amber-500/25"
             >
-              <span className="relative z-10">Devenir pilote</span>
+              Devenir pilote
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button — keep FM for hamburger animation */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="flex h-10 w-10 items-center justify-center rounded-lg bg-charcoal/5 transition-colors hover:bg-charcoal/10 md:hidden"
@@ -117,9 +104,7 @@ export function Navbar() {
               />
               <motion.span
                 className="block h-0.5 w-5 bg-charcoal"
-                animate={{
-                  opacity: isMobileMenuOpen ? 0 : 1,
-                }}
+                animate={{ opacity: isMobileMenuOpen ? 0 : 1 }}
                 transition={{ duration: 0.2 }}
               />
               <motion.span
@@ -133,13 +118,12 @@ export function Navbar() {
             </div>
           </button>
         </div>
-      </motion.nav>
+      </nav>
 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               className="fixed inset-0 z-40 bg-charcoal/20 backdrop-blur-sm md:hidden"
               initial={{ opacity: 0 }}
@@ -147,8 +131,6 @@ export function Navbar() {
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
             />
-
-            {/* Menu Panel */}
             <motion.div
               className="fixed left-4 right-4 top-20 z-50 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl md:hidden"
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -157,35 +139,21 @@ export function Navbar() {
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             >
               <nav className="flex flex-col gap-2">
-                {NAV_LINKS.map((link, index) => (
-                  <motion.a
+                {NAV_LINKS.map((link) => (
+                  <a
                     key={link.href}
                     href={link.href}
-                    className="rounded-xl px-4 py-3 text-base font-medium text-gray-secondary transition-colors hover:bg-charcoal/5 hover:text-charcoal"
+                    className="rounded-xl px-4 py-3.5 text-base font-medium text-neutral-600 transition-colors hover:bg-charcoal/5 hover:text-charcoal"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
                   >
                     {link.label}
-                  </motion.a>
+                  </a>
                 ))}
-                <motion.a
-                  href="#contact"
-                  className="rounded-xl px-4 py-3 text-base font-medium text-gray-secondary transition-colors hover:bg-charcoal/5 hover:text-charcoal"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: NAV_LINKS.length * 0.05 }}
-                >
-                  Contact
-                </motion.a>
               </nav>
-
               <div className="mt-6 border-t border-neutral-200 pt-6">
                 <Link
                   href={PILOT_HREF}
-                  className="flex w-full items-center justify-center rounded-xl bg-charcoal px-6 py-3.5 text-base font-semibold text-white transition-all hover:bg-charcoal/90"
+                  className="flex w-full items-center justify-center rounded-xl bg-amber-500 px-6 py-3.5 text-base font-semibold text-charcoal transition-all hover:bg-amber-400"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Devenir pilote

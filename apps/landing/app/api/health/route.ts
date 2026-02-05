@@ -5,25 +5,27 @@ export async function GET() {
   // Check required services without revealing WHICH specific variables
   // are present or missing. This prevents information disclosure that
   // would help an attacker fingerprint the deployment.
-  const allHealthy =
-    !!process.env.RESEND_API_KEY && !!process.env.NEXT_PUBLIC_SENTRY_DSN;
+  // Required services (Sentry is optional — monitoring only)
+  const requiredHealthy = !!process.env.RESEND_API_KEY;
+  const optionalHealthy = !!process.env.NEXT_PUBLIC_SENTRY_DSN;
 
-  if (!allHealthy) {
-    // Log degraded state to Sentry for operators -- never expose details to clients
-    Sentry.captureMessage("Health check degraded", {
+  if (!requiredHealthy) {
+    Sentry.captureMessage("Health check degraded: required service missing", {
       level: "warning",
-      extra: {
-        resendApiKey: !!process.env.RESEND_API_KEY,
-        sentryDsn: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
-      },
+      extra: { resendApiKey: false },
+    });
+  } else if (!optionalHealthy) {
+    Sentry.captureMessage("Health check: optional service missing", {
+      level: "info",
+      extra: { sentryDsn: false },
     });
   }
 
   return NextResponse.json(
     {
-      status: allHealthy ? "healthy" : "degraded",
+      status: requiredHealthy ? "healthy" : "degraded",
       timestamp: new Date().toISOString(),
     },
-    { status: allHealthy ? 200 : 503 },
+    { status: requiredHealthy ? 200 : 503 },
   );
 }

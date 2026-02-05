@@ -68,6 +68,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Audit dependencies (high + critical)
+        # TODO: lower to --audit-level=moderate once next@15.2.9 transitive
+        # vulnerabilities (via @opennextjs/cloudflare) are resolved upstream.
         run: pnpm audit --audit-level=high
 
   deploy:

@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
-import { SplashProvider } from "../context/SplashContext";
-import { ClientSplashWrapper } from "../components/ClientSplashWrapper";
-import { SmoothScrollProvider } from "../components/animations/SmoothScrollProvider";
 import { JsonLd } from "../components/seo/JsonLd";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -21,32 +18,30 @@ const dmSerif = DM_Serif_Display({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.praedixa.com"),
-  title:
-    "Praedixa - Sécurisez la couverture terrain, réduisez le coût des trous de planning",
+  title: "Praedixa — Planning équipes terrain | Diagnostic 48h",
   description:
-    "Logiciel B2B pour piloter la sous-couverture (capacité vs charge) des équipes terrain multi-sites. En 48h : où vous serez sous-couverts, combien ça coûte, quoi faire. Sans intégration.",
+    "Anticipez les trous de planning de vos équipes terrain multi-sites. Diagnostic en 48h : coût chiffré, plan d'action, sans intégration IT. Essai gratuit.",
   keywords: [
-    // Primaires - Couverture terrain
-    "couverture terrain",
-    "trous de planning",
-    "sous-couverture effectifs",
-    "plan de couverture",
-    "capacité vs charge",
-    "pilotage capacité charge",
-    // Secondaires - Coûts et prévision
-    "coût intérim urgence",
-    "prévision sous-effectif",
-    "diagnostic planning",
-    "optimisation couverture",
-    // Long-tail
-    "éviter trous planning logistique",
-    "coût absentéisme non planifié",
-    "diagnostic couverture 48h",
-    "PME multi-sites planning",
-    // Marché FR
-    "SaaS opérations France",
-    "RGPD gestion planning",
-    "pilotage ops PME ETI",
+    "gestion planning équipes terrain",
+    "logiciel planning multi-sites",
+    "workforce management PME",
+    "planification effectifs",
+    "optimisation planning opérationnel",
+    "prévision absentéisme entreprise",
+    "outil planning logistique",
+    "capacité vs charge planning",
+    "réduire coût intérim urgence",
+    "anticiper sous-effectif multi-sites",
+    "diagnostic planning opérationnel 48h",
+    "calculer coût trous de planning",
+    "couverture terrain PME ETI",
+    "SaaS planning opérations France",
+    "logiciel RGPD gestion planning",
+    "alternative SIRH PME",
+    "pilotage prédictif opérations",
+    "prévision absences terrain",
+    "optimisation sous contraintes planning",
+    "KPI économiques couverture terrain",
   ],
   authors: [{ name: "Praedixa" }],
   alternates: {
@@ -60,12 +55,11 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-touch-icon.png",
   },
-  manifest: "/site.webmanifest",
   openGraph: {
     title:
-      "Praedixa - Sécurisez la couverture terrain, réduisez le coût des trous de planning",
+      "Praedixa — Anticipez les trous de planning terrain et chiffrez le coût en 48h",
     description:
-      "Logiciel B2B pour piloter la sous-couverture (capacité vs charge) des équipes terrain multi-sites. En 48h : où vous serez sous-couverts, combien ça coûte, quoi faire. Sans intégration.",
+      "Anticipez les trous de planning de vos équipes terrain multi-sites. Diagnostic en 48h : coût chiffré, plan d'action, sans intégration IT. Essai gratuit.",
     url: "https://www.praedixa.com",
     siteName: "Praedixa",
     locale: "fr_FR",
@@ -75,16 +69,15 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Praedixa - Plan de couverture terrain chiffré pour PME/ETI multi-sites",
+        alt: "Praedixa — Diagnostic planning terrain en 48h pour PME/ETI multi-sites",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title:
-      "Praedixa - Sécurisez la couverture terrain, réduisez le coût des trous de planning",
+    title: "Praedixa — Planning équipes terrain | Diagnostic 48h",
     description:
-      "Sous-couverture (capacité vs charge) : diagnostic en 48h pour équipes terrain multi-sites. Coût, actions, sans intégration.",
+      "Anticipez les trous de planning terrain en 48h. Des exports CSV suffisent. Diagnostic gratuit.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -104,11 +97,7 @@ export default function RootLayout({
         <JsonLd />
       </head>
       <body className="min-h-screen bg-cream font-sans text-charcoal antialiased">
-        <SmoothScrollProvider>
-          <SplashProvider>
-            <ClientSplashWrapper>{children}</ClientSplashWrapper>
-          </SplashProvider>
-        </SmoothScrollProvider>
+        {children}
       </body>
     </html>
   );
