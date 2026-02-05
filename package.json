@@ -1,0 +1,51 @@
+{
+  "name": "praedixa",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @praedixa/landing dev",
+    "dev:landing": "pnpm --filter @praedixa/landing dev",
+    "build": "turbo build",
+    "build:landing": "turbo build --filter=@praedixa/landing",
+    "lint": "turbo lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "turbo typecheck",
+    "cf:build": "pnpm --filter @praedixa/landing cf:build",
+    "preview": "pnpm --filter @praedixa/landing preview",
+    "deploy": "pnpm --filter @praedixa/landing deploy",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "clean": "turbo clean && rm -rf node_modules",
+    "pre-commit": "pre-commit run --all-files",
+    "postinstall": "sh scripts/install-pre-commit.sh"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^19.0.0",
+      "@types/react-dom": "^19.0.0"
+    }
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.0.0",
+    "jsdom": "^26.0.0",
+    "prettier": "^3.2.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^3.0.4"
+  }
+}
