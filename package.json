@@ -17,7 +17,7 @@
     "typecheck": "pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build && pnpm --filter @praedixa/landing typecheck",
     "cf:build": "pnpm --filter @praedixa/landing cf:build",
     "preview": "pnpm --filter @praedixa/landing preview",
-    "deploy": "pnpm --filter @praedixa/landing deploy",
+    "deploy": "pnpm --filter @praedixa/landing run deploy",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo clean && rm -rf node_modules",
