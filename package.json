@@ -14,7 +14,7 @@
     "lint": "pnpm --filter @praedixa/shared-types lint && pnpm --filter @praedixa/ui lint && pnpm --filter @praedixa/landing lint",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
-    "typecheck": "pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build && pnpm --filter @praedixa/landing typecheck",
+    "typecheck": "tsc --build",
     "cf:build": "pnpm --filter @praedixa/landing cf:build",
     "preview": "pnpm --filter @praedixa/landing preview",
     "deploy": "pnpm --filter @praedixa/landing run deploy",
