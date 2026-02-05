@@ -108,6 +108,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build workspace packages
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+
       - name: Deploy to Cloudflare Workers
         run: pnpm run deploy
         env:

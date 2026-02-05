@@ -62,7 +62,9 @@ const config: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://browser.sentry-cdn.com",
+              // 'unsafe-eval' removed: Next.js 15 App Router does not need it in production.
+              // This closes an XSS amplification vector where injected scripts could use eval().
+              "script-src 'self' 'unsafe-inline' https://browser.sentry-cdn.com",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
@@ -71,6 +73,8 @@ const config: NextConfig = {
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
+              // Prevent the page from being embedded as an object/embed
+              "object-src 'none'",
             ].join("; "),
           },
           {
@@ -81,6 +85,21 @@ const config: NextConfig = {
           {
             key: "X-DNS-Prefetch-Control",
             value: "on",
+          },
+          // Prevent cross-origin window.opener attacks (Spectre mitigation)
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin",
+          },
+          // Prevent cross-origin resource leaks
+          {
+            key: "Cross-Origin-Resource-Policy",
+            value: "same-origin",
+          },
+          // Block Flash/PDF cross-domain policy files
+          {
+            key: "X-Permitted-Cross-Domain-Policies",
+            value: "none",
           },
         ],
       },
