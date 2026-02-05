@@ -1,0 +1,233 @@
+// Decision domain types - Recommendations and actions
+
+import type {
+  TenantEntity,
+  UUID,
+  ISODateString,
+  ISODateTimeString,
+} from "../utils/common";
+import type { DateRange } from "../utils/dates";
+import type { AbsenceType } from "./absence";
+import type { RiskIndicators } from "./forecast";
+
+/** Decision type */
+export type DecisionType =
+  | "replacement" // Hire replacement
+  | "redistribution" // Redistribute work
+  | "postponement" // Postpone non-critical tasks
+  | "overtime" // Approve overtime
+  | "external" // External contractor
+  | "training" // Cross-training
+  | "no_action"; // Accept risk
+
+/** Decision status */
+export type DecisionStatus =
+  | "suggested" // AI-generated suggestion
+  | "pending_review" // Awaiting manager review
+  | "approved" // Manager approved
+  | "rejected" // Manager rejected
+  | "implemented" // Action taken
+  | "expired"; // No longer relevant
+
+/** Decision priority */
+export type DecisionPriority = "low" | "medium" | "high" | "critical";
+
+/** Decision/Recommendation entity */
+export interface Decision extends TenantEntity {
+  /** Related forecast run */
+  forecastRunId?: UUID;
+  /** Target date range */
+  targetPeriod: DateRange;
+  /** Department affected */
+  departmentId: UUID;
+  /** Decision type */
+  type: DecisionType;
+  /** Priority level */
+  priority: DecisionPriority;
+  /** Status */
+  status: DecisionStatus;
+  /** Title/Summary */
+  title: string;
+  /** Detailed description */
+  description: string;
+  /** Rationale/Justification */
+  rationale: string;
+  /** Risk indicators that triggered this */
+  riskIndicators: RiskIndicators;
+  /** Estimated cost of action */
+  estimatedCost?: number;
+  /** Estimated cost of inaction */
+  costOfInaction?: number;
+  /** ROI if implemented */
+  estimatedROI?: number;
+  /** Confidence score (0-100) */
+  confidenceScore: number;
+  /** Related employee (if applicable) */
+  relatedEmployeeId?: UUID;
+  /** Suggested replacement employee */
+  suggestedReplacementId?: UUID;
+  /** Manager who reviewed */
+  reviewedBy?: UUID;
+  /** Review timestamp */
+  reviewedAt?: ISODateTimeString;
+  /** Manager notes */
+  managerNotes?: string;
+  /** Implementation deadline */
+  implementationDeadline?: ISODateString;
+  /** Implemented by */
+  implementedBy?: UUID;
+  /** Implemented at */
+  implementedAt?: ISODateTimeString;
+  /** Outcome tracking */
+  outcome?: DecisionOutcome;
+}
+
+/** Decision outcome after implementation */
+export interface DecisionOutcome {
+  /** Was the decision effective? */
+  effective: boolean;
+  /** Actual cost incurred */
+  actualCost?: number;
+  /** Actual impact on operations */
+  actualImpact: string;
+  /** Lessons learned */
+  lessonsLearned?: string;
+  /** Recorded at */
+  recordedAt: ISODateTimeString;
+  /** Recorded by */
+  recordedBy: UUID;
+}
+
+/** Decision summary for listings */
+export interface DecisionSummary {
+  id: UUID;
+  type: DecisionType;
+  priority: DecisionPriority;
+  status: DecisionStatus;
+  title: string;
+  targetPeriod: DateRange;
+  departmentId: UUID;
+  departmentName?: string;
+  estimatedCost?: number;
+  costOfInaction?: number;
+  confidenceScore: number;
+}
+
+/** Replacement recommendation */
+export interface ReplacementRecommendation {
+  /** Absent employee */
+  absentEmployeeId: UUID;
+  absentEmployeeName: string;
+  /** Absence period */
+  absencePeriod: DateRange;
+  /** Absence type */
+  absenceType: AbsenceType;
+  /** Recommended replacements (ranked) */
+  recommendations: ReplacementCandidate[];
+  /** Estimated daily cost without replacement */
+  dailyCostWithoutReplacement: number;
+  /** Risk level if no replacement */
+  riskWithoutReplacement: "low" | "medium" | "high" | "critical";
+}
+
+/** Replacement candidate */
+export interface ReplacementCandidate {
+  /** Employee ID */
+  employeeId: UUID;
+  /** Employee name */
+  employeeName: string;
+  /** Match score (0-100) */
+  matchScore: number;
+  /** Skills match */
+  skillsMatch: string[];
+  /** Skills gap */
+  skillsGap: string[];
+  /** Availability during period */
+  availability: "full" | "partial" | "none";
+  /** Available days */
+  availableDays?: number;
+  /** Estimated cost */
+  estimatedCost: number;
+  /** Pros */
+  pros: string[];
+  /** Cons */
+  cons: string[];
+  /** Is internal or external */
+  isInternal: boolean;
+}
+
+/** Cost impact analysis */
+export interface CostImpactAnalysis {
+  period: DateRange;
+  departmentId?: UUID;
+  /** Direct costs */
+  directCosts: {
+    replacementCosts: number;
+    overtimeCosts: number;
+    externalContractorCosts: number;
+  };
+  /** Indirect costs */
+  indirectCosts: {
+    productivityLoss: number;
+    managementOverhead: number;
+    trainingCosts: number;
+  };
+  /** Total cost */
+  totalCost: number;
+  /** Cost per absence day */
+  costPerAbsenceDay: number;
+  /** Comparison with previous period */
+  comparison?: {
+    previousPeriodCost: number;
+    percentageChange: number;
+  };
+}
+
+/** Action plan */
+export interface ActionPlan {
+  id: UUID;
+  organizationId: UUID;
+  name: string;
+  description: string;
+  period: DateRange;
+  status: "draft" | "active" | "completed" | "archived";
+  /** Decisions included in this plan */
+  decisions: DecisionSummary[];
+  /** Total estimated cost */
+  totalEstimatedCost: number;
+  /** Total estimated savings */
+  totalEstimatedSavings: number;
+  /** Created by */
+  createdBy: UUID;
+  /** Approved by */
+  approvedBy?: UUID;
+  /** Approval date */
+  approvedAt?: ISODateTimeString;
+}
+
+/** Dashboard alert */
+export interface DashboardAlert {
+  id: UUID;
+  type: "risk" | "decision" | "forecast" | "absence" | "system";
+  severity: "info" | "warning" | "error" | "critical";
+  title: string;
+  message: string;
+  /** Related entity */
+  relatedEntityType?:
+    | "absence"
+    | "decision"
+    | "forecast"
+    | "employee"
+    | "department";
+  relatedEntityId?: UUID;
+  /** Action URL */
+  actionUrl?: string;
+  /** Action label */
+  actionLabel?: string;
+  /** Created at */
+  createdAt: ISODateTimeString;
+  /** Dismissed by user */
+  dismissedAt?: ISODateTimeString;
+  /** Auto-dismiss after */
+  expiresAt?: ISODateTimeString;
+}

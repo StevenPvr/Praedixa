@@ -35,14 +35,14 @@ repos:
 
       - id: eslint
         name: eslint (check)
-        entry: pnpm turbo lint
+        entry: pnpm lint
         language: system
         types_or: [ts, tsx, javascript, jsx]
         pass_filenames: false
 
       - id: typecheck
         name: typescript (check)
-        entry: pnpm turbo typecheck
+        entry: pnpm typecheck
         language: system
         types_or: [ts, tsx]
         pass_filenames: false
@@ -55,6 +55,6 @@ repos:
 
       - id: build
         name: next build (check)
-        entry: pnpm turbo build
+        entry: pnpm build
         language: system
         pass_filenames: false

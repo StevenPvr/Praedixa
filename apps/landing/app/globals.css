@@ -1,0 +1,252 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Design tokens Praedixa */
+  color-scheme: light;
+
+  /* Core colors */
+  --color-bg: #fafaf8;
+  --color-text-primary: #0f0f0f;
+  --color-text-secondary: #525252;
+  --color-text-muted: #737373;
+
+  /* Accent colors */
+  --color-accent: #f59e0b;
+  --color-accent-hover: #d97706;
+  --color-accent-light: #fef3c7;
+
+  /* Logo color */
+  --color-logo: #0f0f0f;
+  --color-logo-light: #ffffff;
+
+  /* Typography */
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "DM Serif Display", ui-serif, Georgia, serif;
+
+  /* Spacing & Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+}
+
+@layer base {
+  body {
+    @apply bg-cream text-charcoal antialiased;
+  }
+
+  /* Smooth scroll for anchor links */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  /* Scroll-driven animations - CSS-first approach */
+  /* These use animation-timeline: view() for modern browsers */
+  /* Fallback: content is visible without animation */
+
+  .animate-fade-up {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .animate-fade-in {
+    opacity: 1;
+  }
+
+  .animate-scale-in {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Progressive enhancement for browsers supporting scroll-driven animations */
+  @supports (animation-timeline: view()) {
+    .scroll-fade-up {
+      opacity: 0;
+      transform: translateY(2rem);
+      animation: fadeUp linear forwards;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+
+    .scroll-fade-in {
+      opacity: 0;
+      animation: fadeIn linear forwards;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+
+    .scroll-scale-in {
+      opacity: 0;
+      transform: scale(0.95);
+      animation: scaleIn linear forwards;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+
+    /* Staggered animations for children */
+    .scroll-stagger > * {
+      opacity: 0;
+      transform: translateY(1.5rem);
+      animation: fadeUp linear forwards;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+
+    .scroll-stagger > *:nth-child(1) {
+      animation-delay: 0ms;
+    }
+    .scroll-stagger > *:nth-child(2) {
+      animation-delay: 100ms;
+    }
+    .scroll-stagger > *:nth-child(3) {
+      animation-delay: 200ms;
+    }
+    .scroll-stagger > *:nth-child(4) {
+      animation-delay: 300ms;
+    }
+    .scroll-stagger > *:nth-child(5) {
+      animation-delay: 400ms;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes scaleIn {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  }
+
+  /* Respect user preference for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-fade-up,
+    .scroll-fade-in,
+    .scroll-scale-in,
+    .scroll-stagger > * {
+      opacity: 1 !important;
+      transform: none !important;
+      animation: none !important;
+    }
+  }
+
+  /* Parallax helper - will be controlled via JS for broader support */
+  .parallax-slow {
+    will-change: transform;
+  }
+}
+
+/* Hero section specific styles */
+.hero-gradient {
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.4) 0%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+}
+
+/* Section divider */
+.section-divider {
+  @apply mx-auto h-px w-24 bg-gradient-to-r from-transparent via-neutral-300 to-transparent;
+}
+
+/* Card hover effect */
+.card-hover {
+  @apply transition-all duration-300 ease-out;
+}
+
+.card-hover:hover {
+  @apply -translate-y-1 shadow-lg;
+}
+
+/* Number step indicator */
+.step-number {
+  @apply flex h-12 w-12 items-center justify-center rounded-full border-2 border-amber-500 bg-white text-lg font-bold text-amber-600;
+}
+
+/* Connecting line for steps */
+.step-line {
+  @apply absolute left-6 top-12 h-full w-0.5 -translate-x-1/2 bg-gradient-to-b from-amber-500/50 to-transparent;
+}
+
+/* Dark mode support for hero section */
+@media (prefers-color-scheme: dark) {
+  .dark\:bg-\[rgb\(8\,9\,10\)\] {
+    background-color: rgb(8, 9, 10);
+  }
+}
+
+/* ============================================
+   SPLASH SCREEN STYLES
+   ============================================ */
+
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0a0a0a;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.splash-logo {
+  filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.12));
+}
+
+.splash-text-container {
+  margin-top: 1rem;
+}
+
+.splash-letter {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  color: #ffffff;
+}
+
+@media (min-width: 640px) {
+  .splash-letter {
+    font-size: 2rem;
+    letter-spacing: 0.4em;
+  }
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
