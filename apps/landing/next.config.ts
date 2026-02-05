@@ -1,29 +1,9 @@
 import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
-import { withSentryConfig } from "@sentry/nextjs";
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
-
-// ---------------------------------------------------------------------------
-// CSP violation reporting → Sentry
-// Parses the Sentry DSN to build the security report-uri endpoint.
-// See https://docs.sentry.io/product/security-policy-reporting/
-// ---------------------------------------------------------------------------
-function buildCspReportUri(dsn: string | undefined): string | null {
-  if (!dsn) return null;
-  try {
-    const url = new URL(dsn);
-    const projectId = url.pathname.replace("/", "");
-    const key = url.username;
-    return `https://${url.hostname}/api/${projectId}/security/?sentry_key=${key}`;
-  } catch {
-    return null;
-  }
-}
-
-const cspReportUri = buildCspReportUri(process.env.NEXT_PUBLIC_SENTRY_DSN);
 
 const config: NextConfig = {
   output: "standalone",
@@ -39,11 +19,6 @@ const config: NextConfig = {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-  },
-
-  // Ensure Sentry server files are included in Cloudflare Workers bundle
-  outputFileTracingIncludes: {
-    "/": ["./sentry.server.config.ts"],
   },
 
   // Caching headers for static assets + security headers
@@ -83,32 +58,19 @@ const config: NextConfig = {
               "default-src 'self'",
               // 'unsafe-eval' removed: Next.js 15 App Router does not need it in production.
               // This closes an XSS amplification vector where injected scripts could use eval().
-              "script-src 'self' 'unsafe-inline' https://browser.sentry-cdn.com",
+              "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.ingest.de.sentry.io",
+              "connect-src 'self'",
               "worker-src 'self' blob:",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
               // Prevent the page from being embedded as an object/embed
               "object-src 'none'",
-              // CSP violation reporting → Sentry (only when DSN is set)
-              ...(cspReportUri
-                ? [`report-uri ${cspReportUri}`, "report-to csp-endpoint"]
-                : []),
             ].join("; "),
           },
-          // Reporting API v1 endpoint for CSP report-to directive
-          ...(cspReportUri
-            ? [
-                {
-                  key: "Reporting-Endpoints",
-                  value: `csp-endpoint="${cspReportUri}"`,
-                },
-              ]
-            : []),
           {
             key: "Permissions-Policy",
             value:
@@ -139,27 +101,4 @@ const config: NextConfig = {
   },
 };
 
-export default withSentryConfig(withBundleAnalyzer(config), {
-  // Upload source maps for readable stack traces
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-
-  // Route Sentry events through /monitoring to bypass ad-blockers
-  tunnelRoute: "/monitoring",
-
-  // Upload larger set of source maps for better stack traces
-  widenClientFileUpload: true,
-
-  // Delete source maps after upload (keeps them out of browser devtools)
-  sourcemaps: {
-    deleteSourcemapsAfterUpload: true,
-  },
-
-  // Remove Sentry debug logger from production bundle
-  bundleSizeOptimizations: {
-    excludeDebugStatements: true,
-  },
-
-  // Only upload source maps in CI (requires SENTRY_AUTH_TOKEN)
-  silent: !process.env.SENTRY_AUTH_TOKEN,
-});
+export default withBundleAnalyzer(config);

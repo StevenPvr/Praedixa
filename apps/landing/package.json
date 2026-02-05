@@ -18,14 +18,11 @@
     "@opennextjs/cloudflare": "^1.16.0",
     "@praedixa/shared-types": "workspace:*",
     "@praedixa/ui": "workspace:*",
-    "@sentry/nextjs": "^10.38.0",
     "framer-motion": "^12.31.0",
-    "import-in-the-middle": "^3.0.0",
     "lucide-react": "^0.563.0",
     "next": "15.2.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "require-in-the-middle": "^8.0.1",
     "resend": "^6.9.1"
   },
   "devDependencies": {

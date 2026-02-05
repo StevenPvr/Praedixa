@@ -1,20 +1,6 @@
-import * as Sentry from "@sentry/nextjs";
 import Link from "next/link";
-import { headers } from "next/headers";
 
-export default async function NotFound() {
-  const headersList = await headers();
-  const path =
-    headersList.get("x-next-url") ?? headersList.get("referer") ?? "unknown";
-  const referer = headersList.get("referer") ?? "none";
-
-  Sentry.captureMessage("404 Not Found", {
-    level: "warning",
-    tags: { page: "not-found" },
-    extra: { path, referer },
-    fingerprint: ["404", path],
-  });
-
+export default function NotFound() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-cream px-4">
       <div className="max-w-md text-center">
