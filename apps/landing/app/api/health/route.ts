@@ -1,8 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 export async function GET() {
   // Check required services without revealing WHICH specific variables
   // are present or missing. This prevents information disclosure that
