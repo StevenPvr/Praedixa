@@ -1,0 +1,108 @@
+name: CD — API
+
+on:
+  workflow_run:
+    workflows: ["CI — API"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: cd-api
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/api
+
+jobs:
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    # Only run if CI succeeded and was triggered by a push to main
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-,format=short
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/api
+          file: ./apps/api/Dockerfile
+          target: production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-render:
+    name: Deploy to Render
+    needs: [build-and-push]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Trigger Render deploy
+        run: |
+          response=$(curl -sf -o /dev/null -w "%{http_code}" \
+            -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
+          if [ "$response" != "200" ] && [ "$response" != "201" ]; then
+            echo "::error::Render deploy hook returned HTTP $response"
+            exit 1
+          fi
+          echo "Render deploy triggered (HTTP $response)"
+
+      - name: Wait for deployment rollout
+        run: |
+          echo "Waiting for Render deployment (includes cold start)..."
+          sleep 60
+
+      - name: Smoke test — health check
+        run: |
+          MAX_RETRIES=10
+          RETRY_DELAY=15
+          for i in $(seq 1 $MAX_RETRIES); do
+            response=$(curl -sf -o /dev/null -w "%{http_code}" https://api.praedixa.com/health || true)
+            if [ "$response" = "200" ]; then
+              echo "Health check passed (HTTP 200)"
+              break
+            fi
+            echo "Attempt $i/$MAX_RETRIES: HTTP $response - retrying in ${RETRY_DELAY}s..."
+            sleep $RETRY_DELAY
+            if [ "$i" = "$MAX_RETRIES" ]; then
+              echo "::error::Health check failed after $MAX_RETRIES attempts (last HTTP $response)"
+              exit 1
+            fi
+          done
+
+      - name: Smoke test — auth guard
+        run: |
+          response=$(curl -sf -o /dev/null -w "%{http_code}" https://api.praedixa.com/api/v1/dashboard/summary || true)
+          if [ "$response" != "401" ]; then
+            echo "::error::Auth guard test failed — expected 401, got $response"
+            exit 1
+          fi
+          echo "Auth guard OK (HTTP 401 for unauthenticated request)"

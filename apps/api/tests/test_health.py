@@ -35,8 +35,8 @@ async def test_health_returns_200_when_db_healthy(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_health_returns_degraded_when_db_fails(client: AsyncClient) -> None:
-    """GET /health should return 200 with status degraded when DB is unreachable."""
+async def test_health_returns_503_when_db_fails(client: AsyncClient) -> None:
+    """GET /health should return 503 with status degraded when DB is unreachable."""
     mock_session = AsyncMock()
     mock_session.__aenter__ = AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = AsyncMock(return_value=False)
@@ -45,7 +45,7 @@ async def test_health_returns_degraded_when_db_fails(client: AsyncClient) -> Non
     with patch("app.routers.health.async_session_factory", return_value=mock_session):
         response = await client.get("/health")
 
-    assert response.status_code == 200
+    assert response.status_code == 503
     data = response.json()
     assert data["status"] == "degraded"
     assert data["checks"] == [{"name": "database", "status": "fail"}]

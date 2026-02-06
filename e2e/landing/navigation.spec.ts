@@ -8,7 +8,7 @@ test.describe("Landing navigation", () => {
 
   test("navbar is visible and contains logo", async ({ page }) => {
     await page.goto("/");
-    const nav = page.locator("nav");
+    const nav = page.locator("nav").first();
     await expect(nav).toBeVisible();
     // Logo text should be present
     await expect(nav.getByText("Praedixa")).toBeVisible();
@@ -47,12 +47,11 @@ test.describe("Landing navigation", () => {
   test("mobile menu works on small viewport", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/");
-    // Navigation should still be present
-    await expect(page.locator("nav")).toBeVisible();
-    // Look for a mobile toggle (hamburger) button
-    const menuButton = page.locator(
-      'nav button[aria-label*="menu" i], nav button[aria-label*="Menu" i], nav button',
-    );
+    // Navigation should still be present (first nav = header)
+    await expect(page.locator("nav").first()).toBeVisible();
+    // Look for a mobile toggle (hamburger) button in the header nav
+    const headerNav = page.locator("nav").first();
+    const menuButton = headerNav.locator("button");
     const buttonCount = await menuButton.count();
     // A mobile-responsive navbar should have at least one toggle button
     expect(buttonCount).toBeGreaterThanOrEqual(0);

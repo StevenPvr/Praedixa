@@ -14,7 +14,7 @@ from sqlalchemy import Date, ForeignKey, Numeric
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TenantMixin
+from app.models.base import Base, TenantMixin, sa_enum
 
 
 class ForecastDimension(str, enum.Enum):
@@ -56,7 +56,9 @@ class DailyForecast(TenantMixin, Base):
     forecast_date: Mapped[date] = mapped_column(
         Date, nullable=False, index=True
     )
-    dimension: Mapped[ForecastDimension] = mapped_column(nullable=False)
+    dimension: Mapped[ForecastDimension] = mapped_column(
+        sa_enum(ForecastDimension), nullable=False
+    )
     predicted_demand: Mapped[float] = mapped_column(
         Numeric(10, 2), nullable=False
     )

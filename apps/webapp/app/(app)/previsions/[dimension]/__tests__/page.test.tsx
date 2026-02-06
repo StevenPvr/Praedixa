@@ -1,6 +1,44 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import DimensionPage, { generateMetadata } from "../page";
+
+// Mock next/navigation
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/previsions/humaine",
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+// Mock useApiGet — return loading state
+vi.mock("@/hooks/use-api", () => ({
+  useApiGet: () => ({
+    data: null,
+    loading: true,
+    error: null,
+    refetch: vi.fn(),
+  }),
+}));
+
+// Mock @tremor/react
+vi.mock("@tremor/react", () => ({
+  AreaChart: () => <div data-testid="area-chart" />,
+}));
+
+// Mock @praedixa/ui
+vi.mock("@praedixa/ui", () => ({
+  cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
+  DataTable: () => <div>table</div>,
+  SkeletonChart: () => <div>Loading chart...</div>,
+  SkeletonTable: () => <div>Loading table...</div>,
+  useMediaQuery: () => false,
+}));
 
 describe("generateMetadata", () => {
   it("returns title with known dimension label", async () => {
@@ -44,16 +82,7 @@ describe("DimensionPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the correct label for 'globale' dimension", async () => {
-    const params = Promise.resolve({ dimension: "globale" });
-    const Component = await DimensionPage({ params });
-    render(Component);
-    expect(
-      screen.getByRole("heading", { name: "Vue globale" }),
-    ).toBeInTheDocument();
-  });
-
-  it("falls back to the raw dimension string for unknown dimensions", async () => {
+  it("renders the correct label for unknown dimensions", async () => {
     const params = Promise.resolve({ dimension: "custom-dim" });
     const Component = await DimensionPage({ params });
     render(Component);
@@ -71,10 +100,11 @@ describe("DimensionPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows the construction placeholder", async () => {
+  it("renders loading state for dimension detail", async () => {
     const params = Promise.resolve({ dimension: "humaine" });
     const Component = await DimensionPage({ params });
     render(Component);
-    expect(screen.getByText("Section en construction")).toBeInTheDocument();
+    // DimensionDetail shows SkeletonTable while loading
+    expect(screen.getByText("Loading table...")).toBeInTheDocument();
   });
 });

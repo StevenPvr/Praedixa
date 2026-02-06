@@ -24,3 +24,50 @@ export function getSupabaseBrowserClient() {
 
   return client;
 }
+
+interface GetValidAccessTokenOptions {
+  minTtlSeconds?: number;
+}
+
+export async function getValidAccessToken(
+  options: GetValidAccessTokenOptions = {},
+): Promise<string | null> {
+  const { minTtlSeconds = 60 } = options;
+  const supabase = getSupabaseBrowserClient();
+  const now = Math.floor(Date.now() / 1000);
+
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    let nextSession = session;
+    const isExpiringSoon =
+      !!nextSession?.expires_at &&
+      nextSession.expires_at - now <= minTtlSeconds;
+
+    if (!nextSession || isExpiringSoon) {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) {
+        return null;
+      }
+      nextSession = data.session;
+    }
+
+    return nextSession?.access_token ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function clearAuthSession(): Promise<void> {
+  const supabase = getSupabaseBrowserClient();
+
+  try {
+    // Local sign-out clears browser auth state/cookies without requiring
+    // a network round-trip.
+    await supabase.auth.signOut({ scope: "local" });
+  } catch {
+    // Best effort: caller still redirects to login.
+  }
+}

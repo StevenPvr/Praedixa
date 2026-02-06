@@ -1,7 +1,7 @@
 # Praedixa Web App — POC Design
 
 Date : 6 fevrier 2026
-Statut : Valide (brainstorming)
+Statut : Sprint 0 + Sprint 1 termines — Sprint 2 a demarrer
 
 ---
 
@@ -323,36 +323,107 @@ Cible : directeurs d'exploitation (45-55 ans), pas des developpeurs.
 
 ## 8. Sequencement du developpement
 
-### Phase 1 : Fondations
+### Sprint 0 — Fondations (6 fevrier 2026) ✅ TERMINE
 
-- Setup apps/webapp (Next.js 15 + Tailwind + Tremor)
-- Setup apps/api (FastAPI + SQLAlchemy + Pydantic)
-- Auth Supabase (login/logout, verification JWT)
-- Schema PostgreSQL (Data Foundation)
-- Sidebar + layout de base
-- Deploiement Scaleway (API + DB)
+**Phase 1 : Fondations**
 
-### Phase 2 : Diagnostic (premier ecran fonctionnel)
+- [x] Setup apps/webapp (Next.js 15 + Tailwind)
+- [x] Setup apps/api (FastAPI + SQLAlchemy 2.0 async + Pydantic)
+- [x] Auth Supabase (login/logout, verification JWT cote API, middleware Next.js)
+- [x] Schema PostgreSQL (11 modeles ORM + migration Alembic 001_initial_schema)
+- [x] Sidebar + layout de base (lucide icons, role-based filtering, active state amber)
+- [x] 9 pages scaffoldees (dashboard, donnees, previsions, previsions/[dimension], arbitrage, arbitrage/[alertId], decisions, rapports, parametres)
+- [x] API client type (lib/api/client.ts avec JWT injection)
+- [x] Securite : CSP, COOP, CORP, sanitization, audit logging, PraedixaError hierarchy
+- [x] Compatibilite Safari (CSP conditionnel, COEP retire, box-shadows rgba)
+- [x] Composants UI partages : stat-card, data-table, status-badge, page-header (packages/ui)
+- [x] Tests : 773 Vitest (100% coverage) + 11 Pytest + config Playwright E2E
+- [x] Pre-commit hooks : ruff, pytest, clean-artifacts pour webapp
+- [ ] Deploiement Scaleway (API + DB) — reporte au Sprint 2
+- [x] Integration Tremor (graphiques) — Sprint 1
+- [ ] Package api-client (genere depuis OpenAPI spec) — reporte post-POC
 
-- Dashboard avec KPIs pre-calcules
-- Ecran Donnees (lecture seule)
-- Ecran Previsions (capacite humaine + marchandise)
-- Donnees de demonstration realistes
+**Palette implementee** : OKLCH (P3-enhanced) au lieu du hex prevu dans le design.
+Les box-shadows utilisent rgba/hex pour compatibilite Safari < 17.4.
 
-### Phase 3 : Arbitrage & decisions
+---
 
-- Ecran Arbitrage (options chiffrees)
-- Ecran Decisions (journal + validation)
-- Logique de recommandation
+### Sprint 1 — Dashboard Fonctionnel (6 fevrier 2026) ✅ TERMINE
+
+**Objectif** : rendre le dashboard fonctionnel avec des donnees de demonstration
+realistes, connecter le frontend a l'API, et deployer un premier environnement.
+
+**Equipe** : 5 agents paralleles (frontend, backend, security, devops, ux) — 18 taches.
+
+**Taches prioritaires :**
+
+- [x] Donnees de demonstration realistes (seed PostgreSQL avec 2 sites, 6 equipes, 180 daily forecasts, 3 alertes)
+- [x] Endpoints API CRUD : GET /dashboard/summary, GET /forecasts, GET /forecasts/{id}/daily, GET /alerts, PATCH /alerts/{id}/dismiss, GET /organizations/me, GET /sites, GET /departments
+- [x] Dashboard fonctionnel : 4 KPIs dynamiques (stat-cards), liste alertes avec dismiss, forecast chart
+- [x] Integration Tremor : AreaChart forecast (demand vs capacity, confidence bands), BarChart distribution risque
+- [x] Ecran Donnees : DataTable sites + DataTable departements avec tri par colonnes et filtre par site
+- [x] Ecran Previsions : filtres dimension, risk cards hierarchiques (vert/orange/rouge), BarChart, detail par dimension
+- [x] Connexion frontend-API : hooks useApiGet/useApiGetPaginated avec AbortController, gestion loading/error/401
+- [x] Tests d'integration API (24 tests endpoints reels avec fixtures mock, 23 tests tenant isolation securite)
+- [x] CI/CD : ci-api.yml (ruff + pytest + bandit + integration PG) + cd-api.yml (Docker build + push ghcr.io)
+
+**Taches secondaires :**
+
+- [x] Dockerfile API optimise + docker-compose local (PostgreSQL 16 port 5433 + API port 8000, healthcheck)
+- [x] Variables d'environnement documentees (.env.example API + .env.local.example webapp)
+- [x] Monitoring taille bundle webapp (check-bundle-size.sh + CI job, fail >3MiB server, warn >500KB client)
+
+**Securite (audit complet) :**
+
+- [x] 7 auth fixes : sanitize allowlist, no input reflection, X-Request-ID validation, request.state JWT cache, html.escape, UUID-only error details, JWT secret min 32 chars
+- [x] 23 tests tenant isolation : tous les endpoints verifies invisibles cross-org
+- [x] encodeURIComponent() sur 15 interpolations URL path params frontend
+- [x] CSP solide : no unsafe-eval, frame-ancestors none, HSTS preload
+- [x] Validation inputs : UUID params, limit <=100, date range validation, enum validation
+
+**UX :**
+
+- [x] Theming Tremor : amber accent oklch, chart color CSS vars, risk color utilities
+- [x] Skeletons loading : Skeleton, SkeletonCard, SkeletonTable, SkeletonChart (aria-busy, packages/ui)
+- [x] Error states : variantes network/api/empty avec retry button
+- [x] Responsive : mobile overlay sidebar, touch targets >=44px, grid-cols adaptive
+
+**Chiffres** : 1065 Vitest (82 fichiers) + 64 Pytest (100% coverage) + 0 erreur TypeScript.
+
+**Bug corrige post-sprint** : SQLAlchemy Enum `.name` (UPPERCASE) vs `.value` (lowercase) — helper `sa_enum()` dans `base.py` applique a tous les 9 modeles ORM.
+
+---
+
+### Sprint 2 — Arbitrage, Decisions & Deploiement (prochain sprint)
+
+**Objectif** : implementer les ecrans Arbitrage et Decisions pour boucler le cycle
+"detection → options → decision → suivi", puis deployer l'API sur Scaleway.
+
+**Taches prioritaires :**
+
+- [ ] Ecran Arbitrage : contexte alerte, options comparees (heures sup, interim, reallocation, degradation), recommandation Praedixa, bouton "Valider"
+- [ ] Ecran Decisions : journal chronologique, colonnes (date, site, alerte, option, cout, decideur), suivi avant/apres
+- [ ] Endpoints API : POST /decisions, GET /decisions, PATCH /decisions/{id}, GET /arbitrage/{alert_id}/options
+- [ ] Service layer arbitrage : logique de scoring des options (cout, delai, impact couverture, risque)
+- [ ] Deploiement Scaleway : API container + Managed PostgreSQL (France), migration production
+- [ ] Seed production : migration Alembic robuste, script d'initialisation premier client
+
+**Taches secondaires :**
+
+- [ ] Ecran Parametres : organisation, sites, seuils d'alerte
+- [ ] Notifications : alertes par email quand risque critique detecte
+- [ ] Tests E2E Playwright : parcours complet login → dashboard → previsions → arbitrage → decision
+- [ ] CORS production : configuration pour app.praedixa.com
+- [ ] Monitoring API : health check Scaleway, structured logging, metriques
+- [ ] Documentation API : OpenAPI spec auto-generee, /docs endpoint
 
 ### Phase 4 : Rapports & polish
 
-- Generation PDF
-- Ecran Rapports
-- Parametres
-- Vue admin (gestion clients, upload)
-- Tests E2E
-- Optimisation performance
+- [ ] Generation PDF (rapports structures)
+- [ ] Ecran Rapports (diagnostic mensuel, rapport d'impact, export DAF)
+- [ ] Vue admin (gestion clients, upload donnees)
+- [ ] Optimisation performance (lazy loading, cache API, prefetch)
+- [ ] Package api-client (genere depuis OpenAPI spec)
 
 ---
 

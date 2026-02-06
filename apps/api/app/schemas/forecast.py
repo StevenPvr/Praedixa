@@ -7,6 +7,8 @@ import uuid
 from datetime import date, datetime
 from typing import Any
 
+from pydantic import ConfigDict
+
 from app.models.daily_forecast import ForecastDimension
 from app.models.forecast_run import ForecastModelType, ForecastStatus
 from app.schemas.base import CamelModel, TenantEntitySchema
@@ -57,6 +59,8 @@ class DailyForecastRead(TenantEntitySchema):
 
 class ForecastRequest(CamelModel):
     """Request a new forecast run."""
+
+    model_config = ConfigDict(extra="forbid")
 
     horizon_days: int
     model_type: ForecastModelType | None = None

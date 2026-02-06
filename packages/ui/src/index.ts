@@ -40,5 +40,16 @@ export {
   type Breadcrumb,
 } from "./components/page-header";
 
+export {
+  Skeleton,
+  SkeletonCard,
+  SkeletonTable,
+  SkeletonChart,
+  type SkeletonProps,
+  type SkeletonCardProps,
+  type SkeletonTableProps,
+  type SkeletonChartProps,
+} from "./components/skeleton";
+
 // Hooks
 export { useMediaQuery } from "./hooks/use-media-query";

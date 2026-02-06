@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 
 import structlog
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from app.core.config import settings
@@ -22,10 +23,11 @@ router = APIRouter(tags=["health"])
 
 
 @router.get("/health")
-async def health_check() -> dict[str, object]:
+async def health_check() -> JSONResponse:
     """Health check with database connectivity test.
 
     Returns overall status and individual check results.
+    Returns HTTP 503 when degraded so load balancers stop routing traffic.
     Database errors are logged internally but the error message
     is NOT exposed to the client (information disclosure prevention).
     """
@@ -40,12 +42,15 @@ async def health_check() -> dict[str, object]:
         logger.exception("Health check: database connectivity failed")
         checks.append({"name": "database", "status": "fail"})
 
-    overall = "healthy" if all(c["status"] == "pass" for c in checks) else "degraded"
+    is_healthy = all(c["status"] == "pass" for c in checks)
+    overall = "healthy" if is_healthy else "degraded"
 
-    return {
+    body = {
         "status": overall,
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
         "timestamp": datetime.now(UTC).isoformat(),
         "checks": checks,
     }
+
+    return JSONResponse(content=body, status_code=200 if is_healthy else 503)

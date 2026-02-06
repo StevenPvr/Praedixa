@@ -1,0 +1,17 @@
+# Praedixa API — Docker build context exclusions
+.env
+.env.*
+__pycache__
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.venv
+venv
+.git
+.gitignore
+tests/
+htmlcov/
+coverage.xml
+*.egg-info
+dist/
+build/

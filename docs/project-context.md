@@ -45,7 +45,7 @@ Quelques chiffres utiles pour objectiver "pourquoi maintenant" :
 
 ## Solution
 
-Praedixa crée une **boucle actionnable : capacité → décision → preuve économique**.
+Praedixa crée une **boucle actionnable : capacité → compréhension → décision → preuve économique**.
 
 ### 1. Construire et raffiner la base de données
 
@@ -55,13 +55,19 @@ Prise en charge complète de la création d'une base de données structurée à 
 
 Prévisions à l'horizon opérationnel (J+3 à J+14) par site, équipe, compétence.
 
-### 3. Objectiver les arbitrages coût vs service
+### 3. Comprendre les facteurs explicatifs
 
-Chiffrer les options : HS, intérim, réallocation, accepter la dégradation. Comparer coût de l'action vs coût de l'inaction.
+Interprétabilité du modèle : chaque prévision est accompagnée des facteurs qui l'expliquent (saisonnalité, turnover récent, pic de demande, absences imprévues…). L'utilisateur ne voit pas un score opaque — il comprend **pourquoi** le risque existe, ce qui lui permet d'agir sur les causes structurelles.
 
-### 4. Suivre l'impact réel des décisions
+Cette compréhension alimente un cercle vertueux d'amélioration continue : les équipes identifient les leviers d'action prioritaires, agissent sur les causes racines, et les problèmes eux-mêmes diminuent au fil du temps.
 
-Decision log traçable, mesure avant/après, preuve économique auditable.
+### 4. Objectiver les arbitrages coût vs service
+
+Chiffrer les options : HS, intérim, réallocation, accepter la dégradation. Comparer coût de l'action vs coût de l'inaction. L'interprétabilité guide le choix : un pic de demande **temporaire** oriente vers l'intérim, un turnover **structurel** vers des actions de rétention.
+
+### 5. Suivre l'impact réel des décisions
+
+Decision log traçable, mesure avant/après, preuve économique auditable. L'analyse des facteurs explicatifs permet de vérifier si l'action a bien ciblé la bonne cause.
 
 ---
 
@@ -72,6 +78,7 @@ Decision log traçable, mesure avant/après, preuve économique auditable.
 - Exploiter les historiques (planning, activité, absences, contraintes opérationnelles)
 - Identifier des patterns et estimer des impacts
 - Produire des prévisions et indicateurs orientés ROI
+- **Interprétabilité native** : décomposition de chaque prévision en contributions par facteur (SHAP / feature importance), analyse contrefactuelle ("que se serait-il passé si…"), identification des drivers macro par site et dimension
 
 **Privacy by design :**
 
@@ -147,6 +154,8 @@ Decision log traçable, mesure avant/après, preuve économique auditable.
 
 - Un outil de pilotage capacité/charge opérationnel
 - Orienté décision et preuve économique
+- **Transparent** : chaque prévision est expliquée, pas de boîte noire
+- Un moteur d'**amélioration continue** : comprendre les causes permet de les réduire
 - Sans intégration lourde au départ
 - Évolutif vers SaaS complet
 

@@ -5,7 +5,9 @@ Maps to shared-types: Absence, AbsenceSummary, AbsenceRequest.
 
 import uuid
 from datetime import date, datetime
-from typing import Any
+from typing import Any, Literal
+
+from pydantic import ConfigDict, Field
 
 from app.models.absence import (
     AbsenceCategory,
@@ -58,6 +60,8 @@ class AbsenceSummary(CamelModel):
 class AbsenceCreate(CamelModel):
     """Create absence request."""
 
+    model_config = ConfigDict(extra="forbid")
+
     employee_id: uuid.UUID
     type: AbsenceType
     start_date: date
@@ -71,6 +75,8 @@ class AbsenceCreate(CamelModel):
 class AbsenceUpdate(CamelModel):
     """Update absence request."""
 
+    model_config = ConfigDict(extra="forbid")
+
     start_date: date | None = None
     end_date: date | None = None
     start_portion: DayPortion | None = None
@@ -81,6 +87,8 @@ class AbsenceUpdate(CamelModel):
 class AbsenceDecisionRequest(CamelModel):
     """Approve or reject an absence."""
 
-    action: str  # "approve" | "reject"
-    comment: str | None = None
-    rejection_reason: str | None = None
+    model_config = ConfigDict(extra="forbid")
+
+    action: Literal["approve", "reject"]
+    comment: str | None = Field(default=None, max_length=2000)
+    rejection_reason: str | None = Field(default=None, max_length=2000)

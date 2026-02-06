@@ -15,8 +15,9 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 WORKDIR /build
 
-# Copy dependency specification only (better layer caching)
+# Copy dependency specification and source (hatchling needs app/ to build the wheel)
 COPY pyproject.toml ./
+COPY app/ ./app/
 
 # Install production dependencies into a virtual environment
 RUN uv venv /opt/venv && \
@@ -40,6 +41,9 @@ WORKDIR /app
 COPY app/ ./app/
 COPY alembic/ ./alembic/
 COPY alembic.ini ./
+COPY scripts/ ./scripts/
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
 
 # Switch to non-root user
 USER appuser
@@ -49,7 +53,7 @@ EXPOSE 8000
 
 # Health check for container orchestrators
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD python -c "import httpx; r = httpx.get('http://localhost:8000/health'); exit(0 if r.status_code == 200 else 1)"
+    CMD python -c "from urllib.request import urlopen; exit(0 if urlopen('http://localhost:8000/health').status == 200 else 1)"
 
 # Run with uvicorn — bind to 0.0.0.0, no reload in production
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

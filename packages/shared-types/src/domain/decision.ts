@@ -205,6 +205,32 @@ export interface ActionPlan {
   approvedAt?: ISODateTimeString;
 }
 
+/** Arbitrage option from the scoring engine */
+export interface ArbitrageOption {
+  type: DecisionType;
+  label: string;
+  cost: number;
+  delayDays: number;
+  coverageImpactPct: number;
+  riskLevel: "low" | "medium" | "high";
+  riskDetails: string;
+  pros: string[];
+  cons: string[];
+}
+
+/** Arbitrage result with all options for an alert */
+export interface ArbitrageResult {
+  alertId: UUID;
+  alertTitle: string;
+  alertSeverity: "info" | "warning" | "error" | "critical";
+  departmentName: string;
+  siteName: string;
+  deficitPct: number;
+  horizonDays: number;
+  options: ArbitrageOption[];
+  recommendationIndex: number;
+}
+
 /** Dashboard alert */
 export interface DashboardAlert {
   id: UUID;

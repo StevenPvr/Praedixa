@@ -1,10 +1,35 @@
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Decisions — Praedixa",
-};
+import { useState } from "react";
+import { SkeletonTable } from "@praedixa/ui";
+import type { DecisionSummary, DecisionStatus } from "@praedixa/shared-types";
+import { useApiGetPaginated } from "@/hooks/use-api";
+import { ErrorFallback } from "@/components/error-fallback";
+import { DecisionStatusFilter } from "@/components/decisions/decision-status-filter";
+import { DecisionsTable } from "@/components/decisions/decisions-table";
+
+const PAGE_SIZE = 10;
 
 export default function DecisionsPage() {
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<DecisionStatus | "all">(
+    "all",
+  );
+
+  const statusParam =
+    statusFilter !== "all"
+      ? `&statuses=${encodeURIComponent(statusFilter)}`
+      : "";
+  const url = `/api/v1/decisions?${statusParam}`;
+
+  const { data, total, loading, error, refetch } =
+    useApiGetPaginated<DecisionSummary>(url, page, PAGE_SIZE);
+
+  const handleStatusChange = (status: DecisionStatus | "all") => {
+    setStatusFilter(status);
+    setPage(1);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -14,17 +39,29 @@ export default function DecisionsPage() {
         </p>
       </div>
 
-      <div className="flex items-center justify-center rounded-card border border-dashed border-gray-300 bg-card p-16">
-        <div className="text-center">
-          <p className="text-lg font-medium text-gray-400">
-            Section en construction
-          </p>
-          <p className="mt-2 max-w-md text-sm text-gray-400">
-            Journal des decisions prises : approbations, rejets, couts reels,
-            retours d'experience et suivi de l'efficacite des actions.
-          </p>
-        </div>
-      </div>
+      <DecisionStatusFilter
+        value={statusFilter}
+        onChange={handleStatusChange}
+      />
+
+      {error ? (
+        <ErrorFallback message={error} onRetry={refetch} />
+      ) : loading ? (
+        <SkeletonTable rows={5} columns={6} />
+      ) : data.length === 0 ? (
+        <ErrorFallback
+          variant="empty"
+          message="Aucune decision pour les filtres selectionnes."
+        />
+      ) : (
+        <DecisionsTable
+          data={data}
+          total={total}
+          page={page}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
+      )}
     </div>
   );
 }

@@ -8,12 +8,31 @@ Security notes:
   to prevent client-side timestamp manipulation.
 """
 
+import enum
 import uuid
 from datetime import UTC, datetime
+from typing import TypeVar
 
 from sqlalchemy import DateTime, text
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+_E = TypeVar("_E", bound=enum.Enum)
+
+
+def sa_enum(enum_cls: type[_E]) -> SAEnum:
+    """Create a SQLAlchemy Enum that uses .value (lowercase) for DB storage.
+
+    By default SQLAlchemy sends enum .name (UPPERCASE) which mismatches
+    the PostgreSQL native enum values created by Alembic (lowercase).
+    """
+    return SAEnum(
+        enum_cls,
+        values_callable=lambda x: [e.value for e in x],
+        native_enum=True,
+        create_constraint=False,
+    )
 
 
 class Base(DeclarativeBase):

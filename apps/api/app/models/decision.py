@@ -12,7 +12,7 @@ from sqlalchemy import Date, DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TenantMixin
+from app.models.base import Base, TenantMixin, sa_enum
 
 
 class DecisionType(str, enum.Enum):
@@ -75,10 +75,13 @@ class Decision(TenantMixin, Base):
     target_period: Mapped[dict] = mapped_column(  # type: ignore[type-arg]
         JSONB, nullable=False
     )
-    type: Mapped[DecisionType] = mapped_column(nullable=False)
-    priority: Mapped[DecisionPriority] = mapped_column(nullable=False)
+    type: Mapped[DecisionType] = mapped_column(sa_enum(DecisionType), nullable=False)
+    priority: Mapped[DecisionPriority] = mapped_column(
+        sa_enum(DecisionPriority), nullable=False
+    )
     status: Mapped[DecisionStatus] = mapped_column(
-        default=DecisionStatus.SUGGESTED
+        sa_enum(DecisionStatus),
+        default=DecisionStatus.SUGGESTED,
     )
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)

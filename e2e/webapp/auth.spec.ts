@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { setupAuth } from "./fixtures/auth";
 
 test.describe("Webapp authentication", () => {
   test("/login page loads successfully", async ({ page }) => {
@@ -39,6 +40,35 @@ test.describe("Webapp authentication", () => {
     await page.goto("/dashboard");
     // We expect to end up on the login page
     await expect(page).toHaveURL(/\/login/);
+  });
+
+  test("authenticated session with API 401 forces re-auth flow", async ({
+    page,
+  }) => {
+    await setupAuth(page);
+
+    await page.route("**/api/v1/**", (route) =>
+      route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: "HTTP_ERROR",
+            message: "Invalid or expired token",
+          },
+        }),
+      }),
+    );
+
+    await page.goto("/dashboard");
+
+    await expect(page).toHaveURL(/\/login\?reauth=1/);
+    await expect(
+      page.getByText(
+        "Session expiree ou droits insuffisants. Veuillez vous reconnecter.",
+      ),
+    ).toBeVisible();
   });
 
   test("email input has placeholder text", async ({ page }) => {

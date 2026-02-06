@@ -11,7 +11,7 @@ from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TenantMixin
+from app.models.base import Base, TenantMixin, sa_enum
 
 
 class AlertType(str, enum.Enum):
@@ -57,11 +57,15 @@ class DashboardAlert(TenantMixin, Base):
         nullable=False,
         index=True,
     )
-    type: Mapped[AlertType] = mapped_column(nullable=False)
-    severity: Mapped[AlertSeverity] = mapped_column(nullable=False)
+    type: Mapped[AlertType] = mapped_column(sa_enum(AlertType), nullable=False)
+    severity: Mapped[AlertSeverity] = mapped_column(
+        sa_enum(AlertSeverity), nullable=False
+    )
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
-    related_entity_type: Mapped[RelatedEntityType | None] = mapped_column()
+    related_entity_type: Mapped[RelatedEntityType | None] = mapped_column(
+        sa_enum(RelatedEntityType)
+    )
     related_entity_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True)
     )

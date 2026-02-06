@@ -12,7 +12,7 @@ from sqlalchemy import Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TenantMixin
+from app.models.base import Base, TenantMixin, sa_enum
 
 
 class AbsenceType(str, enum.Enum):
@@ -79,18 +79,26 @@ class Absence(TenantMixin, Base):
         nullable=False,
         index=True,
     )
-    type: Mapped[AbsenceType] = mapped_column(nullable=False)
-    category: Mapped[AbsenceCategory] = mapped_column(nullable=False)
+    type: Mapped[AbsenceType] = mapped_column(sa_enum(AbsenceType), nullable=False)
+    category: Mapped[AbsenceCategory] = mapped_column(
+        sa_enum(AbsenceCategory), nullable=False
+    )
     start_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     end_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
-    start_portion: Mapped[DayPortion] = mapped_column(default=DayPortion.FULL)
-    end_portion: Mapped[DayPortion] = mapped_column(default=DayPortion.FULL)
+    start_portion: Mapped[DayPortion] = mapped_column(
+        sa_enum(DayPortion), default=DayPortion.FULL
+    )
+    end_portion: Mapped[DayPortion] = mapped_column(
+        sa_enum(DayPortion), default=DayPortion.FULL
+    )
     # Duration as JSONB (days, workingDays, calendarDays)
     duration: Mapped[dict] = mapped_column(  # type: ignore[type-arg]
         JSONB, nullable=False, server_default="{}"
     )
     business_days: Mapped[int] = mapped_column(Integer, default=0)
-    status: Mapped[AbsenceStatus] = mapped_column(default=AbsenceStatus.DRAFT)
+    status: Mapped[AbsenceStatus] = mapped_column(
+        sa_enum(AbsenceStatus), default=AbsenceStatus.DRAFT
+    )
     reason: Mapped[str | None] = mapped_column(Text)
     manager_comment: Mapped[str | None] = mapped_column(Text)
     rejection_reason: Mapped[str | None] = mapped_column(Text)

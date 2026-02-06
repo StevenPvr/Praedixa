@@ -8,6 +8,8 @@ import uuid
 from datetime import date
 from typing import Any
 
+from pydantic import ConfigDict
+
 from app.models.employee import ContractType, EmployeeStatus, EmploymentType
 from app.schemas.base import CamelModel, TenantEntitySchema
 
@@ -57,6 +59,8 @@ class EmployeeSummary(CamelModel):
 class EmployeeCreate(CamelModel):
     """Create employee request."""
 
+    model_config = ConfigDict(extra="forbid")
+
     employee_number: str
     first_name: str
     last_name: str
@@ -77,6 +81,8 @@ class EmployeeCreate(CamelModel):
 
 class EmployeeUpdate(CamelModel):
     """Update employee request."""
+
+    model_config = ConfigDict(extra="forbid")
 
     first_name: str | None = None
     last_name: str | None = None

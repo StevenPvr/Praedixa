@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 const mockPush = vi.fn();
 const mockRefresh = vi.fn();
 const mockSignInWithPassword = vi.fn();
+const mockGetValidAccessToken = vi.fn();
 
 let mockAuthError: { message: string } | null = null;
 
@@ -26,6 +27,8 @@ function resetMocks() {
       error: mockAuthError,
     }),
   );
+  mockGetValidAccessToken.mockReset();
+  mockGetValidAccessToken.mockResolvedValue("test-token");
   mockAuthError = null;
 }
 
@@ -50,6 +53,7 @@ vi.mock("@/lib/auth/client", () => ({
       signInWithPassword: mockSignInWithPassword,
     },
   }),
+  getValidAccessToken: () => mockGetValidAccessToken(),
 }));
 
 /* ─── Import after mocks ──────────────────── */

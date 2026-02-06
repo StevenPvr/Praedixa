@@ -14,12 +14,14 @@ import type {
   DashboardAlert,
   CostImpactAnalysis,
   WhatIfResult,
+  ArbitrageResult,
   // Request types
   ListForecastsRequest,
   RequestForecastRequest,
   ListDecisionsRequest,
   ReviewDecisionRequest,
   RecordDecisionOutcomeRequest,
+  ValidateArbitrageRequest,
   WhatIfScenarioRequest,
   ExportRequest,
   ExportResponse,
@@ -55,17 +57,17 @@ export function getHealth(): Promise<HealthCheckResponse> {
 export function getOrganization(
   token: GetAccessToken,
 ): Promise<ApiResponse<Organization>> {
-  return apiGet<Organization>("/api/v1/organization", token);
+  return apiGet<Organization>("/api/v1/organizations/me", token);
 }
 
 export function getDepartments(
   token: GetAccessToken,
 ): Promise<ApiResponse<Department[]>> {
-  return apiGet<Department[]>("/api/v1/organization/departments", token);
+  return apiGet<Department[]>("/api/v1/departments", token);
 }
 
 export function getSites(token: GetAccessToken): Promise<ApiResponse<Site[]>> {
-  return apiGet<Site[]>("/api/v1/organization/sites", token);
+  return apiGet<Site[]>("/api/v1/sites", token);
 }
 
 // ─────────────────────────────────────────────────
@@ -84,7 +86,7 @@ export function getForecastSummary(
   token: GetAccessToken,
 ): Promise<ApiResponse<ForecastSummary>> {
   return apiGet<ForecastSummary>(
-    `/api/v1/forecasts/${forecastId}/summary`,
+    `/api/v1/forecasts/${encodeURIComponent(forecastId)}/summary`,
     token,
   );
 }
@@ -94,7 +96,7 @@ export function getDailyForecasts(
   token: GetAccessToken,
 ): Promise<ApiResponse<DailyForecast[]>> {
   return apiGet<DailyForecast[]>(
-    `/api/v1/forecasts/${forecastId}/daily`,
+    `/api/v1/forecasts/${encodeURIComponent(forecastId)}/daily`,
     token,
   );
 }
@@ -131,7 +133,10 @@ export function getDecision(
   decisionId: string,
   token: GetAccessToken,
 ): Promise<ApiResponse<Decision>> {
-  return apiGet<Decision>(`/api/v1/decisions/${decisionId}`, token);
+  return apiGet<Decision>(
+    `/api/v1/decisions/${encodeURIComponent(decisionId)}`,
+    token,
+  );
 }
 
 export function reviewDecision(
@@ -140,7 +145,7 @@ export function reviewDecision(
   token: GetAccessToken,
 ): Promise<ApiResponse<Decision>> {
   return apiPatch<Decision>(
-    `/api/v1/decisions/${decisionId}/review`,
+    `/api/v1/decisions/${encodeURIComponent(decisionId)}/review`,
     body,
     token,
   );
@@ -152,7 +157,33 @@ export function recordDecisionOutcome(
   token: GetAccessToken,
 ): Promise<ApiResponse<Decision>> {
   return apiPost<Decision>(
-    `/api/v1/decisions/${decisionId}/outcome`,
+    `/api/v1/decisions/${encodeURIComponent(decisionId)}/outcome`,
+    body,
+    token,
+  );
+}
+
+// ─────────────────────────────────────────────────
+// Arbitrage
+// ─────────────────────────────────────────────────
+
+export function getArbitrageOptions(
+  alertId: string,
+  token: GetAccessToken,
+): Promise<ApiResponse<ArbitrageResult>> {
+  return apiGet<ArbitrageResult>(
+    `/api/v1/arbitrage/${encodeURIComponent(alertId)}/options`,
+    token,
+  );
+}
+
+export function validateArbitrage(
+  alertId: string,
+  body: ValidateArbitrageRequest,
+  token: GetAccessToken,
+): Promise<ApiResponse<Decision>> {
+  return apiPost<Decision>(
+    `/api/v1/arbitrage/${encodeURIComponent(alertId)}/validate`,
     body,
     token,
   );
@@ -173,7 +204,7 @@ export function dismissAlert(
   token: GetAccessToken,
 ): Promise<ApiResponse<DashboardAlert>> {
   return apiPatch<DashboardAlert>(
-    `/api/v1/alerts/${alertId}/dismiss`,
+    `/api/v1/alerts/${encodeURIComponent(alertId)}/dismiss`,
     {},
     token,
   );
@@ -202,7 +233,11 @@ export function requestExport(
   body: ExportRequest,
   token: GetAccessToken,
 ): Promise<ApiResponse<ExportResponse>> {
-  return apiPost<ExportResponse>(`/api/v1/exports/${resource}`, body, token);
+  return apiPost<ExportResponse>(
+    `/api/v1/exports/${encodeURIComponent(resource)}`,
+    body,
+    token,
+  );
 }
 
 export { ApiError };

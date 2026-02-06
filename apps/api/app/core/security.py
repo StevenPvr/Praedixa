@@ -8,12 +8,14 @@ Security notes:
   without the required role. The error message lists allowed roles but
   NOT the user's actual role, to limit information leakage.
 - Role values come from app_metadata (admin-only writable in Supabase).
+- require_role uses Depends(get_current_user) as a sub-dependency so
+  FastAPI resolves the JWT payload correctly via dependency injection.
 """
 
 from collections.abc import Callable
 from typing import Any
 
-from fastapi import HTTPException, status
+from fastapi import Depends, HTTPException, status
 from sqlalchemy import Select
 
 from app.core.auth import JWTPayload
@@ -41,15 +43,22 @@ class TenantFilter:
 def require_role(*allowed_roles: str) -> Callable:
     """FastAPI dependency factory: require the user to have one of the specified roles.
 
-    Usage:
+    Usage as inline dependency (returns the user payload):
+        current_user: JWTPayload = Depends(require_role("admin", "manager"))
+
+    Usage in dependencies list (just validates, discards return):
         @router.post("/", dependencies=[Depends(require_role("admin", "manager"))])
-        async def create_resource(...): ...
 
-    The returned dependency validates the user's role from the JWT claims.
-    Raises 403 if the role is not in the allowed set.
+    The returned sub-dependency uses Depends(get_current_user) so FastAPI
+    resolves the JWT automatically. Without this, FastAPI would try to
+    instantiate JWTPayload from query params, which would fail.
     """
+    # Import here to avoid circular import (dependencies -> security -> dependencies)
+    from app.core.dependencies import get_current_user
 
-    def _check_role(current_user: JWTPayload) -> JWTPayload:
+    def _check_role(
+        current_user: JWTPayload = Depends(get_current_user),
+    ) -> JWTPayload:
         if current_user.role not in allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

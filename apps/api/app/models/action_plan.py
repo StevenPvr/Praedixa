@@ -11,7 +11,7 @@ from sqlalchemy import DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TenantMixin
+from app.models.base import Base, TenantMixin, sa_enum
 
 
 class ActionPlanStatus(str, enum.Enum):
@@ -48,7 +48,8 @@ class ActionPlan(TenantMixin, Base):
         JSONB, nullable=False
     )
     status: Mapped[ActionPlanStatus] = mapped_column(
-        default=ActionPlanStatus.DRAFT
+        sa_enum(ActionPlanStatus),
+        default=ActionPlanStatus.DRAFT,
     )
     # Decision IDs are stored in a junction table or as JSONB array for POC
     decisions: Mapped[dict] = mapped_column(  # type: ignore[type-arg]

@@ -7,8 +7,9 @@ while Python code uses snake_case.
 
 import uuid
 from datetime import datetime
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 
@@ -53,9 +54,20 @@ class PaginationMeta(CamelModel):
 
 
 class PaginationParams(CamelModel):
-    """Query parameters for paginated list endpoints."""
+    """Query parameters for paginated list endpoints.
 
-    page: int = 1
-    page_size: int = 20
-    sort_by: str | None = None
-    sort_order: str = "asc"  # "asc" | "desc"
+    IMPORTANT: sort_by must be validated against an allowlist of column names
+    in the service/router layer before being used in ORDER BY clauses.
+    """
+
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+        from_attributes=True,
+        extra="forbid",
+    )
+
+    page: int = Field(default=1, ge=1)
+    page_size: int = Field(default=20, ge=1, le=100)
+    sort_by: str | None = Field(default=None, max_length=50, pattern=r"^[a-z_]+$")
+    sort_order: Literal["asc", "desc"] = "asc"

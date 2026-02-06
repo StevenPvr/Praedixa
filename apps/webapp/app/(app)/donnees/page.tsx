@@ -1,12 +1,25 @@
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Donnees — Praedixa",
-};
+import { useApiGet } from "@/hooks/use-api";
+import { ErrorFallback } from "@/components/error-fallback";
+import { SitesTable } from "@/components/donnees/sites-table";
+import { DepartmentsTable } from "@/components/donnees/departments-table";
+
+interface Site {
+  id: string;
+  name: string;
+}
 
 export default function DonneesPage() {
+  const {
+    data: sites,
+    loading: sitesLoading,
+    error: sitesError,
+    refetch: refetchSites,
+  } = useApiGet<Site[]>("/api/v1/sites");
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold text-charcoal">Donnees</h1>
         <p className="mt-1 text-sm text-gray-500">
@@ -14,17 +27,21 @@ export default function DonneesPage() {
         </p>
       </div>
 
-      <div className="flex items-center justify-center rounded-card border border-dashed border-gray-300 bg-card p-16">
-        <div className="text-center">
-          <p className="text-lg font-medium text-gray-400">
-            Section en construction
-          </p>
-          <p className="mt-2 max-w-md text-sm text-gray-400">
-            Tables des employes, absences historiques, sites et departements.
-            Filtrage, recherche et export des donnees brutes.
-          </p>
-        </div>
-      </div>
+      <section aria-label="Sites">
+        <h2 className="mb-4 text-lg font-semibold text-charcoal">Sites</h2>
+        {sitesError ? (
+          <ErrorFallback message={sitesError} onRetry={refetchSites} />
+        ) : (
+          <SitesTable />
+        )}
+      </section>
+
+      <section aria-label="Departements">
+        <h2 className="mb-4 text-lg font-semibold text-charcoal">
+          Departements
+        </h2>
+        <DepartmentsTable sites={sitesLoading ? [] : (sites ?? [])} />
+      </section>
     </div>
   );
 }

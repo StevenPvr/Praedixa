@@ -11,7 +11,7 @@ from sqlalchemy import String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TimestampMixin
+from app.models.base import Base, TimestampMixin, sa_enum
 
 
 class OrganizationStatus(str, enum.Enum):
@@ -69,13 +69,15 @@ class Organization(TimestampMixin, Base):
     )
     legal_name: Mapped[str | None] = mapped_column(String(255))
     siret: Mapped[str | None] = mapped_column(String(14))
-    sector: Mapped[IndustrySector | None] = mapped_column()
-    size: Mapped[OrganizationSize | None] = mapped_column()
+    sector: Mapped[IndustrySector | None] = mapped_column(sa_enum(IndustrySector))
+    size: Mapped[OrganizationSize | None] = mapped_column(sa_enum(OrganizationSize))
     headcount: Mapped[int | None] = mapped_column()
     status: Mapped[OrganizationStatus] = mapped_column(
+        sa_enum(OrganizationStatus),
         default=OrganizationStatus.TRIAL,
     )
     plan: Mapped[SubscriptionPlan] = mapped_column(
+        sa_enum(SubscriptionPlan),
         default=SubscriptionPlan.FREE,
     )
     timezone: Mapped[str] = mapped_column(String(50), default="Europe/Paris")

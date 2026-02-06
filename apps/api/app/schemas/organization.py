@@ -7,6 +7,8 @@ OrganizationSummary.
 import uuid
 from typing import Any
 
+from pydantic import ConfigDict
+
 from app.models.organization import (
     IndustrySector,
     OrganizationSize,
@@ -53,6 +55,8 @@ class OrganizationSummary(CamelModel):
 
 class OrganizationUpdate(CamelModel):
     """Update organization request."""
+
+    model_config = ConfigDict(extra="forbid")
 
     name: str | None = None
     legal_name: str | None = None

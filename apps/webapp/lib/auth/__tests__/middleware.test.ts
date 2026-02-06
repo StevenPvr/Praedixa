@@ -74,14 +74,16 @@ import { NextResponse } from "next/server";
 // Helpers
 // ---------------------------------------------------------------------------
 
-function createMockRequest(pathname: string, origin = "http://localhost:3001") {
+function createMockRequest(path: string, origin = "http://localhost:3001") {
+  const url = new URL(path, origin);
   const requestCookies = new Map<string, string>();
 
   return {
-    url: `${origin}${pathname}`,
+    url: url.toString(),
     nextUrl: {
-      pathname,
-      toString: () => `${origin}${pathname}`,
+      pathname: url.pathname,
+      searchParams: url.searchParams,
+      toString: () => url.toString(),
     },
     cookies: {
       getAll: vi.fn(() =>
@@ -159,6 +161,16 @@ describe("updateSession", () => {
     expect((result as { redirectUrl: string }).redirectUrl).toContain(
       "/dashboard",
     );
+  });
+
+  it("should NOT redirect authenticated user on /login?reauth=1", async () => {
+    mockGetUser.mockResolvedValueOnce({ data: { user: { id: "u1" } } });
+    const req = createMockRequest("/login?reauth=1");
+
+    const result = await updateSession(req);
+
+    expect(result.status).toBe(200);
+    expect(NextResponse.redirect).not.toHaveBeenCalled();
   });
 
   it("should redirect unauthenticated user on /previsions to /login", async () => {

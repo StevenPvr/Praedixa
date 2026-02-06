@@ -11,7 +11,7 @@ from sqlalchemy import Boolean, Date, ForeignKey, Numeric, String
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TenantMixin
+from app.models.base import Base, TenantMixin, sa_enum
 
 
 class EmploymentType(str, enum.Enum):
@@ -88,8 +88,12 @@ class Employee(TenantMixin, Base):
     phone: Mapped[str | None] = mapped_column(String(30))
     job_title: Mapped[str] = mapped_column(String(200), nullable=False)
     job_category: Mapped[str | None] = mapped_column(String(100))
-    employment_type: Mapped[EmploymentType] = mapped_column(nullable=False)
-    contract_type: Mapped[ContractType] = mapped_column(nullable=False)
+    employment_type: Mapped[EmploymentType] = mapped_column(
+        sa_enum(EmploymentType), nullable=False
+    )
+    contract_type: Mapped[ContractType] = mapped_column(
+        sa_enum(ContractType), nullable=False
+    )
     fte: Mapped[float] = mapped_column(Numeric(3, 2), default=1.0)
     hire_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date | None] = mapped_column(Date)
@@ -101,7 +105,8 @@ class Employee(TenantMixin, Base):
         JSONB, nullable=False, server_default="{}"
     )
     status: Mapped[EmployeeStatus] = mapped_column(
-        default=EmployeeStatus.ACTIVE
+        sa_enum(EmployeeStatus),
+        default=EmployeeStatus.ACTIVE,
     )
 
     def __repr__(self) -> str:

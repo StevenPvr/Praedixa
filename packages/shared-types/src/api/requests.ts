@@ -210,6 +210,12 @@ export interface ReviewDecisionRequest {
   implementationDeadline?: ISODateString;
 }
 
+/** Validate arbitrage request */
+export interface ValidateArbitrageRequest {
+  selectedOptionIndex: number;
+  notes?: string;
+}
+
 /** Record decision outcome */
 export interface RecordDecisionOutcomeRequest {
   effective: boolean;

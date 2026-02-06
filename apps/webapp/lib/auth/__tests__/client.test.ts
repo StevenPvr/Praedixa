@@ -1,34 +1,43 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const mockCreateBrowserClient = vi.fn(() => ({
-  auth: { getUser: vi.fn(), getSession: vi.fn() },
+const {
+  mockGetSession,
+  mockRefreshSession,
+  mockSignOut,
+  mockCreateBrowserClient,
+} = vi.hoisted(() => ({
+  mockGetSession: vi.fn(),
+  mockRefreshSession: vi.fn(),
+  mockSignOut: vi.fn(),
+  mockCreateBrowserClient: vi.fn(),
 }));
 
 vi.mock("@supabase/ssr", () => ({
   createBrowserClient: (...args: unknown[]) => mockCreateBrowserClient(...args),
 }));
 
-// We need to reset the module-level singleton between tests.
-// Import the function dynamically in each relevant test.
-
-describe("getSupabaseBrowserClient", () => {
+describe("auth client", () => {
   beforeEach(() => {
     vi.resetModules();
-    mockCreateBrowserClient.mockClear();
-    // Set env vars
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://test.supabase.co");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-anon-key");
+
+    mockGetSession.mockReset();
+    mockRefreshSession.mockReset();
+    mockSignOut.mockReset();
+    mockCreateBrowserClient.mockReset();
+
+    mockCreateBrowserClient.mockImplementation(() => ({
+      auth: {
+        getUser: vi.fn(),
+        getSession: mockGetSession,
+        refreshSession: mockRefreshSession,
+        signOut: mockSignOut,
+      },
+    }));
   });
 
-  it("should return a Supabase client", async () => {
-    const { getSupabaseBrowserClient } = await import("../client");
-    const client = getSupabaseBrowserClient();
-
-    expect(client).toBeDefined();
-    expect(client.auth).toBeDefined();
-  });
-
-  it("should return the same instance on subsequent calls (singleton)", async () => {
+  it("returns a singleton browser client", async () => {
     const { getSupabaseBrowserClient } = await import("../client");
     const client1 = getSupabaseBrowserClient();
     const client2 = getSupabaseBrowserClient();
@@ -37,7 +46,7 @@ describe("getSupabaseBrowserClient", () => {
     expect(mockCreateBrowserClient).toHaveBeenCalledTimes(1);
   });
 
-  it("should pass environment variables to createBrowserClient", async () => {
+  it("passes env vars to createBrowserClient", async () => {
     const { getSupabaseBrowserClient } = await import("../client");
     getSupabaseBrowserClient();
 
@@ -47,18 +56,77 @@ describe("getSupabaseBrowserClient", () => {
     );
   });
 
-  it("should create a new instance after module reset", async () => {
-    // First import — creates one client
-    const mod1 = await import("../client");
-    mod1.getSupabaseBrowserClient();
+  it("getValidAccessToken returns current valid token", async () => {
+    mockGetSession.mockResolvedValue({
+      data: {
+        session: {
+          access_token: "token-current",
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+        },
+      },
+    });
 
-    // Reset modules to clear the singleton
-    vi.resetModules();
+    const { getValidAccessToken } = await import("../client");
+    const token = await getValidAccessToken();
 
-    // Second import — should create another client
-    const mod2 = await import("../client");
-    mod2.getSupabaseBrowserClient();
+    expect(token).toBe("token-current");
+    expect(mockRefreshSession).not.toHaveBeenCalled();
+  });
 
-    expect(mockCreateBrowserClient).toHaveBeenCalledTimes(2);
+  it("getValidAccessToken refreshes when session is missing", async () => {
+    mockGetSession.mockResolvedValue({ data: { session: null } });
+    mockRefreshSession.mockResolvedValue({
+      data: { session: { access_token: "token-refreshed" } },
+      error: null,
+    });
+
+    const { getValidAccessToken } = await import("../client");
+    const token = await getValidAccessToken();
+
+    expect(token).toBe("token-refreshed");
+    expect(mockRefreshSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("getValidAccessToken refreshes when token is near expiry", async () => {
+    mockGetSession.mockResolvedValue({
+      data: {
+        session: {
+          access_token: "token-old",
+          expires_at: Math.floor(Date.now() / 1000) + 10,
+        },
+      },
+    });
+    mockRefreshSession.mockResolvedValue({
+      data: { session: { access_token: "token-new" } },
+      error: null,
+    });
+
+    const { getValidAccessToken } = await import("../client");
+    const token = await getValidAccessToken({ minTtlSeconds: 60 });
+
+    expect(token).toBe("token-new");
+    expect(mockRefreshSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("getValidAccessToken returns null when refresh fails", async () => {
+    mockGetSession.mockResolvedValue({ data: { session: null } });
+    mockRefreshSession.mockResolvedValue({
+      data: { session: null },
+      error: { message: "refresh failed" },
+    });
+
+    const { getValidAccessToken } = await import("../client");
+    const token = await getValidAccessToken();
+
+    expect(token).toBeNull();
+  });
+
+  it("clearAuthSession signs out locally", async () => {
+    mockSignOut.mockResolvedValue({ error: null });
+
+    const { clearAuthSession } = await import("../client");
+    await clearAuthSession();
+
+    expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
   });
 });

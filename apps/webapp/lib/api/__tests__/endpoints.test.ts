@@ -30,6 +30,8 @@ import {
   getDecision,
   reviewDecision,
   recordDecisionOutcome,
+  getArbitrageOptions,
+  validateArbitrage,
   getAlerts,
   dismissAlert,
   getCostAnalysis,
@@ -152,7 +154,10 @@ describe("getOrganization", () => {
 
     await getOrganization(mockToken);
 
-    expect(mockApiGet).toHaveBeenCalledWith("/api/v1/organization", mockToken);
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/organizations/me",
+      mockToken,
+    );
   });
 });
 
@@ -166,10 +171,7 @@ describe("getDepartments", () => {
 
     await getDepartments(mockToken);
 
-    expect(mockApiGet).toHaveBeenCalledWith(
-      "/api/v1/organization/departments",
-      mockToken,
-    );
+    expect(mockApiGet).toHaveBeenCalledWith("/api/v1/departments", mockToken);
   });
 });
 
@@ -183,10 +185,7 @@ describe("getSites", () => {
 
     await getSites(mockToken);
 
-    expect(mockApiGet).toHaveBeenCalledWith(
-      "/api/v1/organization/sites",
-      mockToken,
-    );
+    expect(mockApiGet).toHaveBeenCalledWith("/api/v1/sites", mockToken);
   });
 });
 
@@ -337,6 +336,46 @@ describe("recordDecisionOutcome", () => {
 
     expect(mockApiPost).toHaveBeenCalledWith(
       "/api/v1/decisions/dec-1/outcome",
+      body,
+      mockToken,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Arbitrage
+// ---------------------------------------------------------------------------
+
+describe("getArbitrageOptions", () => {
+  it("should call apiGet with correct path including encodeURIComponent", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { alertId: "alert-1", options: [] },
+      timestamp: "t",
+    });
+
+    await getArbitrageOptions("alert-1", mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/arbitrage/alert-1/options",
+      mockToken,
+    );
+  });
+});
+
+describe("validateArbitrage", () => {
+  it("should call apiPost with correct path and body", async () => {
+    const body = { selectedOptionIndex: 2 };
+    mockApiPost.mockResolvedValueOnce({
+      success: true,
+      data: { id: "dec-new" },
+      timestamp: "t",
+    });
+
+    await validateArbitrage("alert-1", body as never, mockToken);
+
+    expect(mockApiPost).toHaveBeenCalledWith(
+      "/api/v1/arbitrage/alert-1/validate",
       body,
       mockToken,
     );

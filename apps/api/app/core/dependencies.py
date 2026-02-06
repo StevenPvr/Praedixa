@@ -6,6 +6,8 @@ Security notes:
 - get_tenant_filter builds a TenantFilter scoped to the authenticated user's
   organization. It MUST be used for all tenant-scoped database queries.
 - Database session is imported from database.py (single source of truth).
+- User context is stored on request.state for the audit middleware to read
+  without re-decoding the JWT (avoids double verification overhead).
 """
 
 from fastapi import Depends, Request
@@ -23,9 +25,16 @@ def get_current_user(request: Request) -> JWTPayload:
 
     This is the gateway dependency for all authenticated endpoints.
     Returns a frozen JWTPayload with user_id, email, organization_id, role.
+
+    Also stores user_id and org_id on request.state for the audit
+    middleware to consume without re-decoding the token.
     """
     token = extract_token(request)
-    return verify_jwt(token)
+    payload = verify_jwt(token)
+    # Store for audit middleware — avoids double JWT decode
+    request.state.audit_user_id = payload.user_id
+    request.state.audit_org_id = payload.organization_id
+    return payload
 
 
 def get_tenant_filter(

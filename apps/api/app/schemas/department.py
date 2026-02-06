@@ -5,6 +5,8 @@ Maps to shared-types: Department.
 
 import uuid
 
+from pydantic import ConfigDict
+
 from app.schemas.base import CamelModel, TenantEntitySchema
 
 
@@ -25,6 +27,8 @@ class DepartmentRead(TenantEntitySchema):
 class DepartmentCreate(CamelModel):
     """Create department request."""
 
+    model_config = ConfigDict(extra="forbid")
+
     site_id: uuid.UUID | None = None
     parent_id: uuid.UUID | None = None
     manager_id: uuid.UUID | None = None
@@ -38,6 +42,8 @@ class DepartmentCreate(CamelModel):
 
 class DepartmentUpdate(CamelModel):
     """Update department request."""
+
+    model_config = ConfigDict(extra="forbid")
 
     site_id: uuid.UUID | None = None
     parent_id: uuid.UUID | None = None

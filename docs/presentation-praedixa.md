@@ -32,8 +32,11 @@ Praedixa crée une boucle actionnable :
 
 1. **Construire la base de données** — Prise en charge complète, raffinement continu
 2. **Anticiper** — Prévisions de sous-couverture à J+3/J+7/J+14
-3. **Décider** — Chiffrer les options (HS, intérim, réallocation, accepter la dégradation)
-4. **Prouver** — Mesurer l'impact réel des décisions
+3. **Comprendre** — Interprétabilité du modèle : identifier les facteurs qui expliquent chaque prévision (saisonnalité, turnover, pics demande…) pour agir sur les causes, pas seulement les symptômes
+4. **Décider** — Chiffrer les options (HS, intérim, réallocation, accepter la dégradation)
+5. **Prouver** — Mesurer l'impact réel des décisions
+
+Comprendre le **pourquoi** crée un cercle vertueux : les équipes agissent sur les causes racines, les problèmes structurels diminuent, et les prévisions deviennent plus fiables — c'est un levier d'amélioration continue.
 
 **Privacy by design** : conforme RGPD, pas de données individuelles, uniquement agrégé, hébergement France.
 

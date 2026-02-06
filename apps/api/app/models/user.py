@@ -17,7 +17,7 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TenantMixin
+from app.models.base import Base, TenantMixin, sa_enum
 
 
 class UserRole(str, enum.Enum):
@@ -64,8 +64,10 @@ class User(TenantMixin, Base):
         String(320), unique=True, nullable=False, index=True
     )
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
-    role: Mapped[UserRole] = mapped_column(default=UserRole.VIEWER)
-    status: Mapped[UserStatus] = mapped_column(default=UserStatus.PENDING)
+    role: Mapped[UserRole] = mapped_column(sa_enum(UserRole), default=UserRole.VIEWER)
+    status: Mapped[UserStatus] = mapped_column(
+        sa_enum(UserStatus), default=UserStatus.PENDING
+    )
     employee_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     last_login_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True)

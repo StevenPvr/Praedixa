@@ -1,6 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import ArbitragePage from "../page";
+
+vi.mock("@/components/arbitrage/alerts-arbitrage-list", () => ({
+  AlertsArbitrageList: () => (
+    <div data-testid="alerts-arbitrage-list">AlertsArbitrageList</div>
+  ),
+}));
 
 describe("ArbitragePage", () => {
   it("renders the Arbitrage heading", () => {
@@ -17,8 +23,8 @@ describe("ArbitragePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows the construction placeholder", () => {
+  it("renders the AlertsArbitrageList component", () => {
     render(<ArbitragePage />);
-    expect(screen.getByText("Section en construction")).toBeInTheDocument();
+    expect(screen.getByTestId("alerts-arbitrage-list")).toBeInTheDocument();
   });
 });

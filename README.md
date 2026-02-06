@@ -42,6 +42,20 @@ pnpm dev:landing
 pnpm dev:webapp
 ```
 
+### Base de donnees PostgreSQL (port 5433)
+
+```bash
+docker compose up -d postgres
+```
+
+PostgreSQL 16 demarre sur `localhost:5433` (credentials : `praedixa` / `changeme` / db `praedixa`).
+
+Pour arreter :
+
+```bash
+docker compose down
+```
+
 ### API backend (port 8000)
 
 ```bash
@@ -72,6 +86,80 @@ pnpm dev:webapp
 
 # Terminal 3 — API
 pnpm dev:api
+```
+
+## Tests
+
+### Tests unitaires frontend (Vitest)
+
+```bash
+# Lancer tous les tests (landing + webapp + packages)
+pnpm test
+
+# Mode watch (re-execute a chaque modification)
+pnpm test:watch
+
+# Avec couverture de code (seuil 100%)
+pnpm test:coverage
+
+# Un seul fichier
+pnpm vitest run apps/webapp/hooks/__tests__/use-api.test.ts
+
+# Un seul pattern
+pnpm vitest run --reporter=verbose -t "renders loading"
+```
+
+### Tests unitaires backend (Pytest)
+
+```bash
+# Lancer tous les tests Python avec couverture (seuil 100%)
+cd apps/api && uv run pytest
+
+# Tests d'un seul fichier
+cd apps/api && uv run pytest tests/unit/test_services_decisions.py
+
+# Tests d'un seul dossier
+cd apps/api && uv run pytest tests/unit/
+cd apps/api && uv run pytest tests/integration/
+cd apps/api && uv run pytest tests/security/
+
+# Verbose avec details des echecs
+cd apps/api && uv run pytest -v --tb=short
+
+# Sans couverture (plus rapide pour le dev)
+cd apps/api && uv run pytest --no-cov
+```
+
+### Tests E2E (Playwright)
+
+```bash
+# Installer les navigateurs (une seule fois)
+pnpm exec playwright install
+
+# Lancer tous les E2E (demarre automatiquement les serveurs dev)
+pnpm test:e2e
+
+# Par projet
+pnpm test:e2e:landing
+pnpm test:e2e:webapp
+
+# Mode UI interactif (debug visuel)
+pnpm exec playwright test --ui
+
+# Un seul fichier
+pnpm exec playwright test e2e/webapp/dashboard.spec.ts
+
+# Avec trace pour debug
+pnpm exec playwright test --trace on
+```
+
+> Les serveurs dev (landing :3000, webapp :3001) sont lances automatiquement par Playwright.
+> Si un serveur tourne deja, Playwright le reutilise (`reuseExistingServer: true` en local).
+
+### Tout verifier (pre-commit complet)
+
+```bash
+pnpm pre-commit
 ```
 
 ## Qualite & Securite (pre-commit)

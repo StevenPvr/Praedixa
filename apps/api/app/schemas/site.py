@@ -5,6 +5,8 @@ Maps to shared-types: Site, Address.
 
 from typing import Any
 
+from pydantic import ConfigDict
+
 from app.schemas.base import CamelModel, TenantEntitySchema
 
 
@@ -23,6 +25,8 @@ class SiteRead(TenantEntitySchema):
 class SiteCreate(CamelModel):
     """Create site request."""
 
+    model_config = ConfigDict(extra="forbid")
+
     name: str
     code: str | None = None
     address: dict[str, Any] | None = None
@@ -34,6 +38,8 @@ class SiteCreate(CamelModel):
 
 class SiteUpdate(CamelModel):
     """Update site request."""
+
+    model_config = ConfigDict(extra="forbid")
 
     name: str | None = None
     code: str | None = None

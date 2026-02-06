@@ -13,6 +13,8 @@ import { type NextRequest, NextResponse } from "next/server";
  *   /auth/* routes which must remain accessible for the auth flow).
  * - Authenticated users on /login are redirected to /dashboard to prevent
  *   confusion and potential session fixation via re-login.
+ * - /login?reauth=1 remains accessible even for authenticated users to
+ *   recover from backend 401 loops by forcing a local re-auth flow.
  */
 
 export async function updateSession(request: NextRequest) {
@@ -66,8 +68,12 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  const isForcedReauth =
+    request.nextUrl.pathname === "/login" &&
+    request.nextUrl.searchParams.get("reauth") === "1";
+
   // Redirect authenticated users away from login page
-  if (user && request.nextUrl.pathname === "/login") {
+  if (user && request.nextUrl.pathname === "/login" && !isForcedReauth) {
     const dashboardUrl = new URL("/dashboard", request.url);
     return NextResponse.redirect(dashboardUrl);
   }

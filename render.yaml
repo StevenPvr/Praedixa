@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: praedixa-api
+    runtime: python
+    region: frankfurt
+    plan: free
+    rootDir: apps/api
+    buildCommand: pip install uv && uv sync --frozen
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    preDeployCommand: alembic upgrade head && python -m scripts.seed_demo_data
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        value: '["https://app.praedixa.com"]'
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: LOG_LEVEL
+        value: info
+      - key: PYTHON_VERSION
+        value: "3.12"

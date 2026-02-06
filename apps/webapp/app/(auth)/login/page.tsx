@@ -1,16 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import { getSupabaseBrowserClient } from "@/lib/auth/client";
+import {
+  getSupabaseBrowserClient,
+  getValidAccessToken,
+} from "@/lib/auth/client";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const isReauth = searchParams.get("reauth") === "1";
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +34,13 @@ export default function LoginPage() {
       return;
     }
 
+    const token = await getValidAccessToken({ minTtlSeconds: 0 });
+    if (!token) {
+      setError("Session invalide. Veuillez reessayer.");
+      setLoading(false);
+      return;
+    }
+
     router.push("/dashboard");
     router.refresh();
   }
@@ -40,6 +52,12 @@ export default function LoginPage() {
       </p>
 
       <form onSubmit={handleLogin} className="space-y-4">
+        {isReauth && (
+          <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+            Session expiree ou droits insuffisants. Veuillez vous reconnecter.
+          </div>
+        )}
+
         {error && (
           <div className="rounded-md bg-danger-50 p-3 text-sm text-danger-700">
             {error}
@@ -92,5 +110,13 @@ export default function LoginPage() {
         </button>
       </form>
     </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -31,12 +31,27 @@ def test_praedixa_error_custom() -> None:
     assert err.details == {"a": 1}
 
 
-def test_not_found_error() -> None:
+def test_not_found_error_with_uuid() -> None:
+    """NotFoundError includes the id in details when it is a valid UUID."""
+    valid_uuid = "550e8400-e29b-41d4-a716-446655440000"
+    err = NotFoundError("User", valid_uuid)
+    assert err.message == "User not found"
+    assert err.code == "NOT_FOUND"
+    assert err.status_code == 404
+    assert err.details == {"resource": "User", "id": valid_uuid}
+
+
+def test_not_found_error_non_uuid_id_omitted() -> None:
+    """NotFoundError omits the id from details when it is not a valid UUID.
+
+    This prevents reflecting arbitrary user input back in error responses,
+    which could enable XSS or log injection attacks.
+    """
     err = NotFoundError("User", "abc-123")
     assert err.message == "User not found"
     assert err.code == "NOT_FOUND"
     assert err.status_code == 404
-    assert err.details == {"resource": "User", "id": "abc-123"}
+    assert err.details == {"resource": "User"}
 
 
 def test_forbidden_error() -> None:
@@ -66,7 +81,7 @@ _test_routes_added = False
 
 def _add_test_routes() -> None:
     """Register test-only routes that raise each exception type."""
-    global _test_routes_added  # noqa: PLW0603
+    global _test_routes_added
     if _test_routes_added:
         return
     _test_routes_added = True

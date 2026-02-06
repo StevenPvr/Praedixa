@@ -1,4 +1,12 @@
-"""Middleware for audit logging and request tracking."""
+"""Middleware for audit logging and request tracking.
+
+Security notes:
+- Audit logging never decodes JWT itself to avoid double-verification overhead.
+  Instead, it reads user context from request.state, which is set by the
+  auth dependency chain during normal request handling.
+- User-Agent is truncated to prevent log storage abuse.
+- IP address is logged for forensic analysis.
+"""
 
 import time
 
@@ -13,7 +21,12 @@ AUDIT_EXCLUDE_PATHS = {"/health", "/docs", "/redoc", "/openapi.json"}
 
 
 class AuditLogMiddleware(BaseHTTPMiddleware):
-    """Log every authenticated request for audit trail."""
+    """Log every authenticated request for audit trail.
+
+    User context (user_id, org_id) is read from request.state if available.
+    The auth dependency chain sets these values — this avoids decoding the
+    JWT a second time (wastes CPU, risks time-of-check/time-of-use issues).
+    """
 
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
@@ -26,19 +39,10 @@ class AuditLogMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         duration_ms = round((time.perf_counter() - start) * 1000, 2)
 
-        # Extract user info from JWT if present (don't fail if missing)
-        user_id = None
-        org_id = None
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            try:
-                from app.core.auth import verify_jwt
-
-                payload = verify_jwt(auth_header[7:])
-                user_id = payload.user_id
-                org_id = payload.organization_id
-            except Exception:
-                pass  # Don't fail audit on bad tokens
+        # Read user context from request.state (set by auth dependency)
+        # Falls back to None for unauthenticated endpoints
+        user_id = getattr(request.state, "audit_user_id", None)
+        org_id = getattr(request.state, "audit_org_id", None)
 
         # Log audit entry
         logger.info(

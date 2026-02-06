@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "eslint app/ components/ lib/",
     "typecheck": "tsc --noEmit",
-    "cf:build": "npx @opennextjs/cloudflare build"
+    "cf:build": "opennextjs-cloudflare build",
+    "preview": "pnpm cf:build && opennextjs-cloudflare preview",
+    "deploy": "pnpm cf:build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@praedixa/shared-types": "workspace:*",

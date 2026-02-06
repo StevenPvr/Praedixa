@@ -18,6 +18,19 @@
     --text-primary: oklch(0.145 0 0);
     --text-secondary: oklch(0.556 0.014 250);
     --accent: oklch(0.769 0.205 70);
+
+    /* Tremor chart color tokens (hex fallbacks for recharts SVG) */
+    --tremor-chart-amber: #f59e0b;
+    --tremor-chart-success: #22c55e;
+    --tremor-chart-warning: #eab308;
+    --tremor-chart-danger: #ef4444;
+    --tremor-chart-blue: #3b82f6;
+    --tremor-chart-gray: #6b7280;
+
+    /* Risk thresholds: green <=0.3, orange 0.3-0.6, red >0.6 */
+    --risk-low: oklch(0.723 0.219 149);
+    --risk-medium: oklch(0.702 0.183 55);
+    --risk-high: oklch(0.577 0.245 27);
   }
 
   body {
@@ -42,5 +55,10 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background: oklch(0.714 0.01 250);
+  }
+
+  /* Tremor overrides — remap Tremor's internal classes to our design system */
+  [data-tremor-default] {
+    font-family: var(--font-sans);
   }
 }

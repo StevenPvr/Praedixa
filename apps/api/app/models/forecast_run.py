@@ -12,7 +12,7 @@ from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TenantMixin
+from app.models.base import Base, TenantMixin, sa_enum
 
 
 class ForecastModelType(str, enum.Enum):
@@ -50,11 +50,14 @@ class ForecastRun(TenantMixin, Base):
         nullable=False,
         index=True,
     )
-    model_type: Mapped[ForecastModelType] = mapped_column(nullable=False)
+    model_type: Mapped[ForecastModelType] = mapped_column(
+        sa_enum(ForecastModelType), nullable=False
+    )
     model_version: Mapped[str | None] = mapped_column(String(50))
     horizon_days: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[ForecastStatus] = mapped_column(
-        default=ForecastStatus.PENDING
+        sa_enum(ForecastStatus),
+        default=ForecastStatus.PENDING,
     )
     started_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True)

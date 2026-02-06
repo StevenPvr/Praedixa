@@ -1,15 +1,27 @@
-"""Dashboard schemas — alerts and action plans.
+"""Dashboard schemas — summary KPIs, alerts, and action plans.
 
-Maps to shared-types: DashboardAlert, ActionPlan.
+Maps to shared-types: DashboardAlert, ActionPlan, DashboardSummary.
 """
 
 import uuid
 from datetime import datetime
 from typing import Any
 
+from pydantic import ConfigDict
+
 from app.models.action_plan import ActionPlanStatus
 from app.models.dashboard_alert import AlertSeverity, AlertType, RelatedEntityType
 from app.schemas.base import CamelModel, TenantEntitySchema
+
+
+class DashboardSummaryResponse(CamelModel):
+    """Dashboard KPI summary — aggregated metrics."""
+
+    coverage_human: float
+    coverage_merchandise: float
+    active_alerts_count: int
+    forecast_accuracy: float | None = None
+    last_forecast_date: datetime | None = None
 
 
 class DashboardAlertRead(TenantEntitySchema):
@@ -29,6 +41,8 @@ class DashboardAlertRead(TenantEntitySchema):
 
 class DashboardAlertDismiss(CamelModel):
     """Dismiss an alert."""
+
+    model_config = ConfigDict(extra="forbid")
 
     alert_id: uuid.UUID
 
@@ -51,6 +65,8 @@ class ActionPlanRead(TenantEntitySchema):
 class ActionPlanCreate(CamelModel):
     """Create action plan request."""
 
+    model_config = ConfigDict(extra="forbid")
+
     name: str
     description: str
     period: dict[str, Any]
@@ -59,6 +75,8 @@ class ActionPlanCreate(CamelModel):
 
 class ActionPlanUpdate(CamelModel):
     """Update action plan request."""
+
+    model_config = ConfigDict(extra="forbid")
 
     name: str | None = None
     description: str | None = None
