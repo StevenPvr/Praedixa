@@ -4,8 +4,8 @@ const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "Praedixa",
-  url: "https://www.praedixa.com",
-  logo: "https://www.praedixa.com/logo.svg",
+  url: "https://praedixa.com",
+  logo: "https://praedixa.com/logo.svg",
   description:
     "Praedixa aide les PME/ETI multi-sites à piloter la couverture terrain : standardisation des données, prédictions par machine learning, notifications informatives avec options chiffrées, et suivi des KPIs économiques.",
   areaServed: {
@@ -82,7 +82,7 @@ const serviceSchema = {
     audienceType: "PME et ETI multi-sites avec 100+ salariés terrain",
   },
   serviceType: "Diagnostic opérationnel",
-  termsOfService: "https://www.praedixa.com/cgu",
+  termsOfService: "https://praedixa.com/cgu",
   offers: {
     "@type": "Offer",
     price: "0",
@@ -124,7 +124,7 @@ const webSiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "Praedixa",
-  url: "https://www.praedixa.com",
+  url: "https://praedixa.com",
   description:
     "Praedixa — anticipez les trous de planning de vos équipes terrain multi-sites. Diagnostic en 48h, sans intégration IT.",
   publisher: {

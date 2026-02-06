@@ -17,7 +17,7 @@ const dmSerif = DM_Serif_Display({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.praedixa.com"),
+  metadataBase: new URL("https://praedixa.com"),
   title: "Praedixa — Planning équipes terrain | Diagnostic 48h",
   description:
     "Anticipez les trous de planning de vos équipes terrain multi-sites. Diagnostic en 48h : coût chiffré, plan d'action, sans intégration IT. Essai gratuit.",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
       "Praedixa — Anticipez les trous de planning terrain et chiffrez le coût en 48h",
     description:
       "Anticipez les trous de planning de vos équipes terrain multi-sites. Diagnostic en 48h : coût chiffré, plan d'action, sans intégration IT. Essai gratuit.",
-    url: "https://www.praedixa.com",
+    url: "https://praedixa.com",
     siteName: "Praedixa",
     locale: "fr_FR",
     type: "website",

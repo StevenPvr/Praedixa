@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     title: "Diagnostic planning terrain gratuit en 48h | Praedixa",
     description:
       "Identifiez vos trous de planning terrain, chiffrez le coût évitable et recevez un plan d'action en 48h. Gratuit, sans intégration IT.",
-    url: "https://www.praedixa.com/devenir-pilote",
+    url: "https://praedixa.com/devenir-pilote",
     siteName: "Praedixa",
     locale: "fr_FR",
     type: "website",
