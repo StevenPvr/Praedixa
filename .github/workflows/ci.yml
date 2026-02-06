@@ -126,10 +126,10 @@ jobs:
           MAX_RETRIES=5
           RETRY_DELAY=10
           for i in $(seq 1 $MAX_RETRIES); do
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://praedixa.com/api/health)
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://www.praedixa.com/api/health)
             if [ "$HTTP_CODE" = "200" ]; then
               echo "Health check passed (HTTP $HTTP_CODE)"
-              HEALTH_BODY=$(curl -s https://praedixa.com/api/health)
+              HEALTH_BODY=$(curl -s https://www.praedixa.com/api/health)
               echo "Response: $HEALTH_BODY"
               break
             fi
@@ -143,7 +143,7 @@ jobs:
 
       - name: Verify homepage accessibility
         run: |
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://praedixa.com/)
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://www.praedixa.com/)
           if [ "$HTTP_CODE" != "200" ]; then
             echo "::error::Homepage returned HTTP $HTTP_CODE"
             exit 1
