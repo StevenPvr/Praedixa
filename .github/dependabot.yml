@@ -12,6 +12,9 @@ updates:
     commit-message:
       prefix: "deps"
     open-pull-requests-limit: 10
+    ignore:
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
     groups:
       prod-deps:
         dependency-type: "production"
