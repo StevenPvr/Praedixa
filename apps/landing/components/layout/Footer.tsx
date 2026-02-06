@@ -12,10 +12,10 @@ const NAVIGATION_LINKS = [
   { href: "#solution", label: "La solution" },
   { href: "#pipeline", label: "La vision" },
   { href: "#deliverables", label: "Les livrables" },
-  { href: "#pilot", label: "Programme pilote" },
+  { href: "#pilot", label: "Diagnostic 48h" },
   { href: "#faq", label: "FAQ" },
   { href: "#contact", label: "Contact" },
-  { href: "/devenir-pilote", label: "Devenir pilote" },
+  { href: "/devenir-pilote", label: "Demander un diagnostic" },
 ] as const;
 
 const LEGAL_LINKS = [
@@ -40,13 +40,13 @@ export function Footer({ className }: FooterProps) {
       <div className="border-b border-white/10 py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 md:flex-row">
           <p className="text-center font-serif text-xl text-white md:text-left md:text-2xl">
-            Prêt à rejoindre le programme pilote ?
+            Prêt à détecter vos risques de sous-couverture ?
           </p>
           <Link
             href="/devenir-pilote"
             className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-6 py-3 text-sm font-bold text-charcoal transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-charcoal"
           >
-            Candidater au programme pilote
+            Demander un diagnostic 48h
             <svg
               className="h-4 w-4"
               fill="none"
@@ -74,7 +74,7 @@ export function Footer({ className }: FooterProps) {
               <PraedixaLogo
                 variant="industrial"
                 size={28}
-                color="#ffffff"
+                color="oklch(1 0 0)"
                 strokeWidth={1}
                 className="transition-transform duration-200 group-hover:scale-105"
               />
@@ -83,8 +83,7 @@ export function Footer({ className }: FooterProps) {
               </span>
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/60">
-              Anticipez les trous de planning terrain. Chiffrez le coût. Décidez
-              en confiance.
+              Prévoir les trous. Chiffrer les options. Prouver le ROI.
             </p>
 
             {/* Trust indicators */}
@@ -169,7 +168,7 @@ export function Footer({ className }: FooterProps) {
               Contact
             </h3>
             <a
-              href={`mailto:${siteConfig.contact.email}?subject=Diagnostic%20planning%20terrain`}
+              href={`mailto:${siteConfig.contact.email}?subject=Diagnostic%20couverture%2048h`}
               className="inline-flex items-center gap-2 text-sm text-white/70 transition-colors hover:text-amber-400"
             >
               <svg

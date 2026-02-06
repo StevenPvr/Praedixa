@@ -15,24 +15,24 @@ interface SolutionSectionProps {
 const SOLUTION_STEPS = [
   {
     number: "1",
-    title: "Envoyez vos exports",
-    subtitle: "10 min",
+    title: "Envoyez vos exports existants",
+    subtitle: "10 min, aucune intégration",
     description:
-      "Planning, activité, absences : des fichiers que vous avez déjà. Aucune intégration, aucun connecteur à installer.",
+      "Capacité, charge, absences : des fichiers que vous avez déjà. CSV ou Excel, aucun connecteur à installer.",
   },
   {
     number: "2",
-    title: "On analyse en 48h",
-    subtitle: "Standardisation des données, analyse capacité vs charge",
+    title: "On détecte la sous-couverture",
+    subtitle: "Analyse capacité vs charge en 48h",
     description:
-      "On identifie où et quand la capacité ne suivra pas la charge. On chiffre le coût du trou et les options (HS, intérim, réallocation).",
+      "On prédit les trous à venir par site, équipe et compétence. On chiffre le coût de l'inaction et le coût des options (HS, intérim, réallocation).",
   },
   {
     number: "3",
-    title: "Vous recevez votre plan",
-    subtitle: "Carte + coût + 3 actions avec ROI",
+    title: "Vous recevez votre carte des risques",
+    subtitle: "Risques + coûts + playbook d'actions",
     description:
-      "Un plan de couverture actionnable : carte de sous-couverture, coût évitable estimé, 3 actions prioritaires avec hypothèses transparentes.",
+      "Une carte de sous-couverture par site, le coût évitable estimé et un playbook d'actions prioritaires avec hypothèses transparentes.",
   },
 ] as const;
 
@@ -53,12 +53,12 @@ export function SolutionSection({ className }: SolutionSectionProps) {
             Votre point de départ
           </span>
           <h2 className="font-serif text-3xl font-bold text-white sm:text-4xl md:text-[2.75rem]">
-            Un diagnostic actionnable en 48h
+            Votre diagnostic de couverture en 48h
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-white/70">
             Avant de construire un système complet, on vous montre la valeur
-            avec un premier diagnostic. À partir d&apos;exports que vous avez
-            déjà.
+            avec un premier diagnostic de couverture. À partir d&apos;exports
+            que vous avez déjà.
           </p>
         </motion.div>
 
@@ -116,14 +116,14 @@ export function SolutionSection({ className }: SolutionSectionProps) {
         <motion.div className="mt-16 text-center" variants={staggerItem}>
           <p className="mx-auto max-w-2xl text-base leading-relaxed text-white/70">
             Ce diagnostic est votre point d&apos;entrée. Pour les entreprises
-            pilotes, il débouche sur une solution complète de pilotage
-            prédictif.
+            pilotes, il débouche sur un pilotage continu de la couverture&nbsp;:
+            early-warning, arbitrage chiffré et preuve d&apos;impact.
           </p>
           <a
             href="#pipeline"
             className="mt-4 inline-flex items-center gap-2 text-base font-semibold text-amber-400 transition-colors hover:text-amber-300"
           >
-            Découvrir la vision complète
+            Découvrir le pilotage continu
             <svg
               className="h-4 w-4"
               fill="none"

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Navbar, Footer, HeroSection } from "../components";
+import { Navbar, Footer, HeroSection, TrustBand } from "../components";
 import { SolutionSection } from "../components/sections/SolutionSection";
 import { FaqSection } from "../components/sections/FaqSection";
 import { ContactSection } from "../components/sections/ContactSection";
@@ -29,6 +29,7 @@ export default function LandingPage() {
       <Navbar />
       <main>
         <HeroSection />
+        <TrustBand />
         <Suspense fallback={null}>
           <ProblemSection />
         </Suspense>

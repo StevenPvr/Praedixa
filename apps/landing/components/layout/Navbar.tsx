@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { href: "#problem", label: "Le problème" },
   { href: "#solution", label: "La solution" },
   { href: "#pipeline", label: "La vision" },
-  { href: "#pilot", label: "Programme pilote" },
+  { href: "#pilot", label: "Diagnostic 48h" },
   { href: "#faq", label: "FAQ" },
 ] as const;
 
@@ -54,7 +54,7 @@ export function Navbar() {
             <PraedixaLogo
               variant="industrial"
               size={32}
-              color="#0f0f0f"
+              color="oklch(0.145 0 0)"
               strokeWidth={1}
               className="transition-transform duration-200 group-hover:scale-105"
             />
@@ -82,7 +82,7 @@ export function Navbar() {
               href={PILOT_HREF}
               className="rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-charcoal transition-all duration-200 hover:bg-amber-400 hover:shadow-lg hover:shadow-amber-500/25"
             >
-              Devenir pilote
+              Diagnostic 48h
             </Link>
           </div>
 
@@ -156,7 +156,7 @@ export function Navbar() {
                   className="flex w-full items-center justify-center rounded-xl bg-amber-500 px-6 py-3.5 text-base font-semibold text-charcoal transition-all hover:bg-amber-400"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Devenir pilote
+                  Diagnostic 48h
                 </Link>
               </div>
             </motion.div>

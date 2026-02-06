@@ -7,7 +7,7 @@ const organizationSchema = {
   url: "https://www.praedixa.com",
   logo: "https://www.praedixa.com/logo.svg",
   description:
-    "Praedixa aide les PME/ETI multi-sites à piloter la couverture terrain : standardisation des données, prédictions par machine learning, notifications informatives avec options chiffrées, et suivi des KPIs économiques.",
+    "Praedixa est une couche d'intelligence de couverture pour entreprises multi-sites : anticipation de la sous-couverture, arbitrage economique chiffre, playbook d'actions et preuve d'impact auditable.",
   areaServed: {
     "@type": "Country",
     name: "France",
@@ -24,16 +24,16 @@ const organizationSchema = {
   },
   foundingDate: "2025",
   knowsAbout: [
-    "Gestion planning équipes terrain",
-    "Workforce management PME ETI",
-    "Prévision absentéisme",
-    "Optimisation couverture terrain multi-sites",
-    "Diagnostic opérationnel RH",
-    "Pilotage capacité vs charge",
-    "Pilotage prédictif continu",
-    "Machine learning prédiction absences",
-    "Optimisation sous contraintes",
-    "KPIs économiques opérations",
+    "Intelligence de couverture operationnelle",
+    "Risque de sous-couverture multi-sites",
+    "Arbitrage economique operations",
+    "Capacite vs charge operations",
+    "Preuve economique auditable",
+    "Playbook d'actions operationnelles",
+    "Pilotage predictif couverture",
+    "Early-warning operationnel",
+    "Decision tracable audit trail",
+    "KPIs economiques couverture",
   ],
   sameAs: [],
 };
@@ -45,15 +45,15 @@ const softwareSchema = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   description:
-    "Logiciel B2B de pilotage prédictif pour PME/ETI multi-sites. Diagnostic en 48h puis pilotage continu : prédictions, notifications informatives avec options chiffrées, suivi des KPIs économiques.",
+    "Couche d'intelligence de couverture pour entreprises multi-sites. Diagnostic en 48h puis pilotage continu : anticipation de la sous-couverture, arbitrage economique, playbook d'actions, preuve d'impact.",
   featureList: [
-    "Diagnostic de sous-couverture en 48h sans intégration IT",
-    "Standardisation et affinage continu des données terrain",
-    "Prédictions par machine learning et économétrie (J+7, J+14, J+30+)",
-    "Notifications informatives avec options chiffrées",
-    "Suivi des gains réalisés et KPIs économiques",
-    "Données agrégées équipe/site (privacy-by-design, RGPD natif)",
-    "Hébergement France",
+    "Diagnostic de sous-couverture en 48h sans integration IT",
+    "Prediction du risque de sous-couverture a 3, 7 et 14 jours",
+    "Chiffrage du cout de l'inaction vs cout des options",
+    "Playbook d'actions : heures sup, interim, reallocation, priorisation",
+    "Decision log et preuve economique auditable",
+    "Donnees agregees equipe/site (privacy-by-design, RGPD natif)",
+    "Hebergement France",
   ],
   offers: {
     "@type": "Offer",
@@ -66,22 +66,23 @@ const softwareSchema = {
 const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
-  name: "Diagnostic Planning Terrain",
+  name: "Diagnostic de couverture operationnelle",
   provider: {
     "@type": "Organization",
     name: "Praedixa",
   },
   description:
-    "Diagnostic de planning en 48h pour équipes terrain multi-sites. Identification des trous de planning, chiffrage du coût évitable, plan d'action avec ROI.",
+    "Diagnostic de couverture en 48h pour entreprises multi-sites. Identification des risques de sous-couverture, chiffrage du cout de l'inaction, playbook d'actions avec arbitrage economique.",
   areaServed: {
     "@type": "Country",
     name: "France",
   },
   audience: {
     "@type": "BusinessAudience",
-    audienceType: "PME et ETI multi-sites avec 100+ salariés terrain",
+    audienceType:
+      "Dir. exploitation, responsable Ops, DAF — logistique, transport, entrepots multi-sites",
   },
-  serviceType: "Diagnostic opérationnel",
+  serviceType: "Diagnostic de couverture operationnelle",
   termsOfService: "https://www.praedixa.com/cgu",
   offers: {
     "@type": "Offer",
@@ -103,7 +104,7 @@ const howToSchema = {
       "@type": "HowToStep",
       position: 1,
       name: "Envoyez vos exports",
-      text: "Vous nous envoyez vos exports (planning, activité/volumes et absences).",
+      text: "Vous nous envoyez vos exports (capacite, charge/volumes et absences).",
     },
     {
       "@type": "HowToStep",
@@ -126,7 +127,7 @@ const webSiteSchema = {
   name: "Praedixa",
   url: "https://www.praedixa.com",
   description:
-    "Praedixa — anticipez les trous de planning de vos équipes terrain multi-sites. Diagnostic en 48h, sans intégration IT.",
+    "Praedixa — intelligence de couverture operationnelle. Anticipez la sous-couverture multi-sites, chiffrez les options, prouvez le ROI. Diagnostic en 48h.",
   publisher: {
     "@type": "Organization",
     name: "Praedixa",

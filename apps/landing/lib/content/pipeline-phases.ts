@@ -10,26 +10,26 @@ export interface PipelinePhase {
 export const pipelinePhases: PipelinePhase[] = [
   {
     id: "standardisation",
-    title: "Standardisation & affinage continu",
+    title: "Ingestion des données existantes",
     description:
-      "Vos données terrain sont rarement propres. Praedixa les standardise progressivement. C'est un processus de maturation qui s'améliore dans le temps.",
+      "On ingère vos exports existants, sans intégration lourde. Praedixa standardise et fiabilise progressivement vos données de capacité et de charge.",
     capabilities: [
-      "Imports multi-formats (CSV, Excel, exports SIRH)",
+      "Imports multi-formats (CSV, Excel, exports métier)",
       "Réconciliation automatique des sources",
       "Qualité des données monitorée en continu",
-      "Base fiable pour les prédictions",
+      "Base fiable pour la détection de sous-couverture",
     ],
   },
   {
     id: "predictions",
-    title: "Prédictions par machine learning et économétrie",
+    title: "Prédiction de sous-couverture à 3, 7 et 14 jours",
     description:
-      "Modèles prédictifs pour estimer les risques de sous-couverture à J+7, J+14, J+30+.",
+      "Modèles prédictifs pour estimer le risque de sous-couverture par site, équipe et compétence. Early-warning opérationnel.",
     capabilities: [
-      "Prédiction absences et turnover (agrégé, anonyme)",
-      "Prédiction demande client",
-      "Prédiction capacité fournisseurs",
-      "Détection des problèmes semaines à l'avance",
+      "Risque de sous-couverture par site et compétence",
+      "Horizons courts : 3, 7 et 14 jours — vous choisissez",
+      "Écart capacité vs charge anticipé",
+      "Détection des trous semaines à l'avance",
     ],
     callout:
       "Toutes les prédictions sont agrégées au niveau équipe ou site. Aucune prédiction individuelle. Conformité RGPD native.",
@@ -37,14 +37,14 @@ export const pipelinePhases: PipelinePhase[] = [
   },
   {
     id: "notifications",
-    title: "Notifications informatives : les options, pas les ordres",
+    title: "Arbitrage économique : coût de l'inaction vs options",
     description:
-      "Quand un écart est détecté, Praedixa génère des notifications présentant les options possibles, évaluées économiquement sous contraintes réelles.",
+      "Quand un risque est détecté, Praedixa chiffre le coût de l'inaction et propose un playbook d'actions évaluées économiquement.",
     capabilities: [
-      "Optimisation mathématique sous contraintes",
-      "Réallocation inter-sites",
-      "Arbitrage HS / intérim / dégradation de service",
+      "Playbook d'actions : HS, intérim, réallocation, priorisation",
+      "Acceptation contrôlée d'une dégradation de service",
       "Chaque option chiffrée avec son impact économique",
+      "Décision traçable avec audit trail",
     ],
     callout:
       "Praedixa ne donne pas de conseil. Praedixa présente des options avec leur impact économique chiffré. La décision reste entièrement celle de l'entreprise.",
@@ -52,14 +52,14 @@ export const pipelinePhases: PipelinePhase[] = [
   },
   {
     id: "kpis",
-    title: "Suivi des gains réalisés et KPIs économiques",
+    title: "Preuve d'impact : mesure avant/après",
     description:
-      "Après chaque action, Praedixa mesure l'impact réel avec rigueur mathématique. Preuve auditable pour CODIR et DAF.",
+      "Après chaque décision, Praedixa logge l'action et mesure l'impact réel. Preuve économique auditable pour CODIR et DAF.",
     capabilities: [
-      "Suivi gains réalisés vs prévisions",
-      "KPIs économiques continus",
-      "Preuve auditable pour CODIR et DAF",
-      "Boucle de feedback pour améliorer les prédictions",
+      "Décision log : chaque arbitrage est tracé",
+      "Mesure avant/après avec rigueur mathématique",
+      "Preuve économique auditable pour CODIR et DAF",
+      "Boucle de feedback pour affiner les prédictions",
     ],
   },
 ];

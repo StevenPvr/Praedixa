@@ -30,11 +30,11 @@ export function FaqSection({ className }: FaqSectionProps) {
             FAQ
           </span>
           <h2 className="font-serif text-3xl font-bold text-charcoal sm:text-4xl md:text-[2.75rem]">
-            Questions fréquentes sur Praedixa
+            Questions frequentes sur Praedixa
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-600">
-            Tout ce qu&apos;un Directeur des Opérations doit savoir avant de
-            démarrer.
+            Tout ce qu&apos;un Dir. d&apos;exploitation, responsable Ops ou DAF
+            doit savoir avant de demarrer.
           </p>
         </motion.div>
 
@@ -99,7 +99,7 @@ export function FaqSection({ className }: FaqSectionProps) {
             href="/devenir-pilote"
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-charcoal px-8 py-4 text-sm font-semibold text-white transition-all hover:bg-charcoal/90 hover:shadow-lg hover:shadow-charcoal/25 focus:outline-none focus:ring-2 focus:ring-amber-400"
           >
-            Obtenir mon diagnostic gratuit
+            Demander un diagnostic 48h
             <svg
               className="h-4 w-4"
               fill="none"

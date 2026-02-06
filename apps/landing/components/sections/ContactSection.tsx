@@ -17,8 +17,8 @@ interface ContactSectionProps {
 const TRUST_ITEMS = [
   "Diagnostic gratuit",
   "Résultat en 48h",
-  "Tarif préférentiel 1 an",
-  "Support premium",
+  "Sans intégration IT",
+  "Données agrégées uniquement",
   "Sans engagement",
 ] as const;
 
@@ -39,11 +39,12 @@ export function ContactSection({ className }: ContactSectionProps) {
             Passez à l&apos;action
           </span>
           <h2 className="font-serif text-3xl font-bold text-white sm:text-4xl md:text-5xl">
-            Rejoignez le programme pilote
+            Demandez votre diagnostic de couverture
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-white/70">
-            Diagnostic gratuit en 48h. Tarif préférentiel et support premium
-            pendant 1 an. Places limitées.
+            En 48h, une carte des risques de sous-couverture, le coût de
+            l&apos;inaction et un playbook d&apos;actions. Sans intégration.
+            Sans données individuelles.
           </p>
         </motion.div>
 
@@ -71,12 +72,12 @@ export function ContactSection({ className }: ContactSectionProps) {
                 d="M13 10V3L4 14h7v7l9-11h-7z"
               />
             </svg>
-            Candidater au programme pilote
+            Demander un diagnostic 48h
           </Link>
 
           {/* Secondary CTA - Direct mailto */}
           <a
-            href={`mailto:${siteConfig.contact.email}?subject=Diagnostic%20planning%20terrain`}
+            href={`mailto:${siteConfig.contact.email}?subject=Diagnostic%20couverture%2048h`}
             className="inline-flex items-center gap-2 text-sm font-medium text-white/70 underline underline-offset-4 transition-colors hover:text-amber-400"
           >
             <svg

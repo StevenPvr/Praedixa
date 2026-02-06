@@ -29,14 +29,14 @@ function CoConstructionIcon({ className }: { className?: string }) {
         cx="18"
         cy="16"
         r="6"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="1.5"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fillOpacity="0.15"
       />
       <path
         d="M8 38 C8 30 14 26 18 26 C22 26 28 30 28 38"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="1.5"
         fill="none"
       />
@@ -44,14 +44,14 @@ function CoConstructionIcon({ className }: { className?: string }) {
         cx="30"
         cy="16"
         r="6"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="1.5"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fillOpacity="0.15"
       />
       <path
         d="M20 38 C20 30 26 26 30 26 C34 26 40 30 40 38"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="1.5"
         fill="none"
       />
@@ -70,9 +70,9 @@ function AdvantagesIcon({ className }: { className?: string }) {
       {/* Star / badge */}
       <polygon
         points="24,4 28,16 40,18 31,27 33,40 24,34 15,40 17,27 8,18 20,16"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="1.5"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fillOpacity="0.15"
         strokeLinejoin="round"
       />
@@ -91,17 +91,23 @@ function ObjectiveFlowIcon({ className }: { className?: string }) {
       {/* Circular flow */}
       <path
         d="M24 8 A16 16 0 1 1 8 24"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="1.5"
         fill="none"
         strokeDasharray="4 3"
       />
-      <polygon points="8,24 12,20 12,28" fill="#f59e0b" />
+      <polygon points="8,24 12,20 12,28" fill="oklch(0.769 0.205 70)" />
       {/* Center checkmark */}
-      <circle cx="24" cy="24" r="6" fill="#f59e0b" fillOpacity="0.15" />
+      <circle
+        cx="24"
+        cy="24"
+        r="6"
+        fill="oklch(0.769 0.205 70)"
+        fillOpacity="0.15"
+      />
       <polyline
         points="20,24 23,27 28,21"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="2"
         fill="none"
         strokeLinecap="round"
@@ -125,9 +131,9 @@ export function PilotSection({ className }: { className?: string }) {
   return (
     <SectionWrapper id="pilot" dark className={className}>
       <SectionHeader
-        kicker="Programme pilote"
-        heading="Devenez entreprise pilote : co-construisez la solution"
-        subheading="Le programme pilote est un vrai partenariat. Vous bénéficiez d'un accès anticipé, d'un accompagnement dédié, et vos retours façonnent directement le produit."
+        kicker="Diagnostic 48h"
+        heading="Votre carte des risques de sous-couverture en 48h"
+        subheading="Envoyez vos exports existants. En 48h, recevez une carte des risques, le coût de l'inaction et un playbook d'actions prioritaires. Sans intégration, sans données individuelles."
         light
       />
 

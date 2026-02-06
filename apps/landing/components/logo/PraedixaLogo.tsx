@@ -15,8 +15,8 @@ interface PraedixaLogoProps {
 
 // Color constants
 const COLORS = {
-  dark: "#0f0f0f", // Rich black
-  light: "#ffffff", // Pure white
+  dark: "oklch(0.145 0 0)", // Rich black (OKLCH)
+  light: "oklch(1 0 0)", // Pure white (OKLCH)
 } as const;
 
 export function PraedixaLogo({

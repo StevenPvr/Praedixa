@@ -148,7 +148,7 @@ export default function DevenirPilotePage() {
             <PraedixaLogo
               variant="industrial"
               size={32}
-              color="#0f0f0f"
+              color="oklch(0.145 0 0)"
               strokeWidth={1}
               className="transition-transform duration-200 group-hover:scale-105"
             />

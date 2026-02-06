@@ -19,25 +19,82 @@ function FunnelIcon({ className }: { className?: string }) {
       aria-hidden="true"
     >
       {/* Scattered data points at top */}
-      <circle cx="12" cy="10" r="2.5" fill="#f59e0b" opacity="0.5" />
-      <circle cx="28" cy="8" r="2.5" fill="#f59e0b" opacity="0.5" />
-      <circle cx="44" cy="12" r="2.5" fill="#f59e0b" opacity="0.5" />
-      <circle cx="52" cy="6" r="2.5" fill="#f59e0b" opacity="0.5" />
-      <circle cx="20" cy="14" r="2.5" fill="#f59e0b" opacity="0.5" />
-      <circle cx="36" cy="6" r="2.5" fill="#f59e0b" opacity="0.5" />
+      <circle
+        cx="12"
+        cy="10"
+        r="2.5"
+        fill="oklch(0.769 0.205 70)"
+        opacity="0.5"
+      />
+      <circle
+        cx="28"
+        cy="8"
+        r="2.5"
+        fill="oklch(0.769 0.205 70)"
+        opacity="0.5"
+      />
+      <circle
+        cx="44"
+        cy="12"
+        r="2.5"
+        fill="oklch(0.769 0.205 70)"
+        opacity="0.5"
+      />
+      <circle
+        cx="52"
+        cy="6"
+        r="2.5"
+        fill="oklch(0.769 0.205 70)"
+        opacity="0.5"
+      />
+      <circle
+        cx="20"
+        cy="14"
+        r="2.5"
+        fill="oklch(0.769 0.205 70)"
+        opacity="0.5"
+      />
+      <circle
+        cx="36"
+        cy="6"
+        r="2.5"
+        fill="oklch(0.769 0.205 70)"
+        opacity="0.5"
+      />
       {/* Funnel shape */}
       <path
         d="M8 22 L56 22 L38 44 L38 56 L26 56 L26 44 Z"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="2"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fillOpacity="0.1"
         strokeLinejoin="round"
       />
       {/* Organised columns at bottom */}
-      <rect x="24" y="58" width="4" height="4" rx="1" fill="#f59e0b" />
-      <rect x="30" y="58" width="4" height="4" rx="1" fill="#f59e0b" />
-      <rect x="36" y="58" width="4" height="4" rx="1" fill="#f59e0b" />
+      <rect
+        x="24"
+        y="58"
+        width="4"
+        height="4"
+        rx="1"
+        fill="oklch(0.769 0.205 70)"
+      />
+      <rect
+        x="30"
+        y="58"
+        width="4"
+        height="4"
+        rx="1"
+        fill="oklch(0.769 0.205 70)"
+      />
+      <rect
+        x="36"
+        y="58"
+        width="4"
+        height="4"
+        rx="1"
+        fill="oklch(0.769 0.205 70)"
+      />
     </svg>
   );
 }
@@ -51,30 +108,34 @@ function PredictionChartIcon({ className }: { className?: string }) {
       aria-hidden="true"
     >
       {/* Axes */}
-      <path d="M8 56 L8 8 M8 56 L60 56" stroke="#f59e0b" strokeWidth="1.5" />
+      <path
+        d="M8 56 L8 8 M8 56 L60 56"
+        stroke="oklch(0.769 0.205 70)"
+        strokeWidth="1.5"
+      />
       {/* Historical line */}
       <polyline
         points="12,48 20,42 28,44 36,36"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="2"
         fill="none"
       />
       {/* Confidence band */}
       <path
         d="M36 36 L44 30 L52 26 L56 24 L56 36 L52 34 L44 38 L36 36 Z"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fillOpacity="0.15"
       />
       {/* Prediction line (dashed) */}
       <polyline
         points="36,36 44,30 52,26 56,24"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="2"
         strokeDasharray="4 3"
         fill="none"
       />
       {/* Dot at junction */}
-      <circle cx="36" cy="36" r="3" fill="#f59e0b" />
+      <circle cx="36" cy="36" r="3" fill="oklch(0.769 0.205 70)" />
     </svg>
   );
 }
@@ -94,9 +155,9 @@ function NotificationCardIcon({ className }: { className?: string }) {
         width="52"
         height="48"
         rx="4"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="1.5"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fillOpacity="0.05"
       />
       {/* Header */}
@@ -106,7 +167,7 @@ function NotificationCardIcon({ className }: { className?: string }) {
         width="24"
         height="3"
         rx="1.5"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         opacity="0.5"
       />
       {/* Option row 1 */}
@@ -116,14 +177,14 @@ function NotificationCardIcon({ className }: { className?: string }) {
         width="36"
         height="6"
         rx="2"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fillOpacity="0.15"
       />
       <text
         x="48"
         y="29"
         fontSize="5"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fontWeight="bold"
         textAnchor="end"
       >
@@ -136,14 +197,14 @@ function NotificationCardIcon({ className }: { className?: string }) {
         width="36"
         height="6"
         rx="2"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fillOpacity="0.1"
       />
       <text
         x="48"
         y="39"
         fontSize="5"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fontWeight="bold"
         textAnchor="end"
       >
@@ -156,14 +217,14 @@ function NotificationCardIcon({ className }: { className?: string }) {
         width="36"
         height="6"
         rx="2"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fillOpacity="0.08"
       />
       <text
         x="48"
         y="49"
         fontSize="5"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fontWeight="bold"
         textAnchor="end"
       >
@@ -184,36 +245,43 @@ function DashboardIcon({ className }: { className?: string }) {
       {/* Trend line chart area */}
       <polyline
         points="8,44 16,40 24,42 32,32 40,28 48,24 56,20"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="2"
         fill="none"
       />
       <path
         d="M8,44 L16,40 L24,42 L32,32 L40,28 L48,24 L56,20 L56,52 L8,52 Z"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fillOpacity="0.1"
       />
       {/* Gauge */}
       <path
         d="M16 16 A8 8 0 0 1 32 16"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="2"
         fill="none"
       />
-      <line x1="24" y1="16" x2="28" y2="12" stroke="#f59e0b" strokeWidth="2" />
+      <line
+        x1="24"
+        y1="16"
+        x2="28"
+        y2="12"
+        stroke="oklch(0.769 0.205 70)"
+        strokeWidth="2"
+      />
       {/* Checkmark */}
       <circle
         cx="48"
         cy="12"
         r="6"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="1.5"
-        fill="#f59e0b"
+        fill="oklch(0.769 0.205 70)"
         fillOpacity="0.1"
       />
       <polyline
         points="44,12 47,15 52,9"
-        stroke="#f59e0b"
+        stroke="oklch(0.769 0.205 70)"
         strokeWidth="2"
         fill="none"
         strokeLinecap="round"
@@ -234,7 +302,7 @@ const PHASE_ICONS: Record<string, React.FC<{ className?: string }>> = {
 /*  Flow Diagram                                                       */
 /* ------------------------------------------------------------------ */
 
-const FLOW_STEPS = ["Données", "Prédictions", "Notifications", "KPIs"] as const;
+const FLOW_STEPS = ["Données", "Prédictions", "Arbitrage", "Preuve"] as const;
 
 function FlowDiagram() {
   return (
@@ -288,7 +356,7 @@ function FlowDiagram() {
 
       <p className="max-w-2xl text-center text-base leading-relaxed text-neutral-600">
         Une boucle vertueuse : chaque cycle améliore les données, affine les
-        prédictions, et prouve les gains.
+        prédictions de sous-couverture, et prouve l&apos;impact économique.
       </p>
     </motion.div>
   );
@@ -329,8 +397,8 @@ export function PipelineSection({ className }: { className?: string }) {
     <SectionWrapper id="pipeline" className={className}>
       <SectionHeader
         kicker="La vision complète"
-        heading="Du diagnostic ponctuel au pilotage prédictif continu"
-        subheading="Quatre phases interconnectées forment une boucle continue : vos données alimentent les prédictions, qui déclenchent des notifications actionnables, dont l'impact est mesuré pour affiner le cycle suivant."
+        heading="Du diagnostic ponctuel au pilotage continu de la couverture"
+        subheading="Quatre phases interconnectées forment une boucle continue : vos données alimentent les prédictions de sous-couverture, qui déclenchent des arbitrages chiffrés, dont l'impact est mesuré pour affiner le cycle suivant."
       />
 
       {/* Vertical timeline */}

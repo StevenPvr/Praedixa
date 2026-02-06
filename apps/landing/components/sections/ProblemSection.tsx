@@ -14,9 +14,9 @@ interface ProblemSectionProps {
 
 const PAIN_POINTS = [
   {
-    title: "Vous découvrez le trou le jour J",
+    title: "La sous-couverture se révèle trop tard",
     description:
-      "Pas de prévision fiable : la sous-couverture se révèle quand il est déjà trop tard pour agir sereinement.",
+      "Aucun early-warning : l'écart capacité vs charge apparaît le jour J, quand il ne reste que des solutions d'urgence.",
     consequence: "Surcoût intérim urgence : +40 à +80 % vs anticipé",
     icon: (
       <svg
@@ -71,9 +71,9 @@ const PAIN_POINTS = [
     ),
   },
   {
-    title: "Personne ne sait combien ça coûte",
+    title: "Le coût de l'inaction est invisible",
     description:
-      "HS, intérim, dégradation de service — le coût réel des trous de planning est rarement mesuré, jamais consolidé.",
+      "Heures sup, intérim, dégradation de service — le coût réel de la sous-couverture est rarement mesuré, jamais consolidé.",
     consequence: "Pas de visibilité financière pour arbitrer",
     icon: (
       <svg
@@ -102,10 +102,10 @@ const PAIN_POINTS = [
     ),
   },
   {
-    title: "Impossible de justifier au CODIR",
+    title: "Aucune preuve pour le CODIR",
     description:
-      "Sans données consolidées, impossible de prouver l'impact des décisions. Pas de trace, pas de preuve auditable.",
-    consequence: "Aucune preuve auditable pour le DAF",
+      "Sans données consolidées, impossible de prouver l'impact des décisions. Pas de trace, pas de preuve économique auditable.",
+    consequence: "Pas d'audit trail pour le DAF",
     icon: (
       <svg
         className="h-10 w-10"
@@ -187,11 +187,12 @@ export function ProblemSection({ className }: ProblemSectionProps) {
             Le problème
           </span>
           <h2 className="font-serif text-3xl font-bold leading-tight text-charcoal md:text-4xl lg:text-[2.75rem]">
-            Le vrai coût des trous de planning
+            Le vrai coût de la sous-couverture
           </h2>
           <p className="mt-4 text-base leading-relaxed text-neutral-600 md:text-lg">
-            Chaque semaine, les entreprises multi-sites compensent dans
-            l&apos;urgence. Le coût est réel, mais rarement mesuré.
+            Quand la capacité terrain ne suit pas la charge, les entreprises
+            multi-sites paient en urgence. Le coût est réel, mais rarement
+            mesuré.
           </p>
         </motion.div>
 
@@ -223,9 +224,9 @@ export function ProblemSection({ className }: ProblemSectionProps) {
           variants={staggerItem}
         >
           Ces trois problèmes ont une cause commune&nbsp;: l&apos;absence
-          d&apos;outil de prévision adapté aux opérations terrain.{" "}
+          d&apos;early-warning sur le risque de sous-couverture.{" "}
           <span className="font-semibold text-charcoal">
-            C&apos;est exactement ce que Praedixa construit.
+            Praedixa est cette couche d&apos;intelligence.
           </span>
         </motion.p>
       </div>

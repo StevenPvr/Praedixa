@@ -1,4 +1,5 @@
 export { HeroSection } from "./HeroSection";
+export { TrustBand } from "./TrustBand";
 export { ProblemSection } from "./ProblemSection";
 export { SolutionSection } from "./SolutionSection";
 export { PipelineSection } from "./PipelineSection";

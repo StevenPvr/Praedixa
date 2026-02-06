@@ -4,6 +4,7 @@ export { Navbar, Footer } from "./layout";
 // Section components
 export {
   HeroSection,
+  TrustBand,
   ProblemSection,
   SolutionSection,
   PipelineSection,

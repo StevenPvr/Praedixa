@@ -7,37 +7,37 @@ export interface PilotColumn {
 export const pilotColumns: PilotColumn[] = [
   {
     id: "co-construction",
-    title: "Co-construction",
+    title: "Ce qu'on livre",
     items: [
-      "Vous participez à la définition des fonctionnalités",
-      "Vos retours orientent le produit",
-      "Premiers à utiliser chaque nouvelle version",
-      "Accompagnement dédié pour le déploiement",
+      "Carte de sous-couverture par site et compétence",
+      "Coût de l'inaction estimé en euros",
+      "Playbook d'actions prioritaires chiffrées",
+      "Livré en 48h, sans intégration IT",
     ],
   },
   {
     id: "avantages",
-    title: "Avantages exclusifs",
+    title: "Ce que vous gagnez",
     items: [
-      "Tarif préférentiel pendant 1 an",
-      "Support premium pendant 1 an",
-      "Diagnostic initial gratuit",
-      "Accès prioritaire aux nouvelles fonctionnalités",
-      "Influence directe sur la roadmap",
+      "Early-warning opérationnel sur la couverture",
+      "Arbitrages chiffrés : coût vs options",
+      "Preuve économique auditable pour le CODIR",
+      "Réduction du mode urgence et des coûts associés",
+      "Décisions traçables avec audit trail",
     ],
   },
   {
     id: "objectif",
-    title: "Objectif final",
+    title: "Comment ça marche",
     items: [
-      "Implémenter la boucle complète avec vous",
-      "Données → Prédictions → Notifications → KPIs",
-      "Un cycle vertueux d'amélioration continue",
+      "Exports simples (CSV/Excel), aucune intégration",
+      "Données agrégées uniquement, pas de données individuelles",
+      "Résultat en 48h, sans engagement",
     ],
   },
 ];
 
 export const pilotUrgencyText =
-  "Places limitées. Le programme pilote est réservé à un nombre restreint d'entreprises pour garantir la qualité de l'accompagnement.";
-export const pilotCtaText = "Candidater au programme pilote";
+  "Places limitées. Le diagnostic est réservé à un nombre restreint d'entreprises pour garantir la qualité de l'accompagnement.";
+export const pilotCtaText = "Demander un diagnostic 48h";
 export const pilotCtaHref = "/devenir-pilote";

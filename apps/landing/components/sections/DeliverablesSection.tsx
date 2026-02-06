@@ -13,9 +13,9 @@ interface DeliverablesSectionProps {
 }
 
 const CHECKLIST_ITEMS = [
-  "Prévisions de sous-couverture site par site",
-  "Coût évitable estimé en euros",
-  "3 actions prioritaires avec ROI",
+  "Carte de sous-couverture par site et compétence",
+  "Coût de l'inaction estimé en euros",
+  "Playbook d'actions prioritaires chiffrées",
   "Hypothèses explicites et auditables",
   "Livré en 48h, sans intégration IT",
 ] as const;
@@ -23,7 +23,7 @@ const CHECKLIST_ITEMS = [
 const TRUST_SIGNALS = [
   {
     title: "Crédibilité fondateur",
-    text: "Expertise en data science, séries temporelles et économétrie appliquées aux opérations.",
+    text: "Expertise en data science, séries temporelles et économétrie appliquées aux opérations multi-sites.",
   },
   {
     title: "Transparence méthodologique",
@@ -34,8 +34,8 @@ const TRUST_SIGNALS = [
     text: "Données agrégées équipe/site uniquement. Hébergement France. Pas de données individuelles.",
   },
   {
-    title: "Programme pilote",
-    text: "Diagnostic gratuit + tarif préférentiel 1 an + support premium 1 an. Places limitées.",
+    title: "Diagnostic 48h",
+    text: "Carte des risques + coût de l'inaction + playbook d'actions. Sans engagement.",
   },
 ] as const;
 
@@ -65,7 +65,7 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
           className="mb-8 text-xl font-bold text-charcoal"
           variants={staggerItem}
         >
-          Diagnostic 48h : votre premier livrable
+          Diagnostic de couverture : votre premier livrable
         </motion.h3>
 
         {/* Two-column layout: mockup + checklist */}
@@ -83,7 +83,7 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-charcoal">
-                    Rapport diagnostic
+                    Rapport de couverture
                   </p>
                   <p className="text-[11px] text-neutral-400">
                     Praedixa · généré le 03/02/2026
@@ -119,8 +119,8 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                           height: `${Math.round(site.h * 0.5)}px`,
                           backgroundColor:
                             site.h < 50
-                              ? "rgb(251, 191, 36)"
-                              : "rgb(229, 231, 235)",
+                              ? "oklch(0.828 0.208 84)"
+                              : "oklch(0.922 0 0)",
                         }}
                       />
                       <span className="text-[9px] text-neutral-400">
@@ -134,7 +134,7 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
               {/* Section: Coût évitable */}
               <div className="rounded-lg bg-amber-50 p-3">
                 <p className="mb-0.5 text-[11px] font-medium text-amber-700/70">
-                  Coût évitable estimé
+                  Coût de l&apos;inaction estimé
                 </p>
                 <p className="flex items-baseline gap-1.5">
                   <span className="text-lg font-bold text-amber-700">
@@ -201,7 +201,7 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
         {/* Part B: Pilot program deliverables */}
         <motion.div className="mt-20" variants={staggerItem}>
           <h3 className="mb-8 text-xl font-bold text-charcoal">
-            Programme pilote : le pilotage continu
+            Pilotage continu de la couverture
           </h3>
           <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-2">
             {/* Left: Dashboard mockup SVG */}
@@ -217,12 +217,12 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                 <text
                   x="16"
                   y="24"
-                  fill="#f59e0b"
+                  fill="oklch(0.769 0.205 70)"
                   fontSize="12"
                   fontWeight="bold"
                   fontFamily="system-ui"
                 >
-                  Tableau de bord prédictif
+                  Tableau de bord couverture
                 </text>
                 {/* Mini line chart */}
                 <rect
@@ -231,26 +231,26 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                   width="180"
                   height="100"
                   rx="8"
-                  fill="#1a1a1a"
+                  fill="oklch(0.175 0 0)"
                 />
                 <text
                   x="26"
                   y="52"
-                  fill="#737373"
+                  fill="oklch(0.556 0 0)"
                   fontSize="8"
                   fontFamily="system-ui"
                 >
-                  Couverture J+14
+                  Couverture 14 jours
                 </text>
                 <polyline
                   points="30,110 60,95 90,100 120,80 150,85 180,70"
-                  stroke="#f59e0b"
+                  stroke="oklch(0.769 0.205 70)"
                   strokeWidth="2"
                   fill="none"
                 />
                 <polyline
                   points="30,110 60,105 90,108 120,100 150,102 180,95"
-                  stroke="#737373"
+                  stroke="oklch(0.556 0 0)"
                   strokeWidth="1"
                   strokeDasharray="4 2"
                   fill="none"
@@ -263,13 +263,13 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                   width="174"
                   height="28"
                   rx="6"
-                  fill="#1a1a1a"
+                  fill="oklch(0.175 0 0)"
                 />
-                <circle cx="226" cy="50" r="4" fill="#f59e0b" />
+                <circle cx="226" cy="50" r="4" fill="oklch(0.769 0.205 70)" />
                 <text
                   x="236"
                   y="53"
-                  fill="#d4d4d4"
+                  fill="oklch(0.871 0 0)"
                   fontSize="8"
                   fontFamily="system-ui"
                 >
@@ -281,13 +281,19 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                   width="174"
                   height="28"
                   rx="6"
-                  fill="#1a1a1a"
+                  fill="oklch(0.175 0 0)"
                 />
-                <circle cx="226" cy="84" r="4" fill="#f59e0b" opacity="0.6" />
+                <circle
+                  cx="226"
+                  cy="84"
+                  r="4"
+                  fill="oklch(0.769 0.205 70)"
+                  opacity="0.6"
+                />
                 <text
                   x="236"
                   y="87"
-                  fill="#d4d4d4"
+                  fill="oklch(0.871 0 0)"
                   fontSize="8"
                   fontFamily="system-ui"
                 >
@@ -299,13 +305,18 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                   width="174"
                   height="28"
                   rx="6"
-                  fill="#1a1a1a"
+                  fill="oklch(0.175 0 0)"
                 />
-                <circle cx="226" cy="118" r="4" fill="#22c55e" />
+                <circle
+                  cx="226"
+                  cy="118"
+                  r="4"
+                  fill="oklch(0.723 0.219 149.6)"
+                />
                 <text
                   x="236"
                   y="121"
-                  fill="#d4d4d4"
+                  fill="oklch(0.871 0 0)"
                   fontSize="8"
                   fontFamily="system-ui"
                 >
@@ -318,21 +329,21 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                   width="368"
                   height="50"
                   rx="8"
-                  fill="#1a1a1a"
+                  fill="oklch(0.175 0 0)"
                 />
                 <text
                   x="36"
                   y="172"
-                  fill="#737373"
+                  fill="oklch(0.556 0 0)"
                   fontSize="8"
                   fontFamily="system-ui"
                 >
-                  Gains réalisés
+                  Coûts évités
                 </text>
                 <text
                   x="36"
                   y="188"
-                  fill="#f59e0b"
+                  fill="oklch(0.769 0.205 70)"
                   fontSize="14"
                   fontWeight="bold"
                   fontFamily="system-ui"
@@ -342,16 +353,16 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                 <text
                   x="160"
                   y="172"
-                  fill="#737373"
+                  fill="oklch(0.556 0 0)"
                   fontSize="8"
                   fontFamily="system-ui"
                 >
-                  Précision
+                  Taux de couverture
                 </text>
                 <text
                   x="160"
                   y="188"
-                  fill="#f59e0b"
+                  fill="oklch(0.769 0.205 70)"
                   fontSize="14"
                   fontWeight="bold"
                   fontFamily="system-ui"
@@ -361,7 +372,7 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                 <text
                   x="270"
                   y="172"
-                  fill="#737373"
+                  fill="oklch(0.556 0 0)"
                   fontSize="8"
                   fontFamily="system-ui"
                 >
@@ -370,7 +381,7 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                 <text
                   x="270"
                   y="188"
-                  fill="#22c55e"
+                  fill="oklch(0.723 0.219 149.6)"
                   fontSize="14"
                   fontWeight="bold"
                   fontFamily="system-ui"
@@ -382,7 +393,7 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                   x="200"
                   y="270"
                   textAnchor="middle"
-                  fill="#737373"
+                  fill="oklch(0.556 0 0)"
                   fontSize="8"
                   fontStyle="italic"
                   fontFamily="system-ui"
@@ -395,10 +406,10 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
             {/* Right: Ongoing checklist */}
             <ul className="space-y-5" role="list">
               {[
-                "Tableau de bord prédictif multi-horizon",
-                "Notifications informatives chiffrées",
-                "Suivi KPIs économiques continus",
-                "Rapports auditables CODIR/DAF",
+                "Early-warning sous-couverture à 3, 7 et 14 jours",
+                "Arbitrage chiffré : coût de l'inaction vs options",
+                "Décision traçable avec audit trail",
+                "Preuve économique auditable CODIR/DAF",
                 "Amélioration continue qualité données",
                 "Support premium dédié",
               ].map((item) => (
