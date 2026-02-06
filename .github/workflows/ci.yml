@@ -88,7 +88,7 @@ jobs:
           cache: "pnpm"
 
       - name: Restore Next.js build cache (landing)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: apps/landing/.next/cache
           key: nextjs-landing-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/landing/**/*.ts', 'apps/landing/**/*.tsx') }}
@@ -97,7 +97,7 @@ jobs:
             nextjs-landing-${{ runner.os }}-
 
       - name: Restore Next.js build cache (webapp)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: apps/webapp/.next/cache
           key: nextjs-webapp-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/webapp/**/*.ts', 'apps/webapp/**/*.tsx') }}
@@ -152,7 +152,7 @@ jobs:
           cache: "pnpm"
 
       - name: Restore Next.js build cache (landing)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: apps/landing/.next/cache
           key: nextjs-landing-deploy-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/landing/**/*.ts', 'apps/landing/**/*.tsx') }}
@@ -161,7 +161,7 @@ jobs:
             nextjs-landing-deploy-${{ runner.os }}-
 
       - name: Restore Next.js build cache (webapp)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: apps/webapp/.next/cache
           key: nextjs-webapp-deploy-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/webapp/**/*.ts', 'apps/webapp/**/*.tsx') }}
