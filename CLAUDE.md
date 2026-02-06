@@ -23,14 +23,14 @@ pnpm dev
 
 ## Quality Gates
 
-Pre-commit hooks enforce formatting, lint, typecheck, tests and build:
+[prek](https://github.com/j178/prek) (Rust drop-in replacement for pre-commit) enforces formatting, lint, typecheck, tests and build:
 
 ```bash
-pre-commit install --install-hooks
+prek install --install-hooks
 pnpm pre-commit
 ```
 
 ## Deployment
 
-GitHub Actions runs pre-commit on PRs and deploys on push to `main`
+GitHub Actions runs prek on PRs and deploys on push to `main`
 to Cloudflare Workers.

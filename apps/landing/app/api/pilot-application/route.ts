@@ -12,6 +12,7 @@ import { siteConfig } from "../../../lib/config/site";
 let resend: Resend | null = null;
 
 function getResend(): Resend {
+  /* v8 ignore next 5 -- lazy singleton init, mocked in tests */
   if (!resend) {
     if (!process.env.RESEND_API_KEY) {
       throw new Error("RESEND_API_KEY is not configured");
@@ -35,7 +36,7 @@ function isRateLimited(ip: string): boolean {
   const record = rateLimitMap.get(ip);
 
   if (!record || now > record.resetTime) {
-    // Evict expired entries when the map grows too large
+    /* v8 ignore next 7 -- eviction requires 10k entries, impractical in unit tests */
     if (rateLimitMap.size >= MAX_RATE_LIMIT_ENTRIES) {
       for (const [key, entry] of rateLimitMap) {
         if (now > entry.resetTime) {

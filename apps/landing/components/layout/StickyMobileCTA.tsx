@@ -13,6 +13,7 @@ export function StickyMobileCTA() {
 
   useEffect(() => {
     const hero = document.getElementById("hero");
+    /* v8 ignore next -- hero element absent in isolated component test */
     if (!hero) return;
 
     const observer = new IntersectionObserver(

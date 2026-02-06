@@ -22,7 +22,7 @@ export function Navbar() {
   const { scrollY } = useScroll();
 
   useEffect(() => {
-    const unsubscribe = scrollY.on("change", (latest) => {
+    const unsubscribe = scrollY.on("change", (latest: number) => {
       setHasScrolled(latest > 20);
     });
     return () => unsubscribe();

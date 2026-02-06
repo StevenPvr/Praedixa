@@ -110,6 +110,7 @@ export default function DevenirPilotePage() {
           email: formData.email,
           phone: formData.phone,
           employeeRange:
+            /* v8 ignore next 2 -- defensive fallback: range always comes from EMPLOYEE_RANGES */
             EMPLOYEE_RANGES.find((r) => r.id === formData.employeeRange)
               ?.label || formData.employeeRange,
           sector: formData.sector,

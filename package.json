@@ -10,11 +10,18 @@
   "scripts": {
     "dev": "pnpm --filter @praedixa/landing dev",
     "dev:landing": "pnpm --filter @praedixa/landing dev",
-    "build": "pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build && pnpm --filter @praedixa/landing build",
+    "dev:webapp": "pnpm --filter @praedixa/webapp dev",
+    "dev:api": "cd apps/api && uv run uvicorn app.main:app --reload --port 8000",
+    "build": "pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build && pnpm --filter @praedixa/landing build && pnpm --filter @praedixa/webapp build",
     "build:landing": "pnpm --filter @praedixa/landing build",
-    "lint": "pnpm --filter @praedixa/shared-types lint && pnpm --filter @praedixa/ui lint && pnpm --filter @praedixa/landing lint",
+    "build:webapp": "pnpm --filter @praedixa/webapp build",
+    "lint": "pnpm --filter @praedixa/shared-types lint && pnpm --filter @praedixa/ui lint && pnpm --filter @praedixa/landing lint && pnpm --filter @praedixa/webapp lint",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:landing": "playwright test --project=landing",
+    "test:e2e:webapp": "playwright test --project=webapp",
     "typecheck": "tsc --build",
     "cf:build": "pnpm --filter @praedixa/landing cf:build",
     "preview": "pnpm --filter @praedixa/landing preview",
@@ -22,8 +29,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo clean && rm -rf node_modules",
-    "pre-commit": "pre-commit run --all-files",
-    "postinstall": "sh scripts/install-pre-commit.sh"
+    "pre-commit": "prek run --all-files",
+    "postinstall": "sh scripts/install-prek.sh"
   },
   "pnpm": {
     "overrides": {
@@ -33,14 +40,17 @@
     }
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.0.0",
     "jsdom": "^26.0.0",
     "prettier": "^3.2.0",

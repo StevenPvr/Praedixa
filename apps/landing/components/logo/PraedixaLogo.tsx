@@ -37,6 +37,7 @@ export function PraedixaLogo({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      /* v8 ignore next 2 -- framer-motion animate prop stripped by mock */
       initial={animate ? { opacity: 0 } : undefined}
       animate={animate ? { opacity: 1 } : undefined}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}

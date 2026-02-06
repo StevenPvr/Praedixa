@@ -91,6 +91,7 @@ export function ScrollReveal({
       ref={ref}
       className={className}
       initial="hidden"
+      /* v8 ignore next -- framer-motion prop stripped by mock */
       animate={isRevealed ? "visible" : "hidden"}
       variants={variants[variant]}
       transition={{

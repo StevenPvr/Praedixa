@@ -1,5 +1,3 @@
-minimum_pre_commit_version: "3.7.0"
-
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
@@ -35,9 +33,16 @@ repos:
 
   - repo: local
     hooks:
+      - id: ruff
+        name: ruff (Python lint)
+        entry: sh -c 'cd apps/api && uv run ruff check .'
+        language: system
+        always_run: true
+        pass_filenames: false
+
       - id: clean-artifacts
         name: clean stale build artifacts
-        entry: sh -c 'rm -rf apps/landing/dist apps/landing/.next'
+        entry: sh -c 'rm -rf apps/landing/dist apps/landing/.next apps/webapp/dist apps/webapp/.next'
         language: system
         always_run: true
         pass_filenames: false
@@ -67,6 +72,13 @@ repos:
         name: vitest (check)
         entry: pnpm test
         language: system
+        pass_filenames: false
+
+      - id: pytest
+        name: pytest (Python tests)
+        entry: sh -c 'cd apps/api && uv run pytest'
+        language: system
+        always_run: true
         pass_filenames: false
 
       - id: build

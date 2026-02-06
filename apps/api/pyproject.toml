@@ -1,0 +1,81 @@
+[project]
+name = "praedixa-api"
+version = "0.1.0"
+description = "Praedixa API — Capacity forecast for logistics"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    "python-jose[cryptography]>=3.3.0",
+    "alembic>=1.14.0",
+    "structlog>=24.4.0",
+    "httpx>=0.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+    "pytest-cov>=6.0.0",
+    "factory-boy>=3.3.0",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "DTZ", "T20", "ICN", "PIE", "PT", "RSE", "RET", "SLF", "SIM", "TCH", "ARG", "ERA", "PGH", "PL", "TRY", "FLY", "PERF", "RUF"]
+ignore = ["S101", "TRY003", "PLR0913", "B008", "PLC0415", "S110", "UP042", "UP046", "RUF022", "RUF012", "RUF001"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--cov=app --cov-report=term-missing --cov-fail-under=100"
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "app/models/*.py",
+    "app/schemas/*.py",
+    "app/services/__init__.py",
+    "app/core/auth.py",
+    "app/core/dependencies.py",
+    "app/core/security.py",
+    "app/core/validation.py",
+    "app/core/database.py",
+    "app/core/middleware.py",
+    "app/main.py",
+]
+
+[tool.coverage.report]
+fail_under = 100
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "pass",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

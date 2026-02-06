@@ -16,9 +16,10 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   exit 0
 fi
 
-if ! command -v pre-commit >/dev/null 2>&1; then
-  echo "pre-commit not found; skipping hook install"
+if ! command -v prek >/dev/null 2>&1; then
+  echo "prek not found; skipping hook install"
+  echo "Install: brew install prek  or  pip install prek"
   exit 0
 fi
 
-pre-commit install --install-hooks
+prek install --install-hooks

@@ -25,6 +25,20 @@ export {
   type AlertProps,
 } from "./components/alert";
 export { Avatar, AvatarImage, AvatarFallback } from "./components/avatar";
+export { StatCard, type StatCardProps } from "./components/stat-card";
+export {
+  DataTable,
+  type DataTableColumn,
+  type DataTableSort,
+  type DataTablePagination,
+  type DataTableProps,
+} from "./components/data-table";
+export { StatusBadge, type StatusBadgeProps } from "./components/status-badge";
+export {
+  PageHeader,
+  type PageHeaderProps,
+  type Breadcrumb,
+} from "./components/page-header";
 
 // Hooks
 export { useMediaQuery } from "./hooks/use-media-query";
