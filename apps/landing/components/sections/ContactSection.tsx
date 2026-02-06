@@ -15,8 +15,8 @@ interface ContactSectionProps {
 }
 
 const TRUST_ITEMS = [
-  "Diagnostic gratuit",
-  "Résultat en 48h",
+  "Partenariat gratuit",
+  "Premiers résultats en jours",
   "Sans intégration IT",
   "Données agrégées uniquement",
   "Sans engagement",
@@ -39,12 +39,13 @@ export function ContactSection({ className }: ContactSectionProps) {
             Passez à l&apos;action
           </span>
           <h2 className="font-serif text-3xl font-bold text-white sm:text-4xl md:text-5xl">
-            Demandez votre diagnostic de couverture
+            Rejoignez le programme pilote
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-white/70">
-            En 48h, une carte des risques de sous-couverture, le coût de
-            l&apos;inaction et un playbook d&apos;actions. Sans intégration.
-            Sans données individuelles.
+            Un partenariat de co-construction : vos données, nos modèles
+            prédictifs, une interprétabilité native. Carte des risques, facteurs
+            explicatifs, playbook d&apos;actions chiffré. Sans intégration, sans
+            données individuelles.
           </p>
         </motion.div>
 
@@ -72,12 +73,12 @@ export function ContactSection({ className }: ContactSectionProps) {
                 d="M13 10V3L4 14h7v7l9-11h-7z"
               />
             </svg>
-            Demander un diagnostic 48h
+            Devenir entreprise pilote
           </Link>
 
           {/* Secondary CTA - Direct mailto */}
           <a
-            href={`mailto:${siteConfig.contact.email}?subject=Diagnostic%20couverture%2048h`}
+            href={`mailto:${siteConfig.contact.email}?subject=Programme%20pilote%20Praedixa`}
             className="inline-flex items-center gap-2 text-sm font-medium text-white/70 underline underline-offset-4 transition-colors hover:text-amber-400"
           >
             <svg

@@ -49,9 +49,7 @@ class Department(TenantMixin, Base):
     code: Mapped[str | None] = mapped_column(String(50))
     cost_center: Mapped[str | None] = mapped_column(String(50))
     headcount: Mapped[int] = mapped_column(Integer, default=0)
-    min_staffing_level: Mapped[float] = mapped_column(
-        Numeric(5, 2), default=80.0
-    )
+    min_staffing_level: Mapped[float] = mapped_column(Numeric(5, 2), default=80.0)
     critical_roles_count: Mapped[int] = mapped_column(Integer, default=0)
 
     def __repr__(self) -> str:

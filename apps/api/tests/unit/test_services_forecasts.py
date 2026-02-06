@@ -27,7 +27,7 @@ class TestListForecasts:
         items = [SimpleNamespace(id=uuid.uuid4()), SimpleNamespace(id=uuid.uuid4())]
 
         session = make_mock_session(
-            make_scalar_result(2),       # count query
+            make_scalar_result(2),  # count query
             make_scalars_result(items),  # items query
         )
 
@@ -51,13 +51,11 @@ class TestListForecasts:
     async def test_pagination(self):
         tenant = TenantFilter("org-1")
         session = make_mock_session(
-            make_scalar_result(50),      # total count = 50
+            make_scalar_result(50),  # total count = 50
             make_scalars_result([SimpleNamespace(id=uuid.uuid4())]),  # 1 item on page
         )
 
-        items, total = await list_forecasts(
-            tenant, session, limit=10, offset=0
-        )
+        items, total = await list_forecasts(tenant, session, limit=10, offset=0)
         assert total == 50
         assert len(items) == 1
 
@@ -85,8 +83,8 @@ class TestGetDailyForecasts:
         daily = [SimpleNamespace(id=uuid.uuid4(), forecast_date=date(2026, 1, 1))]
 
         session = make_mock_session(
-            make_scalar_result(run_id),      # run exists check
-            make_scalars_result(daily),      # daily forecasts
+            make_scalar_result(run_id),  # run exists check
+            make_scalars_result(daily),  # daily forecasts
         )
 
         result = await get_daily_forecasts(run_id, tenant, session)

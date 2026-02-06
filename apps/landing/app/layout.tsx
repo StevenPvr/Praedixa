@@ -19,9 +19,9 @@ const dmSerif = DM_Serif_Display({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.praedixa.com"),
   title:
-    "Praedixa — Intelligence de couverture operationnelle | Diagnostic 48h",
+    "Praedixa — Intelligence de couverture operationnelle | Prevision + Interpretabilite",
   description:
-    "Anticipez la sous-couverture de vos equipes multi-sites. Diagnostic en 48h : risque chiffre, arbitrage economique, playbook d'actions. Sans integration IT.",
+    "Anticipez la sous-couverture de vos equipes multi-sites. Praedixa predit les risques, explique pourquoi ils existent et chiffre les options. Sans integration IT.",
   keywords: [
     "sous-couverture operationnelle",
     "risque de sous-couverture multi-sites",
@@ -29,7 +29,8 @@ export const metadata: Metadata = {
     "capacite vs charge operations",
     "arbitrage economique operations",
     "preuve economique auditable",
-    "diagnostic couverture 48h",
+    "interpretabilite previsions couverture",
+    "facteurs explicatifs sous-couverture",
     "cout inaction sous-couverture",
     "playbook actions operationnelles",
     "couverture equipes terrain",
@@ -58,9 +59,9 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title:
-      "Praedixa — Anticipez la sous-couverture et chiffrez le cout de l'inaction en 48h",
+      "Praedixa — Anticipez la sous-couverture, comprenez pourquoi, chiffrez les options",
     description:
-      "Anticipez la sous-couverture de vos equipes multi-sites. Diagnostic en 48h : risque chiffre, arbitrage economique, playbook d'actions. Sans integration IT.",
+      "Anticipez la sous-couverture de vos equipes multi-sites. Previsions + facteurs explicatifs + arbitrage economique + preuve d'impact. Sans integration IT.",
     url: "https://www.praedixa.com",
     siteName: "Praedixa",
     locale: "fr_FR",
@@ -70,16 +71,16 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Praedixa — Diagnostic de couverture operationnelle en 48h pour entreprises multi-sites",
+        alt: "Praedixa — Intelligence de couverture operationnelle predictive pour entreprises multi-sites",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title:
-      "Praedixa — Intelligence de couverture operationnelle | Diagnostic 48h",
+      "Praedixa — Intelligence de couverture operationnelle | Prevision + Interpretabilite",
     description:
-      "Anticipez la sous-couverture multi-sites en 48h. Exports simples, arbitrage chiffre, preuve economique. Diagnostic gratuit.",
+      "Anticipez la sous-couverture multi-sites. Previsions + causes expliquees + arbitrage chiffre + preuve economique. Programme pilote gratuit.",
     images: ["/og-image.png"],
   },
   robots: {

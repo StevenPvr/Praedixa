@@ -43,6 +43,37 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
     APP_VERSION: str = "0.1.0"
 
+    # JWT — Legacy HS256 support for dev transition.
+    # In production, HS256 is ALWAYS rejected regardless of this setting.
+    LEGACY_HS256_ENABLED: bool = True
+
+    # ── Key Management ────────────────────────────────
+    # "local" (dev — derives from LOCAL_KEY_SEED) or
+    # "scaleway" (production — Scaleway Secrets Manager)
+    KEY_PROVIDER: str = "local"
+    LOCAL_KEY_SEED: str = ""
+
+    # ── Scaleway Secrets Manager (production only) ──
+    SCW_SECRET_KEY: str = ""
+    SCW_DEFAULT_PROJECT_ID: str = ""
+    SCW_REGION: str = "fr-par"
+
+    # ── Data Foundation ──────────────────────────────
+    # Platform schema name (contains data catalog tables)
+    PLATFORM_SCHEMA: str = "platform"
+    # Suffixes for per-client schemas: {org_slug}_{suffix}
+    RAW_SCHEMA_SUFFIX: str = "raw"
+    TRANSFORMED_SCHEMA_SUFFIX: str = "transformed"
+    # Safety limits — enforced at YAML validation and Schema Manager level
+    MAX_DATASETS_PER_ORG: int = 50
+    MAX_COLUMNS_PER_TABLE: int = 200
+    MAX_WINDOWS_PER_DATASET: int = 10
+    # Transform Engine — lag/rolling window bounds (days)
+    MIN_WINDOW_SIZE: int = 1
+    MAX_WINDOW_SIZE: int = 365
+    # Lookback context for incremental transforms (days)
+    DEFAULT_LOOKBACK_DAYS: int = 60
+
     @property
     def is_production(self) -> bool:
         return self.ENVIRONMENT == "production"
@@ -67,6 +98,15 @@ class Settings(BaseSettings):
                 msg = (
                     f"SUPABASE_JWT_SECRET must be at least {_MIN_JWT_SECRET_LENGTH} "
                     "characters in production to prevent brute-force attacks"
+                )
+                raise ValueError(msg)
+
+            # Force Scaleway key provider in production — LocalKeyProvider
+            # cannot perform real crypto-shredding.
+            if self.KEY_PROVIDER != "scaleway":  # pragma: no cover
+                msg = (
+                    "KEY_PROVIDER must be 'scaleway' in production. "
+                    "LocalKeyProvider cannot guarantee crypto-shredding."
                 )
                 raise ValueError(msg)
         return self

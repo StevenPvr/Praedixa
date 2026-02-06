@@ -50,7 +50,7 @@ describe("DevenirPilotePage", () => {
     it("should render the initial form with company name input", () => {
       render(<DevenirPilotePage />);
       expect(
-        screen.getByText("Obtenez votre diagnostic couverture"),
+        screen.getByText("Rejoignez le programme pilote"),
       ).toBeInTheDocument();
       expect(
         screen.getByPlaceholderText("Ex: Logistique Express"),
@@ -60,9 +60,11 @@ describe("DevenirPilotePage", () => {
     it("should render the pilot benefits cards", () => {
       render(<DevenirPilotePage />);
       expect(
-        screen.getByText("Diagnostic couverture gratuit"),
+        screen.getByText("Partenariat de co-construction"),
       ).toBeInTheDocument();
-      expect(screen.getByText("Résultat en 48h")).toBeInTheDocument();
+      expect(
+        screen.getByText("Premiers résultats en jours"),
+      ).toBeInTheDocument();
     });
 
     it("should display the Continuer button disabled when company name is empty", () => {

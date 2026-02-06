@@ -47,10 +47,10 @@ class TestGetDashboardSummary:
         """When there are no completed runs, return zero coverage."""
         tenant = TenantFilter("org-1")
         session = make_mock_session(
-            make_scalar_result(None),    # latest_run_id = None
-            make_scalar_result(0),       # active_alerts_count = 0
-            make_scalar_result(None),    # accuracy = None
-            make_scalar_result(None),    # last_forecast_date = None
+            make_scalar_result(None),  # latest_run_id = None
+            make_scalar_result(0),  # active_alerts_count = 0
+            make_scalar_result(None),  # accuracy = None
+            make_scalar_result(None),  # last_forecast_date = None
         )
 
         result = await get_dashboard_summary(tenant, session)
@@ -67,11 +67,11 @@ class TestGetDashboardSummary:
         tenant = TenantFilter("org-1")
         run_id = "run-uuid"
         session = make_mock_session(
-            make_scalar_result(run_id),       # latest_run_id
-            make_scalar_result(92.5),         # coverage_human avg
-            make_scalar_result(85.3),         # coverage_merchandise avg
-            make_scalar_result(2),            # active_alerts_count
-            make_scalar_result(0.9876),       # accuracy
+            make_scalar_result(run_id),  # latest_run_id
+            make_scalar_result(92.5),  # coverage_human avg
+            make_scalar_result(85.3),  # coverage_merchandise avg
+            make_scalar_result(2),  # active_alerts_count
+            make_scalar_result(0.9876),  # accuracy
             make_scalar_result(datetime(2026, 2, 1, tzinfo=UTC)),  # last_forecast_date
         )
 
@@ -88,12 +88,12 @@ class TestGetDashboardSummary:
         """When coverage query returns None (no matching rows), default to 0.0."""
         tenant = TenantFilter("org-1")
         session = make_mock_session(
-            make_scalar_result("some-run"),   # latest_run_id
-            make_scalar_result(None),         # coverage_human = None (no rows)
-            make_scalar_result(None),         # coverage_merchandise = None
-            make_scalar_result(0),            # active_alerts_count
-            make_scalar_result(None),         # accuracy
-            make_scalar_result(None),         # last_forecast_date
+            make_scalar_result("some-run"),  # latest_run_id
+            make_scalar_result(None),  # coverage_human = None (no rows)
+            make_scalar_result(None),  # coverage_merchandise = None
+            make_scalar_result(0),  # active_alerts_count
+            make_scalar_result(None),  # accuracy
+            make_scalar_result(None),  # last_forecast_date
         )
 
         result = await get_dashboard_summary(tenant, session)
@@ -109,10 +109,10 @@ class TestGetDashboardSummary:
         result_mock = MagicMock()
         result_mock.scalar_one.return_value = None
         session = make_mock_session(
-            make_scalar_result(None),    # no run
-            result_mock,                 # alerts count
-            make_scalar_result(None),    # accuracy
-            make_scalar_result(None),    # last_date
+            make_scalar_result(None),  # no run
+            result_mock,  # alerts count
+            make_scalar_result(None),  # accuracy
+            make_scalar_result(None),  # last_date
         )
 
         result = await get_dashboard_summary(tenant, session)

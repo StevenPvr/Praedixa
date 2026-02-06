@@ -57,9 +57,7 @@ ORG_A_ALERT_ID = uuid.UUID("aaaaaaaa-2222-2222-2222-222222222222")
 ORG_A_SITE_ID = uuid.UUID("aaaaaaaa-3333-3333-3333-333333333333")
 
 
-def _make_jwt(
-    user_id: str, org_id: uuid.UUID, role: str = "org_admin"
-) -> JWTPayload:
+def _make_jwt(user_id: str, org_id: uuid.UUID, role: str = "org_admin") -> JWTPayload:
     return JWTPayload(
         user_id=user_id,
         email=f"{user_id}@test.com",
@@ -95,9 +93,7 @@ async def client_org_a(
 
     app.dependency_overrides[get_db_session] = _session
     app.dependency_overrides[get_current_user] = lambda: JWT_A
-    app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(
-        str(ORG_A_ID)
-    )
+    app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(str(ORG_A_ID))
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -117,9 +113,7 @@ async def client_org_b(
 
     app.dependency_overrides[get_db_session] = _session
     app.dependency_overrides[get_current_user] = lambda: JWT_B
-    app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(
-        str(ORG_B_ID)
-    )
+    app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(str(ORG_B_ID))
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -186,9 +180,7 @@ class TestTenantFilterUnit:
 class TestDashboardIsolation:
     """Dashboard endpoint returns org-scoped data only."""
 
-    async def test_org_a_sees_own_kpis(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_org_a_sees_own_kpis(self, client_org_a: AsyncClient) -> None:
         """Org A sees its own KPIs — service called with org A's filter."""
         summary_a = DashboardSummary(
             coverage_human=95.0,
@@ -214,9 +206,7 @@ class TestDashboardIsolation:
         tenant_used: TenantFilter = mock_svc.call_args.kwargs["tenant"]
         assert tenant_used.organization_id == str(ORG_A_ID)
 
-    async def test_org_b_sees_own_empty_kpis(
-        self, client_org_b: AsyncClient
-    ) -> None:
+    async def test_org_b_sees_own_empty_kpis(self, client_org_b: AsyncClient) -> None:
         """Org B sees its own empty KPIs — org A's data is invisible."""
         summary_b = DashboardSummary(
             coverage_human=0.0,
@@ -251,9 +241,7 @@ class TestDashboardIsolation:
 class TestForecastIsolation:
     """Forecast endpoints enforce tenant isolation."""
 
-    async def test_org_a_sees_own_forecasts(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_org_a_sees_own_forecasts(self, client_org_a: AsyncClient) -> None:
         """Org A lists its own forecast runs — service called with org A filter."""
         now = datetime.now(UTC)
         mock_run = SimpleNamespace(
@@ -312,9 +300,7 @@ class TestForecastIsolation:
             new_callable=AsyncMock,
             side_effect=NotFoundError("ForecastRun", str(ORG_A_RUN_ID)),
         ):
-            response = await client_org_b.get(
-                f"/api/v1/forecasts/{ORG_A_RUN_ID}/daily"
-            )
+            response = await client_org_b.get(f"/api/v1/forecasts/{ORG_A_RUN_ID}/daily")
 
         assert response.status_code == 404
         data = response.json()
@@ -330,9 +316,7 @@ class TestForecastIsolation:
 class TestAlertIsolation:
     """Alert endpoints enforce tenant isolation."""
 
-    async def test_org_a_sees_own_alerts(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_org_a_sees_own_alerts(self, client_org_a: AsyncClient) -> None:
         """Org A lists its own alerts — service called with org A filter."""
         now = datetime.now(UTC)
         mock_alert = SimpleNamespace(
@@ -393,9 +377,7 @@ class TestAlertIsolation:
         with patch(
             "app.routers.alerts.dismiss_alert",
             new_callable=AsyncMock,
-            side_effect=NotFoundError(
-                "DashboardAlert", str(ORG_A_ALERT_ID)
-            ),
+            side_effect=NotFoundError("DashboardAlert", str(ORG_A_ALERT_ID)),
         ):
             response = await client_org_b.patch(
                 f"/api/v1/alerts/{ORG_A_ALERT_ID}/dismiss"
@@ -413,9 +395,7 @@ class TestAlertIsolation:
 class TestOrganizationIsolation:
     """Organization endpoint returns only the user's own org."""
 
-    async def test_org_a_sees_own_org(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_org_a_sees_own_org(self, client_org_a: AsyncClient) -> None:
         """Org A sees its own organization details."""
         now = datetime.now(UTC)
         mock_org = SimpleNamespace(
@@ -505,9 +485,7 @@ class TestOrganizationIsolation:
 class TestSiteIsolation:
     """Sites endpoint returns only org-scoped sites."""
 
-    async def test_org_a_sees_own_sites(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_org_a_sees_own_sites(self, client_org_a: AsyncClient) -> None:
         """Org A sees its own sites — service called with org A filter."""
         now = datetime.now(UTC)
         mock_site = SimpleNamespace(
@@ -564,9 +542,7 @@ class TestSiteIsolation:
 class TestDepartmentIsolation:
     """Department endpoints enforce tenant isolation including IDOR checks."""
 
-    async def test_org_a_sees_own_departments(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_org_a_sees_own_departments(self, client_org_a: AsyncClient) -> None:
         """Org A sees its own departments — service called with org A filter."""
         now = datetime.now(UTC)
         mock_dept = SimpleNamespace(
@@ -651,9 +627,7 @@ class TestErrorResponseIsolation:
             new_callable=AsyncMock,
             side_effect=NotFoundError("ForecastRun", str(ORG_A_RUN_ID)),
         ):
-            response = await client_org_b.get(
-                f"/api/v1/forecasts/{ORG_A_RUN_ID}/daily"
-            )
+            response = await client_org_b.get(f"/api/v1/forecasts/{ORG_A_RUN_ID}/daily")
 
         body = response.json()
         # Verify: no mention of "forbidden", "permission", "other org"
@@ -673,9 +647,7 @@ class TestErrorResponseIsolation:
         with patch(
             "app.routers.alerts.dismiss_alert",
             new_callable=AsyncMock,
-            side_effect=NotFoundError(
-                "DashboardAlert", str(ORG_A_ALERT_ID)
-            ),
+            side_effect=NotFoundError("DashboardAlert", str(ORG_A_ALERT_ID)),
         ):
             response = await client_org_b.patch(
                 f"/api/v1/alerts/{ORG_A_ALERT_ID}/dismiss"
@@ -704,9 +676,7 @@ class TestErrorResponseIsolation:
             new_callable=AsyncMock,
             side_effect=NotFoundError("ForecastRun", str(fake_id)),
         ):
-            response_fake = await client_org_b.get(
-                f"/api/v1/forecasts/{fake_id}/daily"
-            )
+            response_fake = await client_org_b.get(f"/api/v1/forecasts/{fake_id}/daily")
 
         with patch(
             "app.routers.forecasts.get_daily_forecasts",

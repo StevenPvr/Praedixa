@@ -12,10 +12,10 @@ const NAVIGATION_LINKS = [
   { href: "#solution", label: "La solution" },
   { href: "#pipeline", label: "La vision" },
   { href: "#deliverables", label: "Les livrables" },
-  { href: "#pilot", label: "Diagnostic 48h" },
+  { href: "#pilot", label: "Programme pilote" },
   { href: "#faq", label: "FAQ" },
   { href: "#contact", label: "Contact" },
-  { href: "/devenir-pilote", label: "Demander un diagnostic" },
+  { href: "/devenir-pilote", label: "Devenir entreprise pilote" },
 ] as const;
 
 const LEGAL_LINKS = [
@@ -40,13 +40,13 @@ export function Footer({ className }: FooterProps) {
       <div className="border-b border-white/10 py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 md:flex-row">
           <p className="text-center font-serif text-xl text-white md:text-left md:text-2xl">
-            Prêt à détecter vos risques de sous-couverture ?
+            Prêt à anticiper vos risques de sous-couverture ?
           </p>
           <Link
             href="/devenir-pilote"
             className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-6 py-3 text-sm font-bold text-charcoal transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-charcoal"
           >
-            Demander un diagnostic 48h
+            Devenir entreprise pilote
             <svg
               className="h-4 w-4"
               fill="none"
@@ -168,7 +168,7 @@ export function Footer({ className }: FooterProps) {
               Contact
             </h3>
             <a
-              href={`mailto:${siteConfig.contact.email}?subject=Diagnostic%20couverture%2048h`}
+              href={`mailto:${siteConfig.contact.email}?subject=Programme%20pilote%20Praedixa`}
               className="inline-flex items-center gap-2 text-sm text-white/70 transition-colors hover:text-amber-400"
             >
               <svg

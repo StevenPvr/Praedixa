@@ -21,9 +21,9 @@ export const landingFaq = [
     category: "Comprendre Praedixa" as const,
   },
   {
-    question: "Qu'est-ce que je recois en 48h ?",
+    question: "Que reçoit une entreprise pilote ?",
     answer:
-      "Une carte des risques de sous-couverture par site et equipe, le chiffrage du cout de l'inaction, un playbook d'actions prioritaires avec arbitrage economique (cout de chaque option), et des hypotheses explicites et validables. Le tout sans integration IT : des exports simples suffisent.",
+      "Une carte des risques de sous-couverture par site et équipe, les facteurs explicatifs de chaque risque (pourquoi il existe, pas juste qu'il va arriver), le chiffrage du coût de l'inaction, un playbook d'actions prioritaires avec arbitrage économique, et des hypothèses explicites et validables. Le tout sans intégration IT : des exports simples suffisent. En tant que pilote, vous participez activement à la calibration du système sur vos contraintes métier.",
     category: "Comprendre Praedixa" as const,
   },
   {
@@ -50,6 +50,12 @@ export const landingFaq = [
       "Non. Praedixa ne donne pas de conseil. Praedixa presente des options avec leur impact economique chiffre. Quand un ecart capacite vs charge est detecte, le systeme genere des options chiffrees. La decision appartient entierement a l'entreprise. Chaque decision est tracee pour alimenter la preuve economique.",
     category: "Comprendre Praedixa" as const,
   },
+  {
+    question: "Que signifie 'interprétabilité native' ?",
+    answer:
+      "Chaque prévision de Praedixa est accompagnée de ses facteurs explicatifs : pourquoi tel site risque d'être sous-couvert à tel horizon. Ce n'est pas une boîte noire. Vous voyez les causes (pic de charge, absences récurrentes, turnover élevé) et vous pouvez agir dessus. C'est un cercle vertueux : comprendre les causes, agir, les problèmes diminuent, les prévisions s'affinent.",
+    category: "Comprendre Praedixa" as const,
+  },
   // ── Diagnostic & tarification ───────────────────────────────────────
   {
     question: "Combien coute Praedixa ?",
@@ -58,9 +64,9 @@ export const landingFaq = [
     category: "Diagnostic & tarification" as const,
   },
   {
-    question: "Comment se passe le diagnostic 48h ?",
+    question: "Comment se déroule le partenariat pilote ?",
     answer:
-      "Etape 1 : vous envoyez vos exports existants (capacite, charge, absences — format CSV ou Excel). Etape 2 : Praedixa calcule le risque de sous-couverture par site, equipe et competence, et chiffre le cout de l'inaction vs le cout des options. Etape 3 : vous recevez une carte des risques, un playbook d'actions prioritaires et des hypotheses validables. Le tout en 48h, sans connecteur a installer.",
+      "Étape 1 : vous envoyez vos exports existants (capacité, charge, absences — format CSV ou Excel). Étape 2 : Praedixa calcule le risque de sous-couverture par site, équipe et compétence, identifie les facteurs explicatifs et chiffre le coût de l'inaction vs le coût des options. Étape 3 : vous recevez une carte des risques avec causes identifiées, un playbook d'actions prioritaires et des hypothèses validables. On itère ensemble pour calibrer le système sur vos contraintes réelles.",
     category: "Diagnostic & tarification" as const,
   },
   {

@@ -22,14 +22,18 @@ from app.core.config import settings
 from app.core.database import engine
 from app.core.exceptions import register_exception_handlers
 from app.core.middleware import AuditLogMiddleware
+from app.core.rate_limit import setup_rate_limiting
 from app.routers import (
+    admin,
     alerts,
     arbitrage,
     dashboard,
+    datasets,
     decisions,
     forecasts,
     health,
     organizations,
+    transforms,
 )
 
 logger = structlog.get_logger()
@@ -81,6 +85,9 @@ app = FastAPI(
 
 # Register global exception handlers (standardized error responses)
 register_exception_handlers(app)
+
+# Rate limiting — must be after exception handlers so 429 responses use our format
+setup_rate_limiting(app)
 
 # CORS — explicit origin allowlist, restricted methods
 app.add_middleware(
@@ -151,3 +158,6 @@ app.include_router(alerts.router)
 app.include_router(organizations.router)
 app.include_router(decisions.router)
 app.include_router(arbitrage.router)
+app.include_router(datasets.router)
+app.include_router(transforms.router)
+app.include_router(admin.router)

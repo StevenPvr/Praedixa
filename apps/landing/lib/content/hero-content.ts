@@ -3,7 +3,7 @@ export const heroContent = {
   headline: "La sous-couverture vous coûte cher. On la détecte avant.",
   headlineHighlight: "On la détecte avant",
   subtitle:
-    "Praedixa prédit les trous de couverture par site, équipe et compétence dans les 3 à 14 prochains jours. Chaque risque est chiffré, chaque arbitrage est traçable.",
+    "Praedixa prédit les trous de couverture par site, équipe et compétence dans les 3 à 14 prochains jours. Chaque risque est expliqué, chaque arbitrage est chiffré, chaque décision est traçable.",
   bullets: [
     {
       icon: "warning",
@@ -11,17 +11,17 @@ export const heroContent = {
     },
     {
       icon: "euro",
-      text: "Coût de l'inaction vs coût des options, chiffré en euros",
+      text: "Comprendre pourquoi le risque existe, pas juste qu'il va arriver",
     },
     {
       icon: "check",
       text: "Preuve d'impact : décision log et mesure avant/après",
     },
   ],
-  ctaPrimary: { text: "Demander un diagnostic 48h", href: "/devenir-pilote" },
+  ctaPrimary: { text: "Devenir entreprise pilote", href: "/devenir-pilote" },
   ctaSecondary: { text: "Découvrir la méthode", href: "#pipeline" },
   trustBadges: [
-    "Diagnostic en 48h",
+    "Interprétabilité native",
     "Sans intégration IT",
     "Hébergement France",
     "Données agrégées uniquement",

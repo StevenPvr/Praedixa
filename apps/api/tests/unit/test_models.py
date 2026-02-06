@@ -430,9 +430,18 @@ class TestModelsInit:
         from app.models import __all__
 
         expected = [
-            "Base", "Organization", "Site", "Department", "User",
-            "Employee", "Absence", "ForecastRun", "DailyForecast",
-            "Decision", "DashboardAlert", "ActionPlan",
+            "Base",
+            "Organization",
+            "Site",
+            "Department",
+            "User",
+            "Employee",
+            "Absence",
+            "ForecastRun",
+            "DailyForecast",
+            "Decision",
+            "DashboardAlert",
+            "ActionPlan",
         ]
         for name in expected:
             assert name in __all__

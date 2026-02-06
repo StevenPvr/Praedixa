@@ -36,7 +36,7 @@ describe("DeliverablesSection", () => {
   it("should render the first deliverable subheading", () => {
     render(<DeliverablesSection />);
     expect(
-      screen.getByText("Diagnostic de couverture : votre premier livrable"),
+      screen.getByText("Diagnostic de couverture : votre point de départ"),
     ).toBeInTheDocument();
   });
 
@@ -47,7 +47,7 @@ describe("DeliverablesSection", () => {
       "Coût de l'inaction estimé en euros",
       "Playbook d'actions prioritaires chiffrées",
       "Hypothèses explicites et auditables",
-      "Livré en 48h, sans intégration IT",
+      "Facteurs explicatifs de chaque risque identifié",
     ];
     for (const item of items) {
       expect(screen.getByText(item)).toBeInTheDocument();
@@ -89,7 +89,11 @@ describe("DeliverablesSection", () => {
     expect(
       screen.getByText("Early-warning sous-couverture à 3, 7 et 14 jours"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Support premium dédié")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Amélioration continue : les causes identifiées nourrissent vos processus",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("should render the dashboard SVG with aria label", () => {
@@ -104,7 +108,7 @@ describe("DeliverablesSection", () => {
     expect(screen.getByText("Crédibilité fondateur")).toBeInTheDocument();
     expect(screen.getByText("Transparence méthodologique")).toBeInTheDocument();
     expect(screen.getByText("RGPD by design")).toBeInTheDocument();
-    expect(screen.getByText("Diagnostic 48h")).toBeInTheDocument();
+    expect(screen.getByText("Interprétabilité native")).toBeInTheDocument();
   });
 
   it("should render trust signal descriptions", () => {

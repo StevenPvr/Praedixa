@@ -22,17 +22,17 @@ const SOLUTION_STEPS = [
   },
   {
     number: "2",
-    title: "On détecte la sous-couverture",
-    subtitle: "Analyse capacité vs charge en 48h",
+    title: "On détecte et on explique",
+    subtitle: "Prédiction + facteurs explicatifs",
     description:
-      "On prédit les trous à venir par site, équipe et compétence. On chiffre le coût de l'inaction et le coût des options (HS, intérim, réallocation).",
+      "On prédit les trous à venir par site, équipe et compétence. Pour chaque risque, Praedixa identifie les facteurs explicatifs : vous comprenez pourquoi, pas juste où.",
   },
   {
     number: "3",
     title: "Vous recevez votre carte des risques",
-    subtitle: "Risques + coûts + playbook d'actions",
+    subtitle: "Risques + causes + playbook d'actions",
     description:
-      "Une carte de sous-couverture par site, le coût évitable estimé et un playbook d'actions prioritaires avec hypothèses transparentes.",
+      "Une carte de sous-couverture par site, les causes identifiées, le coût évitable estimé et un playbook d'actions prioritaires avec hypothèses transparentes.",
   },
 ] as const;
 
@@ -53,12 +53,13 @@ export function SolutionSection({ className }: SolutionSectionProps) {
             Votre point de départ
           </span>
           <h2 className="font-serif text-3xl font-bold text-white sm:text-4xl md:text-[2.75rem]">
-            Votre diagnostic de couverture en 48h
+            Comprendre vos risques de couverture en quelques jours
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-white/70">
             Avant de construire un système complet, on vous montre la valeur
-            avec un premier diagnostic de couverture. À partir d&apos;exports
-            que vous avez déjà.
+            concrètement. À partir d&apos;exports que vous avez déjà, on
+            identifie les risques, on explique pourquoi ils existent, et on
+            chiffre les options.
           </p>
         </motion.div>
 
@@ -116,14 +117,15 @@ export function SolutionSection({ className }: SolutionSectionProps) {
         <motion.div className="mt-16 text-center" variants={staggerItem}>
           <p className="mx-auto max-w-2xl text-base leading-relaxed text-white/70">
             Ce diagnostic est votre point d&apos;entrée. Pour les entreprises
-            pilotes, il débouche sur un pilotage continu de la couverture&nbsp;:
-            early-warning, arbitrage chiffré et preuve d&apos;impact.
+            pilotes, il débouche sur un partenariat de co-construction&nbsp;:
+            pilotage continu, early-warning, arbitrage chiffré, compréhension
+            des causes racines et preuve d&apos;impact.
           </p>
           <a
             href="#pipeline"
             className="mt-4 inline-flex items-center gap-2 text-base font-semibold text-amber-400 transition-colors hover:text-amber-300"
           >
-            Découvrir le pilotage continu
+            Découvrir le partenariat pilote
             <svg
               className="h-4 w-4"
               fill="none"

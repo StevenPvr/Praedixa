@@ -69,9 +69,7 @@ class User(TenantMixin, Base):
         sa_enum(UserStatus), default=UserStatus.PENDING
     )
     employee_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
-    last_login_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     locale: Mapped[str | None] = mapped_column(String(10))
     timezone: Mapped[str | None] = mapped_column(String(50))

@@ -131,9 +131,9 @@ export function PilotSection({ className }: { className?: string }) {
   return (
     <SectionWrapper id="pilot" dark className={className}>
       <SectionHeader
-        kicker="Diagnostic 48h"
-        heading="Votre carte des risques de sous-couverture en 48h"
-        subheading="Envoyez vos exports existants. En 48h, recevez une carte des risques, le coût de l'inaction et un playbook d'actions prioritaires. Sans intégration, sans données individuelles."
+        kicker="Programme pilote"
+        heading="Co-construisez la solution avec nous"
+        subheading="Rejoignez un nombre restreint d'entreprises pilotes. Vous apportez vos données et vos contraintes métier, on apporte la technologie prédictive et l'interprétabilité. Ensemble, on bâtit un système qui explique, chiffre et prouve."
         light
       />
 

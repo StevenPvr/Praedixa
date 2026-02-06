@@ -91,8 +91,12 @@ class TestPaginationMeta:
         from app.schemas.base import PaginationMeta
 
         p = PaginationMeta(
-            total=10, page=1, page_size=10,
-            total_pages=1, has_next_page=False, has_previous_page=False,
+            total=10,
+            page=1,
+            page_size=10,
+            total_pages=1,
+            has_next_page=False,
+            has_previous_page=False,
         )
         d = p.model_dump(by_alias=True)
         assert "pageSize" in d
@@ -171,9 +175,13 @@ class TestSiteSchemas:
         now = datetime.now(UTC)
         uid = uuid.uuid4()
         s = SiteRead(
-            id=uid, organization_id=uid,
-            created_at=now, updated_at=now,
-            name="Paris Hub", timezone="Europe/Paris", headcount=50,
+            id=uid,
+            organization_id=uid,
+            created_at=now,
+            updated_at=now,
+            name="Paris Hub",
+            timezone="Europe/Paris",
+            headcount=50,
         )
         assert s.name == "Paris Hub"
         assert s.code is None
@@ -203,10 +211,14 @@ class TestDepartmentSchemas:
         now = datetime.now(UTC)
         uid = uuid.uuid4()
         s = DepartmentRead(
-            id=uid, organization_id=uid,
-            created_at=now, updated_at=now,
-            name="Logistics", headcount=30,
-            min_staffing_level=80.0, critical_roles_count=2,
+            id=uid,
+            organization_id=uid,
+            created_at=now,
+            updated_at=now,
+            name="Logistics",
+            headcount=30,
+            min_staffing_level=80.0,
+            critical_roles_count=2,
         )
         assert s.name == "Logistics"
         assert s.site_id is None
@@ -237,8 +249,10 @@ class TestUserSchemas:
         now = datetime.now(UTC)
         uid = uuid.uuid4()
         s = UserRead(
-            id=uid, organization_id=uid,
-            created_at=now, updated_at=now,
+            id=uid,
+            organization_id=uid,
+            created_at=now,
+            updated_at=now,
             email="user@test.com",
             email_verified=True,
             role=UserRole.MANAGER,
@@ -273,8 +287,10 @@ class TestEmployeeSchemas:
         now = datetime.now(UTC)
         uid = uuid.uuid4()
         s = EmployeeRead(
-            id=uid, organization_id=uid,
-            created_at=now, updated_at=now,
+            id=uid,
+            organization_id=uid,
+            created_at=now,
+            updated_at=now,
             employee_number="EMP001",
             first_name="Jean",
             last_name="Dupont",
@@ -344,8 +360,10 @@ class TestAbsenceSchemas:
         now = datetime.now(UTC)
         uid = uuid.uuid4()
         s = AbsenceRead(
-            id=uid, organization_id=uid,
-            created_at=now, updated_at=now,
+            id=uid,
+            organization_id=uid,
+            created_at=now,
+            updated_at=now,
             employee_id=uid,
             type=AbsenceType.PAID_LEAVE,
             category=AbsenceCategory.PLANNED,
@@ -393,8 +411,10 @@ class TestForecastSchemas:
         now = datetime.now(UTC)
         uid = uuid.uuid4()
         s = ForecastRunRead(
-            id=uid, organization_id=uid,
-            created_at=now, updated_at=now,
+            id=uid,
+            organization_id=uid,
+            created_at=now,
+            updated_at=now,
             model_type=ForecastModelType.PROPHET,
             horizon_days=14,
             status=ForecastStatus.COMPLETED,
@@ -421,8 +441,10 @@ class TestForecastSchemas:
         now = datetime.now(UTC)
         uid = uuid.uuid4()
         s = DailyForecastRead(
-            id=uid, organization_id=uid,
-            created_at=now, updated_at=now,
+            id=uid,
+            organization_id=uid,
+            created_at=now,
+            updated_at=now,
             forecast_run_id=uid,
             forecast_date=date(2026, 1, 15),
             dimension=ForecastDimension.HUMAN,
@@ -466,8 +488,12 @@ class TestResponseSchemas:
         r = PaginatedResponse(
             data=["item1"],
             pagination=PaginationMeta(
-                total=1, page=1, page_size=10,
-                total_pages=1, has_next_page=False, has_previous_page=False,
+                total=1,
+                page=1,
+                page_size=10,
+                total_pages=1,
+                has_next_page=False,
+                has_previous_page=False,
             ),
             timestamp="2026-01-01T00:00:00Z",
         )
@@ -530,8 +556,10 @@ class TestDashboardSchemas:
         now = datetime.now(UTC)
         uid = uuid.uuid4()
         s = DashboardAlertRead(
-            id=uid, organization_id=uid,
-            created_at=now, updated_at=now,
+            id=uid,
+            organization_id=uid,
+            created_at=now,
+            updated_at=now,
             type=AlertType.RISK,
             severity=AlertSeverity.WARNING,
             title="Alert",
@@ -553,8 +581,10 @@ class TestDashboardSchemas:
         now = datetime.now(UTC)
         uid = uuid.uuid4()
         s = ActionPlanRead(
-            id=uid, organization_id=uid,
-            created_at=now, updated_at=now,
+            id=uid,
+            organization_id=uid,
+            created_at=now,
+            updated_at=now,
             name="Q1 Plan",
             description="Plan for Q1",
             period={"start": "2026-01", "end": "2026-03"},
@@ -595,8 +625,10 @@ class TestDecisionSchemas:
         now = datetime.now(UTC)
         uid = uuid.uuid4()
         s = DecisionRead(
-            id=uid, organization_id=uid,
-            created_at=now, updated_at=now,
+            id=uid,
+            organization_id=uid,
+            created_at=now,
+            updated_at=now,
             department_id=uid,
             target_period={},
             type=DecisionType.OVERTIME,

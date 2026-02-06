@@ -15,6 +15,8 @@ import type {
   CostImpactAnalysis,
   WhatIfResult,
   ArbitrageResult,
+  DatasetSummary,
+  DatasetColumn,
   // Request types
   ListForecastsRequest,
   RequestForecastRequest,
@@ -25,6 +27,11 @@ import type {
   WhatIfScenarioRequest,
   ExportRequest,
   ExportResponse,
+  ListDatasetsRequest,
+  // Response types
+  DatasetDetailResponse,
+  DatasetDataPreviewResponse,
+  IngestionHistoryResponse,
 } from "@praedixa/shared-types";
 import { apiGet, apiGetPaginated, apiPost, apiPatch, ApiError } from "./client";
 
@@ -236,6 +243,61 @@ export function requestExport(
   return apiPost<ExportResponse>(
     `/api/v1/exports/${encodeURIComponent(resource)}`,
     body,
+    token,
+  );
+}
+
+// ─────────────────────────────────────────────────
+// Datasets
+// ─────────────────────────────────────────────────
+
+export function listDatasets(
+  params: Partial<ListDatasetsRequest>,
+  token: GetAccessToken,
+): Promise<PaginatedResponse<DatasetSummary>> {
+  return apiGetPaginated<DatasetSummary>(
+    `/api/v1/datasets${qs(params)}`,
+    token,
+  );
+}
+
+export function getDataset(
+  datasetId: string,
+  token: GetAccessToken,
+): Promise<ApiResponse<DatasetDetailResponse>> {
+  return apiGet<DatasetDetailResponse>(
+    `/api/v1/datasets/${encodeURIComponent(datasetId)}`,
+    token,
+  );
+}
+
+export function getDatasetData(
+  datasetId: string,
+  params: { page?: number; pageSize?: number },
+  token: GetAccessToken,
+): Promise<ApiResponse<DatasetDataPreviewResponse>> {
+  return apiGet<DatasetDataPreviewResponse>(
+    `/api/v1/datasets/${encodeURIComponent(datasetId)}/data${qs(params)}`,
+    token,
+  );
+}
+
+export function getDatasetColumns(
+  datasetId: string,
+  token: GetAccessToken,
+): Promise<ApiResponse<DatasetColumn[]>> {
+  return apiGet<DatasetColumn[]>(
+    `/api/v1/datasets/${encodeURIComponent(datasetId)}/columns`,
+    token,
+  );
+}
+
+export function getIngestionLog(
+  datasetId: string,
+  token: GetAccessToken,
+): Promise<ApiResponse<IngestionHistoryResponse>> {
+  return apiGet<IngestionHistoryResponse>(
+    `/api/v1/datasets/${encodeURIComponent(datasetId)}/ingestion-log`,
     token,
   );
 }

@@ -99,7 +99,7 @@ export function FaqSection({ className }: FaqSectionProps) {
             href="/devenir-pilote"
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-charcoal px-8 py-4 text-sm font-semibold text-white transition-all hover:bg-charcoal/90 hover:shadow-lg hover:shadow-charcoal/25 focus:outline-none focus:ring-2 focus:ring-amber-400"
           >
-            Demander un diagnostic 48h
+            Devenir entreprise pilote
             <svg
               className="h-4 w-4"
               fill="none"

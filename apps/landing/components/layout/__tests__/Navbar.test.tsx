@@ -66,15 +66,15 @@ describe("Navbar", () => {
     expect(screen.getAllByText("Le problème").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("La solution").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("La vision").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Diagnostic 48h").length).toBeGreaterThanOrEqual(
-      1,
-    );
+    expect(
+      screen.getAllByText("Programme pilote").length,
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("FAQ").length).toBeGreaterThanOrEqual(1);
   });
 
   it("should render the desktop CTA button with correct href", () => {
     render(<Navbar />);
-    const ctaLinks = screen.getAllByText("Diagnostic 48h");
+    const ctaLinks = screen.getAllByText("Programme pilote");
     const desktopCta = ctaLinks.find(
       (el) => el.closest("a")?.getAttribute("href") === "/devenir-pilote",
     );
@@ -150,8 +150,8 @@ describe("Navbar", () => {
     fireEvent.click(screen.getByLabelText("Ouvrir le menu"));
     expect(screen.getByLabelText("Fermer le menu")).toBeInTheDocument();
 
-    // The mobile menu has a CTA link "Diagnostic 48h" pointing to /devenir-pilote
-    const mobileCtaLinks = screen.getAllByText("Diagnostic 48h");
+    // The mobile menu has a CTA link "Programme pilote" pointing to /devenir-pilote
+    const mobileCtaLinks = screen.getAllByText("Programme pilote");
     // The mobile CTA is inside the mobile menu (the last one rendered)
     const mobileCta = mobileCtaLinks[mobileCtaLinks.length - 1];
     fireEvent.click(mobileCta);

@@ -37,22 +37,20 @@ describe("PilotSection", () => {
 
   it("should render the kicker text", () => {
     render(<PilotSection />);
-    expect(screen.getByText("Diagnostic 48h")).toBeInTheDocument();
+    expect(screen.getByText("Programme pilote")).toBeInTheDocument();
   });
 
   it("should render the section heading", () => {
     render(<PilotSection />);
     expect(
-      screen.getByText("Votre carte des risques de sous-couverture en 48h"),
+      screen.getByText("Co-construisez la solution avec nous"),
     ).toBeInTheDocument();
   });
 
   it("should render the subheading", () => {
     render(<PilotSection />);
     expect(
-      screen.getByText(
-        /Envoyez vos exports existants. En 48h, recevez une carte des risques/,
-      ),
+      screen.getByText(/Rejoignez un nombre restreint d'entreprises pilotes/),
     ).toBeInTheDocument();
   });
 

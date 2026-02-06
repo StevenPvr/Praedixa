@@ -48,9 +48,7 @@ class TestReviewTransitions:
 
     def test_approve_from_suggested(self):
         transitions = _REVIEW_TRANSITIONS["approve"]
-        assert transitions[DecisionStatus.SUGGESTED.value] == (
-            DecisionStatus.APPROVED
-        )
+        assert transitions[DecisionStatus.SUGGESTED.value] == (DecisionStatus.APPROVED)
 
     def test_approve_from_pending_review(self):
         transitions = _REVIEW_TRANSITIONS["approve"]
@@ -60,9 +58,7 @@ class TestReviewTransitions:
 
     def test_reject_from_suggested(self):
         transitions = _REVIEW_TRANSITIONS["reject"]
-        assert transitions[DecisionStatus.SUGGESTED.value] == (
-            DecisionStatus.REJECTED
-        )
+        assert transitions[DecisionStatus.SUGGESTED.value] == (DecisionStatus.REJECTED)
 
     def test_reject_from_pending_review(self):
         transitions = _REVIEW_TRANSITIONS["reject"]
@@ -89,7 +85,7 @@ class TestListDecisions:
         tenant = TenantFilter("org-1")
         items = [SimpleNamespace(id=uuid.uuid4())]
         session = make_mock_session(
-            make_scalar_result(1),       # count
+            make_scalar_result(1),  # count
             make_scalars_result(items),  # items
         )
 
@@ -119,9 +115,7 @@ class TestListDecisions:
             make_scalars_result([]),
         )
 
-        _items, total = await list_decisions(
-            tenant, session, status_filter="suggested"
-        )
+        _items, total = await list_decisions(tenant, session, status_filter="suggested")
         assert total == 0
 
     @pytest.mark.asyncio
@@ -146,9 +140,7 @@ class TestListDecisions:
             make_scalars_result([]),
         )
 
-        _items, total = await list_decisions(
-            tenant, session, type_filter="overtime"
-        )
+        _items, total = await list_decisions(tenant, session, type_filter="overtime")
         assert total == 0
 
     @pytest.mark.asyncio
@@ -200,9 +192,7 @@ class TestListDecisions:
             make_scalars_result([SimpleNamespace(id=uuid.uuid4())]),
         )
 
-        _items, total = await list_decisions(
-            tenant, session, limit=10, offset=20
-        )
+        _items, total = await list_decisions(tenant, session, limit=10, offset=20)
         assert total == 100
 
 
@@ -240,8 +230,8 @@ class TestCreateDecision:
         dept_id = uuid.uuid4()
 
         session = make_mock_session(
-            make_scalar_result(dept_id),   # dept exists
-            make_scalar_result(None),      # no duplicate
+            make_scalar_result(dept_id),  # dept exists
+            make_scalar_result(None),  # no duplicate
         )
 
         await create_decision(
@@ -292,8 +282,8 @@ class TestCreateDecision:
         existing = SimpleNamespace(id=uuid.uuid4(), title="Existing")
 
         session = make_mock_session(
-            make_scalar_result(dept_id),     # dept exists
-            make_scalar_result(existing),    # duplicate found
+            make_scalar_result(dept_id),  # dept exists
+            make_scalar_result(existing),  # duplicate found
         )
 
         result = await create_decision(
@@ -390,11 +380,13 @@ class TestReviewDecision:
 
         session = make_mock_session(
             make_scalar_result(decision),  # get_decision
-            MagicMock(),                   # update
+            MagicMock(),  # update
         )
 
         result = await review_decision(
-            d_id, tenant, session,
+            d_id,
+            tenant,
+            session,
             reviewer_id="550e8400-e29b-41d4-a716-446655440000",
             action="approve",
         )
@@ -419,7 +411,9 @@ class TestReviewDecision:
         )
 
         result = await review_decision(
-            d_id, tenant, session,
+            d_id,
+            tenant,
+            session,
             reviewer_id="550e8400-e29b-41d4-a716-446655440000",
             action="reject",
         )
@@ -441,7 +435,9 @@ class TestReviewDecision:
         )
 
         result = await review_decision(
-            d_id, tenant, session,
+            d_id,
+            tenant,
+            session,
             reviewer_id="550e8400-e29b-41d4-a716-446655440000",
             action="defer",
         )
@@ -462,7 +458,9 @@ class TestReviewDecision:
 
         with pytest.raises(InvalidTransitionError):
             await review_decision(
-                d_id, tenant, session,
+                d_id,
+                tenant,
+                session,
                 reviewer_id="550e8400-e29b-41d4-a716-446655440000",
                 action="approve",
             )
@@ -481,7 +479,9 @@ class TestReviewDecision:
 
         with pytest.raises(InvalidTransitionError):
             await review_decision(
-                d_id, tenant, session,
+                d_id,
+                tenant,
+                session,
                 reviewer_id="550e8400-e29b-41d4-a716-446655440000",
                 action="unknown_action",
             )
@@ -505,7 +505,9 @@ class TestReviewDecision:
             mock_sanitize.return_value = "clean notes"
 
             await review_decision(
-                d_id, tenant, session,
+                d_id,
+                tenant,
+                session,
                 reviewer_id="550e8400-e29b-41d4-a716-446655440000",
                 action="approve",
                 notes="<script>xss</script>",
@@ -530,7 +532,9 @@ class TestReviewDecision:
         )
 
         result = await review_decision(
-            d_id, tenant, session,
+            d_id,
+            tenant,
+            session,
             reviewer_id="550e8400-e29b-41d4-a716-446655440000",
             action="approve",
             deadline=date(2026, 3, 1),
@@ -554,7 +558,9 @@ class TestReviewDecision:
         )
 
         result = await review_decision(
-            d_id, tenant, session,
+            d_id,
+            tenant,
+            session,
             reviewer_id="550e8400-e29b-41d4-a716-446655440000",
             action="reject",
             deadline=date(2026, 3, 1),
@@ -580,7 +586,9 @@ class TestReviewDecision:
         )
 
         result = await review_decision(
-            d_id, tenant, session,
+            d_id,
+            tenant,
+            session,
             reviewer_id="550e8400-e29b-41d4-a716-446655440000",
             action="approve",
         )
@@ -606,7 +614,9 @@ class TestRecordOutcome:
         )
 
         result = await record_outcome(
-            d_id, tenant, session,
+            d_id,
+            tenant,
+            session,
             recorder_id="550e8400-e29b-41d4-a716-446655440000",
             effective=True,
             actual_impact="Improved capacity by 15%",
@@ -632,7 +642,9 @@ class TestRecordOutcome:
 
         with pytest.raises(InvalidTransitionError):
             await record_outcome(
-                d_id, tenant, session,
+                d_id,
+                tenant,
+                session,
                 recorder_id="550e8400-e29b-41d4-a716-446655440000",
                 effective=True,
                 actual_impact="Impact",
@@ -652,7 +664,9 @@ class TestRecordOutcome:
 
         with pytest.raises(InvalidTransitionError):
             await record_outcome(
-                d_id, tenant, session,
+                d_id,
+                tenant,
+                session,
                 recorder_id="550e8400-e29b-41d4-a716-446655440000",
                 effective=False,
                 actual_impact="N/A",
@@ -674,7 +688,9 @@ class TestRecordOutcome:
         )
 
         result = await record_outcome(
-            d_id, tenant, session,
+            d_id,
+            tenant,
+            session,
             recorder_id="550e8400-e29b-41d4-a716-446655440000",
             effective=True,
             actual_cost=1500.0,
@@ -698,7 +714,9 @@ class TestRecordOutcome:
         )
 
         result = await record_outcome(
-            d_id, tenant, session,
+            d_id,
+            tenant,
+            session,
             recorder_id="550e8400-e29b-41d4-a716-446655440000",
             effective=False,
             actual_impact="Did not work",
@@ -723,7 +741,9 @@ class TestRecordOutcome:
         )
 
         result = await record_outcome(
-            d_id, tenant, session,
+            d_id,
+            tenant,
+            session,
             recorder_id="550e8400-e29b-41d4-a716-446655440000",
             effective=True,
             actual_impact="OK",

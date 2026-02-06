@@ -197,26 +197,30 @@ def _generate_options(
         * (1 - ot["risk_weight"])
     )
 
-    options.append(ArbitrageOption(
-        type="overtime",
-        label="Heures supplementaires",
-        cost=round(ot_cost, 2),
-        delay_days=ot_delay,
-        coverage_impact_pct=round(ot_coverage, 1),
-        risk_level="medium",
-        risk_details="Fatigue accrue, risque de baisse de productivite sur la duree",
-        pros=[
-            "Mise en place immediate",
-            "Pas de formation necessaire",
-            "Equipe existante connait les processus",
-        ],
-        cons=[
-            f"Cout majore x{ot['overtime_multiplier']}",
-            f"Couverture limitee a {ot['max_coverage_pct']}% du deficit",
-            "Risque de fatigue et turnover",
-        ],
-        score=ot_score,
-    ))
+    options.append(
+        ArbitrageOption(
+            type="overtime",
+            label="Heures supplementaires",
+            cost=round(ot_cost, 2),
+            delay_days=ot_delay,
+            coverage_impact_pct=round(ot_coverage, 1),
+            risk_level="medium",
+            risk_details=(
+                "Fatigue accrue, risque de baisse de productivite sur la duree"
+            ),
+            pros=[
+                "Mise en place immediate",
+                "Pas de formation necessaire",
+                "Equipe existante connait les processus",
+            ],
+            cons=[
+                f"Cout majore x{ot['overtime_multiplier']}",
+                f"Couverture limitee a {ot['max_coverage_pct']}% du deficit",
+                "Risque de fatigue et turnover",
+            ],
+            score=ot_score,
+        )
+    )
 
     # --- Option 2: Intérim ---
     ext = SCORING_CONSTANTS["external"]
@@ -230,26 +234,28 @@ def _generate_options(
         * (1 - ext["risk_weight"])
     )
 
-    options.append(ArbitrageOption(
-        type="external",
-        label="Personnel interimaire",
-        cost=round(ext_cost, 2),
-        delay_days=ext_delay,
-        coverage_impact_pct=round(ext_coverage, 1),
-        risk_level="medium",
-        risk_details="Temps de formation, productivite reduite les premiers jours",
-        pros=[
-            "Forte capacite de couverture",
-            "Flexible, ajustable au besoin",
-            "Pas d'engagement long terme",
-        ],
-        cons=[
-            f"Cout agence x{ext['agency_multiplier']}",
-            f"Delai de {int(ext['delay_min'])}-{int(ext['delay_max'])} jours",
-            "Necessite formation et supervision",
-        ],
-        score=ext_score,
-    ))
+    options.append(
+        ArbitrageOption(
+            type="external",
+            label="Personnel interimaire",
+            cost=round(ext_cost, 2),
+            delay_days=ext_delay,
+            coverage_impact_pct=round(ext_coverage, 1),
+            risk_level="medium",
+            risk_details="Temps de formation, productivite reduite les premiers jours",
+            pros=[
+                "Forte capacite de couverture",
+                "Flexible, ajustable au besoin",
+                "Pas d'engagement long terme",
+            ],
+            cons=[
+                f"Cout agence x{ext['agency_multiplier']}",
+                f"Delai de {int(ext['delay_min'])}-{int(ext['delay_max'])} jours",
+                "Necessite formation et supervision",
+            ],
+            score=ext_score,
+        )
+    )
 
     # --- Option 3: Réallocation interne ---
     rd = SCORING_CONSTANTS["redistribution"]
@@ -263,26 +269,28 @@ def _generate_options(
         * (1 - rd["risk_weight"])
     )
 
-    options.append(ArbitrageOption(
-        type="redistribution",
-        label="Reallocation interne",
-        cost=round(rd_cost, 2),
-        delay_days=rd_delay,
-        coverage_impact_pct=round(rd_coverage, 1),
-        risk_level="low",
-        risk_details="Impact sur les departements donneurs, necessite coordination",
-        pros=[
-            "Cout le plus bas",
-            "Equipe deja formee aux processus internes",
-            "Risque minimal",
-        ],
-        cons=[
-            f"Couverture limitee a {rd['max_coverage_pct']}% du deficit",
-            "Deplace le probleme vers un autre departement",
-            "Necessite accord des managers",
-        ],
-        score=rd_score,
-    ))
+    options.append(
+        ArbitrageOption(
+            type="redistribution",
+            label="Reallocation interne",
+            cost=round(rd_cost, 2),
+            delay_days=rd_delay,
+            coverage_impact_pct=round(rd_coverage, 1),
+            risk_level="low",
+            risk_details="Impact sur les departements donneurs, necessite coordination",
+            pros=[
+                "Cout le plus bas",
+                "Equipe deja formee aux processus internes",
+                "Risque minimal",
+            ],
+            cons=[
+                f"Couverture limitee a {rd['max_coverage_pct']}% du deficit",
+                "Deplace le probleme vers un autre departement",
+                "Necessite accord des managers",
+            ],
+            score=rd_score,
+        )
+    )
 
     # --- Option 4: Accepter la dégradation ---
     na = SCORING_CONSTANTS["no_action"]
@@ -290,28 +298,30 @@ def _generate_options(
     cost_of_inaction = deficit_hours * 30.0  # ~30 EUR per lost hour of productivity
     na_score = (0.01 / max(cost_of_inaction, 1)) * (1 / 0.5) * (1 - na["risk_weight"])
 
-    options.append(ArbitrageOption(
-        type="no_action",
-        label="Accepter la degradation",
-        cost=0.0,
-        delay_days=0,
-        coverage_impact_pct=0.0,
-        risk_level="high",
-        risk_details=(
-            f"Cout indirect estime: {round(cost_of_inaction, 2)} EUR "
-            "en perte de productivite et retards"
-        ),
-        pros=[
-            "Aucun cout direct",
-            "Pas de perturbation organisationnelle",
-        ],
-        cons=[
-            f"Cout indirect estime: {round(cost_of_inaction, 2)} EUR",
-            "Impact sur les SLA et la satisfaction client",
-            "Risque de cascade sur les periodes suivantes",
-        ],
-        score=na_score,
-    ))
+    options.append(
+        ArbitrageOption(
+            type="no_action",
+            label="Accepter la degradation",
+            cost=0.0,
+            delay_days=0,
+            coverage_impact_pct=0.0,
+            risk_level="high",
+            risk_details=(
+                f"Cout indirect estime: {round(cost_of_inaction, 2)} EUR "
+                "en perte de productivite et retards"
+            ),
+            pros=[
+                "Aucun cout direct",
+                "Pas de perturbation organisationnelle",
+            ],
+            cons=[
+                f"Cout indirect estime: {round(cost_of_inaction, 2)} EUR",
+                "Impact sur les SLA et la satisfaction client",
+                "Risque de cascade sur les periodes suivantes",
+            ],
+            score=na_score,
+        )
+    )
 
     return options
 
@@ -408,9 +418,7 @@ async def get_arbitrage_options(
         alert_id=alert_id,
         alert_title=alert.title,
         alert_severity=(
-            alert.severity
-            if isinstance(alert.severity, str)
-            else alert.severity.value
+            alert.severity if isinstance(alert.severity, str) else alert.severity.value
         ),
         department_id=department.id,
         department_name=department.name,

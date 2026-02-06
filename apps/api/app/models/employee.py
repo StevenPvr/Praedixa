@@ -77,9 +77,7 @@ class Employee(TenantMixin, Base):
         UUID(as_uuid=True),
         ForeignKey("employees.id", ondelete="SET NULL"),
     )
-    employee_number: Mapped[str] = mapped_column(
-        String(50), nullable=False, index=True
-    )
+    employee_number: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     display_name: Mapped[str] = mapped_column(String(200), nullable=False)

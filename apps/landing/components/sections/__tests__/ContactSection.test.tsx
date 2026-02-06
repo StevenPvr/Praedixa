@@ -37,20 +37,20 @@ describe("ContactSection", () => {
   it("should render the section heading", () => {
     render(<ContactSection />);
     expect(
-      screen.getByText("Demandez votre diagnostic de couverture"),
+      screen.getByText("Rejoignez le programme pilote"),
     ).toBeInTheDocument();
   });
 
   it("should render the section description", () => {
     render(<ContactSection />);
     expect(
-      screen.getByText(/En 48h, une carte des risques de sous-couverture/),
+      screen.getByText(/Un partenariat de co-construction/),
     ).toBeInTheDocument();
   });
 
   it("should render the primary CTA linking to /devenir-pilote", () => {
     render(<ContactSection />);
-    const ctaLink = screen.getByText("Demander un diagnostic 48h").closest("a");
+    const ctaLink = screen.getByText("Devenir entreprise pilote").closest("a");
     expect(ctaLink).toHaveAttribute("href", "/devenir-pilote");
   });
 
@@ -68,8 +68,8 @@ describe("ContactSection", () => {
   it("should render all trust indicators", () => {
     render(<ContactSection />);
     const trustItems = [
-      "Diagnostic gratuit",
-      "Résultat en 48h",
+      "Partenariat gratuit",
+      "Premiers résultats en jours",
       "Sans intégration IT",
       "Données agrégées uniquement",
       "Sans engagement",

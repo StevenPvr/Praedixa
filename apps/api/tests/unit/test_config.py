@@ -77,6 +77,7 @@ class TestIsProduction:
             ENVIRONMENT="production",
             SUPABASE_JWT_SECRET="a" * 40,
             SUPABASE_URL="",
+            KEY_PROVIDER="scaleway",
         )
         assert s.is_production is True
 
@@ -136,6 +137,7 @@ class TestValidateSecrets:
             ENVIRONMENT="production",
             SUPABASE_JWT_SECRET="x" * 32,
             SUPABASE_URL="",
+            KEY_PROVIDER="scaleway",
         )
         assert len(s.SUPABASE_JWT_SECRET) == 32
 
@@ -147,6 +149,7 @@ class TestValidateSecrets:
             ENVIRONMENT="production",
             SUPABASE_JWT_SECRET="x" * 64,
             SUPABASE_URL="",
+            KEY_PROVIDER="scaleway",
         )
         assert len(s.SUPABASE_JWT_SECRET) == 64
 

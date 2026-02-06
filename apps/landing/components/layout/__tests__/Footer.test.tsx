@@ -41,14 +41,17 @@ describe("Footer", () => {
   it("should render the mini CTA banner text", () => {
     render(<Footer />);
     expect(
-      screen.getByText("Prêt à détecter vos risques de sous-couverture ?"),
+      screen.getByText("Prêt à anticiper vos risques de sous-couverture ?"),
     ).toBeInTheDocument();
   });
 
   it("should render the CTA button linking to /devenir-pilote", () => {
     render(<Footer />);
-    const ctaLink = screen.getByText("Demander un diagnostic 48h");
-    expect(ctaLink.closest("a")).toHaveAttribute("href", "/devenir-pilote");
+    const ctaLinks = screen.getAllByText("Devenir entreprise pilote");
+    const ctaLink = ctaLinks.find(
+      (el) => el.closest("a")?.getAttribute("href") === "/devenir-pilote",
+    );
+    expect(ctaLink).toBeDefined();
   });
 
   it("should render all navigation links", () => {
@@ -59,15 +62,18 @@ describe("Footer", () => {
       "La vision",
       "Les livrables",
       "FAQ",
-      "Demander un diagnostic",
     ];
     for (const label of navLabels) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
-    // "Diagnostic 48h" appears in both nav link (#pilot) and CTA button
-    expect(screen.getAllByText("Diagnostic 48h").length).toBeGreaterThanOrEqual(
-      1,
-    );
+    // "Devenir entreprise pilote" appears in both nav link and CTA button
+    expect(
+      screen.getAllByText("Devenir entreprise pilote").length,
+    ).toBeGreaterThanOrEqual(1);
+    // "Programme pilote" appears in nav link (#pilot)
+    expect(
+      screen.getAllByText("Programme pilote").length,
+    ).toBeGreaterThanOrEqual(1);
     // "Contact" appears as both a nav link and a column heading
     expect(screen.getAllByText("Contact").length).toBeGreaterThanOrEqual(2);
   });

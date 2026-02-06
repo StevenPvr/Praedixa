@@ -7,23 +7,23 @@ export interface PilotColumn {
 export const pilotColumns: PilotColumn[] = [
   {
     id: "co-construction",
-    title: "Ce qu'on livre",
+    title: "Ce qu'on co-construit ensemble",
     items: [
       "Carte de sous-couverture par site et compétence",
-      "Coût de l'inaction estimé en euros",
+      "Facteurs explicatifs de chaque risque détecté",
       "Playbook d'actions prioritaires chiffrées",
-      "Livré en 48h, sans intégration IT",
+      "Calibration sur vos données réelles et vos contraintes métier",
     ],
   },
   {
     id: "avantages",
     title: "Ce que vous gagnez",
     items: [
+      "Comprendre pourquoi les trous de couverture arrivent",
       "Early-warning opérationnel sur la couverture",
       "Arbitrages chiffrés : coût vs options",
       "Preuve économique auditable pour le CODIR",
-      "Réduction du mode urgence et des coûts associés",
-      "Décisions traçables avec audit trail",
+      "Amélioration continue de vos processus",
     ],
   },
   {
@@ -32,12 +32,12 @@ export const pilotColumns: PilotColumn[] = [
     items: [
       "Exports simples (CSV/Excel), aucune intégration",
       "Données agrégées uniquement, pas de données individuelles",
-      "Résultat en 48h, sans engagement",
+      "Premiers résultats en jours, sans engagement",
     ],
   },
 ];
 
 export const pilotUrgencyText =
-  "Places limitées. Le diagnostic est réservé à un nombre restreint d'entreprises pour garantir la qualité de l'accompagnement.";
-export const pilotCtaText = "Demander un diagnostic 48h";
+  "Places limitées. Le programme pilote est réservé à un nombre restreint d'entreprises pour garantir un vrai partenariat de co-construction.";
+export const pilotCtaText = "Devenir entreprise pilote";
 export const pilotCtaHref = "/devenir-pilote";

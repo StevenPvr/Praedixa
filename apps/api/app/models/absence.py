@@ -106,9 +106,7 @@ class Absence(TenantMixin, Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
     )
-    decision_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
+    decision_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     medical_certificate_required: Mapped[bool] = mapped_column(default=False)
     medical_certificate_uploaded: Mapped[bool] = mapped_column(default=False)
     replacement_employee_id: Mapped[uuid.UUID | None] = mapped_column(

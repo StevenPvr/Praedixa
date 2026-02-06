@@ -14,10 +14,10 @@ interface DeliverablesSectionProps {
 
 const CHECKLIST_ITEMS = [
   "Carte de sous-couverture par site et compétence",
+  "Facteurs explicatifs de chaque risque identifié",
   "Coût de l'inaction estimé en euros",
   "Playbook d'actions prioritaires chiffrées",
   "Hypothèses explicites et auditables",
-  "Livré en 48h, sans intégration IT",
 ] as const;
 
 const TRUST_SIGNALS = [
@@ -34,8 +34,8 @@ const TRUST_SIGNALS = [
     text: "Données agrégées équipe/site uniquement. Hébergement France. Pas de données individuelles.",
   },
   {
-    title: "Diagnostic 48h",
-    text: "Carte des risques + coût de l'inaction + playbook d'actions. Sans engagement.",
+    title: "Interprétabilité native",
+    text: "Chaque prévision est accompagnée de ses facteurs explicatifs. Vous comprenez le pourquoi, pas juste le quoi.",
   },
 ] as const;
 
@@ -65,7 +65,7 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
           className="mb-8 text-xl font-bold text-charcoal"
           variants={staggerItem}
         >
-          Diagnostic de couverture : votre premier livrable
+          Diagnostic de couverture : votre point de départ
         </motion.h3>
 
         {/* Two-column layout: mockup + checklist */}
@@ -407,11 +407,11 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
             <ul className="space-y-5" role="list">
               {[
                 "Early-warning sous-couverture à 3, 7 et 14 jours",
+                "Facteurs explicatifs : comprendre pourquoi le risque existe",
                 "Arbitrage chiffré : coût de l'inaction vs options",
                 "Décision traçable avec audit trail",
                 "Preuve économique auditable CODIR/DAF",
-                "Amélioration continue qualité données",
-                "Support premium dédié",
+                "Amélioration continue : les causes identifiées nourrissent vos processus",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3">
                   <svg

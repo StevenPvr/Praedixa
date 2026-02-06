@@ -55,8 +55,8 @@ class TestDismissAlert:
         )
 
         session = make_mock_session(
-            make_scalar_result(alert),   # fetch alert
-            MagicMock(),                 # update result
+            make_scalar_result(alert),  # fetch alert
+            MagicMock(),  # update result
         )
 
         result = await dismiss_alert(alert_id, tenant, session)

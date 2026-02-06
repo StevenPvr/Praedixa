@@ -59,12 +59,8 @@ class ForecastRun(TenantMixin, Base):
         sa_enum(ForecastStatus),
         default=ForecastStatus.PENDING,
     )
-    started_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     accuracy_score: Mapped[float | None] = mapped_column(Numeric(5, 4))
     error_message: Mapped[str | None] = mapped_column(String(1000))
     department_id: Mapped[uuid.UUID | None] = mapped_column(

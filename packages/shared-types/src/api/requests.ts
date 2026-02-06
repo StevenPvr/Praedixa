@@ -270,3 +270,20 @@ export interface ImportRequest {
   validateOnly?: boolean;
   skipErrors?: boolean;
 }
+
+// ─────────────────────────────────────────────────────────────
+// Dataset Requests
+// ─────────────────────────────────────────────────────────────
+
+import type { DatasetStatus } from "../domain/dataset";
+
+/** List datasets request */
+export interface ListDatasetsRequest extends BaseFilterParams {
+  status?: DatasetStatus;
+}
+
+/** Get dataset data preview request */
+export interface GetDatasetDataRequest extends PaginationParams {
+  /** Limit columns returned */
+  columns?: string[];
+}

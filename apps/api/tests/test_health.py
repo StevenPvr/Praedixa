@@ -60,9 +60,7 @@ async def test_health_includes_request_id(client: AsyncClient) -> None:
     mock_session.execute = AsyncMock()
 
     with patch("app.routers.health.async_session_factory", return_value=mock_session):
-        response = await client.get(
-            "/health", headers={"X-Request-ID": "test-req-123"}
-        )
+        response = await client.get("/health", headers={"X-Request-ID": "test-req-123"})
 
     assert response.headers["X-Request-ID"] == "test-req-123"
 

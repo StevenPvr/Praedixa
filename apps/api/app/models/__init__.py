@@ -20,6 +20,18 @@ from app.models.dashboard_alert import (
     DashboardAlert,
     RelatedEntityType,
 )
+from app.models.data_catalog import (
+    ClientDataset,
+    ColumnDtype,
+    ColumnRole,
+    DatasetColumn,
+    DatasetStatus,
+    FitParameter,
+    IngestionLog,
+    IngestionMode,
+    PipelineConfigHistory,
+    RunStatus,
+)
 from app.models.decision import (
     Decision,
     DecisionPriority,
@@ -95,4 +107,15 @@ __all__ = [
     # Action Plan
     "ActionPlan",
     "ActionPlanStatus",
+    # Data Catalog
+    "ClientDataset",
+    "DatasetStatus",
+    "DatasetColumn",
+    "ColumnDtype",
+    "ColumnRole",
+    "FitParameter",
+    "IngestionLog",
+    "IngestionMode",
+    "RunStatus",
+    "PipelineConfigHistory",
 ]

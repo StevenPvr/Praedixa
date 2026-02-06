@@ -324,7 +324,7 @@ export async function POST(request: Request) {
             <td style="padding: 10px;">${safeSector}</td>
           </tr>
         </table>
-        <p style="margin-top: 20px; color: #666;">Recontacter sous 24-48h.</p>
+        <p style="margin-top: 20px; color: #666;">Recontacter dans les prochains jours.</p>
         <p style="margin-top: 10px; color: #999; font-size: 12px;">IP: ${safeIp}</p>
       `,
     });
@@ -354,7 +354,7 @@ export async function POST(request: Request) {
           <h3 style="color: #1a1a1a;">Prochaines \u00e9tapes</h3>
           <ol style="color: #525252; font-size: 16px; line-height: 1.8;">
             <li>Nous analysons votre candidature</li>
-            <li>Vous recevrez un appel de notre part sous 24-48h</li>
+            <li>Nous vous contacterons dans les prochains jours</li>
             <li>Un premier \u00e9change pour comprendre vos besoins</li>
           </ol>
           <p style="color: #525252; font-size: 16px; line-height: 1.6;">

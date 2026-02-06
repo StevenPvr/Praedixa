@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { href: "#problem", label: "Le problème" },
   { href: "#solution", label: "La solution" },
   { href: "#pipeline", label: "La vision" },
-  { href: "#pilot", label: "Diagnostic 48h" },
+  { href: "#pilot", label: "Programme pilote" },
   { href: "#faq", label: "FAQ" },
 ] as const;
 
@@ -82,7 +82,7 @@ export function Navbar() {
               href={PILOT_HREF}
               className="rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-charcoal transition-all duration-200 hover:bg-amber-400 hover:shadow-lg hover:shadow-amber-500/25"
             >
-              Diagnostic 48h
+              Programme pilote
             </Link>
           </div>
 
@@ -156,7 +156,7 @@ export function Navbar() {
                   className="flex w-full items-center justify-center rounded-xl bg-amber-500 px-6 py-3.5 text-base font-semibold text-charcoal transition-all hover:bg-amber-400"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Diagnostic 48h
+                  Programme pilote
                 </Link>
               </div>
             </motion.div>

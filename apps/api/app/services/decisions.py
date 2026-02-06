@@ -238,9 +238,7 @@ async def review_decision(
 
     # Validate status transition
     current_status = (
-        decision.status
-        if isinstance(decision.status, str)
-        else decision.status.value
+        decision.status if isinstance(decision.status, str) else decision.status.value
     )
     allowed = _REVIEW_TRANSITIONS.get(action)
     if allowed is None or current_status not in allowed:
@@ -309,9 +307,7 @@ async def record_outcome(
 
     # Only approved decisions can have outcomes recorded
     current_status = (
-        decision.status
-        if isinstance(decision.status, str)
-        else decision.status.value
+        decision.status if isinstance(decision.status, str) else decision.status.value
     )
     if current_status != DecisionStatus.APPROVED.value:
         raise InvalidTransitionError(current_status, "record outcome")

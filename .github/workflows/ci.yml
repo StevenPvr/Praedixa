@@ -70,6 +70,21 @@ jobs:
         # vulnerabilities (via @opennextjs/cloudflare) are resolved upstream.
         run: pnpm audit --audit-level=high
 
+  secret-scan:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   bundle-size:
     name: Bundle size check
     runs-on: ubuntu-latest
@@ -127,7 +142,7 @@ jobs:
 
   deploy:
     name: Build & Deploy (Cloudflare Workers)
-    needs: [checks, security-audit, bundle-size]
+    needs: [checks, security-audit, secret-scan, bundle-size]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:

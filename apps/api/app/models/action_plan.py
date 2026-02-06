@@ -55,12 +55,8 @@ class ActionPlan(TenantMixin, Base):
     decisions: Mapped[dict] = mapped_column(  # type: ignore[type-arg]
         JSONB, nullable=False, server_default="[]"
     )
-    total_estimated_cost: Mapped[float] = mapped_column(
-        Numeric(12, 2), default=0.0
-    )
-    total_estimated_savings: Mapped[float] = mapped_column(
-        Numeric(12, 2), default=0.0
-    )
+    total_estimated_cost: Mapped[float] = mapped_column(Numeric(12, 2), default=0.0)
+    total_estimated_savings: Mapped[float] = mapped_column(Numeric(12, 2), default=0.0)
     created_by: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
@@ -70,9 +66,7 @@ class ActionPlan(TenantMixin, Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
     )
-    approved_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     def __repr__(self) -> str:
         return f"<ActionPlan {self.name}>"

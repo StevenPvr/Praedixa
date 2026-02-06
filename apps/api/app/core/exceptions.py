@@ -182,9 +182,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         logger.exception("unhandled_error", exc_info=exc)
         # Never expose stack traces in production
-        message = (
-            str(exc) if settings.DEBUG else "An unexpected error occurred"
-        )
+        message = str(exc) if settings.DEBUG else "An unexpected error occurred"
         return _error_response(
             status_code=500,
             code="INTERNAL_ERROR",

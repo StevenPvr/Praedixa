@@ -36,6 +36,11 @@ import {
   dismissAlert,
   getCostAnalysis,
   requestExport,
+  listDatasets,
+  getDataset,
+  getDatasetData,
+  getDatasetColumns,
+  getIngestionLog,
 } from "../endpoints";
 
 // ---------------------------------------------------------------------------
@@ -480,6 +485,154 @@ describe("requestExport", () => {
     expect(mockApiPost).toHaveBeenCalledWith(
       "/api/v1/exports/forecasts",
       body,
+      mockToken,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Datasets
+// ---------------------------------------------------------------------------
+
+describe("listDatasets", () => {
+  it("should call apiGetPaginated with correct path", async () => {
+    mockApiGetPaginated.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      pagination: { page: 1, pageSize: 12, total: 0, totalPages: 0 },
+      timestamp: "t",
+    });
+
+    await listDatasets({}, mockToken);
+
+    expect(mockApiGetPaginated).toHaveBeenCalledWith(
+      "/api/v1/datasets",
+      mockToken,
+    );
+  });
+
+  it("should build query string from params", async () => {
+    mockApiGetPaginated.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      pagination: { page: 1, pageSize: 12, total: 0, totalPages: 0 },
+      timestamp: "t",
+    });
+
+    await listDatasets({ page: 2, pageSize: 12 }, mockToken);
+
+    const calledPath = mockApiGetPaginated.mock.calls[0][0];
+    expect(calledPath).toContain("/api/v1/datasets");
+    expect(calledPath).toContain("page=2");
+    expect(calledPath).toContain("pageSize=12");
+  });
+});
+
+describe("getDataset", () => {
+  it("should call apiGet with encoded datasetId", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { id: "ds-1" },
+      timestamp: "t",
+    });
+
+    await getDataset("ds-1", mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith("/api/v1/datasets/ds-1", mockToken);
+  });
+
+  it("should encode special characters in datasetId", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { id: "ds/special" },
+      timestamp: "t",
+    });
+
+    await getDataset("ds/special", mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      `/api/v1/datasets/${encodeURIComponent("ds/special")}`,
+      mockToken,
+    );
+  });
+});
+
+describe("getDatasetData", () => {
+  it("should call apiGet with correct path and query params", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { columns: [], rows: [], maskedColumns: [], total: 0 },
+      timestamp: "t",
+    });
+
+    await getDatasetData("ds-1", { page: 1, pageSize: 25 }, mockToken);
+
+    const calledPath = mockApiGet.mock.calls[0][0];
+    expect(calledPath).toContain("/api/v1/datasets/ds-1/data");
+    expect(calledPath).toContain("page=1");
+    expect(calledPath).toContain("pageSize=25");
+  });
+
+  it("should omit undefined params", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { columns: [], rows: [], maskedColumns: [], total: 0 },
+      timestamp: "t",
+    });
+
+    await getDatasetData("ds-1", {}, mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/datasets/ds-1/data",
+      mockToken,
+    );
+  });
+});
+
+describe("getDatasetColumns", () => {
+  it("should call apiGet with correct path", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      timestamp: "t",
+    });
+
+    await getDatasetColumns("ds-1", mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/datasets/ds-1/columns",
+      mockToken,
+    );
+  });
+});
+
+describe("getIngestionLog", () => {
+  it("should call apiGet with correct path", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { entries: [], total: 0 },
+      timestamp: "t",
+    });
+
+    await getIngestionLog("ds-1", mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/datasets/ds-1/ingestion-log",
+      mockToken,
+    );
+  });
+
+  it("should encode special characters in datasetId", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { entries: [], total: 0 },
+      timestamp: "t",
+    });
+
+    await getIngestionLog("ds/special", mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      `/api/v1/datasets/${encodeURIComponent("ds/special")}/ingestion-log`,
       mockToken,
     );
   });

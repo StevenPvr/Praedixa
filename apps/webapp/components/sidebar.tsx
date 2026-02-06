@@ -50,7 +50,15 @@ interface SidebarProps {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Donnees", href: "/donnees", icon: Database },
+  {
+    label: "Donnees",
+    href: "/donnees",
+    icon: Database,
+    children: [
+      { label: "Sites & Departements", href: "/donnees" },
+      { label: "Datasets", href: "/donnees/datasets" },
+    ],
+  },
   {
     label: "Previsions",
     href: "/previsions",

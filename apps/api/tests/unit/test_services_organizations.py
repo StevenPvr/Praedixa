@@ -81,8 +81,8 @@ class TestListDepartments:
         depts = [SimpleNamespace(id=uuid.uuid4(), name="Dept B")]
 
         session = make_mock_session(
-            make_scalar_result(site_id),     # site exists check
-            make_scalars_result(depts),      # departments
+            make_scalar_result(site_id),  # site exists check
+            make_scalars_result(depts),  # departments
         )
 
         result = await list_departments(tenant, session, site_id=site_id)

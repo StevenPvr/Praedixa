@@ -153,3 +153,41 @@ export interface SSEMessage<T = unknown> {
   data: T;
   retry?: number;
 }
+
+// ─────────────────────────────────────────────────────────────
+// Dataset Responses
+// ─────────────────────────────────────────────────────────────
+
+import type {
+  DatasetColumn,
+  DatasetDataRow,
+  IngestionLogEntry,
+} from "../domain/dataset";
+
+/** Dataset detail response data */
+export interface DatasetDetailResponse {
+  id: string;
+  name: string;
+  status: string;
+  tableName: string;
+  temporalIndex: string;
+  groupBy: string[];
+  rowCount: number;
+  lastIngestionAt: string | null;
+  columns: DatasetColumn[];
+}
+
+/** Dataset data preview response */
+export interface DatasetDataPreviewResponse {
+  columns: string[];
+  rows: DatasetDataRow[];
+  /** Which columns are PII-masked */
+  maskedColumns: string[];
+  total: number;
+}
+
+/** Ingestion history response */
+export interface IngestionHistoryResponse {
+  entries: IngestionLogEntry[];
+  total: number;
+}

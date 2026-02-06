@@ -99,7 +99,7 @@ describe("FaqSection", () => {
 
   it("should render the bottom CTA link pointing to /devenir-pilote", () => {
     render(<FaqSection />);
-    const ctaLink = screen.getByText("Demander un diagnostic 48h").closest("a");
+    const ctaLink = screen.getByText("Devenir entreprise pilote").closest("a");
     expect(ctaLink).toHaveAttribute("href", "/devenir-pilote");
   });
 

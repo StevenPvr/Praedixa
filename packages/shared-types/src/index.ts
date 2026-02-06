@@ -7,6 +7,7 @@ export * from "./domain/user";
 export * from "./domain/absence";
 export * from "./domain/forecast";
 export * from "./domain/decision";
+export * from "./domain/dataset";
 
 // API types
 export * from "./api/responses";

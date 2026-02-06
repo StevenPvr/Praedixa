@@ -150,9 +150,7 @@ async def validate_option(
         "warning": DecisionPriority.MEDIUM,
         "info": DecisionPriority.LOW,
     }
-    priority = severity_to_priority.get(
-        result.alert_severity, DecisionPriority.MEDIUM
-    )
+    priority = severity_to_priority.get(result.alert_severity, DecisionPriority.MEDIUM)
 
     # Build description and rationale from option data
     description = (

@@ -43,13 +43,13 @@ const SECTORS = [
 ] as const;
 
 const PILOT_BENEFITS = [
-  "Diagnostic couverture gratuit",
-  "Résultat en 48h",
+  "Partenariat de co-construction",
+  "Interprétabilité native",
   "Sans engagement",
   "Accompagnement personnalisé",
   "Tarif préférentiel 1 an",
   "Support premium 1 an",
-  "Co-construction du produit",
+  "Premiers résultats en jours",
 ] as const;
 
 export default function DevenirPilotePage() {
@@ -208,12 +208,11 @@ export default function DevenirPilotePage() {
             >
               <div className="text-center">
                 <h1 className="font-serif text-3xl text-charcoal sm:text-4xl md:text-5xl">
-                  Obtenez votre diagnostic couverture
+                  Rejoignez le programme pilote
                 </h1>
                 <p className="mx-auto mt-4 max-w-xl text-lg text-gray-500">
-                  En <span className="text-amber-600 font-semibold">48h</span>,
-                  on vous dit où vous allez manquer de monde et combien ça
-                  coûte.{" "}
+                  On co-construit la solution ensemble : vos données, nos
+                  modèles prédictifs, une interprétabilité native.{" "}
                   <span className="text-amber-600 font-semibold">
                     Gratuit pour les entreprises pilotes.
                   </span>
@@ -291,7 +290,7 @@ export default function DevenirPilotePage() {
                   Comment vous contacter ?
                 </h2>
                 <p className="mt-3 text-gray-500">
-                  Pour vous recontacter sous 24-48h
+                  Pour planifier un premier échange
                 </p>
               </div>
 
@@ -559,15 +558,15 @@ export default function DevenirPilotePage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-1 text-amber-600">2.</span>
-                    Nous vous contacterons sous 24-48h
+                    Nous vous contacterons dans les prochains jours
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-1 text-amber-600">3.</span>
-                    Un premier échange pour comprendre vos besoins
+                    Un premier échange pour comprendre vos contraintes métier
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-1 text-amber-600">4.</span>
-                    Déploiement progressif de la solution complète
+                    Démarrage du partenariat de co-construction
                   </li>
                 </ul>
               </div>
@@ -699,7 +698,7 @@ export default function DevenirPilotePage() {
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-200 text-xs font-bold text-green-700">
                       2
                     </span>
-                    <span>Nous vous contacterons sous 24-48h</span>
+                    <span>Nous vous contacterons dans les prochains jours</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-200 text-xs font-bold text-green-700">

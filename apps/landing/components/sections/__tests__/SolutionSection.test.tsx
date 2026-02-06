@@ -31,7 +31,9 @@ describe("SolutionSection", () => {
   it("should render the section heading", () => {
     render(<SolutionSection />);
     expect(
-      screen.getByText("Votre diagnostic de couverture en 48h"),
+      screen.getByText(
+        "Comprendre vos risques de couverture en quelques jours",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -47,9 +49,7 @@ describe("SolutionSection", () => {
     expect(
       screen.getByText("Envoyez vos exports existants"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("On détecte la sous-couverture"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("On détecte et on explique")).toBeInTheDocument();
     expect(
       screen.getByText("Vous recevez votre carte des risques"),
     ).toBeInTheDocument();
@@ -59,10 +59,10 @@ describe("SolutionSection", () => {
     render(<SolutionSection />);
     expect(screen.getByText("10 min, aucune intégration")).toBeInTheDocument();
     expect(
-      screen.getByText("Analyse capacité vs charge en 48h"),
+      screen.getByText("Prédiction + facteurs explicatifs"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Risques + coûts + playbook d'actions"),
+      screen.getByText("Risques + causes + playbook d'actions"),
     ).toBeInTheDocument();
   });
 
@@ -97,7 +97,7 @@ describe("SolutionSection", () => {
 
   it("should render the link to #pipeline", () => {
     render(<SolutionSection />);
-    const link = screen.getByText("Découvrir le pilotage continu");
+    const link = screen.getByText("Découvrir le partenariat pilote");
     expect(link.closest("a")).toHaveAttribute("href", "#pipeline");
   });
 

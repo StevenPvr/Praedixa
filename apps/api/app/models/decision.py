@@ -93,9 +93,7 @@ class Decision(TenantMixin, Base):
     estimated_cost: Mapped[float | None] = mapped_column(Numeric(12, 2))
     cost_of_inaction: Mapped[float | None] = mapped_column(Numeric(12, 2))
     estimated_roi: Mapped[float | None] = mapped_column(Numeric(8, 2))
-    confidence_score: Mapped[float] = mapped_column(
-        Numeric(5, 2), nullable=False
-    )
+    confidence_score: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False)
     related_employee_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("employees.id", ondelete="SET NULL"),
@@ -108,18 +106,14 @@ class Decision(TenantMixin, Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
     )
-    reviewed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     manager_notes: Mapped[str | None] = mapped_column(Text)
     implementation_deadline: Mapped[date | None] = mapped_column(Date)
     implemented_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
     )
-    implemented_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
+    implemented_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # DecisionOutcome as JSONB
     outcome: Mapped[dict | None] = mapped_column(JSONB)  # type: ignore[type-arg]
 

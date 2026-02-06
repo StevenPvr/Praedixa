@@ -53,26 +53,16 @@ class DailyForecast(TenantMixin, Base):
         ForeignKey("departments.id", ondelete="SET NULL"),
         index=True,
     )
-    forecast_date: Mapped[date] = mapped_column(
-        Date, nullable=False, index=True
-    )
+    forecast_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     dimension: Mapped[ForecastDimension] = mapped_column(
         sa_enum(ForecastDimension), nullable=False
     )
-    predicted_demand: Mapped[float] = mapped_column(
-        Numeric(10, 2), nullable=False
-    )
-    predicted_capacity: Mapped[float] = mapped_column(
-        Numeric(10, 2), nullable=False
-    )
+    predicted_demand: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    predicted_capacity: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     gap: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     risk_score: Mapped[float] = mapped_column(Numeric(5, 2), default=0.0)
-    confidence_lower: Mapped[float] = mapped_column(
-        Numeric(10, 2), nullable=False
-    )
-    confidence_upper: Mapped[float] = mapped_column(
-        Numeric(10, 2), nullable=False
-    )
+    confidence_lower: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    confidence_upper: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     # RiskIndicators + breakdown by type as JSONB
     details: Mapped[dict] = mapped_column(  # type: ignore[type-arg]
         JSONB, nullable=False, server_default="{}"

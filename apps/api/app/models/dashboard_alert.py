@@ -66,17 +66,11 @@ class DashboardAlert(TenantMixin, Base):
     related_entity_type: Mapped[RelatedEntityType | None] = mapped_column(
         sa_enum(RelatedEntityType)
     )
-    related_entity_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True)
-    )
+    related_entity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     action_url: Mapped[str | None] = mapped_column(String(500))
     action_label: Mapped[str | None] = mapped_column(String(200))
-    dismissed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
-    expires_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
+    dismissed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     def __repr__(self) -> str:
         return f"<DashboardAlert {self.type.value} {self.severity.value}>"

@@ -46,9 +46,7 @@ ORG_A_ALERT_ID = uuid.UUID("aaaaaaaa-5555-5555-5555-555555555555")
 ORG_A_DEPT_ID = uuid.UUID("aaaaaaaa-6666-6666-6666-666666666666")
 
 
-def _make_jwt(
-    user_id: str, org_id: uuid.UUID, role: str = "org_admin"
-) -> JWTPayload:
+def _make_jwt(user_id: str, org_id: uuid.UUID, role: str = "org_admin") -> JWTPayload:
     return JWTPayload(
         user_id=user_id,
         email=f"{user_id}@test.com",
@@ -84,9 +82,7 @@ async def client_org_a(
 
     app.dependency_overrides[get_db_session] = _session
     app.dependency_overrides[get_current_user] = lambda: JWT_A
-    app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(
-        str(ORG_A_ID)
-    )
+    app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(str(ORG_A_ID))
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -106,9 +102,7 @@ async def client_org_b(
 
     app.dependency_overrides[get_db_session] = _session
     app.dependency_overrides[get_current_user] = lambda: JWT_B
-    app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(
-        str(ORG_B_ID)
-    )
+    app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(str(ORG_B_ID))
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -157,9 +151,7 @@ def _mock_decision(org_id: uuid.UUID = ORG_A_ID) -> SimpleNamespace:
 class TestDecisionListIsolation:
     """GET /api/v1/decisions returns only org-scoped data."""
 
-    async def test_org_a_sees_own_decisions(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_org_a_sees_own_decisions(self, client_org_a: AsyncClient) -> None:
         """Org A lists its own decisions."""
         with patch(
             "app.routers.decisions.list_decisions",
@@ -199,18 +191,14 @@ class TestDecisionListIsolation:
 class TestDecisionGetIsolation:
     """GET /api/v1/decisions/{id} returns 404 for cross-org resources."""
 
-    async def test_org_a_sees_own_decision(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_org_a_sees_own_decision(self, client_org_a: AsyncClient) -> None:
         """Org A can get its own decision by ID."""
         with patch(
             "app.routers.decisions.get_decision",
             new_callable=AsyncMock,
             return_value=_mock_decision(),
         ):
-            response = await client_org_a.get(
-                f"/api/v1/decisions/{ORG_A_DECISION_ID}"
-            )
+            response = await client_org_a.get(f"/api/v1/decisions/{ORG_A_DECISION_ID}")
 
         assert response.status_code == 200
 
@@ -223,9 +211,7 @@ class TestDecisionGetIsolation:
             new_callable=AsyncMock,
             side_effect=NotFoundError("Decision", str(ORG_A_DECISION_ID)),
         ):
-            response = await client_org_b.get(
-                f"/api/v1/decisions/{ORG_A_DECISION_ID}"
-            )
+            response = await client_org_b.get(f"/api/v1/decisions/{ORG_A_DECISION_ID}")
 
         assert response.status_code == 404
         assert response.json()["error"]["code"] == "NOT_FOUND"
@@ -379,9 +365,7 @@ class TestDecisionErrorIsolation:
             new_callable=AsyncMock,
             side_effect=NotFoundError("Decision", str(ORG_A_DECISION_ID)),
         ):
-            response = await client_org_b.get(
-                f"/api/v1/decisions/{ORG_A_DECISION_ID}"
-            )
+            response = await client_org_b.get(f"/api/v1/decisions/{ORG_A_DECISION_ID}")
 
         body = response.json()
         body_str = str(body).lower()
@@ -421,9 +405,7 @@ class TestDecisionErrorIsolation:
             new_callable=AsyncMock,
             side_effect=NotFoundError("Decision", str(fake_id)),
         ):
-            response_fake = await client_org_b.get(
-                f"/api/v1/decisions/{fake_id}"
-            )
+            response_fake = await client_org_b.get(f"/api/v1/decisions/{fake_id}")
 
         with patch(
             "app.routers.decisions.get_decision",
@@ -610,9 +592,7 @@ class TestJwtSourcedUserIds:
     """Verify that reviewer_id and recorder_id always come from JWT,
     never from the request body."""
 
-    async def test_review_uses_jwt_user_id(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_review_uses_jwt_user_id(self, client_org_a: AsyncClient) -> None:
         """PATCH /review passes reviewer_id from JWT, not from body."""
         mock = _mock_decision()
         mock.status = "approved"
@@ -633,9 +613,7 @@ class TestJwtSourcedUserIds:
         call_kwargs = mock_svc.call_args.kwargs
         assert call_kwargs["reviewer_id"] == USER_A_ID
 
-    async def test_outcome_uses_jwt_user_id(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_outcome_uses_jwt_user_id(self, client_org_a: AsyncClient) -> None:
         """POST /outcome passes recorder_id from JWT, not from body."""
         mock = _mock_decision()
         mock.status = "implemented"

@@ -109,8 +109,8 @@ class TestComputeDeficit:
         ]
         total, pct, horizon = _compute_deficit(forecasts)
         assert total == 30.0  # abs(-10) + abs(-20)
-        assert pct == 10.0    # avg(10/100*100, 20/200*100) = avg(10, 10) = 10.0
-        assert horizon == 2   # 2 future dates
+        assert pct == 10.0  # avg(10/100*100, 20/200*100) = avg(10, 10) = 10.0
+        assert horizon == 2  # 2 future dates
 
     def test_mixed_gaps(self):
         """Only negative gaps count toward deficit."""
@@ -292,8 +292,8 @@ class TestGetArbitrageOptions:
         )
 
         session = make_mock_session(
-            make_scalar_result(alert),    # alert found
-            make_scalar_result(None),     # department not found
+            make_scalar_result(alert),  # alert found
+            make_scalar_result(None),  # department not found
         )
 
         with pytest.raises(NotFoundError) as exc_info:
@@ -334,9 +334,9 @@ class TestGetArbitrageOptions:
         ]
 
         session = make_mock_session(
-            make_scalar_result(alert),       # alert lookup
-            make_scalar_result(dept),        # department lookup
-            make_scalar_result(site),        # site lookup
+            make_scalar_result(alert),  # alert lookup
+            make_scalar_result(dept),  # department lookup
+            make_scalar_result(site),  # site lookup
             make_scalars_result(forecasts),  # forecasts
         )
 
@@ -403,8 +403,8 @@ class TestGetArbitrageOptions:
         session = make_mock_session(
             make_scalar_result(alert),
             make_scalar_result(dept),
-            make_scalar_result(None),     # site not found
-            make_scalars_result([]),       # no forecasts
+            make_scalar_result(None),  # site not found
+            make_scalars_result([]),  # no forecasts
         )
 
         result = await get_arbitrage_options(alert_id, tenant, session)
@@ -541,7 +541,10 @@ class TestScoringConstants:
 
     def test_has_four_types(self):
         assert set(SCORING_CONSTANTS.keys()) == {
-            "overtime", "external", "redistribution", "no_action"
+            "overtime",
+            "external",
+            "redistribution",
+            "no_action",
         }
 
     def test_overtime_has_required_keys(self):

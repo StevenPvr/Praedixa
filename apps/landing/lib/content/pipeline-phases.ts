@@ -36,6 +36,21 @@ export const pipelinePhases: PipelinePhase[] = [
     calloutVariant: "info",
   },
   {
+    id: "interpretabilite",
+    title: "Comprendre pourquoi : facteurs explicatifs de chaque risque",
+    description:
+      "Praedixa ne se contente pas de prédire. Pour chaque risque détecté, le système identifie les facteurs explicatifs : pic de charge, absences récurrentes, turnover élevé, saisonnalité. Vous comprenez le pourquoi.",
+    capabilities: [
+      "Facteurs explicatifs pour chaque prévision de risque",
+      "Transparence totale : hypothèses auditables, pas de boîte noire",
+      "Identification des causes racines actionnables",
+      "Base pour l'amélioration continue de vos processus",
+    ],
+    callout:
+      "Comprendre les causes permet d'agir dessus. Les problèmes diminuent, les prévisions s'affinent : c'est un cercle vertueux d'amélioration continue.",
+    calloutVariant: "info",
+  },
+  {
     id: "notifications",
     title: "Arbitrage économique : coût de l'inaction vs options",
     description:

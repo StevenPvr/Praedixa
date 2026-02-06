@@ -45,9 +45,9 @@ const softwareSchema = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   description:
-    "Couche d'intelligence de couverture pour entreprises multi-sites. Diagnostic en 48h puis pilotage continu : anticipation de la sous-couverture, arbitrage economique, playbook d'actions, preuve d'impact.",
+    "Couche d'intelligence de couverture pour entreprises multi-sites. Prevision + interpretabilite + arbitrage economique : anticipation de la sous-couverture, facteurs explicatifs, playbook d'actions, preuve d'impact.",
   featureList: [
-    "Diagnostic de sous-couverture en 48h sans integration IT",
+    "Interpretabilite native : facteurs explicatifs de chaque prevision",
     "Prediction du risque de sous-couverture a 3, 7 et 14 jours",
     "Chiffrage du cout de l'inaction vs cout des options",
     "Playbook d'actions : heures sup, interim, reallocation, priorisation",
@@ -66,13 +66,13 @@ const softwareSchema = {
 const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
-  name: "Diagnostic de couverture operationnelle",
+  name: "Intelligence de couverture operationnelle",
   provider: {
     "@type": "Organization",
     name: "Praedixa",
   },
   description:
-    "Diagnostic de couverture en 48h pour entreprises multi-sites. Identification des risques de sous-couverture, chiffrage du cout de l'inaction, playbook d'actions avec arbitrage economique.",
+    "Solution de couverture predictive pour entreprises multi-sites. Identification des risques de sous-couverture, facteurs explicatifs, chiffrage du cout de l'inaction, playbook d'actions avec arbitrage economique.",
   areaServed: {
     "@type": "Country",
     name: "France",
@@ -82,7 +82,7 @@ const serviceSchema = {
     audienceType:
       "Dir. exploitation, responsable Ops, DAF — logistique, transport, entrepots multi-sites",
   },
-  serviceType: "Diagnostic de couverture operationnelle",
+  serviceType: "Intelligence de couverture operationnelle",
   termsOfService: "https://www.praedixa.com/cgu",
   offers: {
     "@type": "Offer",
@@ -95,10 +95,10 @@ const serviceSchema = {
 const howToSchema = {
   "@context": "https://schema.org",
   "@type": "HowTo",
-  name: "Comment obtenir un plan de couverture en 48h (sans intégration)",
+  name: "Comment anticiper la sous-couverture de vos equipes (sans integration)",
   description:
-    "Découvrez comment Praedixa vous livre un plan de couverture en 48h, à partir d'exports simples.",
-  totalTime: "P2D",
+    "Decouvrez comment Praedixa identifie vos risques de couverture, explique les causes et chiffre les options, a partir d'exports simples.",
+  totalTime: "P7D",
   step: [
     {
       "@type": "HowToStep",
@@ -127,7 +127,7 @@ const webSiteSchema = {
   name: "Praedixa",
   url: "https://www.praedixa.com",
   description:
-    "Praedixa — intelligence de couverture operationnelle. Anticipez la sous-couverture multi-sites, chiffrez les options, prouvez le ROI. Diagnostic en 48h.",
+    "Praedixa — intelligence de couverture operationnelle. Anticipez la sous-couverture multi-sites, comprenez pourquoi, chiffrez les options, prouvez le ROI. Programme pilote gratuit.",
   publisher: {
     "@type": "Organization",
     name: "Praedixa",

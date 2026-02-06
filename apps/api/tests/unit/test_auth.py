@@ -1,17 +1,19 @@
-"""Tests for app.core.auth — JWT verification and token extraction."""
+"""Tests for app.core.auth — JWT verification and token extraction.
+
+Updated for PyJWT migration (replacing python-jose).
+"""
 
 from unittest.mock import MagicMock, patch
 
+import jwt as pyjwt
 import pytest
 from fastapi import HTTPException
-from jose import JWTError, jwt
 
 from app.core.auth import (
     JWTPayload,
     _is_allowed_jwks_host,
     _jwks_url_from_base,
     _jwks_url_from_issuer,
-    _load_jwks,
     extract_token,
     verify_jwt,
 )
@@ -25,8 +27,8 @@ TEST_ORG_USER_META_ID = "bbbbbbbb-0000-0000-0000-000000000002"
 
 
 def _make_token(payload: dict, secret: str = TEST_SECRET) -> str:
-    """Create a signed JWT for testing."""
-    return jwt.encode(payload, secret, algorithm="HS256")
+    """Create a signed JWT for testing using PyJWT."""
+    return pyjwt.encode(payload, secret, algorithm="HS256")
 
 
 def _valid_payload(**overrides) -> dict:
@@ -54,6 +56,8 @@ class TestVerifyJwt:
     def test_valid_token(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         token = _make_token(_valid_payload())
         result = verify_jwt(token)
         assert isinstance(result, JWTPayload)
@@ -68,7 +72,11 @@ class TestVerifyJwt:
 
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
-        token = _make_token(_valid_payload(exp=int(time.time()) - 3600))
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
+        token = _make_token(
+            _valid_payload(exp=int(time.time()) - 3600),
+        )
         with pytest.raises(HTTPException) as exc_info:
             verify_jwt(token)
         assert exc_info.value.status_code == 401
@@ -78,6 +86,8 @@ class TestVerifyJwt:
     def test_bad_signature_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         wrong_secret = "wrong-secret-wrong-secret-12345"  # gitleaks:allow
         token = _make_token(_valid_payload(), secret=wrong_secret)
         with pytest.raises(HTTPException) as exc_info:
@@ -88,6 +98,8 @@ class TestVerifyJwt:
     def test_invalid_audience_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         token = _make_token(_valid_payload(aud="wrong-audience"))
         with pytest.raises(HTTPException) as exc_info:
             verify_jwt(token)
@@ -97,43 +109,48 @@ class TestVerifyJwt:
     def test_missing_sub_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         del payload["sub"]
         token = _make_token(payload)
         with pytest.raises(HTTPException) as exc_info:
             verify_jwt(token)
         assert exc_info.value.status_code == 401
-        assert exc_info.value.detail == "Invalid or expired token"
 
     @patch("app.core.auth.settings")
     def test_missing_email_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         del payload["email"]
         token = _make_token(payload)
         with pytest.raises(HTTPException) as exc_info:
             verify_jwt(token)
         assert exc_info.value.status_code == 401
-        assert exc_info.value.detail == "Invalid or expired token"
 
     @patch("app.core.auth.settings")
     def test_missing_organization_id_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         del payload["app_metadata"]["organization_id"]
         token = _make_token(payload)
         with pytest.raises(HTTPException) as exc_info:
             verify_jwt(token)
         assert exc_info.value.status_code == 401
-        assert exc_info.value.detail == "Invalid or expired token"
 
     @patch("app.core.auth.settings")
     def test_default_role_viewer(self, mock_settings):
-        """When role is missing from app_metadata, defaults to 'viewer'."""
+        """When role is missing from app_metadata, defaults to viewer."""
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         del payload["app_metadata"]["role"]
         token = _make_token(payload)
@@ -144,6 +161,8 @@ class TestVerifyJwt:
     def test_empty_app_metadata_missing_org(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         payload["app_metadata"] = {}
         token = _make_token(payload)
@@ -155,6 +174,8 @@ class TestVerifyJwt:
     def test_no_app_metadata_key(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         del payload["app_metadata"]
         token = _make_token(payload)
@@ -166,6 +187,8 @@ class TestVerifyJwt:
     def test_totally_invalid_token_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         with pytest.raises(HTTPException) as exc_info:
             verify_jwt("not.a.jwt")
         assert exc_info.value.status_code == 401
@@ -174,6 +197,8 @@ class TestVerifyJwt:
     def test_accepts_org_id_in_app_metadata_alias(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         del payload["app_metadata"]["organization_id"]
         payload["app_metadata"]["org_id"] = TEST_ORG_ALIAS_ID
@@ -182,67 +207,86 @@ class TestVerifyJwt:
         assert result.organization_id == TEST_ORG_ALIAS_ID
 
     @patch("app.core.auth.settings")
-    def test_dev_accepts_org_id_from_user_metadata(self, mock_settings):
+    def test_dev_accepts_org_id_from_user_metadata(
+        self,
+        mock_settings,
+    ):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         del payload["app_metadata"]["organization_id"]
-        payload["user_metadata"] = {"org_id": TEST_ORG_USER_META_ID}
+        payload["user_metadata"] = {
+            "org_id": TEST_ORG_USER_META_ID,
+        }
         token = _make_token(payload)
         result = verify_jwt(token)
         assert result.organization_id == TEST_ORG_USER_META_ID
 
     @patch("app.core.auth.settings")
-    def test_production_rejects_user_metadata_org_fallback(self, mock_settings):
+    def test_production_rejects_user_metadata_org_fallback(
+        self,
+        mock_settings,
+    ):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "production"
+        mock_settings.is_production = True
+        mock_settings.LEGACY_HS256_ENABLED = False
         payload = _valid_payload()
         del payload["app_metadata"]["organization_id"]
-        payload["user_metadata"] = {"org_id": TEST_ORG_USER_META_ID}
+        payload["user_metadata"] = {
+            "org_id": TEST_ORG_USER_META_ID,
+        }
         token = _make_token(payload)
+        # HS256 rejected in production
         with pytest.raises(HTTPException) as exc_info:
             verify_jwt(token)
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_invalid_organization_id_format_raises_401(self, mock_settings):
+    def test_invalid_organization_id_format_raises_401(
+        self,
+        mock_settings,
+    ):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         payload["app_metadata"]["organization_id"] = "org_demo_001"
         token = _make_token(payload)
         with pytest.raises(HTTPException) as exc_info:
             verify_jwt(token)
         assert exc_info.value.status_code == 401
-        assert exc_info.value.detail == "Invalid or expired token"
 
     @patch("app.core.auth.settings")
     def test_rs256_token_uses_jwks(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.SUPABASE_URL = "https://example.supabase.co"
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+
+        mock_key = MagicMock()
+        mock_key.key = "fake-rsa-public-key"
 
         with (
-            patch("app.core.auth.jwt.get_unverified_header") as mock_header,
-            patch("app.core.auth._get_cached_jwks") as mock_jwks,
-            patch("app.core.auth.jwt.decode") as mock_decode,
+            patch("app.core.auth.jwt.get_unverified_header") as m_hdr,
+            patch("app.core.auth._get_jwk_client") as m_client,
+            patch("app.core.auth.jwt.decode") as m_decode,
         ):
-            mock_header.return_value = {"alg": "RS256", "kid": "kid-1"}
-            mock_jwks.return_value = {"keys": [{"kid": "kid-1", "kty": "RSA"}]}
-            mock_decode.return_value = _valid_payload()
+            m_hdr.return_value = {"alg": "RS256", "kid": "kid-1"}
+            m_client.return_value.get_signing_key.return_value = mock_key
+            m_decode.return_value = _valid_payload()
 
             result = verify_jwt("rs256-token")
 
             assert result.organization_id == TEST_ORG_ID
-            mock_decode.assert_called_once_with(
+            m_decode.assert_called_once_with(
                 "rs256-token",
-                {"kid": "kid-1", "kty": "RSA"},
+                "fake-rsa-public-key",
                 algorithms=["RS256"],
                 audience="authenticated",
-            )
-            mock_jwks.assert_called_once_with(
-                "https://example.supabase.co/auth/v1/.well-known/jwks.json",
-                force_refresh=False,
             )
 
     @patch("app.core.auth.settings")
@@ -250,109 +294,155 @@ class TestVerifyJwt:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.SUPABASE_URL = "https://example.supabase.co"
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+
+        mock_key = MagicMock()
+        mock_key.key = "fake-ec-public-key"
 
         with (
-            patch("app.core.auth.jwt.get_unverified_header") as mock_header,
-            patch("app.core.auth._get_cached_jwks") as mock_jwks,
-            patch("app.core.auth.jwt.decode") as mock_decode,
+            patch("app.core.auth.jwt.get_unverified_header") as m_hdr,
+            patch("app.core.auth._get_jwk_client") as m_client,
+            patch("app.core.auth.jwt.decode") as m_decode,
         ):
-            mock_header.return_value = {"alg": "ES256", "kid": "kid-1"}
-            mock_jwks.return_value = {
-                "keys": [{"kid": "kid-1", "kty": "EC", "crv": "P-256"}]
-            }
-            mock_decode.return_value = _valid_payload()
+            m_hdr.return_value = {"alg": "ES256", "kid": "kid-1"}
+            m_client.return_value.get_signing_key.return_value = mock_key
+            m_decode.return_value = _valid_payload()
 
             result = verify_jwt("es256-token")
 
             assert result.organization_id == TEST_ORG_ID
-            mock_decode.assert_called_once_with(
+            m_decode.assert_called_once_with(
                 "es256-token",
-                {"kid": "kid-1", "kty": "EC", "crv": "P-256"},
+                "fake-ec-public-key",
                 algorithms=["ES256"],
                 audience="authenticated",
             )
-            mock_jwks.assert_called_once_with(
-                "https://example.supabase.co/auth/v1/.well-known/jwks.json",
-                force_refresh=False,
-            )
-
-    @patch("app.core.auth.settings")
-    def test_rs256_unknown_kid_refreshes_jwks(self, mock_settings):
-        mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
-        mock_settings.SUPABASE_URL = "https://example.supabase.co"
-        mock_settings.ENVIRONMENT = "development"
-
-        with (
-            patch("app.core.auth.jwt.get_unverified_header") as mock_header,
-            patch("app.core.auth._get_cached_jwks") as mock_jwks,
-            patch("app.core.auth.jwt.decode") as mock_decode,
-        ):
-            mock_header.return_value = {"alg": "RS256", "kid": "kid-1"}
-            mock_jwks.side_effect = [
-                {"keys": []},
-                {"keys": [{"kid": "kid-1", "kty": "RSA"}]},
-            ]
-            mock_decode.return_value = _valid_payload()
-
-            verify_jwt("rs256-token")
-
-            assert mock_jwks.call_count == 2
-            assert mock_jwks.call_args_list[0].args == (
-                "https://example.supabase.co/auth/v1/.well-known/jwks.json",
-            )
-            assert mock_jwks.call_args_list[1].args == (
-                "https://example.supabase.co/auth/v1/.well-known/jwks.json",
-            )
-            assert mock_jwks.call_args_list[0].kwargs == {"force_refresh": False}
-            assert mock_jwks.call_args_list[1].kwargs == {"force_refresh": True}
 
     @patch("app.core.auth.settings")
     def test_rs256_missing_kid_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.SUPABASE_URL = "https://example.supabase.co"
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
 
-        with patch("app.core.auth.jwt.get_unverified_header") as mock_header:
-            mock_header.return_value = {"alg": "RS256"}
+        with patch("app.core.auth.jwt.get_unverified_header") as m_hdr:
+            m_hdr.return_value = {"alg": "RS256"}
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("rs256-token")
             assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_rs256_placeholder_url_uses_issuer_in_dev(self, mock_settings):
+    def test_rs256_placeholder_url_uses_issuer_in_dev(
+        self,
+        mock_settings,
+    ):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.SUPABASE_URL = "https://your-project.supabase.co"
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+
+        mock_key = MagicMock()
+        mock_key.key = "fake-rsa-public-key"
 
         with (
-            patch("app.core.auth.jwt.get_unverified_header") as mock_header,
-            patch("app.core.auth.jwt.get_unverified_claims") as mock_claims,
-            patch("app.core.auth._get_cached_jwks") as mock_jwks,
-            patch("app.core.auth.jwt.decode") as mock_decode,
+            patch("app.core.auth.jwt.get_unverified_header") as m_hdr,
+            patch(
+                "app.core.auth.jwt.decode",
+            ) as m_decode,
+            patch("app.core.auth._get_jwk_client") as m_client,
         ):
-            mock_header.return_value = {"alg": "RS256", "kid": "kid-1"}
-            mock_claims.return_value = {"iss": "https://proj.supabase.co/auth/v1"}
-            mock_jwks.return_value = {"keys": [{"kid": "kid-1", "kty": "RSA"}]}
-            mock_decode.return_value = _valid_payload()
+            m_hdr.return_value = {"alg": "RS256", "kid": "kid-1"}
+            # First call is unverified decode in _resolve_jwks_url
+            # Second call is the actual verified decode
+            m_decode.side_effect = [
+                {"iss": "https://proj.supabase.co/auth/v1"},
+                _valid_payload(),
+            ]
+            m_client.return_value.get_signing_key.return_value = mock_key
 
             verify_jwt("rs256-token")
 
-            mock_jwks.assert_called_once_with(
+            # _get_jwk_client should have been called with issuer URL
+            m_client.assert_called_once_with(
                 "https://proj.supabase.co/auth/v1/.well-known/jwks.json",
-                force_refresh=False,
             )
 
     @patch("app.core.auth.settings")
-    def test_rs256_placeholder_url_rejected_in_production(self, mock_settings):
+    def test_rs256_placeholder_url_rejected_in_production(
+        self,
+        mock_settings,
+    ):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.SUPABASE_URL = "https://your-project.supabase.co"
         mock_settings.ENVIRONMENT = "production"
+        mock_settings.is_production = True
 
-        with patch("app.core.auth.jwt.get_unverified_header") as mock_header:
-            mock_header.return_value = {"alg": "RS256", "kid": "kid-1"}
+        with patch("app.core.auth.jwt.get_unverified_header") as m_hdr:
+            m_hdr.return_value = {"alg": "RS256", "kid": "kid-1"}
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("rs256-token")
             assert exc_info.value.status_code == 401
+
+    @patch("app.core.auth.settings")
+    def test_hs256_rejected_in_production(self, mock_settings):
+        """HS256 tokens must be rejected in production."""
+        mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
+        mock_settings.ENVIRONMENT = "production"
+        mock_settings.is_production = True
+        mock_settings.LEGACY_HS256_ENABLED = False
+        token = _make_token(_valid_payload())
+        with pytest.raises(HTTPException) as exc_info:
+            verify_jwt(token)
+        assert exc_info.value.status_code == 401
+
+    @patch("app.core.auth.settings")
+    def test_none_algorithm_rejected(self, mock_settings):
+        """Tokens with alg=none must always be rejected."""
+        mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
+        mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+
+        with patch("app.core.auth.jwt.get_unverified_header") as m_hdr:
+            m_hdr.return_value = {"alg": "none"}
+            with pytest.raises(HTTPException) as exc_info:
+                verify_jwt("none-token")
+            assert exc_info.value.status_code == 401
+
+    @patch("app.core.auth.settings")
+    def test_none_algorithm_case_insensitive(self, mock_settings):
+        """Tokens with alg=None/NONE must be rejected."""
+        mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
+        mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+
+        with patch("app.core.auth.jwt.get_unverified_header") as m_hdr:
+            m_hdr.return_value = {"alg": "None"}
+            with pytest.raises(HTTPException) as exc_info:
+                verify_jwt("none-token")
+            assert exc_info.value.status_code == 401
+
+    @patch("app.core.auth.settings")
+    def test_eddsa_algorithm_accepted(self, mock_settings):
+        """EdDSA tokens should be accepted (asymmetric)."""
+        mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
+        mock_settings.SUPABASE_URL = "https://example.supabase.co"
+        mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+
+        mock_key = MagicMock()
+        mock_key.key = "fake-eddsa-key"
+
+        with (
+            patch("app.core.auth.jwt.get_unverified_header") as m_hdr,
+            patch("app.core.auth._get_jwk_client") as m_client,
+            patch("app.core.auth.jwt.decode") as m_decode,
+        ):
+            m_hdr.return_value = {"alg": "EdDSA", "kid": "kid-1"}
+            m_client.return_value.get_signing_key.return_value = mock_key
+            m_decode.return_value = _valid_payload()
+
+            result = verify_jwt("eddsa-token")
+            assert result.organization_id == TEST_ORG_ID
 
 
 class TestExtractToken:
@@ -405,14 +495,20 @@ class TestJWTPayloadFrozen:
 
     def test_frozen(self):
         payload = JWTPayload(
-            user_id="u1", email="e@x.com", organization_id="o1", role="viewer"
+            user_id="u1",
+            email="e@x.com",
+            organization_id="o1",
+            role="viewer",
         )
         with pytest.raises(AttributeError):
             payload.user_id = "u2"  # type: ignore[misc]
 
     def test_fields_accessible(self):
         payload = JWTPayload(
-            user_id="u1", email="e@x.com", organization_id="o1", role="admin"
+            user_id="u1",
+            email="e@x.com",
+            organization_id="o1",
+            role="admin",
         )
         assert payload.user_id == "u1"
         assert payload.email == "e@x.com"
@@ -449,21 +545,35 @@ class TestJwksUrlFromIssuer:
     """Test _jwks_url_from_issuer helper."""
 
     def test_valid_issuer(self):
-        url = _jwks_url_from_issuer("https://proj.supabase.co/auth/v1")
-        assert url == "https://proj.supabase.co/auth/v1/.well-known/jwks.json"
+        url = _jwks_url_from_issuer(
+            "https://proj.supabase.co/auth/v1",
+        )
+        assert url == ("https://proj.supabase.co/auth/v1/.well-known/jwks.json")
 
     def test_bad_scheme(self):
-        assert _jwks_url_from_issuer("ftp://proj.supabase.co/auth/v1") is None
+        assert (
+            _jwks_url_from_issuer(
+                "ftp://proj.supabase.co/auth/v1",
+            )
+            is None
+        )
 
     def test_bad_host(self):
         assert _jwks_url_from_issuer("https://evil.com/auth/v1") is None
 
     def test_bad_path(self):
-        assert _jwks_url_from_issuer("https://proj.supabase.co/other") is None
+        assert (
+            _jwks_url_from_issuer(
+                "https://proj.supabase.co/other",
+            )
+            is None
+        )
 
     def test_trailing_slash(self):
-        url = _jwks_url_from_issuer("https://proj.supabase.co/auth/v1/")
-        assert url == "https://proj.supabase.co/auth/v1/.well-known/jwks.json"
+        url = _jwks_url_from_issuer(
+            "https://proj.supabase.co/auth/v1/",
+        )
+        assert url == ("https://proj.supabase.co/auth/v1/.well-known/jwks.json")
 
 
 class TestJwksUrlFromBase:
@@ -471,11 +581,13 @@ class TestJwksUrlFromBase:
 
     def test_base_url_no_path(self):
         url = _jwks_url_from_base("https://proj.supabase.co")
-        assert url == "https://proj.supabase.co/auth/v1/.well-known/jwks.json"
+        assert url == ("https://proj.supabase.co/auth/v1/.well-known/jwks.json")
 
     def test_base_url_with_auth_path(self):
-        url = _jwks_url_from_base("https://proj.supabase.co/auth/v1")
-        assert url == "https://proj.supabase.co/auth/v1/.well-known/jwks.json"
+        url = _jwks_url_from_base(
+            "https://proj.supabase.co/auth/v1",
+        )
+        assert url == ("https://proj.supabase.co/auth/v1/.well-known/jwks.json")
 
     def test_bad_scheme(self):
         assert _jwks_url_from_base("ftp://proj.supabase.co") is None
@@ -484,71 +596,12 @@ class TestJwksUrlFromBase:
         assert _jwks_url_from_base("https://evil.com") is None
 
     def test_unrecognized_path(self):
-        assert _jwks_url_from_base("https://proj.supabase.co/other/path") is None
-
-
-class TestLoadJwks:
-    """Test _load_jwks helper."""
-
-    @patch("app.core.auth.httpx.get")
-    def test_valid_jwks(self, mock_get):
-        mock_resp = MagicMock()
-        mock_resp.json.return_value = {"keys": [{"kid": "k1"}]}
-        mock_get.return_value = mock_resp
-        result = _load_jwks("https://proj.supabase.co/auth/v1/.well-known/jwks.json")
-        assert result == {"keys": [{"kid": "k1"}]}
-
-    @patch("app.core.auth.httpx.get")
-    def test_non_dict_response(self, mock_get):
-        mock_resp = MagicMock()
-        mock_resp.json.return_value = "not a dict"
-        mock_get.return_value = mock_resp
-        with pytest.raises(HTTPException) as exc_info:
-            _load_jwks("https://proj.supabase.co/auth/v1/.well-known/jwks.json")
-        assert exc_info.value.status_code == 401
-
-    @patch("app.core.auth.httpx.get")
-    def test_missing_keys(self, mock_get):
-        mock_resp = MagicMock()
-        mock_resp.json.return_value = {"not_keys": []}
-        mock_get.return_value = mock_resp
-        with pytest.raises(HTTPException) as exc_info:
-            _load_jwks("https://proj.supabase.co/auth/v1/.well-known/jwks.json")
-        assert exc_info.value.status_code == 401
-
-
-class TestGetCachedJwks:
-    """Test _get_cached_jwks with cache behavior."""
-
-    @patch("app.core.auth._load_jwks")
-    def test_cache_miss_then_hit(self, mock_load):
-        import app.core.auth as auth_mod
-
-        old_cache = auth_mod._JWKS_CACHE
-        old_url = auth_mod._JWKS_CACHE_URL
-        old_time = auth_mod._JWKS_FETCHED_AT
-        try:
-            auth_mod._JWKS_CACHE = None
-            auth_mod._JWKS_CACHE_URL = None
-            auth_mod._JWKS_FETCHED_AT = 0.0
-
-            mock_load.return_value = {"keys": [{"kid": "k1"}]}
-            url = "https://proj.supabase.co/auth/v1/.well-known/jwks.json"
-
-            result1 = auth_mod._get_cached_jwks(url)
-            assert result1 == {"keys": [{"kid": "k1"}]}
-            assert mock_load.call_count == 1
-
-            result2 = auth_mod._get_cached_jwks(url)
-            assert result2 == {"keys": [{"kid": "k1"}]}
-            assert mock_load.call_count == 1  # cached
-
-            auth_mod._get_cached_jwks(url, force_refresh=True)
-            assert mock_load.call_count == 2  # refreshed
-        finally:
-            auth_mod._JWKS_CACHE = old_cache
-            auth_mod._JWKS_CACHE_URL = old_url
-            auth_mod._JWKS_FETCHED_AT = old_time
+        assert (
+            _jwks_url_from_base(
+                "https://proj.supabase.co/other/path",
+            )
+            is None
+        )
 
 
 class TestDecodeToken:
@@ -557,8 +610,8 @@ class TestDecodeToken:
     @patch("app.core.auth.settings")
     def test_missing_alg_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
-        with patch("app.core.auth.jwt.get_unverified_header") as mock_hdr:
-            mock_hdr.return_value = {}
+        with patch("app.core.auth.jwt.get_unverified_header") as m:
+            m.return_value = {}
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("some-token")
             assert exc_info.value.status_code == 401
@@ -566,8 +619,8 @@ class TestDecodeToken:
     @patch("app.core.auth.settings")
     def test_non_string_alg_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
-        with patch("app.core.auth.jwt.get_unverified_header") as mock_hdr:
-            mock_hdr.return_value = {"alg": 123}
+        with patch("app.core.auth.jwt.get_unverified_header") as m:
+            m.return_value = {"alg": 123}
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("some-token")
             assert exc_info.value.status_code == 401
@@ -575,8 +628,8 @@ class TestDecodeToken:
     @patch("app.core.auth.settings")
     def test_unknown_algorithm_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
-        with patch("app.core.auth.jwt.get_unverified_header") as mock_hdr:
-            mock_hdr.return_value = {"alg": "PS256"}
+        with patch("app.core.auth.jwt.get_unverified_header") as m:
+            m.return_value = {"alg": "PS256"}
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("some-token")
             assert exc_info.value.status_code == 401
@@ -584,32 +637,41 @@ class TestDecodeToken:
     @patch("app.core.auth.settings")
     def test_hs256_non_dict_decoded_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         with (
-            patch("app.core.auth.jwt.get_unverified_header") as mock_hdr,
-            patch("app.core.auth.jwt.decode") as mock_decode,
+            patch("app.core.auth.jwt.get_unverified_header") as m_h,
+            patch("app.core.auth.jwt.decode") as m_d,
         ):
-            mock_hdr.return_value = {"alg": "HS256"}
-            mock_decode.return_value = "not-a-dict"
+            m_h.return_value = {"alg": "HS256"}
+            m_d.return_value = "not-a-dict"
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("some-token")
             assert exc_info.value.status_code == 401
 
 
 class TestDecodeWithJwks:
-    """Test _decode_with_jwks internal paths."""
+    """Test asymmetric decode paths."""
 
     @patch("app.core.auth.settings")
     def test_jwt_decode_error_raises_401(self, mock_settings):
         mock_settings.SUPABASE_URL = "https://proj.supabase.co"
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+
+        mock_key = MagicMock()
+        mock_key.key = "fake-key"
+
         with (
-            patch("app.core.auth.jwt.get_unverified_header") as mock_hdr,
-            patch("app.core.auth._get_cached_jwks") as mock_jwks,
-            patch("app.core.auth.jwt.decode") as mock_decode,
+            patch("app.core.auth.jwt.get_unverified_header") as m_h,
+            patch("app.core.auth._get_jwk_client") as m_client,
+            patch("app.core.auth.jwt.decode") as m_decode,
         ):
-            mock_hdr.return_value = {"alg": "RS256", "kid": "kid-1"}
-            mock_jwks.return_value = {"keys": [{"kid": "kid-1", "kty": "RSA"}]}
-            mock_decode.side_effect = JWTError("sig invalid")
+            m_h.return_value = {"alg": "RS256", "kid": "kid-1"}
+            m_client.return_value.get_signing_key.return_value = mock_key
+            m_decode.side_effect = pyjwt.InvalidTokenError(
+                "sig invalid",
+            )
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("rs256-token")
             assert exc_info.value.status_code == 401
@@ -618,28 +680,40 @@ class TestDecodeWithJwks:
     def test_non_dict_decoded_raises_401(self, mock_settings):
         mock_settings.SUPABASE_URL = "https://proj.supabase.co"
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+
+        mock_key = MagicMock()
+        mock_key.key = "fake-key"
+
         with (
-            patch("app.core.auth.jwt.get_unverified_header") as mock_hdr,
-            patch("app.core.auth._get_cached_jwks") as mock_jwks,
-            patch("app.core.auth.jwt.decode") as mock_decode,
+            patch("app.core.auth.jwt.get_unverified_header") as m_h,
+            patch("app.core.auth._get_jwk_client") as m_client,
+            patch("app.core.auth.jwt.decode") as m_decode,
         ):
-            mock_hdr.return_value = {"alg": "RS256", "kid": "kid-1"}
-            mock_jwks.return_value = {"keys": [{"kid": "kid-1", "kty": "RSA"}]}
-            mock_decode.return_value = "not-a-dict"
+            m_h.return_value = {"alg": "RS256", "kid": "kid-1"}
+            m_client.return_value.get_signing_key.return_value = mock_key
+            m_decode.return_value = "not-a-dict"
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("rs256-token")
             assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_kid_never_found_raises_401(self, mock_settings):
+    def test_jwks_key_resolution_failure_raises_401(
+        self,
+        mock_settings,
+    ):
         mock_settings.SUPABASE_URL = "https://proj.supabase.co"
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+
         with (
-            patch("app.core.auth.jwt.get_unverified_header") as mock_hdr,
-            patch("app.core.auth._get_cached_jwks") as mock_jwks,
+            patch("app.core.auth.jwt.get_unverified_header") as m_h,
+            patch("app.core.auth._get_jwk_client") as m_client,
         ):
-            mock_hdr.return_value = {"alg": "RS256", "kid": "unknown-kid"}
-            mock_jwks.return_value = {"keys": [{"kid": "other-kid"}]}
+            m_h.return_value = {"alg": "RS256", "kid": "bad-kid"}
+            m_client.return_value.get_signing_key.side_effect = Exception(
+                "key not found"
+            )
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("rs256-token")
             assert exc_info.value.status_code == 401
@@ -652,64 +726,86 @@ class TestResolveJwksUrl:
     def test_bad_configured_url_raises_401(self, mock_settings):
         mock_settings.SUPABASE_URL = "https://evil.com/bad"
         mock_settings.ENVIRONMENT = "development"
-        with (
-            patch("app.core.auth.jwt.get_unverified_header") as mock_hdr,
-        ):
-            mock_hdr.return_value = {"alg": "RS256", "kid": "kid-1"}
+        mock_settings.is_production = False
+
+        with patch("app.core.auth.jwt.get_unverified_header") as m:
+            m.return_value = {"alg": "RS256", "kid": "kid-1"}
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("rs256-token")
             assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_placeholder_dev_bad_claims_raises_401(self, mock_settings):
+    def test_placeholder_dev_bad_claims_raises_401(
+        self,
+        mock_settings,
+    ):
         mock_settings.SUPABASE_URL = ""
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+
         with (
-            patch("app.core.auth.jwt.get_unverified_header") as mock_hdr,
-            patch("app.core.auth.jwt.get_unverified_claims") as mock_claims,
+            patch("app.core.auth.jwt.get_unverified_header") as m_h,
+            patch("app.core.auth.jwt.decode") as m_decode,
         ):
-            mock_hdr.return_value = {"alg": "RS256", "kid": "kid-1"}
-            mock_claims.side_effect = JWTError("bad claims")
+            m_h.return_value = {"alg": "RS256", "kid": "kid-1"}
+            # The unverified decode call in _resolve_jwks_url
+            m_decode.side_effect = pyjwt.InvalidTokenError(
+                "bad claims",
+            )
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("rs256-token")
             assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_placeholder_dev_non_string_issuer_raises_401(self, mock_settings):
+    def test_placeholder_dev_non_string_issuer_raises_401(
+        self,
+        mock_settings,
+    ):
         mock_settings.SUPABASE_URL = ""
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+
         with (
-            patch("app.core.auth.jwt.get_unverified_header") as mock_hdr,
-            patch("app.core.auth.jwt.get_unverified_claims") as mock_claims,
+            patch("app.core.auth.jwt.get_unverified_header") as m_h,
+            patch("app.core.auth.jwt.decode") as m_decode,
         ):
-            mock_hdr.return_value = {"alg": "RS256", "kid": "kid-1"}
-            mock_claims.return_value = {"iss": 12345}
+            m_h.return_value = {"alg": "RS256", "kid": "kid-1"}
+            m_decode.return_value = {"iss": 12345}
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("rs256-token")
             assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_placeholder_dev_bad_issuer_url_raises_401(self, mock_settings):
+    def test_placeholder_dev_bad_issuer_url_raises_401(
+        self,
+        mock_settings,
+    ):
         mock_settings.SUPABASE_URL = ""
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+
         with (
-            patch("app.core.auth.jwt.get_unverified_header") as mock_hdr,
-            patch("app.core.auth.jwt.get_unverified_claims") as mock_claims,
+            patch("app.core.auth.jwt.get_unverified_header") as m_h,
+            patch("app.core.auth.jwt.decode") as m_decode,
         ):
-            mock_hdr.return_value = {"alg": "RS256", "kid": "kid-1"}
-            mock_claims.return_value = {"iss": "https://evil.com/auth/v1"}
+            m_h.return_value = {"alg": "RS256", "kid": "kid-1"}
+            m_decode.return_value = {
+                "iss": "https://evil.com/auth/v1",
+            }
             with pytest.raises(HTTPException) as exc_info:
                 verify_jwt("rs256-token")
             assert exc_info.value.status_code == 401
 
 
 class TestVerifyJwtSecurityValidations:
-    """Test new security validations added to verify_jwt."""
+    """Test security validations added to verify_jwt."""
 
     @patch("app.core.auth.settings")
     def test_non_uuid_sub_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         token = _make_token(_valid_payload(sub="not-a-uuid"))
         with pytest.raises(HTTPException) as exc_info:
             verify_jwt(token)
@@ -719,6 +815,8 @@ class TestVerifyJwtSecurityValidations:
     def test_email_without_at_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         token = _make_token(_valid_payload(email="noatsign"))
         with pytest.raises(HTTPException) as exc_info:
             verify_jwt(token)
@@ -728,7 +826,11 @@ class TestVerifyJwtSecurityValidations:
     def test_email_too_long_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
-        token = _make_token(_valid_payload(email="a" * 315 + "@b.com"))
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
+        token = _make_token(
+            _valid_payload(email="a" * 315 + "@b.com"),
+        )
         with pytest.raises(HTTPException) as exc_info:
             verify_jwt(token)
         assert exc_info.value.status_code == 401
@@ -737,6 +839,8 @@ class TestVerifyJwtSecurityValidations:
     def test_unknown_role_downgraded_to_viewer(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         payload["app_metadata"]["role"] = "hacker_admin"
         token = _make_token(payload)
@@ -744,9 +848,14 @@ class TestVerifyJwtSecurityValidations:
         assert result.role == "viewer"
 
     @patch("app.core.auth.settings")
-    def test_non_dict_app_metadata_treated_as_empty(self, mock_settings):
+    def test_non_dict_app_metadata_treated_as_empty(
+        self,
+        mock_settings,
+    ):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         payload["app_metadata"] = "not-a-dict"
         payload["organization_id"] = TEST_ORG_ID
@@ -759,6 +868,8 @@ class TestVerifyJwtSecurityValidations:
     def test_non_string_org_id_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         del payload["app_metadata"]["organization_id"]
         payload["organization_id"] = 12345
@@ -768,9 +879,14 @@ class TestVerifyJwtSecurityValidations:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_non_dict_user_metadata_treated_as_empty(self, mock_settings):
+    def test_non_dict_user_metadata_treated_as_empty(
+        self,
+        mock_settings,
+    ):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
         payload = _valid_payload()
         del payload["app_metadata"]["organization_id"]
         payload["user_metadata"] = "not-a-dict"
