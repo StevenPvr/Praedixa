@@ -1,0 +1,4 @@
+# CVE-2026-0861 — glibc memalign integer overflow (HIGH)
+# Affects libc-bin/libc6 in Debian 13.3 (python:3.12-slim base image).
+# No upstream fix available yet. Revisit when Debian publishes a patch.
+CVE-2026-0861

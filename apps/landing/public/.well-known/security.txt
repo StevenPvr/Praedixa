@@ -1,0 +1,4 @@
+Contact: mailto:steven.poivre@outlook.com
+Expires: 2027-02-05T00:00:00.000Z
+Preferred-Languages: fr, en
+Canonical: https://www.praedixa.com/.well-known/security.txt

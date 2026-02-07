@@ -1,0 +1,1208 @@
+import { heroContent } from "../../lib/content/hero-content";
+
+/**
+ * Full dashboard SVG — 5 zones inside a dark app shell:
+ *   0. Sidebar: icon nav (home, chart, alert, calendar, settings)
+ *   1. KPI row (top): 3 metric cards — coût évitable, taux couverture, sites à risque
+ *   2. Chart (middle): Capacité vs Demande 12 semaines with risk zones
+ *   3. Heatmap (bottom-left): risk by site × week mini-grid
+ *   4. Alert feed (bottom-right): live alert items
+ *
+ * ViewBox: 680x460. Palette: oklch only.
+ */
+export function HeroIllustration() {
+  return (
+    <div className="mx-auto w-full">
+      <svg
+        viewBox="0 0 680 460"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-auto w-full drop-shadow-2xl"
+        role="img"
+        aria-label={heroContent.illustrationAlt}
+      >
+        {/* ── Outer frame ── */}
+        <rect width="680" height="460" rx="16" fill="oklch(0.145 0 0)" />
+
+        {/* ── Window chrome ── */}
+        <circle cx="20" cy="16" r="4" fill="oklch(0.556 0 0)" opacity="0.4" />
+        <circle cx="33" cy="16" r="4" fill="oklch(0.556 0 0)" opacity="0.4" />
+        <circle cx="46" cy="16" r="4" fill="oklch(0.556 0 0)" opacity="0.4" />
+        <text
+          x="380"
+          y="18"
+          textAnchor="middle"
+          fill="oklch(0.556 0 0)"
+          fontSize="10"
+          fontFamily="ui-monospace, monospace"
+        >
+          praedixa.app / diagnostic
+        </text>
+        <line
+          x1="0"
+          y1="32"
+          x2="680"
+          y2="32"
+          stroke="oklch(0.556 0 0)"
+          opacity="0.15"
+        />
+
+        {/* ══════════════ SIDEBAR ══════════════ */}
+        <rect x="0" y="32" width="48" height="428" fill="oklch(0.117 0 0)" />
+        <rect
+          x="0"
+          y="428"
+          width="48"
+          height="32"
+          rx="0"
+          fill="oklch(0.117 0 0)"
+        />
+        {/* Round the bottom-left corner of outer frame */}
+        <rect
+          x="0"
+          y="444"
+          width="16"
+          height="16"
+          rx="0"
+          fill="oklch(0.117 0 0)"
+        />
+        <path d="M0 444 Q0 460 16 460 H0Z" fill="oklch(0.117 0 0)" />
+
+        {/* Sidebar icons */}
+        {/* Home — active */}
+        <rect
+          x="10"
+          y="46"
+          width="28"
+          height="28"
+          rx="8"
+          fill="oklch(0.769 0.205 70)"
+          opacity="0.15"
+        />
+        <path
+          d="M24 52 L30 57 L30 66 L27 66 L27 61 L21 61 L21 66 L18 66 L18 57 Z"
+          fill="oklch(0.769 0.205 70)"
+        />
+        {/* Chart */}
+        <g opacity="0.4">
+          <path
+            d="M18 96 L18 104 L22 100 L26 102 L30 94"
+            stroke="oklch(0.871 0 0)"
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+        {/* Alert bell */}
+        <g opacity="0.4">
+          <path
+            d="M24 126 C20 126 18 130 18 133 L30 133 C30 130 28 126 24 126 Z M22 134 C22 136 26 136 26 134"
+            stroke="oklch(0.871 0 0)"
+            strokeWidth="1.2"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </g>
+        {/* Calendar */}
+        <g opacity="0.4">
+          <rect
+            x="18"
+            y="158"
+            width="12"
+            height="12"
+            rx="2"
+            stroke="oklch(0.871 0 0)"
+            strokeWidth="1.2"
+            fill="none"
+          />
+          <line
+            x1="18"
+            y1="162"
+            x2="30"
+            y2="162"
+            stroke="oklch(0.871 0 0)"
+            strokeWidth="1.2"
+          />
+        </g>
+        {/* Settings gear */}
+        <g opacity="0.4">
+          <circle
+            cx="24"
+            cy="200"
+            r="4"
+            stroke="oklch(0.871 0 0)"
+            strokeWidth="1.2"
+            fill="none"
+          />
+          <circle cx="24" cy="200" r="1.5" fill="oklch(0.871 0 0)" />
+        </g>
+
+        {/* Sidebar separator */}
+        <line
+          x1="48"
+          y1="32"
+          x2="48"
+          y2="460"
+          stroke="oklch(0.556 0 0)"
+          opacity="0.1"
+        />
+
+        {/* ══════════════ CONTENT AREA ══════════════ */}
+        {/* Header bar */}
+        <text
+          x="68"
+          y="56"
+          fill="oklch(0.871 0 0)"
+          fontSize="13"
+          fontWeight="bold"
+          fontFamily="system-ui, sans-serif"
+        >
+          Vue d&#39;ensemble
+        </text>
+        <text
+          x="68"
+          y="70"
+          fill="oklch(0.556 0 0)"
+          fontSize="10"
+          fontFamily="system-ui, sans-serif"
+        >
+          Semaine du 3 au 9 fév. 2025 — 14 sites
+        </text>
+
+        {/* Period selector pill */}
+        <rect
+          x="546"
+          y="42"
+          width="116"
+          height="24"
+          rx="12"
+          fill="oklch(0.175 0 0)"
+        />
+        <text
+          x="604"
+          y="58"
+          textAnchor="middle"
+          fill="oklch(0.556 0 0)"
+          fontSize="10"
+          fontFamily="system-ui, sans-serif"
+        >
+          ◀ Sem. 06 / 2025 ▶
+        </text>
+
+        {/* ═══ ZONE 1: KPI ROW — 3 cards ═══ */}
+        {/* Card 1: Coût évitable */}
+        <rect
+          x="60"
+          y="84"
+          width="192"
+          height="80"
+          rx="12"
+          fill="oklch(0.175 0 0)"
+        />
+        <text
+          x="78"
+          y="105"
+          fill="oklch(0.556 0 0)"
+          fontSize="10"
+          fontFamily="system-ui, sans-serif"
+        >
+          Coût évitable estimé
+        </text>
+        <text
+          x="78"
+          y="136"
+          fill="oklch(0.769 0.205 70)"
+          fontSize="28"
+          fontWeight="bold"
+          fontFamily="system-ui, sans-serif"
+        >
+          47k&thinsp;€
+        </text>
+        <text
+          x="149"
+          y="136"
+          fill="oklch(0.556 0 0)"
+          fontSize="11"
+          fontFamily="system-ui, sans-serif"
+        >
+          /mois
+        </text>
+        {/* Trend pill */}
+        <rect
+          x="78"
+          y="146"
+          width="52"
+          height="18"
+          rx="9"
+          fill="oklch(0.666 0.195 58)"
+          opacity="0.15"
+        />
+        <text
+          x="104"
+          y="159"
+          textAnchor="middle"
+          fill="oklch(0.769 0.205 70)"
+          fontSize="9"
+          fontWeight="bold"
+          fontFamily="system-ui, sans-serif"
+        >
+          ▼ 12%
+        </text>
+
+        {/* Card 2: Taux de couverture */}
+        <rect
+          x="264"
+          y="84"
+          width="192"
+          height="80"
+          rx="12"
+          fill="oklch(0.175 0 0)"
+        />
+        <text
+          x="282"
+          y="105"
+          fill="oklch(0.556 0 0)"
+          fontSize="10"
+          fontFamily="system-ui, sans-serif"
+        >
+          Taux couverture global
+        </text>
+        <text
+          x="282"
+          y="136"
+          fill="oklch(0.871 0 0)"
+          fontSize="28"
+          fontWeight="bold"
+          fontFamily="system-ui, sans-serif"
+        >
+          89,2%
+        </text>
+        {/* Trend pill — green (good) */}
+        <rect
+          x="282"
+          y="146"
+          width="52"
+          height="18"
+          rx="9"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.15"
+        />
+        <text
+          x="308"
+          y="159"
+          textAnchor="middle"
+          fill="oklch(0.723 0.219 149.6)"
+          fontSize="9"
+          fontWeight="bold"
+          fontFamily="system-ui, sans-serif"
+        >
+          ▲ 2,1%
+        </text>
+
+        {/* Card 3: Sites à risque */}
+        <rect
+          x="468"
+          y="84"
+          width="192"
+          height="80"
+          rx="12"
+          fill="oklch(0.175 0 0)"
+        />
+        <text
+          x="486"
+          y="105"
+          fill="oklch(0.556 0 0)"
+          fontSize="10"
+          fontFamily="system-ui, sans-serif"
+        >
+          Sites en alerte
+        </text>
+        <text
+          x="486"
+          y="136"
+          fill="oklch(0.666 0.195 58)"
+          fontSize="28"
+          fontWeight="bold"
+          fontFamily="system-ui, sans-serif"
+        >
+          3
+        </text>
+        <text
+          x="504"
+          y="136"
+          fill="oklch(0.556 0 0)"
+          fontSize="12"
+          fontFamily="system-ui, sans-serif"
+        >
+          / 14
+        </text>
+        {/* Spark mini-bar chart */}
+        <g opacity="0.5">
+          <rect
+            x="576"
+            y="120"
+            width="6"
+            height="24"
+            rx="2"
+            fill="oklch(0.723 0.219 149.6)"
+          />
+          <rect
+            x="586"
+            y="114"
+            width="6"
+            height="30"
+            rx="2"
+            fill="oklch(0.723 0.219 149.6)"
+          />
+          <rect
+            x="596"
+            y="126"
+            width="6"
+            height="18"
+            rx="2"
+            fill="oklch(0.769 0.205 70)"
+          />
+          <rect
+            x="606"
+            y="110"
+            width="6"
+            height="34"
+            rx="2"
+            fill="oklch(0.723 0.219 149.6)"
+          />
+          <rect
+            x="616"
+            y="128"
+            width="6"
+            height="16"
+            rx="2"
+            fill="oklch(0.666 0.195 58)"
+          />
+          <rect
+            x="626"
+            y="122"
+            width="6"
+            height="22"
+            rx="2"
+            fill="oklch(0.666 0.195 58)"
+          />
+          <rect
+            x="636"
+            y="118"
+            width="6"
+            height="26"
+            rx="2"
+            fill="oklch(0.769 0.205 70)"
+          />
+        </g>
+
+        {/* ═══ ZONE 2: CHART — Capacité vs Demande ═══ */}
+        <rect
+          x="60"
+          y="178"
+          width="600"
+          height="148"
+          rx="12"
+          fill="oklch(0.175 0 0)"
+        />
+        <text
+          x="80"
+          y="200"
+          fill="oklch(0.871 0 0)"
+          fontSize="11"
+          fontWeight="600"
+          fontFamily="system-ui, sans-serif"
+        >
+          Capacité vs Demande — 12 semaines glissantes
+        </text>
+
+        {/* Y-axis labels */}
+        <text
+          x="76"
+          y="222"
+          fill="oklch(0.556 0 0)"
+          fontSize="8"
+          fontFamily="ui-monospace, monospace"
+          textAnchor="end"
+        >
+          120
+        </text>
+        <text
+          x="76"
+          y="250"
+          fill="oklch(0.556 0 0)"
+          fontSize="8"
+          fontFamily="ui-monospace, monospace"
+          textAnchor="end"
+        >
+          100
+        </text>
+        <text
+          x="76"
+          y="278"
+          fill="oklch(0.556 0 0)"
+          fontSize="8"
+          fontFamily="ui-monospace, monospace"
+          textAnchor="end"
+        >
+          80
+        </text>
+        <text
+          x="76"
+          y="306"
+          fill="oklch(0.556 0 0)"
+          fontSize="8"
+          fontFamily="ui-monospace, monospace"
+          textAnchor="end"
+        >
+          60
+        </text>
+
+        {/* Grid lines */}
+        <line
+          x1="84"
+          y1="218"
+          x2="644"
+          y2="218"
+          stroke="oklch(0.556 0 0)"
+          opacity="0.06"
+        />
+        <line
+          x1="84"
+          y1="246"
+          x2="644"
+          y2="246"
+          stroke="oklch(0.556 0 0)"
+          opacity="0.06"
+        />
+        <line
+          x1="84"
+          y1="274"
+          x2="644"
+          y2="274"
+          stroke="oklch(0.556 0 0)"
+          opacity="0.06"
+        />
+        <line
+          x1="84"
+          y1="302"
+          x2="644"
+          y2="302"
+          stroke="oklch(0.556 0 0)"
+          opacity="0.06"
+        />
+
+        {/* X-axis labels */}
+        <text
+          x="84"
+          y="316"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+        >
+          S49
+        </text>
+        <text
+          x="135"
+          y="316"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+        >
+          S50
+        </text>
+        <text
+          x="186"
+          y="316"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+        >
+          S51
+        </text>
+        <text
+          x="237"
+          y="316"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+        >
+          S52
+        </text>
+        <text
+          x="288"
+          y="316"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+        >
+          S01
+        </text>
+        <text
+          x="339"
+          y="316"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+        >
+          S02
+        </text>
+        <text
+          x="390"
+          y="316"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+        >
+          S03
+        </text>
+        <text
+          x="441"
+          y="316"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+        >
+          S04
+        </text>
+        <text
+          x="492"
+          y="316"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+        >
+          S05
+        </text>
+        <text
+          x="543"
+          y="316"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+        >
+          S06
+        </text>
+        <text
+          x="594"
+          y="316"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+        >
+          S07
+        </text>
+        <text
+          x="631"
+          y="316"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+        >
+          S08
+        </text>
+
+        {/* Risk zones — area between lines where demand > capacity */}
+        <path
+          d="M186,242 L237,234 L288,230 L339,236 L390,240 L390,260 L339,258 L288,260 L237,258 L186,262 Z"
+          fill="oklch(0.666 0.195 58)"
+          opacity="0.12"
+        />
+        <path
+          d="M492,232 L543,226 L594,234 L644,228 L644,258 L594,260 L543,258 L492,262 Z"
+          fill="oklch(0.666 0.195 58)"
+          opacity="0.12"
+        />
+
+        {/* Capacity line (gray, stable) */}
+        <polyline
+          points="84,258 135,256 186,262 237,258 288,260 339,258 390,260 441,262 492,262 543,258 594,260 644,258"
+          stroke="oklch(0.871 0 0)"
+          strokeWidth="2"
+          fill="none"
+          opacity="0.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Demand line (amber, fluctuating, crosses above capacity) */}
+        <polyline
+          points="84,264 135,254 186,242 237,234 288,230 339,236 390,240 441,252 492,232 543,226 594,234 644,228"
+          stroke="oklch(0.769 0.205 70)"
+          strokeWidth="2.5"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Demand area fill (subtle) */}
+        <path
+          d="M84,264 L135,254 L186,242 L237,234 L288,230 L339,236 L390,240 L441,252 L492,232 L543,226 L594,234 L644,228 L644,302 L84,302 Z"
+          fill="oklch(0.769 0.205 70)"
+          opacity="0.04"
+        />
+
+        {/* Data point highlight on max */}
+        <circle cx="543" cy="226" r="4" fill="oklch(0.769 0.205 70)" />
+        <circle
+          cx="543"
+          cy="226"
+          r="7"
+          fill="oklch(0.769 0.205 70)"
+          opacity="0.2"
+        />
+
+        {/* Legend */}
+        <circle cx="430" cy="198" r="3" fill="oklch(0.871 0 0)" opacity="0.5" />
+        <text
+          x="438"
+          y="201"
+          fill="oklch(0.556 0 0)"
+          fontSize="9"
+          fontFamily="system-ui, sans-serif"
+        >
+          Capacité
+        </text>
+        <circle cx="502" cy="198" r="3" fill="oklch(0.769 0.205 70)" />
+        <text
+          x="510"
+          y="201"
+          fill="oklch(0.556 0 0)"
+          fontSize="9"
+          fontFamily="system-ui, sans-serif"
+        >
+          Demande
+        </text>
+        <rect
+          x="574"
+          y="195"
+          width="7"
+          height="7"
+          rx="1.5"
+          fill="oklch(0.666 0.195 58)"
+          opacity="0.3"
+        />
+        <text
+          x="586"
+          y="201"
+          fill="oklch(0.556 0 0)"
+          fontSize="9"
+          fontFamily="system-ui, sans-serif"
+        >
+          Risque
+        </text>
+
+        {/* ═══ ZONE 3: HEATMAP — risk by site (bottom-left) ═══ */}
+        <rect
+          x="60"
+          y="340"
+          width="310"
+          height="106"
+          rx="12"
+          fill="oklch(0.175 0 0)"
+        />
+        <text
+          x="80"
+          y="360"
+          fill="oklch(0.871 0 0)"
+          fontSize="10"
+          fontWeight="600"
+          fontFamily="system-ui, sans-serif"
+        >
+          Risque par site × semaine
+        </text>
+
+        {/* Site labels */}
+        <text
+          x="80"
+          y="382"
+          fill="oklch(0.556 0 0)"
+          fontSize="8"
+          fontFamily="system-ui, sans-serif"
+        >
+          Lyon-A
+        </text>
+        <text
+          x="80"
+          y="397"
+          fill="oklch(0.556 0 0)"
+          fontSize="8"
+          fontFamily="system-ui, sans-serif"
+        >
+          Paris-B
+        </text>
+        <text
+          x="80"
+          y="412"
+          fill="oklch(0.556 0 0)"
+          fontSize="8"
+          fontFamily="system-ui, sans-serif"
+        >
+          Lille-C
+        </text>
+        <text
+          x="80"
+          y="427"
+          fill="oklch(0.556 0 0)"
+          fontSize="8"
+          fontFamily="system-ui, sans-serif"
+        >
+          Nantes
+        </text>
+
+        {/* Week headers */}
+        <text
+          x="138"
+          y="370"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+          textAnchor="middle"
+        >
+          S04
+        </text>
+        <text
+          x="166"
+          y="370"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+          textAnchor="middle"
+        >
+          S05
+        </text>
+        <text
+          x="194"
+          y="370"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+          textAnchor="middle"
+        >
+          S06
+        </text>
+        <text
+          x="222"
+          y="370"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+          textAnchor="middle"
+        >
+          S07
+        </text>
+        <text
+          x="250"
+          y="370"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+          textAnchor="middle"
+        >
+          S08
+        </text>
+        <text
+          x="278"
+          y="370"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+          textAnchor="middle"
+        >
+          S09
+        </text>
+        <text
+          x="306"
+          y="370"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+          textAnchor="middle"
+        >
+          S10
+        </text>
+        <text
+          x="334"
+          y="370"
+          fill="oklch(0.556 0 0)"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+          textAnchor="middle"
+        >
+          S11
+        </text>
+
+        {/* Heatmap cells — Lyon-A */}
+        <rect
+          x="125"
+          y="375"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.3"
+        />
+        <rect
+          x="153"
+          y="375"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.2"
+        />
+        <rect
+          x="181"
+          y="375"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.769 0.205 70)"
+          opacity="0.4"
+        />
+        <rect
+          x="209"
+          y="375"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.666 0.195 58)"
+          opacity="0.5"
+        />
+        <rect
+          x="237"
+          y="375"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.666 0.195 58)"
+          opacity="0.7"
+        />
+        <rect
+          x="265"
+          y="375"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.769 0.205 70)"
+          opacity="0.4"
+        />
+        <rect
+          x="293"
+          y="375"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.25"
+        />
+        <rect
+          x="321"
+          y="375"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.2"
+        />
+
+        {/* Heatmap cells — Paris-B */}
+        <rect
+          x="125"
+          y="390"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.769 0.205 70)"
+          opacity="0.3"
+        />
+        <rect
+          x="153"
+          y="390"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.769 0.205 70)"
+          opacity="0.5"
+        />
+        <rect
+          x="181"
+          y="390"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.666 0.195 58)"
+          opacity="0.6"
+        />
+        <rect
+          x="209"
+          y="390"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.666 0.195 58)"
+          opacity="0.8"
+        />
+        <rect
+          x="237"
+          y="390"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.666 0.195 58)"
+          opacity="0.5"
+        />
+        <rect
+          x="265"
+          y="390"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.769 0.205 70)"
+          opacity="0.3"
+        />
+        <rect
+          x="293"
+          y="390"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.3"
+        />
+        <rect
+          x="321"
+          y="390"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.25"
+        />
+
+        {/* Heatmap cells — Lille-C */}
+        <rect
+          x="125"
+          y="405"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.2"
+        />
+        <rect
+          x="153"
+          y="405"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.2"
+        />
+        <rect
+          x="181"
+          y="405"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.3"
+        />
+        <rect
+          x="209"
+          y="405"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.769 0.205 70)"
+          opacity="0.3"
+        />
+        <rect
+          x="237"
+          y="405"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.769 0.205 70)"
+          opacity="0.4"
+        />
+        <rect
+          x="265"
+          y="405"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.25"
+        />
+        <rect
+          x="293"
+          y="405"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.2"
+        />
+        <rect
+          x="321"
+          y="405"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.15"
+        />
+
+        {/* Heatmap cells — Nantes */}
+        <rect
+          x="125"
+          y="420"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.15"
+        />
+        <rect
+          x="153"
+          y="420"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.2"
+        />
+        <rect
+          x="209"
+          y="420"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.2"
+        />
+        <rect
+          x="181"
+          y="420"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.15"
+        />
+        <rect
+          x="237"
+          y="420"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.15"
+        />
+        <rect
+          x="265"
+          y="420"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.2"
+        />
+        <rect
+          x="293"
+          y="420"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.15"
+        />
+        <rect
+          x="321"
+          y="420"
+          width="24"
+          height="12"
+          rx="2.5"
+          fill="oklch(0.723 0.219 149.6)"
+          opacity="0.15"
+        />
+
+        {/* ═══ ZONE 4: ALERT FEED (bottom-right) ═══ */}
+        <rect
+          x="382"
+          y="340"
+          width="278"
+          height="106"
+          rx="12"
+          fill="oklch(0.175 0 0)"
+        />
+        <text
+          x="402"
+          y="360"
+          fill="oklch(0.871 0 0)"
+          fontSize="10"
+          fontWeight="600"
+          fontFamily="system-ui, sans-serif"
+        >
+          Alertes récentes
+        </text>
+
+        {/* Alert 1 */}
+        <circle cx="406" cy="382" r="3.5" fill="oklch(0.666 0.195 58)" />
+        <text
+          x="416"
+          y="385"
+          fill="oklch(0.871 0 0)"
+          fontSize="9"
+          fontFamily="system-ui, sans-serif"
+        >
+          Lyon-A Sous-couverture S07 — 6 ETP manquants
+        </text>
+
+        {/* Alert 2 */}
+        <circle cx="406" cy="402" r="3.5" fill="oklch(0.769 0.205 70)" />
+        <text
+          x="416"
+          y="405"
+          fill="oklch(0.871 0 0)"
+          fontSize="9"
+          fontFamily="system-ui, sans-serif"
+        >
+          Paris-B Risque haut S06-S07 — coût : 12k€
+        </text>
+
+        {/* Alert 3 */}
+        <circle cx="406" cy="422" r="3.5" fill="oklch(0.723 0.219 149.6)" />
+        <text
+          x="416"
+          y="425"
+          fill="oklch(0.871 0 0)"
+          fontSize="9"
+          fontFamily="system-ui, sans-serif"
+        >
+          Nantes Couverture rétablie S05 — 0 écart
+        </text>
+
+        {/* Alert 4 */}
+        <circle
+          cx="406"
+          cy="438"
+          r="3.5"
+          fill="oklch(0.556 0 0)"
+          opacity="0.5"
+        />
+        <text
+          x="416"
+          y="441"
+          fill="oklch(0.556 0 0)"
+          fontSize="9"
+          fontFamily="system-ui, sans-serif"
+        >
+          Modèle recalculé — prochain run lun. 09:00
+        </text>
+      </svg>
+    </div>
+  );
+}

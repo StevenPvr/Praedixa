@@ -1,0 +1,60 @@
+# Praedixa — Local development stack
+# Usage: docker compose up -d
+#
+# Services:
+#   postgres  — PostgreSQL 16 (port 5433 externally to avoid conflicts)
+#   api       — FastAPI with hot reload (port 8000)
+#
+# The webapp (Next.js) runs outside Docker via `pnpm dev:webapp`
+# because Node.js hot reload is faster natively.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: praedixa
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: praedixa
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U praedixa -d praedixa"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: production
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://praedixa:changeme@postgres:5432/praedixa
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:-your-supabase-jwt-secret-here}
+      SUPABASE_URL: ${SUPABASE_URL:-https://your-project.supabase.co}
+      CORS_ORIGINS: '["http://localhost:3001"]'
+      ENVIRONMENT: development
+      DEBUG: "true"
+      LOG_LEVEL: debug
+    volumes:
+      # Bind mounts for hot reload in development
+      - ./apps/api/app:/app/app
+      - ./apps/api/alembic:/app/alembic
+      - ./apps/api/alembic.ini:/app/alembic.ini
+      - ./apps/api/scripts:/app/scripts
+      - ./apps/api/docker-entrypoint.sh:/app/docker-entrypoint.sh
+    entrypoint: ["/app/docker-entrypoint.sh"]
+
+volumes:
+  pgdata:
+    driver: local

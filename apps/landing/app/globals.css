@@ -1,0 +1,199 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Design tokens Praedixa — OKLCH color space */
+  color-scheme: light;
+
+  /* Core colors (OKLCH) */
+  --color-bg: oklch(0.984 0.003 106);
+  --color-text-primary: oklch(0.145 0 0);
+  --color-text-secondary: oklch(0.443 0 0);
+  --color-text-muted: oklch(0.556 0 0);
+
+  /* Accent colors (OKLCH, P3-enhanced chroma) */
+  --color-accent: oklch(0.769 0.205 70);
+  --color-accent-hover: oklch(0.666 0.195 58);
+  --color-accent-light: oklch(0.962 0.059 95);
+
+  /* Logo color (OKLCH) */
+  --color-logo: oklch(0.145 0 0);
+  --color-logo-light: oklch(1 0 0);
+
+  /* Typography */
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "DM Serif Display", ui-serif, Georgia, serif;
+
+  /* Spacing & Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+}
+
+@layer base {
+  body {
+    @apply bg-cream text-charcoal antialiased;
+  }
+
+  /* Smooth scroll for anchor links */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  /* Scroll-driven animations - CSS-first approach */
+  /* These use animation-timeline: view() for modern browsers */
+  /* Fallback: content is visible without animation */
+
+  .animate-fade-up {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .animate-fade-in {
+    opacity: 1;
+  }
+
+  .animate-scale-in {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Progressive enhancement for browsers supporting scroll-driven animations */
+  @supports (animation-timeline: view()) {
+    .scroll-fade-up {
+      opacity: 0;
+      transform: translateY(2rem);
+      animation: fadeUp linear forwards;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+
+    .scroll-fade-in {
+      opacity: 0;
+      animation: fadeIn linear forwards;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+
+    .scroll-scale-in {
+      opacity: 0;
+      transform: scale(0.95);
+      animation: scaleIn linear forwards;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+
+    /* Staggered animations for children */
+    .scroll-stagger > * {
+      opacity: 0;
+      transform: translateY(1.5rem);
+      animation: fadeUp linear forwards;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+
+    .scroll-stagger > *:nth-child(1) {
+      animation-delay: 0ms;
+    }
+    .scroll-stagger > *:nth-child(2) {
+      animation-delay: 100ms;
+    }
+    .scroll-stagger > *:nth-child(3) {
+      animation-delay: 200ms;
+    }
+    .scroll-stagger > *:nth-child(4) {
+      animation-delay: 300ms;
+    }
+    .scroll-stagger > *:nth-child(5) {
+      animation-delay: 400ms;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes scaleIn {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  }
+
+  /* Respect user preference for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-fade-up,
+    .scroll-fade-in,
+    .scroll-scale-in,
+    .scroll-stagger > * {
+      opacity: 1 !important;
+      transform: none !important;
+      animation: none !important;
+    }
+
+    .marquee-track {
+      animation-play-state: paused !important;
+    }
+  }
+}
+
+/* Section divider */
+.section-divider {
+  @apply mx-auto h-px w-24 bg-gradient-to-r from-transparent via-neutral-300 to-transparent;
+}
+
+/* Card hover effect */
+.card-hover {
+  @apply transition-all duration-300 ease-out;
+}
+
+.card-hover:hover {
+  @apply -translate-y-1 shadow-lg;
+}
+
+/* Number step indicator */
+.step-number {
+  @apply flex h-12 w-12 items-center justify-center rounded-full border-2 border-amber-500 bg-white text-lg font-bold text-amber-600;
+}
+
+/* Connecting line for steps */
+.step-line {
+  @apply absolute left-6 top-12 h-full w-0.5 -translate-x-1/2;
+  background-image: linear-gradient(to bottom, oklch(0.769 0.205 70 / 0.5), transparent);
+}
+
+/* Navbar slideDown entrance animation (replaces Framer Motion) */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Infinite marquee for trust band — GPU-accelerated via translate3d */
+@keyframes marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}

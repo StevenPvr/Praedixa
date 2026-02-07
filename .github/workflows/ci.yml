@@ -1,0 +1,208 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  checks:
+    name: Pre-commit checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install prek
+        run: pip install prek
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Python dev dependencies
+        run: cd apps/api && uv sync --extra dev
+
+      - name: Run prek (all files)
+        run: prek run --all-files
+
+  security-audit:
+    name: Security audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit dependencies (high + critical)
+        # TODO: lower to --audit-level=moderate once next@15.2.9 transitive
+        # vulnerabilities (via @opennextjs/cloudflare) are resolved upstream.
+        run: pnpm audit --audit-level=high
+
+  secret-scan:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  bundle-size:
+    name: Bundle size check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Restore Next.js build cache (landing)
+        uses: actions/cache@v4
+        with:
+          path: apps/landing/.next/cache
+          key: nextjs-landing-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/landing/**/*.ts', 'apps/landing/**/*.tsx') }}
+          restore-keys: |
+            nextjs-landing-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            nextjs-landing-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+
+      - name: Build landing (Cloudflare Workers)
+        run: pnpm --filter @praedixa/landing cf:build
+
+      - name: Check bundle sizes
+        run: |
+          echo "=== Landing ==="
+          ./scripts/check-bundle-size.sh apps/landing
+
+  deploy:
+    name: Build & Deploy (Cloudflare Workers)
+    needs: [checks, security-audit, secret-scan, bundle-size]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    concurrency:
+      group: production
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Restore Next.js build cache (landing)
+        uses: actions/cache@v4
+        with:
+          path: apps/landing/.next/cache
+          key: nextjs-landing-deploy-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/landing/**/*.ts', 'apps/landing/**/*.tsx') }}
+          restore-keys: |
+            nextjs-landing-deploy-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            nextjs-landing-deploy-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+
+      - name: Deploy landing to Cloudflare Workers
+        run: pnpm run deploy:landing
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Verify landing deployment
+        run: |
+          echo "Waiting for Cloudflare Workers propagation..."
+          sleep 15
+          MAX_RETRIES=5
+          RETRY_DELAY=10
+          for i in $(seq 1 $MAX_RETRIES); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://www.praedixa.com/api/health)
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Landing health check passed (HTTP $HTTP_CODE)"
+              break
+            fi
+            echo "Attempt $i/$MAX_RETRIES: HTTP $HTTP_CODE - retrying in ${RETRY_DELAY}s..."
+            sleep $RETRY_DELAY
+            if [ "$i" = "$MAX_RETRIES" ]; then
+              echo "::error::Landing health check failed after $MAX_RETRIES attempts (last HTTP $HTTP_CODE)"
+              exit 1
+            fi
+          done
+
+      - name: Verify homepage accessibility
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://www.praedixa.com/)
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Homepage returned HTTP $HTTP_CODE"
+            exit 1
+          fi
+          echo "Homepage accessible (HTTP $HTTP_CODE)"
