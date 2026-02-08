@@ -10,11 +10,13 @@ Validates that:
 These tests serve as contractual evidence for security gate P0-02.
 """
 
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
+import pytest
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from starlette.testclient import TestClient
 
 from app.core.rate_limit import (
@@ -57,11 +59,9 @@ class TestSetupRateLimiting:
         """After setup, RequestBodySizeLimitMiddleware is in the middleware stack."""
         app = FastAPI()
         setup_rate_limiting(app)
-        # Middleware is added to the app's middleware stack.
-        # We verify by checking that the middleware type is present.
-        # Starlette stores middleware differently; check via TestClient
-        # that body size limit actually works
-        assert app.state.limiter is limiter  # Sanity check setup ran
+        middleware_classes = [m.cls for m in app.user_middleware]
+        assert RequestBodySizeLimitMiddleware in middleware_classes
+        assert SlowAPIMiddleware in middleware_classes
 
 
 class TestRateLimitExceededHandler:
@@ -292,6 +292,24 @@ class TestRequestBodySizeLimit:
     def test_max_body_size_constant_is_10mb(self) -> None:
         """MAX_REQUEST_BODY_SIZE is exactly 10 * 1024 * 1024 bytes."""
         assert MAX_REQUEST_BODY_SIZE == 10 * 1024 * 1024
+
+    @pytest.mark.asyncio
+    async def test_request_without_content_length_rejected_when_oversized(self) -> None:
+        """Chunked-style request (no Content-Length) is size-checked."""
+        app = FastAPI()
+        middleware = RequestBodySizeLimitMiddleware(app=app)
+
+        request = MagicMock()
+        request.url.path = "/upload"
+        request.method = "POST"
+        request.headers.get.return_value = None
+        request.body = AsyncMock(return_value=b"x" * (MAX_REQUEST_BODY_SIZE + 1))
+
+        call_next = AsyncMock()
+        response = await middleware.dispatch(request, call_next)
+
+        assert response.status_code == 413
+        call_next.assert_not_called()
 
 
 class TestKeyFunctionPriority:

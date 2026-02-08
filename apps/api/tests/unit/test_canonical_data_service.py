@@ -458,6 +458,31 @@ class TestBulkImportCanonical:
         assert inserted == 100
         assert skipped == 0
 
+    @pytest.mark.asyncio
+    async def test_bulk_import_chunks_large_payloads(self):
+        tenant = _make_tenant()
+        session = AsyncMock()
+        first = MagicMock()
+        second = MagicMock()
+        first.rowcount = 1000
+        second.rowcount = 200
+        session.execute.side_effect = [first, second]
+
+        records = [
+            {
+                "site_id": f"site-{i}",
+                "date": date(2026, 1, 1),
+                "shift": "am",
+                "capacite_plan_h": Decimal("100.00"),
+            }
+            for i in range(1200)
+        ]
+
+        inserted, skipped = await bulk_import_canonical(session, tenant, records)
+        assert inserted == 1200
+        assert skipped == 0
+        assert session.execute.call_count == 2
+
 
 # ── get_quality_dashboard ───────────────────────────────────────
 

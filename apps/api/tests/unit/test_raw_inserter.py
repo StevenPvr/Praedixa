@@ -276,6 +276,29 @@ class TestBatchSplitting:
         for call in cursor.executemany.call_args_list:
             assert len(call[0][1]) == 1
 
+    @patch("app.services.raw_inserter.ddl_connection")
+    def test_batch_size_adapts_to_postgres_param_limit(self, mock_ddl):
+        """Effective batch size is reduced when bind parameter limit is reached."""
+        conn, cursor = _make_mock_connection()
+        mock_ddl.return_value = conn
+
+        mappings = [_make_mapping(f"src_{i}", f"col_{i}") for i in range(300)]
+        rows = [{f"src_{i}": i for i in range(300)} for _ in range(500)]
+
+        result = insert_raw_rows(
+            "acme_raw",
+            "effectifs",
+            mappings,
+            rows,
+            batch_size=1000,
+        )
+
+        # params_per_row = 303 => floor(65535 / 303) = 216 rows per batch
+        # 500 rows => 3 batches
+        assert cursor.executemany.call_count == 3
+        assert result.rows_inserted == 500
+        assert any("parameter limits" in warning for warning in result.warnings)
+
 
 # ── Empty rows ───────────────────────────────────────────
 

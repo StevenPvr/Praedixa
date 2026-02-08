@@ -19,6 +19,7 @@ import structlog
 from fastapi.responses import JSONResponse
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import (
     BaseHTTPMiddleware,
     RequestResponseEndpoint,
@@ -26,6 +27,8 @@ from starlette.middleware.base import (
 
 if TYPE_CHECKING:
     from fastapi import FastAPI, Request, Response
+
+from app.core.config import settings
 
 logger = structlog.get_logger()
 
@@ -40,7 +43,7 @@ SENSITIVE_RATE_LIMIT = "5/minute"
 MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024  # 10 MB
 
 # ── Paths exempt from rate limiting ──────────────────
-_EXEMPT_PATHS = frozenset({"/health"})
+_EXEMPT_PATHS = frozenset({"/health", "/api/v1/health"})
 
 
 def _get_client_ip(request: Request) -> str:
@@ -75,6 +78,7 @@ limiter = Limiter(
     key_func=_get_client_ip,
     default_limits=[GLOBAL_RATE_LIMIT],
     headers_enabled=True,
+    storage_uri=settings.RATE_LIMIT_STORAGE_URI.strip() or None,
 )
 
 
@@ -146,24 +150,35 @@ class RequestBodySizeLimitMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: RequestResponseEndpoint,
     ) -> Response:
+        if request.url.path in _EXEMPT_PATHS:
+            return await call_next(request)
+
         # Check Content-Length header first (fast path)
         content_length = request.headers.get("content-length")
         if content_length:
             try:
                 length = int(content_length)
                 if length > self.max_body_size:
-                    return JSONResponse(
-                        status_code=413,
-                        content={
-                            "success": False,
-                            "error": {
-                                "code": "PAYLOAD_TOO_LARGE",
-                                "message": "Request body too large",
-                            },
-                        },
-                    )
+                    return _payload_too_large_response()
             except ValueError:
                 pass
+
+        # Handle chunked/streamed requests that omit Content-Length.
+        # We read and replay the body only for methods expected to carry payloads.
+        if content_length is None and request.method in {"POST", "PUT", "PATCH"}:
+            body = await request.body()
+            if len(body) > self.max_body_size:
+                return _payload_too_large_response()
+
+            async def _receive() -> dict:
+                return {
+                    "type": "http.request",
+                    "body": body,
+                    "more_body": False,
+                }
+
+            # Replay the body so downstream parsing still works.
+            request._receive = _receive  # type: ignore[attr-defined]
 
         return await call_next(request)
 
@@ -179,3 +194,17 @@ def setup_rate_limiting(app: FastAPI) -> None:
         rate_limit_exceeded_handler,  # type: ignore[arg-type]
     )
     app.add_middleware(RequestBodySizeLimitMiddleware)
+    app.add_middleware(SlowAPIMiddleware)
+
+
+def _payload_too_large_response() -> JSONResponse:
+    return JSONResponse(
+        status_code=413,
+        content={
+            "success": False,
+            "error": {
+                "code": "PAYLOAD_TOO_LARGE",
+                "message": "Request body too large",
+            },
+        },
+    )

@@ -26,6 +26,9 @@ if TYPE_CHECKING:
 
     from app.core.security import TenantFilter
 
+_POSTGRES_MAX_BIND_PARAMS = 65_535
+_DEFAULT_BULK_IMPORT_BATCH_SIZE = 1000
+
 
 async def list_canonical_records(
     session: AsyncSession,
@@ -154,35 +157,53 @@ async def bulk_import_canonical(
         return 0, 0
 
     org_id = uuid.UUID(tenant.organization_id)
+    total_rows = len(records)
+    inserted_total = 0
+    chunk: list[dict] = []
+    effective_chunk_size: int | None = None
 
-    rows = [
-        {
-            "id": uuid.uuid4(),
-            "organization_id": org_id,
-            "site_id": rec["site_id"],
-            "date": rec["date"],
-            "shift": rec["shift"],
-            "competence": rec.get("competence"),
-            "charge_units": rec.get("charge_units"),
-            "capacite_plan_h": rec["capacite_plan_h"],
-            "realise_h": rec.get("realise_h"),
-            "abs_h": rec.get("abs_h", Decimal("0")),
-            "hs_h": rec.get("hs_h", Decimal("0")),
-            "interim_h": rec.get("interim_h", Decimal("0")),
-            "cout_interne_est": rec.get("cout_interne_est"),
-        }
-        for rec in records
-    ]
+    for rec in records:
+        row = _build_canonical_row(rec, org_id)
+        if effective_chunk_size is None:
+            row_columns = len(row)
+            max_rows_per_stmt = max(1, _POSTGRES_MAX_BIND_PARAMS // row_columns)
+            effective_chunk_size = min(_DEFAULT_BULK_IMPORT_BATCH_SIZE, max_rows_per_stmt)
+        chunk.append(row)
+        if len(chunk) >= (effective_chunk_size or _DEFAULT_BULK_IMPORT_BATCH_SIZE):
+            inserted_total += await _insert_canonical_chunk(session, chunk)
+            chunk.clear()
 
+    if chunk:
+        inserted_total += await _insert_canonical_chunk(session, chunk)
+
+    skipped = total_rows - inserted_total
+    return inserted_total, skipped
+
+
+def _build_canonical_row(rec: dict, org_id: uuid.UUID) -> dict:
+    return {
+        "id": uuid.uuid4(),
+        "organization_id": org_id,
+        "site_id": rec["site_id"],
+        "date": rec["date"],
+        "shift": rec["shift"],
+        "competence": rec.get("competence"),
+        "charge_units": rec.get("charge_units"),
+        "capacite_plan_h": rec["capacite_plan_h"],
+        "realise_h": rec.get("realise_h"),
+        "abs_h": rec.get("abs_h", Decimal("0")),
+        "hs_h": rec.get("hs_h", Decimal("0")),
+        "interim_h": rec.get("interim_h", Decimal("0")),
+        "cout_interne_est": rec.get("cout_interne_est"),
+    }
+
+
+async def _insert_canonical_chunk(session: AsyncSession, rows: list[dict]) -> int:
     stmt = pg_insert(CanonicalRecord).values(rows)
-    stmt = stmt.on_conflict_do_nothing(
-        constraint="uq_canonical_record",
-    )
+    stmt = stmt.on_conflict_do_nothing(constraint="uq_canonical_record")
     result = await session.execute(stmt)
     inserted = result.rowcount  # type: ignore[union-attr]
-    skipped = len(rows) - inserted
-
-    return inserted, skipped
+    return int(inserted or 0)
 
 
 async def get_quality_dashboard(

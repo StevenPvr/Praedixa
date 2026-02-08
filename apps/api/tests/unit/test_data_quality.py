@@ -1429,33 +1429,29 @@ class TestDeduplicateInternal:
         assert found == 2  # 2 groups
         assert removed == 2  # 2 total removed
 
-    def test_deduplicate_none_temporal_index_crashes(self):
-        """Rows with None temporal index cause TypeError in sorted().
-
-        # ⚠️ CODE IMPROVEMENT SUGGESTED:
-        # _deduplicate uses sorted(rows, key=lambda r: _normalize_date(...))
-        # but _normalize_date can return None, and Python 3 cannot compare
-        # None with datetime.date. The fix: use a sentinel value:
-        #   key=lambda r: _normalize_date(r.get(temporal_index)) or datetime.date.min
-        # This is a real production risk if uploaded data has missing dates.
-        """
+    def test_deduplicate_none_temporal_index_is_handled(self):
+        """Rows with missing temporal index values are handled safely."""
         rows = [
             {"date": None, "value": 10.0},
             {"date": datetime.date(2025, 1, 1), "value": 20.0},
         ]
         config = QualityConfig()
-        with pytest.raises(TypeError, match="'<' not supported"):
-            _deduplicate(rows, "date", config)
+        unique, found, removed = _deduplicate(rows, "date", config)
+        assert len(unique) == 2
+        assert found == 0
+        assert removed == 0
 
-    def test_deduplicate_all_none_temporal_index_also_crashes(self):
-        """Even all-None temporal index crashes: sorted uses '<' not '=='."""
+    def test_deduplicate_all_none_temporal_index_is_handled(self):
+        """All-missing temporal index values are handled safely."""
         rows = [
             {"date": None, "value": 10.0},
             {"date": None, "value": 20.0},
         ]
         config = QualityConfig()
-        with pytest.raises(TypeError, match="'<' not supported"):
-            _deduplicate(rows, "date", config)
+        unique, found, removed = _deduplicate(rows, "date", config)
+        assert len(unique) == 2
+        assert found == 0
+        assert removed == 0
 
 
 # ── Refactored Helper Coverage Tests ─────────────

@@ -26,6 +26,7 @@ import pytest
 from app.models.data_catalog import DatasetStatus, IngestionMode, RunStatus
 from app.services.transform_engine import (
     _atomic_swap_refit,
+    _filter_incremental_rows,
     _get_last_successful_cutoff,
     _insert_transformed_rows,
     _load_active_fit_params,
@@ -1012,9 +1013,9 @@ class TestInsertTransformedRows:
     """Tests for the private _insert_transformed_rows function."""
 
     def test_empty_rows_returns_early(self):
-        """No rows to insert -> no cursor.execute calls."""
+        """No rows to insert -> no DB write calls."""
         cur = MagicMock()
-        _insert_transformed_rows(
+        inserted = _insert_transformed_rows(
             cur,
             "acme_xform",
             "effectifs",
@@ -1023,7 +1024,9 @@ class TestInsertTransformedRows:
             columns=[],
             feature_cols=[],
         )
+        assert inserted == 0
         cur.execute.assert_not_called()
+        cur.executemany.assert_not_called()
 
     def test_inserts_one_row(self):
         """Single row is inserted with correct value mapping."""
@@ -1033,7 +1036,7 @@ class TestInsertTransformedRows:
         rows = [(uuid.uuid4(), 42.0)]
         col_names = ["_row_id", "revenue"]
 
-        _insert_transformed_rows(
+        inserted = _insert_transformed_rows(
             cur,
             "acme_xform",
             "effectifs",
@@ -1042,17 +1045,18 @@ class TestInsertTransformedRows:
             columns=columns,
             feature_cols=feature_cols,
         )
-        cur.execute.assert_called_once()
+        assert inserted == 1
+        cur.executemany.assert_called_once()
 
     def test_inserts_multiple_rows(self):
-        """Multiple rows produce one execute call per row."""
+        """Multiple rows are inserted in batched executemany mode."""
         cur = MagicMock()
         columns = [SimpleNamespace(name="temperature")]
         feature_cols = []
         rows = [(uuid.uuid4(), 20.0), (uuid.uuid4(), 22.5), (uuid.uuid4(), 18.0)]
         col_names = ["_row_id", "temperature"]
 
-        _insert_transformed_rows(
+        inserted = _insert_transformed_rows(
             cur,
             "test_xform",
             "weather",
@@ -1061,7 +1065,8 @@ class TestInsertTransformedRows:
             columns=columns,
             feature_cols=feature_cols,
         )
-        assert cur.execute.call_count == 3
+        assert inserted == 3
+        cur.executemany.assert_called_once()
 
     def test_feature_cols_set_to_null(self):
         """Feature columns get NULL values (placeholders for ML team)."""
@@ -1083,12 +1088,36 @@ class TestInsertTransformedRows:
             columns=columns,
             feature_cols=feature_cols,
         )
-        # Verify the values list passed to execute
-        call_args = cur.execute.call_args
-        values = call_args[0][1]
+        # Verify the values list passed to executemany
+        call_args = cur.executemany.call_args
+        values = call_args[0][1][0]
         # Last 2 values should be None (feature columns)
         assert values[-1] is None
         assert values[-2] is None
+
+
+class TestFilterIncrementalRows:
+    """Tests for incremental filtering of lookback context rows."""
+
+    def test_filters_rows_strictly_after_cutoff(self):
+        cutoff = datetime(2026, 1, 10, tzinfo=UTC)
+        rows = [
+            ("row-1", datetime(2026, 1, 9, tzinfo=UTC), 1.0),
+            ("row-2", datetime(2026, 1, 10, tzinfo=UTC), 2.0),
+            ("row-3", datetime(2026, 1, 11, tzinfo=UTC), 3.0),
+        ]
+        col_names = ["_row_id", "_ingested_at", "value"]
+
+        filtered = _filter_incremental_rows(rows, col_names, cutoff)
+        assert filtered == [("row-3", datetime(2026, 1, 11, tzinfo=UTC), 3.0)]
+
+    def test_returns_all_if_ingested_at_missing(self):
+        cutoff = datetime(2026, 1, 10, tzinfo=UTC)
+        rows = [("row-1", 1.0), ("row-2", 2.0)]
+        col_names = ["_row_id", "value"]
+
+        filtered = _filter_incremental_rows(rows, col_names, cutoff)
+        assert filtered == rows
 
 
 # ── _atomic_swap_refit ───────────────────────────────────────

@@ -51,6 +51,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+_TRANSFORM_INSERT_BATCH_SIZE = 1000
+
 
 # ── HMAC utilities ───────────────────────────────────────
 
@@ -448,6 +450,10 @@ async def _execute_pipeline(  # pragma: no cover
             if not rows:
                 return (0, 0)
 
+            rows_to_insert = rows
+            if mode == "incremental" and cutoff is not None:
+                rows_to_insert = _filter_incremental_rows(rows, col_names, cutoff)
+
             # ── Steps 1-6: Transform pipeline ──
             # Each step processes the data in-memory.
             # For now, we implement a pass-through that writes
@@ -469,24 +475,25 @@ async def _execute_pipeline(  # pragma: no cover
                     transformed_schema,
                     table_name,
                     temp_name,
-                    rows,
+                    rows_to_insert,
                     col_names,
                     columns,
                     feature_cols,
                 )
+                rows_transformed = len(rows_to_insert)
             else:
                 # Insert transformed rows into existing table
-                _insert_transformed_rows(
+                rows_transformed = _insert_transformed_rows(
                     cur,
                     transformed_schema,
                     table_name,
-                    rows,
+                    rows_to_insert,
                     col_names,
                     columns,
                     feature_cols,
                 )
 
-            return (rows_received, len(rows))
+            return (rows_received, rows_transformed)
 
     return await asyncio.to_thread(_sync_pipeline)
 
@@ -499,7 +506,7 @@ def _insert_transformed_rows(
     col_names: list[str],
     columns: list[DatasetColumn],
     feature_cols: list[tuple[str, str]],
-) -> None:
+) -> int:
     """Insert transformed rows into the transformed table.
 
     For now, copies original column values and sets feature columns to NULL.
@@ -507,7 +514,7 @@ def _insert_transformed_rows(
     implemented when the ML pipeline is connected.
     """
     if not rows:
-        return
+        return 0
 
     # Map original columns (skip system cols starting with _)
     orig_col_names = [c.name for c in columns]
@@ -532,16 +539,23 @@ def _insert_transformed_rows(
         sql.Identifier("_row_id"),
     )
 
-    for row in rows:
-        row_dict = dict(zip(col_names, row, strict=False))
-        values: list[Any] = [
-            row_dict.get("_row_id", uuid.uuid4()),
-            1,  # _pipeline_version placeholder
-        ]
-        values.extend(row_dict.get(c) for c in orig_col_names)
-        values.extend(None for _ in feature_col_names)
+    inserted = 0
+    for batch_start in range(0, len(rows), _TRANSFORM_INSERT_BATCH_SIZE):
+        batch = rows[batch_start : batch_start + _TRANSFORM_INSERT_BATCH_SIZE]
+        params_list: list[list[Any]] = []
+        for row in batch:
+            row_dict = dict(zip(col_names, row, strict=False))
+            values: list[Any] = [
+                row_dict.get("_row_id", uuid.uuid4()),
+                1,  # _pipeline_version placeholder
+            ]
+            values.extend(row_dict.get(c) for c in orig_col_names)
+            values.extend(None for _ in feature_col_names)
+            params_list.append(values)
+        cur.executemany(insert_stmt, params_list)
+        inserted += len(params_list)
 
-        cur.execute(insert_stmt, values)
+    return inserted
 
 
 def _atomic_swap_refit(
@@ -618,3 +632,46 @@ def _atomic_swap_refit(
             sql.Identifier(old_name),
         )
     )
+
+
+def _filter_incremental_rows(
+    rows: list[tuple],
+    col_names: list[str],
+    cutoff: datetime,
+) -> list[tuple]:
+    """Return only rows whose _ingested_at is strictly after cutoff.
+
+    In incremental mode we fetch lookback context to compute temporal features,
+    but we must only write truly new rows to avoid duplicate work and
+    inflated rows_transformed counters.
+    """
+    if "_ingested_at" not in col_names:
+        return rows
+
+    ingested_at_idx = col_names.index("_ingested_at")
+    filtered: list[tuple] = []
+    for row in rows:
+        if ingested_at_idx >= len(row):
+            continue
+        ingested_at = row[ingested_at_idx]
+        if _is_after_cutoff(ingested_at, cutoff):
+            filtered.append(row)
+    return filtered
+
+
+def _is_after_cutoff(value: Any, cutoff: datetime) -> bool:
+    """Safely compare ingestion timestamp against cutoff."""
+    if not isinstance(value, datetime):
+        return False
+
+    candidate = value
+    reference = cutoff
+    if candidate.tzinfo is None and reference.tzinfo is not None:
+        candidate = candidate.replace(tzinfo=reference.tzinfo)
+    elif candidate.tzinfo is not None and reference.tzinfo is None:
+        reference = reference.replace(tzinfo=candidate.tzinfo)
+
+    try:
+        return candidate > reference
+    except TypeError:
+        return False

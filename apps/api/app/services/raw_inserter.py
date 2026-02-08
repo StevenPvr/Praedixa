@@ -35,6 +35,8 @@ logger = logging.getLogger(__name__)
 
 __all__ = ["InsertionResult", "insert_raw_rows", "RawInsertError"]
 
+_POSTGRES_MAX_BIND_PARAMS = 65_535
+
 
 # ── Exceptions ───────────────────────────────────────────
 
@@ -130,6 +132,16 @@ def insert_raw_rows(
     all_columns = ["_row_id", "_ingested_at", "_batch_id"]
     all_columns.extend(target for _, target in col_pairs)
 
+    # PostgreSQL protocol has a max number of bind parameters per statement.
+    # Enforce an adaptive row batch size to avoid "too many arguments" errors.
+    params_per_row = len(all_columns)
+    max_rows_per_stmt = max(1, _POSTGRES_MAX_BIND_PARAMS // params_per_row)
+    effective_batch_size = max(1, min(batch_size, max_rows_per_stmt))
+    if effective_batch_size < batch_size:
+        warnings.append(
+            "Batch size reduced to satisfy PostgreSQL parameter limits"
+        )
+
     col_identifiers = sql.SQL(", ").join(sql.Identifier(c) for c in all_columns)
     placeholders = sql.SQL(", ").join(sql.Placeholder() for _ in all_columns)
 
@@ -146,8 +158,8 @@ def insert_raw_rows(
     def _sync_insert() -> int:
         nonlocal rows_inserted
         with ddl_connection() as conn, conn.cursor() as cur:
-            for batch_start in range(0, len(rows), batch_size):
-                batch = rows[batch_start : batch_start + batch_size]
+            for batch_start in range(0, len(rows), effective_batch_size):
+                batch = rows[batch_start : batch_start + effective_batch_size]
                 params_list: list[list[Any]] = []
 
                 for row in batch:

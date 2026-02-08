@@ -43,15 +43,22 @@ class TestSettingsDefaults:
         assert s.CORS_ORIGINS == [
             "http://localhost:3000",
             "http://localhost:3001",
+            "http://localhost:3002",
             "http://127.0.0.1:3000",
             "http://127.0.0.1:3001",
+            "http://127.0.0.1:3002",
             "http://[::1]:3000",
             "http://[::1]:3001",
+            "http://[::1]:3002",
         ]
 
     def test_default_app_version(self):
         s = self._make_settings()
         assert s.APP_VERSION == "0.1.0"
+
+    def test_default_legacy_hs256_disabled(self):
+        s = self._make_settings()
+        assert s.LEGACY_HS256_ENABLED is False
 
     @staticmethod
     def _make_settings(**overrides):
@@ -76,8 +83,9 @@ class TestIsProduction:
             _env_file=None,
             ENVIRONMENT="production",
             SUPABASE_JWT_SECRET="a" * 40,
-            SUPABASE_URL="",
+            SUPABASE_URL="https://proj.supabase.co",
             KEY_PROVIDER="scaleway",
+            CORS_ORIGINS=["https://app.praedixa.com"],
         )
         assert s.is_production is True
 
@@ -98,8 +106,10 @@ class TestIsProduction:
         s = Settings(
             _env_file=None,
             ENVIRONMENT="staging",
-            SUPABASE_JWT_SECRET="",
-            SUPABASE_URL="",
+            SUPABASE_JWT_SECRET="x" * 40,
+            SUPABASE_URL="https://proj.supabase.co",
+            KEY_PROVIDER="scaleway",
+            CORS_ORIGINS=["https://staging.praedixa.com"],
         )
         assert s.is_production is False
 
@@ -136,8 +146,9 @@ class TestValidateSecrets:
             _env_file=None,
             ENVIRONMENT="production",
             SUPABASE_JWT_SECRET="x" * 32,
-            SUPABASE_URL="",
+            SUPABASE_URL="https://proj.supabase.co",
             KEY_PROVIDER="scaleway",
+            CORS_ORIGINS=["https://app.praedixa.com"],
         )
         assert len(s.SUPABASE_JWT_SECRET) == 32
 
@@ -148,8 +159,9 @@ class TestValidateSecrets:
             _env_file=None,
             ENVIRONMENT="production",
             SUPABASE_JWT_SECRET="x" * 64,
-            SUPABASE_URL="",
+            SUPABASE_URL="https://proj.supabase.co",
             KEY_PROVIDER="scaleway",
+            CORS_ORIGINS=["https://app.praedixa.com"],
         )
         assert len(s.SUPABASE_JWT_SECRET) == 64
 
@@ -176,3 +188,27 @@ class TestValidateSecrets:
             SUPABASE_URL="",
         )
         assert s.SUPABASE_JWT_SECRET == ""
+
+    def test_invalid_environment_raises(self):
+        from app.core.config import Settings
+
+        with pytest.raises(ValueError, match="ENVIRONMENT must be one of"):
+            Settings(
+                _env_file=None,
+                ENVIRONMENT="qa",
+                SUPABASE_JWT_SECRET="",
+                SUPABASE_URL="",
+            )
+
+    def test_staging_rejects_localhost_cors(self):
+        from app.core.config import Settings
+
+        with pytest.raises(ValueError, match="cannot include localhost/loopback"):
+            Settings(
+                _env_file=None,
+                ENVIRONMENT="staging",
+                SUPABASE_JWT_SECRET="x" * 40,
+                SUPABASE_URL="https://proj.supabase.co",
+                KEY_PROVIDER="scaleway",
+                CORS_ORIGINS=["https://localhost:3001"],
+            )

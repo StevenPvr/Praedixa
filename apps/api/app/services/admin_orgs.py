@@ -126,26 +126,29 @@ async def get_org_counts(
     org_id: uuid.UUID,
 ) -> dict[str, int]:
     """Get aggregated counts for an organization."""
-    user_count = await session.execute(
-        select(func.count(User.id)).where(User.organization_id == org_id)
+    counts_query = select(
+        select(func.count(User.id))
+        .where(User.organization_id == org_id)
+        .scalar_subquery(),
+        select(func.count(Site.id))
+        .where(Site.organization_id == org_id)
+        .scalar_subquery(),
+        select(func.count(Department.id))
+        .where(Department.organization_id == org_id)
+        .scalar_subquery(),
+        select(func.count(ClientDataset.id))
+        .where(ClientDataset.organization_id == org_id)
+        .scalar_subquery(),
     )
-    site_count = await session.execute(
-        select(func.count(Site.id)).where(Site.organization_id == org_id)
-    )
-    dept_count = await session.execute(
-        select(func.count(Department.id)).where(Department.organization_id == org_id)
-    )
-    dataset_count = await session.execute(
-        select(func.count(ClientDataset.id)).where(
-            ClientDataset.organization_id == org_id
-        )
-    )
+    user_count, site_count, dept_count, dataset_count = (
+        await session.execute(counts_query)
+    ).one()
 
     return {
-        "user_count": user_count.scalar_one() or 0,
-        "site_count": site_count.scalar_one() or 0,
-        "department_count": dept_count.scalar_one() or 0,
-        "dataset_count": dataset_count.scalar_one() or 0,
+        "user_count": user_count or 0,
+        "site_count": site_count or 0,
+        "department_count": dept_count or 0,
+        "dataset_count": dataset_count or 0,
     }
 
 
@@ -265,42 +268,49 @@ async def get_org_hierarchy(
     # Verify org exists
     await get_organization(session, org_id)
 
-    # Get sites
+    # 1) Load sites
     sites_result = await session.execute(
         select(Site).where(Site.organization_id == org_id).order_by(Site.name)
     )
     sites = list(sites_result.scalars().all())
 
+    # 2) Load all departments in one query
+    depts_result = await session.execute(
+        select(Department)
+        .where(Department.organization_id == org_id)
+        .order_by(Department.site_id, Department.name)
+    )
+    departments = list(depts_result.scalars().all())
+    dept_ids = [dept.id for dept in departments]
+
+    # 3) Aggregate employee counts by department in one query
+    employee_counts: dict[uuid.UUID, int] = {}
+    if dept_ids:
+        emp_count_result = await session.execute(
+            select(Employee.department_id, func.count(Employee.id))
+            .where(
+                Employee.organization_id == org_id,
+                Employee.department_id.in_(dept_ids),
+            )
+            .group_by(Employee.department_id)
+        )
+        employee_counts = {dept_id: count for dept_id, count in emp_count_result.all()}
+
+    # 4) Build index for site -> departments
+    departments_by_site: dict[uuid.UUID, list[Department]] = {}
+    for dept in departments:
+        departments_by_site.setdefault(dept.site_id, []).append(dept)
+
     hierarchy = []
     for site in sites:
-        # Get departments for this site
-        depts_result = await session.execute(
-            select(Department)
-            .where(
-                Department.organization_id == org_id,
-                Department.site_id == site.id,
-            )
-            .order_by(Department.name)
-        )
-        departments = list(depts_result.scalars().all())
-
-        dept_nodes = []
-        for dept in departments:
-            # Count employees per department
-            emp_count_result = await session.execute(
-                select(func.count(Employee.id)).where(
-                    Employee.organization_id == org_id,
-                    Employee.department_id == dept.id,
-                )
-            )
-            emp_count = emp_count_result.scalar_one() or 0
-
-            dept_nodes.append({
+        dept_nodes = [
+            {
                 "id": dept.id,
                 "name": dept.name,
-                "employee_count": emp_count,
-            })
-
+                "employee_count": employee_counts.get(dept.id, 0),
+            }
+            for dept in departments_by_site.get(site.id, [])
+        ]
         hierarchy.append({
             "id": site.id,
             "name": site.name,

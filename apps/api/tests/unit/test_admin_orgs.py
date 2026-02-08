@@ -23,7 +23,12 @@ from app.services.admin_orgs import (
     list_organizations,
     update_organization,
 )
-from tests.unit.conftest import make_mock_session, make_scalar_result, make_scalars_result
+from tests.unit.conftest import (
+    make_all_result,
+    make_mock_session,
+    make_scalar_result,
+    make_scalars_result,
+)
 
 
 def _make_org(**overrides):
@@ -300,12 +305,9 @@ class TestGetOrgCounts:
 
     @pytest.mark.asyncio
     async def test_returns_counts(self):
-        session = make_mock_session(
-            make_scalar_result(5),   # users
-            make_scalar_result(2),   # sites
-            make_scalar_result(10),  # departments
-            make_scalar_result(3),   # datasets
-        )
+        counts_result = MagicMock()
+        counts_result.one.return_value = (5, 2, 10, 3)
+        session = make_mock_session(counts_result)
         counts = await get_org_counts(session, uuid.uuid4())
         assert counts["user_count"] == 5
         assert counts["site_count"] == 2
@@ -330,8 +332,8 @@ class TestGetOrgHierarchy:
         session = make_mock_session(
             make_scalar_result(SimpleNamespace(id=org_id)),  # org exists
             make_scalars_result([site]),  # sites
-            make_scalars_result([dept]),  # departments for site
-            make_scalar_result(25),  # employee count
+            make_scalars_result([dept]),  # all departments in org
+            make_all_result([(dept.id, 25)]),  # employee counts by dept
         )
 
         hierarchy = await get_org_hierarchy(session, org_id)

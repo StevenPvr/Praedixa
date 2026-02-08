@@ -391,8 +391,12 @@ def _deduplicate(
     Returns:
         (deduplicated_rows, duplicates_found, duplicates_removed)
     """
-    # Sort by temporal index for causal ordering
-    sorted_rows = sorted(rows, key=lambda r: _normalize_date(r.get(temporal_index)))
+    # Sort by temporal index for causal ordering.
+    # Rows with missing/invalid dates are placed at the end deterministically.
+    sorted_rows = sorted(
+        rows,
+        key=lambda r: _temporal_sort_key(r.get(temporal_index)),
+    )
 
     # Determine which columns to use for duplicate detection
     if config.duplicate_columns is not None:
@@ -1006,6 +1010,19 @@ def _normalize_date(value: Any) -> datetime.date | None:
     if isinstance(value, str):
         return _parse_date_string(value)
     return None
+
+
+def _temporal_sort_key(value: Any) -> tuple[int, datetime.date]:
+    """Sort key for temporal values that may be missing/invalid.
+
+    Returns:
+      (0, date) for valid dates
+      (1, date.max) for missing/invalid values
+    """
+    normalized = _normalize_date(value)
+    if normalized is None:
+        return (1, datetime.date.max)
+    return (0, normalized)
 
 
 def _parse_date_string(value: str) -> datetime.date | None:
