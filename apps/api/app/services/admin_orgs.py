@@ -10,6 +10,7 @@ Security notes:
 """
 
 import uuid
+from typing import Any
 
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -160,7 +161,7 @@ async def create_organization(
     sector: IndustrySector | None = None,
     size: OrganizationSize | None = None,
     plan: SubscriptionPlan = SubscriptionPlan.FREE,
-    settings: dict | None = None,
+    settings: dict[str, object] | None = None,
 ) -> Organization:
     """Create a new organization.
 
@@ -192,17 +193,17 @@ async def update_organization(
     session: AsyncSession,
     org_id: uuid.UUID,
     *,
-    data: dict,
+    data: dict[str, object],
 ) -> Organization:
     """Update organization fields. Only non-None values are applied."""
     org = await get_organization(session, org_id)
 
     # Build update values from non-None data
-    values: dict = {}
+    values: dict[str, object] = {}
     text_fields = {"name", "legal_name"}
     for key, value in data.items():
         if value is not None:
-            if key in text_fields:
+            if key in text_fields and isinstance(value, str):
                 values[key] = sanitize_text(value, max_length=255)
             else:
                 values[key] = value
@@ -251,7 +252,7 @@ async def change_org_status(
 async def get_org_hierarchy(
     session: AsyncSession,
     org_id: uuid.UUID,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Get organization hierarchy: sites -> departments -> employee counts.
 
     Returns a tree structure for the admin org detail view.
@@ -285,10 +286,10 @@ async def get_org_hierarchy(
             )
             .group_by(Employee.department_id)
         )
-        employee_counts = dict(emp_count_result.all())
+        employee_counts = dict(emp_count_result.all())  # type: ignore[arg-type]
 
     # 4) Build index for site -> departments
-    departments_by_site: dict[uuid.UUID, list[Department]] = {}
+    departments_by_site: dict[uuid.UUID | None, list[Department]] = {}
     for dept in departments:
         departments_by_site.setdefault(dept.site_id, []).append(dept)
 

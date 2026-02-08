@@ -23,7 +23,7 @@ from app.core.dependencies import get_current_user, get_db_session, get_tenant_f
 from app.core.security import TenantFilter, require_role
 from app.models.operational import OperationalDecision
 from app.schemas.base import CamelModel, PaginationMeta
-from app.schemas.operational import ProofRecordRead
+from app.schemas.operational import ProofRecordRead, ProofSummaryResponse
 from app.schemas.responses import ApiResponse, PaginatedResponse
 from app.services.proof_pack_pdf_service import generate_proof_pack_pdf
 from app.services.proof_service import (
@@ -88,7 +88,7 @@ async def proof_summary(
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
     _user: JWTPayload = Depends(get_current_user),
-) -> ApiResponse[dict]:
+) -> ApiResponse[ProofSummaryResponse]:
     """Get aggregated proof-of-value summary across sites/months."""
     summary = await get_proof_summary(
         session,
@@ -96,10 +96,22 @@ async def proof_summary(
         date_from=date_from,
         date_to=date_to,
     )
+    records, _ = await list_proof_records(session, tenant, page=1, page_size=100)
+
+    total_emises = sum(r.alertes_emises for r in records)
+    total_traitees = sum(r.alertes_traitees for r in records)
+
+    response_data = ProofSummaryResponse(
+        total_gain_net_eur=summary["total_gain"],
+        avg_adoption_pct=summary["avg_adoption"],
+        total_alertes_emises=total_emises,
+        total_alertes_traitees=total_traitees,
+        records=[ProofRecordRead.model_validate(r) for r in records],
+    )
 
     return ApiResponse(
         success=True,
-        data=summary,
+        data=response_data,
         timestamp=datetime.now(UTC).isoformat(),
     )
 

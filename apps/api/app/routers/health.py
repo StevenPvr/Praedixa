@@ -24,7 +24,7 @@ router = APIRouter(tags=["health"])
 
 
 @router.get("/health")
-@limiter.exempt
+@limiter.exempt  # type: ignore[untyped-decorator]  # slowapi decorator is untyped
 async def health_check() -> JSONResponse:
     """Health check with database connectivity test.
 

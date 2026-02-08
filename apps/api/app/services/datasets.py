@@ -148,7 +148,7 @@ async def get_dataset(
         ClientDataset,
     )
     result = await session.execute(query)
-    dataset = result.scalar_one_or_none()
+    dataset: ClientDataset | None = result.scalar_one_or_none()
 
     if dataset is None:
         raise NotFoundError("Dataset", str(dataset_id))
@@ -192,16 +192,15 @@ async def create_dataset(
         msg = f"Maximum {settings.MAX_COLUMNS_PER_TABLE} columns per table exceeded"
         raise DDLValidationError(msg, field="columns")
 
-    # Create schemas
-    raw_schema, transformed_schema = await create_client_schemas(org_slug)
+    # Create schema
+    data_schema = await create_client_schemas(org_slug)
 
     # Create dataset record
     sanitized_name = sanitize_text(name, max_length=255)
     dataset = ClientDataset(
         organization_id=org_id,
         name=sanitized_name,
-        schema_raw=raw_schema,
-        schema_transformed=transformed_schema,
+        schema_data=data_schema,
         table_name=table_name,
         temporal_index=temporal_index,
         group_by=group_by,
@@ -315,7 +314,7 @@ async def get_dataset_data(
     """
     dataset = await get_dataset(dataset_id, tenant, session)
 
-    raw_schema = validate_schema_name(dataset.schema_raw)
+    data_schema = validate_schema_name(dataset.schema_data)
     table_name = validate_identifier(dataset.table_name, field="table_name")
     temporal_index = validate_identifier(dataset.temporal_index, field="temporal_index")
 
@@ -325,7 +324,7 @@ async def get_dataset_data(
                 # Count total rows
                 cur.execute(
                     psql.SQL("SELECT COUNT(*) FROM {}.{}").format(
-                        psql.Identifier(raw_schema),
+                        psql.Identifier(data_schema),
                         psql.Identifier(table_name),
                     )
                 )
@@ -336,7 +335,7 @@ async def get_dataset_data(
                     psql.SQL(
                         "SELECT * FROM {}.{} ORDER BY {} DESC LIMIT %s OFFSET %s"
                     ).format(
-                        psql.Identifier(raw_schema),
+                        psql.Identifier(data_schema),
                         psql.Identifier(table_name),
                         psql.Identifier(temporal_index),
                     ),
@@ -378,7 +377,7 @@ async def get_features_data(
 ) -> tuple[list[dict[str, Any]], int, list[str]]:
     """Query transformed features from the dynamic client table.
 
-    Reads from schema_transformed (DB2 — feature-engineered data).
+    Reads from schema_data (feature-engineered data in same schema).
     System columns (prefixed with _) are excluded from the response.
 
     This function is intended for super_admin access only.
@@ -388,7 +387,7 @@ async def get_features_data(
     """
     dataset = await get_dataset(dataset_id, tenant, session)
 
-    transformed_schema = validate_schema_name(dataset.schema_transformed)
+    data_schema = validate_schema_name(dataset.schema_data)
     table_name = validate_identifier(dataset.table_name, field="table_name")
     temporal_index = validate_identifier(dataset.temporal_index, field="temporal_index")
 
@@ -398,7 +397,7 @@ async def get_features_data(
                 # Count total rows
                 cur.execute(
                     psql.SQL("SELECT COUNT(*) FROM {}.{}").format(
-                        psql.Identifier(transformed_schema),
+                        psql.Identifier(data_schema),
                         psql.Identifier(table_name),
                     )
                 )
@@ -409,7 +408,7 @@ async def get_features_data(
                     psql.SQL(
                         "SELECT * FROM {}.{} ORDER BY {} DESC LIMIT %s OFFSET %s"
                     ).format(
-                        psql.Identifier(transformed_schema),
+                        psql.Identifier(data_schema),
                         psql.Identifier(table_name),
                         psql.Identifier(temporal_index),
                     ),

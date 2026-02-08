@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 from typing import Any, Final
 
 import chardet
-from openpyxl import load_workbook
+from openpyxl import load_workbook  # type: ignore[import-untyped]
 
 from app.core.config import settings
 

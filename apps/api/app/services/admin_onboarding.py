@@ -143,7 +143,7 @@ async def complete_step(
     session: AsyncSession,
     onboarding_id: uuid.UUID,
     step: int,
-    data: dict,
+    data: dict[str, object],
 ) -> OnboardingState:
     """Complete an onboarding step.
 

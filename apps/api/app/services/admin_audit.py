@@ -67,7 +67,7 @@ async def log_admin_action(
     target_org_id: str | None = None,
     resource_type: str | None = None,
     resource_id: uuid.UUID | None = None,
-    metadata: dict | None = None,
+    metadata: dict[str, object] | None = None,
     severity: str = "INFO",
 ) -> None:
     """Insert an audit log entry. Called in every admin endpoint.

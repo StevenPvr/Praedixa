@@ -98,7 +98,7 @@ async def get_effective_cost_parameter(
         )
 
         result = await session.execute(query)
-        param = result.scalar_one_or_none()
+        param: CostParameter | None = result.scalar_one_or_none()
         if param is not None:
             return param
 
@@ -118,12 +118,12 @@ async def get_effective_cost_parameter(
     )
 
     result = await session.execute(default_query)
-    param = result.scalar_one_or_none()
+    param_result: CostParameter | None = result.scalar_one_or_none()
 
-    if param is None:
+    if param_result is None:
         raise NotFoundError("CostParameter", site_id or "default")
 
-    return param
+    return param_result
 
 
 async def create_cost_parameter(

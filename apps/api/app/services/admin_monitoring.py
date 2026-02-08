@@ -10,6 +10,7 @@ Security notes:
 
 import uuid
 from datetime import UTC, datetime, timedelta
+from typing import cast
 
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,7 +27,7 @@ from app.services.dashboard import DashboardSummary, get_dashboard_summary
 _ALLOWED_PERIODS = frozenset({"day", "week", "month"})
 
 
-async def get_platform_kpis(session: AsyncSession) -> dict:
+async def get_platform_kpis(session: AsyncSession) -> dict[str, int]:
     """Get platform-wide KPI counts."""
     query = select(
         select(func.count(Organization.id))
@@ -56,7 +57,7 @@ async def get_platform_kpis(session: AsyncSession) -> dict:
 async def get_org_metrics(
     session: AsyncSession,
     org_id: uuid.UUID,
-) -> dict:
+) -> dict[str, object]:
     """Get metrics for a specific organization."""
     query = select(
         select(func.count(User.id))
@@ -99,7 +100,7 @@ async def get_usage_trends(
     *,
     period: str = "day",
     days: int = 90,
-) -> list[dict]:
+) -> list[dict[str, object]]:
     """Get usage trends aggregated by period.
 
     period must be one of: day, week, month (validated against allowlist).
@@ -108,7 +109,7 @@ async def get_usage_trends(
     safe_period = period if period in _ALLOWED_PERIODS else "day"
 
     cutoff = datetime.now(UTC) - timedelta(days=days)
-    trends: list[dict] = []
+    trends: list[dict[str, object]] = []
 
     # Define metrics to aggregate
     metrics = [
@@ -123,7 +124,7 @@ async def get_usage_trends(
         query = (
             select(
                 func.date_trunc(safe_period, date_col).label("period"),
-                func.count(model.id).label("count"),
+                func.count(model.id).label("cnt"),  # type: ignore[attr-defined]
             )
             .where(date_col >= cutoff)
             .group_by(text("1"))
@@ -134,7 +135,7 @@ async def get_usage_trends(
             {
                 "date": row.period.isoformat() if row.period else "",
                 "metric": metric_name,
-                "value": float(row.count),
+                "value": float(cast("int", row.cnt)),
             }
             for row in result.all()
         )
@@ -142,7 +143,7 @@ async def get_usage_trends(
     return trends
 
 
-async def get_error_metrics(session: AsyncSession) -> dict:
+async def get_error_metrics(session: AsyncSession) -> dict[str, object]:
     """Get error rate metrics from ingestion logs."""
     query = select(
         select(func.count(IngestionLog.id)).scalar_subquery().label("total"),

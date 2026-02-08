@@ -72,7 +72,7 @@ async def dismiss_alert(
         DashboardAlert,
     )
     result = await session.execute(query)
-    alert = result.scalar_one_or_none()
+    alert: DashboardAlert | None = result.scalar_one_or_none()
 
     if alert is None:
         raise NotFoundError("DashboardAlert", str(alert_id))

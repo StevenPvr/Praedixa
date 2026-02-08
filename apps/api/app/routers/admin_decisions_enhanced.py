@@ -39,7 +39,7 @@ class OverrideAnalysisResponse(CamelModel):
     total_overrides: int
     override_rate_pct: float
     avg_cost_delta: float | None
-    top_reasons: list[dict]
+    top_reasons: list[dict[str, object]]
 
 
 class OrgAdoptionStat(CamelModel):

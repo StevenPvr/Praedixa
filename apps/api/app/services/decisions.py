@@ -133,7 +133,7 @@ async def get_decision(
         Decision,
     )
     result = await session.execute(query)
-    decision = result.scalar_one_or_none()
+    decision: Decision | None = result.scalar_one_or_none()
 
     if decision is None:
         raise NotFoundError("Decision", str(decision_id))
@@ -151,11 +151,11 @@ async def create_decision(
     title: str,
     description: str,
     rationale: str,
-    target_period: dict,
+    target_period: dict[str, str],
     estimated_cost: float | None = None,
     cost_of_inaction: float | None = None,
     confidence_score: float,
-    risk_indicators: dict | None = None,
+    risk_indicators: dict[str, object] | None = None,
     user_id: str,
     forecast_run_id: uuid.UUID | None = None,
     status: DecisionStatus = DecisionStatus.SUGGESTED,
@@ -189,7 +189,7 @@ async def create_decision(
         Decision,
     )
     dup_result = await session.execute(dup_query)
-    existing = dup_result.scalar_one_or_none()
+    existing: Decision | None = dup_result.scalar_one_or_none()
     if existing is not None:
         return existing
 
@@ -248,7 +248,7 @@ async def review_decision(
     now = datetime.now(UTC)
 
     # Prepare update values
-    values: dict = {
+    values: dict[str, object] = {
         "status": new_status,
         "reviewed_by": uuid.UUID(reviewer_id),
         "reviewed_at": now,

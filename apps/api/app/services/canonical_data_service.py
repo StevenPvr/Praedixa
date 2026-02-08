@@ -94,7 +94,7 @@ async def get_canonical_record(
         CanonicalRecord,
     )
     result = await session.execute(query)
-    record = result.scalar_one_or_none()
+    record: CanonicalRecord | None = result.scalar_one_or_none()
 
     if record is None:
         raise NotFoundError("CanonicalRecord", str(record_id))
@@ -145,7 +145,7 @@ async def create_canonical_record(
 async def bulk_import_canonical(
     session: AsyncSession,
     tenant: TenantFilter,
-    records: list[dict],
+    records: list[dict[str, object]],
 ) -> tuple[int, int]:
     """Bulk import canonical records. Returns (inserted, skipped_duplicates).
 
@@ -159,7 +159,7 @@ async def bulk_import_canonical(
     org_id = uuid.UUID(tenant.organization_id)
     total_rows = len(records)
     inserted_total = 0
-    chunk: list[dict] = []
+    chunk: list[dict[str, object]] = []
     effective_chunk_size: int | None = None
 
     for rec in records:
@@ -182,7 +182,9 @@ async def bulk_import_canonical(
     return inserted_total, skipped
 
 
-def _build_canonical_row(rec: dict, org_id: uuid.UUID) -> dict:
+def _build_canonical_row(
+    rec: dict[str, object], org_id: uuid.UUID
+) -> dict[str, object]:
     return {
         "id": uuid.uuid4(),
         "organization_id": org_id,
@@ -200,18 +202,20 @@ def _build_canonical_row(rec: dict, org_id: uuid.UUID) -> dict:
     }
 
 
-async def _insert_canonical_chunk(session: AsyncSession, rows: list[dict]) -> int:
+async def _insert_canonical_chunk(
+    session: AsyncSession, rows: list[dict[str, object]]
+) -> int:
     stmt = pg_insert(CanonicalRecord).values(rows)
     stmt = stmt.on_conflict_do_nothing(constraint="uq_canonical_record")
     result = await session.execute(stmt)
-    inserted = result.rowcount  # type: ignore[union-attr]
-    return int(inserted or 0)
+    rowcount: int = result.rowcount  # type: ignore[attr-defined]
+    return int(rowcount or 0)
 
 
 async def get_quality_dashboard(
     session: AsyncSession,
     tenant: TenantFilter,
-) -> dict:
+) -> dict[str, object]:
     """Return quality metrics for canonical data coverage.
 
     Tenant isolation: all queries scoped by TenantFilter.

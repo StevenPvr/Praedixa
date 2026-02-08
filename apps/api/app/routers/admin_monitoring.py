@@ -8,7 +8,7 @@ Security:
 
 import uuid
 from datetime import UTC, datetime
-from typing import Literal
+from typing import Any, Literal, cast
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -50,7 +50,7 @@ async def platform_kpis(
 
     return ApiResponse(
         success=True,
-        data=PlatformKPIs(**kpis),
+        data=PlatformKPIs(**cast("dict[str, Any]", kpis)),
         timestamp=datetime.now(UTC).isoformat(),
     )
 
@@ -75,7 +75,7 @@ async def org_metrics_endpoint(
 
     return ApiResponse(
         success=True,
-        data=OrgMetrics(**metrics),
+        data=OrgMetrics(**cast("dict[str, Any]", metrics)),
         timestamp=datetime.now(UTC).isoformat(),
     )
 
@@ -103,7 +103,7 @@ async def usage_trends(
         metadata={"period": period, "days": days},
     )
 
-    data = [UsageTrend(**t) for t in trends]
+    data = [UsageTrend(**cast("dict[str, Any]", t)) for t in trends]
     return ApiResponse(
         success=True,
         data=data,
@@ -129,7 +129,7 @@ async def error_metrics_endpoint(
 
     return ApiResponse(
         success=True,
-        data=ErrorMetrics(**metrics),
+        data=ErrorMetrics(**cast("dict[str, Any]", metrics)),
         timestamp=datetime.now(UTC).isoformat(),
     )
 

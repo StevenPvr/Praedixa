@@ -11,6 +11,10 @@ Security:
 import math
 import uuid
 from datetime import UTC, date, datetime
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
@@ -94,11 +98,11 @@ async def override_stats(
     raw = await get_override_statistics(session, tenant)
 
     data = OverrideStatisticsResponse(
-        total_decisions=raw["total"],
-        override_count=raw["override_count"],
-        override_pct=raw["override_pct"],
-        top_override_reasons=raw["top_reasons"],
-        avg_cost_delta=raw["avg_cost_delta"],
+        total_decisions=cast("int", raw["total"]),
+        override_count=cast("int", raw["override_count"]),
+        override_pct=cast("Decimal", raw["override_pct"]),
+        top_override_reasons=cast("list[dict[str, str | int]]", raw["top_reasons"]),
+        avg_cost_delta=cast("Decimal | None", raw["avg_cost_delta"]),
     )
 
     return ApiResponse(

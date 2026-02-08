@@ -252,7 +252,7 @@ async def list_org_absences(
     page_size: int = Query(default=20, ge=1, le=100),
     session: AsyncSession = Depends(get_db_session),
     current_user: JWTPayload = Depends(require_role("super_admin")),
-) -> ApiResponse[list[dict]]:
+) -> ApiResponse[list[dict[str, object]]]:
     """List absences for an organization with medical masking.
 
     Medical reasons are replaced with "[MEDICAL]" to comply with
@@ -264,7 +264,7 @@ async def list_org_absences(
     )
 
     count_result = await session.execute(count_query)
-    count_result.scalar_one() or 0
+    _ = count_result.scalar_one() or 0
 
     offset = (page - 1) * page_size
     query = (
@@ -317,8 +317,8 @@ async def get_org_dataset_data(
     page_size: int = Query(default=100, ge=1, le=1000),
     session: AsyncSession = Depends(get_db_session),
     current_user: JWTPayload = Depends(require_role("super_admin")),
-) -> ApiResponse[dict]:
-    """Read cleaned data (schema_raw / DB1) for a dataset cross-org.
+) -> ApiResponse[dict[str, object]]:
+    """Read cleaned data from a dataset cross-org.
 
     Returns paginated rows from the raw/cleaned data table.
     Logs a VIEW_DATA audit action.
@@ -368,8 +368,8 @@ async def get_org_dataset_features(
     page_size: int = Query(default=100, ge=1, le=1000),
     session: AsyncSession = Depends(get_db_session),
     current_user: JWTPayload = Depends(require_role("super_admin")),
-) -> ApiResponse[dict]:
-    """Read transformed features (schema_transformed / DB2) for a dataset.
+) -> ApiResponse[dict[str, object]]:
+    """Read transformed features for a dataset.
 
     Super_admin only. Returns paginated rows from the features table.
     Logs a VIEW_FEATURES audit action for traceability.

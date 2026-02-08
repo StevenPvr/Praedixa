@@ -29,8 +29,8 @@ from app.schemas.base import CamelModel, TenantEntitySchema
 class ClientDatasetRead(TenantEntitySchema):
     """Full dataset response for regular client users.
 
-    Security: schema_raw and schema_transformed are intentionally
-    excluded — clients must not know internal schema naming.
+    Security: schema_data is intentionally excluded — clients must
+    not know internal schema naming.
     """
 
     name: str
@@ -45,13 +45,11 @@ class ClientDatasetRead(TenantEntitySchema):
 class AdminDatasetRead(TenantEntitySchema):
     """Full dataset response for super_admin back-office.
 
-    Includes schema_raw and schema_transformed for admin visibility
-    into the 2-DB architecture (DB1 cleaned data / DB2 features).
+    Includes schema_data for admin visibility into the data schema.
     """
 
     name: str
-    schema_raw: str
-    schema_transformed: str
+    schema_data: str
     table_name: str
     temporal_index: str
     group_by: list[str]

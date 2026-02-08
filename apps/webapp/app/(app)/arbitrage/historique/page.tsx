@@ -6,6 +6,7 @@ import { DataTable, SkeletonTable } from "@praedixa/ui";
 import type { DataTableColumn } from "@praedixa/ui";
 import { useApiGetPaginated } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
+import { formatHorizon } from "@/lib/formatters";
 
 const PAGE_SIZE = 15;
 
@@ -22,16 +23,20 @@ export default function ArbitrageHistoriquePage() {
   const columns: DataTableColumn<OperationalDecision>[] = [
     { key: "siteId", label: "Site" },
     { key: "decisionDate", label: "Date" },
-    { key: "shift", label: "Shift" },
-    { key: "horizon", label: "Horizon" },
+    { key: "shift", label: "Poste" },
+    {
+      key: "horizon",
+      label: "Echeance",
+      render: (row) => formatHorizon(row.horizon),
+    },
     {
       key: "isOverride",
-      label: "Override",
+      label: "Hors recommandation",
       render: (row) => (row.isOverride ? "Oui" : "Non"),
     },
     {
       key: "coutAttenduEur",
-      label: "Cout attendu",
+      label: "Cout prevu",
       align: "right",
       render: (row) =>
         row.coutAttenduEur != null
@@ -44,10 +49,10 @@ export default function ArbitrageHistoriquePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-charcoal">
-          Historique d&apos;arbitrage
+          Decisions passees
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Historique des decisions d&apos;arbitrage passees
+          Retrouvez toutes les solutions choisies pour vos alertes precedentes
         </p>
       </div>
 
@@ -60,7 +65,7 @@ export default function ArbitrageHistoriquePage() {
           columns={columns}
           data={data}
           getRowKey={(row) => row.id}
-          emptyMessage="Aucune decision d'arbitrage"
+          emptyMessage="Aucune decision passee. Vos choix apparaitront ici apres le traitement de votre premiere alerte."
           pagination={{
             page,
             pageSize: PAGE_SIZE,

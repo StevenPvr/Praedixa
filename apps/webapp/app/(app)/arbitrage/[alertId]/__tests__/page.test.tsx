@@ -120,7 +120,7 @@ describe("ArbitrageDetailPage", () => {
     });
     render(<ArbitrageDetailPage />);
     expect(
-      screen.getByRole("heading", { name: "Arbitrage" }),
+      screen.getByRole("heading", { name: "Choisir une solution" }),
     ).toBeInTheDocument();
   });
 

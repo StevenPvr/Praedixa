@@ -44,6 +44,12 @@ vi.mock("@/components/error-fallback", () => ({
   ),
 }));
 
+vi.mock("@/lib/formatters", () => ({
+  formatSeverity: (s: string) => s,
+  formatHorizon: (h: string) => h,
+  formatAlertStatus: (s: string) => s,
+}));
+
 describe("AlertesPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -59,7 +65,7 @@ describe("AlertesPage", () => {
   it("renders the heading", () => {
     render(<AlertesPage />);
     expect(
-      screen.getByRole("heading", { name: "Alertes de couverture" }),
+      screen.getByRole("heading", { name: "Toutes les alertes" }),
     ).toBeInTheDocument();
   });
 

@@ -6,6 +6,11 @@ import type { CoverageAlert } from "@praedixa/shared-types";
 import { Badge, Button, SkeletonCard } from "@praedixa/ui";
 import { useApiGet } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
+import {
+  formatSeverity,
+  formatHorizon,
+  formatAlertStatus,
+} from "@/lib/formatters";
 
 export default function AlertDetailPage() {
   const params = useParams<{ alertId: string }>();
@@ -38,7 +43,7 @@ export default function AlertDetailPage() {
           Detail de l&apos;alerte
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Informations detaillees et facteurs de risque
+          Comprenez les causes et decidez de la suite
         </p>
       </div>
 
@@ -61,15 +66,17 @@ export default function AlertDetailPage() {
                 <p className="font-medium text-charcoal">{alert.alertDate}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Shift</p>
+                <p className="text-xs text-gray-500">Poste</p>
                 <p className="font-medium text-charcoal">{alert.shift}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Horizon</p>
-                <p className="font-medium text-charcoal">{alert.horizon}</p>
+                <p className="text-xs text-gray-500">Echeance</p>
+                <p className="font-medium text-charcoal">
+                  {formatHorizon(alert.horizon)}
+                </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Severite</p>
+                <p className="text-xs text-gray-500">Urgence</p>
                 <Badge
                   variant={
                     alert.severity === "critical"
@@ -81,29 +88,31 @@ export default function AlertDetailPage() {
                           : "secondary"
                   }
                 >
-                  {alert.severity}
+                  {formatSeverity(alert.severity)}
                 </Badge>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Statut</p>
-                <p className="font-medium text-charcoal">{alert.status}</p>
+                <p className="text-xs text-gray-500">Etat</p>
+                <p className="font-medium text-charcoal">
+                  {formatAlertStatus(alert.status)}
+                </p>
               </div>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
               <div>
-                <p className="text-xs text-gray-500">P(rupture)</p>
+                <p className="text-xs text-gray-500">Risque de sous-effectif</p>
                 <p className="text-lg font-bold text-charcoal">
                   {(alert.pRupture * 100).toFixed(0)}%
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Gap (heures)</p>
+                <p className="text-xs text-gray-500">Heures manquantes</p>
                 <p className="text-lg font-bold text-charcoal">{alert.gapH}h</p>
               </div>
               {alert.impactEur !== undefined && (
                 <div>
-                  <p className="text-xs text-gray-500">Impact estime</p>
+                  <p className="text-xs text-gray-500">Cout estime</p>
                   <p className="text-lg font-bold text-charcoal">
                     {alert.impactEur.toLocaleString("fr-FR")} EUR
                   </p>
@@ -113,9 +122,9 @@ export default function AlertDetailPage() {
           </section>
 
           {/* Drivers */}
-          <section aria-label="Facteurs de risque">
+          <section aria-label="Causes identifiees">
             <h2 className="mb-3 text-lg font-semibold text-charcoal">
-              Facteurs de risque
+              Causes identifiees
             </h2>
             {alert.driversJson.length > 0 ? (
               <ul className="space-y-2">
@@ -129,17 +138,19 @@ export default function AlertDetailPage() {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-gray-400">Aucun facteur identifie</p>
+              <p className="text-sm text-gray-400">
+                Aucune cause specifique identifiee pour cette alerte.
+              </p>
             )}
           </section>
 
           {/* Action */}
           <div className="flex gap-3">
             <Link href={`/arbitrage/${alertId}`}>
-              <Button>Arbitrer cette alerte</Button>
+              <Button>Trouver une solution</Button>
             </Link>
             <Link href="/previsions/alertes">
-              <Button variant="outline">Retour aux alertes</Button>
+              <Button variant="outline">Retour a la liste</Button>
             </Link>
           </div>
         </>

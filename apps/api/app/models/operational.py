@@ -19,8 +19,11 @@ Security notes:
   without mutating existing rows.
 """
 
+import datetime
 import enum
 import uuid
+from decimal import Decimal
+from typing import Any
 
 from sqlalchemy import (
     Boolean,
@@ -122,28 +125,22 @@ class CanonicalRecord(TenantMixin, Base):
         default=uuid.uuid4,
     )
     site_id: Mapped[str] = mapped_column(String(50), nullable=False)
-    date: Mapped[uuid.UUID] = mapped_column(Date, nullable=False)  # type: ignore[assignment]
+    date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
     shift: Mapped[ShiftType] = mapped_column(sa_enum(ShiftType), nullable=False)
     competence: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    charge_units: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
-        Numeric(12, 2), nullable=True
-    )
-    capacite_plan_h: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(8, 2), nullable=False
-    )
-    realise_h: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
-        Numeric(8, 2), nullable=True
-    )
-    abs_h: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
+    charge_units: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    capacite_plan_h: Mapped[Decimal] = mapped_column(Numeric(8, 2), nullable=False)
+    realise_h: Mapped[Decimal | None] = mapped_column(Numeric(8, 2), nullable=True)
+    abs_h: Mapped[Decimal | None] = mapped_column(
         Numeric(8, 2), nullable=True, default=0
     )
-    hs_h: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
+    hs_h: Mapped[Decimal | None] = mapped_column(
         Numeric(8, 2), nullable=True, default=0
     )
-    interim_h: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
+    interim_h: Mapped[Decimal | None] = mapped_column(
         Numeric(8, 2), nullable=True, default=0
     )
-    cout_interne_est: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
+    cout_interne_est: Mapped[Decimal | None] = mapped_column(
         Numeric(12, 2), nullable=True
     )
 
@@ -176,30 +173,20 @@ class CostParameter(TenantMixin, Base):
     )
     site_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    c_int: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(8, 2), nullable=False
-    )
-    maj_hs: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(5, 4), nullable=False
-    )
-    c_interim: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(8, 2), nullable=False
-    )
-    premium_urgence: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
+    c_int: Mapped[Decimal] = mapped_column(Numeric(8, 2), nullable=False)
+    maj_hs: Mapped[Decimal] = mapped_column(Numeric(5, 4), nullable=False)
+    c_interim: Mapped[Decimal] = mapped_column(Numeric(8, 2), nullable=False)
+    premium_urgence: Mapped[Decimal] = mapped_column(
         Numeric(5, 4), nullable=False, default=0.1000
     )
-    c_backlog: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
+    c_backlog: Mapped[Decimal] = mapped_column(
         Numeric(8, 2), nullable=False, default=60.00
     )
     cap_hs_shift: Mapped[int] = mapped_column(Integer, nullable=False, default=30)
     cap_interim_site: Mapped[int] = mapped_column(Integer, nullable=False, default=50)
     lead_time_jours: Mapped[int] = mapped_column(Integer, nullable=False, default=2)
-    effective_from: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Date, nullable=False
-    )
-    effective_until: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
-        Date, nullable=True
-    )
+    effective_from: Mapped[datetime.date] = mapped_column(Date, nullable=False)
+    effective_until: Mapped[datetime.date | None] = mapped_column(Date, nullable=True)
 
     def __repr__(self) -> str:
         return f"<CostParameter site={self.site_id} v{self.version}>"
@@ -238,20 +225,12 @@ class CoverageAlert(TenantMixin, Base):
         default=uuid.uuid4,
     )
     site_id: Mapped[str] = mapped_column(String(50), nullable=False)
-    alert_date: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Date, nullable=False
-    )
+    alert_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
     shift: Mapped[ShiftType] = mapped_column(sa_enum(ShiftType), nullable=False)
     horizon: Mapped[Horizon] = mapped_column(sa_enum(Horizon), nullable=False)
-    p_rupture: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(5, 4), nullable=False
-    )
-    gap_h: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(8, 2), nullable=False
-    )
-    impact_eur: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
-        Numeric(12, 2), nullable=True
-    )
+    p_rupture: Mapped[Decimal] = mapped_column(Numeric(5, 4), nullable=False)
+    gap_h: Mapped[Decimal] = mapped_column(Numeric(8, 2), nullable=False)
+    impact_eur: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     severity: Mapped[CoverageAlertSeverity] = mapped_column(
         sa_enum(CoverageAlertSeverity), nullable=False
     )
@@ -260,13 +239,13 @@ class CoverageAlert(TenantMixin, Base):
         nullable=False,
         default=CoverageAlertStatus.OPEN,
     )
-    drivers_json: Mapped[list] = mapped_column(  # type: ignore[type-arg]
+    drivers_json: Mapped[list[Any]] = mapped_column(
         JSONB, nullable=False, server_default="[]"
     )
-    acknowledged_at: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
+    acknowledged_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    resolved_at: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
+    resolved_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 
@@ -315,22 +294,14 @@ class ScenarioOption(TenantMixin, Base):
         sa_enum(ScenarioOptionType), nullable=False
     )
     label: Mapped[str] = mapped_column(String(200), nullable=False)
-    cout_total_eur: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(12, 2), nullable=False
-    )
-    service_attendu_pct: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(5, 4), nullable=False
-    )
-    heures_couvertes: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(8, 2), nullable=False
-    )
+    cout_total_eur: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    service_attendu_pct: Mapped[Decimal] = mapped_column(Numeric(5, 4), nullable=False)
+    heures_couvertes: Mapped[Decimal] = mapped_column(Numeric(8, 2), nullable=False)
     is_pareto_optimal: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False
     )
     is_recommended: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    contraintes_json: Mapped[dict] = mapped_column(  # type: ignore[type-arg]
-        JSONB, server_default="{}"
-    )
+    contraintes_json: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default="{}")
 
     def __repr__(self) -> str:
         return (
@@ -386,26 +357,22 @@ class OperationalDecision(TenantMixin, Base):
         nullable=True,
     )
     site_id: Mapped[str] = mapped_column(String(50), nullable=False)
-    decision_date: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Date, nullable=False
-    )
+    decision_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
     shift: Mapped[ShiftType] = mapped_column(sa_enum(ShiftType), nullable=False)
     horizon: Mapped[Horizon] = mapped_column(sa_enum(Horizon), nullable=False)
-    gap_h: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(8, 2), nullable=False
-    )
+    gap_h: Mapped[Decimal] = mapped_column(Numeric(8, 2), nullable=False)
     is_override: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     override_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    cout_attendu_eur: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
+    cout_attendu_eur: Mapped[Decimal | None] = mapped_column(
         Numeric(12, 2), nullable=True
     )
-    service_attendu_pct: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
+    service_attendu_pct: Mapped[Decimal | None] = mapped_column(
         Numeric(5, 4), nullable=True
     )
-    cout_observe_eur: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
+    cout_observe_eur: Mapped[Decimal | None] = mapped_column(
         Numeric(12, 2), nullable=True
     )
-    service_observe_pct: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
+    service_observe_pct: Mapped[Decimal | None] = mapped_column(
         Numeric(5, 4), nullable=True
     )
     decided_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
@@ -449,35 +416,21 @@ class ProofRecord(TenantMixin, Base):
         default=uuid.uuid4,
     )
     site_id: Mapped[str] = mapped_column(String(50), nullable=False)
-    month: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Date, nullable=False
-    )
-    cout_bau_eur: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(12, 2), nullable=False
-    )
-    cout_100_eur: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(12, 2), nullable=False
-    )
-    cout_reel_eur: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(12, 2), nullable=False
-    )
-    gain_net_eur: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
-        Numeric(12, 2), nullable=False
-    )
-    service_bau_pct: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
+    month: Mapped[datetime.date] = mapped_column(Date, nullable=False)
+    cout_bau_eur: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    cout_100_eur: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    cout_reel_eur: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    gain_net_eur: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    service_bau_pct: Mapped[Decimal | None] = mapped_column(
         Numeric(5, 4), nullable=True
     )
-    service_reel_pct: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
+    service_reel_pct: Mapped[Decimal | None] = mapped_column(
         Numeric(5, 4), nullable=True
     )
-    adoption_pct: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
-        Numeric(5, 4), nullable=True
-    )
+    adoption_pct: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
     alertes_emises: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     alertes_traitees: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    details_json: Mapped[dict] = mapped_column(  # type: ignore[type-arg]
-        JSONB, server_default="{}"
-    )
+    details_json: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default="{}")
 
     def __repr__(self) -> str:
         return f"<ProofRecord {self.site_id} {self.month} gain={self.gain_net_eur}>"

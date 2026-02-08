@@ -17,6 +17,7 @@ import type {
   ArbitrageResult,
   DatasetSummary,
   DatasetColumn,
+  DashboardSummary,
   // Operational domain types
   CanonicalRecord,
   CanonicalQualityDashboard,
@@ -65,6 +66,16 @@ export function getHealth(): Promise<HealthCheckResponse> {
   return apiGet<HealthCheckResponse>("/api/v1/health", noAuth).then(
     (r) => r.data,
   );
+}
+
+// ─────────────────────────────────────────────────
+// Dashboard
+// ─────────────────────────────────────────────────
+
+export function getDashboardSummary(
+  token: GetAccessToken,
+): Promise<ApiResponse<DashboardSummary>> {
+  return apiGet<DashboardSummary>("/api/v1/dashboard/summary", token);
 }
 
 // ─────────────────────────────────────────────────
@@ -473,6 +484,8 @@ export function triggerMockForecast(
 // ─────────────────────────────────────────────────
 
 export const API_ENDPOINTS = {
+  dashboard: { summary: "/api/v1/dashboard/summary" },
+  organizations: { me: "/api/v1/organizations/me" },
   canonical: {
     list: "/api/v1/canonical",
     quality: "/api/v1/canonical/quality",

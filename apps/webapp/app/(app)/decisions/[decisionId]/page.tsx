@@ -6,6 +6,7 @@ import type { OperationalDecision } from "@praedixa/shared-types";
 import { Badge, Button, Input, SkeletonCard } from "@praedixa/ui";
 import { useApiGet, useApiPatch } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
+import { formatHorizon } from "@/lib/formatters";
 
 interface OutcomeUpdate {
   coutObserveEur: number;
@@ -52,7 +53,7 @@ export default function DecisionDetailPage() {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-semibold text-charcoal">
-          Detail de la decision
+          Detail de l&apos;action
         </h1>
         <ErrorFallback message={error} onRetry={refetch} />
       </div>
@@ -63,10 +64,10 @@ export default function DecisionDetailPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-charcoal">
-          Detail de la decision
+          Detail de l&apos;action
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Informations et saisie du resultat observe
+          Comparez ce qui etait prevu avec ce qui s&apos;est reellement passe
         </p>
       </div>
 
@@ -90,17 +91,19 @@ export default function DecisionDetailPage() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Shift</p>
+                <p className="text-xs text-gray-500">Poste</p>
                 <p className="font-medium text-charcoal">{decision.shift}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Horizon</p>
-                <p className="font-medium text-charcoal">{decision.horizon}</p>
+                <p className="text-xs text-gray-500">Echeance</p>
+                <p className="font-medium text-charcoal">
+                  {formatHorizon(decision.horizon)}
+                </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Override</p>
+                <p className="text-xs text-gray-500">Hors recommandation</p>
                 {decision.isOverride ? (
-                  <Badge variant="destructive">Override</Badge>
+                  <Badge variant="destructive">Choix manuel</Badge>
                 ) : (
                   <span className="text-sm text-gray-400">Non</span>
                 )}
@@ -108,7 +111,7 @@ export default function DecisionDetailPage() {
             </div>
             {decision.overrideReason && (
               <div className="mt-4">
-                <p className="text-xs text-gray-500">Raison override</p>
+                <p className="text-xs text-gray-500">Raison du choix manuel</p>
                 <p className="text-sm text-charcoal">
                   {decision.overrideReason}
                 </p>
@@ -122,17 +125,17 @@ export default function DecisionDetailPage() {
             className="rounded-card border border-gray-200 bg-card p-6"
           >
             <h2 className="mb-4 text-lg font-semibold text-charcoal">
-              Resultat observe
+              Retour terrain
             </h2>
             {saved && (
               <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-800">
-                Resultat enregistre avec succes
+                Retour enregistre avec succes
               </div>
             )}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
                 <label className="block text-sm font-medium text-charcoal">
-                  Cout observe (EUR)
+                  Cout reel constate (EUR)
                 </label>
                 <Input
                   type="number"
@@ -143,7 +146,7 @@ export default function DecisionDetailPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-charcoal">
-                  Service observe (%)
+                  Couverture reelle (%)
                 </label>
                 <Input
                   type="number"
@@ -154,12 +157,12 @@ export default function DecisionDetailPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-charcoal">
-                  Commentaire
+                  Remarques (optionnel)
                 </label>
                 <Input
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="Optionnel"
+                  placeholder="Ex: Interim arrive en retard, couverture partielle"
                 />
               </div>
             </div>
@@ -168,7 +171,9 @@ export default function DecisionDetailPage() {
                 onClick={() => void handleSaveOutcome()}
                 disabled={saving}
               >
-                {saving ? "Enregistrement..." : "Enregistrer le resultat"}
+                {saving
+                  ? "Enregistrement en cours..."
+                  : "Enregistrer le retour"}
               </Button>
             </div>
           </section>

@@ -45,21 +45,25 @@ describe("generateMetadata", () => {
     const metadata = await generateMetadata({
       params: Promise.resolve({ dimension: "humaine" }),
     });
-    expect(metadata.title).toBe("Capacite humaine — Previsions — Praedixa");
+    expect(metadata.title).toBe(
+      "Disponibilite des equipes — Anticipation — Praedixa",
+    );
   });
 
   it("returns title with 'marchandise' label", async () => {
     const metadata = await generateMetadata({
       params: Promise.resolve({ dimension: "marchandise" }),
     });
-    expect(metadata.title).toBe("Capacite marchandise — Previsions — Praedixa");
+    expect(metadata.title).toBe(
+      "Capacite de traitement — Anticipation — Praedixa",
+    );
   });
 
   it("falls back to raw dimension for unknown values", async () => {
     const metadata = await generateMetadata({
       params: Promise.resolve({ dimension: "unknown-dim" }),
     });
-    expect(metadata.title).toBe("unknown-dim — Previsions — Praedixa");
+    expect(metadata.title).toBe("unknown-dim — Anticipation — Praedixa");
   });
 });
 
@@ -69,7 +73,7 @@ describe("DimensionPage", () => {
     const Component = await DimensionPage({ params });
     render(Component);
     expect(
-      screen.getByRole("heading", { name: "Capacite humaine" }),
+      screen.getByRole("heading", { name: "Disponibilite des equipes" }),
     ).toBeInTheDocument();
   });
 
@@ -78,7 +82,7 @@ describe("DimensionPage", () => {
     const Component = await DimensionPage({ params });
     render(Component);
     expect(
-      screen.getByRole("heading", { name: "Capacite marchandise" }),
+      screen.getByRole("heading", { name: "Capacite de traitement" }),
     ).toBeInTheDocument();
   });
 
@@ -96,7 +100,9 @@ describe("DimensionPage", () => {
     const Component = await DimensionPage({ params });
     render(Component);
     expect(
-      screen.getByText(/previsions detaillees.*capacite humaine/i),
+      screen.getByText(
+        /previsions detaillees sur la disponibilite des equipes/i,
+      ),
     ).toBeInTheDocument();
   });
 

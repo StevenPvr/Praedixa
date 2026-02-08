@@ -20,11 +20,12 @@ import type {
 } from "@praedixa/ui";
 import { useApiGet } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
+import { formatSeverity } from "@/lib/formatters";
 
 const HORIZON_TABS: Tab[] = [
-  { id: "j3", label: "J+3" },
-  { id: "j7", label: "J+7" },
-  { id: "j14", label: "J+14" },
+  { id: "j3", label: "A 3 jours" },
+  { id: "j7", label: "A 7 jours" },
+  { id: "j14", label: "A 14 jours" },
 ];
 
 export default function PrevisionsPage() {
@@ -65,10 +66,10 @@ export default function PrevisionsPage() {
   const alertColumns: DataTableColumn<CoverageAlert>[] = [
     { key: "siteId", label: "Site" },
     { key: "alertDate", label: "Date" },
-    { key: "shift", label: "Shift" },
+    { key: "shift", label: "Poste" },
     {
       key: "severity",
-      label: "Severite",
+      label: "Urgence",
       render: (row) => (
         <Badge
           variant={
@@ -81,17 +82,17 @@ export default function PrevisionsPage() {
                   : "secondary"
           }
         >
-          {row.severity}
+          {formatSeverity(row.severity)}
         </Badge>
       ),
     },
     {
       key: "pRupture",
-      label: "P(rupture)",
+      label: "Risque",
       align: "right",
       render: (row) => `${(row.pRupture * 100).toFixed(0)}%`,
     },
-    { key: "gapH", label: "Gap (h)", align: "right" },
+    { key: "gapH", label: "Heures manquantes", align: "right" },
     {
       key: "id",
       label: "",
@@ -100,7 +101,7 @@ export default function PrevisionsPage() {
           href={`/previsions/alertes/${row.id}`}
           className="text-sm font-medium text-amber-600 hover:text-amber-700"
         >
-          Detail
+          Voir le detail
         </Link>
       ),
     },
@@ -109,9 +110,9 @@ export default function PrevisionsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-charcoal">Previsions</h1>
+        <h1 className="text-2xl font-semibold text-charcoal">Anticipation</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Heatmap de couverture et alertes par horizon
+          Identifiez les sites en tension pour les prochains jours
         </p>
       </div>
 
@@ -125,20 +126,23 @@ export default function PrevisionsPage() {
           options={siteOptions}
           value={siteFilter}
           onChange={setSiteFilter}
-          placeholder="Filtrer par site"
+          placeholder="Tous les sites"
         />
       </div>
 
       {/* Coverage Heatmap */}
-      <section aria-label="Heatmap de couverture">
+      <section aria-label="Couverture par site et par jour">
         <h2 className="mb-4 text-lg font-semibold text-charcoal">
-          Couverture par site
+          Couverture par site et par jour
         </h2>
         {alertsLoading ? (
           <SkeletonChart />
         ) : heatmapCells.length === 0 ? (
           <div className="flex items-center justify-center rounded-card border border-dashed border-gray-300 bg-card p-12">
-            <p className="text-sm text-gray-400">Aucune donnee de couverture</p>
+            <p className="text-sm text-gray-400">
+              Aucune donnee de couverture pour cet horizon. Changez la periode
+              ou importez de nouvelles donnees.
+            </p>
           </div>
         ) : (
           <div className="rounded-card border border-gray-200 bg-card p-4">
@@ -153,9 +157,9 @@ export default function PrevisionsPage() {
       </section>
 
       {/* Alerts Table */}
-      <section aria-label="Alertes de couverture">
+      <section aria-label="Alertes de sous-effectif">
         <h2 className="mb-4 text-lg font-semibold text-charcoal">
-          Alertes actives
+          Alertes de sous-effectif
         </h2>
         {alertsError ? (
           <ErrorFallback message={alertsError} onRetry={refetchAlerts} />
@@ -166,7 +170,7 @@ export default function PrevisionsPage() {
             columns={alertColumns}
             data={alerts ?? []}
             getRowKey={(row) => row.id}
-            emptyMessage="Aucune alerte pour cet horizon"
+            emptyMessage="Aucune alerte pour cette periode — vos sites sont couverts."
           />
         )}
       </section>

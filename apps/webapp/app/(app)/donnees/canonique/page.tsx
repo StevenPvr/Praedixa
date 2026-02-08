@@ -22,9 +22,9 @@ import { ErrorFallback } from "@/components/error-fallback";
 const PAGE_SIZE = 20;
 
 const SHIFT_OPTIONS: SelectOption[] = [
-  { value: "all", label: "Tous les shifts" },
-  { value: "am", label: "Matin (AM)" },
-  { value: "pm", label: "Apres-midi (PM)" },
+  { value: "all", label: "Tous les postes" },
+  { value: "am", label: "Matin" },
+  { value: "pm", label: "Apres-midi" },
 ];
 
 export default function CanoniquePage() {
@@ -62,17 +62,17 @@ export default function CanoniquePage() {
   const columns: DataTableColumn<CanonicalRecord>[] = [
     { key: "siteId", label: "Site" },
     { key: "date", label: "Date" },
-    { key: "shift", label: "Shift" },
-    { key: "capacitePlanH", label: "Capacite", align: "right" },
+    { key: "shift", label: "Poste" },
+    { key: "capacitePlanH", label: "Heures prevues", align: "right" },
     {
       key: "realiseH",
-      label: "Realise",
+      label: "Heures realisees",
       align: "right",
       render: (row) => String(row.realiseH ?? "-"),
     },
-    { key: "absH", label: "Abs", align: "right" },
-    { key: "hsH", label: "HS", align: "right" },
-    { key: "interimH", label: "Interim", align: "right" },
+    { key: "absH", label: "Absences (h)", align: "right" },
+    { key: "hsH", label: "Heures sup.", align: "right" },
+    { key: "interimH", label: "Interim (h)", align: "right" },
   ];
 
   const handleSiteChange = (value: string) => {
@@ -90,15 +90,15 @@ export default function CanoniquePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-charcoal">
-            Donnees canoniques
+            Donnees consolidees
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Donnees operationnelles normalisees par site, date et shift
+            Toutes les donnees de vos equipes, fusionnees et a jour
           </p>
         </div>
         <Button variant="default" className="gap-2">
           <Upload className="h-4 w-4" />
-          Importer CSV
+          Importer un fichier
         </Button>
       </div>
 
@@ -106,12 +106,12 @@ export default function CanoniquePage() {
       <section aria-label="Indicateurs canoniques">
         <div className="flex flex-wrap gap-3">
           <MetricCard
-            label="Total enregistrements"
+            label="Lignes de donnees"
             value={quality?.totalRecords ?? "--"}
             status={quality ? "neutral" : "neutral"}
           />
           <MetricCard
-            label="Couverture"
+            label="Taux de remplissage"
             value={
               quality ? `${Number(quality.coveragePct).toFixed(1)}%` : "--"
             }
@@ -120,14 +120,14 @@ export default function CanoniquePage() {
             }
           />
           <MetricCard
-            label="Taux absence moyen"
+            label="Absence moyenne"
             value={quality ? `${Number(quality.avgAbsPct).toFixed(1)}%` : "--"}
             status={
               quality && Number(quality.avgAbsPct) <= 5 ? "good" : "warning"
             }
           />
           <MetricCard
-            label="Shifts manquants"
+            label="Postes non renseignes"
             value={
               quality ? `${Number(quality.missingShiftsPct).toFixed(1)}%` : "--"
             }
@@ -149,7 +149,7 @@ export default function CanoniquePage() {
           onChange={handleSiteChange}
         />
         <SelectDropdown
-          label="Shift"
+          label="Poste"
           options={SHIFT_OPTIONS}
           value={shiftFilter}
           onChange={handleShiftChange}
@@ -167,7 +167,7 @@ export default function CanoniquePage() {
           columns={columns}
           data={data}
           getRowKey={(row) => row.id}
-          emptyMessage="Aucune donnee canonique trouvee"
+          emptyMessage="Aucune donnee pour ces criteres. Essayez de modifier les filtres."
           pagination={{
             page,
             pageSize: PAGE_SIZE,

@@ -11,7 +11,7 @@ const PAGE_SIZE = 12;
 
 const BREADCRUMBS = [
   { label: "Donnees", href: "/donnees" },
-  { label: "Datasets", href: "/donnees/datasets" },
+  { label: "Fichiers importes", href: "/donnees/datasets" },
 ];
 
 export default function DatasetsPage() {
@@ -23,7 +23,7 @@ export default function DatasetsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Datasets" breadcrumbs={BREADCRUMBS} />
+      <PageHeader title="Fichiers importes" breadcrumbs={BREADCRUMBS} />
 
       {error ? (
         <ErrorFallback message={error} onRetry={refetch} />
@@ -36,7 +36,7 @@ export default function DatasetsPage() {
       ) : data.length === 0 ? (
         <ErrorFallback
           variant="empty"
-          message="Aucun dataset configure pour cette organisation."
+          message="Aucun fichier importe pour le moment. Importez vos premieres donnees pour demarrer l'analyse."
         />
       ) : (
         <>
@@ -49,7 +49,7 @@ export default function DatasetsPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-gray-200 pt-4">
               <p className="text-sm text-gray-500">
-                Page {page} sur {totalPages} ({total} datasets)
+                Page {page} sur {totalPages} ({total} fichiers)
               </p>
               <div className="flex gap-1">
                 <button
@@ -57,14 +57,14 @@ export default function DatasetsPage() {
                   disabled={page <= 1}
                   className="rounded-md px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Precedent
+                  Page precedente
                 </button>
                 <button
                   onClick={() => setPage((p) => p + 1)}
                   disabled={page >= totalPages}
                   className="rounded-md px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Suivant
+                  Page suivante
                 </button>
               </div>
             </div>

@@ -63,9 +63,9 @@ export interface ProofPack {
 
 /** Aggregated proof-pack summary across sites */
 export interface ProofPackSummary {
-  totalGainEur: number;
-  avgAdoptionPct: number;
-  avgServiceImprovementPct: number;
-  siteSummaries: ProofPack[];
-  period: { from: ISODateString; to: ISODateString };
+  totalGainNetEur: number;
+  avgAdoptionPct: number | null;
+  totalAlertesEmises: number;
+  totalAlertesTraitees: number;
+  records: ProofPack[];
 }

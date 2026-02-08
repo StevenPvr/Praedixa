@@ -113,40 +113,56 @@ async def test_list_proof_records_401(unauth_client: AsyncClient) -> None:
 async def test_proof_summary_200(client_a: AsyncClient) -> None:
     """GET /api/v1/proof/summary returns aggregated summary."""
     summary = {
-        "total_gain_net_eur": Decimal("5000.00"),
-        "avg_adoption_pct": Decimal("0.85"),
-        "total_alertes_emises": 20,
-        "total_alertes_traitees": 18,
-        "records": [],
+        "total_gain": Decimal("5000.00"),
+        "avg_adoption": Decimal("0.85"),
+        "avg_service_improvement": Decimal("0.15"),
+        "per_site": [],
     }
+    records = [_make_proof_record(), _make_proof_record()]
 
-    with patch(
-        "app.routers.proof.get_proof_summary",
-        new_callable=AsyncMock,
-        return_value=summary,
+    with (
+        patch(
+            "app.routers.proof.get_proof_summary",
+            new_callable=AsyncMock,
+            return_value=summary,
+        ),
+        patch(
+            "app.routers.proof.list_proof_records",
+            new_callable=AsyncMock,
+            return_value=(records, 2),
+        ),
     ):
         response = await client_a.get("/api/v1/proof/summary")
 
     assert response.status_code == 200
     data = response.json()
     assert data["success"] is True
+    assert "totalGainNetEur" in data["data"]
+    assert "records" in data["data"]
+    assert len(data["data"]["records"]) == 2
 
 
 async def test_proof_summary_with_dates(client_a: AsyncClient) -> None:
     """GET /api/v1/proof/summary?date_from=...&date_to=... passes date filters."""
     summary = {
-        "total_gain_net_eur": Decimal("3000.00"),
-        "avg_adoption_pct": None,
-        "total_alertes_emises": 10,
-        "total_alertes_traitees": 8,
-        "records": [],
+        "total_gain": Decimal("3000.00"),
+        "avg_adoption": None,
+        "avg_service_improvement": None,
+        "per_site": [],
     }
 
-    with patch(
-        "app.routers.proof.get_proof_summary",
-        new_callable=AsyncMock,
-        return_value=summary,
-    ) as mock_summary:
+    with (
+        patch(
+            "app.routers.proof.get_proof_summary",
+            new_callable=AsyncMock,
+            return_value=summary,
+        ) as mock_summary,
+        patch(
+            "app.routers.proof.list_proof_records",
+            new_callable=AsyncMock,
+            return_value=([], 0),
+        ),
+    ):
         response = await client_a.get(
             "/api/v1/proof/summary?date_from=2026-01-01&date_to=2026-01-31"
         )

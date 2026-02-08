@@ -144,7 +144,7 @@ class ArbitrageResult:
         self.recommendation_index = recommendation_index
 
 
-def _compute_deficit(forecasts: list) -> tuple[float, float, int]:
+def _compute_deficit(forecasts: list[DailyForecast]) -> tuple[float, float, int]:
     """Compute total deficit hours, average deficit %, and horizon from forecasts.
 
     Returns (total_deficit_hours, avg_deficit_pct, horizon_days).

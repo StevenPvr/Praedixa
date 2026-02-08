@@ -12,9 +12,9 @@ Security notes:
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
-import strictyaml
+import strictyaml  # type: ignore[import-untyped]
 from strictyaml import (
     Bool,
     Enum,
@@ -233,7 +233,7 @@ def validate_dataset_yaml(
             details={"yaml_error": str(e)},
         ) from e
 
-    data = parsed.data
+    data: dict[str, Any] = cast("dict[str, Any]", parsed.data)
 
     # ── Identifier validation (DDL-safe) ─────────────
     try:
@@ -264,4 +264,5 @@ def validate_dataset_yaml(
     # ── Pipeline bounds validation ───────────────────
     _validate_windows(data)
 
-    return data
+    result: dict[str, Any] = data
+    return result

@@ -100,7 +100,7 @@ describe("CanoniquePage", () => {
   it("renders the heading", () => {
     render(<CanoniquePage />);
     expect(
-      screen.getByRole("heading", { name: "Donnees canoniques" }),
+      screen.getByRole("heading", { name: "Donnees consolidees" }),
     ).toBeInTheDocument();
   });
 

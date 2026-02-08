@@ -6,9 +6,9 @@ interface DimensionPageProps {
 }
 
 const DIMENSION_LABELS: Record<string, string> = {
-  humaine: "Capacite humaine",
-  marchandise: "Capacite marchandise",
-  globale: "Vue globale",
+  humaine: "Disponibilite des equipes",
+  marchandise: "Capacite de traitement",
+  globale: "Vue d'ensemble",
 };
 
 export async function generateMetadata({
@@ -17,7 +17,7 @@ export async function generateMetadata({
   const { dimension } = await params;
   const label = DIMENSION_LABELS[dimension] ?? dimension;
   return {
-    title: `${label} — Previsions — Praedixa`,
+    title: `${label} — Anticipation — Praedixa`,
   };
 }
 
@@ -30,7 +30,7 @@ export default async function DimensionPage({ params }: DimensionPageProps) {
       <div>
         <h1 className="text-2xl font-semibold text-charcoal">{label}</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Previsions detaillees — {label.toLowerCase()}
+          Previsions detaillees sur la {label.toLowerCase()}
         </p>
       </div>
 

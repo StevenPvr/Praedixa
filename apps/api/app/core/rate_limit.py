@@ -106,7 +106,7 @@ def rate_limit_exceeded_handler(
         limit=str(exc.detail),
     )
 
-    body: dict = {
+    body: dict[str, object] = {
         "success": False,
         "error": {
             "code": "RATE_LIMIT_EXCEEDED",
@@ -170,7 +170,7 @@ class RequestBodySizeLimitMiddleware(BaseHTTPMiddleware):
             if len(body) > self.max_body_size:
                 return _payload_too_large_response()
 
-            async def _receive() -> dict:
+            async def _receive() -> dict[str, object]:
                 return {
                     "type": "http.request",
                     "body": body,
@@ -178,7 +178,7 @@ class RequestBodySizeLimitMiddleware(BaseHTTPMiddleware):
                 }
 
             # Replay the body so downstream parsing still works.
-            request._receive = _receive  # type: ignore[attr-defined]  # noqa: SLF001
+            request._receive = _receive  # noqa: SLF001
 
         return await call_next(request)
 
@@ -193,7 +193,7 @@ def setup_rate_limiting(app: FastAPI) -> None:
         RateLimitExceeded,
         rate_limit_exceeded_handler,  # type: ignore[arg-type]
     )
-    app.add_middleware(RequestBodySizeLimitMiddleware)
+    app.add_middleware(RequestBodySizeLimitMiddleware)  # type: ignore[arg-type]
     app.add_middleware(SlowAPIMiddleware)
 
 

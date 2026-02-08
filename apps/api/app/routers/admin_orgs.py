@@ -11,6 +11,7 @@ Security:
 import math
 import uuid
 from datetime import UTC, datetime
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -158,7 +159,7 @@ async def get_org_detail(
     org_data = AdminOrgRead.model_validate(org)
     detail = AdminOrgDetail(
         **org_data.model_dump(),
-        **counts,
+        **cast("dict[str, Any]", counts),
         hierarchy=[
             OrgSiteNode(
                 id=s["id"],
@@ -188,7 +189,7 @@ async def get_org_detail(
 async def update_org(
     request: Request,
     org_id: uuid.UUID,
-    body: dict,
+    body: dict[str, object],
     session: AsyncSession = Depends(get_db_session),
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> ApiResponse[AdminOrgRead]:

@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import contextlib
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import psycopg
 
@@ -47,7 +47,9 @@ def _convert_database_url(url: str) -> str:
 
 
 @contextlib.contextmanager
-def ddl_connection() -> Generator[psycopg.Connection, None, None]:  # type: ignore[type-arg]  # pragma: no cover
+def ddl_connection() -> (  # pragma: no cover
+    Generator[psycopg.Connection[Any], None, None]
+):
     """Yield a psycopg connection configured for DDL operations.
 
     On entry:

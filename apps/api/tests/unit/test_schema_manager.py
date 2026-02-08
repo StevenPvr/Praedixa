@@ -467,11 +467,8 @@ class TestCreateClientSchemas:
     @pytest.mark.asyncio
     @patch("app.services.schema_manager.ddl_connection")
     @patch("app.services.schema_manager.settings")
-    async def test_creates_raw_and_transformed_schemas(
-        self, mock_settings, mock_ddl
-    ) -> None:
-        mock_settings.RAW_SCHEMA_SUFFIX = "raw"
-        mock_settings.TRANSFORMED_SCHEMA_SUFFIX = "transformed"
+    async def test_creates_data_schema(self, mock_settings, mock_ddl) -> None:
+        mock_settings.DATA_SCHEMA_SUFFIX = "data"
 
         mock_conn = MagicMock()
         mock_cur = MagicMock()
@@ -481,11 +478,10 @@ class TestCreateClientSchemas:
         mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
         mock_ddl.return_value = mock_conn
 
-        raw, transformed = await create_client_schemas("acme")
-        assert raw == "acme_raw"
-        assert transformed == "acme_transformed"
-        # Two CREATE SCHEMA calls
-        assert mock_cur.execute.call_count == 2
+        data_schema = await create_client_schemas("acme")
+        assert data_schema == "acme_data"
+        # One CREATE SCHEMA call
+        assert mock_cur.execute.call_count == 1
 
     @pytest.mark.asyncio
     async def test_rejects_invalid_slug(self) -> None:
@@ -505,9 +501,8 @@ class TestCreateClientSchemas:
     @pytest.mark.asyncio
     @patch("app.services.schema_manager.ddl_connection")
     @patch("app.services.schema_manager.settings")
-    async def test_returns_correct_schema_names(self, mock_settings, mock_ddl) -> None:
-        mock_settings.RAW_SCHEMA_SUFFIX = "raw"
-        mock_settings.TRANSFORMED_SCHEMA_SUFFIX = "transformed"
+    async def test_returns_correct_schema_name(self, mock_settings, mock_ddl) -> None:
+        mock_settings.DATA_SCHEMA_SUFFIX = "data"
 
         mock_conn = MagicMock()
         mock_cur = MagicMock()
@@ -517,9 +512,8 @@ class TestCreateClientSchemas:
         mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
         mock_ddl.return_value = mock_conn
 
-        raw, transformed = await create_client_schemas("logistics_co")
-        assert raw == "logistics_co_raw"
-        assert transformed == "logistics_co_transformed"
+        data_schema = await create_client_schemas("logistics_co")
+        assert data_schema == "logistics_co_data"
 
 
 # ── create_dataset_tables ─────────────────────────────────────
@@ -540,8 +534,7 @@ class TestCreateDatasetTables:
         mock_ddl.return_value = mock_conn
 
         dataset = SimpleNamespace(
-            schema_raw="acme_raw",
-            schema_transformed="acme_transformed",
+            schema_data="acme_data",
             table_name="effectifs",
             temporal_index="date_col",
             group_by=["department"],
@@ -586,8 +579,7 @@ class TestCreateDatasetTables:
         mock_ddl.return_value = mock_conn
 
         dataset = SimpleNamespace(
-            schema_raw="acme_raw",
-            schema_transformed="acme_transformed",
+            schema_data="acme_data",
             table_name="effectifs",
             temporal_index="date_col",
             group_by=[],
@@ -621,9 +613,8 @@ class TestDropClientSchemas:
     @pytest.mark.asyncio
     @patch("app.services.schema_manager.ddl_connection")
     @patch("app.services.schema_manager.settings")
-    async def test_drops_both_schemas(self, mock_settings, mock_ddl) -> None:
-        mock_settings.RAW_SCHEMA_SUFFIX = "raw"
-        mock_settings.TRANSFORMED_SCHEMA_SUFFIX = "transformed"
+    async def test_drops_data_schema(self, mock_settings, mock_ddl) -> None:
+        mock_settings.DATA_SCHEMA_SUFFIX = "data"
 
         mock_conn = MagicMock()
         mock_cur = MagicMock()
@@ -634,8 +625,8 @@ class TestDropClientSchemas:
         mock_ddl.return_value = mock_conn
 
         await drop_client_schemas("acme")
-        # Two DROP SCHEMA calls (transformed first, then raw)
-        assert mock_cur.execute.call_count == 2
+        # One DROP SCHEMA call
+        assert mock_cur.execute.call_count == 1
 
     @pytest.mark.asyncio
     async def test_rejects_invalid_slug(self) -> None:
@@ -650,10 +641,9 @@ class TestDropClientSchemas:
     @pytest.mark.asyncio
     @patch("app.services.schema_manager.ddl_connection")
     @patch("app.services.schema_manager.settings")
-    async def test_drops_transformed_before_raw(self, mock_settings, mock_ddl) -> None:
-        """Transformed schema should be dropped before raw (dependency order)."""
-        mock_settings.RAW_SCHEMA_SUFFIX = "raw"
-        mock_settings.TRANSFORMED_SCHEMA_SUFFIX = "transformed"
+    async def test_drops_single_schema(self, mock_settings, mock_ddl) -> None:
+        """Single data schema is dropped."""
+        mock_settings.DATA_SCHEMA_SUFFIX = "data"
 
         mock_conn = MagicMock()
         mock_cur = MagicMock()
@@ -665,7 +655,7 @@ class TestDropClientSchemas:
 
         await drop_client_schemas("acme")
         calls = mock_cur.execute.call_args_list
-        assert len(calls) == 2
+        assert len(calls) == 1
 
 
 # ── SQL injection prevention ────────────────────────────────────

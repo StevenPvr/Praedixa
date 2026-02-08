@@ -23,9 +23,11 @@ export default function DonneesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-charcoal">Donnees</h1>
+        <h1 className="text-2xl font-semibold text-charcoal">
+          Mes sites et equipes
+        </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Consultation des donnees importees (lecture seule)
+          Retrouvez tous vos sites, departements et leur configuration
         </p>
       </div>
 
@@ -38,15 +40,17 @@ export default function DonneesPage() {
           <Database className="h-5 w-5" aria-hidden="true" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-charcoal">Datasets</p>
+          <p className="text-sm font-semibold text-charcoal">
+            Fichiers importes
+          </p>
           <p className="text-xs text-gray-500">
-            Voir les datasets configures et leurs donnees
+            Consultez et gerez vos fichiers de donnees importes
           </p>
         </div>
       </Link>
 
-      <section aria-label="Sites">
-        <h2 className="mb-4 text-lg font-semibold text-charcoal">Sites</h2>
+      <section aria-label="Vos sites">
+        <h2 className="mb-4 text-lg font-semibold text-charcoal">Vos sites</h2>
         {sitesError ? (
           <ErrorFallback message={sitesError} onRetry={refetchSites} />
         ) : (
@@ -54,9 +58,9 @@ export default function DonneesPage() {
         )}
       </section>
 
-      <section aria-label="Departements">
+      <section aria-label="Vos equipes / departements">
         <h2 className="mb-4 text-lg font-semibold text-charcoal">
-          Departements
+          Vos equipes / departements
         </h2>
         <DepartmentsTable sites={sitesLoading ? [] : (sites ?? [])} />
       </section>

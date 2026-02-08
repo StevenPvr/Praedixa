@@ -59,6 +59,10 @@ vi.mock("@/components/error-fallback", () => ({
   ),
 }));
 
+vi.mock("@/lib/formatters", () => ({
+  formatHorizon: (h: string) => h,
+}));
+
 describe("DecisionsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -74,15 +78,13 @@ describe("DecisionsPage", () => {
   it("renders the heading", () => {
     render(<DecisionsPage />);
     expect(
-      screen.getByRole("heading", { name: "Decisions" }),
+      screen.getByRole("heading", { name: "Journal des actions" }),
     ).toBeInTheDocument();
   });
 
   it("renders the description", () => {
     render(<DecisionsPage />);
-    expect(
-      screen.getByText("Journal des decisions operationnelles"),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/execution de vos decisions/)).toBeInTheDocument();
   });
 
   it("renders filter section", () => {

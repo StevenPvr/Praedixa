@@ -14,6 +14,7 @@ export * from "./domain/scenario";
 export * from "./domain/operational-decision";
 export * from "./domain/cost-parameter";
 export * from "./domain/report";
+export * from "./domain/dashboard";
 
 // API types
 export * from "./api/responses";

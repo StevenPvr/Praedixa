@@ -38,6 +38,25 @@ vi.mock("@/components/error-fallback", () => ({
   ),
 }));
 
+vi.mock("@/components/status-banner", () => ({
+  StatusBanner: ({
+    children,
+    variant,
+  }: {
+    children: React.ReactNode;
+    variant: string;
+  }) => (
+    <div data-testid="status-banner" data-variant={variant}>
+      {children}
+    </div>
+  ),
+}));
+
+vi.mock("@/lib/formatters", () => ({
+  formatSeverity: (s: string) => s,
+  formatHorizon: (h: string) => h,
+}));
+
 describe("ArbitragePage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -52,7 +71,7 @@ describe("ArbitragePage", () => {
   it("renders the heading", () => {
     render(<ArbitragePage />);
     expect(
-      screen.getByRole("heading", { name: "Arbitrage" }),
+      screen.getByRole("heading", { name: "Alertes a traiter" }),
     ).toBeInTheDocument();
   });
 

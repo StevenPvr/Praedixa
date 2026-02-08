@@ -27,18 +27,19 @@ export default function DecisionStatsPage() {
   );
 
   const reasonColumns: DataTableColumn<ReasonRow>[] = [
-    { key: "reason", label: "Raison" },
-    { key: "count", label: "Occurrences", align: "right" },
+    { key: "reason", label: "Raison invoquee" },
+    { key: "count", label: "Nombre de fois", align: "right" },
   ];
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-charcoal">
-          Statistiques des decisions
+          Qualite des decisions
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Analyse des overrides et de l&apos;adoption
+          Mesurez l&apos;efficacite de vos choix et identifiez les axes
+          d&apos;amelioration
         </p>
       </div>
 
@@ -55,25 +56,25 @@ export default function DecisionStatsPage() {
         </>
       ) : stats ? (
         <>
-          <section aria-label="Indicateurs override">
+          <section aria-label="Indicateurs choix manuels">
             <div className="flex flex-wrap gap-3">
               <MetricCard
-                label="Total decisions"
+                label="Actions enregistrees"
                 value={stats.totalDecisions}
                 status="neutral"
               />
               <MetricCard
-                label="Overrides"
+                label="Choix manuels"
                 value={stats.overrideCount}
                 status={Number(stats.overridePct) > 20 ? "danger" : "good"}
               />
               <MetricCard
-                label="Taux override"
+                label="Taux de choix manuels"
                 value={`${Number(stats.overridePct).toFixed(1)}%`}
                 status={Number(stats.overridePct) > 20 ? "warning" : "good"}
               />
               <MetricCard
-                label="Delta cout moyen"
+                label="Ecart de cout moyen"
                 value={
                   stats.avgCostDelta != null
                     ? `${Number(stats.avgCostDelta) >= 0 ? "+" : ""}${Number(stats.avgCostDelta).toFixed(0)} EUR`
@@ -88,15 +89,15 @@ export default function DecisionStatsPage() {
             </div>
           </section>
 
-          <section aria-label="Top raisons override">
+          <section aria-label="Principales raisons des choix manuels">
             <h2 className="mb-4 text-lg font-semibold text-charcoal">
-              Top raisons d&apos;override
+              Principales raisons des choix manuels
             </h2>
             <DataTable<ReasonRow>
               columns={reasonColumns}
               data={stats.topOverrideReasons}
               getRowKey={(row) => row.reason}
-              emptyMessage="Aucune raison d'override enregistree"
+              emptyMessage="Aucune raison enregistree pour le moment."
             />
           </section>
         </>

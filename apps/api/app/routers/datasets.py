@@ -16,6 +16,7 @@ import os
 import uuid
 from dataclasses import asdict
 from datetime import UTC, datetime
+from typing import Any
 
 import structlog
 from fastapi import APIRouter, Depends, Query, Request, UploadFile
@@ -544,8 +545,9 @@ async def ingest_file(  # pragma: no cover
     # 5. Get dataset columns for mapping
     columns = await get_dataset_columns(dataset_id, tenant, session)
 
-    # Common kwargs for failure logging
-    failure_kwargs = {
+    # Common kwargs for failure logging — used via ** unpacking.
+    # Typed as Any to avoid mypy arg-type errors when unpacking mixed-type dict.
+    failure_kwargs: dict[str, Any] = {
         "dataset_id": dataset_id,
         "started_at": started_at,
         "triggered_by": current_user.user_id,
@@ -616,7 +618,7 @@ async def ingest_file(  # pragma: no cover
     try:
         insertion_result = await asyncio.to_thread(
             insert_raw_rows,
-            dataset.schema_raw,
+            dataset.schema_data,
             dataset.table_name,
             mapping_result.mappings,
             quality_result.cleaned_rows,

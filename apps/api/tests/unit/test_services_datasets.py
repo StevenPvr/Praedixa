@@ -61,8 +61,7 @@ def _make_dataset(**overrides):
         "organization_id": uuid.UUID(ORG_ID),
         "name": "effectifs",
         "table_name": "effectifs",
-        "schema_raw": "acme_raw",
-        "schema_transformed": "acme_transformed",
+        "schema_data": "acme_data",
         "temporal_index": "date_col",
         "group_by": ["department"],
         "pipeline_config": {"lags": [1, 7, 30]},
@@ -161,7 +160,7 @@ class TestCreateDataset:
     async def test_happy_path(self, mock_settings, mock_schemas, mock_tables) -> None:
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
-        mock_schemas.return_value = ("acme_raw", "acme_transformed")
+        mock_schemas.return_value = "acme_data"
         mock_tables.return_value = None
 
         tenant = _make_tenant()
@@ -652,7 +651,7 @@ class TestCreateDatasetExtended:
         """Columns without explicit nullable should default to True."""
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
-        mock_schemas.return_value = ("acme_raw", "acme_transformed")
+        mock_schemas.return_value = "acme_data"
         mock_tables.return_value = None
 
         tenant = _make_tenant()
@@ -687,7 +686,7 @@ class TestCreateDatasetExtended:
         """Columns without explicit ordinal_position default to their index."""
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
-        mock_schemas.return_value = ("acme_raw", "acme_transformed")
+        mock_schemas.return_value = "acme_data"
         mock_tables.return_value = None
 
         tenant = _make_tenant()
@@ -722,7 +721,7 @@ class TestCreateDatasetExtended:
         """Column with rules_override should pass it through."""
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
-        mock_schemas.return_value = ("acme_raw", "acme_transformed")
+        mock_schemas.return_value = "acme_data"
         mock_tables.return_value = None
 
         tenant = _make_tenant()
@@ -762,7 +761,7 @@ class TestCreateDatasetExtended:
         """Dataset status should be ACTIVE after successful table creation."""
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
-        mock_schemas.return_value = ("acme_raw", "acme_transformed")
+        mock_schemas.return_value = "acme_data"
         mock_tables.return_value = None
 
         tenant = _make_tenant()
@@ -999,7 +998,7 @@ class TestGetConfigHistoryExtended:
 
 
 class TestGetFeaturesData:
-    """Tests for get_features_data: dynamic query on schema_transformed."""
+    """Tests for get_features_data: dynamic query on schema_data."""
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.ddl_connection")

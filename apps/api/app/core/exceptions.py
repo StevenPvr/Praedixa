@@ -1,6 +1,7 @@
 """Global exception handling — never expose internals in production."""
 
 from datetime import UTC
+from typing import Any
 
 import structlog
 from fastapi import FastAPI, HTTPException, Request
@@ -36,7 +37,7 @@ class PraedixaError(Exception):
         message: str,
         code: str = "INTERNAL_ERROR",
         status_code: int = 500,
-        details: dict | None = None,
+        details: dict[str, str] | None = None,
     ) -> None:
         self.message = message
         self.code = code
@@ -90,14 +91,14 @@ def _error_response(
     status_code: int,
     code: str,
     message: str,
-    details: dict | None = None,
-    validation_errors: list | None = None,
+    details: dict[str, str] | None = None,
+    validation_errors: list[dict[str, str]] | None = None,
     request_id: str | None = None,
 ) -> JSONResponse:
     """Build a standardized error response."""
     from datetime import datetime
 
-    body: dict = {
+    body: dict[str, Any] = {
         "success": False,
         "error": {
             "code": code,

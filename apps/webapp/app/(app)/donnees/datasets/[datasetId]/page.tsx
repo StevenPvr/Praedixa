@@ -62,7 +62,7 @@ export default function DatasetDetailPage() {
 
   const breadcrumbs = [
     { label: "Donnees", href: "/donnees" },
-    { label: "Datasets", href: "/donnees/datasets" },
+    { label: "Fichiers importes", href: "/donnees/datasets" },
     { label: dataset?.name ?? "...", href: "#" },
   ];
 
@@ -89,25 +89,25 @@ export default function DatasetDetailPage() {
 
           {/* Metadata summary */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <MetadataItem label="Table" value={dataset.tableName} />
+            <MetadataItem label="Table source" value={dataset.tableName} />
             <MetadataItem
-              label="Index temporel"
+              label="Colonne de date"
               value={dataset.temporalIndex}
             />
             <MetadataItem
-              label="Regroupements"
+              label="Regroupement par"
               value={dataset.groupBy.join(", ") || "Aucun"}
             />
             <MetadataItem
-              label="Lignes"
+              label="Nombre de lignes"
               value={dataset.rowCount.toLocaleString("fr-FR")}
             />
           </div>
 
           {/* Columns metadata */}
-          <section aria-label="Schema des colonnes">
+          <section aria-label="Structure du fichier">
             <h2 className="mb-3 text-lg font-semibold text-charcoal">
-              Schema des colonnes
+              Structure du fichier
             </h2>
             <ColumnMetadataTable data={dataset.columns} />
           </section>
@@ -115,9 +115,9 @@ export default function DatasetDetailPage() {
       ) : null}
 
       {/* Data preview */}
-      <section aria-label="Apercu des donnees">
+      <section aria-label="Extrait des donnees">
         <h2 className="mb-3 text-lg font-semibold text-charcoal">
-          Apercu des donnees
+          Extrait des donnees
         </h2>
         {previewError ? (
           <ErrorFallback message={previewError} onRetry={refetchPreview} />
@@ -137,9 +137,9 @@ export default function DatasetDetailPage() {
       </section>
 
       {/* Ingestion history */}
-      <section aria-label="Historique d'ingestion">
+      <section aria-label="Historique des imports">
         <h2 className="mb-3 text-lg font-semibold text-charcoal">
-          Historique d&apos;ingestion
+          Historique des imports
         </h2>
         {ingestionError ? (
           <ErrorFallback message={ingestionError} onRetry={refetchIngestion} />

@@ -346,7 +346,7 @@ describe("DatasetDetailPage", () => {
     );
   });
 
-  it("renders metadata items: Table, Index temporel, Regroupements, Lignes", () => {
+  it("renders metadata items: Table source, Colonne de date, Regroupement par, Nombre de lignes", () => {
     mockApiGetResponses({
       dataset: {
         loading: false,
@@ -369,13 +369,13 @@ describe("DatasetDetailPage", () => {
     });
 
     render(<DatasetDetailPage />);
-    expect(screen.getByText("Table")).toBeInTheDocument();
+    expect(screen.getByText("Table source")).toBeInTheDocument();
     expect(screen.getByText("tbl_effectifs")).toBeInTheDocument();
-    expect(screen.getByText("Index temporel")).toBeInTheDocument();
+    expect(screen.getByText("Colonne de date")).toBeInTheDocument();
     expect(screen.getByText("date")).toBeInTheDocument();
-    expect(screen.getByText("Regroupements")).toBeInTheDocument();
+    expect(screen.getByText("Regroupement par")).toBeInTheDocument();
     expect(screen.getByText("departement, site")).toBeInTheDocument();
-    expect(screen.getByText("Lignes")).toBeInTheDocument();
+    expect(screen.getByText("Nombre de lignes")).toBeInTheDocument();
   });
 
   it("renders 'Aucun' when groupBy is empty", () => {
@@ -432,7 +432,7 @@ describe("DatasetDetailPage", () => {
     );
   });
 
-  it("renders Schema des colonnes section heading", () => {
+  it("renders Structure du fichier section heading", () => {
     mockApiGetResponses({
       dataset: {
         loading: false,
@@ -455,7 +455,7 @@ describe("DatasetDetailPage", () => {
     });
 
     render(<DatasetDetailPage />);
-    expect(screen.getByText("Schema des colonnes")).toBeInTheDocument();
+    expect(screen.getByText("Structure du fichier")).toBeInTheDocument();
   });
 
   it("renders DatasetTable when preview loads", () => {
@@ -535,7 +535,7 @@ describe("DatasetDetailPage", () => {
     });
 
     render(<DatasetDetailPage />);
-    expect(screen.getByText("Apercu des donnees")).toBeInTheDocument();
+    expect(screen.getByText("Extrait des donnees")).toBeInTheDocument();
   });
 
   it("calls useApiGet with encoded datasetId in URL", () => {

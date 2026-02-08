@@ -120,7 +120,7 @@ async def get_operational_decision(
         OperationalDecision,
     )
     result = await session.execute(query)
-    decision = result.scalar_one_or_none()
+    decision: OperationalDecision | None = result.scalar_one_or_none()
 
     if decision is None:
         raise NotFoundError("OperationalDecision", str(decision_id))
@@ -251,7 +251,7 @@ async def update_operational_decision(
 async def get_override_statistics(
     session: AsyncSession,
     tenant: TenantFilter,
-) -> dict:
+) -> dict[str, object]:
     """Return override statistics for the organization.
 
     Tenant isolation: all queries scoped by TenantFilter.

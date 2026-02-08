@@ -32,7 +32,7 @@ class TenantFilter:
     def __init__(self, organization_id: str) -> None:
         self.organization_id = organization_id
 
-    def apply(self, query: Select, model: Any) -> Select:
+    def apply(self, query: Select[Any], model: Any) -> Select[Any]:
         """Apply tenant filter to a SQLAlchemy select query.
 
         The model MUST have an organization_id column (i.e. use TenantMixin).
@@ -40,7 +40,7 @@ class TenantFilter:
         return query.where(model.organization_id == self.organization_id)
 
 
-def require_role(*allowed_roles: str) -> Callable:
+def require_role(*allowed_roles: str) -> Callable[..., JWTPayload]:
     """FastAPI dependency factory: require the user to have one of the specified roles.
 
     Usage as inline dependency (returns the user payload):

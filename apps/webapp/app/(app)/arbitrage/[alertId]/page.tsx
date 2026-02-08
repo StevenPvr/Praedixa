@@ -80,7 +80,9 @@ export default function ArbitrageDetailPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-semibold text-charcoal">Arbitrage</h1>
+        <h1 className="text-2xl font-semibold text-charcoal">
+          Choisir une solution
+        </h1>
         <ErrorFallback message={error} onRetry={refetch} />
       </div>
     );
@@ -89,9 +91,11 @@ export default function ArbitrageDetailPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-charcoal">Arbitrage</h1>
+        <h1 className="text-2xl font-semibold text-charcoal">
+          Choisir une solution
+        </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Comparez les scenarios et validez votre choix
+          Comparez les options et validez votre decision pour cette alerte
         </p>
       </div>
 
@@ -107,7 +111,7 @@ export default function ArbitrageDetailPage() {
             aria-hidden="true"
           />
           <p className="text-sm font-medium text-green-800">
-            Decision enregistree avec succes. Redirection en cours...
+            Votre decision a ete enregistree. Vous allez etre redirige...
           </p>
         </div>
       )}
@@ -152,7 +156,7 @@ export default function ArbitrageDetailPage() {
                     <CardTitle className="text-sm">{opt.label}</CardTitle>
                     <div className="flex gap-1">
                       {opt.isParetoOptimal && (
-                        <Badge variant="secondary">Pareto</Badge>
+                        <Badge variant="secondary">Optimal</Badge>
                       )}
                       {opt.isRecommended && <Badge>Recommande</Badge>}
                     </div>
@@ -161,25 +165,27 @@ export default function ArbitrageDetailPage() {
                 <CardContent>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <p className="text-xs text-gray-500">Type</p>
+                      <p className="text-xs text-gray-500">Type de solution</p>
                       <p className="font-medium text-charcoal">
                         {opt.optionType}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Cout</p>
+                      <p className="text-xs text-gray-500">Cout total</p>
                       <p className="font-medium text-charcoal">
                         {opt.coutTotalEur.toLocaleString("fr-FR")} EUR
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Service</p>
+                      <p className="text-xs text-gray-500">
+                        Couverture attendue
+                      </p>
                       <p className="font-medium text-charcoal">
                         {opt.serviceAttenduPct.toFixed(1)}%
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Heures</p>
+                      <p className="text-xs text-gray-500">Heures couvertes</p>
                       <p className="font-medium text-charcoal">
                         {opt.heuresCouvertes}h
                       </p>
@@ -196,7 +202,7 @@ export default function ArbitrageDetailPage() {
       {paretoPoints.length > 0 && (
         <section aria-label="Graphique Pareto">
           <h2 className="mb-4 text-lg font-semibold text-charcoal">
-            Frontiere de Pareto
+            Compromis cout / couverture
           </h2>
           <div className="rounded-card border border-gray-200 bg-card p-4">
             <ParetoChart
@@ -213,7 +219,7 @@ export default function ArbitrageDetailPage() {
           onClick={() => void handleValidate()}
           disabled={!selectedOptionId || submitting || validationSuccess}
         >
-          {submitting ? "Enregistrement..." : "Valider la decision"}
+          {submitting ? "Enregistrement en cours..." : "Confirmer mon choix"}
         </Button>
       </div>
     </div>

@@ -403,7 +403,7 @@ def _deduplicate(
         dedup_cols = config.duplicate_columns
     else:
         # All columns except system columns
-        all_cols = set()
+        all_cols: set[str] = set()
         for row in sorted_rows:
             all_cols.update(row.keys())
         dedup_cols = sorted(all_cols - _SYSTEM_COLUMNS)

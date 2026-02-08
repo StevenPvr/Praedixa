@@ -141,7 +141,7 @@ class TestGetUsageTrends:
     async def test_returns_trend_list(self) -> None:
         # Each metric query returns one row
         # result.all() is synchronous in SQLAlchemy — use MagicMock
-        row = SimpleNamespace(period=datetime(2026, 2, 1, tzinfo=UTC), count=5)
+        row = SimpleNamespace(period=datetime(2026, 2, 1, tzinfo=UTC), cnt=5)
         result_mocks = []
         for _ in range(4):
             rm = MagicMock()
@@ -197,7 +197,7 @@ class TestGetUsageTrends:
 
     @pytest.mark.asyncio
     async def test_trend_value_is_float(self) -> None:
-        row = SimpleNamespace(period=datetime(2026, 1, 15, tzinfo=UTC), count=42)
+        row = SimpleNamespace(period=datetime(2026, 1, 15, tzinfo=UTC), cnt=42)
         result_mocks = []
         for _ in range(4):
             rm = MagicMock()

@@ -13,14 +13,15 @@ import {
 import type { DataTableColumn, SelectOption, DateRange } from "@praedixa/ui";
 import { useApiGetPaginated } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
+import { formatHorizon } from "@/lib/formatters";
 
 const PAGE_SIZE = 15;
 
 const HORIZON_OPTIONS: SelectOption[] = [
-  { value: "all", label: "Tous les horizons" },
-  { value: "j3", label: "J+3" },
-  { value: "j7", label: "J+7" },
-  { value: "j14", label: "J+14" },
+  { value: "all", label: "Toutes les echeances" },
+  { value: "j3", label: "A 3 jours" },
+  { value: "j7", label: "A 7 jours" },
+  { value: "j14", label: "A 14 jours" },
 ];
 
 export default function DecisionsPage() {
@@ -45,27 +46,25 @@ export default function DecisionsPage() {
   const columns: DataTableColumn<OperationalDecision>[] = [
     { key: "siteId", label: "Site" },
     { key: "decisionDate", label: "Date" },
-    { key: "shift", label: "Shift" },
-    { key: "horizon", label: "Horizon" },
+    { key: "shift", label: "Poste" },
     {
-      key: "chosenOptionId",
-      label: "Option choisie",
-      render: (row) =>
-        row.chosenOptionId ? row.chosenOptionId.slice(0, 8) + "..." : "-",
+      key: "horizon",
+      label: "Echeance",
+      render: (row) => formatHorizon(row.horizon),
     },
     {
       key: "isOverride",
-      label: "Override",
+      label: "Hors reco.",
       render: (row) =>
         row.isOverride ? (
-          <Badge variant="destructive">Override</Badge>
+          <Badge variant="destructive">Choix manuel</Badge>
         ) : (
           <span className="text-gray-400">-</span>
         ),
     },
     {
       key: "coutAttenduEur",
-      label: "Cout attendu",
+      label: "Cout prevu",
       align: "right",
       render: (row) =>
         row.coutAttenduEur != null
@@ -74,12 +73,30 @@ export default function DecisionsPage() {
     },
     {
       key: "coutObserveEur",
-      label: "Cout observe",
+      label: "Cout reel",
       align: "right",
       render: (row) =>
         row.coutObserveEur != null
           ? `${row.coutObserveEur.toLocaleString("fr-FR")} EUR`
           : "-",
+    },
+    {
+      key: "ecart",
+      label: "Ecart",
+      align: "right",
+      render: (row) => {
+        if (row.coutObserveEur == null || row.coutAttenduEur == null) {
+          return <span className="text-gray-400">-</span>;
+        }
+        const delta = row.coutObserveEur - row.coutAttenduEur;
+        const color = delta <= 0 ? "text-green-600" : "text-red-600";
+        return (
+          <span className={color}>
+            {delta >= 0 ? "+" : ""}
+            {delta.toLocaleString("fr-FR")} EUR
+          </span>
+        );
+      },
     },
     {
       key: "id",
@@ -89,7 +106,7 @@ export default function DecisionsPage() {
           href={`/decisions/${row.id}`}
           className="text-sm font-medium text-amber-600 hover:text-amber-700"
         >
-          Detail
+          Voir
         </Link>
       ),
     },
@@ -98,16 +115,19 @@ export default function DecisionsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-charcoal">Decisions</h1>
+        <h1 className="text-2xl font-semibold text-charcoal">
+          Journal des actions
+        </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Journal des decisions operationnelles
+          Suivez l&apos;execution de vos decisions et comparez previsions vs
+          realite
         </p>
       </div>
 
       {/* Filters */}
       <section aria-label="Filtres" className="flex flex-wrap items-end gap-4">
         <SelectDropdown
-          label="Horizon"
+          label="Echeance"
           options={HORIZON_OPTIONS}
           value={horizonFilter}
           onChange={(v) => {
@@ -126,7 +146,7 @@ export default function DecisionsPage() {
             }}
             className="h-4 w-4 rounded border-gray-300"
           />
-          Overrides uniquement
+          Choix hors recommandation uniquement
         </label>
       </section>
 
@@ -137,7 +157,7 @@ export default function DecisionsPage() {
       ) : data.length === 0 ? (
         <ErrorFallback
           variant="empty"
-          message="Aucune decision pour les filtres selectionnes."
+          message="Aucune action pour ces criteres. Modifiez les filtres ou traitez de nouvelles alertes."
         />
       ) : (
         <DataTable<OperationalDecision>

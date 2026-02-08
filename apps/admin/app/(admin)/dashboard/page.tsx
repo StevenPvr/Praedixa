@@ -310,19 +310,19 @@ export default function AdminDashboardPage() {
               <div className="flex items-baseline gap-2">
                 <Target className="h-5 w-5 text-gray-400" />
                 <span className="text-3xl font-semibold text-charcoal">
-                  {adoption.overallAdoptionPct.toFixed(1)}%
+                  {(adoption.overallAdoptionPct ?? 0).toFixed(1)}%
                 </span>
                 <span className="text-sm text-gray-400">
                   taux d&apos;adoption
                 </span>
               </div>
               <div className="flex justify-between text-sm text-gray-500">
-                <span>{adoption.adoptedCount} adoptees</span>
-                <span>{adoption.overriddenCount} modifiees</span>
+                <span>{adoption.adoptedCount ?? 0} adoptees</span>
+                <span>{adoption.overriddenCount ?? 0} modifiees</span>
               </div>
               <p className="text-sm text-gray-500">
-                Sur {adoption.totalDecisions} decision
-                {adoption.totalDecisions !== 1 ? "s" : ""} totales
+                Sur {adoption.totalDecisions ?? 0} decision
+                {(adoption.totalDecisions ?? 0) !== 1 ? "s" : ""} totales
               </p>
             </div>
           ) : (

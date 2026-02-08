@@ -61,32 +61,32 @@ describe("Sidebar", () => {
   describe("navigation items", () => {
     it("renders all main nav items for admin", () => {
       render(<Sidebar {...defaultProps} />);
-      expect(screen.getByText("Dashboard")).toBeInTheDocument();
+      expect(screen.getByText("Tableau de bord")).toBeInTheDocument();
       expect(screen.getByText("Donnees")).toBeInTheDocument();
-      expect(screen.getByText("Previsions")).toBeInTheDocument();
-      expect(screen.getByText("Arbitrage")).toBeInTheDocument();
-      expect(screen.getByText("Decisions")).toBeInTheDocument();
+      expect(screen.getByText("Anticipation")).toBeInTheDocument();
+      expect(screen.getByText("Traitement")).toBeInTheDocument();
+      expect(screen.getByText("Suivi")).toBeInTheDocument();
       expect(screen.getByText("Rapports")).toBeInTheDocument();
     });
 
-    it("renders Parametres for admin users", () => {
+    it("renders Reglages for admin users", () => {
       render(<Sidebar {...defaultProps} userRole="admin" />);
-      expect(screen.getByText("Parametres")).toBeInTheDocument();
+      expect(screen.getByText("Reglages")).toBeInTheDocument();
     });
 
-    it("hides Parametres for manager users", () => {
+    it("hides Reglages for manager users", () => {
       render(<Sidebar {...defaultProps} userRole="manager" />);
-      expect(screen.queryByText("Parametres")).not.toBeInTheDocument();
+      expect(screen.queryByText("Reglages")).not.toBeInTheDocument();
     });
 
-    it("hides Parametres for viewer users", () => {
+    it("hides Reglages for viewer users", () => {
       render(<Sidebar {...defaultProps} userRole="viewer" />);
-      expect(screen.queryByText("Parametres")).not.toBeInTheDocument();
+      expect(screen.queryByText("Reglages")).not.toBeInTheDocument();
     });
 
     it("renders correct hrefs for nav items", () => {
       render(<Sidebar {...defaultProps} />);
-      expect(screen.getByText("Dashboard").closest("a")).toHaveAttribute(
+      expect(screen.getByText("Tableau de bord").closest("a")).toHaveAttribute(
         "href",
         "/dashboard",
       );
@@ -106,7 +106,7 @@ describe("Sidebar", () => {
   describe("active state", () => {
     it("marks the current page with aria-current=page", () => {
       render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
-      const dashboardLink = screen.getByText("Dashboard").closest("a");
+      const dashboardLink = screen.getByText("Tableau de bord").closest("a");
       expect(dashboardLink).toHaveAttribute("aria-current", "page");
     });
 
@@ -127,57 +127,58 @@ describe("Sidebar", () => {
       // Click Donnees to expand
       await user.click(screen.getByText("Donnees"));
 
-      expect(screen.getByText("Sites & Departements")).toBeInTheDocument();
-      expect(screen.getByText("Datasets")).toBeInTheDocument();
-      expect(screen.getByText("Donnees canoniques")).toBeInTheDocument();
+      expect(screen.getByText("Mes sites")).toBeInTheDocument();
+      expect(screen.getByText("Fichiers importes")).toBeInTheDocument();
+      expect(screen.getByText("Donnees consolidees")).toBeInTheDocument();
     });
 
     it("auto-expands section for /donnees/canonique path", () => {
       render(<Sidebar {...defaultProps} currentPath="/donnees/canonique" />);
-      expect(screen.getByText("Donnees canoniques")).toBeInTheDocument();
+      expect(screen.getByText("Donnees consolidees")).toBeInTheDocument();
     });
 
-    it("shows Previsions children: Heatmap couverture, Alertes couverture", async () => {
+    it("shows Anticipation children: Vue par site, Toutes les alertes", async () => {
       const user = userEvent.setup();
       render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
 
-      await user.click(screen.getByText("Previsions"));
+      await user.click(screen.getByText("Anticipation"));
 
-      expect(screen.getByText("Heatmap couverture")).toBeInTheDocument();
-      expect(screen.getByText("Alertes couverture")).toBeInTheDocument();
+      expect(screen.getByText("Vue par site")).toBeInTheDocument();
+      expect(screen.getByText("Toutes les alertes")).toBeInTheDocument();
     });
 
-    it("shows Arbitrage children: Scenarios, Historique", async () => {
+    it("shows Traitement children: Alertes a traiter, Decisions passees", async () => {
       const user = userEvent.setup();
       render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
 
-      await user.click(screen.getByText("Arbitrage"));
+      await user.click(screen.getByText("Traitement"));
 
-      expect(screen.getByText("Scenarios")).toBeInTheDocument();
-      expect(screen.getByText("Historique")).toBeInTheDocument();
+      expect(screen.getByText("Alertes a traiter")).toBeInTheDocument();
+      expect(screen.getByText("Decisions passees")).toBeInTheDocument();
     });
 
-    it("shows Decisions children: Journal, Statistiques", async () => {
+    it("shows Suivi children: Journal des actions, Qualite des decisions", async () => {
       const user = userEvent.setup();
       render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
 
-      await user.click(screen.getByText("Decisions"));
+      await user.click(screen.getByText("Suivi"));
 
-      expect(screen.getByText("Journal")).toBeInTheDocument();
-      expect(screen.getByText("Statistiques")).toBeInTheDocument();
+      expect(screen.getByText("Journal des actions")).toBeInTheDocument();
+      expect(screen.getByText("Qualite des decisions")).toBeInTheDocument();
     });
 
-    it("renders sub-item links with correct hrefs for Previsions", async () => {
+    it("renders sub-item links with correct hrefs for Anticipation", async () => {
       const user = userEvent.setup();
       render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
 
-      await user.click(screen.getByText("Previsions"));
+      await user.click(screen.getByText("Anticipation"));
 
+      expect(screen.getByText("Vue par site").closest("a")).toHaveAttribute(
+        "href",
+        "/previsions",
+      );
       expect(
-        screen.getByText("Heatmap couverture").closest("a"),
-      ).toHaveAttribute("href", "/previsions");
-      expect(
-        screen.getByText("Alertes couverture").closest("a"),
+        screen.getByText("Toutes les alertes").closest("a"),
       ).toHaveAttribute("href", "/previsions/alertes");
     });
   });
@@ -227,7 +228,7 @@ describe("Sidebar", () => {
 
     it("hides nav item labels when collapsed", () => {
       render(<Sidebar {...defaultProps} collapsed={true} />);
-      expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+      expect(screen.queryByText("Tableau de bord")).not.toBeInTheDocument();
       expect(screen.queryByText("Donnees")).not.toBeInTheDocument();
     });
   });
@@ -250,7 +251,7 @@ describe("Sidebar", () => {
       expect(bottomListItems).toHaveLength(1);
     });
 
-    it("renders 6 nav items for non-admin (no Parametres)", () => {
+    it("renders 6 nav items for non-admin (no Reglages)", () => {
       render(<Sidebar {...defaultProps} userRole="viewer" />);
       const lists = screen.getAllByRole("list");
       const mainListItems = within(lists[0]).getAllByRole("listitem");

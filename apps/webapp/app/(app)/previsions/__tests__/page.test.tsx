@@ -54,6 +54,12 @@ vi.mock("@/components/error-fallback", () => ({
   ),
 }));
 
+vi.mock("@/lib/formatters", () => ({
+  formatSeverity: (s: string) => s,
+  formatHorizon: (h: string) => h,
+  formatAlertStatus: (s: string) => s,
+}));
+
 describe("PrevisionsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -68,7 +74,7 @@ describe("PrevisionsPage", () => {
   it("renders the heading", () => {
     render(<PrevisionsPage />);
     expect(
-      screen.getByRole("heading", { name: "Previsions" }),
+      screen.getByRole("heading", { name: "Anticipation" }),
     ).toBeInTheDocument();
   });
 
@@ -80,14 +86,14 @@ describe("PrevisionsPage", () => {
   it("renders heatmap section heading", () => {
     render(<PrevisionsPage />);
     expect(
-      screen.getByRole("heading", { name: "Couverture par site" }),
+      screen.getByRole("heading", { name: "Couverture par site et par jour" }),
     ).toBeInTheDocument();
   });
 
   it("renders alerts section heading", () => {
     render(<PrevisionsPage />);
     expect(
-      screen.getByRole("heading", { name: "Alertes actives" }),
+      screen.getByRole("heading", { name: "Alertes de sous-effectif" }),
     ).toBeInTheDocument();
   });
 

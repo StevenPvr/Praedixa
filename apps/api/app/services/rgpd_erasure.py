@@ -383,7 +383,7 @@ async def execute_erasure(
         lambda: _step_delete_platform_rows(db, org_id, request_id, audit_log),
         lambda: _step_commit(db, request_id, audit_log),
     ):
-        failed = await step_fn()
+        failed = await step_fn()  # type: ignore[no-untyped-call]
         if failed is not None:
             return failed
 
@@ -449,7 +449,7 @@ async def verify_erasure(
                 select(func.count())
                 .select_from(model)
                 .where(
-                    model.organization_id == org_id,  # type: ignore[attr-defined]
+                    model.organization_id == org_id,
                 )
             )
         else:
@@ -538,7 +538,7 @@ async def _step_drop_schemas(  # pragma: no cover
     request_id: uuid.UUID,
     audit_log: list[str],
 ) -> ErasureRequest | None:
-    """Step 2: Drop client raw and transformed schemas."""
+    """Step 2: Drop client data schema."""
     try:
         # Import here to avoid circular dependency at module level
         from app.services.schema_manager import drop_client_schemas
@@ -651,7 +651,7 @@ async def _delete_org_data(  # pragma: no cover
                     model.dataset_id.in_(dataset_ids),  # type: ignore[attr-defined]
                 )
             )
-            deleted_counts[table_name] = result.rowcount  # type: ignore[assignment]
+            deleted_counts[table_name] = result.rowcount  # type: ignore[attr-defined]
 
         # Delete client_datasets themselves
         result = await db.execute(
@@ -659,15 +659,15 @@ async def _delete_org_data(  # pragma: no cover
                 ClientDataset.organization_id == org_id,
             )
         )
-        deleted_counts["client_datasets"] = result.rowcount  # type: ignore[assignment]
+        deleted_counts["client_datasets"] = result.rowcount  # type: ignore[attr-defined]
 
     # Delete users for this org
     result = await db.execute(delete(User).where(User.organization_id == org_id))
-    deleted_counts["users"] = result.rowcount  # type: ignore[assignment]
+    deleted_counts["users"] = result.rowcount  # type: ignore[attr-defined]
 
     # Delete the organization itself (also cascades to sites, etc.)
     result = await db.execute(delete(Organization).where(Organization.id == org_id))
-    deleted_counts["organizations"] = result.rowcount  # type: ignore[assignment]
+    deleted_counts["organizations"] = result.rowcount  # type: ignore[attr-defined]
 
     return deleted_counts
 

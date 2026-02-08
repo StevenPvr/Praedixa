@@ -195,7 +195,7 @@ async def generate_scenarios(
 def _compute_all_options(
     gap: Decimal,
     cost_param: object,
-) -> list[dict]:
+) -> list[dict[str, object]]:
     """Compute the 6 scenario options given a gap and cost parameters."""
     # Extract cost parameters (handle both ORM objects and dicts)
     c_int = Decimal(str(getattr(cost_param, "c_int", 0)))

@@ -11,6 +11,7 @@ Security:
 import math
 import uuid
 from datetime import UTC, date, datetime
+from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -130,9 +131,9 @@ async def create_record(
         competence=body.competence,
         charge_units=body.charge_units,
         realise_h=body.realise_h,
-        abs_h=body.abs_h if body.abs_h is not None else 0,
-        hs_h=body.hs_h if body.hs_h is not None else 0,
-        interim_h=body.interim_h if body.interim_h is not None else 0,
+        abs_h=body.abs_h if body.abs_h is not None else Decimal("0"),
+        hs_h=body.hs_h if body.hs_h is not None else Decimal("0"),
+        interim_h=body.interim_h if body.interim_h is not None else Decimal("0"),
         cout_interne_est=body.cout_interne_est,
     )
 
@@ -149,7 +150,7 @@ async def bulk_import(
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
     _user: JWTPayload = Depends(require_role("org_admin")),
-) -> ApiResponse[dict]:
+) -> ApiResponse[dict[str, int]]:
     """Bulk import canonical records. Requires org_admin role.
 
     Deduplication by unique constraint (org_id, site_id, date, shift, competence).

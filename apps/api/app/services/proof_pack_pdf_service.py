@@ -19,12 +19,16 @@ Security:
 """
 
 from io import BytesIO
+from typing import Any
 
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import cm, mm
-from reportlab.platypus import (
+from reportlab.lib import colors  # type: ignore[import-untyped]
+from reportlab.lib.pagesizes import A4  # type: ignore[import-untyped]
+from reportlab.lib.styles import (  # type: ignore[import-untyped]
+    ParagraphStyle,
+    getSampleStyleSheet,
+)
+from reportlab.lib.units import cm, mm  # type: ignore[import-untyped]
+from reportlab.platypus import (  # type: ignore[import-untyped]
     Paragraph,
     SimpleDocTemplate,
     Spacer,
@@ -113,12 +117,12 @@ def _fmt_pct(value: float | str | None) -> str:
 
 
 def _build_cost_section(
-    proof_record: dict,
+    proof_record: dict[str, Any],
     gain: float | str,
     styles: dict[str, ParagraphStyle],
-) -> list:
+) -> list[Any]:
     """Build the cost results section elements."""
-    elements: list = []
+    elements: list[Any] = []
     elements.append(Paragraph("R\u00e9sultats Co\u00fbts", styles["heading"]))
 
     cout_bau = proof_record.get("cout_bau_eur", 0)
@@ -167,11 +171,11 @@ def _build_cost_section(
 
 
 def _build_decisions_section(
-    decisions: list[dict],
+    decisions: list[dict[str, Any]],
     styles: dict[str, ParagraphStyle],
-) -> list:
+) -> list[Any]:
     """Build the top decisions section elements."""
-    elements: list = []
+    elements: list[Any] = []
     elements.append(Paragraph("Top D\u00e9cisions", styles["heading"]))
 
     top_decisions = decisions[:10]
@@ -223,8 +227,8 @@ def generate_proof_pack_pdf(
     org_name: str,
     site_id: str,
     month: str,
-    proof_record: dict,
-    decisions: list[dict],
+    proof_record: dict[str, Any],
+    decisions: list[dict[str, Any]],
 ) -> bytes:
     """Generate a PDF proof pack.
 
@@ -244,7 +248,7 @@ def generate_proof_pack_pdf(
     )
 
     styles = _build_styles()
-    elements: list = []
+    elements: list[Any] = []
 
     # ── 1. Executive Summary ────────────────────────────
     elements.append(Paragraph("Proof Pack Praedixa", styles["title"]))

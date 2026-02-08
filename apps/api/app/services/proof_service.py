@@ -191,7 +191,8 @@ async def generate_proof_record(
         ProofRecord,
     )
     result = await session.execute(fetch_q)
-    return result.scalar_one()
+    record: ProofRecord = result.scalar_one()
+    return record
 
 
 async def list_proof_records(
@@ -230,7 +231,7 @@ async def get_proof_summary(
     *,
     date_from: date | None = None,
     date_to: date | None = None,
-) -> dict:
+) -> dict[str, object]:
     """Aggregate proof across all sites.
 
     Tenant isolation: all queries scoped by TenantFilter.

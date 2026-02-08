@@ -105,7 +105,7 @@ async def _get_alert(
         CoverageAlert,
     )
     result = await session.execute(query)
-    alert = result.scalar_one_or_none()
+    alert: CoverageAlert | None = result.scalar_one_or_none()
 
     if alert is None:
         raise NotFoundError("CoverageAlert", str(alert_id))

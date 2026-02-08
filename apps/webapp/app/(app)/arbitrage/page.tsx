@@ -6,6 +6,8 @@ import { DataTable, Badge, SkeletonTable } from "@praedixa/ui";
 import type { DataTableColumn } from "@praedixa/ui";
 import { useApiGet } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
+import { StatusBanner } from "@/components/status-banner";
+import { formatSeverity, formatHorizon } from "@/lib/formatters";
 
 export default function ArbitragePage() {
   const {
@@ -18,11 +20,15 @@ export default function ArbitragePage() {
   const columns: DataTableColumn<CoverageAlert>[] = [
     { key: "siteId", label: "Site" },
     { key: "alertDate", label: "Date" },
-    { key: "shift", label: "Shift" },
-    { key: "horizon", label: "Horizon" },
+    { key: "shift", label: "Poste" },
+    {
+      key: "horizon",
+      label: "Echeance",
+      render: (row) => formatHorizon(row.horizon),
+    },
     {
       key: "severity",
-      label: "Severite",
+      label: "Urgence",
       render: (row) => (
         <Badge
           variant={
@@ -35,13 +41,13 @@ export default function ArbitragePage() {
                   : "secondary"
           }
         >
-          {row.severity}
+          {formatSeverity(row.severity)}
         </Badge>
       ),
     },
     {
       key: "gapH",
-      label: "Gap (h)",
+      label: "Heures manquantes",
       align: "right",
     },
     {
@@ -52,7 +58,7 @@ export default function ArbitragePage() {
           href={`/arbitrage/${row.id}`}
           className="text-sm font-medium text-amber-600 hover:text-amber-700"
         >
-          Arbitrer
+          Trouver une solution
         </Link>
       ),
     },
@@ -61,11 +67,23 @@ export default function ArbitragePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-charcoal">Arbitrage</h1>
+        <h1 className="text-2xl font-semibold text-charcoal">
+          Alertes a traiter
+        </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Scenarios d&apos;arbitrage pour les alertes de couverture ouvertes
+          Choisissez une alerte et comparez les solutions disponibles
         </p>
       </div>
+
+      {!loading && !error && (
+        <StatusBanner
+          variant={(alerts ?? []).length > 0 ? "warning" : "success"}
+        >
+          {(alerts ?? []).length > 0
+            ? `${(alerts ?? []).length} alerte(s) en attente de votre decision`
+            : "Toutes les alertes ont ete traitees"}
+        </StatusBanner>
+      )}
 
       {error ? (
         <ErrorFallback message={error} onRetry={refetch} />
@@ -76,7 +94,7 @@ export default function ArbitragePage() {
           columns={columns}
           data={alerts ?? []}
           getRowKey={(row) => row.id}
-          emptyMessage="Aucune alerte ouverte a arbitrer"
+          emptyMessage="Toutes les alertes ont ete traitees. Revenez quand de nouvelles alertes apparaitront."
         />
       )}
     </div>

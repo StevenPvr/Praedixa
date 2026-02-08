@@ -84,7 +84,7 @@ describe("DatasetsPage", () => {
     mockUseApiGetPaginated.mockReset();
   });
 
-  it("renders the Datasets heading", () => {
+  it("renders the Fichiers importes heading", () => {
     mockUseApiGetPaginated.mockReturnValue({
       data: [],
       total: 0,
@@ -95,7 +95,7 @@ describe("DatasetsPage", () => {
 
     render(<DatasetsPage />);
     expect(
-      screen.getByRole("heading", { name: "Datasets" }),
+      screen.getByRole("heading", { name: "Fichiers importes" }),
     ).toBeInTheDocument();
   });
 
@@ -112,7 +112,7 @@ describe("DatasetsPage", () => {
     const breadcrumbs = screen.getAllByTestId("breadcrumb");
     expect(breadcrumbs).toHaveLength(2);
     expect(breadcrumbs[0]).toHaveTextContent("Donnees");
-    expect(breadcrumbs[1]).toHaveTextContent("Datasets");
+    expect(breadcrumbs[1]).toHaveTextContent("Fichiers importes");
   });
 
   it("shows skeleton cards when loading", () => {
@@ -156,9 +156,7 @@ describe("DatasetsPage", () => {
     render(<DatasetsPage />);
     const fallback = screen.getByTestId("error-fallback");
     expect(fallback).toHaveAttribute("data-variant", "empty");
-    expect(fallback).toHaveTextContent(
-      "Aucun dataset configure pour cette organisation.",
-    );
+    expect(fallback).toHaveTextContent("Aucun fichier importe pour le moment.");
   });
 
   it("renders DatasetCard for each dataset", () => {
@@ -204,8 +202,8 @@ describe("DatasetsPage", () => {
     });
 
     render(<DatasetsPage />);
-    expect(screen.queryByText("Precedent")).not.toBeInTheDocument();
-    expect(screen.queryByText("Suivant")).not.toBeInTheDocument();
+    expect(screen.queryByText("Page precedente")).not.toBeInTheDocument();
+    expect(screen.queryByText("Page suivante")).not.toBeInTheDocument();
   });
 
   it("shows pagination when total exceeds page size", () => {
@@ -218,10 +216,10 @@ describe("DatasetsPage", () => {
     });
 
     render(<DatasetsPage />);
-    expect(screen.getByText("Precedent")).toBeInTheDocument();
-    expect(screen.getByText("Suivant")).toBeInTheDocument();
+    expect(screen.getByText("Page precedente")).toBeInTheDocument();
+    expect(screen.getByText("Page suivante")).toBeInTheDocument();
     expect(screen.getByText(/Page 1 sur 2/)).toBeInTheDocument();
-    expect(screen.getByText(/24 datasets/)).toBeInTheDocument();
+    expect(screen.getByText(/24 fichiers/)).toBeInTheDocument();
   });
 
   it("disables Precedent button on first page", () => {
@@ -234,8 +232,8 @@ describe("DatasetsPage", () => {
     });
 
     render(<DatasetsPage />);
-    expect(screen.getByText("Precedent")).toBeDisabled();
-    expect(screen.getByText("Suivant")).not.toBeDisabled();
+    expect(screen.getByText("Page precedente")).toBeDisabled();
+    expect(screen.getByText("Page suivante")).not.toBeDisabled();
   });
 
   it("advances to next page when Suivant clicked", () => {
@@ -248,7 +246,7 @@ describe("DatasetsPage", () => {
     });
 
     render(<DatasetsPage />);
-    fireEvent.click(screen.getByText("Suivant"));
+    fireEvent.click(screen.getByText("Page suivante"));
 
     // After clicking next, the hook should be called with page 2
     // The component re-renders with page 2

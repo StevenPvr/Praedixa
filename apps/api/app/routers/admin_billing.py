@@ -9,6 +9,7 @@ Security:
 import math
 import uuid
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any, cast
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,6 +31,9 @@ from app.services.admin_billing import (
     get_billing_info,
     get_plan_history,
 )
+
+if TYPE_CHECKING:
+    from app.models.organization import SubscriptionPlan
 
 router = APIRouter(tags=["admin-billing"])
 
@@ -56,10 +60,10 @@ async def get_org_billing(
     return ApiResponse(
         success=True,
         data=AdminBillingRead(
-            organization_id=info["organization_id"],
-            plan=info["plan"],
-            limits=info["limits"],
-            usage=info["usage"],
+            organization_id=cast("uuid.UUID", info["organization_id"]),
+            plan=cast("SubscriptionPlan", info["plan"]),
+            limits=cast("dict[str, Any]", info["limits"]),
+            usage=cast("dict[str, Any]", info["usage"]),
         ),
         timestamp=datetime.now(UTC).isoformat(),
     )

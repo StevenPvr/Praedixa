@@ -41,8 +41,7 @@ def _make_dataset() -> SimpleNamespace:
         id=DATASET_ID,
         organization_id=ORG_ID,
         name="effectifs",
-        schema_raw="acme_raw",
-        schema_transformed="acme_transformed",
+        schema_data="acme_data",
         table_name="effectifs",
     )
 
@@ -88,7 +87,7 @@ def _make_insertion_result() -> InsertionResult:
     return InsertionResult(
         rows_inserted=1,
         batch_id=uuid.uuid4(),
-        schema_name="acme_raw",
+        schema_name="acme_data",
         table_name="effectifs",
         warnings=[],
     )

@@ -18,6 +18,7 @@ vi.mock("../client", () => ({
 import { apiGet, apiGetPaginated, apiPost, apiPatch } from "../client";
 import {
   getHealth,
+  getDashboardSummary,
   getOrganization,
   getDepartments,
   getSites,
@@ -41,6 +42,22 @@ import {
   getDatasetData,
   getDatasetColumns,
   getIngestionLog,
+  listCanonical,
+  getCanonicalQuality,
+  listCoverageAlerts,
+  acknowledgeCoverageAlert,
+  resolveCoverageAlert,
+  getScenariosForAlert,
+  generateScenarios,
+  listOperationalDecisions,
+  getOverrideStats,
+  listCostParameters,
+  getEffectiveCostParameters,
+  getCostParameterHistory,
+  listProofPacks,
+  getProofSummary,
+  generateProof,
+  triggerMockForecast,
 } from "../endpoints";
 
 // ---------------------------------------------------------------------------
@@ -633,6 +650,375 @@ describe("getIngestionLog", () => {
 
     expect(mockApiGet).toHaveBeenCalledWith(
       `/api/v1/datasets/${encodeURIComponent("ds/special")}/ingestion-log`,
+      mockToken,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Dashboard
+// ---------------------------------------------------------------------------
+
+describe("getDashboardSummary", () => {
+  it("should call apiGet with correct path and token", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { coverageHuman: 0.85 },
+      timestamp: "t",
+    });
+
+    await getDashboardSummary(mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/dashboard/summary",
+      mockToken,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Canonical Data
+// ---------------------------------------------------------------------------
+
+describe("listCanonical", () => {
+  it("should call apiGetPaginated with correct path", async () => {
+    mockApiGetPaginated.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      pagination: { page: 1, pageSize: 20, total: 0, totalPages: 0 },
+      timestamp: "t",
+    });
+
+    await listCanonical({}, mockToken);
+
+    expect(mockApiGetPaginated).toHaveBeenCalledWith(
+      "/api/v1/canonical",
+      mockToken,
+    );
+  });
+
+  it("should build query string from params", async () => {
+    mockApiGetPaginated.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      pagination: { page: 1, pageSize: 20, total: 0, totalPages: 0 },
+      timestamp: "t",
+    });
+
+    await listCanonical({ page: 2, siteId: "site-1" }, mockToken);
+
+    const calledPath = mockApiGetPaginated.mock.calls[0][0];
+    expect(calledPath).toContain("/api/v1/canonical");
+    expect(calledPath).toContain("page=2");
+    expect(calledPath).toContain("siteId=site-1");
+  });
+});
+
+describe("getCanonicalQuality", () => {
+  it("should call apiGet with correct path", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { totalRecords: 100 },
+      timestamp: "t",
+    });
+
+    await getCanonicalQuality(mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/canonical/quality",
+      mockToken,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Coverage Alerts
+// ---------------------------------------------------------------------------
+
+describe("listCoverageAlerts", () => {
+  it("should call apiGet with correct path", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      timestamp: "t",
+    });
+
+    await listCoverageAlerts({}, mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/coverage-alerts",
+      mockToken,
+    );
+  });
+
+  it("should build query string from params", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      timestamp: "t",
+    });
+
+    await listCoverageAlerts({ status: "open", siteId: "s1" }, mockToken);
+
+    const calledPath = mockApiGet.mock.calls[0][0];
+    expect(calledPath).toContain("/api/v1/coverage-alerts");
+    expect(calledPath).toContain("status=open");
+    expect(calledPath).toContain("siteId=s1");
+  });
+});
+
+describe("acknowledgeCoverageAlert", () => {
+  it("should call apiPatch with correct path and empty body", async () => {
+    mockApiPatch.mockResolvedValueOnce({
+      success: true,
+      data: { id: "ca-1" },
+      timestamp: "t",
+    });
+
+    await acknowledgeCoverageAlert("ca-1", mockToken);
+
+    expect(mockApiPatch).toHaveBeenCalledWith(
+      "/api/v1/coverage-alerts/ca-1/acknowledge",
+      {},
+      mockToken,
+    );
+  });
+});
+
+describe("resolveCoverageAlert", () => {
+  it("should call apiPatch with correct path and empty body", async () => {
+    mockApiPatch.mockResolvedValueOnce({
+      success: true,
+      data: { id: "ca-1" },
+      timestamp: "t",
+    });
+
+    await resolveCoverageAlert("ca-1", mockToken);
+
+    expect(mockApiPatch).toHaveBeenCalledWith(
+      "/api/v1/coverage-alerts/ca-1/resolve",
+      {},
+      mockToken,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Scenarios
+// ---------------------------------------------------------------------------
+
+describe("getScenariosForAlert", () => {
+  it("should call apiGet with correct path", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { alertId: "a-1", options: [] },
+      timestamp: "t",
+    });
+
+    await getScenariosForAlert("a-1", mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/scenarios/alert/a-1",
+      mockToken,
+    );
+  });
+});
+
+describe("generateScenarios", () => {
+  it("should call apiPost with correct path and empty body", async () => {
+    mockApiPost.mockResolvedValueOnce({
+      success: true,
+      data: { alertId: "a-1", options: [] },
+      timestamp: "t",
+    });
+
+    await generateScenarios("a-1", mockToken);
+
+    expect(mockApiPost).toHaveBeenCalledWith(
+      "/api/v1/scenarios/generate/a-1",
+      {},
+      mockToken,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Operational Decisions
+// ---------------------------------------------------------------------------
+
+describe("listOperationalDecisions", () => {
+  it("should call apiGetPaginated with correct path", async () => {
+    mockApiGetPaginated.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      pagination: { page: 1, pageSize: 20, total: 0, totalPages: 0 },
+      timestamp: "t",
+    });
+
+    await listOperationalDecisions({}, mockToken);
+
+    expect(mockApiGetPaginated).toHaveBeenCalledWith(
+      "/api/v1/operational-decisions",
+      mockToken,
+    );
+  });
+
+  it("should build query string from params", async () => {
+    mockApiGetPaginated.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      pagination: { page: 1, pageSize: 20, total: 0, totalPages: 0 },
+      timestamp: "t",
+    });
+
+    await listOperationalDecisions({ page: 3 }, mockToken);
+
+    const calledPath = mockApiGetPaginated.mock.calls[0][0];
+    expect(calledPath).toContain("/api/v1/operational-decisions");
+    expect(calledPath).toContain("page=3");
+  });
+});
+
+describe("getOverrideStats", () => {
+  it("should call apiGet with correct path", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { totalDecisions: 10, overrideCount: 2 },
+      timestamp: "t",
+    });
+
+    await getOverrideStats(mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/operational-decisions/override-stats",
+      mockToken,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Cost Parameters
+// ---------------------------------------------------------------------------
+
+describe("listCostParameters", () => {
+  it("should call apiGet with correct path", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      timestamp: "t",
+    });
+
+    await listCostParameters(mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/cost-parameters",
+      mockToken,
+    );
+  });
+});
+
+describe("getEffectiveCostParameters", () => {
+  it("should call apiGet with correct path", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { cInt: 25 },
+      timestamp: "t",
+    });
+
+    await getEffectiveCostParameters(mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/cost-parameters/effective",
+      mockToken,
+    );
+  });
+});
+
+describe("getCostParameterHistory", () => {
+  it("should call apiGet with correct path", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      timestamp: "t",
+    });
+
+    await getCostParameterHistory(mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/cost-parameters/history",
+      mockToken,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Proof
+// ---------------------------------------------------------------------------
+
+describe("listProofPacks", () => {
+  it("should call apiGet with correct path", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      timestamp: "t",
+    });
+
+    await listProofPacks(mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith("/api/v1/proof", mockToken);
+  });
+});
+
+describe("getProofSummary", () => {
+  it("should call apiGet with correct path", async () => {
+    mockApiGet.mockResolvedValueOnce({
+      success: true,
+      data: { totalGainNetEur: 1000 },
+      timestamp: "t",
+    });
+
+    await getProofSummary(mockToken);
+
+    expect(mockApiGet).toHaveBeenCalledWith("/api/v1/proof/summary", mockToken);
+  });
+});
+
+describe("generateProof", () => {
+  it("should call apiPost with correct path and body", async () => {
+    const body = { siteId: "site-1", month: "2025-01-01" };
+    mockApiPost.mockResolvedValueOnce({
+      success: true,
+      data: { id: "proof-1" },
+      timestamp: "t",
+    });
+
+    await generateProof(body, mockToken);
+
+    expect(mockApiPost).toHaveBeenCalledWith(
+      "/api/v1/proof/generate",
+      body,
+      mockToken,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Mock Forecast
+// ---------------------------------------------------------------------------
+
+describe("triggerMockForecast", () => {
+  it("should call apiPost with correct path and empty body", async () => {
+    mockApiPost.mockResolvedValueOnce({
+      success: true,
+      data: { alertsGenerated: 5, message: "ok" },
+      timestamp: "t",
+    });
+
+    await triggerMockForecast(mockToken);
+
+    expect(mockApiPost).toHaveBeenCalledWith(
+      "/api/v1/mock-forecast",
+      {},
       mockToken,
     );
   });

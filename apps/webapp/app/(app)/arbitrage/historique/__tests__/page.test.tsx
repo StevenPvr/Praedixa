@@ -25,6 +25,10 @@ vi.mock("@/components/error-fallback", () => ({
   ),
 }));
 
+vi.mock("@/lib/formatters", () => ({
+  formatHorizon: (h: string) => h,
+}));
+
 describe("ArbitrageHistoriquePage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -40,7 +44,7 @@ describe("ArbitrageHistoriquePage", () => {
   it("renders the heading", () => {
     render(<ArbitrageHistoriquePage />);
     expect(
-      screen.getByRole("heading", { name: /Historique d.*arbitrage/ }),
+      screen.getByRole("heading", { name: "Decisions passees" }),
     ).toBeInTheDocument();
   });
 

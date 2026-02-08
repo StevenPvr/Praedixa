@@ -36,6 +36,10 @@ vi.mock("@/components/error-fallback", () => ({
   ),
 }));
 
+vi.mock("@/lib/formatters", () => ({
+  formatHorizon: (h: string) => h,
+}));
+
 describe("DecisionDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -57,7 +61,7 @@ describe("DecisionDetailPage", () => {
     });
     render(<DecisionDetailPage />);
     expect(
-      screen.getByRole("heading", { name: "Detail de la decision" }),
+      screen.getByRole("heading", { name: /Detail de l.*action/ }),
     ).toBeInTheDocument();
   });
 
@@ -105,6 +109,6 @@ describe("DecisionDetailPage", () => {
     });
     render(<DecisionDetailPage />);
     expect(screen.getByText("Lyon")).toBeInTheDocument();
-    expect(screen.getByText("Resultat observe")).toBeInTheDocument();
+    expect(screen.getByText("Retour terrain")).toBeInTheDocument();
   });
 });

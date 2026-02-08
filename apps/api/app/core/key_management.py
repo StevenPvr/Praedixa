@@ -729,7 +729,7 @@ class ScalewaySecretsKeyProvider(KeyProvider):  # pragma: no cover
             raise KeyManagementError(msg)
 
         version_data = create_resp.json()
-        new_version = version_data.get("revision", 0)
+        new_version: int = int(version_data.get("revision", 0))
         logger.info(
             "dek_rotated",
             org_id=str(org_id),

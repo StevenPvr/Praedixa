@@ -43,7 +43,7 @@ describe("DecisionStatsPage", () => {
     });
     render(<DecisionStatsPage />);
     expect(
-      screen.getByRole("heading", { name: "Statistiques des decisions" }),
+      screen.getByRole("heading", { name: "Qualite des decisions" }),
     ).toBeInTheDocument();
   });
 
@@ -83,7 +83,9 @@ describe("DecisionStatsPage", () => {
       refetch: vi.fn(),
     });
     render(<DecisionStatsPage />);
-    expect(screen.getByLabelText("Indicateurs override")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Indicateurs choix manuels"),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("data-table")).toBeInTheDocument();
   });
 });

@@ -36,13 +36,13 @@ class CanonicalRecordRead(TenantEntitySchema):
     date: date
     shift: ShiftType
     competence: str | None = None
-    charge_units: Decimal | None = None
-    capacite_plan_h: Decimal
-    realise_h: Decimal | None = None
-    abs_h: Decimal | None = None
-    hs_h: Decimal | None = None
-    interim_h: Decimal | None = None
-    cout_interne_est: Decimal | None = None
+    charge_units: float | None = None
+    capacite_plan_h: float
+    realise_h: float | None = None
+    abs_h: float | None = None
+    hs_h: float | None = None
+    interim_h: float | None = None
+    cout_interne_est: float | None = None
 
 
 class CanonicalRecordCreate(CamelModel):
@@ -88,11 +88,11 @@ class CostParameterRead(TenantEntitySchema):
 
     site_id: str | None = None
     version: int
-    c_int: Decimal
-    maj_hs: Decimal
-    c_interim: Decimal
-    premium_urgence: Decimal
-    c_backlog: Decimal
+    c_int: float
+    maj_hs: float
+    c_interim: float
+    premium_urgence: float
+    c_backlog: float
     cap_hs_shift: int
     cap_interim_site: int
     lead_time_jours: int
@@ -134,9 +134,9 @@ class CoverageAlertRead(TenantEntitySchema):
     alert_date: date
     shift: ShiftType
     horizon: Horizon
-    p_rupture: Decimal
-    gap_h: Decimal
-    impact_eur: Decimal | None = None
+    p_rupture: float
+    gap_h: float
+    impact_eur: float | None = None
     severity: CoverageAlertSeverity
     status: CoverageAlertStatus
     drivers_json: list[Any] = Field(default_factory=list)
@@ -174,9 +174,9 @@ class ScenarioOptionRead(TenantEntitySchema):
     cost_parameter_id: uuid.UUID
     option_type: ScenarioOptionType
     label: str
-    cout_total_eur: Decimal
-    service_attendu_pct: Decimal
-    heures_couvertes: Decimal
+    cout_total_eur: float
+    service_attendu_pct: float
+    heures_couvertes: float
     is_pareto_optimal: bool
     is_recommended: bool
     contraintes_json: dict[str, Any] = Field(default_factory=dict)
@@ -195,13 +195,13 @@ class OperationalDecisionRead(TenantEntitySchema):
     decision_date: date
     shift: ShiftType
     horizon: Horizon
-    gap_h: Decimal
+    gap_h: float
     is_override: bool
     override_reason: str | None = None
-    cout_attendu_eur: Decimal | None = None
-    service_attendu_pct: Decimal | None = None
-    cout_observe_eur: Decimal | None = None
-    service_observe_pct: Decimal | None = None
+    cout_attendu_eur: float | None = None
+    service_attendu_pct: float | None = None
+    cout_observe_eur: float | None = None
+    service_observe_pct: float | None = None
     decided_by: uuid.UUID
     comment: str | None = None
 
@@ -247,13 +247,13 @@ class ProofRecordRead(TenantEntitySchema):
 
     site_id: str
     month: date
-    cout_bau_eur: Decimal
-    cout_100_eur: Decimal
-    cout_reel_eur: Decimal
-    gain_net_eur: Decimal
-    service_bau_pct: Decimal | None = None
-    service_reel_pct: Decimal | None = None
-    adoption_pct: Decimal | None = None
+    cout_bau_eur: float
+    cout_100_eur: float
+    cout_reel_eur: float
+    gain_net_eur: float
+    service_bau_pct: float | None = None
+    service_reel_pct: float | None = None
+    adoption_pct: float | None = None
     alertes_emises: int
     alertes_traitees: int
     details_json: dict[str, Any] = Field(default_factory=dict)
@@ -262,8 +262,8 @@ class ProofRecordRead(TenantEntitySchema):
 class ProofSummaryResponse(CamelModel):
     """Aggregated proof-of-value summary across sites/months."""
 
-    total_gain_net_eur: Decimal
-    avg_adoption_pct: Decimal | None = None
+    total_gain_net_eur: float
+    avg_adoption_pct: float | None = None
     total_alertes_emises: int
     total_alertes_traitees: int
     records: list[ProofRecordRead]
@@ -288,11 +288,11 @@ class CanonicalQualityDashboard(CamelModel):
     """Quality metrics for canonical data coverage."""
 
     total_records: int
-    coverage_pct: Decimal
+    coverage_pct: float
     sites: int
     date_range: list[str] = Field(default_factory=list)
-    missing_shifts_pct: Decimal
-    avg_abs_pct: Decimal
+    missing_shifts_pct: float
+    avg_abs_pct: float
 
 
 # ── Override Statistics schema ───────────────────────────
@@ -303,9 +303,9 @@ class OverrideStatisticsResponse(CamelModel):
 
     total_decisions: int
     override_count: int
-    override_pct: Decimal
-    top_override_reasons: list[dict]
-    avg_cost_delta: Decimal | None = None
+    override_pct: float
+    top_override_reasons: list[dict[str, str | int]]
+    avg_cost_delta: float | None = None
 
 
 # ── Mock Forecast Trigger schemas ────────────────────────

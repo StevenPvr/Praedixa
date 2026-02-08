@@ -77,9 +77,8 @@ class Settings(BaseSettings):
     # ── Data Foundation ──────────────────────────────
     # Platform schema name (contains data catalog tables)
     PLATFORM_SCHEMA: str = "platform"
-    # Suffixes for per-client schemas: {org_slug}_{suffix}
-    RAW_SCHEMA_SUFFIX: str = "raw"
-    TRANSFORMED_SCHEMA_SUFFIX: str = "transformed"
+    # Suffix for per-client data schema: {org_slug}_{suffix}
+    DATA_SCHEMA_SUFFIX: str = "data"
     # Safety limits — enforced at YAML validation and Schema Manager level
     MAX_DATASETS_PER_ORG: int = 50
     MAX_COLUMNS_PER_TABLE: int = 200

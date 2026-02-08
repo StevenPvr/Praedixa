@@ -157,7 +157,7 @@ async def _ingest_single_file(
     # Insert
     try:
         result = insert_raw_rows(
-            dataset.schema_raw,
+            dataset.schema_data,
             dataset.table_name,
             mapping_result.mappings,
             parse_result.rows,

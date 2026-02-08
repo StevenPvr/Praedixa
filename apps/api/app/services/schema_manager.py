@@ -1,8 +1,8 @@
 """Schema Manager service — dynamic PostgreSQL schema and table creation.
 
-Creates per-client raw and transformed schemas and tables based on
-dataset metadata. ALL DDL uses psycopg.sql.Identifier/SQL — ZERO
-f-string interpolation for identifiers.
+Creates per-client data schema and tables based on dataset metadata.
+ALL DDL uses psycopg.sql.Identifier/SQL — ZERO f-string interpolation
+for identifiers.
 
 Security notes:
 - Every identifier is validated via ddl_validation before use.
@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, LiteralString, cast
 
 from psycopg import sql
 
@@ -54,58 +54,54 @@ _DTYPE_TO_PG: dict[str, str] = {
 # ── Public API ───────────────────────────────────────────
 
 
-async def create_client_schemas(org_slug: str) -> tuple[str, str]:
-    """Create raw and transformed PostgreSQL schemas for a client org.
+async def create_client_schemas(org_slug: str) -> str:
+    """Create a data PostgreSQL schema for a client org.
 
     Args:
         org_slug: Validated organization slug (e.g. "acme").
 
     Returns:
-        Tuple of (raw_schema_name, transformed_schema_name).
+        The data schema name (e.g. "acme_data").
 
     Raises:
         DDLValidationError: If slug or schema name fails validation.
     """
     validated_slug = validate_client_slug(org_slug)
-    raw_schema = f"{validated_slug}_{settings.RAW_SCHEMA_SUFFIX}"
-    transformed_schema = f"{validated_slug}_{settings.TRANSFORMED_SCHEMA_SUFFIX}"
+    data_schema = f"{validated_slug}_{settings.DATA_SCHEMA_SUFFIX}"
 
-    # Validate the composed schema names
-    validate_schema_name(raw_schema)
-    validate_schema_name(transformed_schema)
+    # Validate the composed schema name
+    validate_schema_name(data_schema)
 
     def _sync_create() -> None:
         with ddl_connection() as conn, conn.cursor() as cur:
-            for schema_name in (raw_schema, transformed_schema):
-                cur.execute(
-                    sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(
-                        sql.Identifier(schema_name)
-                    )
+            cur.execute(
+                sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(
+                    sql.Identifier(data_schema)
                 )
-                logger.info("Created schema: %s", schema_name)
+            )
+            logger.info("Created schema: %s", data_schema)
 
     await asyncio.to_thread(_sync_create)
-    return raw_schema, transformed_schema
+    return data_schema
 
 
 async def create_dataset_tables(
     dataset: ClientDataset,
     columns: list[DatasetColumn],
 ) -> None:
-    """Create raw and transformed tables for a dataset.
+    """Create raw and transformed tables for a dataset in the same schema.
 
     Args:
         dataset: The ClientDataset ORM model (must be flushed with ID).
         columns: List of DatasetColumn definitions.
 
     Creates:
-        - {schema_raw}.{table_name}: system cols + dynamic cols from metadata
-        - {schema_transformed}.{table_name}: system cols + original cols + feature cols
+        - {schema_data}.{table_name}: system cols + dynamic cols from metadata
+        - {schema_data}.{table_name}: system cols + original cols + feature cols
         - Indexes on temporal_index and group_by columns
     """
     # Validate all identifiers
-    raw_schema = validate_schema_name(dataset.schema_raw)
-    transformed_schema = validate_schema_name(dataset.schema_transformed)
+    data_schema = validate_schema_name(dataset.schema_data)
     table_name = validate_table_name(dataset.table_name)
     temporal_index = validate_identifier(dataset.temporal_index, field="temporal_index")
 
@@ -128,14 +124,14 @@ async def create_dataset_tables(
             # ── Raw table ──
             _create_raw_table(
                 cur,
-                raw_schema,
+                data_schema,
                 table_name,
                 validated_columns,
             )
             # ── Transformed table ──
             _create_transformed_table(
                 cur,
-                transformed_schema,
+                data_schema,
                 table_name,
                 validated_columns,
                 feature_columns,
@@ -143,14 +139,7 @@ async def create_dataset_tables(
             # ── Indexes ──
             _create_indexes(
                 cur,
-                raw_schema,
-                table_name,
-                temporal_index,
-                validated_group_by,
-            )
-            _create_indexes(
-                cur,
-                transformed_schema,
+                data_schema,
                 table_name,
                 temporal_index,
                 validated_group_by,
@@ -158,17 +147,15 @@ async def create_dataset_tables(
 
     await asyncio.to_thread(_sync_create)
     logger.info(
-        "Created tables %s.%s and %s.%s",
-        raw_schema,
-        table_name,
-        transformed_schema,
+        "Created tables %s.%s (raw + transformed)",
+        data_schema,
         table_name,
     )
 
 
 def resolve_transformed_columns(
     columns: list[DatasetColumn],
-    pipeline_config: dict,
+    pipeline_config: dict[str, object],
 ) -> list[tuple[str, str]]:
     """Compute feature column names for the transformed table.
 
@@ -225,27 +212,24 @@ def resolve_transformed_columns(
 
 
 async def drop_client_schemas(org_slug: str) -> None:
-    """Drop raw and transformed schemas for a client (RGPD erasure).
+    """Drop data schema for a client (RGPD erasure).
 
     This is a destructive operation — use with extreme caution.
     Only callable by admin/support roles.
     """
     validated_slug = validate_client_slug(org_slug)
-    raw_schema = f"{validated_slug}_{settings.RAW_SCHEMA_SUFFIX}"
-    transformed_schema = f"{validated_slug}_{settings.TRANSFORMED_SCHEMA_SUFFIX}"
+    data_schema = f"{validated_slug}_{settings.DATA_SCHEMA_SUFFIX}"
 
-    validate_schema_name(raw_schema)
-    validate_schema_name(transformed_schema)
+    validate_schema_name(data_schema)
 
     def _sync_drop() -> None:
         with ddl_connection() as conn, conn.cursor() as cur:
-            for schema_name in (transformed_schema, raw_schema):
-                cur.execute(
-                    sql.SQL("DROP SCHEMA IF EXISTS {} CASCADE").format(
-                        sql.Identifier(schema_name)
-                    )
+            cur.execute(
+                sql.SQL("DROP SCHEMA IF EXISTS {} CASCADE").format(
+                    sql.Identifier(data_schema)
                 )
-                logger.info("Dropped schema: %s", schema_name)
+            )
+            logger.info("Dropped schema: %s", data_schema)
 
     await asyncio.to_thread(_sync_drop)
 
@@ -281,7 +265,7 @@ def _create_raw_table(
         col_defs.append(
             sql.SQL("{} {}").format(
                 sql.Identifier(col_name),
-                sql.SQL(pg_type),
+                sql.SQL(cast("LiteralString", pg_type)),
             )
         )
 
@@ -320,7 +304,7 @@ def _create_transformed_table(
         col_defs.append(
             sql.SQL("{} {}").format(
                 sql.Identifier(col_name),
-                sql.SQL(pg_type),
+                sql.SQL(cast("LiteralString", pg_type)),
             )
         )
 
@@ -331,7 +315,7 @@ def _create_transformed_table(
         col_defs.append(
             sql.SQL("{} {}").format(
                 sql.Identifier(col_name),
-                sql.SQL(pg_type),
+                sql.SQL(cast("LiteralString", pg_type)),
             )
         )
 

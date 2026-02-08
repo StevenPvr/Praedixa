@@ -5,9 +5,9 @@ import {
   LayoutDashboard,
   Database,
   TrendingUp,
-  Scale,
-  CheckCircle2,
-  FileText,
+  Zap,
+  ClipboardCheck,
+  FileBarChart,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -49,49 +49,49 @@ interface SidebarProps {
 /* ────────────────────────────────────────────── */
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
   {
     label: "Donnees",
     href: "/donnees",
     icon: Database,
     children: [
-      { label: "Sites & Departements", href: "/donnees" },
-      { label: "Datasets", href: "/donnees/datasets" },
-      { label: "Donnees canoniques", href: "/donnees/canonique" },
+      { label: "Mes sites", href: "/donnees" },
+      { label: "Fichiers importes", href: "/donnees/datasets" },
+      { label: "Donnees consolidees", href: "/donnees/canonique" },
     ],
   },
   {
-    label: "Previsions",
+    label: "Anticipation",
     href: "/previsions",
     icon: TrendingUp,
     children: [
-      { label: "Heatmap couverture", href: "/previsions" },
-      { label: "Alertes couverture", href: "/previsions/alertes" },
+      { label: "Vue par site", href: "/previsions" },
+      { label: "Toutes les alertes", href: "/previsions/alertes" },
     ],
   },
   {
-    label: "Arbitrage",
+    label: "Traitement",
     href: "/arbitrage",
-    icon: Scale,
+    icon: Zap,
     children: [
-      { label: "Scenarios", href: "/arbitrage" },
-      { label: "Historique", href: "/arbitrage/historique" },
+      { label: "Alertes a traiter", href: "/arbitrage" },
+      { label: "Decisions passees", href: "/arbitrage/historique" },
     ],
   },
   {
-    label: "Decisions",
+    label: "Suivi",
     href: "/decisions",
-    icon: CheckCircle2,
+    icon: ClipboardCheck,
     children: [
-      { label: "Journal", href: "/decisions" },
-      { label: "Statistiques", href: "/decisions/stats" },
+      { label: "Journal des actions", href: "/decisions" },
+      { label: "Qualite des decisions", href: "/decisions/stats" },
     ],
   },
-  { label: "Rapports", href: "/rapports", icon: FileText },
+  { label: "Rapports", href: "/rapports", icon: FileBarChart },
 ];
 
 const BOTTOM_ITEMS: NavItem[] = [
-  { label: "Parametres", href: "/parametres", icon: Settings, adminOnly: true },
+  { label: "Reglages", href: "/parametres", icon: Settings, adminOnly: true },
 ];
 
 /* ────────────────────────────────────────────── */

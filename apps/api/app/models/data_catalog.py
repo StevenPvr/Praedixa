@@ -76,9 +76,9 @@ class ColumnRole(str, enum.Enum):
 class ClientDataset(TenantMixin, Base):
     """Registry of all datasets per organization.
 
-    Each dataset maps to a pair of dynamic tables:
-    - {schema_raw}.{table_name} — original client data
-    - {schema_transformed}.{table_name} — ML-ready features
+    Each dataset maps to a pair of dynamic tables in a single schema:
+    - {schema_data}.{table_name} — original client data
+    - {schema_data}.{table_name}_transformed — ML-ready features
     """
 
     __tablename__ = "client_datasets"
@@ -98,8 +98,7 @@ class ClientDataset(TenantMixin, Base):
         index=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    schema_raw: Mapped[str] = mapped_column(String(255), nullable=False)
-    schema_transformed: Mapped[str] = mapped_column(String(255), nullable=False)
+    schema_data: Mapped[str] = mapped_column(String(255), nullable=False)
     table_name: Mapped[str] = mapped_column(String(255), nullable=False)
     temporal_index: Mapped[str] = mapped_column(String(255), nullable=False)
     group_by: Mapped[list[str]] = mapped_column(

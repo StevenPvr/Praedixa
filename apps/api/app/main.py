@@ -24,7 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
 from app.core.config import settings
-from app.core.database import engine
+from app.core.database import async_session_factory, engine
 from app.core.dependencies import get_db_session
 from app.core.exceptions import register_exception_handlers
 from app.core.middleware import AuditLogMiddleware
@@ -71,6 +71,39 @@ logger = structlog.get_logger()
 _PLACEHOLDER_SUPABASE_URLS = {"", "https://your-project.supabase.co"}
 
 
+async def _auto_seed_dev() -> None:  # pragma: no cover
+    """Auto-seed demo data in development.
+
+    Seeds operational data into every organization found, or creates a
+    new one if the database is empty.  Idempotent: ``seed_all`` skips
+    orgs that already have coverage alerts.
+
+    Non-blocking: any failure is logged but does not prevent startup.
+    """
+    try:
+        from sqlalchemy import select as sa_select
+
+        from app.models.organization import Organization
+
+        async with async_session_factory() as session:
+            from scripts.seed_full_demo import seed_all
+
+            result = await session.execute(sa_select(Organization.id))
+            org_ids = list(result.scalars().all())
+
+            if not org_ids:
+                logger.info("auto_seed: no orgs found, creating demo org")
+                await seed_all(session)
+            else:
+                for org_id in org_ids:
+                    await seed_all(session, target_org_id=org_id)
+
+            await session.commit()
+            logger.info("auto_seed: complete", orgs=len(org_ids) or 1)
+    except Exception:
+        logger.exception("auto_seed: failed (non-blocking)")
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan: startup and shutdown."""
@@ -84,7 +117,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
             else structlog.processors.JSONRenderer(),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(
-            structlog.stdlib.NAME_TO_LEVEL[settings.LOG_LEVEL],
+            structlog.stdlib.NAME_TO_LEVEL[settings.LOG_LEVEL],  # type: ignore[attr-defined]
         ),
     )
     logger.info("Starting Praedixa API", version=settings.APP_VERSION)
@@ -99,6 +132,8 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
             "SUPABASE_URL appears unset/placeholder; RS256 JWT verification "
             "will fail unless issuer fallback is available (development only)"
         )
+    if settings.DEBUG:  # pragma: no cover
+        await _auto_seed_dev()
     yield
     await engine.dispose()
     logger.info("Praedixa API shutdown complete")
@@ -140,7 +175,7 @@ app.add_middleware(
 @app.middleware("http")
 async def request_id_middleware(
     request: Request,
-    call_next: Any,  # type: ignore[no-untyped-def]
+    call_next: Any,
 ) -> Response:
     """Add unique request ID and timing to each request.
 

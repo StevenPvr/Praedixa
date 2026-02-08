@@ -39,6 +39,12 @@ vi.mock("@/components/error-fallback", () => ({
   ),
 }));
 
+vi.mock("@/lib/formatters", () => ({
+  formatSeverity: (s: string) => s,
+  formatHorizon: (h: string) => h,
+  formatAlertStatus: (s: string) => s,
+}));
+
 describe("AlertDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -101,6 +107,6 @@ describe("AlertDetailPage", () => {
     expect(screen.getByText("Lyon")).toBeInTheDocument();
     expect(screen.getByText("65%")).toBeInTheDocument();
     expect(screen.getByText("Absenteisme eleve")).toBeInTheDocument();
-    expect(screen.getByText("Arbitrer cette alerte")).toBeInTheDocument();
+    expect(screen.getByText("Trouver une solution")).toBeInTheDocument();
   });
 });

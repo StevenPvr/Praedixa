@@ -55,7 +55,7 @@ PLAN_LIMITS: dict[str, dict[str, int | None]] = {
 async def get_billing_info(
     session: AsyncSession,
     org_id: uuid.UUID,
-) -> dict:
+) -> dict[str, object]:
     """Get billing info for an organization: plan, limits, usage.
 
     Returns a dict with plan name, limit definitions, and current usage counts.

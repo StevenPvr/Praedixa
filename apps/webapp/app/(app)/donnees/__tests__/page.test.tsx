@@ -81,31 +81,37 @@ describe("DonneesPage", () => {
     setupSuccessMock();
   });
 
-  it("renders the Donnees heading", () => {
+  it("renders the Mes sites et equipes heading", () => {
     render(<DonneesPage />);
     expect(
-      screen.getByRole("heading", { name: "Donnees" }),
+      screen.getByRole("heading", { name: "Mes sites et equipes" }),
     ).toBeInTheDocument();
   });
 
   it("renders the page description", () => {
     render(<DonneesPage />);
     expect(
-      screen.getByText("Consultation des donnees importees (lecture seule)"),
+      screen.getByText(
+        "Retrouvez tous vos sites, departements et leur configuration",
+      ),
     ).toBeInTheDocument();
   });
 
-  it("renders the Sites section", () => {
+  it("renders the Vos sites section", () => {
     render(<DonneesPage />);
-    expect(screen.getByLabelText("Sites")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Sites" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Vos sites")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Vos sites" }),
+    ).toBeInTheDocument();
   });
 
-  it("renders the Departements section", () => {
+  it("renders the Vos equipes / departements section", () => {
     render(<DonneesPage />);
-    expect(screen.getByLabelText("Departements")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Departements" }),
+      screen.getByLabelText("Vos equipes / departements"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Vos equipes / departements" }),
     ).toBeInTheDocument();
   });
 

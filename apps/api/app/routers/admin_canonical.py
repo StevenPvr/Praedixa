@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import UTC, datetime
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy import func, select
@@ -52,7 +53,7 @@ async def org_canonical_quality(
     )
     return ApiResponse(
         success=True,
-        data=CanonicalQualityDashboard(**dashboard),
+        data=CanonicalQualityDashboard(**cast("dict[str, Any]", dashboard)),
         timestamp=datetime.now(UTC).isoformat(),
     )
 

@@ -386,8 +386,7 @@ async def _execute_pipeline(  # pragma: no cover
     """
     import asyncio
 
-    raw_schema = validate_schema_name(dataset.schema_raw)
-    transformed_schema = validate_schema_name(dataset.schema_transformed)
+    data_schema = validate_schema_name(dataset.schema_data)
     table_name = validate_identifier(dataset.table_name, field="table_name")
     temporal_index = validate_identifier(dataset.temporal_index, field="temporal_index")
 
@@ -406,7 +405,7 @@ async def _execute_pipeline(  # pragma: no cover
                 # Read new rows + lookback
                 cur.execute(
                     sql.SQL("SELECT COUNT(*) FROM {}.{} {}").format(
-                        sql.Identifier(raw_schema),
+                        sql.Identifier(data_schema),
                         sql.Identifier(table_name),
                         sql.SQL("WHERE {} > %s").format(sql.Identifier("_ingested_at")),
                     ),
@@ -423,7 +422,7 @@ async def _execute_pipeline(  # pragma: no cover
                         "WHERE {} > %s - make_interval(days => %s) "
                         "ORDER BY {}"
                     ).format(
-                        sql.Identifier(raw_schema),
+                        sql.Identifier(data_schema),
                         sql.Identifier(table_name),
                         sql.Identifier("_ingested_at"),
                         order_sql,
@@ -438,7 +437,7 @@ async def _execute_pipeline(  # pragma: no cover
                 order_sql = sql.SQL(", ").join(sql.Identifier(c) for c in order_cols)
                 cur.execute(
                     sql.SQL("SELECT * FROM {}.{} ORDER BY {}").format(
-                        sql.Identifier(raw_schema),
+                        sql.Identifier(data_schema),
                         sql.Identifier(table_name),
                         order_sql,
                     )
@@ -472,7 +471,7 @@ async def _execute_pipeline(  # pragma: no cover
                 temp_name = f"tmp_{table_name}_{uuid.uuid4().hex[:8]}"
                 _atomic_swap_refit(
                     cur,
-                    transformed_schema,
+                    data_schema,
                     table_name,
                     temp_name,
                     rows_to_insert,
@@ -485,7 +484,7 @@ async def _execute_pipeline(  # pragma: no cover
                 # Insert transformed rows into existing table
                 rows_transformed = _insert_transformed_rows(
                     cur,
-                    transformed_schema,
+                    data_schema,
                     table_name,
                     rows_to_insert,
                     col_names,
@@ -502,7 +501,7 @@ def _insert_transformed_rows(
     cur: Any,
     schema: str,
     table_name: str,
-    rows: list[tuple],
+    rows: list[tuple[Any, ...]],
     col_names: list[str],
     columns: list[DatasetColumn],
     feature_cols: list[tuple[str, str]],
@@ -563,7 +562,7 @@ def _atomic_swap_refit(
     schema: str,
     table_name: str,
     temp_name: str,
-    rows: list[tuple],
+    rows: list[tuple[Any, ...]],
     col_names: list[str],
     columns: list[DatasetColumn],
     feature_cols: list[tuple[str, str]],
@@ -635,10 +634,10 @@ def _atomic_swap_refit(
 
 
 def _filter_incremental_rows(
-    rows: list[tuple],
+    rows: list[tuple[Any, ...]],
     col_names: list[str],
     cutoff: datetime,
-) -> list[tuple]:
+) -> list[tuple[Any, ...]]:
     """Return only rows whose _ingested_at is strictly after cutoff.
 
     In incremental mode we fetch lookback context to compute temporal features,
@@ -649,7 +648,7 @@ def _filter_incremental_rows(
         return rows
 
     ingested_at_idx = col_names.index("_ingested_at")
-    filtered: list[tuple] = []
+    filtered: list[tuple[Any, ...]] = []
     for row in rows:
         if ingested_at_idx >= len(row):
             continue

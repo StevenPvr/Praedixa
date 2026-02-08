@@ -142,7 +142,7 @@ async def _seed_cost_parameters(session: AsyncSession, org_id: uuid.UUID) -> int
         param = CostParameter(
             id=uuid.uuid4(),
             organization_id=org_id,
-            site_id=row["site_id"],
+            site_id=row["site_id"] or None,
             version=int(row["version"]),
             c_int=Decimal(row["c_int"]),
             maj_hs=Decimal(row["maj_hs"]),
@@ -153,7 +153,9 @@ async def _seed_cost_parameters(session: AsyncSession, org_id: uuid.UUID) -> int
             cap_interim_site=int(row["cap_interim_site"]),
             lead_time_jours=int(row["lead_time_jours"]),
             effective_from=_parse_date(row["effective_from"]),
-            effective_until=_parse_date(row["effective_until"]),
+            effective_until=(
+                _parse_date(row["effective_until"]) if row["effective_until"] else None
+            ),
         )
         session.add(param)
 

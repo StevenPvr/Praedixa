@@ -1,16 +1,16 @@
-"""Security tests: data layer access control — 2-DB isolation enforcement.
+"""Security tests: data layer access control — schema isolation enforcement.
 
-Verifies that the 2-DB architecture (schema_raw / schema_transformed)
-correctly isolates data between client users and super_admin:
+Verifies that the unified schema_data architecture correctly isolates data
+between client users and super_admin:
 
-- schema_raw (DB1): cleaned data, accessible by both webapp users and admin
-- schema_transformed (DB2): DS features, accessible by super_admin ONLY
+- schema_data: single schema containing raw + transformed tables
+- Features (transformed table): accessible by super_admin ONLY
 
 Gaps tested:
 - G1: Admin features endpoint exists and works for super_admin
-- G2: ClientDatasetRead does NOT expose schema_raw / schema_transformed
+- G2: ClientDatasetRead does NOT expose schema_data
 - G3: VIEW_FEATURES audit action exists and is logged
-- G4: Webapp get_dataset_data() reads from schema_raw, never schema_transformed
+- G4: get_dataset_data() and get_features_data() both read from schema_data
 - G6: Regular users cannot access /admin/.../features (403)
 """
 
@@ -96,24 +96,21 @@ async def client_org_admin() -> AsyncGenerator[AsyncClient, None]:
 class TestClientDatasetReadSchemaExposure:
     """Verify that ClientDatasetRead schema hides internal schema names."""
 
-    def test_schema_raw_not_in_fields(self) -> None:
+    def test_schema_data_not_in_client_fields(self) -> None:
         fields = set(ClientDatasetRead.model_fields.keys())
-        assert "schema_raw" not in fields
-        assert "schema_transformed" not in fields
+        assert "schema_data" not in fields
 
-    def test_admin_dataset_read_has_schema_fields(self) -> None:
+    def test_admin_dataset_read_has_schema_data(self) -> None:
         fields = set(AdminDatasetRead.model_fields.keys())
-        assert "schema_raw" in fields
-        assert "schema_transformed" in fields
+        assert "schema_data" in fields
 
-    def test_client_read_serialization_excludes_schemas(self) -> None:
-        """When model_validate from ORM, schema fields are dropped."""
+    def test_client_read_serialization_excludes_schema(self) -> None:
+        """When model_validate from ORM, schema_data is dropped."""
         orm_obj = SimpleNamespace(
             id=uuid.uuid4(),
             organization_id=uuid.uuid4(),
             name="test_dataset",
-            schema_raw="org_raw",
-            schema_transformed="org_transformed",
+            schema_data="org_data",
             table_name="effectifs",
             temporal_index="date_col",
             group_by=["dept"],
@@ -125,17 +122,15 @@ class TestClientDatasetReadSchemaExposure:
         )
         data = ClientDatasetRead.model_validate(orm_obj)
         dumped = data.model_dump()
-        assert "schema_raw" not in dumped
-        assert "schema_transformed" not in dumped
+        assert "schema_data" not in dumped
 
-    def test_admin_read_serialization_includes_schemas(self) -> None:
-        """AdminDatasetRead exposes schema names for admin back-office."""
+    def test_admin_read_serialization_includes_schema_data(self) -> None:
+        """AdminDatasetRead exposes schema_data for admin back-office."""
         orm_obj = SimpleNamespace(
             id=uuid.uuid4(),
             organization_id=uuid.uuid4(),
             name="test_dataset",
-            schema_raw="org_raw",
-            schema_transformed="org_transformed",
+            schema_data="org_data",
             table_name="effectifs",
             temporal_index="date_col",
             group_by=["dept"],
@@ -147,8 +142,7 @@ class TestClientDatasetReadSchemaExposure:
         )
         data = AdminDatasetRead.model_validate(orm_obj)
         dumped = data.model_dump()
-        assert dumped["schema_raw"] == "org_raw"
-        assert dumped["schema_transformed"] == "org_transformed"
+        assert dumped["schema_data"] == "org_data"
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -167,18 +161,18 @@ class TestViewFeaturesAuditAction:
 
 
 # ══════════════════════════════════════════════════════════════════
-# G4: get_dataset_data reads from schema_raw, never schema_transformed
+# G4: Both get_dataset_data and get_features_data read from schema_data
 # ══════════════════════════════════════════════════════════════════
 
 
-class TestDatasetDataReadsSchemaRaw:
+class TestDatasetDataReadsSchemaData:
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
     @patch("app.services.datasets.ddl_connection")
-    async def test_get_dataset_data_uses_schema_raw(
+    async def test_get_dataset_data_uses_schema_data(
         self, mock_ddl, mock_get_ds
     ) -> None:
-        """get_dataset_data() must query schema_raw (DB1), not schema_transformed."""
+        """get_dataset_data() must query schema_data."""
         from psycopg import sql as psql
 
         from app.services.datasets import get_dataset_data
@@ -186,8 +180,7 @@ class TestDatasetDataReadsSchemaRaw:
         ds = SimpleNamespace(
             id=DATASET_ID,
             organization_id=TARGET_ORG_ID,
-            schema_raw="org_raw",
-            schema_transformed="org_transformed",
+            schema_data="org_data",
             table_name="effectifs",
             temporal_index="date_col",
         )
@@ -222,16 +215,15 @@ class TestDatasetDataReadsSchemaRaw:
                 if isinstance(part, psql.Identifier):
                     identifiers_used.update(part._obj)
 
-        assert "org_raw" in identifiers_used
-        assert "org_transformed" not in identifiers_used
+        assert "org_data" in identifiers_used
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
     @patch("app.services.datasets.ddl_connection")
-    async def test_get_features_data_uses_schema_transformed(
+    async def test_get_features_data_uses_schema_data(
         self, mock_ddl, mock_get_ds
     ) -> None:
-        """get_features_data() must query schema_transformed (DB2)."""
+        """get_features_data() must query schema_data (same unified schema)."""
         from psycopg import sql as psql
 
         from app.services.datasets import get_features_data
@@ -239,8 +231,7 @@ class TestDatasetDataReadsSchemaRaw:
         ds = SimpleNamespace(
             id=DATASET_ID,
             organization_id=TARGET_ORG_ID,
-            schema_raw="org_raw",
-            schema_transformed="org_transformed",
+            schema_data="org_data",
             table_name="effectifs",
             temporal_index="date_col",
         )
@@ -274,8 +265,7 @@ class TestDatasetDataReadsSchemaRaw:
                 if isinstance(part, psql.Identifier):
                     identifiers_used.update(part._obj)
 
-        assert "org_transformed" in identifiers_used
-        assert "org_raw" not in identifiers_used
+        assert "org_data" in identifiers_used
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -507,8 +497,7 @@ class TestGetFeaturesDataService:
         ds = SimpleNamespace(
             id=DATASET_ID,
             organization_id=TARGET_ORG_ID,
-            schema_raw="org_raw",
-            schema_transformed="org_transformed",
+            schema_data="org_data",
             table_name="effectifs",
             temporal_index="date_col",
         )
