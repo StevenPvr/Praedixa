@@ -62,6 +62,7 @@ class JWTPayload:
     email: str
     organization_id: str
     role: str
+    site_id: str | None = None
 
 
 def _auth_error() -> HTTPException:
@@ -359,11 +360,25 @@ def verify_jwt(token: str) -> JWTPayload:
         logger.warning("jwt_invalid_organization_id", organization_id=organization_id)
         raise _auth_error() from e
 
+    # Extract optional site_id from app_metadata.
+    # site_id restricts the user to a single site. When absent (None),
+    # the user (typically org_admin) sees all sites.
+    raw_site_id = app_metadata.get("site_id")
+    site_id: str | None = None
+    if isinstance(raw_site_id, str) and raw_site_id:
+        try:
+            site_id = str(uuid.UUID(raw_site_id))
+        except (ValueError, TypeError):
+            # Invalid site_id format — treat as no site restriction
+            logger.warning("jwt_invalid_site_id", site_id=raw_site_id[:50])
+            site_id = None
+
     return JWTPayload(
         user_id=user_id,
         email=email,
         organization_id=organization_id,
         role=role,
+        site_id=site_id,
     )
 
 

@@ -42,6 +42,7 @@ interface SidebarProps {
   userRole: UserRole;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  siteName?: string;
 }
 
 /* ────────────────────────────────────────────── */
@@ -103,6 +104,7 @@ export function Sidebar({
   userRole,
   collapsed = false,
   onToggleCollapse,
+  siteName,
 }: SidebarProps) {
   const [expandedSections, setExpandedSections] = React.useState<Set<string>>(
     () => {
@@ -151,9 +153,14 @@ export function Sidebar({
         <div className="flex items-center gap-2.5 overflow-hidden">
           <PraedixaLogo size={32} className="shrink-0" />
           {!collapsed && (
-            <span className="truncate font-serif text-lg font-semibold text-charcoal">
-              Praedixa
-            </span>
+            <div className="min-w-0">
+              <span className="truncate font-serif text-lg font-semibold text-charcoal">
+                Praedixa
+              </span>
+              <p className="truncate text-xs text-gray-400">
+                {siteName ?? "Tous les sites"}
+              </p>
+            </div>
           )}
         </div>
       </div>

@@ -19,8 +19,13 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
-from app.core.security import TenantFilter
+from app.core.dependencies import (
+    get_current_user,
+    get_db_session,
+    get_site_filter,
+    get_tenant_filter,
+)
+from app.core.security import SiteFilter, TenantFilter
 from app.main import app
 
 # Fixed UUIDs for test reproducibility
@@ -63,6 +68,7 @@ async def client_a(mock_session: AsyncMock) -> AsyncGenerator[AsyncClient, None]
     app.dependency_overrides[get_db_session] = _override_session
     app.dependency_overrides[get_current_user] = lambda: JWT_A
     app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(str(ORG_A_ID))
+    app.dependency_overrides[get_site_filter] = lambda: SiteFilter(None)
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -81,6 +87,7 @@ async def client_b(mock_session: AsyncMock) -> AsyncGenerator[AsyncClient, None]
     app.dependency_overrides[get_db_session] = _override_session
     app.dependency_overrides[get_current_user] = lambda: JWT_B
     app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(str(ORG_B_ID))
+    app.dependency_overrides[get_site_filter] = lambda: SiteFilter(None)
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:

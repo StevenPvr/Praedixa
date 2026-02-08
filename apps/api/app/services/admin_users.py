@@ -51,6 +51,7 @@ async def invite_user(
     email: str,
     role: UserRole,
     invited_by: str,
+    site_id: uuid.UUID | None = None,
 ) -> User:
     """Create a new user record (invite).
 
@@ -75,6 +76,7 @@ async def invite_user(
         status=UserStatus.PENDING,
         # supabase_user_id will be set when user signs up via Supabase
         supabase_user_id=f"pending-{uuid.uuid4()}",
+        site_id=site_id,
     )
     session.add(user)
     await session.flush()

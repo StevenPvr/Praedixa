@@ -21,8 +21,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
-from app.core.security import TenantFilter, require_role
+from app.core.dependencies import (
+    get_current_user,
+    get_db_session,
+    get_site_filter,
+    get_tenant_filter,
+)
+from app.core.security import SiteFilter, TenantFilter, require_role
 from app.models.operational import CoverageAlert, Horizon
 from app.schemas.base import PaginationMeta
 from app.schemas.operational import (
@@ -47,7 +52,6 @@ router = APIRouter(
 
 @router.get("")
 async def list_decisions(
-    site_id: str | None = Query(default=None, max_length=50),
     date_from: date | None = Query(default=None),
     date_to: date | None = Query(default=None),
     is_override: bool | None = Query(default=None),
@@ -56,13 +60,14 @@ async def list_decisions(
     page_size: int = Query(default=20, ge=1, le=100),
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> PaginatedResponse[OperationalDecisionRead]:
     """List operational decisions with optional filters and pagination."""
     items, total = await list_operational_decisions(
         session,
         tenant,
-        site_id=site_id,
+        site_id=site_filter.site_id,
         date_from=date_from,
         date_to=date_to,
         is_override=is_override,
@@ -92,6 +97,7 @@ async def list_decisions(
 async def override_stats(
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[OverrideStatisticsResponse]:
     """Get override statistics for the organization."""
@@ -117,6 +123,7 @@ async def get_decision(
     decision_id: uuid.UUID,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[OperationalDecisionRead]:
     """Get a single operational decision by ID."""
@@ -134,6 +141,7 @@ async def create_decision(
     body: OperationalDecisionCreate,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     current_user: JWTPayload = Depends(require_role("org_admin", "manager")),
 ) -> ApiResponse[OperationalDecisionRead]:
     """Create an operational decision. Requires org_admin or manager role.
@@ -141,9 +149,14 @@ async def create_decision(
     decided_by is always taken from the JWT - the client cannot
     impersonate another user.
     """
-    # Fetch the alert to get site_id, decision_date, shift, horizon, gap_h
-    alert_q = tenant.apply(
-        select(CoverageAlert).where(CoverageAlert.id == body.coverage_alert_id),
+    # Fetch the alert to get site_id, decision_date, shift, horizon, gap_h.
+    # Apply site filter to ensure site-scoped users can only create decisions
+    # for alerts in their site.
+    alert_q = site_filter.apply(
+        tenant.apply(
+            select(CoverageAlert).where(CoverageAlert.id == body.coverage_alert_id),
+            CoverageAlert,
+        ),
         CoverageAlert,
     )
     alert_result = await session.execute(alert_q)
@@ -183,6 +196,7 @@ async def update_decision(
     body: OperationalDecisionUpdate,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(require_role("org_admin", "manager")),
 ) -> ApiResponse[OperationalDecisionRead]:
     """Update an operational decision (observed outcomes).

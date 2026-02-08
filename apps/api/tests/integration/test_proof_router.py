@@ -17,8 +17,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from httpx import ASGITransport, AsyncClient
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
-from app.core.security import TenantFilter
+from app.core.dependencies import (
+    get_current_user,
+    get_db_session,
+    get_site_filter,
+    get_tenant_filter,
+)
+from app.core.security import SiteFilter, TenantFilter
 from app.main import app
 from app.models.operational import ShiftType
 from tests.unit.conftest import _make_proof_record
@@ -64,17 +69,40 @@ async def test_list_proof_records_empty(client_a: AsyncClient) -> None:
     assert data["pagination"]["totalPages"] == 1
 
 
-async def test_list_proof_records_with_site_filter(client_a: AsyncClient) -> None:
-    """GET /api/v1/proof?site_id=site-paris filters by site."""
+async def test_list_proof_records_with_site_filter(
+    mock_session: AsyncMock,
+) -> None:
+    """GET /api/v1/proof with site_filter filters by site."""
+    from collections.abc import AsyncGenerator
+
     records = [_make_proof_record()]
+
+    site_jwt = JWTPayload(
+        user_id="site-user-001",
+        email="site@test.com",
+        organization_id=str(ORG_A_ID),
+        role="manager",
+        site_id="site-paris",
+    )
+
+    async def _override_session() -> AsyncGenerator[AsyncMock, None]:
+        yield mock_session
+
+    app.dependency_overrides[get_db_session] = _override_session
+    app.dependency_overrides[get_current_user] = lambda: site_jwt
+    app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(str(ORG_A_ID))
+    app.dependency_overrides[get_site_filter] = lambda: SiteFilter("site-paris")
 
     with patch(
         "app.routers.proof.list_proof_records",
         new_callable=AsyncMock,
         return_value=(records, 1),
     ) as mock_list:
-        response = await client_a.get("/api/v1/proof?site_id=site-paris")
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.get("/api/v1/proof")
 
+    app.dependency_overrides.clear()
     assert response.status_code == 200
     mock_list.assert_called_once()
     call_kwargs = mock_list.call_args.kwargs
@@ -215,6 +243,7 @@ async def test_generate_proof_403_viewer(mock_session: AsyncMock) -> None:
     app.dependency_overrides[get_db_session] = _override_session
     app.dependency_overrides[get_current_user] = lambda: viewer_jwt
     app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(str(ORG_A_ID))
+    app.dependency_overrides[get_site_filter] = lambda: SiteFilter(None)
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

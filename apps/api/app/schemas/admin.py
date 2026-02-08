@@ -170,6 +170,7 @@ class AdminUserRead(CamelModel):
     email: str
     role: UserRole
     status: UserStatus
+    site_id: uuid.UUID | None = None
     last_login_at: datetime | None = None
     created_at: datetime
 
@@ -186,6 +187,7 @@ class AdminInviteUser(CamelModel):
 
     email: str = Field(..., max_length=320)
     role: UserRole
+    site_id: uuid.UUID | None = None
 
     @field_validator("email")
     @classmethod

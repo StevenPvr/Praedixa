@@ -19,8 +19,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from httpx import ASGITransport, AsyncClient
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
-from app.core.security import TenantFilter
+from app.core.dependencies import (
+    get_current_user,
+    get_db_session,
+    get_site_filter,
+    get_tenant_filter,
+)
+from app.core.security import SiteFilter, TenantFilter
 from app.main import app
 from app.models.operational import (
     CoverageAlertSeverity,
@@ -113,6 +118,7 @@ async def _make_client(session: AsyncMock, role: str = "org_admin") -> AsyncClie
     app.dependency_overrides[get_db_session] = _override_session
     app.dependency_overrides[get_current_user] = lambda: jwt
     app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(str(ORG_A_ID))
+    app.dependency_overrides[get_site_filter] = lambda: SiteFilter(None)
 
     transport = ASGITransport(app=app)
     return AsyncClient(transport=transport, base_url="http://test")

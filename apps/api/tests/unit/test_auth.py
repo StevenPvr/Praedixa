@@ -449,6 +449,74 @@ class TestVerifyJwt:
             assert result.organization_id == TEST_ORG_ID
 
 
+class TestVerifyJwtSiteId:
+    """Test site_id extraction from app_metadata in verify_jwt."""
+
+    @patch("app.core.auth.settings")
+    def test_valid_site_id_extracted(self, mock_settings) -> None:
+        """site_id is extracted from app_metadata when present and valid UUID."""
+        mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
+        mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
+        site_uuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+        payload = _valid_payload()
+        payload["app_metadata"]["site_id"] = site_uuid
+        token = _make_token(payload)
+        result = verify_jwt(token)
+        assert result.site_id == site_uuid
+
+    @patch("app.core.auth.settings")
+    def test_missing_site_id_returns_none(self, mock_settings) -> None:
+        """site_id is None when not present in app_metadata."""
+        mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
+        mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
+        token = _make_token(_valid_payload())
+        result = verify_jwt(token)
+        assert result.site_id is None
+
+    @patch("app.core.auth.settings")
+    def test_invalid_uuid_site_id_returns_none(self, mock_settings) -> None:
+        """Invalid UUID in site_id is silently ignored (returns None)."""
+        mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
+        mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
+        payload = _valid_payload()
+        payload["app_metadata"]["site_id"] = "not-a-valid-uuid"
+        token = _make_token(payload)
+        result = verify_jwt(token)
+        assert result.site_id is None
+
+    @patch("app.core.auth.settings")
+    def test_empty_string_site_id_returns_none(self, mock_settings) -> None:
+        """Empty string site_id is treated as absent."""
+        mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
+        mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
+        payload = _valid_payload()
+        payload["app_metadata"]["site_id"] = ""
+        token = _make_token(payload)
+        result = verify_jwt(token)
+        assert result.site_id is None
+
+    @patch("app.core.auth.settings")
+    def test_non_string_site_id_returns_none(self, mock_settings) -> None:
+        """Non-string site_id (e.g. int) is treated as absent."""
+        mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
+        mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
+        payload = _valid_payload()
+        payload["app_metadata"]["site_id"] = 12345
+        token = _make_token(payload)
+        result = verify_jwt(token)
+        assert result.site_id is None
+
+
 class TestExtractToken:
     """Test extract_token function."""
 
@@ -518,6 +586,28 @@ class TestJWTPayloadFrozen:
         assert payload.email == "e@x.com"
         assert payload.organization_id == "o1"
         assert payload.role == "admin"
+        assert payload.site_id is None
+
+    def test_site_id_field(self) -> None:
+        payload = JWTPayload(
+            user_id="u1",
+            email="e@x.com",
+            organization_id="o1",
+            role="viewer",
+            site_id="site-xyz",
+        )
+        assert payload.site_id == "site-xyz"
+
+    def test_site_id_frozen(self) -> None:
+        payload = JWTPayload(
+            user_id="u1",
+            email="e@x.com",
+            organization_id="o1",
+            role="viewer",
+            site_id="site-xyz",
+        )
+        with pytest.raises(AttributeError):
+            payload.site_id = "other"  # type: ignore[misc]
 
 
 class TestIsAllowedJwksHost:

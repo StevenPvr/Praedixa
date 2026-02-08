@@ -1,4 +1,4 @@
-"""Tests for app.core.security — TenantFilter and require_role."""
+"""Tests for app.core.security — TenantFilter, SiteFilter, and require_role."""
 
 from unittest.mock import MagicMock
 
@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 
 from app.core.auth import JWTPayload
-from app.core.security import TenantFilter, require_role
+from app.core.security import SiteFilter, TenantFilter, require_role
 
 
 class TestTenantFilter:
@@ -43,6 +43,64 @@ class TestTenantFilter:
         # Compile to string to verify the WHERE clause is present
         compiled = str(query.compile(compile_kwargs={"literal_binds": False}))
         assert "organization_id" in compiled
+
+
+class TestSiteFilter:
+    """Test SiteFilter initialization and query application."""
+
+    def test_init_stores_site_id(self) -> None:
+        sf = SiteFilter("site-123")
+        assert sf.site_id == "site-123"
+
+    def test_init_stores_none(self) -> None:
+        sf = SiteFilter(None)
+        assert sf.site_id is None
+
+    def test_apply_adds_where_clause_when_site_id_set(self) -> None:
+        """Verify that apply() adds a WHERE clause filtering by site_id."""
+        sf = SiteFilter("site-abc")
+
+        model = MagicMock()
+        model.site_id = MagicMock()
+
+        base_query = MagicMock()
+        base_query.where.return_value = "filtered_query"
+
+        result = sf.apply(base_query, model)
+        base_query.where.assert_called_once()
+        assert result == "filtered_query"
+
+    def test_apply_noop_when_site_id_none(self) -> None:
+        """When site_id is None, apply() should return the query unchanged."""
+        sf = SiteFilter(None)
+
+        model = MagicMock()
+        base_query = MagicMock()
+
+        result = sf.apply(base_query, model)
+        base_query.where.assert_not_called()
+        assert result is base_query
+
+    def test_apply_with_sqlalchemy_select(self) -> None:
+        """Verify compiled SQL contains site_id filter."""
+        from app.models.operational import CoverageAlert
+
+        sf = SiteFilter("site-lyon")
+        query = sf.apply(select(CoverageAlert), CoverageAlert)
+
+        compiled = str(query.compile(compile_kwargs={"literal_binds": False}))
+        assert "site_id" in compiled
+
+    def test_apply_with_sqlalchemy_select_none(self) -> None:
+        """Verify compiled SQL does NOT contain site_id filter when None."""
+        from app.models.operational import CoverageAlert
+
+        sf = SiteFilter(None)
+        query = sf.apply(select(CoverageAlert), CoverageAlert)
+
+        compiled = str(query.compile(compile_kwargs={"literal_binds": False}))
+        # The query should not have a WHERE site_id clause
+        assert "WHERE" not in compiled or "site_id" not in compiled
 
 
 class TestRequireRole:

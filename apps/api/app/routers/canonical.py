@@ -17,8 +17,14 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
-from app.core.security import TenantFilter, require_role
+from app.core.dependencies import (
+    get_current_user,
+    get_db_session,
+    get_site_filter,
+    get_tenant_filter,
+)
+from app.core.exceptions import ForbiddenError
+from app.core.security import SiteFilter, TenantFilter, require_role
 from app.models.operational import ShiftType
 from app.schemas.base import PaginationMeta
 from app.schemas.operational import (
@@ -49,13 +55,17 @@ async def list_records(
     page_size: int = Query(default=20, ge=1, le=100),
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> PaginatedResponse[CanonicalRecordRead]:
     """List canonical records with optional filters and pagination."""
+    effective_site_id = (
+        site_filter.site_id if site_filter.site_id is not None else site_id
+    )
     items, total = await list_canonical_records(
         session,
         tenant,
-        site_id=site_id,
+        site_id=effective_site_id,
         date_from=date_from,
         date_to=date_to,
         shift=shift,
@@ -84,6 +94,7 @@ async def list_records(
 async def quality_dashboard(
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[CanonicalQualityDashboard]:
     """Get quality dashboard for canonical data coverage."""
@@ -101,6 +112,7 @@ async def get_record(
     record_id: uuid.UUID,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[CanonicalRecordRead]:
     """Get a single canonical record by ID."""
@@ -118,9 +130,13 @@ async def create_record(
     body: CanonicalRecordCreate,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(require_role("org_admin", "manager")),
 ) -> ApiResponse[CanonicalRecordRead]:
     """Create a single canonical record. Requires org_admin or manager role."""
+    # Enforce site restriction on creation
+    if site_filter.site_id is not None and body.site_id != site_filter.site_id:
+        raise ForbiddenError("Cannot create record for a different site")
     record = await create_canonical_record(
         session,
         tenant,
@@ -149,6 +165,7 @@ async def bulk_import(
     body: CanonicalRecordBulkCreate,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(require_role("org_admin")),
 ) -> ApiResponse[dict[str, int]]:
     """Bulk import canonical records. Requires org_admin role.
@@ -156,6 +173,11 @@ async def bulk_import(
     Deduplication by unique constraint (org_id, site_id, date, shift, competence).
     Duplicates are silently skipped.
     """
+    # Enforce site restriction: all records must belong to the user's site
+    if site_filter.site_id is not None:
+        for rec in body.records:
+            if rec.site_id != site_filter.site_id:
+                raise ForbiddenError("Cannot import records for a different site")
     records_data = [rec.model_dump() for rec in body.records]
     inserted, skipped = await bulk_import_canonical(session, tenant, records_data)
 

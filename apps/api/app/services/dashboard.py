@@ -15,6 +15,7 @@ from app.core.security import TenantFilter
 from app.models.daily_forecast import DailyForecast, ForecastDimension
 from app.models.dashboard_alert import DashboardAlert
 from app.models.forecast_run import ForecastRun, ForecastStatus
+from app.models.operational import CoverageAlert, CoverageAlertStatus
 
 
 class DashboardSummary:
@@ -51,6 +52,7 @@ class DashboardSummary:
 async def get_dashboard_summary(
     tenant: TenantFilter,
     session: AsyncSession,
+    site_id: str | None = None,
 ) -> DashboardSummary:
     """Compute dashboard KPIs for the given organization.
 
@@ -111,12 +113,24 @@ async def get_dashboard_summary(
         DailyForecast,
     ).scalar_subquery()
 
-    alerts_count_sq = tenant.apply(
-        select(func.count(DashboardAlert.id)).where(
-            DashboardAlert.dismissed_at.is_(None),
-        ),
-        DashboardAlert,
-    ).scalar_subquery()
+    # When site_id is set, count active CoverageAlerts for that site
+    # (CoverageAlert has site_id; DashboardAlert does not).
+    # When site_id is None (org_admin), use DashboardAlert as before.
+    if site_id is not None:
+        alerts_count_sq = tenant.apply(
+            select(func.count(CoverageAlert.id)).where(
+                CoverageAlert.site_id == site_id,
+                CoverageAlert.status != CoverageAlertStatus.RESOLVED,
+            ),
+            CoverageAlert,
+        ).scalar_subquery()
+    else:
+        alerts_count_sq = tenant.apply(
+            select(func.count(DashboardAlert.id)).where(
+                DashboardAlert.dismissed_at.is_(None),
+            ),
+            DashboardAlert,
+        ).scalar_subquery()
 
     accuracy_sq = tenant.apply(
         select(func.avg(ForecastRun.accuracy_score)).where(

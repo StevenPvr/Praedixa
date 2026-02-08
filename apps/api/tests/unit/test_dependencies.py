@@ -7,9 +7,10 @@ from app.core.database import get_rls_org_id, set_rls_org_id
 from app.core.dependencies import (
     get_admin_tenant_filter,
     get_current_user,
+    get_site_filter,
     get_tenant_filter,
 )
-from app.core.security import TenantFilter
+from app.core.security import SiteFilter, TenantFilter
 
 
 class TestGetCurrentUser:
@@ -112,6 +113,45 @@ class TestGetTenantFilter:
             )
             result = get_tenant_filter(current_user=user)
             assert result.organization_id == org_id
+
+
+class TestGetSiteFilter:
+    """Test get_site_filter dependency."""
+
+    def test_returns_site_filter_with_site_id(self) -> None:
+        user = JWTPayload(
+            user_id="u1",
+            email="e@x.com",
+            organization_id="44444444-4444-4444-4444-444444444444",
+            role="manager",
+            site_id="site-abc-123",
+        )
+        result = get_site_filter(current_user=user)
+        assert isinstance(result, SiteFilter)
+        assert result.site_id == "site-abc-123"
+
+    def test_returns_site_filter_with_none_for_org_admin(self) -> None:
+        user = JWTPayload(
+            user_id="u1",
+            email="e@x.com",
+            organization_id="44444444-4444-4444-4444-444444444444",
+            role="org_admin",
+        )
+        result = get_site_filter(current_user=user)
+        assert isinstance(result, SiteFilter)
+        assert result.site_id is None
+
+    def test_different_site_ids(self) -> None:
+        for site_id in ["site-a", "site-b", None]:
+            user = JWTPayload(
+                user_id="u1",
+                email="e@x.com",
+                organization_id="44444444-4444-4444-4444-444444444444",
+                role="viewer",
+                site_id=site_id,
+            )
+            result = get_site_filter(current_user=user)
+            assert result.site_id == site_id
 
 
 class TestGetAdminTenantFilter:

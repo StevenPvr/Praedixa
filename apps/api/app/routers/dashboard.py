@@ -12,8 +12,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
-from app.core.security import TenantFilter
+from app.core.dependencies import (
+    get_current_user,
+    get_db_session,
+    get_site_filter,
+    get_tenant_filter,
+)
+from app.core.security import SiteFilter, TenantFilter
 from app.schemas.dashboard import DashboardSummaryResponse
 from app.schemas.responses import ApiResponse
 from app.services.dashboard import get_dashboard_summary
@@ -25,10 +30,13 @@ router = APIRouter(prefix="/api/v1/dashboard", tags=["dashboard"])
 async def dashboard_summary(
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[DashboardSummaryResponse]:
     """Return aggregated dashboard KPIs for the current organization."""
-    summary = await get_dashboard_summary(tenant=tenant, session=session)
+    summary = await get_dashboard_summary(
+        tenant=tenant, session=session, site_id=site_filter.site_id
+    )
 
     data = DashboardSummaryResponse(
         coverage_human=summary.coverage_human,

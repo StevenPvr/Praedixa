@@ -16,8 +16,13 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
-from app.core.security import TenantFilter
+from app.core.dependencies import (
+    get_current_user,
+    get_db_session,
+    get_site_filter,
+    get_tenant_filter,
+)
+from app.core.security import SiteFilter, TenantFilter
 from app.schemas.department import DepartmentRead
 from app.schemas.organization import OrganizationRead
 from app.schemas.responses import ApiResponse
@@ -57,10 +62,15 @@ async def get_organization_me(
 async def get_sites(
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[list[SiteRead]]:
     """Return all sites for the current organization."""
     items = await list_sites(tenant=tenant, session=session)
+
+    # If user is restricted to a single site, filter the list
+    if site_filter.site_id is not None:
+        items = [item for item in items if str(item.id) == site_filter.site_id]
 
     return ApiResponse(
         success=True,

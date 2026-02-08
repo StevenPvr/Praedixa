@@ -180,6 +180,40 @@ class TestInviteUser:
             )
             session.add.assert_called_once()
 
+    @pytest.mark.asyncio
+    async def test_site_id_stored_on_user(self) -> None:
+        """invite_user with site_id stores it in the created User."""
+        session = make_mock_session(
+            make_scalar_result(None),  # email uniqueness check
+        )
+        site_id = uuid.uuid4()
+        await invite_user(
+            session,
+            org_id=uuid.uuid4(),
+            email="site-user@example.com",
+            role=UserRole.VIEWER,
+            invited_by=str(uuid.uuid4()),
+            site_id=site_id,
+        )
+        added_user = session.add.call_args[0][0]
+        assert added_user.site_id == site_id
+
+    @pytest.mark.asyncio
+    async def test_invite_without_site_id_for_org_admin(self) -> None:
+        """invite_user for org_admin without site_id works (site_id=None)."""
+        session = make_mock_session(
+            make_scalar_result(None),  # email uniqueness check
+        )
+        await invite_user(
+            session,
+            org_id=uuid.uuid4(),
+            email="orgadmin@example.com",
+            role=UserRole.ORG_ADMIN,
+            invited_by=str(uuid.uuid4()),
+        )
+        added_user = session.add.call_args[0][0]
+        assert added_user.site_id is None
+
 
 class TestGetOrgUser:
     """Tests for _get_org_user()."""

@@ -15,8 +15,14 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
-from app.core.security import TenantFilter, require_role
+from app.core.dependencies import (
+    get_current_user,
+    get_db_session,
+    get_site_filter,
+    get_tenant_filter,
+)
+from app.core.exceptions import ForbiddenError
+from app.core.security import SiteFilter, TenantFilter, require_role
 from app.schemas.base import PaginationMeta
 from app.schemas.operational import CostParameterCreate, CostParameterRead
 from app.schemas.responses import ApiResponse, PaginatedResponse
@@ -37,13 +43,17 @@ async def list_params(
     page_size: int = Query(default=20, ge=1, le=100),
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> PaginatedResponse[CostParameterRead]:
     """List cost parameters with optional site filter and pagination."""
+    effective_site_id = (
+        site_filter.site_id if site_filter.site_id is not None else site_id
+    )
     items, total = await list_cost_parameters(
         session,
         tenant,
-        site_id=site_id,
+        site_id=effective_site_id,
         page=page,
         page_size=page_size,
     )
@@ -71,16 +81,20 @@ async def get_effective(
     date: date | None = Query(default=None, alias="date"),
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[CostParameterRead]:
     """Get effective cost parameter for a site on a given date.
 
     Falls back to org-wide default if no site-specific parameter is found.
     """
+    effective_site_id = (
+        site_filter.site_id if site_filter.site_id is not None else site_id
+    )
     param = await get_effective_cost_parameter(
         session,
         tenant,
-        site_id=site_id,
+        site_id=effective_site_id,
         target_date=date,
     )
 
@@ -96,6 +110,7 @@ async def get_history(
     site_id: str | None = Query(default=None, max_length=50),
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[list[CostParameterRead]]:
     """Get cost parameter version history for a site.
@@ -103,10 +118,13 @@ async def get_history(
     If site_id is None, returns org-wide default history.
     Ordered by effective_from DESC.
     """
+    effective_site_id = (
+        site_filter.site_id if site_filter.site_id is not None else site_id
+    )
     items = await get_cost_parameter_history(
         session,
         tenant,
-        site_id=site_id,
+        site_id=effective_site_id,
     )
 
     return ApiResponse(
@@ -121,12 +139,16 @@ async def create_param(
     body: CostParameterCreate,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(require_role("org_admin")),
 ) -> ApiResponse[CostParameterRead]:
     """Create a new cost parameter version. Requires org_admin role.
 
     Auto-closes the previous version and auto-increments the version number.
     """
+    # Enforce site restriction on creation
+    if site_filter.site_id is not None and body.site_id != site_filter.site_id:
+        raise ForbiddenError("Cannot create cost parameter for a different site")
     param = await create_cost_parameter(
         session,
         tenant,

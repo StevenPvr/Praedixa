@@ -40,6 +40,33 @@ class TenantFilter:
         return query.where(model.organization_id == self.organization_id)
 
 
+class SiteFilter:
+    """Filter queries by site_id for site-level access control.
+
+    When site_id is None (e.g. org_admin), no filtering is applied —
+    the user sees all sites in the organization. When site_id is set,
+    only records matching that site are returned.
+
+    Usage:
+        query = site_filter.apply(select(CoverageAlert), CoverageAlert)
+        # Adds: WHERE coverage_alert.site_id = '<user_site_id>'
+        # or no-op if site_id is None
+    """
+
+    def __init__(self, site_id: str | None) -> None:
+        self.site_id = site_id
+
+    def apply(self, query: Select[Any], model: Any) -> Select[Any]:
+        """Apply site filter to a SQLAlchemy select query.
+
+        The model MUST have a site_id column. If self.site_id is None,
+        the query is returned unchanged (org-wide access).
+        """
+        if self.site_id is None:
+            return query
+        return query.where(model.site_id == self.site_id)
+
+
 def require_role(*allowed_roles: str) -> Callable[..., JWTPayload]:
     """FastAPI dependency factory: require the user to have one of the specified roles.
 

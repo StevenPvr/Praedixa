@@ -48,6 +48,25 @@ describe("Sidebar", () => {
       expect(screen.queryByText("Praedixa")).not.toBeInTheDocument();
     });
 
+    it("renders 'Tous les sites' when siteName is not provided", () => {
+      render(<Sidebar {...defaultProps} />);
+      expect(screen.getByText("Tous les sites")).toBeInTheDocument();
+    });
+
+    it("renders the site name when siteName is provided", () => {
+      render(<Sidebar {...defaultProps} siteName="Lyon Nord" />);
+      expect(screen.getByText("Lyon Nord")).toBeInTheDocument();
+      expect(screen.queryByText("Tous les sites")).not.toBeInTheDocument();
+    });
+
+    it("hides site name when collapsed", () => {
+      render(
+        <Sidebar {...defaultProps} collapsed={true} siteName="Lyon Nord" />,
+      );
+      expect(screen.queryByText("Lyon Nord")).not.toBeInTheDocument();
+      expect(screen.queryByText("Tous les sites")).not.toBeInTheDocument();
+    });
+
     it("renders the main navigation with correct aria-label", () => {
       render(<Sidebar {...defaultProps} />);
       expect(

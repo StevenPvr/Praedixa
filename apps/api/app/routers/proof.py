@@ -19,8 +19,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
-from app.core.security import TenantFilter, require_role
+from app.core.dependencies import (
+    get_current_user,
+    get_db_session,
+    get_site_filter,
+    get_tenant_filter,
+)
+from app.core.exceptions import ForbiddenError
+from app.core.security import SiteFilter, TenantFilter, require_role
 from app.models.operational import OperationalDecision
 from app.schemas.base import CamelModel, PaginationMeta
 from app.schemas.operational import ProofRecordRead, ProofSummaryResponse
@@ -48,18 +54,18 @@ router = APIRouter(prefix="/api/v1/proof", tags=["proof"])
 
 @router.get("")
 async def list_records(
-    site_id: str | None = Query(default=None, max_length=50),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> PaginatedResponse[ProofRecordRead]:
     """List proof records with optional site filter and pagination."""
     items, total = await list_proof_records(
         session,
         tenant,
-        site_id=site_id,
+        site_id=site_filter.site_id,
         page=page,
         page_size=page_size,
     )
@@ -87,6 +93,7 @@ async def proof_summary(
     date_to: date | None = Query(default=None),
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[ProofSummaryResponse]:
     """Get aggregated proof-of-value summary across sites/months."""
@@ -95,8 +102,11 @@ async def proof_summary(
         tenant,
         date_from=date_from,
         date_to=date_to,
+        site_id=site_filter.site_id,
     )
-    records, _ = await list_proof_records(session, tenant, page=1, page_size=100)
+    records, _ = await list_proof_records(
+        session, tenant, site_id=site_filter.site_id, page=1, page_size=100
+    )
 
     total_emises = sum(r.alertes_emises for r in records)
     total_traitees = sum(r.alertes_traitees for r in records)
@@ -121,6 +131,7 @@ async def generate_proof(
     body: ProofGenerateRequest,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(require_role("org_admin")),
 ) -> ApiResponse[ProofRecordRead]:
     """Generate proof record for a site+month. Requires org_admin role.
@@ -128,6 +139,9 @@ async def generate_proof(
     Computes BAU vs optimized vs actual costs and creates/updates
     the proof record.
     """
+    # Enforce site restriction: site-scoped users can only generate for their site
+    if site_filter.site_id is not None and body.site_id != site_filter.site_id:
+        raise ForbiddenError("Cannot generate proof for a different site")
     record = await generate_proof_record(
         session,
         tenant,
@@ -148,12 +162,16 @@ async def generate_pdf(
     month: date = Query(...),
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> StreamingResponse:
     """Generate proof pack PDF for a site+month.
 
     Returns a StreamingResponse with application/pdf content type.
     """
+    # Enforce site restriction on PDF generation
+    if site_filter.site_id is not None and site_id != site_filter.site_id:
+        raise ForbiddenError("Cannot generate PDF for a different site")
     # Generate or get the proof record
     record = await generate_proof_record(
         session,

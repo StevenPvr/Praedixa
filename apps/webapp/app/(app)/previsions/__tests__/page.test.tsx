@@ -40,7 +40,6 @@ vi.mock("@praedixa/ui", () => ({
   DataTable: ({ data }: { data: unknown[] }) => (
     <div data-testid="data-table">{data.length} rows</div>
   ),
-  SelectDropdown: () => <select data-testid="select-dropdown" />,
   Badge: ({ children }: { children: React.ReactNode }) => (
     <span>{children}</span>
   ),
@@ -118,5 +117,17 @@ describe("PrevisionsPage", () => {
     });
     render(<PrevisionsPage />);
     expect(screen.getByText("Server error")).toBeInTheDocument();
+  });
+
+  it("does not render a site selector dropdown", () => {
+    render(<PrevisionsPage />);
+    expect(screen.queryByTestId("select-dropdown")).not.toBeInTheDocument();
+  });
+
+  it("calls useApiGet with URL without site_id param", () => {
+    render(<PrevisionsPage />);
+    const url = mockUseApiGet.mock.calls[0][0] as string;
+    expect(url).toBe("/api/v1/coverage-alerts?status=open&horizon=j7");
+    expect(url).not.toContain("site_id");
   });
 });

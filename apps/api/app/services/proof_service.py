@@ -231,8 +231,9 @@ async def get_proof_summary(
     *,
     date_from: date | None = None,
     date_to: date | None = None,
+    site_id: str | None = None,
 ) -> dict[str, object]:
-    """Aggregate proof across all sites.
+    """Aggregate proof across all sites (or a single site if site_id is set).
 
     Tenant isolation: all queries scoped by TenantFilter.
 
@@ -243,6 +244,9 @@ async def get_proof_summary(
     - per_site: list of per-site aggregates
     """
     base = tenant.apply(select(ProofRecord), ProofRecord)
+
+    if site_id is not None:
+        base = base.where(ProofRecord.site_id == site_id)
 
     if date_from is not None:
         base = base.where(ProofRecord.month >= date_from)
@@ -259,6 +263,8 @@ async def get_proof_summary(
         ),
         ProofRecord,
     )
+    if site_id is not None:
+        agg_q = agg_q.where(ProofRecord.site_id == site_id)
     if date_from is not None:
         agg_q = agg_q.where(ProofRecord.month >= date_from)
     if date_to is not None:
@@ -285,6 +291,8 @@ async def get_proof_summary(
         ProofRecord,
     ).group_by(ProofRecord.site_id)
 
+    if site_id is not None:
+        site_q = site_q.where(ProofRecord.site_id == site_id)
     if date_from is not None:
         site_q = site_q.where(ProofRecord.month >= date_from)
     if date_to is not None:

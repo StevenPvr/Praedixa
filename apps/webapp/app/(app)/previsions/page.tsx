@@ -7,17 +7,11 @@ import {
   TabBar,
   HeatmapGrid,
   DataTable,
-  SelectDropdown,
   SkeletonTable,
   SkeletonChart,
   Badge,
 } from "@praedixa/ui";
-import type {
-  Tab,
-  DataTableColumn,
-  HeatmapCell,
-  SelectOption,
-} from "@praedixa/ui";
+import type { Tab, DataTableColumn, HeatmapCell } from "@praedixa/ui";
 import { useApiGet } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
 import { formatSeverity } from "@/lib/formatters";
@@ -30,11 +24,8 @@ const HORIZON_TABS: Tab[] = [
 
 export default function PrevisionsPage() {
   const [horizon, setHorizon] = useState("j7");
-  const [siteFilter, setSiteFilter] = useState("all");
 
-  const siteParam =
-    siteFilter !== "all" ? `&site_id=${encodeURIComponent(siteFilter)}` : "";
-  const alertsUrl = `/api/v1/coverage-alerts?status=open&horizon=${encodeURIComponent(horizon)}${siteParam}`;
+  const alertsUrl = `/api/v1/coverage-alerts?status=open&horizon=${encodeURIComponent(horizon)}`;
 
   const {
     data: alerts,
@@ -42,13 +33,6 @@ export default function PrevisionsPage() {
     error: alertsError,
     refetch: refetchAlerts,
   } = useApiGet<CoverageAlert[]>(alertsUrl);
-
-  // Extract unique sites for filter
-  const uniqueSites = Array.from(new Set((alerts ?? []).map((a) => a.siteId)));
-  const siteOptions: SelectOption[] = [
-    { value: "all", label: "Tous les sites" },
-    ...uniqueSites.map((s) => ({ value: s, label: s })),
-  ];
 
   // Build heatmap cells from alerts
   const heatmapCells: HeatmapCell[] = (alerts ?? []).map((a) => ({
@@ -121,12 +105,6 @@ export default function PrevisionsPage() {
           tabs={HORIZON_TABS}
           activeTab={horizon}
           onTabChange={setHorizon}
-        />
-        <SelectDropdown
-          options={siteOptions}
-          value={siteFilter}
-          onChange={setSiteFilter}
-          placeholder="Tous les sites"
         />
       </div>
 

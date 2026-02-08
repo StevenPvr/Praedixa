@@ -23,13 +23,14 @@ from fastapi import Depends, Request
 
 from app.core.auth import JWTPayload, extract_token, verify_jwt
 from app.core.database import get_db_session, set_rls_org_id
-from app.core.security import TenantFilter, require_role
+from app.core.security import SiteFilter, TenantFilter, require_role
 
 # Re-export get_db_session so routers can import all deps from one place
 __all__ = [
     "get_admin_tenant_filter",
     "get_current_user",
     "get_db_session",
+    "get_site_filter",
     "get_tenant_filter",
 ]
 
@@ -66,6 +67,18 @@ def get_tenant_filter(
     to enforce data isolation between organizations.
     """
     return TenantFilter(current_user.organization_id)
+
+
+def get_site_filter(
+    current_user: JWTPayload = Depends(get_current_user),
+) -> SiteFilter:
+    """Return a SiteFilter scoped to the current user's site.
+
+    When the user has a site_id in their JWT (non-admin), queries are
+    filtered to that site only. When site_id is None (org_admin),
+    no site filtering is applied — the user sees all sites.
+    """
+    return SiteFilter(current_user.site_id)
 
 
 def get_admin_tenant_filter(

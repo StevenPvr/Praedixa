@@ -17,9 +17,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
+from app.core.dependencies import (
+    get_current_user,
+    get_db_session,
+    get_site_filter,
+    get_tenant_filter,
+)
 from app.core.exceptions import NotFoundError
-from app.core.security import TenantFilter, require_role
+from app.core.security import SiteFilter, TenantFilter, require_role
 from app.models.operational import (
     CoverageAlert,
     CoverageAlertSeverity,
@@ -40,8 +45,8 @@ router = APIRouter(prefix="/api/v1/coverage-alerts", tags=["coverage-alerts"])
 async def _list_alerts(
     session: AsyncSession,
     tenant: TenantFilter,
+    site_filter: SiteFilter,
     *,
-    site_id: str | None = None,
     status: CoverageAlertStatus | None = None,
     severity: CoverageAlertSeverity | None = None,
     horizon: Horizon | None = None,
@@ -56,9 +61,9 @@ async def _list_alerts(
     base = tenant.apply(select(CoverageAlert), CoverageAlert)
     count_q = tenant.apply(select(func.count(CoverageAlert.id)), CoverageAlert)
 
-    if site_id is not None:
-        base = base.where(CoverageAlert.site_id == site_id)
-        count_q = count_q.where(CoverageAlert.site_id == site_id)
+    # Apply site filter from JWT (authoritative, cannot be bypassed).
+    base = site_filter.apply(base, CoverageAlert)
+    count_q = site_filter.apply(count_q, CoverageAlert)
 
     if status is not None:
         base = base.where(CoverageAlert.status == status)
@@ -98,12 +103,15 @@ async def _get_alert(
     session: AsyncSession,
     tenant: TenantFilter,
     alert_id: uuid.UUID,
+    site_filter: SiteFilter | None = None,
 ) -> CoverageAlert:
-    """Get a single alert with tenant isolation."""
+    """Get a single alert with tenant and site isolation."""
     query = tenant.apply(
         select(CoverageAlert).where(CoverageAlert.id == alert_id),
         CoverageAlert,
     )
+    if site_filter is not None:
+        query = site_filter.apply(query, CoverageAlert)
     result = await session.execute(query)
     alert: CoverageAlert | None = result.scalar_one_or_none()
 
@@ -115,7 +123,6 @@ async def _get_alert(
 
 @router.get("")
 async def list_alerts(
-    site_id: str | None = Query(default=None, max_length=50),
     status: CoverageAlertStatus | None = Query(default=None),
     severity: CoverageAlertSeverity | None = Query(default=None),
     horizon: Horizon | None = Query(default=None),
@@ -125,13 +132,14 @@ async def list_alerts(
     page_size: int = Query(default=20, ge=1, le=100),
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> PaginatedResponse[CoverageAlertRead]:
     """List coverage alerts with optional filters and pagination."""
     items, total = await _list_alerts(
         session,
         tenant,
-        site_id=site_id,
+        site_filter,
         status=status,
         severity=severity,
         horizon=horizon,
@@ -163,10 +171,11 @@ async def get_single_alert(
     alert_id: uuid.UUID,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[CoverageAlertRead]:
     """Get a single coverage alert by ID."""
-    alert = await _get_alert(session, tenant, alert_id)
+    alert = await _get_alert(session, tenant, alert_id, site_filter=site_filter)
 
     return ApiResponse(
         success=True,
@@ -181,13 +190,14 @@ async def acknowledge_alert(
     _body: CoverageAlertAcknowledge,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(require_role("org_admin", "manager")),
 ) -> ApiResponse[CoverageAlertRead]:
     """Acknowledge a coverage alert. Requires org_admin or manager role.
 
     Sets status to ACKNOWLEDGED and records the timestamp.
     """
-    alert = await _get_alert(session, tenant, alert_id)
+    alert = await _get_alert(session, tenant, alert_id, site_filter=site_filter)
 
     alert.status = CoverageAlertStatus.ACKNOWLEDGED
     alert.acknowledged_at = datetime.now(UTC)
@@ -206,13 +216,14 @@ async def resolve_alert(
     _body: CoverageAlertResolve,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(require_role("org_admin", "manager")),
 ) -> ApiResponse[CoverageAlertRead]:
     """Resolve a coverage alert. Requires org_admin or manager role.
 
     Sets status to RESOLVED and records the timestamp.
     """
-    alert = await _get_alert(session, tenant, alert_id)
+    alert = await _get_alert(session, tenant, alert_id, site_filter=site_filter)
 
     alert.status = CoverageAlertStatus.RESOLVED
     alert.resolved_at = datetime.now(UTC)

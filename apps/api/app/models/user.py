@@ -68,6 +68,11 @@ class User(TenantMixin, Base):
     status: Mapped[UserStatus] = mapped_column(
         sa_enum(UserStatus), default=UserStatus.PENDING
     )
+    site_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("sites.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     employee_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)

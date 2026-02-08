@@ -86,6 +86,7 @@ async def invite_org_user(
         email=body.email,
         role=body.role,
         invited_by=current_user.user_id,
+        site_id=body.site_id,
     )
 
     await log_admin_action(

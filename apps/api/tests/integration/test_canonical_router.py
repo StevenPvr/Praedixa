@@ -17,8 +17,13 @@ from unittest.mock import AsyncMock, patch
 from httpx import ASGITransport, AsyncClient
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
-from app.core.security import TenantFilter
+from app.core.dependencies import (
+    get_current_user,
+    get_db_session,
+    get_site_filter,
+    get_tenant_filter,
+)
+from app.core.security import SiteFilter, TenantFilter
 from app.main import app
 
 # ── Helper factories ──────────────────────────────────────────────
@@ -243,6 +248,7 @@ async def test_create_canonical_record_403_viewer(mock_session: AsyncMock) -> No
     app.dependency_overrides[get_db_session] = _override_session
     app.dependency_overrides[get_current_user] = lambda: viewer_jwt
     app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(str(ORG_A_ID))
+    app.dependency_overrides[get_site_filter] = lambda: SiteFilter(None)
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -309,6 +315,7 @@ async def test_bulk_import_403_manager(mock_session: AsyncMock) -> None:
     app.dependency_overrides[get_db_session] = _override_session
     app.dependency_overrides[get_current_user] = lambda: manager_jwt
     app.dependency_overrides[get_tenant_filter] = lambda: TenantFilter(str(ORG_A_ID))
+    app.dependency_overrides[get_site_filter] = lambda: SiteFilter(None)
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

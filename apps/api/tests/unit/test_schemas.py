@@ -262,12 +262,95 @@ class TestUserSchemas:
         assert s.email == "user@test.com"
         assert s.employee_id is None
 
+    def test_user_read_includes_site_id(self) -> None:
+        from app.models.user import UserRole, UserStatus
+        from app.schemas.user import UserRead
+
+        now = datetime.now(UTC)
+        uid = uuid.uuid4()
+        site_uid = uuid.uuid4()
+        s = UserRead(
+            id=uid,
+            organization_id=uid,
+            created_at=now,
+            updated_at=now,
+            email="user@test.com",
+            email_verified=True,
+            role=UserRole.MANAGER,
+            status=UserStatus.ACTIVE,
+            mfa_enabled=False,
+            site_id=site_uid,
+        )
+        assert s.site_id == site_uid
+
+    def test_user_read_site_id_defaults_none(self) -> None:
+        from app.models.user import UserRole, UserStatus
+        from app.schemas.user import UserRead
+
+        now = datetime.now(UTC)
+        uid = uuid.uuid4()
+        s = UserRead(
+            id=uid,
+            organization_id=uid,
+            created_at=now,
+            updated_at=now,
+            email="user@test.com",
+            email_verified=True,
+            role=UserRole.MANAGER,
+            status=UserStatus.ACTIVE,
+            mfa_enabled=False,
+        )
+        assert s.site_id is None
+
     def test_user_create_defaults(self) -> None:
         from app.models.user import UserRole
         from app.schemas.user import UserCreate
 
-        s = UserCreate(email="new@test.com")
+        s = UserCreate(email="new@test.com", site_id=uuid.uuid4())
         assert s.role == UserRole.VIEWER
+
+    def test_user_create_viewer_without_site_id_raises(self) -> None:
+        from app.schemas.user import UserCreate
+
+        with pytest.raises(ValidationError, match="site_id"):
+            UserCreate(email="new@test.com")
+
+    def test_user_create_manager_without_site_id_raises(self) -> None:
+        from app.models.user import UserRole
+        from app.schemas.user import UserCreate
+
+        with pytest.raises(ValidationError, match="site_id"):
+            UserCreate(email="new@test.com", role=UserRole.MANAGER)
+
+    def test_user_create_org_admin_without_site_id_ok(self) -> None:
+        from app.models.user import UserRole
+        from app.schemas.user import UserCreate
+
+        s = UserCreate(email="admin@test.com", role=UserRole.ORG_ADMIN)
+        assert s.site_id is None
+
+    def test_user_create_super_admin_without_site_id_ok(self) -> None:
+        from app.models.user import UserRole
+        from app.schemas.user import UserCreate
+
+        s = UserCreate(email="sa@test.com", role=UserRole.SUPER_ADMIN)
+        assert s.site_id is None
+
+    def test_user_create_viewer_with_site_id_ok(self) -> None:
+        from app.models.user import UserRole
+        from app.schemas.user import UserCreate
+
+        site_uid = uuid.uuid4()
+        s = UserCreate(email="v@test.com", role=UserRole.VIEWER, site_id=site_uid)
+        assert s.site_id == site_uid
+
+    def test_user_create_employee_with_site_id_ok(self) -> None:
+        from app.models.user import UserRole
+        from app.schemas.user import UserCreate
+
+        site_uid = uuid.uuid4()
+        s = UserCreate(email="e@test.com", role=UserRole.EMPLOYEE, site_id=site_uid)
+        assert s.site_id == site_uid
 
     def test_user_update_all_none(self) -> None:
         from app.schemas.user import UserUpdate
