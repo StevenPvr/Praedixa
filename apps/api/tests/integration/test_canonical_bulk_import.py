@@ -26,7 +26,7 @@ ORG_ID = "11111111-1111-1111-1111-111111111111"
 
 
 class TestBulkCreateSchemaValidation:
-    def test_valid_single_record(self):
+    def test_valid_single_record(self) -> None:
         bulk = CanonicalRecordBulkCreate(
             records=[
                 {
@@ -39,7 +39,7 @@ class TestBulkCreateSchemaValidation:
         )
         assert len(bulk.records) == 1
 
-    def test_valid_multiple_records(self):
+    def test_valid_multiple_records(self) -> None:
         bulk = CanonicalRecordBulkCreate(
             records=[
                 {
@@ -53,11 +53,11 @@ class TestBulkCreateSchemaValidation:
         )
         assert len(bulk.records) == 10
 
-    def test_rejects_empty_list(self):
+    def test_rejects_empty_list(self) -> None:
         with pytest.raises(ValidationError):
             CanonicalRecordBulkCreate(records=[])
 
-    def test_rejects_invalid_shift(self):
+    def test_rejects_invalid_shift(self) -> None:
         with pytest.raises(ValidationError):
             CanonicalRecordBulkCreate(
                 records=[
@@ -70,7 +70,7 @@ class TestBulkCreateSchemaValidation:
                 ]
             )
 
-    def test_rejects_negative_capacite(self):
+    def test_rejects_negative_capacite(self) -> None:
         with pytest.raises(ValidationError):
             CanonicalRecordBulkCreate(
                 records=[
@@ -83,7 +83,7 @@ class TestBulkCreateSchemaValidation:
                 ]
             )
 
-    def test_rejects_negative_abs_h(self):
+    def test_rejects_negative_abs_h(self) -> None:
         with pytest.raises(ValidationError):
             CanonicalRecordBulkCreate(
                 records=[
@@ -97,7 +97,7 @@ class TestBulkCreateSchemaValidation:
                 ]
             )
 
-    def test_max_length_1000(self):
+    def test_max_length_1000(self) -> None:
         """Schema allows up to 1000 records."""
         bulk = CanonicalRecordBulkCreate(
             records=[
@@ -112,7 +112,7 @@ class TestBulkCreateSchemaValidation:
         )
         assert len(bulk.records) == 1000
 
-    def test_over_1000_rejected(self):
+    def test_over_1000_rejected(self) -> None:
         with pytest.raises(ValidationError):
             CanonicalRecordBulkCreate(
                 records=[
@@ -132,7 +132,7 @@ class TestBulkCreateSchemaValidation:
 
 class TestBulkImportService:
     @pytest.mark.asyncio
-    async def test_empty_batch(self):
+    async def test_empty_batch(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         inserted, skipped = await bulk_import_canonical(session, tenant, [])
@@ -141,7 +141,7 @@ class TestBulkImportService:
         session.execute.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_all_new_records(self):
+    async def test_all_new_records(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         result_mock = MagicMock()
@@ -162,7 +162,7 @@ class TestBulkImportService:
         assert skipped == 0
 
     @pytest.mark.asyncio
-    async def test_all_duplicates(self):
+    async def test_all_duplicates(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         result_mock = MagicMock()
@@ -182,7 +182,7 @@ class TestBulkImportService:
         assert skipped == 1
 
     @pytest.mark.asyncio
-    async def test_mixed_new_and_duplicates(self):
+    async def test_mixed_new_and_duplicates(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         result_mock = MagicMock()
@@ -203,7 +203,7 @@ class TestBulkImportService:
         assert skipped == 2
 
     @pytest.mark.asyncio
-    async def test_org_id_injected_into_all_rows(self):
+    async def test_org_id_injected_into_all_rows(self) -> None:
         custom_org = "22222222-2222-2222-2222-222222222222"
         tenant = _make_tenant(org_id=custom_org)
         session = AsyncMock()
@@ -224,7 +224,7 @@ class TestBulkImportService:
         session.execute.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_optional_fields_populated(self):
+    async def test_optional_fields_populated(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         result_mock = MagicMock()

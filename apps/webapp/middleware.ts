@@ -1,9 +1,25 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 import { updateSession } from "@/lib/auth/middleware";
+import { generateNonce, buildCspHeader } from "@/lib/security/csp";
 
 export async function middleware(request: NextRequest) {
-  return updateSession(request);
+  // Generate a per-request nonce for CSP
+  const nonce = generateNonce();
+  const cspHeader = buildCspHeader(nonce);
+
+  // Pass nonce to Server Components via request header
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", cspHeader);
+
+  // Run auth middleware with the augmented request
+  const response = await updateSession(request);
+
+  // Apply CSP to the response (auth middleware may return a redirect or next())
+  response.headers.set("Content-Security-Policy", cspHeader);
+
+  return response;
 }
 
 export const config = {

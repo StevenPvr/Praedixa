@@ -40,7 +40,7 @@ class TestAuditLogMiddleware:
     """Test AuditLogMiddleware dispatch."""
 
     @pytest.mark.asyncio
-    async def test_skip_health_path(self):
+    async def test_skip_health_path(self) -> None:
         """Health endpoint should be excluded from audit logging."""
         middleware = AuditLogMiddleware(app=MagicMock())
         request = _make_request("/health")
@@ -53,7 +53,7 @@ class TestAuditLogMiddleware:
         call_next.assert_called_once_with(request)
 
     @pytest.mark.asyncio
-    async def test_skip_docs_path(self):
+    async def test_skip_docs_path(self) -> None:
         middleware = AuditLogMiddleware(app=MagicMock())
         request = _make_request("/docs")
         call_next = AsyncMock(return_value=_make_response())
@@ -63,7 +63,7 @@ class TestAuditLogMiddleware:
             mock_logger.info.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_skip_redoc_path(self):
+    async def test_skip_redoc_path(self) -> None:
         middleware = AuditLogMiddleware(app=MagicMock())
         request = _make_request("/redoc")
         call_next = AsyncMock(return_value=_make_response())
@@ -73,7 +73,7 @@ class TestAuditLogMiddleware:
             mock_logger.info.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_skip_openapi_path(self):
+    async def test_skip_openapi_path(self) -> None:
         middleware = AuditLogMiddleware(app=MagicMock())
         request = _make_request("/openapi.json")
         call_next = AsyncMock(return_value=_make_response())
@@ -83,7 +83,7 @@ class TestAuditLogMiddleware:
             mock_logger.info.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_logs_for_api_path(self):
+    async def test_logs_for_api_path(self) -> None:
         """Non-excluded paths should be logged."""
         middleware = AuditLogMiddleware(app=MagicMock())
         request = _make_request("/api/v1/dashboard/summary", method="GET")
@@ -106,7 +106,7 @@ class TestAuditLogMiddleware:
             assert call_args[1]["ip"] == "127.0.0.1"
 
     @pytest.mark.asyncio
-    async def test_fallback_none_for_unauthenticated(self):
+    async def test_fallback_none_for_unauthenticated(self) -> None:
         """Unauthenticated requests should log user_id=None, org_id=None."""
         middleware = AuditLogMiddleware(app=MagicMock())
         request = _make_request("/api/v1/some-endpoint")
@@ -130,7 +130,7 @@ class TestAuditLogMiddleware:
             assert call_args[1]["organization_id"] is None
 
     @pytest.mark.asyncio
-    async def test_user_agent_truncation(self):
+    async def test_user_agent_truncation(self) -> None:
         """User-Agent header should be truncated to 200 chars."""
         middleware = AuditLogMiddleware(app=MagicMock())
         long_ua = "X" * 500
@@ -150,7 +150,7 @@ class TestAuditLogMiddleware:
             assert len(call_args[1]["user_agent"]) == 200
 
     @pytest.mark.asyncio
-    async def test_no_client_ip_none(self):
+    async def test_no_client_ip_none(self) -> None:
         """When request.client is None, ip should be None."""
         middleware = AuditLogMiddleware(app=MagicMock())
         request = _make_request("/api/v1/endpoint")
@@ -164,7 +164,7 @@ class TestAuditLogMiddleware:
             call_args = mock_logger.info.call_args
             assert call_args[1]["ip"] is None
 
-    def test_exclude_paths_constant(self):
+    def test_exclude_paths_constant(self) -> None:
         """Verify the set of excluded paths."""
         assert "/health" in AUDIT_EXCLUDE_PATHS
         assert "/docs" in AUDIT_EXCLUDE_PATHS

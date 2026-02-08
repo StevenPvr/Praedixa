@@ -57,7 +57,7 @@ async def get_organization_me(
 async def get_sites(
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
-    _user=Depends(get_current_user),
+    _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[list[SiteRead]]:
     """Return all sites for the current organization."""
     items = await list_sites(tenant=tenant, session=session)
@@ -73,7 +73,7 @@ async def get_sites(
 async def get_departments(
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
-    _user=Depends(get_current_user),
+    _user: JWTPayload = Depends(get_current_user),
     site_id: uuid.UUID | None = Query(default=None, description="Filter by site UUID"),
 ) -> ApiResponse[list[DepartmentRead]]:
     """Return all departments, optionally filtered by site."""

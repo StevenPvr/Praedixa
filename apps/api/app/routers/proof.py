@@ -27,6 +27,7 @@ from app.schemas.operational import ProofRecordRead
 from app.schemas.responses import ApiResponse, PaginatedResponse
 from app.services.proof_pack_pdf_service import generate_proof_pack_pdf
 from app.services.proof_service import (
+    _DECEMBER,
     generate_proof_record,
     get_proof_summary,
     list_proof_records,
@@ -164,7 +165,7 @@ async def generate_pdf(
 
     # Get decisions for this site+month for the PDF
     month_start = month.replace(day=1)
-    if month.month == 12:
+    if month.month == _DECEMBER:
         month_end = month.replace(year=month.year + 1, month=1, day=1)
     else:
         month_end = month.replace(month=month.month + 1, day=1)

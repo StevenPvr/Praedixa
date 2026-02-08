@@ -425,6 +425,81 @@ async def _check_cooldown(dataset_id: uuid.UUID, session: AsyncSession) -> None:
             raise PraedixaError(message=msg, code="UPLOAD_COOLDOWN", status_code=429)
 
 
+def _sanitize_sheet_name(sheet_name: str | None) -> str | None:
+    """Sanitize sheet_name: cap length and strip non-printable chars.
+
+    This value is reflected in error messages if the sheet is not found.
+    """
+    _max_sheet_name_len = 100
+    if sheet_name is None:
+        return None
+    sheet_name = sheet_name[:_max_sheet_name_len]
+    sheet_name = "".join(c for c in sheet_name if c.isprintable())
+    return sheet_name or None
+
+
+async def _read_upload_content(file: UploadFile) -> bytes:
+    """Read file content in chunks with streaming size enforcement.
+
+    Defense against attackers who omit Content-Length or use chunked
+    transfer encoding to bypass the RequestBodySizeLimitMiddleware.
+    """
+    max_size = settings.MAX_UPLOAD_SIZE_BYTES
+    chunks: list[bytes] = []
+    total_read = 0
+    _read_chunk_size = 1024 * 1024  # 1 MB chunks
+    while True:
+        chunk = await file.read(_read_chunk_size)
+        if not chunk:
+            break
+        total_read += len(chunk)
+        if total_read > max_size:
+            raise PraedixaError(
+                message="File too large",
+                code="PAYLOAD_TOO_LARGE",
+                status_code=413,
+            )
+        chunks.append(chunk)
+
+    content = b"".join(chunks)
+    if len(content) == 0:
+        raise PraedixaError(
+            message="File is empty",
+            code="INVALID_FILE",
+            status_code=400,
+        )
+    return content
+
+
+async def _log_ingestion_failure(
+    session: AsyncSession,
+    *,
+    dataset_id: uuid.UUID,
+    rows_received: int,
+    started_at: datetime,
+    error_message: str,
+    triggered_by: str,
+    file_name: str,
+    file_size: int,
+) -> None:
+    """Create an IngestionLog entry for a failed ingestion step and commit."""
+    log_entry = IngestionLog(
+        dataset_id=dataset_id,
+        mode=IngestionMode.FILE_UPLOAD,
+        rows_received=rows_received,
+        rows_transformed=0,
+        started_at=started_at,
+        completed_at=datetime.now(UTC),
+        status=RunStatus.FAILED,
+        error_message=error_message[:500],
+        triggered_by=triggered_by,
+        file_name=file_name,
+        file_size=file_size,
+    )
+    session.add(log_entry)
+    await session.commit()
+
+
 @router.post("/{dataset_id}/ingest", status_code=201)
 @limiter.limit("6/minute")
 async def ingest_file(  # pragma: no cover
@@ -451,58 +526,32 @@ async def ingest_file(  # pragma: no cover
     """
     started_at = datetime.now(UTC)
     safe_filename = os.path.basename(file.filename or "unknown")
-
-    # Sanitize sheet_name: cap length and strip non-printable chars.
-    # This value is reflected in error messages if the sheet is not found.
-    _max_sheet_name_len = 100
-    if sheet_name is not None:
-        sheet_name = sheet_name[:_max_sheet_name_len]
-        # Strip non-printable / non-ASCII control characters
-        sheet_name = "".join(c for c in sheet_name if c.isprintable())
-        if not sheet_name:
-            sheet_name = None
+    sheet_name = _sanitize_sheet_name(sheet_name)
 
     # 1. Verify dataset ownership (tenant isolation FIRST)
     dataset = await get_dataset(dataset_id, tenant, session)
 
     # 2. Check upload cooldown BEFORE reading the file body.
-    # This prevents wasting I/O on requests that will be rejected.
     await _check_cooldown(dataset_id, session)
 
-    # 3. Read file content in chunks with streaming size enforcement.
-    # Defense against attackers who omit Content-Length or use chunked
-    # transfer encoding to bypass the RequestBodySizeLimitMiddleware.
-    max_size = settings.MAX_UPLOAD_SIZE_BYTES
-    chunks: list[bytes] = []
-    total_read = 0
-    _read_chunk_size = 1024 * 1024  # 1 MB chunks
-    while True:
-        chunk = await file.read(_read_chunk_size)
-        if not chunk:
-            break
-        total_read += len(chunk)
-        if total_read > max_size:
-            raise PraedixaError(
-                message="File too large",
-                code="PAYLOAD_TOO_LARGE",
-                status_code=413,
-            )
-        chunks.append(chunk)
-
-    content = b"".join(chunks)
+    # 3. Read file content with streaming size enforcement
+    content = await _read_upload_content(file)
     file_size = len(content)
-    if file_size == 0:
-        raise PraedixaError(
-            message="File is empty",
-            code="INVALID_FILE",
-            status_code=400,
-        )
 
     # 4. Validate magic bytes
     _validate_magic_bytes(content, safe_filename)
 
     # 5. Get dataset columns for mapping
     columns = await get_dataset_columns(dataset_id, tenant, session)
+
+    # Common kwargs for failure logging
+    failure_kwargs = {
+        "dataset_id": dataset_id,
+        "started_at": started_at,
+        "triggered_by": current_user.user_id,
+        "file_name": safe_filename,
+        "file_size": file_size,
+    }
 
     # 6. Parse file in thread (CPU-bound)
     try:
@@ -515,22 +564,9 @@ async def ingest_file(  # pragma: no cover
             max_rows=settings.MAX_ROWS_PER_INGESTION,
         )
     except Exception as exc:
-        # Log failure
-        log_entry = IngestionLog(
-            dataset_id=dataset_id,
-            mode=IngestionMode.FILE_UPLOAD,
-            rows_received=0,
-            rows_transformed=0,
-            started_at=started_at,
-            completed_at=datetime.now(UTC),
-            status=RunStatus.FAILED,
-            error_message=str(exc)[:500],
-            triggered_by=current_user.user_id,
-            file_name=safe_filename,
-            file_size=file_size,
+        await _log_ingestion_failure(
+            session, rows_received=0, error_message=str(exc), **failure_kwargs
         )
-        session.add(log_entry)
-        await session.commit()
         raise PraedixaError(
             message="File parsing failed",
             code="PARSE_ERROR",
@@ -545,8 +581,6 @@ async def ingest_file(  # pragma: no cover
     )
 
     # 7.5 Run quality checks
-    # Extract quality config from pipeline_config JSONB, filtering to known fields only.
-    # This prevents mass assignment from arbitrary keys injected into pipeline_config.
     quality_config_raw = dataset.pipeline_config.get("data_quality", {})
     quality_config = QualityConfig(
         **{
@@ -566,21 +600,12 @@ async def ingest_file(  # pragma: no cover
             quality_config,
         )
     except Exception as exc:
-        log_entry = IngestionLog(
-            dataset_id=dataset_id,
-            mode=IngestionMode.FILE_UPLOAD,
+        await _log_ingestion_failure(
+            session,
             rows_received=parse_result.row_count,
-            rows_transformed=0,
-            started_at=started_at,
-            completed_at=datetime.now(UTC),
-            status=RunStatus.FAILED,
-            error_message=str(exc)[:500],
-            triggered_by=current_user.user_id,
-            file_name=safe_filename,
-            file_size=file_size,
+            error_message=str(exc),
+            **failure_kwargs,
         )
-        session.add(log_entry)
-        await session.commit()
         raise PraedixaError(
             message="Data quality checks failed",
             code="QUALITY_ERROR",
@@ -597,21 +622,12 @@ async def ingest_file(  # pragma: no cover
             quality_result.cleaned_rows,
         )
     except Exception as exc:
-        log_entry = IngestionLog(
-            dataset_id=dataset_id,
-            mode=IngestionMode.FILE_UPLOAD,
+        await _log_ingestion_failure(
+            session,
             rows_received=parse_result.row_count,
-            rows_transformed=0,
-            started_at=started_at,
-            completed_at=datetime.now(UTC),
-            status=RunStatus.FAILED,
-            error_message=str(exc)[:500],
-            triggered_by=current_user.user_id,
-            file_name=safe_filename,
-            file_size=file_size,
+            error_message=str(exc),
+            **failure_kwargs,
         )
-        session.add(log_entry)
-        await session.commit()
         raise PraedixaError(
             message="Data insertion failed",
             code="INSERT_ERROR",
@@ -634,7 +650,7 @@ async def ingest_file(  # pragma: no cover
     session.add(log_entry)
     await session.flush()
 
-    # 9.5 Create QualityReport — server-side only, all values from QualityResult
+    # 9.5 Create QualityReport
     quality_report = QualityReport(
         dataset_id=dataset_id,
         ingestion_log_id=log_entry.id,

@@ -1,10 +1,12 @@
-"""Tests for canonical_data_service — CRUD and analytics for canonical records.
+"""Tests for canonical_data_service — CRUD and analytics.
 
 Covers:
-- list_canonical_records: pagination, filters (site_id, date_from, date_to, shift), empty results
+- list_canonical_records: pagination, filters (site_id, date_from,
+  date_to, shift), empty results
 - get_canonical_record: success, not found
 - create_canonical_record: happy path, org_id from tenant
-- bulk_import_canonical: insert + dedup counts, empty list, org_id injection
+- bulk_import_canonical: insert + dedup counts, empty list, org_id
+  injection
 - get_quality_dashboard: all metrics, zero records edge case
 """
 
@@ -40,7 +42,7 @@ ORG_ID = "11111111-1111-1111-1111-111111111111"
 
 class TestListCanonicalRecords:
     @pytest.mark.asyncio
-    async def test_returns_items_and_total(self):
+    async def test_returns_items_and_total(self) -> None:
         rec = _make_canonical_record()
         tenant = _make_tenant()
         session = make_mock_session(
@@ -53,7 +55,7 @@ class TestListCanonicalRecords:
         assert items[0] is rec
 
     @pytest.mark.asyncio
-    async def test_returns_empty_list(self):
+    async def test_returns_empty_list(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(0),
@@ -64,7 +66,7 @@ class TestListCanonicalRecords:
         assert items == []
 
     @pytest.mark.asyncio
-    async def test_none_count_coerced_to_zero(self):
+    async def test_none_count_coerced_to_zero(self) -> None:
         tenant = _make_tenant()
         count_result = MagicMock()
         count_result.scalar_one.return_value = None
@@ -74,7 +76,7 @@ class TestListCanonicalRecords:
         assert items == []
 
     @pytest.mark.asyncio
-    async def test_pagination_page_2(self):
+    async def test_pagination_page_2(self) -> None:
         rec = _make_canonical_record()
         tenant = _make_tenant()
         session = make_mock_session(
@@ -88,7 +90,7 @@ class TestListCanonicalRecords:
         assert len(items) == 1
 
     @pytest.mark.asyncio
-    async def test_site_id_filter(self):
+    async def test_site_id_filter(self) -> None:
         rec = _make_canonical_record(site_id="site-lyon")
         tenant = _make_tenant()
         session = make_mock_session(
@@ -102,7 +104,7 @@ class TestListCanonicalRecords:
         assert items[0].site_id == "site-lyon"
 
     @pytest.mark.asyncio
-    async def test_date_from_filter(self):
+    async def test_date_from_filter(self) -> None:
         rec = _make_canonical_record()
         tenant = _make_tenant()
         session = make_mock_session(
@@ -115,7 +117,7 @@ class TestListCanonicalRecords:
         assert total == 1
 
     @pytest.mark.asyncio
-    async def test_date_to_filter(self):
+    async def test_date_to_filter(self) -> None:
         rec = _make_canonical_record()
         tenant = _make_tenant()
         session = make_mock_session(
@@ -128,7 +130,7 @@ class TestListCanonicalRecords:
         assert total == 1
 
     @pytest.mark.asyncio
-    async def test_shift_filter(self):
+    async def test_shift_filter(self) -> None:
         rec = _make_canonical_record(shift=ShiftType.PM)
         tenant = _make_tenant()
         session = make_mock_session(
@@ -141,7 +143,7 @@ class TestListCanonicalRecords:
         assert total == 1
 
     @pytest.mark.asyncio
-    async def test_combined_filters(self):
+    async def test_combined_filters(self) -> None:
         rec = _make_canonical_record(site_id="site-lyon", shift=ShiftType.PM)
         tenant = _make_tenant()
         session = make_mock_session(
@@ -159,7 +161,7 @@ class TestListCanonicalRecords:
         assert total == 1
 
     @pytest.mark.asyncio
-    async def test_page_offset_calculation(self):
+    async def test_page_offset_calculation(self) -> None:
         """Page 3, page_size 5 should offset by 10."""
         tenant = _make_tenant()
         session = make_mock_session(
@@ -176,7 +178,7 @@ class TestListCanonicalRecords:
 
 class TestGetCanonicalRecord:
     @pytest.mark.asyncio
-    async def test_returns_record(self):
+    async def test_returns_record(self) -> None:
         rec = _make_canonical_record()
         tenant = _make_tenant()
         session = make_mock_session(make_scalar_result(rec))
@@ -184,7 +186,7 @@ class TestGetCanonicalRecord:
         assert result is rec
 
     @pytest.mark.asyncio
-    async def test_raises_not_found(self):
+    async def test_raises_not_found(self) -> None:
         tenant = _make_tenant()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
@@ -193,7 +195,7 @@ class TestGetCanonicalRecord:
             await get_canonical_record(session, tenant, uuid.uuid4())
 
     @pytest.mark.asyncio
-    async def test_not_found_contains_uuid_in_details(self):
+    async def test_not_found_contains_uuid_in_details(self) -> None:
         tenant = _make_tenant()
         rid = uuid.uuid4()
         result_mock = MagicMock()
@@ -204,7 +206,7 @@ class TestGetCanonicalRecord:
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_tenant_filter_applied(self):
+    async def test_tenant_filter_applied(self) -> None:
         rec = _make_canonical_record()
         tenant = _make_tenant()
         session = make_mock_session(make_scalar_result(rec))
@@ -217,7 +219,7 @@ class TestGetCanonicalRecord:
 
 class TestCreateCanonicalRecord:
     @pytest.mark.asyncio
-    async def test_happy_path(self):
+    async def test_happy_path(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         session.add = MagicMock()
@@ -237,7 +239,7 @@ class TestCreateCanonicalRecord:
         session.flush.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_org_id_from_tenant(self):
+    async def test_org_id_from_tenant(self) -> None:
         custom_org = "22222222-2222-2222-2222-222222222222"
         tenant = _make_tenant(org_id=custom_org)
         session = AsyncMock()
@@ -255,7 +257,7 @@ class TestCreateCanonicalRecord:
         assert result.organization_id == uuid.UUID(custom_org)
 
     @pytest.mark.asyncio
-    async def test_default_values(self):
+    async def test_default_values(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         session.add = MagicMock()
@@ -275,7 +277,7 @@ class TestCreateCanonicalRecord:
         assert result.competence is None
 
     @pytest.mark.asyncio
-    async def test_all_optional_fields(self):
+    async def test_all_optional_fields(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         session.add = MagicMock()
@@ -301,7 +303,7 @@ class TestCreateCanonicalRecord:
         assert result.realise_h == Decimal("92.00")
 
     @pytest.mark.asyncio
-    async def test_session_add_called_with_canonical_record(self):
+    async def test_session_add_called_with_canonical_record(self) -> None:
         from app.models.operational import CanonicalRecord
 
         tenant = _make_tenant()
@@ -326,7 +328,7 @@ class TestCreateCanonicalRecord:
 
 class TestBulkImportCanonical:
     @pytest.mark.asyncio
-    async def test_empty_list_returns_zeros(self):
+    async def test_empty_list_returns_zeros(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         inserted, skipped = await bulk_import_canonical(session, tenant, [])
@@ -334,7 +336,7 @@ class TestBulkImportCanonical:
         assert skipped == 0
 
     @pytest.mark.asyncio
-    async def test_inserts_records(self):
+    async def test_inserts_records(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         result_mock = MagicMock()
@@ -355,7 +357,7 @@ class TestBulkImportCanonical:
         assert skipped == 0
 
     @pytest.mark.asyncio
-    async def test_dedup_counts(self):
+    async def test_dedup_counts(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         result_mock = MagicMock()
@@ -376,7 +378,7 @@ class TestBulkImportCanonical:
         assert skipped == 1
 
     @pytest.mark.asyncio
-    async def test_org_id_injected(self):
+    async def test_org_id_injected(self) -> None:
         custom_org = "22222222-2222-2222-2222-222222222222"
         tenant = _make_tenant(org_id=custom_org)
         session = AsyncMock()
@@ -398,7 +400,7 @@ class TestBulkImportCanonical:
         session.execute.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_optional_fields_default(self):
+    async def test_optional_fields_default(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         result_mock = MagicMock()
@@ -417,7 +419,7 @@ class TestBulkImportCanonical:
         session.execute.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_all_zero_rowcount(self):
+    async def test_all_zero_rowcount(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         result_mock = MagicMock()
@@ -437,7 +439,7 @@ class TestBulkImportCanonical:
         assert skipped == 1
 
     @pytest.mark.asyncio
-    async def test_large_batch_accepted(self):
+    async def test_large_batch_accepted(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         result_mock = MagicMock()
@@ -458,7 +460,7 @@ class TestBulkImportCanonical:
         assert skipped == 0
 
     @pytest.mark.asyncio
-    async def test_bulk_import_chunks_large_payloads(self):
+    async def test_bulk_import_chunks_large_payloads(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
         first = MagicMock()
@@ -488,7 +490,7 @@ class TestBulkImportCanonical:
 
 class TestGetQualityDashboard:
     @pytest.mark.asyncio
-    async def test_zero_records(self):
+    async def test_zero_records(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(make_scalar_result(0))
         result = await get_quality_dashboard(session, tenant)
@@ -500,7 +502,7 @@ class TestGetQualityDashboard:
         assert result["avg_abs_pct"] == Decimal("0")
 
     @pytest.mark.asyncio
-    async def test_with_records(self):
+    async def test_with_records(self) -> None:
         tenant = _make_tenant()
         min_date = date(2026, 1, 1)
         max_date = date(2026, 1, 31)
@@ -523,7 +525,7 @@ class TestGetQualityDashboard:
         assert len(result["date_range"]) == 2
 
     @pytest.mark.asyncio
-    async def test_date_range_has_iso_strings(self):
+    async def test_date_range_has_iso_strings(self) -> None:
         tenant = _make_tenant()
         min_date = date(2026, 1, 1)
         max_date = date(2026, 1, 31)
@@ -542,7 +544,7 @@ class TestGetQualityDashboard:
         assert result["date_range"] == ["2026-01-01", "2026-01-31"]
 
     @pytest.mark.asyncio
-    async def test_null_avg_abs_treated_as_zero(self):
+    async def test_null_avg_abs_treated_as_zero(self) -> None:
         tenant = _make_tenant()
         range_result = MagicMock()
         range_result.one.return_value = (date(2026, 1, 1), date(2026, 1, 1))
@@ -558,7 +560,7 @@ class TestGetQualityDashboard:
         assert result["avg_abs_pct"] == Decimal("0")
 
     @pytest.mark.asyncio
-    async def test_null_filled_count(self):
+    async def test_null_filled_count(self) -> None:
         tenant = _make_tenant()
         range_result = MagicMock()
         range_result.one.return_value = (date(2026, 1, 1), date(2026, 1, 1))
@@ -575,7 +577,7 @@ class TestGetQualityDashboard:
         assert result["missing_shifts_pct"] == Decimal("100.0")
 
     @pytest.mark.asyncio
-    async def test_null_range_min(self):
+    async def test_null_range_min(self) -> None:
         tenant = _make_tenant()
         range_result = MagicMock()
         range_result.one.return_value = (None, None)
@@ -591,14 +593,14 @@ class TestGetQualityDashboard:
         assert result["date_range"] == []
 
     @pytest.mark.asyncio
-    async def test_tenant_applied_to_all_queries(self):
+    async def test_tenant_applied_to_all_queries(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(make_scalar_result(0))
         await get_quality_dashboard(session, tenant)
         tenant.apply.assert_called()
 
     @pytest.mark.asyncio
-    async def test_null_sites_count(self):
+    async def test_null_sites_count(self) -> None:
         tenant = _make_tenant()
         range_result = MagicMock()
         range_result.one.return_value = (date(2026, 1, 1), date(2026, 1, 31))

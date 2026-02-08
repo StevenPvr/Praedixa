@@ -39,22 +39,22 @@ from tests.unit.conftest import (
 
 
 class TestSigmoid:
-    def test_zero_returns_half(self):
+    def test_zero_returns_half(self) -> None:
         assert _sigmoid(0) == 0.5
 
-    def test_large_positive_near_one(self):
+    def test_large_positive_near_one(self) -> None:
         assert _sigmoid(10) > 0.99
 
-    def test_large_negative_near_zero(self):
+    def test_large_negative_near_zero(self) -> None:
         assert _sigmoid(-10) < 0.01
 
-    def test_positive_above_half(self):
+    def test_positive_above_half(self) -> None:
         assert _sigmoid(1) > 0.5
 
-    def test_negative_below_half(self):
+    def test_negative_below_half(self) -> None:
         assert _sigmoid(-1) < 0.5
 
-    def test_bounded_zero_to_one(self):
+    def test_bounded_zero_to_one(self) -> None:
         for x in [-100, -10, -1, 0, 1, 10, 100]:
             r = _sigmoid(x)
             assert 0 <= r <= 1
@@ -63,7 +63,7 @@ class TestSigmoid:
             r = _sigmoid(x)
             assert 0 < r < 1
 
-    def test_monotonic(self):
+    def test_monotonic(self) -> None:
         prev = _sigmoid(-10)
         for x in range(-9, 11):
             curr = _sigmoid(x)
@@ -75,40 +75,40 @@ class TestSigmoid:
 
 
 class TestSeverityFromP:
-    def test_critical_at_0_7(self):
+    def test_critical_at_0_7(self) -> None:
         assert _severity_from_p(0.7) == CoverageAlertSeverity.CRITICAL
 
-    def test_critical_at_0_9(self):
+    def test_critical_at_0_9(self) -> None:
         assert _severity_from_p(0.9) == CoverageAlertSeverity.CRITICAL
 
-    def test_high_at_0_5(self):
+    def test_high_at_0_5(self) -> None:
         assert _severity_from_p(0.5) == CoverageAlertSeverity.HIGH
 
-    def test_high_at_0_69(self):
+    def test_high_at_0_69(self) -> None:
         assert _severity_from_p(0.69) == CoverageAlertSeverity.HIGH
 
-    def test_medium_at_0_3(self):
+    def test_medium_at_0_3(self) -> None:
         assert _severity_from_p(0.3) == CoverageAlertSeverity.MEDIUM
 
-    def test_medium_at_0_49(self):
+    def test_medium_at_0_49(self) -> None:
         assert _severity_from_p(0.49) == CoverageAlertSeverity.MEDIUM
 
-    def test_low_at_0_29(self):
+    def test_low_at_0_29(self) -> None:
         assert _severity_from_p(0.29) == CoverageAlertSeverity.LOW
 
-    def test_low_at_0_0(self):
+    def test_low_at_0_0(self) -> None:
         assert _severity_from_p(0.0) == CoverageAlertSeverity.LOW
 
-    def test_low_at_0_1(self):
+    def test_low_at_0_1(self) -> None:
         assert _severity_from_p(0.1) == CoverageAlertSeverity.LOW
 
-    def test_critical_at_1_0(self):
+    def test_critical_at_1_0(self) -> None:
         assert _severity_from_p(1.0) == CoverageAlertSeverity.CRITICAL
 
-    def test_boundary_0_5(self):
+    def test_boundary_0_5(self) -> None:
         assert _severity_from_p(0.5) == CoverageAlertSeverity.HIGH
 
-    def test_boundary_0_3(self):
+    def test_boundary_0_3(self) -> None:
         assert _severity_from_p(0.3) == CoverageAlertSeverity.MEDIUM
 
 
@@ -116,38 +116,38 @@ class TestSeverityFromP:
 
 
 class TestGenerateDrivers:
-    def test_returns_exactly_three(self):
-        rng = random.Random(42)
+    def test_returns_exactly_three(self) -> None:
+        rng = random.Random(42)  # noqa: S311 -- deterministic seed for mock forecast
         drivers = _generate_drivers(rng, avg_gap=5.0, trend=1.0)
         assert len(drivers) == 3
 
-    def test_returns_strings(self):
-        rng = random.Random(42)
+    def test_returns_strings(self) -> None:
+        rng = random.Random(42)  # noqa: S311 -- deterministic seed for mock forecast
         drivers = _generate_drivers(rng, avg_gap=5.0, trend=1.0)
         for d in drivers:
             assert isinstance(d, str)
 
-    def test_includes_trend_driver_when_positive(self):
-        rng = random.Random(42)
+    def test_includes_trend_driver_when_positive(self) -> None:
+        rng = random.Random(42)  # noqa: S311 -- deterministic seed for mock forecast
         # With positive trend, the candidate list includes "Tendance absences"
         # But we can't guarantee it's in top 3 due to shuffle
         drivers = _generate_drivers(rng, avg_gap=10.0, trend=5.0)
         assert len(drivers) == 3
 
-    def test_no_duplicates(self):
-        rng = random.Random(42)
+    def test_no_duplicates(self) -> None:
+        rng = random.Random(42)  # noqa: S311 -- deterministic seed for mock forecast
         drivers = _generate_drivers(rng, avg_gap=10.0, trend=5.0)
         assert len(set(drivers)) == len(drivers)
 
-    def test_different_seeds_may_differ(self):
-        d1 = _generate_drivers(random.Random(1), avg_gap=5.0, trend=1.0)
-        d2 = _generate_drivers(random.Random(2), avg_gap=5.0, trend=1.0)
+    def test_different_seeds_may_differ(self) -> None:
+        d1 = _generate_drivers(random.Random(1), avg_gap=5.0, trend=1.0)  # noqa: S311
+        d2 = _generate_drivers(random.Random(2), avg_gap=5.0, trend=1.0)  # noqa: S311
         # Not necessarily different but possible
         assert len(d1) == 3
         assert len(d2) == 3
 
-    def test_zero_gap_and_trend(self):
-        rng = random.Random(42)
+    def test_zero_gap_and_trend(self) -> None:
+        rng = random.Random(42)  # noqa: S311 -- deterministic seed for mock forecast
         drivers = _generate_drivers(rng, avg_gap=0.0, trend=0.0)
         assert len(drivers) == 3
 
@@ -156,26 +156,26 @@ class TestGenerateDrivers:
 
 
 class TestDeterministicSeed:
-    def test_same_input_same_seed(self):
+    def test_same_input_same_seed(self) -> None:
         s1 = _deterministic_seed("org-1", date(2026, 1, 1))
         s2 = _deterministic_seed("org-1", date(2026, 1, 1))
         assert s1 == s2
 
-    def test_different_org_different_seed(self):
+    def test_different_org_different_seed(self) -> None:
         s1 = _deterministic_seed("org-1", date(2026, 1, 1))
         s2 = _deterministic_seed("org-2", date(2026, 1, 1))
         assert s1 != s2
 
-    def test_different_date_different_seed(self):
+    def test_different_date_different_seed(self) -> None:
         s1 = _deterministic_seed("org-1", date(2026, 1, 1))
         s2 = _deterministic_seed("org-1", date(2026, 1, 2))
         assert s1 != s2
 
-    def test_returns_integer(self):
+    def test_returns_integer(self) -> None:
         s = _deterministic_seed("org-1", date(2026, 1, 1))
         assert isinstance(s, int)
 
-    def test_positive_value(self):
+    def test_positive_value(self) -> None:
         s = _deterministic_seed("org-1", date(2026, 1, 1))
         assert s >= 0
 
@@ -185,21 +185,21 @@ class TestDeterministicSeed:
 
 class TestGenerateMockForecasts:
     @pytest.mark.asyncio
-    async def test_returns_zero_with_no_data(self):
+    async def test_returns_zero_with_no_data(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(make_scalars_result([]))
         count = await generate_mock_forecasts(session, tenant)
         assert count == 0
 
     @pytest.mark.asyncio
-    async def test_no_flush_when_zero_alerts(self):
+    async def test_no_flush_when_zero_alerts(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(make_scalars_result([]))
         await generate_mock_forecasts(session, tenant)
         session.flush.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_generates_alerts_from_records(self):
+    async def test_generates_alerts_from_records(self) -> None:
         tenant = _make_tenant()
         # Create records with a significant gap
         records = [
@@ -224,7 +224,7 @@ class TestGenerateMockForecasts:
             session.flush.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_groups_by_site_and_shift(self):
+    async def test_groups_by_site_and_shift(self) -> None:
         tenant = _make_tenant()
         records = [
             _make_canonical_record(
@@ -253,7 +253,7 @@ class TestGenerateMockForecasts:
         assert count >= 0
 
     @pytest.mark.asyncio
-    async def test_deterministic_output(self):
+    async def test_deterministic_output(self) -> None:
         tenant = _make_tenant()
         records = [
             _make_canonical_record(
@@ -280,7 +280,7 @@ class TestGenerateMockForecasts:
         assert count1 == count2
 
     @pytest.mark.asyncio
-    async def test_org_id_injected(self):
+    async def test_org_id_injected(self) -> None:
         custom_org = "22222222-2222-2222-2222-222222222222"
         tenant = _make_tenant(org_id=custom_org)
         records = [
@@ -303,7 +303,7 @@ class TestGenerateMockForecasts:
             assert added_alert.organization_id == uuid.UUID(custom_org)
 
     @pytest.mark.asyncio
-    async def test_custom_days_lookback(self):
+    async def test_custom_days_lookback(self) -> None:
         tenant = _make_tenant()
         records = [
             _make_canonical_record(
@@ -323,7 +323,7 @@ class TestGenerateMockForecasts:
         assert count >= 0
 
     @pytest.mark.asyncio
-    async def test_no_gap_produces_fewer_alerts(self):
+    async def test_no_gap_produces_fewer_alerts(self) -> None:
         tenant = _make_tenant()
         records = [
             _make_canonical_record(
@@ -344,14 +344,14 @@ class TestGenerateMockForecasts:
         assert count >= 0
 
     @pytest.mark.asyncio
-    async def test_tenant_filter_applied(self):
+    async def test_tenant_filter_applied(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(make_scalars_result([]))
         await generate_mock_forecasts(session, tenant)
         tenant.apply.assert_called()
 
     @pytest.mark.asyncio
-    async def test_alert_status_is_open(self):
+    async def test_alert_status_is_open(self) -> None:
         tenant = _make_tenant()
         records = [
             _make_canonical_record(
@@ -373,7 +373,7 @@ class TestGenerateMockForecasts:
             assert alert.status == CoverageAlertStatus.OPEN
 
     @pytest.mark.asyncio
-    async def test_shift_enum_handling(self):
+    async def test_shift_enum_handling(self) -> None:
         """Records with shift as enum should be handled correctly."""
         tenant = _make_tenant()
         records = [
@@ -395,7 +395,7 @@ class TestGenerateMockForecasts:
         assert count >= 0
 
     @pytest.mark.asyncio
-    async def test_weighted_moving_average_weights(self):
+    async def test_weighted_moving_average_weights(self) -> None:
         """Later records should have more weight."""
         tenant = _make_tenant()
         # Early records: no gap; late records: big gap
@@ -427,7 +427,7 @@ class TestGenerateMockForecasts:
         assert count >= 0
 
     @pytest.mark.asyncio
-    async def test_single_record(self):
+    async def test_single_record(self) -> None:
         tenant = _make_tenant()
         records = [
             _make_canonical_record(
@@ -446,7 +446,7 @@ class TestGenerateMockForecasts:
         assert count >= 0
 
     @pytest.mark.asyncio
-    async def test_none_realise_h_uses_capacite(self):
+    async def test_none_realise_h_uses_capacite(self) -> None:
         """If realise_h is None, treat as cap (no gap)."""
         tenant = _make_tenant()
         records = [
@@ -468,7 +468,7 @@ class TestGenerateMockForecasts:
         assert count >= 0
 
     @pytest.mark.asyncio
-    async def test_empty_gaps_skips_group(self):
+    async def test_empty_gaps_skips_group(self) -> None:
         """Test scenario with zero-capacity records (gap=0, trend=0).
 
         With zero gap, the p_rupture computation produces baseline values.
@@ -492,7 +492,7 @@ class TestGenerateMockForecasts:
         assert count >= 0
 
     @pytest.mark.asyncio
-    async def test_low_probability_alerts_skipped(self):
+    async def test_low_probability_alerts_skipped(self) -> None:
         """Alerts with p_rupture <= 0.2 are skipped (line 184).
 
         By patching gauss to return a large negative noise, we force
@@ -516,7 +516,7 @@ class TestGenerateMockForecasts:
         session.flush = AsyncMock()
 
         # Patch gauss to return a very negative noise value
-        # This forces raw_score ~ -2.0, sigmoid(-2.0) ~ 0.12, p_rupture ~ 0.12*decay <= 0.2
+        # raw_score ~ -2.0, sigmoid(-2.0) ~ 0.12, p_rupture ~ 0.12*decay <= 0.2
         with patch.object(random.Random, "gauss", return_value=-2.0):
             count = await generate_mock_forecasts(session, tenant)
 
@@ -525,7 +525,7 @@ class TestGenerateMockForecasts:
         session.flush.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_shift_as_string_handled(self):
+    async def test_shift_as_string_handled(self) -> None:
         """Records with shift as a plain string (not enum) are handled."""
         tenant = _make_tenant()
         records = [

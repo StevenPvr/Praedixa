@@ -98,7 +98,7 @@ def _make_insertion_result() -> InsertionResult:
 
 
 class TestParseArgs:
-    def test_file_mode(self):
+    def test_file_mode(self) -> None:
         from scripts.ingest_file import _parse_args
 
         with patch(
@@ -112,7 +112,7 @@ class TestParseArgs:
         assert args.directory is None
         assert args.format is None
 
-    def test_directory_mode(self):
+    def test_directory_mode(self) -> None:
         from scripts.ingest_file import _parse_args
 
         with patch(
@@ -122,15 +122,15 @@ class TestParseArgs:
                 "--dataset-id",
                 str(DATASET_ID),
                 "--directory",
-                "/tmp/data",  # noqa: S108
+                "/tmp/data",  # noqa: S108  # nosec B108
             ],
         ):
             args = _parse_args()
 
-        assert args.directory == Path("/tmp/data")  # noqa: S108
+        assert args.directory == Path("/tmp/data")  # noqa: S108  # nosec B108
         assert args.file is None
 
-    def test_format_flag(self):
+    def test_format_flag(self) -> None:
         from scripts.ingest_file import _parse_args
 
         with patch(
@@ -149,7 +149,7 @@ class TestParseArgs:
 
         assert args.format == "lucca"
 
-    def test_sheet_name_flag(self):
+    def test_sheet_name_flag(self) -> None:
         from scripts.ingest_file import _parse_args
 
         with patch(
@@ -168,7 +168,7 @@ class TestParseArgs:
 
         assert args.sheet_name == "Feuille1"
 
-    def test_missing_dataset_id_exits(self):
+    def test_missing_dataset_id_exits(self) -> None:
         from scripts.ingest_file import _parse_args
 
         with (
@@ -177,7 +177,7 @@ class TestParseArgs:
         ):
             _parse_args()
 
-    def test_file_and_directory_mutually_exclusive(self):
+    def test_file_and_directory_mutually_exclusive(self) -> None:
         from scripts.ingest_file import _parse_args
 
         with (
@@ -190,7 +190,7 @@ class TestParseArgs:
                     "--file",
                     "a.csv",
                     "--directory",
-                    "/tmp",  # noqa: S108
+                    "/tmp",  # noqa: S108  # nosec B108
                 ],
             ),
             pytest.raises(SystemExit),
@@ -213,7 +213,7 @@ class TestIngestSingleFile:
         mock_insert,
         mock_log,
         tmp_path,
-    ):
+    ) -> None:
         from scripts.ingest_file import _ingest_single_file
 
         csv_file = tmp_path / "data.csv"
@@ -238,7 +238,7 @@ class TestIngestSingleFile:
         # Success log should be called
         mock_log.assert_called_once()
 
-    async def test_file_read_error_returns_false(self, tmp_path):
+    async def test_file_read_error_returns_false(self, tmp_path) -> None:
         from scripts.ingest_file import _ingest_single_file
 
         missing_file = tmp_path / "nonexistent.csv"
@@ -253,7 +253,7 @@ class TestIngestSingleFile:
 
         assert result is False
 
-    async def test_empty_file_returns_false(self, tmp_path):
+    async def test_empty_file_returns_false(self, tmp_path) -> None:
         from scripts.ingest_file import _ingest_single_file
 
         empty_file = tmp_path / "empty.csv"
@@ -276,7 +276,7 @@ class TestIngestSingleFile:
         mock_parse,
         mock_log,
         tmp_path,
-    ):
+    ) -> None:
         from scripts.ingest_file import _ingest_single_file
 
         csv_file = tmp_path / "bad.csv"
@@ -313,7 +313,7 @@ class TestIngestSingleFile:
         mock_insert,
         mock_log,
         tmp_path,
-    ):
+    ) -> None:
         from scripts.ingest_file import _ingest_single_file
 
         csv_file = tmp_path / "data.csv"
@@ -341,7 +341,7 @@ class TestIngestSingleFile:
 
 class TestMainOrchestration:
     @patch("scripts.ingest_file._load_dataset", new_callable=AsyncMock)
-    async def test_nonexistent_file_exits(self, mock_load):
+    async def test_nonexistent_file_exits(self, mock_load) -> None:
         from scripts.ingest_file import main
 
         mock_load.return_value = (_make_dataset(), _make_columns())
@@ -364,7 +364,7 @@ class TestMainOrchestration:
         assert exc_info.value.code == 1
 
     @patch("scripts.ingest_file._load_dataset", new_callable=AsyncMock)
-    async def test_empty_directory_exits(self, mock_load, tmp_path):
+    async def test_empty_directory_exits(self, mock_load, tmp_path) -> None:
         from scripts.ingest_file import main
 
         mock_load.return_value = (_make_dataset(), _make_columns())
@@ -394,7 +394,7 @@ class TestMainOrchestration:
     @patch("scripts.ingest_file._load_dataset", new_callable=AsyncMock)
     async def test_directory_mode_finds_csv_files(
         self, mock_load, mock_ingest, tmp_path
-    ):
+    ) -> None:
         from scripts.ingest_file import main
 
         mock_load.return_value = (_make_dataset(), _make_columns())
@@ -424,7 +424,9 @@ class TestMainOrchestration:
 
     @patch("scripts.ingest_file._ingest_single_file", new_callable=AsyncMock)
     @patch("scripts.ingest_file._load_dataset", new_callable=AsyncMock)
-    async def test_failure_count_causes_exit_1(self, mock_load, mock_ingest, tmp_path):
+    async def test_failure_count_causes_exit_1(
+        self, mock_load, mock_ingest, tmp_path
+    ) -> None:
         from scripts.ingest_file import main
 
         mock_load.return_value = (_make_dataset(), _make_columns())

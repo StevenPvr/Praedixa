@@ -43,20 +43,20 @@ def _make_request(
 class TestExtractIp:
     """Tests for _extract_ip()."""
 
-    def test_uses_client_host_when_no_forwarded(self):
+    def test_uses_client_host_when_no_forwarded(self) -> None:
         req = _make_request(ip="192.168.1.1")
         assert _extract_ip(req) == "192.168.1.1"
 
-    def test_prefers_x_forwarded_for(self):
+    def test_prefers_x_forwarded_for(self) -> None:
         req = _make_request(ip="10.0.0.1", forwarded_for="1.2.3.4, 10.0.0.2")
         assert _extract_ip(req) == "1.2.3.4"
 
-    def test_truncates_long_ip(self):
+    def test_truncates_long_ip(self) -> None:
         long_ip = "a" * 100
         req = _make_request(forwarded_for=long_ip)
         assert len(_extract_ip(req)) <= 45
 
-    def test_no_client_returns_unknown(self):
+    def test_no_client_returns_unknown(self) -> None:
         req = MagicMock()
         req.headers = {}
         req.client = None
@@ -66,16 +66,16 @@ class TestExtractIp:
 class TestExtractUserAgent:
     """Tests for _extract_user_agent()."""
 
-    def test_returns_user_agent(self):
+    def test_returns_user_agent(self) -> None:
         req = _make_request(user_agent="Mozilla/5.0")
         assert _extract_user_agent(req) == "Mozilla/5.0"
 
-    def test_truncates_long_user_agent(self):
+    def test_truncates_long_user_agent(self) -> None:
         long_ua = "A" * 300
         req = _make_request(user_agent=long_ua)
         assert len(_extract_user_agent(req)) == 200
 
-    def test_missing_user_agent_returns_empty(self):
+    def test_missing_user_agent_returns_empty(self) -> None:
         req = MagicMock()
         req.headers = {}
         assert _extract_user_agent(req) == ""
@@ -84,22 +84,22 @@ class TestExtractUserAgent:
 class TestExtractRequestId:
     """Tests for _extract_request_id()."""
 
-    def test_valid_request_id(self):
+    def test_valid_request_id(self) -> None:
         req = _make_request(request_id="abc-123")
         assert _extract_request_id(req) == "abc-123"
 
-    def test_missing_request_id_generates_uuid(self):
+    def test_missing_request_id_generates_uuid(self) -> None:
         req = _make_request(request_id=None)
         rid = _extract_request_id(req)
         # Should be a valid UUID4
         uuid.UUID(rid)
 
-    def test_too_long_request_id_generates_uuid(self):
+    def test_too_long_request_id_generates_uuid(self) -> None:
         req = _make_request(request_id="x" * 100)
         rid = _extract_request_id(req)
         uuid.UUID(rid)
 
-    def test_non_ascii_request_id_generates_uuid(self):
+    def test_non_ascii_request_id_generates_uuid(self) -> None:
         req = MagicMock()
         req.headers = {"X-Request-ID": "\u00e9\u00e0"}
         rid = _extract_request_id(req)
@@ -110,7 +110,7 @@ class TestLogAdminAction:
     """Tests for log_admin_action()."""
 
     @pytest.mark.asyncio
-    async def test_inserts_audit_entry(self):
+    async def test_inserts_audit_entry(self) -> None:
         session = make_mock_session()
         req = _make_request()
         admin_id = str(uuid.uuid4())
@@ -130,7 +130,7 @@ class TestLogAdminAction:
         assert str(entry.admin_user_id) == admin_id
 
     @pytest.mark.asyncio
-    async def test_sets_target_org_id(self):
+    async def test_sets_target_org_id(self) -> None:
         session = make_mock_session()
         req = _make_request()
         org_id = str(uuid.uuid4())
@@ -147,7 +147,7 @@ class TestLogAdminAction:
         assert str(entry.target_org_id) == org_id
 
     @pytest.mark.asyncio
-    async def test_null_target_org_id(self):
+    async def test_null_target_org_id(self) -> None:
         session = make_mock_session()
         req = _make_request()
 
@@ -162,7 +162,7 @@ class TestLogAdminAction:
         assert entry.target_org_id is None
 
     @pytest.mark.asyncio
-    async def test_invalid_severity_defaults_to_info(self):
+    async def test_invalid_severity_defaults_to_info(self) -> None:
         session = make_mock_session()
         req = _make_request()
 
@@ -178,7 +178,7 @@ class TestLogAdminAction:
         assert entry.severity == "INFO"
 
     @pytest.mark.asyncio
-    async def test_valid_severity_preserved(self):
+    async def test_valid_severity_preserved(self) -> None:
         session = make_mock_session()
         req = _make_request()
 
@@ -194,7 +194,7 @@ class TestLogAdminAction:
         assert entry.severity == "CRITICAL"
 
     @pytest.mark.asyncio
-    async def test_resource_type_truncated(self):
+    async def test_resource_type_truncated(self) -> None:
         session = make_mock_session()
         req = _make_request()
 
@@ -210,7 +210,7 @@ class TestLogAdminAction:
         assert len(entry.resource_type) <= 100
 
     @pytest.mark.asyncio
-    async def test_metadata_stored(self):
+    async def test_metadata_stored(self) -> None:
         session = make_mock_session()
         req = _make_request()
         meta = {"key": "value"}
@@ -227,7 +227,7 @@ class TestLogAdminAction:
         assert entry.metadata_json == meta
 
     @pytest.mark.asyncio
-    async def test_metadata_defaults_to_empty_dict(self):
+    async def test_metadata_defaults_to_empty_dict(self) -> None:
         session = make_mock_session()
         req = _make_request()
 
@@ -246,7 +246,7 @@ class TestGetAuditLog:
     """Tests for get_audit_log()."""
 
     @pytest.mark.asyncio
-    async def test_basic_query(self):
+    async def test_basic_query(self) -> None:
         items = [SimpleNamespace(id=uuid.uuid4())]
         session = make_mock_session(
             make_scalar_result(1),  # count
@@ -258,7 +258,7 @@ class TestGetAuditLog:
         assert len(result_items) == 1
 
     @pytest.mark.asyncio
-    async def test_pagination(self):
+    async def test_pagination(self) -> None:
         session = make_mock_session(
             make_scalar_result(50),  # count
             make_scalars_result([]),  # items
@@ -268,7 +268,7 @@ class TestGetAuditLog:
         assert total == 50
 
     @pytest.mark.asyncio
-    async def test_filter_by_admin_user_id(self):
+    async def test_filter_by_admin_user_id(self) -> None:
         session = make_mock_session(
             make_scalar_result(0),
             make_scalars_result([]),
@@ -279,7 +279,7 @@ class TestGetAuditLog:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_filter_by_target_org(self):
+    async def test_filter_by_target_org(self) -> None:
         session = make_mock_session(
             make_scalar_result(0),
             make_scalars_result([]),
@@ -290,7 +290,7 @@ class TestGetAuditLog:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_filter_by_action(self):
+    async def test_filter_by_action(self) -> None:
         session = make_mock_session(
             make_scalar_result(0),
             make_scalars_result([]),
@@ -300,7 +300,7 @@ class TestGetAuditLog:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_invalid_action_filter_ignored(self):
+    async def test_invalid_action_filter_ignored(self) -> None:
         session = make_mock_session(
             make_scalar_result(5),
             make_scalars_result([]),
@@ -311,7 +311,7 @@ class TestGetAuditLog:
         assert total == 5
 
     @pytest.mark.asyncio
-    async def test_date_range_filter(self):
+    async def test_date_range_filter(self) -> None:
         session = make_mock_session(
             make_scalar_result(0),
             make_scalars_result([]),

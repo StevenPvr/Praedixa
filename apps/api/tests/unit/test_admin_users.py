@@ -45,7 +45,7 @@ class TestListOrgUsers:
     """Tests for list_org_users()."""
 
     @pytest.mark.asyncio
-    async def test_basic_list(self):
+    async def test_basic_list(self) -> None:
         user = _make_user()
         session = make_mock_session(
             make_scalar_result(1),
@@ -56,7 +56,7 @@ class TestListOrgUsers:
         assert len(items) == 1
 
     @pytest.mark.asyncio
-    async def test_pagination(self):
+    async def test_pagination(self) -> None:
         session = make_mock_session(
             make_scalar_result(50),
             make_scalars_result([]),
@@ -65,7 +65,7 @@ class TestListOrgUsers:
         assert total == 50
 
     @pytest.mark.asyncio
-    async def test_empty_org_returns_zero(self):
+    async def test_empty_org_returns_zero(self) -> None:
         session = make_mock_session(
             make_scalar_result(0),
             make_scalars_result([]),
@@ -79,7 +79,7 @@ class TestInviteUser:
     """Tests for invite_user()."""
 
     @pytest.mark.asyncio
-    async def test_success(self):
+    async def test_success(self) -> None:
         session = make_mock_session(
             make_scalar_result(None),  # email uniqueness check
         )
@@ -96,7 +96,7 @@ class TestInviteUser:
         session.flush.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_email_lowercased(self):
+    async def test_email_lowercased(self) -> None:
         session = make_mock_session(
             make_scalar_result(None),  # email uniqueness check
         )
@@ -113,7 +113,7 @@ class TestInviteUser:
         assert added_user.email == "upper@example.com"
 
     @pytest.mark.asyncio
-    async def test_status_is_pending(self):
+    async def test_status_is_pending(self) -> None:
         session = make_mock_session(
             make_scalar_result(None),  # email uniqueness
         )
@@ -130,7 +130,7 @@ class TestInviteUser:
         assert added_user.status == UserStatus.PENDING
 
     @pytest.mark.asyncio
-    async def test_email_conflict_raises(self):
+    async def test_email_conflict_raises(self) -> None:
         session = make_mock_session(
             make_scalar_result(uuid.uuid4()),  # email exists
         )
@@ -145,7 +145,7 @@ class TestInviteUser:
             )
 
     @pytest.mark.asyncio
-    async def test_super_admin_blocked(self):
+    async def test_super_admin_blocked(self) -> None:
         session = make_mock_session()
 
         with pytest.raises(ForbiddenError, match="super_admin"):
@@ -158,7 +158,7 @@ class TestInviteUser:
             )
 
     @pytest.mark.asyncio
-    async def test_valid_roles_allowed(self):
+    async def test_valid_roles_allowed(self) -> None:
         """All non-super_admin roles should be accepted."""
         allowed_roles = [
             UserRole.ORG_ADMIN,
@@ -185,20 +185,20 @@ class TestGetOrgUser:
     """Tests for _get_org_user()."""
 
     @pytest.mark.asyncio
-    async def test_found(self):
+    async def test_found(self) -> None:
         user = _make_user()
         session = make_mock_session(make_scalar_result(user))
         result = await _get_org_user(session, user.organization_id, user.id)
         assert result.email == "user@example.com"
 
     @pytest.mark.asyncio
-    async def test_not_found_raises(self):
+    async def test_not_found_raises(self) -> None:
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(NotFoundError):
             await _get_org_user(session, uuid.uuid4(), uuid.uuid4())
 
     @pytest.mark.asyncio
-    async def test_wrong_org_returns_not_found(self):
+    async def test_wrong_org_returns_not_found(self) -> None:
         """User exists but in different org — should NOT be found."""
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(NotFoundError):
@@ -209,7 +209,7 @@ class TestChangeUserRole:
     """Tests for change_user_role()."""
 
     @pytest.mark.asyncio
-    async def test_success(self):
+    async def test_success(self) -> None:
         org_id = uuid.uuid4()
         user = _make_user(organization_id=org_id, role=UserRole.VIEWER)
         session = make_mock_session(
@@ -227,7 +227,7 @@ class TestChangeUserRole:
         session.flush.assert_awaited()
 
     @pytest.mark.asyncio
-    async def test_super_admin_blocked(self):
+    async def test_super_admin_blocked(self) -> None:
         session = make_mock_session()
 
         with pytest.raises(ForbiddenError, match="super_admin"):
@@ -239,7 +239,7 @@ class TestChangeUserRole:
             )
 
     @pytest.mark.asyncio
-    async def test_user_not_in_org_raises(self):
+    async def test_user_not_in_org_raises(self) -> None:
         session = make_mock_session(make_scalar_result(None))
 
         with pytest.raises(NotFoundError):
@@ -255,7 +255,7 @@ class TestDeactivateUser:
     """Tests for deactivate_user()."""
 
     @pytest.mark.asyncio
-    async def test_success(self):
+    async def test_success(self) -> None:
         org_id = uuid.uuid4()
         user = _make_user(organization_id=org_id, status=UserStatus.ACTIVE)
         session = make_mock_session(
@@ -268,7 +268,7 @@ class TestDeactivateUser:
         session.flush.assert_awaited()
 
     @pytest.mark.asyncio
-    async def test_not_found_raises(self):
+    async def test_not_found_raises(self) -> None:
         session = make_mock_session(make_scalar_result(None))
 
         with pytest.raises(NotFoundError):
@@ -279,7 +279,7 @@ class TestReactivateUser:
     """Tests for reactivate_user()."""
 
     @pytest.mark.asyncio
-    async def test_success(self):
+    async def test_success(self) -> None:
         org_id = uuid.uuid4()
         user = _make_user(organization_id=org_id, status=UserStatus.INACTIVE)
         session = make_mock_session(
@@ -292,7 +292,7 @@ class TestReactivateUser:
         session.flush.assert_awaited()
 
     @pytest.mark.asyncio
-    async def test_not_found_raises(self):
+    async def test_not_found_raises(self) -> None:
         session = make_mock_session(make_scalar_result(None))
 
         with pytest.raises(NotFoundError):

@@ -96,17 +96,17 @@ async def client_org_admin() -> AsyncGenerator[AsyncClient, None]:
 class TestClientDatasetReadSchemaExposure:
     """Verify that ClientDatasetRead schema hides internal schema names."""
 
-    def test_schema_raw_not_in_fields(self):
+    def test_schema_raw_not_in_fields(self) -> None:
         fields = set(ClientDatasetRead.model_fields.keys())
         assert "schema_raw" not in fields
         assert "schema_transformed" not in fields
 
-    def test_admin_dataset_read_has_schema_fields(self):
+    def test_admin_dataset_read_has_schema_fields(self) -> None:
         fields = set(AdminDatasetRead.model_fields.keys())
         assert "schema_raw" in fields
         assert "schema_transformed" in fields
 
-    def test_client_read_serialization_excludes_schemas(self):
+    def test_client_read_serialization_excludes_schemas(self) -> None:
         """When model_validate from ORM, schema fields are dropped."""
         orm_obj = SimpleNamespace(
             id=uuid.uuid4(),
@@ -128,7 +128,7 @@ class TestClientDatasetReadSchemaExposure:
         assert "schema_raw" not in dumped
         assert "schema_transformed" not in dumped
 
-    def test_admin_read_serialization_includes_schemas(self):
+    def test_admin_read_serialization_includes_schemas(self) -> None:
         """AdminDatasetRead exposes schema names for admin back-office."""
         orm_obj = SimpleNamespace(
             id=uuid.uuid4(),
@@ -157,11 +157,11 @@ class TestClientDatasetReadSchemaExposure:
 
 
 class TestViewFeaturesAuditAction:
-    def test_view_features_enum_exists(self):
+    def test_view_features_enum_exists(self) -> None:
         assert hasattr(AdminAuditAction, "VIEW_FEATURES")
         assert AdminAuditAction.VIEW_FEATURES.value == "view_features"
 
-    def test_view_features_is_valid_action(self):
+    def test_view_features_is_valid_action(self) -> None:
         action = AdminAuditAction("view_features")
         assert action == AdminAuditAction.VIEW_FEATURES
 
@@ -175,7 +175,9 @@ class TestDatasetDataReadsSchemaRaw:
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
     @patch("app.services.datasets.ddl_connection")
-    async def test_get_dataset_data_uses_schema_raw(self, mock_ddl, mock_get_ds):
+    async def test_get_dataset_data_uses_schema_raw(
+        self, mock_ddl, mock_get_ds
+    ) -> None:
         """get_dataset_data() must query schema_raw (DB1), not schema_transformed."""
         from psycopg import sql as psql
 
@@ -228,7 +230,7 @@ class TestDatasetDataReadsSchemaRaw:
     @patch("app.services.datasets.ddl_connection")
     async def test_get_features_data_uses_schema_transformed(
         self, mock_ddl, mock_get_ds
-    ):
+    ) -> None:
         """get_features_data() must query schema_transformed (DB2)."""
         from psycopg import sql as psql
 
@@ -287,7 +289,7 @@ _NON_ADMIN_ROLES = ["org_admin", "hr_manager", "manager", "employee", "viewer"]
 class TestFeaturesEndpointRoleEnforcement:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("role", _NON_ADMIN_ROLES)
-    async def test_non_admin_gets_403_on_features(self, role: str):
+    async def test_non_admin_gets_403_on_features(self, role: str) -> None:
         """Non-super_admin roles must get 403 on features endpoint."""
         session = _mock_db_session()
         app.dependency_overrides[get_current_user] = lambda: _make_jwt(
@@ -309,7 +311,7 @@ class TestFeaturesEndpointRoleEnforcement:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("role", _NON_ADMIN_ROLES)
-    async def test_non_admin_gets_403_on_admin_data(self, role: str):
+    async def test_non_admin_gets_403_on_admin_data(self, role: str) -> None:
         """Non-super_admin roles must get 403 on admin data endpoint."""
         session = _mock_db_session()
         app.dependency_overrides[get_current_user] = lambda: _make_jwt(
@@ -330,7 +332,7 @@ class TestFeaturesEndpointRoleEnforcement:
             app.dependency_overrides.clear()
 
     @pytest.mark.asyncio
-    async def test_unauthenticated_gets_401_on_features(self):
+    async def test_unauthenticated_gets_401_on_features(self) -> None:
         """No auth token should give 401."""
         app.dependency_overrides.clear()
         async with AsyncClient(
@@ -355,7 +357,7 @@ class TestAdminFeaturesEndpoint:
     @patch("app.routers.admin_data.get_features_data", new_callable=AsyncMock)
     async def test_super_admin_can_access_features(
         self, mock_features, mock_audit, client_super_admin
-    ):
+    ) -> None:
         """Super_admin should get 200 on features endpoint."""
         mock_features.return_value = (
             [{"date_col": "2026-01-01", "value_lag_1": 42.0}],
@@ -377,7 +379,7 @@ class TestAdminFeaturesEndpoint:
     @patch("app.routers.admin_data.get_features_data", new_callable=AsyncMock)
     async def test_features_endpoint_logs_view_features_action(
         self, mock_features, mock_audit, client_super_admin
-    ):
+    ) -> None:
         """Features endpoint must log VIEW_FEATURES audit action."""
         mock_features.return_value = ([], 0, [])
 
@@ -396,7 +398,7 @@ class TestAdminFeaturesEndpoint:
     @patch("app.routers.admin_data.get_features_data", new_callable=AsyncMock)
     async def test_features_empty_returns_empty_rows(
         self, mock_features, mock_audit, client_super_admin
-    ):
+    ) -> None:
         """Empty features table should return empty rows, not 404."""
         mock_features.return_value = ([], 0, [])
 
@@ -414,7 +416,7 @@ class TestAdminFeaturesEndpoint:
     @patch("app.routers.admin_data.get_features_data", new_callable=AsyncMock)
     async def test_features_pagination(
         self, mock_features, mock_audit, client_super_admin
-    ):
+    ) -> None:
         """Features endpoint supports pagination params."""
         mock_features.return_value = (
             [{"date_col": f"2026-01-{i:02d}"} for i in range(1, 11)],
@@ -439,7 +441,7 @@ class TestAdminDataEndpoint:
     @patch("app.routers.admin_data.get_dataset_data", new_callable=AsyncMock)
     async def test_super_admin_can_access_data(
         self, mock_data, mock_audit, client_super_admin
-    ):
+    ) -> None:
         """Super_admin should get 200 on data endpoint."""
         mock_data.return_value = (
             [{"date_col": "2026-01-01", "headcount": 120}],
@@ -460,7 +462,7 @@ class TestAdminDataEndpoint:
     @patch("app.routers.admin_data.get_dataset_data", new_callable=AsyncMock)
     async def test_data_endpoint_logs_view_data_action(
         self, mock_data, mock_audit, client_super_admin
-    ):
+    ) -> None:
         """Data endpoint must log VIEW_DATA audit action."""
         mock_data.return_value = ([], 0, [])
 
@@ -478,7 +480,7 @@ class TestAdminDataEndpoint:
     @patch("app.routers.admin_data.get_dataset_data", new_callable=AsyncMock)
     async def test_data_endpoint_cross_org(
         self, mock_data, mock_audit, client_super_admin
-    ):
+    ) -> None:
         """Data endpoint works with any org_id (cross-org admin access)."""
         other_org = uuid.uuid4()
         mock_data.return_value = ([{"value": 1}], 1, ["value"])
@@ -498,7 +500,7 @@ class TestGetFeaturesDataService:
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
     @patch("app.services.datasets.ddl_connection")
-    async def test_excludes_system_columns(self, mock_ddl, mock_get_ds):
+    async def test_excludes_system_columns(self, mock_ddl, mock_get_ds) -> None:
         """System columns (prefixed with _) must not appear in results."""
         from app.services.datasets import get_features_data
 

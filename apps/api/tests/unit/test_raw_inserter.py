@@ -68,7 +68,7 @@ def _make_mock_connection():
 
 class TestInsertRawRows:
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_basic_insertion(self, mock_ddl):
+    def test_basic_insertion(self, mock_ddl) -> None:
         conn, _cursor = _make_mock_connection()
         mock_ddl.return_value = conn
 
@@ -91,7 +91,7 @@ class TestInsertRawRows:
         assert len(result.warnings) == 0
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_executemany_called(self, mock_ddl):
+    def test_executemany_called(self, mock_ddl) -> None:
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
 
@@ -107,7 +107,7 @@ class TestInsertRawRows:
         assert len(params_list) == 5
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_system_columns_present(self, mock_ddl):
+    def test_system_columns_present(self, mock_ddl) -> None:
         """Verify _row_id, _ingested_at, _batch_id are in each row."""
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
@@ -127,7 +127,7 @@ class TestInsertRawRows:
         assert row_params[3] == "test"  # val
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_ingested_at_is_utc_datetime(self, mock_ddl):
+    def test_ingested_at_is_utc_datetime(self, mock_ddl) -> None:
         """_ingested_at (index 1) must be a UTC-aware datetime."""
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
@@ -147,7 +147,7 @@ class TestInsertRawRows:
         assert before <= ingested_at <= after
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_each_row_gets_unique_row_id(self, mock_ddl):
+    def test_each_row_gets_unique_row_id(self, mock_ddl) -> None:
         """Every row in the batch must have a distinct _row_id UUID."""
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
@@ -162,7 +162,7 @@ class TestInsertRawRows:
         assert len(set(row_ids)) == 10  # All unique
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_sql_uses_composed_identifiers(self, mock_ddl):
+    def test_sql_uses_composed_identifiers(self, mock_ddl) -> None:
         """The INSERT statement must be a psycopg.sql.Composed (safe from injection)."""
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
@@ -176,7 +176,7 @@ class TestInsertRawRows:
         assert isinstance(insert_stmt, sql.Composed)
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_multiple_columns_order_preserved(self, mock_ddl):
+    def test_multiple_columns_order_preserved(self, mock_ddl) -> None:
         """Column values in each row must follow the mapping order."""
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
@@ -202,7 +202,7 @@ class TestInsertRawRows:
 
 class TestBatchSplitting:
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_batch_splitting(self, mock_ddl):
+    def test_batch_splitting(self, mock_ddl) -> None:
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
 
@@ -222,7 +222,7 @@ class TestBatchSplitting:
         assert cursor.executemany.call_count == 3
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_exact_batch_boundary(self, mock_ddl):
+    def test_exact_batch_boundary(self, mock_ddl) -> None:
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
 
@@ -240,7 +240,7 @@ class TestBatchSplitting:
         assert cursor.executemany.call_count == 2
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_single_row_single_batch(self, mock_ddl):
+    def test_single_row_single_batch(self, mock_ddl) -> None:
         """A single row should produce exactly one executemany call."""
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
@@ -254,7 +254,7 @@ class TestBatchSplitting:
         assert len(cursor.executemany.call_args[0][1]) == 1
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_batch_size_one(self, mock_ddl):
+    def test_batch_size_one(self, mock_ddl) -> None:
         """batch_size=1 means each row triggers its own executemany call."""
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
@@ -277,7 +277,7 @@ class TestBatchSplitting:
             assert len(call[0][1]) == 1
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_batch_size_adapts_to_postgres_param_limit(self, mock_ddl):
+    def test_batch_size_adapts_to_postgres_param_limit(self, mock_ddl) -> None:
         """Effective batch size is reduced when bind parameter limit is reached."""
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
@@ -304,21 +304,21 @@ class TestBatchSplitting:
 
 
 class TestEmptyRows:
-    def test_empty_rows_returns_zero(self):
+    def test_empty_rows_returns_zero(self) -> None:
         mappings = [_make_mapping("val", "val")]
         result = insert_raw_rows("acme_raw", "effectifs", mappings, [])
         assert result.rows_inserted == 0
         assert isinstance(result.batch_id, uuid.UUID)
         assert "No rows" in result.warnings[0]
 
-    def test_empty_rows_no_db_call(self):
+    def test_empty_rows_no_db_call(self) -> None:
         """Empty rows should not call ddl_connection at all."""
         mappings = [_make_mapping("val", "val")]
         with patch("app.services.raw_inserter.ddl_connection") as mock_ddl:
             insert_raw_rows("acme_raw", "effectifs", mappings, [])
             mock_ddl.assert_not_called()
 
-    def test_empty_rows_schema_table_not_validated(self):
+    def test_empty_rows_schema_table_not_validated(self) -> None:
         """With empty rows, invalid schema/table names should NOT raise.
 
         The empty-rows path returns early before any validation calls,
@@ -331,7 +331,7 @@ class TestEmptyRows:
         assert result.schema_name == "INVALID-SCHEMA!"
         assert result.table_name == "DROP TABLE--"
 
-    def test_empty_rows_preserves_raw_names(self):
+    def test_empty_rows_preserves_raw_names(self) -> None:
         """Empty-rows result uses the raw schema/table names, not validated."""
         mappings = [_make_mapping("val", "val")]
         result = insert_raw_rows("my_Schema", "My_Table", mappings, [])
@@ -344,49 +344,49 @@ class TestEmptyRows:
 
 
 class TestValidation:
-    def test_invalid_schema_name(self):
+    def test_invalid_schema_name(self) -> None:
         mappings = [_make_mapping("val", "val")]
         rows = [{"val": 1}]
         with pytest.raises(DDLValidationError):
             insert_raw_rows("INVALID-SCHEMA!", "effectifs", mappings, rows)
 
-    def test_invalid_table_name(self):
+    def test_invalid_table_name(self) -> None:
         mappings = [_make_mapping("val", "val")]
         rows = [{"val": 1}]
         with pytest.raises(DDLValidationError):
             insert_raw_rows("acme_raw", "DROP TABLE--", mappings, rows)
 
-    def test_invalid_column_name(self):
+    def test_invalid_column_name(self) -> None:
         mappings = [_make_mapping("val", "INVALID COLUMN!")]
         rows = [{"val": 1}]
         with pytest.raises(DDLValidationError):
             insert_raw_rows("acme_raw", "effectifs", mappings, rows)
 
-    def test_no_column_mappings(self):
+    def test_no_column_mappings(self) -> None:
         rows = [{"val": 1}]
         with pytest.raises(RawInsertError, match="No column mappings"):
             insert_raw_rows("acme_raw", "effectifs", [], rows)
 
-    def test_reserved_word_schema_name(self):
+    def test_reserved_word_schema_name(self) -> None:
         """SQL reserved words like 'select' should be rejected."""
         mappings = [_make_mapping("val", "val")]
         rows = [{"val": 1}]
         with pytest.raises(DDLValidationError):
             insert_raw_rows("select", "effectifs", mappings, rows)
 
-    def test_reserved_word_table_name(self):
+    def test_reserved_word_table_name(self) -> None:
         mappings = [_make_mapping("val", "val")]
         rows = [{"val": 1}]
         with pytest.raises(DDLValidationError):
             insert_raw_rows("acme_raw", "delete", mappings, rows)
 
-    def test_reserved_word_column_name(self):
+    def test_reserved_word_column_name(self) -> None:
         mappings = [_make_mapping("val", "insert")]
         rows = [{"val": 1}]
         with pytest.raises(DDLValidationError):
             insert_raw_rows("acme_raw", "effectifs", mappings, rows)
 
-    def test_uppercase_schema_is_rejected(self):
+    def test_uppercase_schema_is_rejected(self) -> None:
         """Schema names with uppercase letters fail IDENTIFIER_REGEX."""
         mappings = [_make_mapping("val", "val")]
         rows = [{"val": 1}]
@@ -399,7 +399,7 @@ class TestValidation:
 
 class TestErrorHandling:
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_db_error_raises_raw_insert_error(self, mock_ddl):
+    def test_db_error_raises_raw_insert_error(self, mock_ddl) -> None:
         conn, cursor = _make_mock_connection()
         cursor.executemany.side_effect = Exception("DB connection lost")
         mock_ddl.return_value = conn
@@ -411,7 +411,7 @@ class TestErrorHandling:
             insert_raw_rows("acme_raw", "effectifs", mappings, rows)
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_db_error_preserves_original_exception(self, mock_ddl):
+    def test_db_error_preserves_original_exception(self, mock_ddl) -> None:
         """Exception chaining: the original exception is accessible via __cause__."""
         conn, cursor = _make_mock_connection()
         original = RuntimeError("connection reset")
@@ -427,7 +427,7 @@ class TestErrorHandling:
         assert exc_info.value.__cause__ is original
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_db_error_code_is_insert_failed(self, mock_ddl):
+    def test_db_error_code_is_insert_failed(self, mock_ddl) -> None:
         """The error code for DB failures must be 'INSERT_FAILED'."""
         conn, cursor = _make_mock_connection()
         cursor.executemany.side_effect = Exception("oops")
@@ -441,19 +441,19 @@ class TestErrorHandling:
 
         assert exc_info.value.code == "INSERT_FAILED"
 
-    def test_raw_insert_error_fields(self):
+    def test_raw_insert_error_fields(self) -> None:
         err = RawInsertError("test msg", code="TEST_CODE")
         assert err.message == "test msg"
         assert err.code == "TEST_CODE"
         assert str(err) == "test msg"
 
-    def test_raw_insert_error_default_code(self):
+    def test_raw_insert_error_default_code(self) -> None:
         """When no code is specified, default should be 'RAW_INSERT_ERROR'."""
         err = RawInsertError("something went wrong")
         assert err.code == "RAW_INSERT_ERROR"
         assert err.message == "something went wrong"
 
-    def test_raw_insert_error_is_exception(self):
+    def test_raw_insert_error_is_exception(self) -> None:
         """RawInsertError must be a proper Exception subclass."""
         err = RawInsertError("fail")
         assert isinstance(err, Exception)
@@ -465,7 +465,7 @@ class TestErrorHandling:
 
 class TestMissingSourceColumns:
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_missing_source_col_inserts_none(self, mock_ddl):
+    def test_missing_source_col_inserts_none(self, mock_ddl) -> None:
         """If a row doesn't have the source column, None is inserted."""
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
@@ -486,7 +486,7 @@ class TestMissingSourceColumns:
         assert row_params[4] is None  # Missing "b"
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_all_source_cols_missing(self, mock_ddl):
+    def test_all_source_cols_missing(self, mock_ddl) -> None:
         """If a row has NONE of the mapped source columns, all values are None."""
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
@@ -507,7 +507,7 @@ class TestMissingSourceColumns:
         assert row_params[5] is None
 
     @patch("app.services.raw_inserter.ddl_connection")
-    def test_extra_row_keys_ignored(self, mock_ddl):
+    def test_extra_row_keys_ignored(self, mock_ddl) -> None:
         """Row keys that are not in the mapping are silently ignored."""
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
@@ -528,7 +528,7 @@ class TestMissingSourceColumns:
 
 
 class TestInsertionResult:
-    def test_frozen_dataclass(self):
+    def test_frozen_dataclass(self) -> None:
         batch_id = uuid.uuid4()
         result = InsertionResult(
             rows_inserted=10,
@@ -545,7 +545,7 @@ class TestInsertionResult:
         with pytest.raises(AttributeError):
             result.rows_inserted = 20  # type: ignore[misc]
 
-    def test_with_warnings(self):
+    def test_with_warnings(self) -> None:
         """InsertionResult can carry a custom warnings list."""
         batch_id = uuid.uuid4()
         result = InsertionResult(
@@ -559,7 +559,7 @@ class TestInsertionResult:
         assert "No rows" in result.warnings[0]
         assert "Extra warning" in result.warnings[1]
 
-    def test_defaults_are_independent(self):
+    def test_defaults_are_independent(self) -> None:
         """Each InsertionResult instance must get its own warnings list."""
         r1 = InsertionResult(
             rows_inserted=0,
@@ -583,7 +583,7 @@ class TestInsertionResult:
 class TestInsertRawRowsAsync:
     @pytest.mark.asyncio
     @patch("app.services.raw_inserter.ddl_connection")
-    async def test_async_wrapper(self, mock_ddl):
+    async def test_async_wrapper(self, mock_ddl) -> None:
         conn, _cursor = _make_mock_connection()
         mock_ddl.return_value = conn
 
@@ -597,7 +597,7 @@ class TestInsertRawRowsAsync:
 
     @pytest.mark.asyncio
     @patch("app.services.raw_inserter.ddl_connection")
-    async def test_async_with_custom_batch_size(self, mock_ddl):
+    async def test_async_with_custom_batch_size(self, mock_ddl) -> None:
         """Async wrapper passes batch_size through to sync function."""
         conn, cursor = _make_mock_connection()
         mock_ddl.return_value = conn
@@ -618,7 +618,7 @@ class TestInsertRawRowsAsync:
         assert cursor.executemany.call_count == 3
 
     @pytest.mark.asyncio
-    async def test_async_empty_rows(self):
+    async def test_async_empty_rows(self) -> None:
         """Async wrapper with empty rows returns early without DB call."""
         mappings = [_make_mapping("val", "val")]
 
@@ -630,7 +630,7 @@ class TestInsertRawRowsAsync:
         assert "No rows" in result.warnings[0]
 
     @pytest.mark.asyncio
-    async def test_async_validation_error(self):
+    async def test_async_validation_error(self) -> None:
         """Async wrapper must propagate DDLValidationError."""
         mappings = [_make_mapping("val", "val")]
         rows = [{"val": 1}]
@@ -639,7 +639,7 @@ class TestInsertRawRowsAsync:
             await insert_raw_rows_async("INVALID!", "effectifs", mappings, rows)
 
     @pytest.mark.asyncio
-    async def test_async_no_mappings_error(self):
+    async def test_async_no_mappings_error(self) -> None:
         """Async wrapper must propagate RawInsertError for empty mappings."""
         rows = [{"val": 1}]
 

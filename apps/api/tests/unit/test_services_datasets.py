@@ -78,7 +78,7 @@ def _make_dataset(**overrides):
 
 class TestListDatasets:
     @pytest.mark.asyncio
-    async def test_returns_datasets_and_count(self):
+    async def test_returns_datasets_and_count(self) -> None:
         ds = _make_dataset()
         tenant = _make_tenant()
         session = make_mock_session(
@@ -92,7 +92,7 @@ class TestListDatasets:
         assert ds.row_count == 1000
 
     @pytest.mark.asyncio
-    async def test_returns_empty_list(self):
+    async def test_returns_empty_list(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(0),
@@ -103,7 +103,7 @@ class TestListDatasets:
         assert items == []
 
     @pytest.mark.asyncio
-    async def test_pagination_params(self):
+    async def test_pagination_params(self) -> None:
         tenant = _make_tenant()
         ds = _make_dataset()
         session = make_mock_session(
@@ -115,7 +115,7 @@ class TestListDatasets:
         assert len(items) == 1
 
     @pytest.mark.asyncio
-    async def test_status_filter(self):
+    async def test_status_filter(self) -> None:
         tenant = _make_tenant()
         ds = _make_dataset(status=DatasetStatus.PENDING)
         session = make_mock_session(
@@ -135,7 +135,7 @@ class TestListDatasets:
 
 class TestGetDataset:
     @pytest.mark.asyncio
-    async def test_returns_dataset(self):
+    async def test_returns_dataset(self) -> None:
         ds = _make_dataset()
         tenant = _make_tenant()
         session = make_mock_session(make_scalar_result(ds))
@@ -143,7 +143,7 @@ class TestGetDataset:
         assert result is ds
 
     @pytest.mark.asyncio
-    async def test_raises_not_found(self):
+    async def test_raises_not_found(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(NotFoundError):
@@ -158,7 +158,7 @@ class TestCreateDataset:
     @patch("app.services.datasets.create_dataset_tables")
     @patch("app.services.datasets.create_client_schemas")
     @patch("app.services.datasets.settings")
-    async def test_happy_path(self, mock_settings, mock_schemas, mock_tables):
+    async def test_happy_path(self, mock_settings, mock_schemas, mock_tables) -> None:
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
         mock_schemas.return_value = ("acme_raw", "acme_transformed")
@@ -189,7 +189,7 @@ class TestCreateDataset:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.settings")
-    async def test_dataset_limit_exceeded(self, mock_settings):
+    async def test_dataset_limit_exceeded(self, mock_settings) -> None:
         mock_settings.MAX_DATASETS_PER_ORG = 5
 
         tenant = _make_tenant()
@@ -214,7 +214,7 @@ class TestCreateDataset:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.settings")
-    async def test_column_limit_exceeded(self, mock_settings):
+    async def test_column_limit_exceeded(self, mock_settings) -> None:
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 3
 
@@ -249,7 +249,9 @@ class TestUpdateDatasetConfig:
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset_columns")
     @patch("app.services.datasets.get_dataset")
-    async def test_updates_config_and_records_history(self, mock_get, mock_get_cols):
+    async def test_updates_config_and_records_history(
+        self, mock_get, mock_get_cols
+    ) -> None:
         ds = _make_dataset()
         mock_get.return_value = ds
         mock_get_cols.return_value = [
@@ -276,7 +278,7 @@ class TestUpdateDatasetConfig:
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset_columns")
     @patch("app.services.datasets.get_dataset")
-    async def test_null_change_reason(self, mock_get, mock_get_cols):
+    async def test_null_change_reason(self, mock_get, mock_get_cols) -> None:
         ds = _make_dataset()
         mock_get.return_value = ds
         mock_get_cols.return_value = []
@@ -302,7 +304,7 @@ class TestUpdateDatasetConfig:
 class TestGetDatasetColumns:
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_returns_columns(self, mock_get):
+    async def test_returns_columns(self, mock_get) -> None:
         ds = _make_dataset()
         mock_get.return_value = ds
         cols = [SimpleNamespace(name="a"), SimpleNamespace(name="b")]
@@ -319,7 +321,7 @@ class TestGetDatasetColumns:
 class TestGetIngestionLog:
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_returns_logs_and_count(self, mock_get):
+    async def test_returns_logs_and_count(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         logs = [SimpleNamespace(id="log-1")]
 
@@ -342,7 +344,7 @@ class TestGetIngestionLog:
 class TestGetConfigHistory:
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_returns_history_and_count(self, mock_get):
+    async def test_returns_history_and_count(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         history = [SimpleNamespace(id="hist-1")]
 
@@ -365,7 +367,7 @@ class TestGetConfigHistory:
 class TestGetFitParameters:
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_returns_active_params(self, mock_get):
+    async def test_returns_active_params(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         fps = [SimpleNamespace(column_name="revenue", is_active=True)]
 
@@ -382,25 +384,25 @@ class TestGetFitParameters:
 
 
 class TestDatasetLimitError:
-    def test_message(self):
+    def test_message(self) -> None:
         err = DatasetLimitError(10)
         assert "10" in str(err.message)
 
-    def test_code(self):
+    def test_code(self) -> None:
         err = DatasetLimitError(10)
         assert err.code == "DATASET_LIMIT_EXCEEDED"
 
-    def test_status_code(self):
+    def test_status_code(self) -> None:
         err = DatasetLimitError(10)
         assert err.status_code == 409
 
-    def test_inherits_from_praedixa_error(self):
+    def test_inherits_from_praedixa_error(self) -> None:
         from app.core.exceptions import PraedixaError
 
         err = DatasetLimitError(50)
         assert isinstance(err, PraedixaError)
 
-    def test_different_limits(self):
+    def test_different_limits(self) -> None:
         for limit in [1, 5, 50, 100]:
             err = DatasetLimitError(limit)
             assert str(limit) in str(err.message)
@@ -415,7 +417,9 @@ class TestGetDatasetData:
     @pytest.mark.asyncio
     @patch("app.services.datasets.ddl_connection")
     @patch("app.services.datasets.get_dataset")
-    async def test_returns_rows_without_system_columns(self, mock_get, mock_ddl):
+    async def test_returns_rows_without_system_columns(
+        self, mock_get, mock_ddl
+    ) -> None:
         """System columns (_row_id, _ingested_at, _batch_id) are excluded."""
         ds = _make_dataset()
         mock_get.return_value = ds
@@ -463,7 +467,7 @@ class TestGetDatasetData:
     @pytest.mark.asyncio
     @patch("app.services.datasets.ddl_connection")
     @patch("app.services.datasets.get_dataset")
-    async def test_returns_empty_when_no_data(self, mock_get, mock_ddl):
+    async def test_returns_empty_when_no_data(self, mock_get, mock_ddl) -> None:
         ds = _make_dataset()
         mock_get.return_value = ds
 
@@ -489,7 +493,7 @@ class TestGetDatasetData:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_raises_not_found_for_nonexistent_dataset(self, mock_get):
+    async def test_raises_not_found_for_nonexistent_dataset(self, mock_get) -> None:
         """get_dataset_data should raise NotFoundError if the dataset doesn't exist."""
         mock_get.side_effect = NotFoundError("Dataset", "fake-id")
 
@@ -501,7 +505,7 @@ class TestGetDatasetData:
     @pytest.mark.asyncio
     @patch("app.services.datasets.ddl_connection")
     @patch("app.services.datasets.get_dataset")
-    async def test_pagination_with_custom_params(self, mock_get, mock_ddl):
+    async def test_pagination_with_custom_params(self, mock_get, mock_ddl) -> None:
         """Custom limit and offset are passed to the SQL query."""
         ds = _make_dataset()
         mock_get.return_value = ds
@@ -541,7 +545,7 @@ class TestGetDatasetData:
     @pytest.mark.asyncio
     @patch("app.services.datasets.ddl_connection")
     @patch("app.services.datasets.get_dataset")
-    async def test_undefined_table_returns_empty(self, mock_get, mock_ddl):
+    async def test_undefined_table_returns_empty(self, mock_get, mock_ddl) -> None:
         """UndefinedTable exception returns empty results gracefully."""
         import psycopg.errors
 
@@ -570,7 +574,7 @@ class TestGetDatasetData:
     @pytest.mark.asyncio
     @patch("app.services.datasets.ddl_connection")
     @patch("app.services.datasets.get_dataset")
-    async def test_invalid_schema_returns_empty(self, mock_get, mock_ddl):
+    async def test_invalid_schema_returns_empty(self, mock_get, mock_ddl) -> None:
         """InvalidSchemaName exception returns empty results gracefully."""
         import psycopg.errors
 
@@ -605,7 +609,7 @@ class TestGetFitParametersExtended:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_active_only_false_returns_all(self, mock_get):
+    async def test_active_only_false_returns_all(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         active_fp = SimpleNamespace(column_name="revenue", is_active=True, version=2)
         inactive_fp = SimpleNamespace(column_name="revenue", is_active=False, version=1)
@@ -621,7 +625,7 @@ class TestGetFitParametersExtended:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_empty_params(self, mock_get):
+    async def test_empty_params(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         session = make_mock_session(make_scalars_result([]))
         result = await get_fit_parameters(
@@ -644,7 +648,7 @@ class TestCreateDatasetExtended:
     @patch("app.services.datasets.settings")
     async def test_nullable_defaults_to_true(
         self, mock_settings, mock_schemas, mock_tables
-    ):
+    ) -> None:
         """Columns without explicit nullable should default to True."""
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
@@ -679,7 +683,7 @@ class TestCreateDatasetExtended:
     @patch("app.services.datasets.settings")
     async def test_ordinal_position_defaults(
         self, mock_settings, mock_schemas, mock_tables
-    ):
+    ) -> None:
         """Columns without explicit ordinal_position default to their index."""
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
@@ -714,7 +718,7 @@ class TestCreateDatasetExtended:
     @patch("app.services.datasets.settings")
     async def test_explicit_rules_override(
         self, mock_settings, mock_schemas, mock_tables
-    ):
+    ) -> None:
         """Column with rules_override should pass it through."""
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
@@ -754,7 +758,7 @@ class TestCreateDatasetExtended:
     @patch("app.services.datasets.settings")
     async def test_status_is_active_after_creation(
         self, mock_settings, mock_schemas, mock_tables
-    ):
+    ) -> None:
         """Dataset status should be ACTIVE after successful table creation."""
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
@@ -791,7 +795,7 @@ class TestUpdateDatasetConfigExtended:
     @patch("app.services.datasets.get_dataset")
     async def test_columns_snapshot_includes_rules_override(
         self, mock_get, mock_get_cols
-    ):
+    ) -> None:
         """History snapshot should capture each column's rules_override."""
         ds = _make_dataset()
         mock_get.return_value = ds
@@ -820,7 +824,7 @@ class TestUpdateDatasetConfigExtended:
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset_columns")
     @patch("app.services.datasets.get_dataset")
-    async def test_sanitizes_change_reason(self, mock_get, mock_get_cols):
+    async def test_sanitizes_change_reason(self, mock_get, mock_get_cols) -> None:
         """Change reason with HTML should be sanitized."""
         ds = _make_dataset()
         mock_get.return_value = ds
@@ -842,7 +846,7 @@ class TestUpdateDatasetConfigExtended:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_raises_not_found_for_missing_dataset(self, mock_get):
+    async def test_raises_not_found_for_missing_dataset(self, mock_get) -> None:
         """update_dataset_config should raise NotFoundError if dataset not found."""
         mock_get.side_effect = NotFoundError("Dataset", "fake-id")
 
@@ -868,7 +872,7 @@ class TestListDatasetsExtended:
     """Extended tests for edge cases in list_datasets."""
 
     @pytest.mark.asyncio
-    async def test_scalar_one_returns_none_coerced_to_zero(self):
+    async def test_scalar_one_returns_none_coerced_to_zero(self) -> None:
         """When count query returns None (no rows), should coerce to 0."""
         tenant = _make_tenant()
         # scalar_one returns None -> the `or 0` branch
@@ -891,7 +895,7 @@ class TestGetDatasetColumnsExtended:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_raises_not_found_for_missing_dataset(self, mock_get):
+    async def test_raises_not_found_for_missing_dataset(self, mock_get) -> None:
         mock_get.side_effect = NotFoundError("Dataset", "fake-id")
         session = AsyncMock()
         with pytest.raises(NotFoundError):
@@ -899,7 +903,7 @@ class TestGetDatasetColumnsExtended:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_returns_empty_columns(self, mock_get):
+    async def test_returns_empty_columns(self, mock_get) -> None:
         """Dataset with no columns returns empty list."""
         mock_get.return_value = _make_dataset()
         session = make_mock_session(make_scalars_result([]))
@@ -915,7 +919,7 @@ class TestGetIngestionLogExtended:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_empty_log(self, mock_get):
+    async def test_empty_log(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         session = make_mock_session(
             make_scalar_result(0),
@@ -931,7 +935,7 @@ class TestGetIngestionLogExtended:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_with_pagination_params(self, mock_get):
+    async def test_with_pagination_params(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         logs = [SimpleNamespace(id="log-1")]
         session = make_mock_session(
@@ -957,7 +961,7 @@ class TestGetConfigHistoryExtended:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_empty_history(self, mock_get):
+    async def test_empty_history(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         session = make_mock_session(
             make_scalar_result(0),
@@ -973,7 +977,7 @@ class TestGetConfigHistoryExtended:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_with_pagination_params(self, mock_get):
+    async def test_with_pagination_params(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         history = [SimpleNamespace(id="hist-1"), SimpleNamespace(id="hist-2")]
         session = make_mock_session(
@@ -1000,7 +1004,9 @@ class TestGetFeaturesData:
     @pytest.mark.asyncio
     @patch("app.services.datasets.ddl_connection")
     @patch("app.services.datasets.get_dataset")
-    async def test_returns_rows_without_system_columns(self, mock_get, mock_ddl):
+    async def test_returns_rows_without_system_columns(
+        self, mock_get, mock_ddl
+    ) -> None:
         """System columns (_row_id, _transformed_at, _pipeline_version) are excluded."""
         ds = _make_dataset()
         mock_get.return_value = ds
@@ -1045,7 +1051,7 @@ class TestGetFeaturesData:
     @pytest.mark.asyncio
     @patch("app.services.datasets.ddl_connection")
     @patch("app.services.datasets.get_dataset")
-    async def test_returns_empty_when_no_data(self, mock_get, mock_ddl):
+    async def test_returns_empty_when_no_data(self, mock_get, mock_ddl) -> None:
         ds = _make_dataset()
         mock_get.return_value = ds
 
@@ -1071,7 +1077,7 @@ class TestGetFeaturesData:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_raises_not_found_for_nonexistent_dataset(self, mock_get):
+    async def test_raises_not_found_for_nonexistent_dataset(self, mock_get) -> None:
         mock_get.side_effect = NotFoundError("Dataset", "fake-id")
 
         tenant = _make_tenant()
@@ -1082,7 +1088,7 @@ class TestGetFeaturesData:
     @pytest.mark.asyncio
     @patch("app.services.datasets.ddl_connection")
     @patch("app.services.datasets.get_dataset")
-    async def test_pagination_with_custom_params(self, mock_get, mock_ddl):
+    async def test_pagination_with_custom_params(self, mock_get, mock_ddl) -> None:
         ds = _make_dataset()
         mock_get.return_value = ds
 
@@ -1121,7 +1127,7 @@ class TestGetFeaturesData:
     @pytest.mark.asyncio
     @patch("app.services.datasets.ddl_connection")
     @patch("app.services.datasets.get_dataset")
-    async def test_undefined_table_returns_empty(self, mock_get, mock_ddl):
+    async def test_undefined_table_returns_empty(self, mock_get, mock_ddl) -> None:
         """UndefinedTable exception returns empty results for features."""
         import psycopg.errors
 
@@ -1150,7 +1156,7 @@ class TestGetFeaturesData:
     @pytest.mark.asyncio
     @patch("app.services.datasets.ddl_connection")
     @patch("app.services.datasets.get_dataset")
-    async def test_invalid_schema_returns_empty(self, mock_get, mock_ddl):
+    async def test_invalid_schema_returns_empty(self, mock_get, mock_ddl) -> None:
         """InvalidSchemaName exception returns empty results for features."""
         import psycopg.errors
 
@@ -1185,7 +1191,7 @@ class TestGetQualityReports:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_returns_reports_and_count(self, mock_get):
+    async def test_returns_reports_and_count(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         reports = [SimpleNamespace(id="qr-1")]
 
@@ -1203,7 +1209,7 @@ class TestGetQualityReports:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_empty_reports(self, mock_get):
+    async def test_empty_reports(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         session = make_mock_session(
             make_scalar_result(0),
@@ -1219,7 +1225,7 @@ class TestGetQualityReports:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_with_pagination_params(self, mock_get):
+    async def test_with_pagination_params(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         reports = [SimpleNamespace(id="qr-1")]
         session = make_mock_session(
@@ -1238,7 +1244,7 @@ class TestGetQualityReports:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_raises_not_found_for_missing_dataset(self, mock_get):
+    async def test_raises_not_found_for_missing_dataset(self, mock_get) -> None:
         mock_get.side_effect = NotFoundError("Dataset", "fake-id")
         session = AsyncMock()
         with pytest.raises(NotFoundError):
@@ -1246,7 +1252,7 @@ class TestGetQualityReports:
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
-    async def test_none_count_coerced_to_zero(self, mock_get):
+    async def test_none_count_coerced_to_zero(self, mock_get) -> None:
         mock_get.return_value = _make_dataset()
         count_result = MagicMock()
         count_result.scalar_one.return_value = None

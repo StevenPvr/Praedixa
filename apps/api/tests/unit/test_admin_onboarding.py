@@ -42,7 +42,7 @@ def _make_onboarding(**overrides):
 class TestMaxStep:
     """Tests for _MAX_STEP constant."""
 
-    def test_max_step_is_five(self):
+    def test_max_step_is_five(self) -> None:
         assert _MAX_STEP == 5
 
 
@@ -50,7 +50,7 @@ class TestCreateOnboarding:
     """Tests for create_onboarding()."""
 
     @pytest.mark.asyncio
-    async def test_success(self):
+    async def test_success(self) -> None:
         session = make_mock_session(
             make_scalar_result(None),  # slug check
         )
@@ -58,7 +58,7 @@ class TestCreateOnboarding:
         org_id = uuid.uuid4()
         flush_call_count = 0
 
-        async def _assign_ids():
+        async def _assign_ids() -> None:
             nonlocal flush_call_count
             flush_call_count += 1
             if flush_call_count == 1:
@@ -80,7 +80,7 @@ class TestCreateOnboarding:
         assert flush_call_count == 2
 
     @pytest.mark.asyncio
-    async def test_slug_conflict_raises(self):
+    async def test_slug_conflict_raises(self) -> None:
         session = make_mock_session(
             make_scalar_result(uuid.uuid4()),  # slug exists
         )
@@ -94,14 +94,14 @@ class TestCreateOnboarding:
             )
 
     @pytest.mark.asyncio
-    async def test_default_plan_is_free(self):
+    async def test_default_plan_is_free(self) -> None:
         session = make_mock_session(
             make_scalar_result(None),  # slug check
         )
         org_id = uuid.uuid4()
         flush_count = 0
 
-        async def _assign():
+        async def _assign() -> None:
             nonlocal flush_count
             flush_count += 1
             if flush_count == 1:
@@ -121,14 +121,14 @@ class TestCreateOnboarding:
         assert org.plan == SubscriptionPlan.FREE
 
     @pytest.mark.asyncio
-    async def test_sector_parameter(self):
+    async def test_sector_parameter(self) -> None:
         session = make_mock_session(
             make_scalar_result(None),
         )
         org_id = uuid.uuid4()
         flush_count = 0
 
-        async def _assign():
+        async def _assign() -> None:
             nonlocal flush_count
             flush_count += 1
             if flush_count == 1:
@@ -148,7 +148,7 @@ class TestCreateOnboarding:
         assert org.sector == IndustrySector.HEALTHCARE
 
     @pytest.mark.asyncio
-    async def test_org_status_is_trial(self):
+    async def test_org_status_is_trial(self) -> None:
         from app.models.organization import OrganizationStatus
 
         session = make_mock_session(
@@ -157,7 +157,7 @@ class TestCreateOnboarding:
         org_id = uuid.uuid4()
         flush_count = 0
 
-        async def _assign():
+        async def _assign() -> None:
             nonlocal flush_count
             flush_count += 1
             if flush_count == 1:
@@ -180,7 +180,7 @@ class TestListOnboardings:
     """Tests for list_onboardings()."""
 
     @pytest.mark.asyncio
-    async def test_basic_list(self):
+    async def test_basic_list(self) -> None:
         ob = _make_onboarding()
         session = make_mock_session(
             make_scalar_result(1),
@@ -191,7 +191,7 @@ class TestListOnboardings:
         assert len(items) == 1
 
     @pytest.mark.asyncio
-    async def test_pagination(self):
+    async def test_pagination(self) -> None:
         session = make_mock_session(
             make_scalar_result(50),
             make_scalars_result([]),
@@ -200,7 +200,7 @@ class TestListOnboardings:
         assert total == 50
 
     @pytest.mark.asyncio
-    async def test_status_filter_valid(self):
+    async def test_status_filter_valid(self) -> None:
         session = make_mock_session(
             make_scalar_result(2),
             make_scalars_result([]),
@@ -209,7 +209,7 @@ class TestListOnboardings:
         assert total == 2
 
     @pytest.mark.asyncio
-    async def test_invalid_status_filter_ignored(self):
+    async def test_invalid_status_filter_ignored(self) -> None:
         session = make_mock_session(
             make_scalar_result(10),
             make_scalars_result([]),
@@ -223,14 +223,14 @@ class TestGetOnboarding:
     """Tests for get_onboarding()."""
 
     @pytest.mark.asyncio
-    async def test_found(self):
+    async def test_found(self) -> None:
         ob = _make_onboarding()
         session = make_mock_session(make_scalar_result(ob))
         result = await get_onboarding(session, ob.id)
         assert result.current_step == 1
 
     @pytest.mark.asyncio
-    async def test_not_found_raises(self):
+    async def test_not_found_raises(self) -> None:
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(NotFoundError):
             await get_onboarding(session, uuid.uuid4())
@@ -240,7 +240,7 @@ class TestCompleteStep:
     """Tests for complete_step()."""
 
     @pytest.mark.asyncio
-    async def test_complete_step_2(self):
+    async def test_complete_step_2(self) -> None:
         ob = _make_onboarding(current_step=1)
         session = make_mock_session(
             make_scalar_result(ob),  # get_onboarding
@@ -251,7 +251,7 @@ class TestCompleteStep:
         assert result.status == OnboardingStatus.IN_PROGRESS
 
     @pytest.mark.asyncio
-    async def test_complete_final_step_sets_completed(self):
+    async def test_complete_final_step_sets_completed(self) -> None:
         ob = _make_onboarding(current_step=4)
         session = make_mock_session(
             make_scalar_result(ob),
@@ -263,7 +263,7 @@ class TestCompleteStep:
         assert result.completed_at is not None
 
     @pytest.mark.asyncio
-    async def test_skip_step_raises_conflict(self):
+    async def test_skip_step_raises_conflict(self) -> None:
         ob = _make_onboarding(current_step=1)
         session = make_mock_session(make_scalar_result(ob))
 
@@ -271,7 +271,7 @@ class TestCompleteStep:
             await complete_step(session, ob.id, step=3, data={})
 
     @pytest.mark.asyncio
-    async def test_step_below_1_raises(self):
+    async def test_step_below_1_raises(self) -> None:
         ob = _make_onboarding(current_step=1)
         session = make_mock_session(make_scalar_result(ob))
 
@@ -279,7 +279,7 @@ class TestCompleteStep:
             await complete_step(session, ob.id, step=0, data={})
 
     @pytest.mark.asyncio
-    async def test_step_above_max_raises(self):
+    async def test_step_above_max_raises(self) -> None:
         ob = _make_onboarding(current_step=1)
         session = make_mock_session(make_scalar_result(ob))
 
@@ -287,7 +287,7 @@ class TestCompleteStep:
             await complete_step(session, ob.id, step=6, data={})
 
     @pytest.mark.asyncio
-    async def test_completed_onboarding_rejects_steps(self):
+    async def test_completed_onboarding_rejects_steps(self) -> None:
         ob = _make_onboarding(
             status=OnboardingStatus.COMPLETED,
             current_step=5,
@@ -298,7 +298,7 @@ class TestCompleteStep:
             await complete_step(session, ob.id, step=5, data={})
 
     @pytest.mark.asyncio
-    async def test_abandoned_onboarding_rejects_steps(self):
+    async def test_abandoned_onboarding_rejects_steps(self) -> None:
         ob = _make_onboarding(
             status=OnboardingStatus.ABANDONED,
             current_step=2,
@@ -309,7 +309,7 @@ class TestCompleteStep:
             await complete_step(session, ob.id, step=3, data={})
 
     @pytest.mark.asyncio
-    async def test_re_complete_current_step_allowed(self):
+    async def test_re_complete_current_step_allowed(self) -> None:
         """Re-completing the current step is allowed (idempotent)."""
         ob = _make_onboarding(current_step=2)
         session = make_mock_session(
@@ -320,7 +320,7 @@ class TestCompleteStep:
         assert result.current_step == 2
 
     @pytest.mark.asyncio
-    async def test_step_data_keys_recorded(self):
+    async def test_step_data_keys_recorded(self) -> None:
         ob = _make_onboarding(current_step=2)
         session = make_mock_session(
             make_scalar_result(ob),
@@ -334,7 +334,7 @@ class TestCompleteStep:
         assert set(last_step["data_keys"]) == {"users", "count"}
 
     @pytest.mark.asyncio
-    async def test_empty_data_records_empty_keys(self):
+    async def test_empty_data_records_empty_keys(self) -> None:
         ob = _make_onboarding(current_step=1)
         session = make_mock_session(
             make_scalar_result(ob),
@@ -345,7 +345,7 @@ class TestCompleteStep:
         assert last_step["data_keys"] == []
 
     @pytest.mark.asyncio
-    async def test_not_found_raises(self):
+    async def test_not_found_raises(self) -> None:
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(NotFoundError):
             await complete_step(session, uuid.uuid4(), step=1, data={})

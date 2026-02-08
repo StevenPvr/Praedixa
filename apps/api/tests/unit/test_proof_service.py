@@ -40,7 +40,7 @@ def _make_tuple_result(*values):
 
 class TestGenerateProofRecord:
     @pytest.mark.asyncio
-    async def test_no_alerts_returns_zero_gain(self):
+    async def test_no_alerts_returns_zero_gain(self) -> None:
         tenant = _make_tenant()
         proof = _make_proof_record(
             gain_net_eur=Decimal("0.00"),
@@ -68,7 +68,7 @@ class TestGenerateProofRecord:
         assert result is proof
 
     @pytest.mark.asyncio
-    async def test_with_alerts_calculates_bau(self):
+    async def test_with_alerts_calculates_bau(self) -> None:
         tenant = _make_tenant()
         proof = _make_proof_record(
             cout_bau_eur=Decimal("480.00"),
@@ -102,7 +102,7 @@ class TestGenerateProofRecord:
         assert result is proof
 
     @pytest.mark.asyncio
-    async def test_december_month_end_calculation(self):
+    async def test_december_month_end_calculation(self) -> None:
         """December should roll to January of next year."""
         tenant = _make_tenant()
         proof = _make_proof_record()
@@ -123,7 +123,7 @@ class TestGenerateProofRecord:
         assert result is proof
 
     @pytest.mark.asyncio
-    async def test_upsert_behavior(self):
+    async def test_upsert_behavior(self) -> None:
         """generate_proof_record uses ON CONFLICT DO UPDATE."""
         tenant = _make_tenant()
         proof = _make_proof_record()
@@ -144,7 +144,7 @@ class TestGenerateProofRecord:
         session.execute.assert_called()
 
     @pytest.mark.asyncio
-    async def test_adoption_zero_when_no_alerts(self):
+    async def test_adoption_zero_when_no_alerts(self) -> None:
         tenant = _make_tenant()
         proof = _make_proof_record(adoption_pct=Decimal("0.0000"))
 
@@ -164,7 +164,7 @@ class TestGenerateProofRecord:
         assert result is proof
 
     @pytest.mark.asyncio
-    async def test_null_alerts_count_coerced(self):
+    async def test_null_alerts_count_coerced(self) -> None:
         tenant = _make_tenant()
         proof = _make_proof_record()
 
@@ -185,7 +185,7 @@ class TestGenerateProofRecord:
         assert result is proof
 
     @pytest.mark.asyncio
-    async def test_tenant_filter_applied(self):
+    async def test_tenant_filter_applied(self) -> None:
         tenant = _make_tenant()
         proof = _make_proof_record()
 
@@ -210,7 +210,7 @@ class TestGenerateProofRecord:
 
 class TestListProofRecords:
     @pytest.mark.asyncio
-    async def test_returns_items_and_total(self):
+    async def test_returns_items_and_total(self) -> None:
         rec = _make_proof_record()
         tenant = _make_tenant()
         session = make_mock_session(
@@ -222,7 +222,7 @@ class TestListProofRecords:
         assert len(items) == 1
 
     @pytest.mark.asyncio
-    async def test_empty_list(self):
+    async def test_empty_list(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(0),
@@ -233,7 +233,7 @@ class TestListProofRecords:
         assert items == []
 
     @pytest.mark.asyncio
-    async def test_site_id_filter(self):
+    async def test_site_id_filter(self) -> None:
         rec = _make_proof_record(site_id="site-lyon")
         tenant = _make_tenant()
         session = make_mock_session(
@@ -244,7 +244,7 @@ class TestListProofRecords:
         assert total == 1
 
     @pytest.mark.asyncio
-    async def test_pagination(self):
+    async def test_pagination(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(50),
@@ -254,7 +254,7 @@ class TestListProofRecords:
         assert total == 50
 
     @pytest.mark.asyncio
-    async def test_none_count_coerced(self):
+    async def test_none_count_coerced(self) -> None:
         tenant = _make_tenant()
         count_result = MagicMock()
         count_result.scalar_one.return_value = None
@@ -263,7 +263,7 @@ class TestListProofRecords:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_tenant_filter_applied(self):
+    async def test_tenant_filter_applied(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(0),
@@ -278,7 +278,7 @@ class TestListProofRecords:
 
 class TestGetProofSummary:
     @pytest.mark.asyncio
-    async def test_basic_aggregation(self):
+    async def test_basic_aggregation(self) -> None:
         tenant = _make_tenant()
         agg_result = MagicMock()
         agg_result.one.return_value = (
@@ -299,7 +299,7 @@ class TestGetProofSummary:
         assert len(result["per_site"]) == 2
 
     @pytest.mark.asyncio
-    async def test_empty_data(self):
+    async def test_empty_data(self) -> None:
         tenant = _make_tenant()
         agg_result = MagicMock()
         agg_result.one.return_value = (0, None, None)
@@ -313,7 +313,7 @@ class TestGetProofSummary:
         assert result["per_site"] == []
 
     @pytest.mark.asyncio
-    async def test_date_from_filter(self):
+    async def test_date_from_filter(self) -> None:
         tenant = _make_tenant()
         agg_result = MagicMock()
         agg_result.one.return_value = (Decimal("5000"), 0.9, 0.3)
@@ -325,7 +325,7 @@ class TestGetProofSummary:
         assert result["total_gain"] == Decimal("5000")
 
     @pytest.mark.asyncio
-    async def test_date_to_filter(self):
+    async def test_date_to_filter(self) -> None:
         tenant = _make_tenant()
         agg_result = MagicMock()
         agg_result.one.return_value = (Decimal("3000"), 0.8, 0.2)
@@ -337,7 +337,7 @@ class TestGetProofSummary:
         assert result["total_gain"] == Decimal("3000")
 
     @pytest.mark.asyncio
-    async def test_both_date_filters(self):
+    async def test_both_date_filters(self) -> None:
         tenant = _make_tenant()
         agg_result = MagicMock()
         agg_result.one.return_value = (Decimal("2000"), 0.75, 0.15)
@@ -351,7 +351,7 @@ class TestGetProofSummary:
         assert result["total_gain"] == Decimal("2000")
 
     @pytest.mark.asyncio
-    async def test_null_agg_values(self):
+    async def test_null_agg_values(self) -> None:
         tenant = _make_tenant()
         agg_result = MagicMock()
         agg_result.one.return_value = (None, None, None)
@@ -365,7 +365,7 @@ class TestGetProofSummary:
         assert result["avg_service_improvement"] is None
 
     @pytest.mark.asyncio
-    async def test_per_site_breakdown(self):
+    async def test_per_site_breakdown(self) -> None:
         tenant = _make_tenant()
         agg_result = MagicMock()
         agg_result.one.return_value = (Decimal("15000"), 0.85, 0.3)
@@ -385,7 +385,7 @@ class TestGetProofSummary:
         assert paris["alertes_emises"] == 15
 
     @pytest.mark.asyncio
-    async def test_tenant_filter_applied(self):
+    async def test_tenant_filter_applied(self) -> None:
         tenant = _make_tenant()
         agg_result = MagicMock()
         agg_result.one.return_value = (0, None, None)

@@ -28,16 +28,16 @@ def _make_one_result(**kwargs):
 class TestAllowedPeriods:
     """Tests for the period allowlist."""
 
-    def test_contains_day(self):
+    def test_contains_day(self) -> None:
         assert "day" in _ALLOWED_PERIODS
 
-    def test_contains_week(self):
+    def test_contains_week(self) -> None:
         assert "week" in _ALLOWED_PERIODS
 
-    def test_contains_month(self):
+    def test_contains_month(self) -> None:
         assert "month" in _ALLOWED_PERIODS
 
-    def test_no_unexpected_values(self):
+    def test_no_unexpected_values(self) -> None:
         assert frozenset({"day", "week", "month"}) == _ALLOWED_PERIODS
 
 
@@ -45,7 +45,7 @@ class TestGetPlatformKPIs:
     """Tests for get_platform_kpis()."""
 
     @pytest.mark.asyncio
-    async def test_returns_all_metrics(self):
+    async def test_returns_all_metrics(self) -> None:
         row_result = _make_one_result(
             total_organizations=10,
             total_users=100,
@@ -64,7 +64,7 @@ class TestGetPlatformKPIs:
         assert result["total_decisions"] == 75
 
     @pytest.mark.asyncio
-    async def test_zero_values(self):
+    async def test_zero_values(self) -> None:
         row_result = _make_one_result(
             total_organizations=0,
             total_users=0,
@@ -83,7 +83,7 @@ class TestGetOrgMetrics:
     """Tests for get_org_metrics()."""
 
     @pytest.mark.asyncio
-    async def test_returns_metrics(self):
+    async def test_returns_metrics(self) -> None:
         last_login = datetime(2026, 2, 1, tzinfo=UTC)
         row_result = _make_one_result(
             active_users=5,
@@ -103,7 +103,7 @@ class TestGetOrgMetrics:
         assert result["last_activity"] == last_login
 
     @pytest.mark.asyncio
-    async def test_no_last_activity(self):
+    async def test_no_last_activity(self) -> None:
         row_result = _make_one_result(
             active_users=0,
             total_datasets=0,
@@ -117,7 +117,7 @@ class TestGetOrgMetrics:
         assert result["last_activity"] is None
 
     @pytest.mark.asyncio
-    async def test_zero_metrics(self):
+    async def test_zero_metrics(self) -> None:
         row_result = _make_one_result(
             active_users=0,
             total_datasets=0,
@@ -138,7 +138,7 @@ class TestGetUsageTrends:
     """Tests for get_usage_trends()."""
 
     @pytest.mark.asyncio
-    async def test_returns_trend_list(self):
+    async def test_returns_trend_list(self) -> None:
         # Each metric query returns one row
         # result.all() is synchronous in SQLAlchemy — use MagicMock
         row = SimpleNamespace(period=datetime(2026, 2, 1, tzinfo=UTC), count=5)
@@ -160,7 +160,7 @@ class TestGetUsageTrends:
         }
 
     @pytest.mark.asyncio
-    async def test_empty_results(self):
+    async def test_empty_results(self) -> None:
         result_mocks = []
         for _ in range(4):
             rm = MagicMock()
@@ -171,7 +171,7 @@ class TestGetUsageTrends:
         assert trends == []
 
     @pytest.mark.asyncio
-    async def test_invalid_period_defaults_to_day(self):
+    async def test_invalid_period_defaults_to_day(self) -> None:
         """SQL injection attempt via period is neutralized by allowlist."""
         result_mocks = []
         for _ in range(4):
@@ -184,7 +184,7 @@ class TestGetUsageTrends:
         assert trends == []
 
     @pytest.mark.asyncio
-    async def test_valid_periods_accepted(self):
+    async def test_valid_periods_accepted(self) -> None:
         for period in ["day", "week", "month"]:
             result_mocks = []
             for _ in range(4):
@@ -196,7 +196,7 @@ class TestGetUsageTrends:
             assert isinstance(trends, list)
 
     @pytest.mark.asyncio
-    async def test_trend_value_is_float(self):
+    async def test_trend_value_is_float(self) -> None:
         row = SimpleNamespace(period=datetime(2026, 1, 15, tzinfo=UTC), count=42)
         result_mocks = []
         for _ in range(4):
@@ -213,7 +213,7 @@ class TestGetErrorMetrics:
     """Tests for get_error_metrics()."""
 
     @pytest.mark.asyncio
-    async def test_returns_metrics(self):
+    async def test_returns_metrics(self) -> None:
         row_result = _make_one_result(total=100, successes=95, failures=5)
         session = make_mock_session(row_result)
         result = await get_error_metrics(session)
@@ -222,7 +222,7 @@ class TestGetErrorMetrics:
         assert result["api_error_rate"] == 0.0
 
     @pytest.mark.asyncio
-    async def test_zero_total_returns_100_success(self):
+    async def test_zero_total_returns_100_success(self) -> None:
         row_result = _make_one_result(total=0, successes=0, failures=0)
         session = make_mock_session(row_result)
         result = await get_error_metrics(session)
@@ -230,7 +230,7 @@ class TestGetErrorMetrics:
         assert result["ingestion_error_count"] == 0
 
     @pytest.mark.asyncio
-    async def test_all_failures(self):
+    async def test_all_failures(self) -> None:
         row_result = _make_one_result(total=50, successes=0, failures=50)
         session = make_mock_session(row_result)
         result = await get_error_metrics(session)
@@ -238,7 +238,7 @@ class TestGetErrorMetrics:
         assert result["ingestion_error_count"] == 50
 
     @pytest.mark.asyncio
-    async def test_rounding(self):
+    async def test_rounding(self) -> None:
         row_result = _make_one_result(total=3, successes=1, failures=2)
         session = make_mock_session(row_result)
         result = await get_error_metrics(session)
@@ -250,7 +250,7 @@ class TestGetOrgMirror:
     """Tests for get_org_mirror()."""
 
     @pytest.mark.asyncio
-    async def test_delegates_to_dashboard_summary(self):
+    async def test_delegates_to_dashboard_summary(self) -> None:
         mock_summary = SimpleNamespace(
             active_alerts_count=2,
             coverage_human=85.0,
@@ -267,7 +267,7 @@ class TestGetOrgMirror:
             assert result == mock_summary
 
     @pytest.mark.asyncio
-    async def test_tenant_filter_uses_org_id(self):
+    async def test_tenant_filter_uses_org_id(self) -> None:
         org_id = uuid.uuid4()
         session = AsyncMock()
 

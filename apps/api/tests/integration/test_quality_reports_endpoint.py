@@ -90,7 +90,7 @@ class TestListQualityReports:
     """Integration tests for GET /datasets/{id}/quality-reports."""
 
     @patch("app.routers.datasets.get_quality_reports")
-    async def test_returns_paginated_reports(self, mock_qr, client):
+    async def test_returns_paginated_reports(self, mock_qr, client) -> None:
         report = _make_report()
         mock_qr.return_value = ([report], 1)
 
@@ -109,7 +109,7 @@ class TestListQualityReports:
         assert body["pagination"]["hasPreviousPage"] is False
 
     @patch("app.routers.datasets.get_quality_reports")
-    async def test_empty_list(self, mock_qr, client):
+    async def test_empty_list(self, mock_qr, client) -> None:
         mock_qr.return_value = ([], 0)
 
         resp = await client.get(BASE_URL)
@@ -121,7 +121,7 @@ class TestListQualityReports:
         assert body["pagination"]["totalPages"] == 1
 
     @patch("app.routers.datasets.get_quality_reports")
-    async def test_pagination_params_forwarded(self, mock_qr, client):
+    async def test_pagination_params_forwarded(self, mock_qr, client) -> None:
         mock_qr.return_value = ([], 25)
 
         resp = await client.get(BASE_URL, params={"page": 3, "pageSize": 5})
@@ -139,7 +139,7 @@ class TestListQualityReports:
         assert body["pagination"]["hasPreviousPage"] is True
 
     @patch("app.routers.datasets.get_quality_reports")
-    async def test_dataset_not_found_returns_404(self, mock_qr, client):
+    async def test_dataset_not_found_returns_404(self, mock_qr, client) -> None:
         mock_qr.side_effect = NotFoundError("Dataset", str(DATASET_ID))
 
         resp = await client.get(BASE_URL)

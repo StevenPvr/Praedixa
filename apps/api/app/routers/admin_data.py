@@ -283,25 +283,20 @@ async def list_org_absences(
     )
 
     # Serialize to dicts, then apply medical masking
-    raw_data = []
-    for item in items:
-        raw_data.append(
-            {
-                "id": str(item.id),
-                "type": item.type.value
-                if hasattr(item.type, "value")
-                else str(item.type),
-                "reason": getattr(item, "reason", None),
-                "start_date": str(item.start_date)
-                if hasattr(item, "start_date")
-                else None,
-                "end_date": str(item.end_date) if hasattr(item, "end_date") else None,
-                "status": item.status.value
-                if hasattr(item.status, "value")
-                else str(item.status),
-                "employee_id": str(item.employee_id),
-            }
-        )
+    raw_data = [
+        {
+            "id": str(item.id),
+            "type": item.type.value if hasattr(item.type, "value") else str(item.type),
+            "reason": getattr(item, "reason", None),
+            "start_date": str(item.start_date) if hasattr(item, "start_date") else None,
+            "end_date": str(item.end_date) if hasattr(item, "end_date") else None,
+            "status": item.status.value
+            if hasattr(item.status, "value")
+            else str(item.status),
+            "employee_id": str(item.employee_id),
+        }
+        for item in items
+    ]
 
     # Apply GDPR Article 9 masking on medical absence types
     masked_data = mask_medical_reasons(raw_data)

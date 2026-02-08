@@ -112,6 +112,112 @@ def _fmt_pct(value: float | str | None) -> str:
     return f"{v:.1f}%"
 
 
+def _build_cost_section(
+    proof_record: dict,
+    gain: float | str,
+    styles: dict[str, ParagraphStyle],
+) -> list:
+    """Build the cost results section elements."""
+    elements: list = []
+    elements.append(Paragraph("R\u00e9sultats Co\u00fbts", styles["heading"]))
+
+    cout_bau = proof_record.get("cout_bau_eur", 0)
+    cout_100 = proof_record.get("cout_100_eur", 0)
+    cout_reel = proof_record.get("cout_reel_eur", 0)
+
+    cost_data = [
+        ["Sc\u00e9nario", "Co\u00fbt total", "vs BAU"],
+        ["BAU (0%)", _fmt_eur(cout_bau), "\u2014"],
+        [
+            "Optimis\u00e9 (100%)",
+            _fmt_eur(cout_100),
+            _fmt_eur(float(cout_bau) - float(cout_100)),
+        ],
+        [
+            "R\u00e9el",
+            _fmt_eur(cout_reel),
+            _fmt_eur(float(cout_bau) - float(cout_reel)),
+        ],
+    ]
+    cost_table = Table(cost_data, colWidths=[6 * cm, 5 * cm, 5 * cm])
+    cost_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), _DARK),
+                ("TEXTCOLOR", (0, 0), (-1, 0), _WHITE),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 10),
+                ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+                ("GRID", (0, 0), (-1, -1), 0.5, _GRAY),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [_WHITE, _LIGHT_BG]),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    elements.append(cost_table)
+    elements.append(Spacer(1, 6 * mm))
+    elements.append(
+        Paragraph(
+            f"<b>Gain net r\u00e9alis\u00e9 : {_fmt_eur(gain)}</b>",
+            styles["body"],
+        )
+    )
+    return elements
+
+
+def _build_decisions_section(
+    decisions: list[dict],
+    styles: dict[str, ParagraphStyle],
+) -> list:
+    """Build the top decisions section elements."""
+    elements: list = []
+    elements.append(Paragraph("Top D\u00e9cisions", styles["heading"]))
+
+    top_decisions = decisions[:10]
+    if top_decisions:
+        dec_header = ["Date", "Shift", "Gap (h)", "Co\u00fbt obs.", "Override"]
+        dec_rows = [dec_header]
+        dec_rows.extend(
+            [
+                str(dec.get("decision_date", "")),
+                str(dec.get("shift", "")),
+                str(dec.get("gap_h", "")),
+                _fmt_eur(dec.get("cout_observe_eur")),
+                "Oui" if dec.get("is_override") else "Non",
+            ]
+            for dec in top_decisions
+        )
+
+        dec_table = Table(
+            dec_rows, colWidths=[3 * cm, 2.5 * cm, 3 * cm, 4 * cm, 3.5 * cm]
+        )
+        dec_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), _AMBER),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), _WHITE),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                    ("ALIGN", (2, 0), (-1, -1), "RIGHT"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, _GRAY),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [_WHITE, _LIGHT_BG]),
+                    ("TOPPADDING", (0, 0), (-1, -1), 3),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                ]
+            )
+        )
+        elements.append(dec_table)
+    else:
+        elements.append(
+            Paragraph(
+                "Aucune d\u00e9cision enregistr\u00e9e pour cette p\u00e9riode.",
+                styles["body"],
+            )
+        )
+    return elements
+
+
 def generate_proof_pack_pdf(
     *,
     org_name: str,
@@ -206,51 +312,7 @@ def generate_proof_pack_pdf(
     )
 
     # ── 3. Cost Results ─────────────────────────────────
-    elements.append(Paragraph("R\u00e9sultats Co\u00fbts", styles["heading"]))
-
-    cout_bau = proof_record.get("cout_bau_eur", 0)
-    cout_100 = proof_record.get("cout_100_eur", 0)
-    cout_reel = proof_record.get("cout_reel_eur", 0)
-
-    cost_data = [
-        ["Sc\u00e9nario", "Co\u00fbt total", "vs BAU"],
-        ["BAU (0%)", _fmt_eur(cout_bau), "\u2014"],
-        [
-            "Optimis\u00e9 (100%)",
-            _fmt_eur(cout_100),
-            _fmt_eur(float(cout_bau) - float(cout_100)),
-        ],
-        [
-            "R\u00e9el",
-            _fmt_eur(cout_reel),
-            _fmt_eur(float(cout_bau) - float(cout_reel)),
-        ],
-    ]
-    cost_table = Table(cost_data, colWidths=[6 * cm, 5 * cm, 5 * cm])
-    cost_table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), _DARK),
-                ("TEXTCOLOR", (0, 0), (-1, 0), _WHITE),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("FONTSIZE", (0, 0), (-1, -1), 10),
-                ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
-                ("GRID", (0, 0), (-1, -1), 0.5, _GRAY),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [_WHITE, _LIGHT_BG]),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ]
-        )
-    )
-    elements.append(cost_table)
-    elements.append(Spacer(1, 6 * mm))
-
-    elements.append(
-        Paragraph(
-            f"<b>Gain net r\u00e9alis\u00e9 : {_fmt_eur(gain)}</b>",
-            styles["body"],
-        )
-    )
+    elements.extend(_build_cost_section(proof_record, gain, styles))
 
     # ── 4. Service Results ──────────────────────────────
     elements.append(Paragraph("R\u00e9sultats Service", styles["heading"]))
@@ -292,49 +354,7 @@ def generate_proof_pack_pdf(
     )
 
     # ── 6. Top Decisions ────────────────────────────────
-    elements.append(Paragraph("Top D\u00e9cisions", styles["heading"]))
-
-    top_decisions = decisions[:10]
-    if top_decisions:
-        dec_header = ["Date", "Shift", "Gap (h)", "Co\u00fbt obs.", "Override"]
-        dec_rows = [dec_header]
-        for dec in top_decisions:
-            dec_rows.append(
-                [
-                    str(dec.get("decision_date", "")),
-                    str(dec.get("shift", "")),
-                    str(dec.get("gap_h", "")),
-                    _fmt_eur(dec.get("cout_observe_eur")),
-                    "Oui" if dec.get("is_override") else "Non",
-                ]
-            )
-
-        dec_table = Table(
-            dec_rows, colWidths=[3 * cm, 2.5 * cm, 3 * cm, 4 * cm, 3.5 * cm]
-        )
-        dec_table.setStyle(
-            TableStyle(
-                [
-                    ("BACKGROUND", (0, 0), (-1, 0), _AMBER),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), _WHITE),
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 9),
-                    ("ALIGN", (2, 0), (-1, -1), "RIGHT"),
-                    ("GRID", (0, 0), (-1, -1), 0.5, _GRAY),
-                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [_WHITE, _LIGHT_BG]),
-                    ("TOPPADDING", (0, 0), (-1, -1), 3),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-                ]
-            )
-        )
-        elements.append(dec_table)
-    else:
-        elements.append(
-            Paragraph(
-                "Aucune d\u00e9cision enregistr\u00e9e pour cette p\u00e9riode.",
-                styles["body"],
-            )
-        )
+    elements.extend(_build_decisions_section(decisions, styles))
 
     # ── 7. Action Plan ──────────────────────────────────
     elements.append(Paragraph("Plan d\u2019Action", styles["heading"]))

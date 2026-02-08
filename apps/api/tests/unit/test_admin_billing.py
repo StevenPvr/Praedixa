@@ -35,7 +35,7 @@ def _make_org(**overrides):
 class TestPlanLimits:
     """Tests for PLAN_LIMITS constant."""
 
-    def test_all_plans_present(self):
+    def test_all_plans_present(self) -> None:
         assert set(PLAN_LIMITS.keys()) == {
             "free",
             "starter",
@@ -43,27 +43,27 @@ class TestPlanLimits:
             "enterprise",
         }
 
-    def test_free_has_lowest_limits(self):
+    def test_free_has_lowest_limits(self) -> None:
         assert PLAN_LIMITS["free"]["users"] == 3
         assert PLAN_LIMITS["free"]["datasets"] == 2
         assert PLAN_LIMITS["free"]["sites"] == 1
         assert PLAN_LIMITS["free"]["forecasts_per_month"] == 5
 
-    def test_enterprise_has_unlimited_users(self):
+    def test_enterprise_has_unlimited_users(self) -> None:
         assert PLAN_LIMITS["enterprise"]["users"] is None
 
-    def test_enterprise_has_unlimited_sites(self):
+    def test_enterprise_has_unlimited_sites(self) -> None:
         assert PLAN_LIMITS["enterprise"]["sites"] is None
 
-    def test_enterprise_has_unlimited_forecasts(self):
+    def test_enterprise_has_unlimited_forecasts(self) -> None:
         assert PLAN_LIMITS["enterprise"]["forecasts_per_month"] is None
 
-    def test_professional_limits(self):
+    def test_professional_limits(self) -> None:
         assert PLAN_LIMITS["professional"]["users"] == 50
         assert PLAN_LIMITS["professional"]["datasets"] == 50
         assert PLAN_LIMITS["professional"]["sites"] == 20
 
-    def test_starter_limits(self):
+    def test_starter_limits(self) -> None:
         assert PLAN_LIMITS["starter"]["users"] == 10
         assert PLAN_LIMITS["starter"]["datasets"] == 10
         assert PLAN_LIMITS["starter"]["sites"] == 3
@@ -73,7 +73,7 @@ class TestGetBillingInfo:
     """Tests for get_billing_info()."""
 
     @pytest.mark.asyncio
-    async def test_returns_plan_and_usage(self):
+    async def test_returns_plan_and_usage(self) -> None:
         org = _make_org()
         session = make_mock_session(
             make_scalar_result(org),  # org query
@@ -91,7 +91,7 @@ class TestGetBillingInfo:
         assert result["organization_id"] == org.id
 
     @pytest.mark.asyncio
-    async def test_limits_match_plan(self):
+    async def test_limits_match_plan(self) -> None:
         org = _make_org(plan=SubscriptionPlan.PROFESSIONAL)
         session = make_mock_session(
             make_scalar_result(org),
@@ -104,13 +104,13 @@ class TestGetBillingInfo:
         assert result["limits"] == PLAN_LIMITS["professional"]
 
     @pytest.mark.asyncio
-    async def test_org_not_found_raises(self):
+    async def test_org_not_found_raises(self) -> None:
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(NotFoundError):
             await get_billing_info(session, uuid.uuid4())
 
     @pytest.mark.asyncio
-    async def test_zero_usage(self):
+    async def test_zero_usage(self) -> None:
         org = _make_org(plan=SubscriptionPlan.FREE)
         session = make_mock_session(
             make_scalar_result(org),
@@ -124,7 +124,7 @@ class TestGetBillingInfo:
         assert result["usage"]["forecasts_this_month"] == 0
 
     @pytest.mark.asyncio
-    async def test_unknown_plan_falls_back_to_free(self):
+    async def test_unknown_plan_falls_back_to_free(self) -> None:
         """If org has a plan not in PLAN_LIMITS, fallback to free."""
         org = _make_org(plan="unknown_plan")
         session = make_mock_session(
@@ -142,7 +142,7 @@ class TestChangePlan:
     """Tests for change_plan()."""
 
     @pytest.mark.asyncio
-    async def test_success(self):
+    async def test_success(self) -> None:
         org = _make_org(plan=SubscriptionPlan.STARTER)
         session = make_mock_session(
             make_scalar_result(org),  # org query
@@ -162,7 +162,7 @@ class TestChangePlan:
         assert history.new_plan == SubscriptionPlan.PROFESSIONAL
 
     @pytest.mark.asyncio
-    async def test_same_plan_raises_conflict(self):
+    async def test_same_plan_raises_conflict(self) -> None:
         org = _make_org(plan=SubscriptionPlan.STARTER)
         session = make_mock_session(make_scalar_result(org))
 
@@ -176,7 +176,7 @@ class TestChangePlan:
             )
 
     @pytest.mark.asyncio
-    async def test_org_not_found_raises(self):
+    async def test_org_not_found_raises(self) -> None:
         session = make_mock_session(make_scalar_result(None))
 
         with pytest.raises(NotFoundError):
@@ -189,7 +189,7 @@ class TestChangePlan:
             )
 
     @pytest.mark.asyncio
-    async def test_reason_sanitized(self):
+    async def test_reason_sanitized(self) -> None:
         org = _make_org(plan=SubscriptionPlan.FREE)
         session = make_mock_session(
             make_scalar_result(org),
@@ -207,7 +207,7 @@ class TestChangePlan:
         assert "<script>" not in history.reason
 
     @pytest.mark.asyncio
-    async def test_downgrade_allowed(self):
+    async def test_downgrade_allowed(self) -> None:
         org = _make_org(plan=SubscriptionPlan.ENTERPRISE)
         session = make_mock_session(
             make_scalar_result(org),
@@ -224,7 +224,7 @@ class TestChangePlan:
         assert history.new_plan == SubscriptionPlan.FREE
 
     @pytest.mark.asyncio
-    async def test_changed_by_stored_as_uuid(self):
+    async def test_changed_by_stored_as_uuid(self) -> None:
         org = _make_org(plan=SubscriptionPlan.FREE)
         admin_id = str(uuid.uuid4())
         session = make_mock_session(
@@ -246,7 +246,7 @@ class TestGetPlanHistory:
     """Tests for get_plan_history()."""
 
     @pytest.mark.asyncio
-    async def test_returns_items_and_total(self):
+    async def test_returns_items_and_total(self) -> None:
         item = SimpleNamespace(id=uuid.uuid4())
         session = make_mock_session(
             make_scalar_result(1),
@@ -257,7 +257,7 @@ class TestGetPlanHistory:
         assert len(items) == 1
 
     @pytest.mark.asyncio
-    async def test_pagination(self):
+    async def test_pagination(self) -> None:
         session = make_mock_session(
             make_scalar_result(30),
             make_scalars_result([]),
@@ -266,7 +266,7 @@ class TestGetPlanHistory:
         assert total == 30
 
     @pytest.mark.asyncio
-    async def test_empty_history(self):
+    async def test_empty_history(self) -> None:
         session = make_mock_session(
             make_scalar_result(0),
             make_scalars_result([]),

@@ -130,14 +130,14 @@ async def get_usage_trends(
             .order_by(text("1"))
         )
         result = await session.execute(query)
-        for row in result.all():
-            trends.append(
-                {
-                    "date": row.period.isoformat() if row.period else "",
-                    "metric": metric_name,
-                    "value": float(row.count),
-                }
-            )
+        trends.extend(
+            {
+                "date": row.period.isoformat() if row.period else "",
+                "metric": metric_name,
+                "value": float(row.count),
+            }
+            for row in result.all()
+        )
 
     return trends
 

@@ -17,7 +17,7 @@ services:
       - key: SUPABASE_URL
         sync: false
       - key: CORS_ORIGINS
-        value: '["https://app.praedixa.com"]'
+        value: '["https://app.praedixa.com","https://admin.praedixa.com"]'
       - key: ENVIRONMENT
         value: production
       - key: DEBUG
@@ -26,3 +26,15 @@ services:
         value: info
       - key: PYTHON_VERSION
         value: "3.12"
+      # Key Management — must be "scaleway" in production (config.py enforces this)
+      - key: KEY_PROVIDER
+        value: scaleway
+      - key: SCW_SECRET_KEY
+        sync: false
+      - key: SCW_DEFAULT_PROJECT_ID
+        sync: false
+      - key: SCW_REGION
+        value: fr-par
+      # Rate limiting — Redis URI for distributed rate limiting in production
+      - key: RATE_LIMIT_STORAGE_URI
+        sync: false

@@ -6,6 +6,7 @@ with Alembic's synchronous migration runner.
 
 import asyncio
 from logging.config import fileConfig
+from typing import Any
 
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -44,7 +45,7 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def do_run_migrations(connection) -> None:  # type: ignore[no-untyped-def]
+def do_run_migrations(connection: Any) -> None:  # type: ignore[no-untyped-def]
     """Run migrations with an active connection."""
     context.configure(connection=connection, target_metadata=target_metadata)
 

@@ -717,7 +717,7 @@ class TestAdminDoesNotBypassRegularTenantIsolation:
         sa_client: AsyncClient,
         mock_session: AsyncMock,
     ) -> None:
-        """After admin access to ORG_B, regular /dashboard/summary still scopes to ORG_A."""
+        """After admin access to ORG_B, /dashboard/summary still scopes to ORG_A."""
         # First, do an admin cross-org access to ORG_B
         with (
             patch(

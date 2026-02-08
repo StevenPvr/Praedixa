@@ -15,6 +15,7 @@ import uuid
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from typing import Any
 
 import structlog
 from fastapi import APIRouter, Depends, FastAPI, Query, Request, Response
@@ -139,7 +140,7 @@ app.add_middleware(
 @app.middleware("http")
 async def request_id_middleware(
     request: Request,
-    call_next,  # type: ignore[no-untyped-def]
+    call_next: Any,  # type: ignore[no-untyped-def]
 ) -> Response:
     """Add unique request ID and timing to each request.
 

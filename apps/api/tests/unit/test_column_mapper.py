@@ -43,50 +43,50 @@ def _make_dataset_column(
 
 
 class TestNormalize:
-    def test_lowercase(self):
+    def test_lowercase(self) -> None:
         assert _normalize("NOM") == "nom"
 
-    def test_strip_accents(self):
+    def test_strip_accents(self) -> None:
         assert _normalize("prénom") == "prenom"
 
-    def test_replace_spaces(self):
+    def test_replace_spaces(self) -> None:
         assert _normalize("first name") == "first_name"
 
-    def test_replace_hyphens(self):
+    def test_replace_hyphens(self) -> None:
         assert _normalize("last-name") == "last_name"
 
-    def test_strip_apostrophes(self):
+    def test_strip_apostrophes(self) -> None:
         assert _normalize("type d'absence") == "type_dabsence"
 
-    def test_collapse_underscores(self):
+    def test_collapse_underscores(self) -> None:
         assert _normalize("a__b___c") == "a_b_c"
 
-    def test_strip_leading_trailing_underscores(self):
+    def test_strip_leading_trailing_underscores(self) -> None:
         assert _normalize("_name_") == "name"
 
-    def test_strip_non_alphanumeric(self):
+    def test_strip_non_alphanumeric(self) -> None:
         assert _normalize("col (%)") == "col"
 
-    def test_complex_french_header(self):
+    def test_complex_french_header(self) -> None:
         assert _normalize("Durée (jours)") == "duree_jours"
 
-    def test_empty_string(self):
+    def test_empty_string(self) -> None:
         assert _normalize("") == ""
 
-    def test_only_special_chars(self):
+    def test_only_special_chars(self) -> None:
         assert _normalize("(%)") == ""
 
-    def test_mixed_accents_and_hyphens(self):
+    def test_mixed_accents_and_hyphens(self) -> None:
         assert _normalize("Salaire-Brut-Mensuel") == "salaire_brut_mensuel"
 
-    def test_unicode_normalization(self):
+    def test_unicode_normalization(self) -> None:
         # \u00e9 (precomposed é) == e + combining accent (NFKD)
         assert _normalize("\u00e9") == "e"
 
-    def test_digits_preserved(self):
+    def test_digits_preserved(self) -> None:
         assert _normalize("HS 25%") == "hs_25"
 
-    def test_multiple_spaces(self):
+    def test_multiple_spaces(self) -> None:
         assert _normalize("a  b   c") == "a_b_c"
 
 
@@ -94,7 +94,7 @@ class TestNormalize:
 
 
 class TestExactMatch:
-    def test_exact_match(self):
+    def test_exact_match(self) -> None:
         cols = [_make_dataset_column("nom"), _make_dataset_column("age")]
         result = map_columns(["nom", "age"], cols)
 
@@ -105,13 +105,13 @@ class TestExactMatch:
         assert result.mappings[0].confidence == 1.0
         assert result.mappings[1].target_column == "age"
 
-    def test_no_unmapped(self):
+    def test_no_unmapped(self) -> None:
         cols = [_make_dataset_column("nom")]
         result = map_columns(["nom"], cols)
         assert len(result.unmapped_source) == 0
         assert len(result.unmapped_target) == 0
 
-    def test_exact_match_dedup(self):
+    def test_exact_match_dedup(self) -> None:
         """Two source columns with the same name: only first gets exact match,
         second becomes unmapped (since target is already matched)."""
         cols = [_make_dataset_column("nom")]
@@ -127,7 +127,7 @@ class TestExactMatch:
 
 
 class TestLuccaAliases:
-    def test_collaborateur_maps_to_nom_complet(self):
+    def test_collaborateur_maps_to_nom_complet(self) -> None:
         cols = [_make_dataset_column("nom_complet")]
         result = map_columns(
             ["Collaborateur"],
@@ -138,7 +138,7 @@ class TestLuccaAliases:
         assert result.mappings[0].target_column == "nom_complet"
         assert result.mappings[0].confidence == pytest.approx(0.95)
 
-    def test_type_de_conge_maps_to_type_absence(self):
+    def test_type_de_conge_maps_to_type_absence(self) -> None:
         cols = [_make_dataset_column("type_absence")]
         result = map_columns(
             ["Type de conge"],
@@ -147,7 +147,7 @@ class TestLuccaAliases:
         )
         assert result.mappings[0].target_column == "type_absence"
 
-    def test_multiple_lucca_mappings(self):
+    def test_multiple_lucca_mappings(self) -> None:
         cols = [
             _make_dataset_column("nom_complet"),
             _make_dataset_column("matricule"),
@@ -161,7 +161,7 @@ class TestLuccaAliases:
         assert len(result.mappings) == 3
         assert len(result.unmapped_source) == 0
 
-    def test_lucca_alias_not_applied_without_hint(self):
+    def test_lucca_alias_not_applied_without_hint(self) -> None:
         """Without format_hint='lucca', alias should not be used."""
         cols = [_make_dataset_column("nom_complet")]
         result = map_columns(
@@ -173,7 +173,7 @@ class TestLuccaAliases:
         assert len(result.mappings) == 0
         assert "Collaborateur" in result.unmapped_source
 
-    def test_lucca_alias_target_not_in_dataset(self):
+    def test_lucca_alias_target_not_in_dataset(self) -> None:
         """If alias maps to a target not in dataset_columns, skip alias."""
         cols = [_make_dataset_column("some_other_col")]
         result = map_columns(
@@ -184,7 +184,7 @@ class TestLuccaAliases:
         assert len(result.mappings) == 0
         assert "Collaborateur" in result.unmapped_source
 
-    def test_lucca_alias_target_already_matched(self):
+    def test_lucca_alias_target_already_matched(self) -> None:
         """If alias target is already matched by earlier source, skip alias."""
         cols = [_make_dataset_column("nom_complet")]
         # First source matches directly (exact), second tries alias to same target
@@ -198,12 +198,12 @@ class TestLuccaAliases:
         assert result.mappings[0].confidence == 1.0  # exact match
         assert "Collaborateur" in result.unmapped_source
 
-    def test_lucca_service_maps_to_departement(self):
+    def test_lucca_service_maps_to_departement(self) -> None:
         cols = [_make_dataset_column("departement")]
         result = map_columns(["Service"], cols, format_hint="lucca")
         assert result.mappings[0].target_column == "departement"
 
-    def test_lucca_etat_maps_to_statut(self):
+    def test_lucca_etat_maps_to_statut(self) -> None:
         cols = [_make_dataset_column("statut")]
         result = map_columns(["Etat"], cols, format_hint="lucca")
         assert result.mappings[0].target_column == "statut"
@@ -213,7 +213,7 @@ class TestLuccaAliases:
 
 
 class TestPayFitAliases:
-    def test_salaire_brut_maps(self):
+    def test_salaire_brut_maps(self) -> None:
         cols = [_make_dataset_column("salaire_brut")]
         result = map_columns(
             ["Salaire brut"],
@@ -223,7 +223,7 @@ class TestPayFitAliases:
         assert result.mappings[0].target_column == "salaire_brut"
         assert result.mappings[0].confidence == pytest.approx(0.95)
 
-    def test_net_a_payer_maps(self):
+    def test_net_a_payer_maps(self) -> None:
         cols = [_make_dataset_column("net_a_payer")]
         result = map_columns(
             ["Net a payer"],
@@ -232,7 +232,7 @@ class TestPayFitAliases:
         )
         assert result.mappings[0].target_column == "net_a_payer"
 
-    def test_net_a_payer_with_accent_maps(self):
+    def test_net_a_payer_with_accent_maps(self) -> None:
         """'net \u00e0 payer' (with accent) is also in _PAYFIT_ALIASES."""
         cols = [_make_dataset_column("net_a_payer")]
         result = map_columns(
@@ -242,7 +242,7 @@ class TestPayFitAliases:
         )
         assert result.mappings[0].target_column == "net_a_payer"
 
-    def test_hs_25_percent_maps(self):
+    def test_hs_25_percent_maps(self) -> None:
         cols = [_make_dataset_column("heures_sup_25")]
         result = map_columns(
             ["HS 25%"],
@@ -251,12 +251,12 @@ class TestPayFitAliases:
         )
         assert result.mappings[0].target_column == "heures_sup_25"
 
-    def test_payfit_etablissement_maps_to_site(self):
+    def test_payfit_etablissement_maps_to_site(self) -> None:
         cols = [_make_dataset_column("site")]
         result = map_columns(["\u00c9tablissement"], cols, format_hint="payfit")
         assert result.mappings[0].target_column == "site"
 
-    def test_payfit_departement_with_accent(self):
+    def test_payfit_departement_with_accent(self) -> None:
         cols = [_make_dataset_column("departement")]
         result = map_columns(["D\u00e9partement"], cols, format_hint="payfit")
         assert result.mappings[0].target_column == "departement"
@@ -266,29 +266,29 @@ class TestPayFitAliases:
 
 
 class TestFuzzyNormalization:
-    def test_accent_match(self):
+    def test_accent_match(self) -> None:
         """Source 'Pr\u00e9nom' should match target 'prenom' via normalization."""
         cols = [_make_dataset_column("prenom")]
         result = map_columns(["Pr\u00e9nom"], cols)
         assert len(result.mappings) == 1
         assert result.mappings[0].confidence == pytest.approx(0.80)
 
-    def test_case_match(self):
+    def test_case_match(self) -> None:
         cols = [_make_dataset_column("nom")]
         result = map_columns(["NOM"], cols)
         assert len(result.mappings) == 1
 
-    def test_space_to_underscore_match(self):
+    def test_space_to_underscore_match(self) -> None:
         cols = [_make_dataset_column("date_debut")]
         result = map_columns(["date debut"], cols)
         assert len(result.mappings) == 1
 
-    def test_hyphen_to_underscore_match(self):
+    def test_hyphen_to_underscore_match(self) -> None:
         cols = [_make_dataset_column("code_postal")]
         result = map_columns(["code-postal"], cols)
         assert len(result.mappings) == 1
 
-    def test_fuzzy_match_dedup(self):
+    def test_fuzzy_match_dedup(self) -> None:
         """If normalized target already matched, second source is unmapped."""
         cols = [_make_dataset_column("nom")]
         result = map_columns(["Nom", "NOM"], cols)
@@ -296,7 +296,7 @@ class TestFuzzyNormalization:
         assert len(result.mappings) == 1
         assert len(result.unmapped_source) == 1
 
-    def test_apostrophe_stripped_for_fuzzy(self):
+    def test_apostrophe_stripped_for_fuzzy(self) -> None:
         cols = [_make_dataset_column("type_dabsence")]
         result = map_columns(["type d'absence"], cols)
         assert len(result.mappings) == 1
@@ -307,13 +307,13 @@ class TestFuzzyNormalization:
 
 
 class TestUnmappedColumns:
-    def test_unmapped_source_generates_warning(self):
+    def test_unmapped_source_generates_warning(self) -> None:
         cols = [_make_dataset_column("nom")]
         result = map_columns(["nom", "extra_col"], cols)
         assert "extra_col" in result.unmapped_source
         assert any("extra_col" in w for w in result.warnings)
 
-    def test_unmapped_target_generates_warning(self):
+    def test_unmapped_target_generates_warning(self) -> None:
         cols = [
             _make_dataset_column("nom"),
             _make_dataset_column("age"),
@@ -322,14 +322,14 @@ class TestUnmappedColumns:
         assert "age" in result.unmapped_target
         assert any("age" in w for w in result.warnings)
 
-    def test_all_unmapped(self):
+    def test_all_unmapped(self) -> None:
         cols = [_make_dataset_column("target_a")]
         result = map_columns(["source_x"], cols)
         assert len(result.mappings) == 0
         assert "source_x" in result.unmapped_source
         assert "target_a" in result.unmapped_target
 
-    def test_unmapped_target_sorted(self):
+    def test_unmapped_target_sorted(self) -> None:
         cols = [
             _make_dataset_column("z_col"),
             _make_dataset_column("a_col"),
@@ -343,24 +343,24 @@ class TestUnmappedColumns:
 
 
 class TestEdgeCases:
-    def test_empty_source_columns(self):
+    def test_empty_source_columns(self) -> None:
         cols = [_make_dataset_column("nom")]
         result = map_columns([], cols)
         assert len(result.mappings) == 0
         assert "nom" in result.unmapped_target
 
-    def test_empty_target_columns(self):
+    def test_empty_target_columns(self) -> None:
         result = map_columns(["nom"], [])
         assert len(result.mappings) == 0
         assert "nom" in result.unmapped_source
 
-    def test_both_empty(self):
+    def test_both_empty(self) -> None:
         result = map_columns([], [])
         assert len(result.mappings) == 0
         assert len(result.unmapped_source) == 0
         assert len(result.unmapped_target) == 0
 
-    def test_no_duplicate_target_mapping(self):
+    def test_no_duplicate_target_mapping(self) -> None:
         """Two source columns that normalize to the same target
         should not both map to it \u2014 first wins."""
         cols = [_make_dataset_column("nom")]
@@ -369,23 +369,23 @@ class TestEdgeCases:
         assert len(result.mappings) == 1
         assert len(result.unmapped_source) == 1
 
-    def test_transform_field_default_none(self):
+    def test_transform_field_default_none(self) -> None:
         cols = [_make_dataset_column("nom")]
         result = map_columns(["nom"], cols)
         assert result.mappings[0].transform is None
 
-    def test_format_hint_none_uses_no_aliases(self):
+    def test_format_hint_none_uses_no_aliases(self) -> None:
         cols = [_make_dataset_column("nom_complet")]
         result = map_columns(["Collaborateur"], cols, format_hint=None)
         # No alias dict used (format_hint is None)
         assert len(result.mappings) == 0
 
-    def test_format_hint_csv_uses_no_aliases(self):
+    def test_format_hint_csv_uses_no_aliases(self) -> None:
         cols = [_make_dataset_column("nom_complet")]
         result = map_columns(["Collaborateur"], cols, format_hint="csv")
         assert len(result.mappings) == 0
 
-    def test_format_hint_xlsx_uses_no_aliases(self):
+    def test_format_hint_xlsx_uses_no_aliases(self) -> None:
         """With format_hint='xlsx', alias dicts are NOT loaded, but fuzzy
         normalization still works. Use a source that has NO fuzzy match."""
         cols = [_make_dataset_column("salaire_brut")]
@@ -400,29 +400,29 @@ class TestEdgeCases:
 class TestSageAliases:
     """Tests for Sage FEC/CSV alias mapping (format_hint='sage')."""
 
-    def test_journalcode_maps_to_journal_code(self):
+    def test_journalcode_maps_to_journal_code(self) -> None:
         cols = [_make_dataset_column("journal_code")]
         result = map_columns(["JournalCode"], cols, format_hint="sage")
         assert len(result.mappings) == 1
         assert result.mappings[0].target_column == "journal_code"
         assert result.mappings[0].confidence == pytest.approx(0.95)
 
-    def test_comptenum_maps_to_compte_num(self):
+    def test_comptenum_maps_to_compte_num(self) -> None:
         cols = [_make_dataset_column("compte_num")]
         result = map_columns(["CompteNum"], cols, format_hint="sage")
         assert result.mappings[0].target_column == "compte_num"
 
-    def test_ecrituredate_maps_to_date_ecriture(self):
+    def test_ecrituredate_maps_to_date_ecriture(self) -> None:
         cols = [_make_dataset_column("date_ecriture")]
         result = map_columns(["EcritureDate"], cols, format_hint="sage")
         assert result.mappings[0].target_column == "date_ecriture"
 
-    def test_debit_credit_maps(self):
+    def test_debit_credit_maps(self) -> None:
         cols = [_make_dataset_column("debit"), _make_dataset_column("credit")]
         result = map_columns(["Debit", "Credit"], cols, format_hint="sage")
         assert len(result.mappings) == 2
 
-    def test_sage_alias_not_applied_without_hint(self):
+    def test_sage_alias_not_applied_without_hint(self) -> None:
         """Without format_hint='sage', Sage aliases should not be used."""
         cols = [_make_dataset_column("journal_code")]
         result = map_columns(["JournalCode"], cols, format_hint="csv")
@@ -430,12 +430,12 @@ class TestSageAliases:
         assert len(result.mappings) == 0
         assert "JournalCode" in result.unmapped_source
 
-    def test_montantttc_maps_to_montant_ttc(self):
+    def test_montantttc_maps_to_montant_ttc(self) -> None:
         cols = [_make_dataset_column("montant_ttc")]
         result = map_columns(["MontantTTC"], cols, format_hint="sage")
         assert result.mappings[0].target_column == "montant_ttc"
 
-    def test_multiple_sage_mappings(self):
+    def test_multiple_sage_mappings(self) -> None:
         cols = [
             _make_dataset_column("journal_code"),
             _make_dataset_column("date_ecriture"),
@@ -455,7 +455,7 @@ class TestSageAliases:
 
 
 class TestColumnMapping:
-    def test_frozen_dataclass(self):
+    def test_frozen_dataclass(self) -> None:
         cm = ColumnMapping(
             source_column="src",
             target_column="tgt",
@@ -468,7 +468,7 @@ class TestColumnMapping:
         with pytest.raises(AttributeError):
             cm.confidence = 0.5
 
-    def test_with_transform(self):
+    def test_with_transform(self) -> None:
         def fn(x):
             return str(x)
 
@@ -485,7 +485,7 @@ class TestColumnMapping:
 
 
 class TestMappingResult:
-    def test_frozen_dataclass(self):
+    def test_frozen_dataclass(self) -> None:
         mr = MappingResult(mappings=[])
         assert mr.mappings == []
         assert mr.unmapped_source == []
@@ -494,7 +494,7 @@ class TestMappingResult:
         with pytest.raises(AttributeError):
             mr.mappings = []
 
-    def test_defaults(self):
+    def test_defaults(self) -> None:
         mr = MappingResult(mappings=[])
         assert mr.unmapped_source == []
         assert mr.unmapped_target == []

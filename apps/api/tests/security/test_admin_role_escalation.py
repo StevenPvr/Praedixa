@@ -135,7 +135,7 @@ class TestInviteServiceBlocksSuperAdmin:
         session = _make_mock_session(None)
 
         # Flush assigns an id
-        async def assign_id():
+        async def assign_id() -> None:
             pass
 
         session.flush = AsyncMock(side_effect=assign_id)
@@ -322,7 +322,6 @@ class TestOrgUserScoping:
     @pytest.mark.asyncio
     async def test_deactivate_user_scoped_to_org(self) -> None:
         """deactivate_user verifies user belongs to org before deactivating."""
-        # Mock: user not in org
         session = _make_mock_session(None)
 
         with pytest.raises(NotFoundError, match="User"):

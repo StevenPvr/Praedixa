@@ -2,16 +2,17 @@
 # Uses uv for fast dependency resolution + slim Python image
 #
 # Security notes:
-# - Runs as non-root user (appuser) to minimize container escape impact.
+# - Runs as non-root user (appuser:65532) to minimize container escape impact.
 # - Only production dependencies are installed in the final image.
 # - No dev tools, no shell access beyond what's needed for debugging.
 # - COPY uses specific paths (not COPY .) to avoid leaking .env / secrets.
+# - Pin base images to minor version to balance reproducibility + security patches.
 
 # ---------- Stage 1: Build dependencies ----------
 FROM python:3.12-slim AS builder
 
 # Install uv for fast dependency management
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.6 /uv /usr/local/bin/uv
 
 WORKDIR /build
 
@@ -27,13 +28,20 @@ RUN uv venv /opt/venv && \
 # ---------- Stage 2: Production image ----------
 FROM python:3.12-slim AS production
 
-# Security: create non-root user
-RUN groupadd --system appgroup && \
-    useradd --system --gid appgroup --create-home appuser
+# Security metadata
+LABEL org.opencontainers.image.title="praedixa-api" \
+      org.opencontainers.image.vendor="Praedixa" \
+      org.opencontainers.image.source="https://github.com/praedixa/praedixa"
+
+# Security: create non-root user with fixed UID/GID for consistency
+RUN groupadd --system --gid 65532 appgroup && \
+    useradd --system --uid 65532 --gid appgroup --create-home appuser
 
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
@@ -46,7 +54,7 @@ COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
 # Switch to non-root user
-USER appuser
+USER 65532
 
 # Expose the API port
 EXPOSE 8000

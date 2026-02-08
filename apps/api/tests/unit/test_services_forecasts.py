@@ -22,7 +22,7 @@ class TestListForecasts:
     """Test list_forecasts service function."""
 
     @pytest.mark.asyncio
-    async def test_returns_items_and_total(self):
+    async def test_returns_items_and_total(self) -> None:
         tenant = TenantFilter("org-1")
         items = [SimpleNamespace(id=uuid.uuid4()), SimpleNamespace(id=uuid.uuid4())]
 
@@ -36,7 +36,7 @@ class TestListForecasts:
         assert len(result_items) == 2
 
     @pytest.mark.asyncio
-    async def test_empty_result(self):
+    async def test_empty_result(self) -> None:
         tenant = TenantFilter("org-1")
         session = make_mock_session(
             make_scalar_result(0),
@@ -48,7 +48,7 @@ class TestListForecasts:
         assert items == []
 
     @pytest.mark.asyncio
-    async def test_pagination(self):
+    async def test_pagination(self) -> None:
         tenant = TenantFilter("org-1")
         session = make_mock_session(
             make_scalar_result(50),  # total count = 50
@@ -60,7 +60,7 @@ class TestListForecasts:
         assert len(items) == 1
 
     @pytest.mark.asyncio
-    async def test_status_filter(self):
+    async def test_status_filter(self) -> None:
         tenant = TenantFilter("org-1")
         session = make_mock_session(
             make_scalar_result(1),
@@ -77,7 +77,7 @@ class TestGetDailyForecasts:
     """Test get_daily_forecasts service function."""
 
     @pytest.mark.asyncio
-    async def test_returns_forecasts(self):
+    async def test_returns_forecasts(self) -> None:
         tenant = TenantFilter("org-1")
         run_id = uuid.uuid4()
         daily = [SimpleNamespace(id=uuid.uuid4(), forecast_date=date(2026, 1, 1))]
@@ -91,7 +91,7 @@ class TestGetDailyForecasts:
         assert len(result) == 1
 
     @pytest.mark.asyncio
-    async def test_run_not_found_raises(self):
+    async def test_run_not_found_raises(self) -> None:
         tenant = TenantFilter("org-1")
         run_id = uuid.uuid4()
 
@@ -104,7 +104,7 @@ class TestGetDailyForecasts:
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_dimension_filter(self):
+    async def test_dimension_filter(self) -> None:
         tenant = TenantFilter("org-1")
         run_id = uuid.uuid4()
 
@@ -119,7 +119,7 @@ class TestGetDailyForecasts:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_date_from_filter(self):
+    async def test_date_from_filter(self) -> None:
         tenant = TenantFilter("org-1")
         run_id = uuid.uuid4()
 
@@ -134,7 +134,7 @@ class TestGetDailyForecasts:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_date_to_filter(self):
+    async def test_date_to_filter(self) -> None:
         tenant = TenantFilter("org-1")
         run_id = uuid.uuid4()
 
@@ -149,7 +149,7 @@ class TestGetDailyForecasts:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_all_filters_combined(self):
+    async def test_all_filters_combined(self) -> None:
         tenant = TenantFilter("org-1")
         run_id = uuid.uuid4()
 

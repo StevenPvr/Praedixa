@@ -50,52 +50,52 @@ from tests.unit.conftest import (
 
 
 class TestComputeHmac:
-    def test_returns_hex_string(self):
+    def test_returns_hex_string(self) -> None:
         result = compute_hmac({"mean": 42.0}, "test_secret")
         assert isinstance(result, str)
         assert len(result) == 64  # SHA256 hex digest
 
-    def test_deterministic(self):
+    def test_deterministic(self) -> None:
         params = {"mean": 42.0, "std": 1.5}
         h1 = compute_hmac(params, "secret")
         h2 = compute_hmac(params, "secret")
         assert h1 == h2
 
-    def test_different_secret_different_hmac(self):
+    def test_different_secret_different_hmac(self) -> None:
         params = {"mean": 42.0}
         h1 = compute_hmac(params, "secret1")
         h2 = compute_hmac(params, "secret2")
         assert h1 != h2
 
-    def test_different_params_different_hmac(self):
+    def test_different_params_different_hmac(self) -> None:
         h1 = compute_hmac({"mean": 42.0}, "secret")
         h2 = compute_hmac({"mean": 43.0}, "secret")
         assert h1 != h2
 
-    def test_key_ordering_irrelevant(self):
+    def test_key_ordering_irrelevant(self) -> None:
         h1 = compute_hmac({"a": 1, "b": 2}, "secret")
         h2 = compute_hmac({"b": 2, "a": 1}, "secret")
         assert h1 == h2
 
 
 class TestVerifyHmac:
-    def test_valid_hmac_returns_true(self):
+    def test_valid_hmac_returns_true(self) -> None:
         params = {"mean": 42.0}
         h = compute_hmac(params, "secret")
         assert verify_hmac(params, h, "secret") is True
 
-    def test_tampered_hmac_returns_false(self):
+    def test_tampered_hmac_returns_false(self) -> None:
         params = {"mean": 42.0}
         assert verify_hmac(params, "bad_hmac", "secret") is False
 
-    def test_wrong_secret_returns_false(self):
+    def test_wrong_secret_returns_false(self) -> None:
         params = {"mean": 42.0}
         h = compute_hmac(params, "secret")
         assert verify_hmac(params, h, "wrong_secret") is False
 
 
 class TestVerifyAllHmacs:
-    def test_valid_params_no_raise(self):
+    def test_valid_params_no_raise(self) -> None:
         params = {"mean": 42.0}
         h = compute_hmac(params, "secret")
         fp = SimpleNamespace(
@@ -107,7 +107,7 @@ class TestVerifyAllHmacs:
         )
         _verify_all_hmacs([fp], "secret")  # should not raise
 
-    def test_tampered_params_raises(self):
+    def test_tampered_params_raises(self) -> None:
         fp = SimpleNamespace(
             parameters={"mean": 42.0},
             hmac_sha256="bad",
@@ -118,7 +118,7 @@ class TestVerifyAllHmacs:
         with pytest.raises(ValueError, match="HMAC verification failed"):
             _verify_all_hmacs([fp], "secret")
 
-    def test_null_hmac_skipped(self):
+    def test_null_hmac_skipped(self) -> None:
         fp = SimpleNamespace(
             parameters={"mean": 42.0},
             hmac_sha256=None,
@@ -129,7 +129,7 @@ class TestVerifyAllHmacs:
         # Should not raise — null HMAC means not verified
         _verify_all_hmacs([fp], "secret")
 
-    def test_empty_list_no_raise(self):
+    def test_empty_list_no_raise(self) -> None:
         _verify_all_hmacs([], "secret")
 
 
@@ -138,7 +138,7 @@ class TestVerifyAllHmacs:
 
 class TestLoadDataset:
     @pytest.mark.asyncio
-    async def test_returns_active_dataset(self):
+    async def test_returns_active_dataset(self) -> None:
         ds = SimpleNamespace(
             id=uuid.uuid4(),
             status=DatasetStatus.ACTIVE,
@@ -148,13 +148,13 @@ class TestLoadDataset:
         assert result is ds
 
     @pytest.mark.asyncio
-    async def test_raises_if_not_found(self):
+    async def test_raises_if_not_found(self) -> None:
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(ValueError, match="not found"):
             await _load_dataset(uuid.uuid4(), session)
 
     @pytest.mark.asyncio
-    async def test_raises_if_not_active(self):
+    async def test_raises_if_not_active(self) -> None:
         ds = SimpleNamespace(
             id=uuid.uuid4(),
             status=DatasetStatus.PENDING,
@@ -169,14 +169,14 @@ class TestLoadDataset:
 
 class TestLoadColumns:
     @pytest.mark.asyncio
-    async def test_returns_columns_list(self):
+    async def test_returns_columns_list(self) -> None:
         cols = [SimpleNamespace(name="a"), SimpleNamespace(name="b")]
         session = make_mock_session(make_scalars_result(cols))
         result = await _load_columns(uuid.uuid4(), session)
         assert result == cols
 
     @pytest.mark.asyncio
-    async def test_returns_empty_for_no_columns(self):
+    async def test_returns_empty_for_no_columns(self) -> None:
         session = make_mock_session(make_scalars_result([]))
         result = await _load_columns(uuid.uuid4(), session)
         assert result == []
@@ -187,7 +187,7 @@ class TestLoadColumns:
 
 class TestLoadActiveFitParams:
     @pytest.mark.asyncio
-    async def test_returns_active_params(self):
+    async def test_returns_active_params(self) -> None:
         fps = [SimpleNamespace(column_name="x", is_active=True)]
         session = make_mock_session(make_scalars_result(fps))
         result = await _load_active_fit_params(uuid.uuid4(), session)
@@ -199,14 +199,14 @@ class TestLoadActiveFitParams:
 
 class TestGetLastSuccessfulCutoff:
     @pytest.mark.asyncio
-    async def test_returns_datetime_when_exists(self):
+    async def test_returns_datetime_when_exists(self) -> None:
         cutoff_time = datetime(2026, 2, 5, 14, 0, tzinfo=UTC)
         session = make_mock_session(make_scalar_result(cutoff_time))
         result = await _get_last_successful_cutoff(uuid.uuid4(), session)
         assert result == cutoff_time
 
     @pytest.mark.asyncio
-    async def test_returns_none_when_no_history(self):
+    async def test_returns_none_when_no_history(self) -> None:
         session = make_mock_session(make_scalar_result(None))
         result = await _get_last_successful_cutoff(uuid.uuid4(), session)
         assert result is None
@@ -224,7 +224,7 @@ class TestRunIncremental:
     @patch("app.services.transform_engine._load_dataset")
     async def test_success(
         self, mock_load_ds, mock_load_cols, mock_load_fp, mock_cutoff, mock_pipeline
-    ):
+    ) -> None:
         ds_id = uuid.uuid4()
         dataset = SimpleNamespace(
             id=ds_id,
@@ -255,7 +255,7 @@ class TestRunIncremental:
     @patch("app.services.transform_engine._load_dataset")
     async def test_failure_writes_error(
         self, mock_load_ds, mock_load_cols, mock_load_fp, mock_cutoff, mock_pipeline
-    ):
+    ) -> None:
         ds_id = uuid.uuid4()
         mock_load_ds.side_effect = ValueError("Dataset not found")
 
@@ -274,7 +274,7 @@ class TestRunIncremental:
     @patch("app.services.transform_engine._load_dataset")
     async def test_hmac_verification_called(
         self, mock_load_ds, mock_load_cols, mock_load_fp, mock_cutoff, mock_pipeline
-    ):
+    ) -> None:
         ds_id = uuid.uuid4()
         dataset = SimpleNamespace(
             id=ds_id,
@@ -315,7 +315,7 @@ class TestRunFullRefit:
     @patch("app.services.transform_engine._execute_pipeline")
     @patch("app.services.transform_engine._load_columns")
     @patch("app.services.transform_engine._load_dataset")
-    async def test_success(self, mock_load_ds, mock_load_cols, mock_pipeline):
+    async def test_success(self, mock_load_ds, mock_load_cols, mock_pipeline) -> None:
         ds_id = uuid.uuid4()
         dataset = SimpleNamespace(
             id=ds_id,
@@ -341,7 +341,7 @@ class TestRunFullRefit:
     @patch("app.services.transform_engine._load_dataset")
     async def test_failure_writes_error(
         self, mock_load_ds, mock_load_cols, mock_pipeline
-    ):
+    ) -> None:
         ds_id = uuid.uuid4()
         mock_load_ds.return_value = SimpleNamespace(
             id=ds_id,
@@ -364,7 +364,7 @@ class TestRunFullRefit:
 
 class TestSaveFitParameters:
     @pytest.mark.asyncio
-    async def test_increments_version(self):
+    async def test_increments_version(self) -> None:
         ds_id = uuid.uuid4()
         session = AsyncMock()
         session.add = MagicMock()
@@ -391,7 +391,7 @@ class TestSaveFitParameters:
         assert result[0].version == 3  # 2 + 1
 
     @pytest.mark.asyncio
-    async def test_first_version_is_1(self):
+    async def test_first_version_is_1(self) -> None:
         ds_id = uuid.uuid4()
         session = AsyncMock()
         session.add = MagicMock()
@@ -415,7 +415,7 @@ class TestSaveFitParameters:
         assert result[0].version == 1
 
     @pytest.mark.asyncio
-    async def test_hmac_generated_when_secret_provided(self):
+    async def test_hmac_generated_when_secret_provided(self) -> None:
         ds_id = uuid.uuid4()
         session = AsyncMock()
         session.add = MagicMock()
@@ -442,7 +442,7 @@ class TestSaveFitParameters:
         assert len(result[0].hmac_sha256) == 64
 
     @pytest.mark.asyncio
-    async def test_no_hmac_without_secret(self):
+    async def test_no_hmac_without_secret(self) -> None:
         ds_id = uuid.uuid4()
         session = AsyncMock()
         session.add = MagicMock()
@@ -466,7 +466,7 @@ class TestSaveFitParameters:
         assert result[0].hmac_sha256 is None
 
     @pytest.mark.asyncio
-    async def test_multiple_params_saved(self):
+    async def test_multiple_params_saved(self) -> None:
         ds_id = uuid.uuid4()
         session = AsyncMock()
         session.add = MagicMock()
@@ -499,7 +499,7 @@ class TestSaveFitParameters:
         assert result[1].column_name == "temperature"
 
     @pytest.mark.asyncio
-    async def test_row_count_from_param(self):
+    async def test_row_count_from_param(self) -> None:
         """row_count is read from the param dict if provided."""
         ds_id = uuid.uuid4()
         session = AsyncMock()
@@ -524,7 +524,7 @@ class TestSaveFitParameters:
         assert result[0].row_count == 5000
 
     @pytest.mark.asyncio
-    async def test_row_count_defaults_to_zero(self):
+    async def test_row_count_defaults_to_zero(self) -> None:
         """row_count defaults to 0 if not provided in param dict."""
         ds_id = uuid.uuid4()
         session = AsyncMock()
@@ -548,7 +548,7 @@ class TestSaveFitParameters:
         assert result[0].row_count == 0
 
     @pytest.mark.asyncio
-    async def test_all_params_are_active(self):
+    async def test_all_params_are_active(self) -> None:
         """All newly saved params must be active."""
         ds_id = uuid.uuid4()
         session = AsyncMock()
@@ -593,7 +593,7 @@ class TestRunIncrementalExtended:
     @patch("app.services.transform_engine._load_dataset")
     async def test_with_request_id(
         self, mock_load_ds, mock_load_cols, mock_load_fp, mock_cutoff, mock_pipeline
-    ):
+    ) -> None:
         ds_id = uuid.uuid4()
         dataset = SimpleNamespace(
             id=ds_id,
@@ -622,7 +622,7 @@ class TestRunIncrementalExtended:
     @patch("app.services.transform_engine._load_dataset")
     async def test_with_existing_cutoff(
         self, mock_load_ds, mock_load_cols, mock_load_fp, mock_cutoff, mock_pipeline
-    ):
+    ) -> None:
         """When a previous successful run exists, cutoff is passed to pipeline."""
         ds_id = uuid.uuid4()
         dataset = SimpleNamespace(
@@ -661,7 +661,7 @@ class TestRunIncrementalExtended:
         mock_load_fp,
         mock_cutoff,
         mock_pipeline,
-    ):
+    ) -> None:
         """Pipeline failure should set status=FAILED and record error_message."""
         ds_id = uuid.uuid4()
         dataset = SimpleNamespace(
@@ -698,7 +698,7 @@ class TestRunIncrementalExtended:
         mock_load_fp,
         mock_cutoff,
         mock_pipeline,
-    ):
+    ) -> None:
         """Error messages >2000 chars should be truncated in log."""
         ds_id = uuid.uuid4()
         dataset = SimpleNamespace(
@@ -740,7 +740,7 @@ class TestRunIncrementalExtended:
         mock_load_fp,
         mock_cutoff,
         mock_pipeline,
-    ):
+    ) -> None:
         """Tampered HMAC should raise ValueError and set FAILED status."""
         ds_id = uuid.uuid4()
         dataset = SimpleNamespace(
@@ -780,7 +780,7 @@ class TestRunIncrementalExtended:
         mock_load_fp,
         mock_cutoff,
         mock_pipeline,
-    ):
+    ) -> None:
         """Without hmac_secret, fit params are NOT verified (even if HMAC is bad)."""
         ds_id = uuid.uuid4()
         dataset = SimpleNamespace(
@@ -822,7 +822,7 @@ class TestRunIncrementalExtended:
         mock_load_fp,
         mock_cutoff,
         mock_pipeline,
-    ):
+    ) -> None:
         """lookback_days = max(lags) + max(rolling_windows)."""
         ds_id = uuid.uuid4()
         dataset = SimpleNamespace(
@@ -856,7 +856,9 @@ class TestRunFullRefitExtended:
     @patch("app.services.transform_engine._execute_pipeline")
     @patch("app.services.transform_engine._load_columns")
     @patch("app.services.transform_engine._load_dataset")
-    async def test_with_request_id(self, mock_load_ds, mock_load_cols, mock_pipeline):
+    async def test_with_request_id(
+        self, mock_load_ds, mock_load_cols, mock_pipeline
+    ) -> None:
         ds_id = uuid.uuid4()
         dataset = SimpleNamespace(
             id=ds_id,
@@ -881,7 +883,7 @@ class TestRunFullRefitExtended:
     @patch("app.services.transform_engine._load_dataset")
     async def test_custom_triggered_by(
         self, mock_load_ds, mock_load_cols, mock_pipeline
-    ):
+    ) -> None:
         ds_id = uuid.uuid4()
         dataset = SimpleNamespace(
             id=ds_id,
@@ -905,7 +907,7 @@ class TestRunFullRefitExtended:
     @patch("app.services.transform_engine._load_dataset")
     async def test_error_message_truncated(
         self, mock_load_ds, mock_load_cols, mock_pipeline
-    ):
+    ) -> None:
         """Error messages in full_refit are also truncated at 2000 chars."""
         ds_id = uuid.uuid4()
         mock_load_ds.return_value = SimpleNamespace(
@@ -933,7 +935,7 @@ class TestRunFullRefitExtended:
     @patch("app.services.transform_engine._load_dataset")
     async def test_completed_at_set_on_success(
         self, mock_load_ds, mock_load_cols, mock_pipeline
-    ):
+    ) -> None:
         ds_id = uuid.uuid4()
         mock_load_ds.return_value = SimpleNamespace(
             id=ds_id,
@@ -957,7 +959,7 @@ class TestRunFullRefitExtended:
     @patch("app.services.transform_engine._load_dataset")
     async def test_completed_at_set_on_failure(
         self, mock_load_ds, mock_load_cols, mock_pipeline
-    ):
+    ) -> None:
         ds_id = uuid.uuid4()
         mock_load_ds.return_value = SimpleNamespace(
             id=ds_id,
@@ -986,21 +988,21 @@ class TestLoadDatasetExtended:
     """Extended tests for all non-ACTIVE dataset statuses."""
 
     @pytest.mark.asyncio
-    async def test_raises_if_pending(self):
+    async def test_raises_if_pending(self) -> None:
         ds = SimpleNamespace(id=uuid.uuid4(), status=DatasetStatus.PENDING)
         session = make_mock_session(make_scalar_result(ds))
         with pytest.raises(ValueError, match="not active"):
             await _load_dataset(ds.id, session)
 
     @pytest.mark.asyncio
-    async def test_raises_if_error(self):
+    async def test_raises_if_error(self) -> None:
         ds = SimpleNamespace(id=uuid.uuid4(), status=DatasetStatus.MIGRATING)
         session = make_mock_session(make_scalar_result(ds))
         with pytest.raises(ValueError, match="not active"):
             await _load_dataset(ds.id, session)
 
     @pytest.mark.asyncio
-    async def test_raises_if_archived(self):
+    async def test_raises_if_archived(self) -> None:
         ds = SimpleNamespace(id=uuid.uuid4(), status=DatasetStatus.ARCHIVED)
         session = make_mock_session(make_scalar_result(ds))
         with pytest.raises(ValueError, match="not active"):
@@ -1013,7 +1015,7 @@ class TestLoadDatasetExtended:
 class TestInsertTransformedRows:
     """Tests for the private _insert_transformed_rows function."""
 
-    def test_empty_rows_returns_early(self):
+    def test_empty_rows_returns_early(self) -> None:
         """No rows to insert -> no DB write calls."""
         cur = MagicMock()
         inserted = _insert_transformed_rows(
@@ -1029,7 +1031,7 @@ class TestInsertTransformedRows:
         cur.execute.assert_not_called()
         cur.executemany.assert_not_called()
 
-    def test_inserts_one_row(self):
+    def test_inserts_one_row(self) -> None:
         """Single row is inserted with correct value mapping."""
         cur = MagicMock()
         columns = [SimpleNamespace(name="revenue")]
@@ -1049,7 +1051,7 @@ class TestInsertTransformedRows:
         assert inserted == 1
         cur.executemany.assert_called_once()
 
-    def test_inserts_multiple_rows(self):
+    def test_inserts_multiple_rows(self) -> None:
         """Multiple rows are inserted in batched executemany mode."""
         cur = MagicMock()
         columns = [SimpleNamespace(name="temperature")]
@@ -1069,7 +1071,7 @@ class TestInsertTransformedRows:
         assert inserted == 3
         cur.executemany.assert_called_once()
 
-    def test_feature_cols_set_to_null(self):
+    def test_feature_cols_set_to_null(self) -> None:
         """Feature columns get NULL values (placeholders for ML team)."""
         cur = MagicMock()
         columns = [SimpleNamespace(name="revenue")]
@@ -1100,7 +1102,7 @@ class TestInsertTransformedRows:
 class TestFilterIncrementalRows:
     """Tests for incremental filtering of lookback context rows."""
 
-    def test_filters_rows_strictly_after_cutoff(self):
+    def test_filters_rows_strictly_after_cutoff(self) -> None:
         cutoff = datetime(2026, 1, 10, tzinfo=UTC)
         rows = [
             ("row-1", datetime(2026, 1, 9, tzinfo=UTC), 1.0),
@@ -1112,7 +1114,7 @@ class TestFilterIncrementalRows:
         filtered = _filter_incremental_rows(rows, col_names, cutoff)
         assert filtered == [("row-3", datetime(2026, 1, 11, tzinfo=UTC), 3.0)]
 
-    def test_returns_all_if_ingested_at_missing(self):
+    def test_returns_all_if_ingested_at_missing(self) -> None:
         cutoff = datetime(2026, 1, 10, tzinfo=UTC)
         rows = [("row-1", 1.0), ("row-2", 2.0)]
         col_names = ["_row_id", "value"]
@@ -1127,7 +1129,7 @@ class TestFilterIncrementalRows:
 class TestAtomicSwapRefit:
     """Tests for the atomic rename pattern in full refit."""
 
-    def test_creates_temp_table_and_swaps(self):
+    def test_creates_temp_table_and_swaps(self) -> None:
         cur = MagicMock()
         columns = [SimpleNamespace(name="revenue")]
         feature_cols = [("revenue_lag_1", "DOUBLE PRECISION")]
@@ -1149,7 +1151,7 @@ class TestAtomicSwapRefit:
         # RENAME real->old, RENAME temp->real, DROP old
         assert cur.execute.call_count >= 5
 
-    def test_empty_rows_still_creates_temp(self):
+    def test_empty_rows_still_creates_temp(self) -> None:
         """Even with empty rows, the temp table is created and swap performed."""
         cur = MagicMock()
         _atomic_swap_refit(
@@ -1173,25 +1175,25 @@ class TestAtomicSwapRefit:
 class TestComputeHmacEdgeCases:
     """Edge cases for HMAC computation."""
 
-    def test_empty_params_dict(self):
+    def test_empty_params_dict(self) -> None:
         result = compute_hmac({}, "secret")
         assert isinstance(result, str)
         assert len(result) == 64
 
-    def test_nested_params(self):
+    def test_nested_params(self) -> None:
         """Nested dicts should be serialized deterministically."""
         params = {"config": {"lags": [1, 7], "window": 14}}
         h1 = compute_hmac(params, "secret")
         h2 = compute_hmac(params, "secret")
         assert h1 == h2
 
-    def test_non_string_values(self):
+    def test_non_string_values(self) -> None:
         """Non-string values (float, int, bool, None) should not crash."""
         params = {"mean": 42.0, "count": 100, "flag": True, "extra": None}
         result = compute_hmac(params, "secret")
         assert len(result) == 64
 
-    def test_empty_secret(self):
+    def test_empty_secret(self) -> None:
         """Empty string secret should still produce a valid HMAC."""
         result = compute_hmac({"x": 1}, "")
         assert len(result) == 64
@@ -1200,19 +1202,19 @@ class TestComputeHmacEdgeCases:
 class TestVerifyHmacEdgeCases:
     """Edge cases for HMAC verification."""
 
-    def test_empty_params(self):
+    def test_empty_params(self) -> None:
         params = {}
         h = compute_hmac(params, "secret")
         assert verify_hmac(params, h, "secret") is True
 
-    def test_modified_params_fail(self):
+    def test_modified_params_fail(self) -> None:
         """Modifying a single value in params should fail verification."""
         params = {"mean": 42.0}
         h = compute_hmac(params, "secret")
         tampered = {"mean": 42.1}
         assert verify_hmac(tampered, h, "secret") is False
 
-    def test_extra_key_fails(self):
+    def test_extra_key_fails(self) -> None:
         """Adding a key to params should fail verification."""
         params = {"mean": 42.0}
         h = compute_hmac(params, "secret")
@@ -1223,7 +1225,7 @@ class TestVerifyHmacEdgeCases:
 class TestVerifyAllHmacsEdgeCases:
     """Extended edge cases for _verify_all_hmacs."""
 
-    def test_multiple_valid_params(self):
+    def test_multiple_valid_params(self) -> None:
         """Multiple params all with valid HMACs should pass."""
         secret = "test_secret"
         fps = []
@@ -1240,7 +1242,7 @@ class TestVerifyAllHmacsEdgeCases:
             )
         _verify_all_hmacs(fps, secret)  # should not raise
 
-    def test_one_bad_among_multiple(self):
+    def test_one_bad_among_multiple(self) -> None:
         """If one param has a bad HMAC, it should raise even if others are valid."""
         secret = "test_secret"
         valid_p = {"mean": 1.0}
@@ -1263,7 +1265,7 @@ class TestVerifyAllHmacsEdgeCases:
         with pytest.raises(ValueError, match="bad_col"):
             _verify_all_hmacs(fps, secret)
 
-    def test_mix_of_null_and_valid_hmac(self):
+    def test_mix_of_null_and_valid_hmac(self) -> None:
         """Params with null HMAC should be skipped, valid ones verified."""
         secret = "test_secret"
         valid_p = {"mean": 1.0}
@@ -1292,25 +1294,25 @@ class TestVerifyAllHmacsEdgeCases:
 class TestIsAfterCutoff:
     """Test _is_after_cutoff defensive branches."""
 
-    def test_non_datetime_value_returns_false(self):
+    def test_non_datetime_value_returns_false(self) -> None:
         assert _is_after_cutoff("not-a-date", datetime(2026, 1, 1, tzinfo=UTC)) is False
 
-    def test_naive_candidate_aware_reference(self):
-        naive = datetime(2026, 1, 15)
+    def test_naive_candidate_aware_reference(self) -> None:
+        naive = datetime(2026, 1, 15)  # noqa: DTZ001 -- intentional naive datetime for testing mixed tz handling
         aware = datetime(2026, 1, 10, tzinfo=UTC)
         assert _is_after_cutoff(naive, aware) is True
 
-    def test_aware_candidate_naive_reference(self):
+    def test_aware_candidate_naive_reference(self) -> None:
         aware = datetime(2026, 1, 15, tzinfo=UTC)
-        naive = datetime(2026, 1, 10)
+        naive = datetime(2026, 1, 10)  # noqa: DTZ001 -- intentional naive datetime for testing mixed tz handling
         assert _is_after_cutoff(aware, naive) is True
 
-    def test_aware_candidate_naive_reference_before(self):
+    def test_aware_candidate_naive_reference_before(self) -> None:
         aware = datetime(2026, 1, 5, tzinfo=UTC)
-        naive = datetime(2026, 1, 10)
+        naive = datetime(2026, 1, 10)  # noqa: DTZ001 -- intentional naive datetime for testing mixed tz handling
         assert _is_after_cutoff(aware, naive) is False
 
-    def test_type_error_in_comparison_returns_false(self):
+    def test_type_error_in_comparison_returns_false(self) -> None:
         """TypeError during comparison is caught and returns False."""
 
         class BadDatetime(datetime):
@@ -1324,7 +1326,7 @@ class TestIsAfterCutoff:
 class TestFilterIncrementalRowsEdgeCases:
     """Edge cases for _filter_incremental_rows."""
 
-    def test_short_row_skipped(self):
+    def test_short_row_skipped(self) -> None:
         cutoff = datetime(2026, 1, 10, tzinfo=UTC)
         rows = [
             ("row-1",),  # shorter than expected (missing _ingested_at)
@@ -1334,7 +1336,7 @@ class TestFilterIncrementalRowsEdgeCases:
         filtered = _filter_incremental_rows(rows, col_names, cutoff)
         assert len(filtered) == 1
 
-    def test_non_datetime_ingested_at_skipped(self):
+    def test_non_datetime_ingested_at_skipped(self) -> None:
         cutoff = datetime(2026, 1, 10, tzinfo=UTC)
         rows = [
             ("row-1", "not-a-date", 1.0),

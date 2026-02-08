@@ -8,7 +8,7 @@ import pytest
 class TestSettingsDefaults:
     """Test default values for Settings."""
 
-    def test_default_database_url(self):
+    def test_default_database_url(self) -> None:
         with patch.dict(
             "os.environ",
             {"SUPABASE_JWT_SECRET": "", "SUPABASE_URL": ""},
@@ -22,23 +22,23 @@ class TestSettingsDefaults:
             )
             assert s.DATABASE_URL == "postgresql+asyncpg://localhost:5432/praedixa"
 
-    def test_default_environment(self):
+    def test_default_environment(self) -> None:
         s = self._make_settings()
         assert s.ENVIRONMENT == "development"
 
-    def test_default_debug(self):
+    def test_default_debug(self) -> None:
         s = self._make_settings()
         assert s.DEBUG is True
 
-    def test_default_log_level(self):
+    def test_default_log_level(self) -> None:
         s = self._make_settings()
         assert s.LOG_LEVEL == "debug"
 
-    def test_default_api_prefix(self):
+    def test_default_api_prefix(self) -> None:
         s = self._make_settings()
         assert s.API_V1_PREFIX == "/api/v1"
 
-    def test_default_cors_origins(self):
+    def test_default_cors_origins(self) -> None:
         s = self._make_settings()
         assert s.CORS_ORIGINS == [
             "http://localhost:3000",
@@ -52,11 +52,11 @@ class TestSettingsDefaults:
             "http://[::1]:3002",
         ]
 
-    def test_default_app_version(self):
+    def test_default_app_version(self) -> None:
         s = self._make_settings()
         assert s.APP_VERSION == "0.1.0"
 
-    def test_default_legacy_hs256_disabled(self):
+    def test_default_legacy_hs256_disabled(self) -> None:
         s = self._make_settings()
         assert s.LEGACY_HS256_ENABLED is False
 
@@ -76,7 +76,7 @@ class TestSettingsDefaults:
 class TestIsProduction:
     """Test is_production property."""
 
-    def test_production_true(self):
+    def test_production_true(self) -> None:
         from app.core.config import Settings
 
         s = Settings(
@@ -89,7 +89,7 @@ class TestIsProduction:
         )
         assert s.is_production is True
 
-    def test_development_false(self):
+    def test_development_false(self) -> None:
         from app.core.config import Settings
 
         s = Settings(
@@ -100,7 +100,7 @@ class TestIsProduction:
         )
         assert s.is_production is False
 
-    def test_staging_false(self):
+    def test_staging_false(self) -> None:
         from app.core.config import Settings
 
         s = Settings(
@@ -117,7 +117,7 @@ class TestIsProduction:
 class TestValidateSecrets:
     """Test _validate_secrets model validator."""
 
-    def test_production_short_secret_raises(self):
+    def test_production_short_secret_raises(self) -> None:
         from app.core.config import Settings
 
         with pytest.raises(ValueError, match="at least 32 characters"):
@@ -128,7 +128,7 @@ class TestValidateSecrets:
                 SUPABASE_URL="",
             )
 
-    def test_production_empty_secret_raises(self):
+    def test_production_empty_secret_raises(self) -> None:
         from app.core.config import Settings
 
         with pytest.raises(ValueError, match="at least 32 characters"):
@@ -139,7 +139,7 @@ class TestValidateSecrets:
                 SUPABASE_URL="",
             )
 
-    def test_production_valid_secret_ok(self):
+    def test_production_valid_secret_ok(self) -> None:
         from app.core.config import Settings
 
         s = Settings(
@@ -152,7 +152,7 @@ class TestValidateSecrets:
         )
         assert len(s.SUPABASE_JWT_SECRET) == 32
 
-    def test_production_long_secret_ok(self):
+    def test_production_long_secret_ok(self) -> None:
         from app.core.config import Settings
 
         s = Settings(
@@ -165,7 +165,7 @@ class TestValidateSecrets:
         )
         assert len(s.SUPABASE_JWT_SECRET) == 64
 
-    def test_dev_short_secret_ok(self):
+    def test_dev_short_secret_ok(self) -> None:
         """Development mode allows short secrets."""
         from app.core.config import Settings
 
@@ -177,7 +177,7 @@ class TestValidateSecrets:
         )
         assert s.SUPABASE_JWT_SECRET == "dev"
 
-    def test_dev_empty_secret_ok(self):
+    def test_dev_empty_secret_ok(self) -> None:
         """Development mode allows empty secrets."""
         from app.core.config import Settings
 
@@ -189,7 +189,7 @@ class TestValidateSecrets:
         )
         assert s.SUPABASE_JWT_SECRET == ""
 
-    def test_invalid_environment_raises(self):
+    def test_invalid_environment_raises(self) -> None:
         from app.core.config import Settings
 
         with pytest.raises(ValueError, match="ENVIRONMENT must be one of"):
@@ -200,7 +200,7 @@ class TestValidateSecrets:
                 SUPABASE_URL="",
             )
 
-    def test_staging_rejects_localhost_cors(self):
+    def test_staging_rejects_localhost_cors(self) -> None:
         from app.core.config import Settings
 
         with pytest.raises(ValueError, match="cannot include localhost"):
@@ -213,7 +213,7 @@ class TestValidateSecrets:
                 CORS_ORIGINS=["https://localhost:3001"],
             )
 
-    def test_staging_placeholder_supabase_url_raises(self):
+    def test_staging_placeholder_supabase_url_raises(self) -> None:
         """Lines 132-135: placeholder SUPABASE_URL rejected in staging."""
         from app.core.config import Settings
 
@@ -229,7 +229,7 @@ class TestValidateSecrets:
                 CORS_ORIGINS=["https://staging.praedixa.com"],
             )
 
-    def test_staging_empty_supabase_url_raises(self):
+    def test_staging_empty_supabase_url_raises(self) -> None:
         """Lines 132-135: empty SUPABASE_URL rejected in staging."""
         from app.core.config import Settings
 
@@ -245,7 +245,7 @@ class TestValidateSecrets:
                 CORS_ORIGINS=["https://staging.praedixa.com"],
             )
 
-    def test_staging_empty_cors_origins_raises(self):
+    def test_staging_empty_cors_origins_raises(self) -> None:
         """Line 147: empty CORS_ORIGINS rejected in staging."""
         from app.core.config import Settings
 
@@ -259,7 +259,7 @@ class TestValidateSecrets:
                 CORS_ORIGINS=[],
             )
 
-    def test_staging_http_cors_origin_raises(self):
+    def test_staging_http_cors_origin_raises(self) -> None:
         """Line 153: non-https CORS_ORIGINS rejected in staging."""
         from app.core.config import Settings
 

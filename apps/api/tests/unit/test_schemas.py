@@ -13,7 +13,7 @@ from pydantic import ValidationError
 class TestCamelModel:
     """Test CamelModel base class."""
 
-    def test_alias_generator_camel_case(self):
+    def test_alias_generator_camel_case(self) -> None:
         from app.schemas.base import CamelModel
 
         class TestSchema(CamelModel):
@@ -25,7 +25,7 @@ class TestCamelModel:
         assert "firstName" in d
         assert "lastName" in d
 
-    def test_populate_by_name(self):
+    def test_populate_by_name(self) -> None:
         from app.schemas.base import CamelModel
 
         class TestSchema(CamelModel):
@@ -34,7 +34,7 @@ class TestCamelModel:
         s = TestSchema(some_field="hello")
         assert s.some_field == "hello"
 
-    def test_from_attributes(self):
+    def test_from_attributes(self) -> None:
         from app.schemas.base import CamelModel
 
         class TestSchema(CamelModel):
@@ -48,7 +48,7 @@ class TestCamelModel:
 
 
 class TestTimestampSchema:
-    def test_fields(self):
+    def test_fields(self) -> None:
         from app.schemas.base import TimestampSchema
 
         now = datetime.now(UTC)
@@ -58,7 +58,7 @@ class TestTimestampSchema:
 
 
 class TestTenantEntitySchema:
-    def test_fields(self):
+    def test_fields(self) -> None:
         from app.schemas.base import TenantEntitySchema
 
         now = datetime.now(UTC)
@@ -73,7 +73,7 @@ class TestTenantEntitySchema:
 
 
 class TestPaginationMeta:
-    def test_fields(self):
+    def test_fields(self) -> None:
         from app.schemas.base import PaginationMeta
 
         p = PaginationMeta(
@@ -87,7 +87,7 @@ class TestPaginationMeta:
         assert p.total == 100
         assert p.has_next_page is True
 
-    def test_camel_case_serialization(self):
+    def test_camel_case_serialization(self) -> None:
         from app.schemas.base import PaginationMeta
 
         p = PaginationMeta(
@@ -106,7 +106,7 @@ class TestPaginationMeta:
 
 
 class TestPaginationParams:
-    def test_defaults(self):
+    def test_defaults(self) -> None:
         from app.schemas.base import PaginationParams
 
         p = PaginationParams()
@@ -120,7 +120,7 @@ class TestPaginationParams:
 
 
 class TestOrganizationSchemas:
-    def test_organization_read(self):
+    def test_organization_read(self) -> None:
         from app.models.organization import OrganizationStatus, SubscriptionPlan
         from app.schemas.organization import OrganizationRead
 
@@ -144,7 +144,7 @@ class TestOrganizationSchemas:
         assert s.name == "Test Org"
         assert s.organization_id is None
 
-    def test_organization_summary(self):
+    def test_organization_summary(self) -> None:
         from app.models.organization import OrganizationStatus, SubscriptionPlan
         from app.schemas.organization import OrganizationSummary
 
@@ -157,7 +157,7 @@ class TestOrganizationSchemas:
         )
         assert s.headcount is None
 
-    def test_organization_update(self):
+    def test_organization_update(self) -> None:
         from app.schemas.organization import OrganizationUpdate
 
         s = OrganizationUpdate()
@@ -169,7 +169,7 @@ class TestOrganizationSchemas:
 
 
 class TestSiteSchemas:
-    def test_site_read(self):
+    def test_site_read(self) -> None:
         from app.schemas.site import SiteRead
 
         now = datetime.now(UTC)
@@ -187,14 +187,14 @@ class TestSiteSchemas:
         assert s.code is None
         assert s.capacity_units is None
 
-    def test_site_create_defaults(self):
+    def test_site_create_defaults(self) -> None:
         from app.schemas.site import SiteCreate
 
         s = SiteCreate(name="New Site")
         assert s.timezone == "Europe/Paris"
         assert s.headcount == 0
 
-    def test_site_update_all_none(self):
+    def test_site_update_all_none(self) -> None:
         from app.schemas.site import SiteUpdate
 
         s = SiteUpdate()
@@ -205,7 +205,7 @@ class TestSiteSchemas:
 
 
 class TestDepartmentSchemas:
-    def test_department_read(self):
+    def test_department_read(self) -> None:
         from app.schemas.department import DepartmentRead
 
         now = datetime.now(UTC)
@@ -223,7 +223,7 @@ class TestDepartmentSchemas:
         assert s.name == "Logistics"
         assert s.site_id is None
 
-    def test_department_create_defaults(self):
+    def test_department_create_defaults(self) -> None:
         from app.schemas.department import DepartmentCreate
 
         s = DepartmentCreate(name="New Dept")
@@ -231,7 +231,7 @@ class TestDepartmentSchemas:
         assert s.min_staffing_level == 80.0
         assert s.critical_roles_count == 0
 
-    def test_department_update_all_none(self):
+    def test_department_update_all_none(self) -> None:
         from app.schemas.department import DepartmentUpdate
 
         s = DepartmentUpdate()
@@ -242,7 +242,7 @@ class TestDepartmentSchemas:
 
 
 class TestUserSchemas:
-    def test_user_read(self):
+    def test_user_read(self) -> None:
         from app.models.user import UserRole, UserStatus
         from app.schemas.user import UserRead
 
@@ -262,14 +262,14 @@ class TestUserSchemas:
         assert s.email == "user@test.com"
         assert s.employee_id is None
 
-    def test_user_create_defaults(self):
+    def test_user_create_defaults(self) -> None:
         from app.models.user import UserRole
         from app.schemas.user import UserCreate
 
         s = UserCreate(email="new@test.com")
         assert s.role == UserRole.VIEWER
 
-    def test_user_update_all_none(self):
+    def test_user_update_all_none(self) -> None:
         from app.schemas.user import UserUpdate
 
         s = UserUpdate()
@@ -280,7 +280,7 @@ class TestUserSchemas:
 
 
 class TestEmployeeSchemas:
-    def test_employee_read(self):
+    def test_employee_read(self) -> None:
         from app.models.employee import ContractType, EmployeeStatus, EmploymentType
         from app.schemas.employee import EmployeeRead
 
@@ -308,7 +308,7 @@ class TestEmployeeSchemas:
         )
         assert s.display_name == "Jean Dupont"
 
-    def test_employee_summary(self):
+    def test_employee_summary(self) -> None:
         from app.models.employee import EmployeeStatus
         from app.schemas.employee import EmployeeSummary
 
@@ -325,7 +325,7 @@ class TestEmployeeSchemas:
         )
         assert s.manager_id is None
 
-    def test_employee_create(self):
+    def test_employee_create(self) -> None:
         from app.models.employee import ContractType, EmploymentType
         from app.schemas.employee import EmployeeCreate
 
@@ -348,7 +348,7 @@ class TestEmployeeSchemas:
 
 
 class TestAbsenceSchemas:
-    def test_absence_read(self):
+    def test_absence_read(self) -> None:
         from app.models.absence import (
             AbsenceCategory,
             AbsenceStatus,
@@ -379,7 +379,7 @@ class TestAbsenceSchemas:
         )
         assert s.business_days == 3
 
-    def test_absence_create_defaults(self):
+    def test_absence_create_defaults(self) -> None:
         from app.models.absence import AbsenceType, DayPortion
         from app.schemas.absence import AbsenceCreate
 
@@ -392,7 +392,7 @@ class TestAbsenceSchemas:
         assert s.start_portion == DayPortion.FULL
         assert s.end_portion == DayPortion.FULL
 
-    def test_absence_decision_request(self):
+    def test_absence_decision_request(self) -> None:
         from app.schemas.absence import AbsenceDecisionRequest
 
         s = AbsenceDecisionRequest(action="approve")
@@ -404,7 +404,7 @@ class TestAbsenceSchemas:
 
 
 class TestForecastSchemas:
-    def test_forecast_run_read(self):
+    def test_forecast_run_read(self) -> None:
         from app.models.forecast_run import ForecastModelType, ForecastStatus
         from app.schemas.forecast import ForecastRunRead
 
@@ -422,7 +422,7 @@ class TestForecastSchemas:
         )
         assert s.horizon_days == 14
 
-    def test_forecast_run_summary(self):
+    def test_forecast_run_summary(self) -> None:
         from app.models.forecast_run import ForecastModelType, ForecastStatus
         from app.schemas.forecast import ForecastRunSummary
 
@@ -434,7 +434,7 @@ class TestForecastSchemas:
         )
         assert s.accuracy_score is None
 
-    def test_daily_forecast_read(self):
+    def test_daily_forecast_read(self) -> None:
         from app.models.daily_forecast import ForecastDimension
         from app.schemas.forecast import DailyForecastRead
 
@@ -458,7 +458,7 @@ class TestForecastSchemas:
         )
         assert s.gap == -10.0
 
-    def test_forecast_request(self):
+    def test_forecast_request(self) -> None:
         from app.schemas.forecast import ForecastRequest
 
         s = ForecastRequest(horizon_days=14)
@@ -470,7 +470,7 @@ class TestForecastSchemas:
 
 
 class TestResponseSchemas:
-    def test_api_response(self):
+    def test_api_response(self) -> None:
         from app.schemas.responses import ApiResponse
 
         r = ApiResponse(
@@ -481,7 +481,7 @@ class TestResponseSchemas:
         assert r.success is True
         assert r.message is None
 
-    def test_paginated_response(self):
+    def test_paginated_response(self) -> None:
         from app.schemas.base import PaginationMeta
         from app.schemas.responses import PaginatedResponse
 
@@ -500,13 +500,13 @@ class TestResponseSchemas:
         assert r.success is True
         assert len(r.data) == 1
 
-    def test_error_detail(self):
+    def test_error_detail(self) -> None:
         from app.schemas.responses import ErrorDetail
 
         e = ErrorDetail(code="NOT_FOUND", message="Not found")
         assert e.details is None
 
-    def test_error_response(self):
+    def test_error_response(self) -> None:
         from app.schemas.responses import ErrorDetail, ErrorResponse
 
         e = ErrorResponse(
@@ -515,13 +515,13 @@ class TestResponseSchemas:
         )
         assert e.success is False
 
-    def test_health_check(self):
+    def test_health_check(self) -> None:
         from app.schemas.responses import HealthCheck
 
         h = HealthCheck(name="database", status="pass")
         assert h.duration is None
 
-    def test_health_check_response(self):
+    def test_health_check_response(self) -> None:
         from app.schemas.responses import HealthCheck, HealthCheckResponse
 
         r = HealthCheckResponse(
@@ -538,7 +538,7 @@ class TestResponseSchemas:
 
 
 class TestDashboardSchemas:
-    def test_dashboard_summary_response(self):
+    def test_dashboard_summary_response(self) -> None:
         from app.schemas.dashboard import DashboardSummaryResponse
 
         s = DashboardSummaryResponse(
@@ -549,7 +549,7 @@ class TestDashboardSchemas:
         assert s.forecast_accuracy is None
         assert s.last_forecast_date is None
 
-    def test_dashboard_alert_read(self):
+    def test_dashboard_alert_read(self) -> None:
         from app.models.dashboard_alert import AlertSeverity, AlertType
         from app.schemas.dashboard import DashboardAlertRead
 
@@ -567,14 +567,14 @@ class TestDashboardSchemas:
         )
         assert s.dismissed_at is None
 
-    def test_dashboard_alert_dismiss(self):
+    def test_dashboard_alert_dismiss(self) -> None:
         from app.schemas.dashboard import DashboardAlertDismiss
 
         uid = uuid.uuid4()
         s = DashboardAlertDismiss(alert_id=uid)
         assert s.alert_id == uid
 
-    def test_action_plan_read(self):
+    def test_action_plan_read(self) -> None:
         from app.models.action_plan import ActionPlanStatus
         from app.schemas.dashboard import ActionPlanRead
 
@@ -596,7 +596,7 @@ class TestDashboardSchemas:
         )
         assert s.approved_by is None
 
-    def test_action_plan_create(self):
+    def test_action_plan_create(self) -> None:
         from app.schemas.dashboard import ActionPlanCreate
 
         s = ActionPlanCreate(
@@ -606,7 +606,7 @@ class TestDashboardSchemas:
         )
         assert s.decision_ids == []
 
-    def test_action_plan_update(self):
+    def test_action_plan_update(self) -> None:
         from app.schemas.dashboard import ActionPlanUpdate
 
         s = ActionPlanUpdate()
@@ -618,7 +618,7 @@ class TestDashboardSchemas:
 
 
 class TestDecisionSchemas:
-    def test_decision_read(self):
+    def test_decision_read(self) -> None:
         from app.models.decision import DecisionPriority, DecisionStatus, DecisionType
         from app.schemas.decision import DecisionRead
 
@@ -642,7 +642,7 @@ class TestDecisionSchemas:
         )
         assert s.estimated_cost is None
 
-    def test_decision_summary(self):
+    def test_decision_summary(self) -> None:
         from app.models.decision import DecisionPriority, DecisionStatus, DecisionType
         from app.schemas.decision import DecisionSummary
 
@@ -658,7 +658,7 @@ class TestDecisionSchemas:
         )
         assert s.estimated_cost is None
 
-    def test_create_decision_request_forbid_extra(self):
+    def test_create_decision_request_forbid_extra(self) -> None:
         from app.schemas.decision import CreateDecisionRequest
 
         with pytest.raises(ValidationError):
@@ -674,7 +674,7 @@ class TestDecisionSchemas:
                 organization_id=uuid.uuid4(),  # extra field!
             )
 
-    def test_create_decision_request_confidence_bounds(self):
+    def test_create_decision_request_confidence_bounds(self) -> None:
         from app.schemas.decision import CreateDecisionRequest
 
         with pytest.raises(ValidationError):
@@ -689,7 +689,7 @@ class TestDecisionSchemas:
                 confidence_score=101.0,  # > 100
             )
 
-    def test_review_decision_request_action_literal(self):
+    def test_review_decision_request_action_literal(self) -> None:
         from app.schemas.decision import ReviewDecisionRequest
 
         # Valid
@@ -700,7 +700,7 @@ class TestDecisionSchemas:
         with pytest.raises(ValidationError):
             ReviewDecisionRequest(action="invalid_action")
 
-    def test_review_decision_request_forbid_extra(self):
+    def test_review_decision_request_forbid_extra(self) -> None:
         from app.schemas.decision import ReviewDecisionRequest
 
         with pytest.raises(ValidationError):
@@ -709,7 +709,7 @@ class TestDecisionSchemas:
                 reviewed_by=uuid.uuid4(),  # extra field!
             )
 
-    def test_record_outcome_request(self):
+    def test_record_outcome_request(self) -> None:
         from app.schemas.decision import RecordDecisionOutcomeRequest
 
         s = RecordDecisionOutcomeRequest(
@@ -719,7 +719,7 @@ class TestDecisionSchemas:
         assert s.actual_cost is None
         assert s.lessons_learned is None
 
-    def test_record_outcome_forbid_extra(self):
+    def test_record_outcome_forbid_extra(self) -> None:
         from app.schemas.decision import RecordDecisionOutcomeRequest
 
         with pytest.raises(ValidationError):
@@ -734,7 +734,7 @@ class TestDecisionSchemas:
 
 
 class TestArbitrageSchemas:
-    def test_arbitrage_option_read(self):
+    def test_arbitrage_option_read(self) -> None:
         from app.schemas.arbitrage import ArbitrageOptionRead
 
         s = ArbitrageOptionRead(
@@ -750,7 +750,7 @@ class TestArbitrageSchemas:
         )
         assert s.cost == 500.0
 
-    def test_arbitrage_result_read(self):
+    def test_arbitrage_result_read(self) -> None:
         from app.schemas.arbitrage import ArbitrageResultRead
 
         s = ArbitrageResultRead(
@@ -766,13 +766,13 @@ class TestArbitrageSchemas:
         )
         assert s.deficit_pct == 15.0
 
-    def test_validate_arbitrage_request(self):
+    def test_validate_arbitrage_request(self) -> None:
         from app.schemas.arbitrage import ValidateArbitrageRequest
 
         s = ValidateArbitrageRequest(selected_option_index=2)
         assert s.notes is None
 
-    def test_validate_arbitrage_request_bounds(self):
+    def test_validate_arbitrage_request_bounds(self) -> None:
         from app.schemas.arbitrage import ValidateArbitrageRequest
 
         # index too high
@@ -783,7 +783,7 @@ class TestArbitrageSchemas:
         with pytest.raises(ValidationError):
             ValidateArbitrageRequest(selected_option_index=-1)
 
-    def test_validate_arbitrage_forbid_extra(self):
+    def test_validate_arbitrage_forbid_extra(self) -> None:
         from app.schemas.arbitrage import ValidateArbitrageRequest
 
         with pytest.raises(ValidationError):
@@ -797,7 +797,7 @@ class TestArbitrageSchemas:
 
 
 class TestSchemasInit:
-    def test_import_base(self):
+    def test_import_base(self) -> None:
         from app.schemas.base import CamelModel
 
         assert CamelModel is not None

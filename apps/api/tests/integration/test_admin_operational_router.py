@@ -15,6 +15,8 @@ Strategy:
 
 import uuid
 from collections.abc import AsyncGenerator
+from datetime import UTC, date, datetime
+from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -29,6 +31,12 @@ from app.core.dependencies import (
 )
 from app.core.security import TenantFilter
 from app.main import app
+from app.models.operational import (
+    CoverageAlertSeverity,
+    CoverageAlertStatus,
+    Horizon,
+    ShiftType,
+)
 
 # -- Fixed test identifiers ------------------------------------------------
 ADMIN_USER_ID = "11111111-aaaa-bbbb-cccc-000000000001"
@@ -84,16 +92,6 @@ async def admin_client(mock_session: AsyncMock) -> AsyncGenerator[AsyncClient, N
 
 
 # -- Helpers ---------------------------------------------------------------
-
-from datetime import UTC, date, datetime
-from decimal import Decimal
-
-from app.models.operational import (
-    CoverageAlertSeverity,
-    CoverageAlertStatus,
-    Horizon,
-    ShiftType,
-)
 
 
 def _make_canonical_record(**overrides) -> SimpleNamespace:

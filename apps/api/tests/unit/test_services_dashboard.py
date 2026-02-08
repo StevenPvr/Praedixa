@@ -21,7 +21,7 @@ def _make_one_result(**kwargs):
 class TestDashboardSummary:
     """Test DashboardSummary value object."""
 
-    def test_slots(self):
+    def test_slots(self) -> None:
         s = DashboardSummary(
             coverage_human=95.5,
             coverage_merchandise=88.0,
@@ -35,7 +35,7 @@ class TestDashboardSummary:
         assert s.forecast_accuracy == 0.92
         assert s.last_forecast_date == datetime(2026, 1, 1, tzinfo=UTC)
 
-    def test_none_fields(self):
+    def test_none_fields(self) -> None:
         s = DashboardSummary(
             coverage_human=0.0,
             coverage_merchandise=0.0,
@@ -51,7 +51,7 @@ class TestGetDashboardSummary:
     """Test get_dashboard_summary async service function."""
 
     @pytest.mark.asyncio
-    async def test_no_forecast_runs(self):
+    async def test_no_forecast_runs(self) -> None:
         """When there are no completed runs, return zero coverage."""
         tenant = TenantFilter("org-1")
         row_result = _make_one_result(
@@ -72,7 +72,7 @@ class TestGetDashboardSummary:
         assert result.last_forecast_date is None
 
     @pytest.mark.asyncio
-    async def test_with_forecast_data(self):
+    async def test_with_forecast_data(self) -> None:
         """When run exists, compute coverage from dimension queries."""
         tenant = TenantFilter("org-1")
         row_result = _make_one_result(
@@ -93,7 +93,7 @@ class TestGetDashboardSummary:
         assert result.last_forecast_date == datetime(2026, 2, 1, tzinfo=UTC)
 
     @pytest.mark.asyncio
-    async def test_null_coverage_defaults_to_zero(self):
+    async def test_null_coverage_defaults_to_zero(self) -> None:
         """When coverage query returns None (no matching rows), default to 0.0."""
         tenant = TenantFilter("org-1")
         row_result = _make_one_result(
@@ -111,7 +111,7 @@ class TestGetDashboardSummary:
         assert result.coverage_merchandise == 0.0
 
     @pytest.mark.asyncio
-    async def test_alerts_count_zero_on_none(self):
+    async def test_alerts_count_zero_on_none(self) -> None:
         """When scalar_one returns None for alerts count, should default to 0."""
         tenant = TenantFilter("org-1")
         row_result = _make_one_result(

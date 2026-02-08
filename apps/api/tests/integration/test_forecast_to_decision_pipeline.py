@@ -1,4 +1,4 @@
-"""Integration tests — full pipeline: canonical -> forecast -> scenarios -> decision -> proof.
+"""Integration tests: canonical -> forecast -> scenarios -> decision -> proof.
 
 Tests the complete operational decision-making pipeline end-to-end
 using service-level mocking.
@@ -55,7 +55,7 @@ ORG_ID = "11111111-1111-1111-1111-111111111111"
 
 class TestPipelineStep1CanonicalData:
     @pytest.mark.asyncio
-    async def test_create_canonical_records_for_site(self):
+    async def test_create_canonical_records_for_site(self) -> None:
         """Create multiple canonical records for a site."""
         tenant = _make_tenant()
         session = AsyncMock()
@@ -84,7 +84,7 @@ class TestPipelineStep1CanonicalData:
 
 class TestPipelineStep2CostParameters:
     @pytest.mark.asyncio
-    async def test_create_cost_parameter_for_site(self):
+    async def test_create_cost_parameter_for_site(self) -> None:
         tenant = _make_tenant()
         version_result = MagicMock()
         version_result.scalar_one.return_value = 0
@@ -108,7 +108,7 @@ class TestPipelineStep2CostParameters:
         assert cp.site_id == "site-paris"
 
     @pytest.mark.asyncio
-    async def test_effective_cost_parameter_found(self):
+    async def test_effective_cost_parameter_found(self) -> None:
         cp = _make_cost_parameter(site_id="site-paris")
         tenant = _make_tenant()
         result_mock = MagicMock()
@@ -126,7 +126,7 @@ class TestPipelineStep2CostParameters:
 
 class TestPipelineStep3Forecasts:
     @pytest.mark.asyncio
-    async def test_forecasts_from_canonical_data(self):
+    async def test_forecasts_from_canonical_data(self) -> None:
         tenant = _make_tenant()
         records = [
             _make_canonical_record(
@@ -150,7 +150,7 @@ class TestPipelineStep3Forecasts:
 
 
 class TestPipelineStep4Scenarios:
-    def test_compute_options_for_gap(self):
+    def test_compute_options_for_gap(self) -> None:
         """Given a gap and cost params, compute all 6 options."""
         cp = _make_cost_parameter()
         gap = Decimal("12.00")
@@ -167,7 +167,7 @@ class TestPipelineStep4Scenarios:
             ScenarioOptionType.OUTSOURCE,
         }
 
-    def test_pareto_frontier_from_options(self):
+    def test_pareto_frontier_from_options(self) -> None:
         cp = _make_cost_parameter()
         gap = Decimal("12.00")
         options_data = _compute_all_options(gap, cp)
@@ -181,7 +181,7 @@ class TestPipelineStep4Scenarios:
         frontier = compute_pareto_frontier(options)
         assert len(frontier) >= 1
 
-    def test_recommendation_from_frontier(self):
+    def test_recommendation_from_frontier(self) -> None:
         cp = _make_cost_parameter()
         gap = Decimal("12.00")
         options_data = _compute_all_options(gap, cp)
@@ -203,7 +203,7 @@ class TestPipelineStep4Scenarios:
 
 class TestPipelineStep5Decisions:
     @pytest.mark.asyncio
-    async def test_create_decision_follows_recommendation(self):
+    async def test_create_decision_follows_recommendation(self) -> None:
         tenant = _make_tenant()
         alert = _make_coverage_alert()
         recommended = _make_scenario_option(
@@ -241,7 +241,7 @@ class TestPipelineStep5Decisions:
         assert dec.cout_attendu_eur == Decimal("500.00")
 
     @pytest.mark.asyncio
-    async def test_override_decision_requires_reason(self):
+    async def test_override_decision_requires_reason(self) -> None:
         tenant = _make_tenant()
         with pytest.raises(OverrideReasonRequiredError):
             await create_operational_decision(
@@ -260,7 +260,7 @@ class TestPipelineStep5Decisions:
             )
 
     @pytest.mark.asyncio
-    async def test_update_with_observed_outcomes(self):
+    async def test_update_with_observed_outcomes(self) -> None:
         dec = _make_operational_decision()
         tenant = _make_tenant()
         result_mock = MagicMock()
@@ -284,7 +284,7 @@ class TestPipelineStep5Decisions:
 
 class TestPipelineStep6Statistics:
     @pytest.mark.asyncio
-    async def test_zero_decisions_stats(self):
+    async def test_zero_decisions_stats(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(make_scalar_result(0))
         stats = await get_override_statistics(session, tenant)
@@ -292,7 +292,7 @@ class TestPipelineStep6Statistics:
         assert stats["override_count"] == 0
 
     @pytest.mark.asyncio
-    async def test_with_override_stats(self):
+    async def test_with_override_stats(self) -> None:
         tenant = _make_tenant()
         reasons_result = MagicMock()
         reasons_result.all.return_value = [("Too costly", 3)]
@@ -314,13 +314,13 @@ class TestPipelineStep6Statistics:
 
 
 class TestEndToEndFormulas:
-    def test_full_pipeline_zero_gap(self):
+    def test_full_pipeline_zero_gap(self) -> None:
         """Zero gap produces zero cost for all options."""
         cp = _make_cost_parameter()
         options = _compute_all_options(Decimal("0"), cp)
         assert all(o["cout_total_eur"] == Decimal("0.00") for o in options)
 
-    def test_full_pipeline_large_gap(self):
+    def test_full_pipeline_large_gap(self) -> None:
         """Large gap: costs scale, caps apply."""
         cp = _make_cost_parameter(cap_hs_shift=10, cap_interim_site=20)
         gap = Decimal("100")
@@ -339,7 +339,7 @@ class TestEndToEndFormulas:
         )
         assert outsource["heures_couvertes"] == Decimal("100.00")
 
-    def test_pareto_then_recommendation_pipeline(self):
+    def test_pareto_then_recommendation_pipeline(self) -> None:
         """Full flow: options -> pareto -> recommendation."""
         cp = _make_cost_parameter()
         gap = Decimal("12.00")

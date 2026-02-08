@@ -21,7 +21,7 @@ class TestListActiveAlerts:
     """Test list_active_alerts service function."""
 
     @pytest.mark.asyncio
-    async def test_returns_active_alerts(self):
+    async def test_returns_active_alerts(self) -> None:
         tenant = TenantFilter("org-1")
         alerts = [
             SimpleNamespace(id=uuid.uuid4(), severity="critical"),
@@ -33,7 +33,7 @@ class TestListActiveAlerts:
         assert len(result) == 2
 
     @pytest.mark.asyncio
-    async def test_empty_alerts(self):
+    async def test_empty_alerts(self) -> None:
         tenant = TenantFilter("org-1")
         session = make_mock_session(make_scalars_result([]))
 
@@ -45,7 +45,7 @@ class TestDismissAlert:
     """Test dismiss_alert service function."""
 
     @pytest.mark.asyncio
-    async def test_dismiss_active_alert(self):
+    async def test_dismiss_active_alert(self) -> None:
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
         alert = SimpleNamespace(
@@ -63,7 +63,7 @@ class TestDismissAlert:
         assert result.dismissed_at is not None
 
     @pytest.mark.asyncio
-    async def test_dismiss_already_dismissed_idempotent(self):
+    async def test_dismiss_already_dismissed_idempotent(self) -> None:
         """Dismissing an already-dismissed alert returns it as-is."""
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
@@ -82,7 +82,7 @@ class TestDismissAlert:
         assert session.execute.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_alert_not_found_raises(self):
+    async def test_alert_not_found_raises(self) -> None:
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
 
@@ -93,7 +93,7 @@ class TestDismissAlert:
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_defense_in_depth_update_includes_org_id(self):
+    async def test_defense_in_depth_update_includes_org_id(self) -> None:
         """The UPDATE statement should include organization_id in WHERE clause."""
         tenant = TenantFilter("org-abc")
         alert_id = uuid.uuid4()

@@ -38,7 +38,7 @@ def _cp(**overrides):
 
 
 class TestHSFormulaCorrectness:
-    def test_cost_equals_hours_times_rate_times_surcharge(self):
+    def test_cost_equals_hours_times_rate_times_surcharge(self) -> None:
         cp = _cp(c_int=Decimal("40"), maj_hs=Decimal("0.50"), cap_hs_shift=100)
         gap = Decimal("20")
         options = _compute_all_options(gap, cp)
@@ -46,14 +46,14 @@ class TestHSFormulaCorrectness:
         expected = Decimal("20") * Decimal("40") * Decimal("1.50")
         assert hs["cout_total_eur"] == expected.quantize(Decimal("0.01"))
 
-    def test_service_is_covered_over_gap(self):
+    def test_service_is_covered_over_gap(self) -> None:
         cp = _cp(cap_hs_shift=15)
         gap = Decimal("20")
         options = _compute_all_options(gap, cp)
         hs = next(o for o in options if o["option_type"] == ScenarioOptionType.HS)
         assert hs["service_attendu_pct"] == Decimal("0.7500")
 
-    def test_cap_limits_hours(self):
+    def test_cap_limits_hours(self) -> None:
         cp = _cp(cap_hs_shift=5)
         gap = Decimal("50")
         options = _compute_all_options(gap, cp)
@@ -62,7 +62,7 @@ class TestHSFormulaCorrectness:
 
 
 class TestInterimFormulaCorrectness:
-    def test_cost_includes_urgency_premium(self):
+    def test_cost_includes_urgency_premium(self) -> None:
         cp = _cp(
             c_interim=Decimal("50"),
             premium_urgence=Decimal("0.20"),
@@ -76,7 +76,7 @@ class TestInterimFormulaCorrectness:
         expected = Decimal("10") * Decimal("50") * Decimal("1.20")
         assert interim["cout_total_eur"] == expected.quantize(Decimal("0.01"))
 
-    def test_cap_limits_hours(self):
+    def test_cap_limits_hours(self) -> None:
         cp = _cp(cap_interim_site=8)
         gap = Decimal("20")
         options = _compute_all_options(gap, cp)
@@ -87,7 +87,7 @@ class TestInterimFormulaCorrectness:
 
 
 class TestReallocationFormulas:
-    def test_intra_productivity_85_percent(self):
+    def test_intra_productivity_85_percent(self) -> None:
         cp = _cp()
         gap = Decimal("20")
         options = _compute_all_options(gap, cp)
@@ -97,7 +97,7 @@ class TestReallocationFormulas:
         assert intra["heures_couvertes"] == Decimal("17.00")
         assert intra["service_attendu_pct"] == Decimal("0.8500")
 
-    def test_inter_productivity_75_percent(self):
+    def test_inter_productivity_75_percent(self) -> None:
         cp = _cp()
         gap = Decimal("20")
         options = _compute_all_options(gap, cp)
@@ -107,7 +107,7 @@ class TestReallocationFormulas:
         assert inter["heures_couvertes"] == Decimal("15.00")
         assert inter["service_attendu_pct"] == Decimal("0.7500")
 
-    def test_inter_includes_travel_cost(self):
+    def test_inter_includes_travel_cost(self) -> None:
         cp = _cp()
         gap = Decimal("8")  # 1 person needed
         options = _compute_all_options(gap, cp)
@@ -119,7 +119,7 @@ class TestReallocationFormulas:
 
 
 class TestServiceAdjustFormula:
-    def test_cost_is_gap_times_backlog(self):
+    def test_cost_is_gap_times_backlog(self) -> None:
         cp = _cp(c_backlog=Decimal("100"))
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
@@ -128,7 +128,7 @@ class TestServiceAdjustFormula:
         )
         assert adjust["cout_total_eur"] == Decimal("1000.00")
 
-    def test_service_is_zero(self):
+    def test_service_is_zero(self) -> None:
         cp = _cp()
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
@@ -139,7 +139,7 @@ class TestServiceAdjustFormula:
 
 
 class TestOutsourceFormula:
-    def test_cost_is_150_percent_interim(self):
+    def test_cost_is_150_percent_interim(self) -> None:
         cp = _cp(c_interim=Decimal("50"))
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
@@ -149,7 +149,7 @@ class TestOutsourceFormula:
         expected = Decimal("10") * Decimal("50") * Decimal("1.50")
         assert outsource["cout_total_eur"] == expected.quantize(Decimal("0.01"))
 
-    def test_service_is_100_percent(self):
+    def test_service_is_100_percent(self) -> None:
         cp = _cp()
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
@@ -163,7 +163,7 @@ class TestOutsourceFormula:
 
 
 class TestParetoIntegrity:
-    def test_no_frontier_member_dominated_by_another(self):
+    def test_no_frontier_member_dominated_by_another(self) -> None:
         """For any two options in the frontier, neither dominates the other."""
         cp = _cp()
         for gap_val in [1, 5, 10, 20, 50, 100]:
@@ -192,7 +192,7 @@ class TestParetoIntegrity:
                     )
                     assert not a_dominates_b, f"Pareto violation: {a} dominates {b}"
 
-    def test_every_non_frontier_member_is_dominated(self):
+    def test_every_non_frontier_member_is_dominated(self) -> None:
         """Every option NOT in the frontier is dominated by some frontier member."""
         cp = _cp()
         gap = Decimal("20")
@@ -219,7 +219,7 @@ class TestParetoIntegrity:
                     break
             assert is_dominated, f"Non-frontier option {nf} is not dominated"
 
-    def test_recommendation_is_in_frontier(self):
+    def test_recommendation_is_in_frontier(self) -> None:
         """The recommended option must be in the Pareto frontier."""
         cp = _cp()
         for gap_val in [5, 10, 20, 50]:
@@ -237,7 +237,7 @@ class TestParetoIntegrity:
             if rec is not None:
                 assert rec in frontier
 
-    def test_recommendation_cheapest_at_98_or_highest_service(self):
+    def test_recommendation_cheapest_at_98_or_highest_service(self) -> None:
         """If any frontier option has service >= 98%, rec is the cheapest among those.
         Otherwise rec has the highest service at lowest cost."""
         cp = _cp()
@@ -273,7 +273,7 @@ class TestParetoIntegrity:
 
 
 class TestCostParameterRespect:
-    def test_cap_hs_never_exceeded(self):
+    def test_cap_hs_never_exceeded(self) -> None:
         for cap in [0, 1, 5, 10, 30, 100]:
             cp = _cp(cap_hs_shift=cap)
             gap = Decimal("200")
@@ -281,7 +281,7 @@ class TestCostParameterRespect:
             hs = next(o for o in options if o["option_type"] == ScenarioOptionType.HS)
             assert hs["heures_couvertes"] <= Decimal(str(cap))
 
-    def test_cap_interim_never_exceeded(self):
+    def test_cap_interim_never_exceeded(self) -> None:
         for cap in [0, 1, 5, 10, 50, 100]:
             cp = _cp(cap_interim_site=cap)
             gap = Decimal("200")
@@ -291,7 +291,7 @@ class TestCostParameterRespect:
             )
             assert interim["heures_couvertes"] <= Decimal(str(cap))
 
-    def test_service_never_exceeds_one(self):
+    def test_service_never_exceeds_one(self) -> None:
         cp = _cp()
         for gap_val in [1, 5, 10, 20, 50]:
             gap = Decimal(str(gap_val))
@@ -299,7 +299,7 @@ class TestCostParameterRespect:
             for opt in options:
                 assert opt["service_attendu_pct"] <= Decimal("1.0000")
 
-    def test_cost_never_negative(self):
+    def test_cost_never_negative(self) -> None:
         cp = _cp()
         for gap_val in [0, 1, 5, 10, 20, 50, 100]:
             gap = Decimal(str(gap_val))

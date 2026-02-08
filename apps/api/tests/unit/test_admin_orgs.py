@@ -57,25 +57,25 @@ def _make_org(**overrides):
 class TestStatusTransitions:
     """Tests for the org status transition map."""
 
-    def test_trial_can_go_to_active(self):
+    def test_trial_can_go_to_active(self) -> None:
         assert "active" in _STATUS_TRANSITIONS["trial"]
 
-    def test_trial_can_go_to_suspended(self):
+    def test_trial_can_go_to_suspended(self) -> None:
         assert "suspended" in _STATUS_TRANSITIONS["trial"]
 
-    def test_trial_can_go_to_churned(self):
+    def test_trial_can_go_to_churned(self) -> None:
         assert "churned" in _STATUS_TRANSITIONS["trial"]
 
-    def test_active_can_go_to_suspended(self):
+    def test_active_can_go_to_suspended(self) -> None:
         assert "suspended" in _STATUS_TRANSITIONS["active"]
 
-    def test_active_can_go_to_churned(self):
+    def test_active_can_go_to_churned(self) -> None:
         assert "churned" in _STATUS_TRANSITIONS["active"]
 
-    def test_suspended_can_go_to_active(self):
+    def test_suspended_can_go_to_active(self) -> None:
         assert "active" in _STATUS_TRANSITIONS["suspended"]
 
-    def test_churned_is_terminal(self):
+    def test_churned_is_terminal(self) -> None:
         assert _STATUS_TRANSITIONS["churned"] == set()
 
 
@@ -83,7 +83,7 @@ class TestListOrganizations:
     """Tests for list_organizations()."""
 
     @pytest.mark.asyncio
-    async def test_basic_list(self):
+    async def test_basic_list(self) -> None:
         org = _make_org()
         session = make_mock_session(
             make_scalar_result(1),
@@ -94,7 +94,7 @@ class TestListOrganizations:
         assert len(items) == 1
 
     @pytest.mark.asyncio
-    async def test_pagination(self):
+    async def test_pagination(self) -> None:
         session = make_mock_session(
             make_scalar_result(50),
             make_scalars_result([]),
@@ -103,7 +103,7 @@ class TestListOrganizations:
         assert total == 50
 
     @pytest.mark.asyncio
-    async def test_search_filter(self):
+    async def test_search_filter(self) -> None:
         session = make_mock_session(
             make_scalar_result(0),
             make_scalars_result([]),
@@ -112,7 +112,7 @@ class TestListOrganizations:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_status_filter(self):
+    async def test_status_filter(self) -> None:
         session = make_mock_session(
             make_scalar_result(0),
             make_scalars_result([]),
@@ -123,7 +123,7 @@ class TestListOrganizations:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_plan_filter(self):
+    async def test_plan_filter(self) -> None:
         session = make_mock_session(
             make_scalar_result(0),
             make_scalars_result([]),
@@ -134,7 +134,7 @@ class TestListOrganizations:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_sector_filter(self):
+    async def test_sector_filter(self) -> None:
         session = make_mock_session(
             make_scalar_result(0),
             make_scalars_result([]),
@@ -149,14 +149,14 @@ class TestGetOrganization:
     """Tests for get_organization()."""
 
     @pytest.mark.asyncio
-    async def test_found(self):
+    async def test_found(self) -> None:
         org = _make_org()
         session = make_mock_session(make_scalar_result(org))
         result = await get_organization(session, org.id)
         assert result.slug == "test-org"
 
     @pytest.mark.asyncio
-    async def test_not_found(self):
+    async def test_not_found(self) -> None:
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(NotFoundError):
             await get_organization(session, uuid.uuid4())
@@ -166,7 +166,7 @@ class TestCreateOrganization:
     """Tests for create_organization()."""
 
     @pytest.mark.asyncio
-    async def test_success(self):
+    async def test_success(self) -> None:
         session = make_mock_session(make_scalar_result(None))  # slug check
 
         await create_organization(
@@ -179,7 +179,7 @@ class TestCreateOrganization:
         session.flush.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_slug_conflict(self):
+    async def test_slug_conflict(self) -> None:
         session = make_mock_session(
             make_scalar_result(uuid.uuid4())  # slug exists
         )
@@ -196,7 +196,7 @@ class TestUpdateOrganization:
     """Tests for update_organization()."""
 
     @pytest.mark.asyncio
-    async def test_partial_update(self):
+    async def test_partial_update(self) -> None:
         org = _make_org()
         session = make_mock_session(
             make_scalar_result(org),  # get_organization
@@ -208,7 +208,7 @@ class TestUpdateOrganization:
         assert session.execute.call_count == 2
 
     @pytest.mark.asyncio
-    async def test_non_text_field_update(self):
+    async def test_non_text_field_update(self) -> None:
         """Updating a non-text field (else branch) stores value directly."""
         org = _make_org()
         session = make_mock_session(
@@ -220,7 +220,7 @@ class TestUpdateOrganization:
         assert result.headcount == 200
 
     @pytest.mark.asyncio
-    async def test_empty_data_returns_org(self):
+    async def test_empty_data_returns_org(self) -> None:
         org = _make_org()
         session = make_mock_session(make_scalar_result(org))
 
@@ -228,7 +228,7 @@ class TestUpdateOrganization:
         assert result.name == "Test Org"
 
     @pytest.mark.asyncio
-    async def test_not_found(self):
+    async def test_not_found(self) -> None:
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(NotFoundError):
             await update_organization(session, uuid.uuid4(), data={"name": "X"})
@@ -238,7 +238,7 @@ class TestChangeOrgStatus:
     """Tests for change_org_status()."""
 
     @pytest.mark.asyncio
-    async def test_valid_transition_trial_to_active(self):
+    async def test_valid_transition_trial_to_active(self) -> None:
         org = _make_org(status=OrganizationStatus.TRIAL)
         session = make_mock_session(
             make_scalar_result(org),  # get_organization
@@ -249,7 +249,7 @@ class TestChangeOrgStatus:
         assert result.status == OrganizationStatus.ACTIVE
 
     @pytest.mark.asyncio
-    async def test_valid_transition_active_to_suspended(self):
+    async def test_valid_transition_active_to_suspended(self) -> None:
         org = _make_org(status=OrganizationStatus.ACTIVE)
         session = make_mock_session(
             make_scalar_result(org),  # get_organization
@@ -260,7 +260,7 @@ class TestChangeOrgStatus:
         assert result.status == OrganizationStatus.SUSPENDED
 
     @pytest.mark.asyncio
-    async def test_invalid_transition_churned_to_active(self):
+    async def test_invalid_transition_churned_to_active(self) -> None:
         org = _make_org(status=OrganizationStatus.CHURNED)
         session = make_mock_session(make_scalar_result(org))
 
@@ -268,7 +268,7 @@ class TestChangeOrgStatus:
             await change_org_status(session, org.id, OrganizationStatus.ACTIVE)
 
     @pytest.mark.asyncio
-    async def test_invalid_transition_active_to_trial(self):
+    async def test_invalid_transition_active_to_trial(self) -> None:
         org = _make_org(status=OrganizationStatus.ACTIVE)
         session = make_mock_session(make_scalar_result(org))
 
@@ -276,7 +276,7 @@ class TestChangeOrgStatus:
             await change_org_status(session, org.id, OrganizationStatus.TRIAL)
 
     @pytest.mark.asyncio
-    async def test_not_found(self):
+    async def test_not_found(self) -> None:
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(NotFoundError):
             await change_org_status(session, uuid.uuid4(), OrganizationStatus.ACTIVE)
@@ -286,7 +286,7 @@ class TestGetOrgCounts:
     """Tests for get_org_counts()."""
 
     @pytest.mark.asyncio
-    async def test_returns_counts(self):
+    async def test_returns_counts(self) -> None:
         counts_result = MagicMock()
         counts_result.one.return_value = (5, 2, 10, 3)
         session = make_mock_session(counts_result)
@@ -301,7 +301,7 @@ class TestGetOrgHierarchy:
     """Tests for get_org_hierarchy()."""
 
     @pytest.mark.asyncio
-    async def test_returns_tree(self):
+    async def test_returns_tree(self) -> None:
         org_id = uuid.uuid4()
         site = SimpleNamespace(id=uuid.uuid4(), name="Paris HQ", city="Paris")
         dept = SimpleNamespace(
@@ -325,7 +325,7 @@ class TestGetOrgHierarchy:
         assert hierarchy[0]["departments"][0]["employee_count"] == 25
 
     @pytest.mark.asyncio
-    async def test_org_not_found(self):
+    async def test_org_not_found(self) -> None:
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(NotFoundError):
             await get_org_hierarchy(session, uuid.uuid4())

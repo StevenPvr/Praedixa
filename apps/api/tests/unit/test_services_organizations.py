@@ -19,7 +19,7 @@ class TestGetOrganization:
     """Test get_organization service function."""
 
     @pytest.mark.asyncio
-    async def test_found(self):
+    async def test_found(self) -> None:
         org_id = uuid.uuid4()
         org = SimpleNamespace(id=org_id, name="Test Org", slug="test-org")
         session = make_mock_session(make_scalar_result(org))
@@ -28,7 +28,7 @@ class TestGetOrganization:
         assert result.name == "Test Org"
 
     @pytest.mark.asyncio
-    async def test_not_found_raises(self):
+    async def test_not_found_raises(self) -> None:
         org_id = uuid.uuid4()
         session = make_mock_session(make_scalar_result(None))
 
@@ -42,7 +42,7 @@ class TestListSites:
     """Test list_sites service function."""
 
     @pytest.mark.asyncio
-    async def test_returns_sites(self):
+    async def test_returns_sites(self) -> None:
         tenant = TenantFilter("org-1")
         sites = [
             SimpleNamespace(id=uuid.uuid4(), name="Site A"),
@@ -54,7 +54,7 @@ class TestListSites:
         assert len(result) == 2
 
     @pytest.mark.asyncio
-    async def test_empty_sites(self):
+    async def test_empty_sites(self) -> None:
         tenant = TenantFilter("org-1")
         session = make_mock_session(make_scalars_result([]))
 
@@ -66,7 +66,7 @@ class TestListDepartments:
     """Test list_departments service function."""
 
     @pytest.mark.asyncio
-    async def test_all_departments(self):
+    async def test_all_departments(self) -> None:
         tenant = TenantFilter("org-1")
         depts = [SimpleNamespace(id=uuid.uuid4(), name="Dept A")]
         session = make_mock_session(make_scalars_result(depts))
@@ -75,7 +75,7 @@ class TestListDepartments:
         assert len(result) == 1
 
     @pytest.mark.asyncio
-    async def test_filter_by_site_id(self):
+    async def test_filter_by_site_id(self) -> None:
         tenant = TenantFilter("org-1")
         site_id = uuid.uuid4()
         depts = [SimpleNamespace(id=uuid.uuid4(), name="Dept B")]
@@ -89,7 +89,7 @@ class TestListDepartments:
         assert len(result) == 1
 
     @pytest.mark.asyncio
-    async def test_site_not_found_raises(self):
+    async def test_site_not_found_raises(self) -> None:
         tenant = TenantFilter("org-1")
         site_id = uuid.uuid4()
 
@@ -100,7 +100,7 @@ class TestListDepartments:
         assert "Site" in exc_info.value.message
 
     @pytest.mark.asyncio
-    async def test_no_site_filter_no_site_check(self):
+    async def test_no_site_filter_no_site_check(self) -> None:
         """Without site_id, no site existence check should happen."""
         tenant = TenantFilter("org-1")
         session = make_mock_session(make_scalars_result([]))
@@ -110,7 +110,7 @@ class TestListDepartments:
         assert session.execute.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_empty_departments(self):
+    async def test_empty_departments(self) -> None:
         tenant = TenantFilter("org-1")
         session = make_mock_session(make_scalars_result([]))
 

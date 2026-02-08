@@ -14,6 +14,7 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import JWTPayload
 from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
 from app.core.security import TenantFilter
 from app.schemas.dashboard import DashboardAlertRead
@@ -27,7 +28,7 @@ router = APIRouter(prefix="/api/v1/alerts", tags=["alerts"])
 async def get_active_alerts(
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
-    _user=Depends(get_current_user),
+    _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[list[DashboardAlertRead]]:
     """Return all active (non-dismissed, non-expired) alerts."""
     items = await list_active_alerts(tenant=tenant, session=session)
@@ -44,7 +45,7 @@ async def dismiss_dashboard_alert(
     alert_id: uuid.UUID,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
-    _user=Depends(get_current_user),
+    _user: JWTPayload = Depends(get_current_user),
 ) -> ApiResponse[DashboardAlertRead]:
     """Dismiss an alert. Idempotent — re-dismissing is a no-op."""
     alert = await dismiss_alert(

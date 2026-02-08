@@ -26,7 +26,7 @@ from tests.unit.conftest import (
 class TestArbitrageOption:
     """Test ArbitrageOption value object."""
 
-    def test_slots(self):
+    def test_slots(self) -> None:
         opt = ArbitrageOption(
             type="overtime",
             label="Heures sup",
@@ -53,7 +53,7 @@ class TestArbitrageOption:
 class TestArbitrageResult:
     """Test ArbitrageResult value object."""
 
-    def test_slots(self):
+    def test_slots(self) -> None:
         r = ArbitrageResult(
             alert_id=uuid.uuid4(),
             alert_title="Test Alert",
@@ -74,13 +74,13 @@ class TestArbitrageResult:
 class TestComputeDeficit:
     """Test _compute_deficit function."""
 
-    def test_no_forecasts(self):
+    def test_no_forecasts(self) -> None:
         total, pct, horizon = _compute_deficit([])
         assert total == 0.0
         assert pct == 0.0
         assert horizon == 0
 
-    def test_no_negative_gaps(self):
+    def test_no_negative_gaps(self) -> None:
         """Forecasts with positive gap (surplus) should not count."""
         forecasts = [
             SimpleNamespace(
@@ -99,7 +99,7 @@ class TestComputeDeficit:
         assert pct == 0.0
         assert horizon == 0
 
-    def test_all_negative_gaps(self):
+    def test_all_negative_gaps(self) -> None:
         """All forecasts have negative gaps."""
         tomorrow = datetime.now(UTC).date() + timedelta(days=1)
         day_after = datetime.now(UTC).date() + timedelta(days=2)
@@ -112,7 +112,7 @@ class TestComputeDeficit:
         assert pct == 10.0  # avg(10/100*100, 20/200*100) = avg(10, 10) = 10.0
         assert horizon == 2  # 2 future dates
 
-    def test_mixed_gaps(self):
+    def test_mixed_gaps(self) -> None:
         """Only negative gaps count toward deficit."""
         today = datetime.now(UTC).date()
         tomorrow = today + timedelta(days=1)
@@ -133,7 +133,7 @@ class TestComputeDeficit:
         assert total == 15.0
         assert horizon == 1
 
-    def test_zero_demand_excluded_from_pct(self):
+    def test_zero_demand_excluded_from_pct(self) -> None:
         """Rows with zero demand should not contribute to deficit percentage."""
         tomorrow = datetime.now(UTC).date() + timedelta(days=1)
         forecasts = [
@@ -145,7 +145,7 @@ class TestComputeDeficit:
         # Only 1 row with demand > 0: 20/100*100 = 20.0
         assert pct == 20.0
 
-    def test_past_dates_fall_back_to_row_count(self):
+    def test_past_dates_fall_back_to_row_count(self) -> None:
         """When all deficit dates are in the past, horizon = len(deficit_rows)."""
         past = datetime.now(UTC).date() - timedelta(days=5)
         forecasts = [
@@ -155,7 +155,7 @@ class TestComputeDeficit:
         _total, _pct, horizon = _compute_deficit(forecasts)
         assert horizon == 2  # no future dates, fallback to row count
 
-    def test_zero_gap_not_counted(self):
+    def test_zero_gap_not_counted(self) -> None:
         """gap = 0 is not negative, should not count."""
         tomorrow = datetime.now(UTC).date() + timedelta(days=1)
         forecasts = [
@@ -168,7 +168,7 @@ class TestComputeDeficit:
 class TestGenerateOptions:
     """Test _generate_options function."""
 
-    def test_generates_four_options(self):
+    def test_generates_four_options(self) -> None:
         options = _generate_options(
             deficit_hours=40.0,
             deficit_pct=15.0,
@@ -177,71 +177,71 @@ class TestGenerateOptions:
         )
         assert len(options) == 4
 
-    def test_option_types(self):
+    def test_option_types(self) -> None:
         options = _generate_options(40.0, 15.0, 7, 25)
         types = [o.type for o in options]
         assert types == ["overtime", "external", "redistribution", "no_action"]
 
-    def test_option_labels(self):
+    def test_option_labels(self) -> None:
         options = _generate_options(40.0, 15.0, 7, 25)
         assert options[0].label == "Heures supplementaires"
         assert options[1].label == "Personnel interimaire"
         assert options[2].label == "Reallocation interne"
         assert options[3].label == "Accepter la degradation"
 
-    def test_overtime_cost_calculation(self):
+    def test_overtime_cost_calculation(self) -> None:
         options = _generate_options(40.0, 15.0, 7, 25)
         ot = options[0]
         expected = 40.0 * 25.0 * 1.25  # deficit_hours * hourly_rate * multiplier
         assert ot.cost == expected
 
-    def test_overtime_delay_zero(self):
+    def test_overtime_delay_zero(self) -> None:
         options = _generate_options(40.0, 15.0, 7, 25)
         assert options[0].delay_days == 0
 
-    def test_no_action_cost_zero(self):
+    def test_no_action_cost_zero(self) -> None:
         options = _generate_options(40.0, 15.0, 7, 25)
         assert options[3].cost == 0.0
 
-    def test_no_action_delay_zero(self):
+    def test_no_action_delay_zero(self) -> None:
         options = _generate_options(40.0, 15.0, 7, 25)
         assert options[3].delay_days == 0
 
-    def test_no_action_coverage_zero(self):
+    def test_no_action_coverage_zero(self) -> None:
         options = _generate_options(40.0, 15.0, 7, 25)
         assert options[3].coverage_impact_pct == 0.0
 
-    def test_risk_levels(self):
+    def test_risk_levels(self) -> None:
         options = _generate_options(40.0, 15.0, 7, 25)
         assert options[0].risk_level == "medium"
         assert options[1].risk_level == "medium"
         assert options[2].risk_level == "low"
         assert options[3].risk_level == "high"
 
-    def test_scores_are_positive(self):
+    def test_scores_are_positive(self) -> None:
         options = _generate_options(40.0, 15.0, 7, 25)
         for opt in options:
             assert opt.score >= 0
 
-    def test_coverage_capped_by_max(self):
+    def test_coverage_capped_by_max(self) -> None:
         """With large deficit_pct, coverage should be capped."""
         options = _generate_options(100.0, 90.0, 7, 25)
         ot_max = SCORING_CONSTANTS["overtime"]["max_coverage_pct"]
         assert options[0].coverage_impact_pct == ot_max
 
-    def test_each_option_has_pros_and_cons(self):
+    def test_each_option_has_pros_and_cons(self) -> None:
         options = _generate_options(40.0, 15.0, 7, 25)
         for opt in options:
             assert len(opt.pros) >= 2
             assert len(opt.cons) >= 2
 
-    def test_external_delay_is_average(self):
+    def test_external_delay_is_average(self) -> None:
         ext = SCORING_CONSTANTS["external"]
         expected_delay = int((ext["delay_min"] + ext["delay_max"]) / 2)
         options = _generate_options(40.0, 15.0, 7, 25)
         assert options[1].delay_days == expected_delay
 
-    def test_redistribution_cost(self):
+    def test_redistribution_cost(self) -> None:
         options = _generate_options(40.0, 15.0, 7, 25)
         rd = SCORING_CONSTANTS["redistribution"]
         transfer_days = max(1, min(7, 5))  # min(horizon_days, 5)
@@ -253,7 +253,7 @@ class TestGetArbitrageOptions:
     """Test get_arbitrage_options async service function."""
 
     @pytest.mark.asyncio
-    async def test_alert_not_found(self):
+    async def test_alert_not_found(self) -> None:
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
         session = make_mock_session(make_scalar_result(None))
@@ -262,7 +262,7 @@ class TestGetArbitrageOptions:
             await get_arbitrage_options(alert_id, tenant, session)
 
     @pytest.mark.asyncio
-    async def test_no_entity_id_raises(self):
+    async def test_no_entity_id_raises(self) -> None:
         """Alert without related_entity_id should raise NotFoundError."""
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
@@ -280,7 +280,7 @@ class TestGetArbitrageOptions:
         assert "Department" in exc_info.value.message
 
     @pytest.mark.asyncio
-    async def test_department_not_found(self):
+    async def test_department_not_found(self) -> None:
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
         dept_id = uuid.uuid4()
@@ -301,7 +301,7 @@ class TestGetArbitrageOptions:
         assert "Department" in exc_info.value.message
 
     @pytest.mark.asyncio
-    async def test_full_flow_with_deficit(self):
+    async def test_full_flow_with_deficit(self) -> None:
         """Full flow: alert -> department -> site -> forecasts -> options."""
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
@@ -350,7 +350,7 @@ class TestGetArbitrageOptions:
         assert 0 <= result.recommendation_index < 4
 
     @pytest.mark.asyncio
-    async def test_no_site_id_default_name(self):
+    async def test_no_site_id_default_name(self) -> None:
         """When department has no site_id, site_name should be 'Site inconnu'."""
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
@@ -380,7 +380,7 @@ class TestGetArbitrageOptions:
         assert result.site_name == "Site inconnu"
 
     @pytest.mark.asyncio
-    async def test_site_not_found_default_name(self):
+    async def test_site_not_found_default_name(self) -> None:
         """When site lookup returns None, site_name should stay 'Site inconnu'."""
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
@@ -411,7 +411,7 @@ class TestGetArbitrageOptions:
         assert result.site_name == "Site inconnu"
 
     @pytest.mark.asyncio
-    async def test_zero_deficit_uses_minimum_values(self):
+    async def test_zero_deficit_uses_minimum_values(self) -> None:
         """When no deficit forecasts found, use minimum nominal values."""
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
@@ -441,7 +441,7 @@ class TestGetArbitrageOptions:
         assert result.horizon_days >= 1
 
     @pytest.mark.asyncio
-    async def test_headcount_none_defaults_to_20(self):
+    async def test_headcount_none_defaults_to_20(self) -> None:
         """When department.headcount is None, default to 20."""
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
@@ -471,7 +471,7 @@ class TestGetArbitrageOptions:
         assert len(result.options) == 4
 
     @pytest.mark.asyncio
-    async def test_recommendation_is_highest_score(self):
+    async def test_recommendation_is_highest_score(self) -> None:
         """recommendation_index should point to the option with highest score."""
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
@@ -505,7 +505,7 @@ class TestGetArbitrageOptions:
         assert result.options[result.recommendation_index].score == best.score
 
     @pytest.mark.asyncio
-    async def test_severity_as_enum(self):
+    async def test_severity_as_enum(self) -> None:
         """When alert.severity is an enum, should use .value."""
         tenant = TenantFilter("org-1")
         alert_id = uuid.uuid4()
@@ -539,7 +539,7 @@ class TestGetArbitrageOptions:
 class TestScoringConstants:
     """Test SCORING_CONSTANTS structure."""
 
-    def test_has_four_types(self):
+    def test_has_four_types(self) -> None:
         assert set(SCORING_CONSTANTS.keys()) == {
             "overtime",
             "external",
@@ -547,14 +547,14 @@ class TestScoringConstants:
             "no_action",
         }
 
-    def test_overtime_has_required_keys(self):
+    def test_overtime_has_required_keys(self) -> None:
         ot = SCORING_CONSTANTS["overtime"]
         assert "hourly_rate" in ot
         assert "overtime_multiplier" in ot
         assert "max_coverage_pct" in ot
         assert "risk_weight" in ot
 
-    def test_all_risk_weights_between_0_and_1(self):
+    def test_all_risk_weights_between_0_and_1(self) -> None:
         for name, constants in SCORING_CONSTANTS.items():
             weight = constants["risk_weight"]
             assert 0 <= weight <= 1, f"{name} risk_weight out of range"

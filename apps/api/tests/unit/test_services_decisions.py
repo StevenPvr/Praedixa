@@ -29,16 +29,16 @@ from tests.unit.conftest import (
 class TestInvalidTransitionError:
     """Test InvalidTransitionError exception."""
 
-    def test_message_format(self):
+    def test_message_format(self) -> None:
         err = InvalidTransitionError("approved", "reject")
         assert "Cannot reject a decision in status 'approved'" in err.message
 
-    def test_code_and_status(self):
+    def test_code_and_status(self) -> None:
         err = InvalidTransitionError("suggested", "approve")
         assert err.code == "INVALID_TRANSITION"
         assert err.status_code == 409
 
-    def test_inherits_from_praedixa_error(self):
+    def test_inherits_from_praedixa_error(self) -> None:
         err = InvalidTransitionError("x", "y")
         assert isinstance(err, PraedixaError)
 
@@ -46,33 +46,33 @@ class TestInvalidTransitionError:
 class TestReviewTransitions:
     """Test the _REVIEW_TRANSITIONS mapping."""
 
-    def test_approve_from_suggested(self):
+    def test_approve_from_suggested(self) -> None:
         transitions = _REVIEW_TRANSITIONS["approve"]
         assert transitions[DecisionStatus.SUGGESTED.value] == (DecisionStatus.APPROVED)
 
-    def test_approve_from_pending_review(self):
+    def test_approve_from_pending_review(self) -> None:
         transitions = _REVIEW_TRANSITIONS["approve"]
         assert transitions[DecisionStatus.PENDING_REVIEW.value] == (
             DecisionStatus.APPROVED
         )
 
-    def test_reject_from_suggested(self):
+    def test_reject_from_suggested(self) -> None:
         transitions = _REVIEW_TRANSITIONS["reject"]
         assert transitions[DecisionStatus.SUGGESTED.value] == (DecisionStatus.REJECTED)
 
-    def test_reject_from_pending_review(self):
+    def test_reject_from_pending_review(self) -> None:
         transitions = _REVIEW_TRANSITIONS["reject"]
         assert transitions[DecisionStatus.PENDING_REVIEW.value] == (
             DecisionStatus.REJECTED
         )
 
-    def test_defer_from_suggested(self):
+    def test_defer_from_suggested(self) -> None:
         transitions = _REVIEW_TRANSITIONS["defer"]
         assert transitions[DecisionStatus.SUGGESTED.value] == (
             DecisionStatus.PENDING_REVIEW
         )
 
-    def test_defer_from_pending_review_not_allowed(self):
+    def test_defer_from_pending_review_not_allowed(self) -> None:
         """Cannot defer from pending_review — not in the map."""
         assert DecisionStatus.PENDING_REVIEW.value not in _REVIEW_TRANSITIONS["defer"]
 
@@ -81,7 +81,7 @@ class TestListDecisions:
     """Test list_decisions service function."""
 
     @pytest.mark.asyncio
-    async def test_returns_items_and_total(self):
+    async def test_returns_items_and_total(self) -> None:
         tenant = TenantFilter("org-1")
         items = [SimpleNamespace(id=uuid.uuid4())]
         session = make_mock_session(
@@ -94,7 +94,7 @@ class TestListDecisions:
         assert len(result_items) == 1
 
     @pytest.mark.asyncio
-    async def test_count_none_defaults_to_zero(self):
+    async def test_count_none_defaults_to_zero(self) -> None:
         """If count returns None (or 0), total should be 0."""
         tenant = TenantFilter("org-1")
         count_result = MagicMock()
@@ -108,7 +108,7 @@ class TestListDecisions:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_status_filter(self):
+    async def test_status_filter(self) -> None:
         tenant = TenantFilter("org-1")
         session = make_mock_session(
             make_scalar_result(0),
@@ -119,7 +119,7 @@ class TestListDecisions:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_invalid_status_filter_ignored(self):
+    async def test_invalid_status_filter_ignored(self) -> None:
         """Invalid status string should not cause errors (silently ignored)."""
         tenant = TenantFilter("org-1")
         session = make_mock_session(
@@ -133,7 +133,7 @@ class TestListDecisions:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_type_filter(self):
+    async def test_type_filter(self) -> None:
         tenant = TenantFilter("org-1")
         session = make_mock_session(
             make_scalar_result(0),
@@ -144,7 +144,7 @@ class TestListDecisions:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_invalid_type_filter_ignored(self):
+    async def test_invalid_type_filter_ignored(self) -> None:
         tenant = TenantFilter("org-1")
         session = make_mock_session(
             make_scalar_result(0),
@@ -157,7 +157,7 @@ class TestListDecisions:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_status_filter_enum_instance(self):
+    async def test_status_filter_enum_instance(self) -> None:
         """When status_filter is a DecisionStatus enum, it is used directly."""
         tenant = TenantFilter("org-1")
         session = make_mock_session(
@@ -171,7 +171,7 @@ class TestListDecisions:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_type_filter_enum_instance(self):
+    async def test_type_filter_enum_instance(self) -> None:
         """When type_filter is a DecisionType enum, it is used directly."""
         tenant = TenantFilter("org-1")
         session = make_mock_session(
@@ -185,7 +185,7 @@ class TestListDecisions:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_pagination(self):
+    async def test_pagination(self) -> None:
         tenant = TenantFilter("org-1")
         session = make_mock_session(
             make_scalar_result(100),
@@ -200,7 +200,7 @@ class TestGetDecision:
     """Test get_decision service function."""
 
     @pytest.mark.asyncio
-    async def test_found(self):
+    async def test_found(self) -> None:
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
         decision = SimpleNamespace(id=d_id, title="Test Decision")
@@ -211,7 +211,7 @@ class TestGetDecision:
         assert result.title == "Test Decision"
 
     @pytest.mark.asyncio
-    async def test_not_found_raises(self):
+    async def test_not_found_raises(self) -> None:
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
 
@@ -225,7 +225,7 @@ class TestCreateDecision:
     """Test create_decision service function."""
 
     @pytest.mark.asyncio
-    async def test_successful_creation(self):
+    async def test_successful_creation(self) -> None:
         tenant = TenantFilter("550e8400-e29b-41d4-a716-446655440000")
         dept_id = uuid.uuid4()
 
@@ -252,7 +252,7 @@ class TestCreateDecision:
         session.flush.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_department_not_found(self):
+    async def test_department_not_found(self) -> None:
         tenant = TenantFilter("550e8400-e29b-41d4-a716-446655440000")
         dept_id = uuid.uuid4()
 
@@ -275,7 +275,7 @@ class TestCreateDecision:
         assert "Department" in exc_info.value.message
 
     @pytest.mark.asyncio
-    async def test_duplicate_returns_existing(self):
+    async def test_duplicate_returns_existing(self) -> None:
         """Idempotence: recent duplicate returns existing decision."""
         tenant = TenantFilter("550e8400-e29b-41d4-a716-446655440000")
         dept_id = uuid.uuid4()
@@ -304,7 +304,7 @@ class TestCreateDecision:
         session.add.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_sanitizes_text_fields(self):
+    async def test_sanitizes_text_fields(self) -> None:
         """Title, description, rationale should be sanitized."""
         tenant = TenantFilter("550e8400-e29b-41d4-a716-446655440000")
         dept_id = uuid.uuid4()
@@ -334,7 +334,7 @@ class TestCreateDecision:
             assert mock_sanitize.call_count == 3
 
     @pytest.mark.asyncio
-    async def test_optional_fields(self):
+    async def test_optional_fields(self) -> None:
         """Optional fields: estimated_cost, cost_of_inaction, etc."""
         tenant = TenantFilter("550e8400-e29b-41d4-a716-446655440000")
         dept_id = uuid.uuid4()
@@ -369,7 +369,7 @@ class TestReviewDecision:
     """Test review_decision service function."""
 
     @pytest.mark.asyncio
-    async def test_approve_from_suggested(self):
+    async def test_approve_from_suggested(self) -> None:
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
         decision = SimpleNamespace(
@@ -396,7 +396,7 @@ class TestReviewDecision:
         assert result.reviewed_at is not None
 
     @pytest.mark.asyncio
-    async def test_reject_from_pending_review(self):
+    async def test_reject_from_pending_review(self) -> None:
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
         decision = SimpleNamespace(
@@ -420,7 +420,7 @@ class TestReviewDecision:
         assert result.status == DecisionStatus.REJECTED
 
     @pytest.mark.asyncio
-    async def test_defer_from_suggested(self):
+    async def test_defer_from_suggested(self) -> None:
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
         decision = SimpleNamespace(
@@ -444,7 +444,7 @@ class TestReviewDecision:
         assert result.status == DecisionStatus.PENDING_REVIEW
 
     @pytest.mark.asyncio
-    async def test_invalid_transition_raises(self):
+    async def test_invalid_transition_raises(self) -> None:
         """Approve from REJECTED should fail."""
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
@@ -466,7 +466,7 @@ class TestReviewDecision:
             )
 
     @pytest.mark.asyncio
-    async def test_unknown_action_raises(self):
+    async def test_unknown_action_raises(self) -> None:
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
         decision = SimpleNamespace(
@@ -487,7 +487,7 @@ class TestReviewDecision:
             )
 
     @pytest.mark.asyncio
-    async def test_notes_sanitized(self):
+    async def test_notes_sanitized(self) -> None:
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
         decision = SimpleNamespace(
@@ -516,7 +516,7 @@ class TestReviewDecision:
             mock_sanitize.assert_called()
 
     @pytest.mark.asyncio
-    async def test_deadline_only_on_approve(self):
+    async def test_deadline_only_on_approve(self) -> None:
         """Deadline should only be set when action is 'approve'."""
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
@@ -542,7 +542,7 @@ class TestReviewDecision:
         assert result.implementation_deadline == date(2026, 3, 1)
 
     @pytest.mark.asyncio
-    async def test_deadline_ignored_on_reject(self):
+    async def test_deadline_ignored_on_reject(self) -> None:
         """Deadline should be ignored when action is 'reject'."""
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
@@ -570,7 +570,7 @@ class TestReviewDecision:
             assert result.implementation_deadline != date(2026, 3, 1)
 
     @pytest.mark.asyncio
-    async def test_status_as_string(self):
+    async def test_status_as_string(self) -> None:
         """When status is already a string (not enum), should still work."""
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
@@ -599,7 +599,7 @@ class TestRecordOutcome:
     """Test record_outcome service function."""
 
     @pytest.mark.asyncio
-    async def test_successful_outcome(self):
+    async def test_successful_outcome(self) -> None:
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
         decision = SimpleNamespace(
@@ -628,7 +628,7 @@ class TestRecordOutcome:
         assert result.outcome["effective"] is True
 
     @pytest.mark.asyncio
-    async def test_non_approved_raises(self):
+    async def test_non_approved_raises(self) -> None:
         """Only APPROVED decisions can have outcomes recorded."""
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
@@ -651,7 +651,7 @@ class TestRecordOutcome:
             )
 
     @pytest.mark.asyncio
-    async def test_rejected_status_raises(self):
+    async def test_rejected_status_raises(self) -> None:
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
         decision = SimpleNamespace(
@@ -673,7 +673,7 @@ class TestRecordOutcome:
             )
 
     @pytest.mark.asyncio
-    async def test_optional_actual_cost(self):
+    async def test_optional_actual_cost(self) -> None:
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
         decision = SimpleNamespace(
@@ -699,7 +699,7 @@ class TestRecordOutcome:
         assert result.outcome["actual_cost"] == 1500.0
 
     @pytest.mark.asyncio
-    async def test_optional_lessons_learned(self):
+    async def test_optional_lessons_learned(self) -> None:
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()
         decision = SimpleNamespace(
@@ -725,7 +725,7 @@ class TestRecordOutcome:
         assert "lessons_learned" in result.outcome
 
     @pytest.mark.asyncio
-    async def test_status_as_string(self):
+    async def test_status_as_string(self) -> None:
         """When status is a plain string 'approved'."""
         tenant = TenantFilter("org-1")
         d_id = uuid.uuid4()

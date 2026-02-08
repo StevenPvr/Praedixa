@@ -16,22 +16,22 @@ from app.services.proof_pack_pdf_service import (
 
 
 class TestFmtEur:
-    def test_formats_number(self):
+    def test_formats_number(self) -> None:
         result = _fmt_eur(1234.56)
         assert "1,234.56" in result or "1234.56" in result
 
-    def test_none_returns_na(self):
+    def test_none_returns_na(self) -> None:
         assert _fmt_eur(None) == "N/A"
 
-    def test_zero(self):
+    def test_zero(self) -> None:
         result = _fmt_eur(0)
         assert "0.00" in result
 
-    def test_string_value(self):
+    def test_string_value(self) -> None:
         result = _fmt_eur("1000.50")
         assert "1,000.50" in result or "1000.50" in result
 
-    def test_negative(self):
+    def test_negative(self) -> None:
         result = _fmt_eur(-500.0)
         assert "-500.00" in result
 
@@ -40,25 +40,25 @@ class TestFmtEur:
 
 
 class TestFmtPct:
-    def test_decimal_to_percent(self):
+    def test_decimal_to_percent(self) -> None:
         result = _fmt_pct(0.85)
         assert result == "85.0%"
 
-    def test_none_returns_na(self):
+    def test_none_returns_na(self) -> None:
         assert _fmt_pct(None) == "N/A"
 
-    def test_zero(self):
+    def test_zero(self) -> None:
         assert _fmt_pct(0) == "0.0%"
 
-    def test_already_percent(self):
+    def test_already_percent(self) -> None:
         result = _fmt_pct(85)
         assert result == "85.0%"
 
-    def test_string_value(self):
+    def test_string_value(self) -> None:
         result = _fmt_pct("0.95")
         assert result == "95.0%"
 
-    def test_one_hundred_percent(self):
+    def test_one_hundred_percent(self) -> None:
         result = _fmt_pct(1.0)
         assert result == "100.0%"
 
@@ -67,7 +67,7 @@ class TestFmtPct:
 
 
 class TestGenerateProofPackPdf:
-    def test_returns_bytes(self):
+    def test_returns_bytes(self) -> None:
         result = generate_proof_pack_pdf(
             org_name="Acme Corp",
             site_id="site-paris",
@@ -97,7 +97,7 @@ class TestGenerateProofPackPdf:
         assert len(result) > 0
         assert result[:4] == b"%PDF"
 
-    def test_empty_decisions(self):
+    def test_empty_decisions(self) -> None:
         result = generate_proof_pack_pdf(
             org_name="Acme Corp",
             site_id="site-paris",
@@ -118,7 +118,7 @@ class TestGenerateProofPackPdf:
         assert isinstance(result, bytes)
         assert result[:4] == b"%PDF"
 
-    def test_many_decisions_truncated_to_10(self):
+    def test_many_decisions_truncated_to_10(self) -> None:
         decisions = [
             {
                 "decision_date": f"2026-01-{i + 1:02d}",
@@ -149,7 +149,7 @@ class TestGenerateProofPackPdf:
         assert isinstance(result, bytes)
         assert len(result) > 0
 
-    def test_zero_values_in_proof_record(self):
+    def test_zero_values_in_proof_record(self) -> None:
         """Proof pack PDF handles zero/minimal values correctly."""
         result = generate_proof_pack_pdf(
             org_name="Test Org",
@@ -170,7 +170,7 @@ class TestGenerateProofPackPdf:
         )
         assert isinstance(result, bytes)
 
-    def test_missing_keys_use_defaults(self):
+    def test_missing_keys_use_defaults(self) -> None:
         """Proof pack PDF uses defaults when keys are absent from dict."""
         result = generate_proof_pack_pdf(
             org_name="Test Org",
@@ -181,7 +181,7 @@ class TestGenerateProofPackPdf:
         )
         assert isinstance(result, bytes)
 
-    def test_override_decisions_shown(self):
+    def test_override_decisions_shown(self) -> None:
         result = generate_proof_pack_pdf(
             org_name="Acme Corp",
             site_id="site-paris",
@@ -210,7 +210,7 @@ class TestGenerateProofPackPdf:
         assert isinstance(result, bytes)
         assert len(result) > 0
 
-    def test_different_org_names(self):
+    def test_different_org_names(self) -> None:
         for name in ["ACME", "Groupe Hospitalier", "Test & Co"]:
             result = generate_proof_pack_pdf(
                 org_name=name,

@@ -42,7 +42,7 @@ def make_csv_bytes(headers: list[str], rows: list[list[str]]) -> bytes:
 class TestQualityPipelineIntegration:
     """End-to-end integration tests: parse -> quality -> verify."""
 
-    def test_csv_with_duplicates_removed(self):
+    def test_csv_with_duplicates_removed(self) -> None:
         """CSV with duplicate rows -> quality removes them."""
         content = make_csv_bytes(
             ["date", "value"],
@@ -68,7 +68,7 @@ class TestQualityPipelineIntegration:
         assert result.rows_after_dedup == 3
         assert len(result.cleaned_rows) == 3
 
-    def test_csv_with_missing_values_imputed(self):
+    def test_csv_with_missing_values_imputed(self) -> None:
         """CSV with >5% missing values -> MCAR above threshold -> imputed."""
         rows_data = []
         for i in range(20):
@@ -97,7 +97,7 @@ class TestQualityPipelineIntegration:
         assert report.missing_type == "mcar"
         assert report.strategy_applied in ("ffill", "rolling_median")
 
-    def test_csv_with_outliers_clamped(self):
+    def test_csv_with_outliers_clamped(self) -> None:
         """CSV with extreme outlier values -> detected and clamped."""
         rows_data = []
         for i in range(20):
@@ -130,7 +130,7 @@ class TestQualityPipelineIntegration:
             if val is not None:
                 assert lower <= float(val) <= upper
 
-    def test_quality_result_feeds_downstream(self):
+    def test_quality_result_feeds_downstream(self) -> None:
         """QualityResult cleaned_rows can be consumed by downstream processing."""
         content = make_csv_bytes(
             ["date", "temperature"],

@@ -1,9 +1,11 @@
 """Tests for decision_log_service — CRUD and override tracking.
 
 Covers:
-- list_operational_decisions: filters (site_id, date_from, date_to, is_override, horizon), pagination
+- list_operational_decisions: filters (site_id, date_from, date_to,
+  is_override, horizon), pagination
 - get_operational_decision: success, not found
-- create_operational_decision: happy path, override without reason raises, sanitization
+- create_operational_decision: happy path, override without reason
+  raises, sanitization
 - update_operational_decision: partial update, not found
 - get_override_statistics: all stats, zero decisions edge case
 - OverrideReasonRequiredError: message, code, status
@@ -43,19 +45,19 @@ ORG_ID = "11111111-1111-1111-1111-111111111111"
 
 
 class TestOverrideReasonRequiredError:
-    def test_message(self):
+    def test_message(self) -> None:
         err = OverrideReasonRequiredError()
         assert "override_reason" in err.message.lower()
 
-    def test_code(self):
+    def test_code(self) -> None:
         err = OverrideReasonRequiredError()
         assert err.code == "OVERRIDE_REASON_REQUIRED"
 
-    def test_status_code(self):
+    def test_status_code(self) -> None:
         err = OverrideReasonRequiredError()
         assert err.status_code == 422
 
-    def test_inherits_praedixa_error(self):
+    def test_inherits_praedixa_error(self) -> None:
         from app.core.exceptions import PraedixaError
 
         err = OverrideReasonRequiredError()
@@ -67,7 +69,7 @@ class TestOverrideReasonRequiredError:
 
 class TestListOperationalDecisions:
     @pytest.mark.asyncio
-    async def test_returns_items_and_total(self):
+    async def test_returns_items_and_total(self) -> None:
         dec = _make_operational_decision()
         tenant = _make_tenant()
         session = make_mock_session(
@@ -79,7 +81,7 @@ class TestListOperationalDecisions:
         assert len(items) == 1
 
     @pytest.mark.asyncio
-    async def test_empty_list(self):
+    async def test_empty_list(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(0),
@@ -90,7 +92,7 @@ class TestListOperationalDecisions:
         assert items == []
 
     @pytest.mark.asyncio
-    async def test_site_id_filter(self):
+    async def test_site_id_filter(self) -> None:
         dec = _make_operational_decision(site_id="site-lyon")
         tenant = _make_tenant()
         session = make_mock_session(
@@ -103,7 +105,7 @@ class TestListOperationalDecisions:
         assert total == 1
 
     @pytest.mark.asyncio
-    async def test_date_from_filter(self):
+    async def test_date_from_filter(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(1),
@@ -115,7 +117,7 @@ class TestListOperationalDecisions:
         assert total == 1
 
     @pytest.mark.asyncio
-    async def test_date_to_filter(self):
+    async def test_date_to_filter(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(1),
@@ -127,7 +129,7 @@ class TestListOperationalDecisions:
         assert total == 1
 
     @pytest.mark.asyncio
-    async def test_is_override_filter(self):
+    async def test_is_override_filter(self) -> None:
         dec = _make_operational_decision(is_override=True)
         tenant = _make_tenant()
         session = make_mock_session(
@@ -140,7 +142,7 @@ class TestListOperationalDecisions:
         assert total == 1
 
     @pytest.mark.asyncio
-    async def test_horizon_filter(self):
+    async def test_horizon_filter(self) -> None:
         dec = _make_operational_decision(horizon=Horizon.J7)
         tenant = _make_tenant()
         session = make_mock_session(
@@ -153,7 +155,7 @@ class TestListOperationalDecisions:
         assert total == 1
 
     @pytest.mark.asyncio
-    async def test_pagination(self):
+    async def test_pagination(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(50),
@@ -165,7 +167,7 @@ class TestListOperationalDecisions:
         assert total == 50
 
     @pytest.mark.asyncio
-    async def test_none_count_coerced(self):
+    async def test_none_count_coerced(self) -> None:
         tenant = _make_tenant()
         count_result = MagicMock()
         count_result.scalar_one.return_value = None
@@ -174,7 +176,7 @@ class TestListOperationalDecisions:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_combined_filters(self):
+    async def test_combined_filters(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(1),
@@ -197,7 +199,7 @@ class TestListOperationalDecisions:
 
 class TestGetOperationalDecision:
     @pytest.mark.asyncio
-    async def test_returns_decision(self):
+    async def test_returns_decision(self) -> None:
         dec = _make_operational_decision()
         tenant = _make_tenant()
         result_mock = MagicMock()
@@ -207,7 +209,7 @@ class TestGetOperationalDecision:
         assert result is dec
 
     @pytest.mark.asyncio
-    async def test_raises_not_found(self):
+    async def test_raises_not_found(self) -> None:
         tenant = _make_tenant()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
@@ -216,7 +218,7 @@ class TestGetOperationalDecision:
             await get_operational_decision(session, tenant, uuid.uuid4())
 
     @pytest.mark.asyncio
-    async def test_tenant_filter_applied(self):
+    async def test_tenant_filter_applied(self) -> None:
         dec = _make_operational_decision()
         tenant = _make_tenant()
         result_mock = MagicMock()
@@ -231,7 +233,7 @@ class TestGetOperationalDecision:
 
 class TestCreateOperationalDecision:
     @pytest.mark.asyncio
-    async def test_happy_path(self):
+    async def test_happy_path(self) -> None:
         tenant = _make_tenant()
         alert = _make_coverage_alert()
         recommended = _make_scenario_option(is_recommended=True)
@@ -268,7 +270,7 @@ class TestCreateOperationalDecision:
         session.add.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_override_requires_reason(self):
+    async def test_override_requires_reason(self) -> None:
         tenant = _make_tenant()
         session = AsyncMock()
 
@@ -289,7 +291,7 @@ class TestCreateOperationalDecision:
             )
 
     @pytest.mark.asyncio
-    async def test_override_with_reason_succeeds(self):
+    async def test_override_with_reason_succeeds(self) -> None:
         tenant = _make_tenant()
         alert = _make_coverage_alert()
         recommended = _make_scenario_option(is_recommended=True)
@@ -323,7 +325,7 @@ class TestCreateOperationalDecision:
         assert result.is_override is True
 
     @pytest.mark.asyncio
-    async def test_alert_not_found(self):
+    async def test_alert_not_found(self) -> None:
         tenant = _make_tenant()
         alert_result = MagicMock()
         alert_result.scalar_one_or_none.return_value = None
@@ -344,7 +346,7 @@ class TestCreateOperationalDecision:
             )
 
     @pytest.mark.asyncio
-    async def test_no_chosen_option(self):
+    async def test_no_chosen_option(self) -> None:
         tenant = _make_tenant()
         alert = _make_coverage_alert()
         alert_result = MagicMock()
@@ -372,7 +374,7 @@ class TestCreateOperationalDecision:
         assert result.service_attendu_pct is None
 
     @pytest.mark.asyncio
-    async def test_no_recommended_option(self):
+    async def test_no_recommended_option(self) -> None:
         tenant = _make_tenant()
         alert = _make_coverage_alert()
         chosen = _make_scenario_option()
@@ -403,7 +405,7 @@ class TestCreateOperationalDecision:
         assert result.recommended_option_id is None
 
     @pytest.mark.asyncio
-    async def test_override_empty_string_reason(self):
+    async def test_override_empty_string_reason(self) -> None:
         """Empty string reason should also raise."""
         tenant = _make_tenant()
         session = AsyncMock()
@@ -425,7 +427,7 @@ class TestCreateOperationalDecision:
             )
 
     @pytest.mark.asyncio
-    async def test_comment_sanitized(self):
+    async def test_comment_sanitized(self) -> None:
         tenant = _make_tenant()
         alert = _make_coverage_alert()
         alert_result = MagicMock()
@@ -458,7 +460,7 @@ class TestCreateOperationalDecision:
 
 class TestUpdateOperationalDecision:
     @pytest.mark.asyncio
-    async def test_update_observed_cost(self):
+    async def test_update_observed_cost(self) -> None:
         dec = _make_operational_decision()
         tenant = _make_tenant()
         result_mock = MagicMock()
@@ -472,7 +474,7 @@ class TestUpdateOperationalDecision:
         assert result.cout_observe_eur == Decimal("450.00")
 
     @pytest.mark.asyncio
-    async def test_update_observed_service(self):
+    async def test_update_observed_service(self) -> None:
         dec = _make_operational_decision()
         tenant = _make_tenant()
         result_mock = MagicMock()
@@ -486,7 +488,7 @@ class TestUpdateOperationalDecision:
         assert result.service_observe_pct == Decimal("0.9500")
 
     @pytest.mark.asyncio
-    async def test_update_comment(self):
+    async def test_update_comment(self) -> None:
         dec = _make_operational_decision()
         tenant = _make_tenant()
         result_mock = MagicMock()
@@ -500,7 +502,7 @@ class TestUpdateOperationalDecision:
         assert "Updated comment" in result.comment
 
     @pytest.mark.asyncio
-    async def test_not_found_raises(self):
+    async def test_not_found_raises(self) -> None:
         tenant = _make_tenant()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
@@ -511,7 +513,7 @@ class TestUpdateOperationalDecision:
             )
 
     @pytest.mark.asyncio
-    async def test_no_changes_still_flushes(self):
+    async def test_no_changes_still_flushes(self) -> None:
         dec = _make_operational_decision()
         tenant = _make_tenant()
         result_mock = MagicMock()
@@ -523,7 +525,7 @@ class TestUpdateOperationalDecision:
         session.flush.assert_awaited()
 
     @pytest.mark.asyncio
-    async def test_partial_update(self):
+    async def test_partial_update(self) -> None:
         dec = _make_operational_decision(
             cout_observe_eur=Decimal("300.00"),
         )
@@ -545,7 +547,7 @@ class TestUpdateOperationalDecision:
 
 class TestGetOverrideStatistics:
     @pytest.mark.asyncio
-    async def test_zero_decisions(self):
+    async def test_zero_decisions(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(make_scalar_result(0))
         result = await get_override_statistics(session, tenant)
@@ -556,7 +558,7 @@ class TestGetOverrideStatistics:
         assert result["avg_cost_delta"] is None
 
     @pytest.mark.asyncio
-    async def test_with_decisions(self):
+    async def test_with_decisions(self) -> None:
         tenant = _make_tenant()
         reasons_result = MagicMock()
         reasons_result.all.return_value = [
@@ -578,7 +580,7 @@ class TestGetOverrideStatistics:
         assert result["avg_cost_delta"] == Decimal("150.0")
 
     @pytest.mark.asyncio
-    async def test_null_override_count(self):
+    async def test_null_override_count(self) -> None:
         tenant = _make_tenant()
         reasons_result = MagicMock()
         reasons_result.all.return_value = []
@@ -594,7 +596,7 @@ class TestGetOverrideStatistics:
         assert result["override_pct"] == Decimal("0.0")
 
     @pytest.mark.asyncio
-    async def test_null_avg_delta(self):
+    async def test_null_avg_delta(self) -> None:
         tenant = _make_tenant()
         reasons_result = MagicMock()
         reasons_result.all.return_value = []
@@ -609,7 +611,7 @@ class TestGetOverrideStatistics:
         assert result["avg_cost_delta"] is None
 
     @pytest.mark.asyncio
-    async def test_tenant_filter_applied(self):
+    async def test_tenant_filter_applied(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(make_scalar_result(0))
         await get_override_statistics(session, tenant)

@@ -16,6 +16,7 @@ from math import ceil
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import JWTPayload
 from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
 from app.core.security import TenantFilter
 from app.models.daily_forecast import ForecastDimension
@@ -35,7 +36,7 @@ MAX_PAGE_SIZE = 100
 async def list_forecast_runs(
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
-    _user=Depends(get_current_user),
+    _user: JWTPayload = Depends(get_current_user),
     page: int = Query(default=1, ge=1, description="Page number"),
     page_size: int = Query(
         default=20, ge=1, le=MAX_PAGE_SIZE, description="Items per page"
@@ -75,7 +76,7 @@ async def get_daily_forecast_data(
     run_id: uuid.UUID,
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
-    _user=Depends(get_current_user),
+    _user: JWTPayload = Depends(get_current_user),
     dimension: ForecastDimension | None = Query(
         default=None, description="Filter by dimension"
     ),

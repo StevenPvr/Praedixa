@@ -416,7 +416,7 @@ class TestBodyReplayWithoutContentLength:
     """Lines 173-181: body replay when POST has no Content-Length but body < max."""
 
     def test_post_without_content_length_body_replayed(self) -> None:
-        """POST with no Content-Length and body under limit succeeds with body replay."""
+        """POST with no Content-Length and body under limit succeeds."""
         from httpx import ASGITransport, AsyncClient
 
         app = FastAPI()
@@ -470,7 +470,7 @@ class TestBodyReplayWithoutContentLength:
 
         import asyncio
 
-        async def _run():
+        async def _run() -> None:
             response = await middleware.dispatch(request, call_next)
             assert response is expected_response
             # Verify _receive was set (body replay)

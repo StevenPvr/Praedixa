@@ -88,13 +88,13 @@ columns:
 class TestValidYAML:
     """Test that valid YAML configurations pass validation."""
 
-    def test_minimal_valid_yaml(self):
+    def test_minimal_valid_yaml(self) -> None:
         result = validate_dataset_yaml(_VALID_MINIMAL_YAML)
         assert result["name"] == "effectifs"
         assert result["temporal_index"] == "date_col"
         assert len(result["columns"]) == 2
 
-    def test_valid_with_pipeline(self):
+    def test_valid_with_pipeline(self) -> None:
         result = validate_dataset_yaml(_VALID_WITH_PIPELINE)
         assert result["pipeline"]["missing_values"] == "fill_median"
         assert result["pipeline"]["outliers"] == "clip"
@@ -103,17 +103,17 @@ class TestValidYAML:
         assert result["pipeline"]["encoding"] == "onehot"
         assert len(result["pipeline"]["windows"]) == 2
 
-    def test_valid_with_rules_override(self):
+    def test_valid_with_rules_override(self) -> None:
         result = validate_dataset_yaml(_VALID_WITH_RULES_OVERRIDE)
         target_col = result["columns"][1]
         assert target_col["nullable"] is False
         assert target_col["rules_override"]["fill_strategy"] == "forward"
 
-    def test_valid_group_by(self):
+    def test_valid_group_by(self) -> None:
         result = validate_dataset_yaml(_VALID_WITH_PIPELINE)
         assert result["group_by"] == ["department"]
 
-    def test_defaults_applied_when_pipeline_omitted(self):
+    def test_defaults_applied_when_pipeline_omitted(self) -> None:
         """When pipeline section is omitted, defaults should be valid."""
         result = validate_dataset_yaml(_VALID_MINIMAL_YAML)
         assert "pipeline" not in result or result.get("pipeline") is None
@@ -122,7 +122,7 @@ class TestValidYAML:
 class TestMissingRequiredFields:
     """Test that missing required fields cause validation failure."""
 
-    def test_missing_name(self):
+    def test_missing_name(self) -> None:
         yaml_content = """\
 temporal_index: date_col
 columns:
@@ -133,7 +133,7 @@ columns:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_missing_temporal_index(self):
+    def test_missing_temporal_index(self) -> None:
         yaml_content = """\
 name: effectifs
 columns:
@@ -144,7 +144,7 @@ columns:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_missing_columns(self):
+    def test_missing_columns(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -152,7 +152,7 @@ temporal_index: date_col
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_missing_column_name(self):
+    def test_missing_column_name(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -163,7 +163,7 @@ columns:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_missing_column_dtype(self):
+    def test_missing_column_dtype(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -174,7 +174,7 @@ columns:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_missing_column_role(self):
+    def test_missing_column_role(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -189,11 +189,11 @@ columns:
 class TestEmptyYAML:
     """Test that empty or blank YAML content fails."""
 
-    def test_empty_string(self):
+    def test_empty_string(self) -> None:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml("")
 
-    def test_whitespace_only(self):
+    def test_whitespace_only(self) -> None:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml("   \n  \n  ")
 
@@ -201,7 +201,7 @@ class TestEmptyYAML:
 class TestMalformedYAML:
     """Test that syntactically invalid YAML is rejected."""
 
-    def test_malformed_syntax(self):
+    def test_malformed_syntax(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: [
@@ -218,7 +218,7 @@ temporal_index: [
 class TestUnknownKeys:
     """Test that unknown/extra keys in the YAML are rejected by strictyaml."""
 
-    def test_unknown_top_level_key(self):
+    def test_unknown_top_level_key(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -231,7 +231,7 @@ columns:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_unknown_column_key(self):
+    def test_unknown_column_key(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -244,7 +244,7 @@ columns:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_unknown_pipeline_key(self):
+    def test_unknown_pipeline_key(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -262,7 +262,7 @@ pipeline:
 class TestInvalidEnumValues:
     """Test that invalid enum values for dtype, role, pipeline options are rejected."""
 
-    def test_invalid_dtype(self):
+    def test_invalid_dtype(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -274,7 +274,7 @@ columns:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_invalid_role(self):
+    def test_invalid_role(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -286,7 +286,7 @@ columns:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_invalid_missing_values_option(self):
+    def test_invalid_missing_values_option(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -300,7 +300,7 @@ pipeline:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_invalid_normalization_option(self):
+    def test_invalid_normalization_option(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -314,7 +314,7 @@ pipeline:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_invalid_encoding_option(self):
+    def test_invalid_encoding_option(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -328,7 +328,7 @@ pipeline:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_invalid_outlier_option(self):
+    def test_invalid_outlier_option(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -342,7 +342,7 @@ pipeline:
         with pytest.raises(YAMLValidationError):
             validate_dataset_yaml(yaml_content)
 
-    def test_invalid_window_type(self):
+    def test_invalid_window_type(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -362,7 +362,7 @@ pipeline:
 class TestWindowBounds:
     """Test window size validation bounds."""
 
-    def test_lag_size_zero_rejected(self):
+    def test_lag_size_zero_rejected(self) -> None:
         """Lag size 0 is below MIN_WINDOW_SIZE (1)."""
         yaml_content = """\
 name: effectifs
@@ -380,7 +380,7 @@ pipeline:
             validate_dataset_yaml(yaml_content)
         assert "out of bounds" in exc_info.value.message
 
-    def test_lag_size_negative_rejected(self):
+    def test_lag_size_negative_rejected(self) -> None:
         """Negative lag values should be rejected."""
         yaml_content = """\
 name: effectifs
@@ -399,7 +399,7 @@ pipeline:
         assert "out of bounds" in exc_info.value.message
 
     @patch("app.core.yaml_validation.settings")
-    def test_lag_size_exceeds_max_rejected(self, mock_settings):
+    def test_lag_size_exceeds_max_rejected(self, mock_settings) -> None:
         """Lag size > MAX_WINDOW_SIZE is rejected."""
         mock_settings.MAX_WINDOWS_PER_DATASET = 10
         mock_settings.MIN_WINDOW_SIZE = 1
@@ -422,7 +422,7 @@ pipeline:
             validate_dataset_yaml(yaml_content)
         assert "out of bounds" in exc_info.value.message
 
-    def test_lag_size_at_minimum_accepted(self):
+    def test_lag_size_at_minimum_accepted(self) -> None:
         """Lag size 1 (MIN_WINDOW_SIZE) should be accepted."""
         yaml_content = """\
 name: effectifs
@@ -440,7 +440,7 @@ pipeline:
         assert result["pipeline"]["windows"][0]["size"] == 1
 
     @patch("app.core.yaml_validation.settings")
-    def test_lag_size_at_maximum_accepted(self, mock_settings):
+    def test_lag_size_at_maximum_accepted(self, mock_settings) -> None:
         """Lag size at MAX_WINDOW_SIZE should be accepted."""
         mock_settings.MAX_WINDOWS_PER_DATASET = 10
         mock_settings.MIN_WINDOW_SIZE = 1
@@ -462,7 +462,7 @@ pipeline:
         result = validate_dataset_yaml(yaml_content)
         assert result["pipeline"]["windows"][0]["size"] == 365
 
-    def test_rolling_mean_size_one_rejected(self):
+    def test_rolling_mean_size_one_rejected(self) -> None:
         """Rolling windows need at least 2 data points."""
         yaml_content = """\
 name: effectifs
@@ -480,7 +480,7 @@ pipeline:
             validate_dataset_yaml(yaml_content)
         assert "out of bounds" in exc_info.value.message
 
-    def test_rolling_std_size_one_rejected(self):
+    def test_rolling_std_size_one_rejected(self) -> None:
         """Rolling std also needs at least 2 data points."""
         yaml_content = """\
 name: effectifs
@@ -498,7 +498,7 @@ pipeline:
             validate_dataset_yaml(yaml_content)
         assert "out of bounds" in exc_info.value.message
 
-    def test_rolling_mean_size_two_accepted(self):
+    def test_rolling_mean_size_two_accepted(self) -> None:
         """Rolling mean at size 2 should be accepted."""
         yaml_content = """\
 name: effectifs
@@ -520,7 +520,7 @@ class TestMaxWindows:
     """Test that max windows per dataset is enforced."""
 
     @patch("app.core.yaml_validation.settings")
-    def test_exceeds_max_windows(self, mock_settings):
+    def test_exceeds_max_windows(self, mock_settings) -> None:
         """More than MAX_WINDOWS_PER_DATASET should be rejected."""
         mock_settings.MAX_WINDOWS_PER_DATASET = 3
         mock_settings.MIN_WINDOW_SIZE = 1
@@ -546,7 +546,7 @@ pipeline:
         assert "Too many windows" in exc_info.value.message
 
     @patch("app.core.yaml_validation.settings")
-    def test_at_max_windows_accepted(self, mock_settings):
+    def test_at_max_windows_accepted(self, mock_settings) -> None:
         """Exactly MAX_WINDOWS_PER_DATASET should pass."""
         mock_settings.MAX_WINDOWS_PER_DATASET = 3
         mock_settings.MIN_WINDOW_SIZE = 1
@@ -574,7 +574,7 @@ pipeline:
 class TestColumnReferenceValidation:
     """Test that temporal_index and group_by reference existing columns."""
 
-    def test_temporal_index_not_in_columns(self):
+    def test_temporal_index_not_in_columns(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: nonexistent_col
@@ -587,7 +587,7 @@ columns:
             validate_dataset_yaml(yaml_content)
         assert "temporal_index not found" in exc_info.value.message
 
-    def test_group_by_not_in_columns(self):
+    def test_group_by_not_in_columns(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -603,7 +603,7 @@ columns:
         assert "group_by" in exc_info.value.message
         assert "nonexistent_group" in exc_info.value.message
 
-    def test_multiple_group_by_one_invalid(self):
+    def test_multiple_group_by_one_invalid(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -626,7 +626,7 @@ columns:
 class TestDuplicateColumnNames:
     """Test that duplicate column names are rejected."""
 
-    def test_duplicate_column_name(self):
+    def test_duplicate_column_name(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -646,7 +646,7 @@ columns:
 class TestInvalidIdentifiers:
     """Test that DDL-unsafe identifiers are rejected."""
 
-    def test_dataset_name_with_uppercase(self):
+    def test_dataset_name_with_uppercase(self) -> None:
         yaml_content = """\
 name: Effectifs
 temporal_index: date_col
@@ -659,7 +659,7 @@ columns:
             validate_dataset_yaml(yaml_content)
         assert "Invalid dataset name" in exc_info.value.message
 
-    def test_dataset_name_sql_reserved_word(self):
+    def test_dataset_name_sql_reserved_word(self) -> None:
         yaml_content = """\
 name: select
 temporal_index: date_col
@@ -672,7 +672,7 @@ columns:
             validate_dataset_yaml(yaml_content)
         assert "Invalid dataset name" in exc_info.value.message
 
-    def test_column_name_with_special_chars(self):
+    def test_column_name_with_special_chars(self) -> None:
         """Column names with special characters should be rejected."""
         yaml_content = """\
 name: effectifs
@@ -686,7 +686,7 @@ columns:
             validate_dataset_yaml(yaml_content)
         assert "Invalid column name" in exc_info.value.message
 
-    def test_column_name_sql_injection_attempt(self):
+    def test_column_name_sql_injection_attempt(self) -> None:
         """SQL injection in column name should be rejected by DDL validation."""
         yaml_content = """\
 name: effectifs
@@ -703,7 +703,7 @@ columns:
             validate_dataset_yaml(yaml_content)
         assert "Invalid column name" in exc_info.value.message
 
-    def test_dataset_name_with_reserved_prefix(self):
+    def test_dataset_name_with_reserved_prefix(self) -> None:
         """Dataset name starting with pg_ should be rejected."""
         yaml_content = """\
 name: pg_dataset
@@ -722,7 +722,7 @@ class TestMaxColumns:
     """Test that column count limit is enforced."""
 
     @patch("app.core.yaml_validation.settings")
-    def test_exceeds_max_columns(self, mock_settings):
+    def test_exceeds_max_columns(self, mock_settings) -> None:
         """More than MAX_COLUMNS_PER_TABLE columns should be rejected."""
         mock_settings.MAX_COLUMNS_PER_TABLE = 3
         mock_settings.MAX_WINDOWS_PER_DATASET = 10
@@ -746,23 +746,23 @@ columns:
 class TestYAMLValidationError:
     """Test YAMLValidationError exception class."""
 
-    def test_code(self):
+    def test_code(self) -> None:
         err = YAMLValidationError("test error")
         assert err.code == "YAML_VALIDATION_ERROR"
 
-    def test_status_code(self):
+    def test_status_code(self) -> None:
         err = YAMLValidationError("test error")
         assert err.status_code == 422
 
-    def test_details(self):
+    def test_details(self) -> None:
         err = YAMLValidationError("test", details={"field": "name"})
         assert err.details == {"field": "name"}
 
-    def test_no_details(self):
+    def test_no_details(self) -> None:
         err = YAMLValidationError("test")
         assert err.details is None
 
-    def test_inherits_from_praedixa_error(self):
+    def test_inherits_from_praedixa_error(self) -> None:
         from app.core.exceptions import PraedixaError
 
         err = YAMLValidationError("test")
@@ -772,7 +772,7 @@ class TestYAMLValidationError:
 class TestPipelineNoWindows:
     """Test pipeline section with no windows or empty windows."""
 
-    def test_pipeline_without_windows_key(self):
+    def test_pipeline_without_windows_key(self) -> None:
         yaml_content = """\
 name: effectifs
 temporal_index: date_col
@@ -787,7 +787,7 @@ pipeline:
         result = validate_dataset_yaml(yaml_content)
         assert result["pipeline"]["missing_values"] == "drop"
 
-    def test_empty_group_by(self):
+    def test_empty_group_by(self) -> None:
         """Empty group_by list should pass if not referenced."""
         yaml_content = """\
 name: effectifs
@@ -813,7 +813,7 @@ columns:
 class TestColumnNullableDefault:
     """Test that nullable defaults to true when omitted."""
 
-    def test_nullable_defaults_to_true(self):
+    def test_nullable_defaults_to_true(self) -> None:
         result = validate_dataset_yaml(_VALID_MINIMAL_YAML)
         for col in result["columns"]:
             assert col.get("nullable", True) is True

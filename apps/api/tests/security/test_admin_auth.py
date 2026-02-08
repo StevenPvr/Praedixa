@@ -43,7 +43,6 @@ ERASURE_REQUEST_ID = uuid.UUID("cccccccc-1111-1111-1111-111111111111")
 TARGET_ORG_ID = uuid.UUID("dddddddd-2222-2222-2222-222222222222")
 
 # All existing admin endpoints (RGPD erasure) with their HTTP methods
-# Format: (method, path, body_or_none)
 _RGPD_ADMIN_ENDPOINTS = [
     (
         "POST",
@@ -64,7 +63,6 @@ _ONBOARDING_ID = uuid.UUID("eeeeeeee-3333-3333-3333-333333333333")
 _USER_ID = uuid.UUID("ffffffff-4444-4444-4444-444444444444")
 
 # New backoffice admin endpoints (Sprint 4)
-# Format: (method, path, body_or_none, test_id)
 _BACKOFFICE_ADMIN_ENDPOINTS = [
     # Organizations
     ("GET", "/api/v1/admin/organizations", None, "list_orgs"),
@@ -503,7 +501,7 @@ class TestForbiddenResponseShape:
                     responses.append((status_code, data))
 
             # All should be 403
-            for i, (status_code, data) in enumerate(responses):
+            for i, (status_code, _data) in enumerate(responses):
                 assert status_code == 403, f"Endpoint {i} returned {status_code}"
 
             # All error messages should be identical (no info leakage)
@@ -1012,7 +1010,7 @@ class TestForbiddenResponseShapeBackoffice:
                     responses.append((status_code, data, test_id))
 
             # All should be 403
-            for status_code, data, test_id in responses:
+            for status_code, _data, test_id in responses:
                 assert status_code == 403, (
                     f"Endpoint {test_id} returned {status_code} instead of 403"
                 )

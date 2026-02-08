@@ -1,7 +1,5 @@
 import type { NextConfig } from "next";
 
-// API URL for CSP connect-src — must match the backend origin
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const isProd = process.env.NODE_ENV === "production";
 
 const config: NextConfig = {
@@ -38,25 +36,7 @@ const config: NextConfig = {
                 },
               ]
             : []),
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https:",
-              "font-src 'self' data:",
-              `connect-src 'self' ${apiUrl} https://*.supabase.co`,
-              "worker-src 'self' blob:",
-              "frame-ancestors 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-              "object-src 'none'",
-              ...(isProd ? ["upgrade-insecure-requests"] : []),
-            ]
-              .filter(Boolean)
-              .join("; "),
-          },
+          // CSP is set dynamically per-request in middleware.ts (nonce-based)
           {
             key: "Permissions-Policy",
             value:

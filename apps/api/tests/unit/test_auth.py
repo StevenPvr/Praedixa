@@ -53,7 +53,7 @@ class TestVerifyJwt:
     """Test verify_jwt function."""
 
     @patch("app.core.auth.settings")
-    def test_valid_token(self, mock_settings):
+    def test_valid_token(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -67,7 +67,7 @@ class TestVerifyJwt:
         assert result.role == "manager"
 
     @patch("app.core.auth.settings")
-    def test_expired_token_raises_401(self, mock_settings):
+    def test_expired_token_raises_401(self, mock_settings) -> None:
         import time
 
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
@@ -84,7 +84,7 @@ class TestVerifyJwt:
 
     @pytest.mark.filterwarnings("ignore::jwt.warnings.InsecureKeyLengthWarning")
     @patch("app.core.auth.settings")
-    def test_bad_signature_raises_401(self, mock_settings):
+    def test_bad_signature_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -96,7 +96,7 @@ class TestVerifyJwt:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_invalid_audience_raises_401(self, mock_settings):
+    def test_invalid_audience_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -107,7 +107,7 @@ class TestVerifyJwt:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_missing_sub_raises_401(self, mock_settings):
+    def test_missing_sub_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -120,7 +120,7 @@ class TestVerifyJwt:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_missing_email_raises_401(self, mock_settings):
+    def test_missing_email_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -133,7 +133,7 @@ class TestVerifyJwt:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_missing_organization_id_raises_401(self, mock_settings):
+    def test_missing_organization_id_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -146,7 +146,7 @@ class TestVerifyJwt:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_default_role_viewer(self, mock_settings):
+    def test_default_role_viewer(self, mock_settings) -> None:
         """When role is missing from app_metadata, defaults to viewer."""
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
@@ -159,7 +159,7 @@ class TestVerifyJwt:
         assert result.role == "viewer"
 
     @patch("app.core.auth.settings")
-    def test_empty_app_metadata_missing_org(self, mock_settings):
+    def test_empty_app_metadata_missing_org(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -172,7 +172,7 @@ class TestVerifyJwt:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_no_app_metadata_key(self, mock_settings):
+    def test_no_app_metadata_key(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -185,7 +185,7 @@ class TestVerifyJwt:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_totally_invalid_token_raises_401(self, mock_settings):
+    def test_totally_invalid_token_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -195,7 +195,7 @@ class TestVerifyJwt:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_accepts_org_id_in_app_metadata_alias(self, mock_settings):
+    def test_accepts_org_id_in_app_metadata_alias(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -211,7 +211,7 @@ class TestVerifyJwt:
     def test_dev_accepts_org_id_from_user_metadata(
         self,
         mock_settings,
-    ):
+    ) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -230,7 +230,7 @@ class TestVerifyJwt:
     def test_production_rejects_user_metadata_org_fallback(
         self,
         mock_settings,
-    ):
+    ) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "production"
         mock_settings.is_production = True
@@ -251,7 +251,7 @@ class TestVerifyJwt:
     def test_invalid_organization_id_format_raises_401(
         self,
         mock_settings,
-    ):
+    ) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -264,7 +264,7 @@ class TestVerifyJwt:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_rs256_token_uses_jwks(self, mock_settings):
+    def test_rs256_token_uses_jwks(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.SUPABASE_URL = "https://example.supabase.co"
         mock_settings.ENVIRONMENT = "development"
@@ -293,7 +293,7 @@ class TestVerifyJwt:
             )
 
     @patch("app.core.auth.settings")
-    def test_es256_token_uses_jwks(self, mock_settings):
+    def test_es256_token_uses_jwks(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.SUPABASE_URL = "https://example.supabase.co"
         mock_settings.ENVIRONMENT = "development"
@@ -322,7 +322,7 @@ class TestVerifyJwt:
             )
 
     @patch("app.core.auth.settings")
-    def test_rs256_missing_kid_raises_401(self, mock_settings):
+    def test_rs256_missing_kid_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.SUPABASE_URL = "https://example.supabase.co"
         mock_settings.ENVIRONMENT = "development"
@@ -338,7 +338,7 @@ class TestVerifyJwt:
     def test_rs256_placeholder_url_uses_issuer_in_dev(
         self,
         mock_settings,
-    ):
+    ) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.SUPABASE_URL = "https://your-project.supabase.co"
         mock_settings.ENVIRONMENT = "development"
@@ -375,7 +375,7 @@ class TestVerifyJwt:
     def test_rs256_placeholder_url_rejected_in_production(
         self,
         mock_settings,
-    ):
+    ) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.SUPABASE_URL = "https://your-project.supabase.co"
         mock_settings.ENVIRONMENT = "production"
@@ -388,7 +388,7 @@ class TestVerifyJwt:
             assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_hs256_rejected_in_production(self, mock_settings):
+    def test_hs256_rejected_in_production(self, mock_settings) -> None:
         """HS256 tokens must be rejected in production."""
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "production"
@@ -400,7 +400,7 @@ class TestVerifyJwt:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_none_algorithm_rejected(self, mock_settings):
+    def test_none_algorithm_rejected(self, mock_settings) -> None:
         """Tokens with alg=none must always be rejected."""
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
@@ -413,7 +413,7 @@ class TestVerifyJwt:
             assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_none_algorithm_case_insensitive(self, mock_settings):
+    def test_none_algorithm_case_insensitive(self, mock_settings) -> None:
         """Tokens with alg=None/NONE must be rejected."""
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
@@ -426,7 +426,7 @@ class TestVerifyJwt:
             assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_eddsa_algorithm_accepted(self, mock_settings):
+    def test_eddsa_algorithm_accepted(self, mock_settings) -> None:
         """EdDSA tokens should be accepted (asymmetric)."""
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.SUPABASE_URL = "https://example.supabase.co"
@@ -452,12 +452,12 @@ class TestVerifyJwt:
 class TestExtractToken:
     """Test extract_token function."""
 
-    def test_valid_bearer_token(self):
+    def test_valid_bearer_token(self) -> None:
         request = MagicMock()
         request.headers.get.return_value = "Bearer abc123"
         assert extract_token(request) == "abc123"
 
-    def test_missing_authorization_header(self):
+    def test_missing_authorization_header(self) -> None:
         request = MagicMock()
         request.headers.get.return_value = None
         with pytest.raises(HTTPException) as exc_info:
@@ -465,28 +465,28 @@ class TestExtractToken:
         assert exc_info.value.status_code == 401
         assert "WWW-Authenticate" in exc_info.value.headers
 
-    def test_invalid_format_no_bearer_prefix(self):
+    def test_invalid_format_no_bearer_prefix(self) -> None:
         request = MagicMock()
         request.headers.get.return_value = "Token abc123"
         with pytest.raises(HTTPException) as exc_info:
             extract_token(request)
         assert exc_info.value.status_code == 401
 
-    def test_empty_token_after_bearer(self):
+    def test_empty_token_after_bearer(self) -> None:
         request = MagicMock()
         request.headers.get.return_value = "Bearer "
         with pytest.raises(HTTPException) as exc_info:
             extract_token(request)
         assert exc_info.value.status_code == 401
 
-    def test_bearer_lowercase_rejected(self):
+    def test_bearer_lowercase_rejected(self) -> None:
         request = MagicMock()
         request.headers.get.return_value = "bearer abc123"
         with pytest.raises(HTTPException) as exc_info:
             extract_token(request)
         assert exc_info.value.status_code == 401
 
-    def test_empty_header(self):
+    def test_empty_header(self) -> None:
         request = MagicMock()
         request.headers.get.return_value = ""
         with pytest.raises(HTTPException) as exc_info:
@@ -497,7 +497,7 @@ class TestExtractToken:
 class TestJWTPayloadFrozen:
     """Test JWTPayload dataclass properties."""
 
-    def test_frozen(self):
+    def test_frozen(self) -> None:
         payload = JWTPayload(
             user_id="u1",
             email="e@x.com",
@@ -507,7 +507,7 @@ class TestJWTPayloadFrozen:
         with pytest.raises(AttributeError):
             payload.user_id = "u2"  # type: ignore[misc]
 
-    def test_fields_accessible(self):
+    def test_fields_accessible(self) -> None:
         payload = JWTPayload(
             user_id="u1",
             email="e@x.com",
@@ -523,38 +523,38 @@ class TestJWTPayloadFrozen:
 class TestIsAllowedJwksHost:
     """Test _is_allowed_jwks_host helper."""
 
-    def test_none_hostname(self):
+    def test_none_hostname(self) -> None:
         assert _is_allowed_jwks_host(None) is False
 
-    def test_empty_hostname(self):
+    def test_empty_hostname(self) -> None:
         assert _is_allowed_jwks_host("") is False
 
-    def test_supabase_co(self):
+    def test_supabase_co(self) -> None:
         assert _is_allowed_jwks_host("example.supabase.co") is True
 
-    def test_localhost(self):
+    def test_localhost(self) -> None:
         assert _is_allowed_jwks_host("localhost") is True
 
-    def test_ipv4_loopback(self):
+    def test_ipv4_loopback(self) -> None:
         assert _is_allowed_jwks_host("127.0.0.1") is True
 
-    def test_ipv6_loopback(self):
+    def test_ipv6_loopback(self) -> None:
         assert _is_allowed_jwks_host("::1") is True
 
-    def test_evil_host(self):
+    def test_evil_host(self) -> None:
         assert _is_allowed_jwks_host("evil.com") is False
 
 
 class TestJwksUrlFromIssuer:
     """Test _jwks_url_from_issuer helper."""
 
-    def test_valid_issuer(self):
+    def test_valid_issuer(self) -> None:
         url = _jwks_url_from_issuer(
             "https://proj.supabase.co/auth/v1",
         )
         assert url == ("https://proj.supabase.co/auth/v1/.well-known/jwks.json")
 
-    def test_bad_scheme(self):
+    def test_bad_scheme(self) -> None:
         assert (
             _jwks_url_from_issuer(
                 "ftp://proj.supabase.co/auth/v1",
@@ -562,10 +562,10 @@ class TestJwksUrlFromIssuer:
             is None
         )
 
-    def test_bad_host(self):
+    def test_bad_host(self) -> None:
         assert _jwks_url_from_issuer("https://evil.com/auth/v1") is None
 
-    def test_bad_path(self):
+    def test_bad_path(self) -> None:
         assert (
             _jwks_url_from_issuer(
                 "https://proj.supabase.co/other",
@@ -573,7 +573,7 @@ class TestJwksUrlFromIssuer:
             is None
         )
 
-    def test_trailing_slash(self):
+    def test_trailing_slash(self) -> None:
         url = _jwks_url_from_issuer(
             "https://proj.supabase.co/auth/v1/",
         )
@@ -583,23 +583,23 @@ class TestJwksUrlFromIssuer:
 class TestJwksUrlFromBase:
     """Test _jwks_url_from_base helper."""
 
-    def test_base_url_no_path(self):
+    def test_base_url_no_path(self) -> None:
         url = _jwks_url_from_base("https://proj.supabase.co")
         assert url == ("https://proj.supabase.co/auth/v1/.well-known/jwks.json")
 
-    def test_base_url_with_auth_path(self):
+    def test_base_url_with_auth_path(self) -> None:
         url = _jwks_url_from_base(
             "https://proj.supabase.co/auth/v1",
         )
         assert url == ("https://proj.supabase.co/auth/v1/.well-known/jwks.json")
 
-    def test_bad_scheme(self):
+    def test_bad_scheme(self) -> None:
         assert _jwks_url_from_base("ftp://proj.supabase.co") is None
 
-    def test_bad_host(self):
+    def test_bad_host(self) -> None:
         assert _jwks_url_from_base("https://evil.com") is None
 
-    def test_unrecognized_path(self):
+    def test_unrecognized_path(self) -> None:
         assert (
             _jwks_url_from_base(
                 "https://proj.supabase.co/other/path",
@@ -612,7 +612,7 @@ class TestDecodeToken:
     """Test _decode_token internal paths."""
 
     @patch("app.core.auth.settings")
-    def test_missing_alg_raises_401(self, mock_settings):
+    def test_missing_alg_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         with patch("app.core.auth.jwt.get_unverified_header") as m:
             m.return_value = {}
@@ -621,7 +621,7 @@ class TestDecodeToken:
             assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_non_string_alg_raises_401(self, mock_settings):
+    def test_non_string_alg_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         with patch("app.core.auth.jwt.get_unverified_header") as m:
             m.return_value = {"alg": 123}
@@ -630,7 +630,7 @@ class TestDecodeToken:
             assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_unknown_algorithm_raises_401(self, mock_settings):
+    def test_unknown_algorithm_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         with patch("app.core.auth.jwt.get_unverified_header") as m:
             m.return_value = {"alg": "PS256"}
@@ -639,7 +639,7 @@ class TestDecodeToken:
             assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_hs256_non_dict_decoded_raises_401(self, mock_settings):
+    def test_hs256_non_dict_decoded_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.is_production = False
         mock_settings.LEGACY_HS256_ENABLED = True
@@ -658,7 +658,7 @@ class TestDecodeWithJwks:
     """Test asymmetric decode paths."""
 
     @patch("app.core.auth.settings")
-    def test_jwt_decode_error_raises_401(self, mock_settings):
+    def test_jwt_decode_error_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_URL = "https://proj.supabase.co"
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -681,7 +681,7 @@ class TestDecodeWithJwks:
             assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_non_dict_decoded_raises_401(self, mock_settings):
+    def test_non_dict_decoded_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_URL = "https://proj.supabase.co"
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -705,7 +705,7 @@ class TestDecodeWithJwks:
     def test_jwks_key_resolution_failure_raises_401(
         self,
         mock_settings,
-    ):
+    ) -> None:
         mock_settings.SUPABASE_URL = "https://proj.supabase.co"
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -727,7 +727,7 @@ class TestResolveJwksUrl:
     """Test _resolve_jwks_url internal paths."""
 
     @patch("app.core.auth.settings")
-    def test_bad_configured_url_raises_401(self, mock_settings):
+    def test_bad_configured_url_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_URL = "https://evil.com/bad"
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -742,7 +742,7 @@ class TestResolveJwksUrl:
     def test_placeholder_dev_bad_claims_raises_401(
         self,
         mock_settings,
-    ):
+    ) -> None:
         mock_settings.SUPABASE_URL = ""
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -765,7 +765,7 @@ class TestResolveJwksUrl:
     def test_placeholder_dev_non_string_issuer_raises_401(
         self,
         mock_settings,
-    ):
+    ) -> None:
         mock_settings.SUPABASE_URL = ""
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -785,7 +785,7 @@ class TestResolveJwksUrl:
     def test_placeholder_dev_bad_issuer_url_raises_401(
         self,
         mock_settings,
-    ):
+    ) -> None:
         mock_settings.SUPABASE_URL = ""
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -808,7 +808,7 @@ class TestVerifyJwtSecurityValidations:
     """Test security validations added to verify_jwt."""
 
     @patch("app.core.auth.settings")
-    def test_non_uuid_sub_raises_401(self, mock_settings):
+    def test_non_uuid_sub_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -819,7 +819,7 @@ class TestVerifyJwtSecurityValidations:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_email_without_at_raises_401(self, mock_settings):
+    def test_email_without_at_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -830,7 +830,7 @@ class TestVerifyJwtSecurityValidations:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_email_too_long_raises_401(self, mock_settings):
+    def test_email_too_long_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -843,7 +843,7 @@ class TestVerifyJwtSecurityValidations:
         assert exc_info.value.status_code == 401
 
     @patch("app.core.auth.settings")
-    def test_unknown_role_downgraded_to_viewer(self, mock_settings):
+    def test_unknown_role_downgraded_to_viewer(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -858,7 +858,7 @@ class TestVerifyJwtSecurityValidations:
     def test_non_dict_app_metadata_treated_as_empty(
         self,
         mock_settings,
-    ):
+    ) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -872,7 +872,7 @@ class TestVerifyJwtSecurityValidations:
         assert result.role == "viewer"
 
     @patch("app.core.auth.settings")
-    def test_non_string_org_id_raises_401(self, mock_settings):
+    def test_non_string_org_id_raises_401(self, mock_settings) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -889,7 +889,7 @@ class TestVerifyJwtSecurityValidations:
     def test_non_dict_user_metadata_treated_as_empty(
         self,
         mock_settings,
-    ):
+    ) -> None:
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
@@ -906,14 +906,14 @@ class TestVerifyJwtSecurityValidations:
 class TestAllowDevUserMetadataOrgId:
     """Test _allow_dev_user_metadata_org_id helper."""
 
-    def test_returns_false_when_not_local_development(self):
+    def test_returns_false_when_not_local_development(self) -> None:
         """Line 88: when _is_local_development() returns False, returns False."""
         from app.core.auth import _allow_dev_user_metadata_org_id
 
         with patch("app.core.auth._is_local_development", return_value=False):
             assert _allow_dev_user_metadata_org_id() is False
 
-    def test_returns_true_when_local_dev_and_flag_set(self):
+    def test_returns_true_when_local_dev_and_flag_set(self) -> None:
         from app.core.auth import _allow_dev_user_metadata_org_id
 
         with (
@@ -930,7 +930,7 @@ class TestHs256PayloadNotDict:
     """Test HS256 decoded payload not-a-dict branch (lines 235-236)."""
 
     @patch("app.core.auth.settings")
-    def test_hs256_list_payload_raises_401(self, mock_settings):
+    def test_hs256_list_payload_raises_401(self, mock_settings) -> None:
         """When jwt.decode returns a list instead of dict, raise 401."""
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
         mock_settings.ENVIRONMENT = "development"

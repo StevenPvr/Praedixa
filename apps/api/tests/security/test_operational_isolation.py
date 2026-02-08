@@ -73,7 +73,7 @@ def _tenant_b():
 
 class TestCanonicalRecordIsolation:
     @pytest.mark.asyncio
-    async def test_list_applies_tenant_filter(self):
+    async def test_list_applies_tenant_filter(self) -> None:
         tenant = _tenant_a()
         session = make_mock_session(
             make_scalar_result(0),
@@ -85,7 +85,7 @@ class TestCanonicalRecordIsolation:
         assert tenant.organization_id == ORG_A_ID
 
     @pytest.mark.asyncio
-    async def test_get_applies_tenant_filter(self):
+    async def test_get_applies_tenant_filter(self) -> None:
         rec = _make_canonical_record()
         tenant = _tenant_a()
         session = make_mock_session(make_scalar_result(rec))
@@ -93,7 +93,7 @@ class TestCanonicalRecordIsolation:
         tenant.apply.assert_called()
 
     @pytest.mark.asyncio
-    async def test_get_cross_org_returns_not_found(self):
+    async def test_get_cross_org_returns_not_found(self) -> None:
         tenant_b = _tenant_b()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
@@ -102,7 +102,7 @@ class TestCanonicalRecordIsolation:
             await get_canonical_record(session, tenant_b, uuid.uuid4())
 
     @pytest.mark.asyncio
-    async def test_create_injects_org_id(self):
+    async def test_create_injects_org_id(self) -> None:
         tenant = _tenant_a()
         session = AsyncMock()
         session.add = MagicMock()
@@ -119,7 +119,7 @@ class TestCanonicalRecordIsolation:
         assert result.organization_id == uuid.UUID(ORG_A_ID)
 
     @pytest.mark.asyncio
-    async def test_bulk_import_injects_org_id(self):
+    async def test_bulk_import_injects_org_id(self) -> None:
         tenant = _tenant_a()
         session = AsyncMock()
         result_mock = MagicMock()
@@ -141,14 +141,14 @@ class TestCanonicalRecordIsolation:
         session.execute.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_quality_dashboard_applies_tenant(self):
+    async def test_quality_dashboard_applies_tenant(self) -> None:
         tenant = _tenant_a()
         session = make_mock_session(make_scalar_result(0))
         await get_quality_dashboard(session, tenant)
         tenant.apply.assert_called()
 
     @pytest.mark.asyncio
-    async def test_different_tenants_different_apply_calls(self):
+    async def test_different_tenants_different_apply_calls(self) -> None:
         tenant_a = _tenant_a()
         tenant_b = _tenant_b()
 
@@ -169,14 +169,14 @@ class TestCanonicalRecordIsolation:
 
 class TestCostParameterIsolation:
     @pytest.mark.asyncio
-    async def test_list_applies_tenant_filter(self):
+    async def test_list_applies_tenant_filter(self) -> None:
         tenant = _tenant_a()
         session = make_mock_session(make_scalar_result(0), make_scalars_result([]))
         await list_cost_parameters(session, tenant)
         tenant.apply.assert_called()
 
     @pytest.mark.asyncio
-    async def test_get_effective_applies_tenant(self):
+    async def test_get_effective_applies_tenant(self) -> None:
         cp = _make_cost_parameter(site_id=None)
         tenant = _tenant_a()
         result_mock = MagicMock()
@@ -186,7 +186,7 @@ class TestCostParameterIsolation:
         tenant.apply.assert_called()
 
     @pytest.mark.asyncio
-    async def test_get_effective_cross_org_raises(self):
+    async def test_get_effective_cross_org_raises(self) -> None:
         tenant_b = _tenant_b()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
@@ -195,7 +195,7 @@ class TestCostParameterIsolation:
             await get_effective_cost_parameter(session, tenant_b)
 
     @pytest.mark.asyncio
-    async def test_create_injects_org_id(self):
+    async def test_create_injects_org_id(self) -> None:
         tenant = _tenant_a()
         version_result = MagicMock()
         version_result.scalar_one.return_value = 0
@@ -217,7 +217,7 @@ class TestCostParameterIsolation:
         assert result.organization_id == uuid.UUID(ORG_A_ID)
 
     @pytest.mark.asyncio
-    async def test_history_applies_tenant(self):
+    async def test_history_applies_tenant(self) -> None:
         tenant = _tenant_a()
         session = make_mock_session(make_scalars_result([]))
         await get_cost_parameter_history(session, tenant)
@@ -229,14 +229,14 @@ class TestCostParameterIsolation:
 
 class TestDecisionLogIsolation:
     @pytest.mark.asyncio
-    async def test_list_applies_tenant(self):
+    async def test_list_applies_tenant(self) -> None:
         tenant = _tenant_a()
         session = make_mock_session(make_scalar_result(0), make_scalars_result([]))
         await list_operational_decisions(session, tenant)
         tenant.apply.assert_called()
 
     @pytest.mark.asyncio
-    async def test_get_applies_tenant(self):
+    async def test_get_applies_tenant(self) -> None:
         dec = _make_operational_decision()
         tenant = _tenant_a()
         result_mock = MagicMock()
@@ -246,7 +246,7 @@ class TestDecisionLogIsolation:
         tenant.apply.assert_called()
 
     @pytest.mark.asyncio
-    async def test_get_cross_org_raises(self):
+    async def test_get_cross_org_raises(self) -> None:
         tenant_b = _tenant_b()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
@@ -255,7 +255,7 @@ class TestDecisionLogIsolation:
             await get_operational_decision(session, tenant_b, uuid.uuid4())
 
     @pytest.mark.asyncio
-    async def test_create_injects_org_id(self):
+    async def test_create_injects_org_id(self) -> None:
         tenant = _tenant_a()
         alert = _make_coverage_alert()
         alert_result = MagicMock()
@@ -282,7 +282,7 @@ class TestDecisionLogIsolation:
         assert result.organization_id == uuid.UUID(ORG_A_ID)
 
     @pytest.mark.asyncio
-    async def test_update_cross_org_raises(self):
+    async def test_update_cross_org_raises(self) -> None:
         tenant_b = _tenant_b()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
@@ -296,7 +296,7 @@ class TestDecisionLogIsolation:
             )
 
     @pytest.mark.asyncio
-    async def test_override_stats_applies_tenant(self):
+    async def test_override_stats_applies_tenant(self) -> None:
         tenant = _tenant_a()
         session = make_mock_session(make_scalar_result(0))
         await get_override_statistics(session, tenant)
@@ -308,7 +308,7 @@ class TestDecisionLogIsolation:
 
 class TestScenarioOptionIsolation:
     @pytest.mark.asyncio
-    async def test_get_scenarios_applies_tenant(self):
+    async def test_get_scenarios_applies_tenant(self) -> None:
         tenant = _tenant_a()
         session = make_mock_session(make_scalars_result([]))
         await get_scenarios_for_alert(session, tenant, uuid.uuid4())
@@ -320,14 +320,14 @@ class TestScenarioOptionIsolation:
 
 class TestProofRecordIsolation:
     @pytest.mark.asyncio
-    async def test_list_applies_tenant(self):
+    async def test_list_applies_tenant(self) -> None:
         tenant = _tenant_a()
         session = make_mock_session(make_scalar_result(0), make_scalars_result([]))
         await list_proof_records(session, tenant)
         tenant.apply.assert_called()
 
     @pytest.mark.asyncio
-    async def test_summary_applies_tenant(self):
+    async def test_summary_applies_tenant(self) -> None:
         tenant = _tenant_a()
         agg_result = MagicMock()
         agg_result.one.return_value = (0, None, None)
@@ -345,7 +345,7 @@ class TestCrossTenantErrorConsistency:
     """Cross-org and non-existent resources produce identical NotFoundError."""
 
     @pytest.mark.asyncio
-    async def test_canonical_record_errors_identical(self):
+    async def test_canonical_record_errors_identical(self) -> None:
         tenant = _tenant_b()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
@@ -357,7 +357,7 @@ class TestCrossTenantErrorConsistency:
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_cost_parameter_errors_identical(self):
+    async def test_cost_parameter_errors_identical(self) -> None:
         tenant = _tenant_b()
         # Two results: site-specific (None) then org-wide fallback (None)
         site_result = MagicMock()
@@ -373,7 +373,7 @@ class TestCrossTenantErrorConsistency:
         assert exc_info.value.code == "NOT_FOUND"
 
     @pytest.mark.asyncio
-    async def test_decision_errors_identical(self):
+    async def test_decision_errors_identical(self) -> None:
         tenant = _tenant_b()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
@@ -391,7 +391,7 @@ class TestOrgIdNeverFromClient:
     """organization_id is always injected from TenantFilter, never accepted."""
 
     @pytest.mark.asyncio
-    async def test_canonical_create_uses_tenant_org(self):
+    async def test_canonical_create_uses_tenant_org(self) -> None:
         tenant = _tenant_a()
         session = AsyncMock()
         session.add = MagicMock()
@@ -409,7 +409,7 @@ class TestOrgIdNeverFromClient:
         assert result.organization_id == uuid.UUID(ORG_A_ID)
 
     @pytest.mark.asyncio
-    async def test_cost_param_create_uses_tenant_org(self):
+    async def test_cost_param_create_uses_tenant_org(self) -> None:
         tenant = _tenant_a()
         version_result = MagicMock()
         version_result.scalar_one.return_value = 0
@@ -431,7 +431,7 @@ class TestOrgIdNeverFromClient:
         assert result.organization_id == uuid.UUID(ORG_A_ID)
 
     @pytest.mark.asyncio
-    async def test_decision_create_uses_tenant_org(self):
+    async def test_decision_create_uses_tenant_org(self) -> None:
         tenant = _tenant_a()
         alert = _make_coverage_alert()
         alert_result = MagicMock()

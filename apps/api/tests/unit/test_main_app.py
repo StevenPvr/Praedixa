@@ -18,14 +18,14 @@ async def client():
 class TestAppConfiguration:
     """Test app metadata and configuration."""
 
-    def test_app_title(self):
+    def test_app_title(self) -> None:
         assert app.title == "Praedixa API"
 
-    def test_app_version(self):
+    def test_app_version(self) -> None:
         # version comes from settings.APP_VERSION
         assert app.version is not None
 
-    def test_app_description(self):
+    def test_app_description(self) -> None:
         desc = app.description.lower()
         assert "logistics" in desc or "forecast" in desc
 
@@ -33,31 +33,31 @@ class TestAppConfiguration:
 class TestRoutersIncluded:
     """Test that all 7 routers are registered."""
 
-    def test_health_router(self):
+    def test_health_router(self) -> None:
         paths = [r.path for r in app.routes]
         assert "/health" in paths
 
-    def test_dashboard_router(self):
+    def test_dashboard_router(self) -> None:
         paths = [r.path for r in app.routes]
         assert "/api/v1/dashboard/summary" in paths
 
-    def test_forecasts_router(self):
+    def test_forecasts_router(self) -> None:
         paths = [r.path for r in app.routes]
         assert "/api/v1/forecasts" in paths
 
-    def test_alerts_router(self):
+    def test_alerts_router(self) -> None:
         paths = [r.path for r in app.routes]
         assert "/api/v1/alerts" in paths
 
-    def test_organizations_router(self):
+    def test_organizations_router(self) -> None:
         paths = [r.path for r in app.routes]
         assert "/api/v1/organizations/me" in paths
 
-    def test_decisions_router(self):
+    def test_decisions_router(self) -> None:
         paths = [r.path for r in app.routes]
         assert "/api/v1/decisions" in paths
 
-    def test_arbitrage_router(self):
+    def test_arbitrage_router(self) -> None:
         [r.path for r in app.routes]
         # Arbitrage routes have path params, check prefix
         route_paths = [r.path for r in app.routes]
@@ -68,13 +68,13 @@ class TestRequestIdMiddleware:
     """Test X-Request-ID middleware behavior."""
 
     @pytest.mark.asyncio
-    async def test_valid_client_request_id_preserved(self, client):
+    async def test_valid_client_request_id_preserved(self, client) -> None:
         """Client-supplied X-Request-ID should be returned in response."""
         resp = await client.get("/health", headers={"X-Request-ID": "req-123"})
         assert resp.headers.get("X-Request-ID") == "req-123"
 
     @pytest.mark.asyncio
-    async def test_auto_generated_request_id(self, client):
+    async def test_auto_generated_request_id(self, client) -> None:
         """Without client X-Request-ID, a UUID should be generated."""
         resp = await client.get("/health")
         req_id = resp.headers.get("X-Request-ID")
@@ -82,7 +82,7 @@ class TestRequestIdMiddleware:
         assert len(req_id) == 36  # UUID4 format
 
     @pytest.mark.asyncio
-    async def test_oversized_request_id_rejected(self, client):
+    async def test_oversized_request_id_rejected(self, client) -> None:
         """Oversized X-Request-ID should be replaced with a UUID."""
         long_id = "x" * 100  # > 64 chars
         resp = await client.get("/health", headers={"X-Request-ID": long_id})
@@ -91,14 +91,14 @@ class TestRequestIdMiddleware:
         assert len(req_id) == 36
 
     @pytest.mark.asyncio
-    async def test_max_length_request_id_preserved(self, client):
+    async def test_max_length_request_id_preserved(self, client) -> None:
         """X-Request-ID at exactly the max length (64 chars) should be preserved."""
         max_id = "a" * 64
         resp = await client.get("/health", headers={"X-Request-ID": max_id})
         assert resp.headers.get("X-Request-ID") == max_id
 
     @pytest.mark.asyncio
-    async def test_process_time_header(self, client):
+    async def test_process_time_header(self, client) -> None:
         """X-Process-Time header should be present."""
         resp = await client.get("/health")
         assert "X-Process-Time" in resp.headers
@@ -110,7 +110,7 @@ class TestLifespan:
     """Test application lifespan events."""
 
     @pytest.mark.asyncio
-    async def test_lifespan_startup_and_shutdown(self):
+    async def test_lifespan_startup_and_shutdown(self) -> None:
         """Verify lifespan context manager runs without error."""
         from app.main import lifespan
 
@@ -127,7 +127,7 @@ class TestSecurityHeaders:
     """Test security headers in middleware."""
 
     @pytest.mark.asyncio
-    async def test_hsts_header_in_production(self):
+    async def test_hsts_header_in_production(self) -> None:
         """Line 178: HSTS header is added when is_production is True."""
         with patch("app.main.settings") as mock_settings:
             mock_settings.is_production = True
@@ -144,7 +144,7 @@ class TestSecurityHeaders:
                 )
 
     @pytest.mark.asyncio
-    async def test_no_hsts_header_in_development(self, client):
+    async def test_no_hsts_header_in_development(self, client) -> None:
         """HSTS header is NOT added when is_production is False."""
         resp = await client.get("/health")
         assert "Strict-Transport-Security" not in resp.headers
@@ -154,7 +154,7 @@ class TestCorsConfiguration:
     """Test CORS middleware is configured."""
 
     @pytest.mark.asyncio
-    async def test_cors_allows_configured_origin(self, client):
+    async def test_cors_allows_configured_origin(self, client) -> None:
         """CORS should respond with proper headers for allowed origins."""
         resp = await client.options(
             "/health",

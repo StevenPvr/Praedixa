@@ -22,7 +22,7 @@ class TestIsMedicalAbsenceType:
             "paternity",
         ],
     )
-    def test_medical_types_are_recognized(self, absence_type):
+    def test_medical_types_are_recognized(self, absence_type) -> None:
         assert is_medical_absence_type(absence_type) is True
 
     @pytest.mark.parametrize(
@@ -35,10 +35,10 @@ class TestIsMedicalAbsenceType:
             "unpaid_leave",
         ],
     )
-    def test_non_medical_types_are_not_recognized(self, absence_type):
+    def test_non_medical_types_are_not_recognized(self, absence_type) -> None:
         assert is_medical_absence_type(absence_type) is False
 
-    def test_case_insensitive(self):
+    def test_case_insensitive(self) -> None:
         assert is_medical_absence_type("SICK_LEAVE") is True
         assert is_medical_absence_type("Maternity") is True
 
@@ -46,20 +46,20 @@ class TestIsMedicalAbsenceType:
 class TestMaskMedicalReasons:
     """Tests for mask_medical_reasons()."""
 
-    def test_medical_absence_reason_is_masked(self):
+    def test_medical_absence_reason_is_masked(self) -> None:
         absences = [{"type": "sick_leave", "reason": "flu symptoms"}]
         result = mask_medical_reasons(absences)
         assert result[0]["reason"] == _MASKED_REASON
 
-    def test_non_medical_absence_is_untouched(self):
+    def test_non_medical_absence_is_untouched(self) -> None:
         absences = [{"type": "vacation", "reason": "summer holiday"}]
         result = mask_medical_reasons(absences)
         assert result[0]["reason"] == "summer holiday"
 
-    def test_empty_list_returns_empty(self):
+    def test_empty_list_returns_empty(self) -> None:
         assert mask_medical_reasons([]) == []
 
-    def test_mixed_list(self):
+    def test_mixed_list(self) -> None:
         absences = [
             {"type": "sick_leave", "reason": "confidential"},
             {"type": "vacation", "reason": "travel"},
@@ -70,7 +70,7 @@ class TestMaskMedicalReasons:
         assert result[1]["reason"] == "travel"
         assert result[2]["reason"] == _MASKED_REASON
 
-    def test_certificate_fields_removed_from_medical(self):
+    def test_certificate_fields_removed_from_medical(self) -> None:
         absences = [
             {
                 "type": "sick_leave",
@@ -83,7 +83,7 @@ class TestMaskMedicalReasons:
         assert "medical_certificate_required" not in result[0]
         assert "medical_certificate_uploaded" not in result[0]
 
-    def test_certificate_fields_preserved_on_non_medical(self):
+    def test_certificate_fields_preserved_on_non_medical(self) -> None:
         absences = [
             {
                 "type": "vacation",
@@ -94,18 +94,18 @@ class TestMaskMedicalReasons:
         result = mask_medical_reasons(absences)
         assert result[0]["medical_certificate_required"] is False
 
-    def test_does_not_mutate_input(self):
+    def test_does_not_mutate_input(self) -> None:
         original = [{"type": "sick_leave", "reason": "flu"}]
         mask_medical_reasons(original)
         assert original[0]["reason"] == "flu"
 
-    def test_absence_type_key_variant(self):
+    def test_absence_type_key_variant(self) -> None:
         """Test with 'absence_type' key instead of 'type'."""
         absences = [{"absence_type": "maternity", "reason": "leave"}]
         result = mask_medical_reasons(absences)
         assert result[0]["reason"] == _MASKED_REASON
 
-    def test_enum_like_type_with_value_attribute(self):
+    def test_enum_like_type_with_value_attribute(self) -> None:
         """Test with objects that have a .value attribute (like enums)."""
         from types import SimpleNamespace
 
@@ -114,7 +114,7 @@ class TestMaskMedicalReasons:
         result = mask_medical_reasons(absences)
         assert result[0]["reason"] == _MASKED_REASON
 
-    def test_diagnosis_code_removed(self):
+    def test_diagnosis_code_removed(self) -> None:
         absences = [
             {
                 "type": "sick_leave",
@@ -125,7 +125,7 @@ class TestMaskMedicalReasons:
         result = mask_medical_reasons(absences)
         assert "diagnosis_code" not in result[0]
 
-    def test_medical_notes_removed(self):
+    def test_medical_notes_removed(self) -> None:
         absences = [
             {
                 "type": "paternity",
@@ -136,18 +136,18 @@ class TestMaskMedicalReasons:
         result = mask_medical_reasons(absences)
         assert "medical_notes" not in result[0]
 
-    def test_all_medical_types_covered(self):
+    def test_all_medical_types_covered(self) -> None:
         for med_type in _MEDICAL_ABSENCE_TYPES:
             absences = [{"type": med_type, "reason": "secret"}]
             result = mask_medical_reasons(absences)
             assert result[0]["reason"] == _MASKED_REASON, f"Failed for {med_type}"
 
-    def test_missing_type_key_does_not_crash(self):
+    def test_missing_type_key_does_not_crash(self) -> None:
         absences = [{"reason": "something"}]
         result = mask_medical_reasons(absences)
         assert result[0]["reason"] == "something"
 
-    def test_none_type_does_not_crash(self):
+    def test_none_type_does_not_crash(self) -> None:
         absences = [{"type": None, "reason": "something"}]
         result = mask_medical_reasons(absences)
         assert result[0]["reason"] == "something"

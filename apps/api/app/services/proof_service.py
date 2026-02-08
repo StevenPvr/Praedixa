@@ -65,7 +65,7 @@ async def generate_proof_record(
 
     # First day of month for range calculation
     month_start = month.replace(day=1)
-    if month.month == 12:
+    if month.month == _DECEMBER:
         month_end = month.replace(year=month.year + 1, month=1, day=1)
     else:
         month_end = month.replace(month=month.month + 1, day=1)

@@ -198,7 +198,7 @@ def mock_session():
 
     # Simulate flush: assign a UUID to any ORM object with id=None,
     # mimicking PostgreSQL's RETURNING behavior after INSERT.
-    async def _flush_side_effect(*_args, **_kwargs):
+    async def _flush_side_effect(*_args, **_kwargs) -> None:
         for call in session.add.call_args_list:
             obj = call[0][0]
             if hasattr(obj, "id") and obj.id is None:
@@ -290,7 +290,7 @@ class TestSuccessfulIngestion:
         mock_insert,
         mock_cooldown,
         admin_client,
-    ):
+    ) -> None:
         mock_get_dataset.return_value = _make_dataset()
         mock_get_columns.return_value = _make_columns()
         mock_parse.return_value = _make_parse_result()
@@ -331,7 +331,7 @@ class TestSuccessfulIngestion:
         mock_insert,
         mock_cooldown,
         admin_client,
-    ):
+    ) -> None:
         mock_get_dataset.return_value = _make_dataset()
         mock_get_columns.return_value = _make_columns()
         mock_parse.return_value = _make_parse_result(fmt="xlsx")
@@ -354,7 +354,7 @@ class TestSuccessfulIngestion:
 
 
 class TestAuthErrors:
-    async def test_401_no_auth(self, unauth_client):
+    async def test_401_no_auth(self, unauth_client) -> None:
         response = await unauth_client.post(
             _url(),
             files={"file": ("data.csv", _csv_bytes(), "text/csv")},
@@ -368,7 +368,7 @@ class TestAuthErrors:
         mock_get_dataset,
         mock_cooldown,
         viewer_client,
-    ):
+    ) -> None:
         """Viewer role should be rejected by require_role('org_admin')."""
         mock_get_dataset.return_value = _make_dataset()
         mock_cooldown.return_value = None
@@ -391,7 +391,7 @@ class TestDatasetNotFound:
         mock_get_dataset,
         mock_cooldown,
         admin_client,
-    ):
+    ) -> None:
         from app.core.exceptions import NotFoundError
 
         mock_get_dataset.side_effect = NotFoundError("Dataset", str(DATASET_ID))
@@ -415,7 +415,7 @@ class TestFileValidation:
         mock_get_dataset,
         mock_cooldown,
         admin_client,
-    ):
+    ) -> None:
         mock_get_dataset.return_value = _make_dataset()
         mock_cooldown.return_value = None
 
@@ -432,7 +432,7 @@ class TestFileValidation:
         mock_get_dataset,
         mock_cooldown,
         admin_client,
-    ):
+    ) -> None:
         mock_get_dataset.return_value = _make_dataset()
         mock_cooldown.return_value = None
 
@@ -454,7 +454,7 @@ class TestCooldown:
         mock_get_dataset,
         mock_cooldown,
         admin_client,
-    ):
+    ) -> None:
         from app.core.exceptions import PraedixaError
 
         mock_get_dataset.return_value = _make_dataset()
@@ -492,7 +492,7 @@ class TestFormatHint:
         mock_insert,
         mock_cooldown,
         admin_client,
-    ):
+    ) -> None:
         """format_hint=lucca should be forwarded to parse_file and map_columns."""
         mock_get_dataset.return_value = _make_dataset()
         mock_get_columns.return_value = _make_columns()
@@ -532,7 +532,7 @@ class TestFormatHint:
         mock_insert,
         mock_cooldown,
         admin_client,
-    ):
+    ) -> None:
         """format_hint=payfit should be forwarded to parse_file and map_columns."""
         mock_get_dataset.return_value = _make_dataset()
         mock_get_columns.return_value = _make_columns()
@@ -563,7 +563,7 @@ class TestFileTooLarge:
         mock_get_dataset,
         mock_cooldown,
         admin_client,
-    ):
+    ) -> None:
         """File exceeding MAX_UPLOAD_SIZE_BYTES returns 413."""
         mock_get_dataset.return_value = _make_dataset()
         mock_cooldown.return_value = None
@@ -603,7 +603,7 @@ class TestIngestionLog:
         mock_cooldown,
         admin_client,
         mock_session,
-    ):
+    ) -> None:
         """Successful ingestion creates an IngestionLog with correct fields."""
         mock_get_dataset.return_value = _make_dataset()
         mock_get_columns.return_value = _make_columns()
@@ -665,7 +665,7 @@ class TestIngestionLog:
         mock_cooldown,
         admin_client,
         mock_session,
-    ):
+    ) -> None:
         """Parse failure should still create a FAILED IngestionLog entry."""
         mock_get_dataset.return_value = _make_dataset()
         mock_get_columns.return_value = _make_columns()

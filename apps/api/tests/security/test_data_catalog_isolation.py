@@ -267,8 +267,9 @@ class TestDatasetGetIsolation:
     ) -> None:
         from unittest.mock import MagicMock
 
-        # session.execute for the aggregation query returns (row_count, last_ingestion_at)
-        # Use MagicMock (not AsyncMock) for the result so .one() is sync
+        # session.execute for the aggregation query returns a tuple
+        # of (row_count, last_ingestion_at). Use MagicMock (not
+        # AsyncMock) for the result so .one() is sync.
         agg_result = MagicMock()
         agg_result.one.return_value = (500, None)
         mock_session.execute = AsyncMock(return_value=agg_result)

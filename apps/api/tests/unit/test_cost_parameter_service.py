@@ -37,7 +37,7 @@ ORG_ID = "11111111-1111-1111-1111-111111111111"
 
 class TestListCostParameters:
     @pytest.mark.asyncio
-    async def test_returns_items_and_total(self):
+    async def test_returns_items_and_total(self) -> None:
         cp = _make_cost_parameter()
         tenant = _make_tenant()
         session = make_mock_session(
@@ -50,7 +50,7 @@ class TestListCostParameters:
         assert items[0] is cp
 
     @pytest.mark.asyncio
-    async def test_returns_empty_list(self):
+    async def test_returns_empty_list(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(0),
@@ -61,7 +61,7 @@ class TestListCostParameters:
         assert items == []
 
     @pytest.mark.asyncio
-    async def test_site_id_filter(self):
+    async def test_site_id_filter(self) -> None:
         cp = _make_cost_parameter(site_id="site-lyon")
         tenant = _make_tenant()
         session = make_mock_session(
@@ -73,7 +73,7 @@ class TestListCostParameters:
         assert items[0].site_id == "site-lyon"
 
     @pytest.mark.asyncio
-    async def test_pagination(self):
+    async def test_pagination(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(50),
@@ -83,7 +83,7 @@ class TestListCostParameters:
         assert total == 50
 
     @pytest.mark.asyncio
-    async def test_none_count_coerced_to_zero(self):
+    async def test_none_count_coerced_to_zero(self) -> None:
         tenant = _make_tenant()
         count_result = MagicMock()
         count_result.scalar_one.return_value = None
@@ -92,7 +92,7 @@ class TestListCostParameters:
         assert total == 0
 
     @pytest.mark.asyncio
-    async def test_tenant_filter_applied(self):
+    async def test_tenant_filter_applied(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(0),
@@ -107,7 +107,7 @@ class TestListCostParameters:
 
 class TestGetEffectiveCostParameter:
     @pytest.mark.asyncio
-    async def test_site_specific_found(self):
+    async def test_site_specific_found(self) -> None:
         cp = _make_cost_parameter(site_id="site-paris")
         tenant = _make_tenant()
         result_mock = MagicMock()
@@ -119,7 +119,7 @@ class TestGetEffectiveCostParameter:
         assert result is cp
 
     @pytest.mark.asyncio
-    async def test_org_wide_fallback(self):
+    async def test_org_wide_fallback(self) -> None:
         org_cp = _make_cost_parameter(site_id=None)
         tenant = _make_tenant()
         # First call: site-specific returns None
@@ -137,7 +137,7 @@ class TestGetEffectiveCostParameter:
         assert result.site_id is None
 
     @pytest.mark.asyncio
-    async def test_not_found_raises(self):
+    async def test_not_found_raises(self) -> None:
         tenant = _make_tenant()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
@@ -148,7 +148,7 @@ class TestGetEffectiveCostParameter:
             )
 
     @pytest.mark.asyncio
-    async def test_no_site_id_goes_to_default(self):
+    async def test_no_site_id_goes_to_default(self) -> None:
         org_cp = _make_cost_parameter(site_id=None)
         tenant = _make_tenant()
         result_mock = MagicMock()
@@ -160,7 +160,7 @@ class TestGetEffectiveCostParameter:
         assert result is org_cp
 
     @pytest.mark.asyncio
-    async def test_no_site_no_default_raises(self):
+    async def test_no_site_no_default_raises(self) -> None:
         tenant = _make_tenant()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
@@ -171,7 +171,7 @@ class TestGetEffectiveCostParameter:
             )
 
     @pytest.mark.asyncio
-    async def test_no_target_date_uses_today(self):
+    async def test_no_target_date_uses_today(self) -> None:
         cp = _make_cost_parameter(site_id=None)
         tenant = _make_tenant()
         result_mock = MagicMock()
@@ -181,7 +181,7 @@ class TestGetEffectiveCostParameter:
         assert result is cp
 
     @pytest.mark.asyncio
-    async def test_tenant_filter_applied(self):
+    async def test_tenant_filter_applied(self) -> None:
         cp = _make_cost_parameter(site_id=None)
         tenant = _make_tenant()
         result_mock = MagicMock()
@@ -196,7 +196,7 @@ class TestGetEffectiveCostParameter:
 
 class TestCreateCostParameter:
     @pytest.mark.asyncio
-    async def test_happy_path_first_version(self):
+    async def test_happy_path_first_version(self) -> None:
         tenant = _make_tenant()
         # max version query returns 0
         version_result = MagicMock()
@@ -222,7 +222,7 @@ class TestCreateCostParameter:
         session.add.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_auto_version_increment(self):
+    async def test_auto_version_increment(self) -> None:
         tenant = _make_tenant()
         version_result = MagicMock()
         version_result.scalar_one.return_value = 3
@@ -244,7 +244,7 @@ class TestCreateCostParameter:
         assert result.version == 4
 
     @pytest.mark.asyncio
-    async def test_closes_previous_version(self):
+    async def test_closes_previous_version(self) -> None:
         tenant = _make_tenant()
         prev_cp = _make_cost_parameter(effective_until=None)
 
@@ -272,7 +272,7 @@ class TestCreateCostParameter:
         assert session.execute.call_count == 3
 
     @pytest.mark.asyncio
-    async def test_site_id_specific(self):
+    async def test_site_id_specific(self) -> None:
         tenant = _make_tenant()
         version_result = MagicMock()
         version_result.scalar_one.return_value = 0
@@ -295,7 +295,7 @@ class TestCreateCostParameter:
         assert result.site_id == "site-lyon"
 
     @pytest.mark.asyncio
-    async def test_org_wide_default(self):
+    async def test_org_wide_default(self) -> None:
         tenant = _make_tenant()
         version_result = MagicMock()
         version_result.scalar_one.return_value = 0
@@ -318,7 +318,7 @@ class TestCreateCostParameter:
         assert result.site_id is None
 
     @pytest.mark.asyncio
-    async def test_default_values(self):
+    async def test_default_values(self) -> None:
         tenant = _make_tenant()
         version_result = MagicMock()
         version_result.scalar_one.return_value = 0
@@ -345,7 +345,7 @@ class TestCreateCostParameter:
         assert result.effective_until is None
 
     @pytest.mark.asyncio
-    async def test_null_max_version_treated_as_zero(self):
+    async def test_null_max_version_treated_as_zero(self) -> None:
         tenant = _make_tenant()
         version_result = MagicMock()
         version_result.scalar_one.return_value = None
@@ -372,7 +372,7 @@ class TestCreateCostParameter:
 
 class TestGetCostParameterHistory:
     @pytest.mark.asyncio
-    async def test_returns_history_for_site(self):
+    async def test_returns_history_for_site(self) -> None:
         cp1 = _make_cost_parameter(version=1)
         cp2 = _make_cost_parameter(version=2)
         tenant = _make_tenant()
@@ -381,7 +381,7 @@ class TestGetCostParameterHistory:
         assert len(result) == 2
 
     @pytest.mark.asyncio
-    async def test_returns_org_wide_defaults(self):
+    async def test_returns_org_wide_defaults(self) -> None:
         cp = _make_cost_parameter(site_id=None)
         tenant = _make_tenant()
         session = make_mock_session(make_scalars_result([cp]))
@@ -389,14 +389,14 @@ class TestGetCostParameterHistory:
         assert len(result) == 1
 
     @pytest.mark.asyncio
-    async def test_empty_history(self):
+    async def test_empty_history(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(make_scalars_result([]))
         result = await get_cost_parameter_history(session, tenant, site_id="unknown")
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_tenant_filter_applied(self):
+    async def test_tenant_filter_applied(self) -> None:
         tenant = _make_tenant()
         session = make_mock_session(make_scalars_result([]))
         await get_cost_parameter_history(session, tenant, site_id="site-paris")

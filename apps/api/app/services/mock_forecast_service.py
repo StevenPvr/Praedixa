@@ -37,6 +37,16 @@ if TYPE_CHECKING:
 
     from app.core.security import TenantFilter
 
+# ── Severity thresholds for coverage alert probability ──
+_CRITICAL_THRESHOLD = 0.7
+_HIGH_THRESHOLD = 0.5
+_MEDIUM_THRESHOLD = 0.3
+_MIN_ALERT_THRESHOLD = 0.2
+
+# ── Driver generation thresholds ──
+_HIGH_GAP_THRESHOLD = 5
+_MODERATE_GAP_THRESHOLD = 3
+
 
 def _sigmoid(x: float) -> float:
     """Standard sigmoid function bounded to (0, 1)."""
@@ -51,11 +61,11 @@ def _deterministic_seed(org_id: str, ref_date: date) -> int:
 
 def _severity_from_p(p_rupture: float) -> CoverageAlertSeverity:
     """Map probability to severity level."""
-    if p_rupture >= 0.7:
+    if p_rupture >= _CRITICAL_THRESHOLD:
         return CoverageAlertSeverity.CRITICAL
-    if p_rupture >= 0.5:
+    if p_rupture >= _HIGH_THRESHOLD:
         return CoverageAlertSeverity.HIGH
-    if p_rupture >= 0.3:
+    if p_rupture >= _MEDIUM_THRESHOLD:
         return CoverageAlertSeverity.MEDIUM
     return CoverageAlertSeverity.LOW
 
@@ -70,9 +80,9 @@ def _generate_drivers(
 
     if trend > 0:
         candidates.append("Tendance absences \u2191")
-    if avg_gap > 5:
+    if avg_gap > _HIGH_GAP_THRESHOLD:
         candidates.append("Charge en hausse")
-    if avg_gap > 3:
+    if avg_gap > _MODERATE_GAP_THRESHOLD:
         candidates.append("Capacit\u00e9 int\u00e9rim r\u00e9duite")
     candidates.append("Variabilit\u00e9 saisonni\u00e8re")
     candidates.append("Turn-over \u00e9quipes")
@@ -80,6 +90,42 @@ def _generate_drivers(
 
     rng.shuffle(candidates)
     return candidates[:3]
+
+
+def _compute_gap_stats(
+    group_records: list[CanonicalRecord],
+) -> tuple[float, float] | None:
+    """Compute weighted average gap and trend for a site+shift group.
+
+    Returns (avg_gap, trend) or None if the group has no gaps.
+    """
+    gaps: list[float] = []
+    for rec in group_records:
+        cap = float(rec.capacite_plan_h or 0)
+        real = float(rec.realise_h or cap)
+        gap = max(cap - real, 0)
+        gaps.append(gap)
+
+    if not gaps:  # pragma: no cover -- defensive: groups always have >= 1 record
+        return None
+
+    # Weighted moving average: recent records get higher weight
+    total_weight = 0.0
+    weighted_sum = 0.0
+    for i, gap in enumerate(gaps):
+        weight = 1.0 + i * 0.5
+        weighted_sum += gap * weight
+        total_weight += weight
+
+    avg_gap = weighted_sum / total_weight if total_weight > 0 else 0
+
+    # Trend: compare last third vs first third
+    third = max(len(gaps) // 3, 1)
+    early_avg = sum(gaps[:third]) / third
+    late_avg = sum(gaps[-third:]) / third
+    trend = late_avg - early_avg
+
+    return avg_gap, trend
 
 
 async def generate_mock_forecasts(
@@ -114,7 +160,7 @@ async def generate_mock_forecasts(
 
     # Deterministic RNG
     seed = _deterministic_seed(tenant.organization_id, today)
-    rng = random.Random(seed)
+    rng = random.Random(seed)  # noqa: S311
 
     # Fetch canonical records in the lookback window
     query = tenant.apply(
@@ -145,32 +191,10 @@ async def generate_mock_forecasts(
     for (site_id, shift_str), group_records in groups.items():
         shift_enum = ShiftType(shift_str)
 
-        # Calculate weighted gaps (recent days weighted more)
-        gaps: list[float] = []
-        for rec in group_records:
-            cap = float(rec.capacite_plan_h or 0)
-            real = float(rec.realise_h or cap)
-            gap = max(cap - real, 0)
-            gaps.append(gap)
-
-        if not gaps:  # pragma: no cover — defensive: groups always have >= 1 record
+        gap_stats = _compute_gap_stats(group_records)
+        if gap_stats is None:  # pragma: no cover -- defensive
             continue
-
-        # Weighted moving average: recent records get higher weight
-        total_weight = 0.0
-        weighted_sum = 0.0
-        for i, gap in enumerate(gaps):
-            weight = 1.0 + i * 0.5  # More recent = higher index = higher weight
-            weighted_sum += gap * weight
-            total_weight += weight
-
-        avg_gap = weighted_sum / total_weight if total_weight > 0 else 0
-
-        # Trend: compare last third vs first third
-        third = max(len(gaps) // 3, 1)
-        early_avg = sum(gaps[:third]) / third
-        late_avg = sum(gaps[-third:]) / third
-        trend = late_avg - early_avg
+        avg_gap, trend = gap_stats
 
         # For each horizon, compute alert probability
         for horizon_enum, days_ahead, decay in horizons:
@@ -181,7 +205,7 @@ async def generate_mock_forecasts(
             raw_score = gap_normalized + trend_factor + noise
             p_rupture = _sigmoid(raw_score) * decay
 
-            if p_rupture <= 0.2:
+            if p_rupture <= _MIN_ALERT_THRESHOLD:
                 continue
 
             severity = _severity_from_p(p_rupture)

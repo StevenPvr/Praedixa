@@ -320,13 +320,13 @@ class TestKeyDestructionBeforeSchemaDrop:
 
         call_order: list[str] = []
 
-        async def track_drop(*a, **kw):
+        async def track_drop(*a, **kw) -> None:
             call_order.append("drop_schemas")
 
-        async def track_delete(*a, **kw):
+        async def track_delete(*a, **kw) -> None:
             call_order.append("delete_platform")
 
-        async def track_commit(*a, **kw):
+        async def track_commit(*a, **kw) -> None:
             call_order.append("commit")
 
         mock_drop.side_effect = track_drop

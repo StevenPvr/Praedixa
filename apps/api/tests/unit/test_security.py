@@ -13,11 +13,11 @@ from app.core.security import TenantFilter, require_role
 class TestTenantFilter:
     """Test TenantFilter initialization and query application."""
 
-    def test_init_stores_org_id(self):
+    def test_init_stores_org_id(self) -> None:
         tf = TenantFilter("org-123")
         assert tf.organization_id == "org-123"
 
-    def test_apply_adds_where_clause(self):
+    def test_apply_adds_where_clause(self) -> None:
         """Verify that apply() adds a WHERE clause filtering by organization_id."""
         tf = TenantFilter("org-abc")
 
@@ -33,7 +33,7 @@ class TestTenantFilter:
         base_query.where.assert_called_once()
         assert result == "filtered_query"
 
-    def test_apply_with_sqlalchemy_select(self):
+    def test_apply_with_sqlalchemy_select(self) -> None:
         """Verify compiled SQL contains organization_id filter."""
         from app.models.site import Site
 
@@ -48,7 +48,7 @@ class TestTenantFilter:
 class TestRequireRole:
     """Test require_role dependency factory."""
 
-    def test_authorized_role_returns_user(self):
+    def test_authorized_role_returns_user(self) -> None:
         """User with an allowed role should be returned."""
         user = JWTPayload(
             user_id="u1", email="e@x.com", organization_id="o1", role="admin"
@@ -60,7 +60,7 @@ class TestRequireRole:
         result = check_fn(current_user=user)
         assert result is user
 
-    def test_unauthorized_role_raises_403(self):
+    def test_unauthorized_role_raises_403(self) -> None:
         """User with a role not in the allowed list should get 403."""
         user = JWTPayload(
             user_id="u1", email="e@x.com", organization_id="o1", role="viewer"
@@ -72,7 +72,7 @@ class TestRequireRole:
         assert exc_info.value.status_code == 403
         assert "Insufficient permissions" in exc_info.value.detail
 
-    def test_multiple_allowed_roles(self):
+    def test_multiple_allowed_roles(self) -> None:
         """Any role in the allowed set should pass."""
         check_fn = require_role("admin", "manager", "hr_manager")
 
@@ -83,14 +83,14 @@ class TestRequireRole:
             result = check_fn(current_user=user)
             assert result.role == role
 
-    def test_single_allowed_role(self):
+    def test_single_allowed_role(self) -> None:
         check_fn = require_role("admin")
         user = JWTPayload(
             user_id="u1", email="e@x.com", organization_id="o1", role="admin"
         )
         assert check_fn(current_user=user) is user
 
-    def test_error_message_does_not_leak_user_role(self):
+    def test_error_message_does_not_leak_user_role(self) -> None:
         """Error detail should not reveal the user's actual role."""
         user = JWTPayload(
             user_id="u1", email="e@x.com", organization_id="o1", role="viewer"

@@ -42,7 +42,7 @@ class TestResolveTransformedColumns:
             rules_override=rules_override,
         )
 
-    def test_target_gets_lag_features(self):
+    def test_target_gets_lag_features(self) -> None:
         cols = [self._make_col("revenue", ColumnRole.TARGET)]
         config = {
             "lags": [1, 7],
@@ -56,7 +56,7 @@ class TestResolveTransformedColumns:
         assert "revenue_lag_1" in names
         assert "revenue_lag_7" in names
 
-    def test_feature_gets_lag_features(self):
+    def test_feature_gets_lag_features(self) -> None:
         cols = [self._make_col("temperature", ColumnRole.FEATURE)]
         config = {
             "lags": [1],
@@ -68,31 +68,31 @@ class TestResolveTransformedColumns:
         result = resolve_transformed_columns(cols, config)
         assert ("temperature_lag_1", "DOUBLE PRECISION") in result
 
-    def test_temporal_index_is_skipped(self):
+    def test_temporal_index_is_skipped(self) -> None:
         cols = [self._make_col("date_col", ColumnRole.TEMPORAL_INDEX)]
         config = {"lags": [1, 7, 30]}
         result = resolve_transformed_columns(cols, config)
         assert result == []
 
-    def test_group_by_is_skipped(self):
+    def test_group_by_is_skipped(self) -> None:
         cols = [self._make_col("department", ColumnRole.GROUP_BY)]
         config = {"lags": [1], "rolling_windows": [7]}
         result = resolve_transformed_columns(cols, config)
         assert result == []
 
-    def test_id_role_is_skipped(self):
+    def test_id_role_is_skipped(self) -> None:
         cols = [self._make_col("employee_id", ColumnRole.ID)]
         config = {"lags": [1], "rolling_windows": [7]}
         result = resolve_transformed_columns(cols, config)
         assert result == []
 
-    def test_meta_role_is_skipped(self):
+    def test_meta_role_is_skipped(self) -> None:
         cols = [self._make_col("notes", ColumnRole.META)]
         config = {"lags": [1]}
         result = resolve_transformed_columns(cols, config)
         assert result == []
 
-    def test_rolling_windows(self):
+    def test_rolling_windows(self) -> None:
         cols = [self._make_col("revenue", ColumnRole.TARGET)]
         config = {
             "lags": [],
@@ -108,7 +108,7 @@ class TestResolveTransformedColumns:
         assert "revenue_rolling_mean_14" in names
         assert "revenue_rolling_std_14" in names
 
-    def test_normalize_flag(self):
+    def test_normalize_flag(self) -> None:
         cols = [self._make_col("revenue", ColumnRole.TARGET)]
         config = {
             "lags": [],
@@ -120,7 +120,7 @@ class TestResolveTransformedColumns:
         result = resolve_transformed_columns(cols, config)
         assert ("revenue_normalized", "DOUBLE PRECISION") in result
 
-    def test_standardize_flag(self):
+    def test_standardize_flag(self) -> None:
         cols = [self._make_col("revenue", ColumnRole.TARGET)]
         config = {
             "lags": [],
@@ -132,7 +132,7 @@ class TestResolveTransformedColumns:
         result = resolve_transformed_columns(cols, config)
         assert ("revenue_standardized", "DOUBLE PRECISION") in result
 
-    def test_minmax_flag(self):
+    def test_minmax_flag(self) -> None:
         cols = [self._make_col("revenue", ColumnRole.TARGET)]
         config = {
             "lags": [],
@@ -144,7 +144,7 @@ class TestResolveTransformedColumns:
         result = resolve_transformed_columns(cols, config)
         assert ("revenue_minmax", "DOUBLE PRECISION") in result
 
-    def test_all_flags_combined(self):
+    def test_all_flags_combined(self) -> None:
         cols = [self._make_col("revenue", ColumnRole.TARGET)]
         config = {
             "lags": [1],
@@ -162,7 +162,7 @@ class TestResolveTransformedColumns:
         assert "revenue_rolling_mean_7" in names
         assert "revenue_rolling_std_7" in names
 
-    def test_per_column_override_lags(self):
+    def test_per_column_override_lags(self) -> None:
         cols = [
             self._make_col(
                 "revenue", ColumnRole.TARGET, rules_override={"lags": [3, 5]}
@@ -183,7 +183,7 @@ class TestResolveTransformedColumns:
         assert "revenue_lag_1" not in names
         assert "revenue_lag_7" not in names
 
-    def test_per_column_override_rolling(self):
+    def test_per_column_override_rolling(self) -> None:
         cols = [
             self._make_col(
                 "revenue", ColumnRole.TARGET, rules_override={"rolling_windows": [3]}
@@ -202,7 +202,7 @@ class TestResolveTransformedColumns:
         assert "revenue_rolling_std_3" in names
         assert "revenue_rolling_mean_7" not in names
 
-    def test_per_column_override_normalize(self):
+    def test_per_column_override_normalize(self) -> None:
         cols = [
             self._make_col(
                 "revenue", ColumnRole.TARGET, rules_override={"normalize": True}
@@ -218,7 +218,7 @@ class TestResolveTransformedColumns:
         result = resolve_transformed_columns(cols, config)
         assert ("revenue_normalized", "DOUBLE PRECISION") in result
 
-    def test_per_column_override_standardize(self):
+    def test_per_column_override_standardize(self) -> None:
         cols = [
             self._make_col(
                 "revenue", ColumnRole.TARGET, rules_override={"standardize": True}
@@ -234,7 +234,7 @@ class TestResolveTransformedColumns:
         result = resolve_transformed_columns(cols, config)
         assert ("revenue_standardized", "DOUBLE PRECISION") in result
 
-    def test_per_column_override_minmax(self):
+    def test_per_column_override_minmax(self) -> None:
         cols = [
             self._make_col(
                 "revenue", ColumnRole.TARGET, rules_override={"minmax": True}
@@ -250,7 +250,7 @@ class TestResolveTransformedColumns:
         result = resolve_transformed_columns(cols, config)
         assert ("revenue_minmax", "DOUBLE PRECISION") in result
 
-    def test_default_config_when_keys_missing(self):
+    def test_default_config_when_keys_missing(self) -> None:
         cols = [self._make_col("revenue", ColumnRole.TARGET)]
         config = {}  # All defaults: lags=[1,7,30], rolling=[7]
         result = resolve_transformed_columns(cols, config)
@@ -261,11 +261,11 @@ class TestResolveTransformedColumns:
         assert "revenue_rolling_mean_7" in names
         assert "revenue_rolling_std_7" in names
 
-    def test_empty_columns(self):
+    def test_empty_columns(self) -> None:
         result = resolve_transformed_columns([], {"lags": [1]})
         assert result == []
 
-    def test_multiple_columns(self):
+    def test_multiple_columns(self) -> None:
         cols = [
             self._make_col("revenue", ColumnRole.TARGET),
             self._make_col("temperature", ColumnRole.FEATURE),
@@ -285,7 +285,7 @@ class TestResolveTransformedColumns:
         # date_col should not produce features
         assert not any(n.startswith("date_col") for n in names)
 
-    def test_all_types_double_precision(self):
+    def test_all_types_double_precision(self) -> None:
         cols = [self._make_col("x", ColumnRole.TARGET)]
         config = {
             "lags": [1],
@@ -298,7 +298,7 @@ class TestResolveTransformedColumns:
         for _, pg_type in result:
             assert pg_type == "DOUBLE PRECISION"
 
-    def test_naming_convention_lag(self):
+    def test_naming_convention_lag(self) -> None:
         """Feature naming: {col}_lag_{N}."""
         cols = [self._make_col("sales", ColumnRole.TARGET)]
         config = {
@@ -311,7 +311,7 @@ class TestResolveTransformedColumns:
         result = resolve_transformed_columns(cols, config)
         assert result[0] == ("sales_lag_3", "DOUBLE PRECISION")
 
-    def test_naming_convention_rolling(self):
+    def test_naming_convention_rolling(self) -> None:
         """Feature naming: {col}_rolling_mean_{N} and {col}_rolling_std_{N}."""
         cols = [self._make_col("sales", ColumnRole.TARGET)]
         config = {
@@ -326,7 +326,7 @@ class TestResolveTransformedColumns:
         assert "sales_rolling_mean_5" in names
         assert "sales_rolling_std_5" in names
 
-    def test_rules_override_none(self):
+    def test_rules_override_none(self) -> None:
         """rules_override=None should use global defaults."""
         cols = [self._make_col("x", ColumnRole.TARGET, rules_override=None)]
         config = {
@@ -346,7 +346,7 @@ class TestResolveTransformedColumns:
 class TestCreateRawTable:
     """Tests for the internal DDL helper that builds raw tables."""
 
-    def test_executes_create_table(self):
+    def test_executes_create_table(self) -> None:
         cur = MagicMock()
         _create_raw_table(
             cur, "acme_raw", "effectifs", [("nb_employes", "DOUBLE PRECISION")]
@@ -356,19 +356,19 @@ class TestCreateRawTable:
         sql_arg = cur.execute.call_args[0][0]
         assert isinstance(sql_arg, (psql.SQL, psql.Composed))
 
-    def test_includes_system_columns(self):
+    def test_includes_system_columns(self) -> None:
         cur = MagicMock()
         _create_raw_table(cur, "acme_raw", "effectifs", [])
         sql_arg = cur.execute.call_args[0][0]
         assert isinstance(sql_arg, (psql.SQL, psql.Composed))
 
-    def test_includes_dynamic_columns(self):
+    def test_includes_dynamic_columns(self) -> None:
         cur = MagicMock()
         dynamic_cols = [("temperature", "DOUBLE PRECISION"), ("date_col", "DATE")]
         _create_raw_table(cur, "test_raw", "weather", dynamic_cols)
         cur.execute.assert_called_once()
 
-    def test_no_dynamic_columns(self):
+    def test_no_dynamic_columns(self) -> None:
         """Raw table with only system columns should still be created."""
         cur = MagicMock()
         _create_raw_table(cur, "acme_raw", "empty_table", [])
@@ -381,7 +381,7 @@ class TestCreateRawTable:
 class TestCreateTransformedTable:
     """Tests for the internal DDL helper that builds transformed tables."""
 
-    def test_executes_create_table(self):
+    def test_executes_create_table(self) -> None:
         cur = MagicMock()
         _create_transformed_table(
             cur,
@@ -392,7 +392,7 @@ class TestCreateTransformedTable:
         )
         cur.execute.assert_called_once()
 
-    def test_no_feature_columns(self):
+    def test_no_feature_columns(self) -> None:
         cur = MagicMock()
         _create_transformed_table(
             cur,
@@ -403,7 +403,7 @@ class TestCreateTransformedTable:
         )
         cur.execute.assert_called_once()
 
-    def test_validates_feature_column_names(self):
+    def test_validates_feature_column_names(self) -> None:
         """Feature column names pass through validate_identifier."""
         cur = MagicMock()
         _create_transformed_table(
@@ -422,13 +422,13 @@ class TestCreateTransformedTable:
 class TestCreateIndexes:
     """Tests for the internal index creation helper."""
 
-    def test_creates_temporal_index(self):
+    def test_creates_temporal_index(self) -> None:
         cur = MagicMock()
         _create_indexes(cur, "acme_raw", "effectifs", "date_col", [])
         # At least 1 call for temporal index, possibly 1 for _ingested_at
         assert cur.execute.call_count >= 1
 
-    def test_creates_group_by_indexes(self):
+    def test_creates_group_by_indexes(self) -> None:
         cur = MagicMock()
         _create_indexes(
             cur, "acme_raw", "effectifs", "date_col", ["department", "site"]
@@ -436,19 +436,19 @@ class TestCreateIndexes:
         # 1 temporal + 2 group_by + 1 _ingested_at = 4
         assert cur.execute.call_count >= 3
 
-    def test_no_group_by(self):
+    def test_no_group_by(self) -> None:
         """No group_by columns -- still creates temporal + _ingested_at."""
         cur = MagicMock()
         _create_indexes(cur, "acme_raw", "effectifs", "date_col", [])
         assert cur.execute.call_count >= 1
 
-    def test_handles_ingested_at_failure(self):
+    def test_handles_ingested_at_failure(self) -> None:
         cur = MagicMock()
         # Simulate _ingested_at index failing (e.g. column doesn't exist on transformed)
         # With no group_by: call 1 = temporal index, call 2 = _ingested_at
         call_count = [0]
 
-        def side_effect(*args, **kwargs):
+        def side_effect(*args, **kwargs) -> None:
             call_count[0] += 1
             if call_count[0] == 2:  # _ingested_at index attempt
                 raise Exception("column does not exist")  # noqa: TRY002
@@ -467,7 +467,9 @@ class TestCreateClientSchemas:
     @pytest.mark.asyncio
     @patch("app.services.schema_manager.ddl_connection")
     @patch("app.services.schema_manager.settings")
-    async def test_creates_raw_and_transformed_schemas(self, mock_settings, mock_ddl):
+    async def test_creates_raw_and_transformed_schemas(
+        self, mock_settings, mock_ddl
+    ) -> None:
         mock_settings.RAW_SCHEMA_SUFFIX = "raw"
         mock_settings.TRANSFORMED_SCHEMA_SUFFIX = "transformed"
 
@@ -486,24 +488,24 @@ class TestCreateClientSchemas:
         assert mock_cur.execute.call_count == 2
 
     @pytest.mark.asyncio
-    async def test_rejects_invalid_slug(self):
+    async def test_rejects_invalid_slug(self) -> None:
         with pytest.raises(DDLValidationError):
             await create_client_schemas("ab")  # too short
 
     @pytest.mark.asyncio
-    async def test_rejects_reserved_prefix_slug(self):
+    async def test_rejects_reserved_prefix_slug(self) -> None:
         with pytest.raises(DDLValidationError):
             await create_client_schemas("pg_client")
 
     @pytest.mark.asyncio
-    async def test_rejects_uppercase_slug(self):
+    async def test_rejects_uppercase_slug(self) -> None:
         with pytest.raises(DDLValidationError):
             await create_client_schemas("Acme")
 
     @pytest.mark.asyncio
     @patch("app.services.schema_manager.ddl_connection")
     @patch("app.services.schema_manager.settings")
-    async def test_returns_correct_schema_names(self, mock_settings, mock_ddl):
+    async def test_returns_correct_schema_names(self, mock_settings, mock_ddl) -> None:
         mock_settings.RAW_SCHEMA_SUFFIX = "raw"
         mock_settings.TRANSFORMED_SCHEMA_SUFFIX = "transformed"
 
@@ -528,7 +530,7 @@ class TestCreateDatasetTables:
 
     @pytest.mark.asyncio
     @patch("app.services.schema_manager.ddl_connection")
-    async def test_creates_raw_and_transformed_tables(self, mock_ddl):
+    async def test_creates_raw_and_transformed_tables(self, mock_ddl) -> None:
         mock_conn = MagicMock()
         mock_cur = MagicMock()
         mock_conn.__enter__ = MagicMock(return_value=mock_conn)
@@ -573,7 +575,7 @@ class TestCreateDatasetTables:
 
     @pytest.mark.asyncio
     @patch("app.services.schema_manager.ddl_connection")
-    async def test_no_group_by_columns(self, mock_ddl):
+    async def test_no_group_by_columns(self, mock_ddl) -> None:
         """Dataset with empty group_by should still work."""
         mock_conn = MagicMock()
         mock_cur = MagicMock()
@@ -619,7 +621,7 @@ class TestDropClientSchemas:
     @pytest.mark.asyncio
     @patch("app.services.schema_manager.ddl_connection")
     @patch("app.services.schema_manager.settings")
-    async def test_drops_both_schemas(self, mock_settings, mock_ddl):
+    async def test_drops_both_schemas(self, mock_settings, mock_ddl) -> None:
         mock_settings.RAW_SCHEMA_SUFFIX = "raw"
         mock_settings.TRANSFORMED_SCHEMA_SUFFIX = "transformed"
 
@@ -636,19 +638,19 @@ class TestDropClientSchemas:
         assert mock_cur.execute.call_count == 2
 
     @pytest.mark.asyncio
-    async def test_rejects_invalid_slug(self):
+    async def test_rejects_invalid_slug(self) -> None:
         with pytest.raises(DDLValidationError):
             await drop_client_schemas("ab")
 
     @pytest.mark.asyncio
-    async def test_rejects_reserved_prefix_slug(self):
+    async def test_rejects_reserved_prefix_slug(self) -> None:
         with pytest.raises(DDLValidationError):
             await drop_client_schemas("pg_internal")
 
     @pytest.mark.asyncio
     @patch("app.services.schema_manager.ddl_connection")
     @patch("app.services.schema_manager.settings")
-    async def test_drops_transformed_before_raw(self, mock_settings, mock_ddl):
+    async def test_drops_transformed_before_raw(self, mock_settings, mock_ddl) -> None:
         """Transformed schema should be dropped before raw (dependency order)."""
         mock_settings.RAW_SCHEMA_SUFFIX = "raw"
         mock_settings.TRANSFORMED_SCHEMA_SUFFIX = "transformed"
@@ -673,11 +675,11 @@ class TestSQLInjectionPrevention:
     """Verify SQL injection attempts are blocked by DDL validation."""
 
     @pytest.mark.asyncio
-    async def test_sql_injection_in_slug(self):
+    async def test_sql_injection_in_slug(self) -> None:
         with pytest.raises(DDLValidationError):
             await create_client_schemas("acme; DROP TABLE--")
 
     @pytest.mark.asyncio
-    async def test_sql_injection_in_drop_slug(self):
+    async def test_sql_injection_in_drop_slug(self) -> None:
         with pytest.raises(DDLValidationError):
             await drop_client_schemas("acme'; DROP SCHEMA public--")

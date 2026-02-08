@@ -41,10 +41,10 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "DTZ", "T20", "ICN", "PIE", "PT", "RSE", "RET", "SLF", "SIM", "TCH", "ARG", "ERA", "PGH", "PL", "TRY", "FLY", "PERF", "RUF"]
-ignore = ["S101", "TRY003", "PLR0913", "B008", "PLC0415", "S110", "UP042", "UP046", "UP047", "RUF022", "RUF012", "RUF001", "PLW0603", "A002", "ARG001", "ARG002", "ARG005", "S311", "PLR2004", "PERF401", "ERA001", "PLR0915", "N806", "SIM117", "B007", "RUF043"]
+ignore = ["S101", "TRY003", "PLR0913", "B008", "PLC0415", "S110", "UP042", "UP046", "UP047", "RUF022", "RUF012", "RUF001", "PLW0603", "A002", "ARG001", "ARG002", "ARG005"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["PLR2004", "SLF001", "S105", "S106", "PT011", "DTZ001", "E402", "E501"]
+"tests/**" = ["PLR2004", "SLF001", "S105", "S106", "PT011"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

@@ -194,7 +194,7 @@ async def update_org(
 ) -> ApiResponse[AdminOrgRead]:
     """Update organization fields."""
     # Filter to only allowed fields (defense against mass assignment)
-    _ALLOWED_FIELDS = {
+    allowed_fields = {
         "name",
         "legal_name",
         "siret",
@@ -203,7 +203,7 @@ async def update_org(
         "contact_email",
         "settings",
     }
-    safe_data = {k: v for k, v in body.items() if k in _ALLOWED_FIELDS}
+    safe_data = {k: v for k, v in body.items() if k in allowed_fields}
 
     org = await update_organization(session, org_id, data=safe_data)
 

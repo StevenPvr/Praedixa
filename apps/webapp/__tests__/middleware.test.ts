@@ -1,24 +1,45 @@
 import { describe, it, expect, vi } from "vitest";
 
-const mockUpdateSession = vi.fn(() => Promise.resolve({ status: 200 }));
+const mockHeaders = new Map<string, string>();
+const mockResponse = {
+  status: 200,
+  headers: {
+    set: vi.fn((key: string, value: string) => mockHeaders.set(key, value)),
+    get: vi.fn((key: string) => mockHeaders.get(key)),
+  },
+};
+
+const mockUpdateSession = vi.fn(() => Promise.resolve(mockResponse));
 
 vi.mock("@/lib/auth/middleware", () => ({
   updateSession: (...args: unknown[]) => mockUpdateSession(...args),
+}));
+
+vi.mock("@/lib/security/csp", () => ({
+  generateNonce: () => "dGVzdC1ub25jZQ==",
+  buildCspHeader: (nonce: string) =>
+    `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
 }));
 
 import { middleware, config } from "../middleware";
 import type { NextRequest } from "next/server";
 
 describe("middleware (root)", () => {
-  it("should call updateSession with the request", async () => {
+  it("should call updateSession and set CSP header on response", async () => {
+    mockHeaders.clear();
     const mockRequest = {
       url: "http://localhost:3001/dashboard",
-    } as NextRequest;
+      headers: new Headers(),
+    } as unknown as NextRequest;
 
     const result = await middleware(mockRequest);
 
     expect(mockUpdateSession).toHaveBeenCalledWith(mockRequest);
-    expect(result).toEqual({ status: 200 });
+    expect(result.status).toBe(200);
+    expect(result.headers.set).toHaveBeenCalledWith(
+      "Content-Security-Policy",
+      expect.stringContaining("nonce-dGVzdC1ub25jZQ=="),
+    );
   });
 
   it("should export a matcher config that excludes static assets", () => {
