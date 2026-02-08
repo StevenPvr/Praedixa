@@ -1,0 +1,118 @@
+name: CI — Admin
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/admin/**"
+      - "packages/ui/**"
+      - "packages/shared-types/**"
+      - ".github/workflows/ci-admin.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/admin/**"
+      - "packages/ui/**"
+      - "packages/shared-types/**"
+      - ".github/workflows/ci-admin.yml"
+
+concurrency:
+  group: ci-admin-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  lint-typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+
+      - name: Prettier check
+        run: pnpm --filter @praedixa/admin exec prettier --check "**/*.{ts,tsx,js,jsx,json,md}"
+
+      - name: ESLint
+        run: pnpm --filter @praedixa/admin lint
+
+      - name: TypeScript check
+        run: pnpm --filter @praedixa/admin typecheck
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+
+      - name: Run tests
+        run: pnpm --filter @praedixa/admin test -- --passWithNoTests
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Restore Next.js build cache (admin)
+        uses: actions/cache@v4
+        with:
+          path: apps/admin/.next/cache
+          key: nextjs-admin-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/admin/**/*.ts', 'apps/admin/**/*.tsx') }}
+          restore-keys: |
+            nextjs-admin-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            nextjs-admin-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+
+      - name: Build admin app
+        run: pnpm --filter @praedixa/admin build
