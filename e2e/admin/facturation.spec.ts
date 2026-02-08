@@ -56,17 +56,13 @@ test.describe("Facturation page", () => {
     ).toBeVisible();
 
     // First org
-    await expect(
-      page.getByText(MOCK_ORG_BILLING_LIST[0].name),
-    ).toBeVisible();
+    await expect(page.getByText(MOCK_ORG_BILLING_LIST[0].name)).toBeVisible();
     await expect(
       page.getByText(MOCK_ORG_BILLING_LIST[0].contactEmail),
     ).toBeVisible();
 
     // Second org
-    await expect(
-      page.getByText(MOCK_ORG_BILLING_LIST[1].name),
-    ).toBeVisible();
+    await expect(page.getByText(MOCK_ORG_BILLING_LIST[1].name)).toBeVisible();
   });
 
   test("has search input and plan filter", async ({ page }) => {
@@ -74,9 +70,7 @@ test.describe("Facturation page", () => {
     await page.goto("/facturation");
 
     // Search input
-    await expect(
-      page.getByPlaceholder("Rechercher..."),
-    ).toBeVisible();
+    await expect(page.getByPlaceholder("Rechercher...")).toBeVisible();
 
     // Plan filter dropdown
     const planSelect = page.locator("select");
@@ -171,7 +165,9 @@ test.describe("Facturation page", () => {
     await page.goto("/facturation");
 
     await expect(page.getByText("Erreur de chargement")).toBeVisible();
-    await expect(page.getByRole("button", { name: /reessayer/i })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /reessayer/i }),
+    ).toBeVisible();
   });
 
   test("shows empty table when no organisations", async ({ page }) => {

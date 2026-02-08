@@ -17,7 +17,10 @@ test.describe("Login page", () => {
 
     const emailInput = page.getByLabel("Email");
     await expect(emailInput).toHaveAttribute("type", "email");
-    await expect(emailInput).toHaveAttribute("placeholder", "admin@praedixa.com");
+    await expect(emailInput).toHaveAttribute(
+      "placeholder",
+      "admin@praedixa.com",
+    );
 
     const passwordInput = page.getByLabel("Mot de passe");
     await expect(passwordInput).toHaveAttribute("type", "password");
@@ -27,18 +30,14 @@ test.describe("Login page", () => {
     await page.goto("/login?reauth=1");
 
     await expect(
-      page.getByText(
-        /session expiree ou droits insuffisants/i,
-      ),
+      page.getByText(/session expiree ou droits insuffisants/i),
     ).toBeVisible();
   });
 
   test("does not show reauth banner normally", async ({ page }) => {
     await page.goto("/login");
 
-    await expect(
-      page.getByText(/session expiree/i),
-    ).not.toBeVisible();
+    await expect(page.getByText(/session expiree/i)).not.toBeVisible();
   });
 
   test("shows error on invalid credentials", async ({ page }) => {
@@ -46,13 +45,21 @@ test.describe("Login page", () => {
     await page.addInitScript(() => {
       const origFetch = window.fetch.bind(window);
       window.fetch = async (input, init) => {
-        const url = typeof input === "string" ? input : input instanceof Request ? input.url : "";
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof Request
+              ? input.url
+              : "";
         if (url.includes("/auth/v1/token")) {
-          return new Response(JSON.stringify({
-            error: "invalid_grant",
-            error_description: "Invalid login credentials",
-            message: "Invalid login credentials",
-          }), { status: 400, headers: { "Content-Type": "application/json" } });
+          return new Response(
+            JSON.stringify({
+              error: "invalid_grant",
+              error_description: "Invalid login credentials",
+              message: "Invalid login credentials",
+            }),
+            { status: 400, headers: { "Content-Type": "application/json" } },
+          );
         }
         return origFetch(input, init);
       };
@@ -64,9 +71,9 @@ test.describe("Login page", () => {
     await page.getByLabel("Mot de passe").fill("wrongpassword");
     await page.getByRole("button", { name: "Se connecter" }).click();
 
-    await expect(
-      page.getByText("Invalid login credentials"),
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Invalid login credentials")).toBeVisible({
+      timeout: 10000,
+    });
   });
 
   test("shows loading state while submitting", async ({ page }) => {
@@ -74,14 +81,22 @@ test.describe("Login page", () => {
     await page.addInitScript(() => {
       const origFetch = window.fetch.bind(window);
       window.fetch = async (input, init) => {
-        const url = typeof input === "string" ? input : input instanceof Request ? input.url : "";
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof Request
+              ? input.url
+              : "";
         if (url.includes("/auth/v1/token")) {
-          await new Promise(r => setTimeout(r, 3000));
-          return new Response(JSON.stringify({
-            error: "invalid_grant",
-            error_description: "Invalid login credentials",
-            message: "Invalid login credentials",
-          }), { status: 400, headers: { "Content-Type": "application/json" } });
+          await new Promise((r) => setTimeout(r, 3000));
+          return new Response(
+            JSON.stringify({
+              error: "invalid_grant",
+              error_description: "Invalid login credentials",
+              message: "Invalid login credentials",
+            }),
+            { status: 400, headers: { "Content-Type": "application/json" } },
+          );
         }
         return origFetch(input, init);
       };

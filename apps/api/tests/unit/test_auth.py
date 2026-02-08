@@ -82,6 +82,7 @@ class TestVerifyJwt:
         assert exc_info.value.status_code == 401
         assert exc_info.value.detail == "Invalid or expired token"
 
+    @pytest.mark.filterwarnings("ignore::jwt.warnings.InsecureKeyLengthWarning")
     @patch("app.core.auth.settings")
     def test_bad_signature_raises_401(self, mock_settings):
         mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
@@ -215,6 +216,7 @@ class TestVerifyJwt:
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
         mock_settings.LEGACY_HS256_ENABLED = True
+        mock_settings.ALLOW_DEV_USER_METADATA_ORG_ID = True
         payload = _valid_payload()
         del payload["app_metadata"]["organization_id"]
         payload["user_metadata"] = {
@@ -233,6 +235,7 @@ class TestVerifyJwt:
         mock_settings.ENVIRONMENT = "production"
         mock_settings.is_production = True
         mock_settings.LEGACY_HS256_ENABLED = False
+        mock_settings.ALLOW_DEV_USER_METADATA_ORG_ID = False
         payload = _valid_payload()
         del payload["app_metadata"]["organization_id"]
         payload["user_metadata"] = {
@@ -340,6 +343,7 @@ class TestVerifyJwt:
         mock_settings.SUPABASE_URL = "https://your-project.supabase.co"
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
+        mock_settings.ALLOW_DEV_ISSUER_FALLBACK = True
 
         mock_key = MagicMock()
         mock_key.key = "fake-rsa-public-key"
@@ -742,6 +746,7 @@ class TestResolveJwksUrl:
         mock_settings.SUPABASE_URL = ""
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
+        mock_settings.ALLOW_DEV_ISSUER_FALLBACK = True
 
         with (
             patch("app.core.auth.jwt.get_unverified_header") as m_h,
@@ -764,6 +769,7 @@ class TestResolveJwksUrl:
         mock_settings.SUPABASE_URL = ""
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
+        mock_settings.ALLOW_DEV_ISSUER_FALLBACK = True
 
         with (
             patch("app.core.auth.jwt.get_unverified_header") as m_h,
@@ -783,6 +789,7 @@ class TestResolveJwksUrl:
         mock_settings.SUPABASE_URL = ""
         mock_settings.ENVIRONMENT = "development"
         mock_settings.is_production = False
+        mock_settings.ALLOW_DEV_ISSUER_FALLBACK = True
 
         with (
             patch("app.core.auth.jwt.get_unverified_header") as m_h,
@@ -894,3 +901,47 @@ class TestVerifyJwtSecurityValidations:
         with pytest.raises(HTTPException) as exc_info:
             verify_jwt(token)
         assert exc_info.value.status_code == 401
+
+
+class TestAllowDevUserMetadataOrgId:
+    """Test _allow_dev_user_metadata_org_id helper."""
+
+    def test_returns_false_when_not_local_development(self):
+        """Line 88: when _is_local_development() returns False, returns False."""
+        from app.core.auth import _allow_dev_user_metadata_org_id
+
+        with patch("app.core.auth._is_local_development", return_value=False):
+            assert _allow_dev_user_metadata_org_id() is False
+
+    def test_returns_true_when_local_dev_and_flag_set(self):
+        from app.core.auth import _allow_dev_user_metadata_org_id
+
+        with (
+            patch("app.core.auth._is_local_development", return_value=True),
+            patch(
+                "app.core.auth.settings",
+                ALLOW_DEV_USER_METADATA_ORG_ID=True,
+            ),
+        ):
+            assert _allow_dev_user_metadata_org_id() is True
+
+
+class TestHs256PayloadNotDict:
+    """Test HS256 decoded payload not-a-dict branch (lines 235-236)."""
+
+    @patch("app.core.auth.settings")
+    def test_hs256_list_payload_raises_401(self, mock_settings):
+        """When jwt.decode returns a list instead of dict, raise 401."""
+        mock_settings.SUPABASE_JWT_SECRET = TEST_SECRET
+        mock_settings.ENVIRONMENT = "development"
+        mock_settings.is_production = False
+        mock_settings.LEGACY_HS256_ENABLED = True
+        with (
+            patch("app.core.auth.jwt.get_unverified_header") as m_h,
+            patch("app.core.auth.jwt.decode") as m_d,
+        ):
+            m_h.return_value = {"alg": "HS256"}
+            m_d.return_value = ["not", "a", "dict"]
+            with pytest.raises(HTTPException) as exc_info:
+                verify_jwt("some-token")
+            assert exc_info.value.status_code == 401

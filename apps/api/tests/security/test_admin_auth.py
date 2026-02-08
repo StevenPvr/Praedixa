@@ -45,10 +45,14 @@ TARGET_ORG_ID = uuid.UUID("dddddddd-2222-2222-2222-222222222222")
 # All existing admin endpoints (RGPD erasure) with their HTTP methods
 # Format: (method, path, body_or_none)
 _RGPD_ADMIN_ENDPOINTS = [
-    ("POST", "/api/v1/admin/erasure/initiate", {
-        "organization_id": str(TARGET_ORG_ID),
-        "org_slug": "test-org",
-    }),
+    (
+        "POST",
+        "/api/v1/admin/erasure/initiate",
+        {
+            "organization_id": str(TARGET_ORG_ID),
+            "org_slug": "test-org",
+        },
+    ),
     ("POST", f"/api/v1/admin/erasure/{ERASURE_REQUEST_ID}/approve", None),
     ("POST", f"/api/v1/admin/erasure/{ERASURE_REQUEST_ID}/execute", None),
     ("GET", f"/api/v1/admin/erasure/{ERASURE_REQUEST_ID}/verify", None),
@@ -64,63 +68,177 @@ _USER_ID = uuid.UUID("ffffffff-4444-4444-4444-444444444444")
 _BACKOFFICE_ADMIN_ENDPOINTS = [
     # Organizations
     ("GET", "/api/v1/admin/organizations", None, "list_orgs"),
-    ("POST", "/api/v1/admin/organizations", {
-        "name": "Test Corp", "slug": "test-corp",
-        "contact_email": "admin@test.com",
-    }, "create_org"),
+    (
+        "POST",
+        "/api/v1/admin/organizations",
+        {
+            "name": "Test Corp",
+            "slug": "test-corp",
+            "contact_email": "admin@test.com",
+        },
+        "create_org",
+    ),
     ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}", None, "get_org"),
-    ("PATCH", f"/api/v1/admin/organizations/{TARGET_ORG_ID}", {
-        "name": "Updated Name",
-    }, "update_org"),
-    ("POST", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/suspend", None, "suspend_org"),
-    ("POST", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/reactivate", None, "reactivate_org"),
+    (
+        "PATCH",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}",
+        {
+            "name": "Updated Name",
+        },
+        "update_org",
+    ),
+    (
+        "POST",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/suspend",
+        None,
+        "suspend_org",
+    ),
+    (
+        "POST",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/reactivate",
+        None,
+        "reactivate_org",
+    ),
     ("POST", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/churn", None, "churn_org"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/hierarchy", None, "get_hierarchy"),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/hierarchy",
+        None,
+        "get_hierarchy",
+    ),
     # Users
     ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/users", None, "list_users"),
-    ("POST", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/users/invite", {
-        "email": "new@test.com", "role": "viewer",
-    }, "invite_user"),
-    ("PATCH", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/users/{_USER_ID}/role", {
-        "role": "manager",
-    }, "change_role"),
-    ("POST", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/users/{_USER_ID}/deactivate",
-     None, "deactivate_user"),
-    ("POST", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/users/{_USER_ID}/reactivate",
-     None, "reactivate_user"),
+    (
+        "POST",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/users/invite",
+        {
+            "email": "new@test.com",
+            "role": "viewer",
+        },
+        "invite_user",
+    ),
+    (
+        "PATCH",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/users/{_USER_ID}/role",
+        {
+            "role": "manager",
+        },
+        "change_role",
+    ),
+    (
+        "POST",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/users/{_USER_ID}/deactivate",
+        None,
+        "deactivate_user",
+    ),
+    (
+        "POST",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/users/{_USER_ID}/reactivate",
+        None,
+        "reactivate_user",
+    ),
     # Billing
-    ("GET", f"/api/v1/admin/billing/organizations/{TARGET_ORG_ID}", None, "get_billing"),
-    ("POST", f"/api/v1/admin/billing/organizations/{TARGET_ORG_ID}/change-plan", {
-        "new_plan": "professional", "reason": "Upgrade request",
-    }, "change_plan"),
-    ("GET", f"/api/v1/admin/billing/organizations/{TARGET_ORG_ID}/history", None, "plan_history"),
+    (
+        "GET",
+        f"/api/v1/admin/billing/organizations/{TARGET_ORG_ID}",
+        None,
+        "get_billing",
+    ),
+    (
+        "POST",
+        f"/api/v1/admin/billing/organizations/{TARGET_ORG_ID}/change-plan",
+        {
+            "new_plan": "professional",
+            "reason": "Upgrade request",
+        },
+        "change_plan",
+    ),
+    (
+        "GET",
+        f"/api/v1/admin/billing/organizations/{TARGET_ORG_ID}/history",
+        None,
+        "plan_history",
+    ),
     # Monitoring
     ("GET", "/api/v1/admin/monitoring/platform", None, "monitoring_platform"),
     ("GET", "/api/v1/admin/monitoring/trends", None, "monitoring_trends"),
     ("GET", "/api/v1/admin/monitoring/errors", None, "monitoring_errors"),
-    ("GET", f"/api/v1/admin/monitoring/organizations/{TARGET_ORG_ID}", None, "monitoring_org"),
-    ("GET", f"/api/v1/admin/monitoring/organizations/{TARGET_ORG_ID}/mirror",
-     None, "monitoring_mirror"),
+    (
+        "GET",
+        f"/api/v1/admin/monitoring/organizations/{TARGET_ORG_ID}",
+        None,
+        "monitoring_org",
+    ),
+    (
+        "GET",
+        f"/api/v1/admin/monitoring/organizations/{TARGET_ORG_ID}/mirror",
+        None,
+        "monitoring_mirror",
+    ),
     # Data
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/datasets", None, "list_datasets"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/ingestion-log", None, "ingestion_log"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/forecasts", None, "list_forecasts"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/decisions", None, "list_decisions"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/absences", None, "list_absences"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/datasets/{ERASURE_REQUEST_ID}/data",
-     None, "dataset_data"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/datasets/{ERASURE_REQUEST_ID}/features",
-     None, "dataset_features"),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/datasets",
+        None,
+        "list_datasets",
+    ),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/ingestion-log",
+        None,
+        "ingestion_log",
+    ),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/forecasts",
+        None,
+        "list_forecasts",
+    ),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/decisions",
+        None,
+        "list_decisions",
+    ),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/absences",
+        None,
+        "list_absences",
+    ),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/datasets/{ERASURE_REQUEST_ID}/data",
+        None,
+        "dataset_data",
+    ),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/datasets/{ERASURE_REQUEST_ID}/features",
+        None,
+        "dataset_features",
+    ),
     # Onboarding
-    ("POST", "/api/v1/admin/onboarding", {
-        "org_name": "New Org", "org_slug": "new-org",
-        "contact_email": "contact@neworg.com",
-    }, "create_onboarding"),
+    (
+        "POST",
+        "/api/v1/admin/onboarding",
+        {
+            "org_name": "New Org",
+            "org_slug": "new-org",
+            "contact_email": "contact@neworg.com",
+        },
+        "create_onboarding",
+    ),
     ("GET", "/api/v1/admin/onboarding", None, "list_onboarding"),
     ("GET", f"/api/v1/admin/onboarding/{_ONBOARDING_ID}", None, "get_onboarding"),
-    ("PATCH", f"/api/v1/admin/onboarding/{_ONBOARDING_ID}/step/1", {
-        "data": {"step_1": True},
-    }, "update_step"),
+    (
+        "PATCH",
+        f"/api/v1/admin/onboarding/{_ONBOARDING_ID}/step/1",
+        {
+            "data": {"step_1": True},
+        },
+        "update_step",
+    ),
     # Audit log
     ("GET", "/api/v1/admin/audit-log", None, "audit_log"),
 ]
@@ -381,9 +499,7 @@ class TestForbiddenResponseShape:
             ) as client:
                 responses = []
                 for method, path, body in _RGPD_ADMIN_ENDPOINTS:
-                    status_code, data = await _send_request(
-                        client, method, path, body
-                    )
+                    status_code, data = await _send_request(client, method, path, body)
                     responses.append((status_code, data))
 
             # All should be 403
@@ -392,9 +508,7 @@ class TestForbiddenResponseShape:
 
             # All error messages should be identical (no info leakage)
             messages = [r[1]["error"]["message"] for r in responses]
-            assert len(set(messages)) == 1, (
-                f"Inconsistent 403 messages: {messages}"
-            )
+            assert len(set(messages)) == 1, f"Inconsistent 403 messages: {messages}"
         finally:
             app.dependency_overrides.clear()
 
@@ -479,12 +593,15 @@ class TestSuperAdminAccess:
         """Super admin can execute an approved erasure request."""
         mock_req = _mock_erasure_request(status=ErasureStatus.COMPLETED)
 
-        with patch(
-            "app.routers.admin.execute_erasure",
-            new_callable=AsyncMock,
-            return_value=mock_req,
-        ), patch(
-            "app.routers.admin._get_key_provider",
+        with (
+            patch(
+                "app.routers.admin.execute_erasure",
+                new_callable=AsyncMock,
+                return_value=mock_req,
+            ),
+            patch(
+                "app.routers.admin._get_key_provider",
+            ),
         ):
             status_code, data = await _send_request(
                 super_admin_client,
@@ -502,13 +619,16 @@ class TestSuperAdminAccess:
         """Super admin can verify erasure completion."""
         mock_req = _mock_erasure_request(status=ErasureStatus.COMPLETED)
 
-        with patch(
-            "app.routers.admin.get_erasure_request",
-            return_value=mock_req,
-        ), patch(
-            "app.routers.admin.verify_erasure",
-            new_callable=AsyncMock,
-            return_value={"organizations": 0, "users": 0},
+        with (
+            patch(
+                "app.routers.admin.get_erasure_request",
+                return_value=mock_req,
+            ),
+            patch(
+                "app.routers.admin.verify_erasure",
+                new_callable=AsyncMock,
+                return_value={"organizations": 0, "users": 0},
+            ),
         ):
             status_code, data = await _send_request(
                 super_admin_client,
@@ -554,7 +674,7 @@ class TestSchemaHardening:
         super_admin_client: AsyncClient,
     ) -> None:
         """Cannot inject initiated_by via request body."""
-        status_code, data = await _send_request(
+        status_code, _data = await _send_request(
             super_admin_client,
             "POST",
             "/api/v1/admin/erasure/initiate",
@@ -572,7 +692,7 @@ class TestSchemaHardening:
         super_admin_client: AsyncClient,
     ) -> None:
         """Cannot inject approved_by via request body."""
-        status_code, data = await _send_request(
+        status_code, _data = await _send_request(
             super_admin_client,
             "POST",
             "/api/v1/admin/erasure/initiate",
@@ -590,7 +710,7 @@ class TestSchemaHardening:
         super_admin_client: AsyncClient,
     ) -> None:
         """org_slug with invalid characters returns 422."""
-        status_code, data = await _send_request(
+        status_code, _data = await _send_request(
             super_admin_client,
             "POST",
             "/api/v1/admin/erasure/initiate",
@@ -607,7 +727,7 @@ class TestSchemaHardening:
         super_admin_client: AsyncClient,
     ) -> None:
         """organization_id that is not a UUID returns 422."""
-        status_code, data = await _send_request(
+        status_code, _data = await _send_request(
             super_admin_client,
             "POST",
             "/api/v1/admin/erasure/initiate",
@@ -641,9 +761,7 @@ class TestPathParamValidation:
         bad_id: str,
     ) -> None:
         """Approve endpoint rejects non-UUID request_id."""
-        resp = await super_admin_client.post(
-            f"/api/v1/admin/erasure/{bad_id}/approve"
-        )
+        resp = await super_admin_client.post(f"/api/v1/admin/erasure/{bad_id}/approve")
         assert resp.status_code == 422
 
     @pytest.mark.parametrize(
@@ -660,9 +778,7 @@ class TestPathParamValidation:
         bad_id: str,
     ) -> None:
         """Execute endpoint rejects non-UUID request_id."""
-        resp = await super_admin_client.post(
-            f"/api/v1/admin/erasure/{bad_id}/execute"
-        )
+        resp = await super_admin_client.post(f"/api/v1/admin/erasure/{bad_id}/execute")
         assert resp.status_code == 422
 
     @pytest.mark.parametrize(
@@ -679,9 +795,7 @@ class TestPathParamValidation:
         bad_id: str,
     ) -> None:
         """Verify endpoint rejects non-UUID request_id."""
-        resp = await super_admin_client.get(
-            f"/api/v1/admin/erasure/{bad_id}/verify"
-        )
+        resp = await super_admin_client.get(f"/api/v1/admin/erasure/{bad_id}/verify")
         assert resp.status_code == 422
 
     @pytest.mark.parametrize(
@@ -698,9 +812,7 @@ class TestPathParamValidation:
         bad_id: str,
     ) -> None:
         """Get endpoint rejects non-UUID request_id."""
-        resp = await super_admin_client.get(
-            f"/api/v1/admin/erasure/{bad_id}"
-        )
+        resp = await super_admin_client.get(f"/api/v1/admin/erasure/{bad_id}")
         assert resp.status_code == 422
 
     async def test_path_traversal_does_not_reach_endpoint(
@@ -727,9 +839,7 @@ class TestPathParamValidation:
 
         /api/v1/admin/erasure//approve doesn't match the route pattern.
         """
-        resp = await super_admin_client.post(
-            "/api/v1/admin/erasure//approve"
-        )
+        resp = await super_admin_client.post("/api/v1/admin/erasure//approve")
         assert resp.status_code in {404, 422}
 
 
@@ -809,8 +919,7 @@ class TestUnauthenticatedAccessBackoffice:
         """Backoffice endpoint '{test_id}' returns 401 without auth."""
         status_code, data = await _send_request(unauth_client, method, path, body)
         assert status_code == 401, (
-            f"Expected 401 for {test_id} ({method} {path}), "
-            f"got {status_code}: {data}"
+            f"Expected 401 for {test_id} ({method} {path}), got {status_code}: {data}"
         )
         # Must not reveal admin role or endpoint info
         assert "super_admin" not in str(data).lower()
@@ -854,9 +963,7 @@ class TestNonAdminRolesRejectedBackoffice:
             async with AsyncClient(
                 transport=transport, base_url="http://test"
             ) as client:
-                status_code, data = await _send_request(
-                    client, method, path, body
-                )
+                status_code, data = await _send_request(client, method, path, body)
 
             assert status_code == 403, (
                 f"Expected 403 for role={role} on {test_id} "
@@ -901,9 +1008,7 @@ class TestForbiddenResponseShapeBackoffice:
             ) as client:
                 responses = []
                 for method, path, body, test_id in _BACKOFFICE_ADMIN_ENDPOINTS:
-                    status_code, data = await _send_request(
-                        client, method, path, body
-                    )
+                    status_code, data = await _send_request(client, method, path, body)
                     responses.append((status_code, data, test_id))
 
             # All should be 403
@@ -916,7 +1021,7 @@ class TestForbiddenResponseShapeBackoffice:
             messages = [r[1]["error"]["message"] for r in responses]
             assert len(set(messages)) == 1, (
                 f"Inconsistent 403 messages across backoffice: "
-                f"{dict(zip([r[2] for r in responses], messages))}"
+                f"{dict(zip([r[2] for r in responses], messages, strict=False))}"
             )
         finally:
             app.dependency_overrides.clear()
@@ -942,22 +1047,41 @@ class TestBackofficePathParamValidation:
         ("method", "path_template", "body", "test_id"),
         [
             ("GET", "/api/v1/admin/organizations/{bad_id}", None, "get_org"),
-            ("PATCH", "/api/v1/admin/organizations/{bad_id}",
-             {"name": "x"}, "update_org"),
-            ("POST", "/api/v1/admin/organizations/{bad_id}/suspend",
-             None, "suspend_org"),
-            ("GET", "/api/v1/admin/organizations/{bad_id}/users",
-             None, "list_users"),
-            ("GET", "/api/v1/admin/billing/organizations/{bad_id}",
-             None, "get_billing"),
-            ("GET", "/api/v1/admin/monitoring/organizations/{bad_id}",
-             None, "monitoring_org"),
-            ("GET", "/api/v1/admin/onboarding/{bad_id}",
-             None, "get_onboarding"),
+            (
+                "PATCH",
+                "/api/v1/admin/organizations/{bad_id}",
+                {"name": "x"},
+                "update_org",
+            ),
+            (
+                "POST",
+                "/api/v1/admin/organizations/{bad_id}/suspend",
+                None,
+                "suspend_org",
+            ),
+            ("GET", "/api/v1/admin/organizations/{bad_id}/users", None, "list_users"),
+            (
+                "GET",
+                "/api/v1/admin/billing/organizations/{bad_id}",
+                None,
+                "get_billing",
+            ),
+            (
+                "GET",
+                "/api/v1/admin/monitoring/organizations/{bad_id}",
+                None,
+                "monitoring_org",
+            ),
+            ("GET", "/api/v1/admin/onboarding/{bad_id}", None, "get_onboarding"),
         ],
         ids=[
-            "get_org", "update_org", "suspend_org", "list_users",
-            "get_billing", "monitoring_org", "get_onboarding",
+            "get_org",
+            "update_org",
+            "suspend_org",
+            "list_users",
+            "get_billing",
+            "monitoring_org",
+            "get_onboarding",
         ],
     )
     async def test_invalid_uuid_rejected(
@@ -971,11 +1095,8 @@ class TestBackofficePathParamValidation:
     ) -> None:
         """Endpoint '{test_id}' rejects invalid UUID '{bad_id}'."""
         path = path_template.replace("{bad_id}", bad_id)
-        status_code, _ = await _send_request(
-            super_admin_client, method, path, body
-        )
+        status_code, _ = await _send_request(super_admin_client, method, path, body)
         # Either 422 (validation error) or 404 (path not found) — both safe
         assert status_code in {404, 422}, (
-            f"Expected 404 or 422 for bad_id='{bad_id}' on {test_id}, "
-            f"got {status_code}"
+            f"Expected 404 or 422 for bad_id='{bad_id}' on {test_id}, got {status_code}"
         )

@@ -30,7 +30,10 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         {...props}
       >
         <span
-          className={cn("h-2.5 w-2.5 shrink-0 rounded-full", statusDotColor[status])}
+          className={cn(
+            "h-2.5 w-2.5 shrink-0 rounded-full",
+            statusDotColor[status],
+          )}
           aria-label={`Statut: ${status}`}
         />
         <div className="flex flex-col">

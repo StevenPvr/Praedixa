@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import DashboardPage from "../page";
 
-// ── Hoisted dynamic mock ────────────────────────────────────────────────────
 const { mockUseApiGet } = vi.hoisted(() => ({
   mockUseApiGet: vi.fn(),
 }));
@@ -24,92 +23,66 @@ vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
 }));
 
-// Mock child components to isolate page logic
-vi.mock("@/components/dashboard/kpi-section", () => ({
-  KpiSection: ({ data, loading }: { data: unknown; loading: boolean }) => (
-    <section aria-label="Indicateurs cles">
-      {loading ? "loading" : data ? "kpi-data" : "no-data"}
-    </section>
+vi.mock("@praedixa/ui", () => ({
+  StatCard: ({ label, value }: { label: string; value: string }) => (
+    <div data-testid={`stat-${label}`}>{value}</div>
   ),
-}));
-
-vi.mock("@/components/dashboard/alerts-list", () => ({
-  AlertsList: ({
-    alerts,
-    loading,
-    onDismissed,
-  }: {
-    alerts: unknown;
-    loading: boolean;
-    onDismissed: () => void;
-  }) => (
-    <section aria-label="Alertes recentes">
-      {loading ? "loading" : alerts ? "alerts-data" : "no-alerts"}
-      <button onClick={onDismissed}>trigger-dismiss</button>
-    </section>
+  HeatmapGrid: ({ cells }: { cells: unknown[] }) => (
+    <div data-testid="heatmap-grid">{cells.length} cells</div>
   ),
-}));
-
-vi.mock("@/components/dashboard/forecast-chart", () => ({
-  ForecastChart: () => (
-    <section aria-label="Prevision de couverture">chart</section>
+  DataTable: ({ data }: { data: unknown[] }) => (
+    <div data-testid="data-table">{data.length} rows</div>
   ),
+  SkeletonCard: () => <div data-testid="skeleton-card" />,
+  SkeletonTable: () => <div data-testid="skeleton-table" />,
 }));
 
 vi.mock("@/components/error-fallback", () => ({
-  ErrorFallback: ({
-    message,
-    onRetry,
-  }: {
-    message: string;
-    onRetry?: () => void;
-  }) => (
-    <div data-testid="error-fallback">
-      {message}
-      {onRetry && <button onClick={onRetry}>Reessayer</button>}
-    </div>
+  ErrorFallback: ({ message }: { message?: string }) => (
+    <div data-testid="error-fallback">{message}</div>
   ),
 }));
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+vi.mock("lucide-react", () => ({
+  AlertTriangle: () => <svg data-testid="icon-alert" />,
+  BarChart3: () => <svg data-testid="icon-bar" />,
+  ShieldCheck: () => <svg data-testid="icon-shield" />,
+  TrendingUp: () => <svg data-testid="icon-trend" />,
+}));
 
-const mockRefetchSummary = vi.fn();
-const mockRefetchAlerts = vi.fn();
-
-function setupSuccessMock() {
+function setupMocks(overrides?: Partial<Record<string, unknown>>) {
   mockUseApiGet.mockImplementation((url: string | null) => {
-    if (url === "/api/v1/dashboard/summary") {
+    if (url?.includes("coverage-alerts")) {
       return {
-        data: {
-          coverageHuman: 87,
-          coverageMerchandise: 92,
-          activeAlertsCount: 3,
-          forecastAccuracy: 94,
-          lastForecastDate: "2026-02-06",
-        },
-        loading: false,
-        error: null,
-        refetch: mockRefetchSummary,
+        data: overrides?.alerts ?? [],
+        loading: overrides?.alertsLoading ?? false,
+        error: overrides?.alertsError ?? null,
+        refetch: vi.fn(),
       };
     }
-    if (url === "/api/v1/alerts") {
+    if (url?.includes("canonical/quality")) {
       return {
-        data: [{ id: "a1", title: "Alert" }],
-        loading: false,
-        error: null,
-        refetch: mockRefetchAlerts,
+        data: overrides?.quality ?? {
+          totalRecords: 500,
+          coveragePct: "87.50",
+          sites: 2,
+          dateRange: ["2026-01-01", "2026-02-07"],
+          missingShiftsPct: "1.20",
+          avgAbsPct: "3.40",
+        },
+        loading: overrides?.qualityLoading ?? false,
+        error: overrides?.qualityError ?? null,
+        refetch: vi.fn(),
       };
     }
     return { data: null, loading: false, error: null, refetch: vi.fn() };
   });
 }
 
-// ── Tests ────────────────────────────────────────────────────────────────────
-
 describe("DashboardPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    setupSuccessMock();
+    setupMocks();
   });
 
   it("renders the Dashboard heading", () => {
@@ -122,92 +95,39 @@ describe("DashboardPage", () => {
   it("renders the page description", () => {
     render(<DashboardPage />);
     expect(
-      screen.getByText(/Vue d.*ensemble de la capacite operationnelle/),
+      screen.getByText(/Vue d.*ensemble de la couverture operationnelle/),
     ).toBeInTheDocument();
   });
 
-  it("renders the KPI section with data", () => {
+  it("renders KPI stat cards section", () => {
     render(<DashboardPage />);
     expect(screen.getByLabelText("Indicateurs cles")).toBeInTheDocument();
-    expect(screen.getByText("kpi-data")).toBeInTheDocument();
   });
 
-  it("renders the alerts section with alert data", () => {
+  it("renders the heatmap section", () => {
     render(<DashboardPage />);
-    expect(screen.getByLabelText("Alertes recentes")).toBeInTheDocument();
-    expect(screen.getByText("alerts-data")).toBeInTheDocument();
+    expect(screen.getByLabelText("Heatmap de couverture")).toBeInTheDocument();
   });
 
-  it("renders the forecast chart section", () => {
+  it("renders the top alerts section", () => {
     render(<DashboardPage />);
-    expect(
-      screen.getByLabelText("Prevision de couverture"),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Top alertes")).toBeInTheDocument();
   });
 
-  // ── Error branches ───────────────────────────────────────────────────────
-
-  it("shows ErrorFallback when summary has an error", () => {
-    mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/dashboard/summary") {
-        return {
-          data: null,
-          loading: false,
-          error: "Erreur serveur",
-          refetch: mockRefetchSummary,
-        };
-      }
-      if (url === "/api/v1/alerts") {
-        return {
-          data: [],
-          loading: false,
-          error: null,
-          refetch: mockRefetchAlerts,
-        };
-      }
-      return { data: null, loading: false, error: null, refetch: vi.fn() };
-    });
-
+  it("shows loading skeletons when data is loading", () => {
+    setupMocks({ alertsLoading: true, qualityLoading: true });
     render(<DashboardPage />);
-    expect(screen.getByText("Erreur serveur")).toBeInTheDocument();
+    expect(screen.getAllByTestId("skeleton-card").length).toBeGreaterThan(0);
   });
 
-  it("shows ErrorFallback when alerts has an error", () => {
-    mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/dashboard/summary") {
-        return {
-          data: {
-            coverageHuman: 87,
-            coverageMerchandise: 92,
-            activeAlertsCount: 0,
-            forecastAccuracy: 94,
-            lastForecastDate: "2026-02-06",
-          },
-          loading: false,
-          error: null,
-          refetch: mockRefetchSummary,
-        };
-      }
-      if (url === "/api/v1/alerts") {
-        return {
-          data: null,
-          loading: false,
-          error: "Erreur alertes",
-          refetch: mockRefetchAlerts,
-        };
-      }
-      return { data: null, loading: false, error: null, refetch: vi.fn() };
-    });
-
+  it("shows error fallback on alerts error", () => {
+    setupMocks({ alertsError: "Server error" });
     render(<DashboardPage />);
-    expect(screen.getByText("Erreur alertes")).toBeInTheDocument();
+    expect(screen.getByText("Server error")).toBeInTheDocument();
   });
 
-  it("handleAlertDismissed calls both refetchAlerts and refetchSummary", () => {
+  it("renders the cost trend section", () => {
     render(<DashboardPage />);
-    // Our mock AlertsList exposes a button that calls onDismissed directly
-    screen.getByText("trigger-dismiss").click();
-    expect(mockRefetchAlerts).toHaveBeenCalledTimes(1);
-    expect(mockRefetchSummary).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText("Tendance des couts")).toBeInTheDocument();
   });
 });

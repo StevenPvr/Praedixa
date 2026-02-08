@@ -51,5 +51,39 @@ export {
   type SkeletonChartProps,
 } from "./components/skeleton";
 
+// Sprint 5 components
+export {
+  HeatmapGrid,
+  type HeatmapCell,
+  type HeatmapGridProps,
+} from "./components/heatmap-grid";
+export { TabBar, type Tab, type TabBarProps } from "./components/tab-bar";
+export {
+  WaterfallChart,
+  type WaterfallItem,
+  type WaterfallChartProps,
+} from "./components/waterfall-chart";
+export {
+  ParetoChart,
+  type ParetoPoint,
+  type ParetoChartProps,
+} from "./components/pareto-chart";
+export { FormField, type FormFieldProps } from "./components/form-field";
+export {
+  DateRangePicker,
+  type DateRange,
+  type DateRangePickerProps,
+} from "./components/date-range-picker";
+export {
+  SelectDropdown,
+  type SelectOption,
+  type SelectDropdownProps,
+} from "./components/select-dropdown";
+export {
+  MetricCard,
+  type MetricCardProps,
+  type MetricStatus,
+} from "./components/metric-card";
+
 // Hooks
 export { useMediaQuery } from "./hooks/use-media-query";

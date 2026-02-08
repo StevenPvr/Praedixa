@@ -58,7 +58,8 @@ export default function AlertesPage() {
       <div>
         <h1 className="text-2xl font-semibold text-charcoal">Alertes</h1>
         <p className="mt-1 text-sm text-gray-500">
-          {data?.total ?? 0} alerte{(data?.total ?? 0) !== 1 ? "s" : ""} au total
+          {data?.total ?? 0} alerte{(data?.total ?? 0) !== 1 ? "s" : ""} au
+          total
         </p>
       </div>
 

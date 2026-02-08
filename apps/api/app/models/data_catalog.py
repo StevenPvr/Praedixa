@@ -43,6 +43,7 @@ class DatasetStatus(str, enum.Enum):
 class IngestionMode(str, enum.Enum):
     INCREMENTAL = "incremental"
     FULL_REFIT = "full_refit"
+    FILE_UPLOAD = "file_upload"
 
 
 class RunStatus(str, enum.Enum):
@@ -236,9 +237,60 @@ class IngestionLog(TimestampMixin, Base):
     error_message: Mapped[str | None] = mapped_column(Text)
     triggered_by: Mapped[str | None] = mapped_column(String(100))
     request_id: Mapped[str | None] = mapped_column(String(255))
+    file_name: Mapped[str | None] = mapped_column(String(255))
+    file_size: Mapped[int | None] = mapped_column(Integer)
 
     def __repr__(self) -> str:
         return f"<IngestionLog {self.mode.value} {self.status.value}>"
+
+
+class QualityReport(TimestampMixin, Base):
+    """Quality analysis report for an ingestion run.
+
+    Created after each successful file ingestion that includes quality checks.
+    Stores aggregate metrics and per-column detail in JSONB for flexible querying.
+    """
+
+    __tablename__ = "quality_reports"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    dataset_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("client_datasets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    ingestion_log_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("ingestion_log.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    rows_received: Mapped[int] = mapped_column(Integer, nullable=False)
+    rows_after_dedup: Mapped[int] = mapped_column(Integer, nullable=False)
+    rows_after_quality: Mapped[int] = mapped_column(Integer, nullable=False)
+    duplicates_found: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    missing_values_found: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
+    missing_values_imputed: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
+    outliers_found: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    outliers_clamped: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    column_details: Mapped[dict] = mapped_column(  # type: ignore[type-arg]
+        JSONB, nullable=False
+    )
+    strategy_config: Mapped[dict] = mapped_column(  # type: ignore[type-arg]
+        JSONB, nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<QualityReport dataset={self.dataset_id} rows={self.rows_received}>"
 
 
 class PipelineConfigHistory(Base):

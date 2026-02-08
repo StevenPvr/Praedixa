@@ -7,7 +7,6 @@ Security:
 
 import uuid
 from datetime import UTC, datetime
-from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy import func, select
@@ -145,9 +144,7 @@ async def decisions_overrides(
         .limit(10)
     )
     reasons_result = await session.execute(reasons_q)
-    top_reasons = [
-        {"reason": row[0], "count": row[1]} for row in reasons_result.all()
-    ]
+    top_reasons = [{"reason": row[0], "count": row[1]} for row in reasons_result.all()]
 
     await log_admin_action(
         session,

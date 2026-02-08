@@ -149,9 +149,7 @@ async def complete_step_endpoint(
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> ApiResponse[AdminOnboardingRead]:
     """Complete an onboarding step."""
-    onboarding = await complete_step(
-        session, onboarding_id, step, body.data
-    )
+    onboarding = await complete_step(session, onboarding_id, step, body.data)
 
     await log_admin_action(
         session,

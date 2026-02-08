@@ -208,9 +208,7 @@ async def create_operational_decision(
         decided_by=decided_by,
         is_override=is_override,
         override_reason=(
-            sanitize_text(override_reason, max_length=500)
-            if override_reason
-            else None
+            sanitize_text(override_reason, max_length=500) if override_reason else None
         ),
         cout_attendu_eur=cout_attendu,
         service_attendu_pct=service_attendu,
@@ -308,9 +306,7 @@ async def get_override_statistics(
         .limit(5)
     )
     reasons_result = await session.execute(reasons_q)
-    top_reasons = [
-        {"reason": row[0], "count": row[1]} for row in reasons_result.all()
-    ]
+    top_reasons = [{"reason": row[0], "count": row[1]} for row in reasons_result.all()]
 
     # Average cost delta for overrides with observed costs
     delta_q = tenant.apply(

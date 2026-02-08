@@ -27,7 +27,9 @@ test.describe("Admin error states and edge cases", () => {
 
       await page.goto("/dashboard");
 
-      await expect(page.getByText("Erreur de chargement").first()).toBeVisible();
+      await expect(
+        page.getByText("Erreur de chargement").first(),
+      ).toBeVisible();
       await expect(
         page.getByRole("button", { name: /reessayer/i }).first(),
       ).toBeVisible();

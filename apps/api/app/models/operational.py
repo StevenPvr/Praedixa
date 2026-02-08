@@ -38,7 +38,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TenantMixin, sa_enum
 
-
 # ── Enums ────────────────────────────────────────────────
 
 
@@ -328,9 +327,7 @@ class ScenarioOption(TenantMixin, Base):
     is_pareto_optimal: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False
     )
-    is_recommended: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
+    is_recommended: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     contraintes_json: Mapped[dict] = mapped_column(  # type: ignore[type-arg]
         JSONB, server_default="{}"
     )
@@ -397,12 +394,8 @@ class OperationalDecision(TenantMixin, Base):
     gap_h: Mapped[uuid.UUID] = mapped_column(  # type: ignore[assignment]
         Numeric(8, 2), nullable=False
     )
-    is_override: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
-    override_reason: Mapped[str | None] = mapped_column(
-        String(500), nullable=True
-    )
+    is_override: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    override_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
     cout_attendu_eur: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
         Numeric(12, 2), nullable=True
     )
@@ -415,9 +408,7 @@ class OperationalDecision(TenantMixin, Base):
     service_observe_pct: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
         Numeric(5, 4), nullable=True
     )
-    decided_by: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), nullable=False
-    )
+    decided_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     comment: Mapped[str | None] = mapped_column(String(1000), nullable=True)
 
     def __repr__(self) -> str:
@@ -482,12 +473,8 @@ class ProofRecord(TenantMixin, Base):
     adoption_pct: Mapped[uuid.UUID | None] = mapped_column(  # type: ignore[assignment]
         Numeric(5, 4), nullable=True
     )
-    alertes_emises: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
-    alertes_traitees: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
+    alertes_emises: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    alertes_traitees: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     details_json: Mapped[dict] = mapped_column(  # type: ignore[type-arg]
         JSONB, server_default="{}"
     )

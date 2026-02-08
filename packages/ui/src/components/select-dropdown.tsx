@@ -8,8 +8,10 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-export interface SelectDropdownProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "onChange"> {
+export interface SelectDropdownProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "onChange"
+> {
   options: SelectOption[];
   value: string;
   onChange: (value: string) => void;
@@ -35,7 +37,11 @@ const SelectDropdown = React.forwardRef<HTMLDivElement, SelectDropdownProps>(
     const selectId = React.useId();
 
     return (
-      <div ref={ref} className={cn("flex flex-col gap-1.5", className)} {...props}>
+      <div
+        ref={ref}
+        className={cn("flex flex-col gap-1.5", className)}
+        {...props}
+      >
         {label && (
           <label
             htmlFor={selectId}

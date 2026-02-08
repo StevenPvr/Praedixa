@@ -1,233 +1,116 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import PrevisionsPage from "../page";
 
-// ── Hoisted dynamic mock ────────────────────────────────────────────────────
-const { mockUseApiGet } = vi.hoisted(() => ({
-  mockUseApiGet: vi.fn(),
-}));
-
-const mockRefetchRuns = vi.fn();
-const mockRefetchDaily = vi.fn();
-const RUN_ID = "40000000-0000-0000-0000-000000000001";
+const mockUseApiGet = vi.fn();
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/previsions",
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn(),
-    refresh: vi.fn(),
-    prefetch: vi.fn(),
-  }),
-  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+}));
+
+vi.mock("next/link", () => ({
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
 }));
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
 }));
 
-// Mock child components to isolate page logic
-vi.mock("@/components/previsions/filter-bar", () => ({
-  FilterBar: ({
-    dimension,
-    onDimensionChange,
+vi.mock("@praedixa/ui", () => ({
+  TabBar: ({
+    activeTab,
+    onTabChange,
   }: {
-    dimension: string;
-    onDimensionChange: (d: string) => void;
+    activeTab: string;
+    onTabChange: (id: string) => void;
   }) => (
-    <div data-testid="filter-bar">
-      <button onClick={() => onDimensionChange("human")}>Humaine</button>
-      <button onClick={() => onDimensionChange("merchandise")}>
-        Marchandise
+    <div data-testid="tab-bar" data-active={activeTab}>
+      <button onClick={() => onTabChange("j3")} data-testid="tab-j3">
+        J+3
       </button>
-      <span>{dimension}</span>
     </div>
   ),
-}));
-
-vi.mock("@/components/previsions/risk-cards", () => ({
-  RiskCards: () => <div data-testid="risk-cards">risk-cards</div>,
-}));
-
-vi.mock("@/components/previsions/risk-distribution-chart", () => ({
-  RiskDistributionChart: () => (
-    <div data-testid="risk-distribution-chart">chart</div>
+  HeatmapGrid: () => <div data-testid="heatmap-grid" />,
+  DataTable: ({ data }: { data: unknown[] }) => (
+    <div data-testid="data-table">{data.length} rows</div>
   ),
+  SelectDropdown: () => <select data-testid="select-dropdown" />,
+  Badge: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
+  SkeletonTable: () => <div data-testid="skeleton-table" />,
+  SkeletonChart: () => <div data-testid="skeleton-chart" />,
 }));
 
 vi.mock("@/components/error-fallback", () => ({
-  ErrorFallback: ({
-    message,
-    onRetry,
-  }: {
-    message: string;
-    onRetry?: () => void;
-  }) => (
-    <div data-testid="error-fallback">
-      {message}
-      {onRetry && <button onClick={onRetry}>Reessayer</button>}
-    </div>
+  ErrorFallback: ({ message }: { message?: string }) => (
+    <div data-testid="error-fallback">{message}</div>
   ),
 }));
-
-// ── Helpers ─────────────────────────────────────────────────────────────────
-
-function setupLoadingMock() {
-  mockUseApiGet.mockImplementation(() => ({
-    data: null,
-    loading: true,
-    error: null,
-    refetch: vi.fn(),
-  }));
-}
-
-function setupSuccessMock() {
-  mockUseApiGet.mockImplementation((url: string | null) => {
-    if (url !== null && url.includes("/api/v1/forecasts?page=")) {
-      return {
-        data: [{ id: RUN_ID, status: "completed" }],
-        loading: false,
-        error: null,
-        refetch: mockRefetchRuns,
-      };
-    }
-    if (url !== null && url.includes("/daily")) {
-      return {
-        data: [
-          {
-            forecastDate: "2026-02-01",
-            dimension: "human",
-            predictedDemand: 100,
-            predictedCapacity: 90,
-            gap: -10,
-            riskScore: 0.5,
-            confidenceLower: 80,
-            confidenceUpper: 100,
-            departmentId: null,
-          },
-        ],
-        loading: false,
-        error: null,
-        refetch: mockRefetchDaily,
-      };
-    }
-    return { data: null, loading: false, error: null, refetch: vi.fn() };
-  });
-}
-
-// ── Tests ────────────────────────────────────────────────────────────────────
 
 describe("PrevisionsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    setupLoadingMock();
+    mockUseApiGet.mockReturnValue({
+      data: [],
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
   });
 
-  it("renders the Previsions heading", () => {
+  it("renders the heading", () => {
     render(<PrevisionsPage />);
     expect(
       screen.getByRole("heading", { name: "Previsions" }),
     ).toBeInTheDocument();
   });
 
-  it("renders the page description", () => {
+  it("renders tab bar", () => {
+    render(<PrevisionsPage />);
+    expect(screen.getByTestId("tab-bar")).toBeInTheDocument();
+  });
+
+  it("renders heatmap section heading", () => {
     render(<PrevisionsPage />);
     expect(
-      screen.getByText("Previsions de capacite humaine et marchandise"),
+      screen.getByRole("heading", { name: "Couverture par site" }),
     ).toBeInTheDocument();
   });
 
-  it("renders the dimension filter bar", () => {
-    render(<PrevisionsPage />);
-    expect(screen.getByText("Humaine")).toBeInTheDocument();
-    expect(screen.getByText("Marchandise")).toBeInTheDocument();
-  });
-
-  it("renders the risk section heading", () => {
+  it("renders alerts section heading", () => {
     render(<PrevisionsPage />);
     expect(
-      screen.getByRole("heading", { name: "Risques par departement" }),
+      screen.getByRole("heading", { name: "Alertes actives" }),
     ).toBeInTheDocument();
   });
 
-  // ── Error branch ──────────────────────────────────────────────────────────
-
-  it("shows ErrorFallback when runs fetch has an error", () => {
-    mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url !== null && url.includes("/api/v1/forecasts?page=")) {
-        return {
-          data: null,
-          loading: false,
-          error: "Erreur previsions",
-          refetch: mockRefetchRuns,
-        };
-      }
-      return {
-        data: null,
-        loading: false,
-        error: null,
-        refetch: mockRefetchDaily,
-      };
+  it("shows loading skeletons when loading", () => {
+    mockUseApiGet.mockReturnValue({
+      data: null,
+      loading: true,
+      error: null,
+      refetch: vi.fn(),
     });
-
     render(<PrevisionsPage />);
-    expect(screen.getByText("Erreur previsions")).toBeInTheDocument();
+    expect(screen.getByTestId("skeleton-chart")).toBeInTheDocument();
+    expect(screen.getByTestId("skeleton-table")).toBeInTheDocument();
   });
 
-  it("retry on error calls both refetchRuns and refetchDaily", () => {
-    mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url !== null && url.includes("/api/v1/forecasts?page=")) {
-        return {
-          data: null,
-          loading: false,
-          error: "fail",
-          refetch: mockRefetchRuns,
-        };
-      }
-      return {
-        data: null,
-        loading: false,
-        error: null,
-        refetch: mockRefetchDaily,
-      };
+  it("shows error fallback on error", () => {
+    mockUseApiGet.mockReturnValue({
+      data: null,
+      loading: false,
+      error: "Server error",
+      refetch: vi.fn(),
     });
-
     render(<PrevisionsPage />);
-    fireEvent.click(screen.getByRole("button", { name: "Reessayer" }));
-    expect(mockRefetchRuns).toHaveBeenCalledTimes(1);
-    expect(mockRefetchDaily).toHaveBeenCalledTimes(1);
-  });
-
-  // ── Data URL construction ─────────────────────────────────────────────────
-
-  it("passes correct forecasts URL with latestRunId", () => {
-    setupSuccessMock();
-    render(<PrevisionsPage />);
-    const calls = mockUseApiGet.mock.calls.map((c: unknown[]) => c[0]);
-    const dailyCalls = calls.filter(
-      (u: string | null) => typeof u === "string" && u.includes("/daily"),
-    );
-    expect(dailyCalls.length).toBeGreaterThan(0);
-    expect(dailyCalls[0]).toContain(`/api/v1/forecasts/${RUN_ID}/daily`);
-  });
-
-  it("passes null URL when no runs are available", () => {
-    mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url !== null && url.includes("/api/v1/forecasts?page=")) {
-        return {
-          data: [],
-          loading: false,
-          error: null,
-          refetch: mockRefetchRuns,
-        };
-      }
-      return { data: null, loading: false, error: null, refetch: vi.fn() };
-    });
-
-    render(<PrevisionsPage />);
-    const calls = mockUseApiGet.mock.calls.map((c: unknown[]) => c[0]);
-    expect(calls).toContain(null);
+    expect(screen.getByText("Server error")).toBeInTheDocument();
   });
 });

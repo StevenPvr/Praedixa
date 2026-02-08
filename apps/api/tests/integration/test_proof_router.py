@@ -21,10 +21,9 @@ from app.core.dependencies import get_current_user, get_db_session, get_tenant_f
 from app.core.security import TenantFilter
 from app.main import app
 from app.models.operational import ShiftType
-
-from .conftest import ORG_A_ID
 from tests.unit.conftest import _make_proof_record
 
+from .conftest import ORG_A_ID
 
 # ── GET /api/v1/proof ─────────────────────────────────────────────
 
@@ -237,9 +236,7 @@ def _make_mock_decision_orm(**overrides):
     return SimpleNamespace(**defaults)
 
 
-async def test_generate_pdf_200(
-    client_a: AsyncClient, mock_session: AsyncMock
-) -> None:
+async def test_generate_pdf_200(client_a: AsyncClient, mock_session: AsyncMock) -> None:
     """GET /api/v1/proof/pdf returns PDF streaming response."""
     record = _make_proof_record()
     decisions_orm = [_make_mock_decision_orm()]

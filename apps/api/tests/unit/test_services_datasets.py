@@ -29,12 +29,15 @@ from app.services.datasets import (
     get_dataset,
     get_dataset_columns,
     get_dataset_data,
+    get_features_data,
     get_fit_parameters,
     get_ingestion_log,
+    get_quality_reports,
     list_datasets,
     update_dataset_config,
 )
 from tests.unit.conftest import (
+    make_all_result,
     make_mock_session,
     make_scalar_result,
     make_scalars_result,
@@ -80,18 +83,20 @@ class TestListDatasets:
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(1),  # count
-            make_scalars_result([ds]),  # items
+            make_all_result([(ds, 5, 1000, None)]),  # enriched rows
         )
         items, total = await list_datasets(tenant, session)
         assert total == 1
-        assert items == [ds]
+        assert items[0] is ds
+        assert ds.column_count == 5
+        assert ds.row_count == 1000
 
     @pytest.mark.asyncio
     async def test_returns_empty_list(self):
         tenant = _make_tenant()
         session = make_mock_session(
             make_scalar_result(0),
-            make_scalars_result([]),
+            make_all_result([]),
         )
         items, total = await list_datasets(tenant, session)
         assert total == 0
@@ -100,9 +105,10 @@ class TestListDatasets:
     @pytest.mark.asyncio
     async def test_pagination_params(self):
         tenant = _make_tenant()
+        ds = _make_dataset()
         session = make_mock_session(
             make_scalar_result(50),
-            make_scalars_result([_make_dataset()]),
+            make_all_result([(ds, 3, 500, None)]),
         )
         items, total = await list_datasets(tenant, session, limit=10, offset=20)
         assert total == 50
@@ -111,9 +117,10 @@ class TestListDatasets:
     @pytest.mark.asyncio
     async def test_status_filter(self):
         tenant = _make_tenant()
+        ds = _make_dataset(status=DatasetStatus.PENDING)
         session = make_mock_session(
             make_scalar_result(1),
-            make_scalars_result([_make_dataset(status=DatasetStatus.PENDING)]),
+            make_all_result([(ds, 0, 0, None)]),
         )
         _items, total = await list_datasets(
             tenant,
@@ -440,10 +447,11 @@ class TestGetDatasetData:
 
         tenant = _make_tenant()
         session = AsyncMock()  # Not used for DDL queries
-        rows, total = await get_dataset_data(ds.id, tenant, session)
+        rows, total, columns = await get_dataset_data(ds.id, tenant, session)
 
         assert total == 3
         assert len(rows) == 3
+        assert columns == ["date_col", "revenue"]
         # System columns should be excluded
         for row in rows:
             assert "_row_id" not in row
@@ -473,10 +481,11 @@ class TestGetDatasetData:
 
         tenant = _make_tenant()
         session = AsyncMock()
-        rows, total = await get_dataset_data(ds.id, tenant, session)
+        rows, total, columns = await get_dataset_data(ds.id, tenant, session)
 
         assert total == 0
         assert rows == []
+        assert columns == []
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
@@ -515,7 +524,7 @@ class TestGetDatasetData:
 
         tenant = _make_tenant()
         session = AsyncMock()
-        _rows, total = await get_dataset_data(
+        _rows, total, _columns = await get_dataset_data(
             ds.id,
             tenant,
             session,
@@ -528,6 +537,64 @@ class TestGetDatasetData:
         data_query_call = mock_cur.execute.call_args_list[-1]
         params = data_query_call[0][1]
         assert params == (10, 20)
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.ddl_connection")
+    @patch("app.services.datasets.get_dataset")
+    async def test_undefined_table_returns_empty(self, mock_get, mock_ddl):
+        """UndefinedTable exception returns empty results gracefully."""
+        import psycopg.errors
+
+        ds = _make_dataset()
+        mock_get.return_value = ds
+
+        mock_conn = MagicMock()
+        mock_conn.__enter__ = MagicMock(return_value=mock_conn)
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        mock_cur = MagicMock()
+        mock_cur.execute.side_effect = psycopg.errors.UndefinedTable(
+            "relation does not exist"
+        )
+        mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cur)
+        mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+        mock_ddl.return_value = mock_conn
+
+        tenant = _make_tenant()
+        session = AsyncMock()
+        rows, total, columns = await get_dataset_data(ds.id, tenant, session)
+
+        assert rows == []
+        assert total == 0
+        assert columns == []
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.ddl_connection")
+    @patch("app.services.datasets.get_dataset")
+    async def test_invalid_schema_returns_empty(self, mock_get, mock_ddl):
+        """InvalidSchemaName exception returns empty results gracefully."""
+        import psycopg.errors
+
+        ds = _make_dataset()
+        mock_get.return_value = ds
+
+        mock_conn = MagicMock()
+        mock_conn.__enter__ = MagicMock(return_value=mock_conn)
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        mock_cur = MagicMock()
+        mock_cur.execute.side_effect = psycopg.errors.InvalidSchemaName(
+            "schema does not exist"
+        )
+        mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cur)
+        mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+        mock_ddl.return_value = mock_conn
+
+        tenant = _make_tenant()
+        session = AsyncMock()
+        rows, total, columns = await get_dataset_data(ds.id, tenant, session)
+
+        assert rows == []
+        assert total == 0
+        assert columns == []
 
 
 # ── get_fit_parameters — extended ────────────────────────────
@@ -809,7 +876,7 @@ class TestListDatasetsExtended:
         count_result.scalar_one.return_value = None
         session = make_mock_session(
             count_result,
-            make_scalars_result([]),
+            make_all_result([]),
         )
         items, total = await list_datasets(tenant, session)
         assert total == 0
@@ -922,3 +989,275 @@ class TestGetConfigHistoryExtended:
         )
         assert total == 20
         assert len(items) == 2
+
+
+# ── get_features_data ────────────────────────────────────────
+
+
+class TestGetFeaturesData:
+    """Tests for get_features_data: dynamic query on schema_transformed."""
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.ddl_connection")
+    @patch("app.services.datasets.get_dataset")
+    async def test_returns_rows_without_system_columns(self, mock_get, mock_ddl):
+        """System columns (_row_id, _transformed_at, _pipeline_version) are excluded."""
+        ds = _make_dataset()
+        mock_get.return_value = ds
+
+        mock_cur = MagicMock()
+        mock_conn = MagicMock()
+        mock_conn.__enter__ = MagicMock(return_value=mock_conn)
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cur)
+        mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+        mock_ddl.return_value = mock_conn
+
+        mock_cur.fetchone.return_value = (2,)
+        mock_cur.fetchall.return_value = [
+            (uuid.uuid4(), "2026-01-01T00:00:00Z", 1, "2026-01-15", 100.0, 0.5),
+            (uuid.uuid4(), "2026-01-02T00:00:00Z", 1, "2026-01-16", 200.0, 0.8),
+        ]
+        mock_cur.description = [
+            SimpleNamespace(name="_row_id"),
+            SimpleNamespace(name="_transformed_at"),
+            SimpleNamespace(name="_pipeline_version"),
+            SimpleNamespace(name="date_col"),
+            SimpleNamespace(name="revenue"),
+            SimpleNamespace(name="revenue_lag_1"),
+        ]
+
+        tenant = _make_tenant()
+        session = AsyncMock()
+        rows, total, columns = await get_features_data(ds.id, tenant, session)
+
+        assert total == 2
+        assert len(rows) == 2
+        assert columns == ["date_col", "revenue", "revenue_lag_1"]
+        for row in rows:
+            assert "_row_id" not in row
+            assert "_transformed_at" not in row
+            assert "_pipeline_version" not in row
+            assert "date_col" in row
+            assert "revenue" in row
+            assert "revenue_lag_1" in row
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.ddl_connection")
+    @patch("app.services.datasets.get_dataset")
+    async def test_returns_empty_when_no_data(self, mock_get, mock_ddl):
+        ds = _make_dataset()
+        mock_get.return_value = ds
+
+        mock_cur = MagicMock()
+        mock_conn = MagicMock()
+        mock_conn.__enter__ = MagicMock(return_value=mock_conn)
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cur)
+        mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+        mock_ddl.return_value = mock_conn
+
+        mock_cur.fetchone.return_value = (0,)
+        mock_cur.fetchall.return_value = []
+        mock_cur.description = []
+
+        tenant = _make_tenant()
+        session = AsyncMock()
+        rows, total, columns = await get_features_data(ds.id, tenant, session)
+
+        assert total == 0
+        assert rows == []
+        assert columns == []
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.get_dataset")
+    async def test_raises_not_found_for_nonexistent_dataset(self, mock_get):
+        mock_get.side_effect = NotFoundError("Dataset", "fake-id")
+
+        tenant = _make_tenant()
+        session = AsyncMock()
+        with pytest.raises(NotFoundError):
+            await get_features_data(uuid.uuid4(), tenant, session)
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.ddl_connection")
+    @patch("app.services.datasets.get_dataset")
+    async def test_pagination_with_custom_params(self, mock_get, mock_ddl):
+        ds = _make_dataset()
+        mock_get.return_value = ds
+
+        mock_cur = MagicMock()
+        mock_conn = MagicMock()
+        mock_conn.__enter__ = MagicMock(return_value=mock_conn)
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cur)
+        mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+        mock_ddl.return_value = mock_conn
+
+        mock_cur.fetchone.return_value = (100,)
+        mock_cur.fetchall.return_value = [(uuid.uuid4(), "2026-01-01", 1, 42.0)]
+        mock_cur.description = [
+            SimpleNamespace(name="_row_id"),
+            SimpleNamespace(name="date_col"),
+            SimpleNamespace(name="_pipeline_version"),
+            SimpleNamespace(name="revenue"),
+        ]
+
+        tenant = _make_tenant()
+        session = AsyncMock()
+        _rows, total, _columns = await get_features_data(
+            ds.id,
+            tenant,
+            session,
+            limit=10,
+            offset=20,
+        )
+
+        assert total == 100
+        data_query_call = mock_cur.execute.call_args_list[-1]
+        params = data_query_call[0][1]
+        assert params == (10, 20)
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.ddl_connection")
+    @patch("app.services.datasets.get_dataset")
+    async def test_undefined_table_returns_empty(self, mock_get, mock_ddl):
+        """UndefinedTable exception returns empty results for features."""
+        import psycopg.errors
+
+        ds = _make_dataset()
+        mock_get.return_value = ds
+
+        mock_conn = MagicMock()
+        mock_conn.__enter__ = MagicMock(return_value=mock_conn)
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        mock_cur = MagicMock()
+        mock_cur.execute.side_effect = psycopg.errors.UndefinedTable(
+            "relation does not exist"
+        )
+        mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cur)
+        mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+        mock_ddl.return_value = mock_conn
+
+        tenant = _make_tenant()
+        session = AsyncMock()
+        rows, total, columns = await get_features_data(ds.id, tenant, session)
+
+        assert rows == []
+        assert total == 0
+        assert columns == []
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.ddl_connection")
+    @patch("app.services.datasets.get_dataset")
+    async def test_invalid_schema_returns_empty(self, mock_get, mock_ddl):
+        """InvalidSchemaName exception returns empty results for features."""
+        import psycopg.errors
+
+        ds = _make_dataset()
+        mock_get.return_value = ds
+
+        mock_conn = MagicMock()
+        mock_conn.__enter__ = MagicMock(return_value=mock_conn)
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        mock_cur = MagicMock()
+        mock_cur.execute.side_effect = psycopg.errors.InvalidSchemaName(
+            "schema does not exist"
+        )
+        mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cur)
+        mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+        mock_ddl.return_value = mock_conn
+
+        tenant = _make_tenant()
+        session = AsyncMock()
+        rows, total, columns = await get_features_data(ds.id, tenant, session)
+
+        assert rows == []
+        assert total == 0
+        assert columns == []
+
+
+# ── get_quality_reports ──────────────────────────────────────
+
+
+class TestGetQualityReports:
+    """Tests for get_quality_reports — quality report retrieval with pagination."""
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.get_dataset")
+    async def test_returns_reports_and_count(self, mock_get):
+        mock_get.return_value = _make_dataset()
+        reports = [SimpleNamespace(id="qr-1")]
+
+        session = make_mock_session(
+            make_scalar_result(1),
+            make_scalars_result(reports),
+        )
+        items, total = await get_quality_reports(
+            uuid.uuid4(),
+            _make_tenant(),
+            session,
+        )
+        assert total == 1
+        assert items == reports
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.get_dataset")
+    async def test_empty_reports(self, mock_get):
+        mock_get.return_value = _make_dataset()
+        session = make_mock_session(
+            make_scalar_result(0),
+            make_scalars_result([]),
+        )
+        items, total = await get_quality_reports(
+            uuid.uuid4(),
+            _make_tenant(),
+            session,
+        )
+        assert total == 0
+        assert items == []
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.get_dataset")
+    async def test_with_pagination_params(self, mock_get):
+        mock_get.return_value = _make_dataset()
+        reports = [SimpleNamespace(id="qr-1")]
+        session = make_mock_session(
+            make_scalar_result(5),
+            make_scalars_result(reports),
+        )
+        items, total = await get_quality_reports(
+            uuid.uuid4(),
+            _make_tenant(),
+            session,
+            limit=2,
+            offset=2,
+        )
+        assert total == 5
+        assert len(items) == 1
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.get_dataset")
+    async def test_raises_not_found_for_missing_dataset(self, mock_get):
+        mock_get.side_effect = NotFoundError("Dataset", "fake-id")
+        session = AsyncMock()
+        with pytest.raises(NotFoundError):
+            await get_quality_reports(uuid.uuid4(), _make_tenant(), session)
+
+    @pytest.mark.asyncio
+    @patch("app.services.datasets.get_dataset")
+    async def test_none_count_coerced_to_zero(self, mock_get):
+        mock_get.return_value = _make_dataset()
+        count_result = MagicMock()
+        count_result.scalar_one.return_value = None
+        session = make_mock_session(
+            count_result,
+            make_scalars_result([]),
+        )
+        items, total = await get_quality_reports(
+            uuid.uuid4(),
+            _make_tenant(),
+            session,
+        )
+        assert total == 0
+        assert items == []

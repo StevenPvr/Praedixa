@@ -1,57 +1,69 @@
 -- freeze_client_schema.sql
 -- P0-07: Emergency freeze of a client schema during an incident.
 --
--- Revokes ALL access from GROUP roles (not login roles) to ensure
--- inherited permissions are fully cut off.
---
 -- Usage:
 --   psql -h <host> -U <superuser> -d <db> \
 --     -v client_slug='acme' \
 --     -f scripts/freeze_client_schema.sql
 --
--- Parameters:
---   :client_slug — The client slug (e.g., 'acme'). Schemas are
---                  {slug}_raw and {slug}_transformed.
---
--- IMPORTANT: This script must be run by a superuser or the schema owner.
--- After execution, verify with: \dn+ {slug}_raw ; \dn+ {slug}_transformed
+-- Security:
+-- - Identifiers are built with format('%I', ...) to prevent SQL injection.
+-- - This script is intended for privileged operators only.
+
+\set ON_ERROR_STOP on
 
 \echo '=== INCIDENT FREEZE: Schema :client_slug ==='
 \echo 'Timestamp:'
 SELECT now() AS freeze_started_at;
 
--- ──────────────────────────────────────────────
--- 1. Revoke SCHEMA-level USAGE from group roles
--- ──────────────────────────────────────────────
-\echo '--- Revoking schema-level privileges ---'
+SELECT
+  format('%I', :'client_slug' || '_raw') AS raw_schema,
+  format('%I', :'client_slug' || '_transformed') AS transformed_schema
+\gset
 
--- _raw schema: revoke from all readers + writers
-REVOKE ALL ON SCHEMA :client_slug _raw FROM praedixa_client_raw_reader;
-REVOKE ALL ON SCHEMA :client_slug _raw FROM praedixa_transform_engine;
-REVOKE ALL ON SCHEMA :client_slug _raw FROM praedixa_ingestion;
+DO $$
+DECLARE
+  raw_schema text := :'raw_schema';
+  transformed_schema text := :'transformed_schema';
+BEGIN
+  -- 1) Revoke schema-level privileges.
+  EXECUTE format(
+    'REVOKE ALL ON SCHEMA %s FROM praedixa_client_raw_reader',
+    raw_schema
+  );
+  EXECUTE format(
+    'REVOKE ALL ON SCHEMA %s FROM praedixa_transform_engine',
+    raw_schema
+  );
+  EXECUTE format(
+    'REVOKE ALL ON SCHEMA %s FROM praedixa_ingestion',
+    raw_schema
+  );
 
--- _transformed schema: revoke from all readers + writers
-REVOKE ALL ON SCHEMA :client_slug _transformed FROM praedixa_client_transformed_reader;
-REVOKE ALL ON SCHEMA :client_slug _transformed FROM praedixa_transform_engine;
+  EXECUTE format(
+    'REVOKE ALL ON SCHEMA %s FROM praedixa_client_transformed_reader',
+    transformed_schema
+  );
+  EXECUTE format(
+    'REVOKE ALL ON SCHEMA %s FROM praedixa_transform_engine',
+    transformed_schema
+  );
 
--- ──────────────────────────────────────────────
--- 2. Revoke TABLE-level privileges defensively
---    (in case tables had direct grants)
--- ──────────────────────────────────────────────
-\echo '--- Revoking table-level privileges ---'
+  -- 2) Revoke table-level privileges defensively.
+  EXECUTE format(
+    'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA %s ' ||
+    'FROM praedixa_client_raw_reader, praedixa_transform_engine, praedixa_ingestion',
+    raw_schema
+  );
+  EXECUTE format(
+    'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA %s ' ||
+    'FROM praedixa_client_transformed_reader, praedixa_transform_engine',
+    transformed_schema
+  );
+END
+$$;
 
-REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA :client_slug _raw
-  FROM praedixa_client_raw_reader, praedixa_transform_engine, praedixa_ingestion;
-
-REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA :client_slug _transformed
-  FROM praedixa_client_transformed_reader, praedixa_transform_engine;
-
--- ──────────────────────────────────────────────
--- 3. Terminate active sessions querying target schemas
---    (best-effort — only kills currently running queries)
--- ──────────────────────────────────────────────
-\echo '--- Terminating active sessions on target schemas ---'
-
+-- 3) Best-effort active session termination on target schemas.
 SELECT pg_terminate_backend(pid), pid, usename, state, query
   FROM pg_stat_activity
  WHERE datname = current_database()

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures/coverage";
 import { setupAuth } from "./fixtures/auth";
 
 test("debug: check where /dashboard redirects", async ({ page }) => {

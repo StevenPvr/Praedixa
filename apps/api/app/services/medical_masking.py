@@ -15,24 +15,27 @@ Security notes:
 
 from typing import Any
 
-
 # Absence types that are considered medical (GDPR Article 9 — health data)
-_MEDICAL_ABSENCE_TYPES: frozenset[str] = frozenset({
-    "sick_leave",
-    "sick_leave_workplace",
-    "maternity",
-    "paternity",
-})
+_MEDICAL_ABSENCE_TYPES: frozenset[str] = frozenset(
+    {
+        "sick_leave",
+        "sick_leave_workplace",
+        "maternity",
+        "paternity",
+    }
+)
 
 _MASKED_REASON = "[MEDICAL]"
 
 # Fields to remove from medical absences (contain health-related metadata)
-_SENSITIVE_FIELDS: frozenset[str] = frozenset({
-    "medical_certificate_required",
-    "medical_certificate_uploaded",
-    "diagnosis_code",
-    "medical_notes",
-})
+_SENSITIVE_FIELDS: frozenset[str] = frozenset(
+    {
+        "medical_certificate_required",
+        "medical_certificate_uploaded",
+        "diagnosis_code",
+        "medical_notes",
+    }
+)
 
 
 def mask_medical_reasons(absences: list[dict[str, Any]]) -> list[dict[str, Any]]:

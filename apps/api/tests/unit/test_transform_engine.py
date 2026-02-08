@@ -29,6 +29,7 @@ from app.services.transform_engine import (
     _filter_incremental_rows,
     _get_last_successful_cutoff,
     _insert_transformed_rows,
+    _is_after_cutoff,
     _load_active_fit_params,
     _load_columns,
     _load_dataset,
@@ -1283,3 +1284,62 @@ class TestVerifyAllHmacsEdgeCases:
             ),
         ]
         _verify_all_hmacs(fps, secret)  # should not raise
+
+
+# ── _is_after_cutoff edge cases ────────────────────────────
+
+
+class TestIsAfterCutoff:
+    """Test _is_after_cutoff defensive branches."""
+
+    def test_non_datetime_value_returns_false(self):
+        assert _is_after_cutoff("not-a-date", datetime(2026, 1, 1, tzinfo=UTC)) is False
+
+    def test_naive_candidate_aware_reference(self):
+        naive = datetime(2026, 1, 15)
+        aware = datetime(2026, 1, 10, tzinfo=UTC)
+        assert _is_after_cutoff(naive, aware) is True
+
+    def test_aware_candidate_naive_reference(self):
+        aware = datetime(2026, 1, 15, tzinfo=UTC)
+        naive = datetime(2026, 1, 10)
+        assert _is_after_cutoff(aware, naive) is True
+
+    def test_aware_candidate_naive_reference_before(self):
+        aware = datetime(2026, 1, 5, tzinfo=UTC)
+        naive = datetime(2026, 1, 10)
+        assert _is_after_cutoff(aware, naive) is False
+
+    def test_type_error_in_comparison_returns_false(self):
+        """TypeError during comparison is caught and returns False."""
+
+        class BadDatetime(datetime):
+            def __gt__(self, other):
+                raise TypeError("mock comparison failure")
+
+        bad = BadDatetime(2026, 1, 15, tzinfo=UTC)
+        assert _is_after_cutoff(bad, datetime(2026, 1, 10, tzinfo=UTC)) is False
+
+
+class TestFilterIncrementalRowsEdgeCases:
+    """Edge cases for _filter_incremental_rows."""
+
+    def test_short_row_skipped(self):
+        cutoff = datetime(2026, 1, 10, tzinfo=UTC)
+        rows = [
+            ("row-1",),  # shorter than expected (missing _ingested_at)
+            ("row-2", datetime(2026, 1, 11, tzinfo=UTC), 1.0),
+        ]
+        col_names = ["_row_id", "_ingested_at", "value"]
+        filtered = _filter_incremental_rows(rows, col_names, cutoff)
+        assert len(filtered) == 1
+
+    def test_non_datetime_ingested_at_skipped(self):
+        cutoff = datetime(2026, 1, 10, tzinfo=UTC)
+        rows = [
+            ("row-1", "not-a-date", 1.0),
+            ("row-2", datetime(2026, 1, 11, tzinfo=UTC), 2.0),
+        ]
+        col_names = ["_row_id", "_ingested_at", "value"]
+        filtered = _filter_incremental_rows(rows, col_names, cutoff)
+        assert len(filtered) == 1

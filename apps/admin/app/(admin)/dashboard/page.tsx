@@ -97,25 +97,18 @@ export default function AdminDashboardPage() {
     refetch: refetchErrors,
   } = useApiGet<ErrorMetrics>(ADMIN_ENDPOINTS.errors);
 
-  const {
-    data: coverage,
-    loading: coverageLoading,
-  } = useApiGet<CanonicalCoverage>(ADMIN_ENDPOINTS.monitoringCanonicalCoverage);
+  const { data: coverage, loading: coverageLoading } =
+    useApiGet<CanonicalCoverage>(ADMIN_ENDPOINTS.monitoringCanonicalCoverage);
 
-  const {
-    data: alerts,
-    loading: alertsLoading,
-  } = useApiGet<AlertSummary>(ADMIN_ENDPOINTS.monitoringAlertsSummary);
+  const { data: alerts, loading: alertsLoading } = useApiGet<AlertSummary>(
+    ADMIN_ENDPOINTS.monitoringAlertsSummary,
+  );
 
-  const {
-    data: proofPacks,
-    loading: proofLoading,
-  } = useApiGet<ProofPacksSummary>(ADMIN_ENDPOINTS.monitoringProofPacksSummary);
+  const { data: proofPacks, loading: proofLoading } =
+    useApiGet<ProofPacksSummary>(ADMIN_ENDPOINTS.monitoringProofPacksSummary);
 
-  const {
-    data: adoption,
-    loading: adoptionLoading,
-  } = useApiGet<AdoptionMetrics>(ADMIN_ENDPOINTS.monitoringDecisionsAdoption);
+  const { data: adoption, loading: adoptionLoading } =
+    useApiGet<AdoptionMetrics>(ADMIN_ENDPOINTS.monitoringDecisionsAdoption);
 
   if (kpisLoading && errorsLoading) {
     return <SkeletonAdminDashboard />;
@@ -219,10 +212,13 @@ export default function AdminDashboardPage() {
                 <span className="text-3xl font-semibold text-charcoal">
                   {(coverage.avgCompleteness * 100).toFixed(1)}%
                 </span>
-                <span className="text-sm text-gray-400">completude moyenne</span>
+                <span className="text-sm text-gray-400">
+                  completude moyenne
+                </span>
               </div>
               <p className="text-sm text-gray-500">
-                {coverage.totalOrgs} organisation{coverage.totalOrgs !== 1 ? "s" : ""} avec donnees canoniques
+                {coverage.totalOrgs} organisation
+                {coverage.totalOrgs !== 1 ? "s" : ""} avec donnees canoniques
               </p>
             </div>
           ) : (
@@ -249,11 +245,15 @@ export default function AdminDashboardPage() {
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="flex items-center gap-1">
                   <span className="h-2 w-2 rounded-full bg-red-500" />
-                  <span className="text-gray-500">Critiques: {alerts.bySeverity.critical}</span>
+                  <span className="text-gray-500">
+                    Critiques: {alerts.bySeverity.critical}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="h-2 w-2 rounded-full bg-orange-500" />
-                  <span className="text-gray-500">Hautes: {alerts.bySeverity.high}</span>
+                  <span className="text-gray-500">
+                    Hautes: {alerts.bySeverity.high}
+                  </span>
                 </div>
               </div>
             </div>
@@ -279,11 +279,17 @@ export default function AdminDashboardPage() {
               </div>
               <div className="flex justify-between text-sm text-gray-500">
                 <span>{proofPacks.totalProofRecords} proof records</span>
-                <span>{proofPacks.orgsWithProof} org{proofPacks.orgsWithProof !== 1 ? "s" : ""}</span>
+                <span>
+                  {proofPacks.orgsWithProof} org
+                  {proofPacks.orgsWithProof !== 1 ? "s" : ""}
+                </span>
               </div>
               {proofPacks.avgAdoptionPct != null && (
                 <p className="text-sm text-gray-500">
-                  Adoption: <span className="font-medium text-charcoal">{proofPacks.avgAdoptionPct.toFixed(1)}%</span>
+                  Adoption:{" "}
+                  <span className="font-medium text-charcoal">
+                    {proofPacks.avgAdoptionPct.toFixed(1)}%
+                  </span>
                 </p>
               )}
             </div>
@@ -306,14 +312,17 @@ export default function AdminDashboardPage() {
                 <span className="text-3xl font-semibold text-charcoal">
                   {adoption.overallAdoptionPct.toFixed(1)}%
                 </span>
-                <span className="text-sm text-gray-400">taux d&apos;adoption</span>
+                <span className="text-sm text-gray-400">
+                  taux d&apos;adoption
+                </span>
               </div>
               <div className="flex justify-between text-sm text-gray-500">
                 <span>{adoption.adoptedCount} adoptees</span>
                 <span>{adoption.overriddenCount} modifiees</span>
               </div>
               <p className="text-sm text-gray-500">
-                Sur {adoption.totalDecisions} decision{adoption.totalDecisions !== 1 ? "s" : ""} totales
+                Sur {adoption.totalDecisions} decision
+                {adoption.totalDecisions !== 1 ? "s" : ""} totales
               </p>
             </div>
           ) : (

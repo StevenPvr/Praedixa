@@ -5,7 +5,7 @@ import type {
   CanonicalDataSummary,
   CanonicalQualityDashboard,
 } from "../domain/canonical";
-import type { TenantEntity, ISODateString } from "../utils/common";
+import type { TenantEntity } from "../utils/common";
 
 describe("ShiftType", () => {
   it("accepts valid shift values", () => {
@@ -64,9 +64,7 @@ describe("CanonicalDataSummary", () => {
   });
 
   it("dateRange is a string array", () => {
-    expectTypeOf<
-      CanonicalDataSummary["dateRange"]
-    >().toEqualTypeOf<string[]>();
+    expectTypeOf<CanonicalDataSummary["dateRange"]>().toEqualTypeOf<string[]>();
   });
 
   it("sites is a number", () => {

@@ -37,7 +37,6 @@ from app.services.admin_audit import (
     log_admin_action,
 )
 
-
 # ── Helpers ──────────────────────────────────────────────────────────
 
 
@@ -453,9 +452,7 @@ class TestGetAuditLog:
         session.execute = AsyncMock(side_effect=[count_result, items_result])
         admin_id = str(uuid.uuid4())
 
-        items, total = await get_audit_log(
-            session, admin_user_id=admin_id
-        )
+        _items, total = await get_audit_log(session, admin_user_id=admin_id)
         assert total == 2
         # Verify execute was called twice (count + items)
         assert session.execute.call_count == 2
@@ -472,9 +469,7 @@ class TestGetAuditLog:
 
         session.execute = AsyncMock(side_effect=[count_result, items_result])
 
-        items, total = await get_audit_log(
-            session, target_org_id=str(uuid.uuid4())
-        )
+        _items, total = await get_audit_log(session, target_org_id=str(uuid.uuid4()))
         assert total == 3
 
     async def test_filter_by_action(self) -> None:
@@ -489,7 +484,7 @@ class TestGetAuditLog:
 
         session.execute = AsyncMock(side_effect=[count_result, items_result])
 
-        items, total = await get_audit_log(session, action="view_org")
+        _items, total = await get_audit_log(session, action="view_org")
         assert total == 1
 
     async def test_invalid_action_ignored(self) -> None:
@@ -504,7 +499,7 @@ class TestGetAuditLog:
 
         session.execute = AsyncMock(side_effect=[count_result, items_result])
 
-        items, total = await get_audit_log(session, action="fake_action")
+        _items, total = await get_audit_log(session, action="fake_action")
         assert total == 10
 
     async def test_date_range_filters(self) -> None:
@@ -520,7 +515,7 @@ class TestGetAuditLog:
         session.execute = AsyncMock(side_effect=[count_result, items_result])
 
         now = datetime.now(UTC)
-        items, total = await get_audit_log(
+        _items, total = await get_audit_log(
             session,
             date_from=now,
             date_to=now,
@@ -539,7 +534,7 @@ class TestGetAuditLog:
 
         session.execute = AsyncMock(side_effect=[count_result, items_result])
 
-        items, total = await get_audit_log(session, page=3, page_size=10)
+        _items, total = await get_audit_log(session, page=3, page_size=10)
         assert total == 50
 
     async def test_count_returns_none_falls_back_to_zero(self) -> None:
@@ -554,7 +549,7 @@ class TestGetAuditLog:
 
         session.execute = AsyncMock(side_effect=[count_result, items_result])
 
-        items, total = await get_audit_log(session)
+        _items, total = await get_audit_log(session)
         assert total == 0
 
 

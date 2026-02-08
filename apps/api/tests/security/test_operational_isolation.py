@@ -12,7 +12,6 @@ Strategy:
 import uuid
 from datetime import date
 from decimal import Decimal
-from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -51,8 +50,6 @@ from tests.unit.conftest import (
     _make_cost_parameter,
     _make_coverage_alert,
     _make_operational_decision,
-    _make_proof_record,
-    _make_scenario_option,
     _make_tenant,
     make_mock_session,
     make_scalar_result,
@@ -132,7 +129,14 @@ class TestCanonicalRecordIsolation:
         await bulk_import_canonical(
             session,
             tenant,
-            [{"site_id": "s1", "date": date(2026, 1, 1), "shift": "am", "capacite_plan_h": Decimal("100")}],
+            [
+                {
+                    "site_id": "s1",
+                    "date": date(2026, 1, 1),
+                    "shift": "am",
+                    "capacite_plan_h": Decimal("100"),
+                }
+            ],
         )
         session.execute.assert_called_once()
 
@@ -148,12 +152,8 @@ class TestCanonicalRecordIsolation:
         tenant_a = _tenant_a()
         tenant_b = _tenant_b()
 
-        session_a = make_mock_session(
-            make_scalar_result(0), make_scalars_result([])
-        )
-        session_b = make_mock_session(
-            make_scalar_result(0), make_scalars_result([])
-        )
+        session_a = make_mock_session(make_scalar_result(0), make_scalars_result([]))
+        session_b = make_mock_session(make_scalar_result(0), make_scalars_result([]))
 
         await list_canonical_records(session_a, tenant_a)
         await list_canonical_records(session_b, tenant_b)
@@ -171,9 +171,7 @@ class TestCostParameterIsolation:
     @pytest.mark.asyncio
     async def test_list_applies_tenant_filter(self):
         tenant = _tenant_a()
-        session = make_mock_session(
-            make_scalar_result(0), make_scalars_result([])
-        )
+        session = make_mock_session(make_scalar_result(0), make_scalars_result([]))
         await list_cost_parameters(session, tenant)
         tenant.apply.assert_called()
 
@@ -233,9 +231,7 @@ class TestDecisionLogIsolation:
     @pytest.mark.asyncio
     async def test_list_applies_tenant(self):
         tenant = _tenant_a()
-        session = make_mock_session(
-            make_scalar_result(0), make_scalars_result([])
-        )
+        session = make_mock_session(make_scalar_result(0), make_scalars_result([]))
         await list_operational_decisions(session, tenant)
         tenant.apply.assert_called()
 
@@ -293,7 +289,9 @@ class TestDecisionLogIsolation:
         session = make_mock_session(result_mock)
         with pytest.raises(NotFoundError):
             await update_operational_decision(
-                session, tenant_b, uuid.uuid4(),
+                session,
+                tenant_b,
+                uuid.uuid4(),
                 cout_observe_eur=Decimal("100"),
             )
 
@@ -324,9 +322,7 @@ class TestProofRecordIsolation:
     @pytest.mark.asyncio
     async def test_list_applies_tenant(self):
         tenant = _tenant_a()
-        session = make_mock_session(
-            make_scalar_result(0), make_scalars_result([])
-        )
+        session = make_mock_session(make_scalar_result(0), make_scalars_result([]))
         await list_proof_records(session, tenant)
         tenant.apply.assert_called()
 

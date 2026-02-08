@@ -180,32 +180,40 @@ class TestSuperAdminCrossOrgAccess:
     """Super admin (ORG_A) can access ORG_B data via admin endpoints."""
 
     async def test_admin_can_read_other_org_detail(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """Admin from ORG_A can GET /organizations/{ORG_B}."""
         mock_org_b = _mock_org(ORG_B_ID, "Org B")
-        with patch(
-            "app.routers.admin_orgs.get_organization",
-            new_callable=AsyncMock,
-            return_value=mock_org_b,
-        ) as mock_svc, patch(
-            "app.routers.admin_orgs.get_org_counts",
-            new_callable=AsyncMock,
-            return_value={
-                "users_count": 5, "sites_count": 2, "departments_count": 4,
-                "datasets_count": 1, "forecast_runs_count": 0,
-            },
-        ), patch(
-            "app.routers.admin_orgs.get_org_hierarchy",
-            new_callable=AsyncMock,
-            return_value=[],
-        ), patch(
-            "app.routers.admin_orgs.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_orgs.get_organization",
+                new_callable=AsyncMock,
+                return_value=mock_org_b,
+            ) as mock_svc,
+            patch(
+                "app.routers.admin_orgs.get_org_counts",
+                new_callable=AsyncMock,
+                return_value={
+                    "users_count": 5,
+                    "sites_count": 2,
+                    "departments_count": 4,
+                    "datasets_count": 1,
+                    "forecast_runs_count": 0,
+                },
+            ),
+            patch(
+                "app.routers.admin_orgs.get_org_hierarchy",
+                new_callable=AsyncMock,
+                return_value=[],
+            ),
+            patch(
+                "app.routers.admin_orgs.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
-            resp = await sa_client.get(
-                f"/api/v1/admin/organizations/{ORG_B_ID}"
-            )
+            resp = await sa_client.get(f"/api/v1/admin/organizations/{ORG_B_ID}")
 
         assert resp.status_code == 200
         # Service was called with ORG_B's ID, not ORG_A's
@@ -213,20 +221,23 @@ class TestSuperAdminCrossOrgAccess:
         assert mock_svc.call_args[0][1] == ORG_B_ID
 
     async def test_admin_can_list_other_org_users(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """Admin from ORG_A can list ORG_B's users."""
-        with patch(
-            "app.routers.admin_users.list_org_users",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ) as mock_svc, patch(
-            "app.routers.admin_users.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_users.list_org_users",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ) as mock_svc,
+            patch(
+                "app.routers.admin_users.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
-            resp = await sa_client.get(
-                f"/api/v1/admin/organizations/{ORG_B_ID}/users"
-            )
+            resp = await sa_client.get(f"/api/v1/admin/organizations/{ORG_B_ID}/users")
 
         assert resp.status_code == 200
         # Verify org_id passed to service is ORG_B
@@ -234,18 +245,23 @@ class TestSuperAdminCrossOrgAccess:
         assert call_args[0][1] == ORG_B_ID
 
     async def test_admin_can_invite_user_to_other_org(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """Admin from ORG_A can invite a user to ORG_B."""
         mock_user = _mock_user(ORG_B_ID)
         mock_user.status = UserStatus.PENDING
-        with patch(
-            "app.routers.admin_users.invite_user",
-            new_callable=AsyncMock,
-            return_value=mock_user,
-        ) as mock_svc, patch(
-            "app.routers.admin_users.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_users.invite_user",
+                new_callable=AsyncMock,
+                return_value=mock_user,
+            ) as mock_svc,
+            patch(
+                "app.routers.admin_users.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
             resp = await sa_client.post(
                 f"/api/v1/admin/organizations/{ORG_B_ID}/users/invite",
@@ -257,22 +273,26 @@ class TestSuperAdminCrossOrgAccess:
         assert call_kwargs["org_id"] == ORG_B_ID
 
     async def test_admin_can_change_other_org_user_role(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """Admin from ORG_A can change a user's role in ORG_B."""
         mock_user = _mock_user(ORG_B_ID)
         mock_user.role = UserRole.MANAGER
-        with patch(
-            "app.routers.admin_users.change_user_role",
-            new_callable=AsyncMock,
-            return_value=mock_user,
-        ) as mock_svc, patch(
-            "app.routers.admin_users.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_users.change_user_role",
+                new_callable=AsyncMock,
+                return_value=mock_user,
+            ) as mock_svc,
+            patch(
+                "app.routers.admin_users.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
             resp = await sa_client.patch(
-                f"/api/v1/admin/organizations/{ORG_B_ID}"
-                f"/users/{USER_IN_ORG_B}/role",
+                f"/api/v1/admin/organizations/{ORG_B_ID}/users/{USER_IN_ORG_B}/role",
                 json={"role": "manager"},
             )
 
@@ -281,18 +301,23 @@ class TestSuperAdminCrossOrgAccess:
         assert call_kwargs["org_id"] == ORG_B_ID
 
     async def test_admin_can_suspend_other_org(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """Admin from ORG_A can suspend ORG_B."""
         mock_org_b = _mock_org(ORG_B_ID, "Org B")
         mock_org_b.status = OrganizationStatus.SUSPENDED
-        with patch(
-            "app.routers.admin_orgs.change_org_status",
-            new_callable=AsyncMock,
-            return_value=mock_org_b,
-        ) as mock_svc, patch(
-            "app.routers.admin_orgs.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_orgs.change_org_status",
+                new_callable=AsyncMock,
+                return_value=mock_org_b,
+            ) as mock_svc,
+            patch(
+                "app.routers.admin_orgs.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
             resp = await sa_client.post(
                 f"/api/v1/admin/organizations/{ORG_B_ID}/suspend"
@@ -303,21 +328,26 @@ class TestSuperAdminCrossOrgAccess:
         assert mock_svc.call_args[0][1] == ORG_B_ID
 
     async def test_admin_can_view_other_org_billing(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """Admin from ORG_A can view ORG_B's billing."""
-        with patch(
-            "app.routers.admin_billing.get_billing_info",
-            new_callable=AsyncMock,
-            return_value={
-                "organization_id": ORG_B_ID,
-                "plan": SubscriptionPlan.PROFESSIONAL,
-                "limits": {},
-                "usage": {},
-            },
-        ) as mock_svc, patch(
-            "app.routers.admin_billing.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_billing.get_billing_info",
+                new_callable=AsyncMock,
+                return_value={
+                    "organization_id": ORG_B_ID,
+                    "plan": SubscriptionPlan.PROFESSIONAL,
+                    "limits": {},
+                    "usage": {},
+                },
+            ),
+            patch(
+                "app.routers.admin_billing.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
             resp = await sa_client.get(
                 f"/api/v1/admin/billing/organizations/{ORG_B_ID}"
@@ -328,16 +358,21 @@ class TestSuperAdminCrossOrgAccess:
         assert resp.json()["data"]["plan"] == "professional"
 
     async def test_admin_can_view_other_org_forecasts(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """Admin from ORG_A can list ORG_B's forecasts."""
-        with patch(
-            "app.routers.admin_data.list_forecasts",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ) as mock_svc, patch(
-            "app.routers.admin_data.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_data.list_forecasts",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ) as mock_svc,
+            patch(
+                "app.routers.admin_data.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
             resp = await sa_client.get(
                 f"/api/v1/admin/organizations/{ORG_B_ID}/forecasts"
@@ -350,16 +385,21 @@ class TestSuperAdminCrossOrgAccess:
         assert tenant_arg.organization_id == str(ORG_B_ID)
 
     async def test_admin_can_view_other_org_decisions(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """Admin from ORG_A can list ORG_B's decisions."""
-        with patch(
-            "app.routers.admin_data.list_decisions",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ) as mock_svc, patch(
-            "app.routers.admin_data.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_data.list_decisions",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ) as mock_svc,
+            patch(
+                "app.routers.admin_data.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
             resp = await sa_client.get(
                 f"/api/v1/admin/organizations/{ORG_B_ID}/decisions"
@@ -371,7 +411,9 @@ class TestSuperAdminCrossOrgAccess:
         assert tenant_arg.organization_id == str(ORG_B_ID)
 
     async def test_admin_can_view_other_org_datasets(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """Admin from ORG_A can list ORG_B's datasets via direct DB query."""
         # The datasets endpoint uses direct SQLAlchemy queries (not a service)
@@ -379,9 +421,7 @@ class TestSuperAdminCrossOrgAccess:
         mock_count.scalar_one.return_value = 0
         mock_items = MagicMock()
         mock_items.scalars.return_value.all.return_value = []
-        mock_session.execute = AsyncMock(
-            side_effect=[mock_count, mock_items]
-        )
+        mock_session.execute = AsyncMock(side_effect=[mock_count, mock_items])
 
         with patch(
             "app.routers.admin_data.log_admin_action",
@@ -394,17 +434,22 @@ class TestSuperAdminCrossOrgAccess:
         assert resp.status_code == 200
 
     async def test_admin_cross_org_audit_records_target_org(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """Cross-org access audit entry records target org, not admin's org."""
-        with patch(
-            "app.routers.admin_orgs.list_organizations",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ), patch(
-            "app.routers.admin_orgs.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_orgs.list_organizations",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ),
+            patch(
+                "app.routers.admin_orgs.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             await sa_client.get("/api/v1/admin/organizations")
 
         mock_audit.assert_awaited_once()
@@ -447,9 +492,15 @@ class TestNonAdminBlockedFromCrossOrg:
             ("GET", f"/api/v1/admin/organizations/{ORG_B_ID}/absences", None),
         ],
         ids=[
-            "get_org", "list_users", "invite_user", "suspend_org",
-            "get_billing", "monitoring_org", "list_datasets",
-            "list_forecasts", "list_absences",
+            "get_org",
+            "list_users",
+            "invite_user",
+            "suspend_org",
+            "get_billing",
+            "monitoring_org",
+            "list_datasets",
+            "list_forecasts",
+            "list_absences",
         ],
     )
     async def test_org_admin_blocked_from_other_org_admin_endpoint(
@@ -463,7 +514,11 @@ class TestNonAdminBlockedFromCrossOrg:
         if method == "GET":
             resp = await org_admin_client.get(path)
         elif method == "POST":
-            resp = await org_admin_client.post(path, json=body) if body else await org_admin_client.post(path)
+            resp = (
+                await org_admin_client.post(path, json=body)
+                if body
+                else await org_admin_client.post(path)
+            )
         else:
             resp = await org_admin_client.patch(path, json=body)
 
@@ -507,9 +562,7 @@ class TestNonAdminBlockedFromCrossOrg:
             async with AsyncClient(
                 transport=transport, base_url="http://test"
             ) as client:
-                resp = await client.get(
-                    f"/api/v1/admin/organizations/{ORG_B_ID}"
-                )
+                resp = await client.get(f"/api/v1/admin/organizations/{ORG_B_ID}")
 
             assert resp.status_code == 403
         finally:
@@ -528,20 +581,23 @@ class TestAdminTenantFilterIsolation:
     """
 
     async def test_forecasts_tenant_uses_path_not_jwt(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """TenantFilter for forecasts uses ORG_B from path, not ORG_A from JWT."""
-        with patch(
-            "app.routers.admin_data.list_forecasts",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ) as mock_svc, patch(
-            "app.routers.admin_data.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_data.list_forecasts",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ) as mock_svc,
+            patch(
+                "app.routers.admin_data.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
-            await sa_client.get(
-                f"/api/v1/admin/organizations/{ORG_B_ID}/forecasts"
-            )
+            await sa_client.get(f"/api/v1/admin/organizations/{ORG_B_ID}/forecasts")
 
         tenant = mock_svc.call_args[0][0]
         assert isinstance(tenant, TenantFilter)
@@ -550,26 +606,31 @@ class TestAdminTenantFilterIsolation:
         assert tenant.organization_id != str(ORG_A_ID)
 
     async def test_decisions_tenant_uses_path_not_jwt(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """TenantFilter for decisions uses ORG_B from path, not ORG_A from JWT."""
-        with patch(
-            "app.routers.admin_data.list_decisions",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ) as mock_svc, patch(
-            "app.routers.admin_data.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_data.list_decisions",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ) as mock_svc,
+            patch(
+                "app.routers.admin_data.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
-            await sa_client.get(
-                f"/api/v1/admin/organizations/{ORG_B_ID}/decisions"
-            )
+            await sa_client.get(f"/api/v1/admin/organizations/{ORG_B_ID}/decisions")
 
         tenant = mock_svc.call_args[0][0]
         assert tenant.organization_id == str(ORG_B_ID)
 
     async def test_consecutive_cross_org_calls_use_different_tenants(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """Consecutive admin calls to different orgs get distinct TenantFilters."""
         captured_tenants = []
@@ -578,28 +639,29 @@ class TestAdminTenantFilterIsolation:
             captured_tenants.append(tenant.organization_id)
             return ([], 0)
 
-        with patch(
-            "app.routers.admin_data.list_forecasts",
-            side_effect=mock_list_forecasts,
-        ), patch(
-            "app.routers.admin_data.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_data.list_forecasts",
+                side_effect=mock_list_forecasts,
+            ),
+            patch(
+                "app.routers.admin_data.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
             # First call: ORG_A
-            await sa_client.get(
-                f"/api/v1/admin/organizations/{ORG_A_ID}/forecasts"
-            )
+            await sa_client.get(f"/api/v1/admin/organizations/{ORG_A_ID}/forecasts")
             # Second call: ORG_B
-            await sa_client.get(
-                f"/api/v1/admin/organizations/{ORG_B_ID}/forecasts"
-            )
+            await sa_client.get(f"/api/v1/admin/organizations/{ORG_B_ID}/forecasts")
 
         assert len(captured_tenants) == 2
         assert captured_tenants[0] == str(ORG_A_ID)
         assert captured_tenants[1] == str(ORG_B_ID)
 
     async def test_admin_cross_org_does_not_mutate_shared_state(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """Accessing ORG_B doesn't affect a subsequent ORG_A access."""
         captured_orgs = []
@@ -613,12 +675,15 @@ class TestAdminTenantFilterIsolation:
                 "usage": {},
             }
 
-        with patch(
-            "app.routers.admin_billing.get_billing_info",
-            side_effect=mock_get_billing,
-        ), patch(
-            "app.routers.admin_billing.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_billing.get_billing_info",
+                side_effect=mock_get_billing,
+            ),
+            patch(
+                "app.routers.admin_billing.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
             # Access ORG_B first
             resp_b = await sa_client.get(
@@ -648,21 +713,24 @@ class TestAdminDoesNotBypassRegularTenantIsolation:
     """
 
     async def test_regular_dashboard_only_sees_jwt_org(
-        self, sa_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        sa_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """After admin access to ORG_B, regular /dashboard/summary still scopes to ORG_A."""
         # First, do an admin cross-org access to ORG_B
-        with patch(
-            "app.routers.admin_data.list_forecasts",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ), patch(
-            "app.routers.admin_data.log_admin_action",
-            new_callable=AsyncMock,
+        with (
+            patch(
+                "app.routers.admin_data.list_forecasts",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ),
+            patch(
+                "app.routers.admin_data.log_admin_action",
+                new_callable=AsyncMock,
+            ),
         ):
-            await sa_client.get(
-                f"/api/v1/admin/organizations/{ORG_B_ID}/forecasts"
-            )
+            await sa_client.get(f"/api/v1/admin/organizations/{ORG_B_ID}/forecasts")
 
         # Now call the regular dashboard endpoint
         # The dashboard uses get_dashboard_summary(tenant=..., session=...)

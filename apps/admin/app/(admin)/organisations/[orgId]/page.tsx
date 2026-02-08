@@ -63,9 +63,12 @@ export default function OrgDetailPage() {
   const router = useRouter();
   const orgId = params.orgId as string;
 
-  const { data: org, loading, error, refetch } = useApiGet<OrgDetail>(
-    ADMIN_ENDPOINTS.organization(orgId),
-  );
+  const {
+    data: org,
+    loading,
+    error,
+    refetch,
+  } = useApiGet<OrgDetail>(ADMIN_ENDPOINTS.organization(orgId));
 
   const suspendMutation = useApiPost<Record<string, never>, OrgDetail>(
     ADMIN_ENDPOINTS.orgSuspend(orgId),
@@ -281,9 +284,7 @@ export default function OrgDetailPage() {
                   <MapPin className="h-4 w-4 text-amber-500" />
                   <span className="font-medium text-charcoal">{site.name}</span>
                   {site.city && (
-                    <span className="text-xs text-gray-400">
-                      ({site.city})
-                    </span>
+                    <span className="text-xs text-gray-400">({site.city})</span>
                   )}
                 </div>
                 {site.departments.length > 0 && (

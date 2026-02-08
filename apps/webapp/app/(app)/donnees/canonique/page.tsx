@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { Upload } from "lucide-react";
-import type { CanonicalRecord, CanonicalQualityDashboard, Site } from "@praedixa/shared-types";
+import type {
+  CanonicalRecord,
+  CanonicalQualityDashboard,
+  Site,
+} from "@praedixa/shared-types";
 import {
   DataTable,
   MetricCard,
@@ -44,9 +48,9 @@ export default function CanoniquePage() {
   const { data, total, loading, error, refetch } =
     useApiGetPaginated<CanonicalRecord>(url, page, PAGE_SIZE);
 
-  const {
-    data: quality,
-  } = useApiGet<CanonicalQualityDashboard>("/api/v1/canonical/quality");
+  const { data: quality } = useApiGet<CanonicalQualityDashboard>(
+    "/api/v1/canonical/quality",
+  );
 
   const { data: sites } = useApiGet<Site[]>("/api/v1/organizations/sites");
 
@@ -60,7 +64,12 @@ export default function CanoniquePage() {
     { key: "date", label: "Date" },
     { key: "shift", label: "Shift" },
     { key: "capacitePlanH", label: "Capacite", align: "right" },
-    { key: "realiseH", label: "Realise", align: "right", render: (row) => String(row.realiseH ?? "-") },
+    {
+      key: "realiseH",
+      label: "Realise",
+      align: "right",
+      render: (row) => String(row.realiseH ?? "-"),
+    },
     { key: "absH", label: "Abs", align: "right" },
     { key: "hsH", label: "HS", align: "right" },
     { key: "interimH", label: "Interim", align: "right" },
@@ -103,18 +112,30 @@ export default function CanoniquePage() {
           />
           <MetricCard
             label="Couverture"
-            value={quality ? `${Number(quality.coveragePct).toFixed(1)}%` : "--"}
-            status={quality && Number(quality.coveragePct) >= 85 ? "good" : "warning"}
+            value={
+              quality ? `${Number(quality.coveragePct).toFixed(1)}%` : "--"
+            }
+            status={
+              quality && Number(quality.coveragePct) >= 85 ? "good" : "warning"
+            }
           />
           <MetricCard
             label="Taux absence moyen"
             value={quality ? `${Number(quality.avgAbsPct).toFixed(1)}%` : "--"}
-            status={quality && Number(quality.avgAbsPct) <= 5 ? "good" : "warning"}
+            status={
+              quality && Number(quality.avgAbsPct) <= 5 ? "good" : "warning"
+            }
           />
           <MetricCard
             label="Shifts manquants"
-            value={quality ? `${Number(quality.missingShiftsPct).toFixed(1)}%` : "--"}
-            status={quality && Number(quality.missingShiftsPct) <= 2 ? "good" : "danger"}
+            value={
+              quality ? `${Number(quality.missingShiftsPct).toFixed(1)}%` : "--"
+            }
+            status={
+              quality && Number(quality.missingShiftsPct) <= 2
+                ? "good"
+                : "danger"
+            }
           />
         </div>
       </section>

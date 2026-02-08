@@ -18,15 +18,18 @@ import argparse
 import asyncio
 import csv
 import uuid
-from datetime import date, datetime, UTC
+from datetime import date
 from decimal import Decimal
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import async_session_factory, engine
 from app.models.operational import CanonicalRecord, CostParameter, ShiftType
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 # ── Paths ─────────────────────────────────────────────────
 
@@ -57,24 +60,24 @@ async def _seed_canonical_records(session: AsyncSession, org_id: uuid.UUID) -> i
     """Insert canonical_records.csv, skipping duplicates."""
     csv_path = DATA_DIR / "canonical_records.csv"
     if not csv_path.exists():
-        print(f"  ERROR: {csv_path} not found. Run generate_canonical_data.py first.")
         return 0
 
     # Check for existing records to support idempotency
     existing_count_result = await session.execute(
-        select(CanonicalRecord.id).where(
+        select(CanonicalRecord.id)
+        .where(
             CanonicalRecord.organization_id == org_id,
-        ).limit(1)
+        )
+        .limit(1)
     )
     if existing_count_result.scalar_one_or_none() is not None:
-        print("  [skip] Canonical records already exist for this org")
         return 0
 
     with open(csv_path, encoding="utf-8") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
 
-    total = len(rows)
+    len(rows)
     inserted = 0
     batch: list[CanonicalRecord] = []
 
@@ -86,13 +89,17 @@ async def _seed_canonical_records(session: AsyncSession, org_id: uuid.UUID) -> i
             date=_parse_date(row["date"]),
             shift=_parse_shift(row["shift"]),
             competence=row["competence"] if row["competence"] else None,
-            charge_units=int(round(_parse_float(row["charge_units"]))),
-            capacite_plan_h=Decimal(str(round(_parse_float(row["capacite_plan_h"]), 1))),
+            charge_units=round(_parse_float(row["charge_units"])),
+            capacite_plan_h=Decimal(
+                str(round(_parse_float(row["capacite_plan_h"]), 1))
+            ),
             realise_h=Decimal(str(round(_parse_float(row["realise_h"]), 1))),
             abs_h=Decimal(str(round(_parse_float(row["abs_h"]), 1))),
             hs_h=Decimal(str(round(_parse_float(row["hs_h"]), 1))),
             interim_h=Decimal(str(round(_parse_float(row["interim_h"]), 1))),
-            cout_interne_est=Decimal(str(round(_parse_float(row["cout_interne_est"]), 2))),
+            cout_interne_est=Decimal(
+                str(round(_parse_float(row["cout_interne_est"]), 2))
+            ),
         )
         batch.append(record)
 
@@ -100,14 +107,12 @@ async def _seed_canonical_records(session: AsyncSession, org_id: uuid.UUID) -> i
             session.add_all(batch)
             await session.flush()
             inserted += len(batch)
-            print(f"  Inserted {inserted}/{total} canonical records...")
             batch = []
 
     if batch:
         session.add_all(batch)
         await session.flush()
         inserted += len(batch)
-        print(f"  Inserted {inserted}/{total} canonical records...")
 
     return inserted
 
@@ -116,17 +121,17 @@ async def _seed_cost_parameters(session: AsyncSession, org_id: uuid.UUID) -> int
     """Insert cost_parameters.csv, skipping duplicates."""
     csv_path = DATA_DIR / "cost_parameters.csv"
     if not csv_path.exists():
-        print(f"  ERROR: {csv_path} not found. Run generate_canonical_data.py first.")
         return 0
 
     # Idempotency check
     existing = await session.execute(
-        select(CostParameter.id).where(
+        select(CostParameter.id)
+        .where(
             CostParameter.organization_id == org_id,
-        ).limit(1)
+        )
+        .limit(1)
     )
     if existing.scalar_one_or_none() is not None:
-        print("  [skip] Cost parameters already exist for this org")
         return 0
 
     with open(csv_path, encoding="utf-8") as f:
@@ -153,22 +158,17 @@ async def _seed_cost_parameters(session: AsyncSession, org_id: uuid.UUID) -> int
         session.add(param)
 
     await session.flush()
-    print(f"  Inserted {len(rows)} cost parameters")
     return len(rows)
 
 
 async def main(org_id: uuid.UUID) -> None:
     """Seed canonical data for a given organization."""
-    print(f"Seeding canonical data for org {org_id}...")
-    print()
 
     async with async_session_factory() as session:
         # Verify tables exist
         try:
             await session.execute(text("SELECT 1 FROM canonical_records LIMIT 0"))
         except Exception:
-            print("ERROR: Database tables not found. Run Alembic migrations first:")
-            print("  cd apps/api && uv run alembic upgrade head")
             return
 
         records_count = await _seed_canonical_records(session, org_id)
@@ -178,15 +178,16 @@ async def main(org_id: uuid.UUID) -> None:
 
     await engine.dispose()
 
-    print()
     if records_count > 0 or costs_count > 0:
-        print(f"Done! Inserted {records_count} canonical records, {costs_count} cost parameters.")
+        pass
     else:
-        print("No new data inserted (all already exist).")
+        pass
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Seed canonical data into the database")
+    parser = argparse.ArgumentParser(
+        description="Seed canonical data into the database"
+    )
     parser.add_argument(
         "--org-id",
         required=True,

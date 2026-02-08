@@ -90,7 +90,10 @@ export default function ScenariosPage() {
           </h2>
           <div className="space-y-3">
             {data.byType.map((item) => (
-              <div key={item.optionType} className="flex items-center justify-between">
+              <div
+                key={item.optionType}
+                className="flex items-center justify-between"
+              >
                 <span className="text-sm text-charcoal">
                   {TYPE_LABELS[item.optionType] ?? item.optionType}
                 </span>

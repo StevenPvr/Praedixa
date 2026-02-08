@@ -86,7 +86,7 @@ async def get_daily_forecast_data(
     # Validate date range: start_date must be <= end_date
     if start_date is not None and end_date is not None and start_date > end_date:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="start_date must be before or equal to end_date",
         )
 

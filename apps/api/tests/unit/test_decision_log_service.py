@@ -12,7 +12,6 @@ Covers:
 import uuid
 from datetime import date
 from decimal import Decimal
-from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -98,7 +97,7 @@ class TestListOperationalDecisions:
             make_scalar_result(1),
             make_scalars_result([dec]),
         )
-        items, total = await list_operational_decisions(
+        _items, total = await list_operational_decisions(
             session, tenant, site_id="site-lyon"
         )
         assert total == 1
@@ -110,7 +109,7 @@ class TestListOperationalDecisions:
             make_scalar_result(1),
             make_scalars_result([_make_operational_decision()]),
         )
-        items, total = await list_operational_decisions(
+        _items, total = await list_operational_decisions(
             session, tenant, date_from=date(2026, 1, 1)
         )
         assert total == 1
@@ -122,7 +121,7 @@ class TestListOperationalDecisions:
             make_scalar_result(1),
             make_scalars_result([_make_operational_decision()]),
         )
-        items, total = await list_operational_decisions(
+        _items, total = await list_operational_decisions(
             session, tenant, date_to=date(2026, 2, 1)
         )
         assert total == 1
@@ -135,7 +134,7 @@ class TestListOperationalDecisions:
             make_scalar_result(1),
             make_scalars_result([dec]),
         )
-        items, total = await list_operational_decisions(
+        _items, total = await list_operational_decisions(
             session, tenant, is_override=True
         )
         assert total == 1
@@ -148,7 +147,7 @@ class TestListOperationalDecisions:
             make_scalar_result(1),
             make_scalars_result([dec]),
         )
-        items, total = await list_operational_decisions(
+        _items, total = await list_operational_decisions(
             session, tenant, horizon=Horizon.J7
         )
         assert total == 1
@@ -160,7 +159,7 @@ class TestListOperationalDecisions:
             make_scalar_result(50),
             make_scalars_result([_make_operational_decision()]),
         )
-        items, total = await list_operational_decisions(
+        _items, total = await list_operational_decisions(
             session, tenant, page=3, page_size=10
         )
         assert total == 50
@@ -171,7 +170,7 @@ class TestListOperationalDecisions:
         count_result = MagicMock()
         count_result.scalar_one.return_value = None
         session = make_mock_session(count_result, make_scalars_result([]))
-        items, total = await list_operational_decisions(session, tenant)
+        _items, total = await list_operational_decisions(session, tenant)
         assert total == 0
 
     @pytest.mark.asyncio
@@ -181,7 +180,7 @@ class TestListOperationalDecisions:
             make_scalar_result(1),
             make_scalars_result([_make_operational_decision()]),
         )
-        items, total = await list_operational_decisions(
+        _items, total = await list_operational_decisions(
             session,
             tenant,
             site_id="site-paris",

@@ -16,11 +16,19 @@ vi.mock("@praedixa/ui", () => ({
     <div data-testid={`stat-${label}`}>{value}</div>
   ),
   SkeletonCard: () => <div data-testid="skeleton-card" />,
-  DataTable: ({ data, columns: _columns }: { data: unknown[]; columns: unknown[] }) => (
+  DataTable: ({
+    data,
+    columns: _columns,
+  }: {
+    data: unknown[];
+    columns: unknown[];
+  }) => (
     <table data-testid="data-table">
       <tbody>
         {(data as Record<string, unknown>[]).map((row, i) => (
-          <tr key={i}><td>{JSON.stringify(row)}</td></tr>
+          <tr key={i}>
+            <td>{JSON.stringify(row)}</td>
+          </tr>
         ))}
       </tbody>
     </table>
@@ -31,17 +39,22 @@ vi.mock("@praedixa/ui", () => ({
 }));
 
 // Mock lucide-react
-vi.mock("lucide-react", () =>
-  new Proxy({}, {
-    get: (_target, prop) => {
-      if (prop === "__esModule") return true;
-      if (prop === "then") return undefined;
-      return ({ className }: { className?: string }) => (
-        <span data-testid={`icon-${String(prop)}`} className={className} />
-      );
-    },
-    has: (_target, prop) => prop !== "then",
-  })
+vi.mock(
+  "lucide-react",
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_target, prop) => {
+          if (prop === "__esModule") return true;
+          if (prop === "then") return undefined;
+          return ({ className }: { className?: string }) => (
+            <span data-testid={`icon-${String(prop)}`} className={className} />
+          );
+        },
+        has: (_target, prop) => prop !== "then",
+      },
+    ),
 );
 
 // Mock error fallback
@@ -88,7 +101,9 @@ describe("ParametresPage", () => {
       refetch: vi.fn(),
     });
     render(<ParametresPage />);
-    expect(screen.getByTestId("error-fallback")).toHaveTextContent("Failed to load");
+    expect(screen.getByTestId("error-fallback")).toHaveTextContent(
+      "Failed to load",
+    );
   });
 
   it("renders stat cards with data", () => {
@@ -103,9 +118,15 @@ describe("ParametresPage", () => {
       refetch: vi.fn(),
     });
     render(<ParametresPage />);
-    expect(screen.getByTestId("stat-Organisations avec manques")).toHaveTextContent("3");
-    expect(screen.getByTestId("stat-Parametres manquants")).toHaveTextContent("7");
-    expect(screen.getByTestId("stat-Statut global")).toHaveTextContent("Incomplet");
+    expect(
+      screen.getByTestId("stat-Organisations avec manques"),
+    ).toHaveTextContent("3");
+    expect(screen.getByTestId("stat-Parametres manquants")).toHaveTextContent(
+      "7",
+    );
+    expect(screen.getByTestId("stat-Statut global")).toHaveTextContent(
+      "Incomplet",
+    );
   });
 
   it("shows complete status when no missing params", () => {
@@ -120,7 +141,9 @@ describe("ParametresPage", () => {
       refetch: vi.fn(),
     });
     render(<ParametresPage />);
-    expect(screen.getByTestId("stat-Statut global")).toHaveTextContent("Complet");
+    expect(screen.getByTestId("stat-Statut global")).toHaveTextContent(
+      "Complet",
+    );
     expect(screen.getByText(/Toutes les organisations/)).toBeInTheDocument();
   });
 

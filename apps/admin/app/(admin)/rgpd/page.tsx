@@ -72,9 +72,7 @@ export default function RGPDPage() {
               <h3 className="mb-2 text-sm font-semibold text-charcoal">
                 {action.title}
               </h3>
-              <p className="mb-4 text-sm text-gray-500">
-                {action.description}
-              </p>
+              <p className="mb-4 text-sm text-gray-500">{action.description}</p>
               <button
                 className={`inline-flex min-h-[44px] items-center rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
                   action.variant === "danger"

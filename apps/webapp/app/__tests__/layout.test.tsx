@@ -1,7 +1,19 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-// Mock next/font/google
+// Suppress jsdom warning: <html> cannot be a child of <div>
+const originalError = console.error;
+beforeAll(() => {
+  console.error = (...args: unknown[]) => {
+    if (typeof args[0] === "string" && args[0].includes("cannot be a child of"))
+      return;
+    originalError(...args);
+  };
+});
+afterAll(() => {
+  console.error = originalError;
+});
+
 vi.mock("next/font/google", () => ({
   Plus_Jakarta_Sans: () => ({
     variable: "--font-sans",

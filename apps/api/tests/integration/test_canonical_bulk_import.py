@@ -4,27 +4,19 @@ Covers the full bulk import flow: validation, dedup, error handling.
 Uses service-level mocking (no database).
 """
 
-import uuid
 from datetime import date
 from decimal import Decimal
-from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.operational import CanonicalRecordBulkCreate, CanonicalRecordCreate
+from app.schemas.operational import CanonicalRecordBulkCreate
 from app.services.canonical_data_service import (
     bulk_import_canonical,
-    create_canonical_record,
-    list_canonical_records,
 )
 from tests.unit.conftest import (
-    _make_canonical_record,
     _make_tenant,
-    make_mock_session,
-    make_scalar_result,
-    make_scalars_result,
 )
 
 ORG_ID = "11111111-1111-1111-1111-111111111111"
@@ -52,7 +44,7 @@ class TestBulkCreateSchemaValidation:
             records=[
                 {
                     "site_id": f"site-{i}",
-                    "date": f"2026-01-{i+1:02d}",
+                    "date": f"2026-01-{i + 1:02d}",
                     "shift": "am" if i % 2 == 0 else "pm",
                     "capacite_plan_h": 100 + i,
                 }

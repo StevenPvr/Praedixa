@@ -623,9 +623,7 @@ class TestInsertRawRowsAsync:
         mappings = [_make_mapping("val", "val")]
 
         with patch("app.services.raw_inserter.ddl_connection") as mock_ddl:
-            result = await insert_raw_rows_async(
-                "acme_raw", "effectifs", mappings, []
-            )
+            result = await insert_raw_rows_async("acme_raw", "effectifs", mappings, [])
             mock_ddl.assert_not_called()
 
         assert result.rows_inserted == 0
@@ -638,9 +636,7 @@ class TestInsertRawRowsAsync:
         rows = [{"val": 1}]
 
         with pytest.raises(DDLValidationError):
-            await insert_raw_rows_async(
-                "INVALID!", "effectifs", mappings, rows
-            )
+            await insert_raw_rows_async("INVALID!", "effectifs", mappings, rows)
 
     @pytest.mark.asyncio
     async def test_async_no_mappings_error(self):

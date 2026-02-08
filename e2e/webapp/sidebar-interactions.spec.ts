@@ -52,9 +52,7 @@ test.describe("Sidebar interactions", () => {
     await expect(nav.getByText("Sites & Departements")).toBeVisible();
   });
 
-  test("section containing current path is auto-expanded", async ({
-    page,
-  }) => {
+  test("section containing current path is auto-expanded", async ({ page }) => {
     // Navigate to /donnees — the Donnees section should auto-expand
     await page.goto("/donnees");
 
@@ -76,9 +74,7 @@ test.describe("Sidebar interactions", () => {
     await expect(subItem).toHaveAttribute("aria-current", "page");
   });
 
-  test("collapse button toggles sidebar width on desktop", async ({
-    page,
-  }) => {
+  test("collapse button toggles sidebar width on desktop", async ({ page }) => {
     await page.goto("/dashboard");
 
     // Find the collapse toggle button
@@ -86,7 +82,9 @@ test.describe("Sidebar interactions", () => {
     await expect(collapseBtn).toBeVisible();
 
     // Click to collapse
-    await page.evaluate(() => document.querySelector("nextjs-portal")?.remove());
+    await page.evaluate(() =>
+      document.querySelector("nextjs-portal")?.remove(),
+    );
     await collapseBtn.click();
 
     // After collapse, button label changes
@@ -94,7 +92,9 @@ test.describe("Sidebar interactions", () => {
     await expect(expandBtn).toBeVisible();
 
     // Click to expand back
-    await page.evaluate(() => document.querySelector("nextjs-portal")?.remove());
+    await page.evaluate(() =>
+      document.querySelector("nextjs-portal")?.remove(),
+    );
     await expandBtn.click();
     await expect(page.getByLabel("Reduire le menu")).toBeVisible();
   });
@@ -108,7 +108,9 @@ test.describe("Sidebar interactions", () => {
     await expect(nav.getByText("Dashboard")).toBeVisible();
 
     // Collapse sidebar
-    await page.evaluate(() => document.querySelector("nextjs-portal")?.remove());
+    await page.evaluate(() =>
+      document.querySelector("nextjs-portal")?.remove(),
+    );
     await page.getByLabel("Reduire le menu").click();
 
     // Labels should be hidden, but icons remain (sidebar still visible)

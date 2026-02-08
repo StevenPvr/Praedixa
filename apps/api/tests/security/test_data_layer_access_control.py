@@ -175,9 +175,7 @@ class TestDatasetDataReadsSchemaRaw:
     @pytest.mark.asyncio
     @patch("app.services.datasets.get_dataset")
     @patch("app.services.datasets.ddl_connection")
-    async def test_get_dataset_data_uses_schema_raw(
-        self, mock_ddl, mock_get_ds
-    ):
+    async def test_get_dataset_data_uses_schema_raw(self, mock_ddl, mock_get_ds):
         """get_dataset_data() must query schema_raw (DB1), not schema_transformed."""
         from psycopg import sql as psql
 
@@ -211,7 +209,7 @@ class TestDatasetDataReadsSchemaRaw:
         tenant.apply = MagicMock(side_effect=lambda q, *a, **kw: q)
         session = AsyncMock()
 
-        rows, total, _columns = await get_dataset_data(DATASET_ID, tenant, session)
+        _rows, _total, _columns = await get_dataset_data(DATASET_ID, tenant, session)
 
         # Extract all Identifier objects from the SQL calls
         all_calls = mock_cursor.execute.call_args_list
@@ -264,7 +262,7 @@ class TestDatasetDataReadsSchemaRaw:
         tenant.apply = MagicMock(side_effect=lambda q, *a, **kw: q)
         session = AsyncMock()
 
-        rows, total, _columns = await get_features_data(DATASET_ID, tenant, session)
+        _rows, _total, _columns = await get_features_data(DATASET_ID, tenant, session)
 
         all_calls = mock_cursor.execute.call_args_list
         identifiers_used = set()
@@ -450,8 +448,7 @@ class TestAdminDataEndpoint:
         )
 
         resp = await client_super_admin.get(
-            f"/api/v1/admin/organizations/{TARGET_ORG_ID}"
-            f"/datasets/{DATASET_ID}/data"
+            f"/api/v1/admin/organizations/{TARGET_ORG_ID}/datasets/{DATASET_ID}/data"
         )
         assert resp.status_code == 200
         body = resp.json()
@@ -468,8 +465,7 @@ class TestAdminDataEndpoint:
         mock_data.return_value = ([], 0, [])
 
         await client_super_admin.get(
-            f"/api/v1/admin/organizations/{TARGET_ORG_ID}"
-            f"/datasets/{DATASET_ID}/data"
+            f"/api/v1/admin/organizations/{TARGET_ORG_ID}/datasets/{DATASET_ID}/data"
         )
         mock_audit.assert_called_once()
         call_kwargs = mock_audit.call_args
@@ -488,8 +484,7 @@ class TestAdminDataEndpoint:
         mock_data.return_value = ([{"value": 1}], 1, ["value"])
 
         resp = await client_super_admin.get(
-            f"/api/v1/admin/organizations/{other_org}"
-            f"/datasets/{DATASET_ID}/data"
+            f"/api/v1/admin/organizations/{other_org}/datasets/{DATASET_ID}/data"
         )
         assert resp.status_code == 200
 
@@ -520,9 +515,7 @@ class TestGetFeaturesDataService:
         # Mock cursor returning rows with system columns
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = (1,)
-        mock_cursor.fetchall.return_value = [
-            (uuid.uuid4(), "2026-01-01", 1, 42.0, 0.5)
-        ]
+        mock_cursor.fetchall.return_value = [(uuid.uuid4(), "2026-01-01", 1, 42.0, 0.5)]
         mock_cursor.description = [
             SimpleNamespace(name="_row_id"),
             SimpleNamespace(name="date_col"),

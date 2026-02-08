@@ -49,7 +49,7 @@ repos:
 
       - id: clean-artifacts
         name: clean stale build artifacts
-        entry: sh -c 'rm -rf apps/landing/dist apps/landing/.next apps/webapp/dist apps/webapp/.next'
+        entry: sh -c 'rm -rf apps/landing/dist apps/landing/.next apps/webapp/dist apps/webapp/.next apps/admin/dist apps/admin/.next'
         language: system
         always_run: true
         pass_filenames: false

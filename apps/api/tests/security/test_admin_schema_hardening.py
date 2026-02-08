@@ -37,7 +37,6 @@ from app.schemas.admin import (
     AuditLogParams,
 )
 
-
 # ── 1. extra="forbid" on ALL mutation schemas ────────────────────────
 
 
@@ -200,9 +199,7 @@ class TestSuperAdminRoleBlocking:
             UserRole.VIEWER,
         ],
     )
-    def test_invite_user_allows_non_admin_roles(
-        self, allowed_role: UserRole
-    ) -> None:
+    def test_invite_user_allows_non_admin_roles(self, allowed_role: UserRole) -> None:
         """AdminInviteUser accepts all non-super_admin roles."""
         user = AdminInviteUser(
             email="user@test.com",
@@ -220,9 +217,7 @@ class TestSuperAdminRoleBlocking:
             UserRole.VIEWER,
         ],
     )
-    def test_change_role_allows_non_admin_roles(
-        self, allowed_role: UserRole
-    ) -> None:
+    def test_change_role_allows_non_admin_roles(self, allowed_role: UserRole) -> None:
         """AdminChangeRole accepts all non-super_admin roles."""
         change = AdminChangeRole(role=allowed_role)
         assert change.role == allowed_role

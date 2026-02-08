@@ -8,9 +8,7 @@ Tests cover:
 - 401 unauthenticated / 403 insufficient role
 """
 
-import uuid
 from datetime import date
-from decimal import Decimal
 from unittest.mock import AsyncMock, patch
 
 from httpx import ASGITransport, AsyncClient
@@ -19,10 +17,9 @@ from app.core.auth import JWTPayload
 from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
 from app.core.security import TenantFilter
 from app.main import app
-
-from .conftest import ORG_A_ID
 from tests.unit.conftest import _make_cost_parameter
 
+from .conftest import ORG_A_ID
 
 # ── GET /api/v1/cost-parameters ──────────────────────────────────
 

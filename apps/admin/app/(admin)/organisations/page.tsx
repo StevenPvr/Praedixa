@@ -112,9 +112,7 @@ export default function OrganisationsPage() {
       render: (row: OrgListItem) => (
         <button
           onClick={() =>
-            router.push(
-              `/organisations/${encodeURIComponent(row.id)}`,
-            )
+            router.push(`/organisations/${encodeURIComponent(row.id)}`)
           }
           className="inline-flex items-center text-gray-400 transition-colors hover:text-charcoal"
         >

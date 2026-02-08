@@ -128,7 +128,7 @@ def unpack_version_prefix(data: bytes) -> tuple[int, bytes]:
 
     Returns (version, remaining_ciphertext).
     """
-    if len(data) < 2:  # noqa: PLR2004
+    if len(data) < 2:
         msg = "Ciphertext too short to contain version prefix"
         raise ValueError(msg)
     (version,) = struct.unpack("B", data[:1])
@@ -525,7 +525,7 @@ class ScalewaySecretsKeyProvider(KeyProvider):  # pragma: no cover
                 "project_id": self._project_id,
             },
         )
-        if resp.status_code != 200:  # noqa: PLR2004
+        if resp.status_code != 200:
             logger.error(
                 "scaleway_api_error_listing_secrets",
                 status_code=resp.status_code,
@@ -568,10 +568,10 @@ class ScalewaySecretsKeyProvider(KeyProvider):  # pragma: no cover
         access_resp = await self._client.get(
             f"/secrets/{secret_id}/versions/{version_id}/access",
         )
-        if access_resp.status_code == 404:  # noqa: PLR2004
+        if access_resp.status_code == 404:
             msg = f"Key version {version_id} not found for {key_type}"
             raise KeyNotFoundError(msg)
-        if access_resp.status_code != 200:  # noqa: PLR2004
+        if access_resp.status_code != 200:
             logger.error(
                 "scaleway_api_error_accessing_version",
                 status_code=access_resp.status_code,
@@ -675,7 +675,7 @@ class ScalewaySecretsKeyProvider(KeyProvider):  # pragma: no cover
             disable_resp = await self._client.post(
                 f"/secrets/{secret_id}/disable",
             )
-            if disable_resp.status_code == 200:  # noqa: PLR2004
+            if disable_resp.status_code == 200:
                 logger.warning(
                     "secret_disabled_crypto_shredding",
                     secret_id=secret_id,
@@ -716,7 +716,7 @@ class ScalewaySecretsKeyProvider(KeyProvider):  # pragma: no cover
             f"/secrets/{secret_id}/versions",
             json={"data": encoded},
         )
-        if create_resp.status_code != 200:  # noqa: PLR2004
+        if create_resp.status_code != 200:
             logger.error(
                 "failed_to_create_dek_version",
                 status_code=create_resp.status_code,

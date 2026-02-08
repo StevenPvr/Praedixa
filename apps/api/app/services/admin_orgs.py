@@ -93,8 +93,7 @@ async def list_organizations(
 
     offset = (page - 1) * page_size
     query = (
-        base_query
-        .order_by(Organization.created_at.desc())
+        base_query.order_by(Organization.created_at.desc())
         .offset(offset)
         .limit(page_size)
     )
@@ -211,11 +210,7 @@ async def update_organization(
     if not values:
         return org
 
-    stmt = (
-        update(Organization)
-        .where(Organization.id == org_id)
-        .values(**values)
-    )
+    stmt = update(Organization).where(Organization.id == org_id).values(**values)
     await session.execute(stmt)
     await session.flush()
 
@@ -237,9 +232,7 @@ async def change_org_status(
     """
     org = await get_organization(session, org_id)
 
-    current_status = (
-        org.status if isinstance(org.status, str) else org.status.value
-    )
+    current_status = org.status if isinstance(org.status, str) else org.status.value
     allowed = _STATUS_TRANSITIONS.get(current_status, set())
     if new_status.value not in allowed:
         raise ConflictError(
@@ -247,9 +240,7 @@ async def change_org_status(
         )
 
     stmt = (
-        update(Organization)
-        .where(Organization.id == org_id)
-        .values(status=new_status)
+        update(Organization).where(Organization.id == org_id).values(status=new_status)
     )
     await session.execute(stmt)
     await session.flush()
@@ -294,7 +285,7 @@ async def get_org_hierarchy(
             )
             .group_by(Employee.department_id)
         )
-        employee_counts = {dept_id: count for dept_id, count in emp_count_result.all()}
+        employee_counts = dict(emp_count_result.all())
 
     # 4) Build index for site -> departments
     departments_by_site: dict[uuid.UUID, list[Department]] = {}
@@ -311,11 +302,13 @@ async def get_org_hierarchy(
             }
             for dept in departments_by_site.get(site.id, [])
         ]
-        hierarchy.append({
-            "id": site.id,
-            "name": site.name,
-            "city": getattr(site, "city", None),
-            "departments": dept_nodes,
-        })
+        hierarchy.append(
+            {
+                "id": site.id,
+                "name": site.name,
+                "city": getattr(site, "city", None),
+                "departments": dept_nodes,
+            }
+        )
 
     return hierarchy

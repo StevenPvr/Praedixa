@@ -131,15 +131,11 @@ def upgrade() -> None:
             nullable=False,
             server_default="60.00",
         ),
-        sa.Column(
-            "cap_hs_shift", sa.Integer(), nullable=False, server_default="30"
-        ),
+        sa.Column("cap_hs_shift", sa.Integer(), nullable=False, server_default="30"),
         sa.Column(
             "cap_interim_site", sa.Integer(), nullable=False, server_default="50"
         ),
-        sa.Column(
-            "lead_time_jours", sa.Integer(), nullable=False, server_default="2"
-        ),
+        sa.Column("lead_time_jours", sa.Integer(), nullable=False, server_default="2"),
         sa.Column("effective_from", sa.Date(), nullable=False),
         sa.Column("effective_until", sa.Date(), nullable=True),
         sa.Column(
@@ -175,9 +171,7 @@ def upgrade() -> None:
             server_default="open",
         ),
         sa.Column("drivers_json", JSONB(), nullable=False, server_default="[]"),
-        sa.Column(
-            "acknowledged_at", sa.DateTime(timezone=True), nullable=True
-        ),
+        sa.Column("acknowledged_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("resolved_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column(
             "created_at",
@@ -308,12 +302,8 @@ def upgrade() -> None:
         sa.Column("service_bau_pct", sa.Numeric(5, 4), nullable=True),
         sa.Column("service_reel_pct", sa.Numeric(5, 4), nullable=True),
         sa.Column("adoption_pct", sa.Numeric(5, 4), nullable=True),
-        sa.Column(
-            "alertes_emises", sa.Integer(), nullable=False, server_default="0"
-        ),
-        sa.Column(
-            "alertes_traitees", sa.Integer(), nullable=False, server_default="0"
-        ),
+        sa.Column("alertes_emises", sa.Integer(), nullable=False, server_default="0"),
+        sa.Column("alertes_traitees", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("details_json", JSONB(), server_default="{}"),
         sa.Column(
             "created_at",
@@ -386,18 +376,12 @@ def upgrade() -> None:
     # ── 4. Extend adminauditaction enum ──────────────────
     # ALTER TYPE ... ADD VALUE cannot run inside a transaction block.
     op.execute("COMMIT")
-    op.execute(
-        "ALTER TYPE adminauditaction ADD VALUE IF NOT EXISTS 'view_canonical'"
-    )
-    op.execute(
-        "ALTER TYPE adminauditaction ADD VALUE IF NOT EXISTS 'view_cost_params'"
-    )
+    op.execute("ALTER TYPE adminauditaction ADD VALUE IF NOT EXISTS 'view_canonical'")
+    op.execute("ALTER TYPE adminauditaction ADD VALUE IF NOT EXISTS 'view_cost_params'")
     op.execute(
         "ALTER TYPE adminauditaction ADD VALUE IF NOT EXISTS 'view_coverage_alerts'"
     )
-    op.execute(
-        "ALTER TYPE adminauditaction ADD VALUE IF NOT EXISTS 'view_proof_packs'"
-    )
+    op.execute("ALTER TYPE adminauditaction ADD VALUE IF NOT EXISTS 'view_proof_packs'")
 
 
 def downgrade() -> None:
@@ -412,18 +396,12 @@ def downgrade() -> None:
         table_name="operational_decisions",
     )
     op.drop_index("ix_scenario_options_alert", table_name="scenario_options")
-    op.drop_index(
-        "ix_coverage_alerts_org_site_date", table_name="coverage_alerts"
-    )
+    op.drop_index("ix_coverage_alerts_org_site_date", table_name="coverage_alerts")
     op.drop_index(
         "ix_coverage_alerts_org_status_severity", table_name="coverage_alerts"
     )
-    op.drop_index(
-        "ix_cost_parameters_org_site_effective", table_name="cost_parameters"
-    )
-    op.drop_index(
-        "ix_canonical_records_org_site_date", table_name="canonical_records"
-    )
+    op.drop_index("ix_cost_parameters_org_site_effective", table_name="cost_parameters")
+    op.drop_index("ix_canonical_records_org_site_date", table_name="canonical_records")
 
     # Drop tables (reverse dependency order)
     op.drop_table("proof_records")

@@ -143,7 +143,9 @@ def generate_proof_pack_pdf(
     # ── 1. Executive Summary ────────────────────────────
     elements.append(Paragraph("Proof Pack Praedixa", styles["title"]))
     elements.append(
-        Paragraph(f"{org_name} \u2014 Site {site_id} \u2014 {month}", styles["subtitle"])
+        Paragraph(
+            f"{org_name} \u2014 Site {site_id} \u2014 {month}", styles["subtitle"]
+        )
     )
 
     gain = proof_record.get("gain_net_eur", 0)
@@ -159,38 +161,49 @@ def generate_proof_pack_pdf(
         ["Alertes trait\u00e9es", str(proof_record.get("alertes_traitees", 0))],
     ]
     summary_table = Table(summary_data, colWidths=[8 * cm, 8 * cm])
-    summary_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), _AMBER),
-        ("TEXTCOLOR", (0, 0), (-1, 0), _WHITE),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 10),
-        ("ALIGN", (1, 0), (1, -1), "RIGHT"),
-        ("GRID", (0, 0), (-1, -1), 0.5, _GRAY),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [_WHITE, _LIGHT_BG]),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-    ]))
+    summary_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), _AMBER),
+                ("TEXTCOLOR", (0, 0), (-1, 0), _WHITE),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 10),
+                ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+                ("GRID", (0, 0), (-1, -1), 0.5, _GRAY),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [_WHITE, _LIGHT_BG]),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
     elements.append(summary_table)
     elements.append(Spacer(1, 10 * mm))
 
     # ── 2. Method ───────────────────────────────────────
     elements.append(Paragraph("M\u00e9thodologie", styles["heading"]))
-    elements.append(Paragraph(
-        "<b>BAU (0%)</b> : Co\u00fbt estim\u00e9 si l\u2019entreprise avait appliqu\u00e9 "
-        "son mix historique moyen (heures suppl., int\u00e9rim, etc.) sans "
-        "optimisation algorithmique.",
-        styles["body"],
-    ))
-    elements.append(Paragraph(
-        "<b>100%</b> : Co\u00fbt th\u00e9orique si toutes les recommandations "
-        "Praedixa avaient \u00e9t\u00e9 suivies syst\u00e9matiquement.",
-        styles["body"],
-    ))
-    elements.append(Paragraph(
-        "<b>R\u00e9el</b> : Co\u00fbt observ\u00e9 en pratique, incluant les "
-        "d\u00e9cisions manuelles et les overrides.",
-        styles["body"],
-    ))
+    elements.append(
+        Paragraph(
+            "<b>BAU (0%)</b> : Co\u00fbt estim\u00e9 "
+            "si l\u2019entreprise avait appliqu\u00e9 "
+            "son mix historique moyen (heures suppl., int\u00e9rim, etc.) sans "
+            "optimisation algorithmique.",
+            styles["body"],
+        )
+    )
+    elements.append(
+        Paragraph(
+            "<b>100%</b> : Co\u00fbt th\u00e9orique si toutes les recommandations "
+            "Praedixa avaient \u00e9t\u00e9 suivies syst\u00e9matiquement.",
+            styles["body"],
+        )
+    )
+    elements.append(
+        Paragraph(
+            "<b>R\u00e9el</b> : Co\u00fbt observ\u00e9 en pratique, incluant les "
+            "d\u00e9cisions manuelles et les overrides.",
+            styles["body"],
+        )
+    )
 
     # ── 3. Cost Results ─────────────────────────────────
     elements.append(Paragraph("R\u00e9sultats Co\u00fbts", styles["heading"]))
@@ -214,24 +227,30 @@ def generate_proof_pack_pdf(
         ],
     ]
     cost_table = Table(cost_data, colWidths=[6 * cm, 5 * cm, 5 * cm])
-    cost_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), _DARK),
-        ("TEXTCOLOR", (0, 0), (-1, 0), _WHITE),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 10),
-        ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
-        ("GRID", (0, 0), (-1, -1), 0.5, _GRAY),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [_WHITE, _LIGHT_BG]),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-    ]))
+    cost_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), _DARK),
+                ("TEXTCOLOR", (0, 0), (-1, 0), _WHITE),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 10),
+                ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+                ("GRID", (0, 0), (-1, -1), 0.5, _GRAY),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [_WHITE, _LIGHT_BG]),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
     elements.append(cost_table)
     elements.append(Spacer(1, 6 * mm))
 
-    elements.append(Paragraph(
-        f"<b>Gain net r\u00e9alis\u00e9 : {_fmt_eur(gain)}</b>",
-        styles["body"],
-    ))
+    elements.append(
+        Paragraph(
+            f"<b>Gain net r\u00e9alis\u00e9 : {_fmt_eur(gain)}</b>",
+            styles["body"],
+        )
+    )
 
     # ── 4. Service Results ──────────────────────────────
     elements.append(Paragraph("R\u00e9sultats Service", styles["heading"]))
@@ -242,16 +261,20 @@ def generate_proof_pack_pdf(
         ["Niveau de service", _fmt_pct(service_bau), _fmt_pct(service_reel)],
     ]
     service_table = Table(service_data, colWidths=[6 * cm, 5 * cm, 5 * cm])
-    service_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), _DARK),
-        ("TEXTCOLOR", (0, 0), (-1, 0), _WHITE),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 10),
-        ("ALIGN", (1, 0), (-1, -1), "CENTER"),
-        ("GRID", (0, 0), (-1, -1), 0.5, _GRAY),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-    ]))
+    service_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), _DARK),
+                ("TEXTCOLOR", (0, 0), (-1, 0), _WHITE),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 10),
+                ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+                ("GRID", (0, 0), (-1, -1), 0.5, _GRAY),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
     elements.append(service_table)
 
     # ── 5. Adoption ─────────────────────────────────────
@@ -259,12 +282,14 @@ def generate_proof_pack_pdf(
 
     emises = proof_record.get("alertes_emises", 0)
     traitees = proof_record.get("alertes_traitees", 0)
-    elements.append(Paragraph(
-        f"Alertes \u00e9mises : <b>{emises}</b> | "
-        f"Alertes trait\u00e9es : <b>{traitees}</b> | "
-        f"Taux d\u2019adoption : <b>{_fmt_pct(adoption)}</b>",
-        styles["body"],
-    ))
+    elements.append(
+        Paragraph(
+            f"Alertes \u00e9mises : <b>{emises}</b> | "
+            f"Alertes trait\u00e9es : <b>{traitees}</b> | "
+            f"Taux d\u2019adoption : <b>{_fmt_pct(adoption)}</b>",
+            styles["body"],
+        )
+    )
 
     # ── 6. Top Decisions ────────────────────────────────
     elements.append(Paragraph("Top D\u00e9cisions", styles["heading"]))
@@ -274,54 +299,71 @@ def generate_proof_pack_pdf(
         dec_header = ["Date", "Shift", "Gap (h)", "Co\u00fbt obs.", "Override"]
         dec_rows = [dec_header]
         for dec in top_decisions:
-            dec_rows.append([
-                str(dec.get("decision_date", "")),
-                str(dec.get("shift", "")),
-                str(dec.get("gap_h", "")),
-                _fmt_eur(dec.get("cout_observe_eur")),
-                "Oui" if dec.get("is_override") else "Non",
-            ])
+            dec_rows.append(
+                [
+                    str(dec.get("decision_date", "")),
+                    str(dec.get("shift", "")),
+                    str(dec.get("gap_h", "")),
+                    _fmt_eur(dec.get("cout_observe_eur")),
+                    "Oui" if dec.get("is_override") else "Non",
+                ]
+            )
 
-        dec_table = Table(dec_rows, colWidths=[3 * cm, 2.5 * cm, 3 * cm, 4 * cm, 3.5 * cm])
-        dec_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), _AMBER),
-            ("TEXTCOLOR", (0, 0), (-1, 0), _WHITE),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("ALIGN", (2, 0), (-1, -1), "RIGHT"),
-            ("GRID", (0, 0), (-1, -1), 0.5, _GRAY),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [_WHITE, _LIGHT_BG]),
-            ("TOPPADDING", (0, 0), (-1, -1), 3),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-        ]))
+        dec_table = Table(
+            dec_rows, colWidths=[3 * cm, 2.5 * cm, 3 * cm, 4 * cm, 3.5 * cm]
+        )
+        dec_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), _AMBER),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), _WHITE),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                    ("ALIGN", (2, 0), (-1, -1), "RIGHT"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, _GRAY),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [_WHITE, _LIGHT_BG]),
+                    ("TOPPADDING", (0, 0), (-1, -1), 3),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                ]
+            )
+        )
         elements.append(dec_table)
     else:
-        elements.append(Paragraph(
-            "Aucune d\u00e9cision enregistr\u00e9e pour cette p\u00e9riode.",
-            styles["body"],
-        ))
+        elements.append(
+            Paragraph(
+                "Aucune d\u00e9cision enregistr\u00e9e pour cette p\u00e9riode.",
+                styles["body"],
+            )
+        )
 
     # ── 7. Action Plan ──────────────────────────────────
     elements.append(Paragraph("Plan d\u2019Action", styles["heading"]))
-    elements.append(Paragraph(
-        "Ce plan d\u2019action sera compl\u00e9t\u00e9 lors de la revue mensuelle "
-        "avec l\u2019\u00e9quipe op\u00e9rationnelle.",
-        styles["body"],
-    ))
-    elements.append(Paragraph(
-        "\u2022 Analyser les overrides fr\u00e9quents pour affiner le mod\u00e8le<br/>"
-        "\u2022 Identifier les sites \u00e0 faible adoption<br/>"
-        "\u2022 Ajuster les param\u00e8tres de co\u00fbt si n\u00e9cessaire<br/>"
-        "\u2022 Planifier la formation des managers",
-        styles["body"],
-    ))
+    elements.append(
+        Paragraph(
+            "Ce plan d\u2019action sera compl\u00e9t\u00e9 lors de la revue mensuelle "
+            "avec l\u2019\u00e9quipe op\u00e9rationnelle.",
+            styles["body"],
+        )
+    )
+    elements.append(
+        Paragraph(
+            "\u2022 Analyser les overrides fr\u00e9quents "
+            "pour affiner le mod\u00e8le<br/>"
+            "\u2022 Identifier les sites \u00e0 faible adoption<br/>"
+            "\u2022 Ajuster les param\u00e8tres de co\u00fbt si n\u00e9cessaire<br/>"
+            "\u2022 Planifier la formation des managers",
+            styles["body"],
+        )
+    )
 
     # Footer
     elements.append(Spacer(1, 15 * mm))
-    elements.append(Paragraph(
-        f"G\u00e9n\u00e9r\u00e9 par Praedixa \u2014 {org_name} \u2014 {month}",
-        styles["small"],
-    ))
+    elements.append(
+        Paragraph(
+            f"G\u00e9n\u00e9r\u00e9 par Praedixa \u2014 {org_name} \u2014 {month}",
+            styles["small"],
+        )
+    )
 
     doc.build(elements)
     return buffer.getvalue()

@@ -56,7 +56,7 @@ def _valid_payload(**overrides: object) -> dict:
 def _mock_settings(
     *,
     is_production: bool = False,
-    legacy_hs256: bool = True,
+    legacy_hs256: bool = False,
     environment: str = "development",
 ) -> MagicMock:
     """Build a mock settings object with the given parameters."""

@@ -37,7 +37,10 @@ function paginatedResponse<T>(
   };
 }
 
-function fulfill(route: { fulfill: (opts: object) => Promise<void> }, body: unknown) {
+function fulfill(
+  route: { fulfill: (opts: object) => Promise<void> },
+  body: unknown,
+) {
   return route.fulfill({
     status: 200,
     contentType: "application/json",
@@ -45,7 +48,10 @@ function fulfill(route: { fulfill: (opts: object) => Promise<void> }, body: unkn
   });
 }
 
-function fulfillError(route: { fulfill: (opts: object) => Promise<void> }, message: string) {
+function fulfillError(
+  route: { fulfill: (opts: object) => Promise<void> },
+  message: string,
+) {
   return route.fulfill({
     status: 500,
     contentType: "application/json",
@@ -204,7 +210,10 @@ export async function mockAlertesApisError(page: Page): Promise<void> {
  */
 export async function mockAuditApis(page: Page): Promise<void> {
   await page.route("**/api/v1/admin/audit-log*", (route) =>
-    fulfill(route, paginatedResponse(MOCK_AUDIT_ENTRIES, { total: 2, pageSize: 30 })),
+    fulfill(
+      route,
+      paginatedResponse(MOCK_AUDIT_ENTRIES, { total: 2, pageSize: 30 }),
+    ),
   );
 }
 
@@ -296,7 +305,11 @@ export const MOCK_COST_PARAMS_MISSING = {
   orgs: [
     {
       organizationId: "org-aabb1122-3344-5566-7788-99aabbccddee",
-      missingTypes: ["overtime_hourly", "interim_daily", "penalty_understaffing"],
+      missingTypes: [
+        "overtime_hourly",
+        "interim_daily",
+        "penalty_understaffing",
+      ],
       totalMissing: 3,
     },
     {
@@ -359,7 +372,9 @@ export async function mockParametresApis(page: Page): Promise<void> {
   );
 }
 
-export async function mockParametresApisAllConfigured(page: Page): Promise<void> {
+export async function mockParametresApisAllConfigured(
+  page: Page,
+): Promise<void> {
   await page.route("**/api/v1/admin/monitoring/cost-params/missing*", (route) =>
     fulfill(route, apiResponse(MOCK_COST_PARAMS_ALL_CONFIGURED)),
   );

@@ -20,7 +20,9 @@ test.describe("Parametres page", () => {
       page.getByRole("heading", { name: "Parametres", exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByText("Statut de configuration des parametres de cout par organisation"),
+      page.getByText(
+        "Statut de configuration des parametres de cout par organisation",
+      ),
     ).toBeVisible();
   });
 
@@ -34,12 +36,18 @@ test.describe("Parametres page", () => {
 
     await expect(page.getByText("Organisations avec manques")).toBeVisible();
     await expect(
-      page.getByText(String(MOCK_COST_PARAMS_MISSING.totalOrgsWithMissing)).first(),
+      page
+        .getByText(String(MOCK_COST_PARAMS_MISSING.totalOrgsWithMissing))
+        .first(),
     ).toBeVisible();
 
-    await expect(page.getByText("Parametres manquants", { exact: true })).toBeVisible();
     await expect(
-      page.getByText(String(MOCK_COST_PARAMS_MISSING.totalMissingParams)).first(),
+      page.getByText("Parametres manquants", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByText(String(MOCK_COST_PARAMS_MISSING.totalMissingParams))
+        .first(),
     ).toBeVisible();
 
     await expect(page.getByText("Statut global")).toBeVisible();
@@ -64,8 +72,10 @@ test.describe("Parametres page", () => {
     ).toBeVisible();
 
     // Truncated org IDs
-    const orgPrefix =
-      MOCK_COST_PARAMS_MISSING.orgs[0].organizationId.slice(0, 8);
+    const orgPrefix = MOCK_COST_PARAMS_MISSING.orgs[0].organizationId.slice(
+      0,
+      8,
+    );
     await expect(page.getByText(`${orgPrefix}...`)).toBeVisible();
 
     // Type labels

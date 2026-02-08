@@ -26,7 +26,6 @@ from app.models.operational import (
 )
 from app.schemas.base import CamelModel, TenantEntitySchema
 
-
 # ── CanonicalRecord schemas ──────────────────────────────
 
 

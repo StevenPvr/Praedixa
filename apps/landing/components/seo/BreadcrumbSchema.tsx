@@ -20,13 +20,14 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
       item: item.url,
     })),
   };
+  const jsonLd = JSON.stringify(breadcrumbSchema).replace(/</g, "\\u003c");
 
   return (
     <Script
       id="breadcrumb-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify(breadcrumbSchema),
+        __html: jsonLd,
       }}
     />
   );

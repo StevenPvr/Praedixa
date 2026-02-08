@@ -83,15 +83,19 @@ async def get_effective_cost_parameter(
 
     # Try site-specific first
     if site_id is not None:
-        query = tenant.apply(
-            select(CostParameter).where(
-                CostParameter.site_id == site_id,
-                CostParameter.effective_from <= ref_date,
-                (CostParameter.effective_until.is_(None))
-                | (CostParameter.effective_until >= ref_date),
-            ),
-            CostParameter,
-        ).order_by(CostParameter.effective_from.desc()).limit(1)
+        query = (
+            tenant.apply(
+                select(CostParameter).where(
+                    CostParameter.site_id == site_id,
+                    CostParameter.effective_from <= ref_date,
+                    (CostParameter.effective_until.is_(None))
+                    | (CostParameter.effective_until >= ref_date),
+                ),
+                CostParameter,
+            )
+            .order_by(CostParameter.effective_from.desc())
+            .limit(1)
+        )
 
         result = await session.execute(query)
         param = result.scalar_one_or_none()
@@ -99,15 +103,19 @@ async def get_effective_cost_parameter(
             return param
 
     # Fallback to org-wide default (site_id IS NULL)
-    default_query = tenant.apply(
-        select(CostParameter).where(
-            CostParameter.site_id.is_(None),
-            CostParameter.effective_from <= ref_date,
-            (CostParameter.effective_until.is_(None))
-            | (CostParameter.effective_until >= ref_date),
-        ),
-        CostParameter,
-    ).order_by(CostParameter.effective_from.desc()).limit(1)
+    default_query = (
+        tenant.apply(
+            select(CostParameter).where(
+                CostParameter.site_id.is_(None),
+                CostParameter.effective_from <= ref_date,
+                (CostParameter.effective_until.is_(None))
+                | (CostParameter.effective_until >= ref_date),
+            ),
+            CostParameter,
+        )
+        .order_by(CostParameter.effective_from.desc())
+        .limit(1)
+    )
 
     result = await session.execute(default_query)
     param = result.scalar_one_or_none()

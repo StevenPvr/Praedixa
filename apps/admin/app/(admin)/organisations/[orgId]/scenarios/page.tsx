@@ -45,12 +45,11 @@ export default function OrgScenariosPage() {
   const orgId = params.orgId as string;
   const [page, setPage] = useState(1);
 
-  const { data, total, error, refetch } =
-    useApiGetPaginated<ScenarioOption>(
-      ADMIN_ENDPOINTS.orgScenarios(orgId),
-      page,
-      20,
-    );
+  const { data, total, error, refetch } = useApiGetPaginated<ScenarioOption>(
+    ADMIN_ENDPOINTS.orgScenarios(orgId),
+    page,
+    20,
+  );
 
   const columns: DataTableColumn<ScenarioOption>[] = [
     {

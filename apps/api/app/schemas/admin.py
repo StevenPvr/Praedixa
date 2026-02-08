@@ -28,7 +28,6 @@ from app.models.organization import (
 from app.models.user import UserRole, UserStatus
 from app.schemas.base import CamelModel
 
-
 # ── Organization schemas ─────────────────────────────────
 
 

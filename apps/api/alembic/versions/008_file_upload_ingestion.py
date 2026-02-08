@@ -12,8 +12,9 @@ Security notes:
 - file_size is set server-side from actual bytes length, never from client.
 """
 
-from alembic import op
 import sqlalchemy as sa
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "008"

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures/coverage";
 import { setupAuth } from "./fixtures/auth";
 import { mockAllApis } from "./fixtures/api-mocks";
 
@@ -35,21 +35,17 @@ test.describe("Responsive behavior", () => {
     await expect(nav.getByText("Previsions")).toBeVisible();
   });
 
-  test("mobile touch targets are at least 44px", async ({ page }) => {
+  test("mobile touch targets are at least 40px", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/dashboard");
 
-    // Open menu
-    await page.getByRole("button", { name: "Ouvrir le menu" }).click();
-
-    // The hamburger button itself should have min 44px touch target
-    const menuButton = page.getByRole("button", {
-      name: /Fermer le menu|Ouvrir le menu/,
-    });
+    // The hamburger button itself should have min 40px touch target (h-10 w-10)
+    const menuButton = page.getByRole("button", { name: "Ouvrir le menu" });
+    await expect(menuButton).toBeVisible();
     const box = await menuButton.boundingBox();
     expect(box).not.toBeNull();
     if (box) {
-      expect(box.width).toBeGreaterThanOrEqual(40); // h-10 = 40px
+      expect(box.width).toBeGreaterThanOrEqual(40);
       expect(box.height).toBeGreaterThanOrEqual(40);
     }
   });
@@ -63,12 +59,12 @@ test.describe("Responsive behavior", () => {
       page.getByRole("heading", { name: "Dashboard" }),
     ).toBeVisible();
 
-    // KPI section should be visible (2-column grid on mobile)
+    // KPI section should be visible
     const kpiSection = page.getByLabel("Indicateurs cles");
     await expect(kpiSection).toBeVisible();
 
-    // Alerts section should be visible
-    const alertsSection = page.getByLabel("Alertes recentes");
+    // Top alerts section should be visible
+    const alertsSection = page.getByLabel("Top alertes");
     await expect(alertsSection).toBeVisible();
 
     // Verify nothing overflows horizontally
@@ -80,5 +76,21 @@ test.describe("Responsive behavior", () => {
       // Content should not exceed viewport width (with some tolerance for padding)
       expect(mainBox.width).toBeLessThanOrEqual(pageWidth);
     }
+  });
+
+  test("dashboard heatmap section is visible on mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto("/dashboard");
+
+    const heatmapSection = page.getByLabel("Heatmap de couverture");
+    await expect(heatmapSection).toBeVisible();
+  });
+
+  test("cost trend section is visible on mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto("/dashboard");
+
+    const costSection = page.getByLabel("Tendance des couts");
+    await expect(costSection).toBeVisible();
   });
 });

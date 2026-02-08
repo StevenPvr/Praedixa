@@ -7,8 +7,10 @@ export interface DateRange {
   to: string;
 }
 
-export interface DateRangePickerProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "onChange"> {
+export interface DateRangePickerProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "onChange"
+> {
   value: DateRange;
   onChange: (range: DateRange) => void;
   minDate?: string;

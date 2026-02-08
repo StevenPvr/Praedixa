@@ -7,7 +7,7 @@ services:
     rootDir: apps/api
     buildCommand: pip install uv && uv sync --frozen
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    preDeployCommand: alembic upgrade head && python -m scripts.seed_demo_data
+    preDeployCommand: alembic upgrade head
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL

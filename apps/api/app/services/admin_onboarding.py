@@ -75,11 +75,13 @@ async def create_onboarding(
         initiated_by=uuid.UUID(initiated_by),
         status=OnboardingStatus.IN_PROGRESS,
         current_step=1,
-        steps_completed=[{
-            "step": 1,
-            "completed_at": now.isoformat(),
-            "action": "organization_created",
-        }],
+        steps_completed=[
+            {
+                "step": 1,
+                "completed_at": now.isoformat(),
+                "action": "organization_created",
+            }
+        ],
     )
     session.add(onboarding)
     await session.flush()
@@ -113,8 +115,7 @@ async def list_onboardings(
 
     offset = (page - 1) * page_size
     query = (
-        base_query
-        .order_by(OnboardingState.created_at.desc())
+        base_query.order_by(OnboardingState.created_at.desc())
         .offset(offset)
         .limit(page_size)
     )
@@ -163,9 +164,7 @@ async def complete_step(
         else onboarding.status.value
     )
     if current_status != OnboardingStatus.IN_PROGRESS.value:
-        raise ConflictError(
-            f"Onboarding is '{current_status}', cannot complete steps"
-        )
+        raise ConflictError(f"Onboarding is '{current_status}', cannot complete steps")
 
     # Validate step number
     if step < 1 or step > _MAX_STEP:
@@ -181,11 +180,13 @@ async def complete_step(
 
     # Record step completion
     steps_completed = list(onboarding.steps_completed or [])
-    steps_completed.append({
-        "step": step,
-        "completed_at": now.isoformat(),
-        "data_keys": list(data.keys()) if data else [],
-    })
+    steps_completed.append(
+        {
+            "step": step,
+            "completed_at": now.isoformat(),
+            "data_keys": list(data.keys()) if data else [],
+        }
+    )
 
     # Determine new values
     new_step = max(onboarding.current_step, step)

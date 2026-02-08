@@ -27,13 +27,16 @@ export default function ArbitrageHistoriquePage() {
     {
       key: "isOverride",
       label: "Override",
-      render: (row) => row.isOverride ? "Oui" : "Non",
+      render: (row) => (row.isOverride ? "Oui" : "Non"),
     },
     {
       key: "coutAttenduEur",
       label: "Cout attendu",
       align: "right",
-      render: (row) => row.coutAttenduEur != null ? `${row.coutAttenduEur.toLocaleString("fr-FR")} EUR` : "-",
+      render: (row) =>
+        row.coutAttenduEur != null
+          ? `${row.coutAttenduEur.toLocaleString("fr-FR")} EUR`
+          : "-",
     },
   ];
 

@@ -165,14 +165,12 @@ export default {
       boxShadow: {
         // Use rgba for shadows — oklch in box-shadow is unsupported on Safari < 17.4
         card: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)",
-        "card-hover":
-          "0 4px 6px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.06)",
+        "card-hover": "0 4px 6px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.06)",
         // Admin sidebar: subtle light glow instead of dark border
         sidebar: "1px 0 0 rgba(255,255,255,0.06)",
         // Tremor shadows
         "tremor-input": "0 1px 2px 0 rgba(0,0,0,0.05)",
-        "tremor-card":
-          "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)",
+        "tremor-card": "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)",
         "tremor-dropdown":
           "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)",
       },

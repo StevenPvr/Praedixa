@@ -195,8 +195,13 @@ async def update_org(
     """Update organization fields."""
     # Filter to only allowed fields (defense against mass assignment)
     _ALLOWED_FIELDS = {
-        "name", "legal_name", "siret", "sector", "size",
-        "contact_email", "settings",
+        "name",
+        "legal_name",
+        "siret",
+        "sector",
+        "size",
+        "contact_email",
+        "settings",
     }
     safe_data = {k: v for k, v in body.items() if k in _ALLOWED_FIELDS}
 

@@ -20,7 +20,10 @@ interface DecisionListItem {
 
 const STATUS_VARIANTS: Record<
   string,
-  { variant: "success" | "warning" | "danger" | "neutral" | "info"; label: string }
+  {
+    variant: "success" | "warning" | "danger" | "neutral" | "info";
+    label: string;
+  }
 > = {
   draft: { variant: "neutral", label: "Brouillon" },
   pending_review: { variant: "warning", label: "En attente" },
@@ -42,21 +45,18 @@ export default function OrgDecisionsPage() {
   const orgId = params.orgId as string;
   const [page, setPage] = useState(1);
 
-  const { data, total, error, refetch } =
-    useApiGetPaginated<DecisionListItem>(
-      `/api/v1/admin/organizations/${encodeURIComponent(orgId)}/decisions`,
-      page,
-      20,
-    );
+  const { data, total, error, refetch } = useApiGetPaginated<DecisionListItem>(
+    `/api/v1/admin/organizations/${encodeURIComponent(orgId)}/decisions`,
+    page,
+    20,
+  );
 
   const columns: DataTableColumn<DecisionListItem>[] = [
     {
       key: "departmentName",
       label: "Departement",
       render: (row) => (
-        <span className="font-medium text-charcoal">
-          {row.departmentName}
-        </span>
+        <span className="font-medium text-charcoal">{row.departmentName}</span>
       ),
     },
     {

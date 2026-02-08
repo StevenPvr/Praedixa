@@ -23,7 +23,7 @@ from app.core.dependencies import get_current_user, get_db_session, get_tenant_f
 from app.core.security import TenantFilter, require_role
 from app.models.operational import OperationalDecision
 from app.schemas.base import CamelModel, PaginationMeta
-from app.schemas.operational import ProofRecordRead, ProofSummaryResponse
+from app.schemas.operational import ProofRecordRead
 from app.schemas.responses import ApiResponse, PaginatedResponse
 from app.services.proof_pack_pdf_service import generate_proof_pack_pdf
 from app.services.proof_service import (
@@ -169,14 +169,18 @@ async def generate_pdf(
     else:
         month_end = month.replace(month=month.month + 1, day=1)
 
-    dec_q = tenant.apply(
-        select(OperationalDecision).where(
-            OperationalDecision.site_id == site_id,
-            OperationalDecision.decision_date >= month_start,
-            OperationalDecision.decision_date < month_end,
-        ),
-        OperationalDecision,
-    ).order_by(OperationalDecision.decision_date.desc()).limit(10)
+    dec_q = (
+        tenant.apply(
+            select(OperationalDecision).where(
+                OperationalDecision.site_id == site_id,
+                OperationalDecision.decision_date >= month_start,
+                OperationalDecision.decision_date < month_end,
+            ),
+            OperationalDecision,
+        )
+        .order_by(OperationalDecision.decision_date.desc())
+        .limit(10)
+    )
 
     dec_result = await session.execute(dec_q)
     decisions_orm = list(dec_result.scalars().all())

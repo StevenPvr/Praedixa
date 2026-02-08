@@ -39,7 +39,9 @@ describe("ForecastAccuracyPoint", () => {
   });
 
   it("horizon is AlertHorizon", () => {
-    expectTypeOf<ForecastAccuracyPoint["horizon"]>().toEqualTypeOf<AlertHorizon>();
+    expectTypeOf<
+      ForecastAccuracyPoint["horizon"]
+    >().toEqualTypeOf<AlertHorizon>();
   });
 
   it("numeric fields are numbers", () => {
@@ -115,7 +117,9 @@ describe("ProofPackSummary", () => {
   it("has aggregate fields", () => {
     expectTypeOf<ProofPackSummary["totalGainEur"]>().toEqualTypeOf<number>();
     expectTypeOf<ProofPackSummary["avgAdoptionPct"]>().toEqualTypeOf<number>();
-    expectTypeOf<ProofPackSummary["avgServiceImprovementPct"]>().toEqualTypeOf<number>();
+    expectTypeOf<
+      ProofPackSummary["avgServiceImprovementPct"]
+    >().toEqualTypeOf<number>();
   });
 
   it("siteSummaries is ProofPack array", () => {

@@ -125,9 +125,7 @@ describe("AdminSidebar", () => {
   it("renders collapse toggle when onToggleCollapse is provided", () => {
     const onToggle = vi.fn();
     render(<AdminSidebar {...defaultProps} onToggleCollapse={onToggle} />);
-    expect(
-      screen.getByLabelText("Reduire le menu"),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Reduire le menu")).toBeInTheDocument();
   });
 
   it("shows expand label when collapsed", () => {
@@ -135,9 +133,7 @@ describe("AdminSidebar", () => {
     render(
       <AdminSidebar {...defaultProps} collapsed onToggleCollapse={onToggle} />,
     );
-    expect(
-      screen.getByLabelText("Agrandir le menu"),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Agrandir le menu")).toBeInTheDocument();
   });
 
   it("calls onToggleCollapse when toggle button is clicked", async () => {

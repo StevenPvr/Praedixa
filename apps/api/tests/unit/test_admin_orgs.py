@@ -2,7 +2,7 @@
 
 import uuid
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -169,7 +169,7 @@ class TestCreateOrganization:
     async def test_success(self):
         session = make_mock_session(make_scalar_result(None))  # slug check
 
-        org = await create_organization(
+        await create_organization(
             session,
             name="New Org",
             slug="new-org",
@@ -199,13 +199,11 @@ class TestUpdateOrganization:
     async def test_partial_update(self):
         org = _make_org()
         session = make_mock_session(
-            make_scalar_result(org),   # get_organization
+            make_scalar_result(org),  # get_organization
             make_scalar_result(None),  # UPDATE execute
         )
 
-        result = await update_organization(
-            session, org.id, data={"name": "Updated"}
-        )
+        await update_organization(session, org.id, data={"name": "Updated"})
         # Session.execute called for get + update
         assert session.execute.call_count == 2
 
@@ -214,13 +212,11 @@ class TestUpdateOrganization:
         """Updating a non-text field (else branch) stores value directly."""
         org = _make_org()
         session = make_mock_session(
-            make_scalar_result(org),   # get_organization
+            make_scalar_result(org),  # get_organization
             make_scalar_result(None),  # UPDATE execute
         )
 
-        result = await update_organization(
-            session, org.id, data={"headcount": 200}
-        )
+        result = await update_organization(session, org.id, data={"headcount": 200})
         assert result.headcount == 200
 
     @pytest.mark.asyncio
@@ -228,18 +224,14 @@ class TestUpdateOrganization:
         org = _make_org()
         session = make_mock_session(make_scalar_result(org))
 
-        result = await update_organization(
-            session, org.id, data={"name": None}
-        )
+        result = await update_organization(session, org.id, data={"name": None})
         assert result.name == "Test Org"
 
     @pytest.mark.asyncio
     async def test_not_found(self):
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(NotFoundError):
-            await update_organization(
-                session, uuid.uuid4(), data={"name": "X"}
-            )
+            await update_organization(session, uuid.uuid4(), data={"name": "X"})
 
 
 class TestChangeOrgStatus:
@@ -249,26 +241,22 @@ class TestChangeOrgStatus:
     async def test_valid_transition_trial_to_active(self):
         org = _make_org(status=OrganizationStatus.TRIAL)
         session = make_mock_session(
-            make_scalar_result(org),   # get_organization
+            make_scalar_result(org),  # get_organization
             make_scalar_result(None),  # UPDATE execute
         )
 
-        result = await change_org_status(
-            session, org.id, OrganizationStatus.ACTIVE
-        )
+        result = await change_org_status(session, org.id, OrganizationStatus.ACTIVE)
         assert result.status == OrganizationStatus.ACTIVE
 
     @pytest.mark.asyncio
     async def test_valid_transition_active_to_suspended(self):
         org = _make_org(status=OrganizationStatus.ACTIVE)
         session = make_mock_session(
-            make_scalar_result(org),   # get_organization
+            make_scalar_result(org),  # get_organization
             make_scalar_result(None),  # UPDATE execute
         )
 
-        result = await change_org_status(
-            session, org.id, OrganizationStatus.SUSPENDED
-        )
+        result = await change_org_status(session, org.id, OrganizationStatus.SUSPENDED)
         assert result.status == OrganizationStatus.SUSPENDED
 
     @pytest.mark.asyncio
@@ -277,9 +265,7 @@ class TestChangeOrgStatus:
         session = make_mock_session(make_scalar_result(org))
 
         with pytest.raises(ConflictError, match="Cannot transition"):
-            await change_org_status(
-                session, org.id, OrganizationStatus.ACTIVE
-            )
+            await change_org_status(session, org.id, OrganizationStatus.ACTIVE)
 
     @pytest.mark.asyncio
     async def test_invalid_transition_active_to_trial(self):
@@ -287,17 +273,13 @@ class TestChangeOrgStatus:
         session = make_mock_session(make_scalar_result(org))
 
         with pytest.raises(ConflictError, match="Cannot transition"):
-            await change_org_status(
-                session, org.id, OrganizationStatus.TRIAL
-            )
+            await change_org_status(session, org.id, OrganizationStatus.TRIAL)
 
     @pytest.mark.asyncio
     async def test_not_found(self):
         session = make_mock_session(make_scalar_result(None))
         with pytest.raises(NotFoundError):
-            await change_org_status(
-                session, uuid.uuid4(), OrganizationStatus.ACTIVE
-            )
+            await change_org_status(session, uuid.uuid4(), OrganizationStatus.ACTIVE)
 
 
 class TestGetOrgCounts:

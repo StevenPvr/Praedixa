@@ -9,7 +9,6 @@ Security:
 import math
 import uuid
 from datetime import UTC, datetime
-from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, select
@@ -19,7 +18,10 @@ from app.core.auth import JWTPayload
 from app.core.dependencies import get_admin_tenant_filter, get_db_session
 from app.core.security import TenantFilter, require_role
 from app.models.admin import AdminAuditAction
-from app.models.operational import CoverageAlert, CoverageAlertSeverity, CoverageAlertStatus
+from app.models.operational import (
+    CoverageAlert,
+    CoverageAlertStatus,
+)
 from app.schemas.base import CamelModel, PaginationMeta
 from app.schemas.operational import CoverageAlertRead
 from app.schemas.responses import ApiResponse, PaginatedResponse
@@ -81,17 +83,15 @@ async def alerts_summary(
     total = (await session.execute(total_q)).scalar_one() or 0
 
     # By severity
-    sev_q = (
-        select(CoverageAlert.severity, func.count(CoverageAlert.id))
-        .group_by(CoverageAlert.severity)
+    sev_q = select(CoverageAlert.severity, func.count(CoverageAlert.id)).group_by(
+        CoverageAlert.severity
     )
     sev_result = await session.execute(sev_q)
     sev_counts = {row[0].value: row[1] for row in sev_result.all()}
 
     # By status
-    status_q = (
-        select(CoverageAlert.status, func.count(CoverageAlert.id))
-        .group_by(CoverageAlert.status)
+    status_q = select(CoverageAlert.status, func.count(CoverageAlert.id)).group_by(
+        CoverageAlert.status
     )
     status_result = await session.execute(status_q)
     status_counts = {row[0].value: row[1] for row in status_result.all()}
@@ -138,9 +138,9 @@ async def alerts_by_org(
         select(
             CoverageAlert.organization_id,
             func.count(CoverageAlert.id).label("total_alerts"),
-            func.count(CoverageAlert.id).filter(
-                CoverageAlert.status == CoverageAlertStatus.OPEN
-            ).label("open_alerts"),
+            func.count(CoverageAlert.id)
+            .filter(CoverageAlert.status == CoverageAlertStatus.OPEN)
+            .label("open_alerts"),
         )
         .group_by(CoverageAlert.organization_id)
         .order_by(func.count(CoverageAlert.id).desc())
@@ -183,9 +183,7 @@ async def org_alerts(
     total = (await session.execute(count_q)).scalar_one() or 0
     offset = (page - 1) * page_size
     query = (
-        base.order_by(CoverageAlert.alert_date.desc())
-        .offset(offset)
-        .limit(page_size)
+        base.order_by(CoverageAlert.alert_date.desc()).offset(offset).limit(page_size)
     )
     result = await session.execute(query)
     items = list(result.scalars().all())

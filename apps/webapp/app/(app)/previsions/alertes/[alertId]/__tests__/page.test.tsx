@@ -10,9 +10,13 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("next/link", () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
 }));
 
 vi.mock("@/hooks/use-api", () => ({
@@ -20,8 +24,12 @@ vi.mock("@/hooks/use-api", () => ({
 }));
 
 vi.mock("@praedixa/ui", () => ({
-  Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
-  Button: ({ children }: { children: React.ReactNode }) => <button>{children}</button>,
+  Badge: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
+  Button: ({ children }: { children: React.ReactNode }) => (
+    <button>{children}</button>
+  ),
   SkeletonCard: () => <div data-testid="skeleton-card" />,
 }));
 

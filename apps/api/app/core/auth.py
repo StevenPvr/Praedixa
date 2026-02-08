@@ -3,7 +3,7 @@
 Security notes:
 - Uses PyJWT (actively maintained) instead of python-jose.
 - Asymmetric algorithms only by default: RS256, ES256, EdDSA.
-- HS256 is only accepted when LEGACY_HS256_ENABLED=true (dev transition).
+- HS256 is only accepted when LEGACY_HS256_ENABLED=true in local development.
 - The "none" algorithm is ALWAYS rejected — PyJWT rejects it by default
   when algorithms= is specified, but we also explicitly block it.
 - PyJWKClient handles JWKS fetching with built-in caching and kid resolution.
@@ -43,11 +43,6 @@ _KNOWN_ROLES = {
     "employee",
     "viewer",
 }
-# Supabase default "authenticated" role -> treat as org_admin for the POC.
-# In production, app_metadata.role should be explicitly set per user.
-_ROLE_ALIASES: dict[str, str] = {
-    "authenticated": "org_admin",
-}
 logger = structlog.get_logger()
 
 # PyJWKClient instance — lazily initialized per JWKS URL.
@@ -75,6 +70,23 @@ def _auth_error() -> HTTPException:
         detail=_AUTH_ERROR_DETAIL,
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+
+def _is_local_development() -> bool:
+    environment = str(getattr(settings, "ENVIRONMENT", "development")).lower()
+    return environment == "development"
+
+
+def _allow_dev_issuer_fallback() -> bool:
+    if not _is_local_development():
+        return False
+    return getattr(settings, "ALLOW_DEV_ISSUER_FALLBACK", False) is True
+
+
+def _allow_dev_user_metadata_org_id() -> bool:
+    if not _is_local_development():
+        return False
+    return getattr(settings, "ALLOW_DEV_USER_METADATA_ORG_ID", False) is True
 
 
 def _is_allowed_jwks_host(hostname: str | None) -> bool:
@@ -129,8 +141,7 @@ def _resolve_jwks_url(token: str) -> str:
             raise _auth_error()
         return jwks_url
 
-    environment = str(getattr(settings, "ENVIRONMENT", "development")).lower()
-    if environment == "production":
+    if not _allow_dev_issuer_fallback():
         raise _auth_error()
 
     # Dev fallback: extract issuer from unverified claims.
@@ -170,11 +181,11 @@ def _get_jwk_client(jwks_url: str) -> PyJWKClient:  # pragma: no cover
 def _is_hs256_allowed() -> bool:
     """Check if legacy HS256 is allowed (dev transition only).
 
-    In production, HS256 is ALWAYS rejected to prevent symmetric key attacks.
+    HS256 is only allowed in local development when explicitly enabled.
     """
-    if settings.is_production:
+    if not _is_local_development():
         return False
-    return getattr(settings, "LEGACY_HS256_ENABLED", True)
+    return getattr(settings, "LEGACY_HS256_ENABLED", False) is True
 
 
 def _decode_token(token: str) -> dict[str, Any]:
@@ -324,20 +335,15 @@ def verify_jwt(token: str) -> JWTPayload:
         or app_metadata.get("org_id")
     )
 
-    environment = str(getattr(settings, "ENVIRONMENT", "development")).lower()
-    is_production = environment == "production"
-    if not organization_id and not is_production:
+    if not organization_id and _allow_dev_user_metadata_org_id():
         organization_id = user_metadata.get("organization_id") or user_metadata.get(
             "org_id"
         )
 
-    # Prefer app_metadata.role (admin-set, authoritative) over the top-level
-    # JWT role claim.  Supabase puts the PostgreSQL RLS role ("authenticated")
-    # in the top-level `role` field -- this is NOT an application role.
-    role = app_metadata.get("role") or payload.get("role") or "viewer"
+    # Application role must come from app_metadata (admin-set, authoritative).
+    # Top-level JWT role is ignored because it represents DB role context.
+    role = app_metadata.get("role") or "viewer"
 
-    if isinstance(role, str):
-        role = _ROLE_ALIASES.get(role, role)
     if not isinstance(role, str) or role not in _KNOWN_ROLES:
         logger.warning("jwt_unknown_role", role=str(role)[:50])
         role = "viewer"

@@ -87,7 +87,9 @@ test.describe("Onboarding page", () => {
     await page.goto("/onboarding");
 
     await expect(page.getByText("Erreur de chargement")).toBeVisible();
-    await expect(page.getByRole("button", { name: /reessayer/i })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /reessayer/i }),
+    ).toBeVisible();
   });
 
   test("shows empty table when no onboarding entries", async ({ page }) => {

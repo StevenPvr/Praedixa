@@ -25,9 +25,7 @@ test.describe("Alertes page", () => {
     ).toBeVisible();
   });
 
-  test("displays severity stat cards with correct values", async ({
-    page,
-  }) => {
+  test("displays severity stat cards with correct values", async ({ page }) => {
     await mockAlertesApis(page);
     await page.goto("/alertes");
 
@@ -109,7 +107,9 @@ test.describe("Alertes page", () => {
     await page.goto("/alertes");
 
     await expect(page.getByText("Erreur de chargement")).toBeVisible();
-    await expect(page.getByRole("button", { name: /reessayer/i })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /reessayer/i }),
+    ).toBeVisible();
   });
 
   test("singular alerte text when total is 1", async ({ page }) => {

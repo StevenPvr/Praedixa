@@ -29,13 +29,13 @@ describe("CostParameter", () => {
   });
 
   it("siteId is optional", () => {
-    expectTypeOf<CostParameter["siteId"]>().toEqualTypeOf<
-      string | undefined
-    >();
+    expectTypeOf<CostParameter["siteId"]>().toEqualTypeOf<string | undefined>();
   });
 
   it("effectiveFrom is ISODateString", () => {
-    expectTypeOf<CostParameter["effectiveFrom"]>().toEqualTypeOf<ISODateString>();
+    expectTypeOf<
+      CostParameter["effectiveFrom"]
+    >().toEqualTypeOf<ISODateString>();
   });
 
   it("effectiveUntil is optional", () => {
@@ -65,11 +65,21 @@ describe("ShiftConfig", () => {
 
 describe("AlertThresholdConfig", () => {
   it("all thresholds are numbers", () => {
-    expectTypeOf<AlertThresholdConfig["lowThreshold"]>().toEqualTypeOf<number>();
-    expectTypeOf<AlertThresholdConfig["mediumThreshold"]>().toEqualTypeOf<number>();
-    expectTypeOf<AlertThresholdConfig["highThreshold"]>().toEqualTypeOf<number>();
-    expectTypeOf<AlertThresholdConfig["criticalThreshold"]>().toEqualTypeOf<number>();
-    expectTypeOf<AlertThresholdConfig["maxAlertsPerWeek"]>().toEqualTypeOf<number>();
+    expectTypeOf<
+      AlertThresholdConfig["lowThreshold"]
+    >().toEqualTypeOf<number>();
+    expectTypeOf<
+      AlertThresholdConfig["mediumThreshold"]
+    >().toEqualTypeOf<number>();
+    expectTypeOf<
+      AlertThresholdConfig["highThreshold"]
+    >().toEqualTypeOf<number>();
+    expectTypeOf<
+      AlertThresholdConfig["criticalThreshold"]
+    >().toEqualTypeOf<number>();
+    expectTypeOf<
+      AlertThresholdConfig["maxAlertsPerWeek"]
+    >().toEqualTypeOf<number>();
   });
 });
 

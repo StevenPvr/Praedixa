@@ -3,10 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CreditCard, Search, ChevronRight } from "lucide-react";
-import {
-  DataTable,
-  type DataTableColumn,
-} from "@praedixa/ui";
+import { DataTable, type DataTableColumn } from "@praedixa/ui";
 import { useApiGetPaginated } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import { ErrorFallback } from "@/components/error-fallback";
@@ -77,9 +74,7 @@ export default function FacturationPage() {
       render: (row: OrgBillingListItem) => (
         <button
           onClick={() =>
-            router.push(
-              `/organisations/${encodeURIComponent(row.id)}`,
-            )
+            router.push(`/organisations/${encodeURIComponent(row.id)}`)
           }
           className="inline-flex items-center text-gray-400 transition-colors hover:text-charcoal"
         >
@@ -94,9 +89,7 @@ export default function FacturationPage() {
       <div>
         <div className="flex items-center gap-3">
           <CreditCard className="h-6 w-6 text-amber-500" />
-          <h1 className="text-2xl font-semibold text-charcoal">
-            Facturation
-          </h1>
+          <h1 className="text-2xl font-semibold text-charcoal">Facturation</h1>
         </div>
         <p className="mt-1 text-sm text-gray-500">
           Gestion des plans et facturation des organisations

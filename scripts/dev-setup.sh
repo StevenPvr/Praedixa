@@ -6,23 +6,19 @@
 #   2. Starts PostgreSQL via docker compose if not running
 #   3. Waits for PostgreSQL readiness
 #   4. Runs Alembic migrations
-#   5. Optionally seeds demo data
-#   6. Starts the API with hot reload
+#   5. Starts the API with hot reload
 #
 # Usage:
 #   ./scripts/dev-setup.sh           # Full setup + start API
-#   ./scripts/dev-setup.sh --no-api  # Setup only (migrations + seed), don't start API
-#   ./scripts/dev-setup.sh --seed    # Include demo data seeding
+#   ./scripts/dev-setup.sh --no-api  # Setup only (migrations), don't start API
 set -e
 
 API_DIR="$(cd "$(dirname "$0")/../apps/api" && pwd)"
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-SEED=false
 START_API=true
 
 for arg in "$@"; do
   case "$arg" in
-    --seed) SEED=true ;;
     --no-api) START_API=false ;;
   esac
 done
@@ -65,15 +61,6 @@ echo "[3/4] Running Alembic migrations..."
 cd "$API_DIR"
 uv run alembic upgrade head
 echo "      Migrations applied"
-
-# 5. Seed demo data (optional)
-if [ "$SEED" = true ]; then
-    echo "[4/4] Seeding demo data..."
-    uv run python -m scripts.seed_demo_data
-    echo "      Demo data seeded"
-else
-    echo "[4/4] Skipping seed (use --seed to include demo data)"
-fi
 
 echo ""
 echo "=== Setup complete ==="

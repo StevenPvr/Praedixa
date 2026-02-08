@@ -7,10 +7,10 @@
   "preview_urls": false,
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
   },
   "routes": [
     { "pattern": "praedixa.com", "custom_domain": true },
-    { "pattern": "www.praedixa.com", "custom_domain": true }
-  ]
+    { "pattern": "www.praedixa.com", "custom_domain": true },
+  ],
 }

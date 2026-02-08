@@ -23,7 +23,11 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_admin_tenant_filter, get_current_user, get_db_session
+from app.core.dependencies import (
+    get_admin_tenant_filter,
+    get_current_user,
+    get_db_session,
+)
 from app.core.security import TenantFilter
 from app.main import app
 
@@ -236,9 +240,7 @@ class TestOrgProofPacks:
         scalars_mock.all.return_value = [proof]
         items_result.scalars.return_value = scalars_mock
 
-        session.execute = AsyncMock(
-            side_effect=[count_result, items_result]
-        )
+        session.execute = AsyncMock(side_effect=[count_result, items_result])
 
         with patch(
             "app.routers.admin_proof_packs.log_admin_action",
@@ -271,9 +273,7 @@ class TestOrgProofPacks:
         scalars_mock.all.return_value = []
         items_result.scalars.return_value = scalars_mock
 
-        session.execute = AsyncMock(
-            side_effect=[count_result, items_result]
-        )
+        session.execute = AsyncMock(side_effect=[count_result, items_result])
 
         with patch(
             "app.routers.admin_proof_packs.log_admin_action",
@@ -307,9 +307,7 @@ class TestOrgProofPacks:
         scalars_mock.all.return_value = [proof]
         items_result.scalars.return_value = scalars_mock
 
-        session.execute = AsyncMock(
-            side_effect=[count_result, items_result]
-        )
+        session.execute = AsyncMock(side_effect=[count_result, items_result])
 
         with patch(
             "app.routers.admin_proof_packs.log_admin_action",

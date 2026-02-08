@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Database, BarChart3 } from "lucide-react";
-import { DataTable, type DataTableColumn, StatCard, SkeletonCard } from "@praedixa/ui";
+import {
+  DataTable,
+  type DataTableColumn,
+  StatCard,
+  SkeletonCard,
+} from "@praedixa/ui";
 import { useApiGet, useApiGetPaginated } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import { ErrorFallback } from "@/components/error-fallback";
@@ -38,15 +43,22 @@ export default function OrgCanonicalPage() {
   const orgId = params.orgId as string;
   const [page, setPage] = useState(1);
 
-  const { data: quality, loading: qualityLoading, error: qualityError } =
-    useApiGet<QualityDashboard>(ADMIN_ENDPOINTS.orgCanonicalQuality(orgId));
+  const {
+    data: quality,
+    loading: qualityLoading,
+    error: qualityError,
+  } = useApiGet<QualityDashboard>(ADMIN_ENDPOINTS.orgCanonicalQuality(orgId));
 
-  const { data: records, total, error: recordsError, refetch } =
-    useApiGetPaginated<CanonicalRecord>(
-      ADMIN_ENDPOINTS.orgCanonical(orgId),
-      page,
-      20,
-    );
+  const {
+    data: records,
+    total,
+    error: recordsError,
+    refetch,
+  } = useApiGetPaginated<CanonicalRecord>(
+    ADMIN_ENDPOINTS.orgCanonical(orgId),
+    page,
+    20,
+  );
 
   const columns: DataTableColumn<CanonicalRecord>[] = [
     {

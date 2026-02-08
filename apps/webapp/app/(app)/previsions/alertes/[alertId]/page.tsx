@@ -70,11 +70,17 @@ export default function AlertDetailPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Severite</p>
-                <Badge variant={
-                  alert.severity === "critical" ? "destructive" :
-                  alert.severity === "high" ? "destructive" :
-                  alert.severity === "medium" ? "default" : "secondary"
-                }>
+                <Badge
+                  variant={
+                    alert.severity === "critical"
+                      ? "destructive"
+                      : alert.severity === "high"
+                        ? "destructive"
+                        : alert.severity === "medium"
+                          ? "default"
+                          : "secondary"
+                  }
+                >
                   {alert.severity}
                 </Badge>
               </div>
@@ -123,9 +129,7 @@ export default function AlertDetailPage() {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-gray-400">
-                Aucun facteur identifie
-              </p>
+              <p className="text-sm text-gray-400">Aucun facteur identifie</p>
             )}
           </section>
 
@@ -140,10 +144,7 @@ export default function AlertDetailPage() {
           </div>
         </>
       ) : (
-        <ErrorFallback
-          variant="empty"
-          message="Alerte introuvable"
-        />
+        <ErrorFallback variant="empty" message="Alerte introuvable" />
       )}
     </div>
   );

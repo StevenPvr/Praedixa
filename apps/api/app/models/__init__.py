@@ -12,6 +12,13 @@ from app.models.absence import (
     DayPortion,
 )
 from app.models.action_plan import ActionPlan, ActionPlanStatus
+from app.models.admin import (
+    AdminAuditAction,
+    AdminAuditLog,
+    OnboardingState,
+    OnboardingStatus,
+    PlanChangeHistory,
+)
 from app.models.base import Base
 from app.models.daily_forecast import DailyForecast, ForecastDimension
 from app.models.dashboard_alert import (
@@ -49,6 +56,19 @@ from app.models.forecast_run import (
     ForecastModelType,
     ForecastRun,
     ForecastStatus,
+)
+from app.models.operational import (
+    CanonicalRecord,
+    CostParameter,
+    CoverageAlert,
+    CoverageAlertSeverity,
+    CoverageAlertStatus,
+    Horizon,
+    OperationalDecision,
+    ProofRecord,
+    ScenarioOption,
+    ScenarioOptionType,
+    ShiftType,
 )
 from app.models.organization import (
     IndustrySector,
@@ -118,4 +138,22 @@ __all__ = [
     "IngestionMode",
     "RunStatus",
     "PipelineConfigHistory",
+    # Admin
+    "AdminAuditLog",
+    "AdminAuditAction",
+    "PlanChangeHistory",
+    "OnboardingState",
+    "OnboardingStatus",
+    # Operational
+    "CanonicalRecord",
+    "CostParameter",
+    "CoverageAlert",
+    "CoverageAlertSeverity",
+    "CoverageAlertStatus",
+    "Horizon",
+    "OperationalDecision",
+    "ProofRecord",
+    "ScenarioOption",
+    "ScenarioOptionType",
+    "ShiftType",
 ]

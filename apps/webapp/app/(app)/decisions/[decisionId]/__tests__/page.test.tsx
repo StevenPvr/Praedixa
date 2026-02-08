@@ -16,10 +16,16 @@ vi.mock("@/hooks/use-api", () => ({
 }));
 
 vi.mock("@praedixa/ui", () => ({
-  Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
-  Button: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-    <button onClick={onClick}>{children}</button>
+  Badge: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
   ),
+  Button: ({
+    children,
+    onClick,
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+  }) => <button onClick={onClick}>{children}</button>,
   Input: (props: Record<string, unknown>) => <input {...props} />,
   SkeletonCard: () => <div data-testid="skeleton-card" />,
 }));

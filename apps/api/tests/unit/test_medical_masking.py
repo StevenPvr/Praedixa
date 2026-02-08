@@ -5,7 +5,6 @@ import pytest
 from app.services.medical_masking import (
     _MASKED_REASON,
     _MEDICAL_ABSENCE_TYPES,
-    _SENSITIVE_FIELDS,
     is_medical_absence_type,
     mask_medical_reasons,
 )
@@ -14,22 +13,28 @@ from app.services.medical_masking import (
 class TestIsMedicalAbsenceType:
     """Tests for is_medical_absence_type()."""
 
-    @pytest.mark.parametrize("absence_type", [
-        "sick_leave",
-        "sick_leave_workplace",
-        "maternity",
-        "paternity",
-    ])
+    @pytest.mark.parametrize(
+        "absence_type",
+        [
+            "sick_leave",
+            "sick_leave_workplace",
+            "maternity",
+            "paternity",
+        ],
+    )
     def test_medical_types_are_recognized(self, absence_type):
         assert is_medical_absence_type(absence_type) is True
 
-    @pytest.mark.parametrize("absence_type", [
-        "vacation",
-        "personal",
-        "training",
-        "bereavement",
-        "unpaid_leave",
-    ])
+    @pytest.mark.parametrize(
+        "absence_type",
+        [
+            "vacation",
+            "personal",
+            "training",
+            "bereavement",
+            "unpaid_leave",
+        ],
+    )
     def test_non_medical_types_are_not_recognized(self, absence_type):
         assert is_medical_absence_type(absence_type) is False
 
@@ -66,22 +71,26 @@ class TestMaskMedicalReasons:
         assert result[2]["reason"] == _MASKED_REASON
 
     def test_certificate_fields_removed_from_medical(self):
-        absences = [{
-            "type": "sick_leave",
-            "reason": "flu",
-            "medical_certificate_required": True,
-            "medical_certificate_uploaded": False,
-        }]
+        absences = [
+            {
+                "type": "sick_leave",
+                "reason": "flu",
+                "medical_certificate_required": True,
+                "medical_certificate_uploaded": False,
+            }
+        ]
         result = mask_medical_reasons(absences)
         assert "medical_certificate_required" not in result[0]
         assert "medical_certificate_uploaded" not in result[0]
 
     def test_certificate_fields_preserved_on_non_medical(self):
-        absences = [{
-            "type": "vacation",
-            "reason": "holiday",
-            "medical_certificate_required": False,
-        }]
+        absences = [
+            {
+                "type": "vacation",
+                "reason": "holiday",
+                "medical_certificate_required": False,
+            }
+        ]
         result = mask_medical_reasons(absences)
         assert result[0]["medical_certificate_required"] is False
 
@@ -99,26 +108,31 @@ class TestMaskMedicalReasons:
     def test_enum_like_type_with_value_attribute(self):
         """Test with objects that have a .value attribute (like enums)."""
         from types import SimpleNamespace
+
         enum_like = SimpleNamespace(value="sick_leave")
         absences = [{"type": enum_like, "reason": "illness"}]
         result = mask_medical_reasons(absences)
         assert result[0]["reason"] == _MASKED_REASON
 
     def test_diagnosis_code_removed(self):
-        absences = [{
-            "type": "sick_leave",
-            "reason": "flu",
-            "diagnosis_code": "J11.1",
-        }]
+        absences = [
+            {
+                "type": "sick_leave",
+                "reason": "flu",
+                "diagnosis_code": "J11.1",
+            }
+        ]
         result = mask_medical_reasons(absences)
         assert "diagnosis_code" not in result[0]
 
     def test_medical_notes_removed(self):
-        absences = [{
-            "type": "paternity",
-            "reason": "birth",
-            "medical_notes": "all good",
-        }]
+        absences = [
+            {
+                "type": "paternity",
+                "reason": "birth",
+                "medical_notes": "all good",
+            }
+        ]
         result = mask_medical_reasons(absences)
         assert "medical_notes" not in result[0]
 

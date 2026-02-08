@@ -22,7 +22,6 @@ from app.schemas.operational import (
     OperationalDecisionUpdate,
 )
 
-
 # ── CanonicalRecordCreate ───────────────────────────────────────
 
 

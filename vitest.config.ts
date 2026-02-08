@@ -23,6 +23,27 @@ export default defineConfig({
       "**/.next/**",
       "**/coverage/**",
     ],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "default",
+          include: [
+            "packages/**/*.{test,spec}.{ts,tsx}",
+            "apps/webapp/**/*.{test,spec}.{ts,tsx}",
+            "apps/landing/**/*.{test,spec}.{ts,tsx}",
+          ],
+          exclude: [
+            "**/node_modules/**",
+            "**/dist/**",
+            "**/.next/**",
+            "**/coverage/**",
+            "apps/admin/**",
+          ],
+        },
+      },
+      "apps/admin",
+    ],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],

@@ -16,11 +16,19 @@ vi.mock("@praedixa/ui", () => ({
     <div data-testid={`stat-${label}`}>{value}</div>
   ),
   SkeletonCard: () => <div data-testid="skeleton-card" />,
-  DataTable: ({ data, columns: _columns }: { data: unknown[]; columns: unknown[] }) => (
+  DataTable: ({
+    data,
+    columns: _columns,
+  }: {
+    data: unknown[];
+    columns: unknown[];
+  }) => (
     <table data-testid="data-table">
       <tbody>
         {(data as Record<string, unknown>[]).map((row, i) => (
-          <tr key={i}><td>{JSON.stringify(row)}</td></tr>
+          <tr key={i}>
+            <td>{JSON.stringify(row)}</td>
+          </tr>
         ))}
       </tbody>
     </table>
@@ -31,17 +39,22 @@ vi.mock("@praedixa/ui", () => ({
 }));
 
 // Mock lucide-react
-vi.mock("lucide-react", () =>
-  new Proxy({}, {
-    get: (_target, prop) => {
-      if (prop === "__esModule") return true;
-      if (prop === "then") return undefined;
-      return ({ className }: { className?: string }) => (
-        <span data-testid={`icon-${String(prop)}`} className={className} />
-      );
-    },
-    has: (_target, prop) => prop !== "then",
-  })
+vi.mock(
+  "lucide-react",
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_target, prop) => {
+          if (prop === "__esModule") return true;
+          if (prop === "then") return undefined;
+          return ({ className }: { className?: string }) => (
+            <span data-testid={`icon-${String(prop)}`} className={className} />
+          );
+        },
+        has: (_target, prop) => prop !== "then",
+      },
+    ),
 );
 
 // Mock error fallback
@@ -89,7 +102,9 @@ describe("AlertesPage", () => {
       refetch: vi.fn(),
     });
     render(<AlertesPage />);
-    expect(screen.getByTestId("error-fallback")).toHaveTextContent("Network error");
+    expect(screen.getByTestId("error-fallback")).toHaveTextContent(
+      "Network error",
+    );
   });
 
   it("renders severity stat cards with data", () => {

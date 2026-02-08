@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 
 vi.mock("framer-motion", async () => {
   const { createFramerMotionMock } =
@@ -86,59 +86,82 @@ vi.mock("../../components/layout/StickyMobileCTA", () => ({
 import LandingPage from "../page";
 
 describe("LandingPage (app/page.tsx)", () => {
-  it("should render without errors", () => {
-    render(<LandingPage />);
+  it("should render without errors", async () => {
+    await act(async () => {
+      render(<LandingPage />);
+    });
     expect(screen.getByTestId("navbar")).toBeInTheDocument();
   });
 
-  it("should render the Navbar", () => {
-    render(<LandingPage />);
+  it("should render the Navbar", async () => {
+    await act(async () => {
+      render(<LandingPage />);
+    });
     expect(screen.getByTestId("navbar")).toBeInTheDocument();
   });
 
-  it("should render the HeroSection", () => {
-    render(<LandingPage />);
+  it("should render the HeroSection", async () => {
+    await act(async () => {
+      render(<LandingPage />);
+    });
     expect(screen.getByTestId("hero-section")).toBeInTheDocument();
   });
 
-  it("should render the TrustBand", () => {
-    render(<LandingPage />);
+  it("should render the TrustBand", async () => {
+    await act(async () => {
+      render(<LandingPage />);
+    });
     expect(screen.getByTestId("trust-band")).toBeInTheDocument();
   });
 
-  it("should render the SolutionSection", () => {
-    render(<LandingPage />);
+  it("should render the SolutionSection", async () => {
+    await act(async () => {
+      render(<LandingPage />);
+    });
     expect(screen.getByTestId("solution-section")).toBeInTheDocument();
   });
 
-  it("should render the FaqSection", () => {
-    render(<LandingPage />);
+  it("should render the FaqSection", async () => {
+    await act(async () => {
+      render(<LandingPage />);
+    });
     expect(screen.getByTestId("faq-section")).toBeInTheDocument();
   });
 
-  it("should render the ContactSection", () => {
-    render(<LandingPage />);
+  it("should render the ContactSection", async () => {
+    await act(async () => {
+      render(<LandingPage />);
+    });
     expect(screen.getByTestId("contact-section")).toBeInTheDocument();
   });
 
-  it("should render the PilotSection", () => {
-    render(<LandingPage />);
+  it("should render the PilotSection", async () => {
+    await act(async () => {
+      render(<LandingPage />);
+    });
     expect(screen.getByTestId("pilot-section")).toBeInTheDocument();
   });
 
-  it("should render the Footer", () => {
-    render(<LandingPage />);
+  it("should render the Footer", async () => {
+    await act(async () => {
+      render(<LandingPage />);
+    });
     expect(screen.getByTestId("footer")).toBeInTheDocument();
   });
 
-  it("should render the StickyMobileCTA", () => {
-    render(<LandingPage />);
+  it("should render the StickyMobileCTA", async () => {
+    await act(async () => {
+      render(<LandingPage />);
+    });
     expect(screen.getByTestId("sticky-cta")).toBeInTheDocument();
   });
 
-  it("should render sections inside a main element", () => {
-    const { container } = render(<LandingPage />);
-    const main = container.querySelector("main");
+  it("should render sections inside a main element", async () => {
+    let container: HTMLElement;
+    await act(async () => {
+      ({ container } = render(<LandingPage />));
+    });
+    const main = container!.querySelector("main");
     expect(main).toBeInTheDocument();
     expect(
       main?.querySelector('[data-testid="hero-section"]'),

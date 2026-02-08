@@ -203,7 +203,7 @@ class TestValidateSecrets:
     def test_staging_rejects_localhost_cors(self):
         from app.core.config import Settings
 
-        with pytest.raises(ValueError, match="cannot include localhost/loopback"):
+        with pytest.raises(ValueError, match="cannot include localhost"):
             Settings(
                 _env_file=None,
                 ENVIRONMENT="staging",
@@ -211,4 +211,64 @@ class TestValidateSecrets:
                 SUPABASE_URL="https://proj.supabase.co",
                 KEY_PROVIDER="scaleway",
                 CORS_ORIGINS=["https://localhost:3001"],
+            )
+
+    def test_staging_placeholder_supabase_url_raises(self):
+        """Lines 132-135: placeholder SUPABASE_URL rejected in staging."""
+        from app.core.config import Settings
+
+        with pytest.raises(
+            ValueError, match="SUPABASE_URL must be explicitly configured"
+        ):
+            Settings(
+                _env_file=None,
+                ENVIRONMENT="staging",
+                SUPABASE_JWT_SECRET="x" * 40,
+                SUPABASE_URL="https://your-project.supabase.co",
+                KEY_PROVIDER="scaleway",
+                CORS_ORIGINS=["https://staging.praedixa.com"],
+            )
+
+    def test_staging_empty_supabase_url_raises(self):
+        """Lines 132-135: empty SUPABASE_URL rejected in staging."""
+        from app.core.config import Settings
+
+        with pytest.raises(
+            ValueError, match="SUPABASE_URL must be explicitly configured"
+        ):
+            Settings(
+                _env_file=None,
+                ENVIRONMENT="staging",
+                SUPABASE_JWT_SECRET="x" * 40,
+                SUPABASE_URL="",
+                KEY_PROVIDER="scaleway",
+                CORS_ORIGINS=["https://staging.praedixa.com"],
+            )
+
+    def test_staging_empty_cors_origins_raises(self):
+        """Line 147: empty CORS_ORIGINS rejected in staging."""
+        from app.core.config import Settings
+
+        with pytest.raises(ValueError, match="CORS_ORIGINS cannot be empty"):
+            Settings(
+                _env_file=None,
+                ENVIRONMENT="staging",
+                SUPABASE_JWT_SECRET="x" * 40,
+                SUPABASE_URL="https://proj.supabase.co",
+                KEY_PROVIDER="scaleway",
+                CORS_ORIGINS=[],
+            )
+
+    def test_staging_http_cors_origin_raises(self):
+        """Line 153: non-https CORS_ORIGINS rejected in staging."""
+        from app.core.config import Settings
+
+        with pytest.raises(ValueError, match="CORS_ORIGINS must use https"):
+            Settings(
+                _env_file=None,
+                ENVIRONMENT="staging",
+                SUPABASE_JWT_SECRET="x" * 40,
+                SUPABASE_URL="https://proj.supabase.co",
+                KEY_PROVIDER="scaleway",
+                CORS_ORIGINS=["http://staging.praedixa.com"],
             )

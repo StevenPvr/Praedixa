@@ -57,17 +57,23 @@ test.describe("Audit page", () => {
     ).toBeVisible();
 
     // First entry: action = view_org -> "Consultation organisation"
-    await expect(page.locator("table").getByText("Consultation organisation")).toBeVisible();
+    await expect(
+      page.locator("table").getByText("Consultation organisation"),
+    ).toBeVisible();
     // IP address of first entry
     await expect(page.getByText("192.168.1.1")).toBeVisible();
 
     // Second entry: action = suspend_org -> "Suspension organisation"
-    await expect(page.locator("table").getByText("Suspension organisation")).toBeVisible();
+    await expect(
+      page.locator("table").getByText("Suspension organisation"),
+    ).toBeVisible();
     await expect(page.getByText("10.0.0.1")).toBeVisible();
 
     // Request ID truncated to 8 chars
     await expect(
-      page.getByText(MOCK_AUDIT_ENTRIES[0].requestId.substring(0, 8) + "...").first(),
+      page
+        .getByText(MOCK_AUDIT_ENTRIES[0].requestId.substring(0, 8) + "...")
+        .first(),
     ).toBeVisible();
   });
 
@@ -142,7 +148,9 @@ test.describe("Audit page", () => {
     await page.goto("/audit");
 
     await expect(page.getByText("Erreur de chargement")).toBeVisible();
-    await expect(page.getByRole("button", { name: /reessayer/i })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /reessayer/i }),
+    ).toBeVisible();
   });
 
   test("shows empty table when no entries", async ({ page }) => {

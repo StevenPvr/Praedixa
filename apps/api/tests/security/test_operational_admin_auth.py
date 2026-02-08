@@ -33,46 +33,49 @@ TARGET_ORG_ID = uuid.UUID("dddddddd-2222-2222-2222-222222222222")
 # All operational admin endpoints: (method, path, test_id)
 _OPERATIONAL_ADMIN_ENDPOINTS = [
     # admin_operational.py - per-org operational data
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/canonical",
-     "list_org_canonical"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/cost-params",
-     "list_org_cost_params"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/coverage-alerts",
-     "list_org_coverage_alerts"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/proof",
-     "list_org_proof"),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/canonical",
+        "list_org_canonical",
+    ),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/cost-params",
+        "list_org_cost_params",
+    ),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/coverage-alerts",
+        "list_org_coverage_alerts",
+    ),
+    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/proof", "list_org_proof"),
     # admin_canonical.py - canonical quality and coverage
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/canonical/quality",
-     "org_canonical_quality"),
-    ("GET", "/api/v1/admin/monitoring/canonical-coverage",
-     "canonical_coverage"),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/canonical/quality",
+        "org_canonical_quality",
+    ),
+    ("GET", "/api/v1/admin/monitoring/canonical-coverage", "canonical_coverage"),
     # admin_alerts_overview.py - alerts summary
-    ("GET", "/api/v1/admin/monitoring/alerts/summary",
-     "alerts_summary"),
-    ("GET", "/api/v1/admin/monitoring/alerts/by-org",
-     "alerts_by_org"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/alerts",
-     "org_alerts"),
+    ("GET", "/api/v1/admin/monitoring/alerts/summary", "alerts_summary"),
+    ("GET", "/api/v1/admin/monitoring/alerts/by-org", "alerts_by_org"),
+    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/alerts", "org_alerts"),
     # admin_scenarios.py - scenario summary
-    ("GET", "/api/v1/admin/monitoring/scenarios/summary",
-     "scenarios_summary"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/scenarios",
-     "org_scenarios"),
+    ("GET", "/api/v1/admin/monitoring/scenarios/summary", "scenarios_summary"),
+    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/scenarios", "org_scenarios"),
     # admin_decisions_enhanced.py - decision summary
-    ("GET", "/api/v1/admin/monitoring/decisions/summary",
-     "decisions_summary"),
-    ("GET", "/api/v1/admin/monitoring/decisions/overrides",
-     "decisions_overrides"),
-    ("GET", "/api/v1/admin/monitoring/decisions/adoption",
-     "decisions_adoption"),
+    ("GET", "/api/v1/admin/monitoring/decisions/summary", "decisions_summary"),
+    ("GET", "/api/v1/admin/monitoring/decisions/overrides", "decisions_overrides"),
+    ("GET", "/api/v1/admin/monitoring/decisions/adoption", "decisions_adoption"),
     # admin_proof_packs.py - proof summary
-    ("GET", "/api/v1/admin/monitoring/proof-packs/summary",
-     "proof_packs_summary"),
-    ("GET", f"/api/v1/admin/organizations/{TARGET_ORG_ID}/proof-packs",
-     "org_proof_packs"),
+    ("GET", "/api/v1/admin/monitoring/proof-packs/summary", "proof_packs_summary"),
+    (
+        "GET",
+        f"/api/v1/admin/organizations/{TARGET_ORG_ID}/proof-packs",
+        "org_proof_packs",
+    ),
     # admin_cost_params.py - missing cost params
-    ("GET", "/api/v1/admin/monitoring/cost-params/missing",
-     "cost_params_missing"),
+    ("GET", "/api/v1/admin/monitoring/cost-params/missing", "cost_params_missing"),
 ]
 
 # Roles that should be REJECTED (403) on admin endpoints
@@ -245,12 +248,12 @@ class TestForbiddenResponseShapeOperational:
                 transport=transport, base_url="http://test"
             ) as client:
                 responses = []
-                for method, path, test_id in _OPERATIONAL_ADMIN_ENDPOINTS:
+                for _method, path, test_id in _OPERATIONAL_ADMIN_ENDPOINTS:
                     resp = await client.get(path)
                     responses.append((resp.status_code, resp.json(), test_id))
 
             # All should be 403
-            for status_code, data, test_id in responses:
+            for status_code, _data, test_id in responses:
                 assert status_code == 403, (
                     f"Endpoint {test_id} returned {status_code} instead of 403"
                 )
@@ -259,7 +262,7 @@ class TestForbiddenResponseShapeOperational:
             messages = [r[1]["error"]["message"] for r in responses]
             assert len(set(messages)) == 1, (
                 f"Inconsistent 403 messages across operational admin: "
-                f"{dict(zip([r[2] for r in responses], messages))}"
+                f"{dict(zip([r[2] for r in responses], messages, strict=False))}"
             )
         finally:
             app.dependency_overrides.clear()
@@ -297,8 +300,14 @@ class TestOperationalPathParamValidation:
         "path_template",
         _ORG_SCOPED_PATHS,
         ids=[
-            "canonical", "cost_params", "coverage_alerts", "proof",
-            "canonical_quality", "alerts", "scenarios", "proof_packs",
+            "canonical",
+            "cost_params",
+            "coverage_alerts",
+            "proof",
+            "canonical_quality",
+            "alerts",
+            "scenarios",
+            "proof_packs",
         ],
     )
     async def test_invalid_uuid_rejected(
@@ -357,9 +366,7 @@ class TestNoDataLeakage:
                 resp1 = await client.get(
                     f"/api/v1/admin/organizations/{TARGET_ORG_ID}/canonical"
                 )
-                resp2 = await client.get(
-                    "/api/v1/admin/monitoring/decisions/summary"
-                )
+                resp2 = await client.get("/api/v1/admin/monitoring/decisions/summary")
 
             assert resp1.status_code == 403
             assert resp2.status_code == 403
@@ -399,8 +406,12 @@ class TestNoDataLeakage:
             data = resp.json()
             error_str = str(data).lower()
             for model_name in [
-                "canonicalrecord", "costparameter", "coveragealert",
-                "scenariooption", "operationaldecision", "proofrecord",
+                "canonicalrecord",
+                "costparameter",
+                "coveragealert",
+                "scenariooption",
+                "operationaldecision",
+                "proofrecord",
                 "adminauditlog",
             ]:
                 assert model_name.lower() not in error_str, (

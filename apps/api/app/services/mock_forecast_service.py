@@ -106,7 +106,8 @@ async def generate_mock_forecasts(
     Returns number of alerts generated.
     """
     org_id = uuid.UUID(tenant.organization_id)
-    from datetime import UTC, datetime as _dt
+    from datetime import UTC
+    from datetime import datetime as _dt
 
     today = _dt.now(tz=UTC).date()
     cutoff = today - timedelta(days=days_lookback)

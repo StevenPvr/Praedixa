@@ -219,57 +219,68 @@ def _compute_all_options(
             (ScenarioOptionType.SERVICE_ADJUST, "Ajustement de service"),
             (ScenarioOptionType.OUTSOURCE, "Sous-traitance"),
         ]:
-            options.append({
-                "option_type": opt_type,
-                "label": label,
-                "cout_total_eur": zero,
-                "service_attendu_pct": Decimal("1.0000"),
-                "heures_couvertes": zero,
-                "contraintes_json": {},
-            })
+            options.append(
+                {
+                    "option_type": opt_type,
+                    "label": label,
+                    "cout_total_eur": zero,
+                    "service_attendu_pct": Decimal("1.0000"),
+                    "heures_couvertes": zero,
+                    "contraintes_json": {},
+                }
+            )
         return options
 
     # 1. HS: overtime
     hs_hours = min(gap, Decimal(str(cap_hs_shift)))
     hs_cost = hs_hours * c_int * (1 + maj_hs)
     hs_service = hs_hours / gap if gap > 0 else Decimal("1.0000")
-    options.append({
-        "option_type": ScenarioOptionType.HS,
-        "label": "Heures suppl\u00e9mentaires",
-        "cout_total_eur": _round2(hs_cost),
-        "service_attendu_pct": _round4(hs_service),
-        "heures_couvertes": _round2(hs_hours),
-        "contraintes_json": {"cap_hs_shift": cap_hs_shift, "capped": gap > hs_hours},
-    })
+    options.append(
+        {
+            "option_type": ScenarioOptionType.HS,
+            "label": "Heures suppl\u00e9mentaires",
+            "cout_total_eur": _round2(hs_cost),
+            "service_attendu_pct": _round4(hs_service),
+            "heures_couvertes": _round2(hs_hours),
+            "contraintes_json": {
+                "cap_hs_shift": cap_hs_shift,
+                "capped": gap > hs_hours,
+            },
+        }
+    )
 
     # 2. Interim
     interim_hours = min(gap, Decimal(str(cap_interim_site)))
     interim_cost = interim_hours * c_interim * (1 + premium_urgence)
     interim_service = interim_hours / gap if gap > 0 else Decimal("1.0000")
-    options.append({
-        "option_type": ScenarioOptionType.INTERIM,
-        "label": "Int\u00e9rim",
-        "cout_total_eur": _round2(interim_cost),
-        "service_attendu_pct": _round4(interim_service),
-        "heures_couvertes": _round2(interim_hours),
-        "contraintes_json": {
-            "cap_interim_site": cap_interim_site,
-            "capped": gap > interim_hours,
-        },
-    })
+    options.append(
+        {
+            "option_type": ScenarioOptionType.INTERIM,
+            "label": "Int\u00e9rim",
+            "cout_total_eur": _round2(interim_cost),
+            "service_attendu_pct": _round4(interim_service),
+            "heures_couvertes": _round2(interim_hours),
+            "contraintes_json": {
+                "cap_interim_site": cap_interim_site,
+                "capped": gap > interim_hours,
+            },
+        }
+    )
 
     # 3. Realloc intra-site
     intra_covered = gap * _INTRA_PRODUCTIVITY
     intra_cost = gap * _C_FRICTION_INTRA
     intra_service = intra_covered / gap if gap > 0 else Decimal("1.0000")
-    options.append({
-        "option_type": ScenarioOptionType.REALLOC_INTRA,
-        "label": "R\u00e9allocation intra-site",
-        "cout_total_eur": _round2(intra_cost),
-        "service_attendu_pct": _round4(intra_service),
-        "heures_couvertes": _round2(intra_covered),
-        "contraintes_json": {"productivity_ratio": str(_INTRA_PRODUCTIVITY)},
-    })
+    options.append(
+        {
+            "option_type": ScenarioOptionType.REALLOC_INTRA,
+            "label": "R\u00e9allocation intra-site",
+            "cout_total_eur": _round2(intra_cost),
+            "service_attendu_pct": _round4(intra_service),
+            "heures_couvertes": _round2(intra_covered),
+            "contraintes_json": {"productivity_ratio": str(_INTRA_PRODUCTIVITY)},
+        }
+    )
 
     # 4. Realloc inter-site
     persons_needed = gap / Decimal("8")  # 8h per person per day
@@ -278,39 +289,45 @@ def _compute_all_options(
     inter_cost = inter_travel + inter_friction
     inter_covered = gap * _INTER_PRODUCTIVITY
     inter_service = inter_covered / gap if gap > 0 else Decimal("1.0000")
-    options.append({
-        "option_type": ScenarioOptionType.REALLOC_INTER,
-        "label": "R\u00e9allocation inter-site",
-        "cout_total_eur": _round2(inter_cost),
-        "service_attendu_pct": _round4(inter_service),
-        "heures_couvertes": _round2(inter_covered),
-        "contraintes_json": {
-            "productivity_ratio": str(_INTER_PRODUCTIVITY),
-            "persons_needed": str(_round2(persons_needed)),
-        },
-    })
+    options.append(
+        {
+            "option_type": ScenarioOptionType.REALLOC_INTER,
+            "label": "R\u00e9allocation inter-site",
+            "cout_total_eur": _round2(inter_cost),
+            "service_attendu_pct": _round4(inter_service),
+            "heures_couvertes": _round2(inter_covered),
+            "contraintes_json": {
+                "productivity_ratio": str(_INTER_PRODUCTIVITY),
+                "persons_needed": str(_round2(persons_needed)),
+            },
+        }
+    )
 
     # 5. Service adjust (accept backlog)
     adjust_cost = gap * c_backlog
-    options.append({
-        "option_type": ScenarioOptionType.SERVICE_ADJUST,
-        "label": "Ajustement de service",
-        "cout_total_eur": _round2(adjust_cost),
-        "service_attendu_pct": Decimal("0.0000"),
-        "heures_couvertes": zero,
-        "contraintes_json": {"accepts_full_gap": True},
-    })
+    options.append(
+        {
+            "option_type": ScenarioOptionType.SERVICE_ADJUST,
+            "label": "Ajustement de service",
+            "cout_total_eur": _round2(adjust_cost),
+            "service_attendu_pct": Decimal("0.0000"),
+            "heures_couvertes": zero,
+            "contraintes_json": {"accepts_full_gap": True},
+        }
+    )
 
     # 6. Outsource
     outsource_cost = gap * c_interim * _OUTSOURCE_MULTIPLIER
-    options.append({
-        "option_type": ScenarioOptionType.OUTSOURCE,
-        "label": "Sous-traitance",
-        "cout_total_eur": _round2(outsource_cost),
-        "service_attendu_pct": Decimal("1.0000"),
-        "heures_couvertes": _round2(gap),
-        "contraintes_json": {"multiplier": str(_OUTSOURCE_MULTIPLIER)},
-    })
+    options.append(
+        {
+            "option_type": ScenarioOptionType.OUTSOURCE,
+            "label": "Sous-traitance",
+            "cout_total_eur": _round2(outsource_cost),
+            "service_attendu_pct": Decimal("1.0000"),
+            "heures_couvertes": _round2(gap),
+            "contraintes_json": {"multiplier": str(_OUTSOURCE_MULTIPLIER)},
+        }
+    )
 
     return options
 

@@ -13,7 +13,7 @@ Strategy:
 
 import uuid
 from collections.abc import AsyncGenerator
-from datetime import UTC, date, datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
@@ -22,7 +22,11 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_admin_tenant_filter, get_current_user, get_db_session
+from app.core.dependencies import (
+    get_admin_tenant_filter,
+    get_current_user,
+    get_db_session,
+)
 from app.core.security import TenantFilter
 from app.main import app
 from app.models.operational import ScenarioOptionType
@@ -139,14 +143,16 @@ class TestScenariosSummary:
     ) -> None:
         """Scenario summary with type breakdown."""
         mock_session.execute.side_effect = [
-            _scalar_one_result(200),   # total
-            _scalar_one_result(50),    # pareto
-            _scalar_one_result(30),    # recommended
-            _all_result([              # by_type
-                (ScenarioOptionType.HS, 100),
-                (ScenarioOptionType.INTERIM, 60),
-                (ScenarioOptionType.REALLOC_INTRA, 40),
-            ]),
+            _scalar_one_result(200),  # total
+            _scalar_one_result(50),  # pareto
+            _scalar_one_result(30),  # recommended
+            _all_result(
+                [  # by_type
+                    (ScenarioOptionType.HS, 100),
+                    (ScenarioOptionType.INTERIM, 60),
+                    (ScenarioOptionType.REALLOC_INTRA, 40),
+                ]
+            ),
         ]
 
         resp = await admin_client.get(f"{MONITORING_PREFIX}/summary")

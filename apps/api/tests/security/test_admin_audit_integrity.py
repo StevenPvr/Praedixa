@@ -62,6 +62,7 @@ def _sa_jwt() -> JWTPayload:
 
 # ── Mock data factories ──────────────────────────────────────────────
 
+
 def _mock_org(**overrides):
     """Mock Organization ORM-like object for model_validate."""
     defaults = {
@@ -201,17 +202,22 @@ class TestOrgEndpointsAudit:
     """Verify audit log entries for organization management endpoints."""
 
     async def test_list_orgs_audits_view_org(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /organizations logs VIEW_ORG action."""
-        with patch(
-            "app.routers.admin_orgs.list_organizations",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ), patch(
-            "app.routers.admin_orgs.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_orgs.list_organizations",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ),
+            patch(
+                "app.routers.admin_orgs.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get("/api/v1/admin/organizations")
 
         assert resp.status_code == 200
@@ -221,18 +227,23 @@ class TestOrgEndpointsAudit:
         assert call_kwargs["admin_user_id"] == _SA_USER_ID
 
     async def test_create_org_audits_create_org(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """POST /organizations logs CREATE_ORG action."""
         mock_org = _mock_org()
-        with patch(
-            "app.routers.admin_orgs.create_organization",
-            new_callable=AsyncMock,
-            return_value=mock_org,
-        ), patch(
-            "app.routers.admin_orgs.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_orgs.create_organization",
+                new_callable=AsyncMock,
+                return_value=mock_org,
+            ),
+            patch(
+                "app.routers.admin_orgs.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.post(
                 "/api/v1/admin/organizations",
                 json={
@@ -250,29 +261,39 @@ class TestOrgEndpointsAudit:
         assert call_kwargs["resource_type"] == "Organization"
 
     async def test_get_org_detail_audits_view_org(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /organizations/{org_id} logs VIEW_ORG action."""
         mock_org = _mock_org()
-        with patch(
-            "app.routers.admin_orgs.get_organization",
-            new_callable=AsyncMock,
-            return_value=mock_org,
-        ), patch(
-            "app.routers.admin_orgs.get_org_counts",
-            new_callable=AsyncMock,
-            return_value={
-                "users_count": 5, "sites_count": 2, "departments_count": 4,
-                "datasets_count": 1, "forecast_runs_count": 0,
-            },
-        ), patch(
-            "app.routers.admin_orgs.get_org_hierarchy",
-            new_callable=AsyncMock,
-            return_value=[],
-        ), patch(
-            "app.routers.admin_orgs.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_orgs.get_organization",
+                new_callable=AsyncMock,
+                return_value=mock_org,
+            ),
+            patch(
+                "app.routers.admin_orgs.get_org_counts",
+                new_callable=AsyncMock,
+                return_value={
+                    "users_count": 5,
+                    "sites_count": 2,
+                    "departments_count": 4,
+                    "datasets_count": 1,
+                    "forecast_runs_count": 0,
+                },
+            ),
+            patch(
+                "app.routers.admin_orgs.get_org_hierarchy",
+                new_callable=AsyncMock,
+                return_value=[],
+            ),
+            patch(
+                "app.routers.admin_orgs.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}"
             )
@@ -284,18 +305,23 @@ class TestOrgEndpointsAudit:
         assert call_kwargs["target_org_id"] == str(_TARGET_ORG_ID)
 
     async def test_update_org_audits_update_org(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """PATCH /organizations/{org_id} logs UPDATE_ORG with field list."""
         mock_org = _mock_org(name="Updated Name")
-        with patch(
-            "app.routers.admin_orgs.update_organization",
-            new_callable=AsyncMock,
-            return_value=mock_org,
-        ), patch(
-            "app.routers.admin_orgs.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_orgs.update_organization",
+                new_callable=AsyncMock,
+                return_value=mock_org,
+            ),
+            patch(
+                "app.routers.admin_orgs.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.patch(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}",
                 json={"name": "Updated Name"},
@@ -311,18 +337,23 @@ class TestOrgEndpointsAudit:
         assert "name" in call_kwargs["metadata"]["fields"]
 
     async def test_suspend_org_audits_with_warning_severity(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """POST /organizations/{org_id}/suspend logs SUSPEND_ORG with WARNING."""
         mock_org = _mock_org(status=OrganizationStatus.SUSPENDED)
-        with patch(
-            "app.routers.admin_orgs.change_org_status",
-            new_callable=AsyncMock,
-            return_value=mock_org,
-        ), patch(
-            "app.routers.admin_orgs.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_orgs.change_org_status",
+                new_callable=AsyncMock,
+                return_value=mock_org,
+            ),
+            patch(
+                "app.routers.admin_orgs.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.post(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}/suspend"
             )
@@ -335,18 +366,23 @@ class TestOrgEndpointsAudit:
         assert call_kwargs["target_org_id"] == str(_TARGET_ORG_ID)
 
     async def test_reactivate_org_audits_reactivate(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """POST /organizations/{org_id}/reactivate logs REACTIVATE_ORG."""
         mock_org = _mock_org()
-        with patch(
-            "app.routers.admin_orgs.change_org_status",
-            new_callable=AsyncMock,
-            return_value=mock_org,
-        ), patch(
-            "app.routers.admin_orgs.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_orgs.change_org_status",
+                new_callable=AsyncMock,
+                return_value=mock_org,
+            ),
+            patch(
+                "app.routers.admin_orgs.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.post(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}/reactivate"
             )
@@ -357,18 +393,23 @@ class TestOrgEndpointsAudit:
         assert call_kwargs["action"] == AdminAuditAction.REACTIVATE_ORG
 
     async def test_churn_org_audits_with_critical_severity(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """POST /organizations/{org_id}/churn logs CHURN_ORG with CRITICAL."""
         mock_org = _mock_org(status=OrganizationStatus.CHURNED)
-        with patch(
-            "app.routers.admin_orgs.change_org_status",
-            new_callable=AsyncMock,
-            return_value=mock_org,
-        ), patch(
-            "app.routers.admin_orgs.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_orgs.change_org_status",
+                new_callable=AsyncMock,
+                return_value=mock_org,
+            ),
+            patch(
+                "app.routers.admin_orgs.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.post(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}/churn"
             )
@@ -380,17 +421,22 @@ class TestOrgEndpointsAudit:
         assert call_kwargs["severity"] == "CRITICAL"
 
     async def test_get_hierarchy_audits_view_org(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /organizations/{org_id}/hierarchy logs VIEW_ORG."""
-        with patch(
-            "app.routers.admin_orgs.get_org_hierarchy",
-            new_callable=AsyncMock,
-            return_value=[],
-        ), patch(
-            "app.routers.admin_orgs.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_orgs.get_org_hierarchy",
+                new_callable=AsyncMock,
+                return_value=[],
+            ),
+            patch(
+                "app.routers.admin_orgs.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}/hierarchy"
             )
@@ -408,17 +454,22 @@ class TestUserEndpointsAudit:
     """Verify audit log entries for user management endpoints."""
 
     async def test_list_users_audits_view_users(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /organizations/{org_id}/users logs VIEW_USERS."""
-        with patch(
-            "app.routers.admin_users.list_org_users",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ), patch(
-            "app.routers.admin_users.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_users.list_org_users",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ),
+            patch(
+                "app.routers.admin_users.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}/users"
             )
@@ -430,20 +481,25 @@ class TestUserEndpointsAudit:
         assert call_kwargs["target_org_id"] == str(_TARGET_ORG_ID)
 
     async def test_invite_user_audits_invite_user(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """POST /organizations/{org_id}/users/invite logs INVITE_USER."""
         mock_user = _mock_user(
             status=UserStatus.PENDING,
         )
-        with patch(
-            "app.routers.admin_users.invite_user",
-            new_callable=AsyncMock,
-            return_value=mock_user,
-        ), patch(
-            "app.routers.admin_users.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_users.invite_user",
+                new_callable=AsyncMock,
+                return_value=mock_user,
+            ),
+            patch(
+                "app.routers.admin_users.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.post(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}/users/invite",
                 json={"email": "new@test.com", "role": "viewer"},
@@ -459,18 +515,23 @@ class TestUserEndpointsAudit:
         assert call_kwargs["metadata"]["role"] == "viewer"
 
     async def test_change_role_audits_change_role(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """PATCH /organizations/{org_id}/users/{user_id}/role logs CHANGE_ROLE."""
         mock_user = _mock_user(role=UserRole.MANAGER)
-        with patch(
-            "app.routers.admin_users.change_user_role",
-            new_callable=AsyncMock,
-            return_value=mock_user,
-        ), patch(
-            "app.routers.admin_users.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_users.change_user_role",
+                new_callable=AsyncMock,
+                return_value=mock_user,
+            ),
+            patch(
+                "app.routers.admin_users.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.patch(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}/users/{_USER_ID}/role",
                 json={"role": "manager"},
@@ -483,18 +544,23 @@ class TestUserEndpointsAudit:
         assert call_kwargs["metadata"]["new_role"] == "manager"
 
     async def test_deactivate_user_audits_with_warning(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """POST /organizations/{org_id}/users/{user_id}/deactivate logs WARNING."""
         mock_user = _mock_user(status=UserStatus.INACTIVE)
-        with patch(
-            "app.routers.admin_users.deactivate_user",
-            new_callable=AsyncMock,
-            return_value=mock_user,
-        ), patch(
-            "app.routers.admin_users.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_users.deactivate_user",
+                new_callable=AsyncMock,
+                return_value=mock_user,
+            ),
+            patch(
+                "app.routers.admin_users.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.post(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}"
                 f"/users/{_USER_ID}/deactivate",
@@ -507,18 +573,23 @@ class TestUserEndpointsAudit:
         assert call_kwargs["severity"] == "WARNING"
 
     async def test_reactivate_user_audits_reactivate(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """POST /organizations/{org_id}/users/{user_id}/reactivate logs action."""
         mock_user = _mock_user()
-        with patch(
-            "app.routers.admin_users.reactivate_user",
-            new_callable=AsyncMock,
-            return_value=mock_user,
-        ), patch(
-            "app.routers.admin_users.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_users.reactivate_user",
+                new_callable=AsyncMock,
+                return_value=mock_user,
+            ),
+            patch(
+                "app.routers.admin_users.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.post(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}"
                 f"/users/{_USER_ID}/reactivate",
@@ -537,22 +608,27 @@ class TestBillingEndpointsAudit:
     """Verify audit log entries for billing endpoints."""
 
     async def test_get_billing_audits_change_plan_view(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /billing/organizations/{org_id} logs CHANGE_PLAN with view flag."""
-        with patch(
-            "app.routers.admin_billing.get_billing_info",
-            new_callable=AsyncMock,
-            return_value={
-                "organization_id": _TARGET_ORG_ID,
-                "plan": SubscriptionPlan.STARTER,
-                "limits": {},
-                "usage": {},
-            },
-        ), patch(
-            "app.routers.admin_billing.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_billing.get_billing_info",
+                new_callable=AsyncMock,
+                return_value={
+                    "organization_id": _TARGET_ORG_ID,
+                    "plan": SubscriptionPlan.STARTER,
+                    "limits": {},
+                    "usage": {},
+                },
+            ),
+            patch(
+                "app.routers.admin_billing.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get(
                 f"/api/v1/admin/billing/organizations/{_TARGET_ORG_ID}"
             )
@@ -564,18 +640,23 @@ class TestBillingEndpointsAudit:
         assert call_kwargs["metadata"]["view"] is True
 
     async def test_change_plan_audits_with_warning(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """POST /billing/organizations/{org_id}/change-plan logs WARNING."""
         mock_history = _mock_plan_history()
-        with patch(
-            "app.routers.admin_billing.change_plan",
-            new_callable=AsyncMock,
-            return_value=mock_history,
-        ), patch(
-            "app.routers.admin_billing.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_billing.change_plan",
+                new_callable=AsyncMock,
+                return_value=mock_history,
+            ),
+            patch(
+                "app.routers.admin_billing.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.post(
                 f"/api/v1/admin/billing/organizations/{_TARGET_ORG_ID}/change-plan",
                 json={"new_plan": "professional", "reason": "Upgrade"},
@@ -592,17 +673,22 @@ class TestBillingEndpointsAudit:
         assert "new_plan" in call_kwargs["metadata"]
 
     async def test_plan_history_audits_change_plan_view(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /billing/organizations/{org_id}/history logs CHANGE_PLAN view."""
-        with patch(
-            "app.routers.admin_billing.get_plan_history",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ), patch(
-            "app.routers.admin_billing.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_billing.get_plan_history",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ),
+            patch(
+                "app.routers.admin_billing.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get(
                 f"/api/v1/admin/billing/organizations/{_TARGET_ORG_ID}/history"
             )
@@ -621,24 +707,29 @@ class TestMonitoringEndpointsAudit:
     """Verify audit log entries for monitoring endpoints."""
 
     async def test_platform_kpis_audits_view_monitoring(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /monitoring/platform logs VIEW_MONITORING."""
-        with patch(
-            "app.routers.admin_monitoring.get_platform_kpis",
-            new_callable=AsyncMock,
-            return_value={
-                "total_organizations": 10,
-                "active_organizations": 8,
-                "total_users": 100,
-                "total_datasets": 50,
-                "total_forecasts": 200,
-                "total_decisions": 15,
-            },
-        ), patch(
-            "app.routers.admin_monitoring.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_monitoring.get_platform_kpis",
+                new_callable=AsyncMock,
+                return_value={
+                    "total_organizations": 10,
+                    "active_organizations": 8,
+                    "total_users": 100,
+                    "total_datasets": 50,
+                    "total_forecasts": 200,
+                    "total_decisions": 15,
+                },
+            ),
+            patch(
+                "app.routers.admin_monitoring.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get("/api/v1/admin/monitoring/platform")
 
         assert resp.status_code == 200
@@ -648,17 +739,22 @@ class TestMonitoringEndpointsAudit:
         assert call_kwargs["admin_user_id"] == _SA_USER_ID
 
     async def test_usage_trends_audits_with_period_metadata(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /monitoring/trends logs VIEW_MONITORING with period metadata."""
-        with patch(
-            "app.routers.admin_monitoring.get_usage_trends",
-            new_callable=AsyncMock,
-            return_value=[],
-        ), patch(
-            "app.routers.admin_monitoring.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_monitoring.get_usage_trends",
+                new_callable=AsyncMock,
+                return_value=[],
+            ),
+            patch(
+                "app.routers.admin_monitoring.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get(
                 "/api/v1/admin/monitoring/trends?period=weekly&days=30"
             )
@@ -671,21 +767,26 @@ class TestMonitoringEndpointsAudit:
         assert call_kwargs["metadata"]["days"] == 30
 
     async def test_error_metrics_audits_view_monitoring(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /monitoring/errors logs VIEW_MONITORING."""
-        with patch(
-            "app.routers.admin_monitoring.get_error_metrics",
-            new_callable=AsyncMock,
-            return_value={
-                "ingestion_success_rate": 0.98,
-                "ingestion_error_count": 5,
-                "api_error_rate": 0.02,
-            },
-        ), patch(
-            "app.routers.admin_monitoring.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_monitoring.get_error_metrics",
+                new_callable=AsyncMock,
+                return_value={
+                    "ingestion_success_rate": 0.98,
+                    "ingestion_error_count": 5,
+                    "api_error_rate": 0.02,
+                },
+            ),
+            patch(
+                "app.routers.admin_monitoring.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get("/api/v1/admin/monitoring/errors")
 
         assert resp.status_code == 200
@@ -693,23 +794,28 @@ class TestMonitoringEndpointsAudit:
         assert mock_audit.call_args.kwargs["action"] == AdminAuditAction.VIEW_MONITORING
 
     async def test_org_metrics_audits_with_target_org(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /monitoring/organizations/{org_id} logs with target_org_id."""
-        with patch(
-            "app.routers.admin_monitoring.get_org_metrics",
-            new_callable=AsyncMock,
-            return_value={
-                "active_users": 10,
-                "total_datasets": 5,
-                "forecast_runs": 20,
-                "decisions_count": 3,
-                "last_activity": None,
-            },
-        ), patch(
-            "app.routers.admin_monitoring.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_monitoring.get_org_metrics",
+                new_callable=AsyncMock,
+                return_value={
+                    "active_users": 10,
+                    "total_datasets": 5,
+                    "forecast_runs": 20,
+                    "decisions_count": 3,
+                    "last_activity": None,
+                },
+            ),
+            patch(
+                "app.routers.admin_monitoring.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get(
                 f"/api/v1/admin/monitoring/organizations/{_TARGET_ORG_ID}"
             )
@@ -721,17 +827,22 @@ class TestMonitoringEndpointsAudit:
         assert call_kwargs["target_org_id"] == str(_TARGET_ORG_ID)
 
     async def test_org_mirror_audits_view_mirror(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /monitoring/organizations/{org_id}/mirror logs VIEW_MIRROR."""
-        with patch(
-            "app.routers.admin_monitoring.get_org_mirror",
-            new_callable=AsyncMock,
-            return_value=_mock_dashboard_summary(),
-        ), patch(
-            "app.routers.admin_monitoring.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_monitoring.get_org_mirror",
+                new_callable=AsyncMock,
+                return_value=_mock_dashboard_summary(),
+            ),
+            patch(
+                "app.routers.admin_monitoring.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get(
                 f"/api/v1/admin/monitoring/organizations/{_TARGET_ORG_ID}/mirror"
             )
@@ -750,7 +861,9 @@ class TestDataEndpointsAudit:
     """Verify audit log entries for data access endpoints."""
 
     async def test_list_datasets_audits_view_datasets(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /organizations/{org_id}/datasets logs VIEW_DATASETS."""
         # Reset session.execute side_effect for paginated queries
@@ -775,7 +888,9 @@ class TestDataEndpointsAudit:
         assert call_kwargs["target_org_id"] == str(_TARGET_ORG_ID)
 
     async def test_ingestion_log_audits_view_data(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /organizations/{org_id}/ingestion-log logs VIEW_DATA."""
         mock_count = MagicMock()
@@ -799,17 +914,22 @@ class TestDataEndpointsAudit:
         assert call_kwargs["resource_type"] == "IngestionLog"
 
     async def test_list_forecasts_audits_view_data(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /organizations/{org_id}/forecasts logs VIEW_DATA."""
-        with patch(
-            "app.routers.admin_data.list_forecasts",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ), patch(
-            "app.routers.admin_data.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_data.list_forecasts",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ),
+            patch(
+                "app.routers.admin_data.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}/forecasts"
             )
@@ -821,17 +941,22 @@ class TestDataEndpointsAudit:
         assert call_kwargs["resource_type"] == "ForecastRun"
 
     async def test_list_decisions_audits_view_data(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /organizations/{org_id}/decisions logs VIEW_DATA."""
-        with patch(
-            "app.routers.admin_data.list_decisions",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ), patch(
-            "app.routers.admin_data.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_data.list_decisions",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ),
+            patch(
+                "app.routers.admin_data.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get(
                 f"/api/v1/admin/organizations/{_TARGET_ORG_ID}/decisions"
             )
@@ -843,7 +968,9 @@ class TestDataEndpointsAudit:
         assert call_kwargs["resource_type"] == "Decision"
 
     async def test_list_absences_audits_view_data(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /organizations/{org_id}/absences logs VIEW_DATA."""
         mock_count = MagicMock()
@@ -874,18 +1001,23 @@ class TestOnboardingEndpointsAudit:
     """Verify audit log entries for onboarding endpoints."""
 
     async def test_create_onboarding_audits_onboarding_step(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """POST /onboarding logs ONBOARDING_STEP with step=1 metadata."""
         mock_ob = _mock_onboarding()
-        with patch(
-            "app.routers.admin_onboarding.create_onboarding",
-            new_callable=AsyncMock,
-            return_value=mock_ob,
-        ), patch(
-            "app.routers.admin_onboarding.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_onboarding.create_onboarding",
+                new_callable=AsyncMock,
+                return_value=mock_ob,
+            ),
+            patch(
+                "app.routers.admin_onboarding.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.post(
                 "/api/v1/admin/onboarding",
                 json={
@@ -903,17 +1035,22 @@ class TestOnboardingEndpointsAudit:
         assert call_kwargs["metadata"]["action"] == "created"
 
     async def test_list_onboardings_audits_onboarding_step(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /onboarding logs ONBOARDING_STEP."""
-        with patch(
-            "app.routers.admin_onboarding.list_onboardings",
-            new_callable=AsyncMock,
-            return_value=([], 0),
-        ), patch(
-            "app.routers.admin_onboarding.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_onboarding.list_onboardings",
+                new_callable=AsyncMock,
+                return_value=([], 0),
+            ),
+            patch(
+                "app.routers.admin_onboarding.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.get("/api/v1/admin/onboarding")
 
         assert resp.status_code == 200
@@ -921,21 +1058,24 @@ class TestOnboardingEndpointsAudit:
         assert mock_audit.call_args.kwargs["action"] == AdminAuditAction.ONBOARDING_STEP
 
     async def test_get_onboarding_audits_with_target_org(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /onboarding/{id} logs with target_org_id from onboarding."""
         mock_ob = _mock_onboarding()
-        with patch(
-            "app.routers.admin_onboarding.get_onboarding",
-            new_callable=AsyncMock,
-            return_value=mock_ob,
-        ), patch(
-            "app.routers.admin_onboarding.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
-            resp = await admin_client.get(
-                f"/api/v1/admin/onboarding/{_ONBOARDING_ID}"
-            )
+        with (
+            patch(
+                "app.routers.admin_onboarding.get_onboarding",
+                new_callable=AsyncMock,
+                return_value=mock_ob,
+            ),
+            patch(
+                "app.routers.admin_onboarding.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
+            resp = await admin_client.get(f"/api/v1/admin/onboarding/{_ONBOARDING_ID}")
 
         assert resp.status_code == 200
         mock_audit.assert_awaited_once()
@@ -944,18 +1084,23 @@ class TestOnboardingEndpointsAudit:
         assert call_kwargs["target_org_id"] == str(_TARGET_ORG_ID)
 
     async def test_complete_step_audits_with_step_number(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """PATCH /onboarding/{id}/step/{step} logs with step metadata."""
         mock_ob = _mock_onboarding(current_step=2)
-        with patch(
-            "app.routers.admin_onboarding.complete_step",
-            new_callable=AsyncMock,
-            return_value=mock_ob,
-        ), patch(
-            "app.routers.admin_onboarding.log_admin_action",
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                "app.routers.admin_onboarding.complete_step",
+                new_callable=AsyncMock,
+                return_value=mock_ob,
+            ),
+            patch(
+                "app.routers.admin_onboarding.log_admin_action",
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             resp = await admin_client.patch(
                 f"/api/v1/admin/onboarding/{_ONBOARDING_ID}/step/1",
                 json={"data": {"step_1": True}},
@@ -975,7 +1120,9 @@ class TestAuditLogSelfExemption:
     """The audit-log listing endpoint must NOT audit itself (infinite recursion)."""
 
     async def test_audit_log_does_not_call_log_admin_action(
-        self, admin_client: AsyncClient, mock_session: AsyncMock,
+        self,
+        admin_client: AsyncClient,
+        mock_session: AsyncMock,
     ) -> None:
         """GET /admin/audit-log does not create its own audit entry.
 
@@ -1044,14 +1191,17 @@ class TestAuditAlwaysUsesJWTUserId:
         router_module = patch_target.rsplit(".", 1)[0]
         audit_path = f"{router_module}.log_admin_action"
 
-        with patch(
-            patch_target,
-            new_callable=AsyncMock,
-            return_value=mock_data,
-        ), patch(
-            audit_path,
-            new_callable=AsyncMock,
-        ) as mock_audit:
+        with (
+            patch(
+                patch_target,
+                new_callable=AsyncMock,
+                return_value=mock_data,
+            ),
+            patch(
+                audit_path,
+                new_callable=AsyncMock,
+            ) as mock_audit,
+        ):
             if method == "POST":
                 resp = await admin_client.post(path, json=body)
             else:

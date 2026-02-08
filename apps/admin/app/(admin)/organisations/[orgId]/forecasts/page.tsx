@@ -36,12 +36,11 @@ export default function OrgForecastsPage() {
   const orgId = params.orgId as string;
   const [page, setPage] = useState(1);
 
-  const { data, total, error, refetch } =
-    useApiGetPaginated<ForecastListItem>(
-      `/api/v1/admin/organizations/${encodeURIComponent(orgId)}/forecasts`,
-      page,
-      20,
-    );
+  const { data, total, error, refetch } = useApiGetPaginated<ForecastListItem>(
+    `/api/v1/admin/organizations/${encodeURIComponent(orgId)}/forecasts`,
+    page,
+    20,
+  );
 
   const columns: DataTableColumn<ForecastListItem>[] = [
     {

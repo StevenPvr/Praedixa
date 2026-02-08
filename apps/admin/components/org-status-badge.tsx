@@ -25,7 +25,10 @@ export function OrgStatusBadge({
   size,
   className,
 }: OrgStatusBadgeProps) {
-  const mapping = STATUS_MAP[status] ?? { variant: "neutral" as const, label: status };
+  const mapping = STATUS_MAP[status] ?? {
+    variant: "neutral" as const,
+    label: status,
+  };
 
   return (
     <StatusBadge

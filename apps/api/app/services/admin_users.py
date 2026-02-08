@@ -37,12 +37,7 @@ async def list_org_users(
     total = count_result.scalar_one() or 0
 
     offset = (page - 1) * page_size
-    query = (
-        base_query
-        .order_by(User.created_at.desc())
-        .offset(offset)
-        .limit(page_size)
-    )
+    query = base_query.order_by(User.created_at.desc()).offset(offset).limit(page_size)
     result = await session.execute(query)
     items = list(result.scalars().all())
 
@@ -69,11 +64,9 @@ async def invite_user(
         raise ForbiddenError("Cannot assign super_admin role via invitation")
 
     # Check email uniqueness
-    existing = await session.execute(
-        select(User.id).where(User.email == email.lower())
-    )
+    existing = await session.execute(select(User.id).where(User.email == email.lower()))
     if existing.scalar_one_or_none() is not None:
-        raise ConflictError(f"User with email already exists")
+        raise ConflictError("User with email already exists")
 
     user = User(
         organization_id=org_id,

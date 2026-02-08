@@ -57,6 +57,7 @@ const NAV_ITEMS: NavItem[] = [
     children: [
       { label: "Sites & Departements", href: "/donnees" },
       { label: "Datasets", href: "/donnees/datasets" },
+      { label: "Donnees canoniques", href: "/donnees/canonique" },
     ],
   },
   {
@@ -64,13 +65,28 @@ const NAV_ITEMS: NavItem[] = [
     href: "/previsions",
     icon: TrendingUp,
     children: [
-      { label: "Capacite humaine", href: "/previsions/humaine" },
-      { label: "Capacite marchandise", href: "/previsions/marchandise" },
-      { label: "Vue globale", href: "/previsions/globale" },
+      { label: "Heatmap couverture", href: "/previsions" },
+      { label: "Alertes couverture", href: "/previsions/alertes" },
     ],
   },
-  { label: "Arbitrage", href: "/arbitrage", icon: Scale },
-  { label: "Decisions", href: "/decisions", icon: CheckCircle2 },
+  {
+    label: "Arbitrage",
+    href: "/arbitrage",
+    icon: Scale,
+    children: [
+      { label: "Scenarios", href: "/arbitrage" },
+      { label: "Historique", href: "/arbitrage/historique" },
+    ],
+  },
+  {
+    label: "Decisions",
+    href: "/decisions",
+    icon: CheckCircle2,
+    children: [
+      { label: "Journal", href: "/decisions" },
+      { label: "Statistiques", href: "/decisions/stats" },
+    ],
+  },
   { label: "Rapports", href: "/rapports", icon: FileText },
 ];
 

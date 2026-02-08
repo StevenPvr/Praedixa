@@ -144,11 +144,7 @@ async def change_plan(
     session.add(history)
 
     # Update org plan
-    stmt = (
-        update(Organization)
-        .where(Organization.id == org_id)
-        .values(plan=new_plan)
-    )
+    stmt = update(Organization).where(Organization.id == org_id).values(plan=new_plan)
     await session.execute(stmt)
     await session.flush()
 
@@ -175,8 +171,7 @@ async def get_plan_history(
 
     offset = (page - 1) * page_size
     query = (
-        base_query
-        .order_by(PlanChangeHistory.created_at.desc())
+        base_query.order_by(PlanChangeHistory.created_at.desc())
         .offset(offset)
         .limit(page_size)
     )

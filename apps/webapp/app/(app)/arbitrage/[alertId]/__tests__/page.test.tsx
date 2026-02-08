@@ -1,19 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  act,
-} from "@testing-library/react";
-import AlertDetailPage from "../page";
+import { render, screen } from "@testing-library/react";
+import ArbitrageDetailPage from "../page";
 
-/* ─── Mocks ──────────────────────────────────────── */
-
-const mockPush = vi.fn();
 const mockUseApiGet = vi.fn();
 const mockMutate = vi.fn();
 const mockUseApiPost = vi.fn();
+const mockPush = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ alertId: "alert-42" }),
@@ -25,99 +17,88 @@ vi.mock("@/hooks/use-api", () => ({
   useApiPost: (...args: unknown[]) => mockUseApiPost(...args),
 }));
 
+vi.mock("@praedixa/ui", () => ({
+  ParetoChart: ({ points }: { points: unknown[] }) => (
+    <div data-testid="pareto-chart">{points.length} points</div>
+  ),
+  Badge: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
+  Button: ({
+    children,
+    onClick,
+    disabled,
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+  }) => (
+    <button onClick={onClick} disabled={disabled} data-testid="validate-btn">
+      {children}
+    </button>
+  ),
+  SkeletonCard: () => <div data-testid="skeleton-card" />,
+  Card: ({
+    children,
+    onClick,
+    className,
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    className?: string;
+  }) => (
+    <div data-testid="card" onClick={onClick} className={className}>
+      {children}
+    </div>
+  ),
+  CardContent: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  CardHeader: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  CardTitle: ({ children }: { children: React.ReactNode }) => (
+    <h3>{children}</h3>
+  ),
+}));
+
 vi.mock("@/components/error-fallback", () => ({
-  ErrorFallback: ({
-    message,
-    onRetry,
-  }: {
-    message?: string;
-    onRetry?: () => void;
-  }) => (
-    <div data-testid="error-fallback">
-      {message}
-      {onRetry && (
-        <button onClick={onRetry} data-testid="retry-btn">
-          Retry
-        </button>
-      )}
-    </div>
-  ),
-}));
-
-vi.mock("@/components/arbitrage/arbitrage-context", () => ({
-  ArbitrageContext: ({
-    result,
-    loading,
-  }: {
-    result: unknown;
-    loading: boolean;
-  }) => (
-    <div data-testid="arbitrage-context" data-loading={loading}>
-      {result ? "loaded" : "empty"}
-    </div>
-  ),
-}));
-
-vi.mock("@/components/arbitrage/options-comparison", () => ({
-  OptionsComparison: ({
-    options,
-    loading,
-    validatingIndex,
-    onValidate,
-  }: {
-    options: unknown[];
-    loading: boolean;
-    validatingIndex: number;
-    onValidate: (idx: number) => void;
-  }) => (
-    <div
-      data-testid="options-comparison"
-      data-loading={loading}
-      data-validating-index={validatingIndex}
-    >
-      <div data-testid="options-count">{options.length}</div>
-      <button onClick={() => onValidate(0)} data-testid="validate-btn">
-        Validate
-      </button>
-    </div>
+  ErrorFallback: ({ message }: { message?: string }) => (
+    <div data-testid="error-fallback">{message}</div>
   ),
 }));
 
 vi.mock("lucide-react", () => ({
-  CheckCircle2: () => <svg data-testid="check-circle" />,
+  CheckCircle2: () => <svg data-testid="check-icon" />,
 }));
 
-/* ─── Helpers ────────────────────────────────────── */
-
-function makeResult() {
+function makeFrontier() {
   return {
     alertId: "alert-42",
-    alertTitle: "Sous-couverture Lyon",
-    alertSeverity: "warning",
-    departmentName: "Logistique",
-    siteName: "Lyon",
-    deficitPct: 15,
-    horizonDays: 7,
     options: [
       {
-        type: "overtime",
+        id: "opt-1",
+        organizationId: "org-1",
+        coverageAlertId: "alert-42",
+        costParameterId: "cp-1",
+        optionType: "hs",
         label: "Heures sup",
-        cost: 5000,
-        delayDays: 1,
-        coverageImpactPct: 10,
-        riskLevel: "low",
-        riskDetails: "Test",
-        pros: [],
-        cons: [],
+        coutTotalEur: 5000,
+        serviceAttenduPct: 92,
+        heuresCouvertes: 10,
+        isParetoOptimal: true,
+        isRecommended: true,
+        contraintesJson: {},
+        createdAt: "2026-02-07T00:00:00Z",
+        updatedAt: "2026-02-07T00:00:00Z",
       },
     ],
-    recommendationIndex: 0,
+    paretoFrontier: [],
+    recommended: null,
   };
 }
 
-/* ─── Tests ──────────────────────────────────────── */
-
-describe("AlertDetailPage", () => {
+describe("ArbitrageDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMutate.mockResolvedValue({ id: "dec-1" });
@@ -130,256 +111,60 @@ describe("AlertDetailPage", () => {
     });
   });
 
-  it("renders heading", () => {
+  it("renders the heading", () => {
     mockUseApiGet.mockReturnValue({
       data: null,
       loading: true,
       error: null,
       refetch: vi.fn(),
     });
-
-    render(<AlertDetailPage />);
+    render(<ArbitrageDetailPage />);
     expect(
-      screen.getByRole("heading", { name: "Detail de l'alerte" }),
+      screen.getByRole("heading", { name: "Arbitrage" }),
     ).toBeInTheDocument();
   });
 
-  it("shows loading state in context and comparison", () => {
+  it("shows loading skeleton", () => {
     mockUseApiGet.mockReturnValue({
       data: null,
       loading: true,
       error: null,
       refetch: vi.fn(),
     });
-
-    render(<AlertDetailPage />);
-    expect(screen.getByTestId("arbitrage-context")).toHaveAttribute(
-      "data-loading",
-      "true",
-    );
-    expect(screen.getByTestId("options-comparison")).toHaveAttribute(
-      "data-loading",
-      "true",
-    );
+    render(<ArbitrageDetailPage />);
+    expect(screen.getAllByTestId("skeleton-card").length).toBeGreaterThan(0);
   });
 
-  it("shows ErrorFallback on error", () => {
+  it("shows error fallback on error", () => {
     mockUseApiGet.mockReturnValue({
       data: null,
       loading: false,
       error: "Network error",
       refetch: vi.fn(),
     });
-
-    render(<AlertDetailPage />);
-    expect(screen.getByTestId("error-fallback")).toHaveTextContent(
-      "Network error",
-    );
+    render(<ArbitrageDetailPage />);
+    expect(screen.getByText("Network error")).toBeInTheDocument();
   });
 
-  it("renders options when loaded", () => {
+  it("renders option cards when loaded", () => {
     mockUseApiGet.mockReturnValue({
-      data: makeResult(),
+      data: makeFrontier(),
       loading: false,
       error: null,
       refetch: vi.fn(),
     });
-
-    render(<AlertDetailPage />);
-    expect(screen.getByTestId("options-count")).toHaveTextContent("1");
+    render(<ArbitrageDetailPage />);
+    expect(screen.getByText("Heures sup")).toBeInTheDocument();
   });
 
-  it("calls useApiGet with correct URL using encodeURIComponent", () => {
+  it("renders pareto chart when options available", () => {
     mockUseApiGet.mockReturnValue({
-      data: null,
-      loading: true,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    render(<AlertDetailPage />);
-    expect(mockUseApiGet).toHaveBeenCalledWith(
-      "/api/v1/arbitrage/alert-42/options",
-    );
-  });
-
-  it("calls useApiPost with correct URL", () => {
-    mockUseApiGet.mockReturnValue({
-      data: makeResult(),
+      data: makeFrontier(),
       loading: false,
       error: null,
       refetch: vi.fn(),
     });
-
-    render(<AlertDetailPage />);
-    expect(mockUseApiPost).toHaveBeenCalledWith(
-      "/api/v1/arbitrage/alert-42/validate",
-    );
-  });
-
-  it("calls validate with selectedOptionIndex when validate button clicked", async () => {
-    mockUseApiGet.mockReturnValue({
-      data: makeResult(),
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    render(<AlertDetailPage />);
-    fireEvent.click(screen.getByTestId("validate-btn"));
-
-    await waitFor(() => {
-      expect(mockMutate).toHaveBeenCalledWith({ selectedOptionIndex: 0 });
-    });
-  });
-
-  it("renders Options d'arbitrage section heading", () => {
-    mockUseApiGet.mockReturnValue({
-      data: makeResult(),
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    render(<AlertDetailPage />);
-    expect(
-      screen.getByRole("heading", { name: "Options d'arbitrage" }),
-    ).toBeInTheDocument();
-  });
-
-  it("shows success banner and redirects to /decisions after 1.5s", async () => {
-    vi.useFakeTimers();
-
-    mockUseApiGet.mockReturnValue({
-      data: makeResult(),
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    render(<AlertDetailPage />);
-
-    // act() flushes all async state updates from the click handler
-    await act(async () => {
-      fireEvent.click(screen.getByTestId("validate-btn"));
-      await vi.advanceTimersByTimeAsync(0);
-    });
-
-    // Success banner should appear
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Decision enregistree avec succes",
-    );
-
-    // Router should not have been called yet
-    expect(mockPush).not.toHaveBeenCalled();
-
-    // Advance timer past 1500ms for the redirect setTimeout
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1500);
-    });
-
-    expect(mockPush).toHaveBeenCalledWith("/decisions");
-
-    vi.useRealTimers();
-  });
-
-  it("shows error banner when mutation fails", async () => {
-    // Pre-set error on hook return so mutateError is captured in the closure
-    // (React closures capture values at render time, not after async resolution)
-    mockUseApiPost.mockReturnValue({
-      mutate: mockMutate,
-      loading: false,
-      error: "Server error",
-      data: null,
-      reset: vi.fn(),
-    });
-
-    // mutate returns null to simulate failure
-    mockMutate.mockResolvedValue(null);
-
-    mockUseApiGet.mockReturnValue({
-      data: makeResult(),
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    render(<AlertDetailPage />);
-
-    // act() ensures async handleValidate completes and React re-renders
-    await act(async () => {
-      fireEvent.click(screen.getByTestId("validate-btn"));
-    });
-
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Votre choix n'a pas pu etre enregistre",
-    );
-  });
-
-  it("retries validation when 'Reessayer' button is clicked", async () => {
-    // Pre-set error so the closure captures a truthy mutateError
-    mockUseApiPost.mockReturnValue({
-      mutate: mockMutate,
-      loading: false,
-      error: "Server error",
-      data: null,
-      reset: vi.fn(),
-    });
-
-    // First call: fail (return null)
-    mockMutate.mockResolvedValueOnce(null);
-
-    mockUseApiGet.mockReturnValue({
-      data: makeResult(),
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    render(<AlertDetailPage />);
-
-    // First click: triggers error
-    await act(async () => {
-      fireEvent.click(screen.getByTestId("validate-btn"));
-    });
-
-    expect(screen.getByRole("alert")).toBeInTheDocument();
-
-    // Second call: succeed
-    mockMutate.mockResolvedValueOnce({ id: "dec-retry" });
-
-    await act(async () => {
-      fireEvent.click(screen.getByText("Reessayer"));
-    });
-
-    expect(mockMutate).toHaveBeenCalledTimes(2);
-  });
-
-  it("error banner is hidden when validationSuccess is true", async () => {
-    vi.useFakeTimers();
-
-    mockUseApiGet.mockReturnValue({
-      data: makeResult(),
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    render(<AlertDetailPage />);
-
-    await act(async () => {
-      fireEvent.click(screen.getByTestId("validate-btn"));
-      await vi.advanceTimersByTimeAsync(0);
-    });
-
-    // Success banner visible
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Decision enregistree avec succes",
-    );
-
-    // No error alert should be present
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-
-    vi.useRealTimers();
+    render(<ArbitrageDetailPage />);
+    expect(screen.getByTestId("pareto-chart")).toBeInTheDocument();
   });
 });

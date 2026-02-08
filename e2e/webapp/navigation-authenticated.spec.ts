@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures/coverage";
 import { setupAuth } from "./fixtures/auth";
 import { mockAllApis } from "./fixtures/api-mocks";
 
@@ -16,29 +16,26 @@ test.describe("Authenticated navigation", () => {
       page.getByRole("heading", { name: "Dashboard" }),
     ).toBeVisible();
 
-    // Navigate to Donnees via sidebar
-    const nav = page.getByLabel("Navigation principale");
-    await nav.getByText("Donnees").click();
-    await expect(page).toHaveURL(/\/donnees/);
+    // Sidebar items with children (Donnees, Previsions, Arbitrage, Decisions)
+    // use an accordion: clicking toggles expansion instead of navigating.
+    // Use page.goto() for navigation between pages.
+    await page.goto("/donnees");
     await expect(
       page.getByRole("heading", { name: "Donnees", level: 1 }),
     ).toBeVisible();
 
-    // Navigate to Decisions via sidebar
-    await nav.getByText("Decisions").click();
-    await expect(page).toHaveURL(/\/decisions/);
+    await page.goto("/decisions");
     await expect(
       page.getByRole("heading", { name: "Decisions", level: 1 }),
     ).toBeVisible();
 
-    // Navigate to Arbitrage via sidebar
-    await nav.getByText("Arbitrage").click();
-    await expect(page).toHaveURL(/\/arbitrage/);
+    await page.goto("/arbitrage");
     await expect(
       page.getByRole("heading", { name: "Arbitrage", level: 1 }),
     ).toBeVisible();
 
-    // Navigate back to Dashboard
+    // Dashboard has no children — sidebar link navigates directly
+    const nav = page.getByLabel("Navigation principale");
     await nav.getByText("Dashboard").click();
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(
@@ -46,25 +43,26 @@ test.describe("Authenticated navigation", () => {
     ).toBeVisible();
   });
 
-  test("active page has amber indicator in sidebar", async ({ page }) => {
+  test("active page has aria-current indicator in sidebar", async ({
+    page,
+  }) => {
     await page.goto("/dashboard");
 
     const nav = page.getByLabel("Navigation principale");
     await expect(nav).toBeVisible();
 
-    // Dashboard link should have aria-current="page"
-    const dashboardLink = nav.getByRole("link", { name: "Dashboard" });
+    // Dashboard link should have aria-current="page" (leaf item, no children)
+    const dashboardLink = nav.getByRole("link", { name: /^Dashboard$/ });
     await expect(dashboardLink).toHaveAttribute("aria-current", "page");
 
-    // Navigate to Donnees and check the indicator moves
-    await nav.getByText("Donnees").click();
-    await expect(page).toHaveURL(/\/donnees/);
+    // Navigate to Rapports (leaf item, no children) via direct navigation
+    await page.goto("/rapports");
 
-    const donneesLink = nav.getByRole("link", { name: "Donnees" });
-    await expect(donneesLink).toHaveAttribute("aria-current", "page");
+    const rapportsLink = nav.getByRole("link", { name: /^Rapports$/ });
+    await expect(rapportsLink).toHaveAttribute("aria-current", "page");
 
     // Dashboard should no longer be current
-    const dashLink = nav.getByRole("link", { name: "Dashboard" });
+    const dashLink = nav.getByRole("link", { name: /^Dashboard$/ });
     await expect(dashLink).not.toHaveAttribute("aria-current", "page");
   });
 

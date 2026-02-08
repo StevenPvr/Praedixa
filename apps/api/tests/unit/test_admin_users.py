@@ -15,7 +15,11 @@ from app.services.admin_users import (
     list_org_users,
     reactivate_user,
 )
-from tests.unit.conftest import make_mock_session, make_scalar_result, make_scalars_result
+from tests.unit.conftest import (
+    make_mock_session,
+    make_scalar_result,
+    make_scalars_result,
+)
 
 
 def _make_user(**overrides):
@@ -57,9 +61,7 @@ class TestListOrgUsers:
             make_scalar_result(50),
             make_scalars_result([]),
         )
-        _, total = await list_org_users(
-            session, uuid.uuid4(), page=3, page_size=10
-        )
+        _, total = await list_org_users(session, uuid.uuid4(), page=3, page_size=10)
         assert total == 50
 
     @pytest.mark.asyncio
@@ -83,7 +85,7 @@ class TestInviteUser:
         )
 
         org_id = uuid.uuid4()
-        user = await invite_user(
+        await invite_user(
             session,
             org_id=org_id,
             email="new@example.com",
@@ -261,9 +263,7 @@ class TestDeactivateUser:
             make_scalar_result(None),  # UPDATE execute
         )
 
-        result = await deactivate_user(
-            session, org_id=org_id, user_id=user.id
-        )
+        result = await deactivate_user(session, org_id=org_id, user_id=user.id)
         assert result.status == UserStatus.INACTIVE
         session.flush.assert_awaited()
 
@@ -272,9 +272,7 @@ class TestDeactivateUser:
         session = make_mock_session(make_scalar_result(None))
 
         with pytest.raises(NotFoundError):
-            await deactivate_user(
-                session, org_id=uuid.uuid4(), user_id=uuid.uuid4()
-            )
+            await deactivate_user(session, org_id=uuid.uuid4(), user_id=uuid.uuid4())
 
 
 class TestReactivateUser:
@@ -289,9 +287,7 @@ class TestReactivateUser:
             make_scalar_result(None),  # UPDATE execute
         )
 
-        result = await reactivate_user(
-            session, org_id=org_id, user_id=user.id
-        )
+        result = await reactivate_user(session, org_id=org_id, user_id=user.id)
         assert result.status == UserStatus.ACTIVE
         session.flush.assert_awaited()
 
@@ -300,6 +296,4 @@ class TestReactivateUser:
         session = make_mock_session(make_scalar_result(None))
 
         with pytest.raises(NotFoundError):
-            await reactivate_user(
-                session, org_id=uuid.uuid4(), user_id=uuid.uuid4()
-            )
+            await reactivate_user(session, org_id=uuid.uuid4(), user_id=uuid.uuid4())

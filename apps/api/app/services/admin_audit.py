@@ -160,8 +160,7 @@ async def get_audit_log(
     # Paginate and order
     offset = (page - 1) * page_size
     query = (
-        base_query
-        .order_by(AdminAuditLog.created_at.desc())
+        base_query.order_by(AdminAuditLog.created_at.desc())
         .offset(offset)
         .limit(page_size)
     )

@@ -8,9 +8,8 @@ Covers:
 """
 
 import uuid
-from datetime import date, timedelta
+from datetime import date
 from decimal import Decimal
-from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -69,9 +68,7 @@ class TestListCostParameters:
             make_scalar_result(1),
             make_scalars_result([cp]),
         )
-        items, total = await list_cost_parameters(
-            session, tenant, site_id="site-lyon"
-        )
+        items, total = await list_cost_parameters(session, tenant, site_id="site-lyon")
         assert total == 1
         assert items[0].site_id == "site-lyon"
 
@@ -82,9 +79,7 @@ class TestListCostParameters:
             make_scalar_result(50),
             make_scalars_result([_make_cost_parameter()]),
         )
-        items, total = await list_cost_parameters(
-            session, tenant, page=3, page_size=5
-        )
+        _items, total = await list_cost_parameters(session, tenant, page=3, page_size=5)
         assert total == 50
 
     @pytest.mark.asyncio
@@ -93,7 +88,7 @@ class TestListCostParameters:
         count_result = MagicMock()
         count_result.scalar_one.return_value = None
         session = make_mock_session(count_result, make_scalars_result([]))
-        items, total = await list_cost_parameters(session, tenant)
+        _items, total = await list_cost_parameters(session, tenant)
         assert total == 0
 
     @pytest.mark.asyncio
@@ -382,9 +377,7 @@ class TestGetCostParameterHistory:
         cp2 = _make_cost_parameter(version=2)
         tenant = _make_tenant()
         session = make_mock_session(make_scalars_result([cp2, cp1]))
-        result = await get_cost_parameter_history(
-            session, tenant, site_id="site-paris"
-        )
+        result = await get_cost_parameter_history(session, tenant, site_id="site-paris")
         assert len(result) == 2
 
     @pytest.mark.asyncio
@@ -399,9 +392,7 @@ class TestGetCostParameterHistory:
     async def test_empty_history(self):
         tenant = _make_tenant()
         session = make_mock_session(make_scalars_result([]))
-        result = await get_cost_parameter_history(
-            session, tenant, site_id="unknown"
-        )
+        result = await get_cost_parameter_history(session, tenant, site_id="unknown")
         assert result == []
 
     @pytest.mark.asyncio

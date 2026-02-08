@@ -14,9 +14,7 @@ vi.mock("lucide-react", () => ({
 
 describe("AdminTopbar", () => {
   it("renders the Admin breadcrumb prefix", () => {
-    render(
-      <AdminTopbar mobileOpen={false} onToggleMobile={vi.fn()} />,
-    );
+    render(<AdminTopbar mobileOpen={false} onToggleMobile={vi.fn()} />);
     expect(screen.getByText("Admin")).toBeInTheDocument();
   });
 
@@ -40,17 +38,13 @@ describe("AdminTopbar", () => {
   });
 
   it("shows menu icon when mobile is closed", () => {
-    render(
-      <AdminTopbar mobileOpen={false} onToggleMobile={vi.fn()} />,
-    );
+    render(<AdminTopbar mobileOpen={false} onToggleMobile={vi.fn()} />);
     expect(screen.getByTestId("icon-menu")).toBeInTheDocument();
     expect(screen.getByLabelText("Ouvrir le menu")).toBeInTheDocument();
   });
 
   it("shows X icon when mobile is open", () => {
-    render(
-      <AdminTopbar mobileOpen={true} onToggleMobile={vi.fn()} />,
-    );
+    render(<AdminTopbar mobileOpen={true} onToggleMobile={vi.fn()} />);
     expect(screen.getByTestId("icon-x")).toBeInTheDocument();
     expect(screen.getByLabelText("Fermer le menu")).toBeInTheDocument();
   });
@@ -58,25 +52,19 @@ describe("AdminTopbar", () => {
   it("calls onToggleMobile when hamburger is clicked", async () => {
     const user = userEvent.setup();
     const onToggle = vi.fn();
-    render(
-      <AdminTopbar mobileOpen={false} onToggleMobile={onToggle} />,
-    );
+    render(<AdminTopbar mobileOpen={false} onToggleMobile={onToggle} />);
 
     await user.click(screen.getByLabelText("Ouvrir le menu"));
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
   it("renders admin avatar placeholder", () => {
-    render(
-      <AdminTopbar mobileOpen={false} onToggleMobile={vi.fn()} />,
-    );
+    render(<AdminTopbar mobileOpen={false} onToggleMobile={vi.fn()} />);
     expect(screen.getByText("A")).toBeInTheDocument();
   });
 
   it("renders as a header element", () => {
-    render(
-      <AdminTopbar mobileOpen={false} onToggleMobile={vi.fn()} />,
-    );
+    render(<AdminTopbar mobileOpen={false} onToggleMobile={vi.fn()} />);
     expect(screen.getByRole("banner")).toBeInTheDocument();
   });
 });

@@ -5,19 +5,28 @@ Security notes:
   the JWT on every request. All protected endpoints MUST depend on this.
 - get_tenant_filter builds a TenantFilter scoped to the authenticated user's
   organization. It MUST be used for all tenant-scoped database queries.
+- get_admin_tenant_filter builds a TenantFilter scoped to an admin-specified
+  org_id path parameter. Only accessible to super_admin users.
 - Database session is imported from database.py (single source of truth).
 - User context is stored on request.state for the audit middleware to read
   without re-decoding the JWT (avoids double verification overhead).
 """
 
+import uuid
+
 from fastapi import Depends, Request
 
 from app.core.auth import JWTPayload, extract_token, verify_jwt
 from app.core.database import get_db_session
-from app.core.security import TenantFilter
+from app.core.security import TenantFilter, require_role
 
 # Re-export get_db_session so routers can import all deps from one place
-__all__ = ["get_current_user", "get_db_session", "get_tenant_filter"]
+__all__ = [
+    "get_admin_tenant_filter",
+    "get_current_user",
+    "get_db_session",
+    "get_tenant_filter",
+]
 
 
 def get_current_user(request: Request) -> JWTPayload:
@@ -46,3 +55,23 @@ def get_tenant_filter(
     to enforce data isolation between organizations.
     """
     return TenantFilter(current_user.organization_id)
+
+
+def get_admin_tenant_filter(
+    target_org_id: uuid.UUID,
+    _current_user: JWTPayload = Depends(require_role("super_admin")),
+) -> TenantFilter:
+    """Return a TenantFilter scoped to the admin-specified org.
+
+    Allows super_admins to query any organization's data by passing
+    the target org_id as a path parameter. The TenantFilter returned
+    works identically to the regular tenant filter — existing service
+    functions accept it without modification.
+
+    Security:
+    - require_role("super_admin") ensures only super_admins can use this.
+    - target_org_id is UUID-validated by FastAPI (path parameter type).
+    - The TenantFilter scopes all downstream queries to the target org,
+      preventing accidental cross-org data leakage.
+    """
+    return TenantFilter(str(target_org_id))

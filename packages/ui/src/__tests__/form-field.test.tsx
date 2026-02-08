@@ -100,12 +100,7 @@ describe("FormField", () => {
 
   it("sets aria-describedby with error and hint", () => {
     render(
-      <FormField
-        label="Email"
-        htmlFor="email"
-        error="Erreur"
-        hint="Mon hint"
-      >
+      <FormField label="Email" htmlFor="email" error="Erreur" hint="Mon hint">
         <input id="email" />
       </FormField>,
     );

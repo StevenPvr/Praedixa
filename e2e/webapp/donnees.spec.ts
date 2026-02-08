@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures/coverage";
 import { setupAuth } from "./fixtures/auth";
 import {
   mockSites,
@@ -24,6 +24,19 @@ test.describe("Donnees page", () => {
     ).toBeVisible();
   });
 
+  test("displays Datasets link card", async ({ page }) => {
+    await page.goto("/donnees");
+
+    // Scope to main content to avoid matching the sidebar "Datasets" child link
+    const main = page.locator("main");
+    const datasetsLink = main.getByRole("link", { name: /Datasets/ });
+    await expect(datasetsLink).toBeVisible();
+    await expect(datasetsLink).toHaveAttribute("href", "/donnees/datasets");
+    await expect(
+      main.getByText("Voir les datasets configures et leurs donnees"),
+    ).toBeVisible();
+  });
+
   test("displays Sites section with heading", async ({ page }) => {
     await page.goto("/donnees");
 
@@ -40,7 +53,7 @@ test.describe("Donnees page", () => {
     const sitesSection = page.getByLabel("Sites");
     await expect(sitesSection).toBeVisible();
 
-    // DataTable column headers
+    // DataTable column headers from SitesTable component
     await expect(sitesSection.getByText("Nom")).toBeVisible();
     await expect(sitesSection.getByText("Code")).toBeVisible();
     await expect(sitesSection.getByText("Effectif")).toBeVisible();
@@ -53,11 +66,24 @@ test.describe("Donnees page", () => {
     const sitesSection = page.getByLabel("Sites");
     await expect(sitesSection).toBeVisible();
 
-    // Both mock sites should be displayed
+    // Both mock sites should be displayed — use exact match for codes
+    // since "CDG" is a substring of "Paris CDG" (strict mode would fail)
     for (const site of MOCK_SITES) {
       await expect(sitesSection.getByText(site.name)).toBeVisible();
-      await expect(sitesSection.getByText(site.code)).toBeVisible();
+      await expect(
+        sitesSection.getByText(site.code, { exact: true }),
+      ).toBeVisible();
     }
+  });
+
+  test("departments section is visible with heading", async ({ page }) => {
+    await page.goto("/donnees");
+
+    const deptsSection = page.getByLabel("Departements");
+    await expect(deptsSection).toBeVisible();
+    await expect(
+      deptsSection.getByRole("heading", { name: "Departements" }),
+    ).toBeVisible();
   });
 
   test("departments section has site filter dropdown", async ({ page }) => {
@@ -72,7 +98,7 @@ test.describe("Donnees page", () => {
 
     const select = deptsSection.getByRole("combobox");
     await expect(select).toBeVisible();
-    // Default value should be "Tous les sites"
+    // Default value should be "" (Tous les sites)
     await expect(select).toHaveValue("");
   });
 
@@ -96,12 +122,29 @@ test.describe("Donnees page", () => {
     const deptsSection = page.getByLabel("Departements");
     await expect(deptsSection).toBeVisible();
 
-    // DataTable column headers for departments
-    await expect(deptsSection.getByText("Nom")).toBeVisible();
-    await expect(deptsSection.getByText("Code")).toBeVisible();
-    await expect(deptsSection.getByText("Site")).toBeVisible();
-    await expect(deptsSection.getByText("Effectif")).toBeVisible();
-    await expect(deptsSection.getByText("Seuil min.")).toBeVisible();
-    await expect(deptsSection.getByText("Roles critiques")).toBeVisible();
+    // DataTable column headers — use columnheader role to avoid matching data cells
+    const headers = deptsSection.getByRole("columnheader");
+    await expect(headers.getByText("Nom")).toBeVisible();
+    await expect(headers.getByText("Code")).toBeVisible();
+    await expect(headers.getByText("Site", { exact: true })).toBeVisible();
+    await expect(headers.getByText("Effectif")).toBeVisible();
+    await expect(headers.getByText("Seuil min.")).toBeVisible();
+    await expect(headers.getByText("Roles critiques")).toBeVisible();
+  });
+
+  test("departments table shows site names resolved from sites data", async ({
+    page,
+  }) => {
+    await page.goto("/donnees");
+
+    const deptsSection = page.getByLabel("Departements");
+    await expect(deptsSection).toBeVisible();
+
+    // The DepartmentsTable resolves siteId to site name via the sites prop
+    // deptA1 and deptA2 belong to siteA ("Paris CDG"), deptB1 to siteB ("Lyon Saint-Exupery")
+    // Use the departments table body to scope the search (avoid matching the sites table)
+    const deptsTable = deptsSection.locator("table");
+    await expect(deptsTable.getByText("Paris CDG").first()).toBeVisible();
+    await expect(deptsTable.getByText("Lyon Saint-Exupery")).toBeVisible();
   });
 });

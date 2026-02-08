@@ -23,7 +23,11 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_admin_tenant_filter, get_current_user, get_db_session
+from app.core.dependencies import (
+    get_admin_tenant_filter,
+    get_current_user,
+    get_db_session,
+)
 from app.core.security import TenantFilter
 from app.main import app
 from app.models.operational import (
@@ -150,19 +154,23 @@ class TestAlertsSummary:
             # Total count
             _scalar_one_result(50),
             # By severity: list of (enum, count) tuples
-            _all_result([
-                (CoverageAlertSeverity.LOW, 10),
-                (CoverageAlertSeverity.MEDIUM, 15),
-                (CoverageAlertSeverity.HIGH, 20),
-                (CoverageAlertSeverity.CRITICAL, 5),
-            ]),
+            _all_result(
+                [
+                    (CoverageAlertSeverity.LOW, 10),
+                    (CoverageAlertSeverity.MEDIUM, 15),
+                    (CoverageAlertSeverity.HIGH, 20),
+                    (CoverageAlertSeverity.CRITICAL, 5),
+                ]
+            ),
             # By status: list of (enum, count) tuples
-            _all_result([
-                (CoverageAlertStatus.OPEN, 25),
-                (CoverageAlertStatus.ACKNOWLEDGED, 10),
-                (CoverageAlertStatus.RESOLVED, 12),
-                (CoverageAlertStatus.EXPIRED, 3),
-            ]),
+            _all_result(
+                [
+                    (CoverageAlertStatus.OPEN, 25),
+                    (CoverageAlertStatus.ACKNOWLEDGED, 10),
+                    (CoverageAlertStatus.RESOLVED, 12),
+                    (CoverageAlertStatus.EXPIRED, 3),
+                ]
+            ),
         ]
 
         resp = await admin_client.get(f"{MONITORING_PREFIX}/summary")
@@ -240,10 +248,12 @@ class TestAlertsByOrg:
         org_id_2 = uuid.uuid4()
 
         mock_session.execute.side_effect = [
-            _all_result([
-                (org_id_1, 20, 15),
-                (org_id_2, 10, 3),
-            ]),
+            _all_result(
+                [
+                    (org_id_1, 20, 15),
+                    (org_id_2, 10, 3),
+                ]
+            ),
         ]
 
         resp = await admin_client.get(f"{MONITORING_PREFIX}/by-org")

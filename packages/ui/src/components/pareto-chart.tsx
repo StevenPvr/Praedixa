@@ -50,7 +50,9 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
 
     function yPos(service: number): number {
       return (
-        PADDING.top + CHART_H - ((service - minService) / serviceRange) * CHART_H
+        PADDING.top +
+        CHART_H -
+        ((service - minService) / serviceRange) * CHART_H
       );
     }
 
@@ -202,11 +204,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
                   cx={cx}
                   cy={cy}
                   r={radius}
-                  fill={
-                    point.isParetoOptimal
-                      ? "oklch(0.75 0.15 85)"
-                      : "none"
-                  }
+                  fill={point.isParetoOptimal ? "oklch(0.75 0.15 85)" : "none"}
                   stroke={
                     point.isParetoOptimal
                       ? "oklch(0.75 0.15 85)"

@@ -147,9 +147,7 @@ async def list_org_coverage_alerts(
 
     offset = (page - 1) * page_size
     query = (
-        base.order_by(CoverageAlert.alert_date.desc())
-        .offset(offset)
-        .limit(page_size)
+        base.order_by(CoverageAlert.alert_date.desc()).offset(offset).limit(page_size)
     )
     result = await session.execute(query)
     items = list(result.scalars().all())

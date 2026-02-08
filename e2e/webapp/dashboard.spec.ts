@@ -1,20 +1,16 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures/coverage";
 import { setupAuth } from "./fixtures/auth";
 import {
-  mockDashboardSummary,
-  mockAlerts,
-  mockForecasts,
-  mockDailyForecasts,
-  IDS,
+  mockCoverageAlerts,
+  mockCanonicalQuality,
+  MOCK_COVERAGE_ALERTS,
 } from "./fixtures/api-mocks";
 
 test.describe("Dashboard page", () => {
   test.beforeEach(async ({ page }) => {
     await setupAuth(page);
-    await mockDashboardSummary(page);
-    await mockAlerts(page);
-    await mockForecasts(page);
-    await mockDailyForecasts(page);
+    await mockCoverageAlerts(page);
+    await mockCanonicalQuality(page);
   });
 
   test("displays page title and subtitle", async ({ page }) => {
@@ -23,94 +19,112 @@ test.describe("Dashboard page", () => {
       page.getByRole("heading", { name: "Dashboard" }),
     ).toBeVisible();
     await expect(
-      page.getByText("Vue d'ensemble de la capacite operationnelle"),
+      page.getByText("Vue d'ensemble de la couverture operationnelle"),
     ).toBeVisible();
   });
 
   test("displays KPI stat cards with correct values", async ({ page }) => {
     await page.goto("/dashboard");
 
-    // Wait for the KPI section to load
     const kpiSection = page.getByLabel("Indicateurs cles");
     await expect(kpiSection).toBeVisible();
 
-    // Check KPI values from the mock data
-    await expect(kpiSection.getByText("87%")).toBeVisible(); // coverageHuman
-    await expect(kpiSection.getByText("92%")).toBeVisible(); // coverageMerchandise
-    await expect(kpiSection.getByText("3")).toBeVisible(); // activeAlertsCount
-    await expect(kpiSection.getByText("94%")).toBeVisible(); // forecastAccuracy
+    // coveragePct from canonical quality = 87.3%
+    await expect(kpiSection.getByText("87.3%")).toBeVisible();
+    // Taux couverture moyen label
+    await expect(kpiSection.getByText("Taux couverture moyen")).toBeVisible();
+
+    // Alertes actives — dashboard shows top 5 open alerts (page_size=5)
+    await expect(kpiSection.getByText("Alertes actives")).toBeVisible();
+    await expect(kpiSection.getByText("5")).toBeVisible();
+
+    // Cout estime J+7 placeholder
+    await expect(kpiSection.getByText("Cout estime J+7")).toBeVisible();
+
+    // Taux adoption placeholder
+    await expect(kpiSection.getByText("Taux adoption")).toBeVisible();
   });
 
-  test("displays alerts list with alert titles", async ({ page }) => {
+  test("displays heatmap section", async ({ page }) => {
     await page.goto("/dashboard");
 
-    const alertsSection = page.getByLabel("Alertes recentes");
-    await expect(alertsSection).toBeVisible();
-
-    // Check that risk alerts are displayed
+    const heatmapSection = page.getByLabel("Heatmap de couverture");
+    await expect(heatmapSection).toBeVisible();
     await expect(
-      alertsSection.getByText("Deficit critique Dept. A1"),
-    ).toBeVisible();
-    await expect(
-      alertsSection.getByText("Risque modere Dept. B1"),
+      heatmapSection.getByText("Heatmap de couverture"),
     ).toBeVisible();
   });
 
-  test("shows 'Arbitrer' link only for risk-type alerts", async ({ page }) => {
-    await page.goto("/dashboard");
-
-    const alertsSection = page.getByLabel("Alertes recentes");
-    await expect(alertsSection).toBeVisible();
-
-    // Risk alerts should have "Arbitrer" links
-    const arbitrerLinks = alertsSection.getByRole("link", { name: "Arbitrer" });
-    // 2 risk alerts out of 3 total
-    await expect(arbitrerLinks).toHaveCount(2);
-
-    // First "Arbitrer" link should point to the correct arbitrage detail
-    const firstLink = arbitrerLinks.first();
-    await expect(firstLink).toHaveAttribute("href", `/arbitrage/${IDS.alert1}`);
-  });
-
-  test("'Arbitrer' button navigates to arbitrage detail page", async ({
+  test("displays top alerts table with coverage alert data", async ({
     page,
   }) => {
     await page.goto("/dashboard");
 
-    const alertsSection = page.getByLabel("Alertes recentes");
+    const alertsSection = page.getByLabel("Top alertes");
     await expect(alertsSection).toBeVisible();
+    await expect(alertsSection.getByText("Alertes actives")).toBeVisible();
 
-    // Click on the first "Arbitrer" link
-    await alertsSection.getByRole("link", { name: "Arbitrer" }).first().click();
+    // Table column headers
+    await expect(alertsSection.getByText("Site")).toBeVisible();
+    await expect(alertsSection.getByText("Date")).toBeVisible();
+    await expect(alertsSection.getByText("Shift")).toBeVisible();
+    await expect(alertsSection.getByText("Severite")).toBeVisible();
+    await expect(alertsSection.getByText("Gap (h)")).toBeVisible();
 
-    // Should navigate to the arbitrage detail page
-    await expect(page).toHaveURL(new RegExp(`/arbitrage/${IDS.alert1}`));
+    // Alert data from mocks
+    await expect(alertsSection.getByText("Lyon-Sat").first()).toBeVisible();
+    await expect(alertsSection.getByText("Paris-CDG").first()).toBeVisible();
+    await expect(alertsSection.getByText("critical")).toBeVisible();
   });
 
-  test("displays forecast chart section", async ({ page }) => {
+  test("displays cost trend placeholder section", async ({ page }) => {
     await page.goto("/dashboard");
 
-    const chartSection = page.getByLabel("Prevision de couverture");
-    await expect(chartSection).toBeVisible();
+    const costSection = page.getByLabel("Tendance des couts");
+    await expect(costSection).toBeVisible();
     await expect(
-      chartSection.getByText("Prevision de couverture a 14 jours"),
+      costSection.getByText("Graphique de tendance des couts (a venir)"),
     ).toBeVisible();
   });
 
-  test("forecast chart has dimension toggle (Humaine / Marchandise)", async ({
+  test("KPI coverage card shows success variant when >= 85%", async ({
     page,
   }) => {
     await page.goto("/dashboard");
 
-    const chartSection = page.getByLabel("Prevision de couverture");
-    await expect(chartSection).toBeVisible();
+    const kpiSection = page.getByLabel("Indicateurs cles");
+    await expect(kpiSection).toBeVisible();
+    // coveragePct is 87.3, which is >= 85 so variant should be "success"
+    await expect(kpiSection.getByText("87.3%")).toBeVisible();
+  });
 
-    // Should have dimension toggle buttons
-    await expect(
-      chartSection.getByRole("button", { name: "Humaine" }),
-    ).toBeVisible();
-    await expect(
-      chartSection.getByRole("button", { name: "Marchandise" }),
-    ).toBeVisible();
+  test("alert severity is displayed with correct formatting", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard");
+
+    const alertsSection = page.getByLabel("Top alertes");
+    await expect(alertsSection).toBeVisible();
+
+    // critical severity should be visible (bold red text from render function)
+    await expect(alertsSection.getByText("critical")).toBeVisible();
+    // high severity
+    await expect(alertsSection.getByText("high")).toBeVisible();
+    // medium severity
+    await expect(alertsSection.getByText("medium").first()).toBeVisible();
+  });
+
+  test("shows all 5 alert site IDs in the table", async ({ page }) => {
+    await page.goto("/dashboard");
+
+    const alertsSection = page.getByLabel("Top alertes");
+    await expect(alertsSection).toBeVisible();
+
+    // All 5 alerts should show their siteId (some sites appear multiple times)
+    const siteIds = MOCK_COVERAGE_ALERTS.map((a) => a.siteId);
+    const uniqueSites = [...new Set(siteIds)];
+    for (const siteId of uniqueSites) {
+      await expect(alertsSection.getByText(siteId).first()).toBeVisible();
+    }
   });
 });

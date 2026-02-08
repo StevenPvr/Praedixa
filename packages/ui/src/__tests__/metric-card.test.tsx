@@ -80,9 +80,7 @@ describe("MetricCard", () => {
   });
 
   it("passes through additional props", () => {
-    render(
-      <MetricCard label="Test" value="42" data-testid="card" id="m-1" />,
-    );
+    render(<MetricCard label="Test" value="42" data-testid="card" id="m-1" />);
     expect(screen.getByTestId("card")).toHaveAttribute("id", "m-1");
   });
 

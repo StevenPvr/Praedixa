@@ -17,7 +17,7 @@ from app.core.auth import JWTPayload
 from app.core.dependencies import get_admin_tenant_filter, get_db_session
 from app.core.security import TenantFilter, require_role
 from app.models.admin import AdminAuditAction
-from app.models.operational import ScenarioOption, ScenarioOptionType
+from app.models.operational import ScenarioOption
 from app.schemas.base import CamelModel, PaginationMeta
 from app.schemas.operational import ScenarioOptionRead
 from app.schemas.responses import ApiResponse, PaginatedResponse

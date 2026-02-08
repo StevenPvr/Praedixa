@@ -20,7 +20,7 @@ from app.core.auth import JWTPayload
 from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
 from app.core.security import TenantFilter
 from app.main import app
-from app.models.operational import ScenarioOptionType, ShiftType
+from app.models.operational import ScenarioOptionType
 
 from .conftest import ORG_A_ID, USER_A_ID
 
@@ -194,9 +194,7 @@ async def test_generate_scenarios_201() -> None:
         return_value=options,
     ):
         async with await _make_client(session, role="org_admin") as client:
-            response = await client.post(
-                f"/api/v1/scenarios/generate/{ALERT_ID}"
-            )
+            response = await client.post(f"/api/v1/scenarios/generate/{ALERT_ID}")
 
     app.dependency_overrides.clear()
     assert response.status_code == 201
@@ -221,9 +219,7 @@ async def test_generate_scenarios_no_recommended() -> None:
         return_value=options,
     ):
         async with await _make_client(session, role="manager") as client:
-            response = await client.post(
-                f"/api/v1/scenarios/generate/{ALERT_ID}"
-            )
+            response = await client.post(f"/api/v1/scenarios/generate/{ALERT_ID}")
 
     app.dependency_overrides.clear()
     assert response.status_code == 201
@@ -237,9 +233,7 @@ async def test_generate_scenarios_403_viewer() -> None:
     session = AsyncMock()
 
     async with await _make_client(session, role="viewer") as client:
-        response = await client.post(
-            f"/api/v1/scenarios/generate/{ALERT_ID}"
-        )
+        response = await client.post(f"/api/v1/scenarios/generate/{ALERT_ID}")
 
     app.dependency_overrides.clear()
     assert response.status_code == 403

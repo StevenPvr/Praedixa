@@ -123,6 +123,33 @@ class TestLifespan:
                 mock_engine.dispose.assert_called_once()
 
 
+class TestSecurityHeaders:
+    """Test security headers in middleware."""
+
+    @pytest.mark.asyncio
+    async def test_hsts_header_in_production(self):
+        """Line 178: HSTS header is added when is_production is True."""
+        with patch("app.main.settings") as mock_settings:
+            mock_settings.is_production = True
+            mock_settings.DEBUG = False
+            mock_settings.LOG_LEVEL = "debug"
+            mock_settings.CORS_ORIGINS = ["http://localhost:3001"]
+            mock_settings.APP_VERSION = "0.1.0"
+
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as ac:
+                resp = await ac.get("/health")
+                assert resp.headers.get("Strict-Transport-Security") == (
+                    "max-age=63072000; includeSubDomains; preload"
+                )
+
+    @pytest.mark.asyncio
+    async def test_no_hsts_header_in_development(self, client):
+        """HSTS header is NOT added when is_production is False."""
+        resp = await client.get("/health")
+        assert "Strict-Transport-Security" not in resp.headers
+
+
 class TestCorsConfiguration:
     """Test CORS middleware is configured."""
 
@@ -136,5 +163,7 @@ class TestCorsConfiguration:
                 "Access-Control-Request-Method": "GET",
             },
         )
-        # CORS headers should be present
-        assert "access-control-allow-origin" in resp.headers or resp.status_code == 200
+        assert resp.status_code == 200
+        assert (
+            resp.headers.get("access-control-allow-origin") == "http://localhost:3001"
+        )

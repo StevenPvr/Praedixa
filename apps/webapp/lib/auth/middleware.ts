@@ -58,24 +58,37 @@ export async function updateSession(request: NextRequest) {
     /* v8 ignore next 2 -- Supabase unreachable — fall through as unauthenticated */
   } catch {}
 
+  const isLoginRoute = request.nextUrl.pathname.startsWith("/login");
+  const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
+
   // Redirect unauthenticated users to login (except auth routes)
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
+  if (!user && !isLoginRoute && !isAuthRoute) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Reject super_admin users — they must use the admin app, not the client webapp.
+  // The Supabase session cookie is shared across localhost ports, so a super_admin
+  // logged into admin (port 3002) would otherwise pass the auth check here.
+  if (user && !isLoginRoute && !isAuthRoute) {
+    const role = user.app_metadata?.role;
+    if (role === "super_admin") {
+      const loginUrl = new URL("/login", request.url);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
   const isForcedReauth =
     request.nextUrl.pathname === "/login" &&
     request.nextUrl.searchParams.get("reauth") === "1";
 
-  // Redirect authenticated users away from login page
-  if (user && request.nextUrl.pathname === "/login" && !isForcedReauth) {
-    const dashboardUrl = new URL("/dashboard", request.url);
-    return NextResponse.redirect(dashboardUrl);
+  // Redirect authenticated client users away from login page
+  if (user && isLoginRoute && !isForcedReauth) {
+    const role = user.app_metadata?.role;
+    if (role !== "super_admin") {
+      const dashboardUrl = new URL("/dashboard", request.url);
+      return NextResponse.redirect(dashboardUrl);
+    }
   }
 
   return response;

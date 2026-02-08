@@ -1,19 +1,48 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import DecisionsPage from "../page";
 
-/* ─── Mocks ──────────────────────────────────────── */
-
 const mockUseApiGetPaginated = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+}));
+
+vi.mock("next/link", () => ({
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
+}));
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGetPaginated: (...args: unknown[]) => mockUseApiGetPaginated(...args),
 }));
 
 vi.mock("@praedixa/ui", () => ({
-  SkeletonTable: ({ rows, columns }: { rows: number; columns: number }) => (
-    <div data-testid="skeleton-table" data-rows={rows} data-columns={columns} />
+  DataTable: ({ data }: { data: unknown[] }) => (
+    <div data-testid="data-table">{data.length} rows</div>
   ),
+  SelectDropdown: ({
+    label,
+    onChange,
+  }: {
+    label?: string;
+    onChange: (v: string) => void;
+  }) => (
+    <select
+      data-testid={`select-${label}`}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  ),
+  DateRangePicker: () => <div data-testid="date-range-picker" />,
+  Badge: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
+  SkeletonTable: () => <div data-testid="skeleton-table" />,
 }));
 
 vi.mock("@/components/error-fallback", () => ({
@@ -30,98 +59,38 @@ vi.mock("@/components/error-fallback", () => ({
   ),
 }));
 
-vi.mock("@/components/decisions/decision-status-filter", () => ({
-  DecisionStatusFilter: ({
-    value,
-    onChange,
-  }: {
-    value: string;
-    onChange: (v: string) => void;
-  }) => (
-    <div data-testid="status-filter" data-value={value}>
-      <button
-        onClick={() => onChange("approved")}
-        data-testid="filter-approved"
-      >
-        Approved
-      </button>
-    </div>
-  ),
-}));
-
-vi.mock("@/components/decisions/decisions-table", () => ({
-  DecisionsTable: ({
-    data,
-    total,
-    page,
-  }: {
-    data: unknown[];
-    total: number;
-    page: number;
-  }) => (
-    <div data-testid="decisions-table">
-      <div data-testid="table-rows">{data.length}</div>
-      <div data-testid="table-total">{total}</div>
-      <div data-testid="table-page">{page}</div>
-    </div>
-  ),
-}));
-
-/* ─── Helpers ────────────────────────────────────── */
-
-function makeDecision(id: string) {
-  return {
-    id,
-    type: "overtime",
-    priority: "medium",
-    status: "suggested",
-    title: `Decision ${id}`,
-    targetPeriod: { startDate: "2026-02-10", endDate: "2026-02-17" },
-    departmentId: "dept-1",
-    departmentName: "Logistique",
-    estimatedCost: 3500,
-    confidenceScore: 85,
-  };
-}
-
-/* ─── Tests ──────────────────────────────────────── */
-
 describe("DecisionsPage", () => {
   beforeEach(() => {
-    mockUseApiGetPaginated.mockReset();
-  });
-
-  it("renders the Decisions heading", () => {
+    vi.clearAllMocks();
     mockUseApiGetPaginated.mockReturnValue({
       data: [],
       total: 0,
-      loading: true,
+      loading: false,
       error: null,
       refetch: vi.fn(),
     });
+  });
 
+  it("renders the heading", () => {
     render(<DecisionsPage />);
     expect(
       screen.getByRole("heading", { name: "Decisions" }),
     ).toBeInTheDocument();
   });
 
-  it("renders the page description", () => {
-    mockUseApiGetPaginated.mockReturnValue({
-      data: [],
-      total: 0,
-      loading: true,
-      error: null,
-      refetch: vi.fn(),
-    });
-
+  it("renders the description", () => {
     render(<DecisionsPage />);
     expect(
-      screen.getByText("Suivi et audit trail des decisions operationnelles"),
+      screen.getByText("Journal des decisions operationnelles"),
     ).toBeInTheDocument();
   });
 
-  it("shows SkeletonTable when loading", () => {
+  it("renders filter section", () => {
+    render(<DecisionsPage />);
+    expect(screen.getByLabelText("Filtres")).toBeInTheDocument();
+  });
+
+  it("shows skeleton on loading", () => {
     mockUseApiGetPaginated.mockReturnValue({
       data: [],
       total: 0,
@@ -129,12 +98,11 @@ describe("DecisionsPage", () => {
       error: null,
       refetch: vi.fn(),
     });
-
     render(<DecisionsPage />);
     expect(screen.getByTestId("skeleton-table")).toBeInTheDocument();
   });
 
-  it("shows ErrorFallback on error", () => {
+  it("shows error fallback on error", () => {
     mockUseApiGetPaginated.mockReturnValue({
       data: [],
       total: 0,
@@ -142,75 +110,13 @@ describe("DecisionsPage", () => {
       error: "Server error",
       refetch: vi.fn(),
     });
-
     render(<DecisionsPage />);
-    expect(screen.getByTestId("error-fallback")).toHaveTextContent(
-      "Server error",
-    );
+    expect(screen.getByText("Server error")).toBeInTheDocument();
   });
 
-  it("shows empty state when no decisions", () => {
-    mockUseApiGetPaginated.mockReturnValue({
-      data: [],
-      total: 0,
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
+  it("shows empty state when no data", () => {
     render(<DecisionsPage />);
     const fallback = screen.getByTestId("error-fallback");
     expect(fallback).toHaveAttribute("data-variant", "empty");
-  });
-
-  it("renders DecisionsTable with data", () => {
-    mockUseApiGetPaginated.mockReturnValue({
-      data: [makeDecision("dec-1"), makeDecision("dec-2")],
-      total: 2,
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    render(<DecisionsPage />);
-    expect(screen.getByTestId("decisions-table")).toBeInTheDocument();
-    expect(screen.getByTestId("table-rows")).toHaveTextContent("2");
-    expect(screen.getByTestId("table-total")).toHaveTextContent("2");
-  });
-
-  it("renders the status filter", () => {
-    mockUseApiGetPaginated.mockReturnValue({
-      data: [],
-      total: 0,
-      loading: true,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    render(<DecisionsPage />);
-    expect(screen.getByTestId("status-filter")).toBeInTheDocument();
-    expect(screen.getByTestId("status-filter")).toHaveAttribute(
-      "data-value",
-      "all",
-    );
-  });
-
-  it("updates status filter and resets page when filter changes", () => {
-    mockUseApiGetPaginated.mockReturnValue({
-      data: [makeDecision("dec-1")],
-      total: 1,
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    render(<DecisionsPage />);
-    fireEvent.click(screen.getByTestId("filter-approved"));
-
-    // After filter change, the status filter should show the new value
-    expect(screen.getByTestId("status-filter")).toHaveAttribute(
-      "data-value",
-      "approved",
-    );
   });
 });

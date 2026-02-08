@@ -167,7 +167,9 @@ async def bulk_import_canonical(
         if effective_chunk_size is None:
             row_columns = len(row)
             max_rows_per_stmt = max(1, _POSTGRES_MAX_BIND_PARAMS // row_columns)
-            effective_chunk_size = min(_DEFAULT_BULK_IMPORT_BATCH_SIZE, max_rows_per_stmt)
+            effective_chunk_size = min(
+                _DEFAULT_BULK_IMPORT_BATCH_SIZE, max_rows_per_stmt
+            )
         chunk.append(row)
         if len(chunk) >= (effective_chunk_size or _DEFAULT_BULK_IMPORT_BATCH_SIZE):
             inserted_total += await _insert_canonical_chunk(session, chunk)

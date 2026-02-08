@@ -22,7 +22,11 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_admin_tenant_filter, get_current_user, get_db_session
+from app.core.dependencies import (
+    get_admin_tenant_filter,
+    get_current_user,
+    get_db_session,
+)
 from app.core.security import TenantFilter
 from app.main import app
 
@@ -220,7 +224,7 @@ class TestListOrgCanonical:
         with patch(
             "app.routers.admin_operational.list_canonical_records",
             return_value=(records, 2),
-        ) as mock_svc:
+        ):
             resp = await admin_client.get(f"{PREFIX}/canonical")
 
         assert resp.status_code == 200

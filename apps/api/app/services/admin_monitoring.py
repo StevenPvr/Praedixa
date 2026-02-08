@@ -28,24 +28,28 @@ _ALLOWED_PERIODS = frozenset({"day", "week", "month"})
 
 async def get_platform_kpis(session: AsyncSession) -> dict:
     """Get platform-wide KPI counts."""
-    total_orgs = await session.execute(select(func.count(Organization.id)))
-    total_users = await session.execute(select(func.count(User.id)))
-    total_datasets = await session.execute(select(func.count(ClientDataset.id)))
-    total_forecasts = await session.execute(select(func.count(ForecastRun.id)))
-    active_orgs = await session.execute(
-        select(func.count(Organization.id)).where(
-            Organization.status == OrganizationStatus.ACTIVE
-        )
+    query = select(
+        select(func.count(Organization.id))
+        .scalar_subquery()
+        .label("total_organizations"),
+        select(func.count(User.id)).scalar_subquery().label("total_users"),
+        select(func.count(ClientDataset.id)).scalar_subquery().label("total_datasets"),
+        select(func.count(ForecastRun.id)).scalar_subquery().label("total_forecasts"),
+        select(func.count(Organization.id))
+        .where(Organization.status == OrganizationStatus.ACTIVE)
+        .scalar_subquery()
+        .label("active_organizations"),
+        select(func.count(Decision.id)).scalar_subquery().label("total_decisions"),
     )
-    total_decisions = await session.execute(select(func.count(Decision.id)))
+    row = (await session.execute(query)).one()
 
     return {
-        "total_organizations": total_orgs.scalar_one() or 0,
-        "total_users": total_users.scalar_one() or 0,
-        "total_datasets": total_datasets.scalar_one() or 0,
-        "total_forecasts": total_forecasts.scalar_one() or 0,
-        "active_organizations": active_orgs.scalar_one() or 0,
-        "total_decisions": total_decisions.scalar_one() or 0,
+        "total_organizations": row.total_organizations or 0,
+        "total_users": row.total_users or 0,
+        "total_datasets": row.total_datasets or 0,
+        "total_forecasts": row.total_forecasts or 0,
+        "active_organizations": row.active_organizations or 0,
+        "total_decisions": row.total_decisions or 0,
     }
 
 
@@ -54,39 +58,39 @@ async def get_org_metrics(
     org_id: uuid.UUID,
 ) -> dict:
     """Get metrics for a specific organization."""
-    active_users = await session.execute(
-        select(func.count(User.id)).where(
+    query = select(
+        select(func.count(User.id))
+        .where(
             User.organization_id == org_id,
             User.status == UserStatus.ACTIVE,
         )
+        .scalar_subquery()
+        .label("active_users"),
+        select(func.count(ClientDataset.id))
+        .where(ClientDataset.organization_id == org_id)
+        .scalar_subquery()
+        .label("total_datasets"),
+        select(func.count(ForecastRun.id))
+        .where(ForecastRun.organization_id == org_id)
+        .scalar_subquery()
+        .label("forecast_runs"),
+        select(func.count(Decision.id))
+        .where(Decision.organization_id == org_id)
+        .scalar_subquery()
+        .label("decisions_count"),
+        select(func.max(User.last_login_at))
+        .where(User.organization_id == org_id)
+        .scalar_subquery()
+        .label("last_activity"),
     )
-    total_datasets = await session.execute(
-        select(func.count(ClientDataset.id)).where(
-            ClientDataset.organization_id == org_id
-        )
-    )
-    forecast_runs = await session.execute(
-        select(func.count(ForecastRun.id)).where(
-            ForecastRun.organization_id == org_id
-        )
-    )
-    decisions_count = await session.execute(
-        select(func.count(Decision.id)).where(
-            Decision.organization_id == org_id
-        )
-    )
-    last_activity = await session.execute(
-        select(func.max(User.last_login_at)).where(
-            User.organization_id == org_id
-        )
-    )
+    row = (await session.execute(query)).one()
 
     return {
-        "active_users": active_users.scalar_one() or 0,
-        "total_datasets": total_datasets.scalar_one() or 0,
-        "forecast_runs": forecast_runs.scalar_one() or 0,
-        "decisions_count": decisions_count.scalar_one() or 0,
-        "last_activity": last_activity.scalar_one_or_none(),
+        "active_users": row.active_users or 0,
+        "total_datasets": row.total_datasets or 0,
+        "forecast_runs": row.forecast_runs or 0,
+        "decisions_count": row.decisions_count or 0,
+        "last_activity": row.last_activity,
     }
 
 
@@ -127,34 +131,34 @@ async def get_usage_trends(
         )
         result = await session.execute(query)
         for row in result.all():
-            trends.append({
-                "date": row.period.isoformat() if row.period else "",
-                "metric": metric_name,
-                "value": float(row.count),
-            })
+            trends.append(
+                {
+                    "date": row.period.isoformat() if row.period else "",
+                    "metric": metric_name,
+                    "value": float(row.count),
+                }
+            )
 
     return trends
 
 
 async def get_error_metrics(session: AsyncSession) -> dict:
     """Get error rate metrics from ingestion logs."""
-    total_ingestions = await session.execute(
+    query = select(
+        select(func.count(IngestionLog.id)).scalar_subquery().label("total"),
         select(func.count(IngestionLog.id))
+        .where(IngestionLog.status == RunStatus.SUCCESS)
+        .scalar_subquery()
+        .label("successes"),
+        select(func.count(IngestionLog.id))
+        .where(IngestionLog.status == RunStatus.FAILED)
+        .scalar_subquery()
+        .label("failures"),
     )
-    success_ingestions = await session.execute(
-        select(func.count(IngestionLog.id)).where(
-            IngestionLog.status == RunStatus.SUCCESS
-        )
-    )
-    failed_ingestions = await session.execute(
-        select(func.count(IngestionLog.id)).where(
-            IngestionLog.status == RunStatus.FAILED
-        )
-    )
-
-    total = total_ingestions.scalar_one() or 0
-    successes = success_ingestions.scalar_one() or 0
-    failures = failed_ingestions.scalar_one() or 0
+    row = (await session.execute(query)).one()
+    total = row.total or 0
+    successes = row.successes or 0
+    failures = row.failures or 0
 
     success_rate = (successes / total * 100) if total > 0 else 100.0
 

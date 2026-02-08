@@ -67,7 +67,9 @@ describe("ErrorFallback", () => {
 
   it("renders CTA button for empty variant with onAction", () => {
     const onAction = vi.fn();
-    render(<ErrorFallback variant="empty" onAction={onAction} ctaLabel="Ajouter" />);
+    render(
+      <ErrorFallback variant="empty" onAction={onAction} ctaLabel="Ajouter" />,
+    );
     const button = screen.getByText("Ajouter");
     expect(button).toBeInTheDocument();
     button.click();

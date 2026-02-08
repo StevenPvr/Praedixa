@@ -84,7 +84,6 @@ async def _load_dataset(
         )
         dataset = result.scalar_one_or_none()
         if dataset is None:
-            print(f"Error: Dataset {dataset_id} not found")
             sys.exit(1)
 
         col_result = await session.execute(
@@ -107,18 +106,15 @@ async def _ingest_single_file(
     """Ingest a single file. Returns True on success, False on failure."""
     started_at = datetime.now(UTC)
     filename = file_path.name
-    print(f"\n  Ingesting: {filename}")
 
     # Read file
     try:
         content = file_path.read_bytes()
-    except OSError as exc:
-        print(f"    Error reading file: {exc}")
+    except OSError:
         return False
 
     file_size = len(content)
     if file_size == 0:
-        print("    Skipped: empty file")
         return False
 
     # Parse
@@ -131,21 +127,21 @@ async def _ingest_single_file(
             max_rows=settings.MAX_ROWS_PER_INGESTION,
         )
     except Exception as exc:
-        print(f"    Parse error: {exc}")
         await _log_ingestion(
-            dataset.id, started_at, 0, 0, RunStatus.FAILED,
-            str(exc)[:500], filename, file_size,
+            dataset.id,
+            started_at,
+            0,
+            0,
+            RunStatus.FAILED,
+            str(exc)[:500],
+            filename,
+            file_size,
         )
         return False
 
-    print(
-        f"    Parsed: {parse_result.row_count} rows, "
-        f"format={parse_result.detected_format}, "
-        f"encoding={parse_result.detected_encoding}"
-    )
     if parse_result.warnings:
-        for w in parse_result.warnings:
-            print(f"    Warning: {w}")
+        for _w in parse_result.warnings:
+            pass
 
     # Map columns
     mapping_result = map_columns(
@@ -153,11 +149,10 @@ async def _ingest_single_file(
         dataset_columns=columns,
         format_hint=format_hint,
     )
-    mapped_count = sum(1 for m in mapping_result.mappings if m.confidence > 0)
-    print(f"    Mapped: {mapped_count}/{len(parse_result.source_columns)} columns")
+    sum(1 for m in mapping_result.mappings if m.confidence > 0)
     if mapping_result.warnings:
-        for w in mapping_result.warnings:
-            print(f"    Mapping warning: {w}")
+        for _w in mapping_result.warnings:
+            pass
 
     # Insert
     try:
@@ -168,22 +163,32 @@ async def _ingest_single_file(
             parse_result.rows,
         )
     except Exception as exc:
-        print(f"    Insert error: {exc}")
         await _log_ingestion(
-            dataset.id, started_at, parse_result.row_count, 0,
-            RunStatus.FAILED, str(exc)[:500], filename, file_size,
+            dataset.id,
+            started_at,
+            parse_result.row_count,
+            0,
+            RunStatus.FAILED,
+            str(exc)[:500],
+            filename,
+            file_size,
         )
         return False
 
-    print(f"    Inserted: {result.rows_inserted} rows (batch={result.batch_id})")
     if result.warnings:
-        for w in result.warnings:
-            print(f"    Warning: {w}")
+        for _w in result.warnings:
+            pass
 
     # Log success
     await _log_ingestion(
-        dataset.id, started_at, parse_result.row_count,
-        result.rows_inserted, RunStatus.SUCCESS, None, filename, file_size,
+        dataset.id,
+        started_at,
+        parse_result.row_count,
+        result.rows_inserted,
+        RunStatus.SUCCESS,
+        None,
+        filename,
+        file_size,
     )
     return True
 
@@ -220,38 +225,32 @@ async def _log_ingestion(
 async def main() -> None:
     args = _parse_args()
 
-    print(f"Loading dataset {args.dataset_id}...")
     dataset, columns = await _load_dataset(args.dataset_id)
-    print(
-        f"Dataset: {dataset.name} "
-        f"(schema={dataset.schema_raw}, table={dataset.table_name})"
-    )
-    print(f"Columns: {len(columns)} defined")
 
     # Collect files to process
     files: list[Path] = []
     if args.file:
         if not args.file.exists():
-            print(f"Error: File not found: {args.file}")
             sys.exit(1)
         files.append(args.file)
     elif args.directory:
         if not args.directory.is_dir():
-            print(f"Error: Directory not found: {args.directory}")
             sys.exit(1)
         for ext in _SUPPORTED_EXTENSIONS:
             files.extend(sorted(args.directory.glob(f"*{ext}")))
         if not files:
-            print(f"No CSV/XLSX files found in {args.directory}")
             sys.exit(1)
-        print(f"Found {len(files)} files to process")
 
     # Process files
     success_count = 0
     fail_count = 0
     for file_path in files:
         ok = await _ingest_single_file(
-            file_path, dataset, columns, args.format, args.sheet_name,
+            file_path,
+            dataset,
+            columns,
+            args.format,
+            args.sheet_name,
         )
         if ok:
             success_count += 1
@@ -259,7 +258,6 @@ async def main() -> None:
             fail_count += 1
 
     # Summary
-    print(f"\nDone: {success_count} succeeded, {fail_count} failed")
     if fail_count > 0:
         sys.exit(1)
 

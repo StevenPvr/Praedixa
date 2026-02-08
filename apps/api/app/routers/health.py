@@ -16,6 +16,7 @@ from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.database import async_session_factory
+from app.core.rate_limit import limiter
 
 logger = structlog.get_logger()
 
@@ -23,6 +24,7 @@ router = APIRouter(tags=["health"])
 
 
 @router.get("/health")
+@limiter.exempt
 async def health_check() -> JSONResponse:
     """Health check with database connectivity test.
 

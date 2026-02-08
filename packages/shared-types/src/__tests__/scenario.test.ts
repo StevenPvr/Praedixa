@@ -41,7 +41,9 @@ describe("ScenarioOption", () => {
   });
 
   it("optionType is ScenarioOptionType", () => {
-    expectTypeOf<ScenarioOption["optionType"]>().toEqualTypeOf<ScenarioOptionType>();
+    expectTypeOf<
+      ScenarioOption["optionType"]
+    >().toEqualTypeOf<ScenarioOptionType>();
   });
 
   it("contraintesJson is a record", () => {
@@ -87,8 +89,8 @@ describe("ParetoFrontierResponse", () => {
   });
 
   it("recommended is nullable ScenarioOption", () => {
-    expectTypeOf<ParetoFrontierResponse["recommended"]>().toEqualTypeOf<
-      ScenarioOption | null
-    >();
+    expectTypeOf<
+      ParetoFrontierResponse["recommended"]
+    >().toEqualTypeOf<ScenarioOption | null>();
   });
 });

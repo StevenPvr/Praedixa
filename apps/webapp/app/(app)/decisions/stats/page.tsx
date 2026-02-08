@@ -1,7 +1,12 @@
 "use client";
 
 import type { OverrideStatistics } from "@praedixa/shared-types";
-import { MetricCard, DataTable, SkeletonCard, SkeletonTable } from "@praedixa/ui";
+import {
+  MetricCard,
+  DataTable,
+  SkeletonCard,
+  SkeletonTable,
+} from "@praedixa/ui";
 import type { DataTableColumn } from "@praedixa/ui";
 import { useApiGet } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
@@ -17,7 +22,9 @@ export default function DecisionStatsPage() {
     loading,
     error,
     refetch,
-  } = useApiGet<OverrideStatistics>("/api/v1/operational-decisions/override-stats");
+  } = useApiGet<OverrideStatistics>(
+    "/api/v1/operational-decisions/override-stats",
+  );
 
   const reasonColumns: DataTableColumn<ReasonRow>[] = [
     { key: "reason", label: "Raison" },
@@ -67,8 +74,16 @@ export default function DecisionStatsPage() {
               />
               <MetricCard
                 label="Delta cout moyen"
-                value={stats.avgCostDelta != null ? `${Number(stats.avgCostDelta) >= 0 ? "+" : ""}${Number(stats.avgCostDelta).toFixed(0)} EUR` : "--"}
-                status={stats.avgCostDelta != null && Number(stats.avgCostDelta) > 0 ? "danger" : "good"}
+                value={
+                  stats.avgCostDelta != null
+                    ? `${Number(stats.avgCostDelta) >= 0 ? "+" : ""}${Number(stats.avgCostDelta).toFixed(0)} EUR`
+                    : "--"
+                }
+                status={
+                  stats.avgCostDelta != null && Number(stats.avgCostDelta) > 0
+                    ? "danger"
+                    : "good"
+                }
               />
             </div>
           </section>
@@ -86,7 +101,10 @@ export default function DecisionStatsPage() {
           </section>
         </>
       ) : (
-        <ErrorFallback variant="empty" message="Aucune statistique disponible" />
+        <ErrorFallback
+          variant="empty"
+          message="Aucune statistique disponible"
+        />
       )}
     </div>
   );

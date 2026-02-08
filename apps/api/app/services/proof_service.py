@@ -70,29 +70,27 @@ async def generate_proof_record(
     else:
         month_end = month.replace(month=month.month + 1, day=1)
 
-    # Count alerts emitted for this site+month
-    alerts_q = tenant.apply(
-        select(func.count(CoverageAlert.id)).where(
-            CoverageAlert.site_id == site_id,
-            CoverageAlert.alert_date >= month_start,
-            CoverageAlert.alert_date < month_end,
-        ),
-        CoverageAlert,
+    alerts_filter = (
+        CoverageAlert.site_id == site_id,
+        CoverageAlert.alert_date >= month_start,
+        CoverageAlert.alert_date < month_end,
     )
-    alertes_emises = (await session.execute(alerts_q)).scalar_one() or 0
 
-    # Get alert IDs for this site+month
-    alert_ids_q = tenant.apply(
-        select(CoverageAlert.id, CoverageAlert.gap_h).where(
-            CoverageAlert.site_id == site_id,
-            CoverageAlert.alert_date >= month_start,
-            CoverageAlert.alert_date < month_end,
-        ),
+    alerts_agg_q = tenant.apply(
+        select(
+            func.count(CoverageAlert.id),
+            func.coalesce(func.sum(CoverageAlert.gap_h), 0),
+        ).where(*alerts_filter),
         CoverageAlert,
     )
-    alert_rows = (await session.execute(alert_ids_q)).all()
-    alert_ids = [row[0] for row in alert_rows]
-    total_gap = sum(Decimal(str(row[1] or 0)) for row in alert_rows)
+    alertes_emises_raw, total_gap_raw = (await session.execute(alerts_agg_q)).one()
+    alertes_emises = alertes_emises_raw or 0
+    total_gap = Decimal(str(total_gap_raw or 0))
+
+    alerts_subq = tenant.apply(
+        select(CoverageAlert.id).where(*alerts_filter),
+        CoverageAlert,
+    ).subquery()
 
     # BAU cost: gap * 40 EUR/h (conservative industry average)
     bau_rate = Decimal("40.00")
@@ -100,10 +98,10 @@ async def generate_proof_record(
 
     # 100% cost: sum of recommended options
     cout_100 = Decimal("0.00")
-    if alert_ids:
+    if alertes_emises > 0:
         opt_q = tenant.apply(
             select(func.coalesce(func.sum(ScenarioOption.cout_total_eur), 0)).where(
-                ScenarioOption.coverage_alert_id.in_(alert_ids),
+                ScenarioOption.coverage_alert_id.in_(select(alerts_subq.c.id)),
                 ScenarioOption.is_recommended.is_(True),
             ),
             ScenarioOption,
@@ -113,7 +111,7 @@ async def generate_proof_record(
     # Real cost: sum of observed costs from decisions
     cout_reel = Decimal("0.00")
     alertes_traitees = 0
-    if alert_ids:
+    if alertes_emises > 0:
         dec_q = tenant.apply(
             select(
                 func.coalesce(
@@ -121,7 +119,7 @@ async def generate_proof_record(
                 ),
                 func.count(OperationalDecision.id),
             ).where(
-                OperationalDecision.coverage_alert_id.in_(alert_ids),
+                OperationalDecision.coverage_alert_id.in_(select(alerts_subq.c.id)),
             ),
             OperationalDecision,
         )
@@ -219,11 +217,7 @@ async def list_proof_records(
     total = (await session.execute(count_q)).scalar_one() or 0
 
     offset = (page - 1) * page_size
-    query = (
-        base.order_by(ProofRecord.month.desc())
-        .offset(offset)
-        .limit(page_size)
-    )
+    query = base.order_by(ProofRecord.month.desc()).offset(offset).limit(page_size)
     result = await session.execute(query)
     items = list(result.scalars().all())
 
@@ -260,9 +254,7 @@ async def get_proof_summary(
         select(
             func.coalesce(func.sum(ProofRecord.gain_net_eur), 0),
             func.avg(ProofRecord.adoption_pct),
-            func.avg(
-                ProofRecord.service_reel_pct - ProofRecord.service_bau_pct
-            ),
+            func.avg(ProofRecord.service_reel_pct - ProofRecord.service_bau_pct),
         ),
         ProofRecord,
     )

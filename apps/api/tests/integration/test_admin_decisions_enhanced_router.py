@@ -98,9 +98,9 @@ class TestDecisionsSummary:
         """Summary with non-zero totals and override rate."""
         # Endpoint executes 3 scalar queries: total, override_count, observed
         mock_session.execute.side_effect = [
-            _scalar_one_result(100),   # total
-            _scalar_one_result(15),    # override_count
-            _scalar_one_result(80),    # observed
+            _scalar_one_result(100),  # total
+            _scalar_one_result(15),  # override_count
+            _scalar_one_result(80),  # observed
         ]
 
         resp = await admin_client.get(f"{PREFIX}/summary")
@@ -147,8 +147,8 @@ class TestDecisionsOverrides:
     ) -> None:
         """Override analysis with cost delta and reasons."""
         mock_session.execute.side_effect = [
-            _scalar_one_result(100),         # total
-            _scalar_one_result(20),          # override_count
+            _scalar_one_result(100),  # total
+            _scalar_one_result(20),  # override_count
             _scalar_one_result(Decimal("150.50")),  # avg_delta_raw
             _all_result([("Urgence client", 10), ("Stock bas", 5)]),  # reasons
         ]
@@ -173,8 +173,8 @@ class TestDecisionsOverrides:
     ) -> None:
         """Override analysis with zero total."""
         mock_session.execute.side_effect = [
-            _scalar_one_result(0),   # total
-            _scalar_one_result(0),   # override_count
+            _scalar_one_result(0),  # total
+            _scalar_one_result(0),  # override_count
             _scalar_one_result(None),  # avg_delta_raw (no data)
             _all_result([]),  # reasons
         ]
@@ -225,10 +225,12 @@ class TestDecisionsAdoption:
 
         mock_session.execute.side_effect = [
             # Per-org adoption query
-            _all_result([
-                (org_id_1, Decimal("0.9200")),
-                (org_id_2, Decimal("0.8500")),
-            ]),
+            _all_result(
+                [
+                    (org_id_1, Decimal("0.9200")),
+                    (org_id_2, Decimal("0.8500")),
+                ]
+            ),
             # Overall average
             _scalar_one_result(Decimal("0.8850")),
         ]
@@ -251,7 +253,7 @@ class TestDecisionsAdoption:
     ) -> None:
         """Adoption metrics with no data."""
         mock_session.execute.side_effect = [
-            _all_result([]),           # no org data
+            _all_result([]),  # no org data
             _scalar_one_result(None),  # no overall average
         ]
 

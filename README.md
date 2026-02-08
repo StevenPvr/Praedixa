@@ -9,6 +9,7 @@ praedixa/
 ├── apps/
 │   ├── landing/           # Landing page marketing (Next.js 15)
 │   ├── webapp/            # Dashboard client (Next.js 15)
+│   ├── admin/             # Back-office super admin (Next.js 15)
 │   └── api/               # API backend (FastAPI + SQLAlchemy)
 ├── packages/
 │   ├── ui/                # Composants React partages
@@ -73,18 +74,29 @@ pnpm dev:api
 
 L'API expose sa documentation OpenAPI sur http://localhost:8000/docs.
 
+### Back-office admin (port 3002)
+
+```bash
+pnpm dev:admin
+```
+
+Accessible sur http://localhost:3002. Necessite un compte Supabase avec le role `super_admin` dans `app_metadata`.
+
 ### Tout en parallele
 
-Lancer les 3 services dans des terminaux separes :
+Lancer les 4 services dans des terminaux separes :
 
 ```bash
 # Terminal 1 — Landing
 pnpm dev:landing
 
-# Terminal 2 — Web app
+# Terminal 2 — Web app client
 pnpm dev:webapp
 
-# Terminal 3 — API
+# Terminal 3 — Back-office admin
+pnpm dev:admin
+
+# Terminal 4 — API
 pnpm dev:api
 ```
 
@@ -93,7 +105,7 @@ pnpm dev:api
 ### Tests unitaires frontend (Vitest)
 
 ```bash
-# Lancer tous les tests (landing + webapp + packages)
+# Lancer tous les tests (landing + webapp + admin + packages)
 pnpm test
 
 # Mode watch (re-execute a chaque modification)
@@ -142,6 +154,13 @@ pnpm test:e2e
 # Par projet
 pnpm test:e2e:landing
 pnpm test:e2e:webapp
+pnpm test:e2e:admin
+
+# Avec couverture de code V8 (genere e2e-coverage/report.html)
+pnpm test:e2e:coverage
+
+# Couverture par projet individuel
+COVERAGE=1 pnpm test:e2e:webapp
 
 # Mode UI interactif (debug visuel)
 pnpm exec playwright test --ui
@@ -190,8 +209,9 @@ Les hooks couvrent : formatting, lint, typecheck, tests (vitest + pytest), build
 
 ### Deploiement
 
-| Service | Hebergement                 | Config                        |
-| ------- | --------------------------- | ----------------------------- |
-| Landing | Cloudflare Workers          | `apps/landing/wrangler.jsonc` |
-| Web app | Cloudflare Workers          | `apps/webapp/wrangler.jsonc`  |
-| API     | Scaleway Container (France) | `apps/api/Dockerfile`         |
+| Service | Hebergement                 | URL                | Config                        |
+| ------- | --------------------------- | ------------------ | ----------------------------- |
+| Landing | Cloudflare Workers          | praedixa.com       | `apps/landing/wrangler.jsonc` |
+| Web app | Cloudflare Workers          | app.praedixa.com   | `apps/webapp/wrangler.jsonc`  |
+| Admin   | Cloudflare Workers          | admin.praedixa.com | `apps/admin/wrangler.jsonc`   |
+| API     | Scaleway Container (France) | api.praedixa.com   | `apps/api/Dockerfile`         |

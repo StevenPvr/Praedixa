@@ -8,7 +8,7 @@ Security:
 
 from datetime import datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import TenantFilter
@@ -63,78 +63,93 @@ async def get_dashboard_summary(
 
     All queries are filtered by org_id. Returns safe defaults when empty.
     """
-    # 1. Find the latest completed forecast run for this org
-    latest_run_query = tenant.apply(
+    latest_run = tenant.apply(
         select(ForecastRun.id)
         .where(ForecastRun.status == ForecastStatus.COMPLETED)
         .order_by(ForecastRun.completed_at.desc())
         .limit(1),
         ForecastRun,
-    )
-    latest_run_result = await session.execute(latest_run_query)
-    latest_run_id = latest_run_result.scalar_one_or_none()
+    ).cte("latest_run")
 
-    coverage_human = 0.0
-    coverage_merchandise = 0.0
-
-    if latest_run_id is not None:
-        # Avg(capacity/demand)*100, excluding rows with zero demand
-        for dimension, attr_name in [
-            (ForecastDimension.HUMAN, "coverage_human"),
-            (ForecastDimension.MERCHANDISE, "coverage_merchandise"),
-        ]:
-            coverage_query = tenant.apply(
-                select(
-                    func.avg(
+    coverage_human_sq = tenant.apply(
+        select(
+            func.avg(
+                case(
+                    (
+                        DailyForecast.dimension == ForecastDimension.HUMAN,
                         DailyForecast.predicted_capacity
                         / DailyForecast.predicted_demand
-                        * 100
-                    )
-                ).where(
-                    DailyForecast.forecast_run_id == latest_run_id,
-                    DailyForecast.dimension == dimension,
-                    DailyForecast.predicted_demand > 0,
-                ),
-                DailyForecast,
+                        * 100,
+                    ),
+                    else_=None,
+                )
             )
-            result = await session.execute(coverage_query)
-            value = result.scalar_one_or_none()
-            if attr_name == "coverage_human":
-                coverage_human = round(float(value), 2) if value else 0.0
-            else:
-                coverage_merchandise = round(float(value), 2) if value else 0.0
+        ).where(
+            DailyForecast.forecast_run_id == latest_run.c.id,
+            DailyForecast.predicted_demand > 0,
+        ),
+        DailyForecast,
+    ).scalar_subquery()
 
-    # 2. Active alerts count (not dismissed, not expired)
-    alerts_query = tenant.apply(
+    coverage_merch_sq = tenant.apply(
+        select(
+            func.avg(
+                case(
+                    (
+                        DailyForecast.dimension == ForecastDimension.MERCHANDISE,
+                        DailyForecast.predicted_capacity
+                        / DailyForecast.predicted_demand
+                        * 100,
+                    ),
+                    else_=None,
+                )
+            )
+        ).where(
+            DailyForecast.forecast_run_id == latest_run.c.id,
+            DailyForecast.predicted_demand > 0,
+        ),
+        DailyForecast,
+    ).scalar_subquery()
+
+    alerts_count_sq = tenant.apply(
         select(func.count(DashboardAlert.id)).where(
             DashboardAlert.dismissed_at.is_(None),
         ),
         DashboardAlert,
-    )
-    alerts_result = await session.execute(alerts_query)
-    active_alerts_count = alerts_result.scalar_one() or 0
+    ).scalar_subquery()
 
-    # 3. Average forecast accuracy across completed runs
-    accuracy_query = tenant.apply(
+    accuracy_sq = tenant.apply(
         select(func.avg(ForecastRun.accuracy_score)).where(
             ForecastRun.status == ForecastStatus.COMPLETED,
             ForecastRun.accuracy_score.is_not(None),
         ),
         ForecastRun,
-    )
-    accuracy_result = await session.execute(accuracy_query)
-    accuracy_raw = accuracy_result.scalar_one_or_none()
-    forecast_accuracy = round(float(accuracy_raw), 4) if accuracy_raw else None
+    ).scalar_subquery()
 
-    # 4. Last forecast completion date
-    last_date_query = tenant.apply(
+    last_date_sq = tenant.apply(
         select(func.max(ForecastRun.completed_at)).where(
             ForecastRun.status == ForecastStatus.COMPLETED,
         ),
         ForecastRun,
+    ).scalar_subquery()
+
+    query = select(
+        coverage_human_sq.label("coverage_human"),
+        coverage_merch_sq.label("coverage_merchandise"),
+        alerts_count_sq.label("active_alerts_count"),
+        accuracy_sq.label("forecast_accuracy"),
+        last_date_sq.label("last_forecast_date"),
     )
-    last_date_result = await session.execute(last_date_query)
-    last_forecast_date = last_date_result.scalar_one_or_none()
+    row = (await session.execute(query)).one()
+    coverage_human = round(float(row.coverage_human), 2) if row.coverage_human else 0.0
+    coverage_merchandise = (
+        round(float(row.coverage_merchandise), 2) if row.coverage_merchandise else 0.0
+    )
+    active_alerts_count = row.active_alerts_count or 0
+    forecast_accuracy = (
+        round(float(row.forecast_accuracy), 4) if row.forecast_accuracy else None
+    )
+    last_forecast_date = row.last_forecast_date
 
     return DashboardSummary(
         coverage_human=coverage_human,

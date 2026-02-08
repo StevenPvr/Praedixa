@@ -48,9 +48,7 @@ async def get_alert_scenarios(
             options=[ScenarioOptionRead.model_validate(opt) for opt in options],
             pareto_frontier=[ScenarioOptionRead.model_validate(opt) for opt in pareto],
             recommended=(
-                ScenarioOptionRead.model_validate(recommended)
-                if recommended
-                else None
+                ScenarioOptionRead.model_validate(recommended) if recommended else None
             ),
         ),
         timestamp=datetime.now(UTC).isoformat(),
@@ -81,9 +79,7 @@ async def generate_alert_scenarios(
             options=[ScenarioOptionRead.model_validate(opt) for opt in options],
             pareto_frontier=[ScenarioOptionRead.model_validate(opt) for opt in pareto],
             recommended=(
-                ScenarioOptionRead.model_validate(recommended)
-                if recommended
-                else None
+                ScenarioOptionRead.model_validate(recommended) if recommended else None
             ),
         ),
         timestamp=datetime.now(UTC).isoformat(),

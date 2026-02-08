@@ -31,6 +31,15 @@ depends_on: str | Sequence[str] | None = None
 # Tables with direct organization_id column
 _DIRECT_ORG_TABLES = [
     "users",
+    "sites",
+    "departments",
+    "employees",
+    "absences",
+    "forecast_runs",
+    "daily_forecasts",
+    "decisions",
+    "dashboard_alerts",
+    "action_plans",
     "client_datasets",
 ]
 

@@ -10,9 +10,8 @@ Covers:
 
 import random
 import uuid
-from datetime import UTC, date, datetime, timedelta
+from datetime import date
 from decimal import Decimal
-from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -20,7 +19,6 @@ import pytest
 from app.models.operational import (
     CoverageAlertSeverity,
     CoverageAlertStatus,
-    Horizon,
     ShiftType,
 )
 from app.services.mock_forecast_service import (
@@ -36,7 +34,6 @@ from tests.unit.conftest import (
     make_mock_session,
     make_scalars_result,
 )
-
 
 # ── _sigmoid ────────────────────────────────────────────────────
 

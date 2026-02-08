@@ -262,11 +262,28 @@ class TestDatasetListIsolation:
 class TestDatasetGetIsolation:
     """GET /api/v1/datasets/{id} returns 404 for cross-org resources."""
 
-    async def test_org_a_sees_own_dataset(self, client_org_a: AsyncClient) -> None:
-        with patch(
-            "app.routers.datasets.get_dataset",
-            new_callable=AsyncMock,
-            return_value=_mock_dataset_read(),
+    async def test_org_a_sees_own_dataset(
+        self, client_org_a: AsyncClient, mock_session: AsyncMock
+    ) -> None:
+        from unittest.mock import MagicMock
+
+        # session.execute for the aggregation query returns (row_count, last_ingestion_at)
+        # Use MagicMock (not AsyncMock) for the result so .one() is sync
+        agg_result = MagicMock()
+        agg_result.one.return_value = (500, None)
+        mock_session.execute = AsyncMock(return_value=agg_result)
+
+        with (
+            patch(
+                "app.routers.datasets.get_dataset",
+                new_callable=AsyncMock,
+                return_value=_mock_dataset_read(),
+            ),
+            patch(
+                "app.routers.datasets.get_dataset_columns",
+                new_callable=AsyncMock,
+                return_value=[_mock_column()],
+            ),
         ):
             response = await client_org_a.get(f"/api/v1/datasets/{ORG_A_DATASET_ID}")
 
@@ -364,7 +381,7 @@ class TestIngestionLogIsolation:
             )
 
         assert response.status_code == 200
-        assert len(response.json()["data"]) == 1
+        assert len(response.json()["data"]["entries"]) == 1
 
         tenant_used: TenantFilter = mock_svc.call_args.kwargs["tenant"]
         assert tenant_used.organization_id == str(ORG_A_ID)

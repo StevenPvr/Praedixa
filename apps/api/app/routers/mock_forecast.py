@@ -14,7 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_db_session, get_tenant_filter
 from app.core.security import TenantFilter, require_role
-from app.schemas.operational import MockForecastTriggerRequest, MockForecastTriggerResponse
+from app.schemas.operational import (
+    MockForecastTriggerRequest,
+    MockForecastTriggerResponse,
+)
 from app.schemas.responses import ApiResponse
 from app.services.mock_forecast_service import generate_mock_forecasts
 

@@ -120,9 +120,7 @@ describe("HeatmapGrid", () => {
 
   it("defaults value to 0 for missing cell data", () => {
     const sparseRows = ["Site A", "Missing"];
-    render(
-      <HeatmapGrid cells={cells} rows={sparseRows} columns={columns} />,
-    );
+    render(<HeatmapGrid cells={cells} rows={sparseRows} columns={columns} />);
     // Missing row cells should show 0
     const zeroCells = screen.getAllByText("0");
     expect(zeroCells.length).toBeGreaterThanOrEqual(2);

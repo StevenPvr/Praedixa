@@ -7,22 +7,17 @@ using service-level mocking.
 import uuid
 from datetime import date
 from decimal import Decimal
-from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from app.core.exceptions import NotFoundError
 from app.models.operational import (
-    CoverageAlertSeverity,
-    CoverageAlertStatus,
     Horizon,
     ScenarioOptionType,
     ShiftType,
 )
 from app.services.canonical_data_service import (
     create_canonical_record,
-    list_canonical_records,
 )
 from app.services.cost_parameter_service import (
     create_cost_parameter,
@@ -38,7 +33,6 @@ from app.services.mock_forecast_service import generate_mock_forecasts
 from app.services.scenario_engine_service import (
     _compute_all_options,
     compute_pareto_frontier,
-    generate_scenarios,
     select_recommendation,
 )
 from tests.unit.conftest import (
@@ -52,7 +46,6 @@ from tests.unit.conftest import (
     make_scalar_result,
     make_scalars_result,
 )
-
 
 ORG_ID = "11111111-1111-1111-1111-111111111111"
 
@@ -336,10 +329,14 @@ class TestEndToEndFormulas:
         hs = next(o for o in options if o["option_type"] == ScenarioOptionType.HS)
         assert hs["heures_couvertes"] == Decimal("10.00")
 
-        interim = next(o for o in options if o["option_type"] == ScenarioOptionType.INTERIM)
+        interim = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.INTERIM
+        )
         assert interim["heures_couvertes"] == Decimal("20.00")
 
-        outsource = next(o for o in options if o["option_type"] == ScenarioOptionType.OUTSOURCE)
+        outsource = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.OUTSOURCE
+        )
         assert outsource["heures_couvertes"] == Decimal("100.00")
 
     def test_pareto_then_recommendation_pipeline(self):

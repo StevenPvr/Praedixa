@@ -21,8 +21,17 @@ vi.mock("@praedixa/ui", () => ({
   MetricCard: ({ label, value }: { label: string; value: string | number }) => (
     <div data-testid={`metric-${label}`}>{value}</div>
   ),
-  SelectDropdown: ({ label, onChange }: { label?: string; onChange: (v: string) => void }) => (
-    <select data-testid={`select-${label}`} onChange={(e) => onChange(e.target.value)}>
+  SelectDropdown: ({
+    label,
+    onChange,
+  }: {
+    label?: string;
+    onChange: (v: string) => void;
+  }) => (
+    <select
+      data-testid={`select-${label}`}
+      onChange={(e) => onChange(e.target.value)}
+    >
       <option value="all">All</option>
     </select>
   ),

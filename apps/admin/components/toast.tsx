@@ -1,13 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  CheckCircle2,
-  AlertTriangle,
-  Info,
-  XCircle,
-  X,
-} from "lucide-react";
+import { CheckCircle2, AlertTriangle, Info, XCircle, X } from "lucide-react";
 import { cn } from "@praedixa/ui";
 
 export type ToastVariant = "success" | "error" | "warning" | "info";
@@ -82,7 +76,10 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
         exiting ? "animate-toast-out" : "animate-toast-in",
       )}
     >
-      <Icon className={cn("mt-0.5 h-5 w-5 shrink-0", style.text)} aria-hidden="true" />
+      <Icon
+        className={cn("mt-0.5 h-5 w-5 shrink-0", style.text)}
+        aria-hidden="true"
+      />
       <p className={cn("flex-1 text-sm font-medium", style.text)}>
         {toast.message}
       </p>

@@ -25,6 +25,23 @@ const MOCK_USER = {
   updated_at: "2026-01-01T00:00:00Z",
 };
 
+// Super-admin user for admin back-office E2E tests
+const MOCK_ADMIN_USER = {
+  id: "sa-00000000-0000-0000-0000-000000000001",
+  aud: "authenticated",
+  role: "authenticated",
+  email: "superadmin@praedixa.com",
+  email_confirmed_at: "2026-01-01T00:00:00Z",
+  app_metadata: {
+    provider: "email",
+    providers: ["email"],
+    role: "super_admin",
+  },
+  user_metadata: {},
+  created_at: "2026-01-01T00:00:00Z",
+  updated_at: "2026-01-01T00:00:00Z",
+};
+
 const MOCK_SESSION = {
   access_token: "mock-access-token-e2e",
   token_type: "bearer",
@@ -48,9 +65,12 @@ const server = http.createServer((req, res) => {
   }
 
   // GET /auth/v1/user — called by middleware's getUser()
+  // Detect admin token from Authorization header to return super_admin user
   if (req.url?.startsWith("/auth/v1/user")) {
+    const authHeader = req.headers.authorization || "";
+    const isAdmin = authHeader.includes("admin");
     res.writeHead(200);
-    res.end(JSON.stringify(MOCK_USER));
+    res.end(JSON.stringify(isAdmin ? MOCK_ADMIN_USER : MOCK_USER));
     return;
   }
 

@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import { FileText } from "lucide-react";
-import {
-  DataTable,
-  type DataTableColumn,
-} from "@praedixa/ui";
+import { DataTable, type DataTableColumn } from "@praedixa/ui";
 import { useApiGetPaginated } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import { ErrorFallback } from "@/components/error-fallback";
@@ -54,8 +51,11 @@ export default function AuditPage() {
   const queryString = params.toString();
   const baseUrl = `${ADMIN_ENDPOINTS.auditLog}${queryString ? `?${queryString}` : ""}`;
 
-  const { data, total, error, refetch } =
-    useApiGetPaginated<AuditLogEntry>(baseUrl, page, 30);
+  const { data, total, error, refetch } = useApiGetPaginated<AuditLogEntry>(
+    baseUrl,
+    page,
+    30,
+  );
 
   const columns: DataTableColumn<AuditLogEntry>[] = [
     {
@@ -101,9 +101,7 @@ export default function AuditPage() {
       key: "ipAddress",
       label: "IP",
       render: (row) => (
-        <span className="font-mono text-xs text-gray-400">
-          {row.ipAddress}
-        </span>
+        <span className="font-mono text-xs text-gray-400">{row.ipAddress}</span>
       ),
     },
     {

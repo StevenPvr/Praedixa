@@ -242,15 +242,13 @@ async def test_override_stats_200() -> None:
         return_value=stats,
     ):
         async with await _make_client(session) as client:
-            response = await client.get(
-                "/api/v1/operational-decisions/override-stats"
-            )
+            response = await client.get("/api/v1/operational-decisions/override-stats")
 
     app.dependency_overrides.clear()
     assert response.status_code == 200
     data = response.json()
     assert data["success"] is True
-    assert data["data"]["total"] == 10
+    assert data["data"]["totalDecisions"] == 10
 
 
 async def test_override_stats_401_no_auth() -> None:
@@ -258,9 +256,7 @@ async def test_override_stats_401_no_auth() -> None:
     app.dependency_overrides.clear()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.get(
-            "/api/v1/operational-decisions/override-stats"
-        )
+        response = await client.get("/api/v1/operational-decisions/override-stats")
     app.dependency_overrides.clear()
     assert response.status_code == 401
 
@@ -279,9 +275,7 @@ async def test_get_decision_200() -> None:
         return_value=decision,
     ):
         async with await _make_client(session) as client:
-            response = await client.get(
-                f"/api/v1/operational-decisions/{DECISION_ID}"
-            )
+            response = await client.get(f"/api/v1/operational-decisions/{DECISION_ID}")
 
     app.dependency_overrides.clear()
     assert response.status_code == 200
@@ -303,9 +297,7 @@ async def test_get_decision_404() -> None:
         side_effect=NotFoundError("OperationalDecision", str(missing_id)),
     ):
         async with await _make_client(session) as client:
-            response = await client.get(
-                f"/api/v1/operational-decisions/{missing_id}"
-            )
+            response = await client.get(f"/api/v1/operational-decisions/{missing_id}")
 
     app.dependency_overrides.clear()
     assert response.status_code == 404
@@ -318,9 +310,7 @@ async def test_get_decision_401_no_auth() -> None:
     app.dependency_overrides.clear()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.get(
-            f"/api/v1/operational-decisions/{DECISION_ID}"
-        )
+        response = await client.get(f"/api/v1/operational-decisions/{DECISION_ID}")
     app.dependency_overrides.clear()
     assert response.status_code == 401
 

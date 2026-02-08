@@ -19,7 +19,9 @@ vi.mock("@praedixa/ui", () => ({
   DataTable: ({ data }: { data: unknown[] }) => (
     <table data-testid="data-table">
       <tbody>
-        <tr><td>{data?.length ?? 0} rows</td></tr>
+        <tr>
+          <td>{data?.length ?? 0} rows</td>
+        </tr>
       </tbody>
     </table>
   ),
@@ -29,17 +31,22 @@ vi.mock("@praedixa/ui", () => ({
 }));
 
 // Mock lucide-react
-vi.mock("lucide-react", () =>
-  new Proxy({}, {
-    get: (_target, prop) => {
-      if (prop === "__esModule") return true;
-      if (prop === "then") return undefined;
-      return ({ className }: { className?: string }) => (
-        <span data-testid={`icon-${String(prop)}`} className={className} />
-      );
-    },
-    has: (_target, prop) => prop !== "then",
-  })
+vi.mock(
+  "lucide-react",
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_target, prop) => {
+          if (prop === "__esModule") return true;
+          if (prop === "then") return undefined;
+          return ({ className }: { className?: string }) => (
+            <span data-testid={`icon-${String(prop)}`} className={className} />
+          );
+        },
+        has: (_target, prop) => prop !== "then",
+      },
+    ),
 );
 
 // Mock error fallback
@@ -56,7 +63,8 @@ vi.mock("@/hooks/use-api", () => ({
 
 vi.mock("@/lib/api/endpoints", () => ({
   ADMIN_ENDPOINTS: {
-    orgCostParams: (orgId: string) => `/api/v1/admin/organizations/${orgId}/cost-params`,
+    orgCostParams: (orgId: string) =>
+      `/api/v1/admin/organizations/${orgId}/cost-params`,
   },
 }));
 
@@ -112,7 +120,9 @@ describe("OrgCostParamsPage", () => {
       refetch: vi.fn(),
     });
     render(<OrgCostParamsPage />);
-    expect(screen.getByTestId("error-fallback")).toHaveTextContent("Network error");
+    expect(screen.getByTestId("error-fallback")).toHaveTextContent(
+      "Network error",
+    );
   });
 
   it("shows record count", () => {

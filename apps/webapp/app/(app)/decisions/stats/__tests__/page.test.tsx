@@ -75,9 +75,7 @@ describe("DecisionStatsPage", () => {
         totalDecisions: 100,
         overrideCount: 15,
         overridePct: 15.0,
-        topOverrideReasons: [
-          { reason: "Contexte local", count: 8 },
-        ],
+        topOverrideReasons: [{ reason: "Contexte local", count: 8 }],
         avgCostDelta: 250,
       },
       loading: false,

@@ -17,7 +17,14 @@ test.describe("Admin back-office smoke tests", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
-          data: { totalOrganizations: 5, totalUsers: 42, totalDatasets: 10, totalForecasts: 100, activeOrganizations: 3, totalDecisions: 200 },
+          data: {
+            totalOrganizations: 5,
+            totalUsers: 42,
+            totalDatasets: 10,
+            totalForecasts: 100,
+            activeOrganizations: 3,
+            totalDecisions: 200,
+          },
           timestamp: "2026-02-07T12:00:00Z",
         }),
       }),
@@ -28,7 +35,11 @@ test.describe("Admin back-office smoke tests", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
-          data: { ingestionSuccessRate: 0.95, ingestionErrorCount: 3, apiErrorRate: 0.01 },
+          data: {
+            ingestionSuccessRate: 0.95,
+            ingestionErrorCount: 3,
+            apiErrorRate: 0.01,
+          },
           timestamp: "2026-02-07T12:00:00Z",
         }),
       }),

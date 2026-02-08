@@ -34,10 +34,8 @@ from tests.unit.conftest import (
     _make_scenario_option,
     _make_tenant,
     make_mock_session,
-    make_scalar_result,
     make_scalars_result,
 )
-
 
 # ── Helpers ──────────────────────────────────────────────────────
 
@@ -63,11 +61,15 @@ def _make_cp_dict(**overrides):
 
 class TestRounding:
     def test_round2(self):
-        assert _round2(Decimal("1.005")) == Decimal("1.00") or _round2(Decimal("1.005")) == Decimal("1.01")
+        assert _round2(Decimal("1.005")) == Decimal("1.00") or _round2(
+            Decimal("1.005")
+        ) == Decimal("1.01")
         assert _round2(Decimal("1.999")) == Decimal("2.00")
 
     def test_round4(self):
-        assert _round4(Decimal("0.12345")) == Decimal("0.1235") or _round4(Decimal("0.12345")) == Decimal("0.1234")
+        assert _round4(Decimal("0.12345")) == Decimal("0.1235") or _round4(
+            Decimal("0.12345")
+        ) == Decimal("0.1234")
 
 
 # ── _compute_all_options — zero gap ─────────────────────────────
@@ -114,7 +116,9 @@ class TestComputeAllOptionsZeroGap:
 
 class TestComputeAllOptionsFormulas:
     def test_hs_formula(self):
-        cp = _make_cp_dict(c_int=Decimal("40.00"), maj_hs=Decimal("0.25"), cap_hs_shift=30)
+        cp = _make_cp_dict(
+            c_int=Decimal("40.00"), maj_hs=Decimal("0.25"), cap_hs_shift=30
+        )
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
         hs = next(o for o in options if o["option_type"] == ScenarioOptionType.HS)
@@ -141,10 +145,16 @@ class TestComputeAllOptionsFormulas:
         assert hs["contraintes_json"]["capped"] is False
 
     def test_interim_formula(self):
-        cp = _make_cp_dict(c_interim=Decimal("50.00"), premium_urgence=Decimal("0.10"), cap_interim_site=50)
+        cp = _make_cp_dict(
+            c_interim=Decimal("50.00"),
+            premium_urgence=Decimal("0.10"),
+            cap_interim_site=50,
+        )
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
-        interim = next(o for o in options if o["option_type"] == ScenarioOptionType.INTERIM)
+        interim = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.INTERIM
+        )
         # interim_hours = min(10, 50) = 10
         # interim_cost = 10 * 50 * 1.10 = 550
         assert interim["cout_total_eur"] == Decimal("550.00")
@@ -155,7 +165,9 @@ class TestComputeAllOptionsFormulas:
         cp = _make_cp_dict(cap_interim_site=5)
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
-        interim = next(o for o in options if o["option_type"] == ScenarioOptionType.INTERIM)
+        interim = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.INTERIM
+        )
         assert interim["heures_couvertes"] == Decimal("5.00")
         assert interim["service_attendu_pct"] == Decimal("0.5000")
         assert interim["contraintes_json"]["capped"] is True
@@ -164,7 +176,9 @@ class TestComputeAllOptionsFormulas:
         cp = _make_cp_dict()
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
-        intra = next(o for o in options if o["option_type"] == ScenarioOptionType.REALLOC_INTRA)
+        intra = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.REALLOC_INTRA
+        )
         # intra_cost = 10 * 5.00 = 50.00
         assert intra["cout_total_eur"] == Decimal("50.00")
         # intra_covered = 10 * 0.85 = 8.50
@@ -175,7 +189,9 @@ class TestComputeAllOptionsFormulas:
         cp = _make_cp_dict()
         gap = Decimal("16")  # 16h = 2 persons needed
         options = _compute_all_options(gap, cp)
-        inter = next(o for o in options if o["option_type"] == ScenarioOptionType.REALLOC_INTER)
+        inter = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.REALLOC_INTER
+        )
         # persons_needed = 16/8 = 2
         # inter_travel = 2 * 80 = 160
         # inter_friction = 16 * 8 = 128
@@ -189,7 +205,9 @@ class TestComputeAllOptionsFormulas:
         cp = _make_cp_dict(c_backlog=Decimal("60.00"))
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
-        adjust = next(o for o in options if o["option_type"] == ScenarioOptionType.SERVICE_ADJUST)
+        adjust = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.SERVICE_ADJUST
+        )
         # adjust_cost = 10 * 60 = 600
         assert adjust["cout_total_eur"] == Decimal("600.00")
         assert adjust["service_attendu_pct"] == Decimal("0.0000")
@@ -200,7 +218,9 @@ class TestComputeAllOptionsFormulas:
         cp = _make_cp_dict(c_interim=Decimal("50.00"))
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
-        outsource = next(o for o in options if o["option_type"] == ScenarioOptionType.OUTSOURCE)
+        outsource = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.OUTSOURCE
+        )
         # outsource_cost = 10 * 50 * 1.5 = 750
         assert outsource["cout_total_eur"] == Decimal("750.00")
         assert outsource["service_attendu_pct"] == Decimal("1.0000")
@@ -217,7 +237,9 @@ class TestComputeAllOptionsFormulas:
         options = _compute_all_options(gap, cp)
         hs = next(o for o in options if o["option_type"] == ScenarioOptionType.HS)
         assert hs["heures_couvertes"] == Decimal("5.00")
-        interim = next(o for o in options if o["option_type"] == ScenarioOptionType.INTERIM)
+        interim = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.INTERIM
+        )
         assert interim["heures_couvertes"] == Decimal("10.00")
 
     def test_very_small_gap(self):
@@ -240,7 +262,9 @@ class TestComputeAllOptionsFormulas:
         cp = _make_cp_dict(cap_interim_site=10)
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
-        interim = next(o for o in options if o["option_type"] == ScenarioOptionType.INTERIM)
+        interim = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.INTERIM
+        )
         assert interim["service_attendu_pct"] == Decimal("1.0000")
 
 

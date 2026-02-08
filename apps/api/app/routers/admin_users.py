@@ -43,9 +43,7 @@ async def list_users(
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> PaginatedResponse[AdminUserRead]:
     """List users for a specific organization."""
-    items, total = await list_org_users(
-        session, org_id, page=page, page_size=page_size
-    )
+    items, total = await list_org_users(session, org_id, page=page, page_size=page_size)
 
     await log_admin_action(
         session,

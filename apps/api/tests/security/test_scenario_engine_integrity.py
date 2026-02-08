@@ -10,8 +10,6 @@ Verifies:
 from decimal import Decimal
 from types import SimpleNamespace
 
-import pytest
-
 from app.models.operational import ScenarioOptionType
 from app.services.scenario_engine_service import (
     _compute_all_options,
@@ -65,10 +63,16 @@ class TestHSFormulaCorrectness:
 
 class TestInterimFormulaCorrectness:
     def test_cost_includes_urgency_premium(self):
-        cp = _cp(c_interim=Decimal("50"), premium_urgence=Decimal("0.20"), cap_interim_site=100)
+        cp = _cp(
+            c_interim=Decimal("50"),
+            premium_urgence=Decimal("0.20"),
+            cap_interim_site=100,
+        )
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
-        interim = next(o for o in options if o["option_type"] == ScenarioOptionType.INTERIM)
+        interim = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.INTERIM
+        )
         expected = Decimal("10") * Decimal("50") * Decimal("1.20")
         assert interim["cout_total_eur"] == expected.quantize(Decimal("0.01"))
 
@@ -76,7 +80,9 @@ class TestInterimFormulaCorrectness:
         cp = _cp(cap_interim_site=8)
         gap = Decimal("20")
         options = _compute_all_options(gap, cp)
-        interim = next(o for o in options if o["option_type"] == ScenarioOptionType.INTERIM)
+        interim = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.INTERIM
+        )
         assert interim["heures_couvertes"] == Decimal("8.00")
 
 
@@ -85,7 +91,9 @@ class TestReallocationFormulas:
         cp = _cp()
         gap = Decimal("20")
         options = _compute_all_options(gap, cp)
-        intra = next(o for o in options if o["option_type"] == ScenarioOptionType.REALLOC_INTRA)
+        intra = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.REALLOC_INTRA
+        )
         assert intra["heures_couvertes"] == Decimal("17.00")
         assert intra["service_attendu_pct"] == Decimal("0.8500")
 
@@ -93,7 +101,9 @@ class TestReallocationFormulas:
         cp = _cp()
         gap = Decimal("20")
         options = _compute_all_options(gap, cp)
-        inter = next(o for o in options if o["option_type"] == ScenarioOptionType.REALLOC_INTER)
+        inter = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.REALLOC_INTER
+        )
         assert inter["heures_couvertes"] == Decimal("15.00")
         assert inter["service_attendu_pct"] == Decimal("0.7500")
 
@@ -101,7 +111,9 @@ class TestReallocationFormulas:
         cp = _cp()
         gap = Decimal("8")  # 1 person needed
         options = _compute_all_options(gap, cp)
-        inter = next(o for o in options if o["option_type"] == ScenarioOptionType.REALLOC_INTER)
+        inter = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.REALLOC_INTER
+        )
         # travel = 1 * 80 = 80, friction = 8 * 8 = 64, total = 144
         assert inter["cout_total_eur"] == Decimal("144.00")
 
@@ -111,14 +123,18 @@ class TestServiceAdjustFormula:
         cp = _cp(c_backlog=Decimal("100"))
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
-        adjust = next(o for o in options if o["option_type"] == ScenarioOptionType.SERVICE_ADJUST)
+        adjust = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.SERVICE_ADJUST
+        )
         assert adjust["cout_total_eur"] == Decimal("1000.00")
 
     def test_service_is_zero(self):
         cp = _cp()
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
-        adjust = next(o for o in options if o["option_type"] == ScenarioOptionType.SERVICE_ADJUST)
+        adjust = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.SERVICE_ADJUST
+        )
         assert adjust["service_attendu_pct"] == Decimal("0.0000")
 
 
@@ -127,7 +143,9 @@ class TestOutsourceFormula:
         cp = _cp(c_interim=Decimal("50"))
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
-        outsource = next(o for o in options if o["option_type"] == ScenarioOptionType.OUTSOURCE)
+        outsource = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.OUTSOURCE
+        )
         expected = Decimal("10") * Decimal("50") * Decimal("1.50")
         assert outsource["cout_total_eur"] == expected.quantize(Decimal("0.01"))
 
@@ -135,7 +153,9 @@ class TestOutsourceFormula:
         cp = _cp()
         gap = Decimal("10")
         options = _compute_all_options(gap, cp)
-        outsource = next(o for o in options if o["option_type"] == ScenarioOptionType.OUTSOURCE)
+        outsource = next(
+            o for o in options if o["option_type"] == ScenarioOptionType.OUTSOURCE
+        )
         assert outsource["service_attendu_pct"] == Decimal("1.0000")
 
 
@@ -170,9 +190,7 @@ class TestParetoIntegrity:
                             or a.service_attendu_pct > b.service_attendu_pct
                         )
                     )
-                    assert not a_dominates_b, (
-                        f"Pareto violation: {a} dominates {b}"
-                    )
+                    assert not a_dominates_b, f"Pareto violation: {a} dominates {b}"
 
     def test_every_non_frontier_member_is_dominated(self):
         """Every option NOT in the frontier is dominated by some frontier member."""
@@ -268,7 +286,9 @@ class TestCostParameterRespect:
             cp = _cp(cap_interim_site=cap)
             gap = Decimal("200")
             options = _compute_all_options(gap, cp)
-            interim = next(o for o in options if o["option_type"] == ScenarioOptionType.INTERIM)
+            interim = next(
+                o for o in options if o["option_type"] == ScenarioOptionType.INTERIM
+            )
             assert interim["heures_couvertes"] <= Decimal(str(cap))
 
     def test_service_never_exceeds_one(self):

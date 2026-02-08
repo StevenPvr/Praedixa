@@ -16,8 +16,7 @@ Threat model:
 """
 
 import uuid
-from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from pydantic import ValidationError
@@ -141,7 +140,7 @@ class TestInviteServiceBlocksSuperAdmin:
 
         session.flush = AsyncMock(side_effect=assign_id)
 
-        user = await invite_user(
+        await invite_user(
             session,
             org_id=ORG_ID,
             email="legit@company.com",
@@ -173,7 +172,7 @@ class TestInviteServiceBlocksSuperAdmin:
         session = _make_mock_session(None)
         session.flush = AsyncMock()
 
-        user = await invite_user(
+        await invite_user(
             session,
             org_id=ORG_ID,
             email="new@company.com",
@@ -192,7 +191,7 @@ class TestInviteServiceBlocksSuperAdmin:
         session = _make_mock_session(None)
         session.flush = AsyncMock()
 
-        user = await invite_user(
+        await invite_user(
             session,
             org_id=ORG_ID,
             email="Admin@COMPANY.COM",
@@ -481,8 +480,8 @@ class TestJWTSourcedIdentity:
 
     def test_change_plan_schema_has_no_changed_by_field(self) -> None:
         """AdminChangePlan schema does not accept changed_by field."""
-        from app.schemas.admin import AdminChangePlan
         from app.models.organization import SubscriptionPlan
+        from app.schemas.admin import AdminChangePlan
 
         with pytest.raises(ValidationError) as exc_info:
             AdminChangePlan(
@@ -618,6 +617,6 @@ class TestListOrgUsersPagination:
         session = AsyncMock()
         session.execute = AsyncMock(side_effect=[count_result, list_result])
 
-        items, total = await list_org_users(session, ORG_ID)
+        _items, total = await list_org_users(session, ORG_ID)
 
         assert total == 0

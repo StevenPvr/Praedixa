@@ -35,7 +35,6 @@ from app.core.auth import JWTPayload
 from app.core.dependencies import get_current_user, get_db_session
 from app.main import app
 from app.models.absence import AbsenceStatus, AbsenceType
-
 from app.services.medical_masking import (
     _MASKED_REASON,
     _MEDICAL_ABSENCE_TYPES,
@@ -43,7 +42,6 @@ from app.services.medical_masking import (
     is_medical_absence_type,
     mask_medical_reasons,
 )
-
 
 # ── 1. Medical types are masked ──────────────────────────────────────
 
@@ -58,11 +56,13 @@ class TestMedicalTypeMasking:
     )
     def test_medical_type_reason_is_masked(self, medical_type: str) -> None:
         """Reason for medical absence type '{medical_type}' is masked."""
-        absences = [{
-            "type": medical_type,
-            "reason": "Patient has severe chronic pain",
-            "employee_id": "emp-001",
-        }]
+        absences = [
+            {
+                "type": medical_type,
+                "reason": "Patient has severe chronic pain",
+                "employee_id": "emp-001",
+            }
+        ]
         result = mask_medical_reasons(absences)
         assert result[0]["reason"] == _MASKED_REASON
 
@@ -72,15 +72,17 @@ class TestMedicalTypeMasking:
     )
     def test_medical_type_sensitive_fields_removed(self, medical_type: str) -> None:
         """Sensitive medical fields are removed for medical absence types."""
-        absences = [{
-            "type": medical_type,
-            "reason": "Flu",
-            "medical_certificate_required": True,
-            "medical_certificate_uploaded": True,
-            "diagnosis_code": "J06.9",
-            "medical_notes": "Doctor note attached",
-            "employee_id": "emp-001",
-        }]
+        absences = [
+            {
+                "type": medical_type,
+                "reason": "Flu",
+                "medical_certificate_required": True,
+                "medical_certificate_uploaded": True,
+                "diagnosis_code": "J06.9",
+                "medical_notes": "Doctor note attached",
+                "employee_id": "emp-001",
+            }
+        ]
         result = mask_medical_reasons(absences)
 
         for field in _SENSITIVE_FIELDS:
@@ -90,14 +92,16 @@ class TestMedicalTypeMasking:
 
     def test_medical_type_preserves_non_sensitive_fields(self) -> None:
         """Non-sensitive fields are preserved even for medical absences."""
-        absences = [{
-            "type": "sick_leave",
-            "reason": "Flu",
-            "employee_id": "emp-001",
-            "start_date": "2026-01-15",
-            "end_date": "2026-01-20",
-            "status": "approved",
-        }]
+        absences = [
+            {
+                "type": "sick_leave",
+                "reason": "Flu",
+                "employee_id": "emp-001",
+                "start_date": "2026-01-15",
+                "end_date": "2026-01-20",
+                "status": "approved",
+            }
+        ]
         result = mask_medical_reasons(absences)
         assert result[0]["employee_id"] == "emp-001"
         assert result[0]["start_date"] == "2026-01-15"
@@ -130,11 +134,13 @@ class TestNonMedicalPassthrough:
     def test_non_medical_reason_unchanged(self, non_medical_type: str) -> None:
         """Reason for non-medical type is passed through unmodified."""
         original_reason = "Family vacation in Spain"
-        absences = [{
-            "type": non_medical_type,
-            "reason": original_reason,
-            "employee_id": "emp-001",
-        }]
+        absences = [
+            {
+                "type": non_medical_type,
+                "reason": original_reason,
+                "employee_id": "emp-001",
+            }
+        ]
         result = mask_medical_reasons(absences)
         assert result[0]["reason"] == original_reason
 
@@ -150,12 +156,14 @@ class TestNonMedicalPassthrough:
         These fields might coincidentally be present in non-medical records
         (e.g., from a previous data migration). They should remain untouched.
         """
-        absences = [{
-            "type": non_medical_type,
-            "reason": "Standard leave",
-            "medical_certificate_required": False,
-            "medical_certificate_uploaded": False,
-        }]
+        absences = [
+            {
+                "type": non_medical_type,
+                "reason": "Standard leave",
+                "medical_certificate_required": False,
+                "medical_certificate_uploaded": False,
+            }
+        ]
         result = mask_medical_reasons(absences)
         assert "medical_certificate_required" in result[0]
         assert "medical_certificate_uploaded" in result[0]
@@ -236,10 +244,12 @@ class TestEdgeCases:
         """Supports enum objects with .value attribute."""
         from app.models.absence import AbsenceType
 
-        absences = [{
-            "type": AbsenceType.SICK_LEAVE,
-            "reason": "Doctor visit",
-        }]
+        absences = [
+            {
+                "type": AbsenceType.SICK_LEAVE,
+                "reason": "Doctor visit",
+            }
+        ]
         result = mask_medical_reasons(absences)
         assert result[0]["reason"] == _MASKED_REASON
 
@@ -247,10 +257,12 @@ class TestEdgeCases:
         """Non-medical enum objects are not masked."""
         from app.models.absence import AbsenceType
 
-        absences = [{
-            "type": AbsenceType.PAID_LEAVE,
-            "reason": "Holiday",
-        }]
+        absences = [
+            {
+                "type": AbsenceType.PAID_LEAVE,
+                "reason": "Holiday",
+            }
+        ]
         result = mask_medical_reasons(absences)
         assert result[0]["reason"] == "Holiday"
 
@@ -282,12 +294,14 @@ class TestImmutability:
 
     def test_original_data_unchanged(self) -> None:
         """The original list is not modified by masking."""
-        original = [{
-            "type": "sick_leave",
-            "reason": "Heart condition",
-            "medical_certificate_required": True,
-            "medical_certificate_uploaded": True,
-        }]
+        original = [
+            {
+                "type": "sick_leave",
+                "reason": "Heart condition",
+                "medical_certificate_required": True,
+                "medical_certificate_uploaded": True,
+            }
+        ]
         original_copy = copy.deepcopy(original)
 
         result = mask_medical_reasons(original)
@@ -351,7 +365,7 @@ class TestMedicalTypeCompleteness:
     def test_all_medical_types_in_frozenset(self) -> None:
         """The frozenset covers all expected medical types."""
         expected = {"sick_leave", "sick_leave_workplace", "maternity", "paternity"}
-        assert _MEDICAL_ABSENCE_TYPES == expected
+        assert expected == _MEDICAL_ABSENCE_TYPES
 
     def test_masked_reason_is_not_empty(self) -> None:
         """The masking placeholder is a non-empty string."""
@@ -449,9 +463,7 @@ class TestAdminAbsenceEndpointMasking:
         # Mock audit log (add + flush for log_admin_action)
         mock_session.execute = AsyncMock(side_effect=[count_result, list_result])
 
-        resp = await client.get(
-            f"/api/v1/admin/organizations/{_ORG_ID}/absences"
-        )
+        resp = await client.get(f"/api/v1/admin/organizations/{_ORG_ID}/absences")
 
         assert resp.status_code == 200
         data = resp.json()["data"]
@@ -478,9 +490,7 @@ class TestAdminAbsenceEndpointMasking:
 
         mock_session.execute = AsyncMock(side_effect=[count_result, list_result])
 
-        resp = await client.get(
-            f"/api/v1/admin/organizations/{_ORG_ID}/absences"
-        )
+        resp = await client.get(f"/api/v1/admin/organizations/{_ORG_ID}/absences")
 
         assert resp.status_code == 200
         data = resp.json()["data"]
@@ -509,9 +519,7 @@ class TestAdminAbsenceEndpointMasking:
 
         mock_session.execute = AsyncMock(side_effect=[count_result, list_result])
 
-        resp = await client.get(
-            f"/api/v1/admin/organizations/{_ORG_ID}/absences"
-        )
+        resp = await client.get(f"/api/v1/admin/organizations/{_ORG_ID}/absences")
 
         assert resp.status_code == 200
         data = resp.json()["data"]
@@ -542,9 +550,7 @@ class TestAdminAbsenceEndpointMasking:
 
         mock_session.execute = AsyncMock(side_effect=[count_result, list_result])
 
-        resp = await client.get(
-            f"/api/v1/admin/organizations/{_ORG_ID}/absences"
-        )
+        resp = await client.get(f"/api/v1/admin/organizations/{_ORG_ID}/absences")
 
         assert resp.status_code == 200
         assert resp.json()["data"] == []
@@ -573,9 +579,7 @@ class TestAdminAbsenceEndpointMasking:
 
         mock_session.execute = AsyncMock(side_effect=[count_result, list_result])
 
-        resp = await client.get(
-            f"/api/v1/admin/organizations/{_ORG_ID}/absences"
-        )
+        resp = await client.get(f"/api/v1/admin/organizations/{_ORG_ID}/absences")
 
         assert resp.status_code == 200
         data = resp.json()["data"]
@@ -604,9 +608,7 @@ class TestAdminAbsenceEndpointMasking:
 
         mock_session.execute = AsyncMock(side_effect=[count_result, list_result])
 
-        resp = await client.get(
-            f"/api/v1/admin/organizations/{_ORG_ID}/absences"
-        )
+        resp = await client.get(f"/api/v1/admin/organizations/{_ORG_ID}/absences")
 
         # The confidential reason must not appear ANYWHERE in the response body
         response_text = resp.text

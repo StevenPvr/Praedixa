@@ -25,9 +25,13 @@ describe("OperationalDecision", () => {
 
   it("references correct cross-domain types", () => {
     expectTypeOf<OperationalDecision["shift"]>().toEqualTypeOf<ShiftType>();
-    expectTypeOf<OperationalDecision["horizon"]>().toEqualTypeOf<AlertHorizon>();
+    expectTypeOf<
+      OperationalDecision["horizon"]
+    >().toEqualTypeOf<AlertHorizon>();
     expectTypeOf<OperationalDecision["decidedBy"]>().toEqualTypeOf<UUID>();
-    expectTypeOf<OperationalDecision["decisionDate"]>().toEqualTypeOf<ISODateString>();
+    expectTypeOf<
+      OperationalDecision["decisionDate"]
+    >().toEqualTypeOf<ISODateString>();
   });
 
   it("has optional option references", () => {
@@ -78,13 +82,15 @@ describe("OverrideStatistics", () => {
   });
 
   it("topOverrideReasons is an array of reason/count objects", () => {
-    expectTypeOf<
-      OverrideStatistics["topOverrideReasons"]
-    >().toEqualTypeOf<{ reason: string; count: number }[]>();
+    expectTypeOf<OverrideStatistics["topOverrideReasons"]>().toEqualTypeOf<
+      { reason: string; count: number }[]
+    >();
   });
 
   it("numeric fields are numbers", () => {
-    expectTypeOf<OverrideStatistics["totalDecisions"]>().toEqualTypeOf<number>();
+    expectTypeOf<
+      OverrideStatistics["totalDecisions"]
+    >().toEqualTypeOf<number>();
     expectTypeOf<OverrideStatistics["overrideCount"]>().toEqualTypeOf<number>();
     expectTypeOf<OverrideStatistics["overridePct"]>().toEqualTypeOf<number>();
     expectTypeOf<OverrideStatistics["avgCostDelta"]>().toEqualTypeOf<number>();

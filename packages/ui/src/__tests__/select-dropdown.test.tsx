@@ -12,34 +12,26 @@ const options: SelectOption[] = [
 
 describe("SelectDropdown", () => {
   it("renders a select element", () => {
-    render(
-      <SelectDropdown options={options} value="fr" onChange={() => {}} />,
-    );
+    render(<SelectDropdown options={options} value="fr" onChange={() => {}} />);
     expect(screen.getByRole("combobox")).toBeInTheDocument();
   });
 
   it("renders all options", () => {
-    render(
-      <SelectDropdown options={options} value="fr" onChange={() => {}} />,
-    );
+    render(<SelectDropdown options={options} value="fr" onChange={() => {}} />);
     expect(screen.getByText("France")).toBeInTheDocument();
     expect(screen.getByText("Belgique")).toBeInTheDocument();
     expect(screen.getByText("Suisse")).toBeInTheDocument();
   });
 
   it("has correct selected value", () => {
-    render(
-      <SelectDropdown options={options} value="be" onChange={() => {}} />,
-    );
+    render(<SelectDropdown options={options} value="be" onChange={() => {}} />);
     const select = screen.getByRole("combobox") as HTMLSelectElement;
     expect(select.value).toBe("be");
   });
 
   it("calls onChange when value changes", () => {
     const onChange = vi.fn();
-    render(
-      <SelectDropdown options={options} value="fr" onChange={onChange} />,
-    );
+    render(<SelectDropdown options={options} value="fr" onChange={onChange} />);
     fireEvent.change(screen.getByRole("combobox"), {
       target: { value: "be" },
     });
@@ -68,14 +60,14 @@ describe("SelectDropdown", () => {
         placeholder="Choisir un pays"
       />,
     );
-    const placeholder = screen.getByText("Choisir un pays") as HTMLOptionElement;
+    const placeholder = screen.getByText(
+      "Choisir un pays",
+    ) as HTMLOptionElement;
     expect(placeholder.disabled).toBe(true);
   });
 
   it("does not render placeholder when not provided", () => {
-    render(
-      <SelectDropdown options={options} value="fr" onChange={() => {}} />,
-    );
+    render(<SelectDropdown options={options} value="fr" onChange={() => {}} />);
     const allOptions = screen.getAllByRole("option");
     expect(allOptions).toHaveLength(3);
   });
@@ -93,9 +85,7 @@ describe("SelectDropdown", () => {
   });
 
   it("does not render label when not provided", () => {
-    render(
-      <SelectDropdown options={options} value="fr" onChange={() => {}} />,
-    );
+    render(<SelectDropdown options={options} value="fr" onChange={() => {}} />);
     expect(screen.queryByText("Pays")).not.toBeInTheDocument();
   });
 
@@ -112,16 +102,12 @@ describe("SelectDropdown", () => {
   });
 
   it("is not disabled by default", () => {
-    render(
-      <SelectDropdown options={options} value="fr" onChange={() => {}} />,
-    );
+    render(<SelectDropdown options={options} value="fr" onChange={() => {}} />);
     expect(screen.getByRole("combobox")).not.toBeDisabled();
   });
 
   it("disables individual options", () => {
-    render(
-      <SelectDropdown options={options} value="fr" onChange={() => {}} />,
-    );
+    render(<SelectDropdown options={options} value="fr" onChange={() => {}} />);
     const suisse = screen.getByText("Suisse") as HTMLOptionElement;
     expect(suisse.disabled).toBe(true);
   });
@@ -153,9 +139,7 @@ describe("SelectDropdown", () => {
   });
 
   it("renders chevron icon", () => {
-    render(
-      <SelectDropdown options={options} value="fr" onChange={() => {}} />,
-    );
+    render(<SelectDropdown options={options} value="fr" onChange={() => {}} />);
     // SVG with aria-hidden for the chevron
     const svg = document.querySelector("svg[aria-hidden='true']");
     expect(svg).toBeInTheDocument();

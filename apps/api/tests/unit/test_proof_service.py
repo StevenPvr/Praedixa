@@ -6,11 +6,9 @@ Covers:
 - get_proof_summary: aggregation, per-site breakdown, date filters
 """
 
-import uuid
 from datetime import date
 from decimal import Decimal
-from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -30,6 +28,13 @@ from tests.unit.conftest import (
 ORG_ID = "11111111-1111-1111-1111-111111111111"
 
 
+def _make_tuple_result(*values):
+    """Return a mock execute result where .one() returns a tuple."""
+    result = MagicMock()
+    result.one.return_value = values
+    return result
+
+
 # ── generate_proof_record ───────────────────────────────────────
 
 
@@ -43,20 +48,19 @@ class TestGenerateProofRecord:
             alertes_emises=0,
         )
 
-        alerts_count = MagicMock()
-        alerts_count.scalar_one.return_value = 0
-        alert_ids_result = MagicMock()
-        alert_ids_result.all.return_value = []
+        # Execute sequence for alertes_emises=0:
+        # 1. alerts_agg_q → .one() returns (count=0, gap=0)
+        # 2. upsert stmt → void
+        # 3. fetch_q → .scalar_one() returns proof
+        alerts_result = _make_tuple_result(0, 0)
         fetch_result = MagicMock()
         fetch_result.scalar_one.return_value = proof
 
         session = make_mock_session(
-            alerts_count,
-            alert_ids_result,
-            MagicMock(),  # upsert execute
+            alerts_result,
+            MagicMock(),  # upsert
             fetch_result,
         )
-        session.flush = AsyncMock()
 
         result = await generate_proof_record(
             session, tenant, site_id="site-paris", month=date(2026, 1, 1)
@@ -66,36 +70,31 @@ class TestGenerateProofRecord:
     @pytest.mark.asyncio
     async def test_with_alerts_calculates_bau(self):
         tenant = _make_tenant()
-        alert_id = uuid.uuid4()
         proof = _make_proof_record(
             cout_bau_eur=Decimal("480.00"),
             gain_net_eur=Decimal("480.00"),
         )
 
-        alerts_count = MagicMock()
-        alerts_count.scalar_one.return_value = 3
-        alert_ids_result = MagicMock()
-        alert_ids_result.all.return_value = [
-            (alert_id, Decimal("4.00")),
-            (uuid.uuid4(), Decimal("4.00")),
-            (uuid.uuid4(), Decimal("4.00")),
-        ]
+        # Execute sequence for alertes_emises > 0:
+        # 1. alerts_agg_q → .one() returns (count=3, gap=12.00)
+        # 2. opt_q → .scalar_one() returns Decimal("200.00")
+        # 3. dec_q → .one() returns (Decimal("100.00"), 2)
+        # 4. upsert stmt → void
+        # 5. fetch_q → .scalar_one() returns proof
+        alerts_result = _make_tuple_result(3, Decimal("12.00"))
         opt_result = MagicMock()
         opt_result.scalar_one.return_value = Decimal("200.00")
-        dec_result = MagicMock()
-        dec_result.one.return_value = (Decimal("100.00"), 2)
+        dec_result = _make_tuple_result(Decimal("100.00"), 2)
         fetch_result = MagicMock()
         fetch_result.scalar_one.return_value = proof
 
         session = make_mock_session(
-            alerts_count,
-            alert_ids_result,
+            alerts_result,
             opt_result,
             dec_result,
             MagicMock(),  # upsert
             fetch_result,
         )
-        session.flush = AsyncMock()
 
         result = await generate_proof_record(
             session, tenant, site_id="site-paris", month=date(2026, 1, 15)
@@ -108,20 +107,15 @@ class TestGenerateProofRecord:
         tenant = _make_tenant()
         proof = _make_proof_record()
 
-        alerts_count = MagicMock()
-        alerts_count.scalar_one.return_value = 0
-        alert_ids_result = MagicMock()
-        alert_ids_result.all.return_value = []
+        alerts_result = _make_tuple_result(0, 0)
         fetch_result = MagicMock()
         fetch_result.scalar_one.return_value = proof
 
         session = make_mock_session(
-            alerts_count,
-            alert_ids_result,
+            alerts_result,
             MagicMock(),
             fetch_result,
         )
-        session.flush = AsyncMock()
 
         result = await generate_proof_record(
             session, tenant, site_id="site-paris", month=date(2026, 12, 15)
@@ -134,22 +128,17 @@ class TestGenerateProofRecord:
         tenant = _make_tenant()
         proof = _make_proof_record()
 
-        alerts_count = MagicMock()
-        alerts_count.scalar_one.return_value = 0
-        alert_ids_result = MagicMock()
-        alert_ids_result.all.return_value = []
+        alerts_result = _make_tuple_result(0, 0)
         fetch_result = MagicMock()
         fetch_result.scalar_one.return_value = proof
 
         session = make_mock_session(
-            alerts_count,
-            alert_ids_result,
+            alerts_result,
             MagicMock(),
             fetch_result,
         )
-        session.flush = AsyncMock()
 
-        result = await generate_proof_record(
+        await generate_proof_record(
             session, tenant, site_id="site-paris", month=date(2026, 1, 1)
         )
         session.execute.assert_called()
@@ -159,20 +148,15 @@ class TestGenerateProofRecord:
         tenant = _make_tenant()
         proof = _make_proof_record(adoption_pct=Decimal("0.0000"))
 
-        alerts_count = MagicMock()
-        alerts_count.scalar_one.return_value = 0
-        alert_ids_result = MagicMock()
-        alert_ids_result.all.return_value = []
+        alerts_result = _make_tuple_result(0, 0)
         fetch_result = MagicMock()
         fetch_result.scalar_one.return_value = proof
 
         session = make_mock_session(
-            alerts_count,
-            alert_ids_result,
+            alerts_result,
             MagicMock(),
             fetch_result,
         )
-        session.flush = AsyncMock()
 
         result = await generate_proof_record(
             session, tenant, site_id="site-paris", month=date(2026, 1, 1)
@@ -184,20 +168,16 @@ class TestGenerateProofRecord:
         tenant = _make_tenant()
         proof = _make_proof_record()
 
-        alerts_count = MagicMock()
-        alerts_count.scalar_one.return_value = None
-        alert_ids_result = MagicMock()
-        alert_ids_result.all.return_value = []
+        # When count returns None, coerced to 0
+        alerts_result = _make_tuple_result(None, None)
         fetch_result = MagicMock()
         fetch_result.scalar_one.return_value = proof
 
         session = make_mock_session(
-            alerts_count,
-            alert_ids_result,
+            alerts_result,
             MagicMock(),
             fetch_result,
         )
-        session.flush = AsyncMock()
 
         result = await generate_proof_record(
             session, tenant, site_id="site-paris", month=date(2026, 1, 1)
@@ -209,20 +189,15 @@ class TestGenerateProofRecord:
         tenant = _make_tenant()
         proof = _make_proof_record()
 
-        alerts_count = MagicMock()
-        alerts_count.scalar_one.return_value = 0
-        alert_ids_result = MagicMock()
-        alert_ids_result.all.return_value = []
+        alerts_result = _make_tuple_result(0, 0)
         fetch_result = MagicMock()
         fetch_result.scalar_one.return_value = proof
 
         session = make_mock_session(
-            alerts_count,
-            alert_ids_result,
+            alerts_result,
             MagicMock(),
             fetch_result,
         )
-        session.flush = AsyncMock()
 
         await generate_proof_record(
             session, tenant, site_id="site-paris", month=date(2026, 1, 1)
@@ -265,9 +240,7 @@ class TestListProofRecords:
             make_scalar_result(1),
             make_scalars_result([rec]),
         )
-        items, total = await list_proof_records(
-            session, tenant, site_id="site-lyon"
-        )
+        _items, total = await list_proof_records(session, tenant, site_id="site-lyon")
         assert total == 1
 
     @pytest.mark.asyncio
@@ -277,9 +250,7 @@ class TestListProofRecords:
             make_scalar_result(50),
             make_scalars_result([_make_proof_record()]),
         )
-        items, total = await list_proof_records(
-            session, tenant, page=3, page_size=5
-        )
+        _items, total = await list_proof_records(session, tenant, page=3, page_size=5)
         assert total == 50
 
     @pytest.mark.asyncio
@@ -288,7 +259,7 @@ class TestListProofRecords:
         count_result = MagicMock()
         count_result.scalar_one.return_value = None
         session = make_mock_session(count_result, make_scalars_result([]))
-        items, total = await list_proof_records(session, tenant)
+        _items, total = await list_proof_records(session, tenant)
         assert total == 0
 
     @pytest.mark.asyncio
@@ -350,9 +321,7 @@ class TestGetProofSummary:
         site_result.all.return_value = []
 
         session = make_mock_session(agg_result, site_result)
-        result = await get_proof_summary(
-            session, tenant, date_from=date(2026, 1, 1)
-        )
+        result = await get_proof_summary(session, tenant, date_from=date(2026, 1, 1))
         assert result["total_gain"] == Decimal("5000")
 
     @pytest.mark.asyncio
@@ -364,9 +333,7 @@ class TestGetProofSummary:
         site_result.all.return_value = []
 
         session = make_mock_session(agg_result, site_result)
-        result = await get_proof_summary(
-            session, tenant, date_to=date(2026, 6, 1)
-        )
+        result = await get_proof_summary(session, tenant, date_to=date(2026, 6, 1))
         assert result["total_gain"] == Decimal("3000")
 
     @pytest.mark.asyncio

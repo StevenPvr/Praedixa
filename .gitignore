@@ -93,12 +93,12 @@ coverage/
 .nyc_output/
 playwright-report/
 test-results/
+e2e-coverage/
 
 # -----------------------------------------------------------------------------
 # Data & ML (ne pas commit les données/modèles)
 # -----------------------------------------------------------------------------
-data/raw/
-data/processed/
+data/
 *.parquet
 *.csv
 !tests/fixtures/*.csv

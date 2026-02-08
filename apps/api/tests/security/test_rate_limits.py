@@ -12,6 +12,7 @@ These tests serve as contractual evidence for security gate P0-02.
 
 from unittest.mock import AsyncMock, MagicMock
 
+import fastapi
 import pytest
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -409,3 +410,75 @@ class TestHealthEndpointExempt:
     def test_exempt_paths_is_frozenset(self) -> None:
         """Exempt paths is immutable (cannot be modified at runtime)."""
         assert isinstance(_EXEMPT_PATHS, frozenset)
+
+
+class TestBodyReplayWithoutContentLength:
+    """Lines 173-181: body replay when POST has no Content-Length but body < max."""
+
+    def test_post_without_content_length_body_replayed(self) -> None:
+        """POST with no Content-Length and body under limit succeeds with body replay."""
+        from httpx import ASGITransport, AsyncClient
+
+        app = FastAPI()
+
+        @app.post("/echo")
+        async def echo_route(request: fastapi.Request) -> dict:
+            body = await request.body()
+            return {"size": len(body)}
+
+        app.add_middleware(RequestBodySizeLimitMiddleware)
+
+        import asyncio
+
+        async def _run() -> None:
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as ac:
+                # Send raw content without Content-Length by using the content kwarg
+                # httpx with content=bytes will add Content-Length, so we use
+                # a streaming approach to avoid it.
+                resp = await ac.post(
+                    "/echo",
+                    content=b"hello world",
+                    headers={"Transfer-Encoding": "chunked"},
+                )
+                # The middleware should replay the body and the route should succeed
+                assert resp.status_code == 200
+                assert resp.json()["size"] == 11
+
+        asyncio.get_event_loop().run_until_complete(_run())
+
+    def test_post_without_content_length_under_limit_accepted(self) -> None:
+        """POST without Content-Length and small body is accepted (body replayed)."""
+        app = FastAPI()
+
+        @app.post("/echo")
+        async def echo_route(request: fastapi.Request) -> dict:
+            body = await request.body()
+            return {"length": len(body)}
+
+        middleware = RequestBodySizeLimitMiddleware(app=app, max_body_size=1024)
+
+        request = MagicMock()
+        request.url.path = "/upload"
+        request.method = "POST"
+        request.headers.get.return_value = None
+        request.body = AsyncMock(return_value=b"small payload")
+
+        call_next = AsyncMock()
+        expected_response = MagicMock()
+        call_next.return_value = expected_response
+
+        import asyncio
+
+        async def _run():
+            response = await middleware.dispatch(request, call_next)
+            assert response is expected_response
+            # Verify _receive was set (body replay)
+            assert hasattr(request, "_receive")
+            # Call the _receive closure to verify it returns the correct body
+            receive_result = await request._receive()
+            assert receive_result["type"] == "http.request"
+            assert receive_result["body"] == b"small payload"
+            assert receive_result["more_body"] is False
+
+        asyncio.get_event_loop().run_until_complete(_run())

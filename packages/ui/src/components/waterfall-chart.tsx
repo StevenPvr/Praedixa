@@ -8,8 +8,7 @@ export interface WaterfallItem {
   type: "positive" | "negative" | "total";
 }
 
-export interface WaterfallChartProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface WaterfallChartProps extends React.HTMLAttributes<HTMLDivElement> {
   items: WaterfallItem[];
   formatValue?: (value: number) => string;
 }

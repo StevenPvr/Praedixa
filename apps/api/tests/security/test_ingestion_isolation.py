@@ -252,9 +252,7 @@ class TestCrossOrgUploadIsolation:
 class TestOversizedFileRejection:
     """File exceeding MAX_UPLOAD_SIZE_BYTES is rejected with 413."""
 
-    async def test_oversized_file_returns_413(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_oversized_file_returns_413(self, client_org_a: AsyncClient) -> None:
         """A file exceeding the size limit gets 413 Payload Too Large."""
         with (
             patch(
@@ -266,9 +264,7 @@ class TestOversizedFileRejection:
                 "app.routers.datasets._check_cooldown",
                 new_callable=AsyncMock,
             ),
-            patch(
-                "app.routers.datasets.settings"
-            ) as mock_settings,
+            patch("app.routers.datasets.settings") as mock_settings,
         ):
             # Set a tiny limit for testing
             mock_settings.MAX_UPLOAD_SIZE_BYTES = 100
@@ -284,9 +280,7 @@ class TestOversizedFileRejection:
         assert response.status_code == 413
         assert response.json()["error"]["code"] == "PAYLOAD_TOO_LARGE"
 
-    async def test_empty_file_returns_400(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_empty_file_returns_400(self, client_org_a: AsyncClient) -> None:
         """An empty file gets 400 Invalid File."""
         with (
             patch(
@@ -314,9 +308,7 @@ class TestOversizedFileRejection:
 class TestInvalidFileTypeRejection:
     """Files with invalid extensions or magic bytes are rejected."""
 
-    async def test_exe_extension_rejected(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_exe_extension_rejected(self, client_org_a: AsyncClient) -> None:
         """A .exe file is rejected even if it has valid content."""
         with (
             patch(
@@ -479,17 +471,13 @@ class TestSheetNameInjection:
             response = await client_org_a.post(
                 f"/api/v1/datasets/{ORG_A_DATASET_ID}/ingest",
                 params={"sheet_name": "../../../etc/passwd"},
-                files={
-                    "file": ("test.csv", BytesIO(_make_csv_bytes()), "text/csv")
-                },
+                files={"file": ("test.csv", BytesIO(_make_csv_bytes()), "text/csv")},
             )
 
         # Should get 400 (parse error), not a file system error
         assert response.status_code == 400
 
-    async def test_sheet_name_with_null_bytes(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_sheet_name_with_null_bytes(self, client_org_a: AsyncClient) -> None:
         """Null bytes in sheet_name are stripped by sanitization."""
         with (
             patch(
@@ -514,17 +502,13 @@ class TestSheetNameInjection:
             response = await client_org_a.post(
                 f"/api/v1/datasets/{ORG_A_DATASET_ID}/ingest",
                 params={"sheet_name": "Sheet1\x00INJECTED"},
-                files={
-                    "file": ("test.csv", BytesIO(_make_csv_bytes()), "text/csv")
-                },
+                files={"file": ("test.csv", BytesIO(_make_csv_bytes()), "text/csv")},
             )
 
         # Should handle gracefully — 400 from parse error
         assert response.status_code == 400
 
-    async def test_sheet_name_length_is_capped(
-        self, client_org_a: AsyncClient
-    ) -> None:
+    async def test_sheet_name_length_is_capped(self, client_org_a: AsyncClient) -> None:
         """Extremely long sheet_name is truncated before processing."""
         with (
             patch(
@@ -550,9 +534,7 @@ class TestSheetNameInjection:
             response = await client_org_a.post(
                 f"/api/v1/datasets/{ORG_A_DATASET_ID}/ingest",
                 params={"sheet_name": long_name},
-                files={
-                    "file": ("test.csv", BytesIO(_make_csv_bytes()), "text/csv")
-                },
+                files={"file": ("test.csv", BytesIO(_make_csv_bytes()), "text/csv")},
             )
 
         # Should be handled without crashing
@@ -584,9 +566,7 @@ class TestUploadCooldownEnforcement:
         ):
             response = await client_org_a.post(
                 f"/api/v1/datasets/{ORG_A_DATASET_ID}/ingest",
-                files={
-                    "file": ("test.csv", BytesIO(_make_csv_bytes()), "text/csv")
-                },
+                files={"file": ("test.csv", BytesIO(_make_csv_bytes()), "text/csv")},
             )
 
         assert response.status_code == 429

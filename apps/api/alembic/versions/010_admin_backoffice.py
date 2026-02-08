@@ -84,9 +84,7 @@ def upgrade() -> None:
         sa.Column("user_agent", sa.String(200), nullable=True),
         sa.Column("request_id", sa.String(64), nullable=False),
         sa.Column("metadata_json", JSONB(), nullable=False, server_default="{}"),
-        sa.Column(
-            "severity", sa.String(10), nullable=False, server_default="INFO"
-        ),
+        sa.Column("severity", sa.String(10), nullable=False, server_default="INFO"),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

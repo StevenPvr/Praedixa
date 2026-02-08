@@ -33,7 +33,7 @@ from app.schemas.decision import DecisionRead
 from app.schemas.forecast import ForecastRunRead
 from app.schemas.responses import ApiResponse, PaginatedResponse
 from app.services.admin_audit import log_admin_action
-from app.services.datasets import get_dataset, get_dataset_data, get_features_data
+from app.services.datasets import get_dataset_data, get_features_data
 from app.services.decisions import list_decisions
 from app.services.forecasts import list_forecasts
 from app.services.medical_masking import mask_medical_reasons
@@ -59,17 +59,14 @@ async def list_org_datasets(
     tenant = _admin_tenant(org_id)
 
     base_query = tenant.apply(select(ClientDataset), ClientDataset)
-    count_query = tenant.apply(
-        select(func.count(ClientDataset.id)), ClientDataset
-    )
+    count_query = tenant.apply(select(func.count(ClientDataset.id)), ClientDataset)
 
     count_result = await session.execute(count_query)
     total = count_result.scalar_one() or 0
 
     offset = (page - 1) * page_size
     query = (
-        base_query
-        .order_by(ClientDataset.created_at.desc())
+        base_query.order_by(ClientDataset.created_at.desc())
         .offset(offset)
         .limit(page_size)
     )
@@ -129,8 +126,7 @@ async def list_org_ingestion_log(
 
     offset = (page - 1) * page_size
     query = (
-        base_query
-        .order_by(IngestionLog.created_at.desc())
+        base_query.order_by(IngestionLog.created_at.desc())
         .offset(offset)
         .limit(page_size)
     )
@@ -177,9 +173,7 @@ async def list_org_forecasts(
     tenant = _admin_tenant(org_id)
     offset = (page - 1) * page_size
 
-    items, total = await list_forecasts(
-        tenant, session, limit=page_size, offset=offset
-    )
+    items, total = await list_forecasts(tenant, session, limit=page_size, offset=offset)
 
     await log_admin_action(
         session,
@@ -221,9 +215,7 @@ async def list_org_decisions(
     tenant = _admin_tenant(org_id)
     offset = (page - 1) * page_size
 
-    items, total = await list_decisions(
-        tenant, session, limit=page_size, offset=offset
-    )
+    items, total = await list_decisions(tenant, session, limit=page_size, offset=offset)
 
     await log_admin_action(
         session,
@@ -272,14 +264,11 @@ async def list_org_absences(
     )
 
     count_result = await session.execute(count_query)
-    total = count_result.scalar_one() or 0
+    count_result.scalar_one() or 0
 
     offset = (page - 1) * page_size
     query = (
-        base_query
-        .order_by(Absence.created_at.desc())
-        .offset(offset)
-        .limit(page_size)
+        base_query.order_by(Absence.created_at.desc()).offset(offset).limit(page_size)
     )
     result = await session.execute(query)
     items = list(result.scalars().all())
@@ -296,17 +285,23 @@ async def list_org_absences(
     # Serialize to dicts, then apply medical masking
     raw_data = []
     for item in items:
-        raw_data.append({
-            "id": str(item.id),
-            "type": item.type.value if hasattr(item.type, "value") else str(item.type),
-            "reason": getattr(item, "reason", None),
-            "start_date": str(item.start_date) if hasattr(item, "start_date") else None,
-            "end_date": str(item.end_date) if hasattr(item, "end_date") else None,
-            "status": item.status.value
-            if hasattr(item.status, "value")
-            else str(item.status),
-            "employee_id": str(item.employee_id),
-        })
+        raw_data.append(
+            {
+                "id": str(item.id),
+                "type": item.type.value
+                if hasattr(item.type, "value")
+                else str(item.type),
+                "reason": getattr(item, "reason", None),
+                "start_date": str(item.start_date)
+                if hasattr(item, "start_date")
+                else None,
+                "end_date": str(item.end_date) if hasattr(item, "end_date") else None,
+                "status": item.status.value
+                if hasattr(item.status, "value")
+                else str(item.status),
+                "employee_id": str(item.employee_id),
+            }
+        )
 
     # Apply GDPR Article 9 masking on medical absence types
     masked_data = mask_medical_reasons(raw_data)

@@ -19,13 +19,12 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, text
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, sa_enum
 from app.models.organization import SubscriptionPlan
-
 
 # ── Enums ────────────────────────────────────────────────
 
@@ -134,9 +133,7 @@ class AdminAuditLog(TimestampMixin, Base):
     metadata_json: Mapped[dict] = mapped_column(  # type: ignore[type-arg]
         JSONB, nullable=False, server_default="{}"
     )
-    severity: Mapped[str] = mapped_column(
-        String(10), nullable=False, default="INFO"
-    )
+    severity: Mapped[str] = mapped_column(String(10), nullable=False, default="INFO")
 
     def __repr__(self) -> str:
         return f"<AdminAuditLog {self.action.value} by={self.admin_user_id}>"
@@ -223,9 +220,7 @@ class OnboardingState(TimestampMixin, Base):
         sa_enum(OnboardingStatus),
         default=OnboardingStatus.IN_PROGRESS,
     )
-    current_step: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=1
-    )
+    current_step: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     steps_completed: Mapped[list] = mapped_column(  # type: ignore[type-arg]
         JSONB, nullable=False, server_default="[]"
     )

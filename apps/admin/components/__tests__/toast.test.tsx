@@ -93,17 +93,13 @@ describe("ToastContainer", () => {
   });
 
   it("has role=alert on each toast", () => {
-    const toasts: ToastData[] = [
-      { id: "1", variant: "info", message: "Test" },
-    ];
+    const toasts: ToastData[] = [{ id: "1", variant: "info", message: "Test" }];
     render(<ToastContainer toasts={toasts} onDismiss={mockDismiss} />);
     expect(screen.getByRole("alert")).toBeInTheDocument();
   });
 
   it("has aria-live=polite on the container", () => {
-    const toasts: ToastData[] = [
-      { id: "1", variant: "info", message: "Test" },
-    ];
+    const toasts: ToastData[] = [{ id: "1", variant: "info", message: "Test" }];
     const { container } = render(
       <ToastContainer toasts={toasts} onDismiss={mockDismiss} />,
     );
@@ -137,9 +133,7 @@ describe("ToastContainer", () => {
   });
 
   it("dismiss button has accessible label", () => {
-    const toasts: ToastData[] = [
-      { id: "1", variant: "info", message: "Test" },
-    ];
+    const toasts: ToastData[] = [{ id: "1", variant: "info", message: "Test" }];
     render(<ToastContainer toasts={toasts} onDismiss={mockDismiss} />);
     const button = screen.getByLabelText("Fermer la notification");
     expect(button).toBeInTheDocument();
@@ -176,7 +170,10 @@ describe("ToastProvider", () => {
     const context = useContext(ToastContext);
     return (
       <div>
-        <button onClick={() => context?.addToast("success", "Added!")} data-testid="add-toast">
+        <button
+          onClick={() => context?.addToast("success", "Added!")}
+          data-testid="add-toast"
+        >
           Add
         </button>
       </div>

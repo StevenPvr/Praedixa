@@ -13,7 +13,11 @@ from app.services.admin_billing import (
     get_billing_info,
     get_plan_history,
 )
-from tests.unit.conftest import make_mock_session, make_scalar_result, make_scalars_result
+from tests.unit.conftest import (
+    make_mock_session,
+    make_scalar_result,
+    make_scalars_result,
+)
 
 
 def _make_org(**overrides):
@@ -32,7 +36,12 @@ class TestPlanLimits:
     """Tests for PLAN_LIMITS constant."""
 
     def test_all_plans_present(self):
-        assert set(PLAN_LIMITS.keys()) == {"free", "starter", "professional", "enterprise"}
+        assert set(PLAN_LIMITS.keys()) == {
+            "free",
+            "starter",
+            "professional",
+            "enterprise",
+        }
 
     def test_free_has_lowest_limits(self):
         assert PLAN_LIMITS["free"]["users"] == 3
@@ -67,11 +76,11 @@ class TestGetBillingInfo:
     async def test_returns_plan_and_usage(self):
         org = _make_org()
         session = make_mock_session(
-            make_scalar_result(org),   # org query
-            make_scalar_result(5),     # user count
-            make_scalar_result(2),     # site count
-            make_scalar_result(3),     # dataset count
-            make_scalar_result(10),    # forecast count
+            make_scalar_result(org),  # org query
+            make_scalar_result(5),  # user count
+            make_scalar_result(2),  # site count
+            make_scalar_result(3),  # dataset count
+            make_scalar_result(10),  # forecast count
         )
         result = await get_billing_info(session, org.id)
         assert result["plan"] == "starter"
@@ -136,8 +145,8 @@ class TestChangePlan:
     async def test_success(self):
         org = _make_org(plan=SubscriptionPlan.STARTER)
         session = make_mock_session(
-            make_scalar_result(org),    # org query
-            make_scalar_result(None),   # UPDATE execute
+            make_scalar_result(org),  # org query
+            make_scalar_result(None),  # UPDATE execute
         )
 
         history = await change_plan(
@@ -253,9 +262,7 @@ class TestGetPlanHistory:
             make_scalar_result(30),
             make_scalars_result([]),
         )
-        _, total = await get_plan_history(
-            session, uuid.uuid4(), page=2, page_size=10
-        )
+        _, total = await get_plan_history(session, uuid.uuid4(), page=2, page_size=10)
         assert total == 30
 
     @pytest.mark.asyncio

@@ -67,10 +67,10 @@ test.describe("Organisations page", () => {
 
     // First org name and slug
     await expect(page.getByText(MOCK_ORG_LIST[0].name)).toBeVisible();
-    await expect(page.getByText(MOCK_ORG_LIST[0].slug, { exact: true })).toBeVisible();
     await expect(
-      page.getByText(MOCK_ORG_LIST[0].contactEmail),
+      page.getByText(MOCK_ORG_LIST[0].slug, { exact: true }),
     ).toBeVisible();
+    await expect(page.getByText(MOCK_ORG_LIST[0].contactEmail)).toBeVisible();
 
     // Second org
     await expect(page.getByText(MOCK_ORG_LIST[1].name)).toBeVisible();
@@ -84,9 +84,7 @@ test.describe("Organisations page", () => {
     await page.goto("/organisations");
 
     // Search input
-    await expect(
-      page.getByPlaceholder("Rechercher par nom..."),
-    ).toBeVisible();
+    await expect(page.getByPlaceholder("Rechercher par nom...")).toBeVisible();
 
     // Status filter
     const selects = page.locator("select");
@@ -232,7 +230,9 @@ test.describe("Organisations page", () => {
     await page.goto("/organisations");
 
     await expect(page.getByText("Erreur de chargement")).toBeVisible();
-    await expect(page.getByRole("button", { name: /reessayer/i })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /reessayer/i }),
+    ).toBeVisible();
   });
 
   test("shows empty state when no organisations", async ({ page }) => {

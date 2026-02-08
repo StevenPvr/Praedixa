@@ -40,7 +40,9 @@ test.describe("RGPD page", () => {
     ];
 
     for (const card of cards) {
-      await expect(page.getByRole("heading", { name: card.title })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: card.title }),
+      ).toBeVisible();
       await expect(
         page.getByRole("button", { name: card.button }),
       ).toBeVisible();
@@ -50,9 +52,7 @@ test.describe("RGPD page", () => {
   test("displays card descriptions", async ({ page }) => {
     await page.goto("/rgpd");
 
-    await expect(
-      page.getByText(/article 30 du RGPD/),
-    ).toBeVisible();
+    await expect(page.getByText(/article 30 du RGPD/)).toBeVisible();
     await expect(
       page.getByText(/droit a la portabilite, article 20/),
     ).toBeVisible();

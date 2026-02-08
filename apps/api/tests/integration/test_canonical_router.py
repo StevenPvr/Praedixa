@@ -21,14 +21,12 @@ from app.core.dependencies import get_current_user, get_db_session, get_tenant_f
 from app.core.security import TenantFilter
 from app.main import app
 
-from .conftest import ORG_A_ID
-
 # ── Helper factories ──────────────────────────────────────────────
-
 from tests.unit.conftest import (
     _make_canonical_record,
 )
 
+from .conftest import ORG_A_ID
 
 # ── GET /api/v1/canonical ─────────────────────────────────────────
 
@@ -278,7 +276,7 @@ async def test_bulk_import_201(client_a: AsyncClient) -> None:
                 "records": [
                     {
                         "siteId": f"site-{i}",
-                        "date": f"2026-01-{i+1:02d}",
+                        "date": f"2026-01-{i + 1:02d}",
                         "shift": "am",
                         "capacitePlanH": "100.00",
                     }

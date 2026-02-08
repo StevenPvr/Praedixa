@@ -36,12 +36,11 @@ export default function OrgProofPacksPage() {
   const orgId = params.orgId as string;
   const [page, setPage] = useState(1);
 
-  const { data, total, error, refetch } =
-    useApiGetPaginated<ProofRecord>(
-      ADMIN_ENDPOINTS.orgProofPacks(orgId),
-      page,
-      20,
-    );
+  const { data, total, error, refetch } = useApiGetPaginated<ProofRecord>(
+    ADMIN_ENDPOINTS.orgProofPacks(orgId),
+    page,
+    20,
+  );
 
   const columns: DataTableColumn<ProofRecord>[] = [
     {
@@ -66,9 +65,7 @@ export default function OrgProofPacksPage() {
       label: "Cout",
       align: "right",
       render: (row) => (
-        <span className="text-sm text-gray-500">
-          {formatEur(row.costEur)}
-        </span>
+        <span className="text-sm text-gray-500">{formatEur(row.costEur)}</span>
       ),
     },
     {

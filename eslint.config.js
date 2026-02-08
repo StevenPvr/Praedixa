@@ -31,4 +31,10 @@ export default [
       "no-console": "error",
     },
   },
+  {
+    files: ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
+    rules: {
+      "no-console": "off",
+    },
+  },
 ];

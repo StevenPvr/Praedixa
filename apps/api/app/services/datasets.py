@@ -14,6 +14,7 @@ import asyncio
 import uuid
 from typing import TYPE_CHECKING, Any
 
+import psycopg.errors
 from psycopg import sql as psql
 from sqlalchemy import func, select
 
@@ -38,6 +39,8 @@ from app.models.data_catalog import (
     FitParameter,
     IngestionLog,
     PipelineConfigHistory,
+    QualityReport,
+    RunStatus,
 )
 from app.services.schema_manager import create_client_schemas, create_dataset_tables
 
@@ -64,7 +67,12 @@ async def list_datasets(
     offset: int = 0,
     status_filter: DatasetStatus | None = None,
 ) -> tuple[list[ClientDataset], int]:
-    """List datasets for the organization with pagination."""
+    """List datasets for the organization with pagination.
+
+    Enriches each dataset with computed row_count, column_count, and
+    last_ingestion_at via correlated subqueries so that
+    ClientDatasetSummary.model_validate() picks them up.
+    """
     base_query = tenant.apply(select(ClientDataset), ClientDataset)
 
     if status_filter is not None:
@@ -77,11 +85,54 @@ async def list_datasets(
     count_result = await session.execute(count_query)
     total = count_result.scalar_one() or 0
 
-    query = (
-        base_query.order_by(ClientDataset.created_at.desc()).offset(offset).limit(limit)
+    # Correlated subqueries for computed fields
+    col_count_sq = (
+        select(func.count(DatasetColumn.id))
+        .where(DatasetColumn.dataset_id == ClientDataset.id)
+        .correlate(ClientDataset)
+        .scalar_subquery()
+        .label("column_count")
     )
+    row_count_sq = (
+        select(func.coalesce(func.sum(IngestionLog.rows_transformed), 0))
+        .where(IngestionLog.dataset_id == ClientDataset.id)
+        .where(IngestionLog.status == RunStatus.SUCCESS)
+        .correlate(ClientDataset)
+        .scalar_subquery()
+        .label("row_count")
+    )
+    last_ingestion_sq = (
+        select(func.max(IngestionLog.completed_at))
+        .where(IngestionLog.dataset_id == ClientDataset.id)
+        .where(IngestionLog.status == RunStatus.SUCCESS)
+        .correlate(ClientDataset)
+        .scalar_subquery()
+        .label("last_ingestion_at")
+    )
+
+    query = (
+        tenant.apply(
+            select(ClientDataset, col_count_sq, row_count_sq, last_ingestion_sq),
+            ClientDataset,
+        )
+        .order_by(ClientDataset.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+
+    if status_filter is not None:
+        query = query.where(ClientDataset.status == status_filter)
+
     result = await session.execute(query)
-    items = list(result.scalars().all())
+    rows = result.all()
+
+    items: list[ClientDataset] = []
+    for row in rows:
+        ds = row[0]
+        ds.column_count = row[1] or 0
+        ds.row_count = row[2] or 0
+        ds.last_ingestion_at = row[3]
+        items.append(ds)
 
     return items, total
 
@@ -254,13 +305,13 @@ async def get_dataset_data(
     *,
     limit: int = 100,
     offset: int = 0,
-) -> tuple[list[dict[str, Any]], int]:
+) -> tuple[list[dict[str, Any]], int, list[str]]:
     """Query raw data from the dynamic client table.
 
     System columns (prefixed with _) are excluded from the response.
     PII columns would be masked here at the service layer.
 
-    Returns (rows, total_count).
+    Returns (rows, total_count, visible_column_names).
     """
     dataset = await get_dataset(dataset_id, tenant, session)
 
@@ -268,42 +319,124 @@ async def get_dataset_data(
     table_name = validate_identifier(dataset.table_name, field="table_name")
     temporal_index = validate_identifier(dataset.temporal_index, field="temporal_index")
 
-    def _sync_query() -> tuple[list[dict[str, Any]], int]:
-        with ddl_connection() as conn, conn.cursor() as cur:
-            # Count total rows
-            cur.execute(
-                psql.SQL("SELECT COUNT(*) FROM {}.{}").format(
-                    psql.Identifier(raw_schema),
-                    psql.Identifier(table_name),
+    def _sync_query() -> tuple[list[dict[str, Any]], int, list[str]]:
+        try:
+            with ddl_connection() as conn, conn.cursor() as cur:
+                # Count total rows
+                cur.execute(
+                    psql.SQL("SELECT COUNT(*) FROM {}.{}").format(
+                        psql.Identifier(raw_schema),
+                        psql.Identifier(table_name),
+                    )
                 )
-            )
-            total = cur.fetchone()[0]  # type: ignore[index]
+                total = cur.fetchone()[0]  # type: ignore[index]
 
-            # Fetch page ordered by temporal index
-            cur.execute(
-                psql.SQL(
-                    "SELECT * FROM {}.{} ORDER BY {} DESC LIMIT %s OFFSET %s"
-                ).format(
-                    psql.Identifier(raw_schema),
-                    psql.Identifier(table_name),
-                    psql.Identifier(temporal_index),
-                ),
-                (limit, offset),
-            )
-            rows = cur.fetchall()
-            col_names = [desc.name for desc in cur.description or []]
+                # Fetch page ordered by temporal index
+                cur.execute(
+                    psql.SQL(
+                        "SELECT * FROM {}.{} ORDER BY {} DESC LIMIT %s OFFSET %s"
+                    ).format(
+                        psql.Identifier(raw_schema),
+                        psql.Identifier(table_name),
+                        psql.Identifier(temporal_index),
+                    ),
+                    (limit, offset),
+                )
+                rows = cur.fetchall()
+                col_names = [desc.name for desc in cur.description or []]
 
-            # Convert to dicts, excluding system columns
-            result_rows: list[dict[str, Any]] = []
-            for row in rows:
-                row_dict = {}
-                for col_name, value in zip(col_names, row, strict=False):
-                    if col_name.startswith("_"):
-                        continue
-                    row_dict[col_name] = value
-                result_rows.append(row_dict)
+                # Visible columns (exclude system columns prefixed with _)
+                visible_col_names = [n for n in col_names if not n.startswith("_")]
 
-            return result_rows, total
+                # Convert to dicts, excluding system columns
+                result_rows: list[dict[str, Any]] = []
+                for row in rows:
+                    row_dict = {}
+                    for col_name, value in zip(col_names, row, strict=False):
+                        if col_name.startswith("_"):
+                            continue
+                        row_dict[col_name] = value
+                    result_rows.append(row_dict)
+
+                return result_rows, total, visible_col_names
+        except (
+            psycopg.errors.UndefinedTable,
+            psycopg.errors.InvalidSchemaName,
+        ):
+            return [], 0, []
+
+    return await asyncio.to_thread(_sync_query)
+
+
+async def get_features_data(
+    dataset_id: uuid.UUID,
+    tenant: TenantFilter,
+    session: AsyncSession,
+    *,
+    limit: int = 100,
+    offset: int = 0,
+) -> tuple[list[dict[str, Any]], int, list[str]]:
+    """Query transformed features from the dynamic client table.
+
+    Reads from schema_transformed (DB2 — feature-engineered data).
+    System columns (prefixed with _) are excluded from the response.
+
+    This function is intended for super_admin access only.
+    Authorization is enforced at the router level.
+
+    Returns (rows, total_count, visible_column_names).
+    """
+    dataset = await get_dataset(dataset_id, tenant, session)
+
+    transformed_schema = validate_schema_name(dataset.schema_transformed)
+    table_name = validate_identifier(dataset.table_name, field="table_name")
+    temporal_index = validate_identifier(dataset.temporal_index, field="temporal_index")
+
+    def _sync_query() -> tuple[list[dict[str, Any]], int, list[str]]:
+        try:
+            with ddl_connection() as conn, conn.cursor() as cur:
+                # Count total rows
+                cur.execute(
+                    psql.SQL("SELECT COUNT(*) FROM {}.{}").format(
+                        psql.Identifier(transformed_schema),
+                        psql.Identifier(table_name),
+                    )
+                )
+                total = cur.fetchone()[0]  # type: ignore[index]
+
+                # Fetch page ordered by temporal index
+                cur.execute(
+                    psql.SQL(
+                        "SELECT * FROM {}.{} ORDER BY {} DESC LIMIT %s OFFSET %s"
+                    ).format(
+                        psql.Identifier(transformed_schema),
+                        psql.Identifier(table_name),
+                        psql.Identifier(temporal_index),
+                    ),
+                    (limit, offset),
+                )
+                rows = cur.fetchall()
+                col_names = [desc.name for desc in cur.description or []]
+
+                # Visible columns (exclude system columns prefixed with _)
+                visible_col_names = [n for n in col_names if not n.startswith("_")]
+
+                # Convert to dicts, excluding system columns
+                result_rows: list[dict[str, Any]] = []
+                for row in rows:
+                    row_dict = {}
+                    for col_name, value in zip(col_names, row, strict=False):
+                        if col_name.startswith("_"):
+                            continue
+                        row_dict[col_name] = value
+                    result_rows.append(row_dict)
+
+                return result_rows, total, visible_col_names
+        except (
+            psycopg.errors.UndefinedTable,
+            psycopg.errors.InvalidSchemaName,
+        ):
+            return [], 0, []
 
     return await asyncio.to_thread(_sync_query)
 
@@ -392,3 +525,40 @@ async def get_fit_parameters(
         query.order_by(FitParameter.column_name, FitParameter.version.desc())
     )
     return list(result.scalars().all())
+
+
+# ── Quality report queries ────────────────────────────────
+
+
+async def get_quality_reports(
+    dataset_id: uuid.UUID,
+    tenant: TenantFilter,
+    session: AsyncSession,
+    *,
+    limit: int = 20,
+    offset: int = 0,
+) -> tuple[list[QualityReport], int]:
+    """Get quality reports for a dataset.
+
+    Tenant isolation: verifies dataset ownership via get_dataset() before
+    querying reports. Returns (items, total_count).
+    """
+    await get_dataset(dataset_id, tenant, session)
+
+    count_result = await session.execute(
+        select(func.count(QualityReport.id)).where(
+            QualityReport.dataset_id == dataset_id
+        )
+    )
+    total = count_result.scalar_one() or 0
+
+    result = await session.execute(
+        select(QualityReport)
+        .where(QualityReport.dataset_id == dataset_id)
+        .order_by(QualityReport.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    items = list(result.scalars().all())
+
+    return items, total

@@ -26,9 +26,7 @@ describe("WaterfallChart", () => {
   });
 
   it("renders formatted values", () => {
-    render(
-      <WaterfallChart items={items} formatValue={(v) => `${v} EUR`} />,
-    );
+    render(<WaterfallChart items={items} formatValue={(v) => `${v} EUR`} />);
     expect(screen.getByText("1000 EUR")).toBeInTheDocument();
     expect(screen.getByText("-200 EUR")).toBeInTheDocument();
   });

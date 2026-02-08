@@ -9,9 +9,13 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("next/link", () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
 }));
 
 vi.mock("@/hooks/use-api", () => ({
@@ -23,9 +27,14 @@ vi.mock("@praedixa/ui", () => ({
     <div data-testid="data-table">{data.length} rows</div>
   ),
   SelectDropdown: ({ onChange }: { onChange: (v: string) => void }) => (
-    <select data-testid="status-filter" onChange={(e) => onChange(e.target.value)} />
+    <select
+      data-testid="status-filter"
+      onChange={(e) => onChange(e.target.value)}
+    />
   ),
-  Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  Badge: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
   SkeletonTable: () => <div data-testid="skeleton-table" />,
 }));
 

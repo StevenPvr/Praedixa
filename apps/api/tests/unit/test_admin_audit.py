@@ -3,7 +3,7 @@
 import uuid
 from datetime import UTC, datetime
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -15,7 +15,11 @@ from app.services.admin_audit import (
     get_audit_log,
     log_admin_action,
 )
-from tests.unit.conftest import make_mock_session, make_scalar_result, make_scalars_result
+from tests.unit.conftest import (
+    make_mock_session,
+    make_scalar_result,
+    make_scalars_result,
+)
 
 
 def _make_request(
@@ -314,7 +318,5 @@ class TestGetAuditLog:
         )
 
         now = datetime.now(UTC)
-        _, total = await get_audit_log(
-            session, date_from=now, date_to=now
-        )
+        _, total = await get_audit_log(session, date_from=now, date_to=now)
         assert total == 0

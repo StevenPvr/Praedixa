@@ -36,12 +36,11 @@ export default function OrgDatasetsPage() {
   const orgId = params.orgId as string;
   const [page, setPage] = useState(1);
 
-  const { data, total, error, refetch } =
-    useApiGetPaginated<DatasetListItem>(
-      `${ADMIN_ENDPOINTS.organization(orgId)}/datasets`,
-      page,
-      20,
-    );
+  const { data, total, error, refetch } = useApiGetPaginated<DatasetListItem>(
+    `${ADMIN_ENDPOINTS.organization(orgId)}/datasets`,
+    page,
+    20,
+  );
 
   const columns: DataTableColumn<DatasetListItem>[] = [
     {

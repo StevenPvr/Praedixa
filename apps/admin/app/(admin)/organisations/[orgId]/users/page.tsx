@@ -3,11 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, UserPlus } from "lucide-react";
-import {
-  DataTable,
-  type DataTableColumn,
-  StatusBadge,
-} from "@praedixa/ui";
+import { DataTable, type DataTableColumn, StatusBadge } from "@praedixa/ui";
 import { useApiGetPaginated } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import { ErrorFallback } from "@/components/error-fallback";
@@ -30,7 +26,10 @@ const ROLE_LABELS: Record<string, string> = {
 
 const STATUS_VARIANTS: Record<
   string,
-  { variant: "success" | "warning" | "danger" | "info" | "neutral"; label: string }
+  {
+    variant: "success" | "warning" | "danger" | "info" | "neutral";
+    label: string;
+  }
 > = {
   active: { variant: "success", label: "Actif" },
   invited: { variant: "info", label: "Invite" },
@@ -44,12 +43,11 @@ export default function OrgUsersPage() {
   const orgId = params.orgId as string;
   const [page, setPage] = useState(1);
 
-  const { data, total, error, refetch } =
-    useApiGetPaginated<UserListItem>(
-      ADMIN_ENDPOINTS.orgUsers(orgId),
-      page,
-      20,
-    );
+  const { data, total, error, refetch } = useApiGetPaginated<UserListItem>(
+    ADMIN_ENDPOINTS.orgUsers(orgId),
+    page,
+    20,
+  );
 
   const columns: DataTableColumn<UserListItem>[] = [
     {
@@ -77,9 +75,7 @@ export default function OrgUsersPage() {
           variant: "neutral" as const,
           label: row.status,
         };
-        return (
-          <StatusBadge variant={mapping.variant} label={mapping.label} />
-        );
+        return <StatusBadge variant={mapping.variant} label={mapping.label} />;
       },
     },
     {

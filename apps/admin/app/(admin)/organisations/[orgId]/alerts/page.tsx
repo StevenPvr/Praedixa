@@ -46,12 +46,11 @@ export default function OrgAlertsPage() {
   const orgId = params.orgId as string;
   const [page, setPage] = useState(1);
 
-  const { data, total, error, refetch } =
-    useApiGetPaginated<CoverageAlert>(
-      ADMIN_ENDPOINTS.orgAlerts(orgId),
-      page,
-      20,
-    );
+  const { data, total, error, refetch } = useApiGetPaginated<CoverageAlert>(
+    ADMIN_ENDPOINTS.orgAlerts(orgId),
+    page,
+    20,
+  );
 
   const columns: DataTableColumn<CoverageAlert>[] = [
     {

@@ -8,6 +8,12 @@ export * from "./domain/absence";
 export * from "./domain/forecast";
 export * from "./domain/decision";
 export * from "./domain/dataset";
+export * from "./domain/canonical";
+export * from "./domain/coverage-alert";
+export * from "./domain/scenario";
+export * from "./domain/operational-decision";
+export * from "./domain/cost-parameter";
+export * from "./domain/report";
 
 // API types
 export * from "./api/responses";

@@ -173,7 +173,11 @@
 /* Connecting line for steps */
 .step-line {
   @apply absolute left-6 top-12 h-full w-0.5 -translate-x-1/2;
-  background-image: linear-gradient(to bottom, oklch(0.769 0.205 70 / 0.5), transparent);
+  background-image: linear-gradient(
+    to bottom,
+    oklch(0.769 0.205 70 / 0.5),
+    transparent
+  );
 }
 
 /* Navbar slideDown entrance animation (replaces Framer Motion) */

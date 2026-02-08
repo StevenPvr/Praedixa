@@ -23,7 +23,9 @@ test.describe("Parametres page", () => {
 
     await expect(page.getByRole("tab", { name: "Couts" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Shifts" })).toBeVisible();
-    await expect(page.getByRole("tab", { name: "Seuils d'alerte" })).toBeVisible();
+    await expect(
+      page.getByRole("tab", { name: "Seuils d'alerte" }),
+    ).toBeVisible();
     await expect(page.getByRole("tab", { name: "Sites" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Export" })).toBeVisible();
   });
@@ -182,8 +184,6 @@ test.describe("Parametres page", () => {
     await expect(
       page.getByText("Erreur serveur cost-parameters"),
     ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Reessayer" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Reessayer" })).toBeVisible();
   });
 });

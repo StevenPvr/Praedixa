@@ -32,9 +32,22 @@ vi.mock("framer-motion", async () => {
 vi.mock("next/link", () => ({
   default: ({
     children,
+    onClick,
     ...props
-  }: React.PropsWithChildren<Record<string, unknown>>) => (
-    <a {...props}>{children}</a>
+  }: React.PropsWithChildren<
+    {
+      onClick?: (e: React.MouseEvent) => void;
+    } & Record<string, unknown>
+  >) => (
+    <a
+      {...props}
+      onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        onClick?.(e);
+      }}
+    >
+      {children}
+    </a>
   ),
 }));
 

@@ -27,7 +27,27 @@ from app.schemas.base import CamelModel, TenantEntitySchema
 
 
 class ClientDatasetRead(TenantEntitySchema):
-    """Full dataset response."""
+    """Full dataset response for regular client users.
+
+    Security: schema_raw and schema_transformed are intentionally
+    excluded — clients must not know internal schema naming.
+    """
+
+    name: str
+    table_name: str
+    temporal_index: str
+    group_by: list[str]
+    pipeline_config: dict[str, Any]
+    status: DatasetStatus
+    metadata_hash: str | None = None
+
+
+class AdminDatasetRead(TenantEntitySchema):
+    """Full dataset response for super_admin back-office.
+
+    Includes schema_raw and schema_transformed for admin visibility
+    into the 2-DB architecture (DB1 cleaned data / DB2 features).
+    """
 
     name: str
     schema_raw: str
@@ -41,7 +61,12 @@ class ClientDatasetRead(TenantEntitySchema):
 
 
 class ClientDatasetSummary(CamelModel):
-    """Lightweight dataset for listings."""
+    """Lightweight dataset for listings.
+
+    row_count, column_count, and last_ingestion_at are computed via
+    correlated subqueries in list_datasets() and set as transient
+    attributes on the ORM object before model_validate().
+    """
 
     id: uuid.UUID
     name: str
@@ -50,6 +75,9 @@ class ClientDatasetSummary(CamelModel):
     temporal_index: str
     created_at: datetime
     updated_at: datetime
+    row_count: int = 0
+    column_count: int = 0
+    last_ingestion_at: datetime | None = None
 
 
 class CreateDatasetRequest(CamelModel):
@@ -178,6 +206,8 @@ class IngestionLogRead(CamelModel):
     error_message: str | None = None
     triggered_by: str | None = None
     request_id: str | None = None
+    file_name: str | None = None
+    file_size: int | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -195,3 +225,36 @@ class PipelineConfigHistoryRead(CamelModel):
     changed_by: uuid.UUID
     change_reason: str | None = None
     created_at: datetime
+
+
+# ── Webapp-aligned response schemas ────────────────────────
+
+
+class DatasetDetailResponseSchema(CamelModel):
+    """Detail response for a single dataset, matching frontend DatasetDetailResponse."""
+
+    id: uuid.UUID
+    name: str
+    status: DatasetStatus
+    table_name: str
+    temporal_index: str
+    group_by: list[str]
+    row_count: int
+    last_ingestion_at: datetime | None = None
+    columns: list[DatasetColumnRead]
+
+
+class DatasetDataPreviewResponseSchema(CamelModel):
+    """Data preview response matching frontend DatasetDataPreviewResponse."""
+
+    columns: list[str]
+    rows: list[dict[str, Any]]
+    masked_columns: list[str] = Field(default_factory=list)
+    total: int
+
+
+class IngestionHistoryResponseSchema(CamelModel):
+    """Ingestion history response matching frontend IngestionHistoryResponse."""
+
+    entries: list[IngestionLogRead]
+    total: int

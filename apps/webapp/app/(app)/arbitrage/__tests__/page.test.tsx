@@ -1,30 +1,85 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import ArbitragePage from "../page";
 
-vi.mock("@/components/arbitrage/alerts-arbitrage-list", () => ({
-  AlertsArbitrageList: () => (
-    <div data-testid="alerts-arbitrage-list">AlertsArbitrageList</div>
+const mockUseApiGet = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+}));
+
+vi.mock("next/link", () => ({
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
+}));
+
+vi.mock("@/hooks/use-api", () => ({
+  useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
+}));
+
+vi.mock("@praedixa/ui", () => ({
+  DataTable: ({ data }: { data: unknown[] }) => (
+    <div data-testid="data-table">{data.length} rows</div>
+  ),
+  Badge: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
+  SkeletonTable: () => <div data-testid="skeleton-table" />,
+}));
+
+vi.mock("@/components/error-fallback", () => ({
+  ErrorFallback: ({ message }: { message?: string }) => (
+    <div data-testid="error-fallback">{message}</div>
   ),
 }));
 
 describe("ArbitragePage", () => {
-  it("renders the Arbitrage heading", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseApiGet.mockReturnValue({
+      data: [],
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+  });
+
+  it("renders the heading", () => {
     render(<ArbitragePage />);
     expect(
       screen.getByRole("heading", { name: "Arbitrage" }),
     ).toBeInTheDocument();
   });
 
-  it("renders the page description", () => {
+  it("renders the data table", () => {
     render(<ArbitragePage />);
-    expect(
-      screen.getByText("Alertes et recommandations d'arbitrage economique"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("data-table")).toBeInTheDocument();
   });
 
-  it("renders the AlertsArbitrageList component", () => {
+  it("shows skeleton on loading", () => {
+    mockUseApiGet.mockReturnValue({
+      data: null,
+      loading: true,
+      error: null,
+      refetch: vi.fn(),
+    });
     render(<ArbitragePage />);
-    expect(screen.getByTestId("alerts-arbitrage-list")).toBeInTheDocument();
+    expect(screen.getByTestId("skeleton-table")).toBeInTheDocument();
+  });
+
+  it("shows error fallback on error", () => {
+    mockUseApiGet.mockReturnValue({
+      data: null,
+      loading: false,
+      error: "Server error",
+      refetch: vi.fn(),
+    });
+    render(<ArbitragePage />);
+    expect(screen.getByText("Server error")).toBeInTheDocument();
   });
 });

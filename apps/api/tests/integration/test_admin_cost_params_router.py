@@ -61,9 +61,7 @@ async def admin_client() -> AsyncGenerator[AsyncClient, None]:
 class TestCostParamsMissing:
     """GET /api/v1/admin/monitoring/cost-params/missing"""
 
-    async def test_some_orgs_missing_config(
-        self, admin_client: AsyncClient
-    ) -> None:
+    async def test_some_orgs_missing_config(self, admin_client: AsyncClient) -> None:
         """Returns orgs without cost parameters."""
         session = admin_client._mock_session  # type: ignore[attr-defined]
 
@@ -81,9 +79,7 @@ class TestCostParamsMissing:
             (ORG_A_ID,),
         ]
 
-        session.execute = AsyncMock(
-            side_effect=[all_orgs_result, orgs_with_result]
-        )
+        session.execute = AsyncMock(side_effect=[all_orgs_result, orgs_with_result])
 
         with patch(
             "app.routers.admin_cost_params.log_admin_action",
@@ -103,9 +99,7 @@ class TestCostParamsMissing:
         assert str(ORG_B_ID) in missing_ids
         assert str(ORG_C_ID) in missing_ids
 
-    async def test_all_orgs_have_config(
-        self, admin_client: AsyncClient
-    ) -> None:
+    async def test_all_orgs_have_config(self, admin_client: AsyncClient) -> None:
         """Returns empty missing list when all orgs have cost params."""
         session = admin_client._mock_session  # type: ignore[attr-defined]
 
@@ -119,9 +113,7 @@ class TestCostParamsMissing:
             (ORG_A_ID,),
         ]
 
-        session.execute = AsyncMock(
-            side_effect=[all_orgs_result, orgs_with_result]
-        )
+        session.execute = AsyncMock(side_effect=[all_orgs_result, orgs_with_result])
 
         with patch(
             "app.routers.admin_cost_params.log_admin_action",
@@ -138,9 +130,7 @@ class TestCostParamsMissing:
         assert data["data"]["orgsWithoutConfig"] == 0
         assert data["data"]["missing"] == []
 
-    async def test_no_active_orgs(
-        self, admin_client: AsyncClient
-    ) -> None:
+    async def test_no_active_orgs(self, admin_client: AsyncClient) -> None:
         """Returns zeros when no active orgs exist."""
         session = admin_client._mock_session  # type: ignore[attr-defined]
 
@@ -150,9 +140,7 @@ class TestCostParamsMissing:
         orgs_with_result = MagicMock()
         orgs_with_result.all.return_value = []
 
-        session.execute = AsyncMock(
-            side_effect=[all_orgs_result, orgs_with_result]
-        )
+        session.execute = AsyncMock(side_effect=[all_orgs_result, orgs_with_result])
 
         with patch(
             "app.routers.admin_cost_params.log_admin_action",

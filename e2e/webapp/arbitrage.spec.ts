@@ -1,17 +1,18 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures/coverage";
 import { setupAuth } from "./fixtures/auth";
 import {
-  mockAlerts,
-  mockArbitrageOptions,
-  mockValidateArbitrage,
-  mockDecisions,
+  mockCoverageAlerts,
+  mockScenarios,
+  mockScenariosError,
+  mockOperationalDecisions,
   IDS,
+  MOCK_COVERAGE_ALERTS,
 } from "./fixtures/api-mocks";
 
 test.describe("Arbitrage list page", () => {
   test.beforeEach(async ({ page }) => {
     await setupAuth(page);
-    await mockAlerts(page);
+    await mockCoverageAlerts(page);
   });
 
   test("displays page title and subtitle", async ({ page }) => {
@@ -20,171 +21,237 @@ test.describe("Arbitrage list page", () => {
       page.getByRole("heading", { name: "Arbitrage", level: 1 }),
     ).toBeVisible();
     await expect(
-      page.getByText("Alertes et recommandations d'arbitrage economique"),
+      page.getByText(
+        "Scenarios d'arbitrage pour les alertes de couverture ouvertes",
+      ),
     ).toBeVisible();
   });
 
-  test("displays only risk-type alerts as arbitrage cards", async ({
+  test("displays a DataTable with all open coverage alerts", async ({
     page,
   }) => {
     await page.goto("/arbitrage");
 
-    // Mock has 2 risk alerts and 1 forecast alert
-    // Only risk alerts should appear
-    await expect(page.getByText("Deficit critique Dept. A1")).toBeVisible();
-    await expect(page.getByText("Risque modere Dept. B1")).toBeVisible();
-    // Forecast alert should NOT appear
-    await expect(
-      page.getByText("Nouvelle prevision disponible"),
-    ).not.toBeVisible();
+    // Table column headers
+    await expect(page.getByText("Site")).toBeVisible();
+    await expect(page.getByText("Date")).toBeVisible();
+    await expect(page.getByText("Shift")).toBeVisible();
+    await expect(page.getByText("Horizon")).toBeVisible();
+    await expect(page.getByText("Severite")).toBeVisible();
+    await expect(page.getByText("Gap (h)")).toBeVisible();
+
+    // All 5 open alerts should appear (not filtered by horizon)
+    for (const alert of MOCK_COVERAGE_ALERTS) {
+      await expect(page.getByText(alert.siteId).first()).toBeVisible();
+    }
   });
 
-  test("each alert card has an 'Arbitrer' button", async ({ page }) => {
+  test("severity column shows Badge components", async ({ page }) => {
     await page.goto("/arbitrage");
 
-    const arbitrerButtons = page.getByRole("link", { name: "Arbitrer" });
-    // 2 risk alerts = 2 buttons
-    await expect(arbitrerButtons).toHaveCount(2);
+    // Severity badges — the table renders Badge components for severity
+    await expect(page.getByText("critical")).toBeVisible();
+    await expect(page.getByText("high")).toBeVisible();
+    await expect(page.getByText("medium").first()).toBeVisible();
+  });
+
+  test("each alert row has an 'Arbitrer' link", async ({ page }) => {
+    await page.goto("/arbitrage");
+
+    const arbitrerLinks = page.getByRole("link", { name: "Arbitrer" });
+    // All 5 alerts have an "Arbitrer" link
+    await expect(arbitrerLinks).toHaveCount(5);
   });
 
   test("clicking 'Arbitrer' navigates to alert detail", async ({ page }) => {
     await page.goto("/arbitrage");
 
-    // Mock the arbitrage options endpoint for navigation
-    await mockArbitrageOptions(page);
+    // Mock the scenarios endpoint for navigation
+    await mockScenarios(page);
+    await mockOperationalDecisions(page);
 
     // Click the first "Arbitrer" link
     await page.getByRole("link", { name: "Arbitrer" }).first().click();
     await expect(page).toHaveURL(new RegExp(`/arbitrage/${IDS.alert1}`));
+  });
+
+  test("first Arbitrer link points to the correct alert ID", async ({
+    page,
+  }) => {
+    await page.goto("/arbitrage");
+
+    const firstLink = page.getByRole("link", { name: "Arbitrer" }).first();
+    await expect(firstLink).toHaveAttribute("href", `/arbitrage/${IDS.alert1}`);
   });
 });
 
 test.describe("Arbitrage detail page", () => {
   test.beforeEach(async ({ page }) => {
     await setupAuth(page);
-    await mockArbitrageOptions(page);
-    await mockValidateArbitrage(page);
-    await mockDecisions(page);
+    await mockScenarios(page);
+    await mockOperationalDecisions(page);
   });
 
-  test("displays alert context card with site and department info", async ({
-    page,
-  }) => {
+  test("displays page heading and subtitle", async ({ page }) => {
     await page.goto(`/arbitrage/${IDS.alert1}`);
 
-    // Context card should show alert details
-    await expect(page.getByText("Deficit critique Dept. A1")).toBeVisible();
-    await expect(page.getByText("Paris CDG")).toBeVisible();
-    await expect(page.getByText("Logistique Paris")).toBeVisible();
-    await expect(page.getByText("25%")).toBeVisible(); // deficitPct
-    await expect(page.getByText("7 jours")).toBeVisible(); // horizonDays
+    await expect(
+      page.getByRole("heading", { name: "Arbitrage", level: 1 }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Comparez les scenarios et validez votre choix"),
+    ).toBeVisible();
   });
 
-  test("displays 4 option cards in a grid", async ({ page }) => {
+  test("displays alert summary with alert ID", async ({ page }) => {
     await page.goto(`/arbitrage/${IDS.alert1}`);
 
-    // Wait for options section
-    const optionsSection = page.getByLabel("Options d'arbitrage");
+    const summary = page.getByLabel("Resume alerte");
+    await expect(summary).toBeVisible();
+    await expect(summary.getByText(IDS.alert1)).toBeVisible();
+  });
+
+  test("displays 4 scenario option cards", async ({ page }) => {
+    await page.goto(`/arbitrage/${IDS.alert1}`);
+
+    const optionsSection = page.getByLabel("Options de scenario");
     await expect(optionsSection).toBeVisible();
 
-    // 4 option cards
-    const optionCards = optionsSection.getByRole("article");
-    await expect(optionCards).toHaveCount(4);
-  });
-
-  test("recommended option has the 'Recommande' badge", async ({ page }) => {
-    await page.goto(`/arbitrage/${IDS.alert1}`);
-
-    // recommendationIndex=1 means "Interimaire externe" is recommended
-    await expect(page.getByText("Recommande")).toBeVisible();
-
-    // The badge should be near the recommended option label
-    const recommendedCard = page.getByLabel("Option : Interimaire externe");
-    await expect(recommendedCard.getByText("Recommande")).toBeVisible();
-  });
-
-  test("each option card shows cost, delay, and risk level", async ({
-    page,
-  }) => {
-    await page.goto(`/arbitrage/${IDS.alert1}`);
-
-    // Check the first option (Heures supplementaires)
-    const overtimeCard = page.getByLabel("Option : Heures supplementaires");
-    await expect(overtimeCard).toBeVisible();
-    // Cost formatted in EUR
-    await expect(overtimeCard.getByText(/12[\s\u202f]000/)).toBeVisible();
-    // Delay
-    await expect(overtimeCard.getByText("0 jour")).toBeVisible();
-    // Coverage impact
-    await expect(overtimeCard.getByText("+15%")).toBeVisible();
-  });
-
-  test("option cards show pros and cons", async ({ page }) => {
-    await page.goto(`/arbitrage/${IDS.alert1}`);
-
-    const externalCard = page.getByLabel("Option : Interimaire externe");
-    await expect(externalCard).toBeVisible();
-
-    // Pros
-    await expect(externalCard.getByText("Cout modere")).toBeVisible();
+    // 4 option labels
     await expect(
-      externalCard.getByText("Couvre le deficit complet"),
+      optionsSection.getByText("Heures supplementaires"),
     ).toBeVisible();
-
-    // Cons
-    await expect(externalCard.getByText("Delai de 3 jours")).toBeVisible();
-    await expect(externalCard.getByText("Formation necessaire")).toBeVisible();
+    await expect(optionsSection.getByText("Interim externe")).toBeVisible();
+    await expect(
+      optionsSection.getByText("Reallocation interne"),
+    ).toBeVisible();
+    await expect(optionsSection.getByText("Ajustement service")).toBeVisible();
   });
 
-  test("each option card has a 'Valider cette option' button", async ({
+  test("recommended option shows 'Recommande' badge", async ({ page }) => {
+    await page.goto(`/arbitrage/${IDS.alert1}`);
+
+    // "Interim externe" is the recommended option
+    await expect(page.getByText("Recommande")).toBeVisible();
+  });
+
+  test("pareto-optimal options show 'Pareto' badge", async ({ page }) => {
+    await page.goto(`/arbitrage/${IDS.alert1}`);
+
+    // 3 options are Pareto-optimal — scope to options section to avoid
+    // matching the heading "Frontiere de Pareto"
+    const optionsSection = page.getByLabel("Options de scenario");
+    const paretoBadges = optionsSection.getByText("Pareto", { exact: true });
+    await expect(paretoBadges).toHaveCount(3);
+  });
+
+  test("option cards show cost, service, and hours data", async ({ page }) => {
+    await page.goto(`/arbitrage/${IDS.alert1}`);
+
+    const optionsSection = page.getByLabel("Options de scenario");
+    await expect(optionsSection).toBeVisible();
+
+    // Check values from first option (Heures supplementaires):
+    // coutTotalEur: 2800, serviceAttenduPct: 85.0, heuresCouvertes: 10
+    await expect(optionsSection.getByText("85.0%")).toBeVisible();
+    await expect(optionsSection.getByText("10h")).toBeVisible();
+
+    // Check recommended option (Interim externe):
+    // coutTotalEur: 4200, serviceAttenduPct: 95.0, heuresCouvertes: 14
+    await expect(optionsSection.getByText("95.0%")).toBeVisible();
+    await expect(optionsSection.getByText("14h")).toBeVisible();
+  });
+
+  test("option cards show option type", async ({ page }) => {
+    await page.goto(`/arbitrage/${IDS.alert1}`);
+
+    const optionsSection = page.getByLabel("Options de scenario");
+    await expect(optionsSection).toBeVisible();
+
+    // optionType values from mock data — exact match to avoid substring collisions
+    // (e.g. "interim" is a case-insensitive substring of "Interim externe")
+    await expect(optionsSection.getByText("hs", { exact: true })).toBeVisible();
+    await expect(
+      optionsSection.getByText("interim", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      optionsSection.getByText("realloc_intra", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      optionsSection.getByText("service_adjust", { exact: true }),
+    ).toBeVisible();
+  });
+
+  test("displays Pareto chart section", async ({ page }) => {
+    await page.goto(`/arbitrage/${IDS.alert1}`);
+
+    const paretoSection = page.getByLabel("Graphique Pareto");
+    await expect(paretoSection).toBeVisible();
+    await expect(paretoSection.getByText("Frontiere de Pareto")).toBeVisible();
+  });
+
+  test("'Valider la decision' button is disabled when no option selected", async ({
     page,
   }) => {
     await page.goto(`/arbitrage/${IDS.alert1}`);
 
-    const validateButtons = page.getByRole("button", {
-      name: "Valider cette option",
+    const validateButton = page.getByRole("button", {
+      name: "Valider la decision",
     });
-    await expect(validateButtons).toHaveCount(4);
+    await expect(validateButton).toBeVisible();
+    await expect(validateButton).toBeDisabled();
   });
 
-  test("clicking validate shows success banner and redirects to /decisions", async ({
+  test("clicking an option card enables the validate button", async ({
     page,
   }) => {
     await page.goto(`/arbitrage/${IDS.alert1}`);
 
-    // Click validate on the recommended option (index 1)
-    const externalCard = page.getByLabel("Option : Interimaire externe");
-    await externalCard
-      .getByRole("button", { name: "Valider cette option" })
-      .click();
+    // Click the first option card
+    const optionsSection = page.getByLabel("Options de scenario");
+    await optionsSection.getByText("Heures supplementaires").click();
+
+    // Now the validate button should be enabled
+    const validateButton = page.getByRole("button", {
+      name: "Valider la decision",
+    });
+    await expect(validateButton).toBeEnabled();
+  });
+
+  test("selecting an option then clicking validate shows success and redirects", async ({
+    page,
+  }) => {
+    await page.goto(`/arbitrage/${IDS.alert1}`);
+
+    // Click the recommended option card
+    const optionsSection = page.getByLabel("Options de scenario");
+    await optionsSection.getByText("Interim externe").click();
+
+    // Click validate
+    await page.getByRole("button", { name: "Valider la decision" }).click();
 
     // Success banner should appear
     await expect(
-      page.getByText("Decision enregistree avec succes"),
+      page.getByText(
+        "Decision enregistree avec succes. Redirection en cours...",
+      ),
     ).toBeVisible();
 
-    // Should redirect to /decisions after ~1.5s
+    // Should redirect to /decisions
     await expect(page).toHaveURL(/\/decisions/, { timeout: 5000 });
   });
 
-  test("validation error shows error banner with retry button", async ({
+  test("error state shows ErrorFallback when scenarios API fails", async ({
     page,
   }) => {
-    // Override the validate mock to fail
-    await mockValidateArbitrage(page, { fail: true });
+    // Override with failing scenario mock
+    await setupAuth(page);
+    await mockScenariosError(page);
 
     await page.goto(`/arbitrage/${IDS.alert1}`);
 
-    // Click validate
-    const firstCard = page.getByLabel("Option : Heures supplementaires");
-    await firstCard
-      .getByRole("button", { name: "Valider cette option" })
-      .click();
-
-    // Error banner should appear
-    await expect(page.getByText(/n'a pas pu etre enregistre/)).toBeVisible();
-
-    // Retry button
+    // Error fallback should be visible with retry button
+    await expect(page.getByText("Erreur interne du serveur")).toBeVisible();
     await expect(page.getByRole("button", { name: "Reessayer" })).toBeVisible();
   });
 });

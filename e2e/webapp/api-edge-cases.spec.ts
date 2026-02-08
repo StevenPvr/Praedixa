@@ -76,9 +76,7 @@ test.describe("API edge cases — network errors", () => {
 
     await page.goto("/parametres");
 
-    await expect(
-      page.getByRole("button", { name: "Reessayer" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Reessayer" })).toBeVisible();
   });
 
   test("network error on operational-decisions shows ErrorFallback", async ({
@@ -91,9 +89,7 @@ test.describe("API edge cases — network errors", () => {
 
     await page.goto("/decisions");
 
-    await expect(
-      page.getByRole("button", { name: "Reessayer" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Reessayer" })).toBeVisible();
   });
 
   test("network error on sites shows ErrorFallback on donnees page", async ({
@@ -106,9 +102,7 @@ test.describe("API edge cases — network errors", () => {
 
     await page.goto("/donnees");
 
-    await expect(
-      page.getByRole("button", { name: "Reessayer" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Reessayer" })).toBeVisible();
   });
 });
 
@@ -130,9 +124,7 @@ test.describe("API edge cases — 500 with non-JSON body", () => {
     await page.goto("/parametres");
 
     // Should still show an error (generic message from ApiError)
-    await expect(
-      page.getByRole("button", { name: "Reessayer" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Reessayer" })).toBeVisible();
   });
 });
 

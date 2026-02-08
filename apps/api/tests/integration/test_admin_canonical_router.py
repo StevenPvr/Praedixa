@@ -20,7 +20,11 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_admin_tenant_filter, get_current_user, get_db_session
+from app.core.dependencies import (
+    get_admin_tenant_filter,
+    get_current_user,
+    get_db_session,
+)
 from app.core.security import TenantFilter
 from app.main import app
 
@@ -64,9 +68,7 @@ async def admin_client() -> AsyncGenerator[AsyncClient, None]:
 class TestOrgCanonicalQuality:
     """GET /api/v1/admin/organizations/{target_org_id}/canonical/quality"""
 
-    async def test_returns_quality_dashboard(
-        self, admin_client: AsyncClient
-    ) -> None:
+    async def test_returns_quality_dashboard(self, admin_client: AsyncClient) -> None:
         """Returns quality metrics for org canonical data."""
         app.dependency_overrides[get_admin_tenant_filter] = lambda: TenantFilter(
             str(TARGET_ORG_ID)
@@ -104,9 +106,7 @@ class TestOrgCanonicalQuality:
         assert data["data"]["sites"] == 5
         assert len(data["data"]["dateRange"]) == 2
 
-    async def test_returns_empty_dashboard(
-        self, admin_client: AsyncClient
-    ) -> None:
+    async def test_returns_empty_dashboard(self, admin_client: AsyncClient) -> None:
         """Returns zero-valued dashboard when no data exists."""
         app.dependency_overrides[get_admin_tenant_filter] = lambda: TenantFilter(
             str(TARGET_ORG_ID)
@@ -145,9 +145,7 @@ class TestOrgCanonicalQuality:
 class TestCanonicalCoverage:
     """GET /api/v1/admin/monitoring/canonical-coverage"""
 
-    async def test_returns_coverage_with_orgs(
-        self, admin_client: AsyncClient
-    ) -> None:
+    async def test_returns_coverage_with_orgs(self, admin_client: AsyncClient) -> None:
         """Returns per-org coverage stats."""
         session = admin_client._mock_session  # type: ignore[attr-defined]
 
@@ -163,9 +161,7 @@ class TestCanonicalCoverage:
             "app.routers.admin_canonical.log_admin_action",
             new_callable=AsyncMock,
         ):
-            resp = await admin_client.get(
-                "/api/v1/admin/monitoring/canonical-coverage"
-            )
+            resp = await admin_client.get("/api/v1/admin/monitoring/canonical-coverage")
 
         assert resp.status_code == 200
         data = resp.json()
@@ -175,9 +171,7 @@ class TestCanonicalCoverage:
         assert data["data"]["orgs"][0]["totalRecords"] == 100
         assert data["data"]["orgs"][0]["distinctSites"] == 5
 
-    async def test_returns_empty_coverage(
-        self, admin_client: AsyncClient
-    ) -> None:
+    async def test_returns_empty_coverage(self, admin_client: AsyncClient) -> None:
         """Returns empty list when no canonical data exists."""
         session = admin_client._mock_session  # type: ignore[attr-defined]
 
@@ -190,9 +184,7 @@ class TestCanonicalCoverage:
             "app.routers.admin_canonical.log_admin_action",
             new_callable=AsyncMock,
         ):
-            resp = await admin_client.get(
-                "/api/v1/admin/monitoring/canonical-coverage"
-            )
+            resp = await admin_client.get("/api/v1/admin/monitoring/canonical-coverage")
 
         assert resp.status_code == 200
         data = resp.json()

@@ -73,11 +73,15 @@ test.describe("Proof Packs page", () => {
     await mockProofPacksApis(page);
     await page.goto("/proof-packs");
 
-    await expect(page.getByText("Par organisation", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Par organisation", { exact: true }),
+    ).toBeVisible();
 
     // Truncated org IDs
-    const orgPrefix =
-      MOCK_PROOF_PACKS_SUMMARY.orgs[0].organizationId.slice(0, 8);
+    const orgPrefix = MOCK_PROOF_PACKS_SUMMARY.orgs[0].organizationId.slice(
+      0,
+      8,
+    );
     await expect(page.getByText(`${orgPrefix}...`)).toBeVisible();
 
     // Per-org adoption: 85.2%
@@ -119,9 +123,7 @@ test.describe("Proof Packs page", () => {
     await expect(
       page.getByRole("heading", { name: "Proof Packs", exact: true }),
     ).toBeVisible();
-    await expect(
-      page.getByText("Preuves de valeur mensuelles"),
-    ).toBeVisible();
+    await expect(page.getByText("Preuves de valeur mensuelles")).toBeVisible();
   });
 
   test("shows error fallback on API failure", async ({ page }) => {

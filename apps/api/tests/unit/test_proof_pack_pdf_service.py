@@ -6,16 +6,11 @@ Covers:
 - Formatting helpers
 """
 
-from decimal import Decimal
-
-import pytest
-
 from app.services.proof_pack_pdf_service import (
     _fmt_eur,
     _fmt_pct,
     generate_proof_pack_pdf,
 )
-
 
 # ── _fmt_eur ────────────────────────────────────────────────────
 
@@ -47,7 +42,7 @@ class TestFmtEur:
 class TestFmtPct:
     def test_decimal_to_percent(self):
         result = _fmt_pct(0.85)
-        assert "85.0%" == result
+        assert result == "85.0%"
 
     def test_none_returns_na(self):
         assert _fmt_pct(None) == "N/A"
@@ -57,15 +52,15 @@ class TestFmtPct:
 
     def test_already_percent(self):
         result = _fmt_pct(85)
-        assert "85.0%" == result
+        assert result == "85.0%"
 
     def test_string_value(self):
         result = _fmt_pct("0.95")
-        assert "95.0%" == result
+        assert result == "95.0%"
 
     def test_one_hundred_percent(self):
         result = _fmt_pct(1.0)
-        assert "100.0%" == result
+        assert result == "100.0%"
 
 
 # ── generate_proof_pack_pdf ─────────────────────────────────────
@@ -126,7 +121,7 @@ class TestGenerateProofPackPdf:
     def test_many_decisions_truncated_to_10(self):
         decisions = [
             {
-                "decision_date": f"2026-01-{i+1:02d}",
+                "decision_date": f"2026-01-{i + 1:02d}",
                 "shift": "am",
                 "gap_h": "8.00",
                 "cout_observe_eur": 100 * i,

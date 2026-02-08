@@ -18,13 +18,21 @@ test.describe("Login page error handling", () => {
     await page.addInitScript(() => {
       const origFetch = window.fetch.bind(window);
       window.fetch = async (input, init) => {
-        const url = typeof input === "string" ? input : input instanceof Request ? input.url : "";
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof Request
+              ? input.url
+              : "";
         if (url.includes("/auth/v1/token")) {
-          return new Response(JSON.stringify({
-            error: "invalid_grant",
-            error_description: "Invalid login credentials",
-            message: "Invalid login credentials",
-          }), { status: 400, headers: { "Content-Type": "application/json" } });
+          return new Response(
+            JSON.stringify({
+              error: "invalid_grant",
+              error_description: "Invalid login credentials",
+              message: "Invalid login credentials",
+            }),
+            { status: 400, headers: { "Content-Type": "application/json" } },
+          );
         }
         return origFetch(input, init);
       };
@@ -46,14 +54,22 @@ test.describe("Login page error handling", () => {
     await page.addInitScript(() => {
       const origFetch = window.fetch.bind(window);
       window.fetch = async (input, init) => {
-        const url = typeof input === "string" ? input : input instanceof Request ? input.url : "";
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof Request
+              ? input.url
+              : "";
         if (url.includes("/auth/v1/token")) {
-          await new Promise(r => setTimeout(r, 3000));
-          return new Response(JSON.stringify({
-            error: "invalid_grant",
-            error_description: "Invalid login credentials",
-            message: "Invalid login credentials",
-          }), { status: 400, headers: { "Content-Type": "application/json" } });
+          await new Promise((r) => setTimeout(r, 3000));
+          return new Response(
+            JSON.stringify({
+              error: "invalid_grant",
+              error_description: "Invalid login credentials",
+              message: "Invalid login credentials",
+            }),
+            { status: 400, headers: { "Content-Type": "application/json" } },
+          );
         }
         return origFetch(input, init);
       };
@@ -82,23 +98,39 @@ test.describe("Login page error handling", () => {
     await page.addInitScript(() => {
       const origFetch = window.fetch.bind(window);
       window.fetch = async (input, init) => {
-        const url = typeof input === "string" ? input : input instanceof Request ? input.url : "";
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof Request
+              ? input.url
+              : "";
         if (url.includes("/auth/v1/token")) {
           if (url.includes("grant_type=refresh_token")) {
-            return new Response(JSON.stringify({
-              error: "invalid_grant",
-              error_description: "Token has been revoked",
-              message: "Token has been revoked",
-            }), { status: 400, headers: { "Content-Type": "application/json" } });
+            return new Response(
+              JSON.stringify({
+                error: "invalid_grant",
+                error_description: "Token has been revoked",
+                message: "Token has been revoked",
+              }),
+              { status: 400, headers: { "Content-Type": "application/json" } },
+            );
           }
-          return new Response(JSON.stringify({
-            access_token: "mock-expired-token",
-            token_type: "bearer",
-            expires_in: 0,
-            expires_at: 0,
-            refresh_token: "mock-refresh",
-            user: { id: "user-1", aud: "authenticated", role: "authenticated", email: "test@example.com" },
-          }), { status: 200, headers: { "Content-Type": "application/json" } });
+          return new Response(
+            JSON.stringify({
+              access_token: "mock-expired-token",
+              token_type: "bearer",
+              expires_in: 0,
+              expires_at: 0,
+              refresh_token: "mock-refresh",
+              user: {
+                id: "user-1",
+                aud: "authenticated",
+                role: "authenticated",
+                email: "test@example.com",
+              },
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          );
         }
         return origFetch(input, init);
       };
@@ -130,8 +162,6 @@ test.describe("Login page error handling", () => {
   test("login page subtitle is displayed", async ({ page }) => {
     await page.goto("/login");
 
-    await expect(
-      page.getByText("Connectez-vous a votre espace"),
-    ).toBeVisible();
+    await expect(page.getByText("Connectez-vous a votre espace")).toBeVisible();
   });
 });

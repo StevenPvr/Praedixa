@@ -11,8 +11,7 @@ Covers:
 import uuid
 from datetime import date
 from decimal import Decimal
-from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -110,7 +109,7 @@ class TestListCanonicalRecords:
             make_scalar_result(1),
             make_scalars_result([rec]),
         )
-        items, total = await list_canonical_records(
+        _items, total = await list_canonical_records(
             session, tenant, date_from=date(2026, 1, 1)
         )
         assert total == 1
@@ -123,7 +122,7 @@ class TestListCanonicalRecords:
             make_scalar_result(1),
             make_scalars_result([rec]),
         )
-        items, total = await list_canonical_records(
+        _items, total = await list_canonical_records(
             session, tenant, date_to=date(2026, 2, 1)
         )
         assert total == 1
@@ -136,7 +135,7 @@ class TestListCanonicalRecords:
             make_scalar_result(1),
             make_scalars_result([rec]),
         )
-        items, total = await list_canonical_records(
+        _items, total = await list_canonical_records(
             session, tenant, shift=ShiftType.PM
         )
         assert total == 1
@@ -149,7 +148,7 @@ class TestListCanonicalRecords:
             make_scalar_result(1),
             make_scalars_result([rec]),
         )
-        items, total = await list_canonical_records(
+        _items, total = await list_canonical_records(
             session,
             tenant,
             site_id="site-lyon",
@@ -393,7 +392,7 @@ class TestBulkImportCanonical:
                 "capacite_plan_h": Decimal("100.00"),
             }
         ]
-        inserted, skipped = await bulk_import_canonical(session, tenant, records)
+        inserted, _skipped = await bulk_import_canonical(session, tenant, records)
         assert inserted == 1
         # The execute call should have been made with the correct org_id
         session.execute.assert_called_once()

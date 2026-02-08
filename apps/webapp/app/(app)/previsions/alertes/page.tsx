@@ -21,7 +21,8 @@ export default function AlertesPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const statusParam = statusFilter !== "all" ? `?status=${encodeURIComponent(statusFilter)}` : "";
+  const statusParam =
+    statusFilter !== "all" ? `?status=${encodeURIComponent(statusFilter)}` : "";
   const url = `/api/v1/coverage-alerts${statusParam}`;
 
   const { data, total, loading, error, refetch } =
@@ -36,11 +37,17 @@ export default function AlertesPage() {
       key: "severity",
       label: "Severite",
       render: (row) => (
-        <Badge variant={
-          row.severity === "critical" ? "destructive" :
-          row.severity === "high" ? "destructive" :
-          row.severity === "medium" ? "default" : "secondary"
-        }>
+        <Badge
+          variant={
+            row.severity === "critical"
+              ? "destructive"
+              : row.severity === "high"
+                ? "destructive"
+                : row.severity === "medium"
+                  ? "default"
+                  : "secondary"
+          }
+        >
           {row.severity}
         </Badge>
       ),
@@ -82,7 +89,10 @@ export default function AlertesPage() {
         label="Statut"
         options={STATUS_OPTIONS}
         value={statusFilter}
-        onChange={(v) => { setStatusFilter(v); setPage(1); }}
+        onChange={(v) => {
+          setStatusFilter(v);
+          setPage(1);
+        }}
       />
 
       {error ? (

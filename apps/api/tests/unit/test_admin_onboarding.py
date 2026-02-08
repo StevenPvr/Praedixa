@@ -17,7 +17,11 @@ from app.services.admin_onboarding import (
     get_onboarding,
     list_onboardings,
 )
-from tests.unit.conftest import make_mock_session, make_scalar_result, make_scalars_result
+from tests.unit.conftest import (
+    make_mock_session,
+    make_scalar_result,
+    make_scalars_result,
+)
 
 
 def _make_onboarding(**overrides):
@@ -65,7 +69,7 @@ class TestCreateOnboarding:
 
         session.flush = AsyncMock(side_effect=_assign_ids)
 
-        result = await create_onboarding(
+        await create_onboarding(
             session,
             org_name="New Company",
             org_slug="new-company",
@@ -201,9 +205,7 @@ class TestListOnboardings:
             make_scalar_result(2),
             make_scalars_result([]),
         )
-        _, total = await list_onboardings(
-            session, status_filter="in_progress"
-        )
+        _, total = await list_onboardings(session, status_filter="in_progress")
         assert total == 2
 
     @pytest.mark.asyncio
@@ -212,9 +214,7 @@ class TestListOnboardings:
             make_scalar_result(10),
             make_scalars_result([]),
         )
-        _, total = await list_onboardings(
-            session, status_filter="invalid_status"
-        )
+        _, total = await list_onboardings(session, status_filter="invalid_status")
         # Invalid filter is ignored — returns all
         assert total == 10
 
@@ -243,12 +243,10 @@ class TestCompleteStep:
     async def test_complete_step_2(self):
         ob = _make_onboarding(current_step=1)
         session = make_mock_session(
-            make_scalar_result(ob),     # get_onboarding
-            make_scalar_result(None),   # UPDATE execute
+            make_scalar_result(ob),  # get_onboarding
+            make_scalar_result(None),  # UPDATE execute
         )
-        result = await complete_step(
-            session, ob.id, step=2, data={"sites": ["Paris"]}
-        )
+        result = await complete_step(session, ob.id, step=2, data={"sites": ["Paris"]})
         assert result.current_step == 2
         assert result.status == OnboardingStatus.IN_PROGRESS
 
@@ -259,9 +257,7 @@ class TestCompleteStep:
             make_scalar_result(ob),
             make_scalar_result(None),
         )
-        result = await complete_step(
-            session, ob.id, step=5, data={"finalize": True}
-        )
+        result = await complete_step(session, ob.id, step=5, data={"finalize": True})
         assert result.current_step == 5
         assert result.status == OnboardingStatus.COMPLETED
         assert result.completed_at is not None
@@ -272,9 +268,7 @@ class TestCompleteStep:
         session = make_mock_session(make_scalar_result(ob))
 
         with pytest.raises(ConflictError, match="Cannot skip"):
-            await complete_step(
-                session, ob.id, step=3, data={}
-            )
+            await complete_step(session, ob.id, step=3, data={})
 
     @pytest.mark.asyncio
     async def test_step_below_1_raises(self):
@@ -322,9 +316,7 @@ class TestCompleteStep:
             make_scalar_result(ob),
             make_scalar_result(None),
         )
-        result = await complete_step(
-            session, ob.id, step=2, data={"retry": True}
-        )
+        result = await complete_step(session, ob.id, step=2, data={"retry": True})
         assert result.current_step == 2
 
     @pytest.mark.asyncio

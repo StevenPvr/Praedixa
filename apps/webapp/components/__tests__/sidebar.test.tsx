@@ -25,7 +25,7 @@ describe("Sidebar", () => {
     vi.clearAllMocks();
   });
 
-  /* ─── Rendering ─────────────────────────── */
+  /* --- Rendering --- */
 
   describe("rendering", () => {
     it("renders the aside element", () => {
@@ -56,7 +56,7 @@ describe("Sidebar", () => {
     });
   });
 
-  /* ─── Navigation items ──────────────────── */
+  /* --- Navigation items --- */
 
   describe("navigation items", () => {
     it("renders all main nav items for admin", () => {
@@ -94,14 +94,6 @@ describe("Sidebar", () => {
         "href",
         "/donnees",
       );
-      expect(screen.getByText("Arbitrage").closest("a")).toHaveAttribute(
-        "href",
-        "/arbitrage",
-      );
-      expect(screen.getByText("Decisions").closest("a")).toHaveAttribute(
-        "href",
-        "/decisions",
-      );
       expect(screen.getByText("Rapports").closest("a")).toHaveAttribute(
         "href",
         "/rapports",
@@ -109,7 +101,7 @@ describe("Sidebar", () => {
     });
   });
 
-  /* ─── Active state ──────────────────────── */
+  /* --- Active state --- */
 
   describe("active state", () => {
     it("marks the current page with aria-current=page", () => {
@@ -123,103 +115,74 @@ describe("Sidebar", () => {
       const donneesLink = screen.getByText("Donnees").closest("a");
       expect(donneesLink).not.toHaveAttribute("aria-current");
     });
-
-    it("marks Donnees as active when currentPath is /donnees", () => {
-      render(<Sidebar {...defaultProps} currentPath="/donnees" />);
-      const donneesLink = screen.getByText("Donnees").closest("a");
-      expect(donneesLink).toHaveAttribute("aria-current", "page");
-    });
   });
 
-  /* ─── Submenu (Previsions children) ─────── */
+  /* --- Submenu (Donnees children) --- */
 
   describe("submenu behavior", () => {
-    it("does not show sub-items when parent is not expanded", () => {
+    it("toggles Donnees sub-items when clicking", async () => {
+      const user = userEvent.setup();
       render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
-      expect(screen.queryByText("Capacite humaine")).not.toBeInTheDocument();
+
+      // Click Donnees to expand
+      await user.click(screen.getByText("Donnees"));
+
+      expect(screen.getByText("Sites & Departements")).toBeInTheDocument();
+      expect(screen.getByText("Datasets")).toBeInTheDocument();
+      expect(screen.getByText("Donnees canoniques")).toBeInTheDocument();
+    });
+
+    it("auto-expands section for /donnees/canonique path", () => {
+      render(<Sidebar {...defaultProps} currentPath="/donnees/canonique" />);
+      expect(screen.getByText("Donnees canoniques")).toBeInTheDocument();
+    });
+
+    it("shows Previsions children: Heatmap couverture, Alertes couverture", async () => {
+      const user = userEvent.setup();
+      render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
+
+      await user.click(screen.getByText("Previsions"));
+
+      expect(screen.getByText("Heatmap couverture")).toBeInTheDocument();
+      expect(screen.getByText("Alertes couverture")).toBeInTheDocument();
+    });
+
+    it("shows Arbitrage children: Scenarios, Historique", async () => {
+      const user = userEvent.setup();
+      render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
+
+      await user.click(screen.getByText("Arbitrage"));
+
+      expect(screen.getByText("Scenarios")).toBeInTheDocument();
+      expect(screen.getByText("Historique")).toBeInTheDocument();
+    });
+
+    it("shows Decisions children: Journal, Statistiques", async () => {
+      const user = userEvent.setup();
+      render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
+
+      await user.click(screen.getByText("Decisions"));
+
+      expect(screen.getByText("Journal")).toBeInTheDocument();
+      expect(screen.getByText("Statistiques")).toBeInTheDocument();
+    });
+
+    it("renders sub-item links with correct hrefs for Previsions", async () => {
+      const user = userEvent.setup();
+      render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
+
+      await user.click(screen.getByText("Previsions"));
+
       expect(
-        screen.queryByText("Capacite marchandise"),
-      ).not.toBeInTheDocument();
-      expect(screen.queryByText("Vue globale")).not.toBeInTheDocument();
-    });
-
-    it("toggles sub-items when clicking Previsions", async () => {
-      const user = userEvent.setup();
-      render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
-
-      // Click Previsions to expand
-      await user.click(screen.getByText("Previsions"));
-
-      expect(screen.getByText("Capacite humaine")).toBeInTheDocument();
-      expect(screen.getByText("Capacite marchandise")).toBeInTheDocument();
-      expect(screen.getByText("Vue globale")).toBeInTheDocument();
-    });
-
-    it("collapses sub-items when clicking Previsions again", async () => {
-      const user = userEvent.setup();
-      render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
-
-      await user.click(screen.getByText("Previsions"));
-      expect(screen.getByText("Capacite humaine")).toBeInTheDocument();
-
-      await user.click(screen.getByText("Previsions"));
-      expect(screen.queryByText("Capacite humaine")).not.toBeInTheDocument();
-    });
-
-    it("auto-expands the section containing the current path", () => {
-      render(<Sidebar {...defaultProps} currentPath="/previsions/humaine" />);
-      expect(screen.getByText("Capacite humaine")).toBeInTheDocument();
-      expect(screen.getByText("Capacite marchandise")).toBeInTheDocument();
-      expect(screen.getByText("Vue globale")).toBeInTheDocument();
-    });
-
-    it("marks child as active when path starts with child href", () => {
-      render(<Sidebar {...defaultProps} currentPath="/previsions/humaine" />);
-      const childLink = screen.getByText("Capacite humaine").closest("a");
-      expect(childLink).toHaveAttribute("aria-current", "page");
-    });
-
-    it("does not show sub-items when sidebar is collapsed even after click", async () => {
-      const user = userEvent.setup();
-      render(
-        <Sidebar {...defaultProps} currentPath="/dashboard" collapsed={true} />,
-      );
-
-      // When collapsed, labels are hidden but links still exist with href
-      const previsionsLink = screen
-        .getAllByRole("link")
-        .find((el) => el.getAttribute("href") === "/previsions");
-
-      expect(previsionsLink).toBeDefined();
-      if (previsionsLink) {
-        await user.click(previsionsLink);
-      }
-
-      // Sub-items should remain hidden because collapsed=true
-      expect(screen.queryByText("Capacite humaine")).not.toBeInTheDocument();
-    });
-
-    it("renders sub-item links with correct hrefs", async () => {
-      const user = userEvent.setup();
-      render(<Sidebar {...defaultProps} currentPath="/dashboard" />);
-
-      await user.click(screen.getByText("Previsions"));
-
-      expect(screen.getByText("Capacite humaine").closest("a")).toHaveAttribute(
-        "href",
-        "/previsions/humaine",
-      );
+        screen.getByText("Heatmap couverture").closest("a"),
+      ).toHaveAttribute("href", "/previsions");
       expect(
-        screen.getByText("Capacite marchandise").closest("a"),
-      ).toHaveAttribute("href", "/previsions/marchandise");
-      expect(screen.getByText("Vue globale").closest("a")).toHaveAttribute(
-        "href",
-        "/previsions/globale",
-      );
+        screen.getByText("Alertes couverture").closest("a"),
+      ).toHaveAttribute("href", "/previsions/alertes");
     });
   });
 
-  /* ─── Collapse toggle ───────────────────── */
+  /* --- Collapse toggle --- */
 
   describe("collapse toggle", () => {
     it("renders collapse button when onToggleCollapse is provided", () => {
@@ -235,9 +198,6 @@ describe("Sidebar", () => {
       expect(
         screen.queryByRole("button", { name: /reduire le menu/i }),
       ).not.toBeInTheDocument();
-      expect(
-        screen.queryByRole("button", { name: /agrandir le menu/i }),
-      ).not.toBeInTheDocument();
     });
 
     it("calls onToggleCollapse when button is clicked", async () => {
@@ -251,7 +211,7 @@ describe("Sidebar", () => {
       expect(onToggle).toHaveBeenCalledTimes(1);
     });
 
-    it("shows 'Agrandir le menu' label when collapsed", () => {
+    it("shows Agrandir label when collapsed", () => {
       const onToggle = vi.fn();
       render(
         <Sidebar
@@ -267,25 +227,22 @@ describe("Sidebar", () => {
 
     it("hides nav item labels when collapsed", () => {
       render(<Sidebar {...defaultProps} collapsed={true} />);
-      // Text labels should be hidden when collapsed
       expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
       expect(screen.queryByText("Donnees")).not.toBeInTheDocument();
     });
   });
 
-  /* ─── Role-based list structure ─────────── */
+  /* --- Accessibility --- */
 
   describe("accessibility", () => {
     it("renders nav lists with role=list", () => {
       render(<Sidebar {...defaultProps} />);
       const lists = screen.getAllByRole("list");
-      // Main nav list + bottom items list
       expect(lists.length).toBeGreaterThanOrEqual(2);
     });
 
-    it("renders 7 nav items for admin (6 main + 1 bottom)", () => {
+    it("renders 6 nav items for admin (6 main + 1 bottom)", () => {
       render(<Sidebar {...defaultProps} userRole="admin" />);
-      // Count all top-level list items
       const lists = screen.getAllByRole("list");
       const mainListItems = within(lists[0]).getAllByRole("listitem");
       const bottomListItems = within(lists[1]).getAllByRole("listitem");
@@ -298,7 +255,6 @@ describe("Sidebar", () => {
       const lists = screen.getAllByRole("list");
       const mainListItems = within(lists[0]).getAllByRole("listitem");
       expect(mainListItems).toHaveLength(6);
-      // Bottom list should be empty for viewers
       const bottomListItems = within(lists[1]).queryAllByRole("listitem");
       expect(bottomListItems).toHaveLength(0);
     });

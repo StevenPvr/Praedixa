@@ -9,32 +9,62 @@ Security notes:
 - Docs endpoints are disabled in production to reduce attack surface.
 """
 
+import math
 import time
 import uuid
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 
 import structlog
-from fastapi import FastAPI, Request, Response
+from fastapi import APIRouter, Depends, FastAPI, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import JWTPayload
 from app.core.config import settings
 from app.core.database import engine
+from app.core.dependencies import get_db_session
 from app.core.exceptions import register_exception_handlers
 from app.core.middleware import AuditLogMiddleware
 from app.core.rate_limit import setup_rate_limiting
+from app.core.security import require_role
 from app.routers import (
     admin,
+    admin_alerts_overview,
+    admin_billing,
+    admin_canonical,
+    admin_cost_params,
+    admin_data,
+    admin_decisions_enhanced,
+    admin_monitoring,
+    admin_onboarding,
+    admin_operational,
+    admin_orgs,
+    admin_proof_packs,
+    admin_scenarios,
+    admin_users,
     alerts,
     arbitrage,
+    canonical,
+    cost_parameters,
+    coverage_alerts,
     dashboard,
     datasets,
     decisions,
     forecasts,
     health,
+    mock_forecast,
+    operational_decisions,
     organizations,
+    proof,
+    scenarios,
     transforms,
 )
+from app.schemas.admin import AdminAuditLogRead
+from app.schemas.base import PaginationMeta
+from app.schemas.responses import PaginatedResponse
+from app.services.admin_audit import get_audit_log
 
 logger = structlog.get_logger()
 _PLACEHOLDER_SUPABASE_URLS = {"", "https://your-project.supabase.co"}
@@ -81,6 +111,7 @@ app = FastAPI(
     # Disable docs in production to reduce attack surface
     docs_url="/docs" if not settings.is_production else None,
     redoc_url="/redoc" if not settings.is_production else None,
+    openapi_url="/openapi.json" if not settings.is_production else None,
 )
 
 # Register global exception handlers (standardized error responses)
@@ -89,7 +120,13 @@ register_exception_handlers(app)
 # Rate limiting — must be after exception handlers so 429 responses use our format
 setup_rate_limiting(app)
 
-# CORS — explicit origin allowlist, restricted methods
+# Audit logging — logs user_id, org_id, endpoint, method, status
+# Added BEFORE CORSMiddleware so it's INNER (LIFO order).
+app.add_middleware(AuditLogMiddleware)
+
+# CORS — explicit origin allowlist.
+# Must be added AFTER AuditLogMiddleware so it's the OUTERMOST add_middleware.
+# This ensures OPTIONS preflight is handled before BaseHTTPMiddleware layers.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -97,9 +134,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
 )
-
-# Audit logging — logs user_id, org_id, endpoint, method, status
-app.add_middleware(AuditLogMiddleware)
 
 
 @app.middleware("http")
@@ -139,6 +173,11 @@ async def request_id_middleware(
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Cache-Control"] = "no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    if settings.is_production:
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=63072000; includeSubDomains; preload"
+        )
 
     logger.info(
         "request",
@@ -160,4 +199,77 @@ app.include_router(decisions.router)
 app.include_router(arbitrage.router)
 app.include_router(datasets.router)
 app.include_router(transforms.router)
-app.include_router(admin.router)
+app.include_router(canonical.router)
+app.include_router(cost_parameters.router)
+app.include_router(coverage_alerts.router)
+app.include_router(scenarios.router)
+app.include_router(operational_decisions.router)
+app.include_router(proof.router)
+app.include_router(mock_forecast.router)
+app.include_router(admin.router)  # Existing RGPD erasure under /api/v1/admin
+
+# ── Admin back-office routers ────────────────────────────
+# Composed under /api/v1/admin prefix. Each sub-router has no prefix.
+admin_backoffice = APIRouter(prefix="/api/v1/admin", tags=["admin"])
+admin_backoffice.include_router(admin_orgs.router)
+admin_backoffice.include_router(admin_users.router)
+admin_backoffice.include_router(admin_billing.router)
+admin_backoffice.include_router(admin_monitoring.router)
+admin_backoffice.include_router(admin_data.router)
+admin_backoffice.include_router(admin_onboarding.router)
+admin_backoffice.include_router(admin_operational.router)
+admin_backoffice.include_router(admin_canonical.router)
+admin_backoffice.include_router(admin_alerts_overview.router)
+admin_backoffice.include_router(admin_scenarios.router)
+admin_backoffice.include_router(admin_decisions_enhanced.router)
+admin_backoffice.include_router(admin_proof_packs.router)
+admin_backoffice.include_router(admin_cost_params.router)
+
+
+@admin_backoffice.get("/audit-log", tags=["admin-audit"])
+async def list_audit_log(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    admin_user_id: uuid.UUID | None = Query(default=None),
+    target_org_id: uuid.UUID | None = Query(default=None),
+    action: str | None = Query(default=None, max_length=50),
+    date_from: datetime | None = Query(default=None),
+    date_to: datetime | None = Query(default=None),
+    session: AsyncSession = Depends(get_db_session),
+    _current_user: JWTPayload = Depends(require_role("super_admin")),
+) -> PaginatedResponse[AdminAuditLogRead]:
+    """List admin audit log entries with filters.
+
+    Security: Requires super_admin role. The audit log itself is not
+    audited (to prevent infinite recursion).
+    """
+    items, total = await get_audit_log(
+        session,
+        page=page,
+        page_size=page_size,
+        admin_user_id=str(admin_user_id) if admin_user_id else None,
+        target_org_id=str(target_org_id) if target_org_id else None,
+        action=action,
+        date_from=date_from,
+        date_to=date_to,
+    )
+
+    total_pages = max(1, math.ceil(total / page_size))
+    data = [AdminAuditLogRead.model_validate(entry) for entry in items]
+
+    return PaginatedResponse(
+        success=True,
+        data=data,
+        pagination=PaginationMeta(
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
+            has_next_page=page < total_pages,
+            has_previous_page=page > 1,
+        ),
+        timestamp=datetime.now(UTC).isoformat(),
+    )
+
+
+app.include_router(admin_backoffice)

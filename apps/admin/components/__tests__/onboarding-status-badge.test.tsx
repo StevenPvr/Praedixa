@@ -54,9 +54,7 @@ describe("OnboardingStatusBadge", () => {
   });
 
   it("handles unknown status with neutral fallback", () => {
-    render(
-      <OnboardingStatusBadge status={"unknown" as OnboardingStatus} />,
-    );
+    render(<OnboardingStatusBadge status={"unknown" as OnboardingStatus} />);
     const badge = screen.getByTestId("status-badge");
     expect(badge).toHaveAttribute("data-variant", "neutral");
     expect(badge).toHaveTextContent("unknown");

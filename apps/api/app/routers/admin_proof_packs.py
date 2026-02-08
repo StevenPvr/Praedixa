@@ -9,7 +9,6 @@ Security:
 import math
 import uuid
 from datetime import UTC, datetime
-from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, select
@@ -125,11 +124,7 @@ async def org_proof_packs(
 
     total = (await session.execute(count_q)).scalar_one() or 0
     offset = (page - 1) * page_size
-    query = (
-        base.order_by(ProofRecord.month.desc())
-        .offset(offset)
-        .limit(page_size)
-    )
+    query = base.order_by(ProofRecord.month.desc()).offset(offset).limit(page_size)
     result = await session.execute(query)
     items = list(result.scalars().all())
 

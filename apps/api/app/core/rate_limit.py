@@ -178,7 +178,7 @@ class RequestBodySizeLimitMiddleware(BaseHTTPMiddleware):
                 }
 
             # Replay the body so downstream parsing still works.
-            request._receive = _receive  # type: ignore[attr-defined]
+            request._receive = _receive  # type: ignore[attr-defined]  # noqa: SLF001
 
         return await call_next(request)
 

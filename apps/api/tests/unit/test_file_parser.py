@@ -52,9 +52,7 @@ from app.services.file_parser import (
 # ── Fixtures ─────────────────────────────────────────────
 
 
-def _make_csv_bytes(
-    text: str, encoding: str = "utf-8"
-) -> bytes:
+def _make_csv_bytes(text: str, encoding: str = "utf-8") -> bytes:
     """Encode CSV text to bytes with given encoding."""
     return text.encode(encoding)
 
@@ -170,7 +168,9 @@ class TestDetectEncoding:
     def test_unsupported_encoding_detected(self):
         fake_result = {"encoding": "shift_jis", "confidence": 0.99}
         with patch("app.services.file_parser.chardet.detect", return_value=fake_result):
-            with pytest.raises(FileParseError, match="Unsupported encoding") as exc_info:
+            with pytest.raises(
+                FileParseError, match="Unsupported encoding"
+            ) as exc_info:
                 _detect_encoding(b"some data bytes")
             assert exc_info.value.code == "UNSUPPORTED_ENCODING"
 
@@ -214,7 +214,7 @@ class TestDetectEncoding:
 
 class TestDecodeContent:
     def test_utf8_decode(self):
-        content = "Bonjour".encode("utf-8")
+        content = b"Bonjour"
         assert _decode_content(content, "utf-8") == "Bonjour"
 
     def test_latin1_decode(self):
@@ -578,8 +578,12 @@ class TestDetectFormat:
 
     def test_lucca_priority_over_payfit(self):
         cols = [
-            "collaborateur", "matricule", "type de conge",
-            "salaire brut", "salaire net", "cotisations",
+            "collaborateur",
+            "matricule",
+            "type de conge",
+            "salaire brut",
+            "salaire net",
+            "cotisations",
         ]
         assert _detect_format(cols, format_hint=None, ext="csv") == "lucca"
 
@@ -634,7 +638,7 @@ class TestParseCsv:
 
     def test_bom_stripped_from_headers(self):
         text = "\ufeffnom;prenom\nDupont;Jean\n"
-        rows, cols = _parse_csv(text, max_rows=1000)
+        _rows, cols = _parse_csv(text, max_rows=1000)
         assert cols == ["nom", "prenom"]
 
     def test_short_row_padded_with_none(self):
@@ -660,7 +664,7 @@ class TestParseCsv:
 
     def test_tab_delimiter(self):
         text = "name\tage\nAlice\t30\n"
-        rows, cols = _parse_csv(text, max_rows=1000)
+        _rows, cols = _parse_csv(text, max_rows=1000)
         assert cols == ["name", "age"]
 
     def test_duplicate_headers_raises(self):
@@ -728,7 +732,7 @@ class TestParseXlsx:
         ws.append(["Alice", "extra", 30])
         buf = io.BytesIO()
         wb.save(buf)
-        rows, cols = _parse_xlsx(buf.getvalue(), max_rows=1000)
+        _rows, cols = _parse_xlsx(buf.getvalue(), max_rows=1000)
         assert cols[1] == "_unnamed_1"
 
     def test_string_formula_sanitized(self):
@@ -830,9 +834,7 @@ class TestParseFileCsv:
         assert result.row_count == 1
 
     def test_csv_french_coercion(self):
-        content = _make_csv_bytes(
-            "date;montant;actif\n25/12/2025;1 234,56;Oui\n"
-        )
+        content = _make_csv_bytes("date;montant;actif\n25/12/2025;1 234,56;Oui\n")
         result = parse_file(content, "data.csv")
         row = result.rows[0]
         assert row["date"] == datetime.date(2025, 12, 25)
@@ -901,16 +903,14 @@ class TestParseFileCsv:
 
     def test_csv_lucca_format_detection(self):
         content = _make_csv_bytes(
-            "Collaborateur;Matricule;Type de conge;Duree\n"
-            "Dupont;001;RTT;2\n"
+            "Collaborateur;Matricule;Type de conge;Duree\nDupont;001;RTT;2\n"
         )
         result = parse_file(content, "data.csv")
         assert result.detected_format == "lucca"
 
     def test_csv_payfit_format_detection(self):
         content = _make_csv_bytes(
-            "Nom;Salaire brut;Net a payer;Cotisations\n"
-            "Dupont;3500;2800;700\n"
+            "Nom;Salaire brut;Net a payer;Cotisations\nDupont;3500;2800;700\n"
         )
         result = parse_file(content, "data.csv")
         assert result.detected_format == "payfit"
@@ -1052,9 +1052,11 @@ class TestParseFileFormatHint:
 
 class TestParseFileEdgeCases:
     def test_no_columns_detected(self):
-        with patch("app.services.file_parser._detect_encoding", return_value="utf-8"), \
-             patch("app.services.file_parser._decode_content", return_value=""), \
-             patch("app.services.file_parser._parse_csv", return_value=([], [])):
+        with (
+            patch("app.services.file_parser._detect_encoding", return_value="utf-8"),
+            patch("app.services.file_parser._decode_content", return_value=""),
+            patch("app.services.file_parser._parse_csv", return_value=([], [])),
+        ):
             with pytest.raises(FileParseError, match="No columns") as exc_info:
                 parse_file(b"something", "data.csv")
             assert exc_info.value.code == "NO_COLUMNS"
@@ -1105,8 +1107,10 @@ class TestParseResult:
 
     def test_defaults(self):
         pr = ParseResult(
-            rows=[], source_columns=["a"],
-            detected_format="csv", detected_encoding="utf-8",
+            rows=[],
+            source_columns=["a"],
+            detected_format="csv",
+            detected_encoding="utf-8",
         )
         assert pr.warnings == []
         assert pr.row_count == 0

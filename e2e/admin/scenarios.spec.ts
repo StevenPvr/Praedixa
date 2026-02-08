@@ -51,13 +51,9 @@ test.describe("Scenarios page", () => {
     await expect(page.getByText("Repartition par type")).toBeVisible();
 
     // Type labels
-    await expect(
-      page.getByText("Heures supplementaires"),
-    ).toBeVisible();
+    await expect(page.getByText("Heures supplementaires")).toBeVisible();
     await expect(page.getByText("Interim")).toBeVisible();
-    await expect(
-      page.getByText("Reallocation intra-site"),
-    ).toBeVisible();
+    await expect(page.getByText("Reallocation intra-site")).toBeVisible();
     await expect(page.getByText("Sous-traitance")).toBeVisible();
   });
 
@@ -68,26 +64,22 @@ test.describe("Scenarios page", () => {
     await expect(
       page.getByRole("heading", { name: "Scenarios", exact: true }),
     ).toBeVisible();
-    await expect(
-      page.getByText("Repartition par type"),
-    ).not.toBeVisible();
+    await expect(page.getByText("Repartition par type")).not.toBeVisible();
   });
 
   test("shows loading skeletons before data loads", async ({ page }) => {
-    await page.route(
-      "**/api/v1/admin/monitoring/scenarios/summary*",
-      (route) =>
-        new Promise((resolve) => setTimeout(resolve, 2000)).then(() =>
-          route.fulfill({
-            status: 200,
-            contentType: "application/json",
-            body: JSON.stringify({
-              success: true,
-              data: MOCK_SCENARIOS_SUMMARY,
-              timestamp: "2026-02-07T12:00:00Z",
-            }),
+    await page.route("**/api/v1/admin/monitoring/scenarios/summary*", (route) =>
+      new Promise((resolve) => setTimeout(resolve, 2000)).then(() =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            success: true,
+            data: MOCK_SCENARIOS_SUMMARY,
+            timestamp: "2026-02-07T12:00:00Z",
           }),
-        ),
+        }),
+      ),
     );
 
     await page.goto("/scenarios");

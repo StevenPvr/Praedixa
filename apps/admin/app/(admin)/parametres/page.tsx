@@ -98,8 +98,8 @@ export default function ParametresPage() {
       ) : (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           {data?.totalOrgsWithMissing} organisation
-          {(data?.totalOrgsWithMissing ?? 0) > 1 ? "s" : ""} avec des
-          parametres manquants.
+          {(data?.totalOrgsWithMissing ?? 0) > 1 ? "s" : ""} avec des parametres
+          manquants.
         </div>
       )}
 

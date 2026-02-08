@@ -67,7 +67,9 @@ describe("TabBar", () => {
 
   it("calls onTabChange when tab is clicked", () => {
     const onTabChange = vi.fn();
-    render(<TabBar tabs={tabs} activeTab="overview" onTabChange={onTabChange} />);
+    render(
+      <TabBar tabs={tabs} activeTab="overview" onTabChange={onTabChange} />,
+    );
     fireEvent.click(screen.getByText("Details"));
     expect(onTabChange).toHaveBeenCalledTimes(1);
     expect(onTabChange).toHaveBeenCalledWith("details");
@@ -93,7 +95,12 @@ describe("TabBar", () => {
   it("forwards ref", () => {
     const ref = createRef<HTMLDivElement>();
     render(
-      <TabBar ref={ref} tabs={tabs} activeTab="overview" onTabChange={() => {}} />,
+      <TabBar
+        ref={ref}
+        tabs={tabs}
+        activeTab="overview"
+        onTabChange={() => {}}
+      />,
     );
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });

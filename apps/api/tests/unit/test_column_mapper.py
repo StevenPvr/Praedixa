@@ -469,7 +469,9 @@ class TestColumnMapping:
             cm.confidence = 0.5
 
     def test_with_transform(self):
-        fn = lambda x: str(x)
+        def fn(x):
+            return str(x)
+
         cm = ColumnMapping(
             source_column="src",
             target_column="tgt",

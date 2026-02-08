@@ -85,7 +85,9 @@ export default function DecisionDetailPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Date</p>
-                <p className="font-medium text-charcoal">{decision.decisionDate}</p>
+                <p className="font-medium text-charcoal">
+                  {decision.decisionDate}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">Shift</p>
@@ -107,13 +109,18 @@ export default function DecisionDetailPage() {
             {decision.overrideReason && (
               <div className="mt-4">
                 <p className="text-xs text-gray-500">Raison override</p>
-                <p className="text-sm text-charcoal">{decision.overrideReason}</p>
+                <p className="text-sm text-charcoal">
+                  {decision.overrideReason}
+                </p>
               </div>
             )}
           </section>
 
           {/* Outcome Form */}
-          <section aria-label="Resultat observe" className="rounded-card border border-gray-200 bg-card p-6">
+          <section
+            aria-label="Resultat observe"
+            className="rounded-card border border-gray-200 bg-card p-6"
+          >
             <h2 className="mb-4 text-lg font-semibold text-charcoal">
               Resultat observe
             </h2>

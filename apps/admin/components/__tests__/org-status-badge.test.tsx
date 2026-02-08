@@ -48,9 +48,7 @@ describe("OrgStatusBadge", () => {
   });
 
   it("handles unknown status with neutral fallback", () => {
-    render(
-      <OrgStatusBadge status={"unknown" as OrgStatus} />,
-    );
+    render(<OrgStatusBadge status={"unknown" as OrgStatus} />);
     const badge = screen.getByTestId("status-badge");
     expect(badge).toHaveAttribute("data-variant", "neutral");
     expect(badge).toHaveTextContent("unknown");

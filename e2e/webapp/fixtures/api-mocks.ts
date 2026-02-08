@@ -14,92 +14,447 @@ export const IDS = {
   alert1: "alert-1111-1111-1111-111111111111",
   alert2: "alert-2222-2222-2222-222222222222",
   alert3: "alert-3333-3333-3333-333333333333",
-  forecastRun1: "run-1111-1111-1111-111111111111",
+  alert4: "alert-4444-4444-4444-444444444444",
+  alert5: "alert-5555-5555-5555-555555555555",
+  scenarioOpt1: "opt-1111-1111-1111-111111111111",
+  scenarioOpt2: "opt-2222-2222-2222-222222222222",
+  scenarioOpt3: "opt-3333-3333-3333-333333333333",
+  scenarioOpt4: "opt-4444-4444-4444-444444444444",
   decision1: "dec-1111-1111-1111-111111111111",
   decision2: "dec-2222-2222-2222-222222222222",
   decision3: "dec-3333-3333-3333-333333333333",
   decision4: "dec-4444-4444-4444-444444444444",
-  decision5: "dec-5555-5555-5555-555555555555",
+  costParam1: "cp-1111-1111-1111-111111111111",
+  costParam2: "cp-2222-2222-2222-222222222222",
+  proofPack1: "pp-1111-1111-1111-111111111111",
+  proofPack2: "pp-2222-2222-2222-222222222222",
 } as const;
 
+const NOW = "2026-02-07T12:00:00Z";
+
 // ─────────────────────────────────────────────────
-// Dashboard summary
+// Coverage Alerts
 // ─────────────────────────────────────────────────
 
-const dashboardSummary = {
-  coverageHuman: 87,
-  coverageMerchandise: 92,
-  activeAlertsCount: 3,
-  forecastAccuracy: 94,
-  lastForecastDate: "2026-02-05",
+const coverageAlerts = [
+  {
+    id: IDS.alert1,
+    organizationId: IDS.org,
+    siteId: "Lyon-Sat",
+    alertDate: "2026-02-10",
+    shift: "am",
+    horizon: "j7",
+    pRupture: 0.72,
+    gapH: 14,
+    impactEur: 3500,
+    severity: "critical",
+    status: "open",
+    driversJson: ["Absenteisme", "Surcharge"],
+    createdAt: NOW,
+    updatedAt: NOW,
+  },
+  {
+    id: IDS.alert2,
+    organizationId: IDS.org,
+    siteId: "Paris-CDG",
+    alertDate: "2026-02-11",
+    shift: "pm",
+    horizon: "j7",
+    pRupture: 0.55,
+    gapH: 8,
+    impactEur: 2000,
+    severity: "high",
+    status: "open",
+    driversJson: ["Conges"],
+    createdAt: NOW,
+    updatedAt: NOW,
+  },
+  {
+    id: IDS.alert3,
+    organizationId: IDS.org,
+    siteId: "Marseille",
+    alertDate: "2026-02-09",
+    shift: "am",
+    horizon: "j3",
+    pRupture: 0.35,
+    gapH: 4,
+    impactEur: 800,
+    severity: "medium",
+    status: "open",
+    driversJson: ["Formation"],
+    createdAt: NOW,
+    updatedAt: NOW,
+  },
+  {
+    id: IDS.alert4,
+    organizationId: IDS.org,
+    siteId: "Lyon-Sat",
+    alertDate: "2026-02-15",
+    shift: "pm",
+    horizon: "j14",
+    pRupture: 0.25,
+    gapH: 6,
+    severity: "low",
+    status: "open",
+    driversJson: ["Saisonnier"],
+    createdAt: NOW,
+    updatedAt: NOW,
+  },
+  {
+    id: IDS.alert5,
+    organizationId: IDS.org,
+    siteId: "Paris-CDG",
+    alertDate: "2026-02-12",
+    shift: "am",
+    horizon: "j7",
+    pRupture: 0.48,
+    gapH: 10,
+    severity: "medium",
+    status: "open",
+    driversJson: ["Absenteisme"],
+    createdAt: NOW,
+    updatedAt: NOW,
+  },
+];
+
+export { coverageAlerts as MOCK_COVERAGE_ALERTS };
+
+export async function mockCoverageAlerts(page: Page): Promise<void> {
+  await page.route("**/api/v1/coverage-alerts*", (route) => {
+    const url = new URL(route.request().url());
+    const horizon = url.searchParams.get("horizon");
+    const siteId = url.searchParams.get("site_id");
+
+    let filtered = [...coverageAlerts];
+    if (horizon) {
+      filtered = filtered.filter((a) => a.horizon === horizon);
+    }
+    if (siteId) {
+      filtered = filtered.filter((a) => a.siteId === siteId);
+    }
+
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: filtered,
+        timestamp: NOW,
+      }),
+    });
+  });
+}
+
+// ─────────────────────────────────────────────────
+// Canonical Quality Dashboard
+// ─────────────────────────────────────────────────
+
+const canonicalQuality = {
+  totalRecords: 54000,
+  coveragePct: 87.3,
+  sites: ["Lyon-Sat", "Paris-CDG", "Marseille"],
+  dateRange: { from: "2025-01-01", to: "2026-02-07" },
+  missingShiftsPct: 2.1,
+  avgAbsPct: 5.8,
 };
 
-export async function mockDashboardSummary(page: Page): Promise<void> {
-  await page.route("**/api/v1/dashboard/summary*", (route) =>
+export async function mockCanonicalQuality(page: Page): Promise<void> {
+  await page.route("**/api/v1/canonical/quality*", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: dashboardSummary }),
+      body: JSON.stringify({
+        success: true,
+        data: canonicalQuality,
+        timestamp: NOW,
+      }),
     }),
   );
 }
 
 // ─────────────────────────────────────────────────
-// Alerts
+// Scenario Options (Pareto frontier)
 // ─────────────────────────────────────────────────
 
-const alerts = [
+const scenarioOptions = [
   {
-    id: IDS.alert1,
-    type: "risk",
-    severity: "error",
-    title: "Deficit critique Dept. A1",
-    message:
-      "La capacite humaine est en deficit de 25% pour les 7 prochains jours.",
-    createdAt: "2026-02-05T10:00:00Z",
-    dismissedAt: null,
+    id: IDS.scenarioOpt1,
+    organizationId: IDS.org,
+    coverageAlertId: IDS.alert1,
+    costParameterId: IDS.costParam1,
+    optionType: "hs",
+    label: "Heures supplementaires",
+    coutTotalEur: 2800,
+    serviceAttenduPct: 85.0,
+    heuresCouvertes: 10,
+    isParetoOptimal: true,
+    isRecommended: false,
+    contraintesJson: {},
+    createdAt: NOW,
+    updatedAt: NOW,
   },
   {
-    id: IDS.alert2,
-    type: "risk",
-    severity: "warning",
-    title: "Risque modere Dept. B1",
-    message: "La capacite marchandise risque un deficit de 12% sur 14 jours.",
-    createdAt: "2026-02-04T14:30:00Z",
-    dismissedAt: null,
+    id: IDS.scenarioOpt2,
+    organizationId: IDS.org,
+    coverageAlertId: IDS.alert1,
+    costParameterId: IDS.costParam1,
+    optionType: "interim",
+    label: "Interim externe",
+    coutTotalEur: 4200,
+    serviceAttenduPct: 95.0,
+    heuresCouvertes: 14,
+    isParetoOptimal: true,
+    isRecommended: true,
+    contraintesJson: {},
+    createdAt: NOW,
+    updatedAt: NOW,
   },
   {
-    id: IDS.alert3,
-    type: "forecast",
-    severity: "info",
-    title: "Nouvelle prevision disponible",
-    message:
-      "Le modele a genere de nouvelles previsions pour la semaine prochaine.",
-    createdAt: "2026-02-03T09:00:00Z",
-    dismissedAt: null,
+    id: IDS.scenarioOpt3,
+    organizationId: IDS.org,
+    coverageAlertId: IDS.alert1,
+    costParameterId: IDS.costParam1,
+    optionType: "realloc_intra",
+    label: "Reallocation interne",
+    coutTotalEur: 1200,
+    serviceAttenduPct: 78.0,
+    heuresCouvertes: 8,
+    isParetoOptimal: true,
+    isRecommended: false,
+    contraintesJson: {},
+    createdAt: NOW,
+    updatedAt: NOW,
+  },
+  {
+    id: IDS.scenarioOpt4,
+    organizationId: IDS.org,
+    coverageAlertId: IDS.alert1,
+    costParameterId: IDS.costParam1,
+    optionType: "service_adjust",
+    label: "Ajustement service",
+    coutTotalEur: 500,
+    serviceAttenduPct: 65.0,
+    heuresCouvertes: 4,
+    isParetoOptimal: false,
+    isRecommended: false,
+    contraintesJson: {},
+    createdAt: NOW,
+    updatedAt: NOW,
   },
 ];
 
-export { alerts as MOCK_ALERTS };
+const paretoFrontierResponse = {
+  alertId: IDS.alert1,
+  options: scenarioOptions,
+  paretoFrontier: scenarioOptions.filter((o) => o.isParetoOptimal),
+  recommended: scenarioOptions.find((o) => o.isRecommended) ?? null,
+};
 
-export async function mockAlerts(page: Page): Promise<void> {
-  await page.route("**/api/v1/alerts*", (route) => {
-    // Dismiss endpoint
-    if (route.request().method() === "PATCH") {
-      const alertId = route.request().url().split("/alerts/")[1]?.split("/")[0];
-      const alert = alerts.find((a) => a.id === alertId);
+export async function mockScenarios(page: Page): Promise<void> {
+  await page.route("**/api/v1/scenarios/alert/*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: paretoFrontierResponse,
+        timestamp: NOW,
+      }),
+    }),
+  );
+}
+
+export async function mockScenariosError(page: Page): Promise<void> {
+  await page.route("**/api/v1/scenarios/alert/*", (route) =>
+    route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: false,
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "Erreur interne du serveur",
+        },
+        timestamp: NOW,
+      }),
+    }),
+  );
+}
+
+// ─────────────────────────────────────────────────
+// Operational Decisions
+// ─────────────────────────────────────────────────
+
+const operationalDecisions = [
+  {
+    id: IDS.decision1,
+    organizationId: IDS.org,
+    coverageAlertId: IDS.alert1,
+    recommendedOptionId: IDS.scenarioOpt2,
+    chosenOptionId: IDS.scenarioOpt2,
+    siteId: "Lyon-Sat",
+    decisionDate: "2026-02-07",
+    shift: "am",
+    horizon: "j7",
+    gapH: 14,
+    isOverride: false,
+    coutAttenduEur: 4200,
+    serviceAttenduPct: 95.0,
+    coutObserveEur: 4100,
+    serviceObservePct: 94.5,
+    decidedBy: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    createdAt: NOW,
+    updatedAt: NOW,
+  },
+  {
+    id: IDS.decision2,
+    organizationId: IDS.org,
+    coverageAlertId: IDS.alert2,
+    recommendedOptionId: IDS.scenarioOpt1,
+    chosenOptionId: IDS.scenarioOpt3,
+    siteId: "Paris-CDG",
+    decisionDate: "2026-02-06",
+    shift: "pm",
+    horizon: "j7",
+    gapH: 8,
+    isOverride: true,
+    overrideReason: "Cout trop eleve",
+    coutAttenduEur: 1200,
+    serviceAttenduPct: 78.0,
+    coutObserveEur: null,
+    serviceObservePct: null,
+    decidedBy: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    createdAt: NOW,
+    updatedAt: NOW,
+  },
+  {
+    id: IDS.decision3,
+    organizationId: IDS.org,
+    coverageAlertId: IDS.alert3,
+    recommendedOptionId: IDS.scenarioOpt1,
+    chosenOptionId: IDS.scenarioOpt1,
+    siteId: "Marseille",
+    decisionDate: "2026-02-05",
+    shift: "am",
+    horizon: "j3",
+    gapH: 4,
+    isOverride: false,
+    coutAttenduEur: 2800,
+    serviceAttenduPct: 85.0,
+    coutObserveEur: 2750,
+    serviceObservePct: 86.2,
+    decidedBy: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    createdAt: NOW,
+    updatedAt: NOW,
+  },
+  {
+    id: IDS.decision4,
+    organizationId: IDS.org,
+    coverageAlertId: IDS.alert4,
+    recommendedOptionId: IDS.scenarioOpt2,
+    chosenOptionId: IDS.scenarioOpt4,
+    siteId: "Lyon-Sat",
+    decisionDate: "2026-02-04",
+    shift: "pm",
+    horizon: "j14",
+    gapH: 6,
+    isOverride: true,
+    overrideReason: "Pas de budget",
+    coutAttenduEur: 500,
+    serviceAttenduPct: 65.0,
+    coutObserveEur: null,
+    serviceObservePct: null,
+    decidedBy: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    createdAt: NOW,
+    updatedAt: NOW,
+  },
+];
+
+export { operationalDecisions as MOCK_OPERATIONAL_DECISIONS };
+
+export async function mockOperationalDecisions(page: Page): Promise<void> {
+  await page.route("**/api/v1/operational-decisions*", (route) => {
+    if (route.request().method() === "POST") {
       return route.fulfill({
-        status: 200,
+        status: 201,
         contentType: "application/json",
         body: JSON.stringify({
-          data: { ...alert, dismissedAt: new Date().toISOString() },
+          success: true,
+          data: { id: "dec-new-0000-0000-000000000000" },
+          timestamp: NOW,
+        }),
+      });
+    }
+
+    const url = new URL(route.request().url());
+    const pageParam = Number(url.searchParams.get("page") ?? "1");
+    const pageSizeParam = Number(url.searchParams.get("pageSize") ?? "15");
+    const horizonParam = url.searchParams.get("horizon");
+    const isOverrideParam = url.searchParams.get("is_override");
+
+    let filtered = [...operationalDecisions];
+    if (horizonParam) {
+      filtered = filtered.filter((d) => d.horizon === horizonParam);
+    }
+    if (isOverrideParam === "true") {
+      filtered = filtered.filter((d) => d.isOverride);
+    }
+
+    const total = filtered.length;
+    const start = (pageParam - 1) * pageSizeParam;
+    const paged = filtered.slice(start, start + pageSizeParam);
+    const totalPages = Math.ceil(total / pageSizeParam);
+
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: paged,
+        pagination: {
+          total,
+          page: pageParam,
+          pageSize: pageSizeParam,
+          totalPages,
+          hasNextPage: pageParam < totalPages,
+          hasPreviousPage: pageParam > 1,
+        },
+        timestamp: NOW,
+      }),
+    });
+  });
+}
+
+export async function mockOperationalDecisionsPost(
+  page: Page,
+  options?: { fail?: boolean },
+): Promise<void> {
+  await page.route("**/api/v1/operational-decisions*", (route) => {
+    if (route.request().method() !== "POST") {
+      return route.fallback();
+    }
+    if (options?.fail) {
+      return route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: "INTERNAL_ERROR",
+            message: "Erreur interne du serveur",
+          },
+          timestamp: NOW,
         }),
       });
     }
     return route.fulfill({
-      status: 200,
+      status: 201,
       contentType: "application/json",
-      body: JSON.stringify({ data: alerts }),
+      body: JSON.stringify({
+        success: true,
+        data: { id: "dec-new-0000-0000-000000000000" },
+        timestamp: NOW,
+      }),
     });
   });
 }
@@ -132,7 +487,11 @@ export async function mockSites(page: Page): Promise<void> {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: sites }),
+      body: JSON.stringify({
+        success: true,
+        data: sites,
+        timestamp: NOW,
+      }),
     }),
   );
 }
@@ -178,254 +537,117 @@ export async function mockDepartments(page: Page): Promise<void> {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ data: departments }),
+      body: JSON.stringify({
+        success: true,
+        data: departments,
+        timestamp: NOW,
+      }),
     }),
   );
 }
 
 // ─────────────────────────────────────────────────
-// Forecasts
+// Cost Parameters
 // ─────────────────────────────────────────────────
 
-const forecastRuns = [
+const costParameters = [
   {
-    id: IDS.forecastRun1,
-    status: "completed",
-    accuracyScore: 94,
+    id: IDS.costParam1,
+    organizationId: IDS.org,
+    siteId: null,
+    version: 1,
+    cInt: 25,
+    majHs: 1.25,
+    cInterim: 35,
+    premiumUrgence: 1.5,
+    cBacklog: 50,
+    capHsShift: 4,
+    capInterimSite: 20,
+    leadTimeJours: 2,
+    effectiveFrom: "2026-01-01",
+    createdAt: NOW,
+    updatedAt: NOW,
+  },
+  {
+    id: IDS.costParam2,
+    organizationId: IDS.org,
+    siteId: "Lyon-Sat",
+    version: 1,
+    cInt: 28,
+    majHs: 1.3,
+    cInterim: 38,
+    premiumUrgence: 1.6,
+    cBacklog: 55,
+    capHsShift: 5,
+    capInterimSite: 25,
+    leadTimeJours: 3,
+    effectiveFrom: "2026-01-15",
+    createdAt: NOW,
+    updatedAt: NOW,
   },
 ];
 
-const dailyForecasts = Array.from({ length: 14 }, (_, i) => ({
-  forecastDate: `2026-02-${String(6 + i).padStart(2, "0")}`,
-  dimension: "human",
-  predictedDemand: 100 + Math.round(Math.sin(i / 2) * 20),
-  predictedCapacity: 90 + Math.round(Math.cos(i / 3) * 15),
-  gap: -10 + i,
-  riskScore: Math.max(0, Math.min(1, 0.2 + i * 0.05)),
-  confidenceLower: 80 + i,
-  confidenceUpper: 110 + i,
-  departmentId: i < 7 ? IDS.deptA1 : IDS.deptB1,
-}));
-
-export async function mockForecasts(page: Page): Promise<void> {
-  await page.route("**/api/v1/forecasts?*", (route) =>
+export async function mockCostParameters(page: Page): Promise<void> {
+  await page.route("**/api/v1/cost-parameters*", (route) =>
     route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ data: forecastRuns }),
-    }),
-  );
-}
-
-export async function mockDailyForecasts(page: Page): Promise<void> {
-  await page.route("**/api/v1/forecasts/*/daily*", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ data: dailyForecasts }),
-    }),
-  );
-}
-
-// ─────────────────────────────────────────────────
-// Arbitrage
-// ─────────────────────────────────────────────────
-
-const arbitrageResult = {
-  alertId: IDS.alert1,
-  alertTitle: "Deficit critique Dept. A1",
-  alertSeverity: "error",
-  departmentName: "Logistique Paris",
-  siteName: "Paris CDG",
-  deficitPct: 25,
-  horizonDays: 7,
-  options: [
-    {
-      type: "overtime",
-      label: "Heures supplementaires",
-      cost: 12000,
-      delayDays: 0,
-      coverageImpactPct: 15,
-      riskLevel: "low",
-      riskDetails:
-        "Risque de fatigue a moyen terme si prolonge au-dela de 2 semaines.",
-      pros: ["Mise en place immediate", "Pas de recrutement"],
-      cons: ["Cout eleve a long terme", "Risque de fatigue"],
-    },
-    {
-      type: "external",
-      label: "Interimaire externe",
-      cost: 8500,
-      delayDays: 3,
-      coverageImpactPct: 20,
-      riskLevel: "medium",
-      riskDetails: "Delai d'integration de 3 jours avant pleine efficacite.",
-      pros: ["Cout modere", "Couvre le deficit complet"],
-      cons: ["Delai de 3 jours", "Formation necessaire"],
-    },
-    {
-      type: "redistribution",
-      label: "Redistribution interne",
-      cost: 2000,
-      delayDays: 1,
-      coverageImpactPct: 10,
-      riskLevel: "medium",
-      riskDetails: "Impact sur les departements voisins, risque de cascade.",
-      pros: ["Tres economique", "Personnel deja forme"],
-      cons: ["Couverture partielle", "Impact sur autres equipes"],
-    },
-    {
-      type: "no_action",
-      label: "Aucune action",
-      cost: 0,
-      delayDays: 0,
-      coverageImpactPct: 0,
-      riskLevel: "high",
-      riskDetails:
-        "Le deficit de 25% persiste, risque de retard sur les engagements.",
-      pros: ["Zero cout direct"],
-      cons: ["Deficit non corrige", "Impact client potentiel"],
-    },
-  ],
-  recommendationIndex: 1,
-};
-
-export async function mockArbitrageOptions(page: Page): Promise<void> {
-  await page.route("**/api/v1/arbitrage/*/options*", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ data: arbitrageResult }),
-    }),
-  );
-}
-
-export async function mockValidateArbitrage(
-  page: Page,
-  options?: { fail?: boolean },
-): Promise<void> {
-  await page.route("**/api/v1/arbitrage/*/validate*", (route) => {
-    if (options?.fail) {
-      return route.fulfill({
-        status: 500,
-        contentType: "application/json",
-        body: JSON.stringify({
-          error: {
-            code: "INTERNAL_ERROR",
-            message: "Erreur interne du serveur",
-          },
-        }),
-      });
-    }
-    return route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ data: { id: IDS.decision1 } }),
-    });
-  });
-}
-
-// ─────────────────────────────────────────────────
-// Decisions
-// ─────────────────────────────────────────────────
-
-const decisions = [
-  {
-    id: IDS.decision1,
-    type: "external",
-    priority: "high",
-    status: "suggested",
-    title: "Recrutement interimaire Logistique Paris",
-    targetPeriod: { start: "2026-02-06", end: "2026-02-13" },
-    departmentId: IDS.deptA1,
-    departmentName: "Logistique Paris",
-    estimatedCost: 8500,
-    costOfInaction: 35000,
-    confidenceScore: 87,
-  },
-  {
-    id: IDS.decision2,
-    type: "overtime",
-    priority: "medium",
-    status: "pending_review",
-    title: "Heures sup Manutention Paris",
-    targetPeriod: { start: "2026-02-07", end: "2026-02-14" },
-    departmentId: IDS.deptA2,
-    departmentName: "Manutention Paris",
-    estimatedCost: 12000,
-    costOfInaction: 20000,
-    confidenceScore: 72,
-  },
-  {
-    id: IDS.decision3,
-    type: "redistribution",
-    priority: "low",
-    status: "approved",
-    title: "Redistribution equipe Lyon",
-    targetPeriod: { start: "2026-02-08", end: "2026-02-15" },
-    departmentId: IDS.deptB1,
-    departmentName: "Logistique Lyon",
-    estimatedCost: 2000,
-    costOfInaction: 10000,
-    confidenceScore: 91,
-  },
-  {
-    id: IDS.decision4,
-    type: "no_action",
-    priority: "low",
-    status: "rejected",
-    title: "Aucune action Dept B1",
-    targetPeriod: { start: "2026-02-09", end: "2026-02-16" },
-    departmentId: IDS.deptB1,
-    departmentName: "Logistique Lyon",
-    estimatedCost: 0,
-    costOfInaction: 5000,
-    confidenceScore: 45,
-  },
-  {
-    id: IDS.decision5,
-    type: "external",
-    priority: "high",
-    status: "implemented",
-    title: "Interimaire urgent Paris",
-    targetPeriod: { start: "2026-02-01", end: "2026-02-08" },
-    departmentId: IDS.deptA1,
-    departmentName: "Logistique Paris",
-    estimatedCost: 9200,
-    costOfInaction: 40000,
-    confidenceScore: 93,
-  },
-];
-
-export async function mockDecisions(page: Page): Promise<void> {
-  await page.route("**/api/v1/decisions*", (route) => {
-    const url = new URL(route.request().url());
-    const statusesParam = url.searchParams.get("statuses");
-    const pageParam = Number(url.searchParams.get("page") ?? "1");
-    const pageSizeParam = Number(url.searchParams.get("pageSize") ?? "10");
-
-    let filtered = decisions;
-    if (statusesParam) {
-      filtered = decisions.filter((d) => d.status === statusesParam);
-    }
-
-    const start = (pageParam - 1) * pageSizeParam;
-    const paged = filtered.slice(start, start + pageSizeParam);
-
-    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
-        data: paged,
-        pagination: {
-          page: pageParam,
-          pageSize: pageSizeParam,
-          total: filtered.length,
-          totalPages: Math.ceil(filtered.length / pageSizeParam),
-        },
+        success: true,
+        data: costParameters,
+        timestamp: NOW,
       }),
-    });
-  });
+    }),
+  );
+}
+
+// ─────────────────────────────────────────────────
+// Proof Packs
+// ─────────────────────────────────────────────────
+
+const proofPacks = [
+  {
+    id: IDS.proofPack1,
+    siteId: "Lyon-Sat",
+    month: "2026-01",
+    coutBauEur: 120000,
+    cout100Eur: 95000,
+    coutReelEur: 98000,
+    gainNetEur: 22000,
+    serviceBauPct: 88.0,
+    serviceReelPct: 93.0,
+    adoptionPct: 82.5,
+    alertesEmises: 15,
+    alertesTraitees: 13,
+  },
+  {
+    id: IDS.proofPack2,
+    siteId: "Paris-CDG",
+    month: "2026-01",
+    coutBauEur: 180000,
+    cout100Eur: 140000,
+    coutReelEur: 155000,
+    gainNetEur: 25000,
+    serviceBauPct: 85.0,
+    serviceReelPct: 91.0,
+    adoptionPct: 76.0,
+    alertesEmises: 22,
+    alertesTraitees: 18,
+  },
+];
+
+export async function mockProofPacks(page: Page): Promise<void> {
+  await page.route("**/api/v1/proof*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: proofPacks,
+        timestamp: NOW,
+      }),
+    }),
+  );
 }
 
 // ─────────────────────────────────────────────────
@@ -438,11 +660,13 @@ export async function mockOrganization(page: Page): Promise<void> {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
+        success: true,
         data: {
           id: IDS.org,
           name: "Praedixa Demo",
           slug: "praedixa-demo",
         },
+        timestamp: NOW,
       }),
     }),
   );
@@ -453,14 +677,13 @@ export async function mockOrganization(page: Page): Promise<void> {
 // ─────────────────────────────────────────────────
 
 export async function mockAllApis(page: Page): Promise<void> {
-  await mockDashboardSummary(page);
-  await mockAlerts(page);
+  await mockCoverageAlerts(page);
+  await mockCanonicalQuality(page);
   await mockSites(page);
   await mockDepartments(page);
-  await mockForecasts(page);
-  await mockDailyForecasts(page);
-  await mockArbitrageOptions(page);
-  await mockValidateArbitrage(page);
-  await mockDecisions(page);
+  await mockScenarios(page);
+  await mockOperationalDecisions(page);
+  await mockCostParameters(page);
+  await mockProofPacks(page);
   await mockOrganization(page);
 }

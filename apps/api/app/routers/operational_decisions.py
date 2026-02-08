@@ -36,7 +36,9 @@ from app.services.decision_log_service import (
     update_operational_decision,
 )
 
-router = APIRouter(prefix="/api/v1/operational-decisions", tags=["operational-decisions"])
+router = APIRouter(
+    prefix="/api/v1/operational-decisions", tags=["operational-decisions"]
+)
 
 
 @router.get("")
@@ -179,7 +181,10 @@ async def update_decision(
     session: AsyncSession = Depends(get_db_session),
     _user: JWTPayload = Depends(require_role("org_admin", "manager")),
 ) -> ApiResponse[OperationalDecisionRead]:
-    """Update an operational decision (observed outcomes). Requires org_admin or manager role."""
+    """Update an operational decision (observed outcomes).
+
+    Requires org_admin or manager role.
+    """
     decision = await update_operational_decision(
         session,
         tenant,
