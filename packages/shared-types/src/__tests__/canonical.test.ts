@@ -2,7 +2,6 @@ import { describe, it, expectTypeOf, assertType } from "vitest";
 import type {
   ShiftType,
   CanonicalRecord,
-  CanonicalDataSummary,
   CanonicalQualityDashboard,
 } from "../domain/canonical";
 import type { TenantEntity } from "../utils/common";
@@ -53,27 +52,15 @@ describe("CanonicalRecord", () => {
   });
 });
 
-describe("CanonicalDataSummary", () => {
-  it("has all summary fields", () => {
-    expectTypeOf<CanonicalDataSummary>().toHaveProperty("totalRecords");
-    expectTypeOf<CanonicalDataSummary>().toHaveProperty("coveragePct");
-    expectTypeOf<CanonicalDataSummary>().toHaveProperty("sites");
-    expectTypeOf<CanonicalDataSummary>().toHaveProperty("dateRange");
-    expectTypeOf<CanonicalDataSummary>().toHaveProperty("missingShiftsPct");
-    expectTypeOf<CanonicalDataSummary>().toHaveProperty("avgAbsPct");
-  });
-
-  it("dateRange is a string array", () => {
-    expectTypeOf<CanonicalDataSummary["dateRange"]>().toEqualTypeOf<string[]>();
-  });
-
-  it("sites is a number", () => {
-    expectTypeOf<CanonicalDataSummary["sites"]>().toEqualTypeOf<number>();
-  });
-});
-
 describe("CanonicalQualityDashboard", () => {
-  it("has the same shape as CanonicalDataSummary", () => {
-    expectTypeOf<CanonicalQualityDashboard>().toMatchTypeOf<CanonicalDataSummary>();
+  it("has all dashboard fields", () => {
+    expectTypeOf<CanonicalQualityDashboard>().toHaveProperty("totalRecords");
+    expectTypeOf<CanonicalQualityDashboard>().toHaveProperty("coveragePct");
+    expectTypeOf<CanonicalQualityDashboard>().toHaveProperty("sites");
+    expectTypeOf<CanonicalQualityDashboard>().toHaveProperty("dateRange");
+    expectTypeOf<CanonicalQualityDashboard>().toHaveProperty(
+      "missingShiftsPct",
+    );
+    expectTypeOf<CanonicalQualityDashboard>().toHaveProperty("avgAbsPct");
   });
 });

@@ -2,7 +2,6 @@
 
 import type { TenantEntity, UUID, ISODateString } from "../utils/common";
 import type { DateRange, TimeGranularity } from "../utils/dates";
-import type { AbsenceCategory, AbsenceType } from "./absence";
 
 /** Forecast model type */
 export type ForecastModelType =
@@ -79,9 +78,9 @@ export interface DailyForecast {
   /** Confidence level */
   confidence: ConfidenceLevel;
   /** Breakdown by absence type */
-  byType: Record<AbsenceType, number>;
+  byType: Record<string, number>;
   /** Breakdown by category */
-  byCategory: Record<AbsenceCategory, number>;
+  byCategory: Record<string, number>;
   /** Risk indicators */
   riskIndicators: RiskIndicators;
 }
@@ -184,13 +183,13 @@ export interface WhatIfScenario {
   /** Absence rate modifier (e.g., 1.2 = 20% increase) */
   absenceRateModifier?: number;
   /** Specific type modifiers */
-  typeModifiers?: Record<AbsenceType, number>;
+  typeModifiers?: Record<string, number>;
   /** Additional planned absences */
   additionalAbsences?: {
     employeeId: UUID;
     startDate: ISODateString;
     endDate: ISODateString;
-    type: AbsenceType;
+    type: string;
   }[];
 }
 

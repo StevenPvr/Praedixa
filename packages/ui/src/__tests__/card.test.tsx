@@ -19,7 +19,7 @@ describe("Card", () => {
   it("applies default classes", () => {
     render(<Card data-testid="card">Content</Card>);
     const card = screen.getByTestId("card");
-    expect(card).toHaveClass("rounded-lg", "border", "shadow-sm");
+    expect(card).toHaveClass("rounded-2xl", "border", "shadow-soft");
   });
 
   it("merges custom className", () => {
@@ -30,7 +30,7 @@ describe("Card", () => {
     );
     const card = screen.getByTestId("card");
     expect(card).toHaveClass("my-custom");
-    expect(card).toHaveClass("rounded-lg");
+    expect(card).toHaveClass("rounded-2xl");
   });
 
   it("forwards ref", () => {

@@ -1,7 +1,6 @@
 // Cost parameter types — site-level cost & configuration
 
 import type { TenantEntity, ISODateString } from "../utils/common";
-import type { ShiftType } from "./canonical";
 
 /** Versioned cost parameter set */
 export interface CostParameter extends TenantEntity {
@@ -27,33 +26,4 @@ export interface CostParameter extends TenantEntity {
   leadTimeJours: number;
   effectiveFrom: ISODateString;
   effectiveUntil?: ISODateString;
-}
-
-/** Shift configuration */
-export interface ShiftConfig {
-  shiftType: ShiftType;
-  /** e.g. "06:00" */
-  startTime: string;
-  /** e.g. "14:00" */
-  endTime: string;
-  label: string;
-}
-
-/** Thresholds that drive alert severity bucketing */
-export interface AlertThresholdConfig {
-  lowThreshold: number;
-  mediumThreshold: number;
-  highThreshold: number;
-  criticalThreshold: number;
-  maxAlertsPerWeek: number;
-}
-
-/** Site-level configuration */
-export interface SiteConfig {
-  siteId: string;
-  name: string;
-  city: string;
-  /** Base capacity in hours per shift */
-  capaciteBaseH: number;
-  shifts: ShiftConfig[];
 }

@@ -1,14 +1,10 @@
 import { describe, it, expectTypeOf } from "vitest";
 import type {
   WeeklySummary,
-  ForecastAccuracyPoint,
-  CostAnalysis,
-  WaterfallComponent,
   ProofPack,
   ProofPackSummary,
 } from "../domain/report";
 import type { UUID, ISODateString } from "../utils/common";
-import type { AlertHorizon } from "../domain/coverage-alert";
 
 describe("WeeklySummary", () => {
   it("has date range fields", () => {
@@ -25,64 +21,6 @@ describe("WeeklySummary", () => {
   it("topSites is an array of site summaries", () => {
     expectTypeOf<WeeklySummary["topSites"]>().toEqualTypeOf<
       { siteId: string; alertCount: number; costEur: number }[]
-    >();
-  });
-});
-
-describe("ForecastAccuracyPoint", () => {
-  it("has all required fields", () => {
-    expectTypeOf<ForecastAccuracyPoint>().toHaveProperty("date");
-    expectTypeOf<ForecastAccuracyPoint>().toHaveProperty("predicted");
-    expectTypeOf<ForecastAccuracyPoint>().toHaveProperty("actual");
-    expectTypeOf<ForecastAccuracyPoint>().toHaveProperty("error");
-    expectTypeOf<ForecastAccuracyPoint>().toHaveProperty("horizon");
-  });
-
-  it("horizon is AlertHorizon", () => {
-    expectTypeOf<
-      ForecastAccuracyPoint["horizon"]
-    >().toEqualTypeOf<AlertHorizon>();
-  });
-
-  it("numeric fields are numbers", () => {
-    expectTypeOf<ForecastAccuracyPoint["predicted"]>().toEqualTypeOf<number>();
-    expectTypeOf<ForecastAccuracyPoint["actual"]>().toEqualTypeOf<number>();
-    expectTypeOf<ForecastAccuracyPoint["error"]>().toEqualTypeOf<number>();
-  });
-});
-
-describe("WaterfallComponent", () => {
-  it("has label, value, and type", () => {
-    expectTypeOf<WaterfallComponent>().toHaveProperty("label");
-    expectTypeOf<WaterfallComponent>().toHaveProperty("value");
-    expectTypeOf<WaterfallComponent>().toHaveProperty("type");
-  });
-
-  it("type is a waterfall bar type", () => {
-    expectTypeOf<WaterfallComponent["type"]>().toEqualTypeOf<
-      "positive" | "negative" | "total"
-    >();
-  });
-});
-
-describe("CostAnalysis", () => {
-  it("has period with from/to", () => {
-    expectTypeOf<CostAnalysis["period"]>().toEqualTypeOf<{
-      from: ISODateString;
-      to: ISODateString;
-    }>();
-  });
-
-  it("has all cost fields", () => {
-    expectTypeOf<CostAnalysis["totalBauEur"]>().toEqualTypeOf<number>();
-    expectTypeOf<CostAnalysis["total100Eur"]>().toEqualTypeOf<number>();
-    expectTypeOf<CostAnalysis["totalReelEur"]>().toEqualTypeOf<number>();
-    expectTypeOf<CostAnalysis["gainNetEur"]>().toEqualTypeOf<number>();
-  });
-
-  it("breakdown is WaterfallComponent array", () => {
-    expectTypeOf<CostAnalysis["breakdown"]>().toEqualTypeOf<
-      WaterfallComponent[]
     >();
   });
 });
@@ -115,23 +53,22 @@ describe("ProofPack", () => {
 
 describe("ProofPackSummary", () => {
   it("has aggregate fields", () => {
-    expectTypeOf<ProofPackSummary["totalGainEur"]>().toEqualTypeOf<number>();
-    expectTypeOf<ProofPackSummary["avgAdoptionPct"]>().toEqualTypeOf<number>();
-    expectTypeOf<
-      ProofPackSummary["avgServiceImprovementPct"]
-    >().toEqualTypeOf<number>();
-  });
-
-  it("siteSummaries is ProofPack array", () => {
-    expectTypeOf<ProofPackSummary["siteSummaries"]>().toEqualTypeOf<
-      ProofPack[]
+    expectTypeOf<ProofPackSummary["totalGainNetEur"]>().toEqualTypeOf<number>();
+    expectTypeOf<ProofPackSummary["avgAdoptionPct"]>().toEqualTypeOf<
+      number | null
     >();
   });
 
-  it("period has from/to", () => {
-    expectTypeOf<ProofPackSummary["period"]>().toEqualTypeOf<{
-      from: ISODateString;
-      to: ISODateString;
-    }>();
+  it("records is ProofPack array", () => {
+    expectTypeOf<ProofPackSummary["records"]>().toEqualTypeOf<ProofPack[]>();
+  });
+
+  it("has total alert fields", () => {
+    expectTypeOf<
+      ProofPackSummary["totalAlertesEmises"]
+    >().toEqualTypeOf<number>();
+    expectTypeOf<
+      ProofPackSummary["totalAlertesTraitees"]
+    >().toEqualTypeOf<number>();
   });
 });

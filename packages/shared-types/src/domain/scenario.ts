@@ -23,23 +23,22 @@ export interface ScenarioOption extends TenantEntity {
   serviceAttenduPct: number;
   /** Hours covered by this option */
   heuresCouvertes: number;
+  /** Feasibility score under operational constraints (0-1) */
+  feasibilityScore?: number;
+  /** Residual risk score (0-1, lower is better) */
+  riskScore?: number;
+  /** Whether option satisfies active recommendation policy */
+  policyCompliance?: boolean;
+  /** Optional explanation for dominance/pruning in UI */
+  dominanceReason?: string;
+  /** Active recommendation policy version */
+  recommendationPolicyVersion?: string;
   /** Is this point on the Pareto frontier? */
   isParetoOptimal: boolean;
   /** System recommendation flag */
   isRecommended: boolean;
   /** Constraint details */
   contraintesJson: Record<string, unknown>;
-}
-
-/** Lightweight point for Pareto chart rendering */
-export interface ParetoPoint {
-  optionId: UUID;
-  optionType: ScenarioOptionType;
-  label: string;
-  cost: number;
-  servicePct: number;
-  isParetoOptimal: boolean;
-  isRecommended: boolean;
 }
 
 /** Full Pareto frontier response for a given alert */

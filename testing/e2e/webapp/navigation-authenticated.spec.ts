@@ -1,0 +1,88 @@
+import { test, expect } from "./fixtures/coverage";
+import { setupAuth } from "./fixtures/auth";
+import { mockAllApis } from "./fixtures/api-mocks";
+
+test.describe("Authenticated navigation", () => {
+  test.beforeEach(async ({ page }) => {
+    await setupAuth(page);
+    await mockAllApis(page);
+  });
+
+  test("sidebar navigation links work between pages", async ({ page }) => {
+    await page.goto("/dashboard");
+
+    await expect(page.getByRole("heading", { name: "Accueil" })).toBeVisible();
+
+    await page.goto("/donnees");
+    await expect(
+      page.getByRole("heading", { name: "Donnees", level: 1 }),
+    ).toBeVisible();
+
+    await page.goto("/previsions");
+    await expect(
+      page.getByRole("heading", { name: "Previsions", level: 1 }),
+    ).toBeVisible();
+
+    await page.goto("/actions");
+    await expect(
+      page.getByRole("heading", { name: "Actions", level: 1 }),
+    ).toBeVisible();
+
+    const nav = page.getByLabel("Navigation principale");
+    await nav.getByText("Accueil").click();
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByRole("heading", { name: "Accueil" })).toBeVisible();
+  });
+
+  test("active page has aria-current indicator in sidebar", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard");
+
+    const nav = page.getByLabel("Navigation principale");
+    await expect(nav).toBeVisible();
+    const sidebar = page.locator("aside");
+
+    const dashboardLink = nav.getByRole("link", { name: /^Accueil$/ });
+    await expect(dashboardLink).toHaveAttribute("aria-current", "page");
+
+    // Navigate to Rapports (leaf item, no children) via direct navigation
+    await page.goto("/rapports");
+
+    const rapportsLink = sidebar.getByRole("link", { name: /^Rapports$/ });
+    await expect(rapportsLink).toHaveAttribute("aria-current", "page");
+
+    const dashLink = nav.getByRole("link", { name: /^Accueil$/ });
+    await expect(dashLink).not.toHaveAttribute("aria-current", "page");
+  });
+
+  test("invalid route shows 404 not-found page", async ({ page }) => {
+    await page.goto("/this-page-does-not-exist");
+
+    // The not-found page should show 404
+    await expect(page.getByText("404")).toBeVisible();
+    await expect(page.getByText("Page introuvable")).toBeVisible();
+
+    // Should have a link back to dashboard
+    await expect(
+      page.getByRole("link", { name: "Retour au dashboard" }),
+    ).toBeVisible();
+  });
+
+  test("page titles are correct for each section", async ({ page }) => {
+    const pageTitles: Array<{ url: string; title: string }> = [
+      { url: "/dashboard", title: "Accueil" },
+      { url: "/donnees", title: "Donnees" },
+      { url: "/previsions", title: "Previsions" },
+      { url: "/actions", title: "Actions" },
+      { url: "/rapports", title: "Rapports" },
+    ];
+
+    for (const { url, title } of pageTitles) {
+      await page.goto(url);
+      await expect(
+        page.getByRole("heading", { name: title, level: 1 }),
+      ).toBeVisible();
+    }
+  });
+});

@@ -46,7 +46,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Python dev dependencies
-        run: cd apps/api && uv sync --extra dev
+        run: cd app-api && uv sync --extra dev
 
       - name: Run prek (all files)
         run: prek run --all-files
@@ -111,8 +111,8 @@ jobs:
       - name: Restore Next.js build cache (landing)
         uses: actions/cache@v4
         with:
-          path: apps/landing/.next/cache
-          key: nextjs-landing-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/landing/**/*.ts', 'apps/landing/**/*.tsx') }}
+          path: app-landing/.next/cache
+          key: nextjs-landing-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('app-landing/**/*.ts', 'app-landing/**/*.tsx') }}
           restore-keys: |
             nextjs-landing-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
             nextjs-landing-${{ runner.os }}-
@@ -129,11 +129,66 @@ jobs:
       - name: Check bundle sizes
         run: |
           echo "=== Landing ==="
-          ./scripts/check-bundle-size.sh apps/landing
+          ./scripts/check-bundle-size.sh app-landing
+
+  frontend-coverage:
+    name: Frontend coverage gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+
+      - name: Run unit coverage gate
+        run: pnpm test:coverage
+
+  frontend-e2e:
+    name: Frontend e2e gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+
+      - name: Install Playwright browsers
+        run: pnpm playwright install --with-deps chromium
+
+      - name: Run e2e gate
+        run: pnpm playwright test --workers=1
 
   deploy:
     name: Build & Deploy (Cloudflare Workers)
-    needs: [checks, security-audit, secret-scan, bundle-size]
+    needs: [checks, security-audit, secret-scan, bundle-size, frontend-coverage, frontend-e2e]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -160,8 +215,8 @@ jobs:
       - name: Restore Next.js build cache (landing)
         uses: actions/cache@v4
         with:
-          path: apps/landing/.next/cache
-          key: nextjs-landing-deploy-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/landing/**/*.ts', 'apps/landing/**/*.tsx') }}
+          path: app-landing/.next/cache
+          key: nextjs-landing-deploy-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('app-landing/**/*.ts', 'app-landing/**/*.tsx') }}
           restore-keys: |
             nextjs-landing-deploy-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
             nextjs-landing-deploy-${{ runner.os }}-

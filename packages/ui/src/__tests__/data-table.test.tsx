@@ -278,8 +278,10 @@ describe("DataTable", () => {
   describe("pagination", () => {
     it("does not render pagination when not provided", () => {
       render(<DataTable columns={sampleColumns} data={sampleData} />);
-      expect(screen.queryByText("Precedent")).not.toBeInTheDocument();
-      expect(screen.queryByText("Suivant")).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText("Page precedente"),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("Page suivante")).not.toBeInTheDocument();
     });
 
     it("does not render pagination when totalPages <= 1", () => {
@@ -296,10 +298,12 @@ describe("DataTable", () => {
         />,
       );
       // total=3, pageSize=10 => totalPages=1 => no pagination
-      expect(screen.queryByText("Precedent")).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText("Page precedente"),
+      ).not.toBeInTheDocument();
     });
 
-    it("renders pagination when totalPages > 1", () => {
+    it("renders pagination with total count and page pills", () => {
       render(
         <DataTable
           columns={sampleColumns}
@@ -312,13 +316,37 @@ describe("DataTable", () => {
           }}
         />,
       );
-      expect(screen.getByText("Precedent")).toBeInTheDocument();
-      expect(screen.getByText("Suivant")).toBeInTheDocument();
-      expect(screen.getByText(/Page 1 sur 3/)).toBeInTheDocument();
-      expect(screen.getByText(/5/)).toBeInTheDocument();
+      expect(screen.getByLabelText("Page precedente")).toBeInTheDocument();
+      expect(screen.getByLabelText("Page suivante")).toBeInTheDocument();
+      expect(screen.getByText("5 resultats")).toBeInTheDocument();
+      // Page pills: 1, 2, 3 (totalPages=3 <= 7 so all shown)
+      expect(screen.getByRole("button", { name: "1" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "2" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "3" })).toBeInTheDocument();
     });
 
-    it("disables Precedent button on first page", () => {
+    it("highlights active page pill with bg-charcoal", () => {
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          pagination={{
+            page: 2,
+            pageSize: 2,
+            total: 5,
+            onPageChange: vi.fn(),
+          }}
+        />,
+      );
+      const activePill = screen.getByRole("button", { name: "2" });
+      expect(activePill).toHaveClass("bg-charcoal");
+      expect(activePill).toHaveClass("text-white");
+      // Inactive pill should not have bg-charcoal
+      const inactivePill = screen.getByRole("button", { name: "1" });
+      expect(inactivePill).not.toHaveClass("bg-charcoal");
+    });
+
+    it("disables previous button on first page", () => {
       render(
         <DataTable
           columns={sampleColumns}
@@ -331,10 +359,10 @@ describe("DataTable", () => {
           }}
         />,
       );
-      expect(screen.getByText("Precedent")).toBeDisabled();
+      expect(screen.getByLabelText("Page precedente")).toBeDisabled();
     });
 
-    it("disables Suivant button on last page", () => {
+    it("disables next button on last page", () => {
       render(
         <DataTable
           columns={sampleColumns}
@@ -347,10 +375,10 @@ describe("DataTable", () => {
           }}
         />,
       );
-      expect(screen.getByText("Suivant")).toBeDisabled();
+      expect(screen.getByLabelText("Page suivante")).toBeDisabled();
     });
 
-    it("calls onPageChange with page-1 when clicking Precedent", () => {
+    it("calls onPageChange with page-1 when clicking previous arrow", () => {
       const onPageChange = vi.fn();
       render(
         <DataTable
@@ -364,11 +392,11 @@ describe("DataTable", () => {
           }}
         />,
       );
-      fireEvent.click(screen.getByText("Precedent"));
+      fireEvent.click(screen.getByLabelText("Page precedente"));
       expect(onPageChange).toHaveBeenCalledWith(1);
     });
 
-    it("calls onPageChange with page+1 when clicking Suivant", () => {
+    it("calls onPageChange with page+1 when clicking next arrow", () => {
       const onPageChange = vi.fn();
       render(
         <DataTable
@@ -382,11 +410,29 @@ describe("DataTable", () => {
           }}
         />,
       );
-      fireEvent.click(screen.getByText("Suivant"));
+      fireEvent.click(screen.getByLabelText("Page suivante"));
       expect(onPageChange).toHaveBeenCalledWith(2);
     });
 
-    it("enables both buttons on a middle page", () => {
+    it("calls onPageChange when clicking a page pill", () => {
+      const onPageChange = vi.fn();
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          pagination={{
+            page: 1,
+            pageSize: 2,
+            total: 5,
+            onPageChange,
+          }}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: "3" }));
+      expect(onPageChange).toHaveBeenCalledWith(3);
+    });
+
+    it("enables both arrow buttons on a middle page", () => {
       render(
         <DataTable
           columns={sampleColumns}
@@ -399,8 +445,70 @@ describe("DataTable", () => {
           }}
         />,
       );
-      expect(screen.getByText("Precedent")).not.toBeDisabled();
-      expect(screen.getByText("Suivant")).not.toBeDisabled();
+      expect(screen.getByLabelText("Page precedente")).not.toBeDisabled();
+      expect(screen.getByLabelText("Page suivante")).not.toBeDisabled();
+    });
+
+    it("shows ellipsis for many pages (current near start)", () => {
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          pagination={{
+            page: 2,
+            pageSize: 1,
+            total: 20,
+            onPageChange: vi.fn(),
+          }}
+        />,
+      );
+      // current=2, total=20 => [1,2,3,4,5,...,20]
+      expect(screen.getByRole("button", { name: "1" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "5" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "20" })).toBeInTheDocument();
+      expect(screen.getByText("...")).toBeInTheDocument();
+    });
+
+    it("shows ellipsis for many pages (current in middle)", () => {
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          pagination={{
+            page: 10,
+            pageSize: 1,
+            total: 20,
+            onPageChange: vi.fn(),
+          }}
+        />,
+      );
+      // current=10, total=20 => [1,...,9,10,11,...,20]
+      expect(screen.getByRole("button", { name: "1" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "9" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "10" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "11" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "20" })).toBeInTheDocument();
+      expect(screen.getAllByText("...")).toHaveLength(2);
+    });
+
+    it("shows ellipsis for many pages (current near end)", () => {
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          pagination={{
+            page: 19,
+            pageSize: 1,
+            total: 20,
+            onPageChange: vi.fn(),
+          }}
+        />,
+      );
+      // current=19, total=20 => [1,...,16,17,18,19,20]
+      expect(screen.getByRole("button", { name: "1" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "16" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "20" })).toBeInTheDocument();
+      expect(screen.getByText("...")).toBeInTheDocument();
     });
   });
 
@@ -417,21 +525,457 @@ describe("DataTable", () => {
       expect(screen.getByTestId("table")).toHaveClass("my-custom");
     });
 
-    it("applies alternating row background", () => {
+    it("does not apply zebra stripes and uses gray hover", () => {
       const { container } = render(
         <DataTable columns={sampleColumns} data={sampleData} />,
       );
       const rows = container.querySelectorAll("tbody tr");
-      // Second row (index 1) should have bg-gray-50
-      expect(rows[1]).toHaveClass("bg-gray-50");
-      // First row (index 0) should NOT have bg-gray-50
+      // No zebra stripes — no row should have bg-gray-50 as a static class
       expect(rows[0]).not.toHaveClass("bg-gray-50");
+      expect(rows[1]).not.toHaveClass("bg-gray-50");
+      // Rows should have gray hover class
+      expect(rows[0]).toHaveClass("hover:bg-gray-50/80");
     });
 
     it("adds cursor-pointer to sortable column headers", () => {
       render(<DataTable columns={sampleColumns} data={sampleData} />);
       const nameHeader = screen.getByText("Name").closest("th");
       expect(nameHeader).toHaveClass("cursor-pointer");
+    });
+  });
+
+  describe("selection", () => {
+    const getRowKey = (row: TestRow) => row.id;
+
+    it("renders checkbox column when selection is provided", () => {
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          getRowKey={getRowKey}
+          selection={{
+            selectedKeys: new Set<string | number>(),
+            onSelectionChange: vi.fn(),
+          }}
+        />,
+      );
+      // Header checkbox + 3 row checkboxes
+      expect(screen.getByLabelText("Tout selectionner")).toBeInTheDocument();
+      expect(screen.getByLabelText("Selectionner ligne 1")).toBeInTheDocument();
+      expect(screen.getByLabelText("Selectionner ligne 2")).toBeInTheDocument();
+      expect(screen.getByLabelText("Selectionner ligne 3")).toBeInTheDocument();
+    });
+
+    it("does not render checkboxes when selection is not provided", () => {
+      render(<DataTable columns={sampleColumns} data={sampleData} />);
+      expect(
+        screen.queryByLabelText("Tout selectionner"),
+      ).not.toBeInTheDocument();
+    });
+
+    it("calls onSelectionChange when clicking a row checkbox", () => {
+      const onSelectionChange = vi.fn();
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          getRowKey={getRowKey}
+          selection={{
+            selectedKeys: new Set<string | number>(),
+            onSelectionChange,
+          }}
+        />,
+      );
+      fireEvent.click(screen.getByLabelText("Selectionner ligne 1"));
+      expect(onSelectionChange).toHaveBeenCalledWith(new Set([1]));
+    });
+
+    it("deselects a row when clicking already-selected row checkbox", () => {
+      const onSelectionChange = vi.fn();
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          getRowKey={getRowKey}
+          selection={{
+            selectedKeys: new Set<string | number>([1, 2]),
+            onSelectionChange,
+          }}
+        />,
+      );
+      fireEvent.click(screen.getByLabelText("Selectionner ligne 1"));
+      expect(onSelectionChange).toHaveBeenCalledWith(new Set([2]));
+    });
+
+    it("selects all rows when clicking header checkbox (none selected)", () => {
+      const onSelectionChange = vi.fn();
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          getRowKey={getRowKey}
+          selection={{
+            selectedKeys: new Set<string | number>(),
+            onSelectionChange,
+          }}
+        />,
+      );
+      fireEvent.click(screen.getByLabelText("Tout selectionner"));
+      expect(onSelectionChange).toHaveBeenCalledWith(new Set([1, 2, 3]));
+    });
+
+    it("deselects all rows when clicking header checkbox (all selected)", () => {
+      const onSelectionChange = vi.fn();
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          getRowKey={getRowKey}
+          selection={{
+            selectedKeys: new Set<string | number>([1, 2, 3]),
+            onSelectionChange,
+          }}
+        />,
+      );
+      fireEvent.click(screen.getByLabelText("Tout selectionner"));
+      expect(onSelectionChange).toHaveBeenCalledWith(new Set());
+    });
+
+    it("shows indeterminate state when some rows are selected", () => {
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          getRowKey={getRowKey}
+          selection={{
+            selectedKeys: new Set<string | number>([1]),
+            onSelectionChange: vi.fn(),
+          }}
+        />,
+      );
+      const headerCheckbox = screen.getByLabelText("Tout selectionner");
+      expect(headerCheckbox).toHaveAttribute("aria-checked", "mixed");
+    });
+
+    it("applies selected row highlight class", () => {
+      const { container } = render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          getRowKey={getRowKey}
+          selection={{
+            selectedKeys: new Set<string | number>([1]),
+            onSelectionChange: vi.fn(),
+          }}
+        />,
+      );
+      const rows = container.querySelectorAll("tbody tr");
+      expect(rows[0]).toHaveClass("bg-amber-50/50");
+      expect(rows[0]).toHaveClass("hover:bg-amber-50/70");
+      expect(rows[1]).not.toHaveClass("bg-amber-50/50");
+    });
+
+    it("empty state spans selection column too", () => {
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={[]}
+          selection={{
+            selectedKeys: new Set<string | number>(),
+            onSelectionChange: vi.fn(),
+          }}
+        />,
+      );
+      const td = screen.getByText("Aucune donnee").closest("td");
+      // 3 data columns + 1 checkbox column = 4
+      expect(td).toHaveAttribute("colspan", "4");
+    });
+
+    it("single mode allows only one selected row", () => {
+      const onSelectionChange = vi.fn();
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          getRowKey={getRowKey}
+          selection={{
+            selectedKeys: new Set<string | number>(),
+            onSelectionChange,
+            mode: "single",
+          }}
+        />,
+      );
+      // No header "select all" in single mode
+      expect(
+        screen.queryByLabelText("Tout selectionner"),
+      ).not.toBeInTheDocument();
+      // Row checkboxes still present
+      fireEvent.click(screen.getByLabelText("Selectionner ligne 1"));
+      expect(onSelectionChange).toHaveBeenCalledWith(new Set([1]));
+    });
+
+    it("single mode deselects previously selected row", () => {
+      const onSelectionChange = vi.fn();
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          getRowKey={getRowKey}
+          selection={{
+            selectedKeys: new Set<string | number>([1]),
+            onSelectionChange,
+            mode: "single",
+          }}
+        />,
+      );
+      // Click same row: deselects
+      fireEvent.click(screen.getByLabelText("Selectionner ligne 1"));
+      expect(onSelectionChange).toHaveBeenCalledWith(new Set());
+    });
+
+    it("single mode replaces selection when clicking different row", () => {
+      const onSelectionChange = vi.fn();
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          getRowKey={getRowKey}
+          selection={{
+            selectedKeys: new Set<string | number>([1]),
+            onSelectionChange,
+            mode: "single",
+          }}
+        />,
+      );
+      fireEvent.click(screen.getByLabelText("Selectionner ligne 2"));
+      expect(onSelectionChange).toHaveBeenCalledWith(new Set([2]));
+    });
+
+    it("single mode renders empty th in header (no checkbox)", () => {
+      const { container } = render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          getRowKey={getRowKey}
+          selection={{
+            selectedKeys: new Set<string | number>(),
+            onSelectionChange: vi.fn(),
+            mode: "single",
+          }}
+        />,
+      );
+      const headers = container.querySelectorAll("thead th");
+      // First th is empty spacer, followed by 3 data columns
+      expect(headers).toHaveLength(4);
+      expect(headers[0].textContent).toBe("");
+    });
+  });
+
+  describe("sticky header", () => {
+    it("does not add sticky class by default", () => {
+      const { container } = render(
+        <DataTable columns={sampleColumns} data={sampleData} />,
+      );
+      const thead = container.querySelector("thead");
+      expect(thead).not.toHaveClass("sticky");
+    });
+
+    it("adds sticky class and shadow when stickyHeader is true", () => {
+      const { container } = render(
+        <DataTable columns={sampleColumns} data={sampleData} stickyHeader />,
+      );
+      const thead = container.querySelector("thead");
+      expect(thead).toHaveClass("sticky");
+      expect(thead).toHaveClass("top-0");
+      expect(thead).toHaveClass("z-10");
+      expect(thead).toHaveClass("shadow-[0_1px_3px_rgba(0,0,0,0.05)]");
+    });
+  });
+
+  describe("resizable columns", () => {
+    const resizableColumns: DataTableColumn<TestRow>[] = [
+      { key: "id", label: "ID", resizable: true, minWidth: 80, maxWidth: 200 },
+      { key: "name", label: "Name", resizable: true },
+      { key: "email", label: "Email" },
+    ];
+
+    it("does not render resize handles by default", () => {
+      render(<DataTable columns={sampleColumns} data={sampleData} />);
+      expect(screen.queryByRole("separator")).not.toBeInTheDocument();
+    });
+
+    it("renders resize handles only on resizable columns", () => {
+      render(<DataTable columns={resizableColumns} data={sampleData} />);
+      const separators = screen.getAllByRole("separator");
+      // Only ID and Name are resizable, not Email
+      expect(separators).toHaveLength(2);
+    });
+
+    it("sets table-layout fixed when any column is resizable", () => {
+      const { container } = render(
+        <DataTable columns={resizableColumns} data={sampleData} />,
+      );
+      const table = container.querySelector("table");
+      expect(table).toHaveStyle({ tableLayout: "fixed" });
+    });
+
+    it("renders colgroup when any column is resizable", () => {
+      const { container } = render(
+        <DataTable columns={resizableColumns} data={sampleData} />,
+      );
+      const colgroup = container.querySelector("colgroup");
+      expect(colgroup).toBeInTheDocument();
+      const cols = colgroup!.querySelectorAll("col");
+      expect(cols).toHaveLength(resizableColumns.length);
+    });
+
+    it("updates column width on resize drag", () => {
+      const { container } = render(
+        <DataTable columns={resizableColumns} data={sampleData} />,
+      );
+      const handle = screen.getAllByRole("separator")[0];
+      const th = handle.parentElement!;
+      Object.defineProperty(th, "offsetWidth", { value: 150 });
+
+      fireEvent.mouseDown(handle, { clientX: 200 });
+      fireEvent.mouseMove(document, { clientX: 250 });
+      fireEvent.mouseUp(document);
+
+      // Column should now have width = min(maxWidth=200, 150 + 50) = 200
+      const colgroup = container.querySelector("colgroup");
+      const firstCol = colgroup!.querySelectorAll("col")[0];
+      expect(firstCol).toHaveStyle({ width: "200px" });
+    });
+
+    it("respects minWidth during resize", () => {
+      const { container } = render(
+        <DataTable columns={resizableColumns} data={sampleData} />,
+      );
+      const handle = screen.getAllByRole("separator")[0];
+      const th = handle.parentElement!;
+      Object.defineProperty(th, "offsetWidth", { value: 150 });
+
+      fireEvent.mouseDown(handle, { clientX: 200 });
+      // Try to shrink below minWidth=80
+      fireEvent.mouseMove(document, { clientX: 100 });
+      fireEvent.mouseUp(document);
+
+      const colgroup = container.querySelector("colgroup");
+      const firstCol = colgroup!.querySelectorAll("col")[0];
+      // max(80, 150 - 100) = max(80, 50) = 80
+      expect(firstCol).toHaveStyle({ width: "80px" });
+    });
+
+    it("respects maxWidth during resize", () => {
+      const { container } = render(
+        <DataTable columns={resizableColumns} data={sampleData} />,
+      );
+      const handle = screen.getAllByRole("separator")[0];
+      const th = handle.parentElement!;
+      Object.defineProperty(th, "offsetWidth", { value: 150 });
+
+      fireEvent.mouseDown(handle, { clientX: 200 });
+      // Try to expand beyond maxWidth=200
+      fireEvent.mouseMove(document, { clientX: 400 });
+      fireEvent.mouseUp(document);
+
+      const colgroup = container.querySelector("colgroup");
+      const firstCol = colgroup!.querySelectorAll("col")[0];
+      // min(200, 150 + 200) = 200
+      expect(firstCol).toHaveStyle({ width: "200px" });
+    });
+  });
+
+  describe("toolbar", () => {
+    it("renders toolbar above the table", () => {
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          toolbar={<div data-testid="my-toolbar">Toolbar Content</div>}
+        />,
+      );
+      expect(screen.getByTestId("my-toolbar")).toBeInTheDocument();
+      expect(screen.getByText("Toolbar Content")).toBeInTheDocument();
+    });
+
+    it("toolbar appears before the table scroll container", () => {
+      const { container } = render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          toolbar={<div data-testid="my-toolbar">Toolbar</div>}
+        />,
+      );
+      const root = container.firstElementChild!;
+      const toolbar = root.querySelector("[data-testid='my-toolbar']");
+      const scrollDiv = root.querySelector(".overflow-x-auto");
+      // Toolbar should be a preceding sibling of the scroll container
+      expect(toolbar).toBeTruthy();
+      expect(scrollDiv).toBeTruthy();
+      expect(toolbar!.compareDocumentPosition(scrollDiv!)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    });
+
+    it("does not render toolbar when not provided", () => {
+      const { container } = render(
+        <DataTable columns={sampleColumns} data={sampleData} />,
+      );
+      const root = container.firstElementChild!;
+      // First child should be the overflow-x-auto div directly
+      expect(root.firstElementChild).toHaveClass("overflow-x-auto");
+    });
+  });
+
+  describe("onRowClick", () => {
+    it("calls onRowClick when clicking a row", () => {
+      const onRowClick = vi.fn();
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          onRowClick={onRowClick}
+        />,
+      );
+      fireEvent.click(screen.getByText("Alice"));
+      expect(onRowClick).toHaveBeenCalledWith(sampleData[0], 0);
+    });
+
+    it("adds cursor-pointer to rows when onRowClick is provided", () => {
+      const { container } = render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          onRowClick={vi.fn()}
+        />,
+      );
+      const rows = container.querySelectorAll("tbody tr");
+      expect(rows[0]).toHaveClass("cursor-pointer");
+    });
+
+    it("does not add cursor-pointer when onRowClick is not provided", () => {
+      const { container } = render(
+        <DataTable columns={sampleColumns} data={sampleData} />,
+      );
+      const rows = container.querySelectorAll("tbody tr");
+      expect(rows[0]).not.toHaveClass("cursor-pointer");
+    });
+  });
+
+  describe("backward compatibility", () => {
+    it("renders identically without any new props", () => {
+      const { container } = render(
+        <DataTable columns={sampleColumns} data={sampleData} />,
+      );
+      // No checkboxes, no toolbar, no resize handles, no sticky
+      expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+      expect(screen.queryByRole("separator")).not.toBeInTheDocument();
+      const thead = container.querySelector("thead");
+      expect(thead).not.toHaveClass("sticky");
+      const table = container.querySelector("table");
+      expect(table?.style.tableLayout).toBe("");
+      expect(container.querySelector("colgroup")).not.toBeInTheDocument();
     });
   });
 });

@@ -18,6 +18,12 @@ export interface OperationalDecision extends TenantEntity {
   /** Whether the manager overrode the recommendation */
   isOverride: boolean;
   overrideReason?: string;
+  /** Optional normalized reason category for analytics */
+  overrideCategory?: string;
+  /** Optional exogenous incident tag excluded from attribution */
+  exogenousEventTag?: string;
+  /** Recommendation policy version used at decision time */
+  recommendationPolicyVersion?: string;
   /** Expected cost at decision time */
   coutAttenduEur?: number;
   /** Expected service level at decision time */

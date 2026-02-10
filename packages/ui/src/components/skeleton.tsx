@@ -15,7 +15,7 @@ const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
   ({ className, width, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("animate-pulse rounded-md bg-gray-200", width, className)}
+      className={cn("animate-shimmer rounded-md", width, className)}
       aria-hidden="true"
       {...props}
     />
@@ -34,7 +34,7 @@ const SkeletonCard = React.forwardRef<HTMLDivElement, SkeletonCardProps>(
     <div
       ref={ref}
       className={cn(
-        "rounded-card border border-gray-200 bg-card p-5 shadow-card",
+        "rounded-2xl border border-gray-200 bg-card p-5 shadow-card",
         className,
       )}
       aria-busy="true"
@@ -80,7 +80,7 @@ const SkeletonTable = React.forwardRef<HTMLDivElement, SkeletonTableProps>(
       {...props}
     >
       {/* Header row */}
-      <div className="flex gap-4 border-b border-gray-200 bg-gray-100 px-4 py-3">
+      <div className="flex gap-4 border-b border-gray-200 bg-amber-50/30 px-4 py-3">
         {Array.from({ length: columns }).map((_, i) => (
           <Skeleton key={`head-${i}`} className="h-3 flex-1" />
         ))}
@@ -89,10 +89,7 @@ const SkeletonTable = React.forwardRef<HTMLDivElement, SkeletonTableProps>(
       {Array.from({ length: rows }).map((_, rowIndex) => (
         <div
           key={`row-${rowIndex}`}
-          className={cn(
-            "flex gap-4 border-b border-gray-100 px-4 py-3 last:border-0",
-            rowIndex % 2 === 1 && "bg-gray-50",
-          )}
+          className="flex gap-4 border-b border-gray-100 px-4 py-3 last:border-0"
         >
           {Array.from({ length: columns }).map((_, colIndex) => (
             <Skeleton
@@ -138,7 +135,7 @@ const SkeletonChart = React.forwardRef<HTMLDivElement, SkeletonChartProps>(
       </div>
       {/* Chart area — aspect ratio: 16:9 desktop, 4:3 mobile */}
       <div className="mt-4 aspect-[4/3] w-full sm:aspect-[16/9]">
-        <div className="flex h-full animate-pulse flex-col justify-end gap-1 rounded-lg bg-gray-50 p-4">
+        <div className="flex h-full animate-shimmer flex-col justify-end gap-1 rounded-lg bg-gray-50 p-4">
           {/* Fake bar chart lines */}
           <div className="flex items-end gap-2">
             <div className="h-[30%] flex-1 rounded-sm bg-gray-200" />

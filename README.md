@@ -6,14 +6,17 @@
 
 ```
 praedixa/
-├── apps/
-│   ├── landing/           # Landing page marketing (Next.js 15)
-│   ├── webapp/            # Dashboard client (Next.js 15)
-│   ├── admin/             # Back-office super admin (Next.js 15)
-│   └── api/               # API backend (FastAPI + SQLAlchemy)
+├── app-landing/         # Landing page marketing (Next.js 15)
+├── app-webapp/          # Dashboard client (Next.js 15)
+├── app-admin/           # Back-office super admin (Next.js 15)
+├── app-api/             # API backend (FastAPI + SQLAlchemy)
 ├── packages/
-│   ├── ui/                # Composants React partages
-│   └── shared-types/      # Types TypeScript partages
+│   ├── ui/              # Composants React partages
+│   └── shared-types/    # Types TypeScript partages
+├── infra/               # docker-compose.yml, render.yaml
+├── testing/             # E2E tests, shared test utils
+├── scripts/             # Dev setup, migrations, seed scripts
+└── docs/                # Architecture docs, security reports
 ```
 
 ## Prerequis
@@ -46,7 +49,7 @@ pnpm dev:webapp
 ### Base de donnees PostgreSQL (port 5433)
 
 ```bash
-docker compose up -d postgres
+docker compose -f infra/docker-compose.yml up -d postgres
 ```
 
 PostgreSQL 16 demarre sur `localhost:5433` (credentials : `praedixa` / `changeme` / db `praedixa`).
@@ -54,13 +57,13 @@ PostgreSQL 16 demarre sur `localhost:5433` (credentials : `praedixa` / `changeme
 Pour arreter :
 
 ```bash
-docker compose down
+docker compose -f infra/docker-compose.yml down
 ```
 
 ### API backend (port 8000)
 
 ```bash
-cd apps/api
+cd app-api
 cp .env.example .env          # configurer DATABASE_URL, SUPABASE_JWT_SECRET, etc.
 uv sync --extra dev            # installer les dependances Python
 uv run uvicorn app.main:app --reload --port 8000
@@ -73,6 +76,13 @@ pnpm dev:api
 ```
 
 L'API expose sa documentation OpenAPI sur http://localhost:8000/docs.
+
+### Migrer la base de donnees
+
+```bash
+cd app-api
+uv run alembic upgrade head
+```
 
 ### Back-office admin (port 3002)
 
@@ -111,11 +121,11 @@ pnpm test
 # Mode watch (re-execute a chaque modification)
 pnpm test:watch
 
-# Avec couverture de code (seuil 100%)
+# Gate stricte de couverture unitaire (bloque si < 100%)
 pnpm test:coverage
 
 # Un seul fichier
-pnpm vitest run apps/webapp/hooks/__tests__/use-api.test.ts
+pnpm vitest run app-webapp/hooks/__tests__/use-api.test.ts
 
 # Un seul pattern
 pnpm vitest run --reporter=verbose -t "renders loading"
@@ -124,22 +134,22 @@ pnpm vitest run --reporter=verbose -t "renders loading"
 ### Tests unitaires backend (Pytest)
 
 ```bash
-# Lancer tous les tests Python avec couverture (seuil 100%)
-cd apps/api && uv run pytest
+# Gate stricte de couverture unitaire backend (bloque si < 100%)
+cd app-api && uv run pytest
 
 # Tests d'un seul fichier
-cd apps/api && uv run pytest tests/unit/test_services_decisions.py
+cd app-api && uv run pytest tests/unit/test_services_decisions.py
 
 # Tests d'un seul dossier
-cd apps/api && uv run pytest tests/unit/
-cd apps/api && uv run pytest tests/integration/
-cd apps/api && uv run pytest tests/security/
+cd app-api && uv run pytest tests/unit/
+cd app-api && uv run pytest tests/integration/
+cd app-api && uv run pytest tests/security/
 
 # Verbose avec details des echecs
-cd apps/api && uv run pytest -v --tb=short
+cd app-api && uv run pytest -v --tb=short
 
 # Sans couverture (plus rapide pour le dev)
-cd apps/api && uv run pytest --no-cov
+cd app-api && uv run pytest --no-cov
 ```
 
 ### Tests E2E (Playwright)
@@ -148,10 +158,13 @@ cd apps/api && uv run pytest --no-cov
 # Installer les navigateurs (une seule fois)
 pnpm exec playwright install
 
-# Lancer tous les E2E (demarre automatiquement les serveurs dev)
+# Smoke local reproductible (admin)
+pnpm test:e2e:smoke
+
+# Lancer toute la suite E2E (demarre automatiquement les serveurs dev)
 pnpm test:e2e
 
-# Par projet
+# Par projet (chemins explicites sous testing/e2e)
 pnpm test:e2e:landing
 pnpm test:e2e:webapp
 pnpm test:e2e:admin
@@ -166,14 +179,15 @@ COVERAGE=1 pnpm test:e2e:webapp
 pnpm exec playwright test --ui
 
 # Un seul fichier
-pnpm exec playwright test e2e/webapp/dashboard.spec.ts
+pnpm exec playwright test testing/e2e/webapp/dashboard.spec.ts
 
 # Avec trace pour debug
-pnpm exec playwright test --trace on
+PW_REUSE_SERVER=1 pnpm exec playwright test --trace on
 ```
 
-> Les serveurs dev (landing :3000, webapp :3001) sont lances automatiquement par Playwright.
-> Si un serveur tourne deja, Playwright le reutilise (`reuseExistingServer: true` en local).
+> Les serveurs dev (mock supabase :54321, landing :3000, webapp :3001, admin :3002) sont lances automatiquement par Playwright.
+> Les scripts `pnpm test:e2e*` nettoient ces ports avant execution et desactivent la reutilisation des serveurs pour garantir des runs reproductibles.
+> Pour le debug sur des serveurs deja lances volontairement, utilisez `PW_REUSE_SERVER=1`.
 
 ### Tout verifier (pre-commit complet)
 
@@ -209,9 +223,9 @@ Les hooks couvrent : formatting, lint, typecheck, tests (vitest + pytest), build
 
 ### Deploiement
 
-| Service | Hebergement                 | URL                | Config                        |
-| ------- | --------------------------- | ------------------ | ----------------------------- |
-| Landing | Cloudflare Workers          | praedixa.com       | `apps/landing/wrangler.jsonc` |
-| Web app | Cloudflare Workers          | app.praedixa.com   | `apps/webapp/wrangler.jsonc`  |
-| Admin   | Cloudflare Workers          | admin.praedixa.com | `apps/admin/wrangler.jsonc`   |
-| API     | Scaleway Container (France) | api.praedixa.com   | `apps/api/Dockerfile`         |
+| Service | Hebergement                 | URL                | Config                       |
+| ------- | --------------------------- | ------------------ | ---------------------------- |
+| Landing | Cloudflare Workers          | praedixa.com       | `app-landing/wrangler.jsonc` |
+| Web app | Cloudflare Workers          | app.praedixa.com   | `app-webapp/wrangler.jsonc`  |
+| Admin   | Cloudflare Workers          | admin.praedixa.com | `app-admin/wrangler.jsonc`   |
+| API     | Scaleway Container (France) | api.praedixa.com   | `app-api/Dockerfile`         |

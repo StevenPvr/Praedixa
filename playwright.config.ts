@@ -1,6 +1,24 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const COVERAGE_ENABLED = process.env.COVERAGE === "1";
+const LOCAL_WORKERS = Number(process.env.PW_WORKERS ?? "1");
+const WORKERS = process.env.CI
+  ? 1
+  : Number.isFinite(LOCAL_WORKERS) && LOCAL_WORKERS > 0
+    ? LOCAL_WORKERS
+    : 1;
+const TEST_TIMEOUT_MS = process.env.CI ? 60_000 : 45_000;
+const EXPECT_TIMEOUT_MS = process.env.CI ? 12_000 : 10_000;
+const ACTION_TIMEOUT_MS = 10_000;
+const NAVIGATION_TIMEOUT_MS = 20_000;
+const REUSE_EXISTING_SERVERS = process.env.PW_REUSE_SERVER === "1";
+const DESKTOP_BROWSER_USE = (() => {
+  const use = { ...devices["Desktop Chrome"] } as Record<string, unknown>;
+  if (COVERAGE_ENABLED) {
+    delete use.channel;
+  }
+  return use;
+})();
 
 // Build reporter list: always list (verbose terminal) + HTML, conditionally add monocart for coverage
 const reporters: Parameters<typeof defineConfig>[0]["reporter"] =
@@ -9,7 +27,7 @@ const reporters: Parameters<typeof defineConfig>[0]["reporter"] =
         ["list"],
         ["html"],
         [
-          "monocart-reporter",
+          "./testing/e2e/fixtures/monocart-reporter-safe.cjs",
           {
             name: "E2E Coverage Report",
             outputFile: "e2e-coverage/report.html",
@@ -17,8 +35,11 @@ const reporters: Parameters<typeof defineConfig>[0]["reporter"] =
               reports: ["v8", "lcov", "text-summary"],
               lcov: { outputFile: "e2e-coverage/lcov.info" },
               sourceFilter: (sourcePath: string) => {
-                // Only include our app source files
-                return sourcePath.startsWith("apps/");
+                // Strict first-party browser coverage scope.
+                return (
+                  sourcePath.startsWith("app-webapp/") ||
+                  sourcePath.startsWith("app-admin/")
+                );
               },
             },
           },
@@ -27,32 +48,41 @@ const reporters: Parameters<typeof defineConfig>[0]["reporter"] =
     : [["list"], ["html"]];
 
 export default defineConfig({
-  testDir: "./e2e",
-  fullyParallel: true,
+  testDir: "./testing/e2e",
+  metadata: {
+    coverageEnabled: COVERAGE_ENABLED,
+  },
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
+  timeout: TEST_TIMEOUT_MS,
+  expect: {
+    timeout: EXPECT_TIMEOUT_MS,
+  },
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: WORKERS,
   reporter: reporters,
   use: {
+    actionTimeout: ACTION_TIMEOUT_MS,
+    navigationTimeout: NAVIGATION_TIMEOUT_MS,
     trace: "on-first-retry",
   },
   webServer: [
     {
-      command: "node e2e/webapp/fixtures/mock-supabase-server.mjs",
+      command: "node testing/e2e/webapp/fixtures/mock-supabase-server.mjs",
       url: "http://localhost:54321/auth/v1/user",
-      reuseExistingServer: !process.env.CI,
-      timeout: 10_000,
+      reuseExistingServer: REUSE_EXISTING_SERVERS,
+      timeout: 20_000,
     },
     {
       command: "pnpm dev:landing",
       url: "http://localhost:3000",
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: REUSE_EXISTING_SERVERS,
       timeout: 120_000,
     },
     {
       command: "pnpm dev:webapp",
       url: "http://localhost:3001",
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: REUSE_EXISTING_SERVERS,
       timeout: 120_000,
       env: {
         NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321",
@@ -63,7 +93,7 @@ export default defineConfig({
     {
       command: "pnpm dev:admin",
       url: "http://localhost:3002",
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: REUSE_EXISTING_SERVERS,
       timeout: 120_000,
       env: {
         NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321",
@@ -75,25 +105,25 @@ export default defineConfig({
   projects: [
     {
       name: "landing",
-      testDir: "./e2e/landing",
+      testDir: "./testing/e2e/landing",
       use: {
-        ...devices["Desktop Chrome"],
+        ...DESKTOP_BROWSER_USE,
         baseURL: "http://localhost:3000",
       },
     },
     {
       name: "webapp",
-      testDir: "./e2e/webapp",
+      testDir: "./testing/e2e/webapp",
       use: {
-        ...devices["Desktop Chrome"],
+        ...DESKTOP_BROWSER_USE,
         baseURL: "http://localhost:3001",
       },
     },
     {
       name: "admin",
-      testDir: "./e2e/admin",
+      testDir: "./testing/e2e/admin",
       use: {
-        ...devices["Desktop Chrome"],
+        ...DESKTOP_BROWSER_USE,
         baseURL: "http://localhost:3002",
       },
     },

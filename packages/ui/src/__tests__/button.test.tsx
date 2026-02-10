@@ -33,7 +33,15 @@ describe("Button", () => {
     expect(button.querySelector("svg.animate-spin")).toBeInTheDocument();
   });
 
-  it("applies variant classes", () => {
+  it("applies default variant classes (amber)", () => {
+    render(<Button>Default</Button>);
+    expect(screen.getByRole("button")).toHaveClass(
+      "bg-amber-500",
+      "text-white",
+    );
+  });
+
+  it("applies destructive variant classes", () => {
     const { rerender } = render(<Button variant="destructive">Delete</Button>);
     expect(screen.getByRole("button")).toHaveClass("bg-destructive");
 

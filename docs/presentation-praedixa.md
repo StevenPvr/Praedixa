@@ -1,7 +1,7 @@
 Praedixa.com
 
 One-liner
-Praedixa est une couche de pilotage Ops/DAF au-dessus de vos outils existants. Elle anticipe les ruptures de couverture terrain à J+3 / J+7 / J+14, explique les causes (drivers actionnables), chiffre l’arbitrage coût vs service (HS, intérim, réallocation, ajustement de service), et mesure l’impact via un decision log et des scénarios comparatifs (0% / 100% / réel).
+Praedixa est une couche de pilotage Ops/DAF au-dessus de vos outils existants. Elle anticipe les ruptures de couverture terrain à J+3 / J+7 / J+14, explique les causes (drivers actionnables), chiffre l’arbitrage coût vs service (HS, intérim, réallocation, ajustement de service), et mesure l’impact via du monitoring et des scénarios comparatifs (0% / 100% / réel).
 
 Important
 Praedixa ne remplace pas votre outil de planning/WFM. Il s’appuie sur vos exports (activité, couverture/capacité, absences, turnover, contraintes, coûts) pour décider plus tôt, avec des hypothèses explicites, versionnées et auditables.

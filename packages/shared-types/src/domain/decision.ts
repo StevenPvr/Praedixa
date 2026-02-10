@@ -7,7 +7,6 @@ import type {
   ISODateTimeString,
 } from "../utils/common";
 import type { DateRange } from "../utils/dates";
-import type { AbsenceType } from "./absence";
 import type { RiskIndicators } from "./forecast";
 
 /** Decision type */
@@ -121,7 +120,7 @@ export interface ReplacementRecommendation {
   /** Absence period */
   absencePeriod: DateRange;
   /** Absence type */
-  absenceType: AbsenceType;
+  absenceType: string;
   /** Recommended replacements (ranked) */
   recommendations: ReplacementCandidate[];
   /** Estimated daily cost without replacement */

@@ -3,8 +3,8 @@
   "references": [
     { "path": "packages/shared-types" },
     { "path": "packages/ui" },
-    { "path": "apps/landing/tsconfig.build.json" },
-    { "path": "apps/webapp/tsconfig.build.json" },
-    { "path": "apps/admin/tsconfig.build.json" }
+    { "path": "app-landing/tsconfig.build.json" },
+    { "path": "app-webapp/tsconfig.build.json" },
+    { "path": "app-admin/tsconfig.build.json" }
   ]
 }

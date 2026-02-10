@@ -28,8 +28,8 @@ describe("StatCard", () => {
       />,
     );
     expect(screen.getByTestId("card")).toHaveClass(
-      "border-amber-200",
-      "bg-amber-50",
+      "border-amber-200/60",
+      "bg-gradient-to-br",
     );
   });
 
@@ -46,6 +46,34 @@ describe("StatCard", () => {
       "border-success-100",
       "bg-success-50",
     );
+  });
+
+  it("applies warning variant classes", () => {
+    render(
+      <StatCard
+        data-testid="card"
+        value="100"
+        label="Metric"
+        variant="warning"
+      />,
+    );
+    expect(screen.getByTestId("card")).toHaveClass(
+      "border-amber-200",
+      "bg-amber-50",
+    );
+  });
+
+  it("renders icon with warning variant bg", () => {
+    const { container } = render(
+      <StatCard
+        value="100"
+        label="Metric"
+        variant="warning"
+        icon={<span data-testid="icon">I</span>}
+      />,
+    );
+    const iconContainer = container.querySelector(".h-9.w-9");
+    expect(iconContainer).toHaveClass("bg-amber-100");
   });
 
   it("applies danger variant classes", () => {
@@ -108,10 +136,41 @@ describe("StatCard", () => {
     expect(screen.getByTestId("icon")).toBeInTheDocument();
   });
 
+  it("renders icon with default variant bg", () => {
+    const { container } = render(
+      <StatCard
+        value="100"
+        label="Metric"
+        icon={<span data-testid="icon">I</span>}
+      />,
+    );
+    const iconContainer = container.querySelector(".h-9.w-9");
+    expect(iconContainer).toHaveClass("bg-amber-50/50");
+  });
+
+  it("renders icon with accent variant bg", () => {
+    const { container } = render(
+      <StatCard
+        value="100"
+        label="Metric"
+        variant="accent"
+        icon={<span data-testid="icon">I</span>}
+      />,
+    );
+    const iconContainer = container.querySelector(".h-9.w-9");
+    expect(iconContainer).toHaveClass("bg-amber-100/60");
+  });
+
   it("does not render icon container when no icon", () => {
     const { container } = render(<StatCard value="100" label="Metric" />);
     // Icon container has specific classes
     expect(container.querySelector(".h-9.w-9")).not.toBeInTheDocument();
+  });
+
+  it("applies tabular-nums to value", () => {
+    render(<StatCard value="1,234" label="Metric" />);
+    const valueEl = screen.getByText("1,234");
+    expect(valueEl).toHaveClass("tabular-nums");
   });
 
   it("merges custom className", () => {

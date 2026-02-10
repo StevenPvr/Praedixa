@@ -4,14 +4,16 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../utils/cn";
 
 const statCardVariants = cva(
-  "rounded-card border p-5 transition-shadow duration-200 hover:shadow-card-hover",
+  "rounded-2xl border p-5 hover:shadow-card hover:-translate-y-0.5 transition-all duration-200",
   {
     variants: {
       variant: {
-        default: "border-gray-200 bg-card shadow-card",
-        accent: "border-amber-200 bg-amber-50 shadow-card",
-        success: "border-success-100 bg-success-50 shadow-card",
-        danger: "border-danger-100 bg-danger-50 shadow-card",
+        default: "border-gray-200 bg-card shadow-soft",
+        accent:
+          "border-amber-200/60 bg-gradient-to-br from-amber-50 to-amber-100/50 shadow-soft",
+        success: "border-success-100 bg-success-50 shadow-soft",
+        warning: "border-amber-200 bg-amber-50 shadow-soft",
+        danger: "border-danger-100 bg-danger-50 shadow-soft",
       },
     },
     defaultVariants: {
@@ -81,6 +83,14 @@ function TrendArrow({ direction }: { direction: TrendDirection }) {
   );
 }
 
+const iconBgByVariant: Record<string, string> = {
+  default: "bg-amber-50/50 text-gray-400",
+  accent: "bg-amber-100/60 text-amber-600",
+  success: "bg-success-50 text-success-600",
+  warning: "bg-amber-100 text-amber-600",
+  danger: "bg-danger-50 text-danger-600",
+};
+
 const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
   (
     {
@@ -95,6 +105,8 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
     },
     ref,
   ) => {
+    const resolvedVariant = variant ?? "default";
+
     return (
       <div
         ref={ref}
@@ -104,13 +116,18 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
         <div className="flex items-start justify-between">
           <p className="text-sm font-medium text-gray-500">{label}</p>
           {icon && (
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 text-gray-400">
+            <div
+              className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-lg",
+                iconBgByVariant[resolvedVariant],
+              )}
+            >
               {icon}
             </div>
           )}
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <p className="font-serif text-3xl font-semibold tracking-tight text-charcoal">
+          <p className="font-serif text-3xl font-semibold tabular-nums tracking-tight text-charcoal">
             {value}
           </p>
           {trend && (

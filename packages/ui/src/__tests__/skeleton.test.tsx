@@ -9,10 +9,10 @@ import {
 } from "../components/skeleton";
 
 describe("Skeleton", () => {
-  it("renders a div with pulse animation", () => {
+  it("renders a div with shimmer animation", () => {
     render(<Skeleton data-testid="sk" />);
     const el = screen.getByTestId("sk");
-    expect(el).toHaveClass("animate-pulse", "bg-gray-200");
+    expect(el).toHaveClass("animate-shimmer");
   });
 
   it("applies custom width class", () => {
@@ -22,7 +22,7 @@ describe("Skeleton", () => {
 
   it("merges custom className", () => {
     render(<Skeleton data-testid="sk" className="h-6" />);
-    expect(screen.getByTestId("sk")).toHaveClass("h-6", "animate-pulse");
+    expect(screen.getByTestId("sk")).toHaveClass("h-6", "animate-shimmer");
   });
 
   it("is aria-hidden", () => {
@@ -57,7 +57,7 @@ describe("SkeletonCard", () => {
   it("renders card structure (border + shadow)", () => {
     render(<SkeletonCard data-testid="card" />);
     expect(screen.getByTestId("card")).toHaveClass(
-      "rounded-card",
+      "rounded-2xl",
       "border-gray-200",
       "shadow-card",
     );
@@ -99,7 +99,7 @@ describe("SkeletonTable", () => {
   it("renders custom column count", () => {
     const { container } = render(<SkeletonTable columns={6} rows={1} />);
     // Header: 6 skeleton bars + Body: 6 skeleton bars = 12
-    const skeletons = container.querySelectorAll("[class*='animate-pulse']");
+    const skeletons = container.querySelectorAll("[class*='animate-shimmer']");
     expect(skeletons.length).toBe(12);
   });
 

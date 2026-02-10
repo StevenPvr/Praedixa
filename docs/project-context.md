@@ -573,6 +573,79 @@ Pour chaque alerte : générer (coût€, service%) pour toutes options valides,
 
 ---
 
+## 6) COUVRIR (Capacity Hedging + exécution) — **la brique “killer”**
+
+### 6.1 Objectif (1 paragraphe)
+
+Transformer la prévision (risque de gap) en **capacité sécurisée** à coût maîtrisé : Praedixa construit dès **J+14/J+7** un **portefeuille de couverture** (réservations flexibles + leviers internes) puis **exerce / ajuste / annule** à **J+3/J+1** selon la matérialisation du risque.
+Même si le **€/h d’intérim ne change pas** au dernier moment, la valeur vient de la réduction du **coût total attendu** : on augmente la probabilité d’être pourvu (fill rate) et on réduit les fallbacks coûteux (HS urgence / non-service / désorganisation).
+
+### 6.2 Inputs (MVP vs Premium)
+
+**MVP (suffisant pour POC)**
+
+- Distribution de gap (ou à défaut : P(rupture) + gap P75/P90) par site×shift×date
+- Catalogue “instruments” (par site) :
+  - intérim : lead time (jours), cap (h/j), conditions d’ajustement (annulation jusqu’à T-24/T-48), coût €/h
+  - HS : cap HS/shift, majoration, règles simples
+  - service : coût proxy backlog / pénalité (même grossier), backlog max
+
+- Indicateurs fournisseurs (même approximatifs) : fill rate historique, no-show (si dispo)
+
+**Premium**
+
+- Instruments multi-fournisseurs, SLA, caps par compétence/shift, minimum de commande
+- Réallocation inter-sites (mobilité, frictions, temps trajet)
+- Modèle d’incertitude complet (scénarios de gap) + optimisation risque (CVaR / worst-case)
+- Connecteurs d’exécution (ticketing / demande intérim / validation Ops)
+
+### 6.3 Output (ce que l’utilisateur voit)
+
+Pour chaque créneau critique :
+
+- **Plan de couverture recommandé** (portefeuille) : ex. “Réserver 20h intérim (annulable T-48) + pool HS 10h + accepter 5h backlog”
+- **Coût fixe** (prime/effort de réservation si applicable) + **coût variable** (si exercé)
+- **Service garanti** (cible) + **risque résiduel** (probabilité de rupture après hedge)
+- **Règles d’exécution** : quand on exerce, quand on annule, et sous quelles contraintes (audit-ready)
+
+### 6.4 Mécanisme “A + B” (preuve DAF)
+
+**A.** Le coût attendu dépend surtout de la probabilité d’être pourvu, pas du tarif :
+[
+\mathbb{E}[coût]=P(\text{pourvu})\cdot C*{\text{intérim}}+(1-P(\text{pourvu}))\cdot C*{\text{fallback}}
+]
+avec (C\_{\text{fallback}}) = HS urgence + désorganisation + non-service.
+**B.** Réserver tôt une capacité flexible augmente (P(\text{pourvu})) et réduit le recours au fallback : on remplace l’urgence par une flexibilité maîtrisée, donc le **coût total attendu baisse** même si le €/h est identique.
+
+### 6.5 KPI (très vendables)
+
+- **Hedge Coverage Ratio** : % des créneaux critiques couverts par une réserve flexible
+- **Emergency Avoidance** : heures “urgentes” évitées (HS/intérim) vs BAU
+- **Option Efficiency** : (coût urgence évité) / (coût de couverture)
+- **Exercise Accuracy** : % de réserves exercées “à bon escient”
+- **Service-at-Risk** : probabilité de passer sous SLA après hedge
+
+### 6.6 Pourquoi les agences d’intérim acceptent de se brancher
+
+- Plus de missions pourvues (visibilité J+7/J+14) → CA ↑
+- Coût de sourcing ↓ (moins de pompier) → marge ↑
+- Stabilité (règles d’ajustement/annulation) → moins d’aléas
+- KPI & SLA (fill rate, no-show, lead time) → amélioration continue + avantage concurrentiel
+- Potentiel de volume récurrent (fournisseur “préféré”)
+
+### 6.7 DoD (Definition of Done) — MVP POC
+
+- Plan de couverture généré pour 100% des alertes critiques (au moins 2 instruments)
+- Exécution/annulation tracée dans le decision log
+- Proof pack : comparaison BAU vs hedge (urgence évitée, service stabilisé, efficacité de couverture)
+- Cap sur-alerte maintenu (ex. ≤ 8 alertes/semaine/site) via groupage + seuils
+
+---
+
+Si tu veux, je peux aussi te donner une **phrase de one-liner mise à jour** pour la landing :
+
+> “Praedixa prédit les ruptures et **couvre** le risque en réservant de la capacité flexible, puis l’exerce uniquement si nécessaire — avec preuve mensuelle coût vs service.”
+
 ## 5) PROUVE DE VALEUR & ATTRIBUTION (0% / 100% / réel)
 
 ### 5.1 Définir précisément les 3 scénarios

@@ -35,21 +35,21 @@ repos:
     hooks:
       - id: ruff
         name: ruff (Python lint)
-        entry: sh -c 'cd apps/api && uv run ruff check .'
+        entry: sh -c 'cd app-api && uv run ruff check .'
         language: system
         always_run: true
         pass_filenames: false
 
       - id: ruff-format
         name: ruff (Python format)
-        entry: sh -c 'cd apps/api && uv run ruff format --check .'
+        entry: sh -c 'cd app-api && uv run ruff format --check .'
         language: system
         always_run: true
         pass_filenames: false
 
       - id: clean-artifacts
         name: clean stale build artifacts
-        entry: sh -c 'rm -rf apps/landing/dist apps/landing/.next apps/webapp/dist apps/webapp/.next apps/admin/dist apps/admin/.next'
+        entry: sh -c 'rm -rf app-landing/dist app-landing/.next app-webapp/dist app-webapp/.next app-admin/dist app-admin/.next'
         language: system
         always_run: true
         pass_filenames: false
@@ -83,7 +83,7 @@ repos:
 
       - id: pytest
         name: pytest (Python tests)
-        entry: sh -c 'cd apps/api && uv run pytest'
+        entry: sh -c 'cd app-api && uv run pytest'
         language: system
         always_run: true
         pass_filenames: false
@@ -96,7 +96,7 @@ repos:
 
       - id: pip-audit
         name: pip-audit (Python deps)
-        entry: sh -c 'cd apps/api && uv run pip-audit --skip-editable'
+        entry: sh -c 'cd app-api && uv run pip-audit --skip-editable'
         language: system
         always_run: true
         pass_filenames: false

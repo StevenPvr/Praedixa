@@ -2,7 +2,6 @@
 
 import type {
   TenantEntity,
-  UUID,
   ISODateString,
   ISODateTimeString,
 } from "../utils/common";
@@ -31,6 +30,14 @@ export interface CoverageAlert extends TenantEntity {
   pRupture: number;
   /** Gap in hours to fill */
   gapH: number;
+  /** Lower bound of expected gap interval */
+  predictionIntervalLow?: number;
+  /** Upper bound of expected gap interval */
+  predictionIntervalHigh?: number;
+  /** Forecast model version */
+  modelVersion?: string;
+  /** Calibration bucket label */
+  calibrationBucket?: string;
   /** Estimated financial impact */
   impactEur?: number;
   severity: CoverageAlertSeverity;
@@ -39,21 +46,4 @@ export interface CoverageAlert extends TenantEntity {
   driversJson: string[];
   acknowledgedAt?: ISODateTimeString;
   resolvedAt?: ISODateTimeString;
-}
-
-/** Single cell in the coverage heatmap */
-export interface HeatmapCell {
-  siteId: string;
-  shift: ShiftType;
-  date: ISODateString;
-  coveragePct: number;
-  severity: CoverageAlertSeverity;
-  alertId?: UUID;
-}
-
-/** Full heatmap data payload */
-export interface CoverageHeatmapData {
-  cells: HeatmapCell[];
-  sites: string[];
-  dates: ISODateString[];
 }

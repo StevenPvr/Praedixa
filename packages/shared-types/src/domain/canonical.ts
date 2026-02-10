@@ -27,18 +27,6 @@ export interface CanonicalRecord extends TenantEntity {
   coutInterneEst?: number;
 }
 
-/** High-level summary of canonical data */
-export interface CanonicalDataSummary {
-  totalRecords: number;
-  coveragePct: number;
-  /** Number of distinct sites */
-  sites: number;
-  /** [min_date, max_date] ISO strings */
-  dateRange: string[];
-  missingShiftsPct: number;
-  avgAbsPct: number;
-}
-
 /** Quality dashboard view of canonical data */
 export interface CanonicalQualityDashboard {
   totalRecords: number;

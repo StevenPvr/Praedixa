@@ -4,10 +4,8 @@ import type {
   CoverageAlertSeverity,
   CoverageAlertStatus,
   CoverageAlert,
-  HeatmapCell,
-  CoverageHeatmapData,
 } from "../domain/coverage-alert";
-import type { TenantEntity, UUID, ISODateTimeString } from "../utils/common";
+import type { TenantEntity, ISODateTimeString } from "../utils/common";
 import type { ShiftType } from "../domain/canonical";
 
 describe("AlertHorizon", () => {
@@ -79,30 +77,5 @@ describe("CoverageAlert", () => {
     expectTypeOf<CoverageAlert["impactEur"]>().toEqualTypeOf<
       number | undefined
     >();
-  });
-});
-
-describe("HeatmapCell", () => {
-  it("has all required fields", () => {
-    expectTypeOf<HeatmapCell>().toHaveProperty("siteId");
-    expectTypeOf<HeatmapCell>().toHaveProperty("shift");
-    expectTypeOf<HeatmapCell>().toHaveProperty("date");
-    expectTypeOf<HeatmapCell>().toHaveProperty("coveragePct");
-    expectTypeOf<HeatmapCell>().toHaveProperty("severity");
-  });
-
-  it("alertId is optional UUID", () => {
-    expectTypeOf<HeatmapCell["alertId"]>().toEqualTypeOf<UUID | undefined>();
-  });
-});
-
-describe("CoverageHeatmapData", () => {
-  it("contains cells array", () => {
-    expectTypeOf<CoverageHeatmapData["cells"]>().toEqualTypeOf<HeatmapCell[]>();
-  });
-
-  it("contains sites and dates arrays", () => {
-    expectTypeOf<CoverageHeatmapData["sites"]>().toEqualTypeOf<string[]>();
-    expectTypeOf<CoverageHeatmapData["dates"]>().toEqualTypeOf<string[]>();
   });
 });

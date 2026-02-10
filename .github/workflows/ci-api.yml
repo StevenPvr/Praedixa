@@ -4,12 +4,12 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "apps/api/**"
+      - "app-api/**"
       - ".github/workflows/ci-api.yml"
   push:
     branches: [main]
     paths:
-      - "apps/api/**"
+      - "app-api/**"
       - ".github/workflows/ci-api.yml"
 
 concurrency:
@@ -18,7 +18,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: apps/api
+    working-directory: app-api
 
 env:
   PYTHON_VERSION: "3.12"

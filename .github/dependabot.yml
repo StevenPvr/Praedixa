@@ -39,9 +39,9 @@ updates:
       prefix: "ci"
     open-pull-requests-limit: 10
 
-  # Python dependencies (apps/api)
+  # Python dependencies (app-api)
   - package-ecosystem: "pip"
-    directory: "/apps/api"
+    directory: "/app-api"
     schedule:
       interval: "weekly"
       day: "monday"

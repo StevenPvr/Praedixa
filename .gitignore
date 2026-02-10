@@ -29,10 +29,10 @@ dist/
 downloads/
 eggs/
 .eggs/
-# Python lib folders (but not apps/*/lib which is source code)
+# Python lib folders (but not app-*/lib which is source code)
 /lib/
 lib64/
-!apps/*/lib/
+!app-*/lib/
 parts/
 sdist/
 var/
@@ -62,6 +62,7 @@ node_modules/
 out/
 dist/
 *.tsbuildinfo
+next-env.d.ts
 .open-next/
 .wrangler/
 .dev.vars

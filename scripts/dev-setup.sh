@@ -13,7 +13,7 @@
 #   ./scripts/dev-setup.sh --no-api  # Setup only (migrations), don't start API
 set -e
 
-API_DIR="$(cd "$(dirname "$0")/../apps/api" && pwd)"
+API_DIR="$(cd "$(dirname "$0")/../app-api" && pwd)"
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 START_API=true
 
@@ -34,18 +34,18 @@ fi
 
 # 2. Start PostgreSQL if not running
 echo "[1/4] Checking PostgreSQL..."
-if docker compose -f "$ROOT_DIR/docker-compose.yml" ps postgres 2>/dev/null | grep -q "running"; then
+if docker compose -f "$ROOT_DIR/infra/docker-compose.yml" ps postgres 2>/dev/null | grep -q "running"; then
     echo "      PostgreSQL is already running"
 else
     echo "      Starting PostgreSQL via docker compose..."
-    docker compose -f "$ROOT_DIR/docker-compose.yml" up -d postgres
+    docker compose -f "$ROOT_DIR/infra/docker-compose.yml" up -d postgres
 fi
 
 # 3. Wait for PostgreSQL readiness
 echo "[2/4] Waiting for PostgreSQL readiness..."
 MAX_RETRIES=30
 for i in $(seq 1 $MAX_RETRIES); do
-    if docker compose -f "$ROOT_DIR/docker-compose.yml" exec -T postgres pg_isready -U praedixa -d praedixa > /dev/null 2>&1; then
+    if docker compose -f "$ROOT_DIR/infra/docker-compose.yml" exec -T postgres pg_isready -U praedixa -d praedixa > /dev/null 2>&1; then
         echo "      PostgreSQL is ready"
         break
     fi

@@ -3,8 +3,6 @@
 
 // Domain types
 export * from "./domain/organization";
-export * from "./domain/user";
-export * from "./domain/absence";
 export * from "./domain/forecast";
 export * from "./domain/decision";
 export * from "./domain/dataset";
@@ -19,7 +17,6 @@ export * from "./domain/dashboard";
 // API types
 export * from "./api/responses";
 export * from "./api/requests";
-export * from "./api/errors";
 
 // Utility types
 export * from "./utils/common";

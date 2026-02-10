@@ -2,18 +2,13 @@
 
 import type { PaginationParams, ISODateString, UUID } from "../utils/common";
 import type { DateRange, TimeGranularity } from "../utils/dates";
-import type {
-  AbsenceType,
-  AbsenceStatus,
-  AbsenceRequest,
-} from "../domain/absence";
 import type { ForecastModelType } from "../domain/forecast";
 import type {
   DecisionType,
   DecisionStatus,
   DecisionPriority,
 } from "../domain/decision";
-import type { UserRole, EmploymentType } from "../domain/user";
+import type { DatasetStatus } from "../domain/dataset";
 
 /** Base filter params */
 export interface BaseFilterParams extends PaginationParams {
@@ -25,133 +20,6 @@ export interface DateRangeFilter {
   startDate?: ISODateString;
   endDate?: ISODateString;
   dateRange?: DateRange;
-}
-
-// ─────────────────────────────────────────────────────────────
-// Absence Requests
-// ─────────────────────────────────────────────────────────────
-
-/** List absences request */
-export interface ListAbsencesRequest extends BaseFilterParams, DateRangeFilter {
-  employeeId?: UUID;
-  departmentId?: UUID;
-  types?: AbsenceType[];
-  statuses?: AbsenceStatus[];
-  managerId?: UUID;
-}
-
-/** Create absence request */
-export interface CreateAbsenceRequest extends AbsenceRequest {
-  submitForApproval?: boolean;
-}
-
-/** Update absence request */
-export interface UpdateAbsenceRequest {
-  startDate?: ISODateString;
-  endDate?: ISODateString;
-  startPortion?: "full" | "morning" | "afternoon";
-  endPortion?: "full" | "morning" | "afternoon";
-  reason?: string;
-}
-
-/** Approve/Reject absence request */
-export interface AbsenceDecisionRequest {
-  action: "approve" | "reject";
-  comment?: string;
-  rejectionReason?: string;
-}
-
-/** Bulk absence import */
-export interface BulkAbsenceImportRequest {
-  absences: CreateAbsenceRequest[];
-  validateOnly?: boolean;
-  skipDuplicates?: boolean;
-}
-
-// ─────────────────────────────────────────────────────────────
-// Employee Requests
-// ─────────────────────────────────────────────────────────────
-
-/** List employees request */
-export interface ListEmployeesRequest extends BaseFilterParams {
-  departmentId?: UUID;
-  siteId?: UUID;
-  managerId?: UUID;
-  employmentTypes?: EmploymentType[];
-  status?: "active" | "on_leave" | "terminated" | "pending";
-  isCriticalRole?: boolean;
-}
-
-/** Create employee request */
-export interface CreateEmployeeRequest {
-  employeeNumber: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  jobTitle: string;
-  departmentId: UUID;
-  siteId?: UUID;
-  managerId?: UUID;
-  employmentType: EmploymentType;
-  contractType: string;
-  fte: number;
-  hireDate: ISODateString;
-  endDate?: ISODateString;
-  isCriticalRole?: boolean;
-  skills?: string[];
-  dailyCost?: number;
-}
-
-/** Update employee request */
-export interface UpdateEmployeeRequest {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  jobTitle?: string;
-  departmentId?: UUID;
-  siteId?: UUID;
-  managerId?: UUID;
-  employmentType?: EmploymentType;
-  fte?: number;
-  endDate?: ISODateString;
-  isCriticalRole?: boolean;
-  skills?: string[];
-  dailyCost?: number;
-}
-
-// ─────────────────────────────────────────────────────────────
-// User Requests
-// ─────────────────────────────────────────────────────────────
-
-/** Create user request */
-export interface CreateUserRequest {
-  email: string;
-  role: UserRole;
-  employeeId?: UUID;
-  sendInvite?: boolean;
-}
-
-/** Update user request */
-export interface UpdateUserRequest {
-  role?: UserRole;
-  status?: "active" | "inactive" | "suspended";
-  employeeId?: UUID;
-}
-
-/** Login request */
-export interface LoginRequest {
-  email: string;
-  password: string;
-  mfaCode?: string;
-}
-
-/** Register request */
-export interface RegisterRequest {
-  email: string;
-  password: string;
-  organizationName: string;
-  firstName: string;
-  lastName: string;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -181,12 +49,12 @@ export interface WhatIfScenarioRequest {
   name: string;
   description?: string;
   absenceRateModifier?: number;
-  typeModifiers?: Record<AbsenceType, number>;
+  typeModifiers?: Record<string, number>;
   additionalAbsences?: Array<{
     employeeId: UUID;
     startDate: ISODateString;
     endDate: ISODateString;
-    type: AbsenceType;
+    type: string;
   }>;
 }
 
@@ -225,33 +93,7 @@ export interface RecordDecisionOutcomeRequest {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Organization Requests
-// ─────────────────────────────────────────────────────────────
-
-/** Update organization settings */
-export interface UpdateOrganizationSettingsRequest {
-  absenceTypesEnabled?: string[];
-  requireApproval?: boolean;
-  approvalLevels?: number;
-  forecastingEnabled?: boolean;
-  forecastHorizonDays?: number;
-  alertThresholds?: {
-    understaffingRisk?: number;
-    absenceRate?: number;
-    consecutiveAbsences?: number;
-    forecastAccuracy?: number;
-  };
-}
-
-/** Update working days config */
-export interface UpdateWorkingDaysConfigRequest {
-  workingDays: number[];
-  holidays: ISODateString[];
-  companyClosures?: ISODateString[];
-}
-
-// ─────────────────────────────────────────────────────────────
-// Export/Import Requests
+// Export Requests
 // ─────────────────────────────────────────────────────────────
 
 /** Export request */
@@ -263,19 +105,9 @@ export interface ExportRequest {
   includeHeaders?: boolean;
 }
 
-/** Import request */
-export interface ImportRequest {
-  format: "csv" | "xlsx" | "json";
-  mapping?: Record<string, string>;
-  validateOnly?: boolean;
-  skipErrors?: boolean;
-}
-
 // ─────────────────────────────────────────────────────────────
 // Dataset Requests
 // ─────────────────────────────────────────────────────────────
-
-import type { DatasetStatus } from "../domain/dataset";
 
 /** List datasets request */
 export interface ListDatasetsRequest extends BaseFilterParams {

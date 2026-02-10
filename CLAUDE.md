@@ -9,14 +9,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Monorepo Structure
 
 ```
-apps/
-  landing/    # Marketing site (Next.js 15, Cloudflare Workers)
-  webapp/     # Client dashboard (Next.js 15, Cloudflare Workers) — port 3001
-  admin/      # Super-admin back-office (Next.js 15, Cloudflare Workers) — port 3002
-  api/        # Backend (FastAPI + SQLAlchemy 2.0 async + PostgreSQL) — port 8000
+app-landing/    # Marketing site (Next.js 15, Cloudflare Workers)
+app-webapp/     # Client dashboard (Next.js 15, Cloudflare Workers) — port 3001
+app-admin/      # Super-admin back-office (Next.js 15, Cloudflare Workers) — port 3002
+app-api/        # Backend (FastAPI + SQLAlchemy 2.0 async + PostgreSQL) — port 8000
 packages/
-  ui/         # Shared React component library (Button, Card, DataTable, StatCard, etc.)
+  ui/           # Shared React component library (Button, Card, DataTable, StatCard, etc.)
   shared-types/ # TypeScript domain types shared across all frontends
+infra/          # docker-compose.yml, render.yaml
+testing/        # vitest.setup.ts, e2e tests, shared test utils
+scripts/        # Dev setup, migrations, seed scripts
+docs/           # Architecture docs, security reports, UX specs
 ```
 
 ## Commands
@@ -24,8 +27,8 @@ packages/
 ### Install & Dev
 
 ```bash
-pnpm install                          # Install all JS dependencies
-cd apps/api && uv sync --extra dev    # Install Python dependencies
+pnpm install                              # Install all JS dependencies
+cd app-api && uv sync --extra dev         # Install Python dependencies
 
 pnpm dev:landing     # Landing — port 3000
 pnpm dev:webapp      # Webapp — port 3001
@@ -41,11 +44,11 @@ pnpm test                          # Run all tests
 pnpm vitest run path/to/file.test.ts  # Single file
 pnpm vitest run -t "test name"     # Single test by name
 
-# Backend (Pytest) — from apps/api
-cd apps/api && uv run pytest                          # All tests (100% coverage enforced)
-cd apps/api && uv run pytest tests/unit/test_file.py  # Single file
-cd apps/api && uv run pytest --no-cov                 # Skip coverage (faster)
-cd apps/api && uv run pytest tests/security/          # Security tests only
+# Backend (Pytest) — from app-api
+cd app-api && uv run pytest                          # All tests (100% coverage enforced)
+cd app-api && uv run pytest tests/unit/test_file.py  # Single file
+cd app-api && uv run pytest --no-cov                 # Skip coverage (faster)
+cd app-api && uv run pytest tests/security/          # Security tests only
 ```
 
 ### Lint, Format, Typecheck, Build
@@ -56,8 +59,8 @@ pnpm format:check            # Prettier check
 pnpm typecheck               # tsc --build (build packages first!)
 pnpm build                   # Build all (shared-types -> ui -> apps, sequential)
 
-cd apps/api && uv run ruff check .     # Python lint
-cd apps/api && uv run ruff format --check .  # Python format
+cd app-api && uv run ruff check .     # Python lint
+cd app-api && uv run ruff format --check .  # Python format
 ```
 
 ### Pre-commit (full quality gate)
@@ -69,9 +72,9 @@ pnpm pre-commit   # Runs: formatting, lint, typecheck, vitest, pytest, build, ru
 ### Database
 
 ```bash
-docker compose up -d postgres          # Start PG 16 on port 5433
-cd apps/api && uv run alembic upgrade head    # Apply migrations
-cd apps/api && uv run alembic revision --autogenerate -m "description"  # New migration
+docker compose -f infra/docker-compose.yml up -d postgres   # Start PG 16 on port 5433
+cd app-api && uv run alembic upgrade head                   # Apply migrations
+cd app-api && uv run alembic revision --autogenerate -m "description"  # New migration
 ```
 
 ## Architecture
@@ -104,7 +107,7 @@ cd apps/api && uv run alembic revision --autogenerate -m "description"  # New mi
 
 ### Testing Patterns
 
-**Vitest**: 100% coverage thresholds enforced. `vitest.setup.ts` mocks `matchMedia`, `ResizeObserver`, `IntersectionObserver`, `crypto.randomUUID`. Admin app has its own vitest workspace config.
+**Vitest**: 100% coverage thresholds enforced. `testing/vitest.setup.ts` mocks `matchMedia`, `ResizeObserver`, `IntersectionObserver`, `crypto.randomUUID`. Admin app has its own vitest workspace config.
 
 **Pytest**: 100% coverage enforced (`--cov-fail-under=100`). `asyncio_mode = "auto"`. Use `SimpleNamespace` (not `MagicMock`) for ORM mocks — required for Pydantic `model_validate` compatibility. Mock helpers: `make_mock_session()`, `make_scalar_result()`, `make_scalars_result()` in `tests/unit/conftest.py`.
 

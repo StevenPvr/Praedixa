@@ -137,14 +137,3 @@ export interface Address {
   country: string;
   region?: string;
 }
-
-/** Organization summary for listings */
-export interface OrganizationSummary {
-  id: UUID;
-  name: string;
-  slug: string;
-  status: OrganizationStatus;
-  plan: SubscriptionPlan;
-  headcount?: number;
-  sector?: IndustrySector;
-}

@@ -4,14 +4,14 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "apps/admin/**"
+      - "app-admin/**"
       - "packages/ui/**"
       - "packages/shared-types/**"
       - ".github/workflows/ci-admin.yml"
   push:
     branches: [main]
     paths:
-      - "apps/admin/**"
+      - "app-admin/**"
       - "packages/ui/**"
       - "packages/shared-types/**"
       - ".github/workflows/ci-admin.yml"
@@ -102,8 +102,8 @@ jobs:
       - name: Restore Next.js build cache (admin)
         uses: actions/cache@v4
         with:
-          path: apps/admin/.next/cache
-          key: nextjs-admin-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/admin/**/*.ts', 'apps/admin/**/*.tsx') }}
+          path: app-admin/.next/cache
+          key: nextjs-admin-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('app-admin/**/*.ts', 'app-admin/**/*.tsx') }}
           restore-keys: |
             nextjs-admin-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
             nextjs-admin-${{ runner.os }}-

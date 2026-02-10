@@ -2,7 +2,6 @@ import { describe, it, expectTypeOf, assertType } from "vitest";
 import type {
   ScenarioOptionType,
   ScenarioOption,
-  ParetoPoint,
   ParetoFrontierResponse,
 } from "../domain/scenario";
 import type { TenantEntity, UUID } from "../utils/common";
@@ -55,22 +54,6 @@ describe("ScenarioOption", () => {
   it("boolean flags are boolean", () => {
     expectTypeOf<ScenarioOption["isParetoOptimal"]>().toEqualTypeOf<boolean>();
     expectTypeOf<ScenarioOption["isRecommended"]>().toEqualTypeOf<boolean>();
-  });
-});
-
-describe("ParetoPoint", () => {
-  it("has all chart-rendering fields", () => {
-    expectTypeOf<ParetoPoint>().toHaveProperty("optionId");
-    expectTypeOf<ParetoPoint>().toHaveProperty("optionType");
-    expectTypeOf<ParetoPoint>().toHaveProperty("label");
-    expectTypeOf<ParetoPoint>().toHaveProperty("cost");
-    expectTypeOf<ParetoPoint>().toHaveProperty("servicePct");
-    expectTypeOf<ParetoPoint>().toHaveProperty("isParetoOptimal");
-    expectTypeOf<ParetoPoint>().toHaveProperty("isRecommended");
-  });
-
-  it("optionId is UUID", () => {
-    expectTypeOf<ParetoPoint["optionId"]>().toEqualTypeOf<UUID>();
   });
 });
 
