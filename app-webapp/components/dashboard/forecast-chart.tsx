@@ -1,72 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { LineChart } from "@tremor/react";
 import { SkeletonChart } from "@praedixa/ui";
-import { useApiGet } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
-import { isUuid } from "@/lib/uuid";
 import { buildCapacitySeries } from "@/lib/capacity-chart";
-
-interface DailyForecastData {
-  forecastDate: string;
-  dimension: string;
-  predictedDemand: number;
-  predictedCapacity: number;
-  capacityPlannedCurrent: number;
-  capacityPlannedPredicted: number;
-  capacityOptimalPredicted: number;
-  gap: number;
-  riskScore: number;
-  confidenceLower: number;
-  confidenceUpper: number;
-}
-
-interface ForecastRunSummary {
-  id: string;
-  status: string;
-  accuracyScore: number | null;
-}
+import { useLatestForecasts } from "@/hooks/use-latest-forecasts";
 
 type Dimension = "human" | "merchandise";
+const MAX_FORECAST_DAYS = 7;
+
+import { formatDateShort } from "@/lib/date-formatters";
 
 const chartValueFormatter = (v: number) => v.toFixed(0);
 
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
-}
-
-export function ForecastChart() {
+export const ForecastChart = memo(function ForecastChart() {
   const [dimension, setDimension] = useState<Dimension>("human");
 
-  // Fetch latest completed forecast run
-  const {
-    data: runs,
-    loading: runsLoading,
-    error: runsError,
-    refetch: refetchRuns,
-  } = useApiGet<ForecastRunSummary[]>(
-    "/api/v1/forecasts?page=1&page_size=1&status=completed",
-  );
-
-  const latestRunId = runs && runs.length > 0 ? runs[0].id : null;
-  const dailyRunId = isUuid(latestRunId) ? latestRunId : null;
-
-  // Fetch daily forecasts for the latest run
-  const {
-    data: dailyData,
-    loading: dailyLoading,
-    error: dailyError,
-    refetch: refetchDaily,
-  } = useApiGet<DailyForecastData[]>(
-    dailyRunId
-      ? `/api/v1/forecasts/${encodeURIComponent(dailyRunId)}/daily?dimension=${encodeURIComponent(dimension)}`
-      : null,
-  );
-
-  const loading = runsLoading || (dailyRunId !== null && dailyLoading);
-  const error = runsError ?? dailyError;
+  const { dailyData, loading, error, refetchRuns, refetchDaily } =
+    useLatestForecasts(dimension);
 
   if (loading) {
     return <SkeletonChart />;
@@ -85,7 +37,9 @@ export function ForecastChart() {
   }
 
   // Build chart data
-  const chartData = buildCapacitySeries(dailyData ?? [], formatDate);
+  const chartData = buildCapacitySeries(dailyData ?? [], formatDateShort, {
+    maxDays: MAX_FORECAST_DAYS,
+  });
 
   const dimensionLabel = dimension === "human" ? "humaine" : "marchandise";
 
@@ -95,10 +49,13 @@ export function ForecastChart() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-base font-semibold text-charcoal">
-              Prevision de couverture a 14 jours
+              Prevision de couverture sur 7 jours
             </h2>
             <p className="mt-1 text-sm text-gray-500">
               Capacite {dimensionLabel} — tous sites
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              Fenetre limitee a 7 jours pour conserver un graphique lisible.
             </p>
           </div>
           <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
@@ -156,4 +113,6 @@ export function ForecastChart() {
       </div>
     </section>
   );
-}
+});
+
+ForecastChart.displayName = "ForecastChart";

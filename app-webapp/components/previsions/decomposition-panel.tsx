@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { AreaChart, BarChart } from "@tremor/react";
 import { SkeletonChart } from "@praedixa/ui";
 import { DetailCard } from "@/components/ui/detail-card";
@@ -12,7 +13,10 @@ interface DecompositionPanelProps {
 
 const chartValueFormatter = (v: number) => v.toFixed(0);
 
-export function DecompositionPanel({ data, loading }: DecompositionPanelProps) {
+export const DecompositionPanel = memo(function DecompositionPanel({
+  data,
+  loading,
+}: DecompositionPanelProps) {
   if (loading) {
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -158,4 +162,6 @@ export function DecompositionPanel({ data, loading }: DecompositionPanelProps) {
       </DetailCard>
     </div>
   );
-}
+});
+
+DecompositionPanel.displayName = "DecompositionPanel";

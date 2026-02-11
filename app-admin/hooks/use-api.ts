@@ -44,15 +44,17 @@ export function useApiGet<T>(
   const fetchIdRef = useRef(0);
 
   const fetchData = useCallback(
-    async (signal: AbortSignal) => {
+    async (signal: AbortSignal, options?: { silent?: boolean }) => {
       if (!url) {
         setLoading(false);
         return;
       }
 
       const id = ++fetchIdRef.current;
-      setLoading(true);
-      setError(null);
+      if (!options?.silent) {
+        setLoading(true);
+        setError(null);
+      }
 
       try {
         const response = await apiGet<T>(url, getAccessToken, { signal });
@@ -65,17 +67,20 @@ export function useApiGet<T>(
         if (id !== fetchIdRef.current) return;
 
         if (err instanceof ApiError && err.status === 401) {
+          if (options?.silent) return;
           await redirectToReauth(router);
           return;
         }
 
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Une erreur inattendue est survenue",
-        );
+        if (!options?.silent) {
+          setError(
+            err instanceof ApiError
+              ? err.message
+              : "Une erreur inattendue est survenue",
+          );
+        }
       } finally {
-        if (id === fetchIdRef.current && !signal.aborted) {
+        if (id === fetchIdRef.current && !signal.aborted && !options?.silent) {
           setLoading(false);
         }
       }
@@ -89,15 +94,20 @@ export function useApiGet<T>(
     return () => controller.abort();
   }, [fetchData]);
 
-  // Polling: silently refetch at a regular interval
+  // Polling: silently refetch at a regular interval (skip cycle on 401)
   useEffect(() => {
     const interval = options?.pollInterval;
     if (!interval || !url) return;
+    let pollController: AbortController | null = null;
     const id = setInterval(() => {
-      const controller = new AbortController();
-      void fetchData(controller.signal);
+      pollController?.abort();
+      pollController = new AbortController();
+      void fetchData(pollController.signal, { silent: true });
     }, interval);
-    return () => clearInterval(id);
+    return () => {
+      clearInterval(id);
+      pollController?.abort();
+    };
   }, [options?.pollInterval, url, fetchData]);
 
   const refetch = useCallback(() => {
@@ -132,7 +142,7 @@ export function useApiGetPaginated<T>(
   const fetchIdRef = useRef(0);
 
   const separator = url.includes("?") ? "&" : "?";
-  const fullUrl = `${url}${separator}page=${page}&pageSize=${limit}`;
+  const fullUrl = `${url}${separator}page=${page}&page_size=${limit}`;
 
   const fetchData = useCallback(
     async (signal: AbortSignal) => {

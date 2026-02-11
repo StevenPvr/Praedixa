@@ -1,0 +1,6 @@
+{
+  "date": ["date", "jour", "day", "ds"],
+  "month": ["month", "mois", "periode", "period"],
+  "site_code": ["site_code", "site", "siteid", "site_id", "code_site"],
+  "site_name": ["site_name", "site_nom", "site_label", "name_site"]
+}

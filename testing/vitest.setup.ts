@@ -1,6 +1,21 @@
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";
 import { MockIntersectionObserver } from "./utils/mocks/intersection-observer";
+import { createUiMocks } from "./utils/mocks/ui";
+import {
+  createNextNavigationMocks,
+  createNextImageMock,
+} from "./utils/mocks/next";
+import { createLucideIconMocks } from "./utils/mocks/icons";
+
+// Register shared mock factories on globalThis so vi.mock() factories can use them.
+// vi.mock() calls are hoisted above imports, but globalThis is always available.
+(globalThis as Record<string, unknown>).__mocks = {
+  createUiMocks,
+  createNextNavigationMocks,
+  createNextImageMock,
+  createLucideIconMocks,
+};
 
 // Global test setup for Vitest
 // This file is loaded before each test file

@@ -1,0 +1,15 @@
+{
+  "data_root": "../../../data",
+  "output_root": "../../../data-ready",
+  "metadata_root": ".",
+  "lock_file": "../../../data-ready/reports/praedixa-medallion.lock",
+  "heartbeat_file": "../../../data-ready/reports/orchestrator_heartbeat.json",
+  "poll_seconds": 30,
+  "max_retries": 3,
+  "retry_base_seconds": 5,
+  "retry_max_seconds": 120,
+  "allow_reprocess": false,
+  "force_rebuild_on_start": false,
+  "alert_webhook_url": null,
+  "alert_timeout_seconds": 10
+}

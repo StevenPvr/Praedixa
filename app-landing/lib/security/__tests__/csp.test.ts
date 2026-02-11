@@ -1,6 +1,13 @@
+/**
+ * Landing CSP — tests local configuration only.
+ *
+ * Core CSP logic is tested in packages/ui/src/__tests__/csp.test.ts.
+ * This file verifies that the landing wrapper passes NO apiUrl (no API/Supabase).
+ */
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-describe("Landing CSP module", () => {
+describe("Landing CSP wrapper", () => {
   beforeEach(() => {
     vi.stubEnv("NODE_ENV", "production");
   });
@@ -10,74 +17,19 @@ describe("Landing CSP module", () => {
     vi.resetModules();
   });
 
-  describe("generateNonce", () => {
-    it("should return a base64-encoded string", async () => {
-      const { generateNonce } = await import("../csp");
-      const nonce = generateNonce();
-
-      expect(typeof nonce).toBe("string");
-      expect(nonce.length).toBeGreaterThan(0);
-      expect(nonce).toMatch(/^[A-Za-z0-9+/=]+$/);
-    });
-
-    it("should generate unique nonces on each call", async () => {
-      const { generateNonce } = await import("../csp");
-      const nonce1 = generateNonce();
-      const nonce2 = generateNonce();
-
-      expect(nonce1).not.toBe(nonce2);
-    });
+  it("should re-export generateNonce from shared module", async () => {
+    const { generateNonce } = await import("../csp");
+    const nonce = generateNonce();
+    expect(typeof nonce).toBe("string");
+    expect(nonce.length).toBeGreaterThan(0);
   });
 
-  describe("buildCspHeader", () => {
-    it("should include nonce in script-src and style-src in production", async () => {
-      const { buildCspHeader } = await import("../csp");
-      const csp = buildCspHeader("dGVzdA==");
+  it("should have connect-src self only (no API/Supabase)", async () => {
+    const { buildCspHeader } = await import("../csp");
+    const csp = buildCspHeader("dGVzdA==");
 
-      expect(csp).toContain("'nonce-dGVzdA=='");
-      expect(csp).toContain(
-        "script-src 'self' 'nonce-dGVzdA==' 'strict-dynamic'",
-      );
-      expect(csp).toContain("style-src 'self' 'nonce-dGVzdA=='");
-      expect(csp).not.toContain("'unsafe-inline'");
-      expect(csp).not.toContain("'unsafe-eval'");
-    });
-
-    it("should have connect-src self only (no API/Supabase)", async () => {
-      const { buildCspHeader } = await import("../csp");
-      const csp = buildCspHeader("dGVzdA==");
-
-      expect(csp).toContain("connect-src 'self'");
-      expect(csp).not.toContain("supabase");
-    });
-
-    it("should include upgrade-insecure-requests in production", async () => {
-      const { buildCspHeader } = await import("../csp");
-      const csp = buildCspHeader("dGVzdA==");
-
-      expect(csp).toContain("upgrade-insecure-requests");
-    });
-
-    it("should include strict security directives", async () => {
-      const { buildCspHeader } = await import("../csp");
-      const csp = buildCspHeader("dGVzdA==");
-
-      expect(csp).toContain("default-src 'self'");
-      expect(csp).toContain("frame-ancestors 'none'");
-      expect(csp).toContain("base-uri 'self'");
-      expect(csp).toContain("form-action 'self'");
-      expect(csp).toContain("object-src 'none'");
-    });
-
-    it("should include unsafe-eval and unsafe-inline in development", async () => {
-      vi.stubEnv("NODE_ENV", "development");
-      vi.resetModules();
-      const { buildCspHeader } = await import("../csp");
-      const csp = buildCspHeader("dGVzdA==");
-
-      expect(csp).toContain("'unsafe-eval'");
-      expect(csp).toContain("style-src 'self' 'unsafe-inline'");
-      expect(csp).not.toContain("upgrade-insecure-requests");
-    });
+    expect(csp).toContain("connect-src 'self'");
+    expect(csp).not.toContain("supabase");
+    expect(csp).not.toContain("localhost:8000");
   });
 });

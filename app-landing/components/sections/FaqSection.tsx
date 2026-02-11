@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { cn } from "../ui";
+import { cn } from "@praedixa/ui";
 import {
   staggerContainer,
   staggerItem,

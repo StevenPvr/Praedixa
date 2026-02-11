@@ -10,7 +10,6 @@ Security:
 - Pagination params are bounded (page_size max 100).
 """
 
-import math
 import uuid
 from datetime import UTC, datetime
 
@@ -19,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
+from app.core.pagination import calculate_total_pages
 from app.core.security import TenantFilter, require_role
 from app.models.decision import DecisionStatus, DecisionType
 from app.schemas.base import PaginationMeta
@@ -63,7 +63,7 @@ async def list_all_decisions(
         type_filter=type,
     )
 
-    total_pages = math.ceil(total / page_size) if total > 0 else 1
+    total_pages = calculate_total_pages(total, page_size)
 
     return PaginatedResponse(
         success=True,

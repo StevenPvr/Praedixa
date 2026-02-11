@@ -34,6 +34,7 @@ from app.core.ddl_validation import (
     validate_table_name,
 )
 from app.models.data_catalog import ColumnRole
+from app.services.dataset_table_names import get_transformed_table_name
 
 if TYPE_CHECKING:
     from app.models.data_catalog import ClientDataset, DatasetColumn
@@ -97,12 +98,13 @@ async def create_dataset_tables(
 
     Creates:
         - {schema_data}.{table_name}: system cols + dynamic cols from metadata
-        - {schema_data}.{table_name}: system cols + original cols + feature cols
+        - {schema_data}.{table_name}_transformed: system + original + features
         - Indexes on temporal_index and group_by columns
     """
     # Validate all identifiers
     data_schema = validate_schema_name(dataset.schema_data)
-    table_name = validate_table_name(dataset.table_name)
+    raw_table_name = validate_table_name(dataset.table_name)
+    transformed_table_name = get_transformed_table_name(raw_table_name)
     temporal_index = validate_identifier(dataset.temporal_index, field="temporal_index")
 
     validated_group_by = [
@@ -121,35 +123,85 @@ async def create_dataset_tables(
 
     def _sync_create() -> None:
         with ddl_connection() as conn, conn.cursor() as cur:
-            # ── Raw table ──
-            _create_raw_table(
-                cur,
-                data_schema,
-                table_name,
-                validated_columns,
-            )
-            # ── Transformed table ──
-            _create_transformed_table(
-                cur,
-                data_schema,
-                table_name,
-                validated_columns,
-                feature_columns,
-            )
-            # ── Indexes ──
-            _create_indexes(
-                cur,
-                data_schema,
-                table_name,
-                temporal_index,
-                validated_group_by,
-            )
+            raw_created = False
+            transformed_created = False
+            try:
+                # ── Raw table ──
+                _create_raw_table(
+                    cur,
+                    data_schema,
+                    raw_table_name,
+                    validated_columns,
+                )
+                raw_created = True
+
+                # ── Transformed table ──
+                _create_transformed_table(
+                    cur,
+                    data_schema,
+                    transformed_table_name,
+                    validated_columns,
+                    feature_columns,
+                )
+                transformed_created = True
+
+                # ── Indexes ──
+                _create_indexes(
+                    cur,
+                    data_schema,
+                    raw_table_name,
+                    temporal_index,
+                    validated_group_by,
+                    include_ingested_at=True,
+                )
+                _create_indexes(
+                    cur,
+                    data_schema,
+                    transformed_table_name,
+                    temporal_index,
+                    validated_group_by,
+                    include_ingested_at=False,
+                )
+            except Exception as exc:
+                compensation_errors: list[str] = []
+                if transformed_created:
+                    try:
+                        cur.execute(
+                            sql.SQL("DROP TABLE {}.{}").format(
+                                sql.Identifier(data_schema),
+                                sql.Identifier(transformed_table_name),
+                            )
+                        )
+                    except Exception as drop_exc:
+                        compensation_errors.append(
+                            f"{transformed_table_name}: {drop_exc}"
+                        )
+                if raw_created:
+                    try:
+                        cur.execute(
+                            sql.SQL("DROP TABLE {}.{}").format(
+                                sql.Identifier(data_schema),
+                                sql.Identifier(raw_table_name),
+                            )
+                        )
+                    except Exception as drop_exc:
+                        compensation_errors.append(f"{raw_table_name}: {drop_exc}")
+
+                if compensation_errors:
+                    msg = (
+                        "Dataset table DDL failed and compensation failed for: "
+                        f"{'; '.join(compensation_errors)}"
+                    )
+                    raise RuntimeError(msg) from exc
+                raise
 
     await asyncio.to_thread(_sync_create)
     logger.info(
-        "Created tables %s.%s (raw + transformed)",
+        "Created dataset tables %s.%s and %s.%s",
         data_schema,
-        table_name,
+        raw_table_name,
+        data_schema,
+        transformed_table_name,
     )
 
 
@@ -269,7 +321,7 @@ def _create_raw_table(
             )
         )
 
-    create_stmt = sql.SQL("CREATE TABLE IF NOT EXISTS {}.{} ({})").format(
+    create_stmt = sql.SQL("CREATE TABLE {}.{} ({})").format(
         sql.Identifier(schema),
         sql.Identifier(table_name),
         sql.SQL(", ").join(col_defs),
@@ -319,7 +371,7 @@ def _create_transformed_table(
             )
         )
 
-    create_stmt = sql.SQL("CREATE TABLE IF NOT EXISTS {}.{} ({})").format(
+    create_stmt = sql.SQL("CREATE TABLE {}.{} ({})").format(
         sql.Identifier(schema),
         sql.Identifier(table_name),
         sql.SQL(", ").join(col_defs),
@@ -333,8 +385,10 @@ def _create_indexes(
     table_name: str,
     temporal_index: str,
     group_by: list[str],
+    *,
+    include_ingested_at: bool,
 ) -> None:
-    """Create indexes on temporal_index, group_by, and _ingested_at columns."""
+    """Create indexes on temporal_index/group_by and optionally _ingested_at."""
     # Index on temporal_index column
     idx_name = f"ix_{table_name}_{temporal_index}"
     cur.execute(
@@ -358,8 +412,8 @@ def _create_indexes(
             )
         )
 
-    # Index on _ingested_at (raw tables only — harmless if column doesn't exist)
-    try:
+    # Raw table-only index
+    if include_ingested_at:
         idx_name = f"ix_{table_name}_ingested_at"
         cur.execute(
             sql.SQL("CREATE INDEX IF NOT EXISTS {} ON {}.{} ({})").format(
@@ -369,5 +423,3 @@ def _create_indexes(
                 sql.Identifier("_ingested_at"),
             )
         )
-    except Exception:
-        pass

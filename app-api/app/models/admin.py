@@ -19,7 +19,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -73,6 +73,16 @@ class OnboardingStatus(str, enum.Enum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     ABANDONED = "abandoned"
+
+
+class RgpdErasureStatus(str, enum.Enum):
+    """Status of RGPD erasure requests."""
+
+    PENDING_APPROVAL = "pending_approval"
+    APPROVED = "approved"
+    EXECUTING = "executing"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 # ── Models ───────────────────────────────────────────────
@@ -144,6 +154,95 @@ class AdminAuditLog(TimestampMixin, Base):
 
     def __repr__(self) -> str:
         return f"<AdminAuditLog {self.action.value} by={self.admin_user_id}>"
+
+
+class RgpdErasureRequest(TimestampMixin, Base):
+    """Persistent RGPD erasure workflow state.
+
+    organization_id is intentionally not a foreign key: the target organization
+    may be deleted as part of erasure while this record must remain for audit.
+    """
+
+    __tablename__ = "rgpd_erasure_requests"
+    __table_args__ = (
+        Index(
+            "ix_rgpd_erasure_requests_org_created",
+            "organization_id",
+            "created_at",
+            postgresql_ops={"created_at": "DESC"},
+        ),
+        Index(
+            "uq_rgpd_erasure_active_per_org",
+            "organization_id",
+            unique=True,
+            postgresql_where=text(
+                "status IN ('pending_approval','approved','executing')"
+            ),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=False,
+    )
+    org_slug: Mapped[str] = mapped_column(String(100), nullable=False)
+    initiated_by: Mapped[str] = mapped_column(String(64), nullable=False)
+    approved_by: Mapped[str | None] = mapped_column(String(64))
+    status: Mapped[RgpdErasureStatus] = mapped_column(
+        sa_enum(RgpdErasureStatus),
+        nullable=False,
+        default=RgpdErasureStatus.PENDING_APPROVAL,
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    def __repr__(self) -> str:
+        return (
+            f"<RgpdErasureRequest id={self.id} "
+            f"org={self.organization_id} status={self.status.value}>"
+        )
+
+
+class RgpdErasureAuditEvent(Base):
+    """Append-only audit entries for RGPD erasure requests."""
+
+    __tablename__ = "rgpd_erasure_audit_events"
+    __table_args__ = (
+        Index(
+            "uq_rgpd_erasure_audit_seq",
+            "erasure_request_id",
+            "sequence_no",
+            unique=True,
+        ),
+        Index(
+            "ix_rgpd_erasure_audit_request_created",
+            "erasure_request_id",
+            "created_at",
+            postgresql_ops={"created_at": "DESC"},
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    erasure_request_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("rgpd_erasure_requests.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    sequence_no: Mapped[int] = mapped_column(Integer, nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text("now()"),
+    )
 
 
 class PlanChangeHistory(TimestampMixin, Base):

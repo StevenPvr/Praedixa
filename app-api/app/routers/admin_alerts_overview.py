@@ -6,7 +6,6 @@ Security:
 - Every endpoint logs an admin audit action.
 """
 
-import math
 import uuid
 from datetime import UTC, datetime
 
@@ -16,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_admin_tenant_filter, get_db_session
+from app.core.pagination import calculate_total_pages
 from app.core.security import TenantFilter, require_role
 from app.models.admin import AdminAuditAction
 from app.models.operational import (
@@ -26,6 +26,7 @@ from app.schemas.base import CamelModel, PaginationMeta
 from app.schemas.operational import CoverageAlertRead
 from app.schemas.responses import ApiResponse, PaginatedResponse
 from app.services.admin_audit import log_admin_action
+from app.services.site_scope import validate_site_belongs_to_org
 
 router = APIRouter(tags=["admin-operational"])
 
@@ -178,11 +179,9 @@ async def org_alerts(
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> PaginatedResponse[CoverageAlertRead]:
     """Alerts for a specific organization, optionally filtered by site."""
-    from app.routers.admin_operational import _validate_site_belongs_to_org
-
     validated_site_uuid: uuid.UUID | None = None
     if site_id:
-        validated_site_uuid = await _validate_site_belongs_to_org(
+        validated_site_uuid = await validate_site_belongs_to_org(
             session, target_org_id, site_id
         )
 
@@ -216,7 +215,7 @@ async def org_alerts(
         metadata=metadata or None,
     )
 
-    total_pages = max(1, math.ceil(total / page_size))
+    total_pages = calculate_total_pages(total, page_size)
 
     return PaginatedResponse(
         success=True,

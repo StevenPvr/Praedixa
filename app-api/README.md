@@ -20,6 +20,55 @@ OpenAPI docs : [localhost:8000/docs](http://localhost:8000/docs) (desactivee en 
 
 ---
 
+## Pipeline medaillon (Data Engineering)
+
+Pipeline metadata-driven pour `bronze -> silver -> gold`:
+
+- **Bronze** : landing immuable des fichiers bruts + manifest/checksum.
+- **Silver** : dataset unique `site-jour` standardise, dedup, imputation causale,
+  outliers robustes, indicateurs `is_imputed` / `imputation_method`.
+- **Gold** : features ML (calendar encoding, meteo, vacances scolaires, lags, rolling)
+  exportees en CSV dans `data-ready/gold/`.
+
+Commande:
+
+```bash
+cd app-api
+uv run python -m scripts.medallion_pipeline --force-rebuild
+```
+
+Mode event-driven (polling local):
+
+```bash
+cd app-api
+uv run python -m scripts.medallion_pipeline --watch --poll-seconds 30
+```
+
+Orchestration production (scheduler + retries + alerting webhook):
+
+```bash
+cd app-api
+uv run python -m scripts.medallion_orchestrator --config config/medallion/orchestrator.json
+```
+
+Metadonnees editables (intervention humaine minimale):
+
+- `app-api/config/medallion/column_aliases.json`
+- `app-api/config/medallion/site_locations.json`
+- `app-api/config/medallion/orchestrator.json`
+
+Anti-leakage temporel:
+
+- Pas de backfill retroactif par defaut (fichiers anciens en quarantaine).
+- Features et imputations **point-in-time** (pas d'information future).
+- Agrégats mensuels injectés via **mois precedent uniquement**.
+
+Template systemd:
+
+- `infra/systemd/praedixa-medallion.service`
+
+---
+
 ## Architecture en couches
 
 ```

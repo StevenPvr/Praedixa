@@ -100,7 +100,7 @@ class TestCloudflareHeaderPriority:
         assert _get_client_ip(request) == "198.51.100.1"
 
     def test_cf_ip_overrides_client_host(self) -> None:
-        """cf-connecting-ip is used even when client.host differs."""
+        """Untrusted client.host disables forwarded-header trust."""
         request = MagicMock()
 
         def header_get(name: str) -> str | None:
@@ -112,7 +112,8 @@ class TestCloudflareHeaderPriority:
         request.client = MagicMock()
         request.client.host = "10.0.0.1"
 
-        assert _get_client_ip(request) == "203.0.113.50"
+        # 10.0.0.1 is not in TRUSTED_PROXY_IPS defaults, so headers are ignored.
+        assert _get_client_ip(request) == "10.0.0.1"
 
 
 class TestMalformedHeaderHandling:
@@ -170,7 +171,7 @@ class TestMalformedHeaderHandling:
         assert _get_client_ip(request) == "2001:db8::1"
 
     def test_xff_with_port_number(self) -> None:
-        """IP with port in XFF is used as-is (no parsing)."""
+        """Malformed XFF first hop falls back to client.host."""
         request = MagicMock()
 
         def header_get(name: str) -> str | None:
@@ -182,8 +183,7 @@ class TestMalformedHeaderHandling:
         request.client = MagicMock()
         request.client.host = "127.0.0.1"
 
-        # The IP with port is returned as-is
-        assert _get_client_ip(request) == "203.0.113.1:8080"
+        assert _get_client_ip(request) == "127.0.0.1"
 
 
 class TestXRealIpNotSupported:

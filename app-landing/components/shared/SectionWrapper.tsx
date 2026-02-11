@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { staggerContainer, viewportOnce } from "../../lib/animations/variants";
-import { cn } from "../ui";
+import { cn } from "@praedixa/ui";
 
 interface SectionWrapperProps {
   id: string;

@@ -87,6 +87,8 @@ export const ADMIN_ENDPOINTS = {
     `${V1}/organizations/${encodeURIComponent(orgId)}/proof-packs`,
   orgIngestionLog: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/ingestion-log`,
+  orgMedallionQualityReport: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/medallion-quality-report`,
   orgDatasetData: (orgId: string, datasetId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/datasets/${encodeURIComponent(datasetId)}/data`,
   orgDatasetFeatures: (orgId: string, datasetId: string) =>

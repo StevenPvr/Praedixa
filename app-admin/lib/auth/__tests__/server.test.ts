@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+/**
+ * Admin auth server tests.
+ *
+ * Tests getSupabaseServerClient, getUser, and getSession.
+ */
 
-// ---------------------------------------------------------------------------
-// Mocks
-// ---------------------------------------------------------------------------
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockGetUser = vi.fn();
 const mockGetSession = vi.fn();
@@ -49,10 +51,6 @@ vi.mock("next/headers", () => ({
 }));
 
 import { getSupabaseServerClient, getUser, getSession } from "../server";
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 describe("getSupabaseServerClient", () => {
   beforeEach(() => {
@@ -117,7 +115,6 @@ describe("getSupabaseServerClient", () => {
 
     await getSupabaseServerClient();
 
-    // Should not throw
     expect(() => {
       capturedCookieHandlers!.setAll([
         { name: "sb-token", value: "v", options: {} },

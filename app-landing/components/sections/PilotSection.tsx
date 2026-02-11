@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { cn } from "../ui";
+import { cn } from "@praedixa/ui";
 import { staggerItem } from "../../lib/animations/variants";
 import {
   pilotColumns,
@@ -10,7 +10,9 @@ import {
   pilotCtaText,
   pilotCtaHref,
 } from "../../lib/content/pilot-benefits";
-import { SectionWrapper, SectionHeader } from "../shared";
+import { SectionWrapper } from "../shared/SectionWrapper";
+import { SectionHeader } from "../shared/SectionHeader";
+import { CheckIcon, ArrowRightIcon } from "../icons";
 
 /* ------------------------------------------------------------------ */
 /*  Column icons                                                       */
@@ -168,23 +170,12 @@ export function PilotSection({ className }: { className?: string }) {
                     key={item}
                     className="flex items-start gap-2 text-sm leading-relaxed text-white/70"
                   >
-                    <svg
+                    <CheckIcon
                       className={cn(
                         "mt-0.5 h-4 w-4 shrink-0",
                         isHighlighted ? "text-amber-400" : "text-amber-500/70",
                       )}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                    />
                     {item}
                   </li>
                 ))}
@@ -211,20 +202,7 @@ export function PilotSection({ className }: { className?: string }) {
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-8 py-4 text-base font-bold text-charcoal shadow-lg transition-all duration-200 hover:bg-amber-400 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-charcoal"
         >
           {pilotCtaText}
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 8l4 4m0 0l-4 4m4-4H3"
-            />
-          </svg>
+          <ArrowRightIcon className="h-4 w-4" />
         </Link>
       </motion.div>
     </SectionWrapper>

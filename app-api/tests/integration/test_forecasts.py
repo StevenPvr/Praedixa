@@ -136,6 +136,39 @@ async def test_daily_forecasts_200(client_a: AsyncClient) -> None:
     assert len(data["data"]) == 1
 
 
+async def test_latest_daily_forecasts_200(client_a: AsyncClient) -> None:
+    """GET /api/v1/forecasts/latest/daily returns latest run daily data."""
+    forecasts = [_make_mock_daily_forecast()]
+
+    with patch(
+        "app.routers.forecasts.get_latest_daily_forecasts",
+        new_callable=AsyncMock,
+        return_value=forecasts,
+    ) as mock_fn:
+        response = await client_a.get("/api/v1/forecasts/latest/daily?dimension=human")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert len(data["data"]) == 1
+    assert mock_fn.call_args.kwargs["dimension"].value == "human"
+
+
+async def test_latest_daily_forecasts_empty_list(client_a: AsyncClient) -> None:
+    """GET /api/v1/forecasts/latest/daily returns empty list when no run exists."""
+    with patch(
+        "app.routers.forecasts.get_latest_daily_forecasts",
+        new_callable=AsyncMock,
+        return_value=[],
+    ):
+        response = await client_a.get("/api/v1/forecasts/latest/daily")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert data["data"] == []
+
+
 async def test_daily_forecasts_404_not_found(client_a: AsyncClient) -> None:
     """GET /api/v1/forecasts/{run_id}/daily returns 404 if run not found."""
     run_id = uuid.uuid4()

@@ -8,6 +8,15 @@ const { mockUseApiGet } = vi.hoisted(() => ({
   mockUseApiGet: vi.fn(),
 }));
 
+const { mockUseLatestForecasts } = vi.hoisted(() => ({
+  mockUseLatestForecasts: vi.fn(),
+}));
+
+const { mockReplace, mockSearchParams } = vi.hoisted(() => ({
+  mockReplace: vi.fn(),
+  mockSearchParams: new URLSearchParams(),
+}));
+
 const { mockDecomposeForecast, mockExtractFeatureImportance } = vi.hoisted(
   () => ({
     mockDecomposeForecast: vi.fn(() => ({
@@ -22,8 +31,18 @@ const { mockDecomposeForecast, mockExtractFeatureImportance } = vi.hoisted(
 
 /* ─── Module Mocks ───────────────────────────────── */
 
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => mockSearchParams,
+  useRouter: () => ({ replace: mockReplace, push: vi.fn() }),
+  usePathname: () => "/previsions",
+}));
+
 vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
+}));
+
+vi.mock("@/hooks/use-latest-forecasts", () => ({
+  useLatestForecasts: (...args: unknown[]) => mockUseLatestForecasts(...args),
 }));
 
 vi.mock("@/lib/forecast-decomposition", () => ({
@@ -156,7 +175,6 @@ vi.mock("@/lib/formatters", () => ({
 
 /* ─── Helpers ────────────────────────────────────── */
 
-const RUN_ID = "40000000-0000-0000-0000-000000000001";
 const mockRefetchRuns = vi.fn();
 const mockRefetchDaily = vi.fn();
 
@@ -191,17 +209,10 @@ const SAMPLE_DAILY = {
 
 function setupMock(
   overrides: {
-    runs?: Partial<{
-      data: unknown;
+    forecast?: Partial<{
+      dailyData: unknown;
       loading: boolean;
       error: string | null;
-      refetch: () => void;
-    }>;
-    daily?: Partial<{
-      data: unknown;
-      loading: boolean;
-      error: string | null;
-      refetch: () => void;
     }>;
     alerts?: Partial<{
       data: unknown;
@@ -211,21 +222,16 @@ function setupMock(
     }>;
   } = {},
 ) {
-  const runsResult = {
-    data: [{ id: RUN_ID, status: "completed" }],
-    loading: false,
-    error: null,
-    refetch: mockRefetchRuns,
-    ...overrides.runs,
-  };
-
-  const dailyResult = {
-    data: [SAMPLE_DAILY],
-    loading: false,
-    error: null,
-    refetch: mockRefetchDaily,
-    ...overrides.daily,
-  };
+  mockUseLatestForecasts.mockReturnValue({
+    dailyData:
+      overrides.forecast?.dailyData !== undefined
+        ? overrides.forecast.dailyData
+        : [SAMPLE_DAILY],
+    loading: overrides.forecast?.loading ?? false,
+    error: overrides.forecast?.error ?? null,
+    refetchRuns: mockRefetchRuns,
+    refetchDaily: mockRefetchDaily,
+  });
 
   const alertsResult = {
     data: [SAMPLE_ALERT],
@@ -236,16 +242,9 @@ function setupMock(
   };
 
   mockUseApiGet.mockImplementation((url: string | null) => {
-    if (url !== null && url.includes("/api/v1/forecasts?page=")) {
-      return runsResult;
-    }
-    if (url !== null && url.includes("/daily")) {
-      return dailyResult;
-    }
     if (url !== null && url.includes("/coverage-alerts")) {
       return alertsResult;
     }
-    // null URL (no latestRunId)
     return { data: null, loading: false, error: null, refetch: vi.fn() };
   });
 }
@@ -306,20 +305,14 @@ describe("PrevisionsPage", () => {
   /* ── Loading states ───────────────────── */
 
   describe("loading states", () => {
-    it("shows skeleton chart when runs are loading", () => {
-      setupMock({ runs: { loading: true } });
-      render(<PrevisionsPage />);
-      expect(screen.getByTestId("skeleton-chart")).toBeInTheDocument();
-    });
-
-    it("shows skeleton chart when daily data is loading", () => {
-      setupMock({ daily: { loading: true } });
+    it("shows skeleton chart when forecast is loading", () => {
+      setupMock({ forecast: { loading: true } });
       render(<PrevisionsPage />);
       expect(screen.getByTestId("skeleton-chart")).toBeInTheDocument();
     });
 
     it("passes loading=true to decomposition panel when forecast loading", () => {
-      setupMock({ runs: { loading: true } });
+      setupMock({ forecast: { loading: true } });
       render(<PrevisionsPage />);
       const panel = screen.getByTestId("decomposition-panel");
       expect(panel.getAttribute("data-loading")).toBe("true");
@@ -343,16 +336,10 @@ describe("PrevisionsPage", () => {
   /* ── Error states ─────────────────────── */
 
   describe("error states", () => {
-    it("shows error fallback on runs error", () => {
-      setupMock({ runs: { error: "Runs failed" } });
+    it("shows error fallback on forecast error", () => {
+      setupMock({ forecast: { error: "Runs failed" } });
       render(<PrevisionsPage />);
       expect(screen.getByText("Runs failed")).toBeInTheDocument();
-    });
-
-    it("shows error fallback on daily error", () => {
-      setupMock({ daily: { error: "Daily failed" } });
-      render(<PrevisionsPage />);
-      expect(screen.getByText("Daily failed")).toBeInTheDocument();
     });
 
     it("shows error fallback on alerts error", () => {
@@ -362,20 +349,11 @@ describe("PrevisionsPage", () => {
     });
 
     it("calls refetch on retry", () => {
-      setupMock({ runs: { error: "Server error" } });
+      setupMock({ forecast: { error: "Server error" } });
       render(<PrevisionsPage />);
       fireEvent.click(screen.getByText("Retry"));
       expect(mockRefetchRuns).toHaveBeenCalledTimes(1);
       expect(mockRefetchDaily).toHaveBeenCalledTimes(1);
-    });
-
-    it("prefers runsError over dailyError", () => {
-      setupMock({
-        runs: { error: "runs error" },
-        daily: { error: "daily error" },
-      });
-      render(<PrevisionsPage />);
-      expect(screen.getByText("runs error")).toBeInTheDocument();
     });
   });
 
@@ -383,7 +361,7 @@ describe("PrevisionsPage", () => {
 
   describe("empty states", () => {
     it("shows empty message when no forecasts", () => {
-      setupMock({ runs: { data: [] } });
+      setupMock({ forecast: { dailyData: null } });
       render(<PrevisionsPage />);
       expect(
         screen.getByText("Aucune prevision disponible"),
@@ -391,7 +369,7 @@ describe("PrevisionsPage", () => {
     });
 
     it("shows empty message when daily data is empty", () => {
-      setupMock({ daily: { data: [] } });
+      setupMock({ forecast: { dailyData: [] } });
       render(<PrevisionsPage />);
       expect(
         screen.getByText("Aucune prevision disponible"),
@@ -448,36 +426,34 @@ describe("PrevisionsPage", () => {
       expect(btn.className).toContain("bg-white");
     });
 
-    it("toggles to merchandise on click", () => {
+    it("calls replace to set merchandise dimension", () => {
       render(<PrevisionsPage />);
       fireEvent.click(screen.getByText("Marchandise"));
-      expect(
-        screen.getByText(/Capacite marchandise — tous sites/),
-      ).toBeInTheDocument();
-      expect(screen.getByText("Marchandise").className).toContain("bg-white");
-    });
-
-    it("toggles back to human", () => {
-      render(<PrevisionsPage />);
-      fireEvent.click(screen.getByText("Marchandise"));
-      fireEvent.click(screen.getByText("Humaine"));
-      expect(
-        screen.getByText(/Capacite humaine — tous sites/),
-      ).toBeInTheDocument();
-    });
-
-    it("passes dimension in daily URL", () => {
-      render(<PrevisionsPage />);
-      expect(mockUseApiGet).toHaveBeenCalledWith(
-        expect.stringContaining("dimension=human"),
+      expect(mockReplace).toHaveBeenCalledWith(
+        "/previsions?dimension=merchandise",
+        { scroll: false },
       );
     });
 
-    it("updates URL on dimension change", () => {
+    it("calls replace to clear dimension when toggling back to human", () => {
+      render(<PrevisionsPage />);
+      fireEvent.click(screen.getByText("Humaine"));
+      expect(mockReplace).toHaveBeenCalledWith("/previsions", {
+        scroll: false,
+      });
+    });
+
+    it("passes human dimension to useLatestForecasts", () => {
+      render(<PrevisionsPage />);
+      expect(mockUseLatestForecasts).toHaveBeenCalledWith("human");
+    });
+
+    it("updates URL to merchandise on toggle", () => {
       render(<PrevisionsPage />);
       fireEvent.click(screen.getByText("Marchandise"));
-      expect(mockUseApiGet).toHaveBeenCalledWith(
-        expect.stringContaining("dimension=merchandise"),
+      expect(mockReplace).toHaveBeenCalledWith(
+        "/previsions?dimension=merchandise",
+        { scroll: false },
       );
     });
   });
@@ -491,7 +467,7 @@ describe("PrevisionsPage", () => {
     });
 
     it("passes null to decomposition panel when no daily data", () => {
-      setupMock({ runs: { data: [] } });
+      setupMock({ forecast: { dailyData: null } });
       render(<PrevisionsPage />);
       const panel = screen.getByTestId("decomposition-panel");
       expect(panel.getAttribute("data-has-data")).toBe("false");
@@ -611,50 +587,26 @@ describe("PrevisionsPage", () => {
   /* ── URL construction ─────────────────── */
 
   describe("URL construction", () => {
-    it("fetches forecast runs with correct URL", () => {
-      render(<PrevisionsPage />);
-      expect(mockUseApiGet).toHaveBeenCalledWith(
-        "/api/v1/forecasts?page=1&page_size=1&status=completed",
-      );
-    });
-
-    it("fetches daily forecasts with run ID in URL", () => {
-      render(<PrevisionsPage />);
-      expect(mockUseApiGet).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/v1/forecasts/${RUN_ID}/daily`),
-      );
-    });
-
-    it("passes null URL when no run ID", () => {
-      setupMock({ runs: { data: [] } });
-      render(<PrevisionsPage />);
-      expect(mockUseApiGet).toHaveBeenCalledWith(null);
-    });
-
     it("fetches coverage alerts with status=open", () => {
       render(<PrevisionsPage />);
       expect(mockUseApiGet).toHaveBeenCalledWith(
-        "/api/v1/coverage-alerts?status=open",
+        "/api/v1/live/coverage-alerts?status=open&page_size=200",
+        { pollInterval: 10000 },
       );
     });
 
-    it("passes null URL when run ID is not a valid UUID", () => {
-      setupMock({
-        runs: { data: [{ id: "not-a-uuid", status: "completed" }] },
-      });
+    it("calls useLatestForecasts with current dimension", () => {
       render(<PrevisionsPage />);
-      expect(mockUseApiGet).toHaveBeenCalledWith(null);
+      expect(mockUseLatestForecasts).toHaveBeenCalledWith("human");
     });
   });
 
-  /* ── No daily loading when no run ID ──── */
+  /* ── No forecast loading when hook returns not loading ── */
 
   describe("loading edge cases", () => {
-    it("does not show forecast loading when no run ID but daily is loading", () => {
-      setupMock({ runs: { data: [] }, daily: { loading: true } });
+    it("does not show skeleton chart when forecast is not loading", () => {
+      setupMock({ forecast: { loading: false, dailyData: null } });
       render(<PrevisionsPage />);
-      // forecastLoading = runsLoading || (dailyRunId !== null && dailyLoading)
-      // runsLoading=false, dailyRunId=null → forecastLoading=false
       expect(screen.queryByTestId("skeleton-chart")).not.toBeInTheDocument();
     });
   });

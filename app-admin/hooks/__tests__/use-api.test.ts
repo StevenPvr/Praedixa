@@ -473,7 +473,7 @@ describe("useApiGetPaginated", () => {
     });
 
     const [url] = mockApiGetPaginated.mock.calls[0];
-    expect(url).toBe("/api/v1/items?page=2&pageSize=20");
+    expect(url).toBe("/api/v1/items?page=2&page_size=20");
   });
 
   it("should build URL with & separator when base URL already has query params", async () => {
@@ -490,7 +490,7 @@ describe("useApiGetPaginated", () => {
     });
 
     const [url] = mockApiGetPaginated.mock.calls[0];
-    expect(url).toBe("/api/v1/items?siteId=abc&page=1&pageSize=10");
+    expect(url).toBe("/api/v1/items?siteId=abc&page=1&page_size=10");
   });
 
   it("should handle ApiError and set error message", async () => {

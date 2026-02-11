@@ -10,6 +10,9 @@ from app.models.admin import (
     OnboardingState,
     OnboardingStatus,
     PlanChangeHistory,
+    RgpdErasureAuditEvent,
+    RgpdErasureRequest,
+    RgpdErasureStatus,
 )
 from app.models.base import Base
 from app.models.conversation import (
@@ -122,6 +125,9 @@ __all__ = [
     "PlanChangeHistory",
     "OnboardingState",
     "OnboardingStatus",
+    "RgpdErasureRequest",
+    "RgpdErasureStatus",
+    "RgpdErasureAuditEvent",
     # Conversation
     "Conversation",
     "ConversationStatus",

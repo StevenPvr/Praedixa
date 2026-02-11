@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence, useScroll } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { PraedixaLogo } from "../logo/PraedixaLogo";
 
 const NAV_LINKS = [
@@ -19,14 +19,13 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
 
-  const { scrollY } = useScroll();
-
   useEffect(() => {
-    const unsubscribe = scrollY.on("change", (latest: number) => {
-      setHasScrolled(latest > 20);
-    });
-    return () => unsubscribe();
-  }, [scrollY]);
+    const handleScroll = () => {
+      setHasScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {

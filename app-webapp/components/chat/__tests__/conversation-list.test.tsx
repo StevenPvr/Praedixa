@@ -4,6 +4,16 @@ import { ConversationList } from "../conversation-list";
 
 vi.mock("@praedixa/ui", () => ({
   cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
+  formatRelativeTime: (dateStr: string | null) => {
+    if (!dateStr) return "";
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return "A l'instant";
+    if (diffMin < 60) return `Il y a ${diffMin}min`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `Il y a ${diffH}h`;
+    return `Il y a ${Math.floor(diffH / 24)}j`;
+  },
 }));
 
 vi.mock("lucide-react", () => ({

@@ -39,4 +39,18 @@ describe("buildCapacitySeries", () => {
     expect(out[0]["Capacite prevue predite"]).toBe(112);
     expect(out[0]["Capacite optimale predite"]).toBe(128);
   });
+
+  it("limits to last 7 days when maxDays=7", () => {
+    const input = Array.from({ length: 10 }).map((_, i) => ({
+      forecastDate: `2026-02-${String(i + 1).padStart(2, "0")}`,
+      capacityPlannedCurrent: i + 1,
+      capacityPlannedPredicted: i + 11,
+      capacityOptimalPredicted: i + 21,
+    }));
+
+    const out = buildCapacitySeries(input, formatDate, { maxDays: 7 });
+    expect(out).toHaveLength(7);
+    expect(out[0].isoDate).toBe("2026-02-04");
+    expect(out[6].isoDate).toBe("2026-02-10");
+  });
 });

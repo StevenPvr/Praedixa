@@ -16,29 +16,25 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-// Mock all section components to isolate the page test
-vi.mock("../../components", () => ({
+// Mock all section and layout components to isolate the page test
+vi.mock("../../components/layout/Navbar", () => ({
   Navbar: () => <nav data-testid="navbar">Navbar</nav>,
+}));
+
+vi.mock("../../components/layout/Footer", () => ({
   Footer: () => <footer data-testid="footer">Footer</footer>,
+}));
+
+vi.mock("../../components/layout/StickyMobileCTA", () => ({
+  StickyMobileCTA: () => <div data-testid="sticky-cta">StickyCTA</div>,
+}));
+
+vi.mock("../../components/sections/HeroSection", () => ({
   HeroSection: () => <section data-testid="hero-section">Hero</section>,
+}));
+
+vi.mock("../../components/sections/TrustBand", () => ({
   TrustBand: () => <section data-testid="trust-band">TrustBand</section>,
-  ProblemSection: () => (
-    <section data-testid="problem-section">Problem</section>
-  ),
-  SolutionSection: () => (
-    <section data-testid="solution-section">Solution</section>
-  ),
-  PipelineSection: () => (
-    <section data-testid="pipeline-section">Pipeline</section>
-  ),
-  DeliverablesSection: () => (
-    <section data-testid="deliverables-section">Deliverables</section>
-  ),
-  PilotSection: () => <section data-testid="pilot-section">Pilot</section>,
-  FaqSection: () => <section data-testid="faq-section">FAQ</section>,
-  ContactSection: () => (
-    <section data-testid="contact-section">Contact</section>
-  ),
 }));
 
 vi.mock("../../components/sections/SolutionSection", () => ({
@@ -77,10 +73,6 @@ vi.mock("../../components/sections/DeliverablesSection", () => ({
   DeliverablesSection: () => (
     <section data-testid="deliverables-section">Deliverables</section>
   ),
-}));
-
-vi.mock("../../components/layout/StickyMobileCTA", () => ({
-  StickyMobileCTA: () => <div data-testid="sticky-cta">StickyCTA</div>,
 }));
 
 import LandingPage from "../page";

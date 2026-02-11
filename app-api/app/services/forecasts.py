@@ -103,3 +103,33 @@ async def get_daily_forecasts(
 
     result = await session.execute(query)
     return list(result.scalars().all())
+
+
+async def get_latest_daily_forecasts(
+    tenant: TenantFilter,
+    session: AsyncSession,
+    *,
+    dimension: ForecastDimension | None = None,
+) -> list[DailyForecast]:
+    """Return daily forecasts for the latest completed run in this organization."""
+    latest_run_query = tenant.apply(
+        select(ForecastRun.id)
+        .where(ForecastRun.status == ForecastStatus.COMPLETED)
+        .order_by(ForecastRun.completed_at.desc().nulls_last())
+        .limit(1),
+        ForecastRun,
+    )
+    latest_run_id = (await session.execute(latest_run_query)).scalar_one_or_none()
+    if latest_run_id is None:
+        return []
+
+    query = tenant.apply(
+        select(DailyForecast).where(DailyForecast.forecast_run_id == latest_run_id),
+        DailyForecast,
+    )
+    if dimension is not None:
+        query = query.where(DailyForecast.dimension == dimension)
+
+    query = query.order_by(DailyForecast.forecast_date.asc())
+    result = await session.execute(query)
+    return list(result.scalars().all())

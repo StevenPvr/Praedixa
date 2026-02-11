@@ -381,6 +381,8 @@ class TestKeyFunctionPriority:
             return None
 
         request.headers.get = header_get
+        request.client = MagicMock()
+        request.client.host = "127.0.0.1"
 
         assert _get_client_ip(request) == "1.2.3.4"
 

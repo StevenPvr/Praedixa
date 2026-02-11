@@ -37,20 +37,21 @@ vi.mock("@praedixa/ui", () => ({
     onClick,
     disabled,
     variant,
-    _size,
+    size,
     ...rest
   }: {
     children: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
     variant?: string;
-    _size?: string;
+    size?: string;
     "aria-label"?: string;
   }) => (
     <button
       onClick={onClick}
       disabled={disabled}
       data-variant={variant}
+      data-size={size}
       aria-label={rest["aria-label"]}
     >
       {children}
@@ -425,7 +426,7 @@ describe("MessageThread", () => {
     );
     expect(mockUseApiGet).toHaveBeenCalledWith(
       expect.stringContaining("/conversations/conv-1/messages"),
-      expect.objectContaining({ pollInterval: 5000 }),
+      expect.objectContaining({ pollInterval: 30000 }),
     );
   });
 

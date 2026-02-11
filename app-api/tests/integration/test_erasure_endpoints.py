@@ -30,7 +30,6 @@ from app.main import app
 from app.services.rgpd_erasure import (
     ErasureRequest,
     ErasureStatus,
-    _erasure_requests,
 )
 
 # -- Fixed test identifiers ------------------------------------------------
@@ -53,14 +52,6 @@ def _make_admin_jwt(user_id: str = ADMIN_A_ID) -> JWTPayload:
 
 
 # -- Fixtures --------------------------------------------------------------
-
-
-@pytest.fixture(autouse=True)
-def _clear_erasure_store():
-    """Clear in-memory erasure store between tests."""
-    _erasure_requests.clear()
-    yield
-    _erasure_requests.clear()
 
 
 @pytest.fixture

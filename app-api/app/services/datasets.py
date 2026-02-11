@@ -42,6 +42,8 @@ from app.models.data_catalog import (
     QualityReport,
     RunStatus,
 )
+from app.models.organization import Organization
+from app.services.dataset_table_names import get_transformed_table_name
 from app.services.schema_manager import create_client_schemas, create_dataset_tables
 
 
@@ -166,7 +168,6 @@ async def create_dataset(
     group_by: list[str],
     pipeline_config: dict[str, Any],
     columns: list[dict[str, Any]],
-    org_slug: str,
 ) -> tuple[ClientDataset, list[DatasetColumn]]:
     """Create a new dataset with schemas and tables.
 
@@ -191,6 +192,9 @@ async def create_dataset(
     if len(columns) > settings.MAX_COLUMNS_PER_TABLE:
         msg = f"Maximum {settings.MAX_COLUMNS_PER_TABLE} columns per table exceeded"
         raise DDLValidationError(msg, field="columns")
+
+    # Resolve canonical org slug from DB (never trust request body values)
+    org_slug = await get_canonical_org_slug(tenant, session)
 
     # Create schema
     data_schema = await create_client_schemas(org_slug)
@@ -227,14 +231,72 @@ async def create_dataset(
 
     await session.flush()
 
-    # Create dynamic tables
-    await create_dataset_tables(dataset, column_models)
+    tables_created = False
+    try:
+        # Create dynamic tables
+        await create_dataset_tables(dataset, column_models)
+        tables_created = True
 
-    # Mark as active
-    dataset.status = DatasetStatus.ACTIVE
-    await session.flush()
+        # Mark as active
+        dataset.status = DatasetStatus.ACTIVE
+        await session.flush()
+    except Exception as exc:
+        if tables_created:
+            compensation_errors = await _drop_dataset_tables_for_compensation(
+                dataset.schema_data,
+                dataset.table_name,
+            )
+            if compensation_errors:
+                msg = (
+                    "Dataset creation failed and DDL compensation failed: "
+                    f"{'; '.join(compensation_errors)}"
+                )
+                raise RuntimeError(msg) from exc
+        raise
 
     return dataset, column_models
+
+
+async def get_canonical_org_slug(
+    tenant: TenantFilter,
+    session: AsyncSession,
+) -> str:
+    """Load canonical organization slug from DB for tenant-scoped operations."""
+    org_id = uuid.UUID(tenant.organization_id)
+    result = await session.execute(
+        select(Organization.slug).where(Organization.id == org_id)
+    )
+    slug = result.scalar_one_or_none()
+    if not slug:
+        raise NotFoundError("Organization", str(org_id))
+    return slug
+
+
+async def _drop_dataset_tables_for_compensation(
+    schema_name: str,
+    table_name: str,
+) -> list[str]:
+    """Best-effort table cleanup used by dataset creation compensation."""
+    data_schema = validate_schema_name(schema_name)
+    raw_table_name = validate_identifier(table_name, field="table_name")
+    transformed_table_name = get_transformed_table_name(raw_table_name)
+
+    def _sync_drop() -> list[str]:
+        errors: list[str] = []
+        with ddl_connection() as conn, conn.cursor() as cur:
+            for physical_name in (transformed_table_name, raw_table_name):
+                try:
+                    cur.execute(
+                        psql.SQL("DROP TABLE IF EXISTS {}.{}").format(
+                            psql.Identifier(data_schema),
+                            psql.Identifier(physical_name),
+                        )
+                    )
+                except Exception as exc:
+                    errors.append(f"{physical_name}: {exc}")
+        return errors
+
+    return await asyncio.to_thread(_sync_drop)
 
 
 async def update_dataset_config(
@@ -388,7 +450,8 @@ async def get_features_data(
     dataset = await get_dataset(dataset_id, tenant, session)
 
     data_schema = validate_schema_name(dataset.schema_data)
-    table_name = validate_identifier(dataset.table_name, field="table_name")
+    raw_table_name = validate_identifier(dataset.table_name, field="table_name")
+    table_name = get_transformed_table_name(raw_table_name)
     temporal_index = validate_identifier(dataset.temporal_index, field="temporal_index")
 
     def _sync_query() -> tuple[list[dict[str, Any]], int, list[str]]:

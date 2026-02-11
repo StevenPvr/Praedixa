@@ -23,6 +23,32 @@ vi.mock("@praedixa/ui", () => ({
   useMediaQuery: () => mockUseMediaQuery(),
 }));
 
+vi.mock("@/lib/auth/client", () => ({
+  useCurrentUser: () => ({
+    id: "user-abc",
+    email: "test@example.com",
+    role: "admin",
+  }),
+}));
+
+// Mock SidebarWithUnread — renders as Sidebar mock
+vi.mock("@/components/sidebar-with-unread", () => ({
+  SidebarWithUnread: ({
+    currentPath,
+    collapsed,
+    onToggleCollapse,
+  }: {
+    currentPath: string;
+    userRole: string;
+    collapsed: boolean;
+    onToggleCollapse: () => void;
+  }) => (
+    <aside data-path={currentPath} data-collapsed={String(collapsed)}>
+      <button onClick={onToggleCollapse}>Toggle</button>
+    </aside>
+  ),
+}));
+
 // Mock ToastProvider — passthrough
 vi.mock("@/components/toast-provider", () => ({
   ToastProvider: ({ children }: { children: React.ReactNode }) => (

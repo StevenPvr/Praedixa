@@ -424,14 +424,26 @@ class TestCreateIndexes:
 
     def test_creates_temporal_index(self) -> None:
         cur = MagicMock()
-        _create_indexes(cur, "acme_raw", "effectifs", "date_col", [])
+        _create_indexes(
+            cur,
+            "acme_raw",
+            "effectifs",
+            "date_col",
+            [],
+            include_ingested_at=True,
+        )
         # At least 1 call for temporal index, possibly 1 for _ingested_at
         assert cur.execute.call_count >= 1
 
     def test_creates_group_by_indexes(self) -> None:
         cur = MagicMock()
         _create_indexes(
-            cur, "acme_raw", "effectifs", "date_col", ["department", "site"]
+            cur,
+            "acme_raw",
+            "effectifs",
+            "date_col",
+            ["department", "site"],
+            include_ingested_at=True,
         )
         # 1 temporal + 2 group_by + 1 _ingested_at = 4
         assert cur.execute.call_count >= 3
@@ -439,23 +451,28 @@ class TestCreateIndexes:
     def test_no_group_by(self) -> None:
         """No group_by columns -- still creates temporal + _ingested_at."""
         cur = MagicMock()
-        _create_indexes(cur, "acme_raw", "effectifs", "date_col", [])
+        _create_indexes(
+            cur,
+            "acme_raw",
+            "effectifs",
+            "date_col",
+            [],
+            include_ingested_at=True,
+        )
         assert cur.execute.call_count >= 1
 
-    def test_handles_ingested_at_failure(self) -> None:
+    def test_skips_ingested_at_index_when_disabled(self) -> None:
         cur = MagicMock()
-        # Simulate _ingested_at index failing (e.g. column doesn't exist on transformed)
-        # With no group_by: call 1 = temporal index, call 2 = _ingested_at
-        call_count = [0]
-
-        def side_effect(*args, **kwargs) -> None:
-            call_count[0] += 1
-            if call_count[0] == 2:  # _ingested_at index attempt
-                raise Exception("column does not exist")  # noqa: TRY002
-
-        cur.execute.side_effect = side_effect
-        # Should not raise -- the exception is caught
-        _create_indexes(cur, "acme_raw", "effectifs", "date_col", [])
+        _create_indexes(
+            cur,
+            "acme_raw",
+            "effectifs",
+            "date_col",
+            [],
+            include_ingested_at=False,
+        )
+        # Temporal index only when _ingested_at is disabled.
+        assert cur.execute.call_count == 1
 
 
 # ── create_client_schemas ─────────────────────────────────────

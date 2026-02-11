@@ -80,11 +80,12 @@ class TestInviteUser:
 
     @pytest.mark.asyncio
     async def test_success(self) -> None:
+        org_id = uuid.uuid4()
         session = make_mock_session(
+            make_scalar_result(org_id),  # org existence check
             make_scalar_result(None),  # email uniqueness check
         )
 
-        org_id = uuid.uuid4()
         await invite_user(
             session,
             org_id=org_id,
@@ -97,13 +98,15 @@ class TestInviteUser:
 
     @pytest.mark.asyncio
     async def test_email_lowercased(self) -> None:
+        org_id = uuid.uuid4()
         session = make_mock_session(
+            make_scalar_result(org_id),  # org existence check
             make_scalar_result(None),  # email uniqueness check
         )
 
         await invite_user(
             session,
-            org_id=uuid.uuid4(),
+            org_id=org_id,
             email="UPPER@EXAMPLE.COM",
             role=UserRole.VIEWER,
             invited_by=str(uuid.uuid4()),
@@ -114,13 +117,15 @@ class TestInviteUser:
 
     @pytest.mark.asyncio
     async def test_status_is_pending(self) -> None:
+        org_id = uuid.uuid4()
         session = make_mock_session(
+            make_scalar_result(org_id),  # org existence check
             make_scalar_result(None),  # email uniqueness
         )
 
         await invite_user(
             session,
-            org_id=uuid.uuid4(),
+            org_id=org_id,
             email="new@test.com",
             role=UserRole.MANAGER,
             invited_by=str(uuid.uuid4()),
@@ -131,14 +136,16 @@ class TestInviteUser:
 
     @pytest.mark.asyncio
     async def test_email_conflict_raises(self) -> None:
+        org_id = uuid.uuid4()
         session = make_mock_session(
+            make_scalar_result(org_id),  # org existence check
             make_scalar_result(uuid.uuid4()),  # email exists
         )
 
         with pytest.raises(ConflictError, match="email"):
             await invite_user(
                 session,
-                org_id=uuid.uuid4(),
+                org_id=org_id,
                 email="existing@example.com",
                 role=UserRole.VIEWER,
                 invited_by=str(uuid.uuid4()),
@@ -168,12 +175,14 @@ class TestInviteUser:
             UserRole.VIEWER,
         ]
         for role in allowed_roles:
+            org_id = uuid.uuid4()
             session = make_mock_session(
+                make_scalar_result(org_id),  # org existence check
                 make_scalar_result(None),  # email uniqueness
             )
             await invite_user(
                 session,
-                org_id=uuid.uuid4(),
+                org_id=org_id,
                 email=f"{role.value}@example.com",
                 role=role,
                 invited_by=str(uuid.uuid4()),
@@ -183,13 +192,15 @@ class TestInviteUser:
     @pytest.mark.asyncio
     async def test_site_id_stored_on_user(self) -> None:
         """invite_user with site_id stores it in the created User."""
+        org_id = uuid.uuid4()
         session = make_mock_session(
+            make_scalar_result(org_id),  # org existence check
             make_scalar_result(None),  # email uniqueness check
         )
         site_id = uuid.uuid4()
         await invite_user(
             session,
-            org_id=uuid.uuid4(),
+            org_id=org_id,
             email="site-user@example.com",
             role=UserRole.VIEWER,
             invited_by=str(uuid.uuid4()),
@@ -201,18 +212,35 @@ class TestInviteUser:
     @pytest.mark.asyncio
     async def test_invite_without_site_id_for_org_admin(self) -> None:
         """invite_user for org_admin without site_id works (site_id=None)."""
+        org_id = uuid.uuid4()
         session = make_mock_session(
+            make_scalar_result(org_id),  # org existence check
             make_scalar_result(None),  # email uniqueness check
         )
         await invite_user(
             session,
-            org_id=uuid.uuid4(),
+            org_id=org_id,
             email="orgadmin@example.com",
             role=UserRole.ORG_ADMIN,
             invited_by=str(uuid.uuid4()),
         )
         added_user = session.add.call_args[0][0]
         assert added_user.site_id is None
+
+    @pytest.mark.asyncio
+    async def test_org_not_found_raises(self) -> None:
+        """invite_user raises NotFoundError if org_id doesn't exist."""
+        session = make_mock_session(
+            make_scalar_result(None),  # org not found
+        )
+        with pytest.raises(NotFoundError, match="Organization"):
+            await invite_user(
+                session,
+                org_id=uuid.uuid4(),
+                email="new@example.com",
+                role=UserRole.VIEWER,
+                invited_by=str(uuid.uuid4()),
+            )
 
 
 class TestGetOrgUser:

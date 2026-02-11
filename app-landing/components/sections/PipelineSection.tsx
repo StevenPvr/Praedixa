@@ -1,10 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { cn } from "../ui";
+import { cn } from "@praedixa/ui";
 import { staggerItem } from "../../lib/animations/variants";
 import { pipelinePhases } from "../../lib/content/pipeline-phases";
-import { SectionWrapper, SectionHeader } from "../shared";
+import { SectionWrapper } from "../shared/SectionWrapper";
+import { SectionHeader } from "../shared/SectionHeader";
+import { ArrowRightIcon, CheckIcon } from "../icons";
 
 /* ------------------------------------------------------------------ */
 /*  Inline SVG illustrations for each phase (64x64)                   */
@@ -318,20 +320,7 @@ function FlowDiagram() {
               {step}
             </span>
             {i < FLOW_STEPS.length - 1 && (
-              <svg
-                className="h-4 w-4 shrink-0 text-amber-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
+              <ArrowRightIcon className="h-4 w-4 shrink-0 text-amber-500" />
             )}
           </div>
         ))}
@@ -437,20 +426,7 @@ export function PipelineSection({ className }: { className?: string }) {
                           key={cap}
                           className="flex items-start gap-2 text-sm text-neutral-700"
                         >
-                          <svg
-                            className="mt-0.5 h-4 w-4 shrink-0 text-amber-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
+                          <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
                           {cap}
                         </li>
                       ))}

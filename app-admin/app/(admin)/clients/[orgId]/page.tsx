@@ -1,15 +1,12 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+interface ClientRedirectPageProps {
+  params: Promise<{ orgId: string }>;
+}
 
-export default function ClientRedirectPage() {
-  const params = useParams<{ orgId: string }>();
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace(`/clients/${encodeURIComponent(params.orgId)}/vue-client`);
-  }, [params.orgId, router]);
-
-  return null;
+export default async function ClientRedirectPage({
+  params,
+}: ClientRedirectPageProps) {
+  const { orgId } = await params;
+  redirect(`/clients/${encodeURIComponent(orgId)}/vue-client`);
 }

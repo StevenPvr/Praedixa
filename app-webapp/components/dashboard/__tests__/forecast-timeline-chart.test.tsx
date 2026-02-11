@@ -6,12 +6,7 @@ import { ForecastTimelineChart } from "../forecast-timeline-chart";
 
 const mockRefetchRuns = vi.fn();
 const mockRefetchDaily = vi.fn();
-const mockUseApiGet = vi.fn();
-const RUN_ID = "40000000-0000-0000-0000-000000000001";
-
-vi.mock("@/hooks/use-api", () => ({
-  useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
-}));
+const mockUseLatestForecasts = vi.fn();
 
 vi.mock("@tremor/react", () => ({
   AreaChart: (props: Record<string, unknown>) => {
@@ -44,6 +39,10 @@ vi.mock("@tremor/react", () => ({
   },
 }));
 
+vi.mock("@/hooks/use-latest-forecasts", () => ({
+  useLatestForecasts: (...args: unknown[]) => mockUseLatestForecasts(...args),
+}));
+
 vi.mock("@praedixa/ui", () => ({
   SkeletonChart: () => <div data-testid="skeleton-chart">Loading chart...</div>,
 }));
@@ -65,62 +64,51 @@ vi.mock("@/components/error-fallback", () => ({
 
 /* ─── Helpers ────────────────────────────────────────── */
 
-const defaultRunsResponse = {
-  data: [{ id: RUN_ID, status: "completed" }],
-  loading: false,
-  error: null,
-  refetch: mockRefetchRuns,
-};
-
-const defaultDailyResponse = {
-  data: [
-    {
-      forecastDate: "2026-02-10",
-      dimension: "human",
-      predictedDemand: 120,
-      predictedCapacity: 100,
-      capacityPlannedCurrent: 100,
-      capacityPlannedPredicted: 113,
-      capacityOptimalPredicted: 120,
-      gap: -20,
-      riskScore: 0.8,
-      confidenceLower: 90,
-      confidenceUpper: 130,
-    },
-    {
-      forecastDate: "2026-02-11",
-      dimension: "human",
-      predictedDemand: 110,
-      predictedCapacity: 105,
-      capacityPlannedCurrent: 105,
-      capacityPlannedPredicted: 108,
-      capacityOptimalPredicted: 110,
-      gap: -5,
-      riskScore: 0.3,
-      confidenceLower: 95,
-      confidenceUpper: 120,
-    },
-  ],
-  loading: false,
-  error: null,
-  refetch: mockRefetchDaily,
-};
+const defaultDailyData = [
+  {
+    forecastDate: "2026-02-10",
+    dimension: "human",
+    predictedDemand: 120,
+    predictedCapacity: 100,
+    capacityPlannedCurrent: 100,
+    capacityPlannedPredicted: 113,
+    capacityOptimalPredicted: 120,
+    gap: -20,
+    riskScore: 0.8,
+    confidenceLower: 90,
+    confidenceUpper: 130,
+  },
+  {
+    forecastDate: "2026-02-11",
+    dimension: "human",
+    predictedDemand: 110,
+    predictedCapacity: 105,
+    capacityPlannedCurrent: 105,
+    capacityPlannedPredicted: 108,
+    capacityOptimalPredicted: 110,
+    gap: -5,
+    riskScore: 0.3,
+    confidenceLower: 95,
+    confidenceUpper: 120,
+  },
+];
 
 function setupMock(
-  runsOverride?: Partial<typeof defaultRunsResponse>,
-  dailyOverride?: Partial<typeof defaultDailyResponse>,
+  overrides?: Partial<{
+    dailyData: unknown;
+    loading: boolean;
+    error: string | null;
+  }>,
 ) {
-  const runsResult = { ...defaultRunsResponse, ...runsOverride };
-  const dailyResult = { ...defaultDailyResponse, ...dailyOverride };
-
-  mockUseApiGet.mockImplementation((url: string | null) => {
-    if (url !== null && url.includes("/api/v1/forecasts?page=")) {
-      return runsResult;
-    }
-    if (url !== null && url.includes("/daily")) {
-      return dailyResult;
-    }
-    return { data: null, loading: false, error: null, refetch: vi.fn() };
+  mockUseLatestForecasts.mockReturnValue({
+    dailyData:
+      overrides?.dailyData !== undefined
+        ? overrides.dailyData
+        : defaultDailyData,
+    loading: overrides?.loading ?? false,
+    error: overrides?.error ?? null,
+    refetchRuns: mockRefetchRuns,
+    refetchDaily: mockRefetchDaily,
   });
 }
 
@@ -135,20 +123,14 @@ describe("ForecastTimelineChart", () => {
   /* ── Loading states ──────────────────────── */
 
   describe("loading states", () => {
-    it("shows SkeletonChart when runs are loading", () => {
+    it("shows SkeletonChart when loading", () => {
       setupMock({ loading: true });
       render(<ForecastTimelineChart />);
       expect(screen.getByTestId("skeleton-chart")).toBeInTheDocument();
     });
 
-    it("shows SkeletonChart when daily data is loading", () => {
-      setupMock(undefined, { loading: true });
-      render(<ForecastTimelineChart />);
-      expect(screen.getByTestId("skeleton-chart")).toBeInTheDocument();
-    });
-
-    it("does not show SkeletonChart when daily is loading but no latestRunId", () => {
-      setupMock({ data: [] }, { loading: true });
+    it("does not show SkeletonChart when not loading", () => {
+      setupMock({ loading: false });
       render(<ForecastTimelineChart />);
       expect(screen.queryByTestId("skeleton-chart")).not.toBeInTheDocument();
     });
@@ -157,25 +139,13 @@ describe("ForecastTimelineChart", () => {
   /* ── Error states ────────────────────────── */
 
   describe("error states", () => {
-    it("shows ErrorFallback when runs fetch errors", () => {
+    it("shows ErrorFallback when forecast errors", () => {
       setupMock({ error: "Failed to fetch forecast runs" });
       render(<ForecastTimelineChart />);
       expect(screen.getByTestId("error-fallback")).toBeInTheDocument();
       expect(
         screen.getByText("Failed to fetch forecast runs"),
       ).toBeInTheDocument();
-    });
-
-    it("shows ErrorFallback when daily fetch errors", () => {
-      setupMock(undefined, { error: "Daily data unavailable" });
-      render(<ForecastTimelineChart />);
-      expect(screen.getByText("Daily data unavailable")).toBeInTheDocument();
-    });
-
-    it("prefers runsError over dailyError", () => {
-      setupMock({ error: "runs error" }, { error: "daily error" });
-      render(<ForecastTimelineChart />);
-      expect(screen.getByText("runs error")).toBeInTheDocument();
     });
 
     it("calls both refetchRuns and refetchDaily on retry", () => {
@@ -190,16 +160,8 @@ describe("ForecastTimelineChart", () => {
   /* ── Empty states ────────────────────────── */
 
   describe("empty states", () => {
-    it("shows empty message when runs return empty array", () => {
-      setupMock({ data: [] });
-      render(<ForecastTimelineChart />);
-      expect(
-        screen.getByText("Aucune prevision disponible"),
-      ).toBeInTheDocument();
-    });
-
     it("shows empty message when daily data is empty", () => {
-      setupMock(undefined, { data: [] });
+      setupMock({ dailyData: [] });
       render(<ForecastTimelineChart />);
       expect(
         screen.getByText("Aucune prevision disponible"),
@@ -207,7 +169,7 @@ describe("ForecastTimelineChart", () => {
     });
 
     it("shows empty message when daily data is null", () => {
-      setupMock(undefined, { data: null as unknown as [] });
+      setupMock({ dailyData: null });
       render(<ForecastTimelineChart />);
       expect(
         screen.getByText("Aucune prevision disponible"),
@@ -291,7 +253,7 @@ describe("ForecastTimelineChart", () => {
     it("subtitle includes 'humaine' for human dimension", () => {
       render(<ForecastTimelineChart />);
       expect(
-        screen.getByText(/Capacite humaine — tous sites/),
+        screen.getByText(/Capacite humaine — vue lisible sur 7 jours/),
       ).toBeInTheDocument();
     });
 
@@ -299,55 +261,28 @@ describe("ForecastTimelineChart", () => {
       render(<ForecastTimelineChart />);
       fireEvent.click(screen.getByText("Marchandise"));
       expect(
-        screen.getByText(/Capacite marchandise — tous sites/),
+        screen.getByText(/Capacite marchandise — vue lisible sur 7 jours/),
       ).toBeInTheDocument();
     });
 
-    it("useApiGet daily URL includes dimension parameter", () => {
+    it("useLatestForecasts receives human dimension by default", () => {
       render(<ForecastTimelineChart />);
-      expect(mockUseApiGet).toHaveBeenCalledWith(
-        expect.stringContaining("dimension=human"),
-      );
+      expect(mockUseLatestForecasts).toHaveBeenCalledWith("human");
     });
 
-    it("useApiGet daily URL updates when dimension changes", () => {
+    it("useLatestForecasts receives merchandise after toggle", () => {
       render(<ForecastTimelineChart />);
       fireEvent.click(screen.getByText("Marchandise"));
-      expect(mockUseApiGet).toHaveBeenCalledWith(
-        expect.stringContaining("dimension=merchandise"),
-      );
+      expect(mockUseLatestForecasts).toHaveBeenCalledWith("merchandise");
     });
   });
 
-  /* ── URL construction ────────────────────── */
+  /* ── Hook calls ─────────────────────────── */
 
-  describe("URL construction", () => {
-    it("passes null URL when no latestRunId", () => {
-      setupMock({ data: [] });
+  describe("hook calls", () => {
+    it("calls useLatestForecasts with current dimension", () => {
       render(<ForecastTimelineChart />);
-      const calls = mockUseApiGet.mock.calls;
-      const secondCalls = calls.filter(
-        (c: [string | null]) =>
-          c[0] === null ||
-          (typeof c[0] === "string" && c[0].includes("/daily")),
-      );
-      expect(secondCalls.some((c: [string | null]) => c[0] === null)).toBe(
-        true,
-      );
-    });
-
-    it("passes forecast run URL with correct query params", () => {
-      render(<ForecastTimelineChart />);
-      expect(mockUseApiGet).toHaveBeenCalledWith(
-        "/api/v1/forecasts?page=1&page_size=1&status=completed",
-      );
-    });
-
-    it("encodes latestRunId in daily URL", () => {
-      render(<ForecastTimelineChart />);
-      expect(mockUseApiGet).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/v1/forecasts/${RUN_ID}/daily`),
-      );
+      expect(mockUseLatestForecasts).toHaveBeenCalledWith("human");
     });
   });
 });

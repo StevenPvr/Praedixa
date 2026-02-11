@@ -75,6 +75,16 @@ describe("Button", () => {
     expect(screen.getByTestId("right-icon")).toBeInTheDocument();
   });
 
+  it("sets aria-busy when loading", () => {
+    render(<Button loading>Loading</Button>);
+    expect(screen.getByRole("button")).toHaveAttribute("aria-busy", "true");
+  });
+
+  it("does not set aria-busy when not loading", () => {
+    render(<Button>Click</Button>);
+    expect(screen.getByRole("button")).not.toHaveAttribute("aria-busy");
+  });
+
   it("does not render icons when loading", () => {
     render(
       <Button

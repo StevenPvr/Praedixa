@@ -5,9 +5,9 @@ import RapportsPage from "../page";
 const mockUseApiGet = vi.fn();
 const mockGetValidAccessToken = vi.fn();
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
-}));
+vi.mock("next/navigation", () =>
+  globalThis.__mocks.createNextNavigationMocks(),
+);
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
@@ -17,49 +17,7 @@ vi.mock("@/lib/auth/client", () => ({
   getValidAccessToken: () => mockGetValidAccessToken(),
 }));
 
-vi.mock("@praedixa/ui", () => ({
-  DataTable: ({
-    data,
-    columns,
-    getRowKey,
-    emptyMessage,
-  }: {
-    data: unknown[];
-    columns?: Array<{
-      key: string;
-      render?: (row: Record<string, unknown>) => React.ReactNode;
-    }>;
-    getRowKey?: (row: Record<string, unknown>) => string;
-    emptyMessage?: string;
-  }) => {
-    const firstRow = data[0] as Record<string, unknown> | undefined;
-    const firstRowKey = firstRow && getRowKey ? getRowKey(firstRow) : null;
-    return (
-      <div data-testid="data-table">
-        {data.length > 0 ? `${data.length} rows` : (emptyMessage ?? "No data")}
-        {firstRowKey && <div data-testid="row-key">{firstRowKey}</div>}
-        {firstRow &&
-          columns?.map((col) => (
-            <div key={col.key}>
-              {col.render
-                ? col.render(firstRow)
-                : String(firstRow[col.key] ?? "")}
-            </div>
-          ))}
-      </div>
-    );
-  },
-  Button: ({
-    children,
-    ...props
-  }: {
-    children: React.ReactNode;
-    [key: string]: unknown;
-  }) => <button {...props}>{children}</button>,
-  SkeletonTable: () => <div data-testid="skeleton-table" />,
-  SkeletonCard: () => <div data-testid="skeleton-card" />,
-  SkeletonChart: () => <div data-testid="skeleton-chart" />,
-}));
+vi.mock("@praedixa/ui", () => globalThis.__mocks.createUiMocks());
 
 vi.mock("@/components/ui/tab-bar", () => ({
   TabBar: ({
@@ -652,12 +610,17 @@ describe("RapportsPage", () => {
 
   it("calls useApiGet for both endpoints", () => {
     render(<RapportsPage />);
-    expect(mockUseApiGet).toHaveBeenCalledWith("/api/v1/proof");
     expect(mockUseApiGet).toHaveBeenCalledWith(
-      "/api/v1/coverage-alerts?page_size=200",
+      "/api/v1/live/proof?page=1&page_size=200",
+      { pollInterval: 10000 },
     );
     expect(mockUseApiGet).toHaveBeenCalledWith(
-      "/api/v1/forecasts?status=completed&page=1&page_size=50",
+      "/api/v1/live/coverage-alerts?page_size=200",
+      { pollInterval: 10000 },
+    );
+    expect(mockUseApiGet).toHaveBeenCalledWith(
+      "/api/v1/live/forecasts?status=completed",
+      { pollInterval: 10000 },
     );
   });
 

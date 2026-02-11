@@ -40,6 +40,9 @@ from app.services.data_quality import ColumnReport, QualityResult
 from app.services.file_parser import ParseResult
 from app.services.raw_inserter import InsertionResult
 
+# Patch target: the ingestion endpoint now lives in datasets_ingestion
+_INGEST = "app.routers.datasets_ingestion"
+
 # Fixed test IDs
 ORG_ID = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000001")
 USER_ID = "user-admin-001"
@@ -272,13 +275,13 @@ def _url(dataset_id: uuid.UUID = DATASET_ID) -> str:
 
 
 class TestSuccessfulIngestion:
-    @patch("app.routers.datasets._check_cooldown", new_callable=AsyncMock)
-    @patch("app.routers.datasets.insert_raw_rows")
-    @patch("app.routers.datasets.run_quality_checks")
-    @patch("app.routers.datasets.map_columns")
-    @patch("app.routers.datasets.parse_file")
-    @patch("app.routers.datasets.get_dataset_columns", new_callable=AsyncMock)
-    @patch("app.routers.datasets.get_dataset", new_callable=AsyncMock)
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.insert_raw_rows")
+    @patch(f"{_INGEST}.run_quality_checks")
+    @patch(f"{_INGEST}.map_columns")
+    @patch(f"{_INGEST}.parse_file")
+    @patch(f"{_INGEST}.get_dataset_columns", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
     async def test_csv_upload_201(
         self,
         mock_get_dataset,
@@ -313,13 +316,13 @@ class TestSuccessfulIngestion:
         assert data["data"]["qualitySummary"] is not None
         assert data["data"]["qualitySummary"]["duplicatesFound"] == 0
 
-    @patch("app.routers.datasets._check_cooldown", new_callable=AsyncMock)
-    @patch("app.routers.datasets.insert_raw_rows")
-    @patch("app.routers.datasets.run_quality_checks")
-    @patch("app.routers.datasets.map_columns")
-    @patch("app.routers.datasets.parse_file")
-    @patch("app.routers.datasets.get_dataset_columns", new_callable=AsyncMock)
-    @patch("app.routers.datasets.get_dataset", new_callable=AsyncMock)
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.insert_raw_rows")
+    @patch(f"{_INGEST}.run_quality_checks")
+    @patch(f"{_INGEST}.map_columns")
+    @patch(f"{_INGEST}.parse_file")
+    @patch(f"{_INGEST}.get_dataset_columns", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
     async def test_xlsx_upload_201(
         self,
         mock_get_dataset,
@@ -360,8 +363,8 @@ class TestAuthErrors:
         )
         assert response.status_code == 401
 
-    @patch("app.routers.datasets._check_cooldown", new_callable=AsyncMock)
-    @patch("app.routers.datasets.get_dataset", new_callable=AsyncMock)
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
     async def test_403_viewer_role(
         self,
         mock_get_dataset,
@@ -383,8 +386,8 @@ class TestAuthErrors:
 
 
 class TestDatasetNotFound:
-    @patch("app.routers.datasets._check_cooldown", new_callable=AsyncMock)
-    @patch("app.routers.datasets.get_dataset", new_callable=AsyncMock)
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
     async def test_404_dataset_not_found(
         self,
         mock_get_dataset,
@@ -407,8 +410,8 @@ class TestDatasetNotFound:
 
 
 class TestFileValidation:
-    @patch("app.routers.datasets._check_cooldown", new_callable=AsyncMock)
-    @patch("app.routers.datasets.get_dataset", new_callable=AsyncMock)
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
     async def test_400_empty_file(
         self,
         mock_get_dataset,
@@ -424,8 +427,8 @@ class TestFileValidation:
         )
         assert response.status_code == 400
 
-    @patch("app.routers.datasets._check_cooldown", new_callable=AsyncMock)
-    @patch("app.routers.datasets.get_dataset", new_callable=AsyncMock)
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
     async def test_400_unsupported_file_type(
         self,
         mock_get_dataset,
@@ -446,8 +449,8 @@ class TestFileValidation:
 
 
 class TestCooldown:
-    @patch("app.routers.datasets._check_cooldown", new_callable=AsyncMock)
-    @patch("app.routers.datasets.get_dataset", new_callable=AsyncMock)
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
     async def test_429_cooldown_active(
         self,
         mock_get_dataset,
@@ -474,13 +477,13 @@ class TestCooldown:
 
 
 class TestFormatHint:
-    @patch("app.routers.datasets._check_cooldown", new_callable=AsyncMock)
-    @patch("app.routers.datasets.insert_raw_rows")
-    @patch("app.routers.datasets.run_quality_checks")
-    @patch("app.routers.datasets.map_columns")
-    @patch("app.routers.datasets.parse_file")
-    @patch("app.routers.datasets.get_dataset_columns", new_callable=AsyncMock)
-    @patch("app.routers.datasets.get_dataset", new_callable=AsyncMock)
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.insert_raw_rows")
+    @patch(f"{_INGEST}.run_quality_checks")
+    @patch(f"{_INGEST}.map_columns")
+    @patch(f"{_INGEST}.parse_file")
+    @patch(f"{_INGEST}.get_dataset_columns", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
     async def test_format_hint_lucca_passed_to_services(
         self,
         mock_get_dataset,
@@ -514,13 +517,13 @@ class TestFormatHint:
         _, map_kwargs = mock_map.call_args
         assert map_kwargs.get("format_hint") == "lucca"
 
-    @patch("app.routers.datasets._check_cooldown", new_callable=AsyncMock)
-    @patch("app.routers.datasets.insert_raw_rows")
-    @patch("app.routers.datasets.run_quality_checks")
-    @patch("app.routers.datasets.map_columns")
-    @patch("app.routers.datasets.parse_file")
-    @patch("app.routers.datasets.get_dataset_columns", new_callable=AsyncMock)
-    @patch("app.routers.datasets.get_dataset", new_callable=AsyncMock)
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.insert_raw_rows")
+    @patch(f"{_INGEST}.run_quality_checks")
+    @patch(f"{_INGEST}.map_columns")
+    @patch(f"{_INGEST}.parse_file")
+    @patch(f"{_INGEST}.get_dataset_columns", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
     async def test_format_hint_payfit_passed_to_services(
         self,
         mock_get_dataset,
@@ -555,8 +558,8 @@ class TestFormatHint:
 
 
 class TestFileTooLarge:
-    @patch("app.routers.datasets._check_cooldown", new_callable=AsyncMock)
-    @patch("app.routers.datasets.get_dataset", new_callable=AsyncMock)
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
     async def test_413_file_too_large(
         self,
         mock_get_dataset,
@@ -568,7 +571,7 @@ class TestFileTooLarge:
         mock_cooldown.return_value = None
 
         # Patch only MAX_UPLOAD_SIZE_BYTES to a tiny value
-        with patch("app.routers.datasets.settings") as mock_settings:
+        with patch(f"{_INGEST}.settings") as mock_settings:
             mock_settings.MAX_UPLOAD_SIZE_BYTES = 10
             response = await admin_client.post(
                 _url(),
@@ -584,13 +587,13 @@ class TestFileTooLarge:
 
 
 class TestIngestionLog:
-    @patch("app.routers.datasets._check_cooldown", new_callable=AsyncMock)
-    @patch("app.routers.datasets.insert_raw_rows")
-    @patch("app.routers.datasets.run_quality_checks")
-    @patch("app.routers.datasets.map_columns")
-    @patch("app.routers.datasets.parse_file")
-    @patch("app.routers.datasets.get_dataset_columns", new_callable=AsyncMock)
-    @patch("app.routers.datasets.get_dataset", new_callable=AsyncMock)
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.insert_raw_rows")
+    @patch(f"{_INGEST}.run_quality_checks")
+    @patch(f"{_INGEST}.map_columns")
+    @patch(f"{_INGEST}.parse_file")
+    @patch(f"{_INGEST}.get_dataset_columns", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
     async def test_success_creates_ingestion_log(
         self,
         mock_get_dataset,
@@ -648,12 +651,12 @@ class TestIngestionLog:
         assert quality_obj.dataset_id == DATASET_ID
         assert quality_obj.rows_received == 2
 
-    @patch("app.routers.datasets._check_cooldown", new_callable=AsyncMock)
-    @patch("app.routers.datasets.insert_raw_rows")
-    @patch("app.routers.datasets.map_columns")
-    @patch("app.routers.datasets.parse_file")
-    @patch("app.routers.datasets.get_dataset_columns", new_callable=AsyncMock)
-    @patch("app.routers.datasets.get_dataset", new_callable=AsyncMock)
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.insert_raw_rows")
+    @patch(f"{_INGEST}.map_columns")
+    @patch(f"{_INGEST}.parse_file")
+    @patch(f"{_INGEST}.get_dataset_columns", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
     async def test_parse_failure_creates_failed_log(
         self,
         mock_get_dataset,
@@ -688,3 +691,57 @@ class TestIngestionLog:
         assert log_obj.status == RunStatus.FAILED
         assert log_obj.error_message is not None
         assert len(log_obj.error_message) <= 500
+
+
+# ── Insert failure (parse succeeds, DB insert fails) ─────
+
+
+class TestInsertFailure:
+    @patch(f"{_INGEST}._check_cooldown", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.insert_raw_rows")
+    @patch(f"{_INGEST}.run_quality_checks")
+    @patch(f"{_INGEST}.map_columns")
+    @patch(f"{_INGEST}.parse_file")
+    @patch(f"{_INGEST}.get_dataset_columns", new_callable=AsyncMock)
+    @patch(f"{_INGEST}.get_dataset", new_callable=AsyncMock)
+    async def test_insert_failure_returns_500_and_logs(
+        self,
+        mock_get_dataset,
+        mock_get_columns,
+        mock_parse,
+        mock_map,
+        mock_quality,
+        mock_insert,
+        mock_cooldown,
+        admin_client,
+        mock_session,
+    ) -> None:
+        """Parse + quality succeed but insert_raw_rows raises -> 500 with FAILED log."""
+        mock_get_dataset.return_value = _make_dataset()
+        mock_get_columns.return_value = _make_columns()
+        mock_parse.return_value = _make_parse_result()
+        mock_map.return_value = _make_mapping_result()
+        mock_quality.return_value = _make_quality_result()
+        mock_insert.side_effect = RuntimeError("DB connection lost")
+        mock_cooldown.return_value = None
+
+        response = await admin_client.post(
+            _url(),
+            files={"file": ("data.csv", _csv_bytes(), "text/csv")},
+        )
+
+        assert response.status_code == 500
+        body = response.json()
+        assert body["success"] is False
+        assert body["error"]["code"] == "INSERT_ERROR"
+
+        # Verify FAILED IngestionLog was persisted
+        add_calls = mock_session.add.call_args_list
+        assert len(add_calls) >= 1
+        log_obj = add_calls[-1][0][0]
+
+        from app.models.data_catalog import RunStatus
+
+        assert log_obj.status == RunStatus.FAILED
+        assert "DB connection lost" in (log_obj.error_message or "")
+        assert log_obj.rows_received == 2

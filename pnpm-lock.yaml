@@ -160,7 +160,7 @@ importers:
     dependencies:
       '@opennextjs/cloudflare':
         specifier: ^1.16.0
-        version: 1.16.3(next@15.5.10(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(wrangler@4.63.0)
+        version: 1.16.3(next@15.5.10(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(wrangler@4.63.0)
       '@praedixa/shared-types':
         specifier: workspace:*
         version: link:../packages/shared-types
@@ -170,9 +170,6 @@ importers:
       framer-motion:
         specifier: ^12.31.0
         version: 12.31.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      lucide-react:
-        specifier: ^0.563.0
-        version: 0.563.0(react@19.1.0)
       next:
         specifier: 15.5.10
         version: 15.5.10(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -258,7 +255,7 @@ importers:
     devDependencies:
       '@opennextjs/cloudflare':
         specifier: ^1.16.3
-        version: 1.16.3(next@15.5.10(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(wrangler@4.63.0)
+        version: 1.16.3(next@15.5.10(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(wrangler@4.63.0)
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.7
@@ -306,12 +303,21 @@ importers:
         specifier: ^2.6.0
         version: 2.6.1
     devDependencies:
+      '@supabase/ssr':
+        specifier: ^0.5.0
+        version: 0.5.2(@supabase/supabase-js@2.95.2)
+      '@supabase/supabase-js':
+        specifier: ^2.46.0
+        version: 2.95.2
       '@types/react':
         specifier: ^19.0.0
         version: 19.2.10
       '@types/react-dom':
         specifier: ^19.0.0
         version: 19.2.3(@types/react@19.2.10)
+      next:
+        specifier: ^15.1.7
+        version: 15.5.10(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -3722,11 +3728,6 @@ packages:
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  lucide-react@0.563.0:
-    resolution: {integrity: sha512-8dXPB2GI4dI8jV4MgUDGBeLdGk8ekfqVZ0BdLcrRzocGgG75ltNEmWS+gE7uokKF/0oSUuczNDT+g9hFJ23FkA==}
-    peerDependencies:
-      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
     hasBin: true
@@ -6682,7 +6683,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@opennextjs/aws@3.9.15(next@15.5.10(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))':
+  '@opennextjs/aws@3.9.15(next@15.5.10(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))':
     dependencies:
       '@ast-grep/napi': 0.40.5
       '@aws-sdk/client-cloudfront': 3.398.0
@@ -6706,11 +6707,11 @@ snapshots:
       - aws-crt
       - supports-color
 
-  '@opennextjs/cloudflare@1.16.3(next@15.5.10(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(wrangler@4.63.0)':
+  '@opennextjs/cloudflare@1.16.3(next@15.5.10(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(wrangler@4.63.0)':
     dependencies:
       '@ast-grep/napi': 0.40.5
       '@dotenvx/dotenvx': 1.31.0
-      '@opennextjs/aws': 3.9.15(next@15.5.10(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))
+      '@opennextjs/aws': 3.9.15(next@15.5.10(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))
       cloudflare: 4.5.0
       enquirer: 2.4.1
       glob: 12.0.0
@@ -9054,10 +9055,6 @@ snapshots:
       yallist: 3.1.1
 
   lucide-react@0.469.0(react@19.1.0):
-    dependencies:
-      react: 19.1.0
-
-  lucide-react@0.563.0(react@19.1.0):
     dependencies:
       react: 19.1.0
 

@@ -3,16 +3,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SiteTree } from "../site-tree";
 
-vi.mock("@praedixa/ui", () => ({
-  cn: (...args: unknown[]) => args.filter(Boolean).join(" "),
-}));
+vi.mock("@praedixa/ui", () => globalThis.__mocks.createUiMocks());
 
-vi.mock("lucide-react", () => ({
-  ChevronDown: () => <span data-testid="icon-chevron-down" />,
-  ChevronRight: () => <span data-testid="icon-chevron-right" />,
-  MapPin: () => <span data-testid="icon-map-pin" />,
-  Users: () => <span data-testid="icon-users" />,
-}));
+vi.mock("lucide-react", () => globalThis.__mocks.createLucideIconMocks());
 
 const hierarchy = [
   {

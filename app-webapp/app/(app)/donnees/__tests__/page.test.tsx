@@ -8,71 +8,16 @@ const { mockUseApiGet, mockUseApiGetPaginated } = vi.hoisted(() => ({
   mockUseApiGetPaginated: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({
-  usePathname: () => "/donnees",
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn(),
-    refresh: vi.fn(),
-    prefetch: vi.fn(),
-  }),
-  useSearchParams: () => new URLSearchParams(),
-}));
+vi.mock("next/navigation", () =>
+  globalThis.__mocks.createNextNavigationMocks({ pathname: "/donnees" }),
+);
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
   useApiGetPaginated: (...args: unknown[]) => mockUseApiGetPaginated(...args),
 }));
 
-vi.mock("@praedixa/ui", () => ({
-  DataTable: ({
-    data,
-    columns,
-    getRowKey,
-    emptyMessage,
-    pagination,
-  }: {
-    data: Array<Record<string, unknown>>;
-    columns?: Array<{
-      key: string;
-      render?: (row: Record<string, unknown>) => React.ReactNode;
-    }>;
-    getRowKey?: (row: Record<string, unknown>) => string;
-    emptyMessage?: string;
-    pagination?: {
-      page: number;
-      total: number;
-      onPageChange: (p: number) => void;
-    };
-  }) => {
-    const first = data[0];
-    return (
-      <div data-testid="data-table">
-        {data.length === 0 ? <p>{emptyMessage}</p> : <p>{data.length} rows</p>}
-        {first && getRowKey && (
-          <div data-testid="row-key">{getRowKey(first)}</div>
-        )}
-        {first &&
-          columns?.map((column) => (
-            <div key={column.key} data-testid={`cell-${column.key}`}>
-              {column.render
-                ? column.render(first)
-                : String(first[column.key] ?? "")}
-            </div>
-          ))}
-        {pagination && (
-          <div data-testid="pagination">
-            Page {pagination.page} / total {pagination.total}
-            <button onClick={() => pagination.onPageChange(2)}>Page 2</button>
-          </div>
-        )}
-      </div>
-    );
-  },
-  SkeletonTable: () => <div data-testid="skeleton-table" />,
-}));
+vi.mock("@praedixa/ui", () => globalThis.__mocks.createUiMocks());
 
 vi.mock("@/components/ui/page-header", () => ({
   PageHeader: ({ title, subtitle }: { title: string; subtitle?: string }) => (
@@ -231,7 +176,7 @@ const mockRefetchRecords = vi.fn();
 
 function setupSuccessMocks() {
   mockUseApiGet.mockImplementation((url: string | null) => {
-    if (url === "/api/v1/canonical/quality") {
+    if (url === "/api/v1/live/canonical/quality") {
       return {
         data: mockQuality,
         loading: false,
@@ -335,7 +280,7 @@ describe("DonneesPage", () => {
 
   it("sets warning status when missingShiftsPct is between 2 and 3", () => {
     mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/canonical/quality") {
+      if (url === "/api/v1/live/canonical/quality") {
         return {
           data: { ...mockQuality, missingShiftsPct: 2.5 },
           loading: false,
@@ -362,7 +307,7 @@ describe("DonneesPage", () => {
 
   it("sets danger status when missingShiftsPct is above 3", () => {
     mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/canonical/quality") {
+      if (url === "/api/v1/live/canonical/quality") {
         return {
           data: { ...mockQuality, missingShiftsPct: 3.5 },
           loading: false,
@@ -389,7 +334,7 @@ describe("DonneesPage", () => {
 
   it("sets warning status when coverage is between 68 and 85", () => {
     mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/canonical/quality") {
+      if (url === "/api/v1/live/canonical/quality") {
         return {
           data: { ...mockQuality, coveragePct: 70 },
           loading: false,
@@ -416,7 +361,7 @@ describe("DonneesPage", () => {
 
   it("sets danger status when coverage < 68", () => {
     mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/canonical/quality") {
+      if (url === "/api/v1/live/canonical/quality") {
         return {
           data: { ...mockQuality, coveragePct: 50 },
           loading: false,
@@ -443,7 +388,7 @@ describe("DonneesPage", () => {
 
   it("sets warning status when avgAbsPct is between 5 and 7.5", () => {
     mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/canonical/quality") {
+      if (url === "/api/v1/live/canonical/quality") {
         return {
           data: { ...mockQuality, avgAbsPct: 6 },
           loading: false,
@@ -470,7 +415,7 @@ describe("DonneesPage", () => {
 
   it("sets danger status when avgAbsPct > 7.5", () => {
     mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/canonical/quality") {
+      if (url === "/api/v1/live/canonical/quality") {
         return {
           data: { ...mockQuality, avgAbsPct: 10 },
           loading: false,
@@ -499,7 +444,7 @@ describe("DonneesPage", () => {
 
   it("shows ... in metric cards when quality is loading", () => {
     mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/canonical/quality") {
+      if (url === "/api/v1/live/canonical/quality") {
         return {
           data: null,
           loading: true,
@@ -540,7 +485,7 @@ describe("DonneesPage", () => {
 
   it("shows error fallback when quality fetch fails", () => {
     mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/canonical/quality") {
+      if (url === "/api/v1/live/canonical/quality") {
         return {
           data: null,
           loading: false,
@@ -681,7 +626,7 @@ describe("DonneesPage", () => {
 
   it("renders site filter with only Tous les sites when sites are null", () => {
     mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/canonical/quality") {
+      if (url === "/api/v1/live/canonical/quality") {
         return {
           data: mockQuality,
           loading: false,
@@ -704,7 +649,7 @@ describe("DonneesPage", () => {
 
   it("calls refetch on quality error retry", () => {
     mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/canonical/quality") {
+      if (url === "/api/v1/live/canonical/quality") {
         return {
           data: null,
           loading: false,
@@ -745,7 +690,7 @@ describe("DonneesPage", () => {
 
   it("sets neutral status when quality data is null", () => {
     mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url === "/api/v1/canonical/quality") {
+      if (url === "/api/v1/live/canonical/quality") {
         return {
           data: null,
           loading: false,

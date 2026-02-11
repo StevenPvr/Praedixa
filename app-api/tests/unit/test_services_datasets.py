@@ -156,10 +156,18 @@ class TestCreateDataset:
     @pytest.mark.asyncio
     @patch("app.services.datasets.create_dataset_tables")
     @patch("app.services.datasets.create_client_schemas")
+    @patch("app.services.datasets.get_canonical_org_slug")
     @patch("app.services.datasets.settings")
-    async def test_happy_path(self, mock_settings, mock_schemas, mock_tables) -> None:
+    async def test_happy_path(
+        self,
+        mock_settings,
+        mock_get_org_slug,
+        mock_schemas,
+        mock_tables,
+    ) -> None:
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
+        mock_get_org_slug.return_value = "acme"
         mock_schemas.return_value = "acme_data"
         mock_tables.return_value = None
 
@@ -180,7 +188,6 @@ class TestCreateDataset:
                 {"name": "date_col", "dtype": "date", "role": "temporal_index"},
                 {"name": "nb_employes", "dtype": "float", "role": "target"},
             ],
-            org_slug="acme",
         )
         assert ds.name == "effectifs"
         assert ds.status == DatasetStatus.ACTIVE
@@ -208,7 +215,6 @@ class TestCreateDataset:
                 columns=[
                     {"name": "date_col", "dtype": "date", "role": "temporal_index"}
                 ],
-                org_slug="acme",
             )
 
     @pytest.mark.asyncio
@@ -237,7 +243,6 @@ class TestCreateDataset:
                 group_by=[],
                 pipeline_config={},
                 columns=too_many_cols,
-                org_slug="acme",
             )
 
 
@@ -644,13 +649,15 @@ class TestCreateDatasetExtended:
     @pytest.mark.asyncio
     @patch("app.services.datasets.create_dataset_tables")
     @patch("app.services.datasets.create_client_schemas")
+    @patch("app.services.datasets.get_canonical_org_slug")
     @patch("app.services.datasets.settings")
     async def test_nullable_defaults_to_true(
-        self, mock_settings, mock_schemas, mock_tables
+        self, mock_settings, mock_get_org_slug, mock_schemas, mock_tables
     ) -> None:
         """Columns without explicit nullable should default to True."""
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
+        mock_get_org_slug.return_value = "acme"
         mock_schemas.return_value = "acme_data"
         mock_tables.return_value = None
 
@@ -670,7 +677,6 @@ class TestCreateDatasetExtended:
             columns=[
                 {"name": "date_col", "dtype": "date", "role": "temporal_index"},
             ],
-            org_slug="acme",
         )
         # The DatasetColumn constructor is called with nullable=True (default)
         # We verify via session.add calls
@@ -679,13 +685,15 @@ class TestCreateDatasetExtended:
     @pytest.mark.asyncio
     @patch("app.services.datasets.create_dataset_tables")
     @patch("app.services.datasets.create_client_schemas")
+    @patch("app.services.datasets.get_canonical_org_slug")
     @patch("app.services.datasets.settings")
     async def test_ordinal_position_defaults(
-        self, mock_settings, mock_schemas, mock_tables
+        self, mock_settings, mock_get_org_slug, mock_schemas, mock_tables
     ) -> None:
         """Columns without explicit ordinal_position default to their index."""
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
+        mock_get_org_slug.return_value = "acme"
         mock_schemas.return_value = "acme_data"
         mock_tables.return_value = None
 
@@ -707,20 +715,21 @@ class TestCreateDatasetExtended:
                 {"name": "revenue", "dtype": "float", "role": "target"},
                 {"name": "department", "dtype": "category", "role": "feature"},
             ],
-            org_slug="acme",
         )
         assert len(cols) == 3
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.create_dataset_tables")
     @patch("app.services.datasets.create_client_schemas")
+    @patch("app.services.datasets.get_canonical_org_slug")
     @patch("app.services.datasets.settings")
     async def test_explicit_rules_override(
-        self, mock_settings, mock_schemas, mock_tables
+        self, mock_settings, mock_get_org_slug, mock_schemas, mock_tables
     ) -> None:
         """Column with rules_override should pass it through."""
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
+        mock_get_org_slug.return_value = "acme"
         mock_schemas.return_value = "acme_data"
         mock_tables.return_value = None
 
@@ -747,20 +756,21 @@ class TestCreateDatasetExtended:
                     "rules_override": {"lags": [1, 3]},
                 },
             ],
-            org_slug="acme",
         )
         assert len(cols) == 2
 
     @pytest.mark.asyncio
     @patch("app.services.datasets.create_dataset_tables")
     @patch("app.services.datasets.create_client_schemas")
+    @patch("app.services.datasets.get_canonical_org_slug")
     @patch("app.services.datasets.settings")
     async def test_status_is_active_after_creation(
-        self, mock_settings, mock_schemas, mock_tables
+        self, mock_settings, mock_get_org_slug, mock_schemas, mock_tables
     ) -> None:
         """Dataset status should be ACTIVE after successful table creation."""
         mock_settings.MAX_DATASETS_PER_ORG = 50
         mock_settings.MAX_COLUMNS_PER_TABLE = 200
+        mock_get_org_slug.return_value = "acme"
         mock_schemas.return_value = "acme_data"
         mock_tables.return_value = None
 
@@ -778,7 +788,6 @@ class TestCreateDatasetExtended:
             group_by=[],
             pipeline_config={},
             columns=[{"name": "date_col", "dtype": "date", "role": "temporal_index"}],
-            org_slug="acme",
         )
         assert ds.status == DatasetStatus.ACTIVE
 

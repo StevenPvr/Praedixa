@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { LineChart } from "@tremor/react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import type { CoverageAlert } from "@praedixa/shared-types";
 import { SkeletonChart, SkeletonCard } from "@praedixa/ui";
 import { DetailCard } from "@/components/ui/detail-card";
@@ -11,68 +12,93 @@ import { PageHeader } from "@/components/ui/page-header";
 import { useApiGet } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
 import { AnimatedSection } from "@/components/animated-section";
-import { DecompositionPanel } from "@/components/previsions/decomposition-panel";
 import { FeatureImportanceBar } from "@/components/previsions/feature-importance-bar";
 import { formatSeverity } from "@/lib/formatters";
 import {
   decomposeForecast,
   extractFeatureImportance,
 } from "@/lib/forecast-decomposition";
-import type { DailyForecastData } from "@/lib/forecast-decomposition";
-import { isUuid } from "@/lib/uuid";
 import { buildCapacitySeries } from "@/lib/capacity-chart";
+import { formatDateShort } from "@/lib/date-formatters";
+import { useLatestForecasts } from "@/hooks/use-latest-forecasts";
+import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
 
 type Dimension = "human" | "merchandise";
+const MAX_FORECAST_DAYS = 7;
 
-interface ForecastRunSummary {
-  id: string;
-  status: string;
+function parseDimension(value: string | null): Dimension {
+  return value === "merchandise" ? "merchandise" : "human";
 }
+
+const LazyLineChart = dynamic(
+  () => import("@tremor/react").then((mod) => mod.LineChart),
+  {
+    ssr: false,
+    loading: () => <SkeletonChart />,
+  },
+);
+
+const LazyDecompositionPanel = dynamic(
+  () =>
+    import("@/components/previsions/decomposition-panel").then(
+      (mod) => mod.DecompositionPanel,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} data-testid="skeleton-chart-wrapper">
+            <SkeletonChart />
+          </div>
+        ))}
+      </div>
+    ),
+  },
+);
 
 const chartValueFormatter = (v: number) => v.toFixed(0);
 
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
-}
+function PrevisionsContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const dimension = parseDimension(searchParams.get("dimension"));
+  const [selectedForecastDate, setSelectedForecastDate] = useState<
+    string | null
+  >(null);
 
-export default function PrevisionsPage() {
-  const [dimension, setDimension] = useState<Dimension>("human");
-
-  // 1. Fetch latest completed forecast run
-  const {
-    data: runs,
-    loading: runsLoading,
-    error: runsError,
-    refetch: refetchRuns,
-  } = useApiGet<ForecastRunSummary[]>(
-    "/api/v1/forecasts?page=1&page_size=1&status=completed",
+  const setDimension = useCallback(
+    (d: Dimension) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (d === "human") {
+        params.delete("dimension");
+      } else {
+        params.set("dimension", d);
+      }
+      const qs = params.toString();
+      router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+    },
+    [searchParams, router, pathname],
   );
 
-  const latestRunId = runs && runs.length > 0 ? runs[0].id : null;
-  const dailyRunId = isUuid(latestRunId) ? latestRunId : null;
-
-  // 2. Fetch daily forecasts for the latest run
   const {
-    data: dailyData,
-    loading: dailyLoading,
-    error: dailyError,
-    refetch: refetchDaily,
-  } = useApiGet<DailyForecastData[]>(
-    dailyRunId
-      ? `/api/v1/forecasts/${encodeURIComponent(dailyRunId)}/daily?dimension=${encodeURIComponent(dimension)}`
-      : null,
-  );
+    dailyData,
+    loading: forecastLoading,
+    error: forecastError,
+    refetchRuns,
+    refetchDaily,
+  } = useLatestForecasts(dimension);
 
-  // 3. Fetch coverage alerts
+  const alertsQuery = useApiGet<CoverageAlert[]>(
+    "/api/v1/live/coverage-alerts?status=open&page_size=200",
+    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
+  );
   const {
     data: alerts,
     loading: alertsLoading,
     error: alertsError,
-  } = useApiGet<CoverageAlert[]>("/api/v1/coverage-alerts?status=open");
-
-  const forecastLoading = runsLoading || (dailyRunId !== null && dailyLoading);
-  const forecastError = runsError ?? dailyError;
+  } = alertsQuery;
 
   // Decomposition
   const decomposition = useMemo(
@@ -87,7 +113,40 @@ export default function PrevisionsPage() {
   );
 
   // Main chart data
-  const chartData = buildCapacitySeries(dailyData ?? [], formatDate);
+  const chartData = useMemo(
+    () =>
+      buildCapacitySeries(dailyData ?? [], formatDateShort, {
+        maxDays: MAX_FORECAST_DAYS,
+      }),
+    [dailyData],
+  );
+  const detailRows = useMemo(() => {
+    if (!dailyData || dailyData.length === 0) return [];
+    return [...dailyData]
+      .sort((a, b) => a.forecastDate.localeCompare(b.forecastDate))
+      .slice(-MAX_FORECAST_DAYS);
+  }, [dailyData]);
+  const selectedDetail = useMemo(() => {
+    if (detailRows.length === 0) return null;
+    return (
+      detailRows.find((row) => row.forecastDate === selectedForecastDate) ??
+      detailRows[detailRows.length - 1]
+    );
+  }, [detailRows, selectedForecastDate]);
+
+  useEffect(() => {
+    if (detailRows.length === 0) {
+      setSelectedForecastDate(null);
+      return;
+    }
+    if (
+      selectedForecastDate &&
+      detailRows.some((row) => row.forecastDate === selectedForecastDate)
+    ) {
+      return;
+    }
+    setSelectedForecastDate(detailRows[detailRows.length - 1].forecastDate);
+  }, [detailRows, selectedForecastDate]);
 
   const dimensionLabel = dimension === "human" ? "humaine" : "marchandise";
 
@@ -106,16 +165,20 @@ export default function PrevisionsPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-serif text-lg font-semibold text-charcoal">
-                Prevision de couverture a 14 jours
+                Prevision de couverture sur 7 jours
               </h2>
               <p className="mt-1 text-sm text-gray-500">
                 Capacite {dimensionLabel} — tous sites
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                Vue volontairement compacte pour eviter le bruit visuel. Cliquez
+                sur un jour ci-dessous pour voir les valeurs detaillees.
               </p>
             </div>
             <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
               <button
                 onClick={() => setDimension("human")}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`min-h-[40px] rounded-md px-4 py-2 text-sm font-medium transition-colors sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs ${
                   dimension === "human"
                     ? "bg-white text-charcoal shadow-sm"
                     : "text-gray-500 hover:text-charcoal"
@@ -125,7 +188,7 @@ export default function PrevisionsPage() {
               </button>
               <button
                 onClick={() => setDimension("merchandise")}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`min-h-[40px] rounded-md px-4 py-2 text-sm font-medium transition-colors sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs ${
                   dimension === "merchandise"
                     ? "bg-white text-charcoal shadow-sm"
                     : "text-gray-500 hover:text-charcoal"
@@ -154,7 +217,7 @@ export default function PrevisionsPage() {
               </div>
             ) : (
               <div className="h-[300px] sm:h-[340px] md:h-[360px]">
-                <LineChart
+                <LazyLineChart
                   data={chartData}
                   index="date"
                   categories={[
@@ -174,6 +237,66 @@ export default function PrevisionsPage() {
               </div>
             )}
           </div>
+          {!forecastLoading && !forecastError && detailRows.length > 0 && (
+            <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 p-3">
+              <p className="text-xs font-medium text-gray-600">
+                Detail journalier (7 jours)
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {detailRows.map((row) => {
+                  const active =
+                    selectedDetail?.forecastDate === row.forecastDate;
+                  return (
+                    <button
+                      key={row.forecastDate}
+                      onClick={() => setSelectedForecastDate(row.forecastDate)}
+                      aria-label={`Voir le detail du ${formatDateShort(row.forecastDate)}`}
+                      aria-pressed={active}
+                      title={`Voir le detail du ${formatDateShort(row.forecastDate)}`}
+                      className={`min-h-[36px] rounded-full px-3 py-1 text-xs ${
+                        active
+                          ? "bg-amber-500 text-white"
+                          : "bg-white text-gray-600 hover:bg-amber-50"
+                      }`}
+                    >
+                      {formatDateShort(row.forecastDate)}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedDetail && (
+                <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-gray-700 sm:grid-cols-4">
+                  <div>
+                    <p className="text-gray-500">Demande prevue</p>
+                    <p className="font-semibold">
+                      {selectedDetail.predictedDemand.toFixed(1)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Capacite prevue</p>
+                    <p className="font-semibold">
+                      {selectedDetail.capacityPlannedPredicted.toFixed(1)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Capacite optimale</p>
+                    <p className="font-semibold">
+                      {selectedDetail.capacityOptimalPredicted.toFixed(1)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Risque</p>
+                    <p className="font-semibold">
+                      {`${(selectedDetail.riskScore <= 1
+                        ? selectedDetail.riskScore * 100
+                        : selectedDetail.riskScore
+                      ).toFixed(0)}%`}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </DetailCard>
       </AnimatedSection>
 
@@ -183,7 +306,14 @@ export default function PrevisionsPage() {
           <h2 className="mb-4 font-serif text-lg font-semibold text-charcoal">
             Decomposition du signal
           </h2>
-          <DecompositionPanel data={decomposition} loading={forecastLoading} />
+          <p className="mb-3 text-xs text-gray-500">
+            Cette section explique les composantes qui poussent la prediction:
+            tendance, rythme hebdomadaire, residus et niveau d&apos;incertitude.
+          </p>
+          <LazyDecompositionPanel
+            data={decomposition}
+            loading={forecastLoading}
+          />
         </section>
       </AnimatedSection>
 
@@ -193,6 +323,10 @@ export default function PrevisionsPage() {
           <h2 className="mb-4 font-serif text-lg font-semibold text-charcoal">
             Pourquoi cette prevision ?
           </h2>
+          <p className="mb-3 text-xs text-gray-500">
+            Les facteurs sont classes par impact estime sur la couverture.
+            Commencez par les deux premiers pour agir vite.
+          </p>
           <DetailCard>
             <FeatureImportanceBar features={features} loading={alertsLoading} />
           </DetailCard>
@@ -205,6 +339,10 @@ export default function PrevisionsPage() {
           <h2 className="mb-4 font-serif text-lg font-semibold text-charcoal">
             Alertes prioritaires
           </h2>
+          <p className="mb-3 text-xs text-gray-500">
+            Les alertes affichees sont ordonnees par criticite, pour guider la
+            prise de decision dans le bon ordre.
+          </p>
           {alertsError ? (
             <ErrorFallback message={alertsError} />
           ) : alertsLoading ? (
@@ -272,5 +410,19 @@ export default function PrevisionsPage() {
         </section>
       </AnimatedSection>
     </div>
+  );
+}
+
+export default function PrevisionsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-8">
+          <SkeletonChart />
+        </div>
+      }
+    >
+      <PrevisionsContent />
+    </Suspense>
   );
 }

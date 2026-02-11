@@ -83,7 +83,9 @@ function TrendArrow({ direction }: { direction: TrendDirection }) {
   );
 }
 
-const iconBgByVariant: Record<string, string> = {
+type StatCardVariant = NonNullable<StatCardProps["variant"]>;
+
+const iconBgByVariant: Record<StatCardVariant, string> = {
   default: "bg-amber-50/50 text-gray-400",
   accent: "bg-amber-100/60 text-amber-600",
   success: "bg-success-50 text-success-600",

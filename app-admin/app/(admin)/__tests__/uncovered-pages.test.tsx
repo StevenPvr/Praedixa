@@ -31,6 +31,11 @@ vi.mock("@/hooks/use-toast", () => ({
 
 vi.mock("@/lib/auth/client", () => ({
   getValidAccessToken: vi.fn(() => Promise.resolve("token")),
+  useCurrentUser: () => ({
+    id: "admin-123",
+    email: "admin@praedixa.com",
+    role: "super_admin",
+  }),
 }));
 
 vi.mock("@/lib/api/client", () => ({

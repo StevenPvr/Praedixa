@@ -6,7 +6,7 @@ Covers the latin-1 fallback path for CSV files with non-UTF-8 bytes.
 import pytest
 
 from app.core.exceptions import PraedixaError
-from app.routers.datasets import _validate_magic_bytes
+from app.routers.datasets_ingestion import _validate_magic_bytes
 
 
 class TestValidateMagicBytes:

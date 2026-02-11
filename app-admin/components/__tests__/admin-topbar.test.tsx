@@ -3,14 +3,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AdminTopbar } from "../admin-topbar";
 
-vi.mock("@praedixa/ui", () => ({
-  cn: (...args: unknown[]) => args.filter(Boolean).join(" "),
-}));
+vi.mock("@praedixa/ui", () => globalThis.__mocks.createUiMocks());
 
-vi.mock("lucide-react", () => ({
-  Menu: () => <span data-testid="icon-menu" />,
-  X: () => <span data-testid="icon-x" />,
-}));
+vi.mock("lucide-react", () => globalThis.__mocks.createLucideIconMocks());
 
 describe("AdminTopbar", () => {
   it("renders the Admin breadcrumb prefix", () => {
@@ -39,13 +34,13 @@ describe("AdminTopbar", () => {
 
   it("shows menu icon when mobile is closed", () => {
     render(<AdminTopbar mobileOpen={false} onToggleMobile={vi.fn()} />);
-    expect(screen.getByTestId("icon-menu")).toBeInTheDocument();
+    expect(screen.getByTestId("icon-Menu")).toBeInTheDocument();
     expect(screen.getByLabelText("Ouvrir le menu")).toBeInTheDocument();
   });
 
   it("shows X icon when mobile is open", () => {
     render(<AdminTopbar mobileOpen={true} onToggleMobile={vi.fn()} />);
-    expect(screen.getByTestId("icon-x")).toBeInTheDocument();
+    expect(screen.getByTestId("icon-X")).toBeInTheDocument();
     expect(screen.getByLabelText("Fermer le menu")).toBeInTheDocument();
   });
 

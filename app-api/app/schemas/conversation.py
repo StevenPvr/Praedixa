@@ -30,12 +30,7 @@ class ConversationCreate(CamelModel):
     injected server-side.
     """
 
-    model_config = ConfigDict(
-        alias_generator=CamelModel.model_config.get("alias_generator"),
-        populate_by_name=True,
-        from_attributes=True,
-        extra="forbid",
-    )
+    model_config = ConfigDict(extra="forbid")
 
     subject: str = Field(..., min_length=1, max_length=255)
     content: str | None = Field(default=None, max_length=5000)
@@ -48,12 +43,7 @@ class MessageCreate(CamelModel):
     injected from the JWT token server-side.
     """
 
-    model_config = ConfigDict(
-        alias_generator=CamelModel.model_config.get("alias_generator"),
-        populate_by_name=True,
-        from_attributes=True,
-        extra="forbid",
-    )
+    model_config = ConfigDict(extra="forbid")
 
     content: str = Field(..., min_length=1, max_length=5000)
 
@@ -65,12 +55,7 @@ class ConversationStatusUpdate(CamelModel):
     Reopening (back to open) is not allowed.
     """
 
-    model_config = ConfigDict(
-        alias_generator=CamelModel.model_config.get("alias_generator"),
-        populate_by_name=True,
-        from_attributes=True,
-        extra="forbid",
-    )
+    model_config = ConfigDict(extra="forbid")
 
     status: ConversationStatus
 

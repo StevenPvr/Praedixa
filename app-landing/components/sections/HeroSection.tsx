@@ -5,6 +5,13 @@ import { motion, type Variants } from "framer-motion";
 import { sectionReveal } from "../../lib/animations/variants";
 import { heroContent } from "../../lib/content/hero-content";
 import { HeroIllustration } from "../hero/HeroIllustration";
+import {
+  WarningIcon,
+  EuroIcon,
+  CheckCircleIcon,
+  ArrowRightIcon,
+  ChevronDownIcon,
+} from "../icons";
 
 interface HeroSectionProps {
   className?: string;
@@ -21,49 +28,13 @@ const heroIllustrationReveal: Variants = {
   },
 };
 
-/* Inline SVG icons for bullets — kept minimal (no external lib) */
 const bulletIcons: Record<string, React.ReactNode> = {
   warning: (
-    <svg
-      className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path
-        fillRule="evenodd"
-        d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.168 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 9a1 1 0 100-2 1 1 0 000 2z"
-        clipRule="evenodd"
-      />
-    </svg>
+    <WarningIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />
   ),
-  euro: (
-    <svg
-      className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path
-        fillRule="evenodd"
-        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.798 7.45c.512-.67 1.135-.95 1.702-.95.567 0 1.19.28 1.702.95a.75.75 0 001.192-.91C12.637 5.55 11.593 5 10.5 5c-1.093 0-2.137.55-2.894 1.54A5.205 5.205 0 006.83 8.5H6a.75.75 0 000 1.5h.54a6.728 6.728 0 00-.04 1H6a.75.75 0 000 1.5h.83a5.205 5.205 0 00.776 1.96C8.363 15.45 9.407 16 10.5 16c1.093 0 2.137-.55 2.894-1.54a.75.75 0 00-1.192-.91c-.512.67-1.135.95-1.702.95-.567 0-1.19-.28-1.702-.95a3.505 3.505 0 01-.343-.55H11a.75.75 0 000-1.5H8.15a5.232 5.232 0 01-.1-1H11a.75.75 0 000-1.5H8.15c.03-.34.085-.68.193-1H11a.75.75 0 000-1.5H8.455c.098-.195.213-.38.343-.55z"
-        clipRule="evenodd"
-      />
-    </svg>
-  ),
+  euro: <EuroIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />,
   check: (
-    <svg
-      className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path
-        fillRule="evenodd"
-        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-        clipRule="evenodd"
-      />
-    </svg>
+    <CheckCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />
   ),
 };
 
@@ -172,40 +143,14 @@ export function HeroSection({ className }: HeroSectionProps) {
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-8 py-4 text-base font-bold text-charcoal shadow-lg transition-all duration-200 hover:bg-amber-400 hover:shadow-xl hover:shadow-amber-500/25 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 sm:w-auto"
               >
                 {heroContent.ctaPrimary.text}
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
+                <ArrowRightIcon className="h-4 w-4" />
               </Link>
               <a
                 href={heroContent.ctaSecondary.href}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-charcoal/20 px-6 py-4 text-base font-medium text-charcoal/70 transition-all duration-200 hover:border-charcoal/40 hover:text-charcoal sm:w-auto"
               >
                 {heroContent.ctaSecondary.text}
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                <ChevronDownIcon className="h-4 w-4" />
               </a>
             </motion.div>
 
@@ -222,18 +167,7 @@ export function HeroSection({ className }: HeroSectionProps) {
                   key={badge}
                   className="flex items-center gap-2 rounded-full border border-amber-200/60 bg-amber-50/80 px-3 py-1.5 text-xs font-medium text-charcoal/80 lg:px-4 lg:py-2 lg:text-sm"
                 >
-                  <svg
-                    className="h-3.5 w-3.5 flex-shrink-0 text-amber-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  <CheckCircleIcon className="h-3.5 w-3.5 flex-shrink-0 text-amber-500" />
                   {badge}
                 </span>
               ))}

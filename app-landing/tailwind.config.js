@@ -1,5 +1,8 @@
 /** @type {import('tailwindcss').Config} */
+import praedixaPreset from "../packages/ui/tailwind.preset.js";
+
 export default {
+  presets: [praedixaPreset],
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -7,32 +10,16 @@ export default {
   ],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        serif: ["var(--font-serif)", "Georgia", "serif"],
-      },
       colors: {
-        // Background — warm cream (OKLCH)
+        // Landing-specific backgrounds (OKLCH)
         cream: "oklch(0.984 0.003 106)",
-        // Text — rich black (OKLCH)
         charcoal: "oklch(0.145 0 0)",
-        // Grays (OKLCH)
+        // Landing-specific grays (simpler scale, no chroma)
         gray: {
           secondary: "oklch(0.443 0 0)",
           muted: "oklch(0.556 0 0)",
         },
-        // Accent — vibrant amber/gold (OKLCH, P3-enhanced chroma on 400-600)
-        amber: {
-          50: "oklch(0.987 0.022 95)",
-          100: "oklch(0.962 0.059 95)",
-          200: "oklch(0.924 0.12 96)",
-          300: "oklch(0.879 0.169 91.6)",
-          400: "oklch(0.828 0.208 84)",
-          500: "oklch(0.769 0.205 70)",
-          600: "oklch(0.666 0.195 58)",
-          700: "oklch(0.555 0.163 49)",
-        },
-        // Neutral for borders/dividers (OKLCH)
+        // Neutral for borders/dividers (OKLCH, no chroma)
         neutral: {
           50: "oklch(0.985 0 0)",
           100: "oklch(0.970 0 0)",

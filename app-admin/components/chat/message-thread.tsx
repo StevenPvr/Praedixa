@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { useApiGet, useApiPatch } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import { MessageInput } from "./message-input";
+import { CHAT_POLL_INTERVAL_MS } from "@/lib/chat-config";
 
 interface Message {
   id: string;
@@ -61,7 +62,7 @@ export function MessageThread({
     refetch,
   } = useApiGet<Message[]>(
     ADMIN_ENDPOINTS.conversationMessages(conversationId),
-    { pollInterval: 5000 },
+    { pollInterval: CHAT_POLL_INTERVAL_MS },
   );
 
   const { mutate: patchStatus, loading: patchLoading } = useApiPatch<
@@ -69,9 +70,11 @@ export function MessageThread({
     unknown
   >(ADMIN_ENDPOINTS.conversationStatus(conversationId));
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages && messages.length > 0) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   async function handleResolve() {

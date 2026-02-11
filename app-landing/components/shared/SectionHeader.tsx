@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { staggerItem } from "../../lib/animations/variants";
-import { cn } from "../ui";
+import { cn } from "@praedixa/ui";
 
 interface SectionHeaderProps {
   /** Small uppercase kicker above the heading */

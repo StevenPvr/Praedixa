@@ -22,12 +22,17 @@ import type {
   CanonicalRecord,
   CanonicalQualityDashboard,
   CoverageAlert,
+  DecisionQueueItem,
+  DecisionWorkspace,
   ParetoFrontierResponse,
   OperationalDecision,
   OverrideStatistics,
   CostParameter,
   ProofPack,
   ProofPackSummary,
+  ProductEvent,
+  UserUxPreferences,
+  UserUxPreferencesPatch,
   // Request types
   ListForecastsRequest,
   RequestForecastRequest,
@@ -354,6 +359,16 @@ export function listCoverageAlerts(
   return apiGet<CoverageAlert[]>(`/api/v1/coverage-alerts${qs(params)}`, token);
 }
 
+export function listDecisionQueue(
+  params: Record<string, unknown>,
+  token: GetAccessToken,
+): Promise<ApiResponse<DecisionQueueItem[]>> {
+  return apiGet<DecisionQueueItem[]>(
+    `/api/v1/coverage-alerts/queue${qs(params)}`,
+    token,
+  );
+}
+
 export function acknowledgeCoverageAlert(
   alertId: string,
   token: GetAccessToken,
@@ -386,6 +401,16 @@ export function getScenariosForAlert(
 ): Promise<ApiResponse<ParetoFrontierResponse>> {
   return apiGet<ParetoFrontierResponse>(
     `/api/v1/scenarios/alert/${encodeURIComponent(alertId)}`,
+    token,
+  );
+}
+
+export function getDecisionWorkspace(
+  alertId: string,
+  token: GetAccessToken,
+): Promise<ApiResponse<DecisionWorkspace>> {
+  return apiGet<DecisionWorkspace>(
+    `/api/v1/decision-workspace/${encodeURIComponent(alertId)}`,
     token,
   );
 }
@@ -467,6 +492,42 @@ export function generateProof(
   token: GetAccessToken,
 ): Promise<ApiResponse<ProofPack>> {
   return apiPost<ProofPack>("/api/v1/proof/generate", body, token);
+}
+
+// ─────────────────────────────────────────────────
+// User Preferences
+// ─────────────────────────────────────────────────
+
+export function getUserUxPreferences(
+  token: GetAccessToken,
+): Promise<ApiResponse<UserUxPreferences>> {
+  return apiGet<UserUxPreferences>("/api/v1/users/me/preferences", token);
+}
+
+export function patchUserUxPreferences(
+  body: UserUxPreferencesPatch,
+  token: GetAccessToken,
+): Promise<ApiResponse<UserUxPreferences>> {
+  return apiPatch<UserUxPreferences>(
+    "/api/v1/users/me/preferences",
+    body,
+    token,
+  );
+}
+
+// ─────────────────────────────────────────────────
+// Product Events
+// ─────────────────────────────────────────────────
+
+export function postProductEvents(
+  events: ProductEvent[],
+  token: GetAccessToken,
+): Promise<ApiResponse<{ accepted: number }>> {
+  return apiPost<{ accepted: number }>(
+    "/api/v1/product-events/batch",
+    { events },
+    token,
+  );
 }
 
 // ─────────────────────────────────────────────────

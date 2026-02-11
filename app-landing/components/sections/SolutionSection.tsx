@@ -1,40 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { cn } from "../ui";
+import { cn } from "@praedixa/ui";
 import {
   staggerContainer,
   staggerItem,
   viewportOnce,
 } from "../../lib/animations/variants";
+import { SOLUTION_STEPS } from "../../lib/content/solution-content";
+import { ChevronDownIcon } from "../icons";
 
 interface SolutionSectionProps {
   className?: string;
 }
-
-const SOLUTION_STEPS = [
-  {
-    number: "1",
-    title: "Envoyez vos exports existants",
-    subtitle: "10 min, aucune intégration",
-    description:
-      "Capacité, charge, absences : des fichiers que vous avez déjà. CSV ou Excel, aucun connecteur à installer.",
-  },
-  {
-    number: "2",
-    title: "On détecte et on explique",
-    subtitle: "Prédiction + facteurs explicatifs",
-    description:
-      "On prédit les trous à venir par site, équipe et compétence. Pour chaque risque, Praedixa identifie les facteurs explicatifs : vous comprenez pourquoi, pas juste où.",
-  },
-  {
-    number: "3",
-    title: "Vous recevez votre carte des risques",
-    subtitle: "Risques + causes + playbook d'actions",
-    description:
-      "Une carte de sous-couverture par site, les causes identifiées, le coût évitable estimé et un playbook d'actions prioritaires avec hypothèses transparentes.",
-  },
-] as const;
 
 export function SolutionSection({ className }: SolutionSectionProps) {
   return (
@@ -126,20 +104,7 @@ export function SolutionSection({ className }: SolutionSectionProps) {
             className="mt-4 inline-flex items-center gap-2 text-base font-semibold text-amber-400 transition-colors hover:text-amber-300"
           >
             Découvrir le partenariat pilote
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
+            <ChevronDownIcon className="h-4 w-4" />
           </a>
         </motion.div>
       </div>

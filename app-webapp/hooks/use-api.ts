@@ -44,15 +44,17 @@ export function useApiGet<T>(
   const fetchIdRef = useRef(0);
 
   const fetchData = useCallback(
-    async (signal: AbortSignal) => {
+    async (signal: AbortSignal, options?: { silent?: boolean }) => {
       if (!url) {
         setLoading(false);
         return;
       }
 
       const id = ++fetchIdRef.current;
-      setLoading(true);
-      setError(null);
+      if (!options?.silent) {
+        setLoading(true);
+        setError(null);
+      }
 
       try {
         const response = await apiGet<T>(url, getAccessToken, { signal });
@@ -65,17 +67,20 @@ export function useApiGet<T>(
         if (id !== fetchIdRef.current) return;
 
         if (err instanceof ApiError && err.status === 401) {
+          if (options?.silent) return;
           await redirectToReauth(router);
           return;
         }
 
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Une erreur inattendue est survenue",
-        );
+        if (!options?.silent) {
+          setError(
+            err instanceof ApiError
+              ? err.message
+              : "Une erreur inattendue est survenue",
+          );
+        }
       } finally {
-        if (id === fetchIdRef.current && !signal.aborted) {
+        if (id === fetchIdRef.current && !signal.aborted && !options?.silent) {
           setLoading(false);
         }
       }
@@ -89,15 +94,20 @@ export function useApiGet<T>(
     return () => controller.abort();
   }, [fetchData]);
 
-  // Polling: silently refetch at a regular interval
+  // Polling: silently refetch at a regular interval (skip cycle on 401)
   useEffect(() => {
     const interval = options?.pollInterval;
     if (!interval || !url) return;
+    let pollController: AbortController | null = null;
     const id = setInterval(() => {
-      const controller = new AbortController();
-      void fetchData(controller.signal);
+      pollController?.abort();
+      pollController = new AbortController();
+      void fetchData(pollController.signal, { silent: true });
     }, interval);
-    return () => clearInterval(id);
+    return () => {
+      clearInterval(id);
+      pollController?.abort();
+    };
   }, [options?.pollInterval, url, fetchData]);
 
   const refetch = useCallback(() => {
@@ -121,6 +131,7 @@ export function useApiGetPaginated<T>(
   url: string,
   page: number,
   limit: number,
+  options?: { pollInterval?: number },
 ): UseApiGetPaginatedResult<T> {
   const [data, setData] = useState<T[]>([]);
   const [total, setTotal] = useState(0);
@@ -135,10 +146,12 @@ export function useApiGetPaginated<T>(
   const fullUrl = `${url}${separator}page=${page}&page_size=${limit}`;
 
   const fetchData = useCallback(
-    async (signal: AbortSignal) => {
+    async (signal: AbortSignal, fetchOptions?: { silent?: boolean }) => {
       const id = ++fetchIdRef.current;
-      setLoading(true);
-      setError(null);
+      if (!fetchOptions?.silent) {
+        setLoading(true);
+        setError(null);
+      }
 
       try {
         const response = await apiGetPaginated<T>(fullUrl, getAccessToken, {
@@ -155,17 +168,24 @@ export function useApiGetPaginated<T>(
         if (id !== fetchIdRef.current) return;
 
         if (err instanceof ApiError && err.status === 401) {
+          if (fetchOptions?.silent) return;
           await redirectToReauth(router);
           return;
         }
 
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Une erreur inattendue est survenue",
-        );
+        if (!fetchOptions?.silent) {
+          setError(
+            err instanceof ApiError
+              ? err.message
+              : "Une erreur inattendue est survenue",
+          );
+        }
       } finally {
-        if (id === fetchIdRef.current && !signal.aborted) {
+        if (
+          id === fetchIdRef.current &&
+          !signal.aborted &&
+          !fetchOptions?.silent
+        ) {
           setLoading(false);
         }
       }
@@ -178,6 +198,21 @@ export function useApiGetPaginated<T>(
     void fetchData(controller.signal);
     return () => controller.abort();
   }, [fetchData]);
+
+  useEffect(() => {
+    const interval = options?.pollInterval;
+    if (!interval) return;
+    let pollController: AbortController | null = null;
+    const id = setInterval(() => {
+      pollController?.abort();
+      pollController = new AbortController();
+      void fetchData(pollController.signal, { silent: true });
+    }, interval);
+    return () => {
+      clearInterval(id);
+      pollController?.abort();
+    };
+  }, [options?.pollInterval, fetchData]);
 
   const refetch = useCallback(() => {
     const controller = new AbortController();
@@ -204,6 +239,8 @@ export function useApiPost<TReq, TRes>(
   const router = useRouter();
   const getAccessToken = useAccessToken();
   const abortRef = useRef<AbortController | null>(null);
+  const urlRef = useRef(url);
+  urlRef.current = url;
 
   const mutate = useCallback(
     async (body: TReq): Promise<TRes | null> => {
@@ -216,9 +253,14 @@ export function useApiPost<TReq, TRes>(
       setError(null);
 
       try {
-        const response = await apiPost<TRes>(url, body, getAccessToken, {
-          signal: controller.signal,
-        });
+        const response = await apiPost<TRes>(
+          urlRef.current,
+          body,
+          getAccessToken,
+          {
+            signal: controller.signal,
+          },
+        );
         setData(response.data);
         return response.data;
       } catch (err) {
@@ -243,7 +285,7 @@ export function useApiPost<TReq, TRes>(
         }
       }
     },
-    [url, getAccessToken, router],
+    [getAccessToken, router],
   );
 
   const reset = useCallback(() => {
@@ -270,6 +312,8 @@ export function useApiPatch<TReq, TRes>(
   const router = useRouter();
   const getAccessToken = useAccessToken();
   const abortRef = useRef<AbortController | null>(null);
+  const urlRef = useRef(url);
+  urlRef.current = url;
 
   const mutate = useCallback(
     async (body: TReq): Promise<TRes | null> => {
@@ -282,9 +326,14 @@ export function useApiPatch<TReq, TRes>(
       setError(null);
 
       try {
-        const response = await apiPatch<TRes>(url, body, getAccessToken, {
-          signal: controller.signal,
-        });
+        const response = await apiPatch<TRes>(
+          urlRef.current,
+          body,
+          getAccessToken,
+          {
+            signal: controller.signal,
+          },
+        );
         setData(response.data);
         return response.data;
       } catch (err) {
@@ -309,7 +358,7 @@ export function useApiPatch<TReq, TRes>(
         }
       }
     },
-    [url, getAccessToken, router],
+    [getAccessToken, router],
   );
 
   const reset = useCallback(() => {

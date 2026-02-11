@@ -44,6 +44,11 @@ from app.models.data_catalog import (
     IngestionMode,
     RunStatus,
 )
+from app.services.dataset_table_names import get_transformed_table_name
+from app.services.ingestion_log_watermark import (
+    get_last_successful_transform_watermark,
+    set_ingestion_log_watermark,
+)
 from app.services.schema_manager import resolve_transformed_columns
 
 if TYPE_CHECKING:
@@ -142,12 +147,17 @@ async def run_incremental(
             lookback_days=lookback_days,
         )
 
+        watermark = await _compute_processed_watermark(dataset, cutoff=cutoff)
+        if watermark is None:
+            watermark = cutoff
+
         # Update log entry
         log_entry.rows_received = rows_received
         log_entry.rows_transformed = rows_transformed
         log_entry.completed_at = datetime.now(UTC)
         log_entry.status = RunStatus.SUCCESS
         await session.flush()
+        await set_ingestion_log_watermark(session, log_entry.id, watermark)
 
         logger.info(
             "Incremental transform completed: dataset=%s, rows=%d/%d",
@@ -209,12 +219,15 @@ async def run_full_refit(
             mode="full_refit",
         )
 
+        watermark = await _compute_processed_watermark(dataset, cutoff=None)
+
         # Update log entry
         log_entry.rows_received = rows_received
         log_entry.rows_transformed = rows_transformed
         log_entry.completed_at = datetime.now(UTC)
         log_entry.status = RunStatus.SUCCESS
         await session.flush()
+        await set_ingestion_log_watermark(session, log_entry.id, watermark)
 
         logger.info(
             "Full refit completed: dataset=%s, rows=%d/%d",
@@ -350,17 +363,53 @@ async def _get_last_successful_cutoff(
     dataset_id: uuid.UUID,
     session: AsyncSession,
 ) -> datetime | None:
-    """Get completed_at from the last successful ingestion run."""
-    result = await session.execute(
-        select(IngestionLog.completed_at)
-        .where(
-            IngestionLog.dataset_id == dataset_id,
-            IngestionLog.status == RunStatus.SUCCESS,
-        )
-        .order_by(IngestionLog.completed_at.desc())
-        .limit(1)
+    """Get persisted ingested watermark from the last successful transform run."""
+    return await get_last_successful_transform_watermark(
+        session=session,
+        dataset_id=dataset_id,
     )
-    return result.scalar_one_or_none()
+
+
+async def _compute_processed_watermark(
+    dataset: ClientDataset,
+    *,
+    cutoff: datetime | None,
+) -> datetime | None:
+    """Compute max raw _ingested_at processed by the transform run."""
+    import asyncio
+
+    schema_data = getattr(dataset, "schema_data", None)
+    table_name = getattr(dataset, "table_name", None)
+    if not isinstance(schema_data, str) or not isinstance(table_name, str):
+        return cutoff
+
+    data_schema = validate_schema_name(schema_data)
+    raw_table_name = validate_identifier(table_name, field="table_name")
+
+    def _sync_watermark() -> datetime | None:
+        with ddl_connection() as conn, conn.cursor() as cur:
+            if cutoff is not None:
+                cur.execute(
+                    sql.SQL("SELECT MAX({}) FROM {}.{} WHERE {} > %s").format(
+                        sql.Identifier("_ingested_at"),
+                        sql.Identifier(data_schema),
+                        sql.Identifier(raw_table_name),
+                        sql.Identifier("_ingested_at"),
+                    ),
+                    (cutoff,),
+                )
+            else:
+                cur.execute(
+                    sql.SQL("SELECT MAX({}) FROM {}.{}").format(
+                        sql.Identifier("_ingested_at"),
+                        sql.Identifier(data_schema),
+                        sql.Identifier(raw_table_name),
+                    )
+                )
+            value = cur.fetchone()[0]  # type: ignore[index]
+            return value if isinstance(value, datetime) else None
+
+    return await asyncio.to_thread(_sync_watermark)
 
 
 async def _execute_pipeline(  # pragma: no cover
@@ -387,7 +436,8 @@ async def _execute_pipeline(  # pragma: no cover
     import asyncio
 
     data_schema = validate_schema_name(dataset.schema_data)
-    table_name = validate_identifier(dataset.table_name, field="table_name")
+    raw_table_name = validate_identifier(dataset.table_name, field="table_name")
+    transformed_table_name = get_transformed_table_name(raw_table_name)
     temporal_index = validate_identifier(dataset.temporal_index, field="temporal_index")
 
     # Collect group_by columns
@@ -406,7 +456,7 @@ async def _execute_pipeline(  # pragma: no cover
                 cur.execute(
                     sql.SQL("SELECT COUNT(*) FROM {}.{} {}").format(
                         sql.Identifier(data_schema),
-                        sql.Identifier(table_name),
+                        sql.Identifier(raw_table_name),
                         sql.SQL("WHERE {} > %s").format(sql.Identifier("_ingested_at")),
                     ),
                     (cutoff,),
@@ -423,7 +473,7 @@ async def _execute_pipeline(  # pragma: no cover
                         "ORDER BY {}"
                     ).format(
                         sql.Identifier(data_schema),
-                        sql.Identifier(table_name),
+                        sql.Identifier(raw_table_name),
                         sql.Identifier("_ingested_at"),
                         order_sql,
                     ),
@@ -438,7 +488,7 @@ async def _execute_pipeline(  # pragma: no cover
                 cur.execute(
                     sql.SQL("SELECT * FROM {}.{} ORDER BY {}").format(
                         sql.Identifier(data_schema),
-                        sql.Identifier(table_name),
+                        sql.Identifier(raw_table_name),
                         order_sql,
                     )
                 )
@@ -468,11 +518,11 @@ async def _execute_pipeline(  # pragma: no cover
 
             if mode == "full_refit":
                 # Create temp table, populate, swap
-                temp_name = f"tmp_{table_name}_{uuid.uuid4().hex[:8]}"
+                temp_name = f"tmp_{transformed_table_name}_{uuid.uuid4().hex[:8]}"
                 _atomic_swap_refit(
                     cur,
                     data_schema,
-                    table_name,
+                    transformed_table_name,
                     temp_name,
                     rows_to_insert,
                     col_names,
@@ -485,7 +535,7 @@ async def _execute_pipeline(  # pragma: no cover
                 rows_transformed = _insert_transformed_rows(
                     cur,
                     data_schema,
-                    table_name,
+                    transformed_table_name,
                     rows_to_insert,
                     col_names,
                     columns,

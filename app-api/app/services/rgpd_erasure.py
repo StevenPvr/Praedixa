@@ -2,45 +2,35 @@
 
 Implements the complete data erasure lifecycle:
 1. Initiation: Admin A creates an erasure request (pending_approval).
-2. Approval: Admin B (different user!) approves (approved).
+2. Approval: Admin B (different user) approves (approved).
 3. Execution: crypto-shredding -> schema drop -> platform row deletion.
 4. Verification: confirm zero rows remain for the organization.
 
 Security notes:
 - Dual-approval enforcement: initiated_by MUST differ from approved_by.
-  A single compromised admin account cannot unilaterally erase an org.
-- Key destruction precedes schema deletion: restored database backups
-  cannot be decrypted after crypto-shredding.
-- Status transitions are strictly enforced via _VALID_TRANSITIONS:
-  pending_approval -> approved -> executing -> completed/failed.
-  No transition can be skipped or replayed.
-- All operations are audit-logged via structlog with correlation context.
-- The in-memory store is acceptable for MVP (erasure is rare). Production
-  will migrate to a persistent table with HMAC integrity checks.
-- org_slug is validated by schema_manager.drop_client_schemas via
-  validate_client_slug (prevents SQL injection in schema names).
-- Thread-safety: _store_lock serializes all writes to the in-memory store.
-- Bounded capacity: _MAX_ERASURE_REQUESTS prevents memory exhaustion.
-
-CNIL compliance:
-- Article 17: Complete data erasure with verification.
-- Article 20: Export is handled separately (not in this module).
-- Article 30: Audit trail of every erasure step (structlog + audit_log field).
+- Key destruction precedes schema deletion: backup data becomes unusable first.
+- Status transitions are strictly enforced via _VALID_TRANSITIONS.
+- Erasure requests are persisted in database storage (no in-memory store).
+- Audit trail is append-only in rgpd_erasure_audit_events.
 """
 
 from __future__ import annotations
 
-import threading
-import uuid
+import uuid  # noqa: TC003 - needed at runtime by Pydantic
 from datetime import UTC, datetime
-from enum import Enum
 from typing import TYPE_CHECKING
 
 import structlog
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import delete, func, select
+from sqlalchemy.exc import IntegrityError
 
 from app.core.exceptions import ConflictError, ForbiddenError, NotFoundError
+from app.models.admin import (
+    RgpdErasureAuditEvent,
+    RgpdErasureRequest,
+    RgpdErasureStatus,
+)
 from app.models.conversation import Conversation
 from app.models.data_catalog import (
     ClientDataset,
@@ -63,21 +53,9 @@ logger = structlog.get_logger()
 _MAX_SLUG_LENGTH = 100
 
 
-# ── Data Model ──────────────────────────────────────────
+# ── Public status alias ─────────────────────────────────
 
-
-class ErasureStatus(str, Enum):
-    """Erasure request lifecycle states.
-
-    Transitions: pending_approval -> approved -> executing -> completed/failed
-    No other transitions are valid.
-    """
-
-    PENDING_APPROVAL = "pending_approval"
-    APPROVED = "approved"
-    EXECUTING = "executing"
-    COMPLETED = "completed"
-    FAILED = "failed"
+ErasureStatus = RgpdErasureStatus
 
 
 # Valid status transitions — anything not in this map is rejected.
@@ -89,97 +67,33 @@ _VALID_TRANSITIONS: dict[tuple[str, ErasureStatus], ErasureStatus] = {
     ("fail", ErasureStatus.EXECUTING): ErasureStatus.FAILED,
 }
 
+_ACTIVE_STATUSES = frozenset(
+    {
+        ErasureStatus.PENDING_APPROVAL,
+        ErasureStatus.APPROVED,
+        ErasureStatus.EXECUTING,
+    }
+)
+
 
 class ErasureRequest(BaseModel):
-    """RGPD erasure request with audit trail.
-
-    Pydantic model (not ORM) -- stored in-memory for MVP.
-    Production will use a persistent table with HMAC integrity checks.
-
-    extra="forbid" prevents mass-assignment of unexpected fields.
-    """
+    """API model for RGPD erasure requests."""
 
     model_config = ConfigDict(extra="forbid")
 
     id: uuid.UUID
     organization_id: uuid.UUID
     org_slug: str
-    initiated_by: str  # user_id of Admin A (from JWT, never from body)
-    approved_by: str | None = None  # user_id of Admin B
+    initiated_by: str
+    approved_by: str | None = None
     status: ErasureStatus = ErasureStatus.PENDING_APPROVAL
     created_at: datetime
     completed_at: datetime | None = None
-    audit_log: list[str] = []  # chronological timeline of actions
-
-
-# ── In-Memory Store (MVP) ──────────────────────────────
-# Thread-safe via lock. Production: persistent audit table.
-_erasure_requests: dict[uuid.UUID, ErasureRequest] = {}
-_store_lock = threading.Lock()
-
-# Bounded capacity to prevent memory exhaustion.
-# A single erasure request is ~1KB; 1000 cap = ~1MB max.
-_MAX_ERASURE_REQUESTS = 1000
-
-
-def _store_request(request: ErasureRequest) -> None:
-    """Store an erasure request with bounded capacity.
-
-    Evicts completed/failed requests if capacity is reached.
-    """
-    with _store_lock:
-        if len(_erasure_requests) >= _MAX_ERASURE_REQUESTS:  # pragma: no cover
-            # Evict terminal requests (completed/failed) oldest first
-            terminal_ids = [
-                rid
-                for rid, req in _erasure_requests.items()
-                if req.status in (ErasureStatus.COMPLETED, ErasureStatus.FAILED)
-            ]
-            for rid in terminal_ids:
-                del _erasure_requests[rid]
-                if len(_erasure_requests) < _MAX_ERASURE_REQUESTS:
-                    break
-
-        if len(_erasure_requests) >= _MAX_ERASURE_REQUESTS:  # pragma: no cover
-            msg = "Too many pending erasure requests"
-            raise ConflictError(msg)
-
-        _erasure_requests[request.id] = request
-
-
-def _get_request(request_id: uuid.UUID) -> ErasureRequest | None:
-    """Retrieve an erasure request by ID (thread-safe read)."""
-    with _store_lock:
-        return _erasure_requests.get(request_id)
-
-
-def _update_request(request: ErasureRequest) -> None:
-    """Update an existing erasure request in the store."""
-    with _store_lock:
-        if request.id not in _erasure_requests:  # pragma: no cover
-            return
-        _erasure_requests[request.id] = request
-
-
-def _validate_transition(
-    action: str,
-    current_status: ErasureStatus,
-) -> ErasureStatus:
-    """Validate and return the target status for a state transition.
-
-    Raises ConflictError if the transition is not in _VALID_TRANSITIONS.
-    """
-    key = (action, current_status)
-    target = _VALID_TRANSITIONS.get(key)
-    if target is None:
-        msg = f"Cannot {action} erasure request in status {current_status.value}"
-        raise ConflictError(msg)
-    return target
+    audit_log: list[str] = Field(default_factory=list)
 
 
 # ── Tables verified after erasure ────────────────────────
-# All platform tables that may contain org-specific data.
-# Ordered leaves-first for verification clarity.
+
 _VERIFICATION_TABLES: list[tuple[str, type]] = [
     ("pipeline_config_history", PipelineConfigHistory),
     ("ingestion_log", IngestionLog),
@@ -192,6 +106,19 @@ _VERIFICATION_TABLES: list[tuple[str, type]] = [
 ]
 
 
+def _validate_transition(
+    action: str,
+    current_status: ErasureStatus,
+) -> ErasureStatus:
+    """Validate and return the target status for a state transition."""
+    key = (action, current_status)
+    target = _VALID_TRANSITIONS.get(key)
+    if target is None:
+        msg = f"Cannot {action} erasure request in status {current_status.value}"
+        raise ConflictError(msg)
+    return target
+
+
 # ── Public API ──────────────────────────────────────────
 
 
@@ -199,121 +126,78 @@ async def initiate_erasure(
     org_id: uuid.UUID,
     org_slug: str,
     initiated_by: str,
+    db: AsyncSession,
 ) -> ErasureRequest:
-    """Create an erasure request for an organization.
+    """Create an erasure request for an organization."""
+    cleaned_slug = org_slug.strip()
+    if not cleaned_slug or len(cleaned_slug) > _MAX_SLUG_LENGTH:
+        raise ConflictError("Invalid organization slug")
 
-    This is step 1 of the dual-approval workflow. The request is stored
-    in pending_approval status and must be approved by a different admin.
+    await _ensure_no_active_request(db, org_id)
 
-    Args:
-        org_id: Target organization UUID.
-        org_slug: Organization slug (used for schema name resolution).
-        initiated_by: user_id of the initiating admin (from JWT).
-
-    Returns:
-        The created ErasureRequest in pending_approval status.
-
-    Raises:
-        ConflictError: If an active erasure request already exists for
-            this org, or if the slug is invalid.
-    """
-    # Validate org_slug format at the boundary. The actual DDL validation
-    # happens in drop_client_schemas via validate_client_slug, but we
-    # reject obviously malformed slugs early.
-    if not org_slug or len(org_slug) > _MAX_SLUG_LENGTH:
-        msg = "Invalid organization slug"
-        raise ConflictError(msg)
-
-    # Check for existing active (non-terminal) erasure request for this org.
-    # Only one erasure can be in-flight per organization at a time.
-    with _store_lock:
-        for existing in _erasure_requests.values():
-            if existing.organization_id == org_id and existing.status not in (
-                ErasureStatus.COMPLETED,
-                ErasureStatus.FAILED,
-            ):
-                msg = "An erasure request is already in progress for this organization"
-                raise ConflictError(msg)
-
-    now = datetime.now(UTC)
-    request = ErasureRequest(
-        id=uuid.uuid4(),
+    request_row = RgpdErasureRequest(
         organization_id=org_id,
-        org_slug=org_slug,
+        org_slug=cleaned_slug,
         initiated_by=initiated_by,
         status=ErasureStatus.PENDING_APPROVAL,
-        created_at=now,
-        audit_log=[
-            f"[{now.isoformat()}] Erasure initiated by {initiated_by}",
-        ],
+    )
+    db.add(request_row)
+    await _flush_with_conflict(
+        db,
+        "An erasure request is already in progress for this organization",
     )
 
-    _store_request(request)
+    now = datetime.now(UTC)
+    await _append_audit_event(
+        db,
+        request_row.id,
+        f"[{now.isoformat()}] Erasure initiated by {initiated_by}",
+    )
 
     logger.warning(
         "rgpd_erasure_initiated",
-        erasure_request_id=str(request.id),
+        erasure_request_id=str(request_row.id),
         organization_id=str(org_id),
         initiated_by=initiated_by,
     )
 
-    return request
+    return await _build_response(db, request_row)
 
 
 async def approve_erasure(
     request_id: uuid.UUID,
     approved_by: str,
+    db: AsyncSession,
 ) -> ErasureRequest:
-    """Approve an erasure request. The approver MUST differ from the initiator.
-
-    This is the dual-approval gate. A single compromised admin account
-    cannot unilaterally erase an organization's data.
-
-    Args:
-        request_id: The erasure request UUID to approve.
-        approved_by: user_id of Admin B (from JWT, must differ from initiator).
-
-    Returns:
-        The updated ErasureRequest in approved status.
-
-    Raises:
-        NotFoundError: Request does not exist.
-        ForbiddenError: Same user tried to both initiate and approve.
-        ConflictError: Request is not in pending_approval status.
-    """
-    request = _get_request(request_id)
-    if request is None:
+    """Approve an erasure request. The approver MUST differ from initiator."""
+    request_row = await _load_request_row(db, request_id, for_update=True)
+    if request_row is None:
         raise NotFoundError("ErasureRequest", str(request_id))
 
-    # Enforce dual-approval: different admin must approve
-    if request.initiated_by == approved_by:
+    if request_row.initiated_by == approved_by:
         raise ForbiddenError("Erasure approval requires a different administrator")
 
-    # Validate status transition
-    _validate_transition("approve", request.status)
+    _validate_transition("approve", request_row.status)
+
+    request_row.status = ErasureStatus.APPROVED
+    request_row.approved_by = approved_by
 
     now = datetime.now(UTC)
-    updated = request.model_copy(
-        update={
-            "status": ErasureStatus.APPROVED,
-            "approved_by": approved_by,
-            "audit_log": [
-                *request.audit_log,
-                f"[{now.isoformat()}] Erasure approved by {approved_by}",
-            ],
-        },
+    await _append_audit_event(
+        db,
+        request_row.id,
+        f"[{now.isoformat()}] Erasure approved by {approved_by}",
     )
-
-    _update_request(updated)
+    await db.flush()
 
     logger.warning(
         "rgpd_erasure_approved",
         erasure_request_id=str(request_id),
-        organization_id=str(request.organization_id),
+        organization_id=str(request_row.organization_id),
         approved_by=approved_by,
     )
 
-    return updated
+    return await _build_response(db, request_row)
 
 
 async def execute_erasure(
@@ -321,123 +205,65 @@ async def execute_erasure(
     db: AsyncSession,
     key_provider: KeyProvider,
 ) -> ErasureRequest:
-    """Execute the approved erasure: crypto-shred + drop schemas + delete rows.
-
-    Execution order is critical for security:
-    1. Destroy encryption keys (makes backup data irrecoverable)
-    2. Drop client schemas (raw + transformed data tables)
-    3. Delete platform rows (client_datasets cascades to children)
-    4. Delete organization row itself
-
-    If any step fails, the request is marked as failed with the error
-    recorded in the audit log. Partial erasure is acceptable from a
-    security standpoint because key destruction (step 1) happens first --
-    even if subsequent steps fail, the data is cryptographically dead.
-
-    Args:
-        request_id: The approved erasure request UUID.
-        db: Async database session for platform row deletion.
-        key_provider: KeyProvider for crypto-shredding.
-
-    Returns:
-        The updated ErasureRequest (completed or failed).
-
-    Raises:
-        NotFoundError: Request does not exist.
-        ConflictError: Request is not in approved status.
-    """
-    request = _get_request(request_id)
-    if request is None:
+    """Execute approved erasure: crypto-shred + schema drop + row deletion."""
+    request_row = await _load_request_row(db, request_id, for_update=True)
+    if request_row is None:
         raise NotFoundError("ErasureRequest", str(request_id))
 
-    # Validate status transition to executing
-    _validate_transition("execute", request.status)
+    _validate_transition("execute", request_row.status)
 
-    now = datetime.now(UTC)
-    audit_log = [
-        *request.audit_log,
-        f"[{now.isoformat()}] Execution started",
-    ]
-
-    # Transition to executing state
-    executing = request.model_copy(
-        update={
-            "status": ErasureStatus.EXECUTING,
-            "audit_log": audit_log,
-        },
+    request_row.status = ErasureStatus.EXECUTING
+    await _append_audit_event(
+        db,
+        request_row.id,
+        f"[{datetime.now(UTC).isoformat()}] Execution started",
     )
-    _update_request(executing)
-
-    org_id = request.organization_id
-    org_slug = request.org_slug
+    await db.flush()
 
     logger.warning(
         "rgpd_erasure_executing",
         erasure_request_id=str(request_id),
-        organization_id=str(org_id),
+        organization_id=str(request_row.organization_id),
     )
 
-    # Execute each step; on failure, mark failed and return early.
-    # Step order is security-critical: keys MUST be destroyed first.
     for step_fn in (
-        lambda: _step_crypto_shred(key_provider, org_id, request_id, audit_log),
-        lambda: _step_drop_schemas(org_slug, org_id, request_id, audit_log),
-        lambda: _step_delete_platform_rows(db, org_id, request_id, audit_log),
-        lambda: _step_commit(db, request_id, audit_log),
+        lambda: _step_crypto_shred(db, request_row, key_provider),
+        lambda: _step_drop_schemas(db, request_row),
+        lambda: _step_delete_platform_rows(db, request_row),
+        lambda: _step_commit(db, request_row),
     ):
         failed = await step_fn()  # type: ignore[no-untyped-call]
         if failed is not None:
             return failed
 
-    # All steps succeeded -- mark complete
     completed_time = datetime.now(UTC)
-    audit_log.append(f"[{completed_time.isoformat()}] Erasure completed successfully")
-
-    completed = executing.model_copy(
-        update={
-            "status": ErasureStatus.COMPLETED,
-            "completed_at": completed_time,
-            "audit_log": audit_log,
-        },
+    request_row.status = ErasureStatus.COMPLETED
+    request_row.completed_at = completed_time
+    await _append_audit_event(
+        db,
+        request_row.id,
+        f"[{completed_time.isoformat()}] Erasure completed successfully",
     )
-    _update_request(completed)
+    await db.flush()
 
     logger.warning(
         "rgpd_erasure_completed",
-        erasure_request_id=str(request_id),
-        organization_id=str(org_id),
+        erasure_request_id=str(request_row.id),
+        organization_id=str(request_row.organization_id),
     )
 
-    return completed
+    return await _build_response(db, request_row)
 
 
 async def verify_erasure(
     org_id: uuid.UUID,
     db: AsyncSession,
 ) -> dict[str, int]:
-    """Post-erasure verification: confirm zero rows remain for the org.
-
-    Queries all platform tables that may contain organization-specific
-    data. Returns a dict of {table_name: row_count}. All values should
-    be 0 after a successful erasure.
-
-    For child tables (dataset_columns, fit_parameters, etc.) that are
-    scoped by dataset_id rather than organization_id, we join through
-    client_datasets. After client_datasets are deleted (CASCADE), these
-    should be empty for the org.
-
-    Args:
-        org_id: The organization UUID that was erased.
-        db: Async database session.
-
-    Returns:
-        Dict mapping table name to remaining row count.
-    """
+    """Post-erasure verification: confirm zero rows remain for the org."""
     counts: dict[str, int] = {}
 
     for table_name, model in _VERIFICATION_TABLES:
         if table_name == "organizations":
-            # Organization uses id, not organization_id
             result = await db.execute(
                 select(func.count())
                 .select_from(model)
@@ -446,7 +272,6 @@ async def verify_erasure(
                 )
             )
         elif hasattr(model, "organization_id"):
-            # Tables directly scoped by organization_id
             result = await db.execute(
                 select(func.count())
                 .select_from(model)
@@ -455,9 +280,6 @@ async def verify_erasure(
                 )
             )
         else:
-            # Child tables scoped by dataset_id (not organization_id).
-            # Verify by checking for rows whose dataset_id would belong
-            # to the erased org. After CASCADE delete, should be 0.
             result = await db.execute(
                 select(func.count())
                 .select_from(model)
@@ -470,167 +292,145 @@ async def verify_erasure(
                 )
             )
 
-        row_count = result.scalar_one()
-        counts[table_name] = row_count
-
-    all_zero = all(v == 0 for v in counts.values())
+        counts[table_name] = result.scalar_one()
 
     logger.info(
         "rgpd_erasure_verification",
         organization_id=str(org_id),
         remaining_counts=counts,
-        all_zero=all_zero,
+        all_zero=all(v == 0 for v in counts.values()),
     )
 
     return counts
 
 
-def get_erasure_request(request_id: uuid.UUID) -> ErasureRequest | None:
-    """Get an erasure request by ID.
-
-    Args:
-        request_id: The erasure request UUID.
-
-    Returns:
-        The ErasureRequest, or None if not found.
-    """
-    return _get_request(request_id)
+async def get_erasure_request(
+    request_id: uuid.UUID,
+    db: AsyncSession,
+) -> ErasureRequest | None:
+    """Get an erasure request by ID."""
+    request_row = await _load_request_row(db, request_id)
+    if request_row is None:
+        return None
+    return await _build_response(db, request_row)
 
 
 # ── Private execution steps ──────────────────────────────
-# Each step returns None on success or an ErasureRequest on failure.
-# This pattern keeps execute_erasure under the statement limit.
 
 
 async def _step_crypto_shred(
+    db: AsyncSession,
+    request_row: RgpdErasureRequest,
     key_provider: KeyProvider,
-    org_id: uuid.UUID,
-    request_id: uuid.UUID,
-    audit_log: list[str],
 ) -> ErasureRequest | None:
-    """Step 1: Destroy encryption keys (crypto-shredding).
-
-    MUST happen first -- makes backup data irrecoverable even if
-    subsequent steps fail.
-    """
+    """Step 1: Destroy encryption keys (must happen first)."""
     try:
-        await key_provider.destroy_all_keys(org_id)
+        await key_provider.destroy_all_keys(request_row.organization_id)
         step_time = datetime.now(UTC).isoformat()
-        audit_log.append(f"[{step_time}] Keys destroyed (crypto-shredding complete)")
+        await _append_audit_event(
+            db,
+            request_row.id,
+            f"[{step_time}] Keys destroyed (crypto-shredding complete)",
+        )
         logger.warning(
             "rgpd_erasure_keys_destroyed",
-            erasure_request_id=str(request_id),
-            organization_id=str(org_id),
-        )
-    except Exception:  # pragma: no cover
-        step_time = datetime.now(UTC).isoformat()
-        audit_log.append(f"[{step_time}] FAILED: Key destruction failed")
-        logger.exception(
-            "rgpd_erasure_key_destruction_failed",
-            erasure_request_id=str(request_id),
-            organization_id=str(org_id),
-        )
-        return _mark_failed(request_id, audit_log)
-    return None
-
-
-async def _step_drop_schemas(  # pragma: no cover
-    org_slug: str,
-    org_id: uuid.UUID,
-    request_id: uuid.UUID,
-    audit_log: list[str],
-) -> ErasureRequest | None:
-    """Step 2: Drop client data schema."""
-    try:
-        # Import here to avoid circular dependency at module level
-        from app.services.schema_manager import drop_client_schemas
-
-        await drop_client_schemas(org_slug)
-        step_time = datetime.now(UTC).isoformat()
-        audit_log.append(f"[{step_time}] Client schemas dropped")
-        logger.warning(
-            "rgpd_erasure_schemas_dropped",
-            erasure_request_id=str(request_id),
-            organization_id=str(org_id),
-            org_slug=org_slug,
+            erasure_request_id=str(request_row.id),
+            organization_id=str(request_row.organization_id),
         )
     except Exception:
-        step_time = datetime.now(UTC).isoformat()
-        audit_log.append(f"[{step_time}] FAILED: Schema drop failed")
         logger.exception(
-            "rgpd_erasure_schema_drop_failed",
-            erasure_request_id=str(request_id),
-            organization_id=str(org_id),
+            "rgpd_erasure_key_destruction_failed",
+            erasure_request_id=str(request_row.id),
+            organization_id=str(request_row.organization_id),
         )
-        return _mark_failed(request_id, audit_log)
+        return await _mark_failed(db, request_row, "Key destruction failed")
     return None
 
 
-async def _step_delete_platform_rows(  # pragma: no cover
+async def _step_drop_schemas(
     db: AsyncSession,
-    org_id: uuid.UUID,
-    request_id: uuid.UUID,
-    audit_log: list[str],
+    request_row: RgpdErasureRequest,
 ) -> ErasureRequest | None:
-    """Step 3: Delete all platform rows for the organization.
-
-    Deletes in dependency order (children before parents) for
-    defense in depth, even though CASCADE would handle it.
-    """
+    """Step 2: Drop client data schemas."""
     try:
-        deleted_counts = await _delete_org_data(db, org_id)
+        from app.services.schema_manager import drop_client_schemas
+
+        await drop_client_schemas(request_row.org_slug)
+        step_time = datetime.now(UTC).isoformat()
+        await _append_audit_event(
+            db,
+            request_row.id,
+            f"[{step_time}] Client schemas dropped",
+        )
+        logger.warning(
+            "rgpd_erasure_schemas_dropped",
+            erasure_request_id=str(request_row.id),
+            organization_id=str(request_row.organization_id),
+            org_slug=request_row.org_slug,
+        )
+    except Exception:
+        logger.exception(
+            "rgpd_erasure_schema_drop_failed",
+            erasure_request_id=str(request_row.id),
+            organization_id=str(request_row.organization_id),
+        )
+        return await _mark_failed(db, request_row, "Schema drop failed")
+    return None
+
+
+async def _step_delete_platform_rows(
+    db: AsyncSession,
+    request_row: RgpdErasureRequest,
+) -> ErasureRequest | None:
+    """Step 3: Delete all platform rows for the organization."""
+    try:
+        deleted_counts = await _delete_org_data(db, request_row.organization_id)
         await db.flush()
 
         step_time = datetime.now(UTC).isoformat()
         counts_str = ", ".join(f"{k}={v}" for k, v in deleted_counts.items())
-        audit_log.append(f"[{step_time}] Platform rows deleted: {counts_str}")
+        await _append_audit_event(
+            db,
+            request_row.id,
+            f"[{step_time}] Platform rows deleted: {counts_str}",
+        )
         logger.warning(
             "rgpd_erasure_rows_deleted",
-            erasure_request_id=str(request_id),
-            organization_id=str(org_id),
+            erasure_request_id=str(request_row.id),
+            organization_id=str(request_row.organization_id),
             deleted_counts=deleted_counts,
         )
     except Exception:
-        step_time = datetime.now(UTC).isoformat()
-        audit_log.append(f"[{step_time}] FAILED: Platform row deletion failed")
         logger.exception(
             "rgpd_erasure_row_deletion_failed",
-            erasure_request_id=str(request_id),
-            organization_id=str(org_id),
+            erasure_request_id=str(request_row.id),
+            organization_id=str(request_row.organization_id),
         )
-        return _mark_failed(request_id, audit_log)
+        return await _mark_failed(db, request_row, "Platform row deletion failed")
     return None
 
 
-async def _step_commit(  # pragma: no cover
+async def _step_commit(
     db: AsyncSession,
-    request_id: uuid.UUID,
-    audit_log: list[str],
+    request_row: RgpdErasureRequest,
 ) -> ErasureRequest | None:
-    """Step 4: Commit the transaction."""
+    """Step 4: Flush pending writes in current transaction."""
     try:
-        await db.commit()
+        await db.flush()
     except Exception:
-        step_time = datetime.now(UTC).isoformat()
-        audit_log.append(f"[{step_time}] FAILED: Transaction commit failed")
         logger.exception(
             "rgpd_erasure_commit_failed",
-            erasure_request_id=str(request_id),
+            erasure_request_id=str(request_row.id),
         )
-        return _mark_failed(request_id, audit_log)
+        return await _mark_failed(db, request_row, "Transaction commit failed")
     return None
 
 
-async def _delete_org_data(  # pragma: no cover
+async def _delete_org_data(
     db: AsyncSession,
     org_id: uuid.UUID,
 ) -> dict[str, int]:
-    """Delete all platform rows for an organization.
-
-    Returns a dict of {table_name: deleted_count} for audit logging.
-    Deletes in dependency order: child tables first, then parents.
-    """
-    # Find all dataset IDs for this org to delete child rows
+    """Delete all platform rows for an organization."""
     dataset_ids_result = await db.execute(
         select(ClientDataset.id).where(
             ClientDataset.organization_id == org_id,
@@ -641,7 +441,6 @@ async def _delete_org_data(  # pragma: no cover
     deleted_counts: dict[str, int] = {}
 
     if dataset_ids:
-        # Delete child tables that reference datasets (leaves first)
         for table_name, model in [
             ("pipeline_config_history", PipelineConfigHistory),
             ("ingestion_log", IngestionLog),
@@ -655,7 +454,6 @@ async def _delete_org_data(  # pragma: no cover
             )
             deleted_counts[table_name] = result.rowcount  # type: ignore[attr-defined]
 
-        # Delete client_datasets themselves
         result = await db.execute(
             delete(ClientDataset).where(
                 ClientDataset.organization_id == org_id,
@@ -663,50 +461,122 @@ async def _delete_org_data(  # pragma: no cover
         )
         deleted_counts["client_datasets"] = result.rowcount  # type: ignore[attr-defined]
 
-    # Delete users for this org
     result = await db.execute(delete(User).where(User.organization_id == org_id))
     deleted_counts["users"] = result.rowcount  # type: ignore[attr-defined]
 
-    # Delete the organization itself (also cascades to sites, etc.)
     result = await db.execute(delete(Organization).where(Organization.id == org_id))
     deleted_counts["organizations"] = result.rowcount  # type: ignore[attr-defined]
 
     return deleted_counts
 
 
-# ── Private helpers ──────────────────────────────────────
+# ── Persistence helpers ─────────────────────────────────
 
 
-def _mark_failed(  # pragma: no cover
-    request_id: uuid.UUID,
-    audit_log: list[str],
-) -> ErasureRequest:
-    """Mark an erasure request as failed with the current audit log.
-
-    Called when an execution step fails. The audit_log preserves the
-    full timeline of what succeeded and what failed, which is essential
-    for incident response and CNIL reporting.
-    """
-    request = _get_request(request_id)
-    if request is None:
-        # Should never happen -- defensive guard against store corruption
-        raise NotFoundError("ErasureRequest", str(request_id))
-
-    failed_time = datetime.now(UTC)
-    failed = request.model_copy(
-        update={
-            "status": ErasureStatus.FAILED,
-            "completed_at": failed_time,
-            "audit_log": audit_log,
-        },
+async def _ensure_no_active_request(db: AsyncSession, org_id: uuid.UUID) -> None:
+    result = await db.execute(
+        select(func.count())
+        .select_from(RgpdErasureRequest)
+        .where(
+            RgpdErasureRequest.organization_id == org_id,
+            RgpdErasureRequest.status.in_(tuple(_ACTIVE_STATUSES)),
+        )
     )
-    _update_request(failed)
+    if (result.scalar_one() or 0) > 0:
+        msg = "An erasure request is already in progress"
+        raise ConflictError(msg)
+
+
+async def _load_request_row(
+    db: AsyncSession,
+    request_id: uuid.UUID,
+    *,
+    for_update: bool = False,
+) -> RgpdErasureRequest | None:
+    stmt = select(RgpdErasureRequest).where(RgpdErasureRequest.id == request_id)
+    if for_update:
+        stmt = stmt.with_for_update()
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def _append_audit_event(
+    db: AsyncSession,
+    request_id: uuid.UUID,
+    message: str,
+) -> None:
+    seq_result = await db.execute(
+        select(func.coalesce(func.max(RgpdErasureAuditEvent.sequence_no), 0)).where(
+            RgpdErasureAuditEvent.erasure_request_id == request_id
+        )
+    )
+    current_max = int(seq_result.scalar_one() or 0)
+
+    event = RgpdErasureAuditEvent(
+        erasure_request_id=request_id,
+        sequence_no=current_max + 1,
+        message=message,
+    )
+    db.add(event)
+    await _flush_with_conflict(
+        db,
+        "Failed to append RGPD erasure audit event",
+    )
+
+
+async def _fetch_audit_log(db: AsyncSession, request_id: uuid.UUID) -> list[str]:
+    result = await db.execute(
+        select(RgpdErasureAuditEvent.message)
+        .where(RgpdErasureAuditEvent.erasure_request_id == request_id)
+        .order_by(RgpdErasureAuditEvent.sequence_no.asc())
+    )
+    return [row[0] for row in result.all()]
+
+
+async def _build_response(
+    db: AsyncSession,
+    request_row: RgpdErasureRequest,
+) -> ErasureRequest:
+    return ErasureRequest(
+        id=request_row.id,
+        organization_id=request_row.organization_id,
+        org_slug=request_row.org_slug,
+        initiated_by=request_row.initiated_by,
+        approved_by=request_row.approved_by,
+        status=request_row.status,
+        created_at=request_row.created_at,
+        completed_at=request_row.completed_at,
+        audit_log=await _fetch_audit_log(db, request_row.id),
+    )
+
+
+async def _flush_with_conflict(db: AsyncSession, message: str) -> None:
+    try:
+        await db.flush()
+    except IntegrityError as exc:
+        raise ConflictError(message) from exc
+
+
+async def _mark_failed(
+    db: AsyncSession,
+    request_row: RgpdErasureRequest,
+    reason: str,
+) -> ErasureRequest:
+    failed_time = datetime.now(UTC)
+    request_row.status = ErasureStatus.FAILED
+    request_row.completed_at = failed_time
+    await _append_audit_event(
+        db,
+        request_row.id,
+        f"[{failed_time.isoformat()}] FAILED: {reason}",
+    )
+    await db.flush()
 
     logger.error(
         "rgpd_erasure_failed",
-        erasure_request_id=str(request_id),
-        organization_id=str(request.organization_id),
-        audit_log_entries=len(audit_log),
+        erasure_request_id=str(request_row.id),
+        organization_id=str(request_row.organization_id),
+        reason=reason,
     )
 
-    return failed
+    return await _build_response(db, request_row)

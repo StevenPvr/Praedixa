@@ -25,14 +25,14 @@ import { middleware, config } from "../middleware";
 import type { NextRequest } from "next/server";
 
 describe("landing middleware", () => {
-  it("sets CSP header on response", () => {
+  it("sets CSP header on response", async () => {
     mockHeaders.clear();
     const req = {
       url: "http://localhost:3001",
       headers: new Headers(),
     } as unknown as NextRequest;
 
-    const result = middleware(req);
+    const result = await middleware(req);
 
     expect(result.status).toBe(200);
     expect(result.headers.set).toHaveBeenCalledWith(

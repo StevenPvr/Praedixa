@@ -42,7 +42,27 @@ export default defineConfig({
           ],
         },
       },
-      "app-admin",
+      {
+        extends: true,
+        resolve: {
+          alias: {
+            "@": path.resolve(__dirname, "app-admin"),
+          },
+        },
+        test: {
+          name: "admin",
+          include: ["app-admin/**/*.{test,spec}.{ts,tsx}"],
+          exclude: [
+            "**/node_modules/**",
+            "**/dist/**",
+            "**/.next/**",
+            "**/coverage/**",
+            "app-webapp/**",
+            "app-landing/**",
+            "packages/**",
+          ],
+        },
+      },
     ],
     coverage: {
       provider: "v8",

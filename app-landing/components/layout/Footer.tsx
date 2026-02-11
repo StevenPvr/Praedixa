@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { cn } from "../ui";
+import { cn } from "@praedixa/ui";
 import { PraedixaLogo } from "../logo/PraedixaLogo";
 import { siteConfig } from "../../lib/config/site";
+import { ArrowRightIcon, ShieldCheckIcon, LockIcon, MailIcon } from "../icons";
 
 interface FooterProps {
   className?: string;
@@ -47,20 +48,7 @@ export function Footer({ className }: FooterProps) {
             className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-6 py-3 text-sm font-bold text-charcoal transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-charcoal"
           >
             Devenir entreprise pilote
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              />
-            </svg>
+            <ArrowRightIcon className="h-4 w-4" />
           </Link>
         </div>
       </div>
@@ -89,39 +77,13 @@ export function Footer({ className }: FooterProps) {
             {/* Trust indicators */}
             <div className="mt-6 flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <svg
-                  className="h-4 w-4 text-amber-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                  />
-                </svg>
+                <ShieldCheckIcon className="h-4 w-4 text-amber-400" />
                 <span className="text-xs text-white/50">
                   Hébergement Cloudflare (edge)
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <svg
-                  className="h-4 w-4 text-amber-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  />
-                </svg>
+                <LockIcon className="h-4 w-4 text-amber-400" />
                 <span className="text-xs text-white/50">
                   Données agrégées, RGPD by design
                 </span>
@@ -171,20 +133,7 @@ export function Footer({ className }: FooterProps) {
               href={`mailto:${siteConfig.contact.email}?subject=Programme%20pilote%20Praedixa`}
               className="inline-flex items-center gap-2 text-sm text-white/70 transition-colors hover:text-amber-400"
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
+              <MailIcon className="h-4 w-4" />
               {siteConfig.contact.email}
             </a>
           </div>

@@ -151,6 +151,14 @@ vi.mock("lucide-react", () => ({
   MessageSquare: () => <svg data-testid="icon-msg" />,
 }));
 
+vi.mock("@/lib/auth/client", () => ({
+  useCurrentUser: () => ({
+    id: "user-abc",
+    email: "test@example.com",
+    role: "org_admin",
+  }),
+}));
+
 /* ── Mock data ────────────────────────────────── */
 
 const mockConversations = [

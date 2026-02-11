@@ -3,10 +3,11 @@
 Security notes:
 - Secrets are loaded from environment variables, never hardcoded.
 - CORS_ORIGINS uses an explicit allowlist, never wildcards in production.
-- DEBUG and docs endpoints are disabled in production by default.
+- Staging/production startup is fail-closed for unsafe dev settings.
 - JWT secret minimum length is enforced to prevent weak-key attacks.
 """
 
+from ipaddress import ip_address, ip_network
 from urllib.parse import urlparse
 
 from pydantic import model_validator
@@ -18,6 +19,21 @@ _MIN_JWT_SECRET_LENGTH = 32
 _VALID_ENVIRONMENTS = {"development", "staging", "production"}
 _LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 _PLACEHOLDER_SUPABASE_URLS = {"", "https://your-project.supabase.co"}
+
+
+def _is_valid_proxy_entry(value: str) -> bool:
+    """Validate one TRUSTED_PROXY_IPS entry as IP or CIDR network."""
+    raw = value.strip()
+    if not raw:
+        return False
+    try:
+        if "/" in raw:
+            ip_network(raw, strict=False)
+        else:
+            ip_address(raw)
+    except ValueError:
+        return False
+    return True
 
 
 class Settings(BaseSettings):
@@ -60,8 +76,11 @@ class Settings(BaseSettings):
 
     # ── Rate Limiting ────────────────────────────────
     # Optional Redis backend for distributed rate limiting.
-    # Empty => in-memory backend (local development only).
+    # Required in staging/production.
     RATE_LIMIT_STORAGE_URI: str = ""
+    # Forwarded headers are trusted only when request.client.host
+    # belongs to this allowlist (IP or CIDR notation).
+    TRUSTED_PROXY_IPS: list[str] = ["127.0.0.1", "::1"]
 
     # ── Key Management ────────────────────────────────
     # "local" (dev — derives from LOCAL_KEY_SEED) or
@@ -92,10 +111,48 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_BYTES: int = 50 * 1024 * 1024  # 50 MB
     MAX_ROWS_PER_INGESTION: int = 500_000
     UPLOAD_COOLDOWN_SECONDS: int = 10
+    # Mock forecast router gate (production disabled by default).
+    ENABLE_MOCK_FORECAST_ROUTER: bool = False
 
     @property
     def is_production(self) -> bool:
         return self.ENVIRONMENT == "production"
+
+    @staticmethod
+    def _validate_dev_toggles_off(settings: "Settings") -> None:
+        """Reject unsafe development toggles in staging/production."""
+        _toggle_checks: list[tuple[str, str]] = [
+            ("DEBUG", "DEBUG must be false in staging/production"),
+            (
+                "LEGACY_HS256_ENABLED",
+                "LEGACY_HS256_ENABLED must be false in staging/production",
+            ),
+            (
+                "ALLOW_DEV_ISSUER_FALLBACK",
+                "ALLOW_DEV_ISSUER_FALLBACK must be false in staging/production",
+            ),
+            (
+                "ALLOW_DEV_USER_METADATA_ORG_ID",
+                "ALLOW_DEV_USER_METADATA_ORG_ID must be false in staging/production",
+            ),
+        ]
+        for attr, msg in _toggle_checks:
+            if getattr(settings, attr):
+                raise ValueError(msg)
+
+    @staticmethod
+    def _validate_cors_origins(origins: list[str]) -> None:
+        """Validate CORS origins for staging/production."""
+        if not origins:
+            raise ValueError("CORS_ORIGINS cannot be empty in staging/production")
+        for origin in origins:
+            parsed = urlparse(origin)
+            host = parsed.hostname
+            if parsed.scheme != "https":
+                raise ValueError("CORS_ORIGINS must use https in staging/production")
+            if host in _LOCAL_HOSTS or (host and host.endswith(".local")):
+                msg = "CORS_ORIGINS cannot include localhost in staging/production"
+                raise ValueError(msg)
 
     @model_validator(mode="after")
     def _validate_secrets(self) -> "Settings":
@@ -104,8 +161,8 @@ class Settings(BaseSettings):
         In staging/production, a missing or weak JWT secret would allow
         trivial token forgery. We enforce strict validation at startup.
 
-        DEBUG is forced off in staging/production to prevent stack trace leakage
-        even if the environment variable is misconfigured.
+        Staging/production is fail-closed: unsafe development toggles are
+        rejected at startup instead of being silently overridden.
         """
         normalized_env = self.ENVIRONMENT.strip().lower()
         if normalized_env not in _VALID_ENVIRONMENTS:
@@ -115,9 +172,14 @@ class Settings(BaseSettings):
             raise ValueError(msg)
         self.ENVIRONMENT = normalized_env
 
+        if not self.TRUSTED_PROXY_IPS:
+            raise ValueError("TRUSTED_PROXY_IPS cannot be empty")
+        for proxy in self.TRUSTED_PROXY_IPS:
+            if not _is_valid_proxy_entry(proxy):
+                raise ValueError("TRUSTED_PROXY_IPS must contain valid IP/CIDR entries")
+
         if normalized_env in {"staging", "production"}:
-            # Force DEBUG off in non-dev environments.
-            self.DEBUG = False
+            Settings._validate_dev_toggles_off(self)
 
             secret_len = len(self.SUPABASE_JWT_SECRET)
             if secret_len < _MIN_JWT_SECRET_LENGTH:
@@ -140,19 +202,12 @@ class Settings(BaseSettings):
                 )
                 raise ValueError(msg)
 
-            if not self.CORS_ORIGINS:
-                raise ValueError("CORS_ORIGINS cannot be empty in staging/production")
+            if not self.RATE_LIMIT_STORAGE_URI.strip():
+                raise ValueError(
+                    "RATE_LIMIT_STORAGE_URI must be configured in staging/production"
+                )
 
-            for origin in self.CORS_ORIGINS:
-                parsed = urlparse(origin)
-                host = parsed.hostname
-                if parsed.scheme != "https":
-                    raise ValueError(
-                        "CORS_ORIGINS must use https in staging/production"
-                    )
-                if host in _LOCAL_HOSTS or (host and host.endswith(".local")):
-                    msg = "CORS_ORIGINS cannot include localhost in staging/production"
-                    raise ValueError(msg)
+            Settings._validate_cors_origins(self.CORS_ORIGINS)
         return self
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}

@@ -22,6 +22,7 @@ import { DetailCard } from "@/components/ui/detail-card";
 import { useApiGet, useApiGetPaginated } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
 import { AnimatedSection } from "@/components/animated-section";
+import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
 
 const PAGE_SIZE = 20;
 
@@ -77,7 +78,9 @@ export default function DonneesPage() {
     loading: qualityLoading,
     error: qualityError,
     refetch: refetchQuality,
-  } = useApiGet<CanonicalQualityDashboard>("/api/v1/canonical/quality");
+  } = useApiGet<CanonicalQualityDashboard>("/api/v1/live/canonical/quality", {
+    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
+  });
 
   const { data: sites } = useApiGet<Site[]>("/api/v1/sites");
 
@@ -97,16 +100,17 @@ export default function DonneesPage() {
     error: recordsError,
     refetch: refetchRecords,
   } = useApiGetPaginated<CanonicalRecord>(
-    `/api/v1/canonical${queryParams}`,
+    `/api/v1/live/canonical${queryParams}`,
     page,
     PAGE_SIZE,
+    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
   );
 
   const siteOptions: SelectOption[] = useMemo(() => {
     const opts: SelectOption[] = [{ value: "", label: "Tous les sites" }];
     if (sites) {
       for (const s of sites) {
-        opts.push({ value: s.id, label: s.name });
+        opts.push({ value: s.code ?? s.id, label: s.name });
       }
     }
     return opts;
@@ -163,6 +167,20 @@ export default function DonneesPage() {
               }
             />
           </div>
+          <div className="mt-3 grid gap-2 text-xs text-gray-600 sm:grid-cols-2 lg:grid-cols-4">
+            <p>Lignes de donnees: volume total de lignes consolidees.</p>
+            <p>
+              Taux de remplissage: part des champs utiles effectivement
+              renseignes.
+            </p>
+            <p>
+              Absence moyenne: niveau moyen d&apos;absence observe sur la
+              periode.
+            </p>
+            <p>
+              Postes non renseignes: part des shifts sans donnee exploitable.
+            </p>
+          </div>
         </DetailCard>
       )}
 
@@ -199,6 +217,10 @@ export default function DonneesPage() {
 
       {/* Data table */}
       <AnimatedSection>
+        <p className="mb-3 text-xs text-gray-500">
+          Tableau source pour audit operationnel. Utilisez les filtres pour
+          isoler un site, un shift ou une plage de dates.
+        </p>
         {recordsError ? (
           <ErrorFallback message={recordsError} onRetry={refetchRecords} />
         ) : recordsLoading ? (

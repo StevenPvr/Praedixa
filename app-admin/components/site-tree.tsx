@@ -1,9 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ChevronDown, ChevronRight, MapPin, Users } from "lucide-react";
 import { cn } from "@praedixa/ui";
 import type { SiteHierarchy } from "@/app/(admin)/clients/[orgId]/client-context";
+
+const STORAGE_KEY = "praedixa-expanded-sites";
+
+function loadExpanded(): Set<string> {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveExpanded(ids: Set<string>) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+  } catch {
+    /* storage full — ignore */
+  }
+}
 
 interface SiteTreeProps {
   hierarchy: SiteHierarchy[];
@@ -16,16 +35,17 @@ export function SiteTree({
   selectedSiteId,
   onSelectSite,
 }: SiteTreeProps) {
-  const [expandedSites, setExpandedSites] = useState<Set<string>>(new Set());
+  const [expandedSites, setExpandedSites] = useState<Set<string>>(loadExpanded);
 
-  function toggleExpand(siteId: string) {
+  const toggleExpand = useCallback((siteId: string) => {
     setExpandedSites((prev) => {
       const next = new Set(prev);
       if (next.has(siteId)) next.delete(siteId);
       else next.add(siteId);
+      saveExpanded(next);
       return next;
     });
-  }
+  }, []);
 
   return (
     <div className="space-y-1">

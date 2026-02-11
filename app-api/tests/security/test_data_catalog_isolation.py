@@ -225,7 +225,7 @@ class TestDatasetListIsolation:
 
     async def test_org_a_sees_own_datasets(self, client_org_a: AsyncClient) -> None:
         with patch(
-            "app.routers.datasets.list_datasets",
+            "app.routers.datasets_crud.list_datasets",
             new_callable=AsyncMock,
             return_value=([_mock_dataset_summary()], 1),
         ) as mock_svc:
@@ -241,7 +241,7 @@ class TestDatasetListIsolation:
         self, client_org_b: AsyncClient
     ) -> None:
         with patch(
-            "app.routers.datasets.list_datasets",
+            "app.routers.datasets_crud.list_datasets",
             new_callable=AsyncMock,
             return_value=([], 0),
         ) as mock_svc:
@@ -275,12 +275,12 @@ class TestDatasetGetIsolation:
 
         with (
             patch(
-                "app.routers.datasets.get_dataset",
+                "app.routers.datasets_crud.get_dataset",
                 new_callable=AsyncMock,
                 return_value=_mock_dataset_read(),
             ),
             patch(
-                "app.routers.datasets.get_dataset_columns",
+                "app.routers.datasets_crud.get_dataset_columns",
                 new_callable=AsyncMock,
                 return_value=[_mock_column()],
             ),
@@ -293,7 +293,7 @@ class TestDatasetGetIsolation:
         self, client_org_b: AsyncClient
     ) -> None:
         with patch(
-            "app.routers.datasets.get_dataset",
+            "app.routers.datasets_crud.get_dataset",
             new_callable=AsyncMock,
             side_effect=NotFoundError("ClientDataset", str(ORG_A_DATASET_ID)),
         ):
@@ -312,7 +312,7 @@ class TestDatasetColumnsIsolation:
 
     async def test_org_a_sees_own_columns(self, client_org_a: AsyncClient) -> None:
         with patch(
-            "app.routers.datasets.get_dataset_columns",
+            "app.routers.datasets_crud.get_dataset_columns",
             new_callable=AsyncMock,
             return_value=[_mock_column()],
         ) as mock_svc:
@@ -330,7 +330,7 @@ class TestDatasetColumnsIsolation:
         self, client_org_b: AsyncClient
     ) -> None:
         with patch(
-            "app.routers.datasets.get_dataset_columns",
+            "app.routers.datasets_crud.get_dataset_columns",
             new_callable=AsyncMock,
             side_effect=NotFoundError("ClientDataset", str(ORG_A_DATASET_ID)),
         ):
@@ -351,7 +351,7 @@ class TestDatasetDataIsolation:
         self, client_org_b: AsyncClient
     ) -> None:
         with patch(
-            "app.routers.datasets.get_dataset_data",
+            "app.routers.datasets_crud.get_dataset_data",
             new_callable=AsyncMock,
             side_effect=NotFoundError("ClientDataset", str(ORG_A_DATASET_ID)),
         ):
@@ -372,7 +372,7 @@ class TestIngestionLogIsolation:
         self, client_org_a: AsyncClient
     ) -> None:
         with patch(
-            "app.routers.datasets.get_ingestion_log",
+            "app.routers.datasets_crud.get_ingestion_log",
             new_callable=AsyncMock,
             return_value=([_mock_ingestion_log()], 1),
         ) as mock_svc:
@@ -390,7 +390,7 @@ class TestIngestionLogIsolation:
         self, client_org_b: AsyncClient
     ) -> None:
         with patch(
-            "app.routers.datasets.get_ingestion_log",
+            "app.routers.datasets_crud.get_ingestion_log",
             new_callable=AsyncMock,
             side_effect=NotFoundError("ClientDataset", str(ORG_A_DATASET_ID)),
         ):
@@ -411,7 +411,7 @@ class TestConfigHistoryIsolation:
         self, client_org_b: AsyncClient
     ) -> None:
         with patch(
-            "app.routers.datasets.get_config_history",
+            "app.routers.datasets_crud.get_config_history",
             new_callable=AsyncMock,
             side_effect=NotFoundError("ClientDataset", str(ORG_A_DATASET_ID)),
         ):
@@ -432,7 +432,7 @@ class TestFitParametersIsolation:
         self, client_org_a: AsyncClient
     ) -> None:
         with patch(
-            "app.routers.datasets.get_fit_parameters",
+            "app.routers.datasets_crud.get_fit_parameters",
             new_callable=AsyncMock,
             return_value=[_mock_fit_parameter()],
         ) as mock_svc:
@@ -450,7 +450,7 @@ class TestFitParametersIsolation:
         self, client_org_b: AsyncClient
     ) -> None:
         with patch(
-            "app.routers.datasets.get_fit_parameters",
+            "app.routers.datasets_crud.get_fit_parameters",
             new_callable=AsyncMock,
             side_effect=NotFoundError("ClientDataset", str(ORG_A_DATASET_ID)),
         ):
@@ -471,7 +471,7 @@ class TestDatasetUpdateIsolation:
         self, client_org_b: AsyncClient
     ) -> None:
         with patch(
-            "app.routers.datasets.update_dataset_config",
+            "app.routers.datasets_crud.update_dataset_config",
             new_callable=AsyncMock,
             side_effect=NotFoundError("ClientDataset", str(ORG_A_DATASET_ID)),
         ):
@@ -498,7 +498,7 @@ class TestDataCatalogErrorIsolation:
         self, client_org_b: AsyncClient
     ) -> None:
         with patch(
-            "app.routers.datasets.get_dataset",
+            "app.routers.datasets_crud.get_dataset",
             new_callable=AsyncMock,
             side_effect=NotFoundError("ClientDataset", str(ORG_A_DATASET_ID)),
         ):
@@ -518,14 +518,14 @@ class TestDataCatalogErrorIsolation:
         fake_id = uuid.uuid4()
 
         with patch(
-            "app.routers.datasets.get_dataset",
+            "app.routers.datasets_crud.get_dataset",
             new_callable=AsyncMock,
             side_effect=NotFoundError("ClientDataset", str(fake_id)),
         ):
             response_fake = await client_org_b.get(f"/api/v1/datasets/{fake_id}")
 
         with patch(
-            "app.routers.datasets.get_dataset",
+            "app.routers.datasets_crud.get_dataset",
             new_callable=AsyncMock,
             side_effect=NotFoundError("ClientDataset", str(ORG_A_DATASET_ID)),
         ):

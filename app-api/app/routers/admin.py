@@ -139,6 +139,7 @@ async def initiate_erasure_endpoint(
         org_id=body.organization_id,
         org_slug=body.org_slug,
         initiated_by=current_user.user_id,
+        db=session,
     )
 
     # Audit trail: CRITICAL severity for data destruction initiation
@@ -177,6 +178,7 @@ async def approve_erasure_endpoint(
     erasure_req = await approve_erasure(
         request_id=request_id,
         approved_by=current_user.user_id,
+        db=session,
     )
 
     # Audit trail: CRITICAL severity for data destruction approval
@@ -262,7 +264,7 @@ async def verify_erasure_endpoint(
 
     Requires: super_admin role.
     """
-    erasure_req = get_erasure_request(request_id)
+    erasure_req = await get_erasure_request(request_id, session)
     if erasure_req is None:
         raise NotFoundError("ErasureRequest", str(request_id))
 
@@ -306,7 +308,7 @@ async def get_erasure_request_endpoint(
 
     Requires: super_admin role.
     """
-    erasure_req = get_erasure_request(request_id)
+    erasure_req = await get_erasure_request(request_id, session)
     if erasure_req is None:
         raise NotFoundError("ErasureRequest", str(request_id))
 

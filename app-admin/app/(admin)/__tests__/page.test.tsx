@@ -72,7 +72,7 @@ vi.mock("@/components/severity-badge", () => ({
   ),
 }));
 
-vi.mock("@/components/skeletons", () => ({
+vi.mock("@/components/skeletons/skeleton-admin-dashboard", () => ({
   SkeletonAdminDashboard: () => (
     <div data-testid="skeleton-dashboard" role="status" />
   ),
@@ -235,6 +235,17 @@ describe("AccueilPage", () => {
     setupMockApiGet({ kpis: { loading: true, data: null } });
     render(<AccueilPage />);
     expect(screen.getByTestId("skeleton-dashboard")).toBeInTheDocument();
+    expect(screen.queryByText("Accueil")).not.toBeInTheDocument();
+  });
+
+  it("shows data after loading completes", () => {
+    setupMockApiGet({ kpis: { loading: false, data: MOCK_KPIS } });
+    render(<AccueilPage />);
+    expect(screen.queryByTestId("skeleton-dashboard")).not.toBeInTheDocument();
+    expect(screen.getByText("Accueil")).toBeInTheDocument();
+    expect(screen.getAllByTestId("stat-card")).toHaveLength(4);
+    expect(screen.getByText("Sante plateforme")).toBeInTheDocument();
+    expect(screen.getByText("Activite recente")).toBeInTheDocument();
   });
 
   it("shows error fallback on KPI error", () => {
@@ -242,6 +253,7 @@ describe("AccueilPage", () => {
     render(<AccueilPage />);
     expect(screen.getByTestId("error-fallback")).toBeInTheDocument();
     expect(screen.getByText("Network error")).toBeInTheDocument();
+    expect(screen.queryByText("Accueil")).not.toBeInTheDocument();
   });
 
   it("renders heading and subtitle", () => {

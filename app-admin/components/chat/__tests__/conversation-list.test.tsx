@@ -6,13 +6,16 @@ import { render, screen, fireEvent } from "@testing-library/react";
 /* ────────────────────────────────────────────── */
 
 const mockUseApiGet = vi.fn();
+const mockReplace = vi.fn();
+let mockSearchParams = new URLSearchParams();
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
 }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), replace: mockReplace, refresh: vi.fn() }),
+  useSearchParams: () => mockSearchParams,
 }));
 
 vi.mock("@praedixa/ui", () => ({
@@ -27,6 +30,16 @@ vi.mock("@praedixa/ui", () => ({
       {children}
     </div>
   ),
+  formatRelativeTime: (dateStr: string | null) => {
+    if (!dateStr) return "";
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return "A l'instant";
+    if (diffMin < 60) return `Il y a ${diffMin}min`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `Il y a ${diffH}h`;
+    return `Il y a ${Math.floor(diffH / 24)}j`;
+  },
 }));
 
 vi.mock("@/components/ui/status-badge", () => ({
@@ -113,6 +126,7 @@ describe("ConversationList", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = new URLSearchParams();
   });
 
   it("shows loading state", () => {
@@ -201,37 +215,46 @@ describe("ConversationList", () => {
     expect(convButton.className).toContain("amber-50");
   });
 
-  it("filters by open status", () => {
+  it("filters by open status via URL param", () => {
+    mockSearchParams = new URLSearchParams("filter=open");
     setupMock();
     render(
       <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
     );
-    fireEvent.click(screen.getByText("Ouvertes"));
     expect(screen.getByText("Probleme import")).toBeInTheDocument();
     expect(screen.queryByText("Question config")).not.toBeInTheDocument();
     expect(screen.queryByText("Demande API")).not.toBeInTheDocument();
   });
 
-  it("filters by resolved status", () => {
+  it("filters by resolved status via URL param", () => {
+    mockSearchParams = new URLSearchParams("filter=resolved");
     setupMock();
     render(
       <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
     );
-    fireEvent.click(screen.getByText("Resolues"));
     expect(screen.queryByText("Probleme import")).not.toBeInTheDocument();
     expect(screen.getByText("Question config")).toBeInTheDocument();
   });
 
-  it("resets filter to all", () => {
+  it("updates URL when filter tab is clicked", () => {
     setupMock();
     render(
       <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
     );
     fireEvent.click(screen.getByText("Ouvertes"));
-    expect(screen.queryByText("Question config")).not.toBeInTheDocument();
+    expect(mockReplace).toHaveBeenCalledWith("?filter=open", {
+      scroll: false,
+    });
+  });
 
+  it("removes filter param when Toutes is clicked", () => {
+    mockSearchParams = new URLSearchParams("filter=open");
+    setupMock();
+    render(
+      <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
+    );
     fireEvent.click(screen.getByText("Toutes"));
-    expect(screen.getByText("Question config")).toBeInTheDocument();
+    expect(mockReplace).toHaveBeenCalledWith("?", { scroll: false });
   });
 
   it("renders 3 filter tabs", () => {
@@ -245,11 +268,11 @@ describe("ConversationList", () => {
   });
 
   it("shows empty state when filter yields no results", () => {
+    mockSearchParams = new URLSearchParams("filter=resolved");
     setupMock({ data: [MOCK_CONVERSATIONS[0]] }); // only "open"
     render(
       <ConversationList orgId="org-1" selectedId={null} onSelect={onSelect} />,
     );
-    fireEvent.click(screen.getByText("Resolues"));
     expect(screen.getByText("Aucune conversation")).toBeInTheDocument();
   });
 
@@ -260,31 +283,31 @@ describe("ConversationList", () => {
     );
     expect(mockUseApiGet).toHaveBeenCalledWith(
       expect.stringContaining("/organizations/org-1/conversations"),
-      expect.objectContaining({ pollInterval: 15000 }),
+      expect.objectContaining({ pollInterval: 30000 }),
     );
   });
 });
 
-describe("formatRelativeTime", () => {
-  it("returns 'a l'instant' for recent times", () => {
+describe("formatRelativeTime (re-exported from @praedixa/ui)", () => {
+  it("returns 'A l'instant' for recent times", () => {
     const now = new Date().toISOString();
-    expect(formatRelativeTime(now)).toBe("a l'instant");
+    expect(formatRelativeTime(now)).toBe("A l'instant");
   });
 
   it("returns minutes for <1h", () => {
     const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-    expect(formatRelativeTime(tenMinAgo)).toBe("il y a 10min");
+    expect(formatRelativeTime(tenMinAgo)).toBe("Il y a 10min");
   });
 
   it("returns hours for <24h", () => {
     const twoHoursAgo = new Date(Date.now() - 2 * 3600 * 1000).toISOString();
-    expect(formatRelativeTime(twoHoursAgo)).toBe("il y a 2h");
+    expect(formatRelativeTime(twoHoursAgo)).toBe("Il y a 2h");
   });
 
   it("returns days for >=24h", () => {
     const threeDaysAgo = new Date(
       Date.now() - 3 * 24 * 3600 * 1000,
     ).toISOString();
-    expect(formatRelativeTime(threeDaysAgo)).toBe("il y a 3j");
+    expect(formatRelativeTime(threeDaysAgo)).toBe("Il y a 3j");
   });
 });

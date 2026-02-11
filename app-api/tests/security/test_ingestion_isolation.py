@@ -190,7 +190,7 @@ class TestCrossOrgUploadIsolation:
     ) -> None:
         """Org B uploading to org A's dataset gets 404, not 403."""
         with patch(
-            "app.routers.datasets.get_dataset",
+            "app.routers.datasets_ingestion.get_dataset",
             new_callable=AsyncMock,
             side_effect=NotFoundError("Dataset", str(ORG_A_DATASET_ID)),
         ):
@@ -215,7 +215,7 @@ class TestCrossOrgUploadIsolation:
         fake_id = uuid.uuid4()
 
         with patch(
-            "app.routers.datasets.get_dataset",
+            "app.routers.datasets_ingestion.get_dataset",
             new_callable=AsyncMock,
             side_effect=NotFoundError("Dataset", str(fake_id)),
         ):
@@ -225,7 +225,7 @@ class TestCrossOrgUploadIsolation:
             )
 
         with patch(
-            "app.routers.datasets.get_dataset",
+            "app.routers.datasets_ingestion.get_dataset",
             new_callable=AsyncMock,
             side_effect=NotFoundError("Dataset", str(ORG_A_DATASET_ID)),
         ):
@@ -255,15 +255,15 @@ class TestOversizedFileRejection:
         """A file exceeding the size limit gets 413 Payload Too Large."""
         with (
             patch(
-                "app.routers.datasets.get_dataset",
+                "app.routers.datasets_ingestion.get_dataset",
                 new_callable=AsyncMock,
                 return_value=_mock_dataset(),
             ),
             patch(
-                "app.routers.datasets._check_cooldown",
+                "app.routers.datasets_ingestion._check_cooldown",
                 new_callable=AsyncMock,
             ),
-            patch("app.routers.datasets.settings") as mock_settings,
+            patch("app.routers.datasets_ingestion.settings") as mock_settings,
         ):
             # Set a tiny limit for testing
             mock_settings.MAX_UPLOAD_SIZE_BYTES = 100
@@ -283,12 +283,12 @@ class TestOversizedFileRejection:
         """An empty file gets 400 Invalid File."""
         with (
             patch(
-                "app.routers.datasets.get_dataset",
+                "app.routers.datasets_ingestion.get_dataset",
                 new_callable=AsyncMock,
                 return_value=_mock_dataset(),
             ),
             patch(
-                "app.routers.datasets._check_cooldown",
+                "app.routers.datasets_ingestion._check_cooldown",
                 new_callable=AsyncMock,
             ),
         ):
@@ -311,12 +311,12 @@ class TestInvalidFileTypeRejection:
         """A .exe file is rejected even if it has valid content."""
         with (
             patch(
-                "app.routers.datasets.get_dataset",
+                "app.routers.datasets_ingestion.get_dataset",
                 new_callable=AsyncMock,
                 return_value=_mock_dataset(),
             ),
             patch(
-                "app.routers.datasets._check_cooldown",
+                "app.routers.datasets_ingestion._check_cooldown",
                 new_callable=AsyncMock,
             ),
         ):
@@ -340,12 +340,12 @@ class TestInvalidFileTypeRejection:
         """An .xlsx file without PK signature is rejected."""
         with (
             patch(
-                "app.routers.datasets.get_dataset",
+                "app.routers.datasets_ingestion.get_dataset",
                 new_callable=AsyncMock,
                 return_value=_mock_dataset(),
             ),
             patch(
-                "app.routers.datasets._check_cooldown",
+                "app.routers.datasets_ingestion._check_cooldown",
                 new_callable=AsyncMock,
             ),
         ):
@@ -371,12 +371,12 @@ class TestInvalidFileTypeRejection:
         png_magic = b"\x89PNG\r\n\x1a\n" + b"\x00" * 50
         with (
             patch(
-                "app.routers.datasets.get_dataset",
+                "app.routers.datasets_ingestion.get_dataset",
                 new_callable=AsyncMock,
                 return_value=_mock_dataset(),
             ),
             patch(
-                "app.routers.datasets._check_cooldown",
+                "app.routers.datasets_ingestion._check_cooldown",
                 new_callable=AsyncMock,
             ),
         ):
@@ -406,7 +406,7 @@ class TestFormatHintInjection:
     ) -> None:
         """An invalid format_hint value gets 422 Validation Error."""
         with patch(
-            "app.routers.datasets.get_dataset",
+            "app.routers.datasets_ingestion.get_dataset",
             new_callable=AsyncMock,
             return_value=_mock_dataset(),
         ):
@@ -423,7 +423,7 @@ class TestFormatHintInjection:
     ) -> None:
         """SQL injection via format_hint is rejected at validation layer."""
         with patch(
-            "app.routers.datasets.get_dataset",
+            "app.routers.datasets_ingestion.get_dataset",
             new_callable=AsyncMock,
             return_value=_mock_dataset(),
         ):
@@ -448,21 +448,21 @@ class TestSheetNameInjection:
         """Path traversal in sheet_name doesn't cause file system access."""
         with (
             patch(
-                "app.routers.datasets.get_dataset",
+                "app.routers.datasets_ingestion.get_dataset",
                 new_callable=AsyncMock,
                 return_value=_mock_dataset(),
             ),
             patch(
-                "app.routers.datasets._check_cooldown",
+                "app.routers.datasets_ingestion._check_cooldown",
                 new_callable=AsyncMock,
             ),
             patch(
-                "app.routers.datasets.get_dataset_columns",
+                "app.routers.datasets_ingestion.get_dataset_columns",
                 new_callable=AsyncMock,
                 return_value=[_mock_column()],
             ),
             patch(
-                "app.routers.datasets.parse_file",
+                "app.routers.datasets_ingestion.parse_file",
                 side_effect=Exception("Sheet not found"),
             ),
         ):
@@ -480,21 +480,21 @@ class TestSheetNameInjection:
         """Null bytes in sheet_name are stripped by sanitization."""
         with (
             patch(
-                "app.routers.datasets.get_dataset",
+                "app.routers.datasets_ingestion.get_dataset",
                 new_callable=AsyncMock,
                 return_value=_mock_dataset(),
             ),
             patch(
-                "app.routers.datasets._check_cooldown",
+                "app.routers.datasets_ingestion._check_cooldown",
                 new_callable=AsyncMock,
             ),
             patch(
-                "app.routers.datasets.get_dataset_columns",
+                "app.routers.datasets_ingestion.get_dataset_columns",
                 new_callable=AsyncMock,
                 return_value=[_mock_column()],
             ),
             patch(
-                "app.routers.datasets.parse_file",
+                "app.routers.datasets_ingestion.parse_file",
                 side_effect=Exception("Sheet not found"),
             ),
         ):
@@ -511,21 +511,21 @@ class TestSheetNameInjection:
         """Extremely long sheet_name is truncated before processing."""
         with (
             patch(
-                "app.routers.datasets.get_dataset",
+                "app.routers.datasets_ingestion.get_dataset",
                 new_callable=AsyncMock,
                 return_value=_mock_dataset(),
             ),
             patch(
-                "app.routers.datasets._check_cooldown",
+                "app.routers.datasets_ingestion._check_cooldown",
                 new_callable=AsyncMock,
             ),
             patch(
-                "app.routers.datasets.get_dataset_columns",
+                "app.routers.datasets_ingestion.get_dataset_columns",
                 new_callable=AsyncMock,
                 return_value=[_mock_column()],
             ),
             patch(
-                "app.routers.datasets.parse_file",
+                "app.routers.datasets_ingestion.parse_file",
                 side_effect=Exception("Sheet not found"),
             ),
         ):
@@ -559,7 +559,7 @@ class TestUploadCooldownEnforcement:
         mock_session.execute = AsyncMock(return_value=mock_result)
 
         with patch(
-            "app.routers.datasets.get_dataset",
+            "app.routers.datasets_ingestion.get_dataset",
             new_callable=AsyncMock,
             return_value=_mock_dataset(),
         ):
@@ -583,7 +583,7 @@ class TestIngestionLogIsolation:
     ) -> None:
         """GET /datasets/{id}/ingestion-log returns 404 for cross-org dataset."""
         with patch(
-            "app.routers.datasets.get_ingestion_log",
+            "app.routers.datasets_crud.get_ingestion_log",
             new_callable=AsyncMock,
             side_effect=NotFoundError("Dataset", str(ORG_A_DATASET_ID)),
         ):
@@ -647,21 +647,21 @@ class TestErrorMessageSanitization:
         """Parse error response doesn't reflect the uploaded filename."""
         with (
             patch(
-                "app.routers.datasets.get_dataset",
+                "app.routers.datasets_ingestion.get_dataset",
                 new_callable=AsyncMock,
                 return_value=_mock_dataset(),
             ),
             patch(
-                "app.routers.datasets._check_cooldown",
+                "app.routers.datasets_ingestion._check_cooldown",
                 new_callable=AsyncMock,
             ),
             patch(
-                "app.routers.datasets.get_dataset_columns",
+                "app.routers.datasets_ingestion.get_dataset_columns",
                 new_callable=AsyncMock,
                 return_value=[_mock_column()],
             ),
             patch(
-                "app.routers.datasets.parse_file",
+                "app.routers.datasets_ingestion.parse_file",
                 side_effect=Exception("Internal parse failure details"),
             ),
         ):

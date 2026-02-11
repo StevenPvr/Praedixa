@@ -6,42 +6,19 @@ const { mockUseApiGet } = vi.hoisted(() => ({
   mockUseApiGet: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({
-  usePathname: () => "/dashboard",
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn(),
-    refresh: vi.fn(),
-    prefetch: vi.fn(),
-  }),
-  useSearchParams: () => new URLSearchParams(),
-}));
+vi.mock("next/navigation", () =>
+  globalThis.__mocks.createNextNavigationMocks({ pathname: "/dashboard" }),
+);
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
 }));
 
-vi.mock("@praedixa/ui", () => ({
-  StatCard: ({ label, value }: { label: string; value: string }) => (
-    <div data-testid={`stat-${label}`}>{value}</div>
-  ),
-  SkeletonCard: () => <div data-testid="skeleton-card" />,
-  SkeletonChart: () => <div data-testid="skeleton-chart" />,
-}));
+vi.mock("@praedixa/ui", () => globalThis.__mocks.createUiMocks());
 
 vi.mock("@/components/ui/detail-card", () => ({
-  DetailCard: ({
-    children,
-    className,
-  }: {
-    children: React.ReactNode;
-    className?: string;
-  }) => (
-    <div data-testid="detail-card" className={className}>
-      {children}
-    </div>
+  DetailCard: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="detail-card">{children}</div>
   ),
 }));
 
@@ -49,7 +26,21 @@ vi.mock("@/components/ui/page-header", () => ({
   PageHeader: ({ title, subtitle }: { title: string; subtitle?: string }) => (
     <div data-testid="page-header">
       <h1>{title}</h1>
-      {subtitle && <p>{subtitle}</p>}
+      {subtitle ? <p>{subtitle}</p> : null}
+    </div>
+  ),
+}));
+
+vi.mock("@/components/status-banner", () => ({
+  StatusBanner: ({
+    variant,
+    children,
+  }: {
+    variant: string;
+    children: React.ReactNode;
+  }) => (
+    <div data-testid="status-banner" data-variant={variant}>
+      {children}
     </div>
   ),
 }));
@@ -69,107 +60,79 @@ vi.mock("@/components/staggered-grid", () => ({
   ),
 }));
 
-vi.mock("@/components/status-banner", () => ({
-  StatusBanner: ({
-    variant,
-    children,
-  }: {
-    variant: string;
-    children: React.ReactNode;
-  }) => (
-    <div data-testid="status-banner" data-variant={variant}>
-      {children}
-    </div>
-  ),
-}));
-
 vi.mock("@/components/dashboard/forecast-timeline-chart", () => ({
-  ForecastTimelineChart: () => (
-    <div data-testid="forecast-timeline-chart">ForecastTimelineChart</div>
-  ),
-}));
-
-vi.mock("@/components/dashboard/next-action-card", () => ({
-  NextActionCard: ({
-    alerts,
-    loading,
-  }: {
-    alerts: unknown[] | null;
-    loading: boolean;
-  }) => (
-    <div data-testid="next-action-card">
-      {loading ? "loading" : `${alerts?.length ?? 0} alerts`}
-    </div>
-  ),
+  ForecastTimelineChart: () => <div data-testid="forecast-timeline-chart" />,
 }));
 
 vi.mock("@/components/dashboard/scenario-comparison-chart", () => ({
   ScenarioComparisonChart: () => (
-    <div data-testid="scenario-comparison-chart">ScenarioComparisonChart</div>
+    <div data-testid="scenario-comparison-chart" />
   ),
 }));
 
-vi.mock("lucide-react", () => ({
-  AlertTriangle: () => <svg data-testid="icon-alert" />,
-  ShieldCheck: () => <svg data-testid="icon-shield" />,
-  TrendingUp: () => <svg data-testid="icon-trend" />,
+vi.mock("@/components/dashboard/onboarding-checklist", () => ({
+  OnboardingChecklist: () => <div data-testid="onboarding-checklist" />,
 }));
 
-/* -- Mock data ---------------------------------------- */
+vi.mock("lucide-react", () => globalThis.__mocks.createLucideIconMocks());
 
 const mockAlerts = [
   {
     id: "a1",
     siteId: "Lyon",
-    alertDate: "2026-02-02",
+    alertDate: "2026-02-10",
     shift: "AM",
-    severity: "high",
-    gapH: 4,
-    pRupture: 0.3,
+    severity: "critical",
+    gapH: 6,
+    pRupture: 0.6,
     status: "open",
-    driversJson: ["absence_rate"],
+    driversJson: [],
   },
   {
     id: "a2",
     siteId: "Paris",
-    alertDate: "2026-02-03",
+    alertDate: "2026-02-11",
     shift: "PM",
     severity: "medium",
-    gapH: 2,
-    pRupture: 0.15,
+    gapH: 3,
+    pRupture: 0.2,
     status: "open",
     driversJson: [],
   },
 ];
 
 const mockSummary = {
-  coverageHuman: 85.5,
+  coverageHuman: 84.7,
   coverageMerchandise: 90.2,
-  activeAlertsCount: 3,
-  forecastAccuracy: 92.1,
-  lastForecastDate: "2026-02-07",
+  activeAlertsCount: 2,
+  forecastAccuracy: 91,
+  lastForecastDate: "2026-02-08",
 };
 
-/* -- Helper ------------------------------------------- */
-
-function has(o: Partial<Record<string, unknown>> | undefined, k: string) {
-  return o != null && k in o;
-}
-
-function setupMocks(overrides?: Partial<Record<string, unknown>>) {
-  mockUseApiGet.mockImplementation((url: string | null) => {
-    if (url?.includes("coverage-alerts")) {
+function setupUseApi({
+  alerts = mockAlerts,
+  summary = mockSummary,
+  alertsLoading = false,
+  summaryLoading = false,
+}: {
+  alerts?: unknown[] | null;
+  summary?: Record<string, unknown> | null;
+  alertsLoading?: boolean;
+  summaryLoading?: boolean;
+} = {}) {
+  mockUseApiGet.mockImplementation((url: string) => {
+    if (url.includes("coverage-alerts")) {
       return {
-        data: has(overrides, "alerts") ? overrides!.alerts : mockAlerts,
-        loading: overrides?.alertsLoading ?? false,
-        error: overrides?.alertsError ?? null,
+        data: alerts,
+        loading: alertsLoading,
+        error: null,
         refetch: vi.fn(),
       };
     }
-    if (url?.includes("dashboard/summary")) {
+    if (url.includes("dashboard/summary")) {
       return {
-        data: has(overrides, "summary") ? overrides!.summary : mockSummary,
-        loading: overrides?.summaryLoading ?? false,
+        data: summary,
+        loading: summaryLoading,
         error: null,
         refetch: vi.fn(),
       };
@@ -178,207 +141,93 @@ function setupMocks(overrides?: Partial<Record<string, unknown>>) {
   });
 }
 
-/* -- Tests -------------------------------------------- */
-
 describe("DashboardPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    setupMocks();
+    setupUseApi();
   });
 
-  it("renders the Accueil heading", () => {
+  it("renders the dashboard title and subtitle", () => {
     render(<DashboardPage />);
     expect(
-      screen.getByRole("heading", { name: "Accueil" }),
+      screen.getByRole("heading", { name: "Pilotage" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Statut actuel, priorites du jour et performance recente",
+      ),
     ).toBeInTheDocument();
   });
 
-  it("renders the page subtitle", () => {
+  it("renders onboarding checklist block", () => {
+    render(<DashboardPage />);
+    expect(screen.getByTestId("onboarding-checklist")).toBeInTheDocument();
+  });
+
+  it("renders danger banner when at least one critical alert exists", () => {
+    render(<DashboardPage />);
+    expect(screen.getByTestId("status-banner")).toHaveAttribute(
+      "data-variant",
+      "danger",
+    );
+  });
+
+  it("renders success banner when alerts are empty", () => {
+    setupUseApi({ alerts: [] });
+    render(<DashboardPage />);
+    expect(screen.getByTestId("status-banner")).toHaveAttribute(
+      "data-variant",
+      "success",
+    );
+  });
+
+  it("renders skeleton cards when loading", () => {
+    setupUseApi({ alertsLoading: true });
     render(<DashboardPage />);
     expect(
-      screen.getByText(/Vue d'ensemble de vos previsions/),
+      screen.getAllByTestId("skeleton-card").length,
+    ).toBeGreaterThanOrEqual(3);
+  });
+
+  it("shows KPI values from summary", () => {
+    render(<DashboardPage />);
+    expect(screen.getByTestId("stat-Couverture equipes")).toHaveTextContent(
+      "84.7%",
+    );
+    expect(screen.getByTestId("stat-Alertes actives")).toHaveTextContent("2");
+  });
+
+  it("renders top-priority cards and queue CTA", () => {
+    render(<DashboardPage />);
+    expect(screen.getByText("Lyon")).toBeInTheDocument();
+    expect(screen.getByText("Paris")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("Traiter dans la file de decision").length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("shows no-action copy when no alerts", () => {
+    setupUseApi({ alerts: [] });
+    render(<DashboardPage />);
+    expect(
+      screen.getByText("Aucune action urgente pour aujourd'hui."),
     ).toBeInTheDocument();
   });
 
-  /* -- Status Banner ---------------------------------- */
-
-  it("shows warning status banner when alerts exist but none critical", () => {
+  it("renders trend charts", () => {
     render(<DashboardPage />);
-    const banner = screen.getByTestId("status-banner");
-    expect(banner).toHaveAttribute("data-variant", "warning");
-    expect(banner).toHaveTextContent("2 site(s) presentent un risque");
-  });
-
-  it("shows danger status banner when critical alerts exist", () => {
-    const criticalAlerts = [
-      { ...mockAlerts[0], severity: "critical" },
-      mockAlerts[1],
-    ];
-    setupMocks({ alerts: criticalAlerts });
-    render(<DashboardPage />);
-    const banner = screen.getByTestId("status-banner");
-    expect(banner).toHaveAttribute("data-variant", "danger");
-    expect(banner).toHaveTextContent("1 alerte(s) critique(s)");
-  });
-
-  it("shows success status banner when no alerts", () => {
-    setupMocks({ alerts: [] });
-    render(<DashboardPage />);
-    const banner = screen.getByTestId("status-banner");
-    expect(banner).toHaveAttribute("data-variant", "success");
-    expect(banner).toHaveTextContent("Tous vos sites sont couverts");
-  });
-
-  it("hides banner while loading", () => {
-    setupMocks({ alertsLoading: true });
-    render(<DashboardPage />);
-    expect(screen.queryByTestId("status-banner")).not.toBeInTheDocument();
-  });
-
-  it("hides banner when alerts is null", () => {
-    setupMocks({ alerts: null });
-    render(<DashboardPage />);
-    expect(screen.queryByTestId("status-banner")).not.toBeInTheDocument();
-  });
-
-  it("danger banner CTA links to /actions", () => {
-    const criticalAlerts = [{ ...mockAlerts[0], severity: "critical" }];
-    setupMocks({ alerts: criticalAlerts });
-    render(<DashboardPage />);
-    const link = screen.getByText("Voir les actions");
-    expect(link).toHaveAttribute("href", "/actions");
-  });
-
-  it("warning banner CTA links to /previsions", () => {
-    render(<DashboardPage />);
-    const link = screen.getByText("Voir le detail");
-    expect(link).toHaveAttribute("href", "/previsions");
-  });
-
-  /* -- Loading states --------------------------------- */
-
-  it("shows skeleton cards when loading", () => {
-    setupMocks({ alertsLoading: true });
-    render(<DashboardPage />);
-    expect(screen.getAllByTestId("skeleton-card").length).toBe(3);
-  });
-
-  it("shows skeleton chart when loading", () => {
-    setupMocks({ summaryLoading: true });
-    render(<DashboardPage />);
-    expect(screen.getByTestId("skeleton-chart")).toBeInTheDocument();
-  });
-
-  /* -- KPI StatCards ---------------------------------- */
-
-  it("displays coverage percent from summary", () => {
-    render(<DashboardPage />);
-    expect(screen.getByTestId("stat-Couverture equipes")).toHaveTextContent(
-      "85.5%",
-    );
-  });
-
-  it('shows "--" for coverage when no summary', () => {
-    setupMocks({ summary: null });
-    render(<DashboardPage />);
-    expect(screen.getByTestId("stat-Couverture equipes")).toHaveTextContent(
-      "--",
-    );
-  });
-
-  it("displays active alerts count from summary", () => {
-    render(<DashboardPage />);
-    expect(screen.getByTestId("stat-Alertes actives")).toHaveTextContent("3");
-  });
-
-  it("shows 0 alerts when no summary", () => {
-    setupMocks({ summary: null });
-    render(<DashboardPage />);
-    expect(screen.getByTestId("stat-Alertes actives")).toHaveTextContent("0");
-  });
-
-  it("displays last forecast date formatted", () => {
-    render(<DashboardPage />);
-    // Date formatting depends on locale — just check it's not the raw ISO string
-    const el = screen.getByTestId("stat-Derniere prevision");
-    expect(el.textContent).not.toBe("2026-02-07");
-    expect(el.textContent).not.toBe("--");
-  });
-
-  it('shows "--" for last forecast date when null', () => {
-    setupMocks({ summary: { ...mockSummary, lastForecastDate: null } });
-    render(<DashboardPage />);
-    expect(screen.getByTestId("stat-Derniere prevision")).toHaveTextContent(
-      "--",
-    );
-  });
-
-  it('shows "--" for last forecast date when no summary', () => {
-    setupMocks({ summary: null });
-    render(<DashboardPage />);
-    expect(screen.getByTestId("stat-Derniere prevision")).toHaveTextContent(
-      "--",
-    );
-  });
-
-  /* -- Sections --------------------------------------- */
-
-  it("renders the forecast timeline section", () => {
-    render(<DashboardPage />);
-    expect(screen.getByLabelText("Prevision de capacite")).toBeInTheDocument();
     expect(screen.getByTestId("forecast-timeline-chart")).toBeInTheDocument();
-  });
-
-  it("renders the forecast explanation card", () => {
-    render(<DashboardPage />);
-    expect(
-      screen.getByText(/Comparez la capacite prevue actuelle/),
-    ).toBeInTheDocument();
-  });
-
-  it("renders the next action section", () => {
-    render(<DashboardPage />);
-    expect(
-      screen.getByLabelText("Prochaine action recommandee"),
-    ).toBeInTheDocument();
-    expect(screen.getByTestId("next-action-card")).toBeInTheDocument();
-  });
-
-  it("passes alerts and loading to NextActionCard", () => {
-    render(<DashboardPage />);
-    expect(screen.getByTestId("next-action-card")).toHaveTextContent(
-      "2 alerts",
-    );
-  });
-
-  it("renders the scenario comparison section", () => {
-    render(<DashboardPage />);
-    expect(
-      screen.getByLabelText("Comparaison des scenarios"),
-    ).toBeInTheDocument();
     expect(screen.getByTestId("scenario-comparison-chart")).toBeInTheDocument();
   });
 
-  it("renders the scenario explanation card", () => {
+  it("calls expected API endpoints", () => {
     render(<DashboardPage />);
-    expect(screen.getByText(/Rouge = cout sans Praedixa/)).toBeInTheDocument();
-  });
-
-  it("renders section headings with font-serif", () => {
-    render(<DashboardPage />);
-    const headings = screen.getAllByRole("heading", { level: 2 });
-    expect(headings).toHaveLength(3);
-    expect(headings[0]).toHaveTextContent("Prevision de capacite");
-    expect(headings[1]).toHaveTextContent("Prochaine action recommandee");
-    expect(headings[2]).toHaveTextContent("Comparaison des scenarios");
-  });
-
-  /* -- useApiGet call validation ---------------------- */
-
-  it("calls useApiGet with correct endpoints", () => {
-    render(<DashboardPage />);
-    const calls = mockUseApiGet.mock.calls.map((c: unknown[]) => c[0]);
-    expect(calls).toContain("/api/v1/coverage-alerts?status=open&page_size=50");
-    expect(calls).toContain("/api/v1/dashboard/summary");
+    const calledUrls = mockUseApiGet.mock.calls.map(
+      (call: unknown[]) => call[0],
+    );
+    expect(calledUrls).toContain(
+      "/api/v1/live/coverage-alerts?status=open&page_size=50",
+    );
+    expect(calledUrls).toContain("/api/v1/live/dashboard/summary");
   });
 });

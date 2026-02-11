@@ -49,6 +49,17 @@ class OverrideReasonRequiredError(PraedixaError):
         )
 
 
+class ObservedOutcomeImmutableError(PraedixaError):
+    """Raised when attempting to overwrite an already observed outcome."""
+
+    def __init__(self, field_name: str) -> None:
+        super().__init__(
+            message=f"Observed outcome field '{field_name}' is write-once",
+            code="OBSERVED_OUTCOME_IMMUTABLE",
+            status_code=409,
+        )
+
+
 async def list_operational_decisions(
     session: AsyncSession,
     tenant: TenantFilter,
@@ -262,10 +273,18 @@ async def update_operational_decision(
     decision = await get_operational_decision(session, tenant, decision_id)
 
     if cout_observe_eur is not None:
-        decision.cout_observe_eur = cout_observe_eur
+        if decision.cout_observe_eur is not None:
+            if decision.cout_observe_eur != cout_observe_eur:
+                raise ObservedOutcomeImmutableError("cout_observe_eur")
+        else:
+            decision.cout_observe_eur = cout_observe_eur
 
     if service_observe_pct is not None:
-        decision.service_observe_pct = service_observe_pct
+        if decision.service_observe_pct is not None:
+            if decision.service_observe_pct != service_observe_pct:
+                raise ObservedOutcomeImmutableError("service_observe_pct")
+        else:
+            decision.service_observe_pct = service_observe_pct
 
     if exogenous_event_tag is not None:
         decision.exogenous_event_tag = sanitize_text(

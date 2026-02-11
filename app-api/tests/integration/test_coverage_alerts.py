@@ -97,6 +97,20 @@ def _mock_session_for_single(alert) -> AsyncMock:
     return session
 
 
+def _mock_session_for_queue(alerts: list) -> AsyncMock:
+    """Build a mock session that returns queue query results."""
+    session = AsyncMock()
+    data_result = MagicMock()
+    scalars_mock = MagicMock()
+    scalars_mock.all.return_value = alerts
+    data_result.scalars.return_value = scalars_mock
+    session.execute = AsyncMock(return_value=data_result)
+    session.flush = AsyncMock()
+    session.commit = AsyncMock()
+    session.rollback = AsyncMock()
+    return session
+
+
 def _jwt_a(role: str = "org_admin") -> JWTPayload:
     return JWTPayload(
         user_id=USER_A_ID,
@@ -209,6 +223,78 @@ async def test_list_alerts_401_no_auth() -> None:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get("/api/v1/coverage-alerts")
+    app.dependency_overrides.clear()
+    assert response.status_code == 401
+
+
+# ── GET /api/v1/coverage-alerts/queue ───────────────────────
+
+
+async def test_list_decision_queue_200_prioritized() -> None:
+    """Queue endpoint returns prioritized items with UX metadata."""
+    alerts = [
+        _make_coverage_alert_ns(
+            id=uuid.uuid4(),
+            severity=CoverageAlertSeverity.LOW,
+            p_rupture=Decimal("0.2000"),
+            gap_h=Decimal("4.00"),
+            impact_eur=Decimal("80.00"),
+            drivers_json=["Low risk"],
+        ),
+        _make_coverage_alert_ns(
+            id=uuid.uuid4(),
+            severity=CoverageAlertSeverity.CRITICAL,
+            p_rupture=Decimal("0.9000"),
+            gap_h=Decimal("16.00"),
+            impact_eur=Decimal("1200.00"),
+            drivers_json=["Major demand spike", "Absence increase"],
+        ),
+    ]
+    session = _mock_session_for_queue(alerts)
+
+    async with await _make_client(session) as client:
+        response = await client.get(
+            "/api/v1/coverage-alerts/queue",
+            params={"status": "open", "limit": 50},
+        )
+
+    app.dependency_overrides.clear()
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["success"] is True
+    assert len(payload["data"]) == 2
+    first = payload["data"][0]
+    second = payload["data"][1]
+    assert first["severity"] == "critical"
+    assert first["priorityScore"] > second["priorityScore"]
+    assert "estimatedImpactEur" in first
+    assert "timeToBreachHours" in first
+
+
+async def test_list_decision_queue_limit_applied() -> None:
+    """Queue endpoint enforces limit after prioritization."""
+    alerts = [
+        _make_coverage_alert_ns(id=uuid.uuid4(), severity=CoverageAlertSeverity.HIGH),
+        _make_coverage_alert_ns(id=uuid.uuid4(), severity=CoverageAlertSeverity.MEDIUM),
+        _make_coverage_alert_ns(id=uuid.uuid4(), severity=CoverageAlertSeverity.LOW),
+    ]
+    session = _mock_session_for_queue(alerts)
+
+    async with await _make_client(session) as client:
+        response = await client.get("/api/v1/coverage-alerts/queue?limit=1")
+
+    app.dependency_overrides.clear()
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload["data"]) == 1
+
+
+async def test_list_decision_queue_401_no_auth() -> None:
+    """Queue endpoint returns 401 without auth."""
+    app.dependency_overrides.clear()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get("/api/v1/coverage-alerts/queue")
     app.dependency_overrides.clear()
     assert response.status_code == 401
 
@@ -337,6 +423,22 @@ async def test_acknowledge_alert_401_no_auth() -> None:
     assert response.status_code == 401
 
 
+async def test_acknowledge_alert_patch_200() -> None:
+    """PATCH /acknowledge alias keeps compatibility with frontend client."""
+    alert = _make_coverage_alert_ns()
+    session = _mock_session_for_single(alert)
+
+    async with await _make_client(session, role="org_admin") as client:
+        response = await client.patch(
+            f"/api/v1/coverage-alerts/{ALERT_ID}/acknowledge",
+            json={},
+        )
+
+    app.dependency_overrides.clear()
+    assert response.status_code == 200
+    assert alert.status == CoverageAlertStatus.ACKNOWLEDGED
+
+
 # ── POST /api/v1/coverage-alerts/{alert_id}/resolve ─────────
 
 
@@ -415,3 +517,19 @@ async def test_resolve_alert_401_no_auth() -> None:
         )
     app.dependency_overrides.clear()
     assert response.status_code == 401
+
+
+async def test_resolve_alert_patch_200() -> None:
+    """PATCH /resolve alias keeps compatibility with frontend client."""
+    alert = _make_coverage_alert_ns()
+    session = _mock_session_for_single(alert)
+
+    async with await _make_client(session, role="org_admin") as client:
+        response = await client.patch(
+            f"/api/v1/coverage-alerts/{ALERT_ID}/resolve",
+            json={},
+        )
+
+    app.dependency_overrides.clear()
+    assert response.status_code == 200
+    assert alert.status == CoverageAlertStatus.RESOLVED

@@ -206,6 +206,7 @@ class IngestionLogRead(CamelModel):
     request_id: str | None = None
     file_name: str | None = None
     file_size: int | None = None
+    ingested_watermark_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 

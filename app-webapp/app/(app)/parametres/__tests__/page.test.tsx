@@ -5,54 +5,16 @@ import ParametresPage from "../page";
 const mockUseApiGet = vi.fn();
 const mockUseApiPost = vi.fn();
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
-}));
+vi.mock("next/navigation", () =>
+  globalThis.__mocks.createNextNavigationMocks(),
+);
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
   useApiPost: (...args: unknown[]) => mockUseApiPost(...args),
 }));
 
-vi.mock("@praedixa/ui", () => ({
-  DataTable: ({
-    data,
-    columns,
-    getRowKey,
-    emptyMessage,
-  }: {
-    data: Array<Record<string, unknown>>;
-    columns?: Array<{
-      key: string;
-      render?: (row: Record<string, unknown>) => React.ReactNode;
-    }>;
-    getRowKey?: (row: Record<string, unknown>) => string;
-    emptyMessage?: string;
-  }) => {
-    const first = data[0];
-    return (
-      <div data-testid="data-table">
-        {data.length === 0 ? <p>{emptyMessage}</p> : `${data.length} rows`}
-        {first && getRowKey && (
-          <div data-testid="row-key">{getRowKey(first)}</div>
-        )}
-        {first &&
-          columns?.map((column) => (
-            <div key={column.key}>
-              {column.render
-                ? column.render(first)
-                : String(first[column.key] ?? "")}
-            </div>
-          ))}
-      </div>
-    );
-  },
-  Button: ({ children }: { children: React.ReactNode }) => (
-    <button>{children}</button>
-  ),
-  SkeletonTable: () => <div data-testid="skeleton-table" />,
-  SkeletonCard: () => <div data-testid="skeleton-card" />,
-}));
+vi.mock("@praedixa/ui", () => globalThis.__mocks.createUiMocks());
 
 vi.mock("@/components/ui/tab-bar", () => ({
   TabBar: ({

@@ -8,6 +8,7 @@ import { useApiGetPaginated } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import { ErrorFallback } from "@/components/error-fallback";
 import { SeverityBadge } from "@/components/severity-badge";
+import { ACTION_LABELS } from "@/lib/inbox-helpers";
 
 /* ────────────────────────────────────────────── */
 /*  Audit Log types                               */
@@ -27,25 +28,6 @@ interface AuditLogEntry {
   severity: string;
   createdAt: string;
 }
-
-const ACTION_LABELS: Record<string, string> = {
-  view_org: "Consultation organisation",
-  create_org: "Creation organisation",
-  update_org: "Modification organisation",
-  suspend_org: "Suspension organisation",
-  reactivate_org: "Reactivation organisation",
-  churn_org: "Churn organisation",
-  view_users: "Consultation utilisateurs",
-  invite_user: "Invitation utilisateur",
-  change_role: "Changement role",
-  suspend_user: "Suspension utilisateur",
-  change_plan: "Changement plan",
-  view_monitoring: "Consultation monitoring",
-  view_mirror: "Consultation miroir",
-  view_audit: "Consultation audit",
-  start_onboarding: "Demarrage onboarding",
-  complete_step: "Etape completee",
-};
 
 /* ────────────────────────────────────────────── */
 /*  RGPD actions                                  */
@@ -98,6 +80,8 @@ const RGPD_ACTIONS: RGPDAction[] = [
 /*  Sections                                      */
 /* ────────────────────────────────────────────── */
 
+const AUDIT_PAGE_SIZE = 30;
+
 type Section = "audit" | "rgpd";
 
 /* ────────────────────────────────────────────── */
@@ -120,7 +104,7 @@ export default function JournalPage() {
   const { data, total, error, refetch } = useApiGetPaginated<AuditLogEntry>(
     baseUrl,
     page,
-    30,
+    AUDIT_PAGE_SIZE,
   );
   const getRowKey = (row: AuditLogEntry, _index: number) => row.id;
   const selectedOnPageCount = data.filter((row, index) =>
@@ -276,7 +260,7 @@ export default function JournalPage() {
               }
               pagination={{
                 page,
-                pageSize: 30,
+                pageSize: AUDIT_PAGE_SIZE,
                 total,
                 onPageChange: setPage,
               }}

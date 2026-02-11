@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { cn } from "@praedixa/ui";
+import { cn, formatRelativeTime } from "@praedixa/ui";
 import type { Conversation } from "@/lib/api/endpoints";
 
 interface ConversationListProps {
@@ -23,20 +23,6 @@ const STATUS_LABELS: Record<string, string> = {
   resolved: "Resolu",
   archived: "Archive",
 };
-
-function formatRelativeTime(dateStr: string | null): string {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "A l'instant";
-  if (diffMin < 60) return `Il y a ${diffMin} min`;
-  const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `Il y a ${diffH}h`;
-  const diffD = Math.floor(diffH / 24);
-  return `Il y a ${diffD}j`;
-}
 
 export function ConversationList({
   conversations,

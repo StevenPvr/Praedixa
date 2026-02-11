@@ -9,7 +9,7 @@ import { ErrorFallback } from "@/components/error-fallback";
 import { OrgHeader } from "@/components/org-header";
 import { ClientTabsNav } from "@/components/client-tabs-nav";
 import { SiteTree } from "@/components/site-tree";
-import { ClientContext } from "./client-context";
+import { ClientProvider } from "./client-context";
 import type { SiteHierarchy } from "./client-context";
 import type { PlanTier } from "@/components/plan-badge";
 import type { OrgStatus } from "@/components/org-status-badge";
@@ -56,16 +56,15 @@ export default function ClientWorkspaceLayout({
   }
 
   const basePath = `/clients/${encodeURIComponent(orgId)}`;
+  const sites = data.sites ?? [];
 
   return (
-    <ClientContext.Provider
-      value={{
-        orgId,
-        orgName: data.name,
-        selectedSiteId,
-        setSelectedSiteId,
-        hierarchy: data.sites ?? [],
-      }}
+    <ClientProvider
+      orgId={orgId}
+      orgName={data.name}
+      selectedSiteId={selectedSiteId}
+      setSelectedSiteId={setSelectedSiteId}
+      hierarchy={sites}
     >
       <div className="-m-4 sm:-m-6">
         <OrgHeader name={data.name} plan={data.plan} status={data.status} />
@@ -78,7 +77,7 @@ export default function ClientWorkspaceLayout({
               Sites
             </h3>
             <SiteTree
-              hierarchy={data.sites ?? []}
+              hierarchy={sites}
               selectedSiteId={selectedSiteId}
               onSelectSite={setSelectedSiteId}
             />
@@ -88,6 +87,6 @@ export default function ClientWorkspaceLayout({
           <div className="min-w-0 flex-1 p-4 sm:p-6">{children}</div>
         </div>
       </div>
-    </ClientContext.Provider>
+    </ClientProvider>
   );
 }

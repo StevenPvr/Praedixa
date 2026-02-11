@@ -8,7 +8,6 @@ Security:
 - organization_id, sender_user_id, sender_role are injected from JWT.
 """
 
-import math
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Query
@@ -16,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_db_session, get_tenant_filter
+from app.core.pagination import calculate_total_pages
 from app.core.security import TenantFilter, require_role
 from app.models.conversation import ConversationInitiator, ConversationStatus
 from app.schemas.base import PaginationMeta
@@ -60,7 +60,7 @@ async def list_user_conversations(
         page_size=page_size,
     )
 
-    total_pages = max(1, math.ceil(total / page_size))
+    total_pages = calculate_total_pages(total, page_size)
 
     return PaginatedResponse(
         success=True,
@@ -158,7 +158,7 @@ async def list_conversation_messages(
         page_size=page_size,
     )
 
-    total_pages = max(1, math.ceil(total / page_size))
+    total_pages = calculate_total_pages(total, page_size)
 
     return PaginatedResponse(
         success=True,

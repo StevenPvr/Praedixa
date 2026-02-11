@@ -8,6 +8,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./api-client": {
+      "types": "./dist/api-client.d.ts",
+      "import": "./dist/api-client.js"
+    },
     "./api": {
       "types": "./dist/api.d.ts",
       "import": "./dist/api.js"

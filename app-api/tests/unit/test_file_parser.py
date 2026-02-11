@@ -45,6 +45,9 @@ from app.services.file_parser import (
     _parse_xlsx,
     _read_xlsx_headers,
     _sanitize_cell_value,
+    _try_parse_boolean,
+    _try_parse_date,
+    _try_parse_decimal,
     _validate_xlsx_magic,
     parse_file,
 )
@@ -1118,3 +1121,85 @@ class TestParseResult:
         )
         assert pr.warnings == []
         assert pr.row_count == 0
+
+
+# ── _try_parse_date ──────────────────────────────────────
+
+
+class TestTryParseDate:
+    def test_valid_french_date(self) -> None:
+        warnings: list[str] = []
+        result = _try_parse_date("25/12/2025", "col", warnings)
+        assert result == datetime.date(2025, 12, 25)
+        assert len(warnings) == 0
+
+    def test_dash_separator(self) -> None:
+        warnings: list[str] = []
+        result = _try_parse_date("01-06-2024", "col", warnings)
+        assert result == datetime.date(2024, 6, 1)
+
+    def test_not_a_date(self) -> None:
+        warnings: list[str] = []
+        result = _try_parse_date("hello", "col", warnings)
+        assert result is None
+        assert len(warnings) == 0
+
+    def test_invalid_date_range(self) -> None:
+        warnings: list[str] = []
+        result = _try_parse_date("31/02/2025", "col", warnings)
+        assert result is None
+        assert len(warnings) == 1
+        assert "out of range" in warnings[0]
+
+    def test_single_digit_day_month(self) -> None:
+        warnings: list[str] = []
+        result = _try_parse_date("1/1/2000", "col", warnings)
+        assert result == datetime.date(2000, 1, 1)
+
+
+# ── _try_parse_decimal ───────────────────────────────────
+
+
+class TestTryParseDecimal:
+    def test_french_decimal(self) -> None:
+        assert _try_parse_decimal("1 234,56") == pytest.approx(1234.56)
+
+    def test_simple_decimal(self) -> None:
+        assert _try_parse_decimal("42,5") == pytest.approx(42.5)
+
+    def test_negative(self) -> None:
+        assert _try_parse_decimal("-100,00") == pytest.approx(-100.0)
+
+    def test_not_a_decimal(self) -> None:
+        assert _try_parse_decimal("hello") is None
+
+    def test_dot_decimal_not_matched(self) -> None:
+        assert _try_parse_decimal("1234.56") is None
+
+    def test_value_error_returns_none(self) -> None:
+        with patch("app.services.file_parser.float", side_effect=ValueError("forced")):
+            assert _try_parse_decimal("1 234,56") is None
+
+
+# ── _try_parse_boolean ───────────────────────────────────
+
+
+class TestTryParseBoolean:
+    def test_oui(self) -> None:
+        assert _try_parse_boolean("oui") is True
+
+    def test_non(self) -> None:
+        assert _try_parse_boolean("non") is False
+
+    def test_case_insensitive(self) -> None:
+        assert _try_parse_boolean("OUI") is True
+        assert _try_parse_boolean("Faux") is False
+
+    def test_not_a_boolean(self) -> None:
+        assert _try_parse_boolean("maybe") is None
+
+    def test_zero_string(self) -> None:
+        assert _try_parse_boolean("0") is False
+
+    def test_one_string(self) -> None:
+        assert _try_parse_boolean("1") is True

@@ -400,6 +400,54 @@ describe("useApiGet", () => {
     // Loading should be true while refetching
     expect(result.current.loading).toBe(true);
   });
+
+  it("polling should be silent on 401 (no redirect, no error)", async () => {
+    mockApiGet.mockResolvedValue(successResponse({ id: 1, name: "A" }));
+
+    const { result, unmount } = renderHook(() =>
+      useApiGet<TestItem>("/api/v1/items", { pollInterval: 20 }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    mockApiGet.mockRejectedValue(new ApiError("Unauthorized", 401));
+
+    await waitFor(() => {
+      expect(mockApiGet.mock.calls.length).toBeGreaterThanOrEqual(2);
+    });
+
+    expect(mockClearAuthSession).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(result.current.error).toBeNull();
+    expect(result.current.loading).toBe(false);
+
+    unmount();
+  });
+
+  it("polling should not surface non-401 errors", async () => {
+    mockApiGet.mockResolvedValue(successResponse({ id: 1, name: "A" }));
+
+    const { result, unmount } = renderHook(() =>
+      useApiGet<TestItem>("/api/v1/items", { pollInterval: 20 }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    mockApiGet.mockRejectedValue(new ApiError("Server error", 500));
+
+    await waitFor(() => {
+      expect(mockApiGet.mock.calls.length).toBeGreaterThanOrEqual(2);
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.loading).toBe(false);
+
+    unmount();
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -9,7 +9,6 @@ Security notes:
 - Docs endpoints are disabled in production to reduce attack surface.
 """
 
-import math
 import time
 import uuid
 from collections.abc import AsyncGenerator
@@ -28,6 +27,7 @@ from app.core.database import async_session_factory, engine
 from app.core.dependencies import get_db_session
 from app.core.exceptions import register_exception_handlers
 from app.core.middleware import AuditLogMiddleware
+from app.core.pagination import calculate_total_pages
 from app.core.rate_limit import setup_rate_limiting
 from app.core.security import require_role
 from app.routers import (
@@ -54,15 +54,19 @@ from app.routers import (
     coverage_alerts,
     dashboard,
     datasets,
+    decision_workspace,
     decisions,
     forecasts,
     health,
+    live_client,
     mock_forecast,
     operational_decisions,
     organizations,
+    product_events,
     proof,
     scenarios,
     transforms,
+    user_preferences,
 )
 from app.schemas.admin import AdminAuditLogRead
 from app.schemas.base import PaginationMeta
@@ -71,6 +75,13 @@ from app.services.admin_audit import get_audit_log
 
 logger = structlog.get_logger()
 _PLACEHOLDER_SUPABASE_URLS = {"", "https://your-project.supabase.co"}
+
+
+def _is_mock_forecast_enabled() -> bool:
+    """Enable mock-forecast outside production, or explicitly in production."""
+    if not settings.is_production:
+        return True
+    return settings.ENABLE_MOCK_FORECAST_ROUTER
 
 
 async def _auto_seed_dev() -> None:  # pragma: no cover
@@ -82,6 +93,7 @@ async def _auto_seed_dev() -> None:  # pragma: no cover
 
     Non-blocking: any failure is logged but does not prevent startup.
     """
+    logger.info("auto_seed: starting development seed")
     try:
         from sqlalchemy import select as sa_select
 
@@ -235,6 +247,7 @@ async def request_id_middleware(
 
 # Routers
 app.include_router(health.router)
+app.include_router(live_client.router)
 app.include_router(dashboard.router)
 app.include_router(forecasts.router)
 app.include_router(alerts.router)
@@ -242,15 +255,20 @@ app.include_router(organizations.router)
 app.include_router(decisions.router)
 app.include_router(arbitrage.router)
 app.include_router(datasets.router)
+app.include_router(datasets.ingestion_router)
 app.include_router(transforms.router)
 app.include_router(canonical.router)
 app.include_router(cost_parameters.router)
 app.include_router(coverage_alerts.router)
+app.include_router(decision_workspace.router)
 app.include_router(scenarios.router)
 app.include_router(operational_decisions.router)
 app.include_router(proof.router)
-app.include_router(mock_forecast.router)
+if _is_mock_forecast_enabled():
+    app.include_router(mock_forecast.router)
 app.include_router(conversations.router)
+app.include_router(user_preferences.router)
+app.include_router(product_events.router)
 app.include_router(admin.router)  # Existing RGPD erasure under /api/v1/admin
 
 # ── Admin back-office routers ────────────────────────────
@@ -300,7 +318,7 @@ async def list_audit_log(
         date_to=date_to,
     )
 
-    total_pages = max(1, math.ceil(total / page_size))
+    total_pages = calculate_total_pages(total, page_size)
     data = [AdminAuditLogRead.model_validate(entry) for entry in items]
 
     return PaginatedResponse(

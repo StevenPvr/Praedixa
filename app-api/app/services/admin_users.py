@@ -16,6 +16,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ConflictError, ForbiddenError, NotFoundError
+from app.models.organization import Organization
 from app.models.user import User, UserRole, UserStatus
 
 
@@ -63,6 +64,13 @@ async def invite_user(
     # Defense-in-depth: block super_admin assignment at service layer
     if role == UserRole.SUPER_ADMIN:
         raise ForbiddenError("Cannot assign super_admin role via invitation")
+
+    # Verify the target organization exists (prevents orphaned user records)
+    org_result = await session.execute(
+        select(Organization.id).where(Organization.id == org_id)
+    )
+    if org_result.scalar_one_or_none() is None:
+        raise NotFoundError("Organization", str(org_id))
 
     # Check email uniqueness
     existing = await session.execute(select(User.id).where(User.email == email.lower()))

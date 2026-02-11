@@ -8,7 +8,6 @@ Security:
 - Pagination params are bounded (page_size max 100).
 """
 
-import math
 from datetime import UTC, date, datetime
 from io import BytesIO
 
@@ -26,6 +25,7 @@ from app.core.dependencies import (
     get_tenant_filter,
 )
 from app.core.exceptions import ForbiddenError
+from app.core.pagination import calculate_total_pages
 from app.core.security import SiteFilter, TenantFilter, require_role
 from app.models.operational import OperationalDecision
 from app.schemas.base import CamelModel, PaginationMeta
@@ -70,7 +70,7 @@ async def list_records(
         page_size=page_size,
     )
 
-    total_pages = math.ceil(total / page_size) if total > 0 else 1
+    total_pages = calculate_total_pages(total, page_size)
 
     return PaginatedResponse(
         success=True,

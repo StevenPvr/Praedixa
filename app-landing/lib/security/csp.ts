@@ -1,10 +1,15 @@
 /**
  * CSP nonce generation and header construction for landing site.
  *
- * Same approach as webapp/admin — generates a per-request nonce to replace
- * static 'unsafe-inline' in the Content-Security-Policy header.
- *
  * Landing has no API or Supabase connection, so connect-src is 'self' only.
+ *
+ * Security notes:
+ * - 'strict-dynamic' in script-src propagates trust from nonced scripts
+ *   to any scripts they load, which is needed for Next.js code splitting.
+ * - 'unsafe-inline' is kept in style-src during development because
+ *   Next.js HMR injects style tags without nonce support.
+ * - In production, styles use nonce only — Tailwind CSS is bundled as
+ *   external stylesheets which are allowed by 'self'.
  */
 
 const isProd = process.env.NODE_ENV === "production";

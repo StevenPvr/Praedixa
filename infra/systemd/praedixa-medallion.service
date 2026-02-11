@@ -1,0 +1,24 @@
+[Unit]
+Description=Praedixa Medallion Data Pipeline Orchestrator
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=praedixa
+Group=praedixa
+WorkingDirectory=/opt/praedixa/app-api
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/env bash -lc 'uv run python -m scripts.medallion_orchestrator --config config/medallion/orchestrator.json'
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/praedixa/data /opt/praedixa/data-ready
+
+[Install]
+WantedBy=multi-user.target

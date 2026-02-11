@@ -1,10 +1,9 @@
 /**
- * CSP nonce generation and header construction.
+ * CSP nonce generation and header construction for webapp.
  *
  * Generates a per-request nonce for Content-Security-Policy headers,
- * replacing the static 'unsafe-inline' directive that was previously
- * used in next.config.ts. The nonce is passed to Server Components
- * via the x-nonce request header.
+ * replacing the static 'unsafe-inline' directive. The nonce is passed
+ * to Server Components via the x-nonce request header.
  *
  * Security notes:
  * - 'strict-dynamic' in script-src propagates trust from nonced scripts
@@ -23,13 +22,16 @@ export function generateNonce(): string {
 }
 
 export function buildCspHeader(nonce: string): string {
+  // Build connect-src dynamically based on apiUrl
+  const connectSrc = `'self' ${apiUrl} https://*.supabase.co`;
+
   const directives = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${!isProd ? " 'unsafe-eval'" : ""}`,
     `style-src 'self'${!isProd ? " 'unsafe-inline'" : ` 'nonce-${nonce}'`}`,
     "img-src 'self' data: https:",
     "font-src 'self' data:",
-    `connect-src 'self' ${apiUrl} https://*.supabase.co`,
+    `connect-src ${connectSrc}`,
     "worker-src 'self' blob:",
     "frame-ancestors 'none'",
     "base-uri 'self'",

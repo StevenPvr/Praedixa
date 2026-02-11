@@ -238,6 +238,9 @@ class IngestionLog(TimestampMixin, Base):
     request_id: Mapped[str | None] = mapped_column(String(255))
     file_name: Mapped[str | None] = mapped_column(String(255))
     file_size: Mapped[int | None] = mapped_column(Integer)
+    ingested_watermark_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
 
     def __repr__(self) -> str:
         return f"<IngestionLog {self.mode.value} {self.status.value}>"

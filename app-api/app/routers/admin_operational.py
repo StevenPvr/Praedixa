@@ -12,7 +12,6 @@ Security:
   data leakage. Invalid UUIDs return 422; site not in org returns 404.
 """
 
-import math
 import uuid
 from datetime import UTC, datetime
 
@@ -23,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_admin_tenant_filter, get_db_session
 from app.core.exceptions import NotFoundError
+from app.core.pagination import calculate_total_pages
 from app.core.security import TenantFilter, require_role
 from app.models.admin import AdminAuditAction
 from app.models.operational import CoverageAlert
@@ -110,7 +110,7 @@ async def list_org_canonical(
         metadata=metadata or None,
     )
 
-    total_pages = max(1, math.ceil(total / page_size))
+    total_pages = calculate_total_pages(total, page_size)
 
     return PaginatedResponse(
         success=True,
@@ -164,7 +164,7 @@ async def list_org_cost_params(
         metadata=metadata or None,
     )
 
-    total_pages = max(1, math.ceil(total / page_size))
+    total_pages = calculate_total_pages(total, page_size)
 
     return PaginatedResponse(
         success=True,
@@ -230,7 +230,7 @@ async def list_org_coverage_alerts(
         metadata=metadata or None,
     )
 
-    total_pages = max(1, math.ceil(total / page_size))
+    total_pages = calculate_total_pages(total, page_size)
 
     return PaginatedResponse(
         success=True,
@@ -284,7 +284,7 @@ async def list_org_proof(
         metadata=metadata or None,
     )
 
-    total_pages = max(1, math.ceil(total / page_size))
+    total_pages = calculate_total_pages(total, page_size)
 
     return PaginatedResponse(
         success=True,

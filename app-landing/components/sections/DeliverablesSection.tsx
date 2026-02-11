@@ -1,43 +1,21 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { cn } from "../ui";
+import { cn } from "@praedixa/ui";
 import {
   staggerContainer,
   staggerItem,
   viewportOnce,
 } from "../../lib/animations/variants";
+import {
+  CHECKLIST_ITEMS,
+  TRUST_SIGNALS,
+} from "../../lib/content/deliverables-content";
+import { CheckCircleIcon } from "../icons";
 
 interface DeliverablesSectionProps {
   className?: string;
 }
-
-const CHECKLIST_ITEMS = [
-  "Carte de sous-couverture par site et compétence",
-  "Facteurs explicatifs de chaque risque identifié",
-  "Coût de l'inaction estimé en euros",
-  "Playbook d'actions prioritaires chiffrées",
-  "Hypothèses explicites et auditables",
-] as const;
-
-const TRUST_SIGNALS = [
-  {
-    title: "Crédibilité fondateur",
-    text: "Expertise en data science, séries temporelles et économétrie appliquées aux opérations multi-sites.",
-  },
-  {
-    title: "Transparence méthodologique",
-    text: "Chaque chiffre est accompagné de ses hypothèses. Rien n'est une boîte noire.",
-  },
-  {
-    title: "RGPD by design",
-    text: "Données agrégées équipe/site uniquement. Hébergement France. Pas de données individuelles.",
-  },
-  {
-    title: "Interprétabilité native",
-    text: "Chaque prévision est accompagnée de ses facteurs explicatifs. Vous comprenez le pourquoi, pas juste le quoi.",
-  },
-] as const;
 
 export function DeliverablesSection({ className }: DeliverablesSectionProps) {
   return (
@@ -177,18 +155,7 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
             <ul className="space-y-5" role="list">
               {CHECKLIST_ITEMS.map((item) => (
                 <li key={item} className="flex items-start gap-3">
-                  <svg
-                    className="mt-0.5 h-5 w-5 shrink-0 text-amber-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  <CheckCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
                   <span className="text-base leading-relaxed text-charcoal">
                     {item}
                   </span>
@@ -414,18 +381,7 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                 "Amélioration continue : les causes identifiées nourrissent vos processus",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3">
-                  <svg
-                    className="mt-0.5 h-5 w-5 shrink-0 text-amber-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  <CheckCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
                   <span className="text-base leading-relaxed text-charcoal">
                     {item}
                   </span>

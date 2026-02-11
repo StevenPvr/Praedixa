@@ -1,6 +1,7 @@
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
+import { useState, useEffect } from "react";
 
 /**
  * Singleton Supabase browser client.
@@ -70,4 +71,29 @@ export async function clearAuthSession(): Promise<void> {
   } catch {
     // Best effort: caller still redirects to login.
   }
+}
+
+interface CurrentUser {
+  id: string;
+  email: string;
+  role: string;
+}
+
+export function useCurrentUser(): CurrentUser | null {
+  const [user, setUser] = useState<CurrentUser | null>(null);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email ?? "",
+          role: (session.user.app_metadata?.role as string) ?? "viewer",
+        });
+      }
+    });
+  }, []);
+
+  return user;
 }

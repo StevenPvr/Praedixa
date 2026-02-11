@@ -1,13 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MessageSquare, User, Headphones } from "lucide-react";
+import { formatRelativeTime } from "@praedixa/ui";
 import {
   StatusBadge,
   type StatusBadgeProps,
 } from "@/components/ui/status-badge";
 import { useApiGet } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
+import { CHAT_POLL_INTERVAL_MS } from "@/lib/chat-config";
 
 type ConversationStatus = "open" | "resolved" | "archived";
 
@@ -45,17 +48,12 @@ const FILTER_TABS: { key: FilterTab; label: string }[] = [
   { key: "resolved", label: "Resolues" },
 ];
 
-function formatRelativeTime(dateStr: string): string {
-  const now = Date.now();
-  const date = new Date(dateStr).getTime();
-  const diffMs = now - date;
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "a l'instant";
-  if (diffMin < 60) return `il y a ${diffMin}min`;
-  const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `il y a ${diffH}h`;
-  const diffD = Math.floor(diffH / 24);
-  return `il y a ${diffD}j`;
+const VALID_FILTERS: FilterTab[] = ["all", "open", "resolved"];
+
+function parseFilter(value: string | null): FilterTab {
+  if (value && VALID_FILTERS.includes(value as FilterTab))
+    return value as FilterTab;
+  return "all";
 }
 
 export function ConversationList({
@@ -63,11 +61,24 @@ export function ConversationList({
   selectedId,
   onSelect,
 }: ConversationListProps) {
-  const [filter, setFilter] = useState<FilterTab>("all");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const filter = parseFilter(searchParams.get("filter"));
+
+  const setFilter = useCallback(
+    (f: FilterTab) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (f === "all") params.delete("filter");
+      else params.set("filter", f);
+      const qs = params.toString();
+      router.replace(qs ? `?${qs}` : "?", { scroll: false });
+    },
+    [router, searchParams],
+  );
 
   const { data, loading, error } = useApiGet<Conversation[]>(
     ADMIN_ENDPOINTS.orgConversations(orgId),
-    { pollInterval: 15000 },
+    { pollInterval: CHAT_POLL_INTERVAL_MS },
   );
 
   const filtered = useMemo(() => {
@@ -163,5 +174,5 @@ export function ConversationList({
   );
 }
 
-export { formatRelativeTime };
+export { formatRelativeTime } from "@praedixa/ui";
 export type { Conversation, ConversationStatus, FilterTab };

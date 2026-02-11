@@ -6,7 +6,6 @@ Security:
 - changed_by always from JWT.
 """
 
-import math
 import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, cast
@@ -16,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_db_session
+from app.core.pagination import calculate_total_pages
 from app.core.security import require_role
 from app.models.admin import AdminAuditAction
 from app.schemas.admin import (
@@ -135,7 +135,7 @@ async def get_org_plan_history(
         metadata={"view": True},
     )
 
-    total_pages = max(1, math.ceil(total / page_size))
+    total_pages = calculate_total_pages(total, page_size)
     data = [AdminPlanHistoryRead.model_validate(h) for h in items]
 
     return PaginatedResponse(

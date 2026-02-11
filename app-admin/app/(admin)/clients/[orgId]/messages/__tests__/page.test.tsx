@@ -27,6 +27,7 @@ vi.mock("@/hooks/use-api", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 const mockUseClientContext = vi.fn(() => ({
@@ -74,6 +75,16 @@ vi.mock("@praedixa/ui", () => ({
       {children}
     </div>
   ),
+  formatRelativeTime: (dateStr: string | null) => {
+    if (!dateStr) return "";
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return "A l'instant";
+    if (diffMin < 60) return `Il y a ${diffMin}min`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `Il y a ${diffH}h`;
+    return `Il y a ${Math.floor(diffH / 24)}j`;
+  },
 }));
 
 vi.mock("@/components/ui/status-badge", () => ({

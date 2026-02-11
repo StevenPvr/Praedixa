@@ -24,7 +24,11 @@ from app.models.forecast_run import ForecastStatus
 from app.schemas.base import PaginationMeta
 from app.schemas.forecast import DailyForecastRead, ForecastRunSummary
 from app.schemas.responses import ApiResponse, PaginatedResponse
-from app.services.forecasts import get_daily_forecasts, list_forecasts
+from app.services.forecasts import (
+    get_daily_forecasts,
+    get_latest_daily_forecasts,
+    list_forecasts,
+)
 
 router = APIRouter(prefix="/api/v1/forecasts", tags=["forecasts"])
 
@@ -67,6 +71,30 @@ async def list_forecast_runs(
             has_next_page=page < total_pages,
             has_previous_page=page > 1,
         ),
+        timestamp=datetime.now(UTC).isoformat(),
+    )
+
+
+@router.get("/latest/daily")
+async def get_latest_daily_forecast_data(
+    tenant: TenantFilter = Depends(get_tenant_filter),
+    session: AsyncSession = Depends(get_db_session),
+    _user: JWTPayload = Depends(get_current_user),
+    dimension: ForecastDimension | None = Query(
+        default=None,
+        description="Filter by dimension",
+    ),
+) -> ApiResponse[list[DailyForecastRead]]:
+    """Return daily forecasts for the latest completed run of this organization."""
+    items = await get_latest_daily_forecasts(
+        tenant=tenant,
+        session=session,
+        dimension=dimension,
+    )
+
+    return ApiResponse(
+        success=True,
+        data=[DailyForecastRead.model_validate(item) for item in items],
         timestamp=datetime.now(UTC).isoformat(),
     )
 

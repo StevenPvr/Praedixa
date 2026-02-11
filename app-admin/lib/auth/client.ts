@@ -1,9 +1,10 @@
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
+import { useState, useEffect } from "react";
 
 /**
- * Singleton Supabase browser client for admin app.
+ * Singleton Supabase browser client.
  *
  * Security notes:
  * - Uses NEXT_PUBLIC_ env vars which are safe to expose to the browser
@@ -64,8 +65,35 @@ export async function clearAuthSession(): Promise<void> {
   const supabase = getSupabaseBrowserClient();
 
   try {
+    // Local sign-out clears browser auth state/cookies without requiring
+    // a network round-trip.
     await supabase.auth.signOut({ scope: "local" });
   } catch {
     // Best effort: caller still redirects to login.
   }
+}
+
+interface CurrentUser {
+  id: string;
+  email: string;
+  role: string;
+}
+
+export function useCurrentUser(): CurrentUser | null {
+  const [user, setUser] = useState<CurrentUser | null>(null);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email ?? "",
+          role: (session.user.app_metadata?.role as string) ?? "viewer",
+        });
+      }
+    });
+  }, []);
+
+  return user;
 }

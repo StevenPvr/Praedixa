@@ -9,7 +9,9 @@ import { ErrorFallback } from "@/components/error-fallback";
 import { ConversationList } from "@/components/chat/conversation-list";
 import { MessageThread } from "@/components/chat/message-thread";
 import { MessageInput } from "@/components/chat/message-input";
+import { useCurrentUser } from "@/lib/auth/client";
 import type { Conversation, ConversationMessage } from "@/lib/api/endpoints";
+import { CHAT_POLL_INTERVAL_MS } from "@/lib/chat-config";
 
 interface CreateConversationBody {
   subject: string;
@@ -23,10 +25,7 @@ export default function MessagesPage() {
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const [showNewConvInput, setShowNewConvInput] = useState(false);
   const [newSubject, setNewSubject] = useState("");
-
-  // Hardcoded current user id — in production this comes from auth context
-  // For now we pass it to differentiate own messages from others
-  const currentUserId = "current-user";
+  const currentUser = useCurrentUser();
 
   const {
     data: conversations,
@@ -34,7 +33,7 @@ export default function MessagesPage() {
     error: convsError,
     refetch: refetchConvs,
   } = useApiGet<Conversation[]>("/api/v1/conversations", {
-    pollInterval: 10000,
+    pollInterval: CHAT_POLL_INTERVAL_MS,
   });
 
   const {
@@ -46,7 +45,7 @@ export default function MessagesPage() {
     selectedConvId
       ? `/api/v1/conversations/${encodeURIComponent(selectedConvId)}/messages`
       : null,
-    { pollInterval: 5000 },
+    { pollInterval: CHAT_POLL_INTERVAL_MS },
   );
 
   const { mutate: createConv, loading: creating } = useApiPost<
@@ -204,7 +203,9 @@ export default function MessagesPage() {
             ) : (
               <MessageThread
                 messages={messages ?? []}
-                currentUserId={selectedConvId ? currentUserId : null}
+                currentUserId={
+                  selectedConvId ? (currentUser?.id ?? null) : null
+                }
                 loading={msgsLoading}
                 conversationStatus={selectedConv?.status}
               />

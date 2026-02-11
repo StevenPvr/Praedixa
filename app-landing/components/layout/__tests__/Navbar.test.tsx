@@ -1,32 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 
-// Track the scrollY.on callback so we can simulate scroll
-let scrollYOnCallback: ((value: number) => void) | null = null;
-
 vi.mock("framer-motion", async () => {
   const { createFramerMotionMock } =
     await import("../../../../testing/utils/mocks/framer-motion");
-  const mock = createFramerMotionMock();
-  return {
-    ...mock,
-    useScroll: vi.fn(() => ({
-      scrollY: {
-        get: () => 0,
-        set: vi.fn(),
-        on: vi.fn((_event: string, cb: (value: number) => void) => {
-          scrollYOnCallback = cb;
-          return () => {
-            scrollYOnCallback = null;
-          };
-        }),
-        onChange: vi.fn(),
-      },
-      scrollYProgress: { get: () => 0, set: vi.fn(), onChange: vi.fn() },
-      scrollX: { get: () => 0, set: vi.fn(), onChange: vi.fn() },
-      scrollXProgress: { get: () => 0, set: vi.fn(), onChange: vi.fn() },
-    })),
-  };
+  return createFramerMotionMock();
 });
 
 vi.mock("next/link", () => ({
@@ -55,7 +33,7 @@ import { Navbar } from "../Navbar";
 
 describe("Navbar", () => {
   beforeEach(() => {
-    scrollYOnCallback = null;
+    Object.defineProperty(window, "scrollY", { value: 0, writable: true });
   });
 
   it("should render without errors", () => {
@@ -115,7 +93,6 @@ describe("Navbar", () => {
     const menuButton = screen.getByLabelText("Ouvrir le menu");
     fireEvent.click(menuButton);
 
-    // Mobile menu should show nav links (they appear in both desktop and mobile)
     const problemLinks = screen.getAllByText("Le problème");
     expect(problemLinks.length).toBeGreaterThanOrEqual(2);
   });
@@ -124,12 +101,10 @@ describe("Navbar", () => {
     render(<Navbar />);
     fireEvent.click(screen.getByLabelText("Ouvrir le menu"));
 
-    // Click a mobile nav link
     const mobileLinks = screen.getAllByText("Le problème");
     const mobileLink = mobileLinks[mobileLinks.length - 1];
     fireEvent.click(mobileLink);
 
-    // Menu should be closed — button label should be "Ouvrir le menu"
     expect(screen.getByLabelText("Ouvrir le menu")).toBeInTheDocument();
   });
 
@@ -138,23 +113,23 @@ describe("Navbar", () => {
     fireEvent.click(screen.getByLabelText("Ouvrir le menu"));
     expect(screen.getByLabelText("Fermer le menu")).toBeInTheDocument();
 
-    // Simulate resize to desktop
     Object.defineProperty(window, "innerWidth", { value: 1024 });
     fireEvent.resize(window);
 
     expect(screen.getByLabelText("Ouvrir le menu")).toBeInTheDocument();
   });
 
-  it("should track scroll position via scrollY.on callback", () => {
+  it("should track scroll position via window scroll event", () => {
     render(<Navbar />);
-    // The mock captures the callback registered via scrollY.on
-    expect(scrollYOnCallback).not.toBeNull();
-    // Simulate scrolling — wrap in act() since it updates state
+
     act(() => {
-      scrollYOnCallback!(100);
+      Object.defineProperty(window, "scrollY", { value: 100 });
+      fireEvent.scroll(window);
     });
+
     act(() => {
-      scrollYOnCallback!(5);
+      Object.defineProperty(window, "scrollY", { value: 5 });
+      fireEvent.scroll(window);
     });
   });
 
@@ -163,9 +138,7 @@ describe("Navbar", () => {
     fireEvent.click(screen.getByLabelText("Ouvrir le menu"));
     expect(screen.getByLabelText("Fermer le menu")).toBeInTheDocument();
 
-    // The mobile menu has a CTA link "Programme pilote" pointing to /devenir-pilote
     const mobileCtaLinks = screen.getAllByText("Programme pilote");
-    // The mobile CTA is inside the mobile menu (the last one rendered)
     const mobileCta = mobileCtaLinks[mobileCtaLinks.length - 1];
     fireEvent.click(mobileCta);
 
@@ -177,7 +150,6 @@ describe("Navbar", () => {
     fireEvent.click(screen.getByLabelText("Ouvrir le menu"));
     expect(screen.getByLabelText("Fermer le menu")).toBeInTheDocument();
 
-    // The overlay is the first motion.div inside AnimatePresence with inset-0
     const overlay = container.querySelector(".fixed.inset-0");
     if (overlay) {
       fireEvent.click(overlay);

@@ -3,6 +3,7 @@
 
 // Utilities
 export { cn } from "./utils/cn";
+export { formatRelativeTime } from "./utils/date";
 
 // Components
 export { Button, type ButtonProps } from "./components/button";
@@ -22,7 +23,8 @@ export {
   type DataTablePagination,
   type DataTableSelection,
   type DataTableProps,
-} from "./components/data-table";
+  type SortDirection,
+} from "./components/data-table/index";
 
 export {
   Skeleton,

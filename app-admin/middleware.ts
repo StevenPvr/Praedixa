@@ -13,10 +13,10 @@ export async function middleware(request: NextRequest) {
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", cspHeader);
 
-  // Run auth middleware with the augmented request
+  // Run auth middleware
   const response = await updateSession(request);
 
-  // Apply CSP to the response
+  // Apply CSP to the response (auth middleware may return a redirect or next())
   response.headers.set("Content-Security-Policy", cspHeader);
 
   return response;

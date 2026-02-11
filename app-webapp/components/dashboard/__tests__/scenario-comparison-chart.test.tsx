@@ -251,7 +251,7 @@ describe("ScenarioComparisonChart", () => {
 
   /* ── API call ──────────────────────────── */
 
-  it("calls useApiGet with /api/v1/proof", () => {
+  it("calls useApiGet with live proof endpoint", () => {
     mockUseApiGet.mockReturnValue({
       data: null,
       loading: false,
@@ -259,6 +259,9 @@ describe("ScenarioComparisonChart", () => {
       refetch: vi.fn(),
     });
     render(<ScenarioComparisonChart />);
-    expect(mockUseApiGet).toHaveBeenCalledWith("/api/v1/proof");
+    expect(mockUseApiGet).toHaveBeenCalledWith(
+      "/api/v1/live/proof?page=1&page_size=200",
+      { pollInterval: 10000 },
+    );
   });
 });

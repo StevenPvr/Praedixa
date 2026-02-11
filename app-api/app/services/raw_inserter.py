@@ -24,18 +24,81 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from psycopg import sql
+from sqlalchemy import column, insert, table
 
 from app.core.ddl_connection import ddl_connection
 from app.core.ddl_validation import validate_identifier, validate_schema_name
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
 logger = logging.getLogger(__name__)
 
-__all__ = ["InsertionResult", "insert_raw_rows", "RawInsertError"]
+__all__ = [
+    "InsertionResult",
+    "insert_raw_rows",
+    "insert_raw_rows_in_session",
+    "RawInsertError",
+]
 
 _POSTGRES_MAX_BIND_PARAMS = 65_535
+
+
+def _build_validated_insert_plan(
+    schema_name: str,
+    table_name: str,
+    column_mapping: list[Any],
+    rows: list[dict[str, Any]],
+    *,
+    batch_size: int,
+) -> tuple[
+    str,
+    str,
+    list[tuple[str, str]],
+    list[str],
+    int,
+    uuid.UUID,
+    datetime,
+    list[str],
+]:
+    """Validate identifiers and compute insertion plan metadata."""
+    warnings: list[str] = []
+    validated_schema = validate_schema_name(schema_name)
+    validated_table = validate_identifier(table_name, field="table_name")
+
+    col_pairs: list[tuple[str, str]] = []
+    for mapping in column_mapping:
+        target = validate_identifier(mapping.target_column, field="column_name")
+        col_pairs.append((mapping.source_column, target))
+
+    if not col_pairs:
+        raise RawInsertError(
+            "No column mappings provided",
+            code="NO_COLUMN_MAPPINGS",
+        )
+
+    all_columns = ["_row_id", "_ingested_at", "_batch_id"]
+    all_columns.extend(target for _, target in col_pairs)
+
+    params_per_row = len(all_columns)
+    max_rows_per_stmt = max(1, _POSTGRES_MAX_BIND_PARAMS // params_per_row)
+    effective_batch_size = max(1, min(batch_size, max_rows_per_stmt))
+    if effective_batch_size < batch_size:
+        warnings.append("Batch size reduced to satisfy PostgreSQL parameter limits")
+
+    return (
+        validated_schema,
+        validated_table,
+        col_pairs,
+        all_columns,
+        effective_batch_size,
+        uuid.uuid4(),
+        datetime.now(UTC),
+        warnings,
+    )
 
 
 # ── Exceptions ───────────────────────────────────────────
@@ -61,6 +124,7 @@ class InsertionResult:
     batch_id: uuid.UUID
     schema_name: str
     table_name: str
+    max_ingested_at: datetime | None = None
     warnings: list[str] = field(default_factory=list)
 
 
@@ -94,51 +158,35 @@ def insert_raw_rows(
     Raises:
         RawInsertError: On validation or insertion failure.
     """
-    warnings: list[str] = []
-
     if not rows:
         batch_id = uuid.uuid4()
+        warnings: list[str] = []
         warnings.append("No rows to insert")
         return InsertionResult(
             rows_inserted=0,
             batch_id=batch_id,
             schema_name=schema_name,
             table_name=table_name,
+            max_ingested_at=None,
             warnings=warnings,
         )
 
-    # ── Validate all identifiers (defense in depth) ──────
-    validated_schema = validate_schema_name(schema_name)
-    validated_table = validate_identifier(table_name, field="table_name")
-
-    # Build source -> target mapping, validating each target column name
-    col_pairs: list[tuple[str, str]] = []
-    for mapping in column_mapping:
-        target = validate_identifier(mapping.target_column, field="column_name")
-        col_pairs.append((mapping.source_column, target))
-
-    if not col_pairs:
-        raise RawInsertError(
-            "No column mappings provided",
-            code="NO_COLUMN_MAPPINGS",
-        )
-
-    # ── Generate batch metadata ──────────────────────────
-    batch_id = uuid.uuid4()
-    ingested_at = datetime.now(UTC)
-
-    # ── Build SQL statement ──────────────────────────────
-    # System columns + mapped columns
-    all_columns = ["_row_id", "_ingested_at", "_batch_id"]
-    all_columns.extend(target for _, target in col_pairs)
-
-    # PostgreSQL protocol has a max number of bind parameters per statement.
-    # Enforce an adaptive row batch size to avoid "too many arguments" errors.
-    params_per_row = len(all_columns)
-    max_rows_per_stmt = max(1, _POSTGRES_MAX_BIND_PARAMS // params_per_row)
-    effective_batch_size = max(1, min(batch_size, max_rows_per_stmt))
-    if effective_batch_size < batch_size:
-        warnings.append("Batch size reduced to satisfy PostgreSQL parameter limits")
+    (
+        validated_schema,
+        validated_table,
+        col_pairs,
+        all_columns,
+        effective_batch_size,
+        batch_id,
+        ingested_at,
+        warnings,
+    ) = _build_validated_insert_plan(
+        schema_name,
+        table_name,
+        column_mapping,
+        rows,
+        batch_size=batch_size,
+    )
 
     col_identifiers = sql.SQL(", ").join(sql.Identifier(c) for c in all_columns)
     placeholders = sql.SQL(", ").join(sql.Placeholder() for _ in all_columns)
@@ -202,6 +250,100 @@ def insert_raw_rows(
         batch_id=batch_id,
         schema_name=validated_schema,
         table_name=validated_table,
+        max_ingested_at=ingested_at,
+        warnings=warnings,
+    )
+
+
+async def insert_raw_rows_in_session(
+    session: AsyncSession,
+    schema_name: str,
+    table_name: str,
+    column_mapping: list[Any],
+    rows: list[dict[str, Any]],
+    *,
+    batch_size: int = 1000,
+) -> InsertionResult:
+    """Insert rows using the caller's SQLAlchemy transaction/session."""
+    if not rows:
+        batch_id = uuid.uuid4()
+        warnings = ["No rows to insert"]
+        return InsertionResult(
+            rows_inserted=0,
+            batch_id=batch_id,
+            schema_name=schema_name,
+            table_name=table_name,
+            max_ingested_at=None,
+            warnings=warnings,
+        )
+
+    (
+        validated_schema,
+        validated_table,
+        col_pairs,
+        all_columns,
+        effective_batch_size,
+        batch_id,
+        ingested_at,
+        warnings,
+    ) = _build_validated_insert_plan(
+        schema_name,
+        table_name,
+        column_mapping,
+        rows,
+        batch_size=batch_size,
+    )
+
+    table_clause = table(
+        validated_table,
+        *[column(col_name) for col_name in all_columns],
+        schema=validated_schema,
+    )
+    stmt = insert(table_clause)
+
+    rows_inserted = 0
+    try:
+        for batch_start in range(0, len(rows), effective_batch_size):
+            batch = rows[batch_start : batch_start + effective_batch_size]
+            params_list: list[dict[str, Any]] = []
+            for row in batch:
+                payload: dict[str, Any] = {
+                    "_row_id": uuid.uuid4(),
+                    "_ingested_at": ingested_at,
+                    "_batch_id": batch_id,
+                }
+                for source_col, target_col in col_pairs:
+                    payload[target_col] = row.get(source_col)
+                params_list.append(payload)
+
+            await session.execute(stmt, params_list)
+            rows_inserted += len(params_list)
+    except Exception as exc:
+        logger.exception(
+            "Raw insertion failed (session): schema=%s table=%s batch_id=%s",
+            validated_schema,
+            validated_table,
+            batch_id,
+        )
+        raise RawInsertError(
+            "Failed to insert rows into raw table",
+            code="INSERT_FAILED",
+        ) from exc
+
+    logger.info(
+        "Raw insertion complete (session): schema=%s table=%s rows=%d batch_id=%s",
+        validated_schema,
+        validated_table,
+        rows_inserted,
+        batch_id,
+    )
+
+    return InsertionResult(
+        rows_inserted=rows_inserted,
+        batch_id=batch_id,
+        schema_name=validated_schema,
+        table_name=validated_table,
+        max_ingested_at=ingested_at,
         warnings=warnings,
     )
 

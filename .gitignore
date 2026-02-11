@@ -87,6 +87,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# LaTeX build artifacts (generated when exporting PDFs from docs/)
+docs/.build/
+
 # -----------------------------------------------------------------------------
 # Testing
 # -----------------------------------------------------------------------------
@@ -100,6 +103,7 @@ e2e-coverage/
 # Data & ML (ne pas commit les données/modèles)
 # -----------------------------------------------------------------------------
 data/
+data-ready/
 *.parquet
 *.csv
 !tests/fixtures/*.csv

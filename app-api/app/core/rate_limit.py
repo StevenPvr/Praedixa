@@ -4,8 +4,7 @@ Security notes:
 - Rate limiting prevents brute-force attacks, credential stuffing,
   and resource exhaustion (DoS).
 - Tiers: global (100/min), auth (10/min), sensitive (5/min).
-- Key function uses X-Forwarded-For when behind a reverse proxy,
-  falls back to remote_address for direct connections.
+- Key function trusts forwarded headers only from trusted proxy IPs.
 - Health endpoint is exempt from rate limiting.
 - Custom 429 handler matches our standardized error response format.
 - Request body size limit (10 MB) prevents payload-based DoS.
@@ -13,6 +12,7 @@ Security notes:
 
 from __future__ import annotations
 
+from ipaddress import ip_address, ip_network
 from typing import TYPE_CHECKING
 
 import structlog
@@ -46,30 +46,80 @@ MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024  # 10 MB
 _EXEMPT_PATHS = frozenset({"/health", "/api/v1/health"})
 
 
+def _resolve_storage_uri() -> str | None:
+    storage_uri = settings.RATE_LIMIT_STORAGE_URI.strip()
+    if settings.ENVIRONMENT in {"staging", "production"} and not storage_uri:
+        msg = "RATE_LIMIT_STORAGE_URI is required in staging/production"
+        raise RuntimeError(msg)
+    return storage_uri or None
+
+
+def _parse_trusted_proxy_networks(proxy_values: list[str]) -> tuple[object, ...]:
+    networks = []
+    for raw in proxy_values:
+        value = raw.strip()
+        if "/" in value:
+            networks.append(ip_network(value, strict=False))
+        else:
+            addr = ip_address(value)
+            networks.append(ip_network(f"{addr}/{addr.max_prefixlen}", strict=False))
+    return tuple(networks)
+
+
+_TRUSTED_PROXY_NETWORKS = _parse_trusted_proxy_networks(settings.TRUSTED_PROXY_IPS)
+
+
+def _normalized_ip(value: str | None) -> str | None:
+    if value is None:
+        return None
+    candidate = value.strip()
+    if not candidate:
+        return None
+    try:
+        return str(ip_address(candidate))
+    except ValueError:
+        return None
+
+
+def _is_trusted_proxy_host(host: str | None) -> bool:
+    normalized = _normalized_ip(host)
+    if normalized is None:
+        return False
+    addr = ip_address(normalized)
+    return any(addr in network for network in _TRUSTED_PROXY_NETWORKS)
+
+
 def _get_client_ip(request: Request) -> str:
     """Extract client IP for rate limiting.
 
-    Priority:
-    1. cf-connecting-ip (Cloudflare edge, most reliable)
-    2. X-Forwarded-For first entry (behind reverse proxy)
-    3. request.client.host (direct connection)
-    4. "unknown" fallback (should never happen)
+    Forwarded headers are only used when request.client.host is trusted.
+    Otherwise, request.client.host is used directly.
     """
-    # Cloudflare-specific header (most reliable behind CF)
-    cf_ip = request.headers.get("cf-connecting-ip")
-    if cf_ip:
-        return cf_ip.strip()
+    if request.client is None:
+        return "unknown"
 
-    # Standard proxy header
+    remote_host = request.client.host
+    normalized_remote = _normalized_ip(remote_host)
+    if normalized_remote is None:
+        return remote_host
+
+    if not _is_trusted_proxy_host(remote_host):
+        return normalized_remote
+
+    # Cloudflare-specific header (trusted only if remote host is trusted)
+    cf_ip = _normalized_ip(request.headers.get("cf-connecting-ip"))
+    if cf_ip:
+        return cf_ip
+
+    # Standard proxy header: first hop is the original client
     forwarded_for = request.headers.get("x-forwarded-for")
     if forwarded_for:
-        # Take only the first IP (client IP set by the edge proxy)
-        return forwarded_for.split(",")[0].strip()
+        first_hop = forwarded_for.split(",")[0]
+        normalized_first_hop = _normalized_ip(first_hop)
+        if normalized_first_hop:
+            return normalized_first_hop
 
-    if request.client:
-        return request.client.host
-
-    return "unknown"
+    return normalized_remote
 
 
 # Singleton limiter instance — initialized with in-memory storage.
@@ -78,7 +128,7 @@ limiter = Limiter(
     key_func=_get_client_ip,
     default_limits=[GLOBAL_RATE_LIMIT],
     headers_enabled=True,
-    storage_uri=settings.RATE_LIMIT_STORAGE_URI.strip() or None,
+    storage_uri=_resolve_storage_uri(),
 )
 
 

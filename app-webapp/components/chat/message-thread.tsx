@@ -39,9 +39,12 @@ export function MessageThread({
 }: MessageThreadProps) {
   const endRef = useRef<HTMLDivElement>(null);
 
+  const lastMessageId =
+    messages.length > 0 ? messages[messages.length - 1].id : null;
+
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
+  }, [lastMessageId]);
 
   // Empty state
   if (!loading && messages.length === 0 && currentUserId) {

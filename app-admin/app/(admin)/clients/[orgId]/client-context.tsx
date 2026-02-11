@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 
 interface SiteHierarchy {
   id: string;
@@ -30,5 +30,31 @@ export function useClientContext(): ClientContextValue {
   return ctx;
 }
 
-export { ClientContext };
+interface ClientProviderProps {
+  orgId: string;
+  orgName: string;
+  selectedSiteId: string | null;
+  setSelectedSiteId: (id: string | null) => void;
+  hierarchy: SiteHierarchy[];
+  children: ReactNode;
+}
+
+export function ClientProvider({
+  orgId,
+  orgName,
+  selectedSiteId,
+  setSelectedSiteId,
+  hierarchy,
+  children,
+}: ClientProviderProps) {
+  const value = useMemo(
+    () => ({ orgId, orgName, selectedSiteId, setSelectedSiteId, hierarchy }),
+    [orgId, orgName, selectedSiteId, setSelectedSiteId, hierarchy],
+  );
+
+  return (
+    <ClientContext.Provider value={value}>{children}</ClientContext.Provider>
+  );
+}
+
 export type { ClientContextValue, SiteHierarchy };

@@ -18,9 +18,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("@praedixa/ui", () => ({
-  cn: (...args: unknown[]) => args.filter(Boolean).join(" "),
-}));
+vi.mock("@praedixa/ui", () => globalThis.__mocks.createUiMocks());
 
 const mockPathname = vi.fn();
 vi.mock("next/navigation", () => ({

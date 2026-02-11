@@ -1,4 +1,11 @@
+/**
+ * Admin auth client tests.
+ *
+ * Tests getSupabaseBrowserClient, getValidAccessToken, clearAuthSession, useCurrentUser.
+ */
+
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
 
 const {
   mockGetSession,
@@ -159,5 +166,85 @@ describe("auth client", () => {
 
     const { clearAuthSession } = await import("../client");
     await expect(clearAuthSession()).resolves.toBeUndefined();
+  });
+});
+
+describe("useCurrentUser", () => {
+  beforeEach(() => {
+    mockGetSession.mockReset();
+    mockCreateBrowserClient.mockImplementation(() => ({
+      auth: {
+        getUser: vi.fn(),
+        getSession: mockGetSession,
+        refreshSession: mockRefreshSession,
+        signOut: mockSignOut,
+      },
+    }));
+  });
+
+  it("returns user data from session", async () => {
+    mockGetSession.mockResolvedValue({
+      data: {
+        session: {
+          user: {
+            id: "admin-123",
+            email: "admin@praedixa.com",
+            app_metadata: { role: "super_admin" },
+          },
+        },
+      },
+    });
+
+    const { useCurrentUser } = await import("../client");
+    const { result } = renderHook(() => useCurrentUser());
+
+    await waitFor(() => {
+      expect(result.current).toEqual({
+        id: "admin-123",
+        email: "admin@praedixa.com",
+        role: "super_admin",
+      });
+    });
+  });
+
+  it("returns null when no session", async () => {
+    mockGetSession.mockResolvedValue({
+      data: { session: null },
+    });
+
+    const { useCurrentUser } = await import("../client");
+    const { result } = renderHook(() => useCurrentUser());
+
+    expect(result.current).toBeNull();
+
+    await waitFor(() => {
+      expect(mockGetSession).toHaveBeenCalled();
+    });
+    expect(result.current).toBeNull();
+  });
+
+  it("defaults email to empty string and role to viewer", async () => {
+    mockGetSession.mockResolvedValue({
+      data: {
+        session: {
+          user: {
+            id: "admin-456",
+            email: null,
+            app_metadata: {},
+          },
+        },
+      },
+    });
+
+    const { useCurrentUser } = await import("../client");
+    const { result } = renderHook(() => useCurrentUser());
+
+    await waitFor(() => {
+      expect(result.current).toEqual({
+        id: "admin-456",
+        email: "",
+        role: "viewer",
+      });
+    });
   });
 });

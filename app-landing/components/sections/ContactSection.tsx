@@ -2,25 +2,19 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { cn } from "../ui";
+import { cn } from "@praedixa/ui";
 import { siteConfig } from "../../lib/config/site";
 import {
   staggerContainer,
   staggerItem,
   viewportOnce,
 } from "../../lib/animations/variants";
+import { TRUST_ITEMS } from "../../lib/content/contact-content";
+import { BoltIcon, MailIcon, CheckIcon } from "../icons";
 
 interface ContactSectionProps {
   className?: string;
 }
-
-const TRUST_ITEMS = [
-  "Partenariat gratuit",
-  "Premiers résultats en jours",
-  "Sans intégration IT",
-  "Données agrégées uniquement",
-  "Sans engagement",
-] as const;
 
 export function ContactSection({ className }: ContactSectionProps) {
   return (
@@ -59,20 +53,7 @@ export function ContactSection({ className }: ContactSectionProps) {
             href="/devenir-pilote"
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-10 py-5 text-lg font-bold text-charcoal shadow-lg transition-all duration-200 hover:bg-amber-400 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-charcoal sm:w-auto"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
+            <BoltIcon className="h-5 w-5" />
             Devenir entreprise pilote
           </Link>
 
@@ -81,20 +62,7 @@ export function ContactSection({ className }: ContactSectionProps) {
             href={`mailto:${siteConfig.contact.email}?subject=Programme%20pilote%20Praedixa`}
             className="inline-flex items-center gap-2 text-sm font-medium text-white/70 underline underline-offset-4 transition-colors hover:text-amber-400"
           >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
+            <MailIcon className="h-4 w-4" />
             Ou écrivez-nous directement
           </a>
         </motion.div>
@@ -106,20 +74,7 @@ export function ContactSection({ className }: ContactSectionProps) {
         >
           {TRUST_ITEMS.map((item) => (
             <div key={item} className="flex items-center gap-2">
-              <svg
-                className="h-4 w-4 text-amber-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
+              <CheckIcon className="h-4 w-4 text-amber-400" />
               <span className="text-sm text-white/60">{item}</span>
             </div>
           ))}

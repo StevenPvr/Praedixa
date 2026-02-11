@@ -21,20 +21,9 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("@praedixa/ui", () => ({
-  cn: (...args: unknown[]) => args.filter(Boolean).join(" "),
-}));
+vi.mock("@praedixa/ui", () => globalThis.__mocks.createUiMocks());
 
-// Mock lucide-react icons
-vi.mock("lucide-react", () => ({
-  Home: () => <span data-testid="icon-home" />,
-  Building2: () => <span data-testid="icon-clients" />,
-  BookOpen: () => <span data-testid="icon-journal" />,
-  Settings: () => <span data-testid="icon-settings" />,
-  LogOut: () => <span data-testid="icon-logout" />,
-  ChevronLeft: () => <span data-testid="icon-chevron-left" />,
-  ChevronRight: () => <span data-testid="icon-chevron-right" />,
-}));
+vi.mock("lucide-react", () => globalThis.__mocks.createLucideIconMocks());
 
 // Mock PraedixaLogo
 vi.mock("../praedixa-logo", () => ({

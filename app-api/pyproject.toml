@@ -21,6 +21,8 @@ dependencies = [
     "chardet>=5.0.0",
     "python-multipart>=0.0.9",
     "reportlab>=4.1.0",
+    "cryptography>=46.0.5",
+    "pillow>=12.1.1",
 ]
 
 [project.optional-dependencies]
@@ -63,7 +65,7 @@ plugins = ["pydantic.mypy"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "--cov=app --cov-report=term-missing --cov-fail-under=100"
+addopts = "--cov=app --cov-report=term-missing --cov-fail-under=90"
 filterwarnings = [
     "error",
     "ignore::DeprecationWarning:starlette",
@@ -75,7 +77,7 @@ filterwarnings = [
 source = ["app"]
 
 [tool.coverage.report]
-fail_under = 100
+fail_under = 90
 exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",

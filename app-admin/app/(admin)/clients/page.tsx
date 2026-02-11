@@ -45,6 +45,49 @@ const PLAN_OPTIONS = [
   { value: "enterprise", label: "Enterprise" },
 ];
 
+const STATIC_COLUMNS: DataTableColumn<OrgListItem>[] = [
+  {
+    key: "name",
+    label: "Nom",
+    sortable: true,
+    render: (row) => (
+      <div>
+        <p className="font-medium text-charcoal">{row.name}</p>
+        <p className="text-xs text-gray-400">{row.slug}</p>
+      </div>
+    ),
+  },
+  {
+    key: "plan",
+    label: "Plan",
+    render: (row) => <PlanBadge plan={row.plan} />,
+  },
+  {
+    key: "status",
+    label: "Statut",
+    render: (row) => <OrgStatusBadge status={row.status} />,
+  },
+  {
+    key: "siteCount",
+    label: "Sites",
+    sortable: true,
+    align: "right",
+  },
+  {
+    key: "userCount",
+    label: "Utilisateurs",
+    sortable: true,
+    align: "right",
+  },
+  {
+    key: "contactEmail",
+    label: "Contact",
+    render: (row) => (
+      <span className="text-sm text-gray-500">{row.contactEmail}</span>
+    ),
+  },
+];
+
 export default function ClientsPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
@@ -107,46 +150,7 @@ export default function ClientsPage() {
   }
 
   const columns: DataTableColumn<OrgListItem>[] = [
-    {
-      key: "name",
-      label: "Nom",
-      sortable: true,
-      render: (row) => (
-        <div>
-          <p className="font-medium text-charcoal">{row.name}</p>
-          <p className="text-xs text-gray-400">{row.slug}</p>
-        </div>
-      ),
-    },
-    {
-      key: "plan",
-      label: "Plan",
-      render: (row) => <PlanBadge plan={row.plan} />,
-    },
-    {
-      key: "status",
-      label: "Statut",
-      render: (row) => <OrgStatusBadge status={row.status} />,
-    },
-    {
-      key: "siteCount",
-      label: "Sites",
-      sortable: true,
-      align: "right",
-    },
-    {
-      key: "userCount",
-      label: "Utilisateurs",
-      sortable: true,
-      align: "right",
-    },
-    {
-      key: "contactEmail",
-      label: "Contact",
-      render: (row) => (
-        <span className="text-sm text-gray-500">{row.contactEmail}</span>
-      ),
-    },
+    ...STATIC_COLUMNS,
     {
       key: "actions",
       label: "",

@@ -1,5 +1,6 @@
 """Global exception handling — never expose internals in production."""
 
+import re
 from datetime import UTC
 from typing import Any
 
@@ -9,6 +10,12 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
+
+# Pre-compiled UUID regex for safe resource_id reflection.
+_UUID_REGEX: re.Pattern[str] = re.compile(
+    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+    re.IGNORECASE,
+)
 
 logger = structlog.get_logger()
 
@@ -54,15 +61,9 @@ class NotFoundError(PraedixaError):
     """
 
     def __init__(self, resource: str, resource_id: str) -> None:
-        import re
-
         # Only reflect UUID-shaped IDs back to client — reject arbitrary strings
         details: dict[str, str] = {"resource": resource}
-        if re.fullmatch(
-            r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
-            resource_id,
-            re.IGNORECASE,
-        ):
+        if _UUID_REGEX.fullmatch(resource_id):
             details["id"] = resource_id
 
         super().__init__(

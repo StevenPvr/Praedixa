@@ -2,9 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { PlanBadge, type PlanTier } from "../plan-badge";
 
-vi.mock("@praedixa/ui", () => ({
-  cn: (...args: unknown[]) => args.filter(Boolean).join(" "),
-}));
+vi.mock("@praedixa/ui", () => globalThis.__mocks.createUiMocks());
 
 describe("PlanBadge", () => {
   const plans: { tier: PlanTier; label: string }[] = [

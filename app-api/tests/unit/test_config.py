@@ -82,9 +82,11 @@ class TestIsProduction:
         s = Settings(
             _env_file=None,
             ENVIRONMENT="production",
+            DEBUG=False,
             SUPABASE_JWT_SECRET="a" * 40,
             SUPABASE_URL="https://proj.supabase.co",
             KEY_PROVIDER="scaleway",
+            RATE_LIMIT_STORAGE_URI="redis://localhost:6379/0",
             CORS_ORIGINS=["https://app.praedixa.com"],
         )
         assert s.is_production is True
@@ -106,9 +108,11 @@ class TestIsProduction:
         s = Settings(
             _env_file=None,
             ENVIRONMENT="staging",
+            DEBUG=False,
             SUPABASE_JWT_SECRET="x" * 40,
             SUPABASE_URL="https://proj.supabase.co",
             KEY_PROVIDER="scaleway",
+            RATE_LIMIT_STORAGE_URI="redis://localhost:6379/0",
             CORS_ORIGINS=["https://staging.praedixa.com"],
         )
         assert s.is_production is False
@@ -124,8 +128,10 @@ class TestValidateSecrets:
             Settings(
                 _env_file=None,
                 ENVIRONMENT="production",
+                DEBUG=False,
                 SUPABASE_JWT_SECRET="short",
                 SUPABASE_URL="",
+                RATE_LIMIT_STORAGE_URI="redis://localhost:6379/0",
             )
 
     def test_production_empty_secret_raises(self) -> None:
@@ -135,8 +141,10 @@ class TestValidateSecrets:
             Settings(
                 _env_file=None,
                 ENVIRONMENT="production",
+                DEBUG=False,
                 SUPABASE_JWT_SECRET="",
                 SUPABASE_URL="",
+                RATE_LIMIT_STORAGE_URI="redis://localhost:6379/0",
             )
 
     def test_production_valid_secret_ok(self) -> None:
@@ -145,9 +153,11 @@ class TestValidateSecrets:
         s = Settings(
             _env_file=None,
             ENVIRONMENT="production",
+            DEBUG=False,
             SUPABASE_JWT_SECRET="x" * 32,
             SUPABASE_URL="https://proj.supabase.co",
             KEY_PROVIDER="scaleway",
+            RATE_LIMIT_STORAGE_URI="redis://localhost:6379/0",
             CORS_ORIGINS=["https://app.praedixa.com"],
         )
         assert len(s.SUPABASE_JWT_SECRET) == 32
@@ -158,9 +168,11 @@ class TestValidateSecrets:
         s = Settings(
             _env_file=None,
             ENVIRONMENT="production",
+            DEBUG=False,
             SUPABASE_JWT_SECRET="x" * 64,
             SUPABASE_URL="https://proj.supabase.co",
             KEY_PROVIDER="scaleway",
+            RATE_LIMIT_STORAGE_URI="redis://localhost:6379/0",
             CORS_ORIGINS=["https://app.praedixa.com"],
         )
         assert len(s.SUPABASE_JWT_SECRET) == 64
@@ -207,9 +219,11 @@ class TestValidateSecrets:
             Settings(
                 _env_file=None,
                 ENVIRONMENT="staging",
+                DEBUG=False,
                 SUPABASE_JWT_SECRET="x" * 40,
                 SUPABASE_URL="https://proj.supabase.co",
                 KEY_PROVIDER="scaleway",
+                RATE_LIMIT_STORAGE_URI="redis://localhost:6379/0",
                 CORS_ORIGINS=["https://localhost:3001"],
             )
 
@@ -223,9 +237,11 @@ class TestValidateSecrets:
             Settings(
                 _env_file=None,
                 ENVIRONMENT="staging",
+                DEBUG=False,
                 SUPABASE_JWT_SECRET="x" * 40,
                 SUPABASE_URL="https://your-project.supabase.co",
                 KEY_PROVIDER="scaleway",
+                RATE_LIMIT_STORAGE_URI="redis://localhost:6379/0",
                 CORS_ORIGINS=["https://staging.praedixa.com"],
             )
 
@@ -239,9 +255,11 @@ class TestValidateSecrets:
             Settings(
                 _env_file=None,
                 ENVIRONMENT="staging",
+                DEBUG=False,
                 SUPABASE_JWT_SECRET="x" * 40,
                 SUPABASE_URL="",
                 KEY_PROVIDER="scaleway",
+                RATE_LIMIT_STORAGE_URI="redis://localhost:6379/0",
                 CORS_ORIGINS=["https://staging.praedixa.com"],
             )
 
@@ -253,9 +271,11 @@ class TestValidateSecrets:
             Settings(
                 _env_file=None,
                 ENVIRONMENT="staging",
+                DEBUG=False,
                 SUPABASE_JWT_SECRET="x" * 40,
                 SUPABASE_URL="https://proj.supabase.co",
                 KEY_PROVIDER="scaleway",
+                RATE_LIMIT_STORAGE_URI="redis://localhost:6379/0",
                 CORS_ORIGINS=[],
             )
 
@@ -267,8 +287,10 @@ class TestValidateSecrets:
             Settings(
                 _env_file=None,
                 ENVIRONMENT="staging",
+                DEBUG=False,
                 SUPABASE_JWT_SECRET="x" * 40,
                 SUPABASE_URL="https://proj.supabase.co",
                 KEY_PROVIDER="scaleway",
+                RATE_LIMIT_STORAGE_URI="redis://localhost:6379/0",
                 CORS_ORIGINS=["http://staging.praedixa.com"],
             )

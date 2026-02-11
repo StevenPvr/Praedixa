@@ -50,6 +50,30 @@ _STATUS_TRANSITIONS: dict[str, set[str]] = {
 }
 
 
+def _build_org_filters(
+    search: str | None,
+    status_filter: OrganizationStatus | None,
+    plan_filter: SubscriptionPlan | None,
+    sector_filter: IndustrySector | None,
+) -> list:
+    """Build SQLAlchemy WHERE clauses for organization listing."""
+    filters = []
+    if search:
+        pattern = f"%{search}%"
+        filters.append(
+            Organization.name.ilike(pattern)
+            | Organization.slug.ilike(pattern)
+            | Organization.contact_email.ilike(pattern)
+        )
+    if status_filter is not None:
+        filters.append(Organization.status == status_filter)
+    if plan_filter is not None:
+        filters.append(Organization.plan == plan_filter)
+    if sector_filter is not None:
+        filters.append(Organization.sector == sector_filter)
+    return filters
+
+
 async def list_organizations(
     session: AsyncSession,
     *,
@@ -67,27 +91,10 @@ async def list_organizations(
     base_query = select(Organization)
     count_query = select(func.count(Organization.id))
 
-    if search:
-        pattern = f"%{search}%"
-        search_filter = (
-            Organization.name.ilike(pattern)
-            | Organization.slug.ilike(pattern)
-            | Organization.contact_email.ilike(pattern)
-        )
-        base_query = base_query.where(search_filter)
-        count_query = count_query.where(search_filter)
-
-    if status_filter is not None:
-        base_query = base_query.where(Organization.status == status_filter)
-        count_query = count_query.where(Organization.status == status_filter)
-
-    if plan_filter is not None:
-        base_query = base_query.where(Organization.plan == plan_filter)
-        count_query = count_query.where(Organization.plan == plan_filter)
-
-    if sector_filter is not None:
-        base_query = base_query.where(Organization.sector == sector_filter)
-        count_query = count_query.where(Organization.sector == sector_filter)
+    filters = _build_org_filters(search, status_filter, plan_filter, sector_filter)
+    for f in filters:
+        base_query = base_query.where(f)
+        count_query = count_query.where(f)
 
     count_result = await session.execute(count_query)
     total = count_result.scalar_one() or 0

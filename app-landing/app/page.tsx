@@ -1,5 +1,8 @@
 import { lazy, Suspense } from "react";
-import { Navbar, Footer, HeroSection, TrustBand } from "../components";
+import { Navbar } from "../components/layout/Navbar";
+import { Footer } from "../components/layout/Footer";
+import { HeroSection } from "../components/sections/HeroSection";
+import { TrustBand } from "../components/sections/TrustBand";
 import { SolutionSection } from "../components/sections/SolutionSection";
 import { FaqSection } from "../components/sections/FaqSection";
 import { ContactSection } from "../components/sections/ContactSection";
@@ -23,6 +26,23 @@ const DeliverablesSection = lazy(() =>
   })),
 );
 
+function SectionSkeleton() {
+  return (
+    <div className="mx-auto max-w-6xl px-6 py-24">
+      <div className="mx-auto mb-12 h-8 w-64 animate-pulse rounded-lg bg-neutral-200" />
+      <div className="mx-auto mb-6 h-4 w-96 animate-pulse rounded bg-neutral-100" />
+      <div className="grid gap-8 md:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="h-48 animate-pulse rounded-2xl bg-neutral-100"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function LandingPage() {
   return (
     <>
@@ -30,14 +50,14 @@ export default function LandingPage() {
       <main>
         <HeroSection />
         <TrustBand />
-        <Suspense fallback={null}>
+        <Suspense fallback={<SectionSkeleton />}>
           <ProblemSection />
         </Suspense>
         <SolutionSection />
-        <Suspense fallback={null}>
+        <Suspense fallback={<SectionSkeleton />}>
           <PipelineSection />
         </Suspense>
-        <Suspense fallback={null}>
+        <Suspense fallback={<SectionSkeleton />}>
           <DeliverablesSection />
         </Suspense>
         <PilotSection />

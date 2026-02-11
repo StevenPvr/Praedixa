@@ -5,7 +5,6 @@ Security:
 - Per-org endpoints use get_admin_tenant_filter (super_admin + org scoping).
 """
 
-import math
 import uuid
 from datetime import UTC, datetime
 
@@ -15,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_admin_tenant_filter, get_db_session
+from app.core.pagination import calculate_total_pages
 from app.core.security import TenantFilter, require_role
 from app.models.admin import AdminAuditAction
 from app.models.operational import ScenarioOption
@@ -126,7 +126,7 @@ async def org_scenarios(
         resource_type="ScenarioOption",
     )
 
-    total_pages = max(1, math.ceil(total / page_size))
+    total_pages = calculate_total_pages(total, page_size)
 
     return PaginatedResponse(
         success=True,

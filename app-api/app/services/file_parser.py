@@ -91,6 +91,13 @@ _PAYFIT_INDICATORS: Final[frozenset[str]] = frozenset(
 _LUCCA_DETECTION_THRESHOLD: Final[int] = 3
 _PAYFIT_DETECTION_THRESHOLD: Final[int] = 3
 
+# Encoding detection: read first N bytes for chardet analysis.
+_ENCODING_DETECTION_SAMPLE_SIZE: Final[int] = 65536
+
+# Delimiter detection: split first N lines, then analyze the first M.
+_DELIMITER_DETECTION_LINES: Final[int] = 20
+_DELIMITER_DETECTION_SAMPLE: Final[int] = 10
+
 # French boolean mapping (case-insensitive).
 _FRENCH_BOOLEANS: Final[dict[str, bool]] = {
     "oui": True,
@@ -255,8 +262,8 @@ def _detect_encoding(content: bytes) -> str:
     if content[:3] == b"\xef\xbb\xbf":
         return "utf-8-sig"
 
-    # Sample first 64KB for detection (sufficient and avoids slow detection)
-    sample = content[:65536]
+    # Sample first N bytes for detection (sufficient and avoids slow detection)
+    sample = content[:_ENCODING_DETECTION_SAMPLE_SIZE]
     result = chardet.detect(sample)
     detected = (result.get("encoding") or "").lower().strip()
 
@@ -296,7 +303,7 @@ def _detect_delimiter(text: str) -> str:
     Uses frequency analysis on the first 10 lines. Returns the delimiter
     with the most consistent column count.
     """
-    lines = text.split("\n", 20)[:10]
+    lines = text.split("\n", _DELIMITER_DETECTION_LINES)[:_DELIMITER_DETECTION_SAMPLE]
     lines = [ln for ln in lines if ln.strip()]
 
     if not lines:
@@ -551,6 +558,62 @@ def _coerce_row(
     return coerced
 
 
+def _try_parse_date(
+    value: str,
+    column_name: str,
+    warnings: list[str],
+) -> datetime.date | None:
+    """Try to parse a French date (DD/MM/YYYY or DD-MM-YYYY).
+
+    Returns a datetime.date on success, None if the value is not a date pattern.
+    Appends a warning and returns None for out-of-range dates.
+    """
+    date_match = _FR_DATE_RE.match(value)
+    if not date_match:
+        return None
+    day, month, year = (
+        int(date_match.group(1)),
+        int(date_match.group(2)),
+        int(date_match.group(3)),
+    )
+    try:
+        return datetime.date(year, month, day)
+    except ValueError:
+        warnings.append(
+            f"Invalid date value in column '{column_name}': "
+            f"parsed as {day}/{month}/{year} but date is out of range"
+        )
+        return None
+
+
+def _try_parse_decimal(value: str) -> float | None:
+    """Try to parse a French decimal ("1 234,56" or "1234,56").
+
+    Returns a float on success, None if the value does not match.
+    """
+    if not _FR_DECIMAL_RE.match(value):
+        return None
+    try:
+        cleaned = value.replace(" ", "").replace("\u00a0", "").replace(",", ".")
+        return float(cleaned)
+    except ValueError:
+        return None
+
+
+def _try_parse_boolean(value: str) -> bool | None:
+    """Try to parse a French boolean (Oui/Non/Vrai/Faux/O/N/True/False/1/0).
+
+    Returns True/False on match, None otherwise.
+    """
+    lower = value.lower().strip()
+    if lower in _FRENCH_BOOLEANS:
+        return _FRENCH_BOOLEANS[lower]
+    return None
+
+
+_SENTINEL = object()
+
+
 def _coerce_value(
     value: str,
     column_name: str,
@@ -561,33 +624,26 @@ def _coerce_value(
     Tries in order: date, decimal, boolean. Falls back to original string.
     """
     # 1. French date: DD/MM/YYYY
-    date_match = _FR_DATE_RE.match(value)
-    if date_match:
-        day, month, year = (
-            int(date_match.group(1)),
-            int(date_match.group(2)),
-            int(date_match.group(3)),
-        )
-        try:
-            return datetime.date(year, month, day)
-        except ValueError:
-            warnings.append(
-                f"Invalid date value in column '{column_name}': "
-                f"parsed as {day}/{month}/{year} but date is out of range"
-            )
-            return value
+    date_result = _try_parse_date(value, column_name, warnings)
+    if date_result is not None:
+        return date_result
+    # If the regex matched but the date was invalid, _try_parse_date appended
+    # a warning and returned None. In that case we should return the original
+    # string (not try further coercions), but only if the pattern matched.
+    if _FR_DATE_RE.match(value):
+        return value
 
     # 2. French decimal: "1 234,56" or "1234,56"
+    decimal_result = _try_parse_decimal(value)
+    if decimal_result is not None:
+        return decimal_result
+    # If the regex matched but float() failed, return original string.
     if _FR_DECIMAL_RE.match(value):
-        try:
-            cleaned = value.replace(" ", "").replace("\u00a0", "").replace(",", ".")
-            return float(cleaned)
-        except ValueError:
-            return value
+        return value
 
-    # 3. French boolean
-    lower = value.lower().strip()
-    if lower in _FRENCH_BOOLEANS:
-        return _FRENCH_BOOLEANS[lower]
+    # 3. French boolean — use sentinel because False is a valid result.
+    boolean_result = _try_parse_boolean(value)
+    if boolean_result is not None:
+        return boolean_result
 
     return value

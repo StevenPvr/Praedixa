@@ -131,8 +131,8 @@ class TestInviteServiceBlocksSuperAdmin:
         self, allowed_role: UserRole
     ) -> None:
         """All non-super_admin roles proceed past the role check."""
-        # Mock: email uniqueness check returns None (no existing user)
-        session = _make_mock_session(None)
+        # Mock: org existence check returns org_id, email uniqueness returns None
+        session = _make_mock_session(ORG_ID, None)
 
         # Flush assigns an id
         async def assign_id() -> None:
@@ -154,8 +154,8 @@ class TestInviteServiceBlocksSuperAdmin:
     @pytest.mark.asyncio
     async def test_invite_existing_email_raises_conflict(self) -> None:
         """Email uniqueness is checked after role validation."""
-        # Mock: email check returns an existing user ID
-        session = _make_mock_session(USER_ID)
+        # Mock: org existence check returns org_id, email check returns existing user ID
+        session = _make_mock_session(ORG_ID, USER_ID)
 
         with pytest.raises(ConflictError, match="email already exists"):
             await invite_user(
@@ -169,7 +169,7 @@ class TestInviteServiceBlocksSuperAdmin:
     @pytest.mark.asyncio
     async def test_invite_sets_pending_status(self) -> None:
         """New invites always get status=PENDING, not ACTIVE."""
-        session = _make_mock_session(None)
+        session = _make_mock_session(ORG_ID, None)  # org exists, email unique
         session.flush = AsyncMock()
 
         await invite_user(
@@ -188,7 +188,7 @@ class TestInviteServiceBlocksSuperAdmin:
     @pytest.mark.asyncio
     async def test_invite_lowercases_email(self) -> None:
         """Email is normalized to lowercase."""
-        session = _make_mock_session(None)
+        session = _make_mock_session(ORG_ID, None)  # org exists, email unique
         session.flush = AsyncMock()
 
         await invite_user(
