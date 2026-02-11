@@ -1,166 +1,104 @@
 "use client";
 
+import { CheckCircle2, Circle, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { CheckCircle2, Circle } from "lucide-react";
-import { Button } from "@praedixa/ui";
-import { DetailCard } from "@/components/ui/detail-card";
-import { useI18n } from "@/lib/i18n/provider";
-import { trackProductEvent } from "@/lib/product-events";
+import { cn } from "@praedixa/ui";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
-const ONBOARDING_KEY = "praedixa_onboarding_v1";
-
-interface ChecklistState {
-  done: string[];
-}
-
-interface Step {
+interface ChecklistItem {
   id: string;
   label: string;
   href: string;
+  completed: boolean;
 }
 
-function loadState(): ChecklistState {
-  if (typeof window === "undefined") return { done: [] };
-  const storage = window.localStorage as Partial<Storage> | undefined;
-  if (!storage || typeof storage.getItem !== "function") {
-    return { done: [] };
-  }
-  const raw = storage.getItem(ONBOARDING_KEY);
-  if (!raw) return { done: [] };
-  try {
-    const parsed = JSON.parse(raw) as ChecklistState;
-    return {
-      done: Array.isArray(parsed.done) ? parsed.done : [],
-    };
-  } catch {
-    return { done: [] };
-  }
+interface OnboardingChecklistProps {
+  className?: string;
+  items: ChecklistItem[];
 }
 
-function persistState(state: ChecklistState) {
-  if (typeof window === "undefined") return;
-  const storage = window.localStorage as Partial<Storage> | undefined;
-  if (!storage || typeof storage.setItem !== "function") return;
-  storage.setItem(ONBOARDING_KEY, JSON.stringify(state));
-}
-
-export function OnboardingChecklist() {
-  const { t } = useI18n();
-  const [state, setState] = useState<ChecklistState>(() => loadState());
-
-  const steps = useMemo<Step[]>(
-    () => [
-      {
-        id: "data",
-        label: t("dashboard.onboardingSteps.data"),
-        href: "/donnees",
-      },
-      {
-        id: "forecast",
-        label: t("dashboard.onboardingSteps.forecast"),
-        href: "/previsions",
-      },
-      {
-        id: "decision",
-        label: t("dashboard.onboardingSteps.decision"),
-        href: "/actions",
-      },
-      {
-        id: "support",
-        label: t("dashboard.onboardingSteps.support"),
-        href: "/messages",
-      },
-      {
-        id: "report",
-        label: t("dashboard.onboardingSteps.report"),
-        href: "/rapports",
-      },
-    ],
-    [t],
-  );
-
-  const completed = state.done.length;
-  const allDone = completed >= steps.length;
-
-  function markDone(stepId: string) {
-    setState((current) => {
-      if (current.done.includes(stepId)) return current;
-      const next = { done: [...current.done, stepId] };
-      persistState(next);
-      void trackProductEvent("onboarding_step_completed", { stepId });
-      return next;
-    });
-  }
-
-  function resetChecklist() {
-    const next = { done: [] };
-    setState(next);
-    persistState(next);
-  }
+export function OnboardingChecklist({
+  className,
+  items,
+}: OnboardingChecklistProps) {
+  const completedCount = items.filter((i) => i.completed).length;
+  const progress = Math.round((completedCount / items.length) * 100);
 
   return (
-    <DetailCard>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="font-serif text-base font-semibold text-charcoal">
-            {t("dashboard.onboardingTitle")}
-          </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            {t("dashboard.onboardingSubtitle")}
-          </p>
+    <Card
+      className={cn("overflow-hidden", className)}
+      variant="elevated"
+      noPadding
+    >
+      <div className="bg-primary/5 p-6 border-b border-primary/10">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-heading text-lg font-bold text-ink">
+            Bienvenue sur Praedixa
+          </h3>
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+            {progress}% complété
+          </span>
         </div>
-        <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
-          {completed}/{steps.length}
-        </span>
-      </div>
-
-      <div className="mt-4 space-y-3">
-        {steps.map((step) => {
-          const isDone = state.done.includes(step.id);
-          return (
-            <div
-              key={step.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
-            >
-              <div className="flex items-center gap-2">
-                {isDone ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                ) : (
-                  <Circle className="h-4 w-4 text-gray-400" />
-                )}
-                <Link
-                  href={step.href}
-                  className="text-sm text-charcoal hover:text-amber-600"
-                >
-                  {step.label}
-                </Link>
-              </div>
-              {!isDone && (
-                <Button
-                  onClick={() => markDone(step.id)}
-                  className="h-8 bg-white px-3 text-xs text-charcoal hover:bg-gray-100"
-                >
-                  {t("dashboard.onboardingMarkDone")}
-                </Button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {allDone ? (
-        <p className="mt-4 text-sm font-medium text-green-700">
-          {t("dashboard.onboardingDone")}
+        <p className="text-sm text-ink-secondary mb-4 max-w-lg">
+          Suivez ces étapes pour configurer votre environnement et obtenir vos
+          premières prévisions.
         </p>
-      ) : null}
 
-      <button
-        onClick={resetChecklist}
-        className="mt-4 text-xs font-medium text-gray-500 hover:text-gray-700"
-      >
-        {t("dashboard.onboardingReset")}
-      </button>
-    </DetailCard>
+        {/* Progress bar */}
+        <div className="h-2 w-full overflow-hidden rounded-full bg-white/50">
+          <div
+            className="h-full bg-primary transition-all duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          />
+        </div>
+      </div>
+
+      <div className="divide-y divide-gray-100">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className={cn(
+              "group flex items-center justify-between p-4 transition-colors hover:bg-gray-50",
+              item.completed ? "opacity-75" : "opacity-100",
+            )}
+          >
+            <div className="flex items-center gap-3">
+              {item.completed ? (
+                <CheckCircle2 className="h-5 w-5 text-success" />
+              ) : (
+                <Circle className="h-5 w-5 text-gray-300" />
+              )}
+              <span
+                className={cn(
+                  "text-sm font-medium",
+                  item.completed
+                    ? "text-ink-secondary line-through"
+                    : "text-ink",
+                )}
+              >
+                {item.label}
+              </span>
+            </div>
+            {!item.completed && (
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="gap-1 text-primary hover:text-primary-dark"
+              >
+                <Link href={item.href}>
+                  Commencer <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }

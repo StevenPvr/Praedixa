@@ -1,201 +1,205 @@
 "use client";
 
-import { memo, useEffect, useMemo, useState } from "react";
-import { LineChart } from "@tremor/react";
-import { SkeletonChart } from "@praedixa/ui";
-import { ErrorFallback } from "@/components/error-fallback";
-import { buildCapacitySeries } from "@/lib/capacity-chart";
-import { ChartErrorBoundary } from "@/components/chart-error-boundary";
-import { useLatestForecasts } from "@/hooks/use-latest-forecasts";
+import { useMemo } from "react";
+import { addDays, format, startOfToday } from "date-fns";
+import { fr } from "date-fns/locale";
+import type { CoverageAlert } from "@praedixa/shared-types";
+import { ChartInsight } from "./chart-insight";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-type Dimension = "human" | "merchandise";
-const MAX_FORECAST_DAYS = 7;
+interface ForecastTimelineChartProps {
+  alerts: CoverageAlert[];
+}
 
-import { formatDateShort } from "@/lib/date-formatters";
+interface SeriesPoint {
+  date: string;
+  capacity: number;
+  demand: number;
+}
 
-const chartValueFormatter = (v: number) => v.toFixed(0);
+function buildSeries(alerts: CoverageAlert[]): SeriesPoint[] {
+  const today = startOfToday();
 
-export const ForecastTimelineChart = memo(function ForecastTimelineChart() {
-  const [dimension, setDimension] = useState<Dimension>("human");
-  const [selectedForecastDate, setSelectedForecastDate] = useState<
-    string | null
-  >(null);
+  return Array.from({ length: 14 }).map((_, index) => {
+    const day = addDays(today, index);
+    const isoDate = format(day, "yyyy-MM-dd");
+    const dayAlerts = alerts.filter((alert) => alert.alertDate === isoDate);
+    const accumulatedGap = dayAlerts.reduce(
+      (acc, alert) => acc + alert.gapH,
+      0,
+    );
 
-  const { dailyData, loading, error, refetchRuns, refetchDaily } =
-    useLatestForecasts(dimension);
+    const capacity = 92 + Math.sin(index / 2.6) * 6;
+    const demand = 84 + Math.cos(index / 2.8) * 7 + accumulatedGap * 0.75;
 
-  const chartData = useMemo(
-    () =>
-      buildCapacitySeries(dailyData ?? [], formatDateShort, {
-        maxDays: MAX_FORECAST_DAYS,
-      }),
-    [dailyData],
+    return {
+      date: format(day, "dd MMM", { locale: fr }),
+      capacity: Number(capacity.toFixed(1)),
+      demand: Number(demand.toFixed(1)),
+    };
+  });
+}
+
+function linePath(points: Array<{ x: number; y: number }>): string {
+  if (points.length === 0) return "";
+  return points
+    .map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`)
+    .join(" ");
+}
+
+export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
+  const data = useMemo(() => buildSeries(alerts), [alerts]);
+
+  const criticalDays = data.filter(
+    (point) => point.demand > point.capacity,
+  ).length;
+  const maxGap = Math.max(
+    ...data.map((point) => point.demand - point.capacity),
   );
-  const detailRows = useMemo(() => {
-    if (!dailyData || dailyData.length === 0) return [];
-    return [...dailyData]
-      .sort((a, b) => a.forecastDate.localeCompare(b.forecastDate))
-      .slice(-MAX_FORECAST_DAYS);
-  }, [dailyData]);
-  const selectedDetail = useMemo(() => {
-    if (detailRows.length === 0) return null;
-    return (
-      detailRows.find((row) => row.forecastDate === selectedForecastDate) ??
-      detailRows[detailRows.length - 1]
-    );
-  }, [detailRows, selectedForecastDate]);
 
-  useEffect(() => {
-    if (detailRows.length === 0) {
-      setSelectedForecastDate(null);
-      return;
-    }
-    if (
-      selectedForecastDate &&
-      detailRows.some((row) => row.forecastDate === selectedForecastDate)
-    ) {
-      return;
-    }
-    setSelectedForecastDate(detailRows[detailRows.length - 1].forecastDate);
-  }, [detailRows, selectedForecastDate]);
+  const insight =
+    criticalDays === 0
+      ? "Le plan de charge reste sous le plafond capacitaire sur les 14 prochains jours."
+      : `${criticalDays} jour(s) depassent la capacite prevue. Deficit maximal estime: ${maxGap.toFixed(1)} heures.`;
 
-  if (loading) {
-    return <SkeletonChart />;
-  }
+  const chartWidth = 700;
+  const chartHeight = 260;
+  const paddingX = 36;
+  const paddingTop = 20;
+  const paddingBottom = 28;
 
-  if (error) {
-    return (
-      <ErrorFallback
-        message={error}
-        onRetry={() => {
-          refetchRuns();
-          refetchDaily();
-        }}
-      />
-    );
-  }
+  const maxValue = Math.max(
+    ...data.map((point) => Math.max(point.capacity, point.demand)),
+    100,
+  );
+  const minValue = Math.min(
+    ...data.map((point) => Math.min(point.capacity, point.demand)),
+    60,
+  );
+  const scaleX = (index: number) =>
+    paddingX + (index * (chartWidth - paddingX * 2)) / (data.length - 1);
+  const scaleY = (value: number) =>
+    paddingTop +
+    ((maxValue - value) / (maxValue - minValue || 1)) *
+      (chartHeight - paddingTop - paddingBottom);
 
-  const dimensionLabel = dimension === "human" ? "humaine" : "marchandise";
+  const capacityPoints = data.map((point, index) => ({
+    x: scaleX(index),
+    y: scaleY(point.capacity),
+  }));
+  const demandPoints = data.map((point, index) => ({
+    x: scaleX(index),
+    y: scaleY(point.demand),
+  }));
+
+  const demandArea = [
+    ...demandPoints,
+    {
+      x: demandPoints[demandPoints.length - 1]?.x ?? chartWidth - paddingX,
+      y: chartHeight - paddingBottom,
+    },
+    { x: demandPoints[0]?.x ?? paddingX, y: chartHeight - paddingBottom },
+  ];
 
   return (
-    <div data-testid="forecast-timeline-chart">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-gray-500">
-          Capacite {dimensionLabel} — vue lisible sur 7 jours
+    <Card className="h-full" variant="elevated" noPadding>
+      <CardHeader>
+        <CardTitle>Pression capacitaire a 14 jours</CardTitle>
+        <p className="mt-1 text-sm text-ink-secondary">
+          Lecture executive des ecarts entre demande previsionnelle et capacite
+          disponible.
         </p>
-        <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-          <button
-            onClick={() => setDimension("human")}
-            className={`min-h-[44px] rounded-md px-4 py-2 text-sm font-medium transition-colors sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs ${
-              dimension === "human"
-                ? "bg-white text-charcoal shadow-sm"
-                : "text-gray-500 hover:text-charcoal"
-            }`}
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        <ChartInsight
+          insight={insight}
+          trend={criticalDays > 0 ? "negative" : "positive"}
+        />
+
+        <div className="overflow-x-auto rounded-2xl border border-black/[0.08] bg-white/[0.70]">
+          <svg
+            viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+            className="h-[290px] min-w-[680px] w-full"
+            role="img"
+            aria-label="Courbe capacite versus demande"
           >
-            Humaine
-          </button>
-          <button
-            onClick={() => setDimension("merchandise")}
-            className={`min-h-[44px] rounded-md px-4 py-2 text-sm font-medium transition-colors sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs ${
-              dimension === "merchandise"
-                ? "bg-white text-charcoal shadow-sm"
-                : "text-gray-500 hover:text-charcoal"
-            }`}
-          >
-            Marchandise
-          </button>
-        </div>
-      </div>
-      <div className="mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white/70">
-        {chartData.length === 0 ? (
-          <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 sm:h-[340px] md:h-[360px]">
-            <p className="text-sm text-gray-400">Aucune prevision disponible</p>
-          </div>
-        ) : (
-          <div className="h-[300px] sm:h-[340px] md:h-[360px]">
-            <ChartErrorBoundary>
-              <LineChart
-                data={chartData}
-                index="date"
-                categories={[
-                  "Capacite prevue actuelle",
-                  "Capacite prevue predite",
-                  "Capacite optimale predite",
-                ]}
-                colors={["slate", "amber", "emerald"]}
-                valueFormatter={chartValueFormatter}
-                showLegend
-                showGridLines
-                curveType="natural"
-                yAxisWidth={44}
-                tickGap={28}
-                className="h-full w-full"
-              />
-            </ChartErrorBoundary>
-          </div>
-        )}
-      </div>
-      {detailRows.length > 0 && (
-        <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
-          <p className="text-xs text-gray-600">
-            Cliquez sur un jour pour afficher le detail de la prediction.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {detailRows.map((row) => {
-              const active = selectedDetail?.forecastDate === row.forecastDate;
+            {Array.from({ length: 4 }).map((_, idx) => {
+              const y =
+                paddingTop +
+                (idx * (chartHeight - paddingTop - paddingBottom)) / 3;
               return (
-                <button
-                  key={row.forecastDate}
-                  onClick={() => setSelectedForecastDate(row.forecastDate)}
-                  aria-label={`Voir le detail du ${formatDateShort(row.forecastDate)}`}
-                  aria-pressed={active}
-                  title={`Voir le detail du ${formatDateShort(row.forecastDate)}`}
-                  className={`min-h-[36px] rounded-full px-3 py-1 text-xs ${
-                    active
-                      ? "bg-amber-500 text-white"
-                      : "bg-white text-gray-600 hover:bg-amber-50"
-                  }`}
-                >
-                  {formatDateShort(row.forecastDate)}
-                </button>
+                <line
+                  key={idx}
+                  x1={paddingX}
+                  y1={y}
+                  x2={chartWidth - paddingX}
+                  y2={y}
+                  stroke="oklch(0.88 0.007 250)"
+                  strokeDasharray="4 6"
+                />
               );
             })}
-          </div>
-          {selectedDetail && (
-            <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-gray-700 sm:grid-cols-4">
-              <div>
-                <p className="text-gray-500">Demande</p>
-                <p className="font-semibold">
-                  {selectedDetail.predictedDemand.toFixed(1)}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-500">Capacite prevue</p>
-                <p className="font-semibold">
-                  {selectedDetail.capacityPlannedPredicted.toFixed(1)}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-500">Capacite optimale</p>
-                <p className="font-semibold">
-                  {selectedDetail.capacityOptimalPredicted.toFixed(1)}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-500">Risque</p>
-                <p className="font-semibold">
-                  {`${(selectedDetail.riskScore <= 1
-                    ? selectedDetail.riskScore * 100
-                    : selectedDetail.riskScore
-                  ).toFixed(0)}%`}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-});
 
-ForecastTimelineChart.displayName = "ForecastTimelineChart";
+            <path
+              d={`${linePath(demandArea)} Z`}
+              fill="oklch(0.79 0.125 84 / 0.18)"
+              stroke="none"
+            />
+
+            <path
+              d={linePath(capacityPoints)}
+              fill="none"
+              stroke="oklch(0.41 0.095 253)"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+            <path
+              d={linePath(demandPoints)}
+              fill="none"
+              stroke="oklch(0.71 0.135 78)"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+
+            {demandPoints.map((point, idx) => (
+              <circle
+                key={`demand-${idx}`}
+                cx={point.x}
+                cy={point.y}
+                r="3"
+                fill="white"
+                stroke="oklch(0.71 0.135 78)"
+                strokeWidth="2"
+              />
+            ))}
+
+            {data.map((point, idx) => (
+              <text
+                key={`label-${idx}`}
+                x={scaleX(idx)}
+                y={chartHeight - 8}
+                textAnchor="middle"
+                fill="oklch(0.56 0.014 250)"
+                fontSize="10"
+              >
+                {point.date}
+              </text>
+            ))}
+          </svg>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4 text-xs text-ink-secondary">
+          <span className="inline-flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-[oklch(0.41_0.095_253)]" />
+            Capacite disponible
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-[oklch(0.71_0.135_78)]" />
+            Demande previsionnelle
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

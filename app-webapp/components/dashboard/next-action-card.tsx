@@ -109,7 +109,7 @@ export function NextActionCard({ alerts, loading }: NextActionCardProps) {
 
         <Link
           href="/actions"
-          className="mt-2 inline-flex min-h-[44px] items-center rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-400"
+          className="mt-2 inline-flex min-h-[44px] items-center rounded-lg bg-amber-300 px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           Voir les solutions
         </Link>

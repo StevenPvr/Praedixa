@@ -27,6 +27,8 @@
     "test:e2e": "pnpm e2e:ports:free && PW_REUSE_SERVER=0 playwright test",
     "test:e2e:landing": "pnpm e2e:ports:free && PW_REUSE_SERVER=0 playwright test --project=landing",
     "test:e2e:webapp": "pnpm e2e:ports:free && PW_REUSE_SERVER=0 playwright test --project=webapp",
+    "test:e2e:webapp:visual": "pnpm e2e:ports:free && PW_REUSE_SERVER=0 playwright test testing/e2e/webapp/visual-qa-premium.spec.ts --project=webapp --workers=1 --reporter=list",
+    "test:e2e:webapp:visual:ci": "CI=1 playwright test testing/e2e/webapp/visual-qa-premium.spec.ts --project=webapp --workers=1 --reporter=list",
     "test:e2e:admin": "pnpm e2e:ports:free && PW_REUSE_SERVER=0 playwright test --project=admin",
     "test:e2e:smoke": "pnpm e2e:ports:free && PW_REUSE_SERVER=0 playwright test testing/e2e/admin/smoke.spec.ts --project=admin --workers=1 --reporter=list",
     "test:e2e:coverage": "pnpm e2e:ports:free && PW_REUSE_SERVER=0 COVERAGE=1 playwright test",

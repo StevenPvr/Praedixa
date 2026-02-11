@@ -4,8 +4,10 @@ import { useMemo } from "react";
 import { DataTable, SkeletonTable } from "@praedixa/ui";
 import type { DataTableColumn } from "@praedixa/ui";
 import { DetailCard } from "@/components/ui/detail-card";
+import { MetricCard } from "@/components/ui/metric-card";
 import { ErrorFallback } from "@/components/error-fallback";
 import { AnimatedSection } from "@/components/animated-section";
+import { StatusBanner } from "@/components/status-banner";
 import { formatDateOrDash } from "@/lib/date-formatters";
 import { toPercent, type ForecastRunSummary } from "@/lib/rapports-helpers";
 
@@ -70,43 +72,63 @@ export function PrecisionTab({
 
   return (
     <AnimatedSection>
-      <section aria-label="Fiabilite des previsions">
+      <section aria-label="Fiabilite des previsions" className="space-y-4">
         {error ? (
           <ErrorFallback message={error} onRetry={onRetry} />
         ) : (
-          <div className="space-y-4">
-            <p className="text-xs text-gray-500">
-              Cette section suit la fiabilite des runs de prevision pour
-              comprendre si le modele reste stable dans le temps.
-            </p>
+          <>
+            {loading ? (
+              <StatusBanner variant="info" title="Evaluation des runs en cours">
+                Consolidation des scores de precision et des tendances de
+                fiabilite.
+              </StatusBanner>
+            ) : (forecastStats.averageAccuracy ?? 0) >= 90 ? (
+              <StatusBanner variant="success" title="Precision modele robuste">
+                La performance des derniers runs reste au-dessus du seuil
+                attendu.
+              </StatusBanner>
+            ) : (
+              <StatusBanner variant="warning" title="Precision a surveiller">
+                La fiabilite moyenne est inferieure au niveau cible. Verifiez
+                les donnees d'entree et les modeles actifs.
+              </StatusBanner>
+            )}
+
             <DetailCard>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div>
-                  <p className="text-xs text-gray-500">Runs completes</p>
-                  <p className="text-xl font-semibold text-charcoal">
-                    {loading ? "..." : String(forecastStats.totalRuns)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Precision moyenne</p>
-                  <p className="text-xl font-semibold text-charcoal">
-                    {loading
+                <MetricCard
+                  label="Runs completes"
+                  value={loading ? "..." : String(forecastStats.totalRuns)}
+                  status={forecastStats.totalRuns > 0 ? "good" : "neutral"}
+                />
+                <MetricCard
+                  label="Precision moyenne"
+                  value={
+                    loading
                       ? "..."
                       : forecastStats.averageAccuracy == null
                         ? "-"
-                        : `${forecastStats.averageAccuracy.toFixed(1)}%`}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Meilleure precision</p>
-                  <p className="text-xl font-semibold text-charcoal">
-                    {loading
+                        : `${forecastStats.averageAccuracy.toFixed(1)}%`
+                  }
+                  status={
+                    (forecastStats.averageAccuracy ?? 0) >= 90
+                      ? "good"
+                      : "warning"
+                  }
+                />
+                <MetricCard
+                  label="Meilleure precision"
+                  value={
+                    loading
                       ? "..."
                       : forecastStats.bestAccuracy == null
                         ? "-"
-                        : `${forecastStats.bestAccuracy.toFixed(1)}%`}
-                  </p>
-                </div>
+                        : `${forecastStats.bestAccuracy.toFixed(1)}%`
+                  }
+                  status={
+                    (forecastStats.bestAccuracy ?? 0) >= 95 ? "good" : "neutral"
+                  }
+                />
               </div>
             </DetailCard>
 
@@ -120,7 +142,7 @@ export function PrecisionTab({
                 emptyMessage="Aucune execution de prevision disponible."
               />
             )}
-          </div>
+          </>
         )}
       </section>
     </AnimatedSection>

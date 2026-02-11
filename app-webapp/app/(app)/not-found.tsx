@@ -7,7 +7,7 @@ export default function AppNotFound() {
       <p className="mt-4 text-lg text-gray-500">Page introuvable</p>
       <Link
         href="/dashboard"
-        className="mt-6 rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-amber-600"
+        className="mt-6 rounded-lg bg-amber-300 px-5 py-2.5 text-sm font-medium text-charcoal transition-colors hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
       >
         Retour au dashboard
       </Link>

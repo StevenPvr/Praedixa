@@ -30,6 +30,42 @@ interface GetValidAccessTokenOptions {
   minTtlSeconds?: number;
 }
 
+function decodeBase64UrlJson(segment: string): unknown | null {
+  try {
+    const normalized = segment.replace(/-/g, "+").replace(/_/g, "/");
+    const padding =
+      normalized.length % 4 === 0
+        ? ""
+        : "=".repeat(4 - (normalized.length % 4));
+    const binary = atob(`${normalized}${padding}`);
+    const percentEncoded = Array.from(
+      binary,
+      (char) => `%${char.charCodeAt(0).toString(16).padStart(2, "0")}`,
+    ).join("");
+    return JSON.parse(decodeURIComponent(percentEncoded));
+  } catch {
+    return null;
+  }
+}
+
+function isLikelyJwt(token: string): boolean {
+  const segments = token.split(".");
+  if (segments.length !== 3 || segments.some((segment) => !segment)) {
+    return false;
+  }
+
+  const [headerSegment, payloadSegment] = segments;
+  const header = decodeBase64UrlJson(headerSegment);
+  const payload = decodeBase64UrlJson(payloadSegment);
+
+  return (
+    !!header &&
+    typeof header === "object" &&
+    !!payload &&
+    typeof payload === "object"
+  );
+}
+
 export async function getValidAccessToken(
   options: GetValidAccessTokenOptions = {},
 ): Promise<string | null> {
@@ -55,7 +91,11 @@ export async function getValidAccessToken(
       nextSession = data.session;
     }
 
-    return nextSession?.access_token ?? null;
+    const token = nextSession?.access_token ?? null;
+    if (!token) return null;
+    if (!isLikelyJwt(token)) return null;
+
+    return token;
   } catch {
     return null;
   }

@@ -36,7 +36,7 @@ export function EmptyState({
       {ctaHref && ctaLabel && (
         <Link
           href={ctaHref}
-          className="mt-4 inline-flex min-h-[44px] items-center rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-400"
+          className="mt-4 inline-flex min-h-[44px] items-center rounded-lg bg-amber-300 px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           {ctaLabel}
         </Link>
@@ -45,7 +45,7 @@ export function EmptyState({
       {!ctaHref && onAction && (
         <button
           onClick={onAction}
-          className="mt-4 inline-flex min-h-[44px] items-center rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-400"
+          className="mt-4 inline-flex min-h-[44px] items-center rounded-lg bg-amber-300 px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           {ctaLabel ?? "Commencer"}
         </button>

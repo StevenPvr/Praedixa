@@ -128,8 +128,9 @@ export default function ParametresPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Reglages"
-        subtitle="Configurez les couts, horaires, seuils d'alerte et sites de votre organisation"
+        eyebrow="Gouvernance"
+        title="Gouvernance et reglages"
+        subtitle="Cadrez les couts, seuils et parametres operationnels de votre organisation."
       />
 
       <TabBar

@@ -19,6 +19,7 @@ import {
   type DateRange,
 } from "@/components/ui/date-range-picker";
 import { DetailCard } from "@/components/ui/detail-card";
+import { StatusBanner } from "@/components/status-banner";
 import { useApiGet, useApiGetPaginated } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
 import { AnimatedSection } from "@/components/animated-section";
@@ -119,9 +120,29 @@ export default function DonneesPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Donnees"
-        subtitle="Toutes les donnees de vos equipes"
+        eyebrow="Voir"
+        title="Referentiel operationnel"
+        subtitle="Verifiez la fiabilite des donnees qui alimentent vos arbitrages quotidiens."
       />
+
+      {qualityLoading ? (
+        <StatusBanner variant="info" title="Controle qualite en cours">
+          Synchronisation des indicateurs de fiabilite et des derniers imports.
+        </StatusBanner>
+      ) : (quality?.missingShiftsPct ?? 0) > 5 ? (
+        <StatusBanner variant="danger" title="Qualite des donnees a corriger">
+          Le taux de postes non renseignes depasse le seuil acceptable.
+        </StatusBanner>
+      ) : (quality?.coveragePct ?? 0) < 85 ? (
+        <StatusBanner variant="warning" title="Qualite sous surveillance">
+          Le taux de remplissage est inferieur a l'objectif attendu.
+        </StatusBanner>
+      ) : (
+        <StatusBanner variant="success" title="Base de reference fiable">
+          Les donnees consolidees sont suffisamment completes pour piloter les
+          arbitrages.
+        </StatusBanner>
+      )}
 
       {/* Quality metrics */}
       {qualityError ? (
@@ -185,35 +206,40 @@ export default function DonneesPage() {
       )}
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-4">
-        <SelectDropdown
-          label="Site"
-          options={siteOptions}
-          value={siteFilter}
-          onChange={(v) => {
-            setSiteFilter(v);
-            setPage(1);
-          }}
-          placeholder="Tous les sites"
-        />
-        <SelectDropdown
-          label="Poste"
-          options={SHIFT_OPTIONS}
-          value={shiftFilter}
-          onChange={(v) => {
-            setShiftFilter(v);
-            setPage(1);
-          }}
-          placeholder="Tous les postes"
-        />
-        <DateRangePicker
-          value={dateRange}
-          onChange={(r) => {
-            setDateRange(r);
-            setPage(1);
-          }}
-        />
-      </div>
+      <DetailCard>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-ink-tertiary">
+          Filtrage operationnel
+        </p>
+        <div className="flex flex-wrap items-end gap-4">
+          <SelectDropdown
+            label="Site"
+            options={siteOptions}
+            value={siteFilter}
+            onChange={(v) => {
+              setSiteFilter(v);
+              setPage(1);
+            }}
+            placeholder="Tous les sites"
+          />
+          <SelectDropdown
+            label="Poste"
+            options={SHIFT_OPTIONS}
+            value={shiftFilter}
+            onChange={(v) => {
+              setShiftFilter(v);
+              setPage(1);
+            }}
+            placeholder="Tous les postes"
+          />
+          <DateRangePicker
+            value={dateRange}
+            onChange={(r) => {
+              setDateRange(r);
+              setPage(1);
+            }}
+          />
+        </div>
+      </DetailCard>
 
       {/* Data table */}
       <AnimatedSection>

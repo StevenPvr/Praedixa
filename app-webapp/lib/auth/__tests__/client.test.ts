@@ -24,6 +24,12 @@ vi.mock("@supabase/ssr", () => ({
 }));
 
 describe("auth client", () => {
+  const toJwt = (payload: Record<string, unknown> = {}) => {
+    const encode = (value: Record<string, unknown>) =>
+      Buffer.from(JSON.stringify(value)).toString("base64url");
+    return `${encode({ alg: "HS256", typ: "JWT" })}.${encode({ sub: "user-1", ...payload })}.signature`;
+  };
+
   beforeEach(() => {
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://test.supabase.co");
@@ -64,10 +70,11 @@ describe("auth client", () => {
   });
 
   it("getValidAccessToken returns current valid token", async () => {
+    const tokenValue = toJwt();
     mockGetSession.mockResolvedValue({
       data: {
         session: {
-          access_token: "token-current",
+          access_token: tokenValue,
           expires_at: Math.floor(Date.now() / 1000) + 3600,
         },
       },
@@ -76,42 +83,45 @@ describe("auth client", () => {
     const { getValidAccessToken } = await import("../client");
     const token = await getValidAccessToken();
 
-    expect(token).toBe("token-current");
+    expect(token).toBe(tokenValue);
     expect(mockRefreshSession).not.toHaveBeenCalled();
   });
 
   it("getValidAccessToken refreshes when session is missing", async () => {
+    const refreshedToken = toJwt({ refreshed: true });
     mockGetSession.mockResolvedValue({ data: { session: null } });
     mockRefreshSession.mockResolvedValue({
-      data: { session: { access_token: "token-refreshed" } },
+      data: { session: { access_token: refreshedToken } },
       error: null,
     });
 
     const { getValidAccessToken } = await import("../client");
     const token = await getValidAccessToken();
 
-    expect(token).toBe("token-refreshed");
+    expect(token).toBe(refreshedToken);
     expect(mockRefreshSession).toHaveBeenCalledTimes(1);
   });
 
   it("getValidAccessToken refreshes when token is near expiry", async () => {
+    const oldToken = toJwt({ old: true });
+    const newToken = toJwt({ fresh: true });
     mockGetSession.mockResolvedValue({
       data: {
         session: {
-          access_token: "token-old",
+          access_token: oldToken,
           expires_at: Math.floor(Date.now() / 1000) + 10,
         },
       },
     });
     mockRefreshSession.mockResolvedValue({
-      data: { session: { access_token: "token-new" } },
+      data: { session: { access_token: newToken } },
       error: null,
     });
 
     const { getValidAccessToken } = await import("../client");
     const token = await getValidAccessToken({ minTtlSeconds: 60 });
 
-    expect(token).toBe("token-new");
+    expect(token).toBe(newToken);
     expect(mockRefreshSession).toHaveBeenCalledTimes(1);
   });
 
@@ -141,6 +151,22 @@ describe("auth client", () => {
     mockGetSession.mockResolvedValueOnce({
       data: {
         session: {
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+        },
+      },
+    });
+
+    const { getValidAccessToken } = await import("../client");
+    const token = await getValidAccessToken();
+
+    expect(token).toBeNull();
+  });
+
+  it("getValidAccessToken returns null when token is not a JWT", async () => {
+    mockGetSession.mockResolvedValueOnce({
+      data: {
+        session: {
+          access_token: "mock-access-token-e2e-testing",
           expires_at: Math.floor(Date.now() / 1000) + 3600,
         },
       },

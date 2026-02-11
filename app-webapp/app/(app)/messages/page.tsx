@@ -107,8 +107,9 @@ export default function MessagesPage() {
     return (
       <div className="space-y-6">
         <PageHeader
-          title="Messages"
-          subtitle="Echangez avec l'equipe Praedixa"
+          eyebrow="Suivre"
+          title="Support strategique"
+          subtitle="Coordonnez vos decisions avec l'equipe Praedixa."
         />
         <ErrorFallback
           variant="api"
@@ -121,7 +122,11 @@ export default function MessagesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Messages" subtitle="Echangez avec l'equipe Praedixa" />
+      <PageHeader
+        eyebrow="Suivre"
+        title="Support strategique"
+        subtitle="Coordonnez vos decisions avec l'equipe Praedixa."
+      />
 
       <DetailCard className="p-0">
         <div className="flex h-[calc(100vh-220px)] min-h-[500px]">
@@ -164,7 +169,7 @@ export default function MessagesPage() {
                   <button
                     onClick={() => void handleCreateConversation()}
                     disabled={!newSubject.trim() || creating}
-                    className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-400 disabled:opacity-50"
+                    className="rounded-lg bg-amber-300 px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
                   >
                     {creating ? "Creation..." : "Creer"}
                   </button>

@@ -50,7 +50,7 @@ export function ConversationList({
         </h2>
         <button
           onClick={onNewConversation}
-          className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-white transition-colors hover:bg-amber-400"
+          className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-300 text-charcoal transition-colors hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           aria-label="Nouvelle conversation"
         >
           <Plus className="h-4 w-4" />
@@ -64,7 +64,7 @@ export function ConversationList({
             <p className="text-sm text-gray-500">Aucune conversation</p>
             <button
               onClick={onNewConversation}
-              className="mt-2 text-sm font-medium text-amber-600 hover:text-amber-500"
+              className="mt-2 text-sm font-medium text-amber-700 transition-colors hover:text-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               Demarrer une conversation
             </button>
@@ -76,7 +76,7 @@ export function ConversationList({
                 <button
                   onClick={() => onSelect(conv.id)}
                   className={cn(
-                    "w-full px-4 py-3 text-left transition-colors hover:bg-amber-50/50",
+                    "w-full px-4 py-3 text-left transition-colors hover:bg-amber-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset",
                     selectedId === conv.id &&
                       "border-l-2 border-amber-400 bg-amber-50/60",
                   )}

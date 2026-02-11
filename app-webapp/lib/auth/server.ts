@@ -61,3 +61,19 @@ export async function getSession() {
   } = await supabase.auth.getSession();
   return session;
 }
+
+export async function getSafeCurrentUser() {
+  const user = await getUser();
+  if (!user) return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    firstName:
+      user.user_metadata?.first_name ||
+      user.email?.split("@")[0] ||
+      "Utilisateur",
+    organizationId: user.user_metadata?.organization_id,
+    role: user.app_metadata?.role || "viewer",
+  };
+}

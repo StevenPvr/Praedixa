@@ -7,74 +7,107 @@
     --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
     --font-serif: "DM Serif Display", Georgia, serif;
 
-    /* Dashboard tokens */
-    --page-bg: oklch(0.984 0.003 106);
-    --card-bg: oklch(1 0 0);
-    --sidebar-bg: oklch(0.145 0 0);
-    --sidebar-width: 260px;
-    --sidebar-collapsed-width: 72px;
-    --topbar-height: 64px;
-    --border-color: oklch(0.922 0.004 250);
-    --text-primary: oklch(0.145 0 0);
-    --text-secondary: oklch(0.556 0.014 250);
-    --accent: oklch(0.769 0.205 70);
-    --accent-light: oklch(0.962 0.059 95);
-    --accent-glow: oklch(0.769 0.205 70 / 0.3);
+    /* Executive Editorial surface system */
+    --page-bg: oklch(0.974 0.006 95);
+    --page-bg-strong: oklch(0.952 0.009 93);
+    --card-bg: oklch(0.995 0.002 95);
+    --card-bg-muted: oklch(0.984 0.003 95);
 
-    /* Tremor chart color tokens (hex fallbacks for recharts SVG) */
-    --tremor-chart-amber: #f59e0b;
-    --tremor-chart-success: #22c55e;
-    --tremor-chart-warning: #eab308;
-    --tremor-chart-danger: #ef4444;
-    --tremor-chart-blue: #3b82f6;
-    --tremor-chart-gray: #6b7280;
+    /* Typography */
+    --ink: oklch(0.23 0.018 255);
+    --ink-secondary: oklch(0.44 0.016 255);
+    --ink-tertiary: oklch(0.49 0.013 255);
 
-    /* Risk thresholds: green <=0.3, orange 0.3-0.6, red >0.6 */
-    --risk-low: oklch(0.723 0.219 149);
-    --risk-medium: oklch(0.702 0.183 55);
-    --risk-high: oklch(0.577 0.245 27);
+    /* Brand */
+    --brand: oklch(0.41 0.095 253);
+    --brand-strong: oklch(0.33 0.085 253);
+    --accent: oklch(0.79 0.125 84);
+    --accent-strong: oklch(0.7 0.135 78);
+
+    /* Sidebar */
+    --sidebar-bg: oklch(0.22 0.03 258);
+    --sidebar-bg-hover: oklch(0.27 0.038 258);
+    --sidebar-bg-active: oklch(0.31 0.042 258);
+    --sidebar-text: oklch(0.95 0.01 255);
+    --sidebar-muted: oklch(0.77 0.02 255);
+
+    --sidebar-width: 300px;
+    --sidebar-collapsed-width: 88px;
+    --topbar-height: 76px;
   }
 
   body {
-    background-color: var(--page-bg);
-    color: var(--text-primary);
+    margin: 0;
+    background:
+      radial-gradient(
+        circle at 12% -5%,
+        color-mix(in oklch, var(--accent) 17%, transparent),
+        transparent 48%
+      ),
+      radial-gradient(
+        circle at 82% 8%,
+        color-mix(in oklch, var(--brand) 12%, transparent),
+        transparent 52%
+      ),
+      linear-gradient(
+        180deg,
+        var(--page-bg) 0%,
+        var(--page-bg-strong) 100%
+      );
+    color: var(--ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
-  /* Scrollbar styling */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.02em;
   }
+
+  * {
+    border-color: oklch(0.9 0.007 250);
+  }
+
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
+
   ::-webkit-scrollbar-thumb {
-    background: oklch(0.871 0.006 250);
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.714 0.01 250);
+    background: oklch(0.81 0.013 255);
+    border-radius: 9999px;
   }
 
-  /* Tremor overrides — remap Tremor's internal classes to our design system */
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.68 0.014 255);
+  }
+
   [data-tremor-default] {
     font-family: var(--font-sans);
   }
-}
 
-/* ──────────────────────────────────────────────── */
-/*  Keyframes                                       */
-/* ──────────────────────────────────────────────── */
+  :where(a, button, input, select, textarea, [role="button"], [role="tab"], [tabindex]):focus-visible {
+    outline: 2px solid var(--brand) !important;
+    outline-offset: 2px;
+  }
+}
 
 @keyframes shimmer {
   0% {
-    background-position: -200% 0;
+    background-position: -220% 0;
   }
+
   100% {
-    background-position: 200% 0;
+    background-position: 220% 0;
   }
 }
 
@@ -83,6 +116,7 @@
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -92,8 +126,9 @@
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(14px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -105,8 +140,9 @@
   100% {
     opacity: 1;
   }
+
   50% {
-    opacity: 0.4;
+    opacity: 0.42;
   }
 }
 
@@ -114,24 +150,62 @@
   .animate-shimmer {
     background: linear-gradient(
       90deg,
-      oklch(0.922 0.004 106) 0%,
-      oklch(0.96 0.002 106) 40%,
-      oklch(0.922 0.004 106) 80%
+      oklch(0.937 0.004 95) 0%,
+      oklch(0.975 0.001 95) 45%,
+      oklch(0.937 0.004 95) 90%
     );
-    background-size: 200% 100%;
-    animation: shimmer 1.8s ease-in-out infinite;
+    background-size: 220% 100%;
+    animation: shimmer 1.9s ease-in-out infinite;
   }
 
-  .bg-gradient-ambient {
+  .premium-shell-bg {
     background:
-      radial-gradient(ellipse at 50% 0%, oklch(0.769 0.205 70 / 0.08) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 80%, oklch(0.769 0.205 70 / 0.03) 0%, transparent 50%);
+      radial-gradient(circle at 5% 0%, oklch(0.95 0.03 90 / 0.45), transparent 40%),
+      radial-gradient(circle at 95% 5%, oklch(0.94 0.035 250 / 0.25), transparent 40%),
+      linear-gradient(180deg, oklch(0.986 0.004 96), oklch(0.968 0.008 94));
   }
 
   .section-divider {
     height: 1px;
     width: 6rem;
-    margin: 0 auto;
-    background: linear-gradient(to right, transparent, oklch(0.871 0 0), transparent);
+    background: linear-gradient(
+      to right,
+      transparent,
+      oklch(0.72 0.012 250),
+      transparent
+    );
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .skip-link {
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    z-index: 9999;
+    border-radius: 0.75rem;
+    background: var(--brand);
+    color: white;
+    font-weight: 600;
+    padding: 0.55rem 0.85rem;
+    transform: translateY(-140%);
+    transition: transform 180ms ease;
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

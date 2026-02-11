@@ -186,9 +186,48 @@ jobs:
       - name: Run e2e gate
         run: pnpm playwright test --workers=1
 
+  frontend-visual-qa:
+    name: Frontend visual QA gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+
+      - name: Install Playwright browsers
+        run: pnpm playwright install --with-deps chromium
+
+      - name: Run visual QA gate (webapp)
+        run: pnpm test:e2e:webapp:visual:ci
+
+      - name: Upload visual QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp-visual-qa
+          path: |
+            test-results/visual-qa/**
+            playwright-report/**
+          if-no-files-found: warn
+
   deploy:
     name: Build & Deploy (Cloudflare Workers)
-    needs: [checks, security-audit, secret-scan, bundle-size, frontend-coverage, frontend-e2e]
+    needs: [checks, security-audit, secret-scan, bundle-size, frontend-coverage, frontend-e2e, frontend-visual-qa]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:

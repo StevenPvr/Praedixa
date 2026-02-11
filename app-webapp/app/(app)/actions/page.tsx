@@ -14,11 +14,13 @@ import { Button, SkeletonCard, SkeletonChart } from "@praedixa/ui";
 import { PageHeader } from "@/components/ui/page-header";
 import { DetailCard } from "@/components/ui/detail-card";
 import { Badge } from "@/components/ui/badge";
+import { MetricCard } from "@/components/ui/metric-card";
 import { ParetoChart, type ParetoPoint } from "@/components/ui/pareto-chart";
 import { useApiGet, useApiPost } from "@/hooks/use-api";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorFallback } from "@/components/error-fallback";
+import { StatusBanner } from "@/components/status-banner";
 import { OptimizationPanel } from "@/components/actions/optimization-panel";
 import { AnimatedSection } from "@/components/animated-section";
 import { getOptionLabel, sortAlertsBySeverity } from "@/lib/scenario-utils";
@@ -339,10 +341,74 @@ export default function ActionsPage() {
   ];
 
   const noAlerts = !loading && filteredAlerts.length === 0;
+  const criticalCount = alerts.filter(
+    (alert) => alert.severity === "critical",
+  ).length;
+  const highCount = alerts.filter((alert) => alert.severity === "high").length;
+  const exposedSites = new Set(alerts.map((alert) => alert.siteId)).size;
+  const avgGap =
+    alerts.length > 0
+      ? alerts.reduce((sum, alert) => sum + alert.gapH, 0) / alerts.length
+      : 0;
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("actions.title")} subtitle={t("actions.subtitle")} />
+      <PageHeader
+        eyebrow="Decider"
+        title={t("actions.title")}
+        subtitle={t("actions.subtitle")}
+      />
+
+      {!error &&
+        (criticalCount > 0 ? (
+          <StatusBanner variant="danger" title="Action immediate recommandee">
+            {criticalCount} alerte(s) critique(s) et {highCount} alerte(s)
+            elevee(s) sont en file active.
+          </StatusBanner>
+        ) : alerts.length > 0 ? (
+          <StatusBanner variant="warning" title="File active sous controle">
+            {alerts.length} alerte(s) ouvertes sur {exposedSites} site(s).
+            Priorisez les dossiers avec rupture imminente.
+          </StatusBanner>
+        ) : (
+          <StatusBanner variant="success" title="Aucune alerte a traiter">
+            La file de decision est vide. Les operations restent sous controle
+            pour l'instant.
+          </StatusBanner>
+        ))}
+
+      {!error && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricCard
+            label="Alertes ouvertes"
+            value={loading ? "..." : alerts.length}
+            status={
+              criticalCount > 0
+                ? "danger"
+                : alerts.length > 0
+                  ? "warning"
+                  : "good"
+            }
+          />
+          <MetricCard
+            label="Sites exposes"
+            value={loading ? "..." : exposedSites}
+            status={exposedSites > 0 ? "warning" : "good"}
+          />
+          <MetricCard
+            label="Criticite haute"
+            value={loading ? "..." : criticalCount + highCount}
+            status={
+              criticalCount > 0 ? "danger" : highCount > 0 ? "warning" : "good"
+            }
+          />
+          <MetricCard
+            label="Ecart moyen"
+            value={loading ? "..." : `${avgGap.toFixed(1)} h`}
+            status={avgGap > 6 ? "warning" : "neutral"}
+          />
+        </div>
+      )}
 
       {error ? (
         <ErrorFallback
@@ -363,7 +429,7 @@ export default function ActionsPage() {
               description={t("actions.queueEmptyDescription")}
             />
           ) : (
-            <div className="grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)_380px]">
+            <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_380px]">
               <section aria-label="Selection de l'alerte" className="space-y-3">
                 <DetailCard>
                   <h2 className="font-serif text-base font-semibold text-charcoal">
@@ -373,15 +439,17 @@ export default function ActionsPage() {
                     {filterOptions.map((option) => (
                       <button
                         key={option.id}
+                        type="button"
                         onClick={() => {
                           setSeverityFilter(option.id);
                           setSelectedAlertId(null);
                         }}
+                        aria-pressed={severityFilter === option.id}
                         className={`rounded-full px-3 py-1 text-xs font-medium ${
                           severityFilter === option.id
-                            ? "bg-amber-500 text-white"
+                            ? "bg-amber-300 text-charcoal"
                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        }`}
+                        } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
                       >
                         {option.label}
                       </button>
@@ -402,12 +470,14 @@ export default function ActionsPage() {
                       return (
                         <button
                           key={alert.id}
+                          type="button"
                           onClick={() => handleSelectAlert(alert.id)}
-                          className={`w-full rounded-xl border bg-white p-3 text-left transition-colors ${
+                          aria-pressed={isActive}
+                          className={`w-full rounded-xl border bg-white p-3 text-left transition-all duration-200 ${
                             isActive
                               ? "border-amber-400 shadow-sm"
-                              : "border-gray-200 hover:border-amber-200"
-                          }`}
+                              : "border-gray-200 hover:-translate-y-0.5 hover:border-amber-200"
+                          } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div>
@@ -560,7 +630,7 @@ export default function ActionsPage() {
 
               <section
                 aria-label="Options d'optimisation"
-                className="space-y-3"
+                className="space-y-3 lg:col-span-2 xl:col-span-1"
               >
                 <DetailCard>
                   <h2 className="font-serif text-base font-semibold text-charcoal">
@@ -579,7 +649,7 @@ export default function ActionsPage() {
                     <Button
                       onClick={handleValidate}
                       disabled={!selectedOptionId || submitting}
-                      className="w-full bg-amber-500 text-white hover:bg-amber-400 disabled:opacity-50"
+                      className="w-full bg-amber-300 text-charcoal hover:bg-amber-200 disabled:opacity-50"
                     >
                       {submitting
                         ? t("actions.validating")
@@ -593,7 +663,7 @@ export default function ActionsPage() {
                         href={`/previsions?alert=${encodeURIComponent(
                           effectiveAlertId,
                         )}`}
-                        className="inline-flex items-center gap-2 text-xs font-medium text-amber-700 hover:text-amber-600"
+                        className="inline-flex items-center gap-2 text-xs font-medium text-amber-700 transition-colors hover:text-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                       >
                         <AlertTriangle className="h-3.5 w-3.5" />
                         Ouvrir l'analyse detaillee de cette alerte

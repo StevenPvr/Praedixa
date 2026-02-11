@@ -1,8 +1,9 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { ArrowRight, LockKeyhole } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-
+import { Button } from "@/components/ui/button";
 import {
   getSupabaseBrowserClient,
   getValidAccessToken,
@@ -41,8 +42,6 @@ function LoginForm() {
         return;
       }
 
-      // Hard navigation ensures the server middleware sees fresh session cookies
-      // and the page fully remounts (avoids stale loading state on redirect back).
       window.location.href = "/dashboard";
     } catch {
       setError("Erreur de connexion. Veuillez reessayer.");
@@ -52,19 +51,27 @@ function LoginForm() {
 
   return (
     <>
-      <p className="mb-6 text-center text-sm text-gray-500">
-        Connectez-vous a votre espace
-      </p>
+      <div className="space-y-2 text-center">
+        <p className="text-[11px] uppercase tracking-[0.14em] text-ink-tertiary">
+          Client access
+        </p>
+        <h2 className="font-heading text-3xl font-semibold text-ink">
+          Connexion securisee
+        </h2>
+        <p className="text-sm text-ink-secondary">
+          Accedez a votre war room operationnelle et vos priorites critiques.
+        </p>
+      </div>
 
-      <form onSubmit={handleLogin} className="space-y-4">
+      <form onSubmit={handleLogin} className="mt-8 space-y-4">
         {isReauth && (
-          <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             Session expiree ou droits insuffisants. Veuillez vous reconnecter.
           </div>
         )}
 
         {error && (
-          <div className="rounded-md bg-danger-50 p-3 text-sm text-danger-700">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
             {error}
           </div>
         )}
@@ -72,18 +79,18 @@ function LoginForm() {
         <div>
           <label
             htmlFor="email"
-            className="mb-1 block text-sm font-medium text-charcoal"
+            className="mb-1.5 block text-sm font-medium text-ink"
           >
-            Email
+            Email professionnel
           </label>
           <input
             id="email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(event) => setEmail(event.target.value)}
             required
             autoComplete="email"
-            className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-charcoal placeholder:text-gray-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full rounded-xl border border-black/12 bg-white px-3 py-2.5 text-sm text-ink placeholder:text-ink-tertiary outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
             placeholder="vous@entreprise.com"
           />
         </div>
@@ -91,7 +98,7 @@ function LoginForm() {
         <div>
           <label
             htmlFor="password"
-            className="mb-1 block text-sm font-medium text-charcoal"
+            className="mb-1.5 block text-sm font-medium text-ink"
           >
             Mot de passe
           </label>
@@ -99,20 +106,28 @@ function LoginForm() {
             id="password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
             required
             autoComplete="current-password"
-            className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-charcoal placeholder:text-gray-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full rounded-xl border border-black/12 bg-white px-3 py-2.5 text-sm text-ink placeholder:text-ink-tertiary outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-600 disabled:opacity-50"
+          className="w-full bg-amber-300 text-charcoal hover:bg-amber-200"
         >
-          {loading ? "Connexion..." : "Se connecter"}
-        </button>
+          {loading ? (
+            "Connexion en cours..."
+          ) : (
+            <>
+              <LockKeyhole className="mr-2 h-4 w-4" />
+              Se connecter
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
       </form>
     </>
   );

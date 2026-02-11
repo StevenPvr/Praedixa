@@ -1,9 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Download } from "lucide-react";
 import type { ProofPack } from "@praedixa/shared-types";
-import { DataTable, Button, SkeletonTable } from "@praedixa/ui";
+import { DataTable, SkeletonTable } from "@praedixa/ui";
 import type { DataTableColumn } from "@praedixa/ui";
+import { DetailCard } from "@/components/ui/detail-card";
+import { MetricCard } from "@/components/ui/metric-card";
+import { Button } from "@/components/ui/button";
+import { StatusBanner } from "@/components/status-banner";
 import { ErrorFallback } from "@/components/error-fallback";
 import { AnimatedSection } from "@/components/animated-section";
 import { getValidAccessToken } from "@/lib/auth/client";
@@ -43,6 +48,27 @@ export function ProofTab({ proofs, loading, error, onRetry }: ProofTabProps) {
     const records = proofs ?? [];
     if (records.length === 0) return null;
     return [...records].sort((a, b) => b.month.localeCompare(a.month))[0];
+  }, [proofs]);
+
+  const stats = useMemo(() => {
+    const rows = proofs ?? [];
+    const totalGain = rows.reduce((sum, row) => sum + row.gainNetEur, 0);
+    const avgAdoption =
+      rows.length > 0
+        ? rows
+            .map((row) => row.adoptionPct ?? 0)
+            .reduce((sum, value) => sum + value, 0) / rows.length
+        : 0;
+    const treatmentRate =
+      rows.length > 0
+        ? rows.reduce((sum, row) => sum + row.alertesTraitees, 0) /
+          Math.max(
+            rows.reduce((sum, row) => sum + row.alertesEmises, 0),
+            1,
+          )
+        : 0;
+
+    return { totalGain, avgAdoption, treatmentRate };
   }, [proofs]);
 
   async function handleDownloadProofPdf(): Promise<void> {
@@ -101,27 +127,69 @@ export function ProofTab({ proofs, loading, error, onRetry }: ProofTabProps) {
 
   return (
     <AnimatedSection>
-      <section aria-label="Bilans mensuels">
-        <div className="mb-4 flex items-center justify-between">
+      <section aria-label="Bilans mensuels" className="space-y-4">
+        {loading ? (
+          <StatusBanner variant="info" title="Preparation des bilans mensuels">
+            Consolidation des preuves de performance et des indicateurs
+            d'adoption.
+          </StatusBanner>
+        ) : stats.totalGain > 0 ? (
+          <StatusBanner variant="success" title="Bilans mensuels valorisables">
+            Le gain net cumule est positif sur les periodes disponibles.
+          </StatusBanner>
+        ) : (
+          <StatusBanner variant="warning" title="Bilans a renforcer">
+            Les preuves de valeur sont encore insuffisantes ou neutres sur la
+            periode.
+          </StatusBanner>
+        )}
+
+        <DetailCard>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <MetricCard
+              label="Gain net cumule"
+              value={
+                loading
+                  ? "..."
+                  : `${Math.round(stats.totalGain).toLocaleString("fr-FR")} EUR`
+              }
+              status={stats.totalGain > 0 ? "good" : "warning"}
+            />
+            <MetricCard
+              label="Adoption moyenne"
+              value={loading ? "..." : `${stats.avgAdoption.toFixed(1)}%`}
+              status={stats.avgAdoption >= 70 ? "good" : "warning"}
+            />
+            <MetricCard
+              label="Taux de traitement"
+              value={
+                loading ? "..." : `${(stats.treatmentRate * 100).toFixed(1)}%`
+              }
+              status={stats.treatmentRate >= 0.75 ? "good" : "warning"}
+            />
+          </div>
+        </DetailCard>
+
+        <div className="flex items-center justify-between gap-3">
           <h2 className="font-serif text-lg font-semibold text-charcoal">
-            Bilans mensuels
+            Bilans mensuels detailes
           </h2>
           <Button
             onClick={() => {
               void handleDownloadProofPdf();
             }}
             disabled={!latestProof || downloadingPdf}
+            variant="outline"
           >
+            <Download className="mr-2 h-4 w-4" />
             {downloadingPdf ? "Telechargement..." : "Telecharger en PDF"}
           </Button>
         </div>
-        <p className="mb-3 text-xs text-gray-500">
-          Chaque ligne consolide les gains, l&apos;adoption et le traitement des
-          alertes pour un mois et un site.
-        </p>
+
         {downloadError && (
-          <p className="mb-3 text-sm text-red-600">{downloadError}</p>
+          <p className="text-sm text-danger-text">{downloadError}</p>
         )}
+
         {error ? (
           <ErrorFallback message={error} onRetry={onRetry} />
         ) : loading ? (

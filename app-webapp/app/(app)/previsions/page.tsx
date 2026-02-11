@@ -9,9 +9,11 @@ import { SkeletonChart, SkeletonCard } from "@praedixa/ui";
 import { DetailCard } from "@/components/ui/detail-card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
+import { MetricCard } from "@/components/ui/metric-card";
 import { useApiGet } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
 import { AnimatedSection } from "@/components/animated-section";
+import { StatusBanner } from "@/components/status-banner";
 import { FeatureImportanceBar } from "@/components/previsions/feature-importance-bar";
 import { formatSeverity } from "@/lib/formatters";
 import {
@@ -151,13 +153,73 @@ function PrevisionsContent() {
   const dimensionLabel = dimension === "human" ? "humaine" : "marchandise";
 
   const topAlerts = (alerts ?? []).slice(0, 3);
+  const criticalCount = (alerts ?? []).filter(
+    (alert) => alert.severity === "critical",
+  ).length;
+  const highCount = (alerts ?? []).filter(
+    (alert) => alert.severity === "high",
+  ).length;
+  const avgRisk =
+    detailRows.length > 0
+      ? detailRows.reduce(
+          (sum, row) =>
+            sum + (row.riskScore <= 1 ? row.riskScore * 100 : row.riskScore),
+          0,
+        ) / detailRows.length
+      : 0;
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Previsions"
-        subtitle="Comprenez pourquoi et anticipez les besoins"
+        eyebrow="Anticiper"
+        title="Anticipation des tensions"
+        subtitle="Projetez les besoins, identifiez les causes et priorisez les alertes avant rupture."
       />
+
+      {alertsError ? (
+        <StatusBanner variant="warning" title="Surveillance partielle">
+          Les alertes live sont temporairement indisponibles. La projection
+          reste consultable.
+        </StatusBanner>
+      ) : criticalCount > 0 ? (
+        <StatusBanner variant="danger" title="Tension critique detectee">
+          {criticalCount} alerte(s) critique(s) et {highCount} alerte(s)
+          elevee(s) exigent une action rapide.
+        </StatusBanner>
+      ) : (alerts?.length ?? 0) > 0 ? (
+        <StatusBanner variant="warning" title="Risque modere sous surveillance">
+          {alerts?.length ?? 0} alerte(s) ouverte(s) sur l'horizon de prevision.
+        </StatusBanner>
+      ) : (
+        <StatusBanner variant="success" title="Horizon stabilise">
+          Aucun signal de rupture ouvert sur les prochains jours.
+        </StatusBanner>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Alertes ouvertes"
+          value={alertsLoading ? "..." : (alerts?.length ?? 0)}
+          status={
+            criticalCount > 0
+              ? "danger"
+              : (alerts?.length ?? 0) > 0
+                ? "warning"
+                : "good"
+          }
+        />
+        <MetricCard
+          label="Niveau critique"
+          value={alertsLoading ? "..." : criticalCount}
+          status={criticalCount > 0 ? "danger" : "good"}
+        />
+        <MetricCard
+          label="Risque moyen"
+          value={forecastLoading ? "..." : `${avgRisk.toFixed(0)}%`}
+          status={avgRisk > 65 ? "warning" : "neutral"}
+        />
+        <MetricCard label="Horizon suivi" value="7 jours" status="neutral" />
+      </div>
 
       {/* A. Main forecast chart */}
       <AnimatedSection>
@@ -177,22 +239,26 @@ function PrevisionsContent() {
             </div>
             <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
               <button
+                type="button"
                 onClick={() => setDimension("human")}
+                aria-pressed={dimension === "human"}
                 className={`min-h-[40px] rounded-md px-4 py-2 text-sm font-medium transition-colors sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs ${
                   dimension === "human"
                     ? "bg-white text-charcoal shadow-sm"
                     : "text-gray-500 hover:text-charcoal"
-                }`}
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
               >
                 Humaine
               </button>
               <button
+                type="button"
                 onClick={() => setDimension("merchandise")}
+                aria-pressed={dimension === "merchandise"}
                 className={`min-h-[40px] rounded-md px-4 py-2 text-sm font-medium transition-colors sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs ${
                   dimension === "merchandise"
                     ? "bg-white text-charcoal shadow-sm"
                     : "text-gray-500 hover:text-charcoal"
-                }`}
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
               >
                 Marchandise
               </button>
@@ -249,15 +315,16 @@ function PrevisionsContent() {
                   return (
                     <button
                       key={row.forecastDate}
+                      type="button"
                       onClick={() => setSelectedForecastDate(row.forecastDate)}
                       aria-label={`Voir le detail du ${formatDateShort(row.forecastDate)}`}
                       aria-pressed={active}
                       title={`Voir le detail du ${formatDateShort(row.forecastDate)}`}
                       className={`min-h-[36px] rounded-full px-3 py-1 text-xs ${
                         active
-                          ? "bg-amber-500 text-white"
+                          ? "bg-amber-300 text-charcoal"
                           : "bg-white text-gray-600 hover:bg-amber-50"
-                      }`}
+                      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
                     >
                       {formatDateShort(row.forecastDate)}
                     </button>
@@ -399,7 +466,7 @@ function PrevisionsContent() {
                   )}
                   <Link
                     href="/actions"
-                    className="mt-3 inline-block text-sm font-medium text-amber-600 hover:text-amber-700"
+                    className="mt-3 inline-block text-sm font-medium text-amber-600 transition-colors hover:text-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   >
                     Voir les solutions
                   </Link>

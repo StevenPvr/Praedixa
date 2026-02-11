@@ -7,68 +7,92 @@ export default {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "../packages/ui/src/**/*.{js,ts,jsx,tsx,mdx}",
-    // Tremor — allow Tailwind to scan Tremor's classes
     "./node_modules/@tremor/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       colors: {
-        // Webapp-specific backgrounds (OKLCH)
-        page: "oklch(0.984 0.003 106)",
-        card: "oklch(1 0 0)",
-        sidebar: {
-          DEFAULT: "oklch(0.145 0 0)",
-          hover: "oklch(0.21 0.006 250)",
+        page: "var(--page-bg)",
+        card: "var(--card-bg)",
+        surface: {
+          DEFAULT: "var(--card-bg)",
+          muted: "var(--card-bg-muted)",
         },
-        cream: "oklch(0.984 0.003 106)",
-        ink: "oklch(0.117 0 0)",
-        paper: "oklch(0.999 0 0)",
-        charcoal: "oklch(0.145 0 0)",
+        charcoal: "oklch(0.23 0.018 255)",
+        ink: {
+          DEFAULT: "var(--ink)",
+          secondary: "var(--ink-secondary)",
+          tertiary: "var(--ink-tertiary)",
+          inverted: "oklch(0.97 0.006 95)",
+        },
+        primary: {
+          DEFAULT: "var(--brand)",
+          light: "oklch(0.93 0.03 253)",
+          dark: "var(--brand-strong)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          strong: "var(--accent-strong)",
+        },
+        sidebar: {
+          DEFAULT: "var(--sidebar-bg)",
+          hover: "var(--sidebar-bg-hover)",
+          active: "var(--sidebar-bg-active)",
+          text: "var(--sidebar-text)",
+          muted: "var(--sidebar-muted)",
+        },
+        success: {
+          DEFAULT: "oklch(0.67 0.13 160)",
+          light: "oklch(0.96 0.03 160)",
+          text: "oklch(0.42 0.102 160)",
+        },
+        warning: {
+          DEFAULT: "oklch(0.75 0.15 78)",
+          light: "oklch(0.97 0.045 78)",
+          text: "oklch(0.47 0.11 78)",
+        },
+        danger: {
+          DEFAULT: "oklch(0.62 0.18 27)",
+          light: "oklch(0.96 0.03 27)",
+          text: "oklch(0.41 0.12 27)",
+        },
       },
       spacing: {
-        sidebar: "260px",
-        "sidebar-collapsed": "72px",
-        topbar: "64px",
+        sidebar: "300px",
+        "sidebar-collapsed": "88px",
+        topbar: "76px",
       },
       borderRadius: {
-        card: "12px",
-        "2xl": "1rem",
-        "3xl": "1.5rem",
+        card: "22px",
+        button: "12px",
+        "2xl": "1.25rem",
+        "3xl": "1.75rem",
       },
       boxShadow: {
-        xs: "0 1px 2px rgba(0,0,0,0.03)",
-        soft: "0 2px 15px -3px rgba(0,0,0,0.07), 0 10px 20px -2px rgba(0,0,0,0.04)",
-        card: "0 4px 20px -2px rgba(0,0,0,0.08)",
+        soft: "0 3px 12px rgba(20, 25, 38, 0.05)",
+        card: "0 0 0 1px rgba(24, 32, 54, 0.06), 0 8px 24px rgba(24, 32, 54, 0.06)",
         "card-hover":
-          "0 8px 30px -4px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.04)",
-        "card-active":
-          "0 1px 2px rgba(0,0,0,0.06), 0 0 0 2px rgba(245,158,11,0.15)",
-        elevated:
-          "0 12px 40px -8px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.06)",
-        glow: "0 0 30px -5px oklch(0.769 0.205 70 / 0.3)",
-        "glow-sm": "0 0 15px -3px oklch(0.769 0.205 70 / 0.2)",
-        "glow-amber":
-          "0 0 0 1px rgba(245,158,11,0.15), 0 4px 12px rgba(245,158,11,0.1)",
-        sidebar: "1px 0 0 #e5e5ea",
-        topbar: "0 1px 3px 0 rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)",
+          "0 0 0 1px rgba(24, 32, 54, 0.09), 0 18px 36px rgba(24, 32, 54, 0.12)",
+        elevated: "0 24px 30px -10px rgba(24, 32, 54, 0.22)",
+        sidebar:
+          "1px 0 0 rgba(255,255,255,0.06), 16px 0 30px rgba(6,12,22,0.2)",
       },
       animation: {
         shimmer: "shimmer 1.8s ease-in-out infinite",
-        "fade-in": "fadeIn 0.2s ease-out",
-        "slide-up": "slideUp 0.3s ease-out",
-        "pulse-dot": "pulseDot 2s ease-in-out infinite",
+        "fade-in": "fadeIn 260ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "slide-up": "slideUp 420ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "pulse-dot": "pulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       transitionDuration: {
         fast: "150ms",
-        normal: "200ms",
+        normal: "240ms",
       },
     },
   },
   safelist: [
-    // Tremor uses dynamic class names for chart colors
     {
       pattern:
-        /^(bg|border|ring|text|stroke|fill)-(amber|success|warning|danger|gray)-(50|100|200|300|400|500|600|700|800|900)$/,
+        /^(bg|border|ring|text|stroke|fill)-(amber|success|warning|danger|gray|slate|blue|emerald|rose)-(50|100|200|300|400|500|600|700|800|900)$/,
     },
   ],
   plugins: [],

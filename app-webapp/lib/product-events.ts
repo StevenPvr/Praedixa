@@ -12,10 +12,13 @@ export async function trackProductEvents(events: ProductEvent[]) {
   if (events.length === 0) return;
 
   try {
+    const token = await getToken();
+    if (!token) return;
+
     await apiPost<{ accepted: number }>(
       "/api/v1/product-events/batch",
       { events },
-      getToken,
+      async () => token,
     );
   } catch {
     // UX telemetry must never block the primary workflow.

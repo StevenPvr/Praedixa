@@ -65,9 +65,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     void (async () => {
       try {
+        const token = await getToken();
+        if (!token) return;
+
         const response = await apiGet<UserUxPreferences>(
           "/api/v1/users/me/preferences",
-          getToken,
+          async () => token,
         );
         if (cancelled) return;
         const serverLocale = parseLocale(response.data.language ?? null);
@@ -88,11 +91,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     setLocaleState(next);
     const storage = getStorage();
     storage?.setItem(LOCALE_STORAGE_KEY, next);
-    void apiPatch<UserUxPreferences>(
-      "/api/v1/users/me/preferences",
-      { language: next },
-      getToken,
-    ).catch(() => undefined);
+    void (async () => {
+      const token = await getToken();
+      if (!token) return;
+      await apiPatch<UserUxPreferences>(
+        "/api/v1/users/me/preferences",
+        { language: next },
+        async () => token,
+      );
+    })().catch(() => undefined);
   }, []);
 
   const t = useCallback((key: string) => translate(locale, key), [locale]);

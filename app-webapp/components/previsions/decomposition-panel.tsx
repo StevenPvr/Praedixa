@@ -13,6 +13,24 @@ interface DecompositionPanelProps {
 
 const chartValueFormatter = (v: number) => v.toFixed(0);
 
+interface SegmentProps {
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+}
+
+function Segment({ title, subtitle, children }: SegmentProps) {
+  return (
+    <DetailCard>
+      <div className="mb-3">
+        <h3 className="text-sm font-semibold text-ink">{title}</h3>
+        <p className="mt-1 text-xs text-ink-secondary">{subtitle}</p>
+      </div>
+      {children}
+    </DetailCard>
+  );
+}
+
 export const DecompositionPanel = memo(function DecompositionPanel({
   data,
   loading,
@@ -37,9 +55,9 @@ export const DecompositionPanel = memo(function DecompositionPanel({
 
   if (isEmpty) {
     return (
-      <div className="flex items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-card p-12">
-        <p className="text-sm text-gray-400">
-          Lancez une prevision pour voir la decomposition
+      <div className="flex items-center justify-center rounded-2xl border border-dashed border-black/[0.15] bg-black/[0.02] p-12">
+        <p className="text-sm text-ink-secondary">
+          Lancez une prevision pour visualiser la decomposition du signal.
         </p>
       </div>
     );
@@ -69,16 +87,11 @@ export const DecompositionPanel = memo(function DecompositionPanel({
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      {/* 1. Trend */}
-      <DetailCard>
-        <h3 className="text-sm font-semibold text-charcoal">
-          Tendance de fond
-        </h3>
-        <p className="mb-3 text-xs text-gray-500">
-          L&apos;evolution generale de vos besoins, independamment des
-          fluctuations
-        </p>
-        <div className="h-48 overflow-hidden rounded-lg border border-gray-100 bg-white/70">
+      <Segment
+        title="Tendance de fond"
+        subtitle="Evolution structurelle des besoins, independamment des variations courtes."
+      >
+        <div className="h-48 overflow-hidden rounded-xl border border-black/[0.06] bg-white/[0.70]">
           <AreaChart
             data={trendData}
             index="date"
@@ -91,17 +104,13 @@ export const DecompositionPanel = memo(function DecompositionPanel({
             className="h-full"
           />
         </div>
-      </DetailCard>
+      </Segment>
 
-      {/* 2. Seasonality */}
-      <DetailCard>
-        <h3 className="text-sm font-semibold text-charcoal">
-          Rythme hebdomadaire
-        </h3>
-        <p className="mb-3 text-xs text-gray-500">
-          Certains jours sont systematiquement plus charges
-        </p>
-        <div className="h-48 overflow-hidden rounded-lg border border-gray-100 bg-white/70">
+      <Segment
+        title="Rythme hebdomadaire"
+        subtitle="Cycles operationnels recurrents qui influencent la charge."
+      >
+        <div className="h-48 overflow-hidden rounded-xl border border-black/[0.06] bg-white/[0.70]">
           <BarChart
             data={seasonData}
             index="day"
@@ -113,17 +122,13 @@ export const DecompositionPanel = memo(function DecompositionPanel({
             className="h-full"
           />
         </div>
-      </DetailCard>
+      </Segment>
 
-      {/* 3. Residuals */}
-      <DetailCard>
-        <h3 className="text-sm font-semibold text-charcoal">
-          Evenements ponctuels
-        </h3>
-        <p className="mb-3 text-xs text-gray-500">
-          Ce qui reste apres la tendance et le rythme. Les pics = imprevus
-        </p>
-        <div className="h-48 overflow-hidden rounded-lg border border-gray-100 bg-white/70">
+      <Segment
+        title="Evenements ponctuels"
+        subtitle="Anomalies ou signaux exceptionnels qui perturbent la tendance normale."
+      >
+        <div className="h-48 overflow-hidden rounded-xl border border-black/[0.06] bg-white/[0.70]">
           <AreaChart
             data={residualData}
             index="date"
@@ -136,17 +141,13 @@ export const DecompositionPanel = memo(function DecompositionPanel({
             className="h-full"
           />
         </div>
-      </DetailCard>
+      </Segment>
 
-      {/* 4. Confidence band */}
-      <DetailCard>
-        <h3 className="text-sm font-semibold text-charcoal">
-          Fourchette de confiance
-        </h3>
-        <p className="mb-3 text-xs text-gray-500">
-          Plus la zone est etroite, plus la prevision est fiable
-        </p>
-        <div className="h-48 overflow-hidden rounded-lg border border-gray-100 bg-white/70">
+      <Segment
+        title="Fourchette de confiance"
+        subtitle="Amplitude d'incertitude autour de la prediction centrale."
+      >
+        <div className="h-48 overflow-hidden rounded-xl border border-black/[0.06] bg-white/[0.70]">
           <AreaChart
             data={confidenceData}
             index="date"
@@ -159,7 +160,7 @@ export const DecompositionPanel = memo(function DecompositionPanel({
             className="h-full"
           />
         </div>
-      </DetailCard>
+      </Segment>
     </div>
   );
 });

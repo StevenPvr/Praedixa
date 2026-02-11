@@ -75,9 +75,9 @@ export function MessageInput({ onSend, disabled, sending }: MessageInputProps) {
           onClick={handleSend}
           disabled={!canSend}
           className={cn(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
             canSend
-              ? "bg-amber-500 text-white hover:bg-amber-400"
+              ? "bg-amber-300 text-charcoal hover:bg-amber-200"
               : "bg-gray-100 text-gray-300",
           )}
           aria-label="Envoyer"

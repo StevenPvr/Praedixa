@@ -4,12 +4,15 @@ import { useState } from "react";
 import type { ProofPack, CoverageAlert } from "@praedixa/shared-types";
 import { TabBar, type Tab } from "@/components/ui/tab-bar";
 import { PageHeader } from "@/components/ui/page-header";
+import { DetailCard } from "@/components/ui/detail-card";
+import { MetricCard } from "@/components/ui/metric-card";
+import { StatusBanner } from "@/components/status-banner";
 import { useApiGet } from "@/hooks/use-api";
 import { SyntheseTab } from "@/components/rapports/synthese-tab";
 import { PrecisionTab } from "@/components/rapports/precision-tab";
 import { CoutsTab } from "@/components/rapports/couts-tab";
 import { ProofTab } from "@/components/rapports/proof-tab";
-import type { ForecastRunSummary } from "@/lib/rapports-helpers";
+import { toPercent, type ForecastRunSummary } from "@/lib/rapports-helpers";
 import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
 
 const REPORT_TABS: Tab[] = [
@@ -56,12 +59,74 @@ export default function RapportsPage() {
     },
   );
 
+  const openAlerts = (coverageAlerts ?? []).filter(
+    (alert) => alert.status === "open",
+  ).length;
+  const totalProofs = proofs?.length ?? 0;
+  const completedForecasts = (forecastRuns ?? []).filter(
+    (run) => run.status === "completed",
+  ).length;
+  const accuracySamples = (forecastRuns ?? [])
+    .map((run) => run.accuracyScore)
+    .filter((value): value is number => typeof value === "number")
+    .map((value) => toPercent(value));
+  const avgAccuracy =
+    accuracySamples.length > 0
+      ? accuracySamples.reduce((sum, value) => sum + value, 0) /
+        accuracySamples.length
+      : 0;
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Rapports"
-        subtitle="Bilans hebdomadaires, analyse des couts et documents exportables"
+        eyebrow="Gouvernance"
+        title="Rapports board-ready"
+        subtitle="Bilans executifs, suivi des couts et livrables partageables."
       />
+
+      {alertsLoading || proofsLoading || forecastsLoading ? (
+        <StatusBanner
+          variant="info"
+          title="Consolidation des rapports en cours"
+        >
+          Preparation des indicateurs de performance et des livrables executifs.
+        </StatusBanner>
+      ) : openAlerts > 0 ? (
+        <StatusBanner variant="warning" title="Rapports avec alertes ouvertes">
+          {openAlerts} alerte(s) restent actives. Priorisez le traitement avant
+          diffusion finale.
+        </StatusBanner>
+      ) : (
+        <StatusBanner variant="success" title="Pack executif pret a partager">
+          Les indicateurs critiques sont consolides et exploitables pour votre
+          comite de direction.
+        </StatusBanner>
+      )}
+
+      <DetailCard>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricCard
+            label="Bilans disponibles"
+            value={proofsLoading ? "..." : totalProofs}
+            status={totalProofs > 0 ? "good" : "neutral"}
+          />
+          <MetricCard
+            label="Alertes ouvertes"
+            value={alertsLoading ? "..." : openAlerts}
+            status={openAlerts > 0 ? "warning" : "good"}
+          />
+          <MetricCard
+            label="Runs finalises"
+            value={forecastsLoading ? "..." : completedForecasts}
+            status={completedForecasts > 0 ? "good" : "neutral"}
+          />
+          <MetricCard
+            label="Precision moyenne"
+            value={forecastsLoading ? "..." : `${avgAccuracy.toFixed(1)}%`}
+            status={avgAccuracy >= 90 ? "good" : "warning"}
+          />
+        </div>
+      </DetailCard>
 
       <TabBar
         tabs={REPORT_TABS}
