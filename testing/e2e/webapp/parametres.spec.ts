@@ -11,11 +11,11 @@ test.describe("Parametres page", () => {
   test("displays page title and subtitle", async ({ page }) => {
     await page.goto("/parametres");
     await expect(
-      page.getByRole("heading", { name: "Reglages", level: 1 }),
+      page.getByRole("heading", { name: "Gouvernance et reglages", level: 1 }),
     ).toBeVisible();
     await expect(
       page.getByText(
-        "Configurez les couts, horaires, seuils d'alerte et sites de votre organisation",
+        "Cadrez les couts, seuils et parametres operationnels de votre organisation.",
       ),
     ).toBeVisible();
   });

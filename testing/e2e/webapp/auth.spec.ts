@@ -50,12 +50,14 @@ async function setSuperAdminSessionCookie(page: Page) {
 test.describe("Webapp authentication", () => {
   test("/login page loads successfully", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.getByRole("heading", { name: "Praedixa" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Connexion securisee" }),
+    ).toBeVisible();
   });
 
   test("login page has email input", async ({ page }) => {
     await page.goto("/login");
-    const emailInput = page.getByLabel("Email");
+    const emailInput = page.getByLabel(/Email/);
     await expect(emailInput).toBeVisible();
     await expect(emailInput).toHaveAttribute("type", "email");
   });
@@ -76,7 +78,11 @@ test.describe("Webapp authentication", () => {
 
   test("login page shows subtitle", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.getByText("Connectez-vous a votre espace")).toBeVisible();
+    await expect(
+      page.getByText(
+        "Accedez a votre war room operationnelle et vos priorites critiques.",
+      ),
+    ).toBeVisible();
   });
 
   test("unauthenticated access to /dashboard redirects to /login", async ({
@@ -124,7 +130,9 @@ test.describe("Webapp authentication", () => {
     await page.goto("/dashboard");
 
     await expect(page).toHaveURL(/\/login(?:\?|$)/);
-    await expect(page.getByRole("heading", { name: "Praedixa" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Connexion securisee" }),
+    ).toBeVisible();
   });
 
   test("email input has placeholder text", async ({ page }) => {

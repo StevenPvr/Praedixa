@@ -11,27 +11,34 @@ test.describe("Authenticated navigation", () => {
   test("sidebar navigation links work between pages", async ({ page }) => {
     await page.goto("/dashboard");
 
-    await expect(page.getByRole("heading", { name: "Accueil" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "War room operationnelle" }),
+    ).toBeVisible();
 
     await page.goto("/donnees");
     await expect(
-      page.getByRole("heading", { name: "Donnees", level: 1 }),
+      page.getByRole("heading", { name: "Referentiel operationnel", level: 1 }),
     ).toBeVisible();
 
     await page.goto("/previsions");
     await expect(
-      page.getByRole("heading", { name: "Previsions", level: 1 }),
+      page.getByRole("heading", {
+        name: "Anticipation des tensions",
+        level: 1,
+      }),
     ).toBeVisible();
 
     await page.goto("/actions");
     await expect(
-      page.getByRole("heading", { name: "Actions", level: 1 }),
+      page.getByRole("heading", { name: "Centre de traitement", level: 1 }),
     ).toBeVisible();
 
     const nav = page.getByLabel("Navigation principale");
-    await nav.getByText("Accueil").click();
+    await nav.getByText("War room").click();
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.getByRole("heading", { name: "Accueil" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "War room operationnelle" }),
+    ).toBeVisible();
   });
 
   test("active page has aria-current indicator in sidebar", async ({
@@ -43,7 +50,7 @@ test.describe("Authenticated navigation", () => {
     await expect(nav).toBeVisible();
     const sidebar = page.locator("aside");
 
-    const dashboardLink = nav.getByRole("link", { name: /^Accueil$/ });
+    const dashboardLink = nav.getByRole("link", { name: /^War room$/ });
     await expect(dashboardLink).toHaveAttribute("aria-current", "page");
 
     // Navigate to Rapports (leaf item, no children) via direct navigation
@@ -52,7 +59,7 @@ test.describe("Authenticated navigation", () => {
     const rapportsLink = sidebar.getByRole("link", { name: /^Rapports$/ });
     await expect(rapportsLink).toHaveAttribute("aria-current", "page");
 
-    const dashLink = nav.getByRole("link", { name: /^Accueil$/ });
+    const dashLink = nav.getByRole("link", { name: /^War room$/ });
     await expect(dashLink).not.toHaveAttribute("aria-current", "page");
   });
 
@@ -71,11 +78,11 @@ test.describe("Authenticated navigation", () => {
 
   test("page titles are correct for each section", async ({ page }) => {
     const pageTitles: Array<{ url: string; title: string }> = [
-      { url: "/dashboard", title: "Accueil" },
-      { url: "/donnees", title: "Donnees" },
-      { url: "/previsions", title: "Previsions" },
-      { url: "/actions", title: "Actions" },
-      { url: "/rapports", title: "Rapports" },
+      { url: "/dashboard", title: "War room operationnelle" },
+      { url: "/donnees", title: "Referentiel operationnel" },
+      { url: "/previsions", title: "Anticipation des tensions" },
+      { url: "/actions", title: "Centre de traitement" },
+      { url: "/rapports", title: "Rapports board-ready" },
     ];
 
     for (const { url, title } of pageTitles) {

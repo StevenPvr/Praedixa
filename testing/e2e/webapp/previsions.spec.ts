@@ -11,10 +11,15 @@ test.describe("Previsions page", () => {
   test("displays page title and subtitle", async ({ page }) => {
     await page.goto("/previsions");
     await expect(
-      page.getByRole("heading", { name: "Previsions", level: 1 }),
+      page.getByRole("heading", {
+        name: "Anticipation des tensions",
+        level: 1,
+      }),
     ).toBeVisible();
     await expect(
-      page.getByText("Comprenez pourquoi et anticipez les besoins"),
+      page.getByText(
+        "Projetez les besoins, identifiez les causes et priorisez les alertes avant rupture.",
+      ),
     ).toBeVisible();
   });
 
@@ -29,7 +34,7 @@ test.describe("Previsions page", () => {
   test("displays 14-day forecast section", async ({ page }) => {
     await page.goto("/previsions");
     await expect(
-      page.getByText("Prevision de couverture a 14 jours"),
+      page.getByText("Prevision de couverture sur 7 jours"),
     ).toBeVisible();
     await expect(page.getByText("Capacite humaine")).toBeVisible();
   });
@@ -58,7 +63,7 @@ test.describe("Previsions page", () => {
   });
 
   test("shows empty-state when alerts API returns empty", async ({ page }) => {
-    await page.route("**/api/v1/coverage-alerts*", (route) =>
+    await page.route("**/api/v1/live/coverage-alerts*", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",

@@ -120,10 +120,18 @@ const coverageAlerts = [
 export { coverageAlerts as MOCK_COVERAGE_ALERTS };
 
 export async function mockCoverageAlerts(page: Page): Promise<void> {
-  await page.route("**/api/v1/coverage-alerts*", (route) => {
+  await page.route("**/api/v1/**coverage-alerts*", (route) => {
     const url = new URL(route.request().url());
+    if (
+      url.pathname !== "/api/v1/coverage-alerts" &&
+      url.pathname !== "/api/v1/live/coverage-alerts"
+    ) {
+      return route.fallback();
+    }
+
     const horizon = url.searchParams.get("horizon");
     const siteId = url.searchParams.get("site_id");
+    const status = url.searchParams.get("status");
 
     let filtered = [...coverageAlerts];
     if (horizon) {
@@ -131,6 +139,9 @@ export async function mockCoverageAlerts(page: Page): Promise<void> {
     }
     if (siteId) {
       filtered = filtered.filter((a) => a.siteId === siteId);
+    }
+    if (status) {
+      filtered = filtered.filter((a) => a.status === status);
     }
 
     return route.fulfill({
@@ -143,6 +154,65 @@ export async function mockCoverageAlerts(page: Page): Promise<void> {
       }),
     });
   });
+}
+
+const decisionQueue = [
+  {
+    id: IDS.alert1,
+    siteId: "Lyon-Sat",
+    alertDate: "2026-02-10",
+    shift: "am",
+    severity: "critical",
+    horizon: "j7",
+    gapH: 14,
+    pRupture: 0.72,
+    driversJson: ["Absenteisme", "Surcharge"],
+    priorityScore: 99,
+    estimatedImpactEur: 3500,
+    timeToBreachHours: 10,
+  },
+  {
+    id: IDS.alert2,
+    siteId: "Paris-CDG",
+    alertDate: "2026-02-11",
+    shift: "pm",
+    severity: "high",
+    horizon: "j7",
+    gapH: 8,
+    pRupture: 0.55,
+    driversJson: ["Conges"],
+    priorityScore: 82,
+    estimatedImpactEur: 2000,
+    timeToBreachHours: 22,
+  },
+  {
+    id: IDS.alert3,
+    siteId: "Marseille",
+    alertDate: "2026-02-09",
+    shift: "am",
+    severity: "medium",
+    horizon: "j3",
+    gapH: 4,
+    pRupture: 0.35,
+    driversJson: ["Formation"],
+    priorityScore: 68,
+    estimatedImpactEur: 800,
+    timeToBreachHours: 44,
+  },
+];
+
+export async function mockDecisionQueue(page: Page): Promise<void> {
+  await page.route("**/api/v1/coverage-alerts/queue*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: decisionQueue,
+        timestamp: NOW,
+      }),
+    }),
+  );
 }
 
 // ─────────────────────────────────────────────────
@@ -159,8 +229,15 @@ const canonicalQuality = {
 };
 
 export async function mockCanonicalQuality(page: Page): Promise<void> {
-  await page.route("**/api/v1/canonical/quality*", (route) =>
-    route.fulfill({
+  await page.route("**/api/v1/**canonical/quality*", (route) => {
+    const url = new URL(route.request().url());
+    if (
+      url.pathname !== "/api/v1/canonical/quality" &&
+      url.pathname !== "/api/v1/live/canonical/quality"
+    ) {
+      return route.fallback();
+    }
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
@@ -168,8 +245,8 @@ export async function mockCanonicalQuality(page: Page): Promise<void> {
         data: canonicalQuality,
         timestamp: NOW,
       }),
-    }),
-  );
+    });
+  });
 }
 
 // ─────────────────────────────────────────────────
@@ -178,7 +255,9 @@ export async function mockCanonicalQuality(page: Page): Promise<void> {
 
 const dashboardSummary = {
   coverageHuman: 87.3,
+  coverageMerchandise: 90.2,
   activeAlertsCount: 5,
+  forecastAccuracy: 91.0,
   lastForecastDate: "2026-02-07",
 };
 
@@ -226,9 +305,12 @@ const canonicalRecords = [
 ];
 
 export async function mockCanonicalRecords(page: Page): Promise<void> {
-  await page.route("**/api/v1/canonical*", (route) => {
+  await page.route("**/api/v1/**canonical*", (route) => {
     const url = new URL(route.request().url());
-    if (url.pathname !== "/api/v1/canonical") {
+    if (
+      url.pathname !== "/api/v1/canonical" &&
+      url.pathname !== "/api/v1/live/canonical"
+    ) {
       return route.fallback();
     }
 
@@ -325,25 +407,52 @@ const forecastDailyMerchandise = forecastDailyHuman.map((d) => ({
 }));
 
 export async function mockForecasts(page: Page): Promise<void> {
-  await page.route("**/api/v1/forecasts*", (route) => {
+  await page.route("**/api/v1/**forecasts*", (route) => {
     const url = new URL(route.request().url());
     const { pathname, searchParams } = url;
+    const dimension = searchParams.get("dimension") ?? "human";
+    const series =
+      dimension === "merchandise"
+        ? forecastDailyMerchandise
+        : forecastDailyHuman;
+
+    if (pathname === "/api/v1/live/forecasts/latest/daily") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          data: series.map((row) => ({
+            ...row,
+            dimension,
+          })),
+          timestamp: NOW,
+        }),
+      });
+    }
 
     if (
       pathname.startsWith("/api/v1/forecasts/") &&
       pathname.endsWith("/daily")
     ) {
-      const dimension = searchParams.get("dimension") ?? "human";
-      const series =
-        dimension === "merchandise"
-          ? forecastDailyMerchandise
-          : forecastDailyHuman;
       return route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
           data: series,
+          timestamp: NOW,
+        }),
+      });
+    }
+
+    if (pathname === "/api/v1/live/forecasts") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          data: forecastRuns,
           timestamp: NOW,
         }),
       });
@@ -450,6 +559,51 @@ const paretoFrontierResponse = {
   paretoFrontier: scenarioOptions.filter((o) => o.isParetoOptimal),
   recommended: scenarioOptions.find((o) => o.isRecommended) ?? null,
 };
+
+export async function mockDecisionWorkspace(page: Page): Promise<void> {
+  await page.route("**/api/v1/decision-workspace/*", (route) => {
+    const alertId = route.request().url().split("/").pop() ?? IDS.alert1;
+    const alert = coverageAlerts.find((entry) => entry.id === alertId);
+
+    if (!alert) {
+      return route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: "NOT_FOUND",
+            message: "Alerte introuvable",
+          },
+          timestamp: NOW,
+        }),
+      });
+    }
+
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: {
+          alert,
+          options: scenarioOptions.map((option) => ({
+            ...option,
+            coverageAlertId: alert.id,
+          })),
+          recommendedOptionId:
+            scenarioOptions.find((option) => option.isRecommended)?.id ?? null,
+          diagnostic: {
+            topDrivers: alert.driversJson,
+            confidencePct: 87,
+            riskTrend: "worsening",
+          },
+        },
+        timestamp: NOW,
+      }),
+    });
+  });
+}
 
 export async function mockScenarios(page: Page): Promise<void> {
   await page.route("**/api/v1/scenarios/alert/*", (route) =>
@@ -789,8 +943,20 @@ const costParameters = [
 ];
 
 export async function mockCostParameters(page: Page): Promise<void> {
-  await page.route("**/api/v1/cost-parameters*", (route) =>
-    route.fulfill({
+  await page.route("**/api/v1/cost-parameters*", (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname === "/api/v1/cost-parameters/effective") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          data: costParameters[0],
+          timestamp: NOW,
+        }),
+      });
+    }
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
@@ -798,8 +964,8 @@ export async function mockCostParameters(page: Page): Promise<void> {
         data: costParameters,
         timestamp: NOW,
       }),
-    }),
-  );
+    });
+  });
 }
 
 // ─────────────────────────────────────────────────
@@ -838,8 +1004,15 @@ const proofPacks = [
 ];
 
 export async function mockProofPacks(page: Page): Promise<void> {
-  await page.route("**/api/v1/proof*", (route) =>
-    route.fulfill({
+  await page.route("**/api/v1/**proof*", (route) => {
+    const url = new URL(route.request().url());
+    if (
+      url.pathname !== "/api/v1/proof" &&
+      url.pathname !== "/api/v1/live/proof"
+    ) {
+      return route.fallback();
+    }
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
@@ -847,8 +1020,8 @@ export async function mockProofPacks(page: Page): Promise<void> {
         data: proofPacks,
         timestamp: NOW,
       }),
-    }),
-  );
+    });
+  });
 }
 
 // ─────────────────────────────────────────────────
@@ -1126,12 +1299,14 @@ export async function mockUnreadCount(page: Page): Promise<void> {
 
 export async function mockAllApis(page: Page): Promise<void> {
   await mockCoverageAlerts(page);
+  await mockDecisionQueue(page);
   await mockDashboardSummary(page);
   await mockCanonicalQuality(page);
   await mockCanonicalRecords(page);
   await mockSites(page);
   await mockDepartments(page);
   await mockForecasts(page);
+  await mockDecisionWorkspace(page);
   await mockScenarios(page);
   await mockOperationalDecisions(page);
   await mockCostParameters(page);

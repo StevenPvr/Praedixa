@@ -11,10 +11,12 @@ test.describe("Rapports page", () => {
   test("displays title, subtitle, and report tabs", async ({ page }) => {
     await page.goto("/rapports");
 
-    await expect(page.getByRole("heading", { name: "Rapports" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Rapports board-ready" }),
+    ).toBeVisible();
     await expect(
       page.getByText(
-        "Bilans hebdomadaires, analyse des couts et documents exportables",
+        "Bilans executifs, suivi des couts et livrables partageables.",
       ),
     ).toBeVisible();
 
@@ -40,7 +42,9 @@ test.describe("Rapports page", () => {
     const section = page.getByLabel("Bilan de la semaine");
     await expect(section).toBeVisible();
     await expect(section.getByText("Semaine du")).toBeVisible();
-    await expect(section.getByText("Alertes detectees")).toBeVisible();
+    await expect(
+      section.getByRole("columnheader", { name: "Alertes detectees" }),
+    ).toBeVisible();
     await expect(
       section.getByRole("cell", { name: "5", exact: true }).first(),
     ).toBeVisible();
@@ -49,7 +53,7 @@ test.describe("Rapports page", () => {
   test("weekly summary shows empty message when alerts API returns empty", async ({
     page,
   }) => {
-    await page.route("**/api/v1/coverage-alerts*", (route) =>
+    await page.route("**/api/v1/live/coverage-alerts*", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -73,7 +77,7 @@ test.describe("Rapports page", () => {
   test("weekly summary shows error fallback when alerts API fails", async ({
     page,
   }) => {
-    await page.route("**/api/v1/coverage-alerts*", (route) =>
+    await page.route("**/api/v1/live/coverage-alerts*", (route) =>
       route.fulfill({
         status: 500,
         contentType: "application/json",
@@ -110,9 +114,9 @@ test.describe("Rapports page", () => {
   test("precision tab handles mixed accuracy formats and null completed date", async ({
     page,
   }) => {
-    await page.route("**/api/v1/forecasts*", (route) => {
+    await page.route("**/api/v1/live/forecasts*", (route) => {
       const url = new URL(route.request().url());
-      if (url.pathname !== "/api/v1/forecasts") {
+      if (url.pathname !== "/api/v1/live/forecasts") {
         return route.fallback();
       }
       return route.fulfill({
@@ -188,15 +192,21 @@ test.describe("Rapports page", () => {
 
     const section = page.getByLabel("Analyse des couts");
     await expect(section).toBeVisible();
-    await expect(section.getByText("Decomposition des couts")).toBeVisible();
-    await expect(section.getByText("Sans intervention")).toBeVisible();
-    await expect(section.getByText("Cout final")).toBeVisible();
+    await expect(
+      section.getByRole("img", { name: "Waterfall chart" }),
+    ).toBeVisible();
+    await expect(
+      section.getByTestId("waterfall-item-0").getByText("Sans intervention"),
+    ).toBeVisible();
+    await expect(
+      section.getByText("Cout final", { exact: true }),
+    ).toBeVisible();
   });
 
   test("cost analysis tab shows empty state when proof data is empty", async ({
     page,
   }) => {
-    await page.route("**/api/v1/proof", (route) =>
+    await page.route("**/api/v1/live/proof*", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",

@@ -11,20 +11,30 @@ test.describe("Donnees page", () => {
   test("displays page title and subtitle", async ({ page }) => {
     await page.goto("/donnees");
     await expect(
-      page.getByRole("heading", { name: "Donnees", level: 1 }),
+      page.getByRole("heading", { name: "Referentiel operationnel", level: 1 }),
     ).toBeVisible();
     await expect(
-      page.getByText("Toutes les donnees de vos equipes"),
+      page.getByText(
+        "Verifiez la fiabilite des donnees qui alimentent vos arbitrages quotidiens.",
+      ),
     ).toBeVisible();
   });
 
   test("displays quality metric cards", async ({ page }) => {
     await page.goto("/donnees");
 
-    await expect(page.getByText("Lignes de donnees")).toBeVisible();
-    await expect(page.getByText("Taux de remplissage")).toBeVisible();
-    await expect(page.getByText("Absence moyenne")).toBeVisible();
-    await expect(page.getByText("Postes non renseignes")).toBeVisible();
+    await expect(
+      page.getByText("Lignes de donnees", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Taux de remplissage", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Absence moyenne", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Postes non renseignes", { exact: true }),
+    ).toBeVisible();
     await expect(page.getByText("54000")).toBeVisible();
   });
 
@@ -33,8 +43,8 @@ test.describe("Donnees page", () => {
 
     await expect(page.getByLabel("Site")).toBeVisible();
     await expect(page.getByLabel("Poste")).toBeVisible();
-    const selects = page.locator("select");
-    await expect(selects).toHaveCount(2);
+    await expect(page.locator("#date-range-from")).toBeVisible();
+    await expect(page.locator("#date-range-to")).toBeVisible();
   });
 
   test("displays canonical table with headers and data", async ({ page }) => {
@@ -54,7 +64,7 @@ test.describe("Donnees page", () => {
   });
 
   test("empty canonical list shows empty-state message", async ({ page }) => {
-    await page.route("**/api/v1/canonical*", (route) =>
+    await page.route("**/api/v1/live/canonical*", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",

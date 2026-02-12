@@ -12,10 +12,10 @@ test.describe("Sidebar interactions", () => {
     await page.goto("/dashboard");
     const nav = page.getByLabel("Navigation principale");
     await expect(nav).toBeVisible();
-    await expect(nav.getByRole("link", { name: "Accueil" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "War room" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Donnees" })).toBeVisible();
-    await expect(nav.getByRole("link", { name: "Previsions" })).toBeVisible();
-    await expect(nav.getByRole("link", { name: "Actions" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Anticipation" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Traitement" })).toBeVisible();
   });
 
   test("active page has aria-current styling", async ({ page }) => {
@@ -26,7 +26,7 @@ test.describe("Sidebar interactions", () => {
       "page",
     );
     await expect(
-      nav.getByRole("link", { name: "Accueil" }),
+      nav.getByRole("link", { name: "War room" }),
     ).not.toHaveAttribute("aria-current", "page");
   });
 
@@ -44,24 +44,26 @@ test.describe("Sidebar interactions", () => {
   test("collapsed sidebar hides text labels", async ({ page }) => {
     await page.goto("/dashboard");
     const nav = page.getByLabel("Navigation principale");
-    await expect(nav.getByText("Accueil")).toBeVisible();
+    await expect(nav.getByText("War room")).toBeVisible();
 
     await page.evaluate(() =>
       document.querySelector("nextjs-portal")?.remove(),
     );
     await page.getByLabel("Reduire le menu").click();
 
-    await expect(nav.getByText("Accueil")).not.toBeVisible();
+    await expect(nav.getByText("War room")).not.toBeVisible();
     await expect(page.locator("aside").getByText("Praedixa")).not.toBeVisible();
   });
 
-  test("bottom links include Rapports and Parametres", async ({ page }) => {
+  test("bottom links include Rapports and hide admin-only settings by default", async ({
+    page,
+  }) => {
     await page.goto("/dashboard");
     const sidebar = page.locator("aside");
     await expect(sidebar.getByRole("link", { name: "Rapports" })).toBeVisible();
     await expect(
-      sidebar.getByRole("link", { name: "Parametres" }),
-    ).toBeVisible();
+      sidebar.getByRole("link", { name: "Reglages" }),
+    ).not.toBeVisible();
   });
 });
 
@@ -74,7 +76,9 @@ test.describe("Sidebar mobile behavior", () => {
   test("mobile hamburger opens and closes sidebar", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/dashboard");
-    await expect(page.getByRole("heading", { name: "Accueil" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "War room operationnelle" }),
+    ).toBeVisible();
 
     const sidebar = page.locator("aside");
     await expect(sidebar).not.toBeVisible();

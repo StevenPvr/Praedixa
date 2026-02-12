@@ -1,20 +1,6 @@
 import type { Metadata } from "next";
-import { Manrope, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { JsonLd } from "../components/seo/JsonLd";
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  display: "swap",
-  weight: ["500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.praedixa.com"),
@@ -81,7 +67,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={`${manrope.variable} ${cormorant.variable}`}>
+    <html lang="fr">
       <head>
         <JsonLd />
       </head>

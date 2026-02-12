@@ -40,7 +40,7 @@ test.describe("Login page error handling", () => {
 
     await page.goto("/login");
 
-    await page.getByLabel("Email").fill("wrong@example.com");
+    await page.getByLabel(/Email/).fill("wrong@example.com");
     await page.getByLabel("Mot de passe").fill("wrongpassword");
     await page.getByRole("button", { name: "Se connecter" }).click();
 
@@ -75,15 +75,15 @@ test.describe("Login page error handling", () => {
 
     await page.goto("/login");
 
-    await page.getByLabel("Email").fill("test@example.com");
+    await page.getByLabel(/Email/).fill("test@example.com");
     await page.getByLabel("Mot de passe").fill("password");
     await page.getByRole("button", { name: "Se connecter" }).click();
 
     await expect(
-      page.getByRole("button", { name: "Connexion..." }),
+      page.getByRole("button", { name: "Connexion en cours..." }),
     ).toBeVisible({ timeout: 5000 });
     await expect(
-      page.getByRole("button", { name: "Connexion..." }),
+      page.getByRole("button", { name: "Connexion en cours..." }),
     ).toBeDisabled();
   });
 
@@ -134,7 +134,7 @@ test.describe("Login page error handling", () => {
 
     await page.goto("/login");
 
-    await page.getByLabel("Email").fill("test@example.com");
+    await page.getByLabel(/Email/).fill("test@example.com");
     await page.getByLabel("Mot de passe").fill("password");
     await page.getByRole("button", { name: "Se connecter" }).click();
 
@@ -148,7 +148,7 @@ test.describe("Login page error handling", () => {
   test("login form requires email and password fields", async ({ page }) => {
     await page.goto("/login");
 
-    const emailInput = page.getByLabel("Email");
+    const emailInput = page.getByLabel(/Email/);
     const passwordInput = page.getByLabel("Mot de passe");
 
     await expect(emailInput).toHaveAttribute("required", "");
@@ -158,6 +158,10 @@ test.describe("Login page error handling", () => {
   test("login page subtitle is displayed", async ({ page }) => {
     await page.goto("/login");
 
-    await expect(page.getByText("Connectez-vous a votre espace")).toBeVisible();
+    await expect(
+      page.getByText(
+        "Accedez a votre war room operationnelle et vos priorites critiques.",
+      ),
+    ).toBeVisible();
   });
 });

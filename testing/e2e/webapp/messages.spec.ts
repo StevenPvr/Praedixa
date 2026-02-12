@@ -18,9 +18,11 @@ test.describe("Messages page", () => {
     await mockConversationMessages(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
-    await expect(page.getByRole("heading", { name: "Messages" })).toBeVisible();
     await expect(
-      page.getByText("Echangez avec l'equipe Praedixa"),
+      page.getByRole("heading", { name: "Support strategique" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Coordonnez vos decisions avec l'equipe Praedixa."),
     ).toBeVisible();
   });
 
@@ -124,7 +126,8 @@ test.describe("Messages page", () => {
     await mockConversationsError(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
-    await expect(page.getByText(/erreur/i)).toBeVisible();
+    await expect(page.getByText("Erreur de chargement")).toBeVisible();
+    await expect(page.getByText("Erreur serveur conversations")).toBeVisible();
   });
 
   test("shows error fallback when messages API fails", async ({ page }) => {
@@ -133,7 +136,8 @@ test.describe("Messages page", () => {
     await mockUnreadCount(page);
     await page.goto("/messages");
     await page.getByText("Question sur les previsions").click();
-    await expect(page.getByText(/erreur/i)).toBeVisible();
+    await expect(page.getByText("Erreur de chargement")).toBeVisible();
+    await expect(page.getByText("Erreur serveur messages")).toBeVisible();
   });
 
   test("shows resolved conversation banner", async ({ page }) => {
@@ -141,9 +145,8 @@ test.describe("Messages page", () => {
     await mockConversationMessages(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
-    await page.getByText("Probleme import donnees").click();
-    await expect(
-      page.getByText("Cette conversation est resolue"),
-    ).toBeVisible();
+    await page.getByText("Probleme import donnees").first().click();
+    await expect(page.getByText("Resolu").first()).toBeVisible();
+    await expect(page.getByPlaceholder("Conversation fermee")).toBeVisible();
   });
 });

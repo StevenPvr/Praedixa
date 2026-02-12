@@ -10,30 +10,36 @@ test.describe("Dashboard page", () => {
 
   test("displays page title and subtitle", async ({ page }) => {
     await page.goto("/dashboard");
-    await expect(page.getByRole("heading", { name: "Accueil" })).toBeVisible();
     await expect(
-      page.getByText("Vue d'ensemble de vos previsions"),
+      page.getByRole("heading", { name: "War room operationnelle" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        "Identifiez les risques critiques, priorisez les arbitrages et declenchez les actions avant rupture.",
+      ),
     ).toBeVisible();
   });
 
   test("displays KPI stat cards with correct values", async ({ page }) => {
     await page.goto("/dashboard");
 
-    const kpiSection = page.getByLabel("Indicateurs cles");
-    await expect(kpiSection).toBeVisible();
-
-    await expect(kpiSection.getByText("87.3%")).toBeVisible();
-    await expect(kpiSection.getByText("Alertes actives")).toBeVisible();
-    await expect(kpiSection.getByText("5")).toBeVisible();
-    await expect(kpiSection.getByText("Derniere prevision")).toBeVisible();
+    await expect(page.getByText("Alertes ouvertes").first()).toBeVisible();
+    await expect(page.getByText("Sites exposes").first()).toBeVisible();
+    await expect(page.getByText("Couverture humaine").first()).toBeVisible();
+    await expect(page.getByText("Precision prevision").first()).toBeVisible();
+    await expect(page.getByText("87.3%").first()).toBeVisible();
+    await expect(page.getByText("5").first()).toBeVisible();
   });
 
   test("displays forecast timeline section", async ({ page }) => {
     await page.goto("/dashboard");
 
-    const section = page.getByLabel("Prevision de capacite");
-    await expect(section).toBeVisible();
-    await expect(section.getByText("Prevision de capacite")).toBeVisible();
+    await expect(
+      page.getByText("Pression capacitaire a 14 jours"),
+    ).toBeVisible();
+    await expect(
+      page.getByLabel("Courbe capacite versus demande"),
+    ).toBeVisible();
   });
 
   test("displays next action card with coverage alert data", async ({
@@ -41,20 +47,18 @@ test.describe("Dashboard page", () => {
   }) => {
     await page.goto("/dashboard");
 
-    const alertsSection = page.getByLabel("Prochaine action recommandee");
-    await expect(alertsSection).toBeVisible();
-    await expect(alertsSection.getByText("Lyon-Sat").first()).toBeVisible();
-    await expect(alertsSection.getByText("Critique")).toBeVisible();
+    await expect(
+      page.getByText("Priorites a traiter maintenant"),
+    ).toBeVisible();
+    await expect(page.getByText("Site Lyon-Sat").first()).toBeVisible();
+    await expect(page.getByText("Critique").first()).toBeVisible();
   });
 
   test("displays scenario comparison section", async ({ page }) => {
     await page.goto("/dashboard");
 
-    const costSection = page.getByLabel("Comparaison des scenarios");
-    await expect(costSection).toBeVisible();
-    await expect(
-      costSection.getByText("Comparaison des scenarios"),
-    ).toBeVisible();
+    await expect(page.getByText("Indice d'exposition immediate")).toBeVisible();
+    await expect(page.getByText("Impact financier").first()).toBeVisible();
   });
 
   test("KPI coverage card shows success variant when >= 85%", async ({
@@ -62,10 +66,8 @@ test.describe("Dashboard page", () => {
   }) => {
     await page.goto("/dashboard");
 
-    const kpiSection = page.getByLabel("Indicateurs cles");
-    await expect(kpiSection).toBeVisible();
-    // coveragePct is 87.3, which is >= 85 so variant should be "success"
-    await expect(kpiSection.getByText("87.3%")).toBeVisible();
+    await expect(page.getByText("Couverture humaine").first()).toBeVisible();
+    await expect(page.getByText("87.3%").first()).toBeVisible();
   });
 
   test("alert severity is displayed with correct formatting", async ({
@@ -73,9 +75,8 @@ test.describe("Dashboard page", () => {
   }) => {
     await page.goto("/dashboard");
 
-    const alertsSection = page.getByLabel("Prochaine action recommandee");
-    await expect(alertsSection).toBeVisible();
-    await expect(alertsSection.getByText("Critique")).toBeVisible();
+    await expect(page.getByText("Critique").first()).toBeVisible();
+    await expect(page.getByText("Elevee").first()).toBeVisible();
   });
 
   test("shows status banner with CTA", async ({ page }) => {
@@ -83,11 +84,14 @@ test.describe("Dashboard page", () => {
 
     await expect(
       page.getByText(
-        `${MOCK_COVERAGE_ALERTS.filter((a) => a.severity === "critical").length} alerte(s) critique(s) necessitent votre attention immediate`,
+        `${MOCK_COVERAGE_ALERTS.filter((a) => a.severity === "critical").length} alerte(s) critique(s) et ${MOCK_COVERAGE_ALERTS.filter((a) => a.severity === "high").length} alerte(s) elevee(s) necessitent une decision immediate.`,
       ),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Voir les actions" }),
+      page.getByRole("link", {
+        name: "Ouvrir le centre de traitement",
+        exact: true,
+      }),
     ).toHaveAttribute("href", "/actions");
   });
 });

@@ -30,9 +30,9 @@ test.describe("Responsive behavior", () => {
     await expect(nav).toBeVisible();
 
     // Should show navigation items
-    await expect(nav.getByText("Accueil")).toBeVisible();
+    await expect(nav.getByText("War room")).toBeVisible();
     await expect(nav.getByText("Donnees")).toBeVisible();
-    await expect(nav.getByText("Previsions")).toBeVisible();
+    await expect(nav.getByText("Anticipation")).toBeVisible();
   });
 
   test("mobile touch targets are at least 40px", async ({ page }) => {
@@ -55,15 +55,17 @@ test.describe("Responsive behavior", () => {
     await page.goto("/dashboard");
 
     // Page title should be visible
-    await expect(page.getByRole("heading", { name: "Accueil" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "War room operationnelle" }),
+    ).toBeVisible();
 
     // KPI section should be visible
-    const kpiSection = page.getByLabel("Indicateurs cles");
-    await expect(kpiSection).toBeVisible();
+    await expect(page.getByText("Alertes ouvertes").first()).toBeVisible();
 
     // Next action section should be visible
-    const alertsSection = page.getByLabel("Prochaine action recommandee");
-    await expect(alertsSection).toBeVisible();
+    await expect(
+      page.getByText("Priorites a traiter maintenant"),
+    ).toBeVisible();
 
     // Verify nothing overflows horizontally
     const pageWidth = 375;
@@ -80,15 +82,15 @@ test.describe("Responsive behavior", () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/dashboard");
 
-    const heatmapSection = page.getByLabel("Prevision de capacite");
-    await expect(heatmapSection).toBeVisible();
+    await expect(
+      page.getByText("Pression capacitaire a 14 jours"),
+    ).toBeVisible();
   });
 
   test("scenario comparison section is visible on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/dashboard");
 
-    const costSection = page.getByLabel("Comparaison des scenarios");
-    await expect(costSection).toBeVisible();
+    await expect(page.getByText("Indice d'exposition immediate")).toBeVisible();
   });
 });

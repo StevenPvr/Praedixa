@@ -7,12 +7,14 @@ test.describe("Webapp navigation", () => {
 
   test("login page renders the application name", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.getByRole("heading", { name: "Praedixa" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Connexion securisee" }),
+    ).toBeVisible();
   });
 
   test("login page form elements are interactive", async ({ page }) => {
     await page.goto("/login");
-    const emailInput = page.getByLabel("Email");
+    const emailInput = page.getByLabel(/Email/);
     await emailInput.fill("user@company.com");
     await expect(emailInput).toHaveValue("user@company.com");
 
@@ -54,9 +56,11 @@ test.describe("Webapp navigation", () => {
   test("login page is responsive on mobile viewport", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/login");
-    await expect(page.getByRole("heading", { name: "Praedixa" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Connexion securisee" }),
+    ).toBeVisible();
     // Form should still be visible and usable
-    await expect(page.getByLabel("Email")).toBeVisible();
+    await expect(page.getByLabel(/Email/)).toBeVisible();
     await expect(page.getByLabel("Mot de passe")).toBeVisible();
   });
 });

@@ -2,6 +2,7 @@ import { test, expect } from "./fixtures/coverage";
 import { setupAuth } from "./fixtures/auth";
 import {
   mockCoverageAlerts,
+  mockDecisionQueue,
   mockScenarios,
   mockOperationalDecisions,
 } from "./fixtures/api-mocks";
@@ -10,6 +11,7 @@ test.describe("Actions decisions flow", () => {
   test.beforeEach(async ({ page }) => {
     await setupAuth(page);
     await mockCoverageAlerts(page);
+    await mockDecisionQueue(page);
     await mockScenarios(page);
     await mockOperationalDecisions(page);
   });
@@ -35,7 +37,7 @@ test.describe("Actions decisions flow", () => {
     await page.goto("/actions");
     const section = page.getByLabel("Options d'optimisation");
     await expect(section.getByText("Recommande")).toBeVisible();
-    await expect(section.getByText("Optimal").first()).toBeVisible();
+    await expect(section.getByText("Pareto").first()).toBeVisible();
   });
 
   test("submitting with selected option keeps user on actions page", async ({
@@ -48,7 +50,18 @@ test.describe("Actions decisions flow", () => {
   });
 
   test("shows empty state when no alerts are available", async ({ page }) => {
-    await page.route("**/api/v1/coverage-alerts*", (route) =>
+    await page.route("**/api/v1/live/coverage-alerts*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          data: [],
+          timestamp: "2026-02-07T12:00:00Z",
+        }),
+      }),
+    );
+    await page.route("**/api/v1/coverage-alerts/queue*", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
