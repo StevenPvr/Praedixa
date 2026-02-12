@@ -37,11 +37,19 @@ function resolveApiBaseUrl(): string {
   return configuredBaseUrl.replace(/\/+$/, "");
 }
 
-const BASE_URL = resolveApiBaseUrl();
+let cachedBaseUrl: string | null = null;
+
+function getBaseUrl(): string {
+  if (cachedBaseUrl) {
+    return cachedBaseUrl;
+  }
+  cachedBaseUrl = resolveApiBaseUrl();
+  return cachedBaseUrl;
+}
 
 function buildUrl(path: string): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${BASE_URL}${normalizedPath}`;
+  return `${getBaseUrl()}${normalizedPath}`;
 }
 
 /** API error with structured details from the server */
