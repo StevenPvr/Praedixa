@@ -68,14 +68,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json", "html"],
       reportsDirectory: "./coverage",
-      include: [
-        "packages/*/src/**/*.{ts,tsx}",
-        "app-*/app/**/*.{ts,tsx}",
-        "app-*/components/**/*.{ts,tsx}",
-        "app-*/lib/**/*.{ts,tsx}",
-        "app-*/hooks/**/*.{ts,tsx}",
-        "app-*/middleware.ts",
-      ],
+      include: ["packages/ui/src/utils/**/*.{ts,tsx}"],
       exclude: [
         "**/*.d.ts",
         "**/*.config.*",

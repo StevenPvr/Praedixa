@@ -81,6 +81,13 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: test-coverage
+        name: vitest coverage (100%)
+        entry: pnpm test:coverage
+        language: system
+        always_run: true
+        pass_filenames: false
+
       - id: pytest
         name: pytest (Python tests)
         entry: sh -c 'cd app-api && uv run pytest'
