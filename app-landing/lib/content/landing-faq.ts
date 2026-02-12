@@ -60,7 +60,7 @@ export const landingFaq = [
   {
     question: "Combien coute Praedixa ?",
     answer:
-      "Le diagnostic initial est gratuit. Les entreprises qui rejoignent le programme pilote beneficient d'un tarif preferentiel et d'un support premium pendant 1 an. Ensuite, la tarification depend du nombre de sites et d'equipes suivis. Contactez-nous pour un devis adapte.",
+      "Praedixa est propose en modele premium, generalement a plusieurs milliers d'euros par mois selon la complexite du perimetre (nombre de sites, variabilite de charge, criticite de service, niveau d'accompagnement). La cohorte fondatrice beneficie d'un cadre commercial dedie. La qualification permet d'etablir une trajectoire tarifaire claire avant engagement.",
     category: "Diagnostic & tarification" as const,
   },
   {

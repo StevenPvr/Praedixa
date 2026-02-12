@@ -23,6 +23,7 @@ Security notes:
 from __future__ import annotations
 
 import logging
+import math
 from typing import TYPE_CHECKING, Any
 
 from app.services.quality.deduplication import deduplicate
@@ -105,6 +106,79 @@ _config_to_dict = config_to_dict
 
 
 # ── Public API ───────────────────────────────────────────────────
+
+
+def _coerce_integer_value(value: Any) -> Any:
+    """Coerce a value to int when possible, preserving None/non-numeric values."""
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        if math.isnan(value) or math.isinf(value):
+            return value
+        return int(round(value))
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped == "":
+            return None
+        try:
+            parsed = float(stripped)
+        except ValueError:
+            return value
+        if math.isnan(parsed) or math.isinf(parsed):
+            return value
+        return int(round(parsed))
+    return value
+
+
+def _coerce_float_value(value: Any) -> Any:
+    """Coerce a value to float when possible, preserving None/non-numeric values."""
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return float(int(value))
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped == "":
+            return None
+        try:
+            parsed = float(stripped)
+        except ValueError:
+            return value
+        if math.isnan(parsed) or math.isinf(parsed):
+            return value
+        return parsed
+    return value
+
+
+def _normalize_numeric_column_types(
+    rows: list[dict[str, Any]],
+    columns: list[DatasetColumn],
+    temporal_index: str,
+) -> None:
+    """Normalize numeric columns to declared dataset dtypes."""
+    integer_cols = {
+        c.name
+        for c in columns
+        if c.dtype.value == "integer" and c.name != temporal_index
+    }
+    float_cols = {
+        c.name for c in columns if c.dtype.value == "float" and c.name != temporal_index
+    }
+
+    if not integer_cols and not float_cols:
+        return
+
+    for row in rows:
+        for col_name in integer_cols:
+            row[col_name] = _coerce_integer_value(row.get(col_name))
+        for col_name in float_cols:
+            row[col_name] = _coerce_float_value(row.get(col_name))
 
 
 def run_quality_checks(
@@ -309,6 +383,10 @@ def run_quality_checks(
         total_deleted_rows,
         total_clamped,
     )
+
+    # Final dtype normalization prevents mixed Python types from producing
+    # unstable DB parameter inference during batch insertion.
+    _normalize_numeric_column_types(working_rows, columns, temporal_index)
 
     return QualityResult(
         cleaned_rows=working_rows,

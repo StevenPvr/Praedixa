@@ -45,7 +45,11 @@ from psycopg.errors import InsufficientPrivilege
 from sqlalchemy import select
 
 from app.core.database import async_session_factory, engine
-from app.core.ddl_validation import DDLValidationError, validate_client_slug
+from app.core.ddl_validation import (
+    DDLValidationError,
+    validate_client_slug,
+    validate_identifier,
+)
 from app.core.security import TenantFilter
 from app.models.daily_forecast import DailyForecast, ForecastDimension
 from app.models.dashboard_alert import (
@@ -84,7 +88,7 @@ from app.models.organization import (
 )
 from app.models.site import Site
 from app.services.canonical_data_service import bulk_import_canonical
-from app.services.column_mapper import map_columns
+from app.services.column_mapper import ColumnMapping, MappingResult, map_columns
 from app.services.data_quality import QualityConfig, run_quality_checks
 from app.services.datasets import get_dataset_data
 from app.services.file_parser import parse_file
@@ -372,7 +376,15 @@ def _normalize_identifier(value: str) -> str:
         lowered = "col"
     if lowered[0].isdigit():
         lowered = f"c_{lowered}"
-    return lowered[:63]
+
+    candidate = lowered[:63]
+    try:
+        return validate_identifier(candidate, field="normalized_identifier")
+    except DDLValidationError:
+        # External CSV headers can legitimately start with app-reserved prefixes
+        # (e.g. "platform_fee_eur"). Prefix once to make them DDL-safe.
+        fallback = f"c_{candidate}"[:63]
+        return validate_identifier(fallback, field="normalized_identifier")
 
 
 def _infer_numeric_value(value: object) -> float | None:
@@ -588,6 +600,7 @@ def _build_external_dataset_definition(
         "table_name": _normalize_identifier(dataset_name),
         "temporal_index": temporal_index,
         "group_by": group_by,
+        "source_to_target": source_to_target,
         "pipeline_config": {
             "data_quality": {
                 "missing_threshold_delete": 0.08,
@@ -903,6 +916,7 @@ async def _ingest_dataset_rows(
     rows: list[dict[str, object]],
     file_name: str,
     strict_mapping: bool = False,
+    source_to_target: dict[str, str] | None = None,
 ) -> int:
     started_at = datetime.now(UTC)
     content = _rows_to_csv_bytes(rows)
@@ -927,11 +941,42 @@ async def _ingest_dataset_rows(
             file_name,
             format_hint="csv",
         )
-        mapping_result = map_columns(
-            source_columns=parse_result.source_columns,
-            dataset_columns=columns,
-            format_hint="csv",
-        )
+        if source_to_target:
+            target_names = {col.name for col in columns}
+            mappings: list[ColumnMapping] = []
+            matched_targets: set[str] = set()
+            unmapped_source: list[str] = []
+            for source_col in parse_result.source_columns:
+                target_col = source_to_target.get(source_col)
+                if (
+                    target_col
+                    and target_col in target_names
+                    and target_col not in matched_targets
+                ):
+                    mappings.append(
+                        ColumnMapping(
+                            source_column=source_col,
+                            target_column=target_col,
+                            confidence=1.0,
+                            transform=None,
+                        )
+                    )
+                    matched_targets.add(target_col)
+                else:
+                    unmapped_source.append(source_col)
+
+            mapping_result = MappingResult(
+                mappings=mappings,
+                unmapped_source=unmapped_source,
+                unmapped_target=sorted(target_names - matched_targets),
+                warnings=[],
+            )
+        else:
+            mapping_result = map_columns(
+                source_columns=parse_result.source_columns,
+                dataset_columns=columns,
+                format_hint="csv",
+            )
         if strict_mapping and (
             mapping_result.unmapped_source or mapping_result.unmapped_target
         ):
@@ -1593,6 +1638,7 @@ async def _step4_datasets(
             rows=seed.rows,
             file_name=seed.file_name,
             strict_mapping=True,
+            source_to_target=seed.definition.get("source_to_target"),
         )
 
     log.info(

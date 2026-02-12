@@ -7,37 +7,39 @@ export interface PilotColumn {
 export const pilotColumns: PilotColumn[] = [
   {
     id: "co-construction",
-    title: "Ce qu'on co-construit ensemble",
+    title: "Ce que nous construisons ensemble",
     items: [
-      "Carte de sous-couverture par site et compétence",
-      "Facteurs explicatifs de chaque risque détecté",
-      "Playbook d'actions prioritaires chiffrées",
-      "Calibration sur vos données réelles et vos contraintes métier",
+      "Une lecture partagée des tensions de couverture",
+      "Un cadre d'arbitrage adapté à vos contraintes terrain",
+      "Une gouvernance de décision reproductible",
+      "Une boucle de mesure d'impact utilisable en comité",
     ],
   },
   {
     id: "avantages",
-    title: "Ce que vous gagnez",
+    title: "Ce que gagne la cohorte fondatrice",
     items: [
-      "Comprendre pourquoi les trous de couverture arrivent",
-      "Early-warning opérationnel sur la couverture",
-      "Arbitrages chiffrés : coût vs options",
-      "Preuve économique auditable pour le CODIR",
-      "Amélioration continue de vos processus",
+      "Accès prioritaire au produit pendant la phase pilote",
+      "Accompagnement premium sur vos cas critiques",
+      "Influence directe sur la roadmap opérationnelle",
+      "Conditions commerciales dédiées first movers",
     ],
   },
   {
     id: "objectif",
-    title: "Comment ça marche",
+    title: "Cadre de collaboration",
     items: [
-      "Exports simples (CSV/Excel), aucune intégration",
-      "Données agrégées uniquement, pas de données individuelles",
-      "Premiers résultats en jours, sans engagement",
+      "Cycle court, livrables orientés décision",
+      "Équipe projet réduite côté client",
+      "Itérations pilotées sur des enjeux concrets",
+      "Niveau d'exigence enterprise dès le départ",
     ],
   },
 ];
 
 export const pilotUrgencyText =
-  "Places limitées. Le programme pilote est réservé à un nombre restreint d'entreprises pour garantir un vrai partenariat de co-construction.";
-export const pilotCtaText = "Devenir entreprise pilote";
+  "Cohorte volontairement limitée à 8 entreprises pour maintenir un accompagnement fondateur très serré. Les candidatures sont qualifiées sous 24h ouvrées.";
+export const pilotCtaText = "Demander une qualification pilote";
 export const pilotCtaHref = "/devenir-pilote";
+export const pilotMetaText =
+  "Entretien de qualification: 20 min • Formulaire: 4-5 min • NDA possible";

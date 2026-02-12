@@ -4,13 +4,14 @@ export interface TrustLogo {
 }
 
 export const trustLogos: TrustLogo[] = [
-  { id: "logo-1", label: "Votre logo ici" },
-  { id: "logo-2", label: "Votre logo ici" },
-  { id: "logo-3", label: "Votre logo ici" },
-  { id: "logo-4", label: "Votre logo ici" },
-  { id: "logo-5", label: "Votre logo ici" },
-  { id: "logo-6", label: "Votre logo ici" },
+  { id: "sector-1", label: "Logistique multi-sites" },
+  { id: "sector-2", label: "Transport" },
+  { id: "sector-3", label: "Industrie" },
+  { id: "sector-4", label: "Retail" },
+  { id: "sector-5", label: "Santé" },
+  { id: "sector-6", label: "Services terrain" },
 ];
 
-export const trustBandTitle = "Ils nous font confiance";
-export const trustBandSubtitle = "Soyez les premiers";
+export const trustBandTitle = "Cohorte fondatrice 2026";
+export const trustBandSubtitle =
+  "Soyez les premiers à structurer un pilotage couverture de niveau exécutif";

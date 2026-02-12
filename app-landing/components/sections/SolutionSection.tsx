@@ -18,92 +18,59 @@ export function SolutionSection({ className }: SolutionSectionProps) {
   return (
     <motion.section
       id="solution"
-      className={cn("bg-charcoal py-24 md:py-32", className)}
+      className={cn("bg-charcoal py-24 text-white md:py-28", className)}
       variants={staggerContainer}
       initial="hidden"
       whileInView="visible"
       viewport={viewportOnce}
     >
-      <div className="mx-auto max-w-6xl px-6">
-        {/* Section Header */}
-        <motion.div className="mb-16 text-center" variants={staggerItem}>
-          <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-widest text-amber-400">
-            Votre point de départ
-          </span>
-          <h2 className="font-serif text-3xl font-bold text-white sm:text-4xl md:text-[2.75rem]">
-            Comprendre vos risques de couverture en quelques jours
+      <div className="section-shell">
+        <motion.div className="max-w-4xl" variants={staggerItem}>
+          <p className="section-kicker text-amber-300">Méthode auditable</p>
+          <h2 className="mt-4 font-serif text-4xl leading-tight sm:text-5xl">
+            Une approche sobre, exigeante, orientée décision.
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-white/70">
-            Avant de construire un système complet, on vous montre la valeur
-            concrètement. À partir d&apos;exports que vous avez déjà, on
-            identifie les risques, on explique pourquoi ils existent, et on
-            chiffre les options.
+          <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/75">
+            Praedixa n'ajoute pas du bruit. La plateforme structure un cycle
+            clair: lire, prioriser, arbitrer, prouver.
           </p>
         </motion.div>
 
-        {/* Solution Steps */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-6">
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
           {SOLUTION_STEPS.map((step, index) => (
-            <motion.div
+            <motion.article
               key={step.number}
-              className="flex flex-col items-center text-center"
+              className="rounded-3xl border border-white/12 bg-white/[0.04] p-7"
               variants={staggerItem}
             >
-              {/* Circle with connecting line */}
-              <div className="relative mb-6 flex w-full items-center justify-center">
-                {/* Line to previous (left side) */}
-                {index > 0 && (
-                  <div
-                    className="absolute right-1/2 top-1/2 hidden h-0.5 w-1/2 -translate-y-1/2 bg-gradient-to-l from-amber-500 to-amber-500/30 md:block"
-                    aria-hidden="true"
-                  />
-                )}
-
-                {/* Line to next (right side) */}
-                {index < SOLUTION_STEPS.length - 1 && (
-                  <div
-                    className="absolute left-1/2 top-1/2 hidden h-0.5 w-1/2 -translate-y-1/2 bg-gradient-to-r from-amber-500 to-amber-500/30 md:block"
-                    aria-hidden="true"
-                  />
-                )}
-
-                {/* Circle */}
-                <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-2 border-amber-500 bg-charcoal">
-                  <span className="font-serif text-2xl text-amber-400">
-                    {step.number}
-                  </span>
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-amber-400/40 bg-amber-500/10 font-serif text-2xl text-amber-300">
+                {step.number}
+              </div>
+              <h3 className="mt-5 font-serif text-3xl leading-tight text-white">
+                {step.title}
+              </h3>
+              <p className="mt-2 text-sm font-semibold uppercase tracking-wide text-amber-200/80">
+                {step.subtitle}
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-white/75">
+                {step.description}
+              </p>
+              {index < SOLUTION_STEPS.length - 1 && (
+                <div className="mt-6 flex items-center gap-2 text-xs uppercase tracking-wide text-amber-200/70">
+                  Suite du cycle
+                  <ChevronDownIcon className="h-4 w-4" />
                 </div>
-              </div>
-
-              {/* Content */}
-              <div>
-                <h3 className="mb-1 text-xl font-bold text-white">
-                  {step.title}
-                </h3>
-                <p className="mb-3 text-sm font-medium text-amber-400/80">
-                  {step.subtitle}
-                </p>
-                <p className="leading-relaxed text-white/70">
-                  {step.description}
-                </p>
-              </div>
-            </motion.div>
+              )}
+            </motion.article>
           ))}
         </div>
 
-        {/* Bridge to pipeline */}
-        <motion.div className="mt-16 text-center" variants={staggerItem}>
-          <p className="mx-auto max-w-2xl text-base leading-relaxed text-white/70">
-            Ce diagnostic est votre point d&apos;entrée. Pour les entreprises
-            pilotes, il débouche sur un partenariat de co-construction&nbsp;:
-            pilotage continu, early-warning, arbitrage chiffré, compréhension
-            des causes racines et preuve d&apos;impact.
-          </p>
+        <motion.div className="mt-10" variants={staggerItem}>
           <a
             href="#pipeline"
-            className="mt-4 inline-flex items-center gap-2 text-base font-semibold text-amber-400 transition-colors hover:text-amber-300"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-amber-300 transition hover:text-amber-200"
           >
-            Découvrir le partenariat pilote
+            Voir les cas d'usage opérationnels
             <ChevronDownIcon className="h-4 w-4" />
           </a>
         </motion.div>

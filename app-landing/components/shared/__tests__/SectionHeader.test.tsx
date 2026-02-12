@@ -10,47 +10,43 @@ vi.mock("framer-motion", async () => {
 import { SectionHeader } from "../SectionHeader";
 
 describe("SectionHeader", () => {
-  it("should render the heading text", () => {
+  it("renders heading", () => {
     render(<SectionHeader heading="Test Heading" />);
     expect(
       screen.getByRole("heading", { level: 2, name: "Test Heading" }),
     ).toBeInTheDocument();
   });
 
-  it("should render the kicker when provided", () => {
-    render(<SectionHeader kicker="Kicker Text" heading="Heading" />);
+  it("renders kicker and subheading when provided", () => {
+    render(
+      <SectionHeader
+        kicker="Kicker Text"
+        heading="Heading"
+        subheading="Sub text here"
+      />,
+    );
+
     expect(screen.getByText("Kicker Text")).toBeInTheDocument();
-  });
-
-  it("should not render a kicker element when kicker is not provided", () => {
-    const { container } = render(<SectionHeader heading="Heading" />);
-    const kicker = container.querySelector("span");
-    expect(kicker).toBeNull();
-  });
-
-  it("should render the subheading when provided", () => {
-    render(<SectionHeader heading="Heading" subheading="Sub text here" />);
     expect(screen.getByText("Sub text here")).toBeInTheDocument();
   });
 
-  it("should not render a subheading element when subheading is not provided", () => {
-    render(<SectionHeader heading="Heading" />);
-    // Only the heading element should be present, no <p> for subheading
-    expect(screen.queryByText(/./i, { selector: "p" })).toBeNull();
+  it("does not render optional elements when omitted", () => {
+    const { container } = render(<SectionHeader heading="Heading" />);
+    expect(container.querySelector("span")).toBeNull();
+    expect(container.querySelector("p")).toBeNull();
   });
 
-  it("should apply dark text classes by default (light=false)", () => {
-    render(
+  it("applies light and default color classes", () => {
+    const { rerender } = render(
       <SectionHeader kicker="Kicker" heading="Heading" subheading="Sub" />,
     );
-    const heading = screen.getByRole("heading", { level: 2 });
-    expect(heading).toHaveClass("text-charcoal");
-    const kicker = screen.getByText("Kicker");
-    expect(kicker).toHaveClass("text-amber-600");
-  });
 
-  it("should apply light text classes when light=true", () => {
-    render(
+    expect(screen.getByRole("heading", { level: 2 })).toHaveClass(
+      "text-charcoal",
+    );
+    expect(screen.getByText("Kicker")).toHaveClass("text-amber-700");
+
+    rerender(
       <SectionHeader
         kicker="Kicker"
         heading="Heading"
@@ -58,13 +54,12 @@ describe("SectionHeader", () => {
         light
       />,
     );
-    const heading = screen.getByRole("heading", { level: 2 });
-    expect(heading).toHaveClass("text-white");
-    const kicker = screen.getByText("Kicker");
-    expect(kicker).toHaveClass("text-amber-400");
+
+    expect(screen.getByRole("heading", { level: 2 })).toHaveClass("text-white");
+    expect(screen.getByText("Kicker")).toHaveClass("text-amber-300");
   });
 
-  it("should apply custom className", () => {
+  it("accepts custom className", () => {
     const { container } = render(
       <SectionHeader heading="Test" className="custom-header" />,
     );

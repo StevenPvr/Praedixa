@@ -4,7 +4,8 @@
 
 export const siteConfig = {
   name: "Praedixa",
-  description: "Prevoir les trous. Chiffrer les options. Prouver le ROI.",
+  description:
+    "Piloter la couverture multi-sites avec une méthodologie décisionnelle premium.",
 
   contact: {
     email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "steven.poivre@outlook.com",

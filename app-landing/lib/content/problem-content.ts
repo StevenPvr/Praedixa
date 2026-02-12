@@ -6,21 +6,21 @@ export interface PainPoint {
 
 export const PAIN_POINTS: readonly PainPoint[] = [
   {
-    title: "La sous-couverture se révèle trop tard",
+    title: "Décisions prises trop tard",
     description:
-      "Aucun early-warning : l'écart capacité vs charge apparaît le jour J, quand il ne reste que des solutions d'urgence.",
-    consequence: "Surcoût intérim urgence : +40 à +80 % vs anticipé",
+      "Les signaux de tension sont détectés au moment où les marges de manœuvre sont déjà réduites.",
+    consequence: "Effet domino: surcoûts, dégradation de service, stress managérial",
   },
   {
-    title: "Le coût de l'inaction est invisible",
+    title: "Arbitrages insuffisamment cadrés",
     description:
-      "Heures sup, intérim, dégradation de service — le coût réel de la sous-couverture est rarement mesuré, jamais consolidé.",
-    consequence: "Pas de visibilité financière pour arbitrer",
+      "Sans scénario économique structuré, les décisions reposent sur l'urgence et non sur une logique de portefeuille.",
+    consequence: "Budget opérationnel moins prévisible et moins défendable",
   },
   {
-    title: "Aucune preuve pour le CODIR",
+    title: "Impact difficile à prouver",
     description:
-      "Sans données consolidées, impossible de prouver l'impact des décisions. Pas de trace, pas de preuve économique auditable.",
-    consequence: "Pas d'audit trail pour le DAF",
+      "Les actions sont rarement reliées à une preuve mesurable de leur effet réel sur la couverture.",
+    consequence: "Difficulté à sécuriser des budgets ou des priorités en comité",
   },
 ] as const;

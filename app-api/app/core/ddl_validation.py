@@ -32,6 +32,7 @@ SLUG_REGEX: Final[re.Pattern[str]] = re.compile(r"^[a-z][a-z0-9_]{2,34}$")
 # Column types allowed in dynamic DDL. Mapped to exact PG type strings.
 ALLOWED_COLUMN_TYPES: Final[dict[str, str]] = {
     "text": "TEXT",
+    "category": "TEXT",
     "integer": "INTEGER",
     "bigint": "BIGINT",
     "float": "DOUBLE PRECISION",

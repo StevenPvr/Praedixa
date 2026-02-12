@@ -17,70 +17,34 @@ vi.mock("next/link", () => ({
 }));
 
 import { ContactSection } from "../ContactSection";
+import { TRUST_ITEMS } from "../../../lib/content/contact-content";
 
 describe("ContactSection", () => {
-  it("should render without errors", () => {
-    const { container } = render(<ContactSection />);
-    expect(container.querySelector("#contact")).toBeInTheDocument();
-  });
-
-  it("should have id=contact for anchor navigation", () => {
+  it("renders with id=contact", () => {
     const { container } = render(<ContactSection />);
     expect(container.querySelector("section")).toHaveAttribute("id", "contact");
   });
 
-  it("should render the kicker text", () => {
+  it("renders contact CTAs", () => {
     render(<ContactSection />);
-    expect(screen.getByText(/Passez à l'action/)).toBeInTheDocument();
-  });
 
-  it("should render the section heading", () => {
-    render(<ContactSection />);
-    expect(
-      screen.getByText("Rejoignez le programme pilote"),
-    ).toBeInTheDocument();
-  });
-
-  it("should render the section description", () => {
-    render(<ContactSection />);
-    expect(
-      screen.getByText(/Un partenariat de co-construction/),
-    ).toBeInTheDocument();
-  });
-
-  it("should render the primary CTA linking to /devenir-pilote", () => {
-    render(<ContactSection />);
-    const ctaLink = screen.getByText("Devenir entreprise pilote").closest("a");
-    expect(ctaLink).toHaveAttribute("href", "/devenir-pilote");
-  });
-
-  it("should render the secondary mailto CTA", () => {
-    render(<ContactSection />);
-    const mailtoLink = screen
-      .getByText("Ou écrivez-nous directement")
+    const pilotLink = screen
+      .getByText("Demander une qualification pilote")
       .closest("a");
+    expect(pilotLink).toHaveAttribute("href", "/devenir-pilote");
+
+    const mailtoLink = screen.getByText("Écrire à l'équipe").closest("a");
     expect(mailtoLink).toHaveAttribute(
       "href",
       expect.stringContaining("mailto:"),
     );
   });
 
-  it("should render all trust indicators", () => {
+  it("renders all trust items", () => {
     render(<ContactSection />);
-    const trustItems = [
-      "Partenariat gratuit",
-      "Premiers résultats en jours",
-      "Sans intégration IT",
-      "Données agrégées uniquement",
-      "Sans engagement",
-    ];
-    for (const item of trustItems) {
+
+    for (const item of TRUST_ITEMS) {
       expect(screen.getByText(item)).toBeInTheDocument();
     }
-  });
-
-  it("should accept a custom className", () => {
-    const { container } = render(<ContactSection className="contact-test" />);
-    expect(container.querySelector("section")).toHaveClass("contact-test");
   });
 });

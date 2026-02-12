@@ -8,23 +8,23 @@ export interface SolutionStep {
 export const SOLUTION_STEPS: readonly SolutionStep[] = [
   {
     number: "1",
-    title: "Envoyez vos exports existants",
-    subtitle: "10 min, aucune intégration",
+    title: "Cadrage data rapide",
+    subtitle: "Exports existants, sans refonte SI",
     description:
-      "Capacité, charge, absences : des fichiers que vous avez déjà. CSV ou Excel, aucun connecteur à installer.",
+      "Nous utilisons vos données opérationnelles déjà disponibles pour construire une base de lecture fiable de la couverture.",
   },
   {
     number: "2",
-    title: "On détecte et on explique",
-    subtitle: "Prédiction + facteurs explicatifs",
+    title: "Lecture anticipative des tensions",
+    subtitle: "Signal, causes, niveau de criticité",
     description:
-      "On prédit les trous à venir par site, équipe et compétence. Pour chaque risque, Praedixa identifie les facteurs explicatifs : vous comprenez pourquoi, pas juste où.",
+      "Chaque tension est expliquée: où, pourquoi, avec quel niveau de risque et quelles marges d'action disponibles.",
   },
   {
     number: "3",
-    title: "Vous recevez votre carte des risques",
-    subtitle: "Risques + causes + playbook d'actions",
+    title: "Décision outillée et traçable",
+    subtitle: "Arbitrages chiffrés + boucle d'impact",
     description:
-      "Une carte de sous-couverture par site, les causes identifiées, le coût évitable estimé et un playbook d'actions prioritaires avec hypothèses transparentes.",
+      "Vous pilotez les options avec un cadre économique clair et une trace d'impact mobilisable pour la gouvernance.",
   },
 ] as const;

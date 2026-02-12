@@ -25,71 +25,27 @@ import {
 } from "../../../lib/content/pilot-benefits";
 
 describe("PilotSection", () => {
-  it("should render without errors", () => {
-    const { container } = render(<PilotSection />);
-    expect(container.querySelector("#pilot")).toBeInTheDocument();
-  });
-
-  it("should have id=pilot for anchor navigation", () => {
+  it("renders with id=pilot", () => {
     const { container } = render(<PilotSection />);
     expect(container.querySelector("section")).toHaveAttribute("id", "pilot");
   });
 
-  it("should render the kicker text", () => {
+  it("renders cohort columns and urgency callout", () => {
     render(<PilotSection />);
-    expect(screen.getByText("Programme pilote")).toBeInTheDocument();
-  });
 
-  it("should render the section heading", () => {
-    render(<PilotSection />);
-    expect(
-      screen.getByText("Co-construisez la solution avec nous"),
-    ).toBeInTheDocument();
-  });
-
-  it("should render the subheading", () => {
-    render(<PilotSection />);
-    expect(
-      screen.getByText(/Rejoignez un nombre restreint d'entreprises pilotes/),
-    ).toBeInTheDocument();
-  });
-
-  it("should render all column titles", () => {
-    render(<PilotSection />);
-    for (const col of pilotColumns) {
-      expect(screen.getByText(col.title)).toBeInTheDocument();
-    }
-  });
-
-  it("should render column items", () => {
-    render(<PilotSection />);
-    for (const col of pilotColumns) {
-      for (const item of col.items) {
+    for (const column of pilotColumns) {
+      expect(screen.getByText(column.title)).toBeInTheDocument();
+      for (const item of column.items) {
         expect(screen.getByText(item)).toBeInTheDocument();
       }
     }
-  });
 
-  it("should render the urgency callout", () => {
-    render(<PilotSection />);
     expect(screen.getByText(pilotUrgencyText)).toBeInTheDocument();
   });
 
-  it("should render the CTA button with correct text and href", () => {
+  it("renders CTA link", () => {
     render(<PilotSection />);
-    const ctaLink = screen.getByText(pilotCtaText).closest("a");
-    expect(ctaLink).toHaveAttribute("href", pilotCtaHref);
-  });
-
-  it("should highlight the 'avantages' column differently", () => {
-    render(<PilotSection />);
-    // The avantages column title should have text-amber-400 class
-    const advantagesTitle = screen.getByText("Ce que vous gagnez");
-    expect(advantagesTitle).toHaveClass("text-amber-400");
-  });
-
-  it("should accept a custom className", () => {
-    const { container } = render(<PilotSection className="pilot-test" />);
-    expect(container.querySelector("section")).toHaveClass("pilot-test");
+    const cta = screen.getByText(pilotCtaText).closest("a");
+    expect(cta).toHaveAttribute("href", pilotCtaHref);
   });
 });

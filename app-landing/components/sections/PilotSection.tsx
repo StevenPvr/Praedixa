@@ -3,208 +3,111 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@praedixa/ui";
-import { staggerItem } from "../../lib/animations/variants";
+import {
+  staggerContainer,
+  staggerItem,
+  viewportOnce,
+} from "../../lib/animations/variants";
 import {
   pilotColumns,
   pilotUrgencyText,
   pilotCtaText,
   pilotCtaHref,
+  pilotMetaText,
 } from "../../lib/content/pilot-benefits";
-import { SectionWrapper } from "../shared/SectionWrapper";
-import { SectionHeader } from "../shared/SectionHeader";
-import { CheckIcon, ArrowRightIcon } from "../icons";
+import { ArrowRightIcon, CheckIcon } from "../icons";
 
-/* ------------------------------------------------------------------ */
-/*  Column icons                                                       */
-/* ------------------------------------------------------------------ */
-
-function CoConstructionIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 48 48"
-      fill="none"
-      className={cn("h-10 w-10", className)}
-      aria-hidden="true"
-    >
-      {/* Two overlapping people */}
-      <circle
-        cx="18"
-        cy="16"
-        r="6"
-        stroke="oklch(0.769 0.205 70)"
-        strokeWidth="1.5"
-        fill="oklch(0.769 0.205 70)"
-        fillOpacity="0.15"
-      />
-      <path
-        d="M8 38 C8 30 14 26 18 26 C22 26 28 30 28 38"
-        stroke="oklch(0.769 0.205 70)"
-        strokeWidth="1.5"
-        fill="none"
-      />
-      <circle
-        cx="30"
-        cy="16"
-        r="6"
-        stroke="oklch(0.769 0.205 70)"
-        strokeWidth="1.5"
-        fill="oklch(0.769 0.205 70)"
-        fillOpacity="0.15"
-      />
-      <path
-        d="M20 38 C20 30 26 26 30 26 C34 26 40 30 40 38"
-        stroke="oklch(0.769 0.205 70)"
-        strokeWidth="1.5"
-        fill="none"
-      />
-    </svg>
-  );
+interface PilotSectionProps {
+  className?: string;
 }
 
-function AdvantagesIcon({ className }: { className?: string }) {
+export function PilotSection({ className }: PilotSectionProps) {
   return (
-    <svg
-      viewBox="0 0 48 48"
-      fill="none"
-      className={cn("h-10 w-10", className)}
-      aria-hidden="true"
+    <motion.section
+      id="pilot"
+      className={cn("bg-charcoal py-24 text-white md:py-28", className)}
+      variants={staggerContainer}
+      initial="hidden"
+      whileInView="visible"
+      viewport={viewportOnce}
     >
-      {/* Star / badge */}
-      <polygon
-        points="24,4 28,16 40,18 31,27 33,40 24,34 15,40 17,27 8,18 20,16"
-        stroke="oklch(0.769 0.205 70)"
-        strokeWidth="1.5"
-        fill="oklch(0.769 0.205 70)"
-        fillOpacity="0.15"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+      <div className="section-shell">
+        <motion.div className="max-w-4xl" variants={staggerItem}>
+          <p className="section-kicker text-amber-300">Cohorte pilote</p>
+          <h2 className="mt-4 font-serif text-4xl leading-tight sm:text-5xl">
+            Prenez l'avantage avant standardisation du marché.
+          </h2>
+          <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/75">
+            Cohorte fondatrice conçue pour les équipes qui veulent installer un
+            standard de pilotage couverture exigeant avant leurs concurrents.
+          </p>
+        </motion.div>
 
-function ObjectiveFlowIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 48 48"
-      fill="none"
-      className={cn("h-10 w-10", className)}
-      aria-hidden="true"
-    >
-      {/* Circular flow */}
-      <path
-        d="M24 8 A16 16 0 1 1 8 24"
-        stroke="oklch(0.769 0.205 70)"
-        strokeWidth="1.5"
-        fill="none"
-        strokeDasharray="4 3"
-      />
-      <polygon points="8,24 12,20 12,28" fill="oklch(0.769 0.205 70)" />
-      {/* Center checkmark */}
-      <circle
-        cx="24"
-        cy="24"
-        r="6"
-        fill="oklch(0.769 0.205 70)"
-        fillOpacity="0.15"
-      />
-      <polyline
-        points="20,24 23,27 28,21"
-        stroke="oklch(0.769 0.205 70)"
-        strokeWidth="2"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-const COLUMN_ICONS: Record<string, React.FC<{ className?: string }>> = {
-  "co-construction": CoConstructionIcon,
-  avantages: AdvantagesIcon,
-  objectif: ObjectiveFlowIcon,
-};
-
-/* ------------------------------------------------------------------ */
-/*  PilotSection                                                       */
-/* ------------------------------------------------------------------ */
-
-export function PilotSection({ className }: { className?: string }) {
-  return (
-    <SectionWrapper id="pilot" dark className={className}>
-      <SectionHeader
-        kicker="Programme pilote"
-        heading="Co-construisez la solution avec nous"
-        subheading="Rejoignez un nombre restreint d'entreprises pilotes. Vous apportez vos données et vos contraintes métier, on apporte la technologie prédictive et l'interprétabilité. Ensemble, on bâtit un système qui explique, chiffre et prouve."
-        light
-      />
-
-      {/* 3-column grid */}
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-        {pilotColumns.map((col) => {
-          const Icon = COLUMN_ICONS[col.id];
-          const isHighlighted = col.id === "avantages";
-          return (
-            <motion.div
-              key={col.id}
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {pilotColumns.map((column) => (
+            <motion.article
+              key={column.id}
               className={cn(
-                "rounded-2xl border p-6",
-                isHighlighted
-                  ? "border-amber-500/50 bg-amber-500/10"
-                  : "border-white/10 bg-white/5",
+                "rounded-3xl border p-6",
+                column.id === "avantages"
+                  ? "border-amber-400/35 bg-amber-500/12"
+                  : "border-white/12 bg-white/[0.04]",
               )}
               variants={staggerItem}
             >
-              {Icon && <Icon className="mb-4" />}
               <h3
                 className={cn(
-                  "mb-4 text-lg font-bold",
-                  isHighlighted ? "text-amber-400" : "text-white",
+                  "font-serif text-3xl leading-tight",
+                  column.id === "avantages" ? "text-amber-200" : "text-white",
                 )}
               >
-                {col.title}
+                {column.title}
               </h3>
-              <ul className="space-y-3">
-                {col.items.map((item) => (
+
+              <ul className="mt-5 space-y-3">
+                {column.items.map((item) => (
                   <li
                     key={item}
-                    className="flex items-start gap-2 text-sm leading-relaxed text-white/70"
+                    className="flex items-start gap-2.5 text-sm leading-relaxed text-white/80"
                   >
                     <CheckIcon
                       className={cn(
                         "mt-0.5 h-4 w-4 shrink-0",
-                        isHighlighted ? "text-amber-400" : "text-amber-500/70",
+                        column.id === "avantages"
+                          ? "text-amber-200"
+                          : "text-amber-400/80",
                       )}
                     />
                     {item}
                   </li>
                 ))}
               </ul>
-            </motion.div>
-          );
-        })}
-      </div>
+            </motion.article>
+          ))}
+        </div>
 
-      {/* Urgency callout */}
-      <motion.div
-        className="mt-12 rounded-xl border border-amber-500/40 bg-amber-500/10 px-6 py-4 text-center"
-        variants={staggerItem}
-      >
-        <p className="text-sm font-medium leading-relaxed text-amber-300">
-          {pilotUrgencyText}
-        </p>
-      </motion.div>
-
-      {/* CTA */}
-      <motion.div className="mt-8 text-center" variants={staggerItem}>
-        <Link
-          href={pilotCtaHref}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-8 py-4 text-base font-bold text-charcoal shadow-lg transition-all duration-200 hover:bg-amber-400 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-charcoal"
+        <motion.div
+          className="mt-8 rounded-2xl border border-amber-300/35 bg-amber-500/10 px-6 py-5"
+          variants={staggerItem}
         >
-          {pilotCtaText}
-          <ArrowRightIcon className="h-4 w-4" />
-        </Link>
-      </motion.div>
-    </SectionWrapper>
+          <p className="text-sm leading-relaxed text-amber-100">
+            {pilotUrgencyText}
+          </p>
+        </motion.div>
+
+        <motion.div className="mt-8" variants={staggerItem}>
+          <Link
+            href={pilotCtaHref}
+            className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-7 py-3.5 text-sm font-semibold text-charcoal transition hover:bg-amber-400"
+          >
+            {pilotCtaText}
+            <ArrowRightIcon className="h-4 w-4" />
+          </Link>
+          <p className="mt-3 text-xs font-medium uppercase tracking-wide text-white/65">
+            {pilotMetaText}
+          </p>
+        </motion.div>
+      </div>
+    </motion.section>
   );
 }

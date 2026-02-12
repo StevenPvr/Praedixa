@@ -1,9 +1,9 @@
 export const CHECKLIST_ITEMS = [
-  "Carte de sous-couverture par site et compétence",
-  "Facteurs explicatifs de chaque risque identifié",
-  "Coût de l'inaction estimé en euros",
-  "Playbook d'actions prioritaires chiffrées",
-  "Hypothèses explicites et auditables",
+  "Cartographie des points de tension couverture par périmètre",
+  "Hypothèses de coûts explicites pour chaque scénario d'action",
+  "Priorisation opérationnelle par niveau de criticité",
+  "Cadre de revue hebdomadaire prêt pour comité opérations",
+  "Traçabilité des décisions et des impacts observés",
 ] as const;
 
 export interface TrustSignal {
@@ -13,19 +13,19 @@ export interface TrustSignal {
 
 export const TRUST_SIGNALS: readonly TrustSignal[] = [
   {
-    title: "Crédibilité fondateur",
-    text: "Expertise en data science, séries temporelles et économétrie appliquées aux opérations multi-sites.",
+    title: "Design orienté direction opérations",
+    text: "Une interface conçue pour piloter vite, sans bruit visuel inutile.",
   },
   {
-    title: "Transparence méthodologique",
-    text: "Chaque chiffre est accompagné de ses hypothèses. Rien n'est une boîte noire.",
+    title: "Méthode explicitable",
+    text: "Chaque arbitrage repose sur des hypothèses visibles et discutables.",
   },
   {
-    title: "RGPD by design",
-    text: "Données agrégées équipe/site uniquement. Hébergement France. Pas de données individuelles.",
+    title: "Niveau de gouvernance enterprise",
+    text: "Documentation des décisions pour sécuriser les revues CODIR/DAF.",
   },
   {
-    title: "Interprétabilité native",
-    text: "Chaque prévision est accompagnée de ses facteurs explicatifs. Vous comprenez le pourquoi, pas juste le quoi.",
+    title: "Cadre privacy-by-design",
+    text: "Travail sur données agrégées uniquement, sans prédiction individuelle.",
   },
 ] as const;

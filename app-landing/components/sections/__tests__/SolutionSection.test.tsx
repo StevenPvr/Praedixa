@@ -8,101 +8,32 @@ vi.mock("framer-motion", async () => {
 });
 
 import { SolutionSection } from "../SolutionSection";
+import { SOLUTION_STEPS } from "../../../lib/content/solution-content";
 
 describe("SolutionSection", () => {
-  it("should render without errors", () => {
+  it("renders with id=solution", () => {
     const { container } = render(<SolutionSection />);
-    expect(container.querySelector("#solution")).toBeInTheDocument();
+    expect(container.querySelector("section")).toHaveAttribute("id", "solution");
   });
 
-  it("should have id=solution for anchor navigation", () => {
-    const { container } = render(<SolutionSection />);
-    expect(container.querySelector("section")).toHaveAttribute(
-      "id",
-      "solution",
-    );
-  });
-
-  it("should render the kicker text", () => {
+  it("renders all steps from content", () => {
     render(<SolutionSection />);
-    expect(screen.getByText("Votre point de départ")).toBeInTheDocument();
+
+    for (const step of SOLUTION_STEPS) {
+      expect(screen.getByText(step.title)).toBeInTheDocument();
+      expect(screen.getByText(step.subtitle)).toBeInTheDocument();
+      expect(screen.getByText(step.description)).toBeInTheDocument();
+    }
   });
 
-  it("should render the section heading", () => {
+  it("renders link to pipeline section", () => {
     render(<SolutionSection />);
-    expect(
-      screen.getByText(
-        "Comprendre vos risques de couverture en quelques jours",
-      ),
-    ).toBeInTheDocument();
+    const link = screen.getByText(/Voir les cas d'usage opérationnels/i).closest("a");
+    expect(link).toHaveAttribute("href", "#pipeline");
   });
 
-  it("should render the section description", () => {
-    render(<SolutionSection />);
-    expect(
-      screen.getByText(/Avant de construire un système complet/),
-    ).toBeInTheDocument();
-  });
-
-  it("should render all three solution step titles", () => {
-    render(<SolutionSection />);
-    expect(
-      screen.getByText("Envoyez vos exports existants"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("On détecte et on explique")).toBeInTheDocument();
-    expect(
-      screen.getByText("Vous recevez votre carte des risques"),
-    ).toBeInTheDocument();
-  });
-
-  it("should render step subtitles", () => {
-    render(<SolutionSection />);
-    expect(screen.getByText("10 min, aucune intégration")).toBeInTheDocument();
-    expect(
-      screen.getByText("Prédiction + facteurs explicatifs"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Risques + causes + playbook d'actions"),
-    ).toBeInTheDocument();
-  });
-
-  it("should render step descriptions", () => {
-    render(<SolutionSection />);
-    expect(
-      screen.getByText(
-        /Capacité, charge, absences : des fichiers que vous avez déjà/,
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/On prédit les trous à venir par site/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Une carte de sous-couverture par site/),
-    ).toBeInTheDocument();
-  });
-
-  it("should render step numbers 1, 2, 3", () => {
-    render(<SolutionSection />);
-    expect(screen.getByText("1")).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument();
-    expect(screen.getByText("3")).toBeInTheDocument();
-  });
-
-  it("should render the bridge-to-pipeline paragraph", () => {
-    render(<SolutionSection />);
-    expect(
-      screen.getByText(/Ce diagnostic est votre point d'entrée/),
-    ).toBeInTheDocument();
-  });
-
-  it("should render the link to #pipeline", () => {
-    render(<SolutionSection />);
-    const link = screen.getByText("Découvrir le partenariat pilote");
-    expect(link.closest("a")).toHaveAttribute("href", "#pipeline");
-  });
-
-  it("should accept a custom className", () => {
-    const { container } = render(<SolutionSection className="my-class" />);
-    expect(container.querySelector("section")).toHaveClass("my-class");
+  it("accepts custom className", () => {
+    const { container } = render(<SolutionSection className="solution-test" />);
+    expect(container.querySelector("section")).toHaveClass("solution-test");
   });
 });

@@ -14,7 +14,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-from psycopg import sql as psql
+from psycopg import errors, sql as psql
 
 from app.core.ddl_validation import DDLValidationError
 from app.models.data_catalog import ColumnRole
@@ -348,10 +348,11 @@ class TestCreateRawTable:
 
     def test_executes_create_table(self) -> None:
         cur = MagicMock()
-        _create_raw_table(
+        created = _create_raw_table(
             cur, "acme_raw", "effectifs", [("nb_employes", "DOUBLE PRECISION")]
         )
-        cur.execute.assert_called_once()
+        assert created is True
+        assert cur.execute.call_count == 3
         # The SQL object is composed by psycopg.sql
         sql_arg = cur.execute.call_args[0][0]
         assert isinstance(sql_arg, (psql.SQL, psql.Composed))
@@ -366,13 +367,19 @@ class TestCreateRawTable:
         cur = MagicMock()
         dynamic_cols = [("temperature", "DOUBLE PRECISION"), ("date_col", "DATE")]
         _create_raw_table(cur, "test_raw", "weather", dynamic_cols)
-        cur.execute.assert_called_once()
+        assert cur.execute.call_count == 3
 
     def test_no_dynamic_columns(self) -> None:
         """Raw table with only system columns should still be created."""
         cur = MagicMock()
         _create_raw_table(cur, "acme_raw", "empty_table", [])
-        cur.execute.assert_called_once()
+        assert cur.execute.call_count == 3
+
+    def test_duplicate_table_returns_false(self) -> None:
+        cur = MagicMock()
+        cur.execute.side_effect = [None, errors.DuplicateTable("exists"), None, None]
+        created = _create_raw_table(cur, "acme_raw", "effectifs", [])
+        assert created is False
 
 
 # ── _create_transformed_table ─────────────────────────────────
@@ -383,14 +390,15 @@ class TestCreateTransformedTable:
 
     def test_executes_create_table(self) -> None:
         cur = MagicMock()
-        _create_transformed_table(
+        created = _create_transformed_table(
             cur,
             "acme_xform",
             "effectifs",
             [("nb_employes", "DOUBLE PRECISION")],
             [("nb_employes_lag_1", "DOUBLE PRECISION")],
         )
-        cur.execute.assert_called_once()
+        assert created is True
+        assert cur.execute.call_count == 3
 
     def test_no_feature_columns(self) -> None:
         cur = MagicMock()
@@ -401,7 +409,7 @@ class TestCreateTransformedTable:
             [("nb_employes", "DOUBLE PRECISION")],
             [],
         )
-        cur.execute.assert_called_once()
+        assert cur.execute.call_count == 3
 
     def test_validates_feature_column_names(self) -> None:
         """Feature column names pass through validate_identifier."""
@@ -413,7 +421,19 @@ class TestCreateTransformedTable:
             [("nb_employes", "DOUBLE PRECISION")],
             [("nb_employes_lag_7", "DOUBLE PRECISION")],
         )
-        cur.execute.assert_called_once()
+        assert cur.execute.call_count == 3
+
+    def test_duplicate_table_returns_false(self) -> None:
+        cur = MagicMock()
+        cur.execute.side_effect = [None, errors.DuplicateTable("exists"), None, None]
+        created = _create_transformed_table(
+            cur,
+            "acme_xform",
+            "effectifs",
+            [("nb_employes", "DOUBLE PRECISION")],
+            [],
+        )
+        assert created is False
 
 
 # ── _create_indexes ───────────────────────────────────────────
@@ -497,8 +517,8 @@ class TestCreateClientSchemas:
 
         data_schema = await create_client_schemas("acme")
         assert data_schema == "acme_data"
-        # One CREATE SCHEMA call
-        assert mock_cur.execute.call_count == 1
+        # CREATE SCHEMA + role check (+ optional grant path)
+        assert mock_cur.execute.call_count >= 2
 
     @pytest.mark.asyncio
     async def test_rejects_invalid_slug(self) -> None:

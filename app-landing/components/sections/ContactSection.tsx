@@ -20,64 +20,55 @@ export function ContactSection({ className }: ContactSectionProps) {
   return (
     <motion.section
       id="contact"
-      className={cn("bg-charcoal py-24 md:py-32", className)}
+      className={cn("bg-charcoal py-24 text-white md:py-28", className)}
       variants={staggerContainer}
       initial="hidden"
       whileInView="visible"
       viewport={viewportOnce}
     >
-      <div className="mx-auto max-w-3xl px-6 text-center">
-        {/* Section Header */}
-        <motion.div variants={staggerItem}>
-          <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-widest text-amber-400">
-            Passez à l&apos;action
-          </span>
-          <h2 className="font-serif text-3xl font-bold text-white sm:text-4xl md:text-5xl">
-            Rejoignez le programme pilote
+      <div className="section-shell">
+        <motion.div
+          className="premium-card border-white/10 bg-white/[0.04] px-6 py-10 md:px-10"
+          variants={staggerItem}
+        >
+          <p className="section-kicker text-amber-300">Passer à l'action</p>
+          <h2 className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl">
+            Planifiez votre qualification exécutive
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-white/70">
-            Un partenariat de co-construction : vos données, nos modèles
-            prédictifs, une interprétabilité native. Carte des risques, facteurs
-            explicatifs, playbook d&apos;actions chiffré. Sans intégration, sans
-            données individuelles.
+          <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/75">
+            En 30 minutes, nous cadrons un périmètre réaliste, le niveau de
+            criticité, et la valeur attendue d'une première boucle de décision.
           </p>
-        </motion.div>
 
-        {/* CTA Buttons */}
-        <motion.div
-          className="mt-10 flex flex-col items-center gap-4"
-          variants={staggerItem}
-        >
-          {/* Primary CTA - Devenir pilote */}
-          <Link
-            href="/devenir-pilote"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-10 py-5 text-lg font-bold text-charcoal shadow-lg transition-all duration-200 hover:bg-amber-400 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-charcoal sm:w-auto"
-          >
-            <BoltIcon className="h-5 w-5" />
-            Devenir entreprise pilote
-          </Link>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link
+              href="/devenir-pilote"
+              className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-7 py-3.5 text-sm font-semibold text-charcoal transition hover:bg-amber-400"
+            >
+              <BoltIcon className="h-4 w-4" />
+              Demander une qualification pilote
+            </Link>
+            <a
+              href={`mailto:${siteConfig.contact.email}?subject=Programme%20pilote%20Praedixa`}
+              className="inline-flex items-center gap-2 rounded-full border border-white/25 px-6 py-3.5 text-sm font-semibold text-white/85 transition hover:border-white/45"
+            >
+              <MailIcon className="h-4 w-4" />
+              Écrire à l'équipe
+            </a>
+          </div>
 
-          {/* Secondary CTA - Direct mailto */}
-          <a
-            href={`mailto:${siteConfig.contact.email}?subject=Programme%20pilote%20Praedixa`}
-            className="inline-flex items-center gap-2 text-sm font-medium text-white/70 underline underline-offset-4 transition-colors hover:text-amber-400"
-          >
-            <MailIcon className="h-4 w-4" />
-            Ou écrivez-nous directement
-          </a>
-        </motion.div>
+          <p className="mt-4 text-xs font-medium uppercase tracking-wide text-white/60">
+            Qualification sous 24h ouvrées • Cohorte limitée • Sans engagement
+          </p>
 
-        {/* Trust Indicators */}
-        <motion.div
-          className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3"
-          variants={staggerItem}
-        >
-          {TRUST_ITEMS.map((item) => (
-            <div key={item} className="flex items-center gap-2">
-              <CheckIcon className="h-4 w-4 text-amber-400" />
-              <span className="text-sm text-white/60">{item}</span>
-            </div>
-          ))}
+          <div className="mt-8 grid gap-2.5 md:grid-cols-2">
+            {TRUST_ITEMS.map((item) => (
+              <div key={item} className="flex items-center gap-2 text-sm text-white/70">
+                <CheckIcon className="h-4 w-4 text-amber-300" />
+                {item}
+              </div>
+            ))}
+          </div>
         </motion.div>
       </div>
     </motion.section>

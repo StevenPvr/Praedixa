@@ -90,13 +90,35 @@ const ALLOWED_SECTORS = new Set([
   "Distribution",
   "Agroalimentaire",
   "BTP",
+  "Services",
   "Autre",
+]);
+
+const ALLOWED_ROLES = new Set([
+  "COO / Direction des opérations",
+  "Responsable des opérations",
+  "Direction de site",
+  "DAF / Direction financière",
+  "Direction générale",
+  "Autre",
+]);
+
+const ALLOWED_SITE_COUNTS = new Set(["1-3", "4-10", "11-30", "31+"]);
+const ALLOWED_TIMELINES = new Set([
+  "0-3 mois",
+  "3-6 mois",
+  "6-12 mois",
+  "Exploration",
 ]);
 
 // Maximum field lengths to prevent abuse
 const MAX_COMPANY_NAME_LENGTH = 200;
 const MAX_EMAIL_LENGTH = 254; // RFC 5321
 const MAX_PHONE_LENGTH = 30;
+const MAX_NAME_LENGTH = 100;
+const MAX_ROLE_LENGTH = 80;
+const MAX_STACK_LENGTH = 300;
+const MAX_PAIN_POINT_LENGTH = 1_200;
 const MAX_REQUEST_BODY_LENGTH = 2_000; // bytes
 
 // ---------------------------------------------------------------------------
@@ -184,6 +206,51 @@ function validateRequestBody(
   // --- website (honeypot) ---
   const website = typeof obj.website === "string" ? obj.website.trim() : "";
 
+  // --- Optional premium qualification fields ---
+  const firstName = normaliseOptionalField(obj.firstName, MAX_NAME_LENGTH);
+  if (firstName === null) {
+    return { valid: false, error: "Prénom invalide." };
+  }
+
+  const lastName = normaliseOptionalField(obj.lastName, MAX_NAME_LENGTH);
+  if (lastName === null) {
+    return { valid: false, error: "Nom invalide." };
+  }
+
+  const role = normaliseOptionalField(obj.role, MAX_ROLE_LENGTH);
+  if (role === null) {
+    return { valid: false, error: "Fonction invalide." };
+  }
+  if (role !== "" && !ALLOWED_ROLES.has(role)) {
+    return { valid: false, error: "Fonction invalide." };
+  }
+
+  const siteCount = normaliseOptionalField(obj.siteCount, 20);
+  if (siteCount === null) {
+    return { valid: false, error: "Nombre de sites invalide." };
+  }
+  if (siteCount !== "" && !ALLOWED_SITE_COUNTS.has(siteCount)) {
+    return { valid: false, error: "Nombre de sites invalide." };
+  }
+
+  const timeline = normaliseOptionalField(obj.timeline, 20);
+  if (timeline === null) {
+    return { valid: false, error: "Horizon projet invalide." };
+  }
+  if (timeline !== "" && !ALLOWED_TIMELINES.has(timeline)) {
+    return { valid: false, error: "Horizon projet invalide." };
+  }
+
+  const currentStack = normaliseOptionalField(obj.currentStack, MAX_STACK_LENGTH);
+  if (currentStack === null) {
+    return { valid: false, error: "Stack actuelle invalide." };
+  }
+
+  const painPoint = normaliseOptionalField(obj.painPoint, MAX_PAIN_POINT_LENGTH);
+  if (painPoint === null) {
+    return { valid: false, error: "Enjeu principal invalide." };
+  }
+
   // --- consent ---
   if (typeof obj.consent !== "boolean") {
     return { valid: false, error: "Consentement requis." };
@@ -205,9 +272,28 @@ function validateRequestBody(
       employeeRange,
       sector,
       website,
+      firstName,
+      lastName,
+      role,
+      siteCount,
+      timeline,
+      currentStack,
+      painPoint,
       consent: true,
     },
   };
+}
+
+function normaliseOptionalField(
+  value: unknown,
+  maxLength: number,
+): string | null {
+  if (value === undefined || value === null) return "";
+  if (typeof value !== "string") return null;
+
+  const trimmed = value.trim();
+  if (trimmed.length > maxLength) return null;
+  return trimmed;
 }
 
 interface ValidatedData {
@@ -217,6 +303,13 @@ interface ValidatedData {
   employeeRange: string;
   sector: string;
   website: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  siteCount: string;
+  timeline: string;
+  currentStack: string;
+  painPoint: string;
   consent: true;
 }
 
@@ -272,8 +365,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const { companyName, email, phone, employeeRange, sector, website } =
-      validation.data;
+    const {
+      companyName,
+      email,
+      phone,
+      employeeRange,
+      sector,
+      website,
+      firstName,
+      lastName,
+      role,
+      siteCount,
+      timeline,
+      currentStack,
+      painPoint,
+    } = validation.data;
 
     // Honeypot check: if website field is filled, it is likely a bot.
     // Return success silently so the bot cannot adapt.
@@ -288,6 +394,13 @@ export async function POST(request: Request) {
     const safePhone = escapeHtml(phone);
     const safeEmployeeRange = escapeHtml(employeeRange);
     const safeSector = escapeHtml(sector);
+    const safeFirstName = escapeHtml(firstName);
+    const safeLastName = escapeHtml(lastName);
+    const safeRole = escapeHtml(role);
+    const safeSiteCount = escapeHtml(siteCount);
+    const safeTimeline = escapeHtml(timeline);
+    const safeCurrentStack = escapeHtml(currentStack);
+    const safePainPoint = escapeHtml(painPoint);
     const safeIp = escapeHtml(ip);
 
     // Sanitise the email subject: strip newlines to prevent header injection
@@ -312,6 +425,14 @@ export async function POST(request: Request) {
             <td style="padding: 10px; border-bottom: 1px solid #eee;"><a href="mailto:${safeEmail}">${safeEmail}</a></td>
           </tr>
           <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Contact</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee;">${safeFirstName || "N/A"} ${safeLastName || ""}</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Fonction</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee;">${safeRole || "Non renseignée"}</td>
+          </tr>
+          <tr>
             <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">T\u00e9l\u00e9phone</td>
             <td style="padding: 10px; border-bottom: 1px solid #eee;">${safePhone || "Non renseign\u00e9"}</td>
           </tr>
@@ -322,6 +443,22 @@ export async function POST(request: Request) {
           <tr>
             <td style="padding: 10px; font-weight: bold;">Secteur</td>
             <td style="padding: 10px;">${safeSector}</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; font-weight: bold;">Nombre de sites</td>
+            <td style="padding: 10px;">${safeSiteCount || "Non renseigné"}</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; font-weight: bold;">Horizon projet</td>
+            <td style="padding: 10px;">${safeTimeline || "Non renseigné"}</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; font-weight: bold;">Stack actuelle</td>
+            <td style="padding: 10px;">${safeCurrentStack || "Non renseignée"}</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; font-weight: bold;">Enjeu prioritaire</td>
+            <td style="padding: 10px;">${safePainPoint || "Non renseigné"}</td>
           </tr>
         </table>
         <p style="margin-top: 20px; color: #666;">Recontacter dans les prochains jours.</p>
@@ -349,6 +486,7 @@ export async function POST(request: Request) {
               <li><strong>Entreprise :</strong> ${safeCompanyName}</li>
               <li><strong>Effectif :</strong> ${safeEmployeeRange} salari\u00e9s</li>
               <li><strong>Secteur :</strong> ${safeSector}</li>
+              <li><strong>Horizon :</strong> ${safeTimeline || "À préciser"}</li>
             </ul>
           </div>
           <h3 style="color: #1a1a1a;">Prochaines \u00e9tapes</h3>

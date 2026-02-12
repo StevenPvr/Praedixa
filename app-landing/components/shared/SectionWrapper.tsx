@@ -8,14 +8,9 @@ interface SectionWrapperProps {
   id: string;
   children: React.ReactNode;
   className?: string;
-  /** Use dark charcoal background */
   dark?: boolean;
 }
 
-/**
- * Standardised section container with stagger-reveal animation.
- * Provides consistent padding, max-width, and scroll-reveal behaviour.
- */
 export function SectionWrapper({
   id,
   children,
@@ -26,8 +21,8 @@ export function SectionWrapper({
     <motion.section
       id={id}
       className={cn(
-        "px-6 py-20 md:py-28",
-        dark ? "bg-charcoal text-white" : "bg-cream text-charcoal",
+        "py-24 md:py-28",
+        dark ? "bg-charcoal text-white" : "bg-transparent text-charcoal",
         className,
       )}
       variants={staggerContainer}
@@ -35,7 +30,7 @@ export function SectionWrapper({
       whileInView="visible"
       viewport={viewportOnce}
     >
-      <div className="mx-auto max-w-6xl">{children}</div>
+      <div className="section-shell">{children}</div>
     </motion.section>
   );
 }

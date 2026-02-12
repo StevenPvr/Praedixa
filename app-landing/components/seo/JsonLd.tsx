@@ -57,9 +57,9 @@ const softwareSchema = {
   ],
   offers: {
     "@type": "Offer",
-    price: "0",
     priceCurrency: "EUR",
-    description: "Premier diagnostic gratuit pour les entreprises pilotes",
+    availability: "https://schema.org/LimitedAvailability",
+    description: "Accès via cohorte pilote fondatrice (places limitées)",
   },
 };
 
@@ -86,9 +86,9 @@ const serviceSchema = {
   termsOfService: "https://www.praedixa.com/cgu",
   offers: {
     "@type": "Offer",
-    price: "0",
     priceCurrency: "EUR",
-    description: "Premier diagnostic gratuit",
+    availability: "https://schema.org/LimitedAvailability",
+    description: "Qualification sur cohorte pilote fondatrice",
   },
 };
 
@@ -127,7 +127,7 @@ const webSiteSchema = {
   name: "Praedixa",
   url: "https://www.praedixa.com",
   description:
-    "Praedixa — intelligence de couverture operationnelle. Anticipez la sous-couverture multi-sites, comprenez pourquoi, chiffrez les options, prouvez le ROI. Programme pilote gratuit.",
+    "Praedixa — intelligence de couverture operationnelle premium. Anticipez la sous-couverture multi-sites, structurez vos arbitrages et produisez une preuve d'impact auditable.",
   publisher: {
     "@type": "Organization",
     name: "Praedixa",

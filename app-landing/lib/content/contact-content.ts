@@ -1,7 +1,7 @@
 export const TRUST_ITEMS = [
-  "Partenariat gratuit",
-  "Premiers résultats en jours",
-  "Sans intégration IT",
-  "Données agrégées uniquement",
-  "Sans engagement",
+  "Réponse sous 24h ouvrées",
+  "NDA possible dès le premier échange",
+  "Données agrégées uniquement (privacy-by-design)",
+  "Cadre d'arbitrage auditable pour CODIR/DAF",
+  "Onboarding initial sans intégration SI lourde",
 ] as const;

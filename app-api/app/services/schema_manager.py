@@ -21,7 +21,7 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, LiteralString, cast
 
-from psycopg import sql
+from psycopg import errors, sql
 
 from app.core.config import settings
 from app.core.ddl_connection import ddl_connection
@@ -80,6 +80,26 @@ async def create_client_schemas(org_slug: str) -> str:
                     sql.Identifier(data_schema)
                 )
             )
+
+            # Backfill grants for role architecture when schema pre-exists
+            # from older local setups (owner can be session user).
+            cur.execute(
+                "SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'praedixa_owner'"
+            )
+            if cur.fetchone() is not None:
+                cur.execute("RESET ROLE")
+                try:
+                    cur.execute(
+                        sql.SQL("GRANT USAGE, CREATE ON SCHEMA {} TO {}").format(
+                            sql.Identifier(data_schema),
+                            sql.Identifier("praedixa_owner"),
+                        )
+                    )
+                except errors.InsufficientPrivilege:
+                    logger.warning(
+                        "Could not grant schema privileges on %s to praedixa_owner",
+                        data_schema,
+                    )
             logger.info("Created schema: %s", data_schema)
 
     await asyncio.to_thread(_sync_create)
@@ -127,23 +147,21 @@ async def create_dataset_tables(
             transformed_created = False
             try:
                 # ── Raw table ──
-                _create_raw_table(
+                raw_created = _create_raw_table(
                     cur,
                     data_schema,
                     raw_table_name,
                     validated_columns,
                 )
-                raw_created = True
 
                 # ── Transformed table ──
-                _create_transformed_table(
+                transformed_created = _create_transformed_table(
                     cur,
                     data_schema,
                     transformed_table_name,
                     validated_columns,
                     feature_columns,
                 )
-                transformed_created = True
 
                 # ── Indexes ──
                 _create_indexes(
@@ -294,7 +312,7 @@ def _create_raw_table(
     schema: str,
     table_name: str,
     columns: list[tuple[str, str]],
-) -> None:
+) -> bool:
     """Create a raw data table with system columns + dynamic columns.
 
     System columns:
@@ -326,7 +344,25 @@ def _create_raw_table(
         sql.Identifier(table_name),
         sql.SQL(", ").join(col_defs),
     )
-    cur.execute(create_stmt)
+    savepoint_name = "sp_create_raw_table"
+    cur.execute(sql.SQL("SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+    try:
+        cur.execute(create_stmt)
+        cur.execute(sql.SQL("RELEASE SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+        return True
+    except errors.DuplicateTable:
+        cur.execute(
+            sql.SQL("ROLLBACK TO SAVEPOINT {}").format(sql.Identifier(savepoint_name))
+        )
+        cur.execute(sql.SQL("RELEASE SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+        logger.info("Raw table already exists: %s.%s", schema, table_name)
+        return False
+    except Exception:
+        cur.execute(
+            sql.SQL("ROLLBACK TO SAVEPOINT {}").format(sql.Identifier(savepoint_name))
+        )
+        cur.execute(sql.SQL("RELEASE SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+        raise
 
 
 def _create_transformed_table(
@@ -335,7 +371,7 @@ def _create_transformed_table(
     table_name: str,
     original_columns: list[tuple[str, str]],
     feature_columns: list[tuple[str, str]],
-) -> None:
+) -> bool:
     """Create a transformed data table with system + original + feature columns.
 
     System columns:
@@ -376,7 +412,25 @@ def _create_transformed_table(
         sql.Identifier(table_name),
         sql.SQL(", ").join(col_defs),
     )
-    cur.execute(create_stmt)
+    savepoint_name = "sp_create_transformed_table"
+    cur.execute(sql.SQL("SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+    try:
+        cur.execute(create_stmt)
+        cur.execute(sql.SQL("RELEASE SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+        return True
+    except errors.DuplicateTable:
+        cur.execute(
+            sql.SQL("ROLLBACK TO SAVEPOINT {}").format(sql.Identifier(savepoint_name))
+        )
+        cur.execute(sql.SQL("RELEASE SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+        logger.info("Transformed table already exists: %s.%s", schema, table_name)
+        return False
+    except Exception:
+        cur.execute(
+            sql.SQL("ROLLBACK TO SAVEPOINT {}").format(sql.Identifier(savepoint_name))
+        )
+        cur.execute(sql.SQL("RELEASE SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+        raise
 
 
 def _create_indexes(

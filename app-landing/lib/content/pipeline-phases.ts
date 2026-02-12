@@ -10,71 +10,56 @@ export interface PipelinePhase {
 export const pipelinePhases: PipelinePhase[] = [
   {
     id: "standardisation",
-    title: "Ingestion des données existantes",
+    title: "Volatilité de charge",
     description:
-      "On ingère vos exports existants, sans intégration lourde. Praedixa standardise et fiabilise progressivement vos données de capacité et de charge.",
+      "Anticiper les pics ponctuels qui déséquilibrent les équipes et déclenchent des arbitrages en urgence.",
     capabilities: [
-      "Imports multi-formats (CSV, Excel, exports métier)",
-      "Réconciliation automatique des sources",
-      "Qualité des données monitorée en continu",
-      "Base fiable pour la détection de sous-couverture",
+      "Lecture hebdomadaire des tendances par site",
+      "Signal d'alerte en amont des pics",
+      "Recommandations d'options selon criticité",
+      "Hypothèses explicites pour validation managériale",
     ],
   },
   {
     id: "predictions",
-    title: "Prédiction de sous-couverture à 3, 7 et 14 jours",
+    title: "Absentéisme et dérive de couverture",
     description:
-      "Modèles prédictifs pour estimer le risque de sous-couverture par site, équipe et compétence. Early-warning opérationnel.",
+      "Identifier les zones de fragilité structurelle et éviter les plans de dernière minute coûteux.",
     capabilities: [
-      "Risque de sous-couverture par site et compétence",
-      "Horizons courts : 3, 7 et 14 jours — vous choisissez",
-      "Écart capacité vs charge anticipé",
-      "Détection des trous semaines à l'avance",
+      "Analyse des motifs récurrents de sous-couverture",
+      "Hiérarchisation des zones les plus exposées",
+      "Fenêtres d'action 3, 7 et 14 jours",
+      "Vision consolidée direction opérations",
     ],
     callout:
-      "Toutes les prédictions sont agrégées au niveau équipe ou site. Aucune prédiction individuelle. Conformité RGPD native.",
-    calloutVariant: "info",
-  },
-  {
-    id: "interpretabilite",
-    title: "Comprendre pourquoi : facteurs explicatifs de chaque risque",
-    description:
-      "Praedixa ne se contente pas de prédire. Pour chaque risque détecté, le système identifie les facteurs explicatifs : pic de charge, absences récurrentes, turnover élevé, saisonnalité. Vous comprenez le pourquoi.",
-    capabilities: [
-      "Facteurs explicatifs pour chaque prévision de risque",
-      "Transparence totale : hypothèses auditables, pas de boîte noire",
-      "Identification des causes racines actionnables",
-      "Base pour l'amélioration continue de vos processus",
-    ],
-    callout:
-      "Comprendre les causes permet d'agir dessus. Les problèmes diminuent, les prévisions s'affinent : c'est un cercle vertueux d'amélioration continue.",
+      "Aucune donnée individuelle n'est nécessaire: la lecture se fait au niveau équipe et site.",
     calloutVariant: "info",
   },
   {
     id: "notifications",
-    title: "Arbitrage économique : coût de l'inaction vs options",
+    title: "Arbitrages inter-sites",
     description:
-      "Quand un risque est détecté, Praedixa chiffre le coût de l'inaction et propose un playbook d'actions évaluées économiquement.",
+      "Comparer les scénarios de réallocation, renfort et priorisation en coût, risque et impact de service.",
     capabilities: [
-      "Playbook d'actions : HS, intérim, réallocation, priorisation",
-      "Acceptation contrôlée d'une dégradation de service",
-      "Chaque option chiffrée avec son impact économique",
-      "Décision traçable avec audit trail",
+      "Comparaison d'options en logique portefeuille",
+      "Arbitrage coût direct vs coût de non-action",
+      "Cadre de décision partagé COO/DAF",
+      "Documentation standardisée des choix",
     ],
     callout:
-      "Praedixa ne donne pas de conseil. Praedixa présente des options avec leur impact économique chiffré. La décision reste entièrement celle de l'entreprise.",
+      "Praedixa ne décide pas à votre place: la plateforme structure les options et clarifie les conséquences.",
     calloutVariant: "critical",
   },
   {
     id: "kpis",
-    title: "Preuve d'impact : mesure avant/après",
+    title: "Boucle ROI et gouvernance",
     description:
-      "Après chaque décision, Praedixa logge l'action et mesure l'impact réel. Preuve économique auditable pour CODIR et DAF.",
+      "Mesurer l'effet des décisions pour renforcer la qualité des cycles futurs et crédibiliser les arbitrages.",
     capabilities: [
-      "Décision log : chaque arbitrage est tracé",
-      "Mesure avant/après avec rigueur mathématique",
-      "Preuve économique auditable pour CODIR et DAF",
-      "Boucle de feedback pour affiner les prédictions",
+      "Journal de décisions exploitable en revue mensuelle",
+      "Mesure avant/après sur couverture et coûts",
+      "Traçabilité pour audit interne",
+      "Amélioration continue du cadre d'arbitrage",
     ],
   },
 ];

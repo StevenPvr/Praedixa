@@ -10,7 +10,7 @@ test.describe("CGU page", () => {
 
   test("has back link to home", async ({ page }) => {
     await page.goto("/cgu");
-    const backLink = page.getByText("Retour");
+    const backLink = page.getByRole("link", { name: /retour à l'accueil/i });
     await expect(backLink).toBeVisible();
     await expect(backLink).toHaveAttribute("href", "/");
   });

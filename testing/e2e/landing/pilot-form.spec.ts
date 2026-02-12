@@ -5,96 +5,63 @@ test.describe("Pilot application form (/devenir-pilote)", () => {
     await page.goto("/devenir-pilote");
   });
 
-  test("loads the pilot form page", async ({ page }) => {
-    await expect(page.locator("h1")).toContainText(/diagnostic|pilote/i);
+  test("loads the premium pilot form page", async ({ page }) => {
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(
+      /candidature pilote premium/i,
+    );
+    await expect(page.getByRole("link", { name: /retour au site/i })).toBeVisible();
   });
 
-  test("displays the Praedixa logo and back link", async ({ page }) => {
-    await expect(page.getByRole("link", { name: /praedixa/i })).toBeVisible();
+  test("shows required qualification fields", async ({ page }) => {
+    await expect(page.getByLabel(/Entreprise/)).toBeVisible();
+    await expect(page.getByLabel(/Secteur/)).toBeVisible();
+    await expect(page.getByLabel(/Nombre de sites/)).toBeVisible();
+    await expect(page.getByLabel(/Fonction/)).toBeVisible();
+    await expect(page.getByLabel(/Horizon projet/)).toBeVisible();
     await expect(
-      page.getByRole("link", { name: /retour au site/i }),
+      page.getByLabel(/Quel est votre principal enjeu de couverture/),
     ).toBeVisible();
   });
 
-  test("step 1: shows company name input", async ({ page }) => {
-    const companyInput = page.getByPlaceholder("Ex: Logistique Express");
-    await expect(companyInput).toBeVisible();
+  test("submit button stays disabled until form is complete", async ({ page }) => {
+    const submit = page.getByRole("button", { name: /envoyer ma candidature/i });
+    await expect(submit).toBeDisabled();
+
+    await page.getByLabel(/Entreprise/).fill("Atlas Logistics");
+    await expect(submit).toBeDisabled();
   });
 
-  test("step 1: continue button is disabled when company name is empty", async ({
-    page,
-  }) => {
-    const continueButton = page.getByRole("button", { name: /continuer/i });
-    await expect(continueButton).toBeDisabled();
-  });
+  test("submits successfully when required fields are complete", async ({ page }) => {
+    await page.route("**/api/pilot-application", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true }),
+      });
+    });
 
-  test("step 1: can fill company name and proceed to step 2", async ({
-    page,
-  }) => {
-    await page.getByPlaceholder("Ex: Logistique Express").fill("Test Corp");
-    await page.getByRole("button", { name: /continuer/i }).click();
-    // Step 2 should show the email field
-    await expect(page.getByPlaceholder("vous@entreprise.com")).toBeVisible();
-  });
+    await page.getByLabel(/Entreprise/).fill("Atlas Logistics");
+    await page.getByLabel(/Secteur/).selectOption("Logistique");
+    await page.getByLabel(/Effectif/).selectOption("250-500");
+    await page.getByLabel(/Nombre de sites/).selectOption("4-10");
 
-  test("step 2: has email and phone fields", async ({ page }) => {
-    // Navigate to step 2
-    await page.getByPlaceholder("Ex: Logistique Express").fill("Test Corp");
-    await page.getByRole("button", { name: /continuer/i }).click();
+    await page.getByLabel(/Prénom/).fill("Camille");
+    await page.locator('input[name="lastName"]').fill("Durand");
+    await page
+      .getByLabel(/Fonction/)
+      .selectOption("COO / Direction des opérations");
+    await page.getByLabel(/Email professionnel/).fill("camille@atlas.fr");
 
-    await expect(page.getByPlaceholder("vous@entreprise.com")).toBeVisible();
-    await expect(page.getByPlaceholder("06 12 34 56 78")).toBeVisible();
-  });
+    await page.getByLabel(/Horizon projet/).selectOption("0-3 mois");
+    await page
+      .getByLabel(/Quel est votre principal enjeu de couverture/)
+      .fill(
+        "Nous devons anticiper les tensions de couverture entre nos principaux sites.",
+      );
 
-  test("step 2: can go back to step 1", async ({ page }) => {
-    // Navigate to step 2
-    await page.getByPlaceholder("Ex: Logistique Express").fill("Test Corp");
-    await page.getByRole("button", { name: /continuer/i }).click();
+    await page.getByRole("checkbox").check();
+    await page.getByRole("button", { name: /envoyer ma candidature/i }).click();
 
-    // Go back
-    await page.getByRole("button", { name: /retour/i }).click();
-    await expect(page.getByPlaceholder("Ex: Logistique Express")).toBeVisible();
-  });
-
-  test("step 2: proceed to step 3 with email", async ({ page }) => {
-    // Navigate to step 2
-    await page.getByPlaceholder("Ex: Logistique Express").fill("Test Corp");
-    await page.getByRole("button", { name: /continuer/i }).click();
-
-    // Fill email and continue
-    await page.getByPlaceholder("vous@entreprise.com").fill("test@example.com");
-    await page.getByRole("button", { name: /continuer/i }).click();
-
-    // Step 3 should show employee ranges
-    await expect(page.getByText("50-100")).toBeVisible();
-  });
-
-  test("navigates through all steps to confirmation", async ({ page }) => {
-    // Step 1: Company name
-    await page.getByPlaceholder("Ex: Logistique Express").fill("Test Corp");
-    await page.getByRole("button", { name: /continuer/i }).click();
-
-    // Step 2: Contact info
-    await page.getByPlaceholder("vous@entreprise.com").fill("test@example.com");
-    await page.getByRole("button", { name: /continuer/i }).click();
-
-    // Step 3: Employee range
-    await page.getByText("50-100").click();
-
-    // Step 4: Sector
-    await page.getByText("Logistique").click();
-
-    // Step 5: Confirmation
-    await expect(page.getByText(/v.rifiez vos informations/i)).toBeVisible();
-    await expect(page.getByText("Test Corp")).toBeVisible();
-    await expect(page.getByText("test@example.com")).toBeVisible();
-  });
-
-  test("progress indicator shows 5 steps", async ({ page }) => {
-    // The progress indicator should show step circles
-    const stepCircles = page.locator(
-      ".flex.items-center.gap-2 .flex.items-center.justify-center.rounded-full",
-    );
-    await expect(stepCircles).toHaveCount(5);
+    await expect(page.getByText(/Candidature transmise/i)).toBeVisible();
   });
 });

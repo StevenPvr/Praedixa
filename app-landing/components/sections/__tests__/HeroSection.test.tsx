@@ -20,67 +20,43 @@ import { HeroSection } from "../HeroSection";
 import { heroContent } from "../../../lib/content/hero-content";
 
 describe("HeroSection", () => {
-  it("should render without errors", () => {
-    render(<HeroSection />);
-    expect(screen.getByTestId("hero-section")).toBeInTheDocument();
-  });
-
-  it("should have id=hero for anchor navigation", () => {
+  it("renders with anchor id and headline", () => {
     render(<HeroSection />);
     expect(screen.getByTestId("hero-section")).toHaveAttribute("id", "hero");
-  });
 
-  it("should render the kicker text", () => {
-    render(<HeroSection />);
-    expect(screen.getByText(heroContent.kicker)).toBeInTheDocument();
-  });
-
-  it("should render the headline", () => {
-    render(<HeroSection />);
     const heading = screen.getByRole("heading", { level: 1 });
     expect(heading).toBeInTheDocument();
     expect(heading.textContent).toContain(heroContent.headlineHighlight);
   });
 
-  it("should render the subtitle", () => {
+  it("renders key copy blocks from content source", () => {
     render(<HeroSection />);
+    expect(screen.getByText(heroContent.kicker)).toBeInTheDocument();
     expect(screen.getByText(heroContent.subtitle)).toBeInTheDocument();
-  });
 
-  it("should render all bullet points", () => {
-    render(<HeroSection />);
     for (const bullet of heroContent.bullets) {
       expect(screen.getByText(bullet.text)).toBeInTheDocument();
     }
-  });
 
-  it("should render the primary CTA with correct href", () => {
-    render(<HeroSection />);
-    const primaryCta = screen.getByText(heroContent.ctaPrimary.text);
-    expect(primaryCta.closest("a")).toHaveAttribute(
-      "href",
-      heroContent.ctaPrimary.href,
-    );
-  });
-
-  it("should render the secondary CTA with correct href", () => {
-    render(<HeroSection />);
-    const secondaryCta = screen.getByText(heroContent.ctaSecondary.text);
-    expect(secondaryCta.closest("a")).toHaveAttribute(
-      "href",
-      heroContent.ctaSecondary.href,
-    );
-  });
-
-  it("should render all trust badges", () => {
-    render(<HeroSection />);
     for (const badge of heroContent.trustBadges) {
       expect(screen.getByText(badge)).toBeInTheDocument();
     }
   });
 
-  it("should accept a custom className", () => {
-    render(<HeroSection className="custom-test" />);
-    expect(screen.getByTestId("hero-section")).toHaveClass("custom-test");
+  it("renders both primary and secondary CTAs", () => {
+    render(<HeroSection />);
+
+    const primaryCta = screen.getByText(heroContent.ctaPrimary.text).closest("a");
+    const secondaryCta = screen
+      .getByText(heroContent.ctaSecondary.text)
+      .closest("a");
+
+    expect(primaryCta).toHaveAttribute("href", heroContent.ctaPrimary.href);
+    expect(secondaryCta).toHaveAttribute("href", heroContent.ctaSecondary.href);
+  });
+
+  it("accepts custom className", () => {
+    render(<HeroSection className="hero-test" />);
+    expect(screen.getByTestId("hero-section")).toHaveClass("hero-test");
   });
 });

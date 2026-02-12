@@ -1274,6 +1274,34 @@ class TestFullPipeline:
         assert "col_b" in result.column_reports
         assert result.column_reports["col_a"].missing_count >= 1
 
+    def test_pipeline_normalizes_numeric_types_to_dataset_dtypes(self) -> None:
+        """Integer/float dataset columns are normalized before insertion."""
+        columns = [
+            make_column("date", dtype="date"),
+            make_column("headcount", dtype="integer"),
+            make_column("rate", dtype="float"),
+        ]
+        base = datetime.date(2025, 1, 1)
+        rows = [
+            {
+                "date": base + datetime.timedelta(days=i),
+                "headcount": str(100 + i),
+                "rate": str(0.2 + (i * 0.01)),
+            }
+            for i in range(20)
+        ]
+        # Deliberate decimal in an integer column to exercise normalization.
+        rows[0]["headcount"] = "999.5"
+
+        result = run_quality_checks(rows, columns, "date")
+        headcount_values = [r["headcount"] for r in result.cleaned_rows]
+        rate_values = [r["rate"] for r in result.cleaned_rows]
+
+        assert headcount_values
+        assert rate_values
+        assert all(isinstance(v, int) for v in headcount_values)
+        assert all(isinstance(v, float) for v in rate_values)
+
     def test_pipeline_group_by_columns(self) -> None:
         """Group-by columns trigger group-aware MAR detection."""
         columns = [

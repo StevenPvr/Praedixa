@@ -1,49 +1,36 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, DM_Serif_Display } from "next/font/google";
+import { Manrope, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { JsonLd } from "../components/seo/JsonLd";
 
-const jakarta = Plus_Jakarta_Sans({
+const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
 
-const dmSerif = DM_Serif_Display({
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: "400",
   variable: "--font-serif",
   display: "swap",
+  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.praedixa.com"),
   title:
-    "Praedixa — Intelligence de couverture operationnelle | Prevision + Interpretabilite",
+    "Praedixa | Intelligence de couverture premium pour opérations multi-sites",
   description:
-    "Anticipez la sous-couverture de vos equipes multi-sites. Praedixa predit les risques, explique pourquoi ils existent et chiffre les options. Sans integration IT.",
+    "Praedixa aide les directions opérations à anticiper la sous-couverture, prioriser les arbitrages économiques et produire une preuve auditable de l'impact.",
   keywords: [
-    "sous-couverture operationnelle",
-    "risque de sous-couverture multi-sites",
     "intelligence de couverture",
-    "capacite vs charge operations",
+    "sous-couverture multi-sites",
+    "pilotage operations multi-sites",
     "arbitrage economique operations",
-    "preuve economique auditable",
-    "interpretabilite previsions couverture",
-    "facteurs explicatifs sous-couverture",
-    "cout inaction sous-couverture",
-    "playbook actions operationnelles",
-    "couverture equipes terrain",
-    "risque operationnel logistique",
-    "SLA niveau de service operations",
-    "couts urgence interim heures sup",
-    "decision tracable operations",
-    "audit trail decisions operationnelles",
-    "early-warning operationnel",
-    "couverture multi-sites logistique transport",
-    "prevision sous-effectif 3 7 14 jours",
-    "pilotage predictif couverture",
-    "KPI economiques couverture terrain",
+    "prevision charge capacite",
+    "preuve auditable ROI operations",
+    "coo operations saas",
+    "plateforme decision operations",
   ],
   authors: [{ name: "Praedixa" }],
   alternates: {
@@ -59,9 +46,9 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title:
-      "Praedixa — Anticipez la sous-couverture, comprenez pourquoi, chiffrez les options",
+      "Praedixa | SaaS premium de couverture opérationnelle pour COO multi-sites",
     description:
-      "Anticipez la sous-couverture de vos equipes multi-sites. Previsions + facteurs explicatifs + arbitrage economique + preuve d'impact. Sans integration IT.",
+      "Anticipez vos tensions de couverture, cadrez vos arbitrages et rendez vos décisions auditables avec une méthodologie orientée impact.",
     url: "https://www.praedixa.com",
     siteName: "Praedixa",
     locale: "fr_FR",
@@ -71,16 +58,15 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Praedixa — Intelligence de couverture operationnelle predictive pour entreprises multi-sites",
+        alt: "Praedixa — intelligence opérationnelle premium pour directions multi-sites",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title:
-      "Praedixa — Intelligence de couverture operationnelle | Prevision + Interpretabilite",
+    title: "Praedixa | Intelligence opérationnelle premium",
     description:
-      "Anticipez la sous-couverture multi-sites. Previsions + causes expliquees + arbitrage chiffre + preuve economique. Programme pilote gratuit.",
+      "Pilotez la couverture multi-sites avec une approche auditable, orientée décision et performance économique.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -95,7 +81,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={`${jakarta.variable} ${dmSerif.variable}`}>
+    <html lang="fr" className={`${manrope.variable} ${cormorant.variable}`}>
       <head>
         <JsonLd />
       </head>

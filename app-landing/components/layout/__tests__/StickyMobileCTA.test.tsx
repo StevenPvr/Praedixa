@@ -21,74 +21,43 @@ describe("StickyMobileCTA", () => {
     resetIntersectionObserver();
   });
 
-  it("should render without errors", () => {
-    // Add a hero element the component looks for
+  function setup() {
     const heroEl = document.createElement("div");
     heroEl.id = "hero";
     document.body.appendChild(heroEl);
+    return heroEl;
+  }
 
-    render(<StickyMobileCTA />);
-    expect(screen.getByText("Obtenir mon diagnostic")).toBeInTheDocument();
+  it("renders CTA link and default hidden state", () => {
+    const heroEl = setup();
+
+    const { container } = render(<StickyMobileCTA />);
+    expect(screen.getByText("Qualification pilote en 4-5 min")).toBeInTheDocument();
+    expect(container.firstElementChild).toHaveAttribute("aria-hidden", "true");
 
     document.body.removeChild(heroEl);
   });
 
-  it("should render a link to /devenir-pilote", () => {
-    const heroEl = document.createElement("div");
-    heroEl.id = "hero";
-    document.body.appendChild(heroEl);
+  it("links to /devenir-pilote", () => {
+    const heroEl = setup();
 
     render(<StickyMobileCTA />);
-    const link = screen.getByText("Obtenir mon diagnostic").closest("a");
+    const link = screen.getByText("Qualification pilote en 4-5 min").closest("a");
     expect(link).toHaveAttribute("href", "/devenir-pilote");
 
     document.body.removeChild(heroEl);
   });
 
-  it("should be hidden by default (aria-hidden true)", () => {
-    const heroEl = document.createElement("div");
-    heroEl.id = "hero";
-    document.body.appendChild(heroEl);
-
-    const { container } = render(<StickyMobileCTA />);
-    const wrapper = container.firstElementChild;
-    expect(wrapper).toHaveAttribute("aria-hidden", "true");
-
-    document.body.removeChild(heroEl);
-  });
-
-  it("should become visible when hero scrolls out of view", () => {
-    const heroEl = document.createElement("div");
-    heroEl.id = "hero";
-    document.body.appendChild(heroEl);
+  it("becomes visible when hero exits viewport and restores when visible", () => {
+    const heroEl = setup();
 
     const { container } = render(<StickyMobileCTA />);
 
-    // Simulate hero going out of view using the project's mock
-    act(() => {
-      triggerIntersection(false, heroEl);
-    });
-
-    const wrapper = container.firstElementChild;
-    expect(wrapper).toHaveAttribute("aria-hidden", "false");
-
-    document.body.removeChild(heroEl);
-  });
-
-  it("should hide again when hero comes back into view", () => {
-    const heroEl = document.createElement("div");
-    heroEl.id = "hero";
-    document.body.appendChild(heroEl);
-
-    const { container } = render(<StickyMobileCTA />);
-
-    // Hero leaves viewport
     act(() => {
       triggerIntersection(false, heroEl);
     });
     expect(container.firstElementChild).toHaveAttribute("aria-hidden", "false");
 
-    // Hero re-enters viewport
     act(() => {
       triggerIntersection(true, heroEl);
     });
@@ -97,30 +66,16 @@ describe("StickyMobileCTA", () => {
     document.body.removeChild(heroEl);
   });
 
-  it("should set tabIndex=-1 when not visible", () => {
-    const heroEl = document.createElement("div");
-    heroEl.id = "hero";
-    document.body.appendChild(heroEl);
+  it("updates tabIndex based on visibility", () => {
+    const heroEl = setup();
 
     render(<StickyMobileCTA />);
-    const link = screen.getByText("Obtenir mon diagnostic").closest("a");
+    const link = screen.getByText("Qualification pilote en 4-5 min").closest("a");
     expect(link).toHaveAttribute("tabindex", "-1");
-
-    document.body.removeChild(heroEl);
-  });
-
-  it("should set tabIndex=0 when visible", () => {
-    const heroEl = document.createElement("div");
-    heroEl.id = "hero";
-    document.body.appendChild(heroEl);
-
-    render(<StickyMobileCTA />);
 
     act(() => {
       triggerIntersection(false, heroEl);
     });
-
-    const link = screen.getByText("Obtenir mon diagnostic").closest("a");
     expect(link).toHaveAttribute("tabindex", "0");
 
     document.body.removeChild(heroEl);

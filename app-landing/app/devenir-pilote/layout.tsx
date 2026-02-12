@@ -1,26 +1,23 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Programme entreprise pilote | Praedixa",
+  title: "Cohorte pilote premium | Praedixa",
   description:
-    "Rejoignez le programme pilote Praedixa : co-construisez une solution de couverture predictive avec interpretabilite native. Risques identifies, causes expliquees, playbook d'actions chiffre. Gratuit, sans integration IT.",
+    "Candidature cohorte pilote Praedixa: qualification opérationnelle, cadrage des enjeux multi-sites et validation d'un premier périmètre de déploiement.",
   keywords: [
-    "programme pilote couverture predictive",
-    "sous-couverture operationnelle diagnostic",
-    "risque sous-couverture multi-sites",
-    "interpretabilite previsions operations",
-    "capacite vs charge operations",
-    "cout inaction sous-couverture",
-    "entreprise pilote couverture",
-    "arbitrage economique operations gratuit",
+    "cohorte pilote operations",
+    "sous-couverture multi-sites candidature",
+    "coo pilotage couverture",
+    "arbitrage operations plateforme",
+    "qualification projet operations",
   ],
   alternates: {
     canonical: "/devenir-pilote",
   },
   openGraph: {
-    title: "Programme entreprise pilote | Praedixa",
+    title: "Cohorte pilote premium | Praedixa",
     description:
-      "Co-construisez une solution de couverture predictive : risques identifies, causes expliquees, playbook d'actions chiffre. Gratuit, sans integration IT.",
+      "Rejoignez la cohorte fondatrice Praedixa pour structurer un pilotage couverture de niveau exécutif.",
     url: "https://www.praedixa.com/devenir-pilote",
     siteName: "Praedixa",
     locale: "fr_FR",
@@ -30,15 +27,15 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Praedixa — Programme entreprise pilote pour couverture operationnelle predictive multi-sites",
+        alt: "Praedixa — candidature cohorte pilote premium",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Programme entreprise pilote | Praedixa",
+    title: "Cohorte pilote premium | Praedixa",
     description:
-      "Risques de sous-couverture identifies + causes expliquees + playbook d'actions. Gratuit, sans integration IT.",
+      "Qualification premium pour un pilotage couverture multi-sites orienté décision.",
     images: ["/og-image.png"],
   },
 };

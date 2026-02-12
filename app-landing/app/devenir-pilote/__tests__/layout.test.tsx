@@ -13,7 +13,7 @@ describe("DevenirPiloteLayout", () => {
   });
 
   it("exports correct metadata title", () => {
-    expect(metadata.title).toContain("Programme");
+    expect(metadata.title).toContain("Cohorte");
     expect(metadata.title).toContain("pilote");
   });
 

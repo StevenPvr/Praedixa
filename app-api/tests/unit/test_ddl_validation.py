@@ -222,6 +222,7 @@ class TestValidateColumnType:
         ("input_type", "expected_pg"),
         [
             ("text", "TEXT"),
+            ("category", "TEXT"),
             ("integer", "INTEGER"),
             ("bigint", "BIGINT"),
             ("float", "DOUBLE PRECISION"),

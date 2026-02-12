@@ -3,101 +3,110 @@
 @tailwind utilities;
 
 :root {
-  /* Design tokens Praedixa — OKLCH color space */
   color-scheme: light;
 
-  /* Core colors (OKLCH) */
-  --color-bg: oklch(0.984 0.003 106);
-  --color-text-primary: oklch(0.145 0 0);
-  --color-text-secondary: oklch(0.443 0 0);
-  --color-text-muted: oklch(0.556 0 0);
+  --color-bg: oklch(0.975 0.006 90);
+  --color-bg-muted: oklch(0.957 0.004 95);
+  --color-panel: oklch(0.99 0.001 95);
+  --color-text-primary: oklch(0.18 0.008 65);
+  --color-text-secondary: oklch(0.43 0.01 65);
+  --color-border: oklch(0.86 0.01 70);
 
-  /* Accent colors (OKLCH, P3-enhanced chroma) */
-  --color-accent: oklch(0.769 0.205 70);
-  --color-accent-hover: oklch(0.666 0.195 58);
-  --color-accent-light: oklch(0.962 0.059 95);
+  --color-gold: oklch(0.74 0.14 78);
+  --color-gold-strong: oklch(0.66 0.16 72);
+  --color-gold-soft: oklch(0.95 0.04 90);
 
-  /* Logo color (OKLCH) */
-  --color-logo: oklch(0.145 0 0);
-  --color-logo-light: oklch(1 0 0);
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
 
-  /* Typography */
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "DM Serif Display", ui-serif, Georgia, serif;
-
-  /* Spacing & Radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
+  --shadow-soft: 0 10px 30px -18px oklch(0.12 0.01 60 / 0.25);
+  --shadow-premium: 0 20px 50px -30px oklch(0.1 0.01 60 / 0.5);
 }
 
 @layer base {
-  body {
-    @apply bg-cream text-charcoal antialiased;
-  }
-
-  /* Smooth scroll for anchor links */
   html {
     scroll-behavior: smooth;
   }
-}
 
-/* Respect user preference for reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation-play-state: paused !important;
+  body {
+    @apply bg-cream text-charcoal;
+    background-image:
+      radial-gradient(circle at 15% -10%, oklch(0.92 0.05 88 / 0.4), transparent 40%),
+      radial-gradient(circle at 85% 10%, oklch(0.9 0.02 80 / 0.3), transparent 45%),
+      linear-gradient(to bottom, oklch(0.978 0.006 90), oklch(0.965 0.004 95));
+  }
+
+  ::selection {
+    background: color-mix(in oklch, var(--color-gold) 30%, white);
+    color: var(--color-text-primary);
   }
 }
 
-/* Section divider */
-.section-divider {
-  @apply mx-auto h-px w-24 bg-gradient-to-r from-transparent via-neutral-300 to-transparent;
-}
-
-/* Card hover effect */
-.card-hover {
-  @apply transition-all duration-300 ease-out;
-}
-
-.card-hover:hover {
-  @apply -translate-y-1 shadow-lg;
-}
-
-/* Number step indicator */
-.step-number {
-  @apply flex h-12 w-12 items-center justify-center rounded-full border-2 border-amber-500 bg-white text-lg font-bold text-amber-600;
-}
-
-/* Connecting line for steps */
-.step-line {
-  @apply absolute left-6 top-12 h-full w-0.5 -translate-x-1/2;
-  background-image: linear-gradient(
-    to bottom,
-    oklch(0.769 0.205 70 / 0.5),
-    transparent
-  );
-}
-
-/* Navbar slideDown entrance animation (replaces Framer Motion) */
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
+@layer components {
+  .section-shell {
+    @apply mx-auto w-full max-w-7xl px-6 md:px-8;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .section-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-amber-700;
+  }
+
+  .section-title {
+    @apply font-serif text-4xl leading-tight text-charcoal sm:text-5xl;
+  }
+
+  .section-lead {
+    @apply mt-4 max-w-3xl text-lg leading-relaxed text-neutral-600;
+  }
+
+  .premium-card {
+    @apply rounded-3xl border border-neutral-200 bg-white/90 shadow-[var(--shadow-soft)] backdrop-blur;
+  }
+
+  .premium-pill {
+    @apply inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700;
+  }
+
+  .gold-cta {
+    @apply inline-flex items-center justify-center rounded-full bg-amber-500 px-7 py-3.5 text-sm font-semibold text-charcoal transition-all duration-200 hover:-translate-y-0.5 hover:bg-amber-400 hover:shadow-glow;
+  }
+
+  .ghost-cta {
+    @apply inline-flex items-center justify-center rounded-full border border-neutral-300 px-6 py-3.5 text-sm font-semibold text-charcoal transition-all duration-200 hover:border-neutral-500 hover:bg-white;
   }
 }
 
-/* Infinite marquee for trust band — GPU-accelerated via translate3d */
 @keyframes marquee {
   0% {
     transform: translate3d(0, 0, 0);
   }
   100% {
     transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes haloPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
   }
 }

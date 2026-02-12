@@ -93,3 +93,42 @@ class TestBuildExternalDatasetDefinition:
 
         with pytest.raises(RuntimeError, match="no temporal index candidate"):
             _build_external_dataset_definition("operations_daily", parse_result)
+
+    def test_normalizes_reserved_prefix_identifiers(self) -> None:
+        parse_result = ParseResult(
+            rows=[
+                {
+                    "month": "2024-01-01",
+                    "site_code": "LYO",
+                    "platform_fee_eur": "1234.56",
+                    "net_gain_eur": "789.01",
+                },
+                {
+                    "month": "2024-02-01",
+                    "site_code": "LYO",
+                    "platform_fee_eur": "1400.00",
+                    "net_gain_eur": "801.14",
+                },
+            ],
+            source_columns=[
+                "month",
+                "site_code",
+                "platform_fee_eur",
+                "net_gain_eur",
+            ],
+            detected_format="csv",
+            detected_encoding="utf-8",
+            row_count=2,
+        )
+
+        definition = _build_external_dataset_definition("platform_monthly", parse_result)
+        columns = {
+            name: (dtype.value, role.value)
+            for name, dtype, role in definition["columns"]
+        }
+        source_to_target = definition["source_to_target"]
+
+        assert definition["table_name"] == "c_platform_monthly"
+        assert "platform_fee_eur" not in columns
+        assert columns["c_platform_fee_eur"] == ("float", "target")
+        assert source_to_target["platform_fee_eur"] == "c_platform_fee_eur"

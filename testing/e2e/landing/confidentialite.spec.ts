@@ -10,7 +10,7 @@ test.describe("Confidentialite page", () => {
 
   test("has back link to home", async ({ page }) => {
     await page.goto("/confidentialite");
-    const backLink = page.getByText("Retour");
+    const backLink = page.getByRole("link", { name: /retour à l'accueil/i });
     await expect(backLink).toBeVisible();
     await expect(backLink).toHaveAttribute("href", "/");
   });

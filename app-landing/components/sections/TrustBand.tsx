@@ -8,10 +8,12 @@ import {
   trustBandSubtitle,
 } from "../../lib/content/trust-logos";
 
-function PlaceholderLogo({ label }: { label: string }) {
+function SectorChip({ label }: { label: string }) {
   return (
-    <div className="flex h-12 w-32 flex-shrink-0 items-center justify-center rounded-lg border border-dashed border-neutral-300 bg-neutral-100/60 px-4 md:h-14 md:w-40">
-      <span className="text-xs font-medium text-neutral-400">{label}</span>
+    <div className="flex h-11 w-44 shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white/90 px-4">
+      <span className="text-xs font-semibold uppercase tracking-wide text-charcoal/70">
+        {label}
+      </span>
     </div>
   );
 }
@@ -20,15 +22,15 @@ export function TrustBand() {
   return (
     <section
       aria-label={trustBandTitle}
-      className="border-y border-neutral-200 bg-cream py-10 md:py-14"
+      className="border-y border-neutral-200/90 bg-[oklch(0.968_0.004_95)] py-10 md:py-12"
     >
-      <div className="mx-auto max-w-7xl px-6 text-center">
+      <div className="section-shell text-center">
         <motion.p
           variants={sectionReveal}
           initial="hidden"
           whileInView="visible"
           viewport={viewportOnce}
-          className="text-sm font-semibold uppercase tracking-wider text-amber-600"
+          className="section-kicker"
         >
           {trustBandTitle}
         </motion.p>
@@ -37,31 +39,31 @@ export function TrustBand() {
           initial="hidden"
           whileInView="visible"
           viewport={viewportOnce}
-          className="mt-1 text-sm text-neutral-400"
+          className="mt-2 text-sm text-neutral-600"
         >
           {trustBandSubtitle}
         </motion.p>
       </div>
 
       <div
-        className="mt-8 overflow-hidden"
+        className="mt-7 overflow-hidden"
         style={{
           maskImage:
-            "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
+            "linear-gradient(to right, transparent, black 12%, black 88%, transparent)",
           WebkitMaskImage:
-            "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
+            "linear-gradient(to right, transparent, black 12%, black 88%, transparent)",
         }}
       >
         <div
-          className="marquee-track flex w-max items-center gap-8"
-          style={{ animation: "marquee 30s linear infinite" }}
+          className="marquee-track flex w-max items-center gap-6"
+          style={{ animation: "marquee 28s linear infinite" }}
         >
           {trustLogos.map((logo) => (
-            <PlaceholderLogo key={logo.id} label={logo.label} />
+            <SectorChip key={logo.id} label={logo.label} />
           ))}
           <div aria-hidden="true" className="contents">
             {trustLogos.map((logo) => (
-              <PlaceholderLogo key={`${logo.id}-dup`} label={logo.label} />
+              <SectorChip key={`${logo.id}-dup`} label={logo.label} />
             ))}
           </div>
         </div>

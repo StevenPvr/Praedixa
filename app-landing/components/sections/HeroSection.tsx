@@ -4,7 +4,6 @@ import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
 import { sectionReveal } from "../../lib/animations/variants";
 import { heroContent } from "../../lib/content/hero-content";
-import { HeroIllustration } from "../hero/HeroIllustration";
 import {
   WarningIcon,
   EuroIcon,
@@ -17,64 +16,57 @@ interface HeroSectionProps {
   className?: string;
 }
 
-/** Illustration enters from the right on desktop */
-const heroIllustrationReveal: Variants = {
-  hidden: { opacity: 0, x: 40, scale: 0.96 },
+const heroAsideReveal: Variants = {
+  hidden: { opacity: 0, y: 20, scale: 0.97 },
   visible: {
     opacity: 1,
-    x: 0,
+    y: 0,
     scale: 1,
-    transition: { duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] },
   },
 };
 
 const bulletIcons: Record<string, React.ReactNode> = {
   warning: (
-    <WarningIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />
+    <WarningIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
   ),
-  euro: <EuroIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />,
+  euro: <EuroIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />,
   check: (
-    <CheckCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />
+    <CheckCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
   ),
 };
 
-/**
- * Hero section — split-screen 55/45 on desktop, stacked on mobile/tablet.
- * All visible text comes from heroContent (hero-content.ts).
- */
+const executiveSignals = [
+  { label: "Sites surveillés", value: "24" },
+  { label: "Fenêtre d'anticipation", value: "3-14 j" },
+  { label: "Cycle de revue", value: "Hebdo" },
+] as const;
+
 export function HeroSection({ className }: HeroSectionProps) {
-  /* Split the headline around the highlighted part */
-  const headlineBefore = heroContent.headline.split(
+  const [headlineStart, headlineEnd] = heroContent.headline.split(
     heroContent.headlineHighlight,
-  )[0];
+  );
 
   return (
     <section
       id="hero"
       data-testid="hero-section"
-      className={`relative overflow-hidden bg-cream ${className || ""}`}
+      className={`relative overflow-hidden pb-20 pt-28 sm:pt-32 lg:pb-24 ${className || ""}`}
     >
-      {/* Dual gradient background */}
       <div
         className="pointer-events-none absolute inset-0"
         aria-hidden="true"
         style={{
-          background: [
-            "radial-gradient(ellipse at 50% 0%, oklch(0.769 0.205 70 / 0.10) 0%, transparent 60%)",
-            "radial-gradient(ellipse at 80% 80%, oklch(0.769 0.205 70 / 0.04) 0%, transparent 50%)",
-          ].join(", "),
+          background:
+            "radial-gradient(circle at 20% 0%, oklch(0.9 0.07 88 / 0.45), transparent 45%), radial-gradient(circle at 85% 10%, oklch(0.94 0.03 80 / 0.35), transparent 45%)",
         }}
       />
 
-      {/* Content container */}
-      <div className="relative mx-auto w-full max-w-7xl px-5 pb-16 pt-28 sm:px-8 sm:pb-20 sm:pt-28 lg:px-6 lg:pb-28 lg:pt-36">
-        {/* Desktop: split-screen grid. Mobile/tablet: flex column */}
-        <div className="lg:grid lg:grid-cols-[1fr_0.82fr] lg:items-center lg:gap-12">
-          {/* ─── Left column: text ─── */}
-          <div className="text-left sm:text-center lg:text-left">
-            {/* Kicker / eyebrow */}
+      <div className="section-shell relative">
+        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div>
             <motion.p
-              className="text-sm font-semibold uppercase tracking-widest text-amber-600"
+              className="section-kicker"
               variants={sectionReveal}
               initial="hidden"
               animate="visible"
@@ -82,107 +74,137 @@ export function HeroSection({ className }: HeroSectionProps) {
               {heroContent.kicker}
             </motion.p>
 
-            {/* H1 */}
             <motion.h1
-              className="mt-4 font-serif text-4xl font-bold leading-[1.1] tracking-tight text-charcoal sm:text-5xl lg:text-6xl lg:tracking-tighter"
+              className="mt-6 max-w-4xl font-serif text-5xl leading-[1.02] text-charcoal sm:text-6xl lg:text-7xl"
               variants={sectionReveal}
               initial="hidden"
               animate="visible"
-              transition={{ delay: 0.1 }}
+              transition={{ delay: 0.05 }}
             >
-              {headlineBefore}
-              <span className="relative whitespace-nowrap">
+              {headlineStart}
+              <span className="relative inline-block text-amber-700">
                 {heroContent.headlineHighlight}
                 <span
-                  className="absolute bottom-0 left-0 -z-10 h-2.5 w-full bg-amber-400/30"
+                  className="absolute inset-x-0 bottom-1 -z-10 h-4 rounded-full bg-amber-200/70"
                   aria-hidden="true"
                 />
               </span>
+              {headlineEnd}
             </motion.h1>
 
-            {/* Subtitle */}
             <motion.p
-              className="mt-6 max-w-xl text-lg leading-relaxed text-neutral-600 sm:mx-auto sm:max-w-2xl md:text-xl lg:mx-0 lg:max-w-lg"
+              className="section-lead"
               variants={sectionReveal}
               initial="hidden"
               animate="visible"
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.12 }}
             >
               {heroContent.subtitle}
             </motion.p>
 
-            {/* Bullets */}
             <motion.ul
-              className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-6 sm:gap-y-2 lg:flex-col lg:items-start lg:gap-3"
+              className="mt-8 grid gap-3"
               variants={sectionReveal}
               initial="hidden"
               animate="visible"
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.18 }}
             >
               {heroContent.bullets.map((bullet) => (
-                <li
-                  key={bullet.icon}
-                  className="flex items-start gap-2.5 text-base font-medium text-charcoal/80"
-                >
+                <li key={bullet.text} className="flex items-start gap-2.5 text-sm text-charcoal/85 sm:text-base">
                   {bulletIcons[bullet.icon]}
                   <span>{bullet.text}</span>
                 </li>
               ))}
             </motion.ul>
 
-            {/* CTA pair */}
             <motion.div
-              className="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start"
+              className="mt-9 flex flex-wrap items-center gap-3"
               variants={sectionReveal}
               initial="hidden"
               animate="visible"
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.24 }}
             >
-              <Link
-                href={heroContent.ctaPrimary.href}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-8 py-4 text-base font-bold text-charcoal shadow-lg transition-all duration-200 hover:bg-amber-400 hover:shadow-xl hover:shadow-amber-500/25 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 sm:w-auto"
-              >
+              <Link href={heroContent.ctaPrimary.href} className="gold-cta">
                 {heroContent.ctaPrimary.text}
-                <ArrowRightIcon className="h-4 w-4" />
+                <ArrowRightIcon className="ml-2 h-4 w-4" />
               </Link>
-              <a
-                href={heroContent.ctaSecondary.href}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-charcoal/20 px-6 py-4 text-base font-medium text-charcoal/70 transition-all duration-200 hover:border-charcoal/40 hover:text-charcoal sm:w-auto"
-              >
+              <a href={heroContent.ctaSecondary.href} className="ghost-cta">
                 {heroContent.ctaSecondary.text}
-                <ChevronDownIcon className="h-4 w-4" />
+                <ChevronDownIcon className="ml-2 h-4 w-4" />
               </a>
             </motion.div>
 
-            {/* Trust badges */}
-            <motion.div
-              className="mt-8 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-center lg:justify-start"
+            <motion.p
+              className="mt-3 text-xs font-medium uppercase tracking-wide text-neutral-500 sm:text-sm"
               variants={sectionReveal}
               initial="hidden"
               animate="visible"
-              transition={{ delay: 0.65 }}
+              transition={{ delay: 0.27 }}
+            >
+              {heroContent.ctaMeta}
+            </motion.p>
+
+            <motion.div
+              className="mt-8 flex flex-wrap gap-2.5"
+              variants={sectionReveal}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: 0.3 }}
             >
               {heroContent.trustBadges.map((badge) => (
-                <span
-                  key={badge}
-                  className="flex items-center gap-2 rounded-full border border-amber-200/60 bg-amber-50/80 px-3 py-1.5 text-xs font-medium text-charcoal/80 lg:px-4 lg:py-2 lg:text-sm"
-                >
-                  <CheckCircleIcon className="h-3.5 w-3.5 flex-shrink-0 text-amber-500" />
+                <span key={badge} className="premium-pill">
                   {badge}
                 </span>
               ))}
             </motion.div>
           </div>
 
-          {/* ─── Right column: illustration ─── */}
-          <motion.div
-            className="mt-14 lg:mt-0"
-            variants={heroIllustrationReveal}
+          <motion.aside
+            variants={heroAsideReveal}
             initial="hidden"
             animate="visible"
+            className="premium-card relative overflow-hidden border-neutral-300 bg-[oklch(0.992_0.002_95)] p-6 sm:p-8"
           >
-            <HeroIllustration />
-          </motion.div>
+            <div
+              className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-amber-200/35"
+              style={{ animation: "haloPulse 6s ease-in-out infinite" }}
+            />
+
+            <p className="premium-pill relative z-10">Executive Control Layer</p>
+            <h2 className="relative z-10 mt-4 font-serif text-3xl leading-tight text-charcoal">
+              Direction cockpit: couverture, arbitrage, preuve
+            </h2>
+            <p className="relative z-10 mt-4 text-sm leading-relaxed text-neutral-600">
+              Une interface pensée pour prendre des décisions robustes rapidement,
+              sans sacrifier la lisibilité des hypothèses.
+            </p>
+
+            <dl className="relative z-10 mt-7 grid gap-3 sm:grid-cols-3">
+              {executiveSignals.map((signal) => (
+                <div
+                  key={signal.label}
+                  className="rounded-2xl border border-neutral-200 bg-white/90 p-4"
+                >
+                  <dt className="text-xs uppercase tracking-wide text-neutral-500">
+                    {signal.label}
+                  </dt>
+                  <dd className="mt-2 font-serif text-2xl text-charcoal">
+                    {signal.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            <div className="relative z-10 mt-6 rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                Proposition de valeur
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-charcoal/85">
+                Réduire le nombre de décisions prises sous contrainte en rendant
+                les tensions visibles et discutables en amont.
+              </p>
+            </div>
+          </motion.aside>
         </div>
       </div>
     </section>

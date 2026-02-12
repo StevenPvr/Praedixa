@@ -281,6 +281,7 @@ class TestValidColumnTypes:
             ("date", "DATE"),
             ("boolean", "BOOLEAN"),
             ("text", "TEXT"),
+            ("category", "TEXT"),
             ("bigint", "BIGINT"),
             ("uuid", "UUID"),
             ("timestamptz", "TIMESTAMPTZ"),

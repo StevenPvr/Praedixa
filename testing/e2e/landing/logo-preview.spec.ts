@@ -3,10 +3,18 @@ import { test, expect } from "@playwright/test";
 test.describe("Logo preview page", () => {
   test("displays logo variants", async ({ page }) => {
     await page.goto("/logo-preview");
-    await expect(page.getByText("Industrial")).toBeVisible();
-    await expect(page.getByText("Arrondi")).toBeVisible();
-    await expect(page.getByText("Minimal")).toBeVisible();
-    await expect(page.getByText("G\u00e9om\u00e9trique").first()).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Industrial" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Arrondi" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Minimal" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Géométrique" }),
+    ).toBeVisible();
   });
 
   test("has interactive color controls", async ({ page }) => {

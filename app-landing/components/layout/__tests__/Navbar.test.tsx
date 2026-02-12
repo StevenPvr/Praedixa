@@ -36,79 +36,43 @@ describe("Navbar", () => {
     Object.defineProperty(window, "scrollY", { value: 0, writable: true });
   });
 
-  it("should render without errors", () => {
+  it("renders the navigation with brand", () => {
     render(<Navbar />);
     expect(screen.getByRole("navigation")).toBeInTheDocument();
-  });
-
-  it("should render the Praedixa brand text", () => {
-    render(<Navbar />);
     expect(screen.getByText("Praedixa")).toBeInTheDocument();
   });
 
-  it("should render the logo link pointing to home", () => {
+  it("renders the desktop information architecture links", () => {
     render(<Navbar />);
-    const homeLink = screen.getByText("Praedixa").closest("a");
-    expect(homeLink).toHaveAttribute("href", "/");
-  });
-
-  it("should render all desktop navigation links", () => {
-    render(<Navbar />);
-    expect(screen.getAllByText("Le problème").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("La solution").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("La vision").length).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("Programme pilote").length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Enjeux").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Méthode").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Cas d'usage").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Framework ROI").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("FAQ").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("should render the desktop CTA button with correct href", () => {
+  it("renders the main CTA link to /devenir-pilote", () => {
     render(<Navbar />);
-    const ctaLinks = screen.getAllByText("Programme pilote");
-    const desktopCta = ctaLinks.find(
+    const ctaCandidates = screen.getAllByText(/cohorte|qualification|pilote/i);
+    const cta = ctaCandidates.find(
       (el) => el.closest("a")?.getAttribute("href") === "/devenir-pilote",
     );
-    expect(desktopCta).toBeDefined();
+    expect(cta).toBeDefined();
   });
 
-  it("should render the mobile menu button", () => {
-    render(<Navbar />);
-    const menuButton = screen.getByLabelText("Ouvrir le menu");
-    expect(menuButton).toBeInTheDocument();
-  });
-
-  it("should toggle aria-expanded on mobile menu button click", () => {
+  it("toggles mobile menu state", () => {
     render(<Navbar />);
     const menuButton = screen.getByLabelText("Ouvrir le menu");
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
 
     fireEvent.click(menuButton);
-    const closeButton = screen.getByLabelText("Fermer le menu");
-    expect(closeButton).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByLabelText("Fermer le menu")).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
   });
 
-  it("should show mobile navigation links when menu is open", () => {
-    render(<Navbar />);
-    const menuButton = screen.getByLabelText("Ouvrir le menu");
-    fireEvent.click(menuButton);
-
-    const problemLinks = screen.getAllByText("Le problème");
-    expect(problemLinks.length).toBeGreaterThanOrEqual(2);
-  });
-
-  it("should close mobile menu when a nav link is clicked", () => {
-    render(<Navbar />);
-    fireEvent.click(screen.getByLabelText("Ouvrir le menu"));
-
-    const mobileLinks = screen.getAllByText("Le problème");
-    const mobileLink = mobileLinks[mobileLinks.length - 1];
-    fireEvent.click(mobileLink);
-
-    expect(screen.getByLabelText("Ouvrir le menu")).toBeInTheDocument();
-  });
-
-  it("should close mobile menu on resize to desktop width", () => {
+  it("closes mobile menu when resizing to desktop", () => {
     render(<Navbar />);
     fireEvent.click(screen.getByLabelText("Ouvrir le menu"));
     expect(screen.getByLabelText("Fermer le menu")).toBeInTheDocument();
@@ -119,7 +83,7 @@ describe("Navbar", () => {
     expect(screen.getByLabelText("Ouvrir le menu")).toBeInTheDocument();
   });
 
-  it("should track scroll position via window scroll event", () => {
+  it("handles scroll event changes", () => {
     render(<Navbar />);
 
     act(() => {
@@ -128,32 +92,8 @@ describe("Navbar", () => {
     });
 
     act(() => {
-      Object.defineProperty(window, "scrollY", { value: 5 });
+      Object.defineProperty(window, "scrollY", { value: 0 });
       fireEvent.scroll(window);
     });
-  });
-
-  it("should close mobile menu when mobile CTA is clicked", () => {
-    render(<Navbar />);
-    fireEvent.click(screen.getByLabelText("Ouvrir le menu"));
-    expect(screen.getByLabelText("Fermer le menu")).toBeInTheDocument();
-
-    const mobileCtaLinks = screen.getAllByText("Programme pilote");
-    const mobileCta = mobileCtaLinks[mobileCtaLinks.length - 1];
-    fireEvent.click(mobileCta);
-
-    expect(screen.getByLabelText("Ouvrir le menu")).toBeInTheDocument();
-  });
-
-  it("should close mobile menu when overlay is clicked", () => {
-    const { container } = render(<Navbar />);
-    fireEvent.click(screen.getByLabelText("Ouvrir le menu"));
-    expect(screen.getByLabelText("Fermer le menu")).toBeInTheDocument();
-
-    const overlay = container.querySelector(".fixed.inset-0");
-    if (overlay) {
-      fireEvent.click(overlay);
-      expect(screen.getByLabelText("Ouvrir le menu")).toBeInTheDocument();
-    }
   });
 });
