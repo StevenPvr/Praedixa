@@ -1,7 +1,7 @@
 Praedixa.com
 
 One-liner
-Praedixa est une couche de pilotage Ops/DAF au-dessus de vos outils existants. Elle anticipe les ruptures de couverture terrain à J+3 / J+7 / J+14, explique les causes (drivers actionnables), chiffre l’arbitrage coût vs service (HS, intérim, réallocation, ajustement de service), et mesure l’impact via du monitoring et des scénarios comparatifs (0% / 100% / réel).
+Praedixa est une couche de pilotage Ops/DAF au-dessus de vos outils existants. Elle anticipe les ruptures de couverture terrain à J+3 / J+7 / J+14, explique les causes (drivers actionnables), chiffre l’arbitrage coût vs service (HS, intérim, réallocation, ajustement de service), sécurise l’exécution via un plugin agences d’intérim, et mesure l’impact via du monitoring et des scénarios comparatifs (0% / 100% / réel).
 
 Important
 Praedixa ne remplace pas votre outil de planning/WFM. Il s’appuie sur vos exports (activité, couverture/capacité, absences, turnover, contraintes, coûts) pour décider plus tôt, avec des hypothèses explicites, versionnées et auditables.
@@ -18,7 +18,7 @@ Aujourd’hui, la réponse est souvent fragile :
 - outils fragmentés : WFM/SIRH d’un côté, BI de l’autre, et bricolage pour relier
 
 Ce que Praedixa apporte
-Praedixa installe une boucle de pilotage “risque → causes → décision → preuve” en 4 briques produits, chacune contractualisée (inputs, outputs, DoD).
+Praedixa installe une boucle de pilotage “risque → causes → décision → couverture → preuve” en 5 briques produits, chacune contractualisée (inputs, outputs, DoD).
 
 1. Structurer (diagnostic + base canonique + raffinement continu)
 
@@ -47,6 +47,22 @@ Praedixa installe une boucle de pilotage “risque → causes → décision → 
   - réel (ce qui a été fait)
 
 - Proof pack régulier : gains, coûts évités, erreurs (faux positifs/négatifs), et actions correctives.
+
+5. Couvrir (plugin agences d’intérim + capacity hedging)
+
+- Objectif : transformer un risque de gap en capacité sécurisée à coût maîtrisé.
+- Mécanique : réserver tôt (J+14/J+7) un portefeuille flexible (intérim + leviers internes), puis exercer/ajuster/annuler à J+3/J+1 selon le risque réel.
+- Valeur économique : même si le €/h intérim ne baisse pas, le coût total attendu baisse car la probabilité d’être pourvu augmente et les fallbacks chers diminuent (HS urgence, non-service, désorganisation).
+- Inputs MVP du plugin : lead time fournisseur, cap horaire/jour, conditions d’annulation (T-24/T-48), coût horaire, fill rate/no-show historiques.
+- Outputs : plan de couverture recommandé par site×créneau (ex : “réserver 20h intérim annulable T-48 + 10h HS”), coût attendu, risque résiduel, règles d’exécution auditables.
+
+Pourquoi les agences d’intérim se branchent au plugin
+
+- plus de visibilité J+7/J+14 donc plus de missions pourvues
+- sourcing moins en urgence, donc marge mieux maîtrisée
+- cadre opérationnel clair (annulation/ajustement), moins d’aléas
+- pilotage KPI partagé (fill rate, no-show, lead time)
+- potentiel de volume récurrent fournisseur
 
 Pourquoi maintenant (signaux)
 
@@ -90,6 +106,7 @@ Livrables POC
 - signaux/prévisions J+3/J+7/J+14 sur un périmètre pilote (ex : 2–5 sites, une équipe, un métier)
 - explication des drivers + vues opérationnelles (priorisation des créneaux critiques)
 - module “options” chiffrées (version simple au départ, contraintes explicites)
+- plugin agences d’intérim v1 (règles de réservation/exercice/annulation + contraintes lead time/capacité)
 - decision log v1 + protocole de mesure d’impact (0% / 100% / réel) + première preuve économique
 
 Critères de succès (à figer au cadrage)
@@ -98,12 +115,14 @@ Critères de succès (à figer au cadrage)
 - décisions prises plus tôt (réduction du “mode urgence”)
 - réduction mesurée du last-minute (HS/intérim urgent) et/ou service stabilisé
 - adoption : % d’alertes traitées, % d’actions suivies, taux d’override expliqué
+- couverture : emergency avoidance (heures urgentes évitées), exercise accuracy, service-at-risk en baisse
 
 Ce que Praedixa n’est pas
 
 - un outil RH / SIRH
 - un logiciel de planning/WFM
 - une “prédiction IA” décorative sans arbitrage associé
+- une marketplace d’intérim
 - un projet d’intégration de 6 mois avant d’avoir de la valeur
 - du conseil à la journée sans livrable produit, rejouable et traçable
 

@@ -101,6 +101,13 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: playwright-chromium-ready
+        name: playwright chromium installed (blocking)
+        entry: sh -c './scripts/check-playwright-chromium.sh'
+        language: system
+        always_run: true
+        pass_filenames: false
+
       - id: e2e-api-edge-webapp
         name: playwright api-edge (webapp)
         entry: sh -c 'pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/webapp/api-edge-cases.spec.ts --project=webapp --workers=1 --retries=0'
