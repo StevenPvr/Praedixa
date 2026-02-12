@@ -42,8 +42,8 @@ describe("Webapp RootLayout", () => {
   });
 
   it("exports correct metadata", () => {
-    expect(metadata.title).toBe("Praedixa — Dashboard");
-    expect(metadata.description).toContain("Forecast");
+    expect(metadata.title).toBe("Praedixa — War room operationnelle");
+    expect(metadata.description).toContain("Plateforme executive");
     expect(metadata.robots).toEqual({ index: false, follow: false });
   });
 });

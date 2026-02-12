@@ -9,7 +9,8 @@ export const PAIN_POINTS: readonly PainPoint[] = [
     title: "Décisions prises trop tard",
     description:
       "Les signaux de tension sont détectés au moment où les marges de manœuvre sont déjà réduites.",
-    consequence: "Effet domino: surcoûts, dégradation de service, stress managérial",
+    consequence:
+      "Effet domino: surcoûts, dégradation de service, stress managérial",
   },
   {
     title: "Arbitrages insuffisamment cadrés",
@@ -21,6 +22,7 @@ export const PAIN_POINTS: readonly PainPoint[] = [
     title: "Impact difficile à prouver",
     description:
       "Les actions sont rarement reliées à une preuve mesurable de leur effet réel sur la couverture.",
-    consequence: "Difficulté à sécuriser des budgets ou des priorités en comité",
+    consequence:
+      "Difficulté à sécuriser des budgets ou des priorités en comité",
   },
 ] as const;

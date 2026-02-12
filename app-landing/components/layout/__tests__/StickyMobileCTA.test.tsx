@@ -32,7 +32,9 @@ describe("StickyMobileCTA", () => {
     const heroEl = setup();
 
     const { container } = render(<StickyMobileCTA />);
-    expect(screen.getByText("Qualification pilote en 4-5 min")).toBeInTheDocument();
+    expect(
+      screen.getByText("Qualification pilote en 4-5 min"),
+    ).toBeInTheDocument();
     expect(container.firstElementChild).toHaveAttribute("aria-hidden", "true");
 
     document.body.removeChild(heroEl);
@@ -42,7 +44,9 @@ describe("StickyMobileCTA", () => {
     const heroEl = setup();
 
     render(<StickyMobileCTA />);
-    const link = screen.getByText("Qualification pilote en 4-5 min").closest("a");
+    const link = screen
+      .getByText("Qualification pilote en 4-5 min")
+      .closest("a");
     expect(link).toHaveAttribute("href", "/devenir-pilote");
 
     document.body.removeChild(heroEl);
@@ -70,7 +74,9 @@ describe("StickyMobileCTA", () => {
     const heroEl = setup();
 
     render(<StickyMobileCTA />);
-    const link = screen.getByText("Qualification pilote en 4-5 min").closest("a");
+    const link = screen
+      .getByText("Qualification pilote en 4-5 min")
+      .closest("a");
     expect(link).toHaveAttribute("tabindex", "-1");
 
     act(() => {

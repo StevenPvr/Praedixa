@@ -248,7 +248,7 @@ describe("RapportsPage", () => {
   it("renders the heading", () => {
     render(<RapportsPage />);
     expect(
-      screen.getByRole("heading", { name: "Rapports" }),
+      screen.getByRole("heading", { name: "Rapports board-ready" }),
     ).toBeInTheDocument();
   });
 
@@ -256,7 +256,7 @@ describe("RapportsPage", () => {
     render(<RapportsPage />);
     expect(
       screen.getByText(
-        /Bilans hebdomadaires, analyse des couts et documents exportables/,
+        "Bilans executifs, suivi des couts et livrables partageables.",
       ),
     ).toBeInTheDocument();
   });
@@ -322,7 +322,7 @@ describe("RapportsPage", () => {
     });
     render(<RapportsPage />);
     expect(screen.getByText("0 EUR")).toBeInTheDocument();
-    expect(screen.getByText("100.0%")).toBeInTheDocument();
+    expect(screen.getAllByText("100.0%").length).toBeGreaterThan(0);
   });
 
   it("groups alerts from same week into one summary", () => {
@@ -360,7 +360,7 @@ describe("RapportsPage", () => {
     render(<RapportsPage />);
     fireEvent.click(screen.getByTestId("tab-precision"));
     expect(screen.getByText("Runs completes")).toBeInTheDocument();
-    expect(screen.getByText("Precision moyenne")).toBeInTheDocument();
+    expect(screen.getAllByText("Precision moyenne").length).toBeGreaterThan(0);
     expect(screen.getByText("Meilleure precision")).toBeInTheDocument();
     expect(screen.getByText("2 rows")).toBeInTheDocument();
   });
@@ -396,7 +396,7 @@ describe("RapportsPage", () => {
     });
     render(<RapportsPage />);
     fireEvent.click(screen.getByTestId("tab-precision"));
-    expect(screen.getByText("1")).toBeInTheDocument();
+    expect(screen.getByText("1 rows")).toBeInTheDocument();
     expect(screen.getAllByText("-").length).toBeGreaterThan(0);
   });
 
@@ -434,12 +434,10 @@ describe("RapportsPage", () => {
     );
   });
 
-  it("shows Decomposition des couts heading", () => {
+  it("shows Analyse des couts section", () => {
     render(<RapportsPage />);
     fireEvent.click(screen.getByTestId("tab-couts"));
-    expect(
-      screen.getByRole("heading", { name: "Decomposition des couts" }),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Analyse des couts")).toBeInTheDocument();
   });
 
   it("shows skeleton card on couts tab when proofs loading", () => {
@@ -473,7 +471,7 @@ describe("RapportsPage", () => {
     render(<RapportsPage />);
     fireEvent.click(screen.getByTestId("tab-proof"));
     expect(
-      screen.getByRole("heading", { name: "Bilans mensuels" }),
+      screen.getByRole("heading", { name: "Bilans mensuels detailes" }),
     ).toBeInTheDocument();
     expect(screen.getByText("1 rows")).toBeInTheDocument();
   });

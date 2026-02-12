@@ -88,7 +88,9 @@ describe("DecompositionPanel", () => {
   it("renders empty message when data is null and not loading", () => {
     render(<DecompositionPanel data={null} loading={false} />);
     expect(
-      screen.getByText("Lancez une prevision pour voir la decomposition"),
+      screen.getByText(
+        "Lancez une prevision pour visualiser la decomposition du signal.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -101,7 +103,9 @@ describe("DecompositionPanel", () => {
     };
     render(<DecompositionPanel data={emptyData} loading={false} />);
     expect(
-      screen.getByText("Lancez une prevision pour voir la decomposition"),
+      screen.getByText(
+        "Lancez une prevision pour visualiser la decomposition du signal.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -115,7 +119,7 @@ describe("DecompositionPanel", () => {
     render(<DecompositionPanel data={SAMPLE_DATA} loading={false} />);
     expect(screen.getByText("Tendance de fond")).toBeInTheDocument();
     expect(
-      screen.getByText(/evolution generale de vos besoins/),
+      screen.getByText(/Evolution structurelle des besoins/),
     ).toBeInTheDocument();
   });
 
@@ -123,20 +127,24 @@ describe("DecompositionPanel", () => {
     render(<DecompositionPanel data={SAMPLE_DATA} loading={false} />);
     expect(screen.getByText("Rythme hebdomadaire")).toBeInTheDocument();
     expect(
-      screen.getByText(/Certains jours sont systematiquement plus charges/),
+      screen.getByText(/Cycles operationnels recurrents/),
     ).toBeInTheDocument();
   });
 
   it("renders residuals title and description", () => {
     render(<DecompositionPanel data={SAMPLE_DATA} loading={false} />);
     expect(screen.getByText("Evenements ponctuels")).toBeInTheDocument();
-    expect(screen.getByText(/Les pics = imprevus/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Anomalies ou signaux exceptionnels/),
+    ).toBeInTheDocument();
   });
 
   it("renders confidence title and description", () => {
     render(<DecompositionPanel data={SAMPLE_DATA} loading={false} />);
     expect(screen.getByText("Fourchette de confiance")).toBeInTheDocument();
-    expect(screen.getByText(/Plus la zone est etroite/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Amplitude d'incertitude autour de la prediction/),
+    ).toBeInTheDocument();
   });
 
   it("renders 3 AreaCharts and 1 BarChart", () => {

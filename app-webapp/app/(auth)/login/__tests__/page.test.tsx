@@ -86,13 +86,15 @@ describe("LoginPage", () => {
     it("renders the subtitle text", () => {
       render(<LoginPage />);
       expect(
-        screen.getByText("Connectez-vous a votre espace"),
+        screen.getByText(
+          "Accedez a votre war room operationnelle et vos priorites critiques.",
+        ),
       ).toBeInTheDocument();
     });
 
     it("renders the email input with correct attributes", () => {
       render(<LoginPage />);
-      const emailInput = screen.getByLabelText("Email");
+      const emailInput = screen.getByLabelText("Email professionnel");
       expect(emailInput).toBeInTheDocument();
       expect(emailInput).toHaveAttribute("type", "email");
       expect(emailInput).toHaveAttribute("autocomplete", "email");
@@ -142,7 +144,7 @@ describe("LoginPage", () => {
       const user = userEvent.setup();
       render(<LoginPage />);
 
-      const emailInput = screen.getByLabelText("Email");
+      const emailInput = screen.getByLabelText("Email professionnel");
       await user.type(emailInput, "test@example.com");
       expect(emailInput).toHaveValue("test@example.com");
     });
@@ -164,7 +166,10 @@ describe("LoginPage", () => {
       const user = userEvent.setup();
       render(<LoginPage />);
 
-      await user.type(screen.getByLabelText("Email"), "test@example.com");
+      await user.type(
+        screen.getByLabelText("Email professionnel"),
+        "test@example.com",
+      );
       await user.type(screen.getByLabelText("Mot de passe"), "secret123");
       await user.click(screen.getByRole("button", { name: "Se connecter" }));
 
@@ -180,7 +185,10 @@ describe("LoginPage", () => {
       const user = userEvent.setup();
       render(<LoginPage />);
 
-      await user.type(screen.getByLabelText("Email"), "test@example.com");
+      await user.type(
+        screen.getByLabelText("Email professionnel"),
+        "test@example.com",
+      );
       await user.type(screen.getByLabelText("Mot de passe"), "password");
       await user.click(screen.getByRole("button", { name: "Se connecter" }));
 
@@ -201,7 +209,10 @@ describe("LoginPage", () => {
       );
       render(<LoginPage />);
 
-      await user.type(screen.getByLabelText("Email"), "bad@example.com");
+      await user.type(
+        screen.getByLabelText("Email professionnel"),
+        "bad@example.com",
+      );
       await user.type(screen.getByLabelText("Mot de passe"), "wrong");
       await user.click(screen.getByRole("button", { name: "Se connecter" }));
 
@@ -220,12 +231,15 @@ describe("LoginPage", () => {
       );
       render(<LoginPage />);
 
-      await user.type(screen.getByLabelText("Email"), "test@example.com");
+      await user.type(
+        screen.getByLabelText("Email professionnel"),
+        "test@example.com",
+      );
       await user.type(screen.getByLabelText("Mot de passe"), "password");
       await user.click(screen.getByRole("button", { name: "Se connecter" }));
 
       await waitFor(() => {
-        expect(screen.getByText("Connexion...")).toBeInTheDocument();
+        expect(screen.getByText("Connexion en cours...")).toBeInTheDocument();
         expect(screen.getByRole("button")).toBeDisabled();
       });
     });
@@ -240,7 +254,10 @@ describe("LoginPage", () => {
       );
       render(<LoginPage />);
 
-      await user.type(screen.getByLabelText("Email"), "bad@example.com");
+      await user.type(
+        screen.getByLabelText("Email professionnel"),
+        "bad@example.com",
+      );
       await user.type(screen.getByLabelText("Mot de passe"), "wrong");
       await user.click(screen.getByRole("button", { name: "Se connecter" }));
 
@@ -254,7 +271,10 @@ describe("LoginPage", () => {
       mockGetValidAccessToken.mockResolvedValueOnce(null);
       render(<LoginPage />);
 
-      await user.type(screen.getByLabelText("Email"), "test@example.com");
+      await user.type(
+        screen.getByLabelText("Email professionnel"),
+        "test@example.com",
+      );
       await user.type(screen.getByLabelText("Mot de passe"), "password");
       await user.click(screen.getByRole("button", { name: "Se connecter" }));
 
@@ -273,7 +293,10 @@ describe("LoginPage", () => {
       );
       render(<LoginPage />);
 
-      await user.type(screen.getByLabelText("Email"), "test@example.com");
+      await user.type(
+        screen.getByLabelText("Email professionnel"),
+        "test@example.com",
+      );
       await user.type(screen.getByLabelText("Mot de passe"), "password");
       await user.click(screen.getByRole("button", { name: "Se connecter" }));
 

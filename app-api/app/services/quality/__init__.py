@@ -114,24 +114,22 @@ def _coerce_integer_value(value: Any) -> Any:
         return None
     if isinstance(value, bool):
         return int(value)
-    if isinstance(value, int):
-        return value
-    if isinstance(value, float):
-        if math.isnan(value) or math.isinf(value):
-            return value
-        return int(round(value))
-    if isinstance(value, str):
+
+    parsed: float | None = None
+    if isinstance(value, (int, float)):
+        parsed = float(value)
+    elif isinstance(value, str):
         stripped = value.strip()
         if stripped == "":
             return None
         try:
             parsed = float(stripped)
         except ValueError:
-            return value
-        if math.isnan(parsed) or math.isinf(parsed):
-            return value
-        return int(round(parsed))
-    return value
+            parsed = None
+
+    if parsed is None or math.isnan(parsed) or math.isinf(parsed):
+        return value
+    return round(parsed)
 
 
 def _coerce_float_value(value: Any) -> Any:
@@ -140,20 +138,24 @@ def _coerce_float_value(value: Any) -> Any:
         return None
     if isinstance(value, bool):
         return float(int(value))
+
+    parsed: float | None = None
     if isinstance(value, (int, float)):
-        return float(value)
-    if isinstance(value, str):
+        parsed = float(value)
+    elif isinstance(value, str):
         stripped = value.strip()
         if stripped == "":
             return None
         try:
             parsed = float(stripped)
         except ValueError:
-            return value
-        if math.isnan(parsed) or math.isinf(parsed):
-            return value
-        return parsed
-    return value
+            parsed = None
+
+    if parsed is None:
+        return value
+    if math.isnan(parsed) or math.isinf(parsed):
+        return value
+    return parsed
 
 
 def _normalize_numeric_column_types(

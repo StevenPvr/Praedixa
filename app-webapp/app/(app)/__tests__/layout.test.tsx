@@ -80,22 +80,22 @@ describe("AppLayout", () => {
     expect(screen.getByRole("banner")).toBeInTheDocument();
   });
 
-  it("renders the Organisation text in the top bar", () => {
+  it("renders the Compte client text in the top bar", () => {
     render(
       <AppLayout>
         <div>Content</div>
       </AppLayout>,
     );
-    expect(screen.getByText("Organisation")).toBeInTheDocument();
+    expect(screen.getByText("Compte client")).toBeInTheDocument();
   });
 
-  it("renders the user avatar with initial U", () => {
+  it("renders the user avatar with initial from email", () => {
     render(
       <AppLayout>
         <div>Content</div>
       </AppLayout>,
     );
-    expect(screen.getByText("U")).toBeInTheDocument();
+    expect(screen.getByText("T")).toBeInTheDocument();
   });
 
   it("renders the mobile menu toggle button", () => {
@@ -169,13 +169,13 @@ describe("AppLayout", () => {
     expect(overlay).toBeInTheDocument();
   });
 
-  it("uses reduced padding on mobile (p-4)", () => {
+  it("uses app content padding classes", () => {
     render(
       <AppLayout>
         <div>Content</div>
       </AppLayout>,
     );
     const main = screen.getByRole("main");
-    expect(main).toHaveClass("p-4");
+    expect(main).toHaveClass("p-6");
   });
 });

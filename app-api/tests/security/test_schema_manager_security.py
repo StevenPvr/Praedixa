@@ -105,7 +105,10 @@ class TestPsycopgSqlIdentifierUsed:
     def test_source_uses_sql_identifier(self) -> None:
         """The schema_manager source imports and uses sql.Identifier."""
         source = inspect.getsource(schema_manager)
-        assert "from psycopg import sql" in source
+        assert (
+            "from psycopg import sql" in source
+            or "from psycopg import errors, sql" in source
+        )
         assert "sql.Identifier" in source
 
     def test_create_raw_table_uses_sql_identifier(self) -> None:

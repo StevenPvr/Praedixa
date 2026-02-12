@@ -210,17 +210,19 @@ describe("DonneesPage", () => {
 
   // ── Header ────────────────────────────────────────────────────────────────
 
-  it("renders the page header with title Donnees", () => {
+  it("renders the page header with updated title", () => {
     render(<DonneesPage />);
     expect(
-      screen.getByRole("heading", { name: "Donnees" }),
+      screen.getByRole("heading", { name: "Referentiel operationnel" }),
     ).toBeInTheDocument();
   });
 
   it("renders the subtitle", () => {
     render(<DonneesPage />);
     expect(
-      screen.getByText("Toutes les donnees de vos equipes"),
+      screen.getByText(
+        "Verifiez la fiabilite des donnees qui alimentent vos arbitrages quotidiens.",
+      ),
     ).toBeInTheDocument();
   });
 

@@ -25,7 +25,10 @@ describe("SectionWrapper", () => {
         <p>Content</p>
       </SectionWrapper>,
     );
-    expect(container.querySelector("section")).toHaveAttribute("id", "my-section");
+    expect(container.querySelector("section")).toHaveAttribute(
+      "id",
+      "my-section",
+    );
   });
 
   it("uses transparent light style by default", () => {

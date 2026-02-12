@@ -85,7 +85,9 @@ export function Navbar() {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-charcoal/10 bg-white md:hidden"
-              aria-label={isMobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-label={
+                isMobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"
+              }
               aria-expanded={isMobileMenuOpen}
             >
               <div className="flex h-4 w-5 flex-col items-center justify-center gap-1">

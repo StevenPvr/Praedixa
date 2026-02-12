@@ -14,7 +14,8 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-from psycopg import errors, sql as psql
+from psycopg import errors
+from psycopg import sql as psql
 
 from app.core.ddl_validation import DDLValidationError
 from app.models.data_catalog import ColumnRole

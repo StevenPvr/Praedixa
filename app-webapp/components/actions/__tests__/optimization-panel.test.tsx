@@ -106,7 +106,7 @@ describe("OptimizationPanel", () => {
     expect(screen.getAllByTestId("skeleton-card")).toHaveLength(3);
   });
 
-  it("returns null when no options and not loading", () => {
+  it("renders empty state when no options and not loading", () => {
     const { container } = render(
       <OptimizationPanel
         options={[]}
@@ -115,7 +115,9 @@ describe("OptimizationPanel", () => {
         loading={false}
       />,
     );
-    expect(container.innerHTML).toBe("");
+    expect(container).toHaveTextContent(
+      "Aucun scenario exploitable pour cette alerte.",
+    );
   });
 
   it("renders option cards", () => {
@@ -165,7 +167,9 @@ describe("OptimizationPanel", () => {
         loading={false}
       />,
     );
-    expect(screen.getByText(/85% \(80% — 88%\)/)).toBeInTheDocument();
+    expect(screen.getByTestId("option-card-o1")).toHaveTextContent(
+      "85% (80% - 88%)",
+    );
   });
 
   it("shows hours covered", () => {
@@ -181,7 +185,7 @@ describe("OptimizationPanel", () => {
     expect(hourElements.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("shows Optimal badge for Pareto optimal option", () => {
+  it("shows Pareto badge for Pareto optimal option", () => {
     render(
       <OptimizationPanel
         options={options}
@@ -190,7 +194,7 @@ describe("OptimizationPanel", () => {
         loading={false}
       />,
     );
-    expect(screen.getByText("Optimal")).toBeInTheDocument();
+    expect(screen.getByText("Pareto")).toBeInTheDocument();
   });
 
   it("shows Recommande badge for recommended option", () => {
@@ -215,7 +219,6 @@ describe("OptimizationPanel", () => {
       />,
     );
     const card = screen.getByTestId("option-card-o2");
-    expect(card.className).toContain("bg-amber-50/50");
     expect(card.className).toContain("ring-1 ring-amber-200");
   });
 
@@ -242,7 +245,8 @@ describe("OptimizationPanel", () => {
       />,
     );
     const card = screen.getByTestId("option-card-o1");
-    expect(card.className).toContain("ring-2 ring-amber-500");
+    expect(card.className).toContain("border-primary");
+    expect(card.className).toContain("bg-primary/[0.06]");
   });
 
   it("calls onSelectOption when clicking an option card", () => {

@@ -84,10 +84,7 @@ describe("CardTitle", () => {
 
   it("applies default classes", () => {
     render(<CardTitle data-testid="title">Title</CardTitle>);
-    expect(screen.getByTestId("title")).toHaveClass(
-      "text-2xl",
-      "font-semibold",
-    );
+    expect(screen.getByTestId("title")).toHaveClass("text-xl", "font-semibold");
   });
 
   it("merges custom className", () => {

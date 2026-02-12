@@ -240,10 +240,10 @@ describe("MessagesPage", () => {
   it("renders the page header", () => {
     render(<MessagesPage />);
     expect(
-      screen.getByRole("heading", { name: "Messages" }),
+      screen.getByRole("heading", { name: "Support strategique" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Echangez avec l'equipe Praedixa"),
+      screen.getByText("Coordonnez vos decisions avec l'equipe Praedixa."),
     ).toBeInTheDocument();
   });
 

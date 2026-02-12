@@ -27,13 +27,9 @@ const heroAsideReveal: Variants = {
 };
 
 const bulletIcons: Record<string, React.ReactNode> = {
-  warning: (
-    <WarningIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-  ),
+  warning: <WarningIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />,
   euro: <EuroIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />,
-  check: (
-    <CheckCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-  ),
+  check: <CheckCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />,
 };
 
 const executiveSignals = [
@@ -110,7 +106,10 @@ export function HeroSection({ className }: HeroSectionProps) {
               transition={{ delay: 0.18 }}
             >
               {heroContent.bullets.map((bullet) => (
-                <li key={bullet.text} className="flex items-start gap-2.5 text-sm text-charcoal/85 sm:text-base">
+                <li
+                  key={bullet.text}
+                  className="flex items-start gap-2.5 text-sm text-charcoal/85 sm:text-base"
+                >
                   {bulletIcons[bullet.icon]}
                   <span>{bullet.text}</span>
                 </li>
@@ -170,13 +169,15 @@ export function HeroSection({ className }: HeroSectionProps) {
               style={{ animation: "haloPulse 6s ease-in-out infinite" }}
             />
 
-            <p className="premium-pill relative z-10">Executive Control Layer</p>
+            <p className="premium-pill relative z-10">
+              Executive Control Layer
+            </p>
             <h2 className="relative z-10 mt-4 font-serif text-3xl leading-tight text-charcoal">
               Direction cockpit: couverture, arbitrage, preuve
             </h2>
             <p className="relative z-10 mt-4 text-sm leading-relaxed text-neutral-600">
-              Une interface pensée pour prendre des décisions robustes rapidement,
-              sans sacrifier la lisibilité des hypothèses.
+              Une interface pensée pour prendre des décisions robustes
+              rapidement, sans sacrifier la lisibilité des hypothèses.
             </p>
 
             <dl className="relative z-10 mt-7 grid gap-3 sm:grid-cols-3">

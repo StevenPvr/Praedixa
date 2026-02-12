@@ -12,23 +12,24 @@ vi.mock("../praedixa-logo", () => ({
 }));
 
 describe("Sidebar", () => {
-  it("renders branding and default site label", () => {
+  it("renders branding and priority card copy", () => {
     render(<Sidebar currentPath="/dashboard" userRole="admin" />);
     expect(screen.getByTestId("praedixa-logo")).toBeInTheDocument();
     expect(screen.getByText("Praedixa")).toBeInTheDocument();
-    expect(screen.getByText("Tous les sites")).toBeInTheDocument();
+    expect(screen.getByText("Priorite immediate")).toBeInTheDocument();
   });
 
   it("renders grouped IA headings and labels", () => {
     render(<Sidebar currentPath="/dashboard" userRole="admin" />);
-    expect(screen.getByText("Pilotage")).toBeInTheDocument();
+    expect(screen.getByText("Voir")).toBeInTheDocument();
+    expect(screen.getByText("Anticiper")).toBeInTheDocument();
     expect(screen.getByText("Decider")).toBeInTheDocument();
-    expect(screen.getByText("Collaborer")).toBeInTheDocument();
-    expect(screen.getByText("Admin")).toBeInTheDocument();
+    expect(screen.getByText("Suivre")).toBeInTheDocument();
+    expect(screen.getByText("Gouvernance")).toBeInTheDocument();
 
-    expect(screen.getByText("Vue d'ensemble")).toBeInTheDocument();
-    expect(screen.getByText("Analyse")).toBeInTheDocument();
-    expect(screen.getByText("File de decision")).toBeInTheDocument();
+    expect(screen.getByText("War room")).toBeInTheDocument();
+    expect(screen.getByText("Donnees")).toBeInTheDocument();
+    expect(screen.getByText("Traitement")).toBeInTheDocument();
     expect(screen.getByText("Support")).toBeInTheDocument();
   });
 
@@ -37,7 +38,7 @@ describe("Sidebar", () => {
       <Sidebar currentPath="/dashboard" userRole="admin" priorityCount={7} />,
     );
     const link = screen.getByRole("link", {
-      name: /Ouvrir la file de decision/i,
+      name: /Ouvrir le centre de traitement/i,
     });
     expect(link).toHaveAttribute("href", "/actions");
     expect(screen.getByText("7")).toBeInTheDocument();
@@ -50,7 +51,7 @@ describe("Sidebar", () => {
 
   it("marks current route as active", () => {
     render(<Sidebar currentPath="/actions" userRole="manager" />);
-    const active = screen.getByText("File de decision").closest("a");
+    const active = screen.getByText("Traitement").closest("a");
     expect(active).toHaveAttribute("aria-current", "page");
   });
 

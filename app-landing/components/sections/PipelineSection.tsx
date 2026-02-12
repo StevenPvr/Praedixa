@@ -27,7 +27,8 @@ function FlowDiagram() {
       </div>
       <p className="mt-4 max-w-3xl text-sm leading-relaxed text-neutral-600">
         Le système est pensé comme une boucle de management: chaque cycle affine
-        la qualité des arbitrages et réduit la dépendance aux décisions de crise.
+        la qualité des arbitrages et réduit la dépendance aux décisions de
+        crise.
       </p>
     </motion.div>
   );
@@ -97,7 +98,10 @@ export function PipelineSection({ className }: { className?: string }) {
             </ul>
 
             {phase.callout && phase.calloutVariant && (
-              <PhaseCallout text={phase.callout} variant={phase.calloutVariant} />
+              <PhaseCallout
+                text={phase.callout}
+                variant={phase.calloutVariant}
+              />
             )}
           </motion.article>
         ))}

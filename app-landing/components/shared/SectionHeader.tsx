@@ -20,7 +20,10 @@ export function SectionHeader({
   className,
 }: SectionHeaderProps) {
   return (
-    <motion.div className={cn("mb-12 max-w-4xl", className)} variants={staggerItem}>
+    <motion.div
+      className={cn("mb-12 max-w-4xl", className)}
+      variants={staggerItem}
+    >
       {kicker && (
         <span
           className={cn(

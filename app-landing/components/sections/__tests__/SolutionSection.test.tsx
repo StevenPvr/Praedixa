@@ -13,7 +13,10 @@ import { SOLUTION_STEPS } from "../../../lib/content/solution-content";
 describe("SolutionSection", () => {
   it("renders with id=solution", () => {
     const { container } = render(<SolutionSection />);
-    expect(container.querySelector("section")).toHaveAttribute("id", "solution");
+    expect(container.querySelector("section")).toHaveAttribute(
+      "id",
+      "solution",
+    );
   });
 
   it("renders all steps from content", () => {
@@ -28,7 +31,9 @@ describe("SolutionSection", () => {
 
   it("renders link to pipeline section", () => {
     render(<SolutionSection />);
-    const link = screen.getByText(/Voir les cas d'usage opérationnels/i).closest("a");
+    const link = screen
+      .getByText(/Voir les cas d'usage opérationnels/i)
+      .closest("a");
     expect(link).toHaveAttribute("href", "#pipeline");
   });
 

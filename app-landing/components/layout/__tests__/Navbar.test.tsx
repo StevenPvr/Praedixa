@@ -47,7 +47,9 @@ describe("Navbar", () => {
     expect(screen.getAllByText("Enjeux").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Méthode").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Cas d'usage").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Framework ROI").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Framework ROI").length).toBeGreaterThanOrEqual(
+      1,
+    );
     expect(screen.getAllByText("FAQ").length).toBeGreaterThanOrEqual(1);
   });
 

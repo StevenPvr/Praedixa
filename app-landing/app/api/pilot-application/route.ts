@@ -241,12 +241,18 @@ function validateRequestBody(
     return { valid: false, error: "Horizon projet invalide." };
   }
 
-  const currentStack = normaliseOptionalField(obj.currentStack, MAX_STACK_LENGTH);
+  const currentStack = normaliseOptionalField(
+    obj.currentStack,
+    MAX_STACK_LENGTH,
+  );
   if (currentStack === null) {
     return { valid: false, error: "Stack actuelle invalide." };
   }
 
-  const painPoint = normaliseOptionalField(obj.painPoint, MAX_PAIN_POINT_LENGTH);
+  const painPoint = normaliseOptionalField(
+    obj.painPoint,
+    MAX_PAIN_POINT_LENGTH,
+  );
   if (painPoint === null) {
     return { valid: false, error: "Enjeu principal invalide." };
   }

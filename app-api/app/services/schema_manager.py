@@ -345,24 +345,29 @@ def _create_raw_table(
         sql.SQL(", ").join(col_defs),
     )
     savepoint_name = "sp_create_raw_table"
-    cur.execute(sql.SQL("SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+    savepoint_stmt = sql.SQL("SAVEPOINT {}").format(sql.Identifier(savepoint_name))
+    rollback_stmt = sql.SQL("ROLLBACK TO SAVEPOINT {}").format(
+        sql.Identifier(savepoint_name)
+    )
+    release_stmt = sql.SQL("RELEASE SAVEPOINT {}").format(
+        sql.Identifier(savepoint_name)
+    )
+
+    cur.execute(savepoint_stmt)
     try:
         cur.execute(create_stmt)
-        cur.execute(sql.SQL("RELEASE SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
-        return True
     except errors.DuplicateTable:
-        cur.execute(
-            sql.SQL("ROLLBACK TO SAVEPOINT {}").format(sql.Identifier(savepoint_name))
-        )
-        cur.execute(sql.SQL("RELEASE SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+        cur.execute(rollback_stmt)
+        cur.execute(release_stmt)
         logger.info("Raw table already exists: %s.%s", schema, table_name)
         return False
     except Exception:
-        cur.execute(
-            sql.SQL("ROLLBACK TO SAVEPOINT {}").format(sql.Identifier(savepoint_name))
-        )
-        cur.execute(sql.SQL("RELEASE SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+        cur.execute(rollback_stmt)
+        cur.execute(release_stmt)
         raise
+    else:
+        cur.execute(release_stmt)
+        return True
 
 
 def _create_transformed_table(
@@ -413,24 +418,29 @@ def _create_transformed_table(
         sql.SQL(", ").join(col_defs),
     )
     savepoint_name = "sp_create_transformed_table"
-    cur.execute(sql.SQL("SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+    savepoint_stmt = sql.SQL("SAVEPOINT {}").format(sql.Identifier(savepoint_name))
+    rollback_stmt = sql.SQL("ROLLBACK TO SAVEPOINT {}").format(
+        sql.Identifier(savepoint_name)
+    )
+    release_stmt = sql.SQL("RELEASE SAVEPOINT {}").format(
+        sql.Identifier(savepoint_name)
+    )
+
+    cur.execute(savepoint_stmt)
     try:
         cur.execute(create_stmt)
-        cur.execute(sql.SQL("RELEASE SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
-        return True
     except errors.DuplicateTable:
-        cur.execute(
-            sql.SQL("ROLLBACK TO SAVEPOINT {}").format(sql.Identifier(savepoint_name))
-        )
-        cur.execute(sql.SQL("RELEASE SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+        cur.execute(rollback_stmt)
+        cur.execute(release_stmt)
         logger.info("Transformed table already exists: %s.%s", schema, table_name)
         return False
     except Exception:
-        cur.execute(
-            sql.SQL("ROLLBACK TO SAVEPOINT {}").format(sql.Identifier(savepoint_name))
-        )
-        cur.execute(sql.SQL("RELEASE SAVEPOINT {}").format(sql.Identifier(savepoint_name)))
+        cur.execute(rollback_stmt)
+        cur.execute(release_stmt)
         raise
+    else:
+        cur.execute(release_stmt)
+        return True
 
 
 def _create_indexes(

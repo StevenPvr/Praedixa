@@ -63,7 +63,10 @@ export function ContactSection({ className }: ContactSectionProps) {
 
           <div className="mt-8 grid gap-2.5 md:grid-cols-2">
             {TRUST_ITEMS.map((item) => (
-              <div key={item} className="flex items-center gap-2 text-sm text-white/70">
+              <div
+                key={item}
+                className="flex items-center gap-2 text-sm text-white/70"
+              >
                 <CheckIcon className="h-4 w-4 text-amber-300" />
                 {item}
               </div>

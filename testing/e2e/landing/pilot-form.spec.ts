@@ -9,7 +9,9 @@ test.describe("Pilot application form (/devenir-pilote)", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
       /candidature pilote premium/i,
     );
-    await expect(page.getByRole("link", { name: /retour au site/i })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /retour au site/i }),
+    ).toBeVisible();
   });
 
   test("shows required qualification fields", async ({ page }) => {
@@ -23,15 +25,21 @@ test.describe("Pilot application form (/devenir-pilote)", () => {
     ).toBeVisible();
   });
 
-  test("submit button stays disabled until form is complete", async ({ page }) => {
-    const submit = page.getByRole("button", { name: /envoyer ma candidature/i });
+  test("submit button stays disabled until form is complete", async ({
+    page,
+  }) => {
+    const submit = page.getByRole("button", {
+      name: /envoyer ma candidature/i,
+    });
     await expect(submit).toBeDisabled();
 
     await page.getByLabel(/Entreprise/).fill("Atlas Logistics");
     await expect(submit).toBeDisabled();
   });
 
-  test("submits successfully when required fields are complete", async ({ page }) => {
+  test("submits successfully when required fields are complete", async ({
+    page,
+  }) => {
     await page.route("**/api/pilot-application", async (route) => {
       await route.fulfill({
         status: 200,

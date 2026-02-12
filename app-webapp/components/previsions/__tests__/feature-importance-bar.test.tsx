@@ -8,13 +8,15 @@ describe("FeatureImportanceBar", () => {
   it("renders skeleton bars when loading", () => {
     render(<FeatureImportanceBar features={[]} loading={true} />);
     const skeletons = screen.getAllByTestId("skeleton-bar");
-    expect(skeletons).toHaveLength(4);
+    expect(skeletons).toHaveLength(5);
   });
 
   it("renders empty message when features are empty and not loading", () => {
     render(<FeatureImportanceBar features={[]} loading={false} />);
     expect(screen.getByTestId("empty-features")).toBeInTheDocument();
-    expect(screen.getByText("Aucun facteur identifie")).toBeInTheDocument();
+    expect(
+      screen.getByText("Aucun facteur explicatif exploitable pour le moment."),
+    ).toBeInTheDocument();
   });
 
   it("renders feature labels", () => {
@@ -59,7 +61,7 @@ describe("FeatureImportanceBar", () => {
       <FeatureImportanceBar features={features} loading={false} />,
     );
 
-    const bars = container.querySelectorAll(".bg-amber-400");
+    const bars = container.querySelectorAll(".bg-gradient-to-r");
     expect(bars).toHaveLength(2);
 
     // First bar should be 100% width (it's the max)
@@ -74,8 +76,8 @@ describe("FeatureImportanceBar", () => {
       <FeatureImportanceBar features={features} loading={false} />,
     );
 
-    const bars = container.querySelectorAll(".bg-amber-400");
+    const bars = container.querySelectorAll(".bg-gradient-to-r");
     expect(bars).toHaveLength(1);
-    expect((bars[0] as HTMLElement).style.width).toBe("0%");
+    expect((bars[0] as HTMLElement).style.width).toBe("3%");
   });
 });

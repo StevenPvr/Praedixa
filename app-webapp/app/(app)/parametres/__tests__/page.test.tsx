@@ -173,14 +173,16 @@ describe("ParametresPage", () => {
   it("renders the heading", () => {
     render(<ParametresPage />);
     expect(
-      screen.getByRole("heading", { name: "Reglages" }),
+      screen.getByRole("heading", { name: "Gouvernance et reglages" }),
     ).toBeInTheDocument();
   });
 
   it("renders the new subtitle", () => {
     render(<ParametresPage />);
     expect(
-      screen.getByText(/Configurez les couts, horaires, seuils/),
+      screen.getByText(
+        "Cadrez les couts, seuils et parametres operationnels de votre organisation.",
+      ),
     ).toBeInTheDocument();
   });
 

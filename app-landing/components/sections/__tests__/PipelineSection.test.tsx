@@ -13,7 +13,10 @@ import { pipelinePhases } from "../../../lib/content/pipeline-phases";
 describe("PipelineSection", () => {
   it("renders with id=pipeline", () => {
     const { container } = render(<PipelineSection />);
-    expect(container.querySelector("section")).toHaveAttribute("id", "pipeline");
+    expect(container.querySelector("section")).toHaveAttribute(
+      "id",
+      "pipeline",
+    );
   });
 
   it("renders all phase blocks from content", () => {

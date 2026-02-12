@@ -59,7 +59,9 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
 
         <div className="mt-10 grid gap-6 md:grid-cols-[1.05fr_0.95fr]">
           <motion.div className="premium-card p-7" variants={staggerItem}>
-            <h3 className="font-serif text-3xl text-charcoal">Pack décisionnel</h3>
+            <h3 className="font-serif text-3xl text-charcoal">
+              Pack décisionnel
+            </h3>
             <ul className="mt-5 space-y-3">
               {CHECKLIST_ITEMS.map((item) => (
                 <li
@@ -77,8 +79,8 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
                 Positionnement
               </p>
               <p className="mt-2 text-sm leading-relaxed text-charcoal/85">
-                Priorité à la clarté d'arbitrage et à la robustesse des hypothèses,
-                plutôt qu'à l'accumulation de KPIs décoratifs.
+                Priorité à la clarté d'arbitrage et à la robustesse des
+                hypothèses, plutôt qu'à l'accumulation de KPIs décoratifs.
               </p>
             </div>
           </motion.div>
@@ -103,7 +105,10 @@ export function DeliverablesSection({ className }: DeliverablesSectionProps) {
           </motion.div>
         </div>
 
-        <motion.div className="mt-8 grid gap-4 md:grid-cols-2" variants={staggerItem}>
+        <motion.div
+          className="mt-8 grid gap-4 md:grid-cols-2"
+          variants={staggerItem}
+        >
           {TRUST_SIGNALS.map((signal) => (
             <article key={signal.title} className="premium-card p-5">
               <h3 className="font-semibold text-charcoal">{signal.title}</h3>

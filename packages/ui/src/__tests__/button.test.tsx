@@ -43,7 +43,7 @@ describe("Button", () => {
 
   it("applies destructive variant classes", () => {
     const { rerender } = render(<Button variant="destructive">Delete</Button>);
-    expect(screen.getByRole("button")).toHaveClass("bg-destructive");
+    expect(screen.getByRole("button")).toHaveClass("bg-red-600");
 
     rerender(<Button variant="outline">Outline</Button>);
     expect(screen.getByRole("button")).toHaveClass("border");

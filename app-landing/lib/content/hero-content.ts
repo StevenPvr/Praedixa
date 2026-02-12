@@ -19,7 +19,10 @@ export const heroContent = {
       text: "Décisions traçables pour CODIR, DAF et audit interne",
     },
   ],
-  ctaPrimary: { text: "Demander une qualification pilote", href: "/devenir-pilote" },
+  ctaPrimary: {
+    text: "Demander une qualification pilote",
+    href: "/devenir-pilote",
+  },
   ctaSecondary: { text: "Voir la méthode ROI", href: "#solution" },
   ctaMeta:
     "Qualification en 20 min • Réponse sous 24h ouvrées • Cohorte limitée à 8 entreprises",

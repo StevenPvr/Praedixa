@@ -38,7 +38,13 @@ describe("Footer", () => {
   it("renders navigation and legal links", () => {
     render(<Footer />);
 
-    const navigationLabels = ["Enjeux", "Méthode", "Cas d'usage", "Framework ROI", "FAQ"];
+    const navigationLabels = [
+      "Enjeux",
+      "Méthode",
+      "Cas d'usage",
+      "Framework ROI",
+      "FAQ",
+    ];
     for (const label of navigationLabels) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }

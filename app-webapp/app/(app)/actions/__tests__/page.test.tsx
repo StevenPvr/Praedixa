@@ -45,6 +45,7 @@ vi.mock("@praedixa/ui", () => ({
   }) => <button {...props}>{children}</button>,
   SkeletonCard: () => <div data-testid="skeleton-card" />,
   SkeletonChart: () => <div data-testid="skeleton-chart" />,
+  cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
 }));
 
 vi.mock("@/components/ui/page-header", () => ({
@@ -126,6 +127,23 @@ vi.mock("@/components/empty-state", () => ({
     <div data-testid="empty-state">
       <span>{title}</span>
       <span>{description}</span>
+    </div>
+  ),
+}));
+
+vi.mock("@/components/status-banner", () => ({
+  StatusBanner: ({
+    children,
+    variant,
+    title,
+  }: {
+    children: React.ReactNode;
+    variant: string;
+    title?: string;
+  }) => (
+    <div data-testid="status-banner" data-variant={variant}>
+      {title && <h3>{title}</h3>}
+      {children}
     </div>
   ),
 }));
@@ -292,10 +310,12 @@ describe("ActionsPage", () => {
   it("renders decision queue header", () => {
     render(<ActionsPage />);
     expect(
-      screen.getByRole("heading", { name: "Decision Queue" }),
+      screen.getByRole("heading", { name: "Centre de traitement" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Traitez les alertes dans l'ordre d'impact"),
+      screen.getByText(
+        "Traitez les alertes dans l'ordre d'impact operationnel",
+      ),
     ).toBeInTheDocument();
   });
 

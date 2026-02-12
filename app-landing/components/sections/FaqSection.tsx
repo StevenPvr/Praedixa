@@ -38,7 +38,9 @@ export function FaqSection({ className }: FaqSectionProps) {
 
         <div className="mt-10 space-y-10">
           {faqCategories.map((category) => {
-            const items = landingFaq.filter((item) => item.category === category);
+            const items = landingFaq.filter(
+              (item) => item.category === category,
+            );
             if (items.length === 0) return null;
 
             return (

@@ -46,7 +46,9 @@ describe("HeroSection", () => {
   it("renders both primary and secondary CTAs", () => {
     render(<HeroSection />);
 
-    const primaryCta = screen.getByText(heroContent.ctaPrimary.text).closest("a");
+    const primaryCta = screen
+      .getByText(heroContent.ctaPrimary.text)
+      .closest("a");
     const secondaryCta = screen
       .getByText(heroContent.ctaSecondary.text)
       .closest("a");

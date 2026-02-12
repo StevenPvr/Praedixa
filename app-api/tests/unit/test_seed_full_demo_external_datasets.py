@@ -121,7 +121,10 @@ class TestBuildExternalDatasetDefinition:
             row_count=2,
         )
 
-        definition = _build_external_dataset_definition("platform_monthly", parse_result)
+        definition = _build_external_dataset_definition(
+            "platform_monthly",
+            parse_result,
+        )
         columns = {
             name: (dtype.value, role.value)
             for name, dtype, role in definition["columns"]

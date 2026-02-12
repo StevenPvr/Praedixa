@@ -36,20 +36,18 @@ describe("AuthLayout", () => {
         <div>Content</div>
       </AuthLayout>,
     );
-    expect(screen.getByTestId("praedixa-logo")).toBeInTheDocument();
+    expect(screen.getAllByTestId("praedixa-logo").length).toBeGreaterThan(0);
   });
 
-  it("has centered layout with card container", () => {
+  it("uses two-column auth shell with card container", () => {
     const { container } = render(
       <AuthLayout>
         <div>Content</div>
       </AuthLayout>,
     );
-    // Check centering classes on root div
     const root = container.firstElementChild;
-    expect(root?.className).toContain("flex");
+    expect(root?.className).toContain("grid");
     expect(root?.className).toContain("min-h-screen");
-    expect(root?.className).toContain("items-center");
-    expect(root?.className).toContain("justify-center");
+    expect(root?.className).toContain("lg:grid-cols-2");
   });
 });

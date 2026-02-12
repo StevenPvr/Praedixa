@@ -116,9 +116,9 @@ export default function DevenirPilotePage() {
       });
 
       if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as
-          | { error?: string }
-          | null;
+        const payload = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
         throw new Error(payload?.error || "Erreur lors de l'envoi");
       }
 
@@ -151,16 +151,14 @@ export default function DevenirPilotePage() {
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-neutral-600">
               Nous analysons votre dossier et revenons vers vous sous 24h
-              ouvrées avec un cadrage de premier échange adapté à votre contexte.
+              ouvrées avec un cadrage de premier échange adapté à votre
+              contexte.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link href="/" className="ghost-cta">
                 Retour à la landing
               </Link>
-              <a
-                href={`mailto:${formData.email}`}
-                className="gold-cta"
-              >
+              <a href={`mailto:${formData.email}`} className="gold-cta">
                 Vérifier ma boîte email
               </a>
             </div>
@@ -185,7 +183,10 @@ export default function DevenirPilotePage() {
               />
               <span className="font-serif text-xl text-charcoal">Praedixa</span>
             </Link>
-            <Link href="/" className="text-sm font-semibold text-charcoal/70 transition hover:text-charcoal">
+            <Link
+              href="/"
+              className="text-sm font-semibold text-charcoal/70 transition hover:text-charcoal"
+            >
               Retour au site
             </Link>
           </div>
@@ -211,7 +212,10 @@ export default function DevenirPilotePage() {
 
             <ul className="mt-7 space-y-3">
               {VALUE_POINTS.map((point) => (
-                <li key={point} className="flex items-start gap-2.5 text-sm text-charcoal/85">
+                <li
+                  key={point}
+                  className="flex items-start gap-2.5 text-sm text-charcoal/85"
+                >
                   <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
                   {point}
                 </li>
@@ -373,14 +377,20 @@ export default function DevenirPilotePage() {
                 </div>
               </fieldset>
 
-              <div className="absolute left-[-9999px] top-[-9999px]" aria-hidden="true">
+              <div
+                className="absolute left-[-9999px] top-[-9999px]"
+                aria-hidden="true"
+              >
                 <label htmlFor="website">Website</label>
                 <input
                   id="website"
                   name="website"
                   value={formData.website}
                   onChange={(event) =>
-                    setFormData((prev) => ({ ...prev, website: event.target.value }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      website: event.target.value,
+                    }))
                   }
                   tabIndex={-1}
                   autoComplete="off"
@@ -392,13 +402,28 @@ export default function DevenirPilotePage() {
                   type="checkbox"
                   checked={formData.consent}
                   onChange={(event) =>
-                    setFormData((prev) => ({ ...prev, consent: event.target.checked }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      consent: event.target.checked,
+                    }))
                   }
                   className="mt-1 h-4 w-4 rounded border-neutral-300 text-amber-600 focus:ring-amber-500"
                 />
                 <span className="text-sm leading-relaxed text-neutral-600">
-                  J'accepte les <Link href="/cgu" target="_blank" className="font-semibold text-amber-700 hover:underline">CGU</Link> et la{" "}
-                  <Link href="/confidentialite" target="_blank" className="font-semibold text-amber-700 hover:underline">
+                  J'accepte les{" "}
+                  <Link
+                    href="/cgu"
+                    target="_blank"
+                    className="font-semibold text-amber-700 hover:underline"
+                  >
+                    CGU
+                  </Link>{" "}
+                  et la{" "}
+                  <Link
+                    href="/confidentialite"
+                    target="_blank"
+                    className="font-semibold text-amber-700 hover:underline"
+                  >
                     politique de confidentialité
                   </Link>
                   .
