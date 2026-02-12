@@ -9,8 +9,8 @@ import {
 test.describe("Config tab (workspace)", () => {
   test.beforeEach(async ({ page }) => {
     await setupAdminAuth(page);
-    await mockConfigApis(page);
     await mockCatchAll(page);
+    await mockConfigApis(page);
   });
 
   test("renders the Configuration heading", async ({ page }) => {

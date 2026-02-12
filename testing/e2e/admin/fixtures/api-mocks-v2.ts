@@ -80,8 +80,8 @@ export {
 // ─────────────────────────────────────────────────
 
 export const MOCK_PLATFORM_KPIS = {
-  totalOrgs: 12,
-  activeOrgs: 10,
+  totalOrganizations: 12,
+  activeOrganizations: 10,
   totalUsers: 245,
   avgAdoptionRate: 72.5,
   ingestionSuccessRate: 97.8,
@@ -227,8 +227,8 @@ export async function mockAccueilApisEmpty(page: Page): Promise<void> {
     fulfill(
       route,
       apiResponse({
-        totalOrgs: 5,
-        activeOrgs: 5,
+        totalOrganizations: 5,
+        activeOrganizations: 5,
         totalUsers: 100,
         avgAdoptionRate: 80,
         ingestionSuccessRate: 99.5,

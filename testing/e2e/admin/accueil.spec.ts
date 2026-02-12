@@ -29,10 +29,12 @@ test.describe("Accueil page", () => {
     await expect(page.getByText("A surveiller")).toBeVisible();
     // Check KPI values
     await expect(
-      page.getByText(String(MOCK_PLATFORM_KPIS.activeOrgs)),
+      page.getByText(String(MOCK_PLATFORM_KPIS.activeOrganizations), {
+        exact: true,
+      }),
     ).toBeVisible();
     await expect(
-      page.getByText(String(MOCK_PLATFORM_KPIS.totalUsers)),
+      page.getByText(String(MOCK_PLATFORM_KPIS.totalUsers), { exact: true }),
     ).toBeVisible();
   });
 
@@ -60,7 +62,9 @@ test.describe("Accueil page", () => {
   test("displays unread messages card", async ({ page }) => {
     await mockAccueilApis(page);
     await page.goto("/");
-    await expect(page.getByText("Messages non lus")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Messages non lus", exact: true }),
+    ).toBeVisible();
     await expect(page.getByText(String(MOCK_UNREAD_COUNT.total))).toBeVisible();
     // Org names in unread list
     await expect(page.getByText("Acme Logistique").first()).toBeVisible();

@@ -9,8 +9,8 @@ import {
 test.describe("Previsions tab", () => {
   test.beforeEach(async ({ page }) => {
     await setupAdminAuth(page);
-    await mockPrevisionsApis(page);
     await mockCatchAll(page);
+    await mockPrevisionsApis(page);
   });
 
   test("renders the Previsions heading", async ({ page }) => {

@@ -22,9 +22,13 @@ test.describe("Clients page", () => {
     await mockClientsApis(page);
     await page.goto("/clients");
     // Column headers
-    await expect(page.getByText("Nom")).toBeVisible();
-    await expect(page.getByText("Plan")).toBeVisible();
-    await expect(page.getByText("Statut")).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Nom" })).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Plan" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Statut" }),
+    ).toBeVisible();
     // Data rows
     await expect(page.getByText("Acme Logistique")).toBeVisible();
     await expect(page.getByText("Express Transport")).toBeVisible();
@@ -40,8 +44,14 @@ test.describe("Clients page", () => {
   test("has status and plan filter dropdowns", async ({ page }) => {
     await mockClientsApis(page);
     await page.goto("/clients");
-    await expect(page.getByText("Tous les statuts")).toBeVisible();
-    await expect(page.getByText("Tous les plans")).toBeVisible();
+    const filters = page.getByRole("combobox");
+    await expect(filters).toHaveCount(2);
+    await expect(filters.nth(0).locator("option").first()).toHaveText(
+      "Tous les statuts",
+    );
+    await expect(filters.nth(1).locator("option").first()).toHaveText(
+      "Tous les plans",
+    );
   });
 
   test("has Nouveau client button", async ({ page }) => {
@@ -53,7 +63,7 @@ test.describe("Clients page", () => {
   test("shows empty state", async ({ page }) => {
     await mockClientsApisEmpty(page);
     await page.goto("/clients");
-    await expect(page.getByText("0 client au total")).toBeVisible();
+    await expect(page.getByText("0 clients au total")).toBeVisible();
   });
 
   test("shows error fallback", async ({ page }) => {

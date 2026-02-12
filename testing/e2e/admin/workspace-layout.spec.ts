@@ -15,23 +15,23 @@ test.describe("Client workspace layout", () => {
   test("displays OrgHeader with org name, plan badge and status badge", async ({
     page,
   }) => {
-    await mockVueClientApis(page);
     await mockCatchAll(page);
+    await mockVueClientApis(page);
     await page.goto(`/clients/${TEST_ORG_ID}/vue-client`);
 
-    await expect(page.getByText("Acme Logistique")).toBeVisible({
-      timeout: 10000,
-    });
-    // Plan badge (professional) and status badge (active)
     await expect(
-      page.getByText("professional", { exact: false }),
+      page.getByRole("heading", { name: "Acme Logistique", exact: true }),
+    ).toBeVisible({ timeout: 10000 });
+    // Plan badge (professional) and status badge (active)
+    await expect(page.getByText("Pro", { exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByText("Actif", { exact: true }).first(),
     ).toBeVisible();
-    await expect(page.getByText("active", { exact: false })).toBeVisible();
   });
 
   test("displays 7 tab links in ClientTabsNav", async ({ page }) => {
-    await mockVueClientApis(page);
     await mockCatchAll(page);
+    await mockVueClientApis(page);
     await page.goto(`/clients/${TEST_ORG_ID}/vue-client`);
 
     const nav = page.getByRole("navigation", { name: "Onglets client" });
@@ -52,8 +52,8 @@ test.describe("Client workspace layout", () => {
   });
 
   test("displays SiteTree with site names", async ({ page }) => {
-    await mockVueClientApis(page);
     await mockCatchAll(page);
+    await mockVueClientApis(page);
     await page.goto(`/clients/${TEST_ORG_ID}/vue-client`);
 
     // SiteTree is in an aside (hidden on small screens, visible on lg+)
@@ -69,8 +69,8 @@ test.describe("Client workspace layout", () => {
   });
 
   test("shows ErrorFallback when org detail fails", async ({ page }) => {
-    await mockOrgDetailError(page);
     await mockCatchAll(page);
+    await mockOrgDetailError(page);
     await page.goto(`/clients/${TEST_ORG_ID}/vue-client`);
 
     await expect(page.getByText("Erreur de chargement")).toBeVisible({

@@ -9,8 +9,8 @@ import {
 test.describe("Messages tab (workspace)", () => {
   test.beforeEach(async ({ page }) => {
     await setupAdminAuth(page);
-    await mockMessagesApis(page);
     await mockCatchAll(page);
+    await mockMessagesApis(page);
   });
 
   test("renders the Conversations heading", async ({ page }) => {

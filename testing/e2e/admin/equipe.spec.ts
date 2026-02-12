@@ -9,8 +9,8 @@ import {
 test.describe("Equipe tab", () => {
   test.beforeEach(async ({ page }) => {
     await setupAdminAuth(page);
-    await mockEquipeApis(page);
     await mockCatchAll(page);
+    await mockEquipeApis(page);
   });
 
   test("renders the Equipe heading", async ({ page }) => {

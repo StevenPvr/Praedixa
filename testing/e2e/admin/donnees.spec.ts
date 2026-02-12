@@ -9,16 +9,16 @@ import {
 test.describe("Donnees tab", () => {
   test.beforeEach(async ({ page }) => {
     await setupAdminAuth(page);
-    await mockDonneesApis(page);
     await mockCatchAll(page);
+    await mockDonneesApis(page);
   });
 
   test("renders the Donnees heading", async ({ page }) => {
     await page.goto(`/clients/${TEST_ORG_ID}/donnees`);
 
-    await expect(page.getByRole("heading", { name: "Donnees" })).toBeVisible({
-      timeout: 10000,
-    });
+    await expect(
+      page.getByRole("heading", { name: "Donnees", exact: true }),
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test("displays data quality section", async ({ page }) => {

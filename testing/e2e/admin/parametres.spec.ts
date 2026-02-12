@@ -24,8 +24,12 @@ test.describe("Parametres page", () => {
   test("displays 2 section tabs", async ({ page }) => {
     await mockParametresApis(page);
     await page.goto("/parametres");
-    await expect(page.getByText("Onboarding", { exact: false })).toBeVisible();
-    await expect(page.getByText("Configuration")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /^Onboarding/ }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Configuration" }),
+    ).toBeVisible();
   });
 
   test("default tab Onboarding shows form", async ({ page }) => {
@@ -60,17 +64,19 @@ test.describe("Parametres page", () => {
     await mockParametresApis(page);
     await page.goto("/parametres");
     // Click Configuration tab
-    await page.getByText("Configuration").click();
+    await page.getByRole("button", { name: "Configuration" }).click();
     // 3 StatCards
     await expect(page.getByText("Organisations avec manques")).toBeVisible();
-    await expect(page.getByText("Parametres manquants")).toBeVisible();
+    await expect(
+      page.getByText("Parametres manquants", { exact: true }),
+    ).toBeVisible();
     await expect(page.getByText("Statut global")).toBeVisible();
   });
 
   test("Configuration tab shows missing config table", async ({ page }) => {
     await mockParametresApis(page);
     await page.goto("/parametres");
-    await page.getByText("Configuration").click();
+    await page.getByRole("button", { name: "Configuration" }).click();
     await expect(
       page.getByText("Configurations manquantes par organisation"),
     ).toBeVisible();

@@ -9,8 +9,8 @@ import {
 test.describe("Alertes tab (workspace)", () => {
   test.beforeEach(async ({ page }) => {
     await setupAdminAuth(page);
-    await mockAlertesApis(page);
     await mockCatchAll(page);
+    await mockAlertesApis(page);
   });
 
   test("renders the Alertes heading", async ({ page }) => {

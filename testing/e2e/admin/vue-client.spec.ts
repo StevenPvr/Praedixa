@@ -9,8 +9,8 @@ import {
 test.describe("Vue client tab", () => {
   test.beforeEach(async ({ page }) => {
     await setupAdminAuth(page);
-    await mockVueClientApis(page);
     await mockCatchAll(page);
+    await mockVueClientApis(page);
   });
 
   test("renders the Vue client heading", async ({ page }) => {
@@ -27,7 +27,9 @@ test.describe("Vue client tab", () => {
     await expect(page.getByText("Organisation")).toBeVisible({
       timeout: 10000,
     });
-    await expect(page.getByText("Acme Logistique")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Acme Logistique", exact: true }),
+    ).toBeVisible();
     await expect(page.getByText("admin@acme-logistique.fr")).toBeVisible();
   });
 
