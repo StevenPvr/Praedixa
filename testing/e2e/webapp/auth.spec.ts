@@ -142,11 +142,28 @@ test.describe("Webapp authentication", () => {
   });
 
   test("submit button shows loading state on click", async ({ page }) => {
-    // Intercept login request to keep it pending, forcing loading state
-    await page.route("**/auth/v1/token?grant_type=password", async (route) => {
-      // Do not fulfill immediately
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      await route.continue();
+    await page.addInitScript(() => {
+      const origFetch = window.fetch.bind(window);
+      window.fetch = async (input, init) => {
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof Request
+              ? input.url
+              : "";
+        if (url.includes("/auth/v1/token")) {
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+          return new Response(
+            JSON.stringify({
+              error: "invalid_grant",
+              error_description: "Invalid login credentials",
+              message: "Invalid login credentials",
+            }),
+            { status: 400, headers: { "Content-Type": "application/json" } },
+          );
+        }
+        return origFetch(input, init);
+      };
     });
 
     await page.goto("/login");
@@ -156,9 +173,11 @@ test.describe("Webapp authentication", () => {
     const submitButton = page.getByRole("button", { name: /se connecter/i });
     await submitButton.click();
 
-    // Check for loading state - typically the text changes or a spinner appears
-    // Adjust selector based on your actual UI implementation
-    await expect(submitButton).toBeDisabled();
-    await expect(submitButton).toHaveText(/Connexion/i);
+    await expect(
+      page.getByRole("button", { name: "Connexion en cours..." }),
+    ).toBeVisible({ timeout: 5000 });
+    await expect(
+      page.getByRole("button", { name: "Connexion en cours..." }),
+    ).toBeDisabled();
   });
 });

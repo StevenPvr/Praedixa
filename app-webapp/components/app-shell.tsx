@@ -106,6 +106,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             className="fixed inset-0 z-30 bg-ink/50 backdrop-blur-lg lg:hidden"
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
+            data-testid="mobile-sidebar-overlay"
           />
         )}
 

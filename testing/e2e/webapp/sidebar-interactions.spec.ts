@@ -80,29 +80,23 @@ test.describe("Sidebar mobile behavior", () => {
       page.getByRole("heading", { name: "War room operationnelle" }),
     ).toBeVisible();
 
-    const sidebar = page.locator("aside");
-    await expect(sidebar).not.toBeVisible();
+    const sidebarNav = page.getByLabel("Navigation principale");
+    await expect(sidebarNav).not.toBeVisible();
 
     await page.getByLabel("Ouvrir le menu").click();
-    await expect(sidebar).toBeVisible();
+    await expect(sidebarNav).toBeVisible();
 
-    const backdrop = page.locator("[aria-hidden='true']").first();
-    await backdrop.click({ position: { x: 350, y: 300 } });
-    await expect(sidebar).not.toBeVisible();
+    await page.getByTestId("mobile-sidebar-overlay").click();
+    await expect(sidebarNav).not.toBeVisible();
   });
 
   test("clicking overlay backdrop closes mobile sidebar", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/dashboard");
     await page.getByLabel("Ouvrir le menu").click();
-    const sidebar = page.locator("aside");
-    await expect(sidebar).toBeVisible();
-    await page
-      .locator("[aria-hidden='true']")
-      .first()
-      .click({
-        position: { x: 350, y: 300 },
-      });
-    await expect(sidebar).not.toBeVisible();
+    const sidebarNav = page.getByLabel("Navigation principale");
+    await expect(sidebarNav).toBeVisible();
+    await page.getByTestId("mobile-sidebar-overlay").click();
+    await expect(sidebarNav).not.toBeVisible();
   });
 });
