@@ -35,21 +35,22 @@ test.describe("Webapp navigation", () => {
   test("direct navigation to protected routes without auth", async ({
     page,
   }) => {
-    // Each protected route should redirect to login when unauthenticated
     const protectedRoutes = [
       "/dashboard",
       "/donnees",
       "/previsions",
-      "/arbitrage",
-      "/decisions",
+      "/actions",
       "/rapports",
       "/parametres",
+      "/messages",
     ];
 
     for (const route of protectedRoutes) {
-      await page.goto(route);
-      // Should end up at login
-      await expect(page).toHaveURL(/\/login/);
+      await page.goto(route, {
+        waitUntil: "domcontentloaded",
+        timeout: 25_000,
+      });
+      await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
     }
   });
 

@@ -20,7 +20,7 @@ export interface DateRangePickerProps extends Omit<
 const DateRangePicker = React.forwardRef<HTMLDivElement, DateRangePickerProps>(
   ({ value, onChange, minDate, maxDate, className, ...props }, ref) => {
     const inputClasses =
-      "rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-charcoal transition-colors focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100";
+      "rounded-md border border-border bg-card px-3 py-2 text-sm text-ink transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
     function handleFromChange(e: React.ChangeEvent<HTMLInputElement>) {
       const from = e.target.value;
@@ -45,7 +45,7 @@ const DateRangePicker = React.forwardRef<HTMLDivElement, DateRangePickerProps>(
         <div className="flex flex-col gap-1">
           <label
             htmlFor="date-range-from"
-            className="text-xs font-medium text-gray-500"
+            className="text-xs font-medium text-ink-secondary"
           >
             Du
           </label>
@@ -60,12 +60,12 @@ const DateRangePicker = React.forwardRef<HTMLDivElement, DateRangePickerProps>(
           />
         </div>
 
-        <span className="mt-5 text-gray-300">—</span>
+        <span className="mt-5 text-ink-secondary">—</span>
 
         <div className="flex flex-col gap-1">
           <label
             htmlFor="date-range-to"
-            className="text-xs font-medium text-gray-500"
+            className="text-xs font-medium text-ink-secondary"
           >
             Au
           </label>

@@ -9,29 +9,23 @@ describe("sitemap()", () => {
     expect(result.length).toBeGreaterThan(0);
   });
 
-  it("should include the homepage", () => {
+  it("should include the homepage (locale-prefixed)", () => {
     const urls = result.map((entry) => entry.url);
-    expect(urls).toContain("https://www.praedixa.com");
+    expect(urls).toContain("https://www.praedixa.com/fr");
+    expect(urls).toContain("https://www.praedixa.com/en");
   });
 
-  it("should include /devenir-pilote", () => {
+  it("should include pilot page (locale-prefixed)", () => {
     const urls = result.map((entry) => entry.url);
-    expect(urls).toContain("https://www.praedixa.com/devenir-pilote");
+    expect(urls).toContain("https://www.praedixa.com/fr/devenir-pilote");
+    expect(urls).toContain("https://www.praedixa.com/en/pilot-application");
   });
 
-  it("should include /mentions-legales", () => {
+  it("should include legal pages (locale-prefixed)", () => {
     const urls = result.map((entry) => entry.url);
-    expect(urls).toContain("https://www.praedixa.com/mentions-legales");
-  });
-
-  it("should include /confidentialite", () => {
-    const urls = result.map((entry) => entry.url);
-    expect(urls).toContain("https://www.praedixa.com/confidentialite");
-  });
-
-  it("should include /cgu", () => {
-    const urls = result.map((entry) => entry.url);
-    expect(urls).toContain("https://www.praedixa.com/cgu");
+    expect(urls).toContain("https://www.praedixa.com/fr/mentions-legales");
+    expect(urls).toContain("https://www.praedixa.com/fr/confidentialite");
+    expect(urls).toContain("https://www.praedixa.com/fr/cgu");
   });
 
   it("should have lastModified dates on every entry", () => {
@@ -42,14 +36,14 @@ describe("sitemap()", () => {
 
   it("should set homepage priority to 1", () => {
     const homepage = result.find(
-      (entry) => entry.url === "https://www.praedixa.com",
+      (entry) => entry.url === "https://www.praedixa.com/fr",
     );
     expect(homepage?.priority).toBe(1);
   });
 
-  it("should set /devenir-pilote priority to 0.9", () => {
+  it("should set pilot page priority to 0.9", () => {
     const page = result.find(
-      (entry) => entry.url === "https://www.praedixa.com/devenir-pilote",
+      (entry) => entry.url === "https://www.praedixa.com/fr/devenir-pilote",
     );
     expect(page?.priority).toBe(0.9);
   });

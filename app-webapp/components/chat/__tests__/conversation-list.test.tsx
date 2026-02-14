@@ -4,6 +4,14 @@ import { ConversationList } from "../conversation-list";
 
 vi.mock("@praedixa/ui", () => ({
   cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
+  SkeletonCard: ({ className }: { className?: string }) => (
+    <div
+      data-testid="skeleton-card"
+      className={className}
+      role="status"
+      aria-label="Chargement"
+    />
+  ),
   formatRelativeTime: (dateStr: string | null) => {
     if (!dateStr) return "";
     const diffMs = Date.now() - new Date(dateStr).getTime();
@@ -129,23 +137,21 @@ describe("ConversationList", () => {
   it("renders empty state when no conversations", () => {
     render(<ConversationList {...defaultProps} conversations={[]} />);
     expect(screen.getByText("Aucune conversation")).toBeInTheDocument();
-    expect(screen.getByText("Demarrer une conversation")).toBeInTheDocument();
+    expect(screen.getByText("Démarrer une conversation")).toBeInTheDocument();
   });
 
   it("calls onNewConversation from empty state link", () => {
     render(<ConversationList {...defaultProps} conversations={[]} />);
-    fireEvent.click(screen.getByText("Demarrer une conversation"));
+    fireEvent.click(screen.getByText("Démarrer une conversation"));
     expect(defaultProps.onNewConversation).toHaveBeenCalledTimes(1);
   });
 
   /* --- Loading state --- */
 
   it("renders loading skeleton when loading", () => {
-    const { container } = render(
-      <ConversationList {...defaultProps} loading={true} />,
-    );
-    const skeletons = container.querySelectorAll(".animate-pulse");
-    expect(skeletons.length).toBe(3);
+    render(<ConversationList {...defaultProps} loading={true} />);
+    const skeletons = screen.getAllByTestId("skeleton-card");
+    expect(skeletons).toHaveLength(3);
   });
 
   it("does not render conversations when loading", () => {

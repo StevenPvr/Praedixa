@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "pnpm --filter @praedixa/landing dev",
     "dev:landing": "pnpm --filter @praedixa/landing dev",
+    "dev:landing:webpack": "pnpm --filter @praedixa/landing dev:webpack",
     "dev:webapp": "pnpm --filter @praedixa/webapp dev",
     "dev:admin": "pnpm --filter @praedixa/admin dev",
     "dev:api": "cd app-api && uv run alembic upgrade head && uv run uvicorn app.main:app --reload --port 8000",

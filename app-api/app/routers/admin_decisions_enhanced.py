@@ -13,7 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_db_session
+from app.core.dependencies import get_db_session_for_cross_org
 from app.core.security import require_role
 from app.models.admin import AdminAuditAction
 from app.models.operational import OperationalDecision, ProofRecord
@@ -67,7 +67,7 @@ class AdoptionMetricsResponse(CamelModel):
 @router.get("/monitoring/decisions/summary")
 async def decisions_summary(
     request: Request,
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_db_session_for_cross_org),
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> ApiResponse[DecisionSummaryResponse]:
     """Cross-org decision statistics."""
@@ -109,7 +109,7 @@ async def decisions_summary(
 @router.get("/monitoring/decisions/overrides")
 async def decisions_overrides(
     request: Request,
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_db_session_for_cross_org),
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> ApiResponse[OverrideAnalysisResponse]:
     """Override analysis across organizations."""
@@ -176,7 +176,7 @@ async def decisions_overrides(
 @router.get("/monitoring/decisions/adoption")
 async def decisions_adoption(
     request: Request,
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_db_session_for_cross_org),
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> ApiResponse[AdoptionMetricsResponse]:
     """Adoption metrics across organizations."""

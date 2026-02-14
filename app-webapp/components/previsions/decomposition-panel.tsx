@@ -1,7 +1,8 @@
 "use client";
 
 import { memo } from "react";
-import { AreaChart, BarChart } from "@tremor/react";
+import { D3AreaChart } from "@/components/charts";
+import { D3BarChart } from "@/components/charts";
 import { SkeletonChart } from "@praedixa/ui";
 import { DetailCard } from "@/components/ui/detail-card";
 import type { DecompositionResult } from "@/lib/forecast-decomposition";
@@ -37,7 +38,7 @@ export const DecompositionPanel = memo(function DecompositionPanel({
 }: DecompositionPanelProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} data-testid="skeleton-chart-wrapper">
             <SkeletonChart />
@@ -55,7 +56,7 @@ export const DecompositionPanel = memo(function DecompositionPanel({
 
   if (isEmpty) {
     return (
-      <div className="flex items-center justify-center rounded-2xl border border-dashed border-black/[0.15] bg-black/[0.02] p-12">
+      <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-surface-alt p-12">
         <p className="text-sm text-ink-secondary">
           Lancez une prevision pour visualiser la decomposition du signal.
         </p>
@@ -86,20 +87,18 @@ export const DecompositionPanel = memo(function DecompositionPanel({
   }));
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       <Segment
         title="Tendance de fond"
         subtitle="Evolution structurelle des besoins, independamment des variations courtes."
       >
-        <div className="h-48 overflow-hidden rounded-xl border border-black/[0.06] bg-white/[0.70]">
-          <AreaChart
+        <div className="h-48 overflow-hidden rounded-xl border border-border bg-surface-alt">
+          <D3AreaChart
             data={trendData}
             index="date"
             categories={["Tendance"]}
-            colors={["amber"]}
+            colors={["var(--brand)"]}
             valueFormatter={chartValueFormatter}
-            showLegend={false}
-            showGridLines={false}
             curveType="monotone"
             className="h-full"
           />
@@ -110,15 +109,13 @@ export const DecompositionPanel = memo(function DecompositionPanel({
         title="Rythme hebdomadaire"
         subtitle="Cycles operationnels recurrents qui influencent la charge."
       >
-        <div className="h-48 overflow-hidden rounded-xl border border-black/[0.06] bg-white/[0.70]">
-          <BarChart
+        <div className="h-48 overflow-hidden rounded-xl border border-border bg-surface-alt">
+          <D3BarChart
             data={seasonData}
             index="day"
             categories={["Effet"]}
-            colors={["amber"]}
+            colors={["var(--brand)"]}
             valueFormatter={chartValueFormatter}
-            showLegend={false}
-            showGridLines={false}
             className="h-full"
           />
         </div>
@@ -128,15 +125,13 @@ export const DecompositionPanel = memo(function DecompositionPanel({
         title="Evenements ponctuels"
         subtitle="Anomalies ou signaux exceptionnels qui perturbent la tendance normale."
       >
-        <div className="h-48 overflow-hidden rounded-xl border border-black/[0.06] bg-white/[0.70]">
-          <AreaChart
+        <div className="h-48 overflow-hidden rounded-xl border border-border bg-surface-alt">
+          <D3AreaChart
             data={residualData}
             index="date"
             categories={["Residus"]}
-            colors={["amber"]}
+            colors={["var(--brand)"]}
             valueFormatter={chartValueFormatter}
-            showLegend={false}
-            showGridLines={false}
             curveType="monotone"
             className="h-full"
           />
@@ -147,15 +142,18 @@ export const DecompositionPanel = memo(function DecompositionPanel({
         title="Fourchette de confiance"
         subtitle="Amplitude d'incertitude autour de la prediction centrale."
       >
-        <div className="h-48 overflow-hidden rounded-xl border border-black/[0.06] bg-white/[0.70]">
-          <AreaChart
+        <div className="h-48 overflow-hidden rounded-xl border border-border bg-surface-alt">
+          <D3AreaChart
             data={confidenceData}
             index="date"
             categories={["Prevision", "Borne basse", "Borne haute"]}
-            colors={["amber", "gray", "gray"]}
+            colors={[
+              "var(--brand)",
+              "var(--ink-tertiary)",
+              "var(--ink-tertiary)",
+            ]}
             valueFormatter={chartValueFormatter}
-            showLegend={false}
-            showGridLines={false}
+            showLegend
             curveType="monotone"
             className="h-full"
           />

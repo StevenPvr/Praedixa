@@ -15,17 +15,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_db_session, get_tenant_filter
-from app.core.pagination import calculate_total_pages
 from app.core.security import TenantFilter, require_role
 from app.models.conversation import ConversationInitiator, ConversationStatus
-from app.schemas.base import PaginationMeta
 from app.schemas.conversation import (
     ConversationCreate,
     ConversationRead,
     MessageCreate,
     MessageRead,
 )
-from app.schemas.responses import ApiResponse, PaginatedResponse
+from app.schemas.responses import (
+    ApiResponse,
+    PaginatedResponse,
+    make_paginated_response,
+)
 from app.services.conversation_service import (
     create_conversation,
     create_message,
@@ -60,21 +62,8 @@ async def list_user_conversations(
         page_size=page_size,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[ConversationRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [ConversationRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.post("")
@@ -158,21 +147,8 @@ async def list_conversation_messages(
         page_size=page_size,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[MessageRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [MessageRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.post("/{conv_id}/messages")

@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import type { Page } from "@playwright/test";
 
 // ─────────────────────────────────────────────────
@@ -105,8 +106,8 @@ export async function setupAdminAuth(page: Page): Promise<void> {
     {
       name: cookieName,
       value: cookieValue,
-      domain: "localhost",
-      path: "/",
+      // domain: "localhost",
+      url: "http://localhost:3002",
       httpOnly: false,
       secure: false,
       sameSite: "Lax",

@@ -12,17 +12,22 @@ Security notes:
 - get_admin_tenant_filter builds a TenantFilter scoped to an admin-specified
   org_id path parameter. Only accessible to super_admin users. It overrides
   the RLS org_id to the target org so admin queries are RLS-scoped correctly.
+- get_db_session_for_cross_org: use for super_admin cross-org read-only
+  endpoints (summary/stats). Enables RLS bypass so SELECT policies return
+  rows from all organizations. Write operations remain tenant-scoped.
 - Database session is imported from database.py (single source of truth).
 - User context is stored on request.state for the audit middleware to read
   without re-decoding the JWT (avoids double verification overhead).
 """
 
 import uuid
+from collections.abc import AsyncGenerator
 
 from fastapi import Depends, Request
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload, extract_token, verify_jwt
-from app.core.database import get_db_session, set_rls_org_id
+from app.core.database import get_db_session, set_bypass_rls_for_admin, set_rls_org_id
 from app.core.security import SiteFilter, TenantFilter, require_role
 
 # Re-export get_db_session so routers can import all deps from one place
@@ -30,6 +35,7 @@ __all__ = [
     "get_admin_tenant_filter",
     "get_current_user",
     "get_db_session",
+    "get_db_session_for_cross_org",
     "get_site_filter",
     "get_tenant_filter",
 ]
@@ -79,6 +85,30 @@ def get_site_filter(
     no site filtering is applied — the user sees all sites.
     """
     return SiteFilter(current_user.site_id)
+
+
+def require_super_admin_cross_org(
+    current_user: JWTPayload = Depends(require_role("super_admin")),
+) -> JWTPayload:
+    """Require super_admin and enable RLS bypass for cross-org read-only queries.
+
+    Use with get_db_session_for_cross_org so the session executes
+    SET LOCAL app.bypass_rls = 'true'. Only SELECT policies allow the bypass.
+    """
+    set_bypass_rls_for_admin(True)
+    return current_user
+
+
+async def get_db_session_for_cross_org(
+    _current_user: JWTPayload = Depends(require_super_admin_cross_org),
+) -> AsyncGenerator[AsyncSession, None]:
+    """Database session for super_admin cross-org summary endpoints.
+
+    Depends on require_super_admin_cross_org so RLS bypass is set before
+    the session is created. Use only for read-only aggregate endpoints.
+    """
+    async for session in get_db_session():
+        yield session
 
 
 def get_admin_tenant_filter(

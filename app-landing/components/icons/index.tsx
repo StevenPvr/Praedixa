@@ -167,6 +167,25 @@ export function ShieldCheckIcon({ className }: IconProps) {
   );
 }
 
+export function PlusIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 5v14m7-7H5"
+      />
+    </svg>
+  );
+}
+
 export function LockIcon({ className }: IconProps) {
   return (
     <svg

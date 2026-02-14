@@ -14,6 +14,19 @@ const { mockToast } = vi.hoisted(() => ({
   mockToast: vi.fn(),
 }));
 
+const { ACTION_MESSAGES } = vi.hoisted(() => ({
+  ACTION_MESSAGES: {
+    "actions.title": "Centre de traitement",
+    "actions.subtitle":
+      "Traitez les alertes dans l'ordre d'impact operationnel",
+    "actions.queueEmptyTitle": "Aucune alerte active",
+    "actions.queueEmptyDescription": "Tous vos sites sont couverts.",
+    "actions.validate": "Valider cette solution",
+    "actions.successTitle": "Decision enregistree",
+    "actions.successDescription": "La solution a ete validee et historisee.",
+  } as Record<string, string>,
+}));
+
 vi.mock("next/navigation", () =>
   globalThis.__mocks.createNextNavigationMocks({ pathname: "/actions" }),
 );
@@ -35,6 +48,14 @@ vi.mock("@/lib/product-events", () => ({
   trackProductEvent: vi.fn(),
 }));
 
+vi.mock("@/lib/i18n/provider", () => ({
+  useI18n: () => ({
+    t: (key: string) => ACTION_MESSAGES[key] ?? key,
+    locale: "fr" as const,
+    setLocale: vi.fn(),
+  }),
+}));
+
 vi.mock("@praedixa/ui", () => ({
   Button: ({
     children,
@@ -45,6 +66,17 @@ vi.mock("@praedixa/ui", () => ({
   }) => <button {...props}>{children}</button>,
   SkeletonCard: () => <div data-testid="skeleton-card" />,
   SkeletonChart: () => <div data-testid="skeleton-chart" />,
+  Card: ({
+    children,
+    ...props
+  }: {
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) => (
+    <div data-testid="card" {...props}>
+      {children}
+    </div>
+  ),
   cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
 }));
 
@@ -113,6 +145,12 @@ vi.mock("@/components/actions/optimization-panel", () => ({
 vi.mock("@/components/animated-section", () => ({
   AnimatedSection: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="animated-section">{children}</div>
+  ),
+}));
+
+vi.mock("@/components/page-transition", () => ({
+  PageTransition: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
   ),
 }));
 

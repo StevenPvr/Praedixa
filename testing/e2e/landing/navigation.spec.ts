@@ -2,12 +2,12 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Landing navigation", () => {
   test("loads homepage and has correct title", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/fr");
     await expect(page).toHaveTitle(/Praedixa/);
   });
 
   test("navbar is visible and contains logo", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/fr");
     const nav = page.locator("nav").first();
     await expect(nav).toBeVisible();
     // Logo text should be present
@@ -15,14 +15,14 @@ test.describe("Landing navigation", () => {
   });
 
   test("navbar has navigation links", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/fr");
     const navLinks = page.locator("nav a");
     const count = await navLinks.count();
     expect(count).toBeGreaterThan(0);
   });
 
   test("CTA button is visible", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/fr");
     const cta = page.getByRole("link", {
       name: /pilote|demo|contact|diagnostic/i,
     });
@@ -30,15 +30,32 @@ test.describe("Landing navigation", () => {
   });
 
   test("scrolls to sections via anchor links", async ({ page }) => {
-    await page.goto("/");
-    // Look for anchor links that scroll to sections (href starting with #)
+    await page.goto("/fr");
+    // Dismiss tarteaucitron if it blocks nav links
+    const tarteaucitronRoot = page.locator("#tarteaucitronRoot");
+    if (await tarteaucitronRoot.isVisible().catch(() => false)) {
+      const acceptBtn = page
+        .locator("#tarteaucitronAllAllowed2, [id^='tarteaucitronAllAllowed']")
+        .or(
+          page.getByRole("button", {
+            name: /tout accepter|accept all|accepter/i,
+          }),
+        );
+      await acceptBtn
+        .first()
+        .click({ timeout: 2000 })
+        .catch(() => {});
+      await tarteaucitronRoot
+        .waitFor({ state: "hidden", timeout: 3000 })
+        .catch(() => {});
+    }
     const anchorLinks = page.locator('nav a[href^="#"]');
     const count = await anchorLinks.count();
     if (count > 0) {
       const firstAnchor = anchorLinks.first();
       const href = await firstAnchor.getAttribute("href");
       const initialScrollY = await page.evaluate(() => window.scrollY);
-      await firstAnchor.click();
+      await firstAnchor.click({ force: true });
 
       if (href && href.startsWith("#")) {
         const escapedHref = href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -53,7 +70,7 @@ test.describe("Landing navigation", () => {
 
   test("mobile menu works on small viewport", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto("/");
+    await page.goto("/fr");
     // Navigation should still be present (first nav = header)
     await expect(page.locator("nav").first()).toBeVisible();
     // Look for a mobile toggle (hamburger) button in the header nav
@@ -65,13 +82,14 @@ test.describe("Landing navigation", () => {
   });
 
   test("footer is visible at bottom of page", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/fr");
     const footer = page.locator("footer");
+    await footer.scrollIntoViewIfNeeded();
     await expect(footer).toBeVisible();
   });
 
   test("all major sections are rendered", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/fr");
     // The landing has 8 sections: Hero, Problem, Solution, Pipeline, Deliverables, Pilot, FAQ, Contact
     // Verify the page has substantial content
     const body = page.locator("body");

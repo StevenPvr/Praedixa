@@ -11,11 +11,11 @@ test.describe("Donnees page", () => {
   test("displays page title and subtitle", async ({ page }) => {
     await page.goto("/donnees");
     await expect(
-      page.getByRole("heading", { name: "Referentiel operationnel", level: 1 }),
+      page.getByRole("heading", { name: "Référentiel opérationnel", level: 1 }),
     ).toBeVisible();
     await expect(
       page.getByText(
-        "Verifiez la fiabilite des donnees qui alimentent vos arbitrages quotidiens.",
+        /Vérifiez la fiabilité des données qui alimentent vos arbitrages quotidiens/,
       ),
     ).toBeVisible();
   });
@@ -24,7 +24,7 @@ test.describe("Donnees page", () => {
     await page.goto("/donnees");
 
     await expect(
-      page.getByText("Lignes de donnees", { exact: true }),
+      page.getByText("Lignes de données", { exact: true }),
     ).toBeVisible();
     await expect(
       page.getByText("Taux de remplissage", { exact: true }),
@@ -33,7 +33,7 @@ test.describe("Donnees page", () => {
       page.getByText("Absence moyenne", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByText("Postes non renseignes", { exact: true }),
+      page.getByText("Postes non renseignés", { exact: true }),
     ).toBeVisible();
     await expect(page.getByText("54000")).toBeVisible();
   });
@@ -85,8 +85,7 @@ test.describe("Donnees page", () => {
     );
 
     await page.goto("/donnees");
-    await expect(
-      page.getByText("Aucune donnee disponible pour les filtres selectionnes."),
-    ).toBeVisible();
+    // Empty canonical returns EmptyState with title/description, not DataTable emptyMessage
+    await expect(page.getByText(/Aucune donnee.*filtres/)).toBeVisible();
   });
 });

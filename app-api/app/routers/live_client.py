@@ -17,12 +17,10 @@ from app.core.dependencies import (
     get_site_filter,
     get_tenant_filter,
 )
-from app.core.pagination import calculate_total_pages
 from app.core.security import SiteFilter, TenantFilter
 from app.models.daily_forecast import ForecastDimension
 from app.models.forecast_run import ForecastStatus
 from app.models.operational import CoverageAlertSeverity, CoverageAlertStatus, Horizon
-from app.schemas.base import PaginationMeta
 from app.schemas.dashboard import DashboardSummaryResponse
 from app.schemas.forecast import DailyForecastRead, ForecastRunSummary
 from app.schemas.operational import (
@@ -31,7 +29,11 @@ from app.schemas.operational import (
     CoverageAlertRead,
     ProofRecordRead,
 )
-from app.schemas.responses import ApiResponse, PaginatedResponse
+from app.schemas.responses import (
+    ApiResponse,
+    PaginatedResponse,
+    make_paginated_response,
+)
 from app.services.gold_live_data import (
     build_canonical_quality,
     build_canonical_records,
@@ -193,20 +195,8 @@ async def list_live_canonical_records(
     )
     records = build_canonical_records(rows=rows, organization_id=org_id)
     page_items, total = _paginate(records, page, page_size)
-    total_pages = calculate_total_pages(total, page_size)
-    return PaginatedResponse(
-        success=True,
-        data=[CanonicalRecordRead.model_validate(item) for item in page_items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [CanonicalRecordRead.model_validate(item) for item in page_items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/canonical/quality")
@@ -259,20 +249,8 @@ async def list_live_coverage_alerts(
         alerts = [alert for alert in alerts if alert["horizon"] == horizon]
 
     page_items, total = _paginate(alerts, page, page_size)
-    total_pages = calculate_total_pages(total, page_size)
-    return PaginatedResponse(
-        success=True,
-        data=[CoverageAlertRead.model_validate(item) for item in page_items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [CoverageAlertRead.model_validate(item) for item in page_items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/proof")
@@ -293,17 +271,5 @@ async def list_live_proof_records(
     )
     records = build_proof_records(rows=rows, organization_id=org_id)
     page_items, total = _paginate(records, page, page_size)
-    total_pages = calculate_total_pages(total, page_size)
-    return PaginatedResponse(
-        success=True,
-        data=[ProofRecordRead.model_validate(item) for item in page_items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [ProofRecordRead.model_validate(item) for item in page_items]
+    return make_paginated_response(data, total, page, page_size)

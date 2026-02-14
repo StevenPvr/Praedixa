@@ -54,7 +54,7 @@ describe("EmptyState", () => {
       expect(screen.getByText("Aucune donnee disponible.")).toBeInTheDocument();
     });
 
-    it("has dashed border and rounded-xl", () => {
+    it("has dashed border and rounded-lg", () => {
       const { container } = render(
         <EmptyState
           icon={<TestIcon />}
@@ -64,10 +64,10 @@ describe("EmptyState", () => {
       );
       const wrapper = container.firstChild as HTMLElement;
       expect(wrapper.className).toContain("border-dashed");
-      expect(wrapper.className).toContain("rounded-xl");
+      expect(wrapper.className).toContain("rounded-lg");
     });
 
-    it("renders icon circle with bg-gray-100 and rounded-full", () => {
+    it("renders icon in a large muted brand background container", () => {
       const { container } = render(
         <EmptyState
           icon={<TestIcon />}
@@ -75,9 +75,9 @@ describe("EmptyState", () => {
           description="Description"
         />,
       );
-      const circle = container.querySelector(".rounded-full");
-      expect(circle).toBeInTheDocument();
-      expect(circle?.className).toContain("bg-gray-100");
+      const iconContainer = container.querySelector(".rounded-2xl");
+      expect(iconContainer).toBeInTheDocument();
+      expect(iconContainer?.className).toContain("brand-subtle");
     });
   });
 

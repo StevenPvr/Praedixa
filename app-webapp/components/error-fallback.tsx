@@ -1,17 +1,22 @@
 "use client";
 
-import { AlertTriangle, RefreshCw, WifiOff, Inbox } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+  AlertTriangle,
+  RefreshCw,
+  WifiOff,
+  Inbox,
+  ShieldX,
+} from "lucide-react";
+import { cn } from "@praedixa/ui";
+import { fadeScale } from "@/lib/animations/config";
 
-/* ────────────────────────────────────────────── */
-/*  Variant types                                 */
-/* ────────────────────────────────────────────── */
+/* ── Variant types ── */
 
-type ErrorVariant = "network" | "api" | "empty";
+type ErrorVariant = "network" | "api" | "empty" | "permission";
 
 interface ErrorFallbackBaseProps {
-  /** Custom message to display */
   message?: string;
-  /** Retry handler — shows "Reessayer" button when provided */
   onRetry?: () => void;
 }
 
@@ -21,15 +26,18 @@ interface NetworkErrorProps extends ErrorFallbackBaseProps {
 
 interface ApiErrorProps extends ErrorFallbackBaseProps {
   variant: "api";
-  /** Technical detail shown below the main message */
   detail?: string;
 }
 
 interface EmptyDataProps extends ErrorFallbackBaseProps {
   variant: "empty";
-  /** CTA label for the empty state button */
   ctaLabel?: string;
-  /** CTA handler */
+  onAction?: () => void;
+}
+
+interface PermissionErrorProps extends ErrorFallbackBaseProps {
+  variant: "permission";
+  ctaLabel?: string;
   onAction?: () => void;
 }
 
@@ -41,11 +49,10 @@ export type ErrorFallbackProps =
   | NetworkErrorProps
   | ApiErrorProps
   | EmptyDataProps
+  | PermissionErrorProps
   | DefaultErrorProps;
 
-/* ────────────────────────────────────────────── */
-/*  Variant configs                               */
-/* ────────────────────────────────────────────── */
+/* ── Variant configs ── */
 
 const variantConfig: Record<
   ErrorVariant,
@@ -59,90 +66,135 @@ const variantConfig: Record<
 > = {
   network: {
     icon: WifiOff,
-    iconBg: "bg-warning-50",
-    iconColor: "text-warning-600",
+    iconBg: "bg-warning-light",
+    iconColor: "text-warning",
     defaultTitle: "Connexion perdue",
     defaultMessage:
       "Impossible de contacter le serveur. Verifiez votre connexion internet et reessayez.",
   },
   api: {
     icon: AlertTriangle,
-    iconBg: "bg-danger-50",
-    iconColor: "text-danger-500",
+    iconBg: "bg-danger-light",
+    iconColor: "text-danger",
     defaultTitle: "Erreur de chargement",
     defaultMessage: "Une erreur est survenue lors du chargement des donnees.",
   },
   empty: {
     icon: Inbox,
-    iconBg: "bg-gray-50",
-    iconColor: "text-gray-400",
+    iconBg: "bg-surface-interactive",
+    iconColor: "text-ink-tertiary",
     defaultTitle: "Aucune donnee",
     defaultMessage: "Aucune donnee a afficher pour le moment.",
   },
+  permission: {
+    icon: ShieldX,
+    iconBg: "bg-warning-light",
+    iconColor: "text-warning",
+    defaultTitle: "Acces restreint",
+    defaultMessage:
+      "Vous n'avez pas les permissions necessaires pour acceder a cette ressource.",
+  },
 };
 
-/* ────────────────────────────────────────────── */
-/*  Component                                     */
-/* ────────────────────────────────────────────── */
+/* ── Component ── */
 
 export function ErrorFallback(props: ErrorFallbackProps) {
   const variant = props.variant ?? "api";
   const config = variantConfig[variant];
   const Icon = config.icon;
-
   const message = props.message ?? config.defaultMessage;
 
+  const isCritical = variant === "api" || variant === "network";
+
   return (
-    <div className="flex flex-col items-center justify-center rounded-card border border-gray-200 bg-card px-6 py-12">
+    <motion.div
+      variants={fadeScale}
+      initial="hidden"
+      animate="visible"
+      role="alert"
+      aria-labelledby="error-fallback-title"
+      aria-describedby="error-fallback-desc"
+      className={cn(
+        "flex flex-col items-center justify-center rounded-xl border px-8 py-16",
+        "surface-card shadow-raised",
+        isCritical && "glow-danger border-danger-light",
+      )}
+    >
       <div
-        className={`flex h-12 w-12 items-center justify-center rounded-full ${config.iconBg}`}
+        className={cn(
+          "flex h-16 w-16 items-center justify-center rounded-2xl",
+          config.iconBg,
+        )}
       >
-        <Icon className={`h-6 w-6 ${config.iconColor}`} aria-hidden="true" />
+        <Icon className={cn("h-7 w-7", config.iconColor)} aria-hidden="true" />
       </div>
-      <p className="mt-4 text-sm font-medium text-charcoal">
+      <h2 id="error-fallback-title" className="mt-5 text-heading-sm text-ink">
         {config.defaultTitle}
-      </p>
-      <p className="mt-1 max-w-sm text-center text-sm text-gray-500">
+      </h2>
+      <p
+        id="error-fallback-desc"
+        className="mt-1.5 max-w-sm text-center text-body-sm text-ink-secondary"
+      >
         {message}
       </p>
 
-      {/* API variant: technical detail */}
       {variant === "api" && "detail" in props && props.detail && (
-        <p className="mt-2 max-w-md rounded-md bg-gray-50 px-3 py-2 font-mono text-xs text-gray-400">
+        <p className="mt-3 max-w-md rounded-lg bg-surface-sunken px-4 py-2.5 font-mono text-caption text-ink-tertiary">
           {props.detail}
         </p>
       )}
 
-      {/* Retry button — shown for network and api variants, or when onRetry is provided */}
       {props.onRetry && (
         <button
+          type="button"
           onClick={props.onRetry}
-          className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-charcoal transition-colors hover:bg-gray-50"
+          aria-label="Reessayer le chargement"
+          className={cn(
+            "mt-6 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg",
+            "bg-primary px-6 py-2.5",
+            "text-body-sm font-semibold text-white shadow-raised",
+            "transition-all duration-fast",
+            "hover:brightness-110 hover:shadow-floating",
+            "active:scale-[0.97]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+          )}
         >
           <RefreshCw className="h-4 w-4" aria-hidden="true" />
           Reessayer
         </button>
       )}
 
-      {/* Empty state CTA */}
-      {variant === "empty" && "onAction" in props && props.onAction && (
-        <button
-          onClick={props.onAction}
-          className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-amber-400"
-        >
-          {"ctaLabel" in props && props.ctaLabel ? props.ctaLabel : "Commencer"}
-        </button>
-      )}
+      {(variant === "empty" || variant === "permission") &&
+        "onAction" in props &&
+        props.onAction && (
+          <button
+            onClick={props.onAction}
+            className={cn(
+              "mt-5 inline-flex min-h-[44px] items-center gap-2 rounded-lg",
+              "bg-primary px-6 py-2.5",
+              "text-body-sm font-semibold text-white shadow-raised",
+              "transition-all duration-fast",
+              "hover:brightness-110 hover:shadow-floating",
+              "active:scale-[0.97]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+            )}
+          >
+            {"ctaLabel" in props && props.ctaLabel
+              ? props.ctaLabel
+              : variant === "permission"
+                ? "Demander l'acces"
+                : "Commencer"}
+          </button>
+        )}
 
-      {/* API variant: support link */}
       {variant === "api" && (
         <a
           href="mailto:support@praedixa.com"
-          className="mt-3 text-xs text-gray-400 underline underline-offset-2 transition-colors hover:text-gray-600"
+          className="mt-4 text-caption text-ink-tertiary underline underline-offset-2 transition-colors duration-fast hover:text-ink"
         >
           Contacter le support
         </a>
       )}
-    </div>
+    </motion.div>
   );
 }

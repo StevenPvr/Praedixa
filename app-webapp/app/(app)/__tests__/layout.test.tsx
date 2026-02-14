@@ -56,6 +56,11 @@ vi.mock("@/components/toast-provider", () => ({
   ),
 }));
 
+// Mock ThemeToggle
+vi.mock("@/components/theme-toggle", () => ({
+  ThemeToggle: () => <button data-testid="theme-toggle">Theme</button>,
+}));
+
 describe("AppLayout", () => {
   beforeEach(() => {
     mockUseMediaQuery.mockReturnValue(false);
@@ -80,13 +85,13 @@ describe("AppLayout", () => {
     expect(screen.getByRole("banner")).toBeInTheDocument();
   });
 
-  it("renders the Compte client text in the top bar", () => {
+  it("renders the section label in the top bar", () => {
     render(
       <AppLayout>
         <div>Content</div>
       </AppLayout>,
     );
-    expect(screen.getByText("Compte client")).toBeInTheDocument();
+    expect(screen.getByText("Centre de pilotage")).toBeInTheDocument();
   });
 
   it("renders the user avatar with initial from email", () => {
@@ -176,6 +181,6 @@ describe("AppLayout", () => {
       </AppLayout>,
     );
     const main = screen.getByRole("main");
-    expect(main).toHaveClass("p-6");
+    expect(main.className).toMatch(/px-|py-|p-/);
   });
 });

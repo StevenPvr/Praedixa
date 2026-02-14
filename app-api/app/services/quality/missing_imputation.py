@@ -1,7 +1,4 @@
-"""Stages 2-3: Missing value classification (MCAR vs MAR) and imputation.
-
-All imputation is strictly causal -- no future data is ever used.
-"""
+"""MCAR/MAR classification and causal imputation."""
 
 from __future__ import annotations
 
@@ -32,25 +29,12 @@ __all__ = [
 ]
 
 
-# ── Stage 2: Missing Value Classification ────────────────────────
-
-
 def classify_missing(
     rows: list[dict[str, Any]],
     col_name: str,
     temporal_index: str,
     group_by_columns: list[str] | None,
 ) -> str:
-    """Classify the missing value mechanism for a column.
-
-    Uses two heuristics:
-    1. Temporal: if missing rate varies > 3x across weeks -> MAR
-    2. Group: if missing rate varies > 3x across groups -> MAR
-    3. Default: MCAR
-
-    Returns:
-        "mcar" or "mar"
-    """
     if len(rows) <= 1:
         return "mcar"
 
@@ -68,7 +52,6 @@ def is_mar_temporal(
     col_name: str,
     temporal_index: str,
 ) -> bool:
-    """Check if missing values cluster temporally (MAR heuristic)."""
     week_total: dict[tuple[int, int], int] = {}
     week_missing: dict[tuple[int, int], int] = {}
 
@@ -93,7 +76,6 @@ def is_mar_group(
     col_name: str,
     group_by_columns: list[str],
 ) -> bool:
-    """Check if missing values cluster by group (MAR heuristic)."""
     group_total: dict[tuple[Any, ...], int] = {}
     group_missing: dict[tuple[Any, ...], int] = {}
 
@@ -112,9 +94,6 @@ def is_mar_group(
     return ratio_exceeds_threshold(group_rates)
 
 
-# ── Stage 3: Imputation ─────────────────────────────────────────
-
-
 def impute_column(
     rows: list[dict[str, Any]],
     col_name: str,
@@ -124,14 +103,6 @@ def impute_column(
     config: QualityConfig,
     overrides: dict[str, Any],
 ) -> tuple[str, int, int]:
-    """Apply the appropriate imputation strategy for a column.
-
-    Mutates ``rows`` in place (removes rows for MCAR deletion, fills values
-    for imputation).
-
-    Returns:
-        (strategy_name, imputed_count, deleted_row_count)
-    """
     threshold = overrides.get(
         "missing_threshold_delete", config.missing_threshold_delete
     )
@@ -143,14 +114,12 @@ def impute_column(
     missing_pct = missing_count / len(rows)
 
     if missing_type == "mcar" and missing_pct < threshold:
-        # MCAR below threshold: delete rows with missing values
         original_len = len(rows)
         rows[:] = [r for r in rows if r.get(col_name) is not None]
         deleted = original_len - len(rows)
         return "delete", 0, deleted
 
     if missing_type == "mar":
-        # MAR: group-aware imputation (never delete)
         imputed = impute_mar(
             rows,
             col_name,
@@ -161,7 +130,6 @@ def impute_column(
         strategy = "group_median" if group_by_columns else "ffill"
         return strategy, imputed, 0
 
-    # MCAR above threshold: causal temporal imputation
     imputed = impute_mcar_temporal(rows, col_name, temporal_index, window_days)
     strategy = "ffill" if imputed > 0 else "rolling_median"
     return strategy, imputed, 0
@@ -173,16 +141,6 @@ def impute_mcar_temporal(
     temporal_index: str,
     window_days: int,
 ) -> int:
-    """Causal temporal imputation for MCAR columns above threshold.
-
-    Strategy (applied in temporal order -- NO look-ahead):
-    1. Forward-fill: propagate last known value
-    2. Rolling causal median for values still missing (beginning of series)
-    3. Leave as None if no past data exists at all
-
-    Returns:
-        Number of values imputed.
-    """
     imputed = 0
     last_known: Any = None
 
@@ -192,16 +150,11 @@ def impute_mcar_temporal(
             last_known = val
             continue
 
-        # Step 1: Forward-fill
         if last_known is not None:
             row[col_name] = last_known
             imputed += 1
             continue
 
-        # Step 2: Causal rolling median (only past rows)
-        # At this point, last_known is None, meaning we're at the
-        # beginning of the series. Collect all non-None values from
-        # rows already processed up to this point.
         row_date = normalize_date(row.get(temporal_index))
         if row_date is not None:
             past_vals = collect_past_values(
@@ -217,8 +170,6 @@ def impute_mcar_temporal(
                 imputed += 1
                 last_known = median_val
 
-        # Step 3: Leave as None -- we have no past data to draw from
-
     return imputed
 
 
@@ -229,16 +180,6 @@ def impute_mar(
     group_by_columns: list[str] | None,
     window_days: int,
 ) -> int:
-    """Group-aware imputation for MAR columns. Never deletes rows.
-
-    Strategy (in temporal order -- NO look-ahead):
-    1. Forward-fill within the same group
-    2. Group median over past temporal window
-    3. Global causal median as final fallback
-
-    Returns:
-        Number of values imputed.
-    """
     if group_by_columns:
         return impute_mar_grouped(
             rows,
@@ -247,7 +188,6 @@ def impute_mar(
             group_by_columns,
             window_days,
         )
-    # No groups -- forward-fill + global causal median
     return impute_forward_fill(
         rows,
         col_name,
@@ -263,7 +203,6 @@ def impute_mar_grouped(
     group_by_columns: list[str],
     window_days: int,
 ) -> int:
-    """MAR imputation with group-aware forward-fill and median."""
     imputed = 0
     group_last: dict[tuple[Any, ...], Any] = {}
 
@@ -310,7 +249,6 @@ def try_group_ffill(
     group_key: tuple[Any, ...],
     group_last: dict[tuple[Any, ...], Any],
 ) -> bool:
-    """Forward-fill from last known value in group. Returns True if filled."""
     if group_key in group_last and group_last[group_key] is not None:
         row[col_name] = group_last[group_key]
         return True
@@ -327,7 +265,6 @@ def try_group_median(
     group_last: dict[tuple[Any, ...], Any],
     window_days: int,
 ) -> bool:
-    """Try group median over past window. Returns True if filled."""
     row_date = normalize_date(row.get(temporal_index))
     if row_date is None:
         return False
@@ -357,7 +294,6 @@ def try_global_median(
     group_last: dict[tuple[Any, ...], Any],
     window_days: int,
 ) -> bool:
-    """Try global causal median as final fallback. Returns True if filled."""
     row_date = normalize_date(row.get(temporal_index))
     if row_date is None:
         return False
@@ -382,7 +318,6 @@ def impute_forward_fill(
     temporal_index: str,
     window_days: int,
 ) -> int:
-    """Forward-fill + global causal median (no group awareness)."""
     imputed = 0
     last_known: Any = None
 

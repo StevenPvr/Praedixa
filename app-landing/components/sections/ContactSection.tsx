@@ -2,78 +2,58 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { cn } from "@praedixa/ui";
-import { siteConfig } from "../../lib/config/site";
-import {
-  staggerContainer,
-  staggerItem,
-  viewportOnce,
-} from "../../lib/animations/variants";
-import { TRUST_ITEMS } from "../../lib/content/contact-content";
-import { BoltIcon, MailIcon, CheckIcon } from "../icons";
+import { sectionReveal, viewportOnce } from "../../lib/animations/variants";
+import { ArrowRightIcon, MailIcon } from "../icons";
+import type { Dictionary } from "../../lib/i18n/types";
+import type { Locale } from "../../lib/i18n/config";
+import { localizedSlugs } from "../../lib/i18n/config";
 
 interface ContactSectionProps {
-  className?: string;
+  dict: Dictionary;
+  locale: Locale;
 }
 
-export function ContactSection({ className }: ContactSectionProps) {
+export function ContactSection({ dict, locale }: ContactSectionProps) {
+  const { contact } = dict;
+  const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
+  const contactHref = `/${locale}/${localizedSlugs.contact[locale]}`;
+
   return (
-    <motion.section
-      id="contact"
-      className={cn("bg-charcoal py-24 text-white md:py-28", className)}
-      variants={staggerContainer}
-      initial="hidden"
-      whileInView="visible"
-      viewport={viewportOnce}
-    >
+    <section id="contact" className="section-spacing">
       <div className="section-shell">
         <motion.div
-          className="premium-card border-white/10 bg-white/[0.04] px-6 py-10 md:px-10"
-          variants={staggerItem}
+          className="mx-auto max-w-2xl text-center"
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
         >
-          <p className="section-kicker text-amber-300">Passer à l'action</p>
-          <h2 className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl">
-            Planifiez votre qualification exécutive
-          </h2>
-          <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/75">
-            En 30 minutes, nous cadrons un périmètre réaliste, le niveau de
-            criticité, et la valeur attendue d'une première boucle de décision.
-          </p>
+          <p className="section-kicker justify-center">{contact.kicker}</p>
+          <h2 className="section-title mt-4">{contact.heading}</h2>
+          <p className="section-lead mx-auto">{contact.subheading}</p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              href="/devenir-pilote"
-              className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-7 py-3.5 text-sm font-semibold text-charcoal transition hover:bg-amber-400"
-            >
-              <BoltIcon className="h-4 w-4" />
-              Demander une qualification pilote
-            </Link>
-            <a
-              href={`mailto:${siteConfig.contact.email}?subject=Programme%20pilote%20Praedixa`}
-              className="inline-flex items-center gap-2 rounded-full border border-white/25 px-6 py-3.5 text-sm font-semibold text-white/85 transition hover:border-white/45"
-            >
-              <MailIcon className="h-4 w-4" />
-              Écrire à l'équipe
-            </a>
-          </div>
-
-          <p className="mt-4 text-xs font-medium uppercase tracking-wide text-white/60">
-            Qualification sous 24h ouvrées • Cohorte limitée • Sans engagement
-          </p>
-
-          <div className="mt-8 grid gap-2.5 md:grid-cols-2">
-            {TRUST_ITEMS.map((item) => (
-              <div
-                key={item}
-                className="flex items-center gap-2 text-sm text-white/70"
-              >
-                <CheckIcon className="h-4 w-4 text-amber-300" />
+          {/* Trust items */}
+          <ul className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2">
+            {contact.trustItems.map((item) => (
+              <li key={item} className="trust-badge">
                 {item}
-              </div>
+              </li>
             ))}
+          </ul>
+
+          {/* CTAs */}
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link href={pilotHref} className="btn-primary">
+              {contact.ctaPrimary}
+              <ArrowRightIcon className="h-4 w-4" />
+            </Link>
+            <Link href={contactHref} className="btn-ghost">
+              <MailIcon className="h-4 w-4" />
+              {contact.ctaSecondary}
+            </Link>
           </div>
         </motion.div>
       </div>
-    </motion.section>
+    </section>
   );
 }

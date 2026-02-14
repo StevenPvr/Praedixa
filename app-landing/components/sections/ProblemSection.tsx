@@ -1,71 +1,90 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { cn } from "@praedixa/ui";
 import {
+  sectionReveal,
   staggerContainer,
   staggerItem,
   viewportOnce,
 } from "../../lib/animations/variants";
-import { PAIN_POINTS } from "../../lib/content/problem-content";
+import { CheckIcon } from "../icons";
+import type { Dictionary } from "../../lib/i18n/types";
 
 interface ProblemSectionProps {
-  className?: string;
+  dict: Dictionary;
 }
 
-const cardAccents = ["8%", "12%", "6%"] as const;
+export function ProblemSection({ dict }: ProblemSectionProps) {
+  const { problem } = dict;
 
-export function ProblemSection({ className }: ProblemSectionProps) {
   return (
-    <motion.section
-      id="problem"
-      className={cn("py-24 md:py-28", className)}
-      variants={staggerContainer}
-      initial="hidden"
-      whileInView="visible"
-      viewport={viewportOnce}
-    >
+    <section id="problem" className="section-spacing">
       <div className="section-shell">
-        <motion.div className="max-w-4xl" variants={staggerItem}>
-          <p className="section-kicker">Pourquoi maintenant</p>
-          <h2 className="section-title mt-4">
-            Le coût de la sous-couverture n'est plus un sujet secondaire.
-          </h2>
-          <p className="section-lead">
-            Les opérations multi-sites évoluent dans un contexte de variabilité
-            forte. Sans cadre d'anticipation, les arbitrages deviennent plus
-            chers, plus défensifs et moins démontrables.
-          </p>
+        <motion.div
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
+          <p className="section-kicker">{problem.kicker}</p>
+          <h2 className="section-title mt-4">{problem.heading}</h2>
+          <p className="section-lead">{problem.subheading}</p>
         </motion.div>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {PAIN_POINTS.map((point, index) => (
-            <motion.article
-              key={point.title}
-              className="premium-card relative overflow-hidden p-7"
+        {/* Pain cards with cost */}
+        <motion.div
+          className="mt-12 grid gap-4 md:grid-cols-3"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
+          {problem.pains.map((pain) => (
+            <motion.div
+              key={pain.title}
+              className="craft-card flex flex-col p-6"
               variants={staggerItem}
             >
-              <div
-                className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-amber-300"
-                style={{ opacity: cardAccents[index] }}
-                aria-hidden="true"
-              />
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
-                {`Point critique ${index + 1}`}
+              <h3 className="font-serif text-xl text-charcoal">{pain.title}</h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-neutral-600">
+                {pain.description}
               </p>
-              <h3 className="mt-3 font-serif text-2xl leading-tight text-charcoal">
-                {point.title}
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-                {point.description}
-              </p>
-              <p className="mt-4 text-sm font-semibold text-amber-700">
-                {point.consequence}
-              </p>
-            </motion.article>
+              <div className="mt-4 border-t border-neutral-100 pt-4">
+                <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
+                  {pain.consequence}
+                </p>
+                <p className="mt-1 font-serif text-base text-brass-600">
+                  {pain.cost}
+                </p>
+              </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
+
+        {/* Diagnostic checklist */}
+        <motion.div
+          className="mt-12 craft-card p-6 md:p-8"
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
+          <h3 className="font-serif text-xl text-charcoal">
+            {problem.diagnostic.title}
+          </h3>
+          <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
+            {problem.diagnostic.signals.map((signal) => (
+              <li
+                key={signal}
+                className="flex items-start gap-2.5 text-sm text-neutral-600"
+              >
+                <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-brass-500" />
+                {signal}
+              </li>
+            ))}
+          </ul>
+        </motion.div>
       </div>
-    </motion.section>
+    </section>
   );
 }

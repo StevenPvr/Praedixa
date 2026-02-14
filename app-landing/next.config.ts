@@ -11,7 +11,7 @@ const config: NextConfig = {
   transpilePackages: ["@praedixa/ui", "@praedixa/shared-types"],
 
   experimental: {
-    optimizePackageImports: ["framer-motion"],
+    optimizePackageImports: ["framer-motion", "remotion", "@remotion/player"],
   },
 
   images: {
@@ -21,8 +21,7 @@ const config: NextConfig = {
   },
 
   async headers() {
-    // Landing is always HTTPS in production
-    return buildSecurityHeaders({ includeHsts: true });
+    return buildSecurityHeaders(true);
   },
 };
 

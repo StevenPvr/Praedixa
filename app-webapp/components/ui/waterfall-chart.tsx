@@ -18,13 +18,17 @@ const ROW_GAP = 8;
 const LABEL_WIDTH = 120;
 const VALUE_WIDTH = 80;
 const CHART_LEFT = LABEL_WIDTH + 8;
-const CONNECTOR_STROKE = "oklch(0.7 0.01 250)";
+const CONNECTOR_STROKE = "var(--chart-grid)";
 
 const WaterfallChart = React.forwardRef<HTMLDivElement, WaterfallChartProps>(
   ({ items, formatValue = (v) => String(v), className, ...props }, ref) => {
     if (items.length === 0) {
       return (
-        <div ref={ref} className={cn("text-gray-400", className)} {...props}>
+        <div
+          ref={ref}
+          className={cn("text-ink-secondary", className)}
+          {...props}
+        >
           Aucune donnee
         </div>
       );
@@ -65,9 +69,9 @@ const WaterfallChart = React.forwardRef<HTMLDivElement, WaterfallChartProps>(
     }
 
     function barColor(type: "positive" | "negative" | "total"): string {
-      if (type === "positive") return "oklch(0.72 0.17 145)";
-      if (type === "negative") return "oklch(0.60 0.20 25)";
-      return "oklch(0.65 0.05 250)";
+      if (type === "positive") return "var(--success)";
+      if (type === "negative") return "var(--danger)";
+      return "var(--chart-1)";
     }
 
     return (
@@ -97,7 +101,7 @@ const WaterfallChart = React.forwardRef<HTMLDivElement, WaterfallChartProps>(
                   y={y + BAR_HEIGHT / 2}
                   textAnchor="end"
                   dominantBaseline="central"
-                  className="fill-gray-600 text-xs"
+                  className="fill-muted text-xs"
                   fontSize="11"
                 >
                   {item.label}
@@ -120,7 +124,7 @@ const WaterfallChart = React.forwardRef<HTMLDivElement, WaterfallChartProps>(
                   y={y + BAR_HEIGHT / 2}
                   textAnchor="start"
                   dominantBaseline="central"
-                  className="fill-charcoal text-xs font-medium"
+                  className="fill-ink text-xs font-medium"
                   fontSize="11"
                 >
                   {formatValue(item.value)}
@@ -148,7 +152,7 @@ const WaterfallChart = React.forwardRef<HTMLDivElement, WaterfallChartProps>(
             y1={0}
             x2={xPos(0)}
             y2={totalHeight}
-            stroke="oklch(0.8 0 0)"
+            stroke="var(--border)"
             strokeWidth={1}
           />
         </svg>

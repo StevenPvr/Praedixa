@@ -8,6 +8,7 @@ Covers:
 
 from datetime import date
 from decimal import Decimal
+from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -336,7 +337,7 @@ class TestGetProofSummary:
         result = await get_proof_summary(session, tenant)
         assert result["total_gain"] == Decimal("10000")
         assert result["avg_adoption"] is not None
-        assert len(result["per_site"]) == 2
+        assert len(cast("list[object]", result["per_site"])) == 2
 
     @pytest.mark.asyncio
     async def test_empty_data(self) -> None:
@@ -418,8 +419,9 @@ class TestGetProofSummary:
 
         session = make_mock_session(agg_result, site_result)
         result = await get_proof_summary(session, tenant)
-        assert len(result["per_site"]) == 3
-        paris = result["per_site"][0]
+        per_site = cast("list[dict[str, object]]", result["per_site"])
+        assert len(per_site) == 3
+        paris = per_site[0]
         assert paris["site_id"] == "site-paris"
         assert paris["gain_net_eur"] == Decimal("8000")
         assert paris["alertes_emises"] == 15

@@ -32,7 +32,7 @@ export function buildWeeklySummaries(
   }
 
   return Array.from(grouped.entries())
-    .sort(([a], [b]) => b.localeCompare(a))
+    .toSorted(([a], [b]) => b.localeCompare(a))
     .map(([weekStart, weekAlerts]) => ({
       weekStart,
       weekEnd: getWeekEnd(weekStart),

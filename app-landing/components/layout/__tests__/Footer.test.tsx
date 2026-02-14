@@ -17,37 +17,34 @@ vi.mock("framer-motion", async () => {
 });
 
 import { Footer } from "../Footer";
+import { fr } from "../../../lib/i18n/dictionaries/fr";
+
+const defaultProps = { dict: fr, locale: "fr" as const };
 
 describe("Footer", () => {
   it("renders without crashing", () => {
-    const { container } = render(<Footer />);
+    const { container } = render(<Footer {...defaultProps} />);
     expect(container.querySelector("footer")).toBeInTheDocument();
   });
 
   it("renders brand and premium CTA", () => {
-    render(<Footer />);
+    render(<Footer {...defaultProps} />);
     expect(screen.getByText("Praedixa")).toBeInTheDocument();
     expect(
-      screen.getByText("Prenez l'avantage avant la standardisation du marché"),
+      screen.getByText(/Prenez l'?avantage avant la standardisation du marché/),
     ).toBeInTheDocument();
 
     const ctaLink = screen.getByText(/Candidater à la cohorte/i).closest("a");
-    expect(ctaLink).toHaveAttribute("href", "/devenir-pilote");
+    expect(ctaLink).toHaveAttribute("href", "/fr/devenir-pilote");
   });
 
   it("renders navigation and legal links", () => {
-    render(<Footer />);
+    render(<Footer {...defaultProps} />);
 
-    const navigationLabels = [
-      "Enjeux",
-      "Méthode",
-      "Cas d'usage",
-      "Framework ROI",
-      "FAQ",
-    ];
-    for (const label of navigationLabels) {
-      expect(screen.getByText(label)).toBeInTheDocument();
-    }
+    expect(screen.getByText("Méthode")).toBeInTheDocument();
+    expect(screen.getByText("Sécurité")).toBeInTheDocument();
+    expect(screen.getByText("Offre pilote")).toBeInTheDocument();
+    expect(screen.getByText("FAQ")).toBeInTheDocument();
 
     expect(screen.getByText("Mentions légales")).toBeInTheDocument();
     expect(screen.getByText("Confidentialité")).toBeInTheDocument();
@@ -55,22 +52,19 @@ describe("Footer", () => {
   });
 
   it("renders contact and compliance hints", () => {
-    render(<Footer />);
+    render(<Footer {...defaultProps} />);
 
-    expect(
-      screen.getByText("Gouvernance orientée COO / DAF"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Données agrégées, architecture privacy-by-design"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Gouvernance COO / DAF")).toBeInTheDocument();
+    expect(screen.getByText("Privacy-by-design")).toBeInTheDocument();
     expect(screen.getByText("steven.poivre@outlook.com")).toBeInTheDocument();
   });
 
   it("renders copyright with current year", () => {
-    render(<Footer />);
+    render(<Footer {...defaultProps} />);
     const currentYear = new Date().getFullYear();
     expect(
-      screen.getByText(`© ${currentYear} Praedixa. Tous droits réservés.`),
+      screen.getByText(new RegExp(`©\\s*${currentYear}\\s*Praedixa`)),
     ).toBeInTheDocument();
+    expect(screen.getByText("Conçu en France")).toBeInTheDocument();
   });
 });

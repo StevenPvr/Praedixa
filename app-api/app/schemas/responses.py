@@ -7,11 +7,12 @@ Security note: Error responses NEVER include stack traces in production.
 The `details` field on errors is intentionally generic.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
 
+from app.core.pagination import calculate_total_pages
 from app.schemas.base import PaginationMeta
 
 T = TypeVar("T")
@@ -35,6 +36,39 @@ class PaginatedResponse(BaseModel, Generic[T]):
     pagination: PaginationMeta
     timestamp: str
     request_id: str | None = None
+
+
+def make_paginated_response[T](
+    data: list[T], total: int, page: int, page_size: int
+) -> PaginatedResponse[T]:
+    """Build PaginatedResponse from items, total, and pagination params."""
+    total_pages = calculate_total_pages(total, page_size)
+    return PaginatedResponse(
+        success=True,
+        data=data,
+        pagination=PaginationMeta(
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
+            has_next_page=page < total_pages,
+            has_previous_page=page > 1,
+        ),
+        timestamp=datetime.now(UTC).isoformat(),
+    )
+
+
+def pagination_meta_dict(total: int, page: int, page_size: int) -> dict[str, Any]:
+    """Build pagination meta as dict for embedding in custom ApiResponse payloads."""
+    total_pages = calculate_total_pages(total, page_size)
+    return PaginationMeta(
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+        has_next_page=page < total_pages,
+        has_previous_page=page > 1,
+    ).model_dump()
 
 
 class ErrorDetail(BaseModel):

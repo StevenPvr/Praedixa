@@ -1,6 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { FeatureImportanceBar } from "../feature-importance-bar";
+
+vi.mock("@/hooks/use-count-up", () => ({
+  useCountUp: (target: number) => target,
+}));
 
 /* ─── Tests ──────────────────────────────────────── */
 
@@ -35,8 +39,8 @@ describe("FeatureImportanceBar", () => {
       { label: "Pic d'activite", value: 30 },
     ];
     render(<FeatureImportanceBar features={features} loading={false} />);
-    expect(screen.getByText("60%")).toBeInTheDocument();
-    expect(screen.getByText("30%")).toBeInTheDocument();
+    expect(screen.getByText("60")).toBeInTheDocument();
+    expect(screen.getByText("30")).toBeInTheDocument();
   });
 
   it("displays max 6 features", () => {
@@ -61,7 +65,7 @@ describe("FeatureImportanceBar", () => {
       <FeatureImportanceBar features={features} loading={false} />,
     );
 
-    const bars = container.querySelectorAll(".bg-gradient-to-r");
+    const bars = container.querySelectorAll('[style*="linear-gradient"]');
     expect(bars).toHaveLength(2);
 
     // First bar should be 100% width (it's the max)
@@ -76,7 +80,7 @@ describe("FeatureImportanceBar", () => {
       <FeatureImportanceBar features={features} loading={false} />,
     );
 
-    const bars = container.querySelectorAll(".bg-gradient-to-r");
+    const bars = container.querySelectorAll('[style*="linear-gradient"]');
     expect(bars).toHaveLength(1);
     expect((bars[0] as HTMLElement).style.width).toBe("3%");
   });

@@ -47,7 +47,7 @@ pnpm dev:webapp   # http://localhost:3001
 | `/messages`         | `app/(app)/messages/page.tsx`         | Messagerie avec l'equipe Praedixa (conversations, fil de messages)  |
 | `/rapports`         | `app/(app)/rapports/page.tsx`         | Proof packs, exports, historique des couts                          |
 | `/parametres`       | `app/(app)/parametres/page.tsx`       | Configuration organisation, sites, parametres de couts              |
-| `/coverage-harness` | `app/(app)/coverage-harness/page.tsx` | Page utilitaire pour la couverture de tests                         |
+| `/coverage-harness` | `app/(app)/coverage-harness/page.tsx` | Page utilitaire pour la couverture E2E (bloquée en production)      |
 
 ### Route group `(auth)` -- pages publiques
 
@@ -178,13 +178,13 @@ La sidebar (`components/sidebar.tsx`) est **collapsible** sur desktop et s'ouvre
 
 ### Composants locaux
 
-| Dossier                  | Contenu                                                                                                                       |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| `components/dashboard/`  | `ForecastTimelineChart`, `NextActionCard`, `ScenarioComparisonChart`, `ForecastChart`                                         |
-| `components/previsions/` | `DecompositionPanel`, `FeatureImportanceBar`                                                                                  |
-| `components/actions/`    | `AlertSelector`, `OptimizationPanel`                                                                                          |
-| `components/chat/`       | `ConversationList`, `MessageThread`, `MessageInput`                                                                           |
-| `components/` (racine)   | `Sidebar`, `AnimatedSection`, `StaggeredGrid`, `StatusBanner`, `EmptyState`, `ErrorFallback`, `PraedixaLogo`, `ToastProvider` |
+| Dossier                  | Contenu                                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `components/dashboard/`  | `ForecastTimelineChart`, `NextActionCard`, `ScenarioComparisonChart`, `ForecastChart`                        |
+| `components/previsions/` | `DecompositionPanel`, `FeatureImportanceBar`                                                                 |
+| `components/actions/`    | `AlertSelector`, `OptimizationPanel`                                                                         |
+| `components/chat/`       | `ConversationList`, `MessageThread`, `MessageInput`                                                          |
+| `components/` (racine)   | `Sidebar`, `AnimatedSection`, `StatusBanner`, `EmptyState`, `ErrorFallback`, `PraedixaLogo`, `ToastProvider` |
 
 ### Composants partages (`@praedixa/ui`)
 

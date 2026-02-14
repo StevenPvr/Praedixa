@@ -71,7 +71,11 @@ export function AdminSidebar({
       {/* Logo + Admin badge */}
       <div className="flex h-topbar items-center border-b border-sidebar-border px-5">
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <PraedixaLogo size={32} className="shrink-0" />
+          <PraedixaLogo
+            size={32}
+            color="oklch(0.85 0.01 250)"
+            className="shrink-0"
+          />
           {!collapsed && (
             <div className="flex items-center gap-2 overflow-hidden">
               <span className="truncate font-serif text-lg font-semibold text-sidebar-text">

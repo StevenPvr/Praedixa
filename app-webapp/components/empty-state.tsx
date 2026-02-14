@@ -1,55 +1,80 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { cn } from "@praedixa/ui";
+import { fadeScale } from "@/lib/animations/config";
 
 interface EmptyStateProps {
-  /** Icon element displayed in the circle */
-  icon: React.ReactNode;
-  /** Main heading */
+  icon?: React.ReactNode;
   title: string;
-  /** Descriptive text below the heading */
-  description: string;
-  /** Label for the optional CTA button */
+  description?: string;
+  /** Custom action element (CTA button, etc.). Renders instead of ctaHref/onAction when provided. */
+  action?: React.ReactNode;
   ctaLabel?: string;
-  /** Link destination — renders a Link instead of a button */
   ctaHref?: string;
-  /** Click handler — renders a button (ignored if ctaHref is set) */
   onAction?: () => void;
+  className?: string;
 }
 
 export function EmptyState({
   icon,
   title,
   description,
+  action,
   ctaLabel,
   ctaHref,
   onAction,
+  className,
 }: EmptyStateProps) {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 px-6 py-12">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-        {icon}
-      </div>
-      <p className="mt-4 text-sm font-medium text-gray-900">{title}</p>
-      <p className="mt-1 max-w-sm text-center text-sm text-gray-500">
-        {description}
-      </p>
+  const ctaClasses = cn(
+    "mt-6 inline-flex min-h-[44px] items-center rounded-lg",
+    "bg-primary px-6 py-2.5 text-body-sm font-semibold text-white",
+    "shadow-raised transition-all duration-fast",
+    "hover:brightness-110 hover:shadow-floating",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+    "active:scale-[0.97]",
+  );
 
-      {ctaHref && ctaLabel && (
-        <Link
-          href={ctaHref}
-          className="mt-4 inline-flex min-h-[44px] items-center rounded-lg bg-amber-300 px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
+  return (
+    <motion.div
+      variants={fadeScale}
+      initial="hidden"
+      animate="visible"
+      role="status"
+      aria-label={title}
+      className={cn(
+        "flex flex-col items-center justify-center rounded-lg",
+        "border border-dashed border-border bg-surface-sunken/30",
+        "px-8 py-16",
+        className,
+      )}
+    >
+      {icon && (
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--brand-subtle)] text-primary">
+          {icon}
+        </div>
+      )}
+      <p className="mt-5 text-heading-sm text-ink">{title}</p>
+      {description && (
+        <p className="mt-1.5 max-w-sm text-center text-body-sm text-ink-secondary">
+          {description}
+        </p>
+      )}
+
+      {action}
+
+      {!action && ctaHref && ctaLabel && (
+        <Link href={ctaHref} className={ctaClasses}>
           {ctaLabel}
         </Link>
       )}
 
-      {!ctaHref && onAction && (
-        <button
-          onClick={onAction}
-          className="mt-4 inline-flex min-h-[44px] items-center rounded-lg bg-amber-300 px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
+      {!action && !ctaHref && onAction && (
+        <button onClick={onAction} className={ctaClasses}>
           {ctaLabel ?? "Commencer"}
         </button>
       )}
-    </div>
+    </motion.div>
   );
 }

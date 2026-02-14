@@ -15,11 +15,11 @@ describe("PraedixaLogo", () => {
     expect(svg).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("uses default size of 32", () => {
+  it("uses default size of 40", () => {
     const { container } = render(<PraedixaLogo />);
     const svg = container.querySelector("svg");
-    expect(svg).toHaveAttribute("width", "32");
-    expect(svg).toHaveAttribute("height", "32");
+    expect(svg).toHaveAttribute("width", "40");
+    expect(svg).toHaveAttribute("height", "40");
   });
 
   it("applies custom size", () => {
@@ -37,10 +37,10 @@ describe("PraedixaLogo", () => {
     expect(circle).toHaveAttribute("fill", "#ff0000");
   });
 
-  it("uses light oklch default color for dark sidebar", () => {
+  it("uses dark oklch default color", () => {
     const { container } = render(<PraedixaLogo />);
     const rect = container.querySelector("rect");
-    expect(rect).toHaveAttribute("stroke", "oklch(0.85 0.01 250)");
+    expect(rect).toHaveAttribute("stroke", "oklch(0.145 0 0)");
   });
 
   it("applies className to SVG", () => {

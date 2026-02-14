@@ -1,5 +1,12 @@
 import type { CoverageAlert } from "@praedixa/shared-types";
 
+export const SEVERITY_ORDER: Record<string, number> = {
+  critical: 0,
+  high: 1,
+  medium: 2,
+  low: 3,
+};
+
 export interface ConfidenceInterval {
   lower: number;
   upper: number;
@@ -37,15 +44,9 @@ export function getOptionLabel(optionType: string): string {
 }
 
 export function sortAlertsBySeverity(alerts: CoverageAlert[]): CoverageAlert[] {
-  const severityOrder: Record<string, number> = {
-    critical: 0,
-    high: 1,
-    medium: 2,
-    low: 3,
-  };
-  return [...alerts].sort((a, b) => {
+  return [...alerts].toSorted((a, b) => {
     const diff =
-      (severityOrder[a.severity] ?? 4) - (severityOrder[b.severity] ?? 4);
+      (SEVERITY_ORDER[a.severity] ?? 4) - (SEVERITY_ORDER[b.severity] ?? 4);
     return diff !== 0 ? diff : b.gapH - a.gapH;
   });
 }

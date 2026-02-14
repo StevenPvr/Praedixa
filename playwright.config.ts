@@ -1,12 +1,17 @@
 import { defineConfig, devices } from "@playwright/test";
+import os from "node:os";
 
 const COVERAGE_ENABLED = process.env.COVERAGE === "1";
-const LOCAL_WORKERS = Number(process.env.PW_WORKERS ?? "1");
+const CPU_COUNT =
+  typeof os.availableParallelism === "function"
+    ? os.availableParallelism()
+    : os.cpus().length;
+const LOCAL_WORKERS = Number(process.env.PW_WORKERS ?? String(CPU_COUNT));
 const WORKERS = process.env.CI
   ? 1
   : Number.isFinite(LOCAL_WORKERS) && LOCAL_WORKERS > 0
     ? LOCAL_WORKERS
-    : 1;
+    : CPU_COUNT;
 const TEST_TIMEOUT_MS = process.env.CI ? 60_000 : 45_000;
 const EXPECT_TIMEOUT_MS = process.env.CI ? 12_000 : 10_000;
 const ACTION_TIMEOUT_MS = 10_000;
@@ -74,7 +79,7 @@ export default defineConfig({
       timeout: 20_000,
     },
     {
-      command: "pnpm dev:landing",
+      command: "pnpm dev:landing:webpack",
       url: "http://localhost:3000",
       reuseExistingServer: REUSE_EXISTING_SERVERS,
       timeout: 120_000,
@@ -109,6 +114,7 @@ export default defineConfig({
       use: {
         ...DESKTOP_BROWSER_USE,
         baseURL: "http://localhost:3000",
+        extraHTTPHeaders: { "Accept-Language": "fr-FR,fr;q=0.9" },
       },
     },
     {

@@ -15,7 +15,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_db_session
-from app.core.pagination import calculate_total_pages
 from app.core.security import require_role
 from app.models.admin import AdminAuditAction
 from app.schemas.admin import (
@@ -23,8 +22,11 @@ from app.schemas.admin import (
     AdminChangePlan,
     AdminPlanHistoryRead,
 )
-from app.schemas.base import PaginationMeta
-from app.schemas.responses import ApiResponse, PaginatedResponse
+from app.schemas.responses import (
+    ApiResponse,
+    PaginatedResponse,
+    make_paginated_response,
+)
 from app.services.admin_audit import log_admin_action
 from app.services.admin_billing import (
     change_plan,
@@ -135,19 +137,5 @@ async def get_org_plan_history(
         metadata={"view": True},
     )
 
-    total_pages = calculate_total_pages(total, page_size)
     data = [AdminPlanHistoryRead.model_validate(h) for h in items]
-
-    return PaginatedResponse(
-        success=True,
-        data=data,
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    return make_paginated_response(data, total, page, page_size)

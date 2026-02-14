@@ -5,6 +5,8 @@ import { DataTableHeader } from "./data-table-header";
 import { DataTableBody } from "./data-table-body";
 import { DataTablePaginationBar } from "./data-table-pagination";
 
+const VIRTUALISE_THRESHOLD = 100;
+
 function DataTableInner<T>(
   {
     columns,
@@ -19,10 +21,14 @@ function DataTableInner<T>(
     toolbar,
     onRowClick,
     className,
+    virtualise: virtualiseProp,
     ...props
   }: DataTableProps<T>,
   ref: React.ForwardedRef<HTMLDivElement>,
 ) {
+  const useVirtualisation =
+    virtualiseProp ?? data.length > VIRTUALISE_THRESHOLD;
+  const scrollRef = React.useRef<HTMLDivElement>(null);
   const [columnWidths, setColumnWidths] = React.useState<
     Record<string, number>
   >({});
@@ -37,7 +43,7 @@ function DataTableInner<T>(
     ? Math.ceil(pagination.total / pagination.pageSize)
     : 0;
 
-  /* ── Selection helpers ────────────────────── */
+  /* ── Selection helpers ── */
   const rowKeys = React.useMemo(() => {
     if (!selection) return [];
     return data.map((row, i) => (getRowKey ? getRowKey(row, i) : i));
@@ -88,7 +94,7 @@ function DataTableInner<T>(
     [selection, selectionMode],
   );
 
-  /* ── Column resize handlers ───────────────── */
+  /* ── Column resize handlers ── */
   const hasAnyResizable = columns.some((c) => c.resizable);
 
   const handleResizeStart = React.useCallback(
@@ -143,58 +149,68 @@ function DataTableInner<T>(
     <div
       ref={ref}
       className={cn(
-        "overflow-hidden rounded-2xl border border-gray-200/80 bg-card shadow-soft",
+        "overflow-hidden rounded-[var(--radius-lg,14px)] border border-[var(--border)] bg-[var(--card-bg)] shadow-[var(--shadow-raised)]",
         className,
       )}
       {...props}
     >
       {toolbar}
       <div className="overflow-x-auto">
-        <table
-          className="w-full text-sm"
-          style={hasAnyResizable ? { tableLayout: "fixed" } : undefined}
-        >
-          {hasAnyResizable && (
-            <colgroup>
-              {selection && <col style={{ width: 40 }} />}
-              {columns.map((col) => {
-                const w = columnWidths[col.key] ?? col.width;
-                return (
-                  <col
-                    key={col.key}
-                    style={
-                      w != null
-                        ? { width: typeof w === "number" ? w : w }
-                        : undefined
-                    }
-                  />
-                );
-              })}
-            </colgroup>
+        <div
+          ref={useVirtualisation ? scrollRef : undefined}
+          className={cn(
+            useVirtualisation &&
+              "overflow-y-auto max-h-[min(400px,60vh)] overscroll-contain",
           )}
-          <DataTableHeader
-            columns={columns}
-            sort={sort}
-            onSort={onSort}
-            selection={selection}
-            selectionMode={selectionMode}
-            allSelected={allSelected ?? false}
-            someSelected={someSelected ?? false}
-            onSelectAll={handleSelectAll}
-            stickyHeader={stickyHeader}
-            onResizeStart={handleResizeStart}
-          />
-          <DataTableBody
-            columns={columns}
-            data={data}
-            selection={selection}
-            getRowKey={getRowKey}
-            emptyMessage={emptyMessage}
-            onRowClick={onRowClick}
-            onSelectRow={handleSelectRow}
-            totalCols={totalCols}
-          />
-        </table>
+        >
+          <table
+            className="w-full text-sm"
+            style={hasAnyResizable ? { tableLayout: "fixed" } : undefined}
+          >
+            {hasAnyResizable && (
+              <colgroup>
+                {selection && <col style={{ width: 40 }} />}
+                {columns.map((col) => {
+                  const w = columnWidths[col.key] ?? col.width;
+                  return (
+                    <col
+                      key={col.key}
+                      style={
+                        w != null
+                          ? { width: typeof w === "number" ? w : w }
+                          : undefined
+                      }
+                    />
+                  );
+                })}
+              </colgroup>
+            )}
+            <DataTableHeader
+              columns={columns}
+              sort={sort}
+              onSort={onSort}
+              selection={selection}
+              selectionMode={selectionMode}
+              allSelected={allSelected ?? false}
+              someSelected={someSelected ?? false}
+              onSelectAll={handleSelectAll}
+              stickyHeader={stickyHeader}
+              onResizeStart={handleResizeStart}
+            />
+            <DataTableBody
+              columns={columns}
+              data={data}
+              selection={selection}
+              getRowKey={getRowKey}
+              emptyMessage={emptyMessage}
+              onRowClick={onRowClick}
+              onSelectRow={handleSelectRow}
+              totalCols={totalCols}
+              virtualise={useVirtualisation}
+              scrollRef={useVirtualisation ? scrollRef : undefined}
+            />
+          </table>
+        </div>
       </div>
 
       {pagination && (
@@ -207,8 +223,6 @@ function DataTableInner<T>(
   );
 }
 
-// React.forwardRef erases generic type parameters, so we cast the result
-// back to a generic function signature to preserve type safety for callers.
 export const DataTable = React.forwardRef(DataTableInner) as <T>(
   props: DataTableProps<T> & { ref?: React.ForwardedRef<HTMLDivElement> },
 ) => React.ReactElement;

@@ -12,20 +12,12 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func as sa_func
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_current_user, get_db_session, get_tenant_filter
-from app.core.pagination import calculate_total_pages
 from app.core.security import TenantFilter, require_role
-from app.models.data_catalog import (
-    DatasetStatus,
-    IngestionLog,
-    RunStatus,
-)
-from app.schemas.base import PaginationMeta
+from app.models.data_catalog import DatasetStatus
 from app.schemas.data_catalog import (
     ClientDatasetRead,
     ClientDatasetSummary,
@@ -40,13 +32,18 @@ from app.schemas.data_catalog import (
     UpdateDatasetRequest,
 )
 from app.schemas.quality import QualityReportRead
-from app.schemas.responses import ApiResponse, PaginatedResponse
+from app.schemas.responses import (
+    ApiResponse,
+    PaginatedResponse,
+    make_paginated_response,
+)
 from app.services.datasets import (
     create_dataset,
     get_config_history,
     get_dataset,
     get_dataset_columns,
     get_dataset_data,
+    get_dataset_row_count,
     get_fit_parameters,
     get_ingestion_log,
     get_quality_reports,
@@ -77,21 +74,8 @@ async def list_all_datasets(
         status_filter=status,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[ClientDatasetSummary.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [ClientDatasetSummary.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/{dataset_id}")
@@ -109,19 +93,9 @@ async def get_single_dataset(
     )
 
     columns = await get_dataset_columns(dataset_id, tenant, session)
-
-    # Compute row_count and last_ingestion_at from successful ingestions
-    row_count_q = await session.execute(
-        select(
-            sa_func.coalesce(sa_func.sum(IngestionLog.rows_transformed), 0),
-            sa_func.max(IngestionLog.completed_at),
-        )
-        .where(IngestionLog.dataset_id == dataset_id)
-        .where(IngestionLog.status == RunStatus.SUCCESS)
+    row_count, last_ingestion_at = await get_dataset_row_count(
+        dataset_id, tenant, session
     )
-    row = row_count_q.one()
-    row_count = row[0] or 0
-    last_ingestion_at = row[1]
 
     detail = DatasetDetailResponseSchema(
         id=dataset.id,
@@ -245,21 +219,8 @@ async def get_dataset_history(  # pragma: no cover
         offset=offset,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[PipelineConfigHistoryRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [PipelineConfigHistoryRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/{dataset_id}/fit-parameters")
@@ -374,17 +335,5 @@ async def list_quality_reports(
         limit=page_size,
         offset=offset,
     )
-    total_pages = calculate_total_pages(total, page_size)
-    return PaginatedResponse(
-        success=True,
-        data=[QualityReportRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [QualityReportRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)

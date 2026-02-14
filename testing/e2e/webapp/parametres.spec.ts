@@ -23,7 +23,7 @@ test.describe("Parametres page", () => {
   test("displays tab bar with all settings tabs", async ({ page }) => {
     await page.goto("/parametres");
     await expect(
-      page.getByRole("tab", { name: "Baremes de couts" }),
+      page.getByRole("tab", { name: "Barèmes de coûts" }),
     ).toBeVisible();
     await expect(
       page.getByRole("tab", { name: "Horaires des postes" }),
@@ -33,7 +33,7 @@ test.describe("Parametres page", () => {
     ).toBeVisible();
     await expect(page.getByRole("tab", { name: "Sites" })).toBeVisible();
     await expect(
-      page.getByRole("tab", { name: "Exporter les donnees" }),
+      page.getByRole("tab", { name: "Exporter les données" }),
     ).toBeVisible();
   });
 
@@ -46,13 +46,15 @@ test.describe("Parametres page", () => {
     await expect(
       section.getByRole("columnheader", { name: "Site" }),
     ).toBeVisible();
-    await expect(section.getByText("Valeur par defaut")).toBeVisible();
+    await expect(section.getByText("Valeur par défaut")).toBeVisible();
     await expect(section.getByText("Lyon-Sat")).toBeVisible();
   });
 
   test("shifts tab displays shift configuration", async ({ page }) => {
     await page.goto("/parametres");
-    await page.getByRole("tab", { name: "Horaires des postes" }).click();
+    await page
+      .getByRole("tab", { name: "Horaires des postes" })
+      .click({ timeout: 15_000 });
 
     const section = page.getByLabel("Horaires des postes");
     await expect(section).toBeVisible();
@@ -89,7 +91,9 @@ test.describe("Parametres page", () => {
 
   test("export tab displays export buttons", async ({ page }) => {
     await page.goto("/parametres");
-    await page.getByRole("tab", { name: "Exporter les donnees" }).click();
+    await page
+      .getByRole("tab", { name: "Exporter les données" })
+      .click({ timeout: 15_000 });
 
     const section = page.getByLabel("Exporter les donnees");
     await expect(section).toBeVisible();
@@ -112,11 +116,15 @@ test.describe("Parametres page", () => {
     await page.goto("/parametres");
     await expect(page.getByLabel("Baremes de couts")).toBeVisible();
 
-    await page.getByRole("tab", { name: "Horaires des postes" }).click();
+    await page
+      .getByRole("tab", { name: "Horaires des postes" })
+      .click({ timeout: 15_000 });
     await expect(page.getByLabel("Horaires des postes")).toBeVisible();
     await expect(page.getByLabel("Baremes de couts")).not.toBeVisible();
 
-    await page.getByRole("tab", { name: "Exporter les donnees" }).click();
+    await page
+      .getByRole("tab", { name: "Exporter les données" })
+      .click({ timeout: 15_000 });
     await expect(page.getByLabel("Exporter les donnees")).toBeVisible();
     await expect(page.getByLabel("Horaires des postes")).not.toBeVisible();
   });

@@ -26,17 +26,19 @@ from app.core.dependencies import (
     get_site_filter,
     get_tenant_filter,
 )
-from app.core.pagination import calculate_total_pages
 from app.core.security import SiteFilter, TenantFilter, require_role
 from app.models.operational import CoverageAlert, Horizon
-from app.schemas.base import PaginationMeta
 from app.schemas.operational import (
     OperationalDecisionCreate,
     OperationalDecisionRead,
     OperationalDecisionUpdate,
     OverrideStatisticsResponse,
 )
-from app.schemas.responses import ApiResponse, PaginatedResponse
+from app.schemas.responses import (
+    ApiResponse,
+    PaginatedResponse,
+    make_paginated_response,
+)
 from app.services.decision_log_service import (
     create_operational_decision,
     get_operational_decision,
@@ -76,21 +78,8 @@ async def list_decisions(
         page_size=page_size,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[OperationalDecisionRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [OperationalDecisionRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/override-stats")
@@ -106,9 +95,13 @@ async def override_stats(
     data = OverrideStatisticsResponse(
         total_decisions=cast("int", raw["total"]),
         override_count=cast("int", raw["override_count"]),
-        override_pct=cast("Decimal", raw["override_pct"]),
+        override_pct=float(cast("Decimal | float", raw["override_pct"])),
         top_override_reasons=cast("list[dict[str, str | int]]", raw["top_reasons"]),
-        avg_cost_delta=cast("Decimal | None", raw["avg_cost_delta"]),
+        avg_cost_delta=(
+            float(cast("Decimal", raw["avg_cost_delta"]))
+            if raw["avg_cost_delta"] is not None
+            else None
+        ),
     )
 
     return ApiResponse(

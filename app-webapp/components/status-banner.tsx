@@ -1,5 +1,9 @@
-import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
+"use client";
+
+import { motion } from "framer-motion";
+import { AlertTriangle, CheckCircle2, Info, AlertOctagon } from "lucide-react";
 import { cn } from "@praedixa/ui";
+import { DURATION, EASING } from "@/lib/animations/config";
 
 type StatusBannerVariant = "success" | "warning" | "danger" | "info";
 
@@ -12,37 +16,48 @@ interface StatusBannerProps {
 
 const variantStyles: Record<
   StatusBannerVariant,
-  { container: string; icon: string; title: string }
+  {
+    container: string;
+    icon: string;
+    title: string;
+    accent: string;
+    glow: string;
+  }
 > = {
   success: {
-    container: "border-emerald-200 bg-emerald-50/80 text-emerald-900",
-    icon: "text-emerald-600",
-    title: "text-emerald-900",
+    container: "border border-success-light surface-glass text-success-text",
+    icon: "text-success",
+    title: "text-success-text",
+    accent: "bg-success",
+    glow: "glow-success",
   },
   warning: {
-    container: "border-amber-200 bg-amber-50/85 text-amber-900",
-    icon: "text-amber-600",
-    title: "text-amber-900",
+    container: "border border-warning-light surface-glass text-warning-text",
+    icon: "text-warning",
+    title: "text-warning-text",
+    accent: "bg-warning",
+    glow: "glow-warning",
   },
   danger: {
-    container: "border-rose-200 bg-rose-50/85 text-rose-900",
-    icon: "text-rose-600",
-    title: "text-rose-900",
+    container: "border border-danger-light surface-glass text-danger-text",
+    icon: "text-danger",
+    title: "text-danger-text",
+    accent: "bg-danger",
+    glow: "glow-danger",
   },
   info: {
-    container: "border-blue-200 bg-blue-50/85 text-blue-900",
-    icon: "text-blue-600",
-    title: "text-blue-900",
+    container: "border border-info-light surface-glass text-info-text",
+    icon: "text-info",
+    title: "text-info-text",
+    accent: "bg-info",
+    glow: "",
   },
 };
 
-const variantIcons: Record<
-  StatusBannerVariant,
-  typeof CheckCircle2 | typeof AlertTriangle | typeof Info
-> = {
+const variantIcons: Record<StatusBannerVariant, typeof CheckCircle2> = {
   success: CheckCircle2,
   warning: AlertTriangle,
-  danger: AlertTriangle,
+  danger: AlertOctagon,
   info: Info,
 };
 
@@ -56,24 +71,38 @@ export function StatusBanner({
   const Icon = variantIcons[variant];
 
   return (
-    <div
+    <motion.div
       role="status"
+      aria-live="polite"
+      initial={{ opacity: 0, y: -6, scale: 0.99 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{
+        duration: DURATION.normal,
+        ease: EASING.premium,
+        opacity: { duration: DURATION.slow, ease: EASING.smooth },
+      }}
       className={cn(
-        "flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm shadow-xs",
+        "relative flex items-start gap-3.5 overflow-hidden rounded-lg border px-5 py-4 text-body-sm transition-shadow duration-normal",
         styles.container,
+        styles.glow,
         className,
       )}
     >
+      {/* Left accent line */}
+      <div
+        className={cn("absolute left-0 top-0 h-full w-[3px]", styles.accent)}
+      />
+
       <Icon
         className={cn("mt-0.5 h-5 w-5 shrink-0", styles.icon)}
         aria-hidden="true"
       />
       <div className="flex-1">
         {title && (
-          <h4 className={cn("mb-1 font-semibold", styles.title)}>{title}</h4>
+          <h4 className={cn("mb-0.5 text-title-sm", styles.title)}>{title}</h4>
         )}
-        <div className="text-sm leading-relaxed opacity-90">{children}</div>
+        <div className="leading-relaxed opacity-90">{children}</div>
       </div>
-    </div>
+    </motion.div>
   );
 }

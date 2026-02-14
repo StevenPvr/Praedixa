@@ -51,13 +51,15 @@ function DataTableHeaderInner<T>({
 
   return (
     <thead
-      className={
-        stickyHeader
-          ? "sticky top-0 z-10 shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
-          : undefined
-      }
+      className={cn(
+        stickyHeader && [
+          "sticky top-0 z-10",
+          "bg-[var(--glass-bg,white)] backdrop-blur-xl",
+          "shadow-[0_1px_0_var(--border)]",
+        ],
+      )}
     >
-      <tr className="border-b border-gray-200 bg-gray-50/80">
+      <tr className="border-b border-[var(--border)] bg-[var(--surface-sunken,var(--card-bg-muted))]">
         {selection && selectionMode === "multiple" && (
           <th className="w-10 px-3 py-2.5">
             <DataTableCheckbox
@@ -75,9 +77,11 @@ function DataTableHeaderInner<T>({
           <th
             key={col.key}
             className={cn(
-              "relative whitespace-nowrap px-4 py-2.5 text-xs font-medium uppercase tracking-wide text-gray-500",
+              "relative whitespace-nowrap px-4 py-2.5",
+              "text-overline text-[var(--ink-tertiary)]",
               alignClass(col.align),
-              col.sortable && "cursor-pointer select-none hover:text-charcoal",
+              col.sortable &&
+                "cursor-pointer select-none hover:text-[var(--ink)]",
               col.resizable && "overflow-hidden text-ellipsis",
             )}
             onClick={() => handleSort(col)}
@@ -100,7 +104,7 @@ function DataTableHeaderInner<T>({
               <span
                 role="separator"
                 aria-orientation="vertical"
-                className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-amber-300"
+                className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-0.5 rounded-full opacity-0 transition-opacity hover:opacity-100 bg-[var(--brand)]"
                 onMouseDown={(e) => {
                   const th = e.currentTarget.parentElement;
                   onResizeStart(e, col, th?.offsetWidth ?? 100);

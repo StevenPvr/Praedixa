@@ -8,7 +8,8 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    }
+    },
+    "./brand-tokens.css": "./src/brand-tokens.css"
   },
   "scripts": {
     "build": "tsc",
@@ -19,6 +20,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.13.18",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.6.0"

@@ -2,112 +2,121 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { cn } from "@praedixa/ui";
 import {
+  sectionReveal,
   staggerContainer,
   staggerItem,
   viewportOnce,
 } from "../../lib/animations/variants";
-import {
-  pilotColumns,
-  pilotUrgencyText,
-  pilotCtaText,
-  pilotCtaHref,
-  pilotMetaText,
-} from "../../lib/content/pilot-benefits";
 import { ArrowRightIcon, CheckIcon } from "../icons";
+import type { Dictionary } from "../../lib/i18n/types";
+import type { Locale } from "../../lib/i18n/config";
+import { localizedSlugs } from "../../lib/i18n/config";
 
 interface PilotSectionProps {
-  className?: string;
+  dict: Dictionary;
+  locale: Locale;
 }
 
-export function PilotSection({ className }: PilotSectionProps) {
+function PilotList({
+  title,
+  items,
+  variant = "default",
+}: {
+  title: string;
+  items: string[];
+  variant?: "default" | "excluded" | "accent";
+}) {
   return (
-    <motion.section
-      id="pilot"
-      className={cn("bg-charcoal py-24 text-white md:py-28", className)}
-      variants={staggerContainer}
-      initial="hidden"
-      whileInView="visible"
-      viewport={viewportOnce}
-    >
+    <div>
+      <h3 className="text-sm font-semibold text-white">{title}</h3>
+      <ul className="mt-3 grid gap-2">
+        {items.map((item) => (
+          <li key={item} className="flex items-start gap-2.5 text-sm">
+            {variant === "excluded" ? (
+              <span className="mt-1 h-3 w-3 shrink-0 rounded-full border border-neutral-300" />
+            ) : (
+              <CheckIcon
+                className={`mt-0.5 h-4 w-4 shrink-0 ${
+                  variant === "accent" ? "text-brass-500" : "text-brass-500"
+                }`}
+              />
+            )}
+            <span className="text-white">{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export function PilotSection({ dict, locale }: PilotSectionProps) {
+  const { pilot } = dict;
+  const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
+
+  return (
+    <section id="pilot" className="section-dark section-spacing">
       <div className="section-shell">
-        <motion.div className="max-w-4xl" variants={staggerItem}>
-          <p className="section-kicker text-amber-300">Cohorte pilote</p>
-          <h2 className="mt-4 font-serif text-4xl leading-tight sm:text-5xl">
-            Prenez l'avantage avant standardisation du marché.
-          </h2>
-          <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/75">
-            Cohorte fondatrice conçue pour les équipes qui veulent installer un
-            standard de pilotage couverture exigeant avant leurs concurrents.
-          </p>
-        </motion.div>
-
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {pilotColumns.map((column) => (
-            <motion.article
-              key={column.id}
-              className={cn(
-                "rounded-3xl border p-6",
-                column.id === "avantages"
-                  ? "border-amber-400/35 bg-amber-500/12"
-                  : "border-white/12 bg-white/[0.04]",
-              )}
-              variants={staggerItem}
-            >
-              <h3
-                className={cn(
-                  "font-serif text-3xl leading-tight",
-                  column.id === "avantages" ? "text-amber-200" : "text-white",
-                )}
-              >
-                {column.title}
-              </h3>
-
-              <ul className="mt-5 space-y-3">
-                {column.items.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-2.5 text-sm leading-relaxed text-white/80"
-                  >
-                    <CheckIcon
-                      className={cn(
-                        "mt-0.5 h-4 w-4 shrink-0",
-                        column.id === "avantages"
-                          ? "text-amber-200"
-                          : "text-amber-400/80",
-                      )}
-                    />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </motion.article>
-          ))}
-        </div>
-
         <motion.div
-          className="mt-8 rounded-2xl border border-amber-300/35 bg-amber-500/10 px-6 py-5"
-          variants={staggerItem}
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
         >
-          <p className="text-sm leading-relaxed text-amber-100">
-            {pilotUrgencyText}
-          </p>
+          <p className="section-kicker text-white">{pilot.kicker}</p>
+          <h2 className="section-title mt-4">{pilot.heading}</h2>
+          <p className="section-lead text-white">{pilot.subheading}</p>
         </motion.div>
 
-        <motion.div className="mt-8" variants={staggerItem}>
-          <Link
-            href={pilotCtaHref}
-            className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-7 py-3.5 text-sm font-semibold text-charcoal transition hover:bg-amber-400"
-          >
-            {pilotCtaText}
+        {/* 2x2 grid: included, excluded, KPIs, governance */}
+        <motion.div
+          className="mt-12 grid gap-4 sm:grid-cols-2"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
+          <motion.div className="craft-card-dark p-6" variants={staggerItem}>
+            <PilotList
+              title={pilot.included.title}
+              items={pilot.included.items}
+              variant="accent"
+            />
+          </motion.div>
+          <motion.div className="craft-card-dark p-6" variants={staggerItem}>
+            <PilotList
+              title={pilot.excluded.title}
+              items={pilot.excluded.items}
+              variant="excluded"
+            />
+          </motion.div>
+          <motion.div className="craft-card-dark p-6" variants={staggerItem}>
+            <PilotList title={pilot.kpis.title} items={pilot.kpis.items} />
+          </motion.div>
+          <motion.div className="craft-card-dark p-6" variants={staggerItem}>
+            <PilotList
+              title={pilot.governance.title}
+              items={pilot.governance.items}
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* Urgency + CTA */}
+        <motion.div
+          className="mt-10 flex flex-col items-center text-center"
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
+          <p className="text-sm text-white">{pilot.urgency}</p>
+          <Link href={pilotHref} className="btn-primary mt-6">
+            {pilot.ctaPrimary}
             <ArrowRightIcon className="h-4 w-4" />
           </Link>
-          <p className="mt-3 text-xs font-medium uppercase tracking-wide text-white/65">
-            {pilotMetaText}
-          </p>
+          <p className="mt-3 text-2xs text-white">{pilot.ctaMeta}</p>
         </motion.div>
       </div>
-    </motion.section>
+    </section>
   );
 }

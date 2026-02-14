@@ -161,28 +161,34 @@ pnpm exec playwright install
 # Smoke local reproductible (admin)
 pnpm test:e2e:smoke
 
-# Lancer toute la suite E2E (demarre automatiquement les serveurs dev)
+# Lancer la suite E2E par projet (RECOMMANDÉ pour la stabilité)
+# Lance uniquement les tests landing (nettoie les ports avant)
+pnpm test:e2e:landing
+
+# Lance uniquement les tests webapp
+pnpm test:e2e:webapp
+
+# Lance uniquement les tests admin (avec 1 worker pour éviter les crashs mémoire)
+PW_WORKERS=1 pnpm test:e2e:admin
+
+# Lancer toute la suite E2E (peut nécessiter beaucoup de RAM/CPU)
 pnpm test:e2e
 
-# Par projet (chemins explicites sous testing/e2e)
-pnpm test:e2e:landing
-pnpm test:e2e:webapp
-pnpm test:e2e:admin
-
-# Avec couverture de code V8 (genere e2e-coverage/report.html)
-pnpm test:e2e:coverage
-
-# Couverture par projet individuel
-COVERAGE=1 pnpm test:e2e:webapp
+# Debugger un fichier spécifique (nettoie les ports automatiquement)
+pnpm test:e2e:admin testing/e2e/admin/login.spec.ts
 
 # Mode UI interactif (debug visuel)
 pnpm exec playwright test --ui
 
-# Un seul fichier
-pnpm exec playwright test testing/e2e/webapp/dashboard.spec.ts
+# Avec couverture de code V8 (génère e2e-coverage/report.html)
+pnpm test:e2e:coverage
 
-# Avec trace pour debug
-PW_REUSE_SERVER=1 pnpm exec playwright test --trace on
+# Couverture par projet individuel
+COVERAGE=1 pnpm test:e2e:admin
+
+# Gestion des ressources (Parallélisme)
+# En cas d'erreurs "Connection refused" ou timeouts, réduire le nombre de workers :
+PW_WORKERS=1 pnpm test:e2e:admin
 ```
 
 > Les serveurs dev (mock supabase :54321, landing :3000, webapp :3001, admin :3002) sont lances automatiquement par Playwright.
@@ -192,7 +198,7 @@ PW_REUSE_SERVER=1 pnpm exec playwright test --trace on
 ### Tout verifier (pre-commit complet)
 
 ```bash
-pnpm pre-commit
+pnpm pre-commitaa
 ```
 
 ## Qualite & Securite (pre-commit)

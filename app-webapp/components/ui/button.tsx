@@ -4,26 +4,36 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@praedixa/ui";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-button text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] duration-200",
+  [
+    "inline-flex items-center justify-center whitespace-nowrap rounded-lg",
+    "min-h-[24px] min-w-[24px] text-sm font-semibold tracking-[-0.01em]",
+    "transition-all duration-fast ease-snappy",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2",
+    "disabled:pointer-events-none disabled:opacity-45",
+    "active:scale-[0.97]",
+  ].join(" "),
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-white shadow-sm hover:bg-primary-dark hover:shadow-md",
-        destructive: "bg-danger text-white shadow-sm hover:opacity-90",
+          "bg-primary text-white shadow-raised hover:brightness-110 hover:shadow-floating shine-effect",
+        premium:
+          "bg-gradient-to-br from-primary to-primary-dark text-white shadow-raised hover:shadow-[0_0_24px_-6px_var(--brand-glow)] hover:brightness-110 shine-effect",
+        destructive: "bg-danger text-white shadow-raised hover:opacity-90",
         outline:
-          "border border-black/10 bg-white text-ink hover:border-black/20 hover:bg-black/[0.02]",
-        secondary: "bg-black/[0.04] text-ink hover:bg-black/[0.08]",
-        ghost: "text-ink-secondary hover:bg-black/[0.04] hover:text-ink",
-        link: "text-primary underline-offset-4 hover:underline",
-        glass:
-          "border border-white/25 bg-white/70 text-ink backdrop-blur-md shadow-sm hover:bg-white/85",
+          "border border-border bg-surface text-ink hover:border-border-hover hover:bg-surface-interactive hover:shadow-raised",
+        secondary: "bg-surface-interactive text-ink hover:bg-border",
+        ghost: "text-ink-secondary hover:bg-surface-interactive hover:text-ink",
+        link: "text-primary underline-offset-4 hover:underline shadow-none",
+        glass: "surface-glass text-ink shadow-raised hover:shadow-floating",
+        accent: "bg-accent text-ink shadow-raised hover:bg-accent-500",
       },
       size: {
-        default: "h-11 px-5 py-2.5",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-12 rounded-lg px-8 text-base",
-        icon: "h-11 w-11",
+        default: "h-10 px-5 py-2 gap-2",
+        sm: "h-8 px-3.5 text-caption gap-1.5",
+        lg: "h-12 px-7 text-[15px] gap-2.5",
+        icon: "h-10 w-10",
+        "icon-sm": "h-8 w-8",
       },
     },
     defaultVariants: {
@@ -38,17 +48,61 @@ export interface ButtonProps
     React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  loading?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      loading,
+      disabled,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        disabled={disabled || loading}
+        aria-busy={loading || undefined}
         {...props}
-      />
+      >
+        {loading ? (
+          <>
+            <svg
+              className="h-4 w-4 animate-spin"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                className="opacity-20"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="3"
+              />
+              <path
+                className="opacity-80"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            <span className="opacity-70">{children}</span>
+          </>
+        ) : (
+          children
+        )}
+      </Comp>
     );
   },
 );

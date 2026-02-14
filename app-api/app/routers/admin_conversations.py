@@ -15,11 +15,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_db_session
-from app.core.pagination import calculate_total_pages
 from app.core.security import require_role
 from app.models.admin import AdminAuditAction
 from app.models.conversation import ConversationStatus
-from app.schemas.base import PaginationMeta
 from app.schemas.conversation import (
     ConversationRead,
     ConversationStatusUpdate,
@@ -27,7 +25,11 @@ from app.schemas.conversation import (
     MessageRead,
     UnreadCountByOrg,
 )
-from app.schemas.responses import ApiResponse, PaginatedResponse
+from app.schemas.responses import (
+    ApiResponse,
+    PaginatedResponse,
+    make_paginated_response,
+)
 from app.services.admin_audit import log_admin_action
 from app.services.conversation_service import (
     create_message,
@@ -71,21 +73,8 @@ async def admin_list_conversations(
         metadata={"status_filter": status.value if status else None},
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[ConversationRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [ConversationRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/organizations/{target_org_id}/conversations")
@@ -119,21 +108,8 @@ async def admin_list_org_conversations(
         metadata={"view": "org_conversations"},
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[ConversationRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [ConversationRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/conversations/unread-count")
@@ -176,21 +152,8 @@ async def admin_list_messages(
         page_size=page_size,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[MessageRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [MessageRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.post("/conversations/{conv_id}/messages")

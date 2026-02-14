@@ -9,7 +9,11 @@ from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_admin_tenant_filter, get_db_session
+from app.core.dependencies import (
+    get_admin_tenant_filter,
+    get_db_session,
+    get_db_session_for_cross_org,
+)
 from app.core.security import TenantFilter, require_role
 from app.models.admin import AdminAuditAction
 from app.models.operational import CanonicalRecord
@@ -64,7 +68,7 @@ async def org_canonical_quality(
 @router.get("/monitoring/canonical-coverage")
 async def canonical_coverage(
     request: Request,
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_db_session_for_cross_org),
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> ApiResponse[CanonicalCoverageResponse]:
     query = (

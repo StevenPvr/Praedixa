@@ -1,7 +1,7 @@
 """Global exception handling — never expose internals in production."""
 
 import re
-from datetime import UTC
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
@@ -10,30 +10,15 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
+from app.core.request_id import extract_valid_request_id
 
-# Pre-compiled UUID regex for safe resource_id reflection.
 _UUID_REGEX: re.Pattern[str] = re.compile(
     r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
     re.IGNORECASE,
 )
 
 logger = structlog.get_logger()
-
-# Max length and charset for X-Request-ID to prevent log injection / response bloat.
-_MAX_REQUEST_ID_LEN = 64
 _HTTP_UNAUTHORIZED = 401
-
-
-def _safe_request_id(request: Request) -> str | None:
-    """Extract and validate X-Request-ID from request headers.
-
-    Returns None if missing or invalid. Prevents reflection of oversized
-    or non-ASCII request IDs in error response bodies.
-    """
-    raw = request.headers.get("X-Request-ID")
-    if raw and len(raw) <= _MAX_REQUEST_ID_LEN and raw.isascii() and raw.isprintable():
-        return raw
-    return None
 
 
 class PraedixaError(Exception):
@@ -61,7 +46,6 @@ class NotFoundError(PraedixaError):
     """
 
     def __init__(self, resource: str, resource_id: str) -> None:
-        # Only reflect UUID-shaped IDs back to client — reject arbitrary strings
         details: dict[str, str] = {"resource": resource}
         if _UUID_REGEX.fullmatch(resource_id):
             details["id"] = resource_id
@@ -96,9 +80,6 @@ def _error_response(
     validation_errors: list[dict[str, str]] | None = None,
     request_id: str | None = None,
 ) -> JSONResponse:
-    """Build a standardized error response."""
-    from datetime import datetime
-
     body: dict[str, Any] = {
         "success": False,
         "error": {
@@ -117,8 +98,6 @@ def _error_response(
 
 
 def register_exception_handlers(app: FastAPI) -> None:
-    """Register all exception handlers on the FastAPI app."""
-
     @app.exception_handler(PraedixaError)
     async def praedixa_error_handler(
         request: Request, exc: PraedixaError
@@ -134,7 +113,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             code=exc.code,
             message=exc.message,
             details=exc.details,
-            request_id=_safe_request_id(request),
+            request_id=extract_valid_request_id(request),
         )
 
     @app.exception_handler(HTTPException)
@@ -155,7 +134,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=exc.status_code,
             code="HTTP_ERROR",
             message=str(exc.detail),
-            request_id=_safe_request_id(request),
+            request_id=extract_valid_request_id(request),
         )
 
     @app.exception_handler(RequestValidationError)
@@ -175,7 +154,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             code="VALIDATION_ERROR",
             message="Request validation failed",
             validation_errors=errors,
-            request_id=_safe_request_id(request),
+            request_id=extract_valid_request_id(request),
         )
 
     @app.exception_handler(Exception)
@@ -183,11 +162,10 @@ def register_exception_handlers(app: FastAPI) -> None:
         request: Request, exc: Exception
     ) -> JSONResponse:
         logger.exception("unhandled_error", exc_info=exc)
-        # Never expose stack traces in production
         message = str(exc) if settings.DEBUG else "An unexpected error occurred"
         return _error_response(
             status_code=500,
             code="INTERNAL_ERROR",
             message=message,
-            request_id=_safe_request_id(request),
+            request_id=extract_valid_request_id(request),
         )

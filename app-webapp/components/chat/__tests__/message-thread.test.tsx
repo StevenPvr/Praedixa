@@ -165,7 +165,7 @@ describe("MessageThread", () => {
         conversationStatus="resolved"
       />,
     );
-    expect(screen.getByText(/resolue/)).toBeInTheDocument();
+    expect(screen.getByText(/résolue/)).toBeInTheDocument();
   });
 
   it("shows archived banner for archived conversations", () => {
@@ -177,7 +177,7 @@ describe("MessageThread", () => {
         conversationStatus="archived"
       />,
     );
-    expect(screen.getByText(/archivee/)).toBeInTheDocument();
+    expect(screen.getByText(/archivée/)).toBeInTheDocument();
   });
 
   it("does not show banner for open conversations", () => {

@@ -15,6 +15,9 @@ vi.mock("next/link", () => ({
 }));
 
 import { StickyMobileCTA } from "../StickyMobileCTA";
+import { fr } from "../../../lib/i18n/dictionaries/fr";
+
+const defaultProps = { dict: fr, locale: "fr" as const };
 
 describe("StickyMobileCTA", () => {
   beforeEach(() => {
@@ -31,23 +34,19 @@ describe("StickyMobileCTA", () => {
   it("renders CTA link and default hidden state", () => {
     const heroEl = setup();
 
-    const { container } = render(<StickyMobileCTA />);
-    expect(
-      screen.getByText("Qualification pilote en 4-5 min"),
-    ).toBeInTheDocument();
+    const { container } = render(<StickyMobileCTA {...defaultProps} />);
+    expect(screen.getByText("Demander un pilote")).toBeInTheDocument();
     expect(container.firstElementChild).toHaveAttribute("aria-hidden", "true");
 
     document.body.removeChild(heroEl);
   });
 
-  it("links to /devenir-pilote", () => {
+  it("links to pilot page", () => {
     const heroEl = setup();
 
-    render(<StickyMobileCTA />);
-    const link = screen
-      .getByText("Qualification pilote en 4-5 min")
-      .closest("a");
-    expect(link).toHaveAttribute("href", "/devenir-pilote");
+    render(<StickyMobileCTA {...defaultProps} />);
+    const link = screen.getByText("Demander un pilote").closest("a");
+    expect(link).toHaveAttribute("href", "/fr/devenir-pilote");
 
     document.body.removeChild(heroEl);
   });
@@ -55,7 +54,7 @@ describe("StickyMobileCTA", () => {
   it("becomes visible when hero exits viewport and restores when visible", () => {
     const heroEl = setup();
 
-    const { container } = render(<StickyMobileCTA />);
+    const { container } = render(<StickyMobileCTA {...defaultProps} />);
 
     act(() => {
       triggerIntersection(false, heroEl);
@@ -73,10 +72,8 @@ describe("StickyMobileCTA", () => {
   it("updates tabIndex based on visibility", () => {
     const heroEl = setup();
 
-    render(<StickyMobileCTA />);
-    const link = screen
-      .getByText("Qualification pilote en 4-5 min")
-      .closest("a");
+    render(<StickyMobileCTA {...defaultProps} />);
+    const link = screen.getByText("Demander un pilote").closest("a");
     expect(link).toHaveAttribute("tabindex", "-1");
 
     act(() => {

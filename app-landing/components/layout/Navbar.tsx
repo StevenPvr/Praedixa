@@ -1,37 +1,43 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PraedixaLogo } from "../logo/PraedixaLogo";
+import { ArrowRightIcon } from "../icons";
+import type { Dictionary } from "../../lib/i18n/types";
+import type { Locale } from "../../lib/i18n/config";
+import { localizedSlugs } from "../../lib/i18n/config";
 
-const NAV_LINKS = [
-  { href: "#problem", label: "Enjeux" },
-  { href: "#solution", label: "Méthode" },
-  { href: "#pipeline", label: "Cas d'usage" },
-  { href: "#deliverables", label: "Framework ROI" },
-  { href: "#faq", label: "FAQ" },
-] as const;
+interface NavbarProps {
+  dict: Dictionary;
+  locale: Locale;
+}
 
-const PILOT_HREF = "/devenir-pilote";
-
-export function Navbar() {
+export function Navbar({ dict, locale }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
 
+  const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
+
+  const navLinks = [
+    { href: "#solution", label: dict.nav.method },
+    { href: "#security", label: dict.nav.security },
+    { href: "#faq", label: dict.nav.faq },
+  ];
+
   useEffect(() => {
-    const handleScroll = () => setHasScrolled(window.scrollY > 12);
+    const handleScroll = () => {
+      startTransition(() => setHasScrolled(window.scrollY > 12));
+    };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setIsMobileMenuOpen(false);
-      }
+      if (window.innerWidth >= 768) setIsMobileMenuOpen(false);
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -39,76 +45,78 @@ export function Navbar() {
   return (
     <>
       <nav className="fixed left-0 right-0 top-0 z-50">
-        <div
-          className={`section-shell mt-4 transition-all duration-300 ${
-            hasScrolled ? "translate-y-0" : "translate-y-0"
-          }`}
-        >
+        <div className="section-shell mt-3 transition-all duration-300">
           <div
-            className={`flex items-center justify-between rounded-2xl border px-4 py-3 md:px-6 ${
+            className={`flex items-center justify-between rounded-lg border px-4 py-2.5 md:px-5 ${
               hasScrolled
-                ? "border-neutral-300/80 bg-white/92 shadow-[var(--shadow-soft)] backdrop-blur-xl"
-                : "border-neutral-300/60 bg-white/80 backdrop-blur"
+                ? "border-white/20 bg-ink/90 shadow-sm backdrop-blur-xl"
+                : "border-white/15 bg-ink/75 backdrop-blur"
             }`}
           >
-            <Link href="/" className="group flex items-center gap-2.5">
+            {/* Logo */}
+            <Link
+              href={`/${locale}`}
+              className="group flex items-center gap-2.5"
+            >
               <PraedixaLogo
                 variant="geometric"
-                size={30}
-                color="oklch(0.2 0.01 65)"
-                strokeWidth={1.2}
+                size={28}
+                color="oklch(0.98 0 0)"
+                strokeWidth={1.1}
                 className="transition-transform duration-300 group-hover:scale-105"
               />
-              <span className="font-serif text-xl tracking-tight text-charcoal">
+              <span className="font-serif text-lg tracking-tight text-white">
                 Praedixa
               </span>
             </Link>
 
-            <div className="hidden items-center gap-1 md:flex">
-              {NAV_LINKS.map((link) => (
+            {/* Desktop nav — minimal: 3 trust links */}
+            <div className="hidden items-center gap-0.5 md:flex">
+              {navLinks.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
-                  className="rounded-full px-4 py-2 text-sm font-semibold text-charcoal/75 transition hover:bg-charcoal/5 hover:text-charcoal"
+                  className="rounded px-3 py-1.5 text-sm font-medium text-white transition hover:text-white"
                 >
                   {link.label}
                 </a>
               ))}
             </div>
 
+            {/* Desktop CTA */}
             <div className="hidden md:flex">
-              <Link href={PILOT_HREF} className="gold-cta text-xs sm:text-sm">
-                Qualification pilote
+              <Link href={pilotHref} className="btn-primary text-sm">
+                {dict.nav.ctaPrimary}
+                <ArrowRightIcon className="h-3.5 w-3.5" />
               </Link>
             </div>
 
+            {/* Mobile hamburger */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-charcoal/10 bg-white md:hidden"
-              aria-label={
-                isMobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"
-              }
+              className="flex h-9 w-9 items-center justify-center rounded border border-white/30 bg-white/10 md:hidden"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMobileMenuOpen}
             >
-              <div className="flex h-4 w-5 flex-col items-center justify-center gap-1">
+              <div className="flex h-3.5 w-4 flex-col items-center justify-center gap-[3px]">
                 <motion.span
-                  className="block h-0.5 w-5 bg-charcoal"
+                  className="block h-[1.5px] w-4 bg-white"
                   animate={{
                     rotate: isMobileMenuOpen ? 45 : 0,
-                    y: isMobileMenuOpen ? 3 : 0,
+                    y: isMobileMenuOpen ? 2.25 : 0,
                   }}
                   transition={{ duration: 0.2 }}
                 />
                 <motion.span
-                  className="block h-0.5 w-5 bg-charcoal"
+                  className="block h-[1.5px] w-4 bg-white"
                   animate={{ opacity: isMobileMenuOpen ? 0 : 1 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.15 }}
                 />
                 <motion.span
-                  className="block h-0.5 w-5 bg-charcoal"
+                  className="block h-[1.5px] w-4 bg-white"
                   animate={{
                     rotate: isMobileMenuOpen ? -45 : 0,
-                    y: isMobileMenuOpen ? -3 : 0,
+                    y: isMobileMenuOpen ? -2.25 : 0,
                   }}
                   transition={{ duration: 0.2 }}
                 />
@@ -118,42 +126,44 @@ export function Navbar() {
         </div>
       </nav>
 
+      {/* Mobile overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
             <motion.div
-              className="fixed inset-0 z-40 bg-charcoal/25 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-40 bg-charcoal/20 backdrop-blur-sm md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
             />
             <motion.div
-              className="fixed left-4 right-4 top-20 z-50 rounded-3xl border border-neutral-300 bg-[oklch(0.99_0.001_95)] p-6 shadow-[var(--shadow-premium)] md:hidden"
-              initial={{ opacity: 0, y: -14, scale: 0.98 }}
+              className="fixed left-3 right-3 top-16 z-50 rounded-lg border border-white/20 bg-ink p-5 shadow-lg md:hidden"
+              initial={{ opacity: 0, y: -10, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -14, scale: 0.98 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             >
-              <nav className="flex flex-col gap-2">
-                {NAV_LINKS.map((link) => (
+              <nav className="flex flex-col gap-1">
+                {navLinks.map((link) => (
                   <a
                     key={link.href}
                     href={link.href}
-                    className="rounded-xl px-3 py-3 text-base font-medium text-charcoal/80 transition hover:bg-charcoal/5 hover:text-charcoal"
+                    className="rounded px-3 py-2.5 text-base font-medium text-white transition hover:bg-white/10 hover:text-white"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {link.label}
                   </a>
                 ))}
               </nav>
-              <div className="mt-5 border-t border-neutral-200 pt-5">
+              <div className="mt-4 border-t border-white/15 pt-4">
                 <Link
-                  href={PILOT_HREF}
-                  className="gold-cta w-full"
+                  href={pilotHref}
+                  className="btn-primary w-full"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Demander une qualification pilote
+                  {dict.nav.ctaPrimary}
+                  <ArrowRightIcon className="h-3.5 w-3.5" />
                 </Link>
               </div>
             </motion.div>

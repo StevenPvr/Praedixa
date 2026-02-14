@@ -14,6 +14,9 @@ import asyncio
 import uuid
 from typing import TYPE_CHECKING, Any
 
+if TYPE_CHECKING:
+    from datetime import datetime
+
 import psycopg.errors
 from psycopg import sql as psql
 from sqlalchemy import func, select
@@ -156,6 +159,32 @@ async def get_dataset(
         raise NotFoundError("Dataset", str(dataset_id))
 
     return dataset
+
+
+async def get_dataset_row_count(
+    dataset_id: uuid.UUID,
+    tenant: TenantFilter,
+    session: AsyncSession,
+) -> tuple[int, datetime | None]:
+    """Get row_count and last_ingestion_at for a dataset.
+
+    Tenant safety: dataset_id must come from get_dataset(tenant, ...) — caller
+    must validate ownership first. IngestionLog RLS also enforces org via
+    dataset_id -> client_datasets.organization_id.
+    """
+    await get_dataset(dataset_id, tenant, session)
+    result = await session.execute(
+        select(
+            func.coalesce(func.sum(IngestionLog.rows_transformed), 0),
+            func.max(IngestionLog.completed_at),
+        )
+        .where(IngestionLog.dataset_id == dataset_id)
+        .where(IngestionLog.status == RunStatus.SUCCESS)
+    )
+    row = result.one()
+    row_count = int(row[0] or 0)
+    last_ingestion_at = row[1]
+    return row_count, last_ingestion_at
 
 
 async def create_dataset(

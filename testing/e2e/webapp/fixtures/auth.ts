@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import type { Page } from "@playwright/test";
 
 // ─────────────────────────────────────────────────
@@ -108,8 +109,8 @@ export async function setupAuth(page: Page): Promise<void> {
     {
       name: cookieName,
       value: cookieValue,
-      domain: "localhost",
-      path: "/",
+      // url: "http://localhost:3001",
+      url: "http://localhost:3001",
       httpOnly: false,
       secure: false,
       sameSite: "Lax",

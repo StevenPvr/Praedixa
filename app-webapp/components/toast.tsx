@@ -14,49 +14,46 @@ export interface ToastData {
   title: string;
   description?: string;
   duration?: number;
+  /** Optional undo action */
+  onUndo?: () => void;
 }
 
 const VARIANT_STYLES: Record<
   ToastVariant,
-  { bg: string; accent: string; text: string; icon: typeof CheckCircle2 }
+  { accent: string; icon: string; iconEl: typeof CheckCircle2 }
 > = {
   success: {
-    bg: "bg-white",
-    accent: "bg-success-500",
-    text: "text-success-700",
-    icon: CheckCircle2,
+    accent: "bg-success",
+    icon: "text-success",
+    iconEl: CheckCircle2,
   },
   error: {
-    bg: "bg-white",
-    accent: "bg-danger-500",
-    text: "text-danger-700",
-    icon: XCircle,
+    accent: "bg-danger",
+    icon: "text-danger",
+    iconEl: XCircle,
   },
   warning: {
-    bg: "bg-white",
-    accent: "bg-warning-500",
-    text: "text-warning-700",
-    icon: AlertTriangle,
+    accent: "bg-warning",
+    icon: "text-warning",
+    iconEl: AlertTriangle,
   },
   info: {
-    bg: "bg-white",
-    accent: "bg-blue-500",
-    text: "text-blue-700",
-    icon: Info,
+    accent: "bg-info",
+    icon: "text-info",
+    iconEl: Info,
   },
 };
 
 const DEFAULT_DURATION = 5000;
 
 function getReducedMotion(): boolean {
-  /* v8 ignore next -- SSR guard: window is always defined in jsdom */
   if (typeof window === "undefined") return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 function getSlideVariants(reduced: boolean) {
   return {
-    initial: reduced ? { opacity: 0 } : { opacity: 0, x: 80, y: -8 },
+    initial: reduced ? { opacity: 0 } : { opacity: 0, x: 60, y: -4 },
     animate: reduced
       ? { opacity: 1 }
       : {
@@ -69,7 +66,7 @@ function getSlideVariants(reduced: boolean) {
       ? { opacity: 0 }
       : {
           opacity: 0,
-          x: 80,
+          x: 60,
           transition: { duration: DURATION.fast, ease: EASING.smooth },
         },
   };
@@ -82,12 +79,10 @@ interface ToastItemProps {
 
 function ToastItem({ toast, onDismiss }: ToastItemProps) {
   const style = VARIANT_STYLES[toast.variant];
-  const Icon = style.icon;
+  const Icon = style.iconEl;
   const duration = toast.duration ?? DEFAULT_DURATION;
-  const role =
-    toast.variant === "error" || toast.variant === "warning"
-      ? "alert"
-      : "status";
+  const role = toast.variant === "error" ? "alert" : "status";
+  const ariaLive = toast.variant === "error" ? "assertive" : "polite";
   const slideVariants = getSlideVariants(getReducedMotion());
 
   const handleDismiss = useCallback(() => {
@@ -95,9 +90,11 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
   }, [onDismiss, toast.id]);
 
   useEffect(() => {
+    if (toast.onUndo) return; // Don't auto-dismiss if undo action
+    if (toast.variant === "error") return; // Never auto-dismiss critical/error toasts
     const timer = setTimeout(handleDismiss, duration);
     return () => clearTimeout(timer);
-  }, [duration, handleDismiss]);
+  }, [duration, handleDismiss, toast.onUndo, toast.variant]);
 
   return (
     <motion.div
@@ -107,34 +104,64 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       animate="animate"
       exit="exit"
       role={role}
+      aria-live={ariaLive}
       className={cn(
-        "pointer-events-auto flex w-80 items-start gap-3 overflow-hidden rounded-xl border border-gray-200 shadow-lg",
-        style.bg,
+        "pointer-events-auto relative flex w-[340px] items-start gap-3 overflow-hidden rounded-lg",
+        "surface-glass shadow-overlay",
       )}
     >
+      {/* Left accent */}
       <div className={cn("w-[3px] shrink-0 self-stretch", style.accent)} />
-      <div className="flex flex-1 items-start gap-3 py-3 pr-3">
+
+      <div className="flex flex-1 items-start gap-3 py-3.5 pr-3">
         <Icon
-          className={cn("mt-0.5 h-5 w-5 shrink-0", style.text)}
+          className={cn("mt-0.5 h-5 w-5 shrink-0", style.icon)}
           aria-hidden="true"
         />
-        <div className="flex-1 min-w-0">
-          <p className={cn("text-sm font-semibold", style.text)}>
-            {toast.title}
-          </p>
+        <div className="min-w-0 flex-1">
+          <p className="text-title-sm text-ink">{toast.title}</p>
           {toast.description && (
-            <p className="mt-0.5 text-xs text-gray-500">{toast.description}</p>
+            <p className="mt-0.5 text-caption text-ink-secondary">
+              {toast.description}
+            </p>
+          )}
+          {toast.onUndo && (
+            <button
+              type="button"
+              onClick={() => {
+                toast.onUndo?.();
+                handleDismiss();
+              }}
+              className="mt-1.5 inline-flex items-center gap-1 text-caption font-semibold text-primary transition-colors duration-fast hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:rounded"
+              aria-label="Annuler l'action"
+            >
+              Annuler
+            </button>
           )}
         </div>
         <button
           type="button"
           onClick={handleDismiss}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+          className={cn(
+            "flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
+            "text-ink-tertiary transition-colors duration-fast",
+            "hover:bg-surface-interactive hover:text-ink",
+          )}
           aria-label="Fermer la notification"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
         </button>
       </div>
+
+      {/* Progress bar (auto-dismiss timer) — hidden for error and undo */}
+      {!toast.onUndo && toast.variant !== "error" && (
+        <motion.div
+          className={cn("absolute bottom-0 left-0 h-[2px]", style.accent)}
+          initial={{ width: "100%" }}
+          animate={{ width: "0%" }}
+          transition={{ duration: duration / 1000, ease: "linear" }}
+        />
+      )}
     </motion.div>
   );
 }

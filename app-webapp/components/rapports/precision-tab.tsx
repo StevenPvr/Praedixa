@@ -3,12 +3,12 @@
 import { useMemo } from "react";
 import { DataTable, SkeletonTable } from "@praedixa/ui";
 import type { DataTableColumn } from "@praedixa/ui";
-import { DetailCard } from "@/components/ui/detail-card";
+import { Card } from "@/components/ui/card";
 import { MetricCard } from "@/components/ui/metric-card";
 import { ErrorFallback } from "@/components/error-fallback";
 import { AnimatedSection } from "@/components/animated-section";
 import { StatusBanner } from "@/components/status-banner";
-import { formatDateOrDash } from "@/lib/date-formatters";
+import { formatDateOrDash } from "@/lib/formatters";
 import { toPercent, type ForecastRunSummary } from "@/lib/rapports-helpers";
 
 const forecastColumns: DataTableColumn<ForecastRunSummary>[] = [
@@ -94,7 +94,7 @@ export function PrecisionTab({
               </StatusBanner>
             )}
 
-            <DetailCard>
+            <Card variant="elevated">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <MetricCard
                   label="Runs completes"
@@ -130,10 +130,14 @@ export function PrecisionTab({
                   }
                 />
               </div>
-            </DetailCard>
+            </Card>
 
             {loading ? (
-              <SkeletonTable rows={5} columns={4} />
+              <SkeletonTable
+                rows={5}
+                columns={4}
+                className="rounded-[var(--radius-lg)] shadow-[var(--shadow-floating)]"
+              />
             ) : (
               <DataTable<ForecastRunSummary>
                 columns={forecastColumns}

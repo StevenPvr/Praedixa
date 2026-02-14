@@ -5,8 +5,8 @@ import type { DecompositionResult } from "@/lib/forecast-decomposition";
 
 /* ─── Mocks ──────────────────────────────────────── */
 
-vi.mock("@tremor/react", () => ({
-  AreaChart: (props: Record<string, unknown>) => {
+vi.mock("@/components/charts", () => ({
+  D3AreaChart: (props: Record<string, unknown>) => {
     const formatter = props.valueFormatter as
       | ((v: number) => string)
       | undefined;
@@ -19,7 +19,7 @@ vi.mock("@tremor/react", () => ({
       />
     );
   },
-  BarChart: (props: Record<string, unknown>) => {
+  D3BarChart: (props: Record<string, unknown>) => {
     const formatter = props.valueFormatter as
       | ((v: number) => string)
       | undefined;

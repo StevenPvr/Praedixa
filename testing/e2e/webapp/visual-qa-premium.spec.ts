@@ -68,7 +68,7 @@ const AUTH_ROUTES: RouteAuditConfig[] = [
   {
     path: "/donnees",
     slug: "donnees",
-    heading: "Referentiel operationnel",
+    heading: "Référentiel opérationnel",
   },
   {
     path: "/rapports",

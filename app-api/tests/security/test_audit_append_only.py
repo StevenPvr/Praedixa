@@ -24,14 +24,13 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from app.core.request_id import MAX_REQUEST_ID_LEN, get_or_generate_request_id
 from app.models.admin import AdminAuditAction, AdminAuditLog
 from app.services.admin_audit import (
     _ALLOWED_SEVERITIES,
     _MAX_IP_LEN,
-    _MAX_REQUEST_ID_LEN,
     _MAX_UA_LEN,
     _extract_ip,
-    _extract_request_id,
     _extract_user_agent,
     get_audit_log,
     log_admin_action,
@@ -148,42 +147,37 @@ class TestRequestIDExtraction:
     """Request-ID must be validated before logging."""
 
     def test_valid_request_id_preserved(self) -> None:
-        """Valid ASCII X-Request-ID is used as-is."""
         request = _make_request(
             headers={"X-Request-ID": "abc-123-def"},
         )
-        assert _extract_request_id(request) == "abc-123-def"
+        assert get_or_generate_request_id(request) == "abc-123-def"
 
     def test_too_long_request_id_replaced(self) -> None:
-        """Oversized X-Request-ID is replaced with a generated UUID."""
-        long_id = "x" * (_MAX_REQUEST_ID_LEN + 1)
+        long_id = "x" * (MAX_REQUEST_ID_LEN + 1)
         request = _make_request(headers={"X-Request-ID": long_id})
-        result = _extract_request_id(request)
+        result = get_or_generate_request_id(request)
         assert result != long_id
         # Should be a UUID4
         uuid.UUID(result)  # Validates UUID format
 
     def test_missing_request_id_generates_uuid(self) -> None:
-        """Missing X-Request-ID generates a UUID."""
         request = _make_request()
-        result = _extract_request_id(request)
+        result = get_or_generate_request_id(request)
         uuid.UUID(result)  # Validates UUID format
 
     def test_non_ascii_request_id_replaced(self) -> None:
-        """Non-ASCII X-Request-ID is replaced with a UUID."""
         request = _make_request(
             headers={"X-Request-ID": "request-id-\xe9\xe8"},
         )
-        result = _extract_request_id(request)
+        result = get_or_generate_request_id(request)
         # The original contained non-ASCII, so it should be replaced
         assert "\xe9" not in result
 
     def test_non_printable_request_id_replaced(self) -> None:
-        """Non-printable chars in X-Request-ID cause replacement."""
         request = _make_request(
             headers={"X-Request-ID": "request\x00id"},
         )
-        result = _extract_request_id(request)
+        result = get_or_generate_request_id(request)
         assert "\x00" not in result
 
 

@@ -1461,7 +1461,14 @@ async def _step1_organization(
 
     result = await session.execute(
         select(Organization).where(
-            Organization.slug.in_(["demo_org", "praedixa_demo", "praedixa-demo"])
+            Organization.slug.in_(
+                [
+                    "acme-logistics",
+                    "demo_org",
+                    "praedixa_demo",
+                    "praedixa-demo",
+                ]
+            )
         )
     )
     existing = result.scalar_one_or_none()
@@ -1475,9 +1482,9 @@ async def _step1_organization(
         return existing
 
     org = Organization(
-        id=uuid.uuid4(),
-        name="Praedixa Demo",
-        slug="demo_org",
+        id=uuid.UUID("10000000-0000-0000-0000-000000000001"),
+        name="Acme Logistics",
+        slug="acme-logistics",
         legal_name="Praedixa Demo SAS",
         siret="98765432109876",
         sector=IndustrySector.LOGISTICS,

@@ -162,7 +162,7 @@ export function extractFeatureImportance(
   if (total === 0) return [];
 
   return Array.from(counts.entries())
-    .sort((a, b) => b[1] - a[1])
+    .toSorted((a, b) => b[1] - a[1])
     .map(([driver, count]) => ({
       label: friendlyLabel(driver),
       value: Math.round((count / total) * 100 * 100) / 100,

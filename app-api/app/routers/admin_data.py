@@ -19,18 +19,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_admin_tenant_filter, get_db_session
-from app.core.pagination import calculate_total_pages
 from app.core.security import TenantFilter, require_role
 from app.models.admin import AdminAuditAction
 from app.models.data_catalog import ClientDataset, IngestionLog
-from app.schemas.base import PaginationMeta
 from app.schemas.data_catalog import (
     AdminDatasetRead,
     IngestionLogRead,
 )
 from app.schemas.decision import DecisionRead
 from app.schemas.forecast import ForecastRunRead
-from app.schemas.responses import ApiResponse, PaginatedResponse
+from app.schemas.responses import (
+    ApiResponse,
+    PaginatedResponse,
+    make_paginated_response,
+    pagination_meta_dict,
+)
 from app.services.admin_audit import log_admin_action
 from app.services.datasets import get_dataset_data, get_features_data
 from app.services.decisions import list_decisions
@@ -78,22 +81,8 @@ async def list_org_datasets(
         target_org_id=str(target_org_id),
     )
 
-    total_pages = calculate_total_pages(total, page_size)
     data = [AdminDatasetRead.model_validate(d) for d in items]
-
-    return PaginatedResponse(
-        success=True,
-        data=data,
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/organizations/{target_org_id}/ingestion-log")
@@ -144,22 +133,8 @@ async def list_org_ingestion_log(
         resource_type="IngestionLog",
     )
 
-    total_pages = calculate_total_pages(total, page_size)
     data = [IngestionLogRead.model_validate(i) for i in items]
-
-    return PaginatedResponse(
-        success=True,
-        data=data,
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/organizations/{target_org_id}/forecasts")
@@ -186,22 +161,8 @@ async def list_org_forecasts(
         resource_type="ForecastRun",
     )
 
-    total_pages = calculate_total_pages(total, page_size)
     data = [ForecastRunRead.model_validate(f) for f in items]
-
-    return PaginatedResponse(
-        success=True,
-        data=data,
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/organizations/{target_org_id}/decisions")
@@ -228,22 +189,8 @@ async def list_org_decisions(
         resource_type="Decision",
     )
 
-    total_pages = calculate_total_pages(total, page_size)
     data = [DecisionRead.model_validate(d) for d in items]
-
-    return PaginatedResponse(
-        success=True,
-        data=data,
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/organizations/{target_org_id}/datasets/{dataset_id}/data")
@@ -278,21 +225,9 @@ async def get_org_dataset_data(
         resource_id=dataset_id,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
     return ApiResponse(
         success=True,
-        data={
-            "rows": rows,
-            "pagination": PaginationMeta(
-                total=total,
-                page=page,
-                page_size=page_size,
-                total_pages=total_pages,
-                has_next_page=page < total_pages,
-                has_previous_page=page > 1,
-            ).model_dump(),
-        },
+        data={"rows": rows, "pagination": pagination_meta_dict(total, page, page_size)},
         timestamp=datetime.now(UTC).isoformat(),
     )
 
@@ -329,21 +264,9 @@ async def get_org_dataset_features(
         resource_id=dataset_id,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
     return ApiResponse(
         success=True,
-        data={
-            "rows": rows,
-            "pagination": PaginationMeta(
-                total=total,
-                page=page,
-                page_size=page_size,
-                total_pages=total_pages,
-                has_next_page=page < total_pages,
-                has_previous_page=page > 1,
-            ).model_dump(),
-        },
+        data={"rows": rows, "pagination": pagination_meta_dict(total, page, page_size)},
         timestamp=datetime.now(UTC).isoformat(),
     )
 

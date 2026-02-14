@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures/coverage";
 import { setupAuth } from "./fixtures/auth";
+import { mockAllApis } from "./fixtures/api-mocks";
 
 test.describe("Error states", () => {
   test.beforeEach(async ({ page }) => {
@@ -41,17 +42,20 @@ test.describe("Error states", () => {
   });
 
   test("401 error on dashboard redirects to login", async ({ page }) => {
-    await page.route("**/api/v1/live/coverage-alerts*", (route) =>
+    await mockAllApis(page);
+    await page.route("**/api/v1/dashboard/summary*", (route) =>
       route.fulfill({
         status: 401,
         contentType: "application/json",
         body: JSON.stringify({
+          success: false,
           error: { code: "UNAUTHORIZED", message: "Token expired" },
+          timestamp: new Date().toISOString(),
         }),
       }),
     );
     await page.goto("/dashboard");
-    await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/login/, { timeout: 15_000 });
   });
 
   test("network error on previsions forecast endpoint shows fallback", async ({

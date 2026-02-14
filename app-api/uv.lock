@@ -1230,7 +1230,11 @@ dev = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "factory-boy" },
     { name = "pandas-stubs" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
     { name = "types-openpyxl" },
     { name = "types-reportlab" },
 ]
@@ -1269,7 +1273,11 @@ provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "factory-boy", specifier = ">=3.3.0" },
     { name = "pandas-stubs", specifier = ">=3.0.0.260204" },
+    { name = "pytest", specifier = ">=8.3.0" },
+    { name = "pytest-asyncio", specifier = ">=0.25.0" },
+    { name = "pytest-cov", specifier = ">=6.0.0" },
     { name = "types-openpyxl", specifier = ">=3.1.5.20250919" },
     { name = "types-reportlab", specifier = ">=4.4.9.20260117" },
 ]

@@ -5,7 +5,7 @@ import { Download } from "lucide-react";
 import type { ProofPack } from "@praedixa/shared-types";
 import { DataTable, SkeletonTable } from "@praedixa/ui";
 import type { DataTableColumn } from "@praedixa/ui";
-import { DetailCard } from "@/components/ui/detail-card";
+import { Card } from "@/components/ui/card";
 import { MetricCard } from "@/components/ui/metric-card";
 import { Button } from "@/components/ui/button";
 import { StatusBanner } from "@/components/status-banner";
@@ -47,7 +47,7 @@ export function ProofTab({ proofs, loading, error, onRetry }: ProofTabProps) {
   const latestProof = useMemo(() => {
     const records = proofs ?? [];
     if (records.length === 0) return null;
-    return [...records].sort((a, b) => b.month.localeCompare(a.month))[0];
+    return [...records].toSorted((a, b) => b.month.localeCompare(a.month))[0];
   }, [proofs]);
 
   const stats = useMemo(() => {
@@ -144,7 +144,7 @@ export function ProofTab({ proofs, loading, error, onRetry }: ProofTabProps) {
           </StatusBanner>
         )}
 
-        <DetailCard>
+        <Card variant="elevated">
           <div className="grid gap-4 sm:grid-cols-3">
             <MetricCard
               label="Gain net cumule"
@@ -168,10 +168,10 @@ export function ProofTab({ proofs, loading, error, onRetry }: ProofTabProps) {
               status={stats.treatmentRate >= 0.75 ? "good" : "warning"}
             />
           </div>
-        </DetailCard>
+        </Card>
 
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-serif text-lg font-semibold text-charcoal">
+          <h2 className="font-serif text-lg font-semibold text-ink">
             Bilans mensuels detailes
           </h2>
           <Button

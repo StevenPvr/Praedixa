@@ -219,7 +219,7 @@ describe("OptimizationPanel", () => {
       />,
     );
     const card = screen.getByTestId("option-card-o2");
-    expect(card.className).toContain("ring-1 ring-amber-200");
+    expect(card.className).toMatch(/ring-1.*ring-primary/);
   });
 
   it("does not highlight non-recommended option with amber bg", () => {

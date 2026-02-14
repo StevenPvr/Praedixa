@@ -11,7 +11,6 @@ Security:
 
 import uuid
 from datetime import UTC, date, datetime
-from math import ceil
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,9 +20,12 @@ from app.core.dependencies import get_current_user, get_db_session, get_tenant_f
 from app.core.security import TenantFilter
 from app.models.daily_forecast import ForecastDimension
 from app.models.forecast_run import ForecastStatus
-from app.schemas.base import PaginationMeta
 from app.schemas.forecast import DailyForecastRead, ForecastRunSummary
-from app.schemas.responses import ApiResponse, PaginatedResponse
+from app.schemas.responses import (
+    ApiResponse,
+    PaginatedResponse,
+    make_paginated_response,
+)
 from app.services.forecasts import (
     get_daily_forecasts,
     get_latest_daily_forecasts,
@@ -58,21 +60,8 @@ async def list_forecast_runs(
         status_filter=status,
     )
 
-    total_pages = ceil(total / page_size) if page_size > 0 else 0
-
-    return PaginatedResponse(
-        success=True,
-        data=[ForecastRunSummary.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [ForecastRunSummary.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/latest/daily")

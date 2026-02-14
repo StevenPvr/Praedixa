@@ -213,7 +213,7 @@ describe("DonneesPage", () => {
   it("renders the page header with updated title", () => {
     render(<DonneesPage />);
     expect(
-      screen.getByRole("heading", { name: "Referentiel operationnel" }),
+      screen.getByRole("heading", { name: "Référentiel opérationnel" }),
     ).toBeInTheDocument();
   });
 
@@ -221,7 +221,7 @@ describe("DonneesPage", () => {
     render(<DonneesPage />);
     expect(
       screen.getByText(
-        "Verifiez la fiabilite des donnees qui alimentent vos arbitrages quotidiens.",
+        "Vérifiez la fiabilité des données qui alimentent vos arbitrages quotidiens.",
       ),
     ).toBeInTheDocument();
   });
@@ -230,7 +230,7 @@ describe("DonneesPage", () => {
 
   it("renders Lignes de donnees metric with value", () => {
     render(<DonneesPage />);
-    expect(screen.getByTestId("metric-Lignes de donnees")).toHaveTextContent(
+    expect(screen.getByTestId("metric-Lignes de données")).toHaveTextContent(
       "1250",
     );
   });
@@ -252,7 +252,7 @@ describe("DonneesPage", () => {
   it("renders Postes non renseignes metric with value and %", () => {
     render(<DonneesPage />);
     expect(
-      screen.getByTestId("metric-Postes non renseignes"),
+      screen.getByTestId("metric-Postes non renseignés"),
     ).toHaveTextContent("1.5%");
   });
 
@@ -274,7 +274,7 @@ describe("DonneesPage", () => {
 
   it("sets good status when missingShiftsPct <= 2", () => {
     render(<DonneesPage />);
-    expect(screen.getByTestId("metric-Postes non renseignes")).toHaveAttribute(
+    expect(screen.getByTestId("metric-Postes non renseignés")).toHaveAttribute(
       "data-status",
       "good",
     );
@@ -301,7 +301,7 @@ describe("DonneesPage", () => {
       return { data: null, loading: false, error: null, refetch: vi.fn() };
     });
     render(<DonneesPage />);
-    expect(screen.getByTestId("metric-Postes non renseignes")).toHaveAttribute(
+    expect(screen.getByTestId("metric-Postes non renseignés")).toHaveAttribute(
       "data-status",
       "warning",
     );
@@ -328,7 +328,7 @@ describe("DonneesPage", () => {
       return { data: null, loading: false, error: null, refetch: vi.fn() };
     });
     render(<DonneesPage />);
-    expect(screen.getByTestId("metric-Postes non renseignes")).toHaveAttribute(
+    expect(screen.getByTestId("metric-Postes non renseignés")).toHaveAttribute(
       "data-status",
       "danger",
     );
@@ -465,7 +465,7 @@ describe("DonneesPage", () => {
       return { data: null, loading: false, error: null, refetch: vi.fn() };
     });
     render(<DonneesPage />);
-    expect(screen.getByTestId("metric-Lignes de donnees")).toHaveTextContent(
+    expect(screen.getByTestId("metric-Lignes de données")).toHaveTextContent(
       "...",
     );
   });
@@ -607,9 +607,7 @@ describe("DonneesPage", () => {
     });
     render(<DonneesPage />);
     expect(
-      screen.getByText(
-        "Aucune donnee disponible pour les filtres selectionnes.",
-      ),
+      screen.getByText(/Aucune donnee ne correspond aux filtres selectionnes/),
     ).toBeInTheDocument();
   });
 

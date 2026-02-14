@@ -117,7 +117,7 @@ export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
           trend={criticalDays > 0 ? "negative" : "positive"}
         />
 
-        <div className="overflow-x-auto rounded-2xl border border-black/[0.08] bg-white/[0.70]">
+        <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
           <svg
             viewBox={`0 0 ${chartWidth} ${chartHeight}`}
             className="h-[290px] min-w-[680px] w-full"
@@ -145,6 +145,7 @@ export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
               d={`${linePath(demandArea)} Z`}
               fill="oklch(0.79 0.125 84 / 0.18)"
               stroke="none"
+              className="animate-chart-fade-in"
             />
 
             <path
@@ -153,6 +154,10 @@ export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
               stroke="oklch(0.41 0.095 253)"
               strokeWidth="3"
               strokeLinecap="round"
+              pathLength={1}
+              strokeDasharray={1}
+              strokeDashoffset={0}
+              className="animate-draw"
             />
             <path
               d={linePath(demandPoints)}
@@ -160,6 +165,11 @@ export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
               stroke="oklch(0.71 0.135 78)"
               strokeWidth="3"
               strokeLinecap="round"
+              pathLength={1}
+              strokeDasharray={1}
+              strokeDashoffset={0}
+              className="animate-draw"
+              style={{ animationDelay: "0.2s" }}
             />
 
             {demandPoints.map((point, idx) => (
@@ -171,6 +181,8 @@ export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
                 fill="white"
                 stroke="oklch(0.71 0.135 78)"
                 strokeWidth="2"
+                className="animate-chart-fade-in"
+                style={{ animationDelay: `${0.6 + idx * 0.03}s` }}
               />
             ))}
 

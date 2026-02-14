@@ -2,20 +2,20 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Landing SEO", () => {
   test("page has a meta title", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/fr");
     const title = await page.title();
     expect(title).toBeTruthy();
     expect(title).toContain("Praedixa");
   });
 
   test("page has a meta description", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/fr");
     const metaDescription = page.locator('meta[name="description"]');
     await expect(metaDescription).toHaveAttribute("content", /.+/);
   });
 
   test("page has Open Graph meta tags", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/fr");
     const ogTitle = page.locator('meta[property="og:title"]');
     await expect(ogTitle).toHaveAttribute("content", /.+/);
 
@@ -24,7 +24,11 @@ test.describe("Landing SEO", () => {
   });
 
   test("page has JSON-LD structured data", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/fr");
+    await page.waitForSelector('script[type="application/ld+json"]', {
+      state: "attached",
+      timeout: 5_000,
+    });
     const jsonLd = page.locator('script[type="application/ld+json"]');
     const count = await jsonLd.count();
     expect(count).toBeGreaterThanOrEqual(1);
@@ -53,7 +57,7 @@ test.describe("Landing SEO", () => {
   });
 
   test("page has canonical URL", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/fr");
     const canonical = page.locator('link[rel="canonical"]');
     const count = await canonical.count();
     // Canonical may be set via Next.js metadata
@@ -63,7 +67,7 @@ test.describe("Landing SEO", () => {
   });
 
   test("page has proper lang attribute", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/fr");
     const html = page.locator("html");
     await expect(html).toHaveAttribute("lang", "fr");
   });

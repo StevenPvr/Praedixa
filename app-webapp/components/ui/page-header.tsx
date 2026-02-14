@@ -1,5 +1,9 @@
+"use client";
+
 import * as React from "react";
+import { motion } from "framer-motion";
 import { cn } from "@praedixa/ui";
+import { EASING, DURATION, STAGGER } from "@/lib/animations/config";
 
 export interface Breadcrumb {
   label: string;
@@ -16,10 +20,27 @@ export interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   eyebrow?: string;
 }
 
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: STAGGER.fast, delayChildren: 0.02 },
+  },
+};
+
+const staggerChild = {
+  hidden: { opacity: 0, y: 8 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: DURATION.normal, ease: EASING.premium },
+  },
+};
+
 function BreadcrumbNav({ items }: { items: Breadcrumb[] }) {
   return (
     <nav aria-label="Fil d'Ariane" className="mb-4">
-      <ol className="flex items-center gap-2 text-sm text-ink-tertiary">
+      <ol className="flex items-center gap-2 text-body-sm text-ink-secondary">
         {items.map((crumb, index) => {
           const isLast = index === items.length - 1;
           return (
@@ -27,18 +48,22 @@ function BreadcrumbNav({ items }: { items: Breadcrumb[] }) {
               key={`${crumb.label}-${index}`}
               className="flex items-center gap-2"
             >
-              {index > 0 && <span className="text-gray-300">/</span>}
+              {index > 0 && (
+                <span className="text-ink-placeholder" aria-hidden="true">
+                  /
+                </span>
+              )}
               {crumb.href && !isLast ? (
                 <a
                   href={crumb.href}
-                  className="transition-colors hover:text-primary"
+                  className="transition-colors duration-fast hover:text-primary"
                 >
                   {crumb.label}
                 </a>
               ) : (
                 <span
                   className={cn(
-                    isLast ? "font-medium text-ink" : "text-ink-tertiary",
+                    isLast ? "font-medium text-ink" : "text-ink-secondary",
                   )}
                   aria-current={isLast ? "page" : undefined}
                 >
@@ -64,19 +89,20 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
       size = "default",
       borderBottom,
       eyebrow,
-      ...props
     },
     ref,
   ) => {
     return (
-      <div
+      <motion.div
         ref={ref}
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
         className={cn(
-          "mb-8 animate-fade-in",
-          borderBottom && "border-b border-black/[0.06] pb-6",
+          "mb-8",
+          borderBottom && "border-b border-border pb-6",
           className,
         )}
-        {...props}
       >
         {breadcrumbs && breadcrumbs.length > 0 && (
           <BreadcrumbNav items={breadcrumbs} />
@@ -85,34 +111,42 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1.5">
             {eyebrow && (
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-tertiary">
+              <motion.p
+                variants={staggerChild}
+                className="text-overline text-primary"
+              >
                 {eyebrow}
-              </p>
+              </motion.p>
             )}
-            <h1
+            <motion.h1
+              variants={staggerChild}
               className={cn(
                 "font-heading tracking-tight text-ink",
-                size === "large"
-                  ? "text-4xl font-semibold"
-                  : "text-[2rem] font-semibold",
+                size === "large" ? "text-display" : "text-display-sm",
               )}
             >
               {title}
-            </h1>
+            </motion.h1>
             {subtitle && (
-              <p className="max-w-3xl text-base text-ink-secondary text-balance">
+              <motion.p
+                variants={staggerChild}
+                className="max-w-2xl text-body text-ink-secondary text-balance"
+              >
                 {subtitle}
-              </p>
+              </motion.p>
             )}
           </div>
 
           {actions && (
-            <div className="flex shrink-0 items-center gap-3 pt-1">
+            <motion.div
+              variants={staggerChild}
+              className="flex shrink-0 items-center gap-3 pt-1"
+            >
               {actions}
-            </div>
+            </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
     );
   },
 );

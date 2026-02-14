@@ -83,14 +83,14 @@ describe("ToastContainer", () => {
     expect(screen.getByRole("alert")).toBeInTheDocument();
   });
 
-  it("renders a warning toast with correct icon and role=alert", () => {
+  it("renders a warning toast with correct icon and role=status", () => {
     const toasts: ToastData[] = [
       { id: "1", variant: "warning", title: "Attention requise" },
     ];
     render(<ToastContainer toasts={toasts} onDismiss={mockDismiss} />);
     expect(screen.getByText("Attention requise")).toBeInTheDocument();
     expect(screen.getByTestId("icon-warning")).toBeInTheDocument();
-    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("renders an info toast with correct icon and role=status", () => {
@@ -226,7 +226,7 @@ describe("ToastContainer", () => {
     const { container } = render(
       <ToastContainer toasts={toasts} onDismiss={mockDismiss} />,
     );
-    const accent = container.querySelector(".bg-success-500");
+    const accent = container.querySelector(".bg-success");
     expect(accent).toBeInTheDocument();
   });
 
@@ -235,7 +235,7 @@ describe("ToastContainer", () => {
     const { container } = render(
       <ToastContainer toasts={toasts} onDismiss={mockDismiss} />,
     );
-    const accent = container.querySelector(".bg-danger-500");
+    const accent = container.querySelector(".bg-danger");
     expect(accent).toBeInTheDocument();
   });
 
@@ -246,7 +246,7 @@ describe("ToastContainer", () => {
     const { container } = render(
       <ToastContainer toasts={toasts} onDismiss={mockDismiss} />,
     );
-    const accent = container.querySelector(".bg-warning-500");
+    const accent = container.querySelector(".bg-warning");
     expect(accent).toBeInTheDocument();
   });
 
@@ -255,7 +255,7 @@ describe("ToastContainer", () => {
     const { container } = render(
       <ToastContainer toasts={toasts} onDismiss={mockDismiss} />,
     );
-    const accent = container.querySelector(".bg-blue-500");
+    const accent = container.querySelector(".bg-info");
     expect(accent).toBeInTheDocument();
   });
 

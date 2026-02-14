@@ -1,7 +1,12 @@
-// Compact metric indicator card (simpler than StatCard)
+// Premium metric indicator card with animated values and status border
+"use client";
+
 import * as React from "react";
+import { motion } from "framer-motion";
 import { cn } from "@praedixa/ui";
-import { Card } from "@/components/ui/card";
+import { TrendIndicator } from "@/components/ui/trend-indicator";
+import { useCountUp } from "@/hooks/use-count-up";
+import { cardReveal, SPRING } from "@/lib/animations/config";
 
 export type MetricStatus = "good" | "warning" | "danger" | "neutral";
 
@@ -10,53 +15,153 @@ export interface MetricCardProps extends React.HTMLAttributes<HTMLDivElement> {
   value: string | number;
   unit?: string;
   status?: MetricStatus;
+  trend?: number;
+  animate?: boolean;
+  trendInverted?: boolean;
+  icon?: React.ReactNode;
 }
 
-const statusDotColor: Record<MetricStatus, string> = {
-  good: "bg-success",
-  warning: "bg-warning",
-  danger: "bg-danger",
-  neutral: "bg-gray-300",
+const statusBorder: Record<MetricStatus, string> = {
+  good: "border-l-[3px] border-l-success",
+  warning: "border-l-[3px] border-l-warning",
+  danger: "border-l-[3px] border-l-danger",
+  neutral: "",
 };
 
+const statusBg: Record<MetricStatus, string> = {
+  good: "metric-bg-good",
+  warning: "metric-bg-warning",
+  danger: "metric-bg-danger",
+  neutral: "metric-bg-neutral",
+};
+
+const statusHoverGlow: Record<MetricStatus, string> = {
+  good: "metric-hover-good",
+  warning: "metric-hover-warning",
+  danger: "metric-hover-danger",
+  neutral: "metric-hover-neutral",
+};
+
+const statusDot: Record<MetricStatus, string> = {
+  good: "bg-success shadow-[0_0_0_3px_var(--success-light)]",
+  warning: "bg-warning shadow-[0_0_0_3px_var(--warning-light)]",
+  danger:
+    "bg-danger shadow-[0_0_0_3px_var(--danger-light)] animate-glow-breath",
+  neutral: "bg-border",
+};
+
+const statusIconBg: Record<MetricStatus, string> = {
+  good: "bg-success-light text-success",
+  warning: "bg-warning-light text-warning",
+  danger: "bg-danger-light text-danger",
+  neutral: "bg-primary-light text-primary",
+};
+
+function AnimatedValue({
+  value,
+  unit,
+}: {
+  value: string | number;
+  unit?: string;
+}) {
+  const isNumeric = typeof value === "number" && !isNaN(value);
+  const animated = useCountUp(isNumeric ? value : 0, {
+    duration: 700,
+    decimals: typeof value === "number" && value % 1 !== 0 ? 1 : 0,
+    enabled: isNumeric,
+  });
+
+  return (
+    <span className="font-serif text-metric-sm tabular-nums text-ink">
+      {isNumeric ? animated : value}
+      {unit && (
+        <span className="ml-0.5 font-sans text-body-sm font-medium text-ink-secondary">
+          {unit}
+        </span>
+      )}
+    </span>
+  );
+}
+
 const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
-  ({ label, value, unit, status = "neutral", className, ...props }, ref) => {
+  (
+    {
+      label,
+      value,
+      unit,
+      status = "neutral",
+      trend,
+      animate = false,
+      trendInverted = false,
+      icon,
+      className,
+    },
+    ref,
+  ) => {
     return (
-      <Card
+      <motion.div
         ref={ref}
+        variants={cardReveal}
+        initial="hidden"
+        animate="visible"
+        whileHover={{ y: -2, transition: SPRING.premium }}
         className={cn(
-          "inline-flex items-center gap-3 px-4 py-3 border border-gray-100",
+          "relative overflow-hidden rounded-lg border border-border",
+          "shadow-raised transition-shadow duration-fast",
+          "shine-effect px-5 py-4",
+          statusBg[status],
+          statusHoverGlow[status],
+          statusBorder[status],
           className,
         )}
-        variant="flat"
-        noPadding
-        {...props}
       >
-        <span
-          className={cn(
-            "h-2.5 w-2.5 shrink-0 rounded-full shadow-sm ring-2 ring-white",
-            statusDotColor[status],
+        <div className="flex items-start justify-between">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 shrink-0 rounded-full",
+                  statusDot[status],
+                )}
+                aria-hidden="true"
+              />
+              <span className="text-overline text-ink-tertiary">{label}</span>
+            </div>
+            <div className="flex items-baseline gap-2.5">
+              {animate ? (
+                <AnimatedValue value={value} unit={unit} />
+              ) : (
+                <span className="font-serif text-metric-sm tabular-nums text-ink">
+                  {value}
+                  {unit && (
+                    <span className="ml-0.5 font-sans text-body-sm font-medium text-ink-secondary">
+                      {unit}
+                    </span>
+                  )}
+                </span>
+              )}
+              {trend !== undefined && (
+                <TrendIndicator value={trend} inverted={trendInverted} />
+              )}
+            </div>
+          </div>
+
+          {icon && (
+            <div
+              className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-lg",
+                statusIconBg[status],
+              )}
+            >
+              {icon}
+            </div>
           )}
-          aria-label={`Statut: ${status}`}
-        />
-        <div className="flex flex-col">
-          <span className="text-xs font-medium text-ink-tertiary uppercase tracking-wide">
-            {label}
-          </span>
-          <span className="text-base font-bold text-ink font-heading">
-            {value}
-            {unit && (
-              <span className="ml-0.5 text-sm font-normal text-ink-secondary">
-                {unit}
-              </span>
-            )}
-          </span>
         </div>
-      </Card>
+      </motion.div>
     );
   },
 );
 
 MetricCard.displayName = "MetricCard";
 
-export { MetricCard, statusDotColor };
+export { MetricCard, statusDot as statusDotColor };

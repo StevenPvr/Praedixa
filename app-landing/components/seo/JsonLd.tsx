@@ -1,4 +1,8 @@
-import { landingFaq } from "../../lib/content/landing-faq";
+"use client";
+
+import { useEffect } from "react";
+import { siteConfig } from "../../lib/config/site";
+import { fr as frDict } from "../../lib/i18n/dictionaries/fr";
 
 const organizationSchema = {
   "@context": "https://schema.org",
@@ -19,8 +23,8 @@ const organizationSchema = {
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "Sales",
-    email: "steven.poivre@outlook.com",
-    availableLanguage: "French",
+    email: siteConfig.contact.email,
+    availableLanguage: ["French", "English"],
   },
   foundingDate: "2025",
   knowsAbout: [
@@ -29,11 +33,6 @@ const organizationSchema = {
     "Arbitrage economique operations",
     "Capacite vs charge operations",
     "Preuve economique auditable",
-    "Playbook d'actions operationnelles",
-    "Pilotage predictif couverture",
-    "Early-warning operationnel",
-    "Decision tracable audit trail",
-    "KPIs economiques couverture",
   ],
   sameAs: [],
 };
@@ -45,7 +44,7 @@ const softwareSchema = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   description:
-    "Couche d'intelligence de couverture pour entreprises multi-sites. Prevision + interpretabilite + arbitrage economique : anticipation de la sous-couverture, facteurs explicatifs, playbook d'actions, preuve d'impact.",
+    "Couche d'intelligence de couverture pour entreprises multi-sites. Prevision + interpretabilite + arbitrage economique.",
   featureList: [
     "Interpretabilite native : facteurs explicatifs de chaque prevision",
     "Prediction du risque de sous-couverture a 3, 7 et 14 jours",
@@ -59,7 +58,7 @@ const softwareSchema = {
     "@type": "Offer",
     priceCurrency: "EUR",
     availability: "https://schema.org/LimitedAvailability",
-    description: "Accès via cohorte pilote fondatrice (places limitées)",
+    description: "Acces via cohorte pilote fondatrice (places limitees)",
   },
 };
 
@@ -67,16 +66,10 @@ const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
   name: "Intelligence de couverture operationnelle",
-  provider: {
-    "@type": "Organization",
-    name: "Praedixa",
-  },
+  provider: { "@type": "Organization", name: "Praedixa" },
   description:
-    "Solution de couverture predictive pour entreprises multi-sites. Identification des risques de sous-couverture, facteurs explicatifs, chiffrage du cout de l'inaction, playbook d'actions avec arbitrage economique.",
-  areaServed: {
-    "@type": "Country",
-    name: "France",
-  },
+    "Solution de couverture predictive pour entreprises multi-sites.",
+  areaServed: { "@type": "Country", name: "France" },
   audience: {
     "@type": "BusinessAudience",
     audienceType:
@@ -84,41 +77,46 @@ const serviceSchema = {
   },
   serviceType: "Intelligence de couverture operationnelle",
   termsOfService: "https://www.praedixa.com/cgu",
-  offers: {
-    "@type": "Offer",
-    priceCurrency: "EUR",
-    availability: "https://schema.org/LimitedAvailability",
-    description: "Qualification sur cohorte pilote fondatrice",
-  },
 };
 
 const howToSchema = {
   "@context": "https://schema.org",
   "@type": "HowTo",
-  name: "Comment anticiper la sous-couverture de vos equipes (sans integration)",
+  name: "Comment anticiper la sous-couverture de vos equipes",
   description:
-    "Decouvrez comment Praedixa identifie vos risques de couverture, explique les causes et chiffre les options, a partir d'exports simples.",
+    "Decouvrez comment Praedixa identifie vos risques de couverture a partir d'exports simples.",
   totalTime: "P7D",
-  step: [
-    {
+  step: frDict.howItWorks.steps.map(
+    (
+      s: {
+        number: string;
+        title: string;
+        subtitle: string;
+        description: string;
+      },
+      i: number,
+    ) => ({
       "@type": "HowToStep",
-      position: 1,
-      name: "Envoyez vos exports",
-      text: "Vous nous envoyez vos exports (capacite, charge/volumes et absences).",
-    },
-    {
-      "@type": "HowToStep",
-      position: 2,
-      name: "Calcul et prévision",
-      text: "On anticipe la sous-couverture (capacité vs charge) et on chiffre les options.",
-    },
-    {
-      "@type": "HowToStep",
-      position: 3,
-      name: "Réception du plan",
-      text: "Vous recevez un plan de couverture actionnable : carte de sous-couverture, coût évitable estimé, options chiffrées et actions prioritaires.",
-    },
-  ],
+      position: i + 1,
+      name: s.title,
+      text: s.description,
+    }),
+  ),
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: frDict.faq.items.map(
+    (item: { question: string; answer: string; category: string }) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    }),
+  ),
 };
 
 const webSiteSchema = {
@@ -126,77 +124,46 @@ const webSiteSchema = {
   "@type": "WebSite",
   name: "Praedixa",
   url: "https://www.praedixa.com",
-  description:
-    "Praedixa — intelligence de couverture operationnelle premium. Anticipez la sous-couverture multi-sites, structurez vos arbitrages et produisez une preuve d'impact auditable.",
-  publisher: {
-    "@type": "Organization",
-    name: "Praedixa",
-  },
-  inLanguage: "fr-FR",
+  description: frDict.meta.description,
+  publisher: { "@type": "Organization", name: "Praedixa" },
+  inLanguage: ["fr-FR", "en-US"],
 };
 
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: landingFaq.map((item) => ({
-    "@type": "Question",
-    name: item.question,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: item.answer,
-    },
-  })),
-};
-
-function toJsonLd(value: unknown) {
-  return JSON.stringify(value).replace(/</g, "\\u003c");
+/** Escapes for JSON-LD in script: prevent </script> breaking out of tag. */
+function safeJsonLd(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
 }
 
+/** Single @graph wrapper — one script, one valid JSON value (avoids RSC parse issues). */
+const GRAPH_SCHEMAS = [
+  organizationSchema,
+  softwareSchema,
+  howToSchema,
+  faqSchema,
+  serviceSchema,
+  webSiteSchema,
+];
+
+const jsonLdGraph = {
+  "@context": "https://schema.org",
+  "@graph": GRAPH_SCHEMAS,
+};
+
+const JSON_LD_SCRIPT_ID = "praedixa-json-ld";
+
 export function JsonLd() {
-  return (
-    <>
-      <script
-        id="praedixa-org-jsonld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: toJsonLd(organizationSchema),
-        }}
-      />
-      <script
-        id="praedixa-software-jsonld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: toJsonLd(softwareSchema),
-        }}
-      />
-      <script
-        id="praedixa-howto-jsonld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: toJsonLd(howToSchema),
-        }}
-      />
-      <script
-        id="praedixa-faq-jsonld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: toJsonLd(faqSchema),
-        }}
-      />
-      <script
-        id="praedixa-service-jsonld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: toJsonLd(serviceSchema),
-        }}
-      />
-      <script
-        id="praedixa-website-jsonld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: toJsonLd(webSiteSchema),
-        }}
-      />
-    </>
-  );
+  useEffect(() => {
+    const existing = document.getElementById(JSON_LD_SCRIPT_ID);
+    if (existing) existing.remove();
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.text = safeJsonLd(jsonLdGraph);
+    script.id = JSON_LD_SCRIPT_ID;
+    document.head.appendChild(script);
+    return () => document.getElementById(JSON_LD_SCRIPT_ID)?.remove();
+  }, []);
+  return null;
 }

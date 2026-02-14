@@ -19,14 +19,27 @@ function DataTablePaginationBarInner({
     [pagination.page, totalPages],
   );
 
+  const startItem = (pagination.page - 1) * pagination.pageSize + 1;
+  const endItem = Math.min(
+    pagination.page * pagination.pageSize,
+    pagination.total,
+  );
+
   return (
-    <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
-      <p className="text-sm text-gray-500">{pagination.total} resultats</p>
+    <div className="flex items-center justify-between border-t border-[var(--border)] px-4 py-3">
+      <p className="text-caption text-[var(--ink-tertiary)]">
+        {startItem}–{endItem} sur {pagination.total}
+      </p>
       <div className="flex items-center gap-1">
         <button
           onClick={() => pagination.onPageChange(pagination.page - 1)}
           disabled={pagination.page <= 1}
-          className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-charcoal disabled:cursor-not-allowed disabled:opacity-40"
+          className={cn(
+            "rounded-[var(--radius-sm,6px)] p-1.5",
+            "text-[var(--ink-tertiary)] transition-colors duration-[var(--duration-fast,200ms)]",
+            "hover:bg-[var(--surface-interactive)] hover:text-[var(--ink)]",
+            "disabled:cursor-not-allowed disabled:opacity-40",
+          )}
           aria-label="Page precedente"
         >
           <svg
@@ -46,7 +59,10 @@ function DataTablePaginationBarInner({
         </button>
         {pageNumbers.map((pageNum, i) =>
           pageNum === "..." ? (
-            <span key={`ellipsis-${i}`} className="px-1 text-sm text-gray-400">
+            <span
+              key={`ellipsis-${i}`}
+              className="px-1 text-caption text-[var(--ink-placeholder)]"
+            >
               ...
             </span>
           ) : (
@@ -54,10 +70,10 @@ function DataTablePaginationBarInner({
               key={pageNum}
               onClick={() => pagination.onPageChange(pageNum as number)}
               className={cn(
-                "min-w-[2rem] rounded-md px-2 py-1 text-sm font-medium transition-colors",
+                "min-w-[2rem] rounded-[var(--radius-sm,6px)] px-2 py-1 text-caption font-medium transition-colors duration-[var(--duration-fast,200ms)]",
                 pageNum === pagination.page
-                  ? "bg-charcoal text-white"
-                  : "text-gray-600 hover:bg-gray-100",
+                  ? "bg-[var(--brand)] text-white"
+                  : "text-[var(--ink-secondary)] hover:bg-[var(--surface-interactive)]",
               )}
             >
               {pageNum}
@@ -67,7 +83,12 @@ function DataTablePaginationBarInner({
         <button
           onClick={() => pagination.onPageChange(pagination.page + 1)}
           disabled={pagination.page >= totalPages}
-          className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-charcoal disabled:cursor-not-allowed disabled:opacity-40"
+          className={cn(
+            "rounded-[var(--radius-sm,6px)] p-1.5",
+            "text-[var(--ink-tertiary)] transition-colors duration-[var(--duration-fast,200ms)]",
+            "hover:bg-[var(--surface-interactive)] hover:text-[var(--ink)]",
+            "disabled:cursor-not-allowed disabled:opacity-40",
+          )}
           aria-label="Page suivante"
         >
           <svg

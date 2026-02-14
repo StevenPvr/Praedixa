@@ -1,27 +1,7 @@
 import type { Metadata } from "next";
-import "./globals.css";
-import { JsonLd } from "../components/seo/JsonLd";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.praedixa.com"),
-  title:
-    "Praedixa | Intelligence de couverture premium pour opérations multi-sites",
-  description:
-    "Praedixa aide les directions opérations à anticiper la sous-couverture, prioriser les arbitrages économiques et produire une preuve auditable de l'impact.",
-  keywords: [
-    "intelligence de couverture",
-    "sous-couverture multi-sites",
-    "pilotage operations multi-sites",
-    "arbitrage economique operations",
-    "prevision charge capacite",
-    "preuve auditable ROI operations",
-    "coo operations saas",
-    "plateforme decision operations",
-  ],
-  authors: [{ name: "Praedixa" }],
-  alternates: {
-    canonical: "/",
-  },
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
@@ -29,31 +9,6 @@ export const metadata: Metadata = {
       { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
     ],
     apple: "/apple-touch-icon.png",
-  },
-  openGraph: {
-    title:
-      "Praedixa | SaaS premium de couverture opérationnelle pour COO multi-sites",
-    description:
-      "Anticipez vos tensions de couverture, cadrez vos arbitrages et rendez vos décisions auditables avec une méthodologie orientée impact.",
-    url: "https://www.praedixa.com",
-    siteName: "Praedixa",
-    locale: "fr_FR",
-    type: "website",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Praedixa — intelligence opérationnelle premium pour directions multi-sites",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Praedixa | Intelligence opérationnelle premium",
-    description:
-      "Pilotez la couverture multi-sites avec une approche auditable, orientée décision et performance économique.",
-    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -66,14 +21,5 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="fr">
-      <head>
-        <JsonLd />
-      </head>
-      <body className="min-h-screen bg-cream font-sans text-charcoal antialiased">
-        {children}
-      </body>
-    </html>
-  );
+  return children;
 }

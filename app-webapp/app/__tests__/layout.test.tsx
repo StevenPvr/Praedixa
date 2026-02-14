@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { render, screen } from "@testing-library/react";
+import React from "react";
 
 // Suppress jsdom warning: <html> cannot be a child of <div>
 const originalError = console.error;
@@ -15,14 +16,20 @@ afterAll(() => {
 });
 
 vi.mock("next/font/google", () => ({
-  Plus_Jakarta_Sans: () => ({
+  Manrope: () => ({
     variable: "--font-sans",
-    style: { fontFamily: "Plus Jakarta Sans" },
+    style: { fontFamily: "Manrope" },
   }),
-  DM_Serif_Display: () => ({
+  Cormorant_Garamond: () => ({
     variable: "--font-serif",
-    style: { fontFamily: "DM Serif Display" },
+    style: { fontFamily: "Cormorant Garamond" },
   }),
+}));
+
+vi.mock("@/components/theme-provider", () => ({
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }));
 
 import RootLayout, { metadata } from "../layout";

@@ -71,14 +71,11 @@ components/
 ├── shared/             # Composants utilitaires
 │   ├── SectionHeader        Titre + sous-titre standardises
 │   └── SectionWrapper       Container avec espacement uniforme
-├── animations/         # Motion design
-│   └── ScrollReveal         Wrapper d'animation au scroll (IntersectionObserver)
+├── icons/              # Icones SVG custom (pas lucide-react)
 ├── seo/                # Donnees structurees
 │   └── JsonLd               Schema.org Organisation + WebSite
-├── logo/
-│   └── PraedixaLogo         Logo SVG vectoriel
-└── hero/
-    └── HeroIllustration     Illustration de la section hero
+└── logo/
+    └── PraedixaLogo         Logo SVG vectoriel
 ```
 
 L'ordre de rendu sur la page d'accueil suit la sequence definie dans `app/page.tsx` :
@@ -88,14 +85,15 @@ Navbar -> HeroSection -> TrustBand -> ProblemSection -> SolutionSection -> Pipel
 
 Tout le contenu texte est centralise dans `lib/content/` pour faciliter les modifications sans toucher aux composants :
 
-| Fichier                          | Contenu                                                            |
-| -------------------------------- | ------------------------------------------------------------------ |
-| `lib/content/hero-content.ts`    | Titre, sous-titre, CTA de la section hero                          |
-| `lib/content/landing-faq.ts`     | Questions/reponses de la FAQ                                       |
-| `lib/content/pilot-benefits.ts`  | Avantages du programme pilote                                      |
-| `lib/content/pipeline-phases.ts` | Les 3 phases du pipeline Praedixa                                  |
-| `lib/content/trust-logos.ts`     | Logos du bandeau de confiance                                      |
-| `lib/config/site.ts`             | Configuration globale du site (nom, email de contact, hebergement) |
+| Fichier                             | Contenu                                                     |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `lib/content/hero-content.ts`       | Titre, sous-titre, CTA de la section hero                   |
+| `lib/content/landing-faq.ts`        | Questions/reponses de la FAQ                                |
+| `lib/content/pilot-benefits.ts`     | Avantages du programme pilote                               |
+| `lib/content/pipeline-phases.ts`    | Les 3 phases du pipeline Praedixa                           |
+| `lib/content/trust-logos.ts`        | Logos du bandeau de confiance                               |
+| `lib/config/site.ts`                | Configuration globale (nom, email, routes, liens nav/legal) |
+| `lib/content/pilot-form-options.ts` | Options du formulaire pilote (secteurs, effectifs, rôles)   |
 
 ## SEO
 
@@ -130,13 +128,9 @@ Envoie deux emails via [Resend](https://resend.com/) :
 
 ## Animations
 
-Le systeme d'animations repose sur Framer Motion et l'IntersectionObserver :
+Le systeme d'animations repose sur Framer Motion :
 
-- **`useScrollReveal`** (`hooks/useScrollReveal.ts`) : hook principal qui retourne `ref`, `isRevealed` et `progress`. Detecte l'entree dans le viewport avec un seuil configurable (defaut 20%)
-- **`useReducedMotion`** (`hooks/useReducedMotion.ts`) : detecte `prefers-reduced-motion: reduce` et desactive les animations pour les utilisateurs qui le souhaitent
-- **`ScrollReveal`** (`components/animations/ScrollReveal.tsx`) : wrapper declaratif pour animer l'entree d'un element
-- **`lib/animations/config.ts`** : courbes d'easing (`smoothOut`, `dramatic`, `snappy`), configurations de spring, durees et delais de stagger
-- **`lib/animations/variants.ts`** : variantes d'animation reutilisables
+- **`lib/animations/variants.ts`** : variantes reutilisables (`sectionReveal`, `staggerContainer`, `staggerItem`, `viewportOnce`)
 
 Les sections lourdes en SVG/illustrations sont chargees en lazy avec `React.lazy()` + `<Suspense>` :
 
@@ -167,7 +161,6 @@ components/shared/__tests__/      # SectionHeader, SectionWrapper
 components/animations/__tests__/  # ScrollReveal
 components/seo/__tests__/         # JsonLd
 components/logo/__tests__/        # PraedixaLogo
-hooks/__tests__/                  # useReducedMotion, useScrollReveal
 lib/security/__tests__/           # csp
 __tests__/                        # middleware
 ```
@@ -207,7 +200,6 @@ pnpm test:e2e:landing
 | `next` 15.5              | Framework React SSR/SSG                    |
 | `react` 19.1             | Bibliotheque UI                            |
 | `framer-motion` 12       | Animations et transitions                  |
-| `lucide-react`           | Icones SVG                                 |
 | `resend`                 | Envoi d'emails transactionnels             |
 | `@opennextjs/cloudflare` | Adaptateur Next.js pour Cloudflare Workers |
 | `@praedixa/ui`           | Composants partages du monorepo            |

@@ -1,12 +1,4 @@
-"""Data Quality types, constants and helpers shared across quality sub-modules.
-
-Security notes:
-- CPU-bound and synchronous.  Called via asyncio.to_thread().
-- No SQL / network I/O -- operates purely on in-memory row dicts.
-- Column names come from validated DatasetColumn definitions.
-- No user-supplied strings in f-strings or log messages beyond
-  column/dataset names that passed identifier validation upstream.
-"""
+"""Data quality types, constants and helpers."""
 
 from __future__ import annotations
 
@@ -44,26 +36,12 @@ __all__ = [
 ]
 
 
-# ── System columns (excluded from dedup and quality checks) ──────
 SYSTEM_COLUMNS: frozenset[str] = frozenset({"_row_id", "_ingested_at", "_batch_id"})
-
-# ── Ratio threshold for MAR detection ────────────────────────────
 MAR_RATIO_THRESHOLD: float = 3.0
-
-# Minimum number of rate buckets needed for MAR ratio test.
 MIN_RATE_BUCKETS: int = 2
-
-# Minimum number of values for meaningful outlier detection.
 MIN_VALUES_FOR_OUTLIERS: int = 4
-
-# Date format heuristic: values > 31 are likely years, not days.
 MAX_DAY_VALUE: int = 31
-
-# Expected part count for DD/MM/YYYY date strings.
 DATE_PARTS: int = 3
-
-
-# ── Configuration ────────────────────────────────────────────────
 
 
 @dataclass(frozen=True)
@@ -91,9 +69,6 @@ class QualityConfig:
     outlier_zscore_threshold: float = 3.0
     imputation_window_days: int = 14
     column_overrides: dict[str, dict[str, Any]] = field(default_factory=dict)
-
-
-# ── Result dataclasses ───────────────────────────────────────────
 
 
 @dataclass(frozen=True)
@@ -157,15 +132,7 @@ class QualityResult:
     config_snapshot: dict[str, Any]
 
 
-# ── Temporal Helpers ─────────────────────────────────────────────
-
-
 def normalize_date(value: Any) -> datetime.date | None:
-    """Normalize a temporal index value to a date.
-
-    Handles datetime.date, datetime.datetime, and ISO-format strings.
-    Returns None for unrecognizable values.
-    """
     if value is None:
         return None
     if isinstance(value, datetime.datetime):
@@ -178,12 +145,6 @@ def normalize_date(value: Any) -> datetime.date | None:
 
 
 def temporal_sort_key(value: Any) -> tuple[int, datetime.date]:
-    """Sort key for temporal values that may be missing/invalid.
-
-    Returns:
-      (0, date) for valid dates
-      (1, date.max) for missing/invalid values
-    """
     normalized = normalize_date(value)
     if normalized is None:
         return (1, datetime.date.max)
@@ -191,13 +152,10 @@ def temporal_sort_key(value: Any) -> tuple[int, datetime.date]:
 
 
 def parse_date_string(value: str) -> datetime.date | None:
-    """Parse a date string in ISO or French DD/MM/YYYY format."""
-    # Try ISO format first (YYYY-MM-DD)
     try:
         return datetime.date.fromisoformat(value[:10])
     except (ValueError, IndexError):
         pass
-    # Try French format (DD/MM/YYYY)
     parts = value.replace("-", "/").split("/")
     if len(parts) == DATE_PARTS:
         try:
@@ -215,7 +173,6 @@ def parse_date_string(value: str) -> datetime.date | None:
 
 
 def iso_week(dt: datetime.date) -> int:
-    """Return the ISO week number for a date."""
     return dt.isocalendar()[1]
 
 
@@ -226,11 +183,6 @@ def collect_past_values(
     current_date: datetime.date,
     window_days: int,
 ) -> list[float]:
-    """Collect non-None numeric values from rows strictly before current_date.
-
-    Only includes values within the causal window (current_date - window_days).
-    This is the core mechanism that prevents look-ahead bias.
-    """
     cutoff = current_date - datetime.timedelta(days=window_days)
     result: list[float] = []
 
@@ -258,11 +210,6 @@ def collect_past_group_values(
     current_date: datetime.date,
     window_days: int,
 ) -> list[float]:
-    """Collect non-None numeric values for a specific group from past rows.
-
-    Same causal constraint as collect_past_values, but filtered to the
-    same group.
-    """
     cutoff = current_date - datetime.timedelta(days=window_days)
     result: list[float] = []
 
@@ -273,7 +220,6 @@ def collect_past_group_values(
         if row_date < cutoff:
             continue
 
-        # Check group membership
         row_group = tuple(row.get(g) for g in group_by_columns)
         if row_group != group_key:
             continue
@@ -286,11 +232,7 @@ def collect_past_group_values(
     return result
 
 
-# ── Statistical Helpers ──────────────────────────────────────────
-
-
 def ratio_exceeds_threshold(rates: list[float]) -> bool:
-    """Return True if max/min of nonzero rates exceeds MAR threshold."""
     nonzero = [r for r in rates if r > 0.0]
     if len(nonzero) < MIN_RATE_BUCKETS or len(rates) < MIN_RATE_BUCKETS:
         return False
@@ -300,13 +242,6 @@ def ratio_exceeds_threshold(rates: list[float]) -> bool:
 
 
 def iqr_bounds(values: list[float], factor: float) -> tuple[float, float] | None:
-    """Compute IQR-based outlier bounds.
-
-    Lower = Q1 - factor * IQR
-    Upper = Q3 + factor * IQR
-
-    Returns None if IQR is zero (constant data).
-    """
     sorted_vals = sorted(values)
 
     q1 = percentile(sorted_vals, 0.25)
@@ -322,13 +257,6 @@ def iqr_bounds(values: list[float], factor: float) -> tuple[float, float] | None
 
 
 def zscore_bounds(values: list[float], threshold: float) -> tuple[float, float] | None:
-    """Compute z-score-based outlier bounds.
-
-    Lower = mean - threshold * std
-    Upper = mean + threshold * std
-
-    Returns None if std is zero (constant data).
-    """
     n = len(values)
     mean = sum(values) / n
     variance = sum((v - mean) ** 2 for v in values) / n
@@ -343,16 +271,9 @@ def zscore_bounds(values: list[float], threshold: float) -> tuple[float, float] 
 
 
 def percentile(sorted_values: list[float], p: float) -> float:
-    """Compute the p-th percentile using linear interpolation.
-
-    sorted_values must be pre-sorted in ascending order.
-    p is in [0.0, 1.0].
-    """
     n = len(sorted_values)
     if n == 1:
         return sorted_values[0]
-
-    # Use the "exclusive" interpolation method (matches numpy default)
     idx = p * (n - 1)
     lower_idx = math.floor(idx)
     upper_idx = min(lower_idx + 1, n - 1)
@@ -364,10 +285,6 @@ def percentile(sorted_values: list[float], p: float) -> float:
 
 
 def median(values: list[Any]) -> float:
-    """Compute the median of a list of numeric values.
-
-    Handles int, float, and other numeric types by converting to float.
-    """
     numeric = sorted(float(v) for v in values)
     n = len(numeric)
     if n == 0:
@@ -378,9 +295,5 @@ def median(values: list[Any]) -> float:
     return numeric[mid]
 
 
-# ── Serialization Helpers ────────────────────────────────────────
-
-
 def config_to_dict(config: QualityConfig) -> dict[str, Any]:
-    """Serialize a QualityConfig to a plain dict for audit logging."""
     return asdict(config)

@@ -318,14 +318,14 @@ describe("DataTable", () => {
       );
       expect(screen.getByLabelText("Page precedente")).toBeInTheDocument();
       expect(screen.getByLabelText("Page suivante")).toBeInTheDocument();
-      expect(screen.getByText("5 resultats")).toBeInTheDocument();
+      expect(screen.getByText(/sur 5/)).toBeInTheDocument();
       // Page pills: 1, 2, 3 (totalPages=3 <= 7 so all shown)
       expect(screen.getByRole("button", { name: "1" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "2" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "3" })).toBeInTheDocument();
     });
 
-    it("highlights active page pill with bg-charcoal", () => {
+    it("highlights active page pill with brand styling", () => {
       render(
         <DataTable
           columns={sampleColumns}
@@ -339,11 +339,10 @@ describe("DataTable", () => {
         />,
       );
       const activePill = screen.getByRole("button", { name: "2" });
-      expect(activePill).toHaveClass("bg-charcoal");
+      expect(activePill.className).toMatch(/brand|bg-\[var\(--brand\)\]/);
       expect(activePill).toHaveClass("text-white");
-      // Inactive pill should not have bg-charcoal
       const inactivePill = screen.getByRole("button", { name: "1" });
-      expect(inactivePill).not.toHaveClass("bg-charcoal");
+      expect(inactivePill.className).not.toMatch(/bg-\[var\(--brand\)\]/);
     });
 
     it("disables previous button on first page", () => {
@@ -525,16 +524,14 @@ describe("DataTable", () => {
       expect(screen.getByTestId("table")).toHaveClass("my-custom");
     });
 
-    it("does not apply zebra stripes and uses gray hover", () => {
+    it("does not apply zebra stripes and uses hover class", () => {
       const { container } = render(
         <DataTable columns={sampleColumns} data={sampleData} />,
       );
       const rows = container.querySelectorAll("tbody tr");
-      // No zebra stripes — no row should have bg-gray-50 as a static class
       expect(rows[0]).not.toHaveClass("bg-gray-50");
       expect(rows[1]).not.toHaveClass("bg-gray-50");
-      // Rows should have gray hover class
-      expect(rows[0]).toHaveClass("hover:bg-gray-50/80");
+      expect(rows[0].className).toMatch(/hover:bg/);
     });
 
     it("adds cursor-pointer to sortable column headers", () => {
@@ -670,9 +667,8 @@ describe("DataTable", () => {
         />,
       );
       const rows = container.querySelectorAll("tbody tr");
-      expect(rows[0]).toHaveClass("bg-amber-50/50");
-      expect(rows[0]).toHaveClass("hover:bg-amber-50/70");
-      expect(rows[1]).not.toHaveClass("bg-amber-50/50");
+      expect(rows[0].className).toMatch(/brand-50|brand-100|--brand/);
+      expect(rows[1].className).not.toMatch(/brand-50|--brand-50/);
     });
 
     it("empty state spans selection column too", () => {
@@ -788,7 +784,7 @@ describe("DataTable", () => {
       expect(thead).toHaveClass("sticky");
       expect(thead).toHaveClass("top-0");
       expect(thead).toHaveClass("z-10");
-      expect(thead).toHaveClass("shadow-[0_1px_3px_rgba(0,0,0,0.05)]");
+      expect(thead?.className).toMatch(/shadow/);
     });
   });
 

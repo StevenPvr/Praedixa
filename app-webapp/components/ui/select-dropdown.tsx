@@ -1,4 +1,3 @@
-// Styled native select dropdown
 import * as React from "react";
 import { cn } from "@praedixa/ui";
 
@@ -45,7 +44,7 @@ const SelectDropdown = React.forwardRef<HTMLDivElement, SelectDropdownProps>(
         {label && (
           <label
             htmlFor={selectId}
-            className="text-sm font-medium text-charcoal"
+            className="text-body-sm font-medium text-ink"
           >
             {label}
           </label>
@@ -57,9 +56,12 @@ const SelectDropdown = React.forwardRef<HTMLDivElement, SelectDropdownProps>(
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
             className={cn(
-              "w-full appearance-none rounded-md border border-gray-200 bg-white py-2 pl-3 pr-9 text-sm text-charcoal transition-colors",
-              "focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100",
-              "disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400",
+              "w-full appearance-none rounded-lg border border-border bg-card",
+              "py-2 pl-3 pr-9 text-body-sm text-ink",
+              "transition-all duration-fast",
+              "focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--ring)]",
+              "hover:border-border-hover",
+              "disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-ink-tertiary",
             )}
           >
             {placeholder && (
@@ -74,9 +76,8 @@ const SelectDropdown = React.forwardRef<HTMLDivElement, SelectDropdownProps>(
             ))}
           </select>
 
-          {/* Chevron */}
           <svg
-            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-tertiary"
             viewBox="0 0 16 16"
             fill="none"
             aria-hidden="true"

@@ -46,6 +46,13 @@ async_session_factory = async_sessionmaker(
 # its own copy, preventing cross-request leakage.
 _current_org_id: ContextVar[str | None] = ContextVar("_current_org_id", default=None)
 
+# When True, super_admin cross-org endpoints can read all orgs via RLS bypass.
+# Set by require_super_admin_cross_org dependency. Write operations remain
+# tenant-scoped — only SELECT policies allow the bypass.
+_bypass_rls_for_admin: ContextVar[bool] = ContextVar(
+    "_bypass_rls_for_admin", default=False
+)
+
 # Strict UUID v4 pattern — prevents SQL injection via malformed org_id.
 _UUID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
@@ -75,6 +82,16 @@ def get_rls_org_id() -> str | None:
     return _current_org_id.get()
 
 
+def set_bypass_rls_for_admin(enabled: bool) -> None:
+    """Enable RLS bypass for super_admin cross-org read-only endpoints.
+
+    When enabled, get_db_session will SET LOCAL app.bypass_rls = 'true',
+    allowing SELECT policies to return rows from all organizations.
+    Only require_super_admin_cross_org should call this with enabled=True.
+    """
+    _bypass_rls_for_admin.set(enabled)
+
+
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """Dependency that yields an async database session.
 
@@ -102,6 +119,8 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
                     text("SET LOCAL app.current_organization_id = :org_id"),
                     {"org_id": org_id},
                 )
+            if _bypass_rls_for_admin.get():
+                await session.execute(text("SET LOCAL app.bypass_rls = 'true'"))
             yield session
             await session.commit()
         except Exception:

@@ -675,7 +675,7 @@ describe("useApiGetPaginated", () => {
       expect(mockApiGetPaginated).toHaveBeenCalled();
     });
 
-    const [_url, _getToken, opts] = mockApiGetPaginated.mock.calls[0];
+    const opts = mockApiGetPaginated.mock.calls[0][2];
     expect(opts).toHaveProperty("signal");
     expect(opts.signal).toBeInstanceOf(AbortSignal);
   });

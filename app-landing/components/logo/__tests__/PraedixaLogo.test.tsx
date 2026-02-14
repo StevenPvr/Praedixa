@@ -63,10 +63,10 @@ describe("PraedixaLogo", () => {
     expect(rotatedRect).toBeInTheDocument();
   });
 
-  it("should apply custom className", () => {
+  it("should apply custom className to wrapper", () => {
     const { container } = render(<PraedixaLogo className="my-logo" />);
-    const svg = container.querySelector("svg");
-    expect(svg).toHaveClass("my-logo");
+    const wrapper = container.firstElementChild;
+    expect(wrapper).toHaveClass("my-logo");
   });
 
   it("should use custom color prop", () => {

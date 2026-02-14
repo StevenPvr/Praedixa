@@ -193,9 +193,9 @@ describe("ParametresPage", () => {
 
   it("renders renamed tab labels", () => {
     render(<ParametresPage />);
-    expect(screen.getByText("Baremes de couts")).toBeInTheDocument();
+    expect(screen.getByText("Barèmes de coûts")).toBeInTheDocument();
     expect(screen.getByText("Horaires des postes")).toBeInTheDocument();
-    expect(screen.getByText("Exporter les donnees")).toBeInTheDocument();
+    expect(screen.getByText("Exporter les données")).toBeInTheDocument();
   });
 
   it("shows couts tab by default", () => {
@@ -320,7 +320,7 @@ describe("ParametresPage", () => {
       ],
     });
     render(<ParametresPage />);
-    expect(screen.getByText("Valeur par defaut")).toBeInTheDocument();
+    expect(screen.getByText("Valeur par défaut")).toBeInTheDocument();
   });
 
   it("uses row id as DataTable key for cost rows", () => {

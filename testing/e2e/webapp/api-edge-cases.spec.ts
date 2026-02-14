@@ -234,8 +234,6 @@ test.describe("Sites and canonical edge cases", () => {
     );
 
     await page.goto("/donnees");
-    await expect(
-      page.getByText("Aucune donnee disponible pour les filtres selectionnes."),
-    ).toBeVisible();
+    await expect(page.getByText(/Aucune donnee.*filtres/)).toBeVisible();
   });
 });

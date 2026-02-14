@@ -3,14 +3,18 @@
 import uuid
 from datetime import UTC, datetime
 from types import SimpleNamespace
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 import pytest
 
+from app.core.request_id import get_or_generate_request_id
 from app.models.admin import AdminAuditAction, AdminAuditLog
 from app.services.admin_audit import (
     _extract_ip,
-    _extract_request_id,
     _extract_user_agent,
     get_audit_log,
     log_admin_action,
@@ -82,27 +86,24 @@ class TestExtractUserAgent:
 
 
 class TestExtractRequestId:
-    """Tests for _extract_request_id()."""
-
     def test_valid_request_id(self) -> None:
         req = _make_request(request_id="abc-123")
-        assert _extract_request_id(req) == "abc-123"
+        assert get_or_generate_request_id(req) == "abc-123"
 
     def test_missing_request_id_generates_uuid(self) -> None:
         req = _make_request(request_id=None)
-        rid = _extract_request_id(req)
-        # Should be a valid UUID4
+        rid = get_or_generate_request_id(req)
         uuid.UUID(rid)
 
     def test_too_long_request_id_generates_uuid(self) -> None:
         req = _make_request(request_id="x" * 100)
-        rid = _extract_request_id(req)
+        rid = get_or_generate_request_id(req)
         uuid.UUID(rid)
 
     def test_non_ascii_request_id_generates_uuid(self) -> None:
         req = MagicMock()
         req.headers = {"X-Request-ID": "\u00e9\u00e0"}
-        rid = _extract_request_id(req)
+        rid = get_or_generate_request_id(req)
         uuid.UUID(rid)
 
 
@@ -220,7 +221,7 @@ class TestLogAdminAction:
             admin_user_id=str(uuid.uuid4()),
             action=AdminAuditAction.VIEW_ORG,
             request=req,
-            metadata=meta,
+            metadata=cast("Mapping[str, object]", meta),
         )
 
         entry = session.add.call_args[0][0]

@@ -1,8 +1,4 @@
-"""Stage 4: Outlier detection and clamping for numeric columns.
-
-Uses either IQR or z-score method. Computes statistics on all
-available (non-None) values.
-"""
+"""Outlier detection and clamping (IQR or z-score)."""
 
 from __future__ import annotations
 
@@ -30,14 +26,6 @@ def detect_and_clamp_outliers(
     config: QualityConfig,
     overrides: dict[str, Any],
 ) -> tuple[int, int, tuple[float, float] | None]:
-    """Detect and clamp outliers in a numeric column.
-
-    Uses either IQR or z-score method.  Computes statistics on all
-    available (non-None) values.
-
-    Returns:
-        (outlier_count, clamped_count, bounds_or_none)
-    """
     method = overrides.get("outlier_method", config.outlier_method)
     bounds = compute_outlier_bounds(
         rows,
@@ -63,7 +51,6 @@ def compute_outlier_bounds(
     iqr_factor: float,
     zscore_threshold: float,
 ) -> tuple[float, float] | None:
-    """Collect numeric values and compute outlier bounds."""
     values: list[float] = []
     for row in rows:
         val = row.get(col_name)
@@ -85,7 +72,6 @@ def clamp_values(
     bounds: tuple[float, float],
     method: str,
 ) -> tuple[int, int, tuple[float, float]]:
-    """Clamp outlier values to bounds. Returns counts and bounds."""
     lower, upper = bounds
     outlier_count = 0
     clamped_count = 0

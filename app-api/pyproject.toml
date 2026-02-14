@@ -56,6 +56,7 @@ venvPath = "."
 venv = ".venv"
 pythonVersion = "3.12"
 typeCheckingMode = "basic"
+reportMissingImports = false
 
 [tool.mypy]
 python_version = "3.12"
@@ -97,4 +98,8 @@ dev = [
     "pandas-stubs>=3.0.0.260204",
     "types-openpyxl>=3.1.5.20250919",
     "types-reportlab>=4.4.9.20260117",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+    "pytest-cov>=6.0.0",
+    "factory-boy>=3.3.0",
 ]

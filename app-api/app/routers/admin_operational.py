@@ -13,7 +13,6 @@ Security:
 """
 
 import uuid
-from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, select
@@ -22,19 +21,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import JWTPayload
 from app.core.dependencies import get_admin_tenant_filter, get_db_session
 from app.core.exceptions import NotFoundError
-from app.core.pagination import calculate_total_pages
 from app.core.security import TenantFilter, require_role
 from app.models.admin import AdminAuditAction
 from app.models.operational import CoverageAlert
 from app.models.site import Site
-from app.schemas.base import PaginationMeta
 from app.schemas.operational import (
     CanonicalRecordRead,
     CostParameterRead,
     CoverageAlertRead,
     ProofRecordRead,
 )
-from app.schemas.responses import PaginatedResponse
+from app.schemas.responses import PaginatedResponse, make_paginated_response
 from app.services.admin_audit import log_admin_action
 from app.services.canonical_data_service import list_canonical_records
 from app.services.cost_parameter_service import list_cost_parameters
@@ -110,21 +107,8 @@ async def list_org_canonical(
         metadata=metadata or None,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[CanonicalRecordRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [CanonicalRecordRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/organizations/{target_org_id}/cost-params")
@@ -164,21 +148,8 @@ async def list_org_cost_params(
         metadata=metadata or None,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[CostParameterRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [CostParameterRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/organizations/{target_org_id}/coverage-alerts")
@@ -230,21 +201,8 @@ async def list_org_coverage_alerts(
         metadata=metadata or None,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[CoverageAlertRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [CoverageAlertRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/organizations/{target_org_id}/proof")
@@ -284,18 +242,5 @@ async def list_org_proof(
         metadata=metadata or None,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[ProofRecordRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [ProofRecordRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)

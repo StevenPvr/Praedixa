@@ -3,96 +3,140 @@ import praedixaPreset from "../packages/ui/tailwind.preset.js";
 
 export default {
   presets: [praedixaPreset],
+  darkMode: "class",
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "../packages/ui/src/**/*.{js,ts,jsx,tsx,mdx}",
-    "./node_modules/@tremor/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       colors: {
-        page: "var(--page-bg)",
-        card: "var(--card-bg)",
-        surface: {
-          DEFAULT: "var(--card-bg)",
-          muted: "var(--card-bg-muted)",
+        /* ── Landing-matching surfaces ── */
+        cream: "oklch(0.975 0.005 85)",
+        charcoal: "oklch(0.16 0.01 55)",
+        ink: "oklch(0.16 0.01 55)",
+        paper: "oklch(0.998 0.001 85)",
+        stone: "oklch(0.96 0.004 80)",
+
+        /* ── Brand: Burnished Brass (matching landing identity) ── */
+        brass: {
+          DEFAULT: "oklch(0.68 0.13 72)",
+          50: "oklch(0.97 0.02 82)",
+          100: "oklch(0.94 0.04 82)",
+          200: "oklch(0.88 0.07 78)",
+          300: "oklch(0.82 0.10 76)",
+          400: "oklch(0.78 0.10 78)",
+          500: "oklch(0.68 0.13 72)",
+          600: "oklch(0.58 0.14 68)",
+          700: "oklch(0.48 0.12 65)",
+          800: "oklch(0.38 0.10 62)",
+          900: "oklch(0.28 0.08 58)",
         },
-        charcoal: "oklch(0.23 0.018 255)",
-        ink: {
-          DEFAULT: "var(--ink)",
-          secondary: "var(--ink-secondary)",
-          tertiary: "var(--ink-tertiary)",
-          inverted: "oklch(0.97 0.006 95)",
+
+        /* ── Warm neutral scale (matching landing) ── */
+        neutral: {
+          50: "oklch(0.985 0.003 70)",
+          100: "oklch(0.97 0.004 70)",
+          200: "oklch(0.92 0.005 70)",
+          300: "oklch(0.87 0.008 65)",
+          400: "oklch(0.72 0.01 60)",
+          500: "oklch(0.55 0.008 60)",
+          600: "oklch(0.40 0.012 55)",
+          700: "oklch(0.30 0.01 55)",
+          800: "oklch(0.22 0.01 55)",
+          900: "oklch(0.16 0.01 55)",
         },
-        primary: {
-          DEFAULT: "var(--brand)",
-          light: "oklch(0.93 0.03 253)",
-          dark: "var(--brand-strong)",
-        },
-        accent: {
-          DEFAULT: "var(--accent)",
-          strong: "var(--accent-strong)",
-        },
+
+        /* ── Sidebar ── */
         sidebar: {
           DEFAULT: "var(--sidebar-bg)",
           hover: "var(--sidebar-bg-hover)",
           active: "var(--sidebar-bg-active)",
           text: "var(--sidebar-text)",
           muted: "var(--sidebar-muted)",
+          border: "var(--sidebar-border)",
+          accent: "var(--sidebar-accent)",
         },
-        success: {
-          DEFAULT: "oklch(0.67 0.13 160)",
-          light: "oklch(0.96 0.03 160)",
-          text: "oklch(0.42 0.102 160)",
-        },
-        warning: {
-          DEFAULT: "oklch(0.75 0.15 78)",
-          light: "oklch(0.97 0.045 78)",
-          text: "oklch(0.47 0.11 78)",
-        },
-        danger: {
-          DEFAULT: "oklch(0.62 0.18 27)",
-          light: "oklch(0.96 0.03 27)",
-          text: "oklch(0.41 0.12 27)",
+
+        /* ── Glows ── */
+        glow: {
+          brand: "var(--glow-brand)",
+          accent: "var(--glow-accent)",
+          success: "var(--glow-success)",
+          warning: "var(--glow-warning)",
+          danger: "var(--glow-danger)",
         },
       },
+
       spacing: {
-        sidebar: "300px",
-        "sidebar-collapsed": "88px",
-        topbar: "76px",
+        sidebar: "var(--sidebar-width)",
+        "sidebar-collapsed": "var(--sidebar-collapsed-width)",
+        topbar: "var(--topbar-height)",
+        "page-x": "var(--page-padding-x)",
+        "page-y": "var(--page-padding-y)",
       },
-      borderRadius: {
-        card: "22px",
-        button: "12px",
-        "2xl": "1.25rem",
-        "3xl": "1.75rem",
+
+      maxWidth: {
+        page: "var(--page-max-width)",
       },
+
       boxShadow: {
-        soft: "0 3px 12px rgba(20, 25, 38, 0.05)",
-        card: "0 0 0 1px rgba(24, 32, 54, 0.06), 0 8px 24px rgba(24, 32, 54, 0.06)",
-        "card-hover":
-          "0 0 0 1px rgba(24, 32, 54, 0.09), 0 18px 36px rgba(24, 32, 54, 0.12)",
-        elevated: "0 24px 30px -10px rgba(24, 32, 54, 0.22)",
-        sidebar:
-          "1px 0 0 rgba(255,255,255,0.06), 16px 0 30px rgba(6,12,22,0.2)",
+        /* app-specific aliases */
+        soft: "var(--shadow-raised)",
+        card: "var(--shadow-raised)",
+        elevated: "var(--shadow-floating)",
+        sidebar: "1px 0 0 var(--sidebar-border)",
+        command: "var(--shadow-modal)",
+        float: "var(--shadow-floating)",
+        premium: "var(--shadow-premium-glow)",
       },
+
       animation: {
-        shimmer: "shimmer 1.8s ease-in-out infinite",
-        "fade-in": "fadeIn 260ms cubic-bezier(0.16, 1, 0.3, 1)",
-        "slide-up": "slideUp 420ms cubic-bezier(0.16, 1, 0.3, 1)",
+        shimmer: "shimmer 2s ease-in-out infinite",
+        "shimmer-pearl": "shimmerPearl 2.4s ease-in-out infinite",
+        "fade-in": "fadeIn 400ms var(--ease-smooth)",
+        "fade-in-scale": "fadeInScale 400ms var(--ease-smooth)",
+        "slide-up": "slideUp 500ms var(--ease-smooth)",
+        "slide-down": "slideDown 300ms var(--ease-smooth)",
+        "slide-in-right": "slideInRight 300ms var(--ease-smooth)",
         "pulse-dot": "pulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "count-up": "countUp 400ms var(--ease-smooth)",
+        draw: "draw 1000ms ease forwards",
+        "draw-line":
+          "drawLine var(--duration-cinematic) var(--ease-smooth) forwards",
+        checkmark: "checkmark 300ms ease forwards",
+        "glow-pulse": "glowPulse 2.5s ease-in-out infinite",
+        "glow-breath": "glowBreath 2s ease-in-out infinite",
+        "glow-in": "glowIn var(--duration-fast) var(--ease-smooth) forwards",
+        "scale-in": "scaleIn 300ms var(--ease-smooth)",
+        "expand-width":
+          "expandWidth var(--duration-slow) var(--ease-smooth) forwards",
+        "progress-gradient": "progressGradient 2s linear infinite",
+        float: "float 3s ease-in-out infinite",
+        ripple: "ripple 600ms ease-out",
+        "mesh-gradient": "meshGradient 20s ease-in-out infinite",
+        "border-glow": "borderGlow 3s ease-in-out infinite",
       },
-      transitionDuration: {
-        fast: "150ms",
-        normal: "240ms",
+
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-brand":
+          "linear-gradient(135deg, var(--brand) 0%, var(--brand-300) 100%)",
+        "gradient-accent":
+          "linear-gradient(135deg, var(--accent) 0%, var(--accent-300) 100%)",
+        "gradient-page":
+          "linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-strong) 100%)",
+        "gradient-card": "var(--gradient-card)",
+        "gradient-glass": "var(--gradient-glass)",
       },
     },
   },
   safelist: [
+    /* Minimal safelist — only dynamically-constructed classes */
     {
       pattern:
-        /^(bg|border|ring|text|stroke|fill)-(amber|success|warning|danger|gray|slate|blue|emerald|rose)-(50|100|200|300|400|500|600|700|800|900)$/,
+        /^(bg|text|border)-(success|warning|danger|info)(-(light|text))?$/,
     },
   ],
   plugins: [],

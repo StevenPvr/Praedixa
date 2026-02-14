@@ -1,137 +1,148 @@
 import Link from "next/link";
-import { cn } from "@praedixa/ui";
 import { PraedixaLogo } from "../logo/PraedixaLogo";
+import { ArrowRightIcon } from "../icons";
 import { siteConfig } from "../../lib/config/site";
-import { ArrowRightIcon, ShieldCheckIcon, LockIcon, MailIcon } from "../icons";
+import type { Dictionary } from "../../lib/i18n/types";
+import type { Locale } from "../../lib/i18n/config";
+import { localizedSlugs } from "../../lib/i18n/config";
 
 interface FooterProps {
-  className?: string;
+  dict: Dictionary;
+  locale: Locale;
 }
 
-const NAVIGATION_LINKS = [
-  { href: "#problem", label: "Enjeux" },
-  { href: "#solution", label: "Méthode" },
-  { href: "#pipeline", label: "Cas d'usage" },
-  { href: "#deliverables", label: "Framework ROI" },
-  { href: "#pilot", label: "Cohorte pilote" },
-  { href: "#faq", label: "FAQ" },
-] as const;
+export function Footer({ dict, locale }: FooterProps) {
+  const { footer } = dict;
+  const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
+  const year = new Date().getFullYear();
 
-const LEGAL_LINKS = [
-  { href: "/mentions-legales", label: "Mentions légales" },
-  { href: "/confidentialite", label: "Confidentialité" },
-  { href: "/cgu", label: "CGU" },
-] as const;
+  const navLinks = [
+    { href: "#solution", label: dict.nav.method },
+    { href: "#security", label: dict.nav.security },
+    { href: "#pilot", label: dict.pilot.kicker },
+    { href: "#faq", label: dict.nav.faq },
+  ];
 
-export function Footer({ className }: FooterProps) {
-  const currentYear = new Date().getFullYear();
+  const legalLinks = siteConfig.legalLinks.map((link) => ({
+    ...link,
+    href: `/${locale}${link.href}`,
+  }));
 
   return (
-    <footer className={cn("bg-charcoal text-white", className)}>
-      <div className="h-px bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
-
-      <div className="section-shell py-10 md:py-14">
-        <div className="premium-card border-white/10 bg-white/5 px-6 py-8 md:px-10 md:py-10">
-          <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
-            <div>
-              <p className="premium-pill border-amber-400/30 bg-amber-500/10 text-amber-300">
-                Cohorte fondatrice
-              </p>
-              <p className="mt-3 font-serif text-3xl text-white md:text-4xl">
-                Prenez l'avantage avant la standardisation du marché
-              </p>
-            </div>
-            <Link
-              href="/devenir-pilote"
-              className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-7 py-3.5 text-sm font-semibold text-charcoal transition hover:bg-amber-400"
-            >
-              Candidater à la cohorte
-              <ArrowRightIcon className="h-4 w-4" />
-            </Link>
-          </div>
+    <footer className="section-dark">
+      {/* CTA banner */}
+      <div className="section-shell pb-12 pt-16">
+        <div className="flex flex-col items-center rounded-lg border border-white/5 bg-white/[0.03] px-8 py-10 text-center">
+          <p className="craft-pill">{footer.ctaBanner.kicker}</p>
+          <h2 className="mt-4 max-w-lg font-serif text-2xl text-white sm:text-3xl">
+            {footer.ctaBanner.heading}
+          </h2>
+          <Link href={pilotHref} className="btn-primary mt-6">
+            {footer.ctaBanner.cta}
+            <ArrowRightIcon className="h-4 w-4" />
+          </Link>
         </div>
+      </div>
 
-        <div className="mt-12 grid gap-10 md:grid-cols-[1.2fr_1fr_1fr]">
+      {/* Footer grid */}
+      <div className="section-shell border-t border-white/5 pb-8 pt-10">
+        <div className="grid gap-8 sm:grid-cols-3">
+          {/* Brand column */}
           <div>
-            <Link href="/" className="group inline-flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5">
               <PraedixaLogo
                 variant="geometric"
-                size={28}
-                color="oklch(1 0 0)"
-                strokeWidth={1.1}
-                className="transition-transform duration-200 group-hover:scale-105"
+                size={24}
+                color="oklch(0.92 0.005 70)"
+                strokeWidth={1}
               />
-              <span className="font-serif text-2xl text-white">Praedixa</span>
-            </Link>
-            <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/65">
-              La plateforme de couverture opérationnelle conçue pour les
-              organisations multi-sites qui pilotent en niveau exécutif.
-            </p>
-
-            <div className="mt-6 space-y-2">
-              <div className="flex items-center gap-2 text-xs text-white/55">
-                <ShieldCheckIcon className="h-4 w-4 text-amber-300" />
-                Gouvernance orientée COO / DAF
-              </div>
-              <div className="flex items-center gap-2 text-xs text-white/55">
-                <LockIcon className="h-4 w-4 text-amber-300" />
-                Données agrégées, architecture privacy-by-design
-              </div>
+              <span className="font-serif text-lg text-white">Praedixa</span>
+            </div>
+            <p className="mt-3 text-sm text-white">{footer.tagline}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {footer.badges.map((badge) => (
+                <span key={badge} className="text-xs text-white">
+                  {badge}
+                </span>
+              ))}
             </div>
           </div>
 
+          {/* Navigation */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
-              Navigation
-            </h3>
-            <nav className="mt-4 flex flex-col gap-2.5">
-              {NAVIGATION_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm text-white/70 transition hover:text-amber-300"
-                >
-                  {link.label}
-                </Link>
+            <p className="text-xs font-semibold uppercase tracking-widest text-white">
+              {footer.navigation}
+            </p>
+            <ul className="mt-3 grid gap-1.5">
+              {navLinks.map((link) => (
+                <li key={link.href}>
+                  <a
+                    href={link.href}
+                    className="text-sm text-white transition hover:text-white"
+                  >
+                    {link.label}
+                  </a>
+                </li>
               ))}
-              <Link
-                href="/devenir-pilote"
-                className="pt-1 text-sm font-semibold text-amber-300 transition hover:text-amber-200"
-              >
-                Rejoindre la cohorte pilote
-              </Link>
-            </nav>
+              <li>
+                <Link
+                  href={pilotHref}
+                  className="text-sm font-medium text-brass-400 transition hover:text-brass-300"
+                >
+                  {dict.nav.ctaPrimary}
+                </Link>
+              </li>
+            </ul>
           </div>
 
+          {/* Legal & contact */}
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
-              Légal & contact
-            </h3>
-            <nav className="mt-4 flex flex-col gap-2.5">
-              {LEGAL_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm text-white/70 transition hover:text-amber-300"
-                >
-                  {link.label}
-                </Link>
+            <p className="text-xs font-semibold uppercase tracking-widest text-white">
+              {footer.legalContact}
+            </p>
+            <ul className="mt-3 grid gap-1.5">
+              {legalLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-white transition hover:text-white"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
               ))}
-            </nav>
-
-            <a
-              href={`mailto:${siteConfig.contact.email}?subject=Programme%20pilote%20Praedixa`}
-              className="mt-5 inline-flex items-center gap-2 text-sm text-white/70 transition hover:text-amber-300"
-            >
-              <MailIcon className="h-4 w-4" />
-              {siteConfig.contact.email}
-            </a>
+              <li>
+                <a
+                  href={`mailto:${siteConfig.contact.email}`}
+                  className="text-sm text-white transition hover:text-white"
+                >
+                  {siteConfig.contact.email}
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-white/10 pt-6 text-xs text-white/45 md:flex-row md:items-center">
-          <p>&copy; {currentYear} Praedixa. Tous droits réservés.</p>
-          <p>Conçu en France</p>
+        {/* Bottom bar */}
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-6">
+          <p className="text-xs text-white">&copy; {year} Praedixa</p>
+          <p className="text-xs text-white">{footer.copyright}</p>
+          {/* Language switcher */}
+          <div className="flex gap-2">
+            <Link
+              href="/fr"
+              className={`text-xs transition ${locale === "fr" ? "font-semibold text-white" : "text-white hover:text-white"}`}
+            >
+              FR
+            </Link>
+            <span className="text-xs text-white">|</span>
+            <Link
+              href="/en"
+              className={`text-xs transition ${locale === "en" ? "font-semibold text-white" : "text-white hover:text-white"}`}
+            >
+              EN
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

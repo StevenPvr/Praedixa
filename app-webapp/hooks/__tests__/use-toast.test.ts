@@ -15,7 +15,8 @@ vi.mock("@praedixa/ui", () => ({
 
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, ...rest }: any) => createElement("div", rest, children),
+    div: ({ children, ...rest }: Record<string, unknown>) =>
+      createElement("div", rest, children),
   },
   AnimatePresence: ({ children }: { children: ReactNode }) => children,
 }));

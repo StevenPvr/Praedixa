@@ -1,23 +1,8 @@
 /**
- * Shared Next.js security headers configuration.
- *
- * CSP is NOT included here — it's set per-request in middleware.ts (nonce-based).
+ * Next.js security headers. CSP is set per-request in middleware.ts (nonce-based).
  */
 
-interface HeaderEntry {
-  key: string;
-  value: string;
-}
-
-interface HeaderConfig {
-  source: string;
-  headers: HeaderEntry[];
-}
-
-interface SecurityHeadersOptions {
-  /** Include HSTS header (should be true in production) */
-  includeHsts: boolean;
-}
+type HeaderEntry = { key: string; value: string };
 
 const SECURITY_HEADERS: HeaderEntry[] = [
   {
@@ -43,23 +28,17 @@ const HSTS_HEADER: HeaderEntry = {
   value: "max-age=63072000; includeSubDomains; preload",
 };
 
-const STATIC_ASSET_CACHE: HeaderConfig = {
-  source: "/:all*(svg|jpg|jpeg|png|webp|avif|gif|ico|woff2|js|css)",
-  headers: [
-    {
-      key: "Cache-Control",
-      value: "public, max-age=31536000, immutable",
-    },
-  ],
-};
-
 export function buildSecurityHeaders(
-  options: SecurityHeadersOptions,
-): HeaderConfig[] {
-  const allHeaders: HeaderEntry[] = [
-    ...SECURITY_HEADERS,
-    ...(options.includeHsts ? [HSTS_HEADER] : []),
+  includeHsts: boolean,
+): { source: string; headers: HeaderEntry[] }[] {
+  const main = [...SECURITY_HEADERS, ...(includeHsts ? [HSTS_HEADER] : [])];
+  return [
+    { source: "/:path*", headers: main },
+    {
+      source: "/:all*(svg|jpg|jpeg|png|webp|avif|gif|ico|woff2|js|css)",
+      headers: [
+        { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+      ],
+    },
   ];
-
-  return [{ source: "/:path*", headers: allHeaders }, STATIC_ASSET_CACHE];
 }

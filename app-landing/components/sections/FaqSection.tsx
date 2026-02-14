@@ -1,105 +1,119 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { cn } from "@praedixa/ui";
-import {
-  staggerContainer,
-  staggerItem,
-  viewportOnce,
-} from "../../lib/animations/variants";
-import { landingFaq, faqCategories } from "../../lib/content/landing-faq";
+import { motion, AnimatePresence } from "framer-motion";
+import { sectionReveal, viewportOnce } from "../../lib/animations/variants";
+import { PlusIcon, ArrowRightIcon } from "../icons";
+import type { Dictionary } from "../../lib/i18n/types";
+import type { Locale } from "../../lib/i18n/config";
+import { localizedSlugs } from "../../lib/i18n/config";
 
 interface FaqSectionProps {
-  className?: string;
+  dict: Dictionary;
+  locale: Locale;
 }
 
-export function FaqSection({ className }: FaqSectionProps) {
+export function FaqSection({ dict, locale }: FaqSectionProps) {
+  const { faq } = dict;
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>(
+    faq.categories[0] ?? "",
+  );
+  const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
+
+  const filteredItems = faq.items.filter(
+    (item) => item.category === activeCategory,
+  );
+
   return (
-    <motion.section
-      id="faq"
-      className={cn("py-24 md:py-28", className)}
-      variants={staggerContainer}
-      initial="hidden"
-      whileInView="visible"
-      viewport={viewportOnce}
-    >
+    <section id="faq" className="section-spacing">
       <div className="section-shell">
-        <motion.div className="max-w-4xl" variants={staggerItem}>
-          <p className="section-kicker">FAQ</p>
-          <h2 className="section-title mt-4">
-            Réponses pour directions opérations et finance
-          </h2>
-          <p className="section-lead">
-            Cette section est pensée pour la due diligence métier d'un SaaS
-            premium: périmètre, données, gouvernance, modèle de valeur.
-          </p>
+        <motion.div
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
+          <p className="section-kicker">{faq.kicker}</p>
+          <h2 className="section-title mt-4">{faq.heading}</h2>
+          <p className="section-lead">{faq.subheading}</p>
         </motion.div>
 
-        <div className="mt-10 space-y-10">
-          {faqCategories.map((category) => {
-            const items = landingFaq.filter(
-              (item) => item.category === category,
-            );
-            if (items.length === 0) return null;
+        {/* Category tabs */}
+        <div className="mt-8 flex flex-wrap gap-2">
+          {faq.categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => {
+                setActiveCategory(category);
+                setOpenIndex(null);
+              }}
+              className={`rounded px-3.5 py-2 text-sm font-medium transition ${
+                activeCategory === category
+                  ? "bg-charcoal text-cream"
+                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
 
+        {/* Accordion */}
+        <div className="mt-6 divide-y divide-neutral-200">
+          {filteredItems.map((item, i) => {
+            const isOpen = openIndex === i;
             return (
-              <section key={category} className="space-y-4">
-                <motion.h3
-                  className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700"
-                  variants={staggerItem}
+              <div key={item.question}>
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : i)}
+                  className="flex w-full items-start justify-between gap-4 py-5 text-left"
+                  aria-expanded={isOpen}
                 >
-                  {category}
-                </motion.h3>
-
-                {items.map((item) => (
-                  <motion.details
-                    key={item.question}
-                    className="premium-card group p-6"
-                    variants={staggerItem}
-                  >
-                    <summary className="flex cursor-pointer list-none items-start justify-between gap-4">
-                      <span className="text-left text-base font-semibold text-charcoal">
-                        {item.question}
-                      </span>
-                      <span
-                        className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-700 transition-transform group-open:rotate-45"
-                        aria-hidden="true"
-                      >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 5v14m7-7H5"
-                          />
-                        </svg>
-                      </span>
-                    </summary>
-                    <p className="mt-4 text-sm leading-relaxed text-neutral-600">
-                      {item.answer}
-                    </p>
-                  </motion.details>
-                ))}
-              </section>
+                  <span className="text-base font-medium text-charcoal">
+                    {item.question}
+                  </span>
+                  <PlusIcon
+                    className={`mt-1 h-4 w-4 shrink-0 text-neutral-400 transition-transform duration-200 ${
+                      isOpen ? "rotate-45" : ""
+                    }`}
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <p className="pb-5 text-sm leading-relaxed text-neutral-600">
+                        {item.answer}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             );
           })}
         </div>
 
-        <motion.div className="mt-10" variants={staggerItem}>
-          <p className="mb-4 text-sm text-neutral-600">
-            Vous voulez évaluer l'adéquation sur votre contexte ?
-          </p>
-          <Link href="/devenir-pilote" className="gold-cta">
-            Rejoindre la cohorte pilote
+        {/* CTA after FAQ */}
+        <motion.div
+          className="mt-10 flex justify-center"
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
+          <Link href={pilotHref} className="btn-primary">
+            {dict.hero.ctaPrimary}
+            <ArrowRightIcon className="h-4 w-4" />
           </Link>
         </motion.div>
       </div>
-    </motion.section>
+    </section>
   );
 }

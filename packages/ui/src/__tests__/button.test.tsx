@@ -33,17 +33,17 @@ describe("Button", () => {
     expect(button.querySelector("svg.animate-spin")).toBeInTheDocument();
   });
 
-  it("applies default variant classes (amber)", () => {
+  it("applies default variant classes (brand)", () => {
     render(<Button>Default</Button>);
-    expect(screen.getByRole("button")).toHaveClass(
-      "bg-amber-500",
-      "text-white",
-    );
+    const button = screen.getByRole("button");
+    expect(button.className).toMatch(/bg-\[var\(--brand\)\]|bg-brand/);
   });
 
   it("applies destructive variant classes", () => {
     const { rerender } = render(<Button variant="destructive">Delete</Button>);
-    expect(screen.getByRole("button")).toHaveClass("bg-red-600");
+    expect(screen.getByRole("button").className).toMatch(
+      /bg-\[var\(--danger\)\]|bg-danger|bg-red/,
+    );
 
     rerender(<Button variant="outline">Outline</Button>);
     expect(screen.getByRole("button")).toHaveClass("border");
@@ -51,7 +51,7 @@ describe("Button", () => {
 
   it("applies size classes", () => {
     const { rerender } = render(<Button size="sm">Small</Button>);
-    expect(screen.getByRole("button")).toHaveClass("h-9");
+    expect(screen.getByRole("button")).toHaveClass("h-8");
 
     rerender(<Button size="lg">Large</Button>);
     expect(screen.getByRole("button")).toHaveClass("h-11");

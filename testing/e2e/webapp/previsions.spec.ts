@@ -41,8 +41,13 @@ test.describe("Previsions page", () => {
 
   test("switching to marchandise updates section label", async ({ page }) => {
     await page.goto("/previsions");
-    await page.getByRole("button", { name: "Marchandise" }).click();
-    await expect(page.getByText("Capacite marchandise")).toBeVisible();
+    const marchandiseBtn = page.getByRole("button", { name: "Marchandise" });
+    await marchandiseBtn.scrollIntoViewIfNeeded();
+    await marchandiseBtn.click();
+    await page.waitForURL(/dimension=merchandise/, { timeout: 15_000 });
+    await expect(page.getByText(/Capacite marchandise/)).toBeVisible({
+      timeout: 10_000,
+    });
   });
 
   test("displays decomposition and feature sections", async ({ page }) => {

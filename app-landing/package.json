@@ -8,20 +8,23 @@
     "build": "next build",
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
-    "lint": "eslint app/",
+    "lint": "eslint app/ components/ lib/ middleware.ts next.config.ts open-next.config.ts",
     "typecheck": "tsc --noEmit",
     "cf:build": "opennextjs-cloudflare build",
     "preview": "pnpm cf:build && opennextjs-cloudflare preview",
-    "deploy": "pnpm cf:build && opennextjs-cloudflare deploy"
+    "deploy": "pnpm cf:build && opennextjs-cloudflare deploy",
+    "dev:webpack": "next dev"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.16.0",
     "@praedixa/shared-types": "workspace:*",
     "@praedixa/ui": "workspace:*",
+    "@remotion/player": "^4.0.422",
     "framer-motion": "^12.31.0",
     "next": "15.5.10",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "remotion": "^4.0.422",
     "resend": "^6.9.1"
   },
   "devDependencies": {

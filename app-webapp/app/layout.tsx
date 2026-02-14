@@ -1,5 +1,21 @@
 import type { Metadata } from "next";
+import { Manrope, Cormorant_Garamond } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700", "800"],
+});
+
+const cormorant = Cormorant_Garamond({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Praedixa — War room operationnelle",
@@ -14,12 +30,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
+    <html
+      lang="fr"
+      className={`${manrope.variable} ${cormorant.variable}`}
+      suppressHydrationWarning
+    >
       <body className="font-sans antialiased">
-        <a href="#main-content" className="skip-link">
-          Aller au contenu principal
-        </a>
-        {children}
+        <ThemeProvider>
+          <a href="#main-content" className="skip-link">
+            Aller au contenu principal
+          </a>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

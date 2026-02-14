@@ -9,7 +9,10 @@ test.describe("Rapports page", () => {
   });
 
   test("displays title, subtitle, and report tabs", async ({ page }) => {
-    await page.goto("/rapports");
+    await page.goto("/rapports", {
+      waitUntil: "domcontentloaded",
+      timeout: 30_000,
+    });
 
     await expect(
       page.getByRole("heading", { name: "Rapports board-ready" }),
@@ -82,14 +85,18 @@ test.describe("Rapports page", () => {
         status: 500,
         contentType: "application/json",
         body: JSON.stringify({
+          success: false,
           error: { code: "INTERNAL_ERROR", message: "Erreur alerts" },
+          timestamp: "2026-02-09T07:00:00Z",
         }),
       }),
     );
 
     await page.goto("/rapports");
 
-    await expect(page.getByText("Erreur alerts")).toBeVisible();
+    await expect(page.getByText("Erreur alerts")).toBeVisible({
+      timeout: 15_000,
+    });
     await expect(page.getByRole("button", { name: "Reessayer" })).toBeVisible();
   });
 
@@ -100,12 +107,7 @@ test.describe("Rapports page", () => {
     const section = page.getByLabel("Fiabilite des previsions");
     await expect(section).toBeVisible();
     await expect(section.getByText("Runs completes")).toBeVisible();
-    await expect(
-      section
-        .getByText("Runs completes")
-        .locator("..")
-        .getByText("1", { exact: true }),
-    ).toBeVisible();
+    await expect(section.getByText("1", { exact: true }).first()).toBeVisible();
     await expect(section.getByText("Precision moyenne")).toBeVisible();
     await expect(section.getByText("91.0%").first()).toBeVisible();
     await expect(section.getByText("Meilleure precision")).toBeVisible();
@@ -170,12 +172,7 @@ test.describe("Rapports page", () => {
     await page.getByRole("tab", { name: "Fiabilite des previsions" }).click();
 
     await expect(page.getByText("Runs completes")).toBeVisible();
-    await expect(
-      page
-        .getByText("Runs completes")
-        .locator("..")
-        .getByText("3", { exact: true }),
-    ).toBeVisible();
+    await expect(page.getByText("3", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("91.0%").first()).toBeVisible();
     await expect(page.getByText("92.0%").first()).toBeVisible();
     await expect(

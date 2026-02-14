@@ -13,7 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_db_session
+from app.core.dependencies import get_db_session_for_cross_org
 from app.core.security import require_role
 from app.models.admin import AdminAuditAction
 from app.models.operational import CostParameter
@@ -62,7 +62,7 @@ class MissingCostParamsResponse(CamelModel):
 @router.get("/monitoring/cost-params/missing")
 async def cost_params_missing(
     request: Request,
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_db_session_for_cross_org),
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> ApiResponse[MissingCostParamsResponse]:
     """Organizations without cost parameters configured."""

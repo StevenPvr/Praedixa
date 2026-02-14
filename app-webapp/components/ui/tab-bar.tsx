@@ -1,5 +1,9 @@
+"use client";
+
 import * as React from "react";
+import { motion } from "framer-motion";
 import { cn } from "@praedixa/ui";
+import { SPRING } from "@/lib/animations/config";
 
 export interface Tab {
   id: string;
@@ -32,7 +36,7 @@ const TabBar = React.forwardRef<HTMLDivElement, TabBarProps>(
       <div
         ref={ref}
         className={cn(
-          "inline-flex flex-wrap gap-2 rounded-2xl border border-black/[0.06] bg-white/[0.70] p-1.5",
+          "inline-flex flex-wrap gap-1 rounded-xl border border-border bg-surface-sunken p-1",
           className,
         )}
         role="tablist"
@@ -47,23 +51,31 @@ const TabBar = React.forwardRef<HTMLDivElement, TabBarProps>(
               role="tab"
               aria-selected={isActive}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-all",
+                "relative inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-body-sm font-medium",
+                "transition-colors duration-fast",
                 isActive
-                  ? "bg-amber-300 text-charcoal shadow-sm"
-                  : "text-ink-secondary hover:bg-black/[0.05] hover:text-ink",
+                  ? "text-ink"
+                  : "text-ink-tertiary hover:text-ink-secondary",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
               )}
               onClick={() => onTabChange(tab.id)}
               onKeyDown={handleKeyDown}
             >
-              {tab.label}
+              {isActive && (
+                <motion.span
+                  layoutId="tab-pill"
+                  className="absolute inset-0 rounded-lg bg-card shadow-raised"
+                  transition={SPRING.premium}
+                />
+              )}
+              <span className="relative z-10">{tab.label}</span>
               {tab.count !== undefined && (
                 <span
                   className={cn(
-                    "inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold",
+                    "relative z-10 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
                     isActive
-                      ? "bg-black/[0.10] text-charcoal"
-                      : "bg-black/[0.08] text-ink-secondary",
+                      ? "bg-primary/10 text-primary"
+                      : "bg-border/60 text-ink-placeholder",
                   )}
                 >
                   {tab.count}

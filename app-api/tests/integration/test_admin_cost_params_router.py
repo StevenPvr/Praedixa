@@ -17,7 +17,11 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_current_user, get_db_session
+from app.core.dependencies import (
+    get_current_user,
+    get_db_session,
+    get_db_session_for_cross_org,
+)
 from app.main import app
 
 ORG_A_ID = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000001")
@@ -48,6 +52,7 @@ async def admin_client() -> AsyncGenerator[AsyncClient, None]:
         yield mock_session
 
     app.dependency_overrides[get_db_session] = _session
+    app.dependency_overrides[get_db_session_for_cross_org] = _session
     app.dependency_overrides[get_current_user] = _admin_jwt
 
     transport = ASGITransport(app=app)

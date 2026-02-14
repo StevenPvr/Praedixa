@@ -12,14 +12,13 @@ vi.mock("../praedixa-logo", () => ({
 }));
 
 describe("Sidebar", () => {
-  it("renders branding and priority card copy", () => {
+  it("renders branding", () => {
     render(<Sidebar currentPath="/dashboard" userRole="admin" />);
     expect(screen.getByTestId("praedixa-logo")).toBeInTheDocument();
     expect(screen.getByText("Praedixa")).toBeInTheDocument();
-    expect(screen.getByText("Priorite immediate")).toBeInTheDocument();
   });
 
-  it("renders grouped IA headings and labels", () => {
+  it("renders grouped headings and labels", () => {
     render(<Sidebar currentPath="/dashboard" userRole="admin" />);
     expect(screen.getByText("Voir")).toBeInTheDocument();
     expect(screen.getByText("Anticiper")).toBeInTheDocument();
@@ -31,17 +30,6 @@ describe("Sidebar", () => {
     expect(screen.getByText("Donnees")).toBeInTheDocument();
     expect(screen.getByText("Traitement")).toBeInTheDocument();
     expect(screen.getByText("Support")).toBeInTheDocument();
-  });
-
-  it("shows priority card linked to actions", () => {
-    render(
-      <Sidebar currentPath="/dashboard" userRole="admin" priorityCount={7} />,
-    );
-    const link = screen.getByRole("link", {
-      name: /Ouvrir le centre de traitement/i,
-    });
-    expect(link).toHaveAttribute("href", "/actions");
-    expect(screen.getByText("7")).toBeInTheDocument();
   });
 
   it("hides admin-only settings for non-admin roles", () => {
@@ -59,14 +47,20 @@ describe("Sidebar", () => {
     render(
       <Sidebar currentPath="/dashboard" userRole="admin" unreadCount={4} />,
     );
-    expect(screen.getByLabelText("4 messages non lus")).toBeInTheDocument();
+    expect(screen.getByLabelText("4 notifications")).toBeInTheDocument();
   });
 
-  it("collapses labels and priority card in collapsed mode", () => {
+  it("renders priority badge on actions entry", () => {
+    render(
+      <Sidebar currentPath="/dashboard" userRole="admin" priorityCount={7} />,
+    );
+    expect(screen.getByLabelText("7 notifications")).toBeInTheDocument();
+  });
+
+  it("collapses labels in collapsed mode", () => {
     render(<Sidebar currentPath="/dashboard" userRole="admin" collapsed />);
-    expect(screen.queryByText("Pilotage")).not.toBeInTheDocument();
-    expect(screen.queryByText("Priorite du jour")).not.toBeInTheDocument();
-    expect(screen.queryByText("Vue d'ensemble")).not.toBeInTheDocument();
+    expect(screen.queryByText("Voir")).not.toBeInTheDocument();
+    expect(screen.queryByText("War room")).not.toBeInTheDocument();
   });
 
   it("calls toggle callback", async () => {

@@ -1,52 +1,92 @@
 import * as React from "react";
 import { cn } from "@praedixa/ui";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
+export type DetailCardVariant = "default" | "glass" | "premium";
 
 export interface DetailCardProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
   padding?: "none" | "compact" | "default" | "loose";
   action?: React.ReactNode;
+  /** Optional status indicator on the left border */
+  status?: "success" | "warning" | "danger" | "info";
+  /** Visual variant: default (solid), glass (frosted), premium (gradient + glow) */
+  variant?: DetailCardVariant;
 }
+
+const statusBorders: Record<string, string> = {
+  success: "border-l-[3px] border-l-success",
+  warning: "border-l-[3px] border-l-warning",
+  danger: "border-l-[3px] border-l-danger",
+  info: "border-l-[3px] border-l-info",
+};
+
+const variantStyles: Record<DetailCardVariant, string> = {
+  default:
+    "border border-border bg-card shadow-raised transition-all duration-fast hover:shadow-floating",
+  glass:
+    "surface-glass shadow-raised transition-all duration-fast hover:shadow-floating",
+  premium:
+    "border border-border bg-gradient-card shadow-raised transition-all duration-fast hover:shadow-premium hover:border-[var(--border-glow)]",
+};
+
+const paddingMap = {
+  none: "",
+  compact: "p-4",
+  default: "p-6",
+  loose: "p-8",
+};
 
 const DetailCard = React.forwardRef<HTMLDivElement, DetailCardProps>(
   (
-    { className, title, padding = "default", action, children, ...props },
+    {
+      className,
+      title,
+      padding = "default",
+      action,
+      status,
+      variant = "default",
+      children,
+      ...props
+    },
     ref,
   ) => {
-    const isLoose = padding === "loose";
-    const isCompact = padding === "compact";
-    const isNone = padding === "none";
-
     return (
-      <Card
+      <div
         ref={ref}
         className={cn(
-          "h-full flex flex-col",
-          isLoose && "p-8",
-          isCompact && "p-4",
-          isNone && "p-0",
+          "flex h-full flex-col rounded-lg",
+          variantStyles[variant],
+          status && statusBorders[status],
+          !title && paddingMap[padding],
           className,
         )}
-        variant="default"
         {...props}
       >
         {title && (
-          <CardHeader
-            className={cn(
-              "flex-row items-center justify-between space-y-0 pb-6",
-              isNone && "px-6 pt-6",
-            )}
-          >
-            <CardTitle>{title}</CardTitle>
-            {action && <div>{action}</div>}
-          </CardHeader>
+          <>
+            <div
+              className={cn(
+                "flex items-center justify-between",
+                padding === "compact" ? "px-4 py-4" : "px-6 py-5",
+              )}
+            >
+              <h3 className="text-title-sm text-ink">{title}</h3>
+              {action && (
+                <div className="flex items-center gap-2">{action}</div>
+              )}
+            </div>
+            <div className="gradient-divider -mx-1" aria-hidden="true" />
+          </>
         )}
-        <CardContent
-          className={cn("flex-1", isNone && "p-0", title && !isNone && "pt-0")}
+        <div
+          className={cn(
+            "flex-1",
+            title && (padding === "compact" ? "p-4" : "p-6"),
+          )}
         >
           {children}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   },
 );

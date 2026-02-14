@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { WarRoomDashboard } from "@/components/dashboard/war-room";
+import { PageTransition } from "@/components/page-transition";
 
 export const metadata: Metadata = {
   title: "War room | Praedixa",
@@ -10,8 +11,10 @@ export const metadata: Metadata = {
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<div>Chargement du centre decisionnel...</div>}>
-      <WarRoomDashboard />
-    </Suspense>
+    <PageTransition>
+      <Suspense fallback={<div>Chargement du centre decisionnel...</div>}>
+        <WarRoomDashboard />
+      </Suspense>
+    </PageTransition>
   );
 }

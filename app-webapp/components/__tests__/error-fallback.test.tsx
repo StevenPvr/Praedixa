@@ -22,7 +22,9 @@ describe("ErrorFallback", () => {
     it("shows retry button when onRetry is provided", () => {
       const onRetry = vi.fn();
       render(<ErrorFallback onRetry={onRetry} />);
-      const btn = screen.getByRole("button", { name: "Reessayer" });
+      const btn = screen.getByRole("button", {
+        name: "Reessayer le chargement",
+      });
       expect(btn).toBeInTheDocument();
       fireEvent.click(btn);
       expect(onRetry).toHaveBeenCalledTimes(1);
@@ -80,7 +82,7 @@ describe("ErrorFallback", () => {
       const onRetry = vi.fn();
       render(<ErrorFallback variant="network" onRetry={onRetry} />);
       expect(
-        screen.getByRole("button", { name: "Reessayer" }),
+        screen.getByRole("button", { name: "Reessayer le chargement" }),
       ).toBeInTheDocument();
     });
   });
@@ -139,7 +141,9 @@ describe("ErrorFallback", () => {
   describe("accessibility", () => {
     it("retry button meets 44px touch target", () => {
       render(<ErrorFallback onRetry={() => {}} />);
-      const btn = screen.getByRole("button", { name: "Reessayer" });
+      const btn = screen.getByRole("button", {
+        name: "Reessayer le chargement",
+      });
       expect(btn).toHaveClass("min-h-[44px]");
     });
 

@@ -50,11 +50,13 @@ export function MessageThread({
   if (!loading && messages.length === 0 && currentUserId) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-          <MessageSquare className="h-6 w-6 text-gray-400" />
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-border">
+          <MessageSquare className="h-6 w-6 text-ink-secondary" />
         </div>
-        <p className="mt-4 text-sm font-medium text-gray-500">Aucun message</p>
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-4 text-sm font-medium text-ink-secondary">
+          Aucun message
+        </p>
+        <p className="mt-1 text-xs text-ink-secondary">
           Envoyez le premier message pour demarrer la conversation
         </p>
       </div>
@@ -65,13 +67,13 @@ export function MessageThread({
   if (!currentUserId && messages.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-          <MessageSquare className="h-6 w-6 text-gray-400" />
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-border">
+          <MessageSquare className="h-6 w-6 text-ink-secondary" />
         </div>
-        <p className="mt-4 text-sm font-medium text-gray-500">
+        <p className="mt-4 text-sm font-medium text-ink-secondary">
           Selectionnez une conversation
         </p>
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-ink-secondary">
           Choisissez une conversation dans la liste ou creez-en une nouvelle
         </p>
       </div>
@@ -85,7 +87,7 @@ export function MessageThread({
           <div
             key={i}
             className={cn(
-              "h-16 w-2/3 animate-pulse rounded-2xl bg-gray-100",
+              "h-16 w-2/3 animate-pulse rounded-2xl bg-border",
               i % 2 === 0 && "ml-auto",
             )}
           />
@@ -101,9 +103,9 @@ export function MessageThread({
       aria-label="Messages"
     >
       {conversationStatus && conversationStatus !== "open" && (
-        <div className="mb-4 rounded-lg bg-gray-50 px-4 py-2 text-center text-sm text-gray-500">
+        <div className="mb-4 rounded-xl bg-surface-alt px-4 py-2.5 text-center text-sm text-ink-secondary">
           Cette conversation est{" "}
-          {conversationStatus === "resolved" ? "resolue" : "archivee"}
+          {conversationStatus === "resolved" ? "résolue" : "archivée"}
         </div>
       )}
 
@@ -118,13 +120,11 @@ export function MessageThread({
               <div
                 className={cn(
                   "max-w-[75%] rounded-2xl px-4 py-2.5",
-                  isOwn
-                    ? "bg-amber-100 text-charcoal"
-                    : "bg-gray-100 text-charcoal",
+                  isOwn ? "bg-primary/8 text-ink" : "surface-glass text-ink",
                 )}
               >
                 {!isOwn && (
-                  <p className="mb-1 text-xs font-medium text-gray-500">
+                  <p className="mb-1 text-xs font-medium text-ink-secondary">
                     {ROLE_LABELS[msg.senderRole] ?? msg.senderRole}
                   </p>
                 )}
@@ -132,7 +132,9 @@ export function MessageThread({
                 <div
                   className={cn(
                     "mt-1 flex items-center gap-1.5 text-xs",
-                    isOwn ? "justify-end text-amber-600/60" : "text-gray-400",
+                    isOwn
+                      ? "justify-end text-ink-tertiary"
+                      : "text-ink-secondary",
                   )}
                 >
                   <span>{formatTime(msg.createdAt)}</span>

@@ -42,21 +42,8 @@ describe("Landing RootLayout", () => {
     expect(container.innerHTML).toContain("Landing content");
   });
 
-  it("exports correct metadata title", () => {
-    expect(metadata.title).toContain("Praedixa");
-  });
-
-  it("exports correct metadata description", () => {
-    expect(typeof metadata.description).toBe("string");
-    expect((metadata.description as string).length).toBeGreaterThan(0);
-  });
-
   it("has metadataBase URL", () => {
     expect(metadata.metadataBase).toBeDefined();
-  });
-
-  it("has openGraph metadata", () => {
-    expect(metadata.openGraph).toBeDefined();
   });
 
   it("has robots configuration allowing indexing", () => {

@@ -30,6 +30,9 @@ vi.mock("next/link", () => ({
 }));
 
 import { Navbar } from "../Navbar";
+import { fr } from "../../../lib/i18n/dictionaries/fr";
+
+const defaultProps = { dict: fr, locale: "fr" as const };
 
 describe("Navbar", () => {
   beforeEach(() => {
@@ -37,56 +40,49 @@ describe("Navbar", () => {
   });
 
   it("renders the navigation with brand", () => {
-    render(<Navbar />);
+    render(<Navbar {...defaultProps} />);
     expect(screen.getByRole("navigation")).toBeInTheDocument();
     expect(screen.getByText("Praedixa")).toBeInTheDocument();
   });
 
   it("renders the desktop information architecture links", () => {
-    render(<Navbar />);
-    expect(screen.getAllByText("Enjeux").length).toBeGreaterThanOrEqual(1);
+    render(<Navbar {...defaultProps} />);
     expect(screen.getAllByText("Méthode").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Cas d'usage").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Framework ROI").length).toBeGreaterThanOrEqual(
-      1,
-    );
+    expect(screen.getAllByText("Sécurité").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("FAQ").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("renders the main CTA link to /devenir-pilote", () => {
-    render(<Navbar />);
-    const ctaCandidates = screen.getAllByText(/cohorte|qualification|pilote/i);
-    const cta = ctaCandidates.find(
-      (el) => el.closest("a")?.getAttribute("href") === "/devenir-pilote",
-    );
-    expect(cta).toBeDefined();
+  it("renders the main CTA link to pilot page", () => {
+    render(<Navbar {...defaultProps} />);
+    const cta = screen.getByText("Demander un pilote").closest("a");
+    expect(cta).toHaveAttribute("href", "/fr/devenir-pilote");
   });
 
   it("toggles mobile menu state", () => {
-    render(<Navbar />);
-    const menuButton = screen.getByLabelText("Ouvrir le menu");
+    render(<Navbar {...defaultProps} />);
+    const menuButton = screen.getByLabelText("Open menu");
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
 
     fireEvent.click(menuButton);
-    expect(screen.getByLabelText("Fermer le menu")).toHaveAttribute(
+    expect(screen.getByLabelText("Close menu")).toHaveAttribute(
       "aria-expanded",
       "true",
     );
   });
 
   it("closes mobile menu when resizing to desktop", () => {
-    render(<Navbar />);
-    fireEvent.click(screen.getByLabelText("Ouvrir le menu"));
-    expect(screen.getByLabelText("Fermer le menu")).toBeInTheDocument();
+    render(<Navbar {...defaultProps} />);
+    fireEvent.click(screen.getByLabelText("Open menu"));
+    expect(screen.getByLabelText("Close menu")).toBeInTheDocument();
 
     Object.defineProperty(window, "innerWidth", { value: 1024 });
     fireEvent.resize(window);
 
-    expect(screen.getByLabelText("Ouvrir le menu")).toBeInTheDocument();
+    expect(screen.getByLabelText("Open menu")).toBeInTheDocument();
   });
 
   it("handles scroll event changes", () => {
-    render(<Navbar />);
+    render(<Navbar {...defaultProps} />);
 
     act(() => {
       Object.defineProperty(window, "scrollY", { value: 100 });

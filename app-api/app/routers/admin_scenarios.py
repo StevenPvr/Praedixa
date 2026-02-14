@@ -13,14 +13,21 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_admin_tenant_filter, get_db_session
-from app.core.pagination import calculate_total_pages
+from app.core.dependencies import (
+    get_admin_tenant_filter,
+    get_db_session,
+    get_db_session_for_cross_org,
+)
 from app.core.security import TenantFilter, require_role
 from app.models.admin import AdminAuditAction
 from app.models.operational import ScenarioOption
-from app.schemas.base import CamelModel, PaginationMeta
+from app.schemas.base import CamelModel
 from app.schemas.operational import ScenarioOptionRead
-from app.schemas.responses import ApiResponse, PaginatedResponse
+from app.schemas.responses import (
+    ApiResponse,
+    PaginatedResponse,
+    make_paginated_response,
+)
 from app.services.admin_audit import log_admin_action
 
 router = APIRouter(tags=["admin-operational"])
@@ -45,7 +52,7 @@ class ScenarioSummaryResponse(CamelModel):
 @router.get("/monitoring/scenarios/summary")
 async def scenarios_summary(
     request: Request,
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_db_session_for_cross_org),
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> ApiResponse[ScenarioSummaryResponse]:
     """Cross-org scenario statistics."""
@@ -126,18 +133,5 @@ async def org_scenarios(
         resource_type="ScenarioOption",
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[ScenarioOptionRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [ScenarioOptionRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)

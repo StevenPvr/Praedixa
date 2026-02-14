@@ -28,8 +28,10 @@ describe("landing middleware", () => {
   it("sets CSP header on response", async () => {
     mockHeaders.clear();
     const req = {
-      url: "http://localhost:3001",
+      url: "http://localhost:3001/fr",
       headers: new Headers(),
+      cookies: { get: () => undefined },
+      nextUrl: new URL("http://localhost:3001/fr"),
     } as unknown as NextRequest;
 
     const result = await middleware(req);

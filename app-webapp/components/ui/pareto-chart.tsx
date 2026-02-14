@@ -31,7 +31,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
         <div
           ref={ref}
           className={cn(
-            "rounded-2xl border border-dashed border-black/[0.12] bg-black/[0.02] p-8 text-center text-sm text-ink-secondary",
+            "rounded-2xl border border-dashed border-border bg-surface-alt p-8 text-center text-sm text-ink-secondary",
             className,
           )}
           {...props}
@@ -64,7 +64,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
 
     const optimal = points
       .filter((p) => p.isParetoOptimal)
-      .sort((a, b) => a.cost - b.cost);
+      .toSorted((a, b) => a.cost - b.cost);
 
     const frontierPath =
       optimal.length > 1
@@ -88,7 +88,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
       <div
         ref={ref}
         className={cn(
-          "overflow-auto rounded-2xl border border-black/[0.08] bg-white/[0.70] p-3",
+          "overflow-auto rounded-2xl border border-border bg-surface p-3",
           className,
         )}
         role="img"
@@ -100,6 +100,16 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
           className="w-full"
           preserveAspectRatio="xMinYMin meet"
         >
+          <defs>
+            <linearGradient id="pareto-area-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--chart-2)" stopOpacity={0.15} />
+              <stop
+                offset="100%"
+                stopColor="var(--chart-2)"
+                stopOpacity={0.02}
+              />
+            </linearGradient>
+          </defs>
           {xTicks.map((tick, i) => (
             <g key={`x-${i}`}>
               <line
@@ -107,7 +117,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
                 y1={PADDING.top}
                 x2={xPos(tick)}
                 y2={PADDING.top + CHART_H}
-                stroke="oklch(0.89 0.007 250)"
+                stroke="var(--chart-grid)"
                 strokeDasharray="4 6"
               />
               <text
@@ -115,7 +125,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
                 y={PADDING.top + CHART_H + 18}
                 textAnchor="middle"
                 fontSize="9"
-                fill="oklch(0.56 0.014 250)"
+                fill="var(--chart-axis)"
               >
                 {tick}
               </text>
@@ -129,7 +139,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
                 y1={yPos(tick)}
                 x2={PADDING.left + CHART_W}
                 y2={yPos(tick)}
-                stroke="oklch(0.89 0.007 250)"
+                stroke="var(--chart-grid)"
                 strokeDasharray="4 6"
               />
               <text
@@ -138,7 +148,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
                 textAnchor="end"
                 dominantBaseline="central"
                 fontSize="9"
-                fill="oklch(0.56 0.014 250)"
+                fill="var(--chart-axis)"
               >
                 {tick}%
               </text>
@@ -150,7 +160,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
             y={VIEWBOX_H - 6}
             textAnchor="middle"
             fontSize="10"
-            fill="oklch(0.44 0.016 255)"
+            fill="var(--chart-axis)"
             fontWeight={600}
           >
             Cout total estime
@@ -160,18 +170,35 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
             y={PADDING.top + CHART_H / 2}
             textAnchor="middle"
             fontSize="10"
-            fill="oklch(0.44 0.016 255)"
+            fill="var(--chart-axis)"
             fontWeight={600}
             transform={`rotate(-90, 15, ${PADDING.top + CHART_H / 2})`}
           >
             Niveau de service (%)
           </text>
 
-          {frontierPath && (
+          {frontierPath && optimal.length > 1 && (
+            <>
+              <path
+                d={`${frontierPath} L ${xPos(optimal[optimal.length - 1].cost)} ${PADDING.top + CHART_H} L ${xPos(optimal[0].cost)} ${PADDING.top + CHART_H} Z`}
+                fill="url(#pareto-area-grad)"
+                data-testid="frontier-area"
+              />
+              <path
+                d={frontierPath}
+                fill="none"
+                stroke="var(--chart-2)"
+                strokeWidth={2}
+                strokeDasharray="6 4"
+                data-testid="frontier-line"
+              />
+            </>
+          )}
+          {frontierPath && optimal.length <= 1 && (
             <path
               d={frontierPath}
               fill="none"
-              stroke="oklch(0.7 0.135 78)"
+              stroke="var(--chart-2)"
               strokeWidth={2}
               strokeDasharray="6 4"
               data-testid="frontier-line"
@@ -213,7 +240,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
                     cy={cy}
                     r={radius + 7}
                     fill="none"
-                    stroke="oklch(0.41 0.095 253)"
+                    stroke="var(--chart-1)"
                     strokeWidth={2}
                     strokeDasharray="3 3"
                   />
@@ -224,7 +251,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
                     cy={cy}
                     r={radius + 4}
                     fill="none"
-                    stroke="oklch(0.7 0.135 78)"
+                    stroke="var(--chart-2)"
                     strokeWidth={2}
                   />
                 )}
@@ -234,12 +261,12 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
                   cy={cy}
                   r={radius}
                   fill={
-                    point.isParetoOptimal ? "oklch(0.41 0.095 253)" : "white"
+                    point.isParetoOptimal ? "var(--chart-1)" : "var(--card-bg)"
                   }
                   stroke={
                     point.isParetoOptimal
-                      ? "oklch(0.41 0.095 253)"
-                      : "oklch(0.59 0.012 255)"
+                      ? "var(--chart-1)"
+                      : "var(--chart-axis)"
                   }
                   strokeWidth={2}
                 />
@@ -252,14 +279,16 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
                       width={tooltipWidth}
                       height={44}
                       rx={8}
-                      fill="oklch(0.24 0.023 258)"
+                      fill="var(--card-bg)"
+                      stroke="var(--border)"
+                      strokeWidth={1}
                       opacity={0.97}
                     />
                     <text
                       x={cx + 18}
                       y={cy - 16}
                       fontSize="9"
-                      fill="white"
+                      fill="var(--ink)"
                       fontWeight={600}
                     >
                       {point.label}
@@ -268,7 +297,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
                       x={cx + 18}
                       y={cy - 2}
                       fontSize="8"
-                      fill="rgba(255,255,255,0.82)"
+                      fill="var(--ink-secondary)"
                     >
                       Cout: {point.cost.toFixed(0)} EUR
                     </text>
@@ -276,7 +305,7 @@ const ParetoChart = React.forwardRef<HTMLDivElement, ParetoChartProps>(
                       x={cx + 18}
                       y={cy + 10}
                       fontSize="8"
-                      fill="rgba(255,255,255,0.82)"
+                      fill="var(--ink-secondary)"
                     >
                       Service: {point.service.toFixed(1)}%
                     </text>

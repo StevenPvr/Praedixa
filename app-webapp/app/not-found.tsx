@@ -1,16 +1,21 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center font-sans">
-      <h1 className="text-6xl font-bold text-charcoal">404</h1>
-      <p className="mt-4 text-lg text-gray-500">Page introuvable</p>
-      <Link
-        href="/dashboard"
-        className="mt-6 rounded-lg bg-amber-300 px-5 py-2.5 text-sm font-medium text-charcoal transition-colors hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-      >
-        Retour au dashboard
-      </Link>
+    <div className="gradient-mesh flex min-h-screen flex-col items-center justify-center font-sans">
+      <div className="flex flex-col items-center gap-2 text-center">
+        <span className="gradient-brand-text font-serif text-display-lg">
+          404
+        </span>
+        <p className="text-heading text-ink-secondary">Page introuvable</p>
+        <p className="max-w-sm text-body-sm text-ink-tertiary">
+          La page que vous recherchez n&apos;existe pas ou a ete deplacee.
+        </p>
+      </div>
+      <Button asChild variant="premium" size="lg" className="mt-8">
+        <Link href="/dashboard">Retour au dashboard</Link>
+      </Button>
     </div>
   );
 }

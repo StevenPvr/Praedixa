@@ -8,16 +8,11 @@ const config: NextConfig = {
   transpilePackages: ["@praedixa/ui", "@praedixa/shared-types"],
 
   experimental: {
-    optimizePackageImports: [
-      "@tremor/react",
-      "framer-motion",
-      "lucide-react",
-      "date-fns",
-    ],
+    optimizePackageImports: ["framer-motion", "lucide-react", "date-fns"],
   },
 
   async headers() {
-    return buildSecurityHeaders({ includeHsts: isProd });
+    return buildSecurityHeaders(isProd);
   },
 };
 

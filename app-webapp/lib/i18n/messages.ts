@@ -84,6 +84,17 @@ export const messages: Record<AppLocale, MessageTree> = {
         report: "Exporter un rapport hebdomadaire",
       },
     },
+    commandPalette: {
+      label: "Palette de commandes",
+      placeholder: "Rechercher une page, une action…",
+      noResults: "Aucun résultat trouvé.",
+      navigate: "Naviguer",
+      select: "Ouvrir",
+      close: "Fermer",
+      sections: {
+        navigation: "Navigation",
+      },
+    },
   },
   en: {
     appShell: {
@@ -157,6 +168,17 @@ export const messages: Record<AppLocale, MessageTree> = {
         decision: "Process one alert in treatment center",
         support: "Start a support conversation",
         report: "Export a weekly report",
+      },
+    },
+    commandPalette: {
+      label: "Command palette",
+      placeholder: "Search for a page, an action…",
+      noResults: "No results found.",
+      navigate: "Navigate",
+      select: "Open",
+      close: "Close",
+      sections: {
+        navigation: "Navigation",
       },
     },
   },

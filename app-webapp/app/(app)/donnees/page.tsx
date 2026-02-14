@@ -6,6 +6,7 @@ import type {
   CanonicalQualityDashboard,
   Site,
 } from "@praedixa/shared-types";
+import { Database, PieChart, UserMinus, AlertCircle } from "lucide-react";
 import { DataTable, SkeletonTable } from "@praedixa/ui";
 import type { DataTableColumn } from "@praedixa/ui";
 import { MetricCard, type MetricStatus } from "@/components/ui/metric-card";
@@ -23,9 +24,17 @@ import { StatusBanner } from "@/components/status-banner";
 import { useApiGet, useApiGetPaginated } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
 import { AnimatedSection } from "@/components/animated-section";
+import { EmptyState } from "@/components/empty-state";
+import { PageTransition } from "@/components/page-transition";
 import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
 
 const PAGE_SIZE = 20;
+const COVERAGE_THRESHOLD_PCT = 85;
+const MISSING_SHIFTS_THRESHOLD_PCT = 5;
+const MISSING_SHIFTS_ACCEPTABLE_PCT = 2;
+const AVG_ABS_THRESHOLD_PCT = 5;
+const WARNING_FACTOR = 0.8;
+const DANGER_FACTOR = 1.5;
 
 const SHIFT_OPTIONS: SelectOption[] = [
   { value: "", label: "Tous les postes" },
@@ -41,13 +50,13 @@ function qualityStatus(
   if (direction === "gte") {
     return value >= goodThreshold
       ? "good"
-      : value >= goodThreshold * 0.8
+      : value >= goodThreshold * WARNING_FACTOR
         ? "warning"
         : "danger";
   }
   return value <= goodThreshold
     ? "good"
-    : value <= goodThreshold * 1.5
+    : value <= goodThreshold * DANGER_FACTOR
       ? "warning"
       : "danger";
 }
@@ -118,154 +127,183 @@ export default function DonneesPage() {
   }, [sites]);
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        eyebrow="Voir"
-        title="Referentiel operationnel"
-        subtitle="Verifiez la fiabilite des donnees qui alimentent vos arbitrages quotidiens."
-      />
+    <PageTransition>
+      <div className="gradient-mesh min-h-full space-y-8">
+        <PageHeader
+          eyebrow="Voir"
+          title="Référentiel opérationnel"
+          subtitle="Vérifiez la fiabilité des données qui alimentent vos arbitrages quotidiens."
+        />
 
-      {qualityLoading ? (
-        <StatusBanner variant="info" title="Controle qualite en cours">
-          Synchronisation des indicateurs de fiabilite et des derniers imports.
-        </StatusBanner>
-      ) : (quality?.missingShiftsPct ?? 0) > 5 ? (
-        <StatusBanner variant="danger" title="Qualite des donnees a corriger">
-          Le taux de postes non renseignes depasse le seuil acceptable.
-        </StatusBanner>
-      ) : (quality?.coveragePct ?? 0) < 85 ? (
-        <StatusBanner variant="warning" title="Qualite sous surveillance">
-          Le taux de remplissage est inferieur a l'objectif attendu.
-        </StatusBanner>
-      ) : (
-        <StatusBanner variant="success" title="Base de reference fiable">
-          Les donnees consolidees sont suffisamment completes pour piloter les
-          arbitrages.
-        </StatusBanner>
-      )}
+        {qualityLoading ? (
+          <StatusBanner variant="info" title="Contrôle qualité en cours">
+            Synchronisation des indicateurs de fiabilité et des derniers
+            imports.
+          </StatusBanner>
+        ) : (quality?.missingShiftsPct ?? 0) > MISSING_SHIFTS_THRESHOLD_PCT ? (
+          <StatusBanner variant="danger" title="Qualité des données à corriger">
+            Le taux de postes non renseignés dépasse le seuil acceptable.
+          </StatusBanner>
+        ) : (quality?.coveragePct ?? 0) < COVERAGE_THRESHOLD_PCT ? (
+          <StatusBanner variant="warning" title="Qualité sous surveillance">
+            Le taux de remplissage est inférieur à l&apos;objectif attendu.
+          </StatusBanner>
+        ) : (
+          <StatusBanner variant="success" title="Base de référence fiable">
+            Les données consolidées sont suffisamment complètes pour piloter les
+            arbitrages.
+          </StatusBanner>
+        )}
 
-      {/* Quality metrics */}
-      {qualityError ? (
-        <ErrorFallback message={qualityError} onRetry={refetchQuality} />
-      ) : (
+        {qualityError ? (
+          <ErrorFallback message={qualityError} onRetry={refetchQuality} />
+        ) : (
+          <DetailCard>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <MetricCard
+                label="Lignes de données"
+                value={
+                  qualityLoading ? "..." : String(quality?.totalRecords ?? 0)
+                }
+                status={quality ? "neutral" : "neutral"}
+                icon={<Database className="h-5 w-5" />}
+                animate
+              />
+              <MetricCard
+                label="Taux de remplissage"
+                value={qualityLoading ? "..." : `${quality?.coveragePct ?? 0}`}
+                unit="%"
+                status={
+                  quality
+                    ? qualityStatus(
+                        quality.coveragePct,
+                        COVERAGE_THRESHOLD_PCT,
+                        "gte",
+                      )
+                    : "neutral"
+                }
+                icon={<PieChart className="h-5 w-5" />}
+                animate
+              />
+              <MetricCard
+                label="Absence moyenne"
+                value={qualityLoading ? "..." : `${quality?.avgAbsPct ?? 0}`}
+                unit="%"
+                status={
+                  quality
+                    ? qualityStatus(
+                        quality.avgAbsPct,
+                        AVG_ABS_THRESHOLD_PCT,
+                        "lte",
+                      )
+                    : "neutral"
+                }
+                icon={<UserMinus className="h-5 w-5" />}
+                animate
+              />
+              <MetricCard
+                label="Postes non renseignés"
+                value={
+                  qualityLoading ? "..." : `${quality?.missingShiftsPct ?? 0}`
+                }
+                unit="%"
+                status={
+                  quality
+                    ? qualityStatus(
+                        quality.missingShiftsPct,
+                        MISSING_SHIFTS_ACCEPTABLE_PCT,
+                        "lte",
+                      )
+                    : "neutral"
+                }
+                icon={<AlertCircle className="h-5 w-5" />}
+                animate
+              />
+            </div>
+            <div className="mt-3 grid gap-2 text-caption text-ink-secondary sm:grid-cols-2 lg:grid-cols-4">
+              <p>Lignes de données : volume total de lignes consolidées.</p>
+              <p>
+                Taux de remplissage: part des champs utiles effectivement
+                renseignes.
+              </p>
+              <p>
+                Absence moyenne: niveau moyen d&apos;absence observe sur la
+                periode.
+              </p>
+              <p>
+                Postes non renseignes: part des shifts sans donnee exploitable.
+              </p>
+            </div>
+          </DetailCard>
+        )}
+
         <DetailCard>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <MetricCard
-              label="Lignes de donnees"
-              value={
-                qualityLoading ? "..." : String(quality?.totalRecords ?? 0)
-              }
-              status={quality ? "neutral" : "neutral"}
+          <p className="mb-3 text-overline text-ink-tertiary">
+            Filtrage operationnel
+          </p>
+          <div className="flex flex-wrap items-end gap-4">
+            <SelectDropdown
+              label="Site"
+              options={siteOptions}
+              value={siteFilter}
+              onChange={(v) => {
+                setSiteFilter(v);
+                setPage(1);
+              }}
+              placeholder="Tous les sites"
             />
-            <MetricCard
-              label="Taux de remplissage"
-              value={qualityLoading ? "..." : `${quality?.coveragePct ?? 0}`}
-              unit="%"
-              status={
-                quality
-                  ? qualityStatus(quality.coveragePct, 85, "gte")
-                  : "neutral"
-              }
+            <SelectDropdown
+              label="Poste"
+              options={SHIFT_OPTIONS}
+              value={shiftFilter}
+              onChange={(v) => {
+                setShiftFilter(v);
+                setPage(1);
+              }}
+              placeholder="Tous les postes"
             />
-            <MetricCard
-              label="Absence moyenne"
-              value={qualityLoading ? "..." : `${quality?.avgAbsPct ?? 0}`}
-              unit="%"
-              status={
-                quality ? qualityStatus(quality.avgAbsPct, 5, "lte") : "neutral"
-              }
+            <DateRangePicker
+              value={dateRange}
+              onChange={(r) => {
+                setDateRange(r);
+                setPage(1);
+              }}
             />
-            <MetricCard
-              label="Postes non renseignes"
-              value={
-                qualityLoading ? "..." : `${quality?.missingShiftsPct ?? 0}`
-              }
-              unit="%"
-              status={
-                quality
-                  ? qualityStatus(quality.missingShiftsPct, 2, "lte")
-                  : "neutral"
-              }
-            />
-          </div>
-          <div className="mt-3 grid gap-2 text-xs text-gray-600 sm:grid-cols-2 lg:grid-cols-4">
-            <p>Lignes de donnees: volume total de lignes consolidees.</p>
-            <p>
-              Taux de remplissage: part des champs utiles effectivement
-              renseignes.
-            </p>
-            <p>
-              Absence moyenne: niveau moyen d&apos;absence observe sur la
-              periode.
-            </p>
-            <p>
-              Postes non renseignes: part des shifts sans donnee exploitable.
-            </p>
           </div>
         </DetailCard>
-      )}
 
-      {/* Filters */}
-      <DetailCard>
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-ink-tertiary">
-          Filtrage operationnel
-        </p>
-        <div className="flex flex-wrap items-end gap-4">
-          <SelectDropdown
-            label="Site"
-            options={siteOptions}
-            value={siteFilter}
-            onChange={(v) => {
-              setSiteFilter(v);
-              setPage(1);
-            }}
-            placeholder="Tous les sites"
-          />
-          <SelectDropdown
-            label="Poste"
-            options={SHIFT_OPTIONS}
-            value={shiftFilter}
-            onChange={(v) => {
-              setShiftFilter(v);
-              setPage(1);
-            }}
-            placeholder="Tous les postes"
-          />
-          <DateRangePicker
-            value={dateRange}
-            onChange={(r) => {
-              setDateRange(r);
-              setPage(1);
-            }}
-          />
-        </div>
-      </DetailCard>
-
-      {/* Data table */}
-      <AnimatedSection>
-        <p className="mb-3 text-xs text-gray-500">
-          Tableau source pour audit operationnel. Utilisez les filtres pour
-          isoler un site, un shift ou une plage de dates.
-        </p>
-        {recordsError ? (
-          <ErrorFallback message={recordsError} onRetry={refetchRecords} />
-        ) : recordsLoading ? (
-          <SkeletonTable rows={10} columns={8} />
-        ) : (
-          <DataTable<CanonicalRecord>
-            columns={columns}
-            data={records}
-            getRowKey={(row) => row.id}
-            emptyMessage="Aucune donnee disponible pour les filtres selectionnes."
-            pagination={{
-              page,
-              pageSize: PAGE_SIZE,
-              total,
-              onPageChange: setPage,
-            }}
-          />
-        )}
-      </AnimatedSection>
-    </div>
+        <AnimatedSection>
+          <p className="mb-3 text-caption text-ink-secondary">
+            Tableau source pour audit operationnel. Utilisez les filtres pour
+            isoler un site, un shift ou une plage de dates.
+          </p>
+          {recordsError ? (
+            <ErrorFallback message={recordsError} onRetry={refetchRecords} />
+          ) : recordsLoading ? (
+            <SkeletonTable rows={10} columns={8} />
+          ) : (records ?? []).length === 0 ? (
+            <EmptyState
+              icon={<Database className="h-6 w-6 text-ink-tertiary" />}
+              title="Aucune donnee disponible"
+              description="Aucune donnee ne correspond aux filtres selectionnes. Essayez d'elargir la plage de dates ou de changer de site."
+            />
+          ) : records ? (
+            <DataTable<CanonicalRecord>
+              columns={columns}
+              data={records ?? []}
+              getRowKey={(row) => row.id}
+              emptyMessage="Aucune donnee disponible pour les filtres selectionnes."
+              pagination={{
+                page,
+                pageSize: PAGE_SIZE,
+                total,
+                onPageChange: setPage,
+              }}
+              className="overflow-hidden rounded-[var(--radius-lg)] border border-border bg-card shadow-[var(--shadow-floating)]"
+            />
+          ) : null}
+        </AnimatedSection>
+      </div>
+    </PageTransition>
   );
 }

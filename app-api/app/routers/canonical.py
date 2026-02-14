@@ -23,17 +23,19 @@ from app.core.dependencies import (
     get_tenant_filter,
 )
 from app.core.exceptions import ForbiddenError
-from app.core.pagination import calculate_total_pages
 from app.core.security import SiteFilter, TenantFilter, require_role
 from app.models.operational import ShiftType
-from app.schemas.base import PaginationMeta
 from app.schemas.operational import (
     CanonicalQualityDashboard,
     CanonicalRecordBulkCreate,
     CanonicalRecordCreate,
     CanonicalRecordRead,
 )
-from app.schemas.responses import ApiResponse, PaginatedResponse
+from app.schemas.responses import (
+    ApiResponse,
+    PaginatedResponse,
+    make_paginated_response,
+)
 from app.services.canonical_data_service import (
     bulk_import_canonical,
     create_canonical_record,
@@ -73,21 +75,8 @@ async def list_records(
         page_size=page_size,
     )
 
-    total_pages = calculate_total_pages(total, page_size)
-
-    return PaginatedResponse(
-        success=True,
-        data=[CanonicalRecordRead.model_validate(item) for item in items],
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    data = [CanonicalRecordRead.model_validate(item) for item in items]
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.get("/quality")

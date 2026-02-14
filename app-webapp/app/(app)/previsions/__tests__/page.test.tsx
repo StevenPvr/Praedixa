@@ -1,7 +1,9 @@
+import React from "react";
 import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import PrevisionsPage from "../page";
+import "@testing-library/jest-dom/vitest";
 
 const { mockUseApiGet, mockUseLatestForecasts } = vi.hoisted(() => ({
   mockUseApiGet: vi.fn(),
@@ -48,9 +50,8 @@ vi.mock("@/lib/forecast-decomposition", () => ({
   extractFeatureImportance: vi.fn(() => []),
 }));
 
-vi.mock("@tremor/react", () => ({
-  LineChart: () => <div data-testid="line-chart" />,
-  AreaChart: () => <div data-testid="area-chart" />,
+vi.mock("@/components/charts", () => ({
+  D3LineChart: () => <div data-testid="line-chart" />,
 }));
 
 vi.mock("@praedixa/ui", () => ({
@@ -141,6 +142,8 @@ vi.mock("@/components/ui/badge", () => ({
 
 vi.mock("@/lib/formatters", () => ({
   formatSeverity: (value: string) => value,
+  getSeverityBadgeVariant: () => "default",
+  formatDateShort: (dateStr: string) => dateStr.slice(0, 10),
 }));
 
 const sampleDaily = {

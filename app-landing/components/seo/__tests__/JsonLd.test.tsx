@@ -2,89 +2,106 @@ import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import { JsonLd } from "../JsonLd";
 
+function parseJsonLd(script: Element) {
+  return JSON.parse(script.textContent!.replace(/\\u003c/g, "<"));
+}
+
+function getAllSchemas() {
+  const script = document.querySelector(
+    'script[type="application/ld+json"]#praedixa-json-ld',
+  );
+  if (!script) return [];
+  const parsed = parseJsonLd(script);
+  return parsed["@graph"] ?? (Array.isArray(parsed) ? parsed : [parsed]);
+}
+
 describe("JsonLd", () => {
-  it("should render 6 script tags with type application/ld+json", () => {
-    const { container } = render(<JsonLd />);
-    const scripts = container.querySelectorAll(
-      'script[type="application/ld+json"]',
+  it("should inject a single script tag with type application/ld+json into head", () => {
+    render(<JsonLd />);
+    const scripts = document.querySelectorAll(
+      'script[type="application/ld+json"]#praedixa-json-ld',
     );
-    expect(scripts.length).toBe(6);
+    expect(scripts.length).toBe(1);
   });
 
   it("should include the Organization schema", () => {
-    const { container } = render(<JsonLd />);
-    const script = container.querySelector("#praedixa-org-jsonld");
-    expect(script).not.toBeNull();
-    const data = JSON.parse(script!.textContent!.replace(/\\u003c/g, "<"));
-    expect(data["@type"]).toBe("Organization");
-    expect(data.name).toBe("Praedixa");
-    expect(data.url).toBe("https://www.praedixa.com");
+    render(<JsonLd />);
+    const schemas = getAllSchemas();
+    const data = schemas.find(
+      (s: { "@type"?: string }) => s["@type"] === "Organization",
+    );
+    expect(data).toBeDefined();
+    expect(data!.name).toBe("Praedixa");
+    expect(data!.url).toBe("https://www.praedixa.com");
   });
 
   it("should include the SoftwareApplication schema", () => {
-    const { container } = render(<JsonLd />);
-    const script = container.querySelector("#praedixa-software-jsonld");
-    const data = JSON.parse(script!.textContent!.replace(/\\u003c/g, "<"));
-    expect(data["@type"]).toBe("SoftwareApplication");
-    expect(data.applicationCategory).toBe("BusinessApplication");
+    render(<JsonLd />);
+    const schemas = getAllSchemas();
+    const data = schemas.find(
+      (s: { "@type"?: string }) => s["@type"] === "SoftwareApplication",
+    );
+    expect(data).toBeDefined();
+    expect(data!.applicationCategory).toBe("BusinessApplication");
   });
 
-  it("should include the HowTo schema with 3 steps", () => {
-    const { container } = render(<JsonLd />);
-    const script = container.querySelector("#praedixa-howto-jsonld");
-    const data = JSON.parse(script!.textContent!.replace(/\\u003c/g, "<"));
-    expect(data["@type"]).toBe("HowTo");
-    expect(data.step).toHaveLength(3);
-    expect(data.step[0].position).toBe(1);
+  it("should include the HowTo schema with steps", () => {
+    render(<JsonLd />);
+    const schemas = getAllSchemas();
+    const data = schemas.find(
+      (s: { "@type"?: string }) => s["@type"] === "HowTo",
+    );
+    expect(data).toBeDefined();
+    expect(data!.step.length).toBeGreaterThanOrEqual(3);
+    expect(data!.step[0].position).toBe(1);
   });
 
   it("should include the FAQPage schema with questions", () => {
-    const { container } = render(<JsonLd />);
-    const script = container.querySelector("#praedixa-faq-jsonld");
-    const data = JSON.parse(script!.textContent!.replace(/\\u003c/g, "<"));
-    expect(data["@type"]).toBe("FAQPage");
-    expect(data.mainEntity.length).toBeGreaterThan(0);
-    expect(data.mainEntity[0]["@type"]).toBe("Question");
-    expect(data.mainEntity[0].acceptedAnswer["@type"]).toBe("Answer");
+    render(<JsonLd />);
+    const schemas = getAllSchemas();
+    const data = schemas.find(
+      (s: { "@type"?: string }) => s["@type"] === "FAQPage",
+    );
+    expect(data).toBeDefined();
+    expect(data!.mainEntity.length).toBeGreaterThan(0);
+    expect(data!.mainEntity[0]["@type"]).toBe("Question");
+    expect(data!.mainEntity[0].acceptedAnswer["@type"]).toBe("Answer");
   });
 
   it("should include the Service schema", () => {
-    const { container } = render(<JsonLd />);
-    const script = container.querySelector("#praedixa-service-jsonld");
-    const data = JSON.parse(script!.textContent!.replace(/\\u003c/g, "<"));
-    expect(data["@type"]).toBe("Service");
-    expect(data.provider.name).toBe("Praedixa");
+    render(<JsonLd />);
+    const schemas = getAllSchemas();
+    const data = schemas.find(
+      (s: { "@type"?: string }) => s["@type"] === "Service",
+    );
+    expect(data).toBeDefined();
+    expect(data!.provider.name).toBe("Praedixa");
   });
 
   it("should include the WebSite schema", () => {
-    const { container } = render(<JsonLd />);
-    const script = container.querySelector("#praedixa-website-jsonld");
-    const data = JSON.parse(script!.textContent!.replace(/\\u003c/g, "<"));
-    expect(data["@type"]).toBe("WebSite");
-    expect(data.inLanguage).toBe("fr-FR");
+    render(<JsonLd />);
+    const schemas = getAllSchemas();
+    const data = schemas.find(
+      (s: { "@type"?: string }) => s["@type"] === "WebSite",
+    );
+    expect(data).toBeDefined();
+    expect(data!.inLanguage).toEqual(["fr-FR", "en-US"]);
   });
 
   it("should escape < characters as \\u003c to prevent script injection", () => {
-    const { container } = render(<JsonLd />);
-    const scripts = container.querySelectorAll(
-      'script[type="application/ld+json"]',
+    render(<JsonLd />);
+    const script = document.querySelector(
+      'script[type="application/ld+json"]#praedixa-json-ld',
     );
-    for (const script of scripts) {
-      // The raw content should NOT contain a bare < inside the JSON
-      // (except the opening <script> tag of course)
-      expect(script.textContent).not.toContain("<");
-    }
+    expect(script?.textContent).not.toContain("<");
   });
 
-  it("should have valid JSON in every script tag", () => {
-    const { container } = render(<JsonLd />);
-    const scripts = container.querySelectorAll(
-      'script[type="application/ld+json"]',
+  it("should have valid JSON in each script", () => {
+    render(<JsonLd />);
+    const script = document.querySelector(
+      'script[type="application/ld+json"]#praedixa-json-ld',
     );
-    for (const script of scripts) {
-      expect(() =>
-        JSON.parse(script.textContent!.replace(/\\u003c/g, "<")),
-      ).not.toThrow();
-    }
+    expect(script).toBeTruthy();
+    expect(() => parseJsonLd(script!)).not.toThrow();
   });
 });

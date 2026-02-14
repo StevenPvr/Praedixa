@@ -18,9 +18,9 @@ vi.mock("next/link", () => ({
 }));
 
 describe("AppNotFound ((app) layout)", () => {
-  it('renders "404" heading', () => {
+  it('renders "404"', () => {
     render(<AppNotFound />);
-    expect(screen.getByRole("heading", { name: "404" })).toBeInTheDocument();
+    expect(screen.getByText("404")).toBeInTheDocument();
   });
 
   it('renders "Page introuvable" text', () => {

@@ -1,9 +1,11 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { motion } from "framer-motion";
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { fadeScale } from "@/lib/animations/config";
 import {
   getSupabaseBrowserClient,
   getValidAccessToken,
@@ -49,29 +51,35 @@ function LoginForm() {
     }
   }
 
+  const inputClasses =
+    "w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-body-sm text-ink placeholder:text-ink-placeholder outline-none transition-all duration-fast focus:border-primary focus:ring-2 focus:ring-[var(--ring)]";
+
   return (
-    <>
+    <motion.div
+      variants={fadeScale}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+    >
       <div className="space-y-2 text-center">
-        <p className="text-[11px] uppercase tracking-[0.14em] text-ink-tertiary">
-          Client access
-        </p>
-        <h2 className="font-heading text-3xl font-semibold text-ink">
+        <p className="text-overline text-ink-tertiary">Client access</p>
+        <h2 className="font-serif text-display-sm text-ink">
           Connexion securisee
         </h2>
-        <p className="text-sm text-ink-secondary">
+        <p className="text-body-sm text-ink-secondary">
           Accedez a votre war room operationnelle et vos priorites critiques.
         </p>
       </div>
 
       <form onSubmit={handleLogin} className="mt-8 space-y-4">
         {isReauth && (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="rounded-lg border border-warning-light bg-warning-light/50 px-4 py-3 text-body-sm text-warning-text">
             Session expiree ou droits insuffisants. Veuillez vous reconnecter.
           </div>
         )}
 
         {error && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          <div className="rounded-lg border border-danger-light bg-danger-light/50 px-4 py-3 text-body-sm text-danger-text">
             {error}
           </div>
         )}
@@ -79,7 +87,7 @@ function LoginForm() {
         <div>
           <label
             htmlFor="email"
-            className="mb-1.5 block text-sm font-medium text-ink"
+            className="mb-1.5 block text-body-sm font-medium text-ink"
           >
             Email professionnel
           </label>
@@ -90,7 +98,7 @@ function LoginForm() {
             onChange={(event) => setEmail(event.target.value)}
             required
             autoComplete="email"
-            className="w-full rounded-xl border border-black/12 bg-white px-3 py-2.5 text-sm text-ink placeholder:text-ink-tertiary outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className={inputClasses}
             placeholder="vous@entreprise.com"
           />
         </div>
@@ -98,7 +106,7 @@ function LoginForm() {
         <div>
           <label
             htmlFor="password"
-            className="mb-1.5 block text-sm font-medium text-ink"
+            className="mb-1.5 block text-body-sm font-medium text-ink"
           >
             Mot de passe
           </label>
@@ -109,14 +117,17 @@ function LoginForm() {
             onChange={(event) => setPassword(event.target.value)}
             required
             autoComplete="current-password"
-            className="w-full rounded-xl border border-black/12 bg-white px-3 py-2.5 text-sm text-ink placeholder:text-ink-tertiary outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className={inputClasses}
           />
         </div>
 
         <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-amber-300 text-charcoal hover:bg-amber-200"
+          loading={loading}
+          variant="premium"
+          className="w-full"
+          size="lg"
         >
           {loading ? (
             "Connexion en cours..."
@@ -129,7 +140,7 @@ function LoginForm() {
           )}
         </Button>
       </form>
-    </>
+    </motion.div>
   );
 }
 

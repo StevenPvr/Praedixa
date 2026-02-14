@@ -1,23 +1,6 @@
-"""Data Quality Service -- dedup, missing analysis, imputation, outlier clamping.
+"""Data quality pipeline — dedup, MCAR/MAR imputation, outlier clamping.
 
-Sits between column_mapper and raw_inserter in the ingestion pipeline:
-  parse_file -> map_columns -> **run_quality_checks** -> insert_raw_rows
-
-All operations are **strictly causal** -- no future data is ever used for
-imputation or outlier statistics.  This is critical because this module
-processes time series data destined for forecasting; any look-ahead bias
-here would propagate to all downstream models.
-
-Missing value mechanism classification uses temporal and group-based
-heuristics (simplified Little's MCAR test) to choose between deletion
-and imputation strategies.
-
-Security notes:
-- CPU-bound and synchronous.  Called via asyncio.to_thread().
-- No SQL / network I/O -- operates purely on in-memory row dicts.
-- Column names come from validated DatasetColumn definitions.
-- No user-supplied strings in f-strings or log messages beyond
-  column/dataset names that passed identifier validation upstream.
+Called via asyncio.to_thread(); strictly causal (no look-ahead).
 """
 
 from __future__ import annotations
@@ -71,10 +54,7 @@ logger = logging.getLogger(__name__)
 
 __all__ = ["QualityConfig", "QualityResult", "ColumnReport", "run_quality_checks"]
 
-# ── Backward-compatible private aliases ──────────────────────────
-# These allow existing tests and callers that import private names
-# from the old monolithic module to keep working unchanged.
-
+# Re-exports for app.services.data_quality compatibility
 _SYSTEM_COLUMNS = SYSTEM_COLUMNS
 _deduplicate = deduplicate
 _classify_missing = classify_missing
@@ -105,11 +85,7 @@ _zscore_bounds = zscore_bounds
 _config_to_dict = config_to_dict
 
 
-# ── Public API ───────────────────────────────────────────────────
-
-
 def _coerce_integer_value(value: Any) -> Any:
-    """Coerce a value to int when possible, preserving None/non-numeric values."""
     if value is None:
         return None
     if isinstance(value, bool):
@@ -133,7 +109,6 @@ def _coerce_integer_value(value: Any) -> Any:
 
 
 def _coerce_float_value(value: Any) -> Any:
-    """Coerce a value to float when possible, preserving None/non-numeric values."""
     if value is None:
         return None
     if isinstance(value, bool):
@@ -163,7 +138,6 @@ def _normalize_numeric_column_types(
     columns: list[DatasetColumn],
     temporal_index: str,
 ) -> None:
-    """Normalize numeric columns to declared dataset dtypes."""
     integer_cols = {
         c.name
         for c in columns
@@ -190,33 +164,10 @@ def run_quality_checks(
     group_by_columns: list[str] | None = None,
     config: QualityConfig | None = None,
 ) -> QualityResult:
-    """Run the full data quality pipeline on parsed rows.
-
-    This function is synchronous and should be called via
-    ``asyncio.to_thread()`` from async code.
-
-    Pipeline stages:
-    1. Deduplicate (keep first occurrence in temporal order)
-    2. Classify missing values per column (MCAR vs MAR)
-    3. Impute missing values (causal only -- no look-ahead)
-    4. Detect and clamp outliers (numeric columns only)
-
-    Args:
-        rows: Parsed row dicts from file_parser.
-        columns: DatasetColumn definitions from the database.
-        temporal_index: Name of the temporal index column.
-        group_by_columns: Optional grouping columns for MAR detection.
-        config: Quality configuration. Uses defaults if None.
-
-    Returns:
-        QualityResult with cleaned rows and diagnostic reports.
-    """
     if config is None:
         config = QualityConfig()
 
     rows_received = len(rows)
-
-    # Edge case: no rows
     if not rows:
         return QualityResult(
             cleaned_rows=[],
@@ -234,14 +185,12 @@ def run_quality_checks(
             config_snapshot=config_to_dict(config),
         )
 
-    # Identify numeric columns for outlier detection
     numeric_cols: set[str] = {
         c.name
         for c in columns
         if c.dtype.value in ("float", "integer") and c.name != temporal_index
     }
 
-    # ── Stage 1: Deduplication ────────────────────────────
     working_rows, dupes_found, dupes_removed = deduplicate(rows, temporal_index, config)
     rows_after_dedup = len(working_rows)
 
@@ -252,13 +201,11 @@ def run_quality_checks(
         rows_after_dedup,
     )
 
-    # ── Stage 2 + 3: Missing value analysis + imputation ──
     column_reports: dict[str, ColumnReport] = {}
     total_missing = 0
     total_imputed = 0
     total_deleted_rows = 0
 
-    # Columns to process (exclude system cols and temporal index from imputation)
     process_cols = [
         c.name
         for c in columns
@@ -267,8 +214,6 @@ def run_quality_checks(
 
     for col_name in process_cols:
         overrides = config.column_overrides.get(col_name, {})
-
-        # Skip if explicitly configured
         if overrides.get("skip", False):
             column_reports[col_name] = ColumnReport(
                 missing_count=0,
@@ -281,7 +226,6 @@ def run_quality_checks(
             )
             continue
 
-        # Count missing values
         missing_count = sum(1 for r in working_rows if r.get(col_name) is None)
         missing_pct = missing_count / len(working_rows) if working_rows else 0.0
         total_missing += missing_count
@@ -298,7 +242,6 @@ def run_quality_checks(
             )
             continue
 
-        # Classify missing mechanism
         missing_type = classify_missing(
             working_rows, col_name, temporal_index, group_by_columns
         )
@@ -313,7 +256,6 @@ def run_quality_checks(
             config,
             overrides,
         )
-
         total_imputed += imputed_count
         total_deleted_rows += deleted_rows
 
@@ -323,13 +265,11 @@ def run_quality_checks(
             missing_type=missing_type,
             strategy_applied=strategy,
             imputed_count=imputed_count,
-            outlier_count=0,  # Filled in stage 4
+            outlier_count=0,
             outliers_clamped=0,
         )
 
     rows_after_quality = len(working_rows)
-
-    # ── Stage 4: Outlier detection and clamping ───────────
     total_outliers = 0
     total_clamped = 0
 
@@ -351,8 +291,6 @@ def run_quality_checks(
 
         total_outliers += outlier_count
         total_clamped += clamped_count
-
-        # Update the column report with outlier info
         if col_name in column_reports:
             existing = column_reports[col_name]
             column_reports[col_name] = ColumnReport(
@@ -365,7 +303,7 @@ def run_quality_checks(
                 outliers_clamped=clamped_count,
                 bounds=bounds,
             )
-        else:  # pragma: no cover -- outlier-only column with no missing report
+        else:  # pragma: no cover
             column_reports[col_name] = ColumnReport(
                 missing_count=0,
                 missing_pct=0.0,
@@ -385,9 +323,6 @@ def run_quality_checks(
         total_deleted_rows,
         total_clamped,
     )
-
-    # Final dtype normalization prevents mixed Python types from producing
-    # unstable DB parameter inference during batch insertion.
     _normalize_numeric_column_types(working_rows, columns, temporal_index)
 
     return QualityResult(

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { motion } from "framer-motion";
 import type { DecisionQueueItem } from "@praedixa/shared-types";
 import { ChartInsight } from "./chart-insight";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,10 +10,13 @@ interface ScenarioComparisonChartProps {
   queue: DecisionQueueItem[];
 }
 
+type BarVariant = "primary" | "secondary";
+
 interface ScenarioPoint {
   label: string;
   value: number;
   helper: string;
+  variant?: BarVariant;
   color: string;
 }
 
@@ -74,8 +78,8 @@ export function ScenarioComparisonChart({
           trend={queue.length > 0 ? "negative" : "positive"}
         />
 
-        <div className="space-y-3 rounded-2xl border border-black/[0.08] bg-white/[0.70] p-4">
-          {points.map((point) => {
+        <div className="space-y-3 rounded-2xl border border-border bg-surface p-4">
+          {points.map((point, idx) => {
             const width = `${(point.value / (maxValue || 1)) * 100}%`;
             return (
               <div key={point.label} className="space-y-1.5">
@@ -83,10 +87,22 @@ export function ScenarioComparisonChart({
                   <span className="font-semibold text-ink">{point.label}</span>
                   <span>{point.helper}</span>
                 </div>
-                <div className="h-2.5 rounded-full bg-black/[0.06]">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{ width, backgroundColor: point.color }}
+                <div className="h-2.5 rounded-full bg-surface-alt">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{
+                      width,
+                      backgroundColor: point.color,
+                      transformOrigin: "left",
+                    }}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 25,
+                      delay: idx * 0.15,
+                    }}
                     aria-hidden="true"
                   />
                 </div>

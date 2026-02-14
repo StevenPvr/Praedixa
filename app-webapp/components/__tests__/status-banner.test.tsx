@@ -37,22 +37,19 @@ describe("StatusBanner", () => {
     it("applies success styles", () => {
       render(<StatusBanner variant="success">Succes</StatusBanner>);
       const banner = screen.getByRole("status");
-      expect(banner.className).toContain("bg-emerald-50/80");
-      expect(banner.className).toContain("text-emerald-900");
+      expect(banner.className).toMatch(/success/);
     });
 
     it("applies warning styles", () => {
       render(<StatusBanner variant="warning">Attention</StatusBanner>);
       const banner = screen.getByRole("status");
-      expect(banner.className).toContain("bg-amber-50/85");
-      expect(banner.className).toContain("text-amber-900");
+      expect(banner.className).toMatch(/warning/);
     });
 
     it("applies danger styles", () => {
       render(<StatusBanner variant="danger">Danger</StatusBanner>);
       const banner = screen.getByRole("status");
-      expect(banner.className).toContain("bg-rose-50/85");
-      expect(banner.className).toContain("text-rose-900");
+      expect(banner.className).toMatch(/danger/);
     });
   });
 

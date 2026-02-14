@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Database,
@@ -16,6 +17,9 @@ import {
 import { cn } from "@praedixa/ui";
 import { PraedixaLogo } from "./praedixa-logo";
 import { useI18n } from "@/lib/i18n/provider";
+import { SPRING, EASING, DURATION } from "@/lib/animations/config";
+
+/* ── Types ── */
 
 interface NavItem {
   id: string;
@@ -37,6 +41,8 @@ interface SidebarProps {
   unreadCount?: number;
   priorityCount?: number;
 }
+
+/* ── Navigation config ── */
 
 const NAV_ITEMS: NavItem[] = [
   {
@@ -91,50 +97,15 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-const ITEM_ACCENTS: Record<
-  string,
-  {
-    activeBg: string;
-    activeIcon: string;
-    rail: string;
-  }
-> = {
-  dashboard: {
-    activeBg: "bg-amber-500/18",
-    activeIcon: "text-amber-200",
-    rail: "bg-amber-400",
-  },
-  donnees: {
-    activeBg: "bg-blue-500/18",
-    activeIcon: "text-blue-200",
-    rail: "bg-blue-400",
-  },
-  previsions: {
-    activeBg: "bg-violet-500/18",
-    activeIcon: "text-violet-200",
-    rail: "bg-violet-400",
-  },
-  actions: {
-    activeBg: "bg-amber-500/22",
-    activeIcon: "text-amber-100",
-    rail: "bg-amber-300",
-  },
-  messages: {
-    activeBg: "bg-emerald-500/18",
-    activeIcon: "text-emerald-200",
-    rail: "bg-emerald-400",
-  },
-  rapports: {
-    activeBg: "bg-slate-400/20",
-    activeIcon: "text-slate-100",
-    rail: "bg-slate-200",
-  },
-  parametres: {
-    activeBg: "bg-neutral-300/20",
-    activeIcon: "text-neutral-100",
-    rail: "bg-neutral-200",
-  },
-};
+const GROUPS: Array<NavItem["group"]> = [
+  "voir",
+  "anticiper",
+  "decider",
+  "suivre",
+  "gouvernance",
+];
+
+/* ── Sidebar ── */
 
 export function Sidebar({
   currentPath,
@@ -153,132 +124,139 @@ export function Sidebar({
     (item) => !item.adminOnly || userRole === "admin",
   );
 
-  const groups: Array<NavItem["group"]> = [
-    "voir",
-    "anticiper",
-    "decider",
-    "suivre",
-    "gouvernance",
-  ];
-
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-30 flex flex-col border-r border-white/10 bg-sidebar text-sidebar-text transition-[width] duration-normal ease-out shadow-sidebar",
+        "fixed inset-y-0 left-0 z-30 flex flex-col",
+        "border-r border-sidebar-border bg-sidebar",
+        "transition-[width] duration-normal ease-snappy",
         collapsed ? "w-sidebar-collapsed" : "w-sidebar",
       )}
     >
+      {/* Brand accent line at top */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-primary via-primary/60 to-transparent" />
+
+      {/* Logo */}
       <div
         className={cn(
-          "relative flex h-topbar items-center border-b border-white/10",
-          collapsed ? "justify-center" : "px-6",
+          "flex h-topbar items-center border-b border-sidebar-border",
+          collapsed ? "justify-center" : "px-5",
         )}
       >
         <div className="flex items-center gap-3 overflow-hidden">
           <PraedixaLogo
-            size={32}
-            className="shrink-0 text-white"
-            color="white"
+            size={26}
+            className="shrink-0 text-primary transition-transform duration-fast hover:scale-110"
           />
-          {!collapsed && (
-            <div className="min-w-0 animate-fade-in">
-              <span className="truncate font-heading text-xl font-medium tracking-tight text-white">
+          <AnimatePresence initial={false}>
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0, x: -6, width: 0 }}
+                animate={{ opacity: 1, x: 0, width: "auto" }}
+                exit={{ opacity: 0, x: -6, width: 0 }}
+                transition={{ duration: DURATION.fast, ease: EASING.premium }}
+                className="truncate text-[15px] font-bold tracking-[-0.02em] text-sidebar-text"
+              >
                 Praedixa
-              </span>
-            </div>
-          )}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      {!collapsed && (
-        <div className="px-4 py-5 animate-slide-up">
-          <a
-            href="/actions"
-            className="group relative block overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/12 to-white/5 p-4 transition-all duration-300 hover:border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.1),transparent_40%)]" />
-            <div className="relative z-10">
-              <p className="mb-1 text-[10px] uppercase tracking-[0.14em] text-sidebar-muted">
-                {t("sidebar.title")}
-              </p>
-              <p className="mb-3 text-xs leading-relaxed text-sidebar-text/85">
-                {t("sidebar.subtitle")}
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-white/95 group-hover:text-white">
-                  {t("sidebar.cta")} &rarr;
-                </span>
-                {priorityCount > 0 && (
-                  <span className="inline-flex h-6 min-w-[24px] items-center justify-center rounded-full bg-danger px-2 text-[10px] font-bold text-white ring-2 ring-sidebar">
-                    {priorityCount > 99 ? "99+" : priorityCount}
-                  </span>
-                )}
-              </div>
-            </div>
-          </a>
-        </div>
-      )}
-
+      {/* Navigation */}
       <nav
-        className="flex-1 space-y-6 overflow-y-auto px-4 py-2"
+        className="flex-1 overflow-y-auto px-3 py-4"
         aria-label="Navigation principale"
       >
-        {groups.map((group) => {
-          const items = visibleItems.filter((item) => item.group === group);
-          if (items.length === 0) return null;
+        <div className="space-y-5">
+          {GROUPS.map((group) => {
+            const items = visibleItems.filter((item) => item.group === group);
+            if (items.length === 0) return null;
 
-          return (
-            <div key={group}>
-              {!collapsed && (
-                <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-muted/80">
-                  {t(`sidebar.groups.${group}`)}
-                </p>
-              )}
-              <ul className="space-y-1" role="list">
-                {items.map((item) => (
-                  <NavItemRow
-                    key={item.href}
-                    item={item}
-                    label={t(item.labelKey)}
-                    collapsed={collapsed}
-                    active={isActive(item.href)}
-                    badge={
-                      item.href === "/messages" && unreadCount > 0
-                        ? unreadCount
-                        : undefined
-                    }
+            return (
+              <div key={group} className="relative">
+                {group !== GROUPS[0] && (
+                  <div
+                    className="gradient-divider -mx-3 mb-3 shrink-0"
+                    aria-hidden="true"
                   />
-                ))}
-              </ul>
-            </div>
-          );
-        })}
+                )}
+                <AnimatePresence initial={false}>
+                  {!collapsed && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: DURATION.micro }}
+                      className="mb-1.5 overflow-hidden"
+                    >
+                      <p className="px-3 text-overline text-sidebar-muted">
+                        {t(`sidebar.groups.${group}`)}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <ul className="space-y-0.5" role="list">
+                  {items.map((item) => (
+                    <NavItemRow
+                      key={item.href}
+                      item={item}
+                      label={t(item.labelKey)}
+                      collapsed={collapsed}
+                      active={isActive(item.href)}
+                      badge={
+                        item.href === "/messages" && unreadCount > 0
+                          ? unreadCount
+                          : item.href === "/actions" && priorityCount > 0
+                            ? priorityCount
+                            : undefined
+                      }
+                    />
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
       </nav>
 
+      {/* Collapse toggle */}
       {onToggleCollapse && (
-        <div className="mt-auto p-4">
-          <button
-            onClick={onToggleCollapse}
-            className={cn(
-              "flex items-center justify-center rounded-lg text-sidebar-muted transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
-              collapsed ? "mx-auto h-10 w-10" : "h-10 w-full",
-            )}
-            aria-label={collapsed ? t("sidebar.expand") : t("sidebar.collapse")}
-          >
-            {collapsed ? (
-              <ChevronRight className="h-5 w-5" />
-            ) : (
-              <div className="flex items-center gap-2 text-sm">
-                <ChevronLeft className="h-4 w-4" />
-                <span>{t("sidebar.collapse")}</span>
-              </div>
-            )}
-          </button>
+        <div className="mt-auto">
+          <div className="gradient-divider shrink-0" aria-hidden="true" />
+          <div className="p-3">
+            <button
+              onClick={onToggleCollapse}
+              className={cn(
+                "flex items-center justify-center rounded-lg text-sidebar-muted",
+                "transition-all duration-fast hover:bg-sidebar-hover hover:text-sidebar-text",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                collapsed ? "mx-auto h-9 w-9" : "h-9 w-full gap-2",
+              )}
+              aria-label={
+                collapsed ? t("sidebar.expand") : t("sidebar.collapse")
+              }
+            >
+              {collapsed ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <>
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                  <span className="text-xs font-medium">
+                    {t("sidebar.collapse")}
+                  </span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
     </aside>
   );
 }
+
+/* ── NavItem Row ── */
 
 interface NavItemRowProps {
   item: NavItem;
@@ -288,7 +266,7 @@ interface NavItemRowProps {
   badge?: number;
 }
 
-function NavItemRow({
+const NavItemRow = React.memo(function NavItemRow({
   item,
   label,
   collapsed,
@@ -296,61 +274,82 @@ function NavItemRow({
   badge,
 }: NavItemRowProps) {
   const Icon = item.icon;
-  const accent = ITEM_ACCENTS[item.id] ?? ITEM_ACCENTS.dashboard;
 
   return (
     <li>
       <a
         href={item.href}
         className={cn(
-          "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+          "group relative flex items-center rounded-lg text-[13px]",
+          "transition-all duration-fast",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
           active
-            ? `${accent.activeBg} text-white font-medium ring-1 ring-white/10`
-            : "text-sidebar-muted hover:bg-white/10 hover:text-white",
-          collapsed && "mx-auto h-10 w-10 justify-center px-0",
+            ? "font-semibold text-sidebar-text"
+            : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-text",
+          collapsed ? "mx-auto h-10 w-10 justify-center" : "gap-3 px-3 py-2",
         )}
         aria-current={active ? "page" : undefined}
+        title={collapsed ? label : undefined}
       >
-        {active && !collapsed && (
-          <div
+        {/* Active pill with glow */}
+        {active && (
+          <motion.div
+            layoutId="sidebar-active-pill"
             className={cn(
-              "absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full",
-              accent.rail,
+              "absolute inset-0 rounded-lg bg-sidebar-active",
+              "shadow-[inset_0_0_0_1px_var(--sidebar-accent)]",
             )}
+            transition={SPRING.premium}
           />
         )}
 
-        <span className="relative flex items-center justify-center">
+        <span className="relative z-10 flex items-center justify-center">
           <Icon
             className={cn(
-              "h-5 w-5 shrink-0 transition-colors",
+              "h-[18px] w-[18px] shrink-0 transition-colors duration-fast",
               active
-                ? accent.activeIcon
-                : "text-sidebar-muted group-hover:text-white",
+                ? "text-primary"
+                : "text-sidebar-muted group-hover:text-sidebar-text",
             )}
             aria-hidden="true"
           />
+          {/* Badge for collapsed mode */}
           {collapsed && badge != null && badge > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[9px] font-bold text-white ring-2 ring-sidebar">
-              {badge > 9 ? "\u22c5" : badge}
+            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white shadow-sm animate-scale-in">
+              {badge > 9 ? "+" : badge}
             </span>
           )}
         </span>
 
-        {!collapsed && (
-          <div className="flex min-w-0 flex-1 items-center justify-between">
-            <span className="truncate">{label}</span>
-            {badge != null && badge > 0 && (
-              <span
-                className="ml-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 text-xs font-bold text-white"
-                aria-label={`${badge} messages non lus`}
-              >
-                {badge > 99 ? "99+" : badge}
-              </span>
-            )}
-          </div>
-        )}
+        {/* Label and badge for expanded mode */}
+        <AnimatePresence initial={false}>
+          {!collapsed && (
+            <motion.div
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: "auto" }}
+              exit={{ opacity: 0, width: 0 }}
+              transition={{ duration: DURATION.micro }}
+              className="relative z-10 flex min-w-0 flex-1 items-center justify-between overflow-hidden"
+            >
+              <span className="truncate">{label}</span>
+              {badge != null && badge > 0 && (
+                <span
+                  className={cn(
+                    "ml-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1.5",
+                    "text-[10px] font-bold",
+                    active
+                      ? "bg-primary/15 text-primary"
+                      : "bg-sidebar-hover text-sidebar-muted",
+                  )}
+                  aria-label={`${badge} notifications`}
+                >
+                  {badge > 99 ? "99+" : badge}
+                </span>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </a>
     </li>
   );
-}
+});

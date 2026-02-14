@@ -12,6 +12,7 @@ import type {
 } from "@praedixa/shared-types";
 import { Button, SkeletonCard, SkeletonChart } from "@praedixa/ui";
 import { PageHeader } from "@/components/ui/page-header";
+import { Card } from "@/components/ui/card";
 import { DetailCard } from "@/components/ui/detail-card";
 import { Badge } from "@/components/ui/badge";
 import { MetricCard } from "@/components/ui/metric-card";
@@ -23,8 +24,17 @@ import { ErrorFallback } from "@/components/error-fallback";
 import { StatusBanner } from "@/components/status-banner";
 import { OptimizationPanel } from "@/components/actions/optimization-panel";
 import { AnimatedSection } from "@/components/animated-section";
-import { getOptionLabel, sortAlertsBySeverity } from "@/lib/scenario-utils";
-import { formatSeverity } from "@/lib/formatters";
+import { PageTransition } from "@/components/page-transition";
+import {
+  getOptionLabel,
+  sortAlertsBySeverity,
+  SEVERITY_ORDER,
+} from "@/lib/scenario-utils";
+import {
+  formatSeverity,
+  formatCurrency,
+  getSeverityBadgeVariant,
+} from "@/lib/formatters";
 import { useI18n } from "@/lib/i18n/provider";
 import { trackProductEvent } from "@/lib/product-events";
 import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
@@ -39,12 +49,16 @@ interface DecisionBody {
   gapH: number;
 }
 
-const SEVERITY_ORDER: Record<CoverageAlert["severity"], number> = {
-  critical: 0,
-  high: 1,
-  medium: 2,
-  low: 3,
-};
+const FILTER_OPTIONS: Array<{
+  id: CoverageAlert["severity"] | "all";
+  label: string;
+}> = [
+  { id: "all", label: "Toutes" },
+  { id: "critical", label: "Critiques" },
+  { id: "high", label: "Hautes" },
+  { id: "medium", label: "Moyennes" },
+  { id: "low", label: "Basses" },
+];
 
 function toCoverageAlert(item: DecisionQueueItem): CoverageAlert {
   return {
@@ -64,14 +78,8 @@ function toCoverageAlert(item: DecisionQueueItem): CoverageAlert {
   };
 }
 
-function formatCurrency(value: number) {
-  return `${new Intl.NumberFormat("fr-FR", {
-    maximumFractionDigits: 0,
-  }).format(value)} EUR`;
-}
-
 function sortQueueItems(items: DecisionQueueItem[]): DecisionQueueItem[] {
-  return [...items].sort((a, b) => {
+  return [...items].toSorted((a, b) => {
     const priorityDelta = (b.priorityScore ?? 0) - (a.priorityScore ?? 0);
     if (priorityDelta !== 0) return priorityDelta;
 
@@ -329,17 +337,6 @@ export default function ActionsPage() {
       ? (fallbackError ?? workspaceError)
       : null;
 
-  const filterOptions: Array<{
-    id: CoverageAlert["severity"] | "all";
-    label: string;
-  }> = [
-    { id: "all", label: "Toutes" },
-    { id: "critical", label: "Critiques" },
-    { id: "high", label: "Hautes" },
-    { id: "medium", label: "Moyennes" },
-    { id: "low", label: "Basses" },
-  ];
-
   const noAlerts = !loading && filteredAlerts.length === 0;
   const criticalCount = alerts.filter(
     (alert) => alert.severity === "critical",
@@ -352,330 +349,346 @@ export default function ActionsPage() {
       : 0;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Decider"
-        title={t("actions.title")}
-        subtitle={t("actions.subtitle")}
-      />
-
-      {!error &&
-        (criticalCount > 0 ? (
-          <StatusBanner variant="danger" title="Action immediate recommandee">
-            {criticalCount} alerte(s) critique(s) et {highCount} alerte(s)
-            elevee(s) sont en file active.
-          </StatusBanner>
-        ) : alerts.length > 0 ? (
-          <StatusBanner variant="warning" title="File active sous controle">
-            {alerts.length} alerte(s) ouvertes sur {exposedSites} site(s).
-            Priorisez les dossiers avec rupture imminente.
-          </StatusBanner>
-        ) : (
-          <StatusBanner variant="success" title="Aucune alerte a traiter">
-            La file de decision est vide. Les operations restent sous controle
-            pour l'instant.
-          </StatusBanner>
-        ))}
-
-      {!error && (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard
-            label="Alertes ouvertes"
-            value={loading ? "..." : alerts.length}
-            status={
-              criticalCount > 0
-                ? "danger"
-                : alerts.length > 0
-                  ? "warning"
-                  : "good"
-            }
-          />
-          <MetricCard
-            label="Sites exposes"
-            value={loading ? "..." : exposedSites}
-            status={exposedSites > 0 ? "warning" : "good"}
-          />
-          <MetricCard
-            label="Criticite haute"
-            value={loading ? "..." : criticalCount + highCount}
-            status={
-              criticalCount > 0 ? "danger" : highCount > 0 ? "warning" : "good"
-            }
-          />
-          <MetricCard
-            label="Ecart moyen"
-            value={loading ? "..." : `${avgGap.toFixed(1)} h`}
-            status={avgGap > 6 ? "warning" : "neutral"}
-          />
-        </div>
-      )}
-
-      {error ? (
-        <ErrorFallback
-          variant="api"
-          message={error}
-          onRetry={() => {
-            refetchLiveAlerts();
-            refetchQueue();
-            refetchLegacyAlerts();
-          }}
+    <PageTransition>
+      <div className="gradient-mesh min-h-full space-y-8">
+        <PageHeader
+          eyebrow="Decider"
+          title={t("actions.title")}
+          subtitle={t("actions.subtitle")}
         />
-      ) : (
-        <AnimatedSection>
-          {noAlerts ? (
-            <EmptyState
-              icon={<CheckCircle className="h-6 w-6 text-green-500" />}
-              title={t("actions.queueEmptyTitle")}
-              description={t("actions.queueEmptyDescription")}
-            />
+
+        {!error &&
+          (criticalCount > 0 ? (
+            <StatusBanner variant="danger" title="Action immediate recommandee">
+              {criticalCount} alerte(s) critique(s) et {highCount} alerte(s)
+              elevee(s) sont en file active.
+            </StatusBanner>
+          ) : alerts.length > 0 ? (
+            <StatusBanner variant="warning" title="File active sous controle">
+              {alerts.length} alerte(s) ouvertes sur {exposedSites} site(s).
+              Priorisez les dossiers avec rupture imminente.
+            </StatusBanner>
           ) : (
-            <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_380px]">
-              <section aria-label="Selection de l'alerte" className="space-y-3">
-                <DetailCard>
-                  <h2 className="font-serif text-base font-semibold text-charcoal">
-                    {t("actions.queueTitle")}
-                  </h2>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {filterOptions.map((option) => (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => {
-                          setSeverityFilter(option.id);
-                          setSelectedAlertId(null);
-                        }}
-                        aria-pressed={severityFilter === option.id}
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          severityFilter === option.id
-                            ? "bg-amber-300 text-charcoal"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </DetailCard>
+            <StatusBanner variant="success" title="Aucune alerte a traiter">
+              La file de decision est vide. Les operations restent sous controle
+              pour l'instant.
+            </StatusBanner>
+          ))}
 
-                <div className="space-y-2">
-                  {loading &&
-                    Array.from({ length: 5 }).map((_, index) => (
-                      <SkeletonCard key={index} />
-                    ))}
+        {!error && (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard
+              label="Alertes ouvertes"
+              value={loading ? "..." : alerts.length}
+              status={
+                criticalCount > 0
+                  ? "danger"
+                  : alerts.length > 0
+                    ? "warning"
+                    : "good"
+              }
+            />
+            <MetricCard
+              label="Sites exposes"
+              value={loading ? "..." : exposedSites}
+              status={exposedSites > 0 ? "warning" : "good"}
+            />
+            <MetricCard
+              label="Criticite haute"
+              value={loading ? "..." : criticalCount + highCount}
+              status={
+                criticalCount > 0
+                  ? "danger"
+                  : highCount > 0
+                    ? "warning"
+                    : "good"
+              }
+            />
+            <MetricCard
+              label="Ecart moyen"
+              value={loading ? "..." : `${avgGap.toFixed(1)} h`}
+              status={avgGap > 6 ? "warning" : "neutral"}
+            />
+          </div>
+        )}
 
-                  {!loading &&
-                    filteredAlerts.map((alert) => {
-                      const meta = queueMetaById.get(alert.id);
-                      const isActive = alert.id === effectiveAlertId;
-                      return (
+        {error ? (
+          <ErrorFallback
+            variant="api"
+            message={error}
+            onRetry={() => {
+              refetchLiveAlerts();
+              refetchQueue();
+              refetchLegacyAlerts();
+            }}
+          />
+        ) : (
+          <AnimatedSection>
+            {noAlerts ? (
+              <EmptyState
+                icon={<CheckCircle className="h-6 w-6 text-green-500" />}
+                title={t("actions.queueEmptyTitle")}
+                description={t("actions.queueEmptyDescription")}
+              />
+            ) : (
+              <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_380px]">
+                <section
+                  aria-label="Selection de l'alerte"
+                  className="space-y-3"
+                >
+                  <DetailCard>
+                    <h2 className="font-serif text-base font-semibold text-ink">
+                      {t("actions.queueTitle")}
+                    </h2>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {FILTER_OPTIONS.map((option) => (
                         <button
-                          key={alert.id}
+                          key={option.id}
                           type="button"
-                          onClick={() => handleSelectAlert(alert.id)}
-                          aria-pressed={isActive}
-                          className={`w-full rounded-xl border bg-white p-3 text-left transition-all duration-200 ${
-                            isActive
-                              ? "border-amber-400 shadow-sm"
-                              : "border-gray-200 hover:-translate-y-0.5 hover:border-amber-200"
+                          onClick={() => {
+                            setSeverityFilter(option.id);
+                            setSelectedAlertId(null);
+                          }}
+                          aria-pressed={severityFilter === option.id}
+                          className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-normal ${
+                            severityFilter === option.id
+                              ? "bg-primary text-white shadow-sm"
+                              : "bg-surface-alt text-ink-secondary hover:bg-surface-alt/80"
                           } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <p className="text-sm font-semibold text-charcoal">
-                                {alert.siteId}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {alert.alertDate} — {alert.shift}
-                              </p>
-                            </div>
-                            <Badge
-                              variant={
-                                alert.severity === "critical" ||
-                                alert.severity === "high"
-                                  ? "destructive"
-                                  : alert.severity === "medium"
-                                    ? "default"
-                                    : "secondary"
-                              }
-                            >
-                              {formatSeverity(alert.severity)}
-                            </Badge>
-                          </div>
-                          <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-600">
-                            <div className="rounded-md bg-gray-50 p-2">
-                              {t("actions.risk")}:{" "}
-                              {`${Math.round((alert.pRupture ?? 0) * 100)}%`}
-                            </div>
-                            <div className="rounded-md bg-gray-50 p-2">
-                              {t("actions.impact")}:{" "}
-                              {meta?.estimatedImpactEur
-                                ? formatCurrency(meta.estimatedImpactEur)
-                                : "--"}
-                            </div>
-                          </div>
+                          {option.label}
                         </button>
-                      );
-                    })}
-                </div>
-              </section>
+                      ))}
+                    </div>
+                  </DetailCard>
 
-              <section aria-label="Graphique Pareto" className="space-y-3">
-                <DetailCard>
-                  <h2 className="font-serif text-base font-semibold text-charcoal">
-                    {t("actions.diagnosticTitle")}
-                  </h2>
-                  {selectedAlert ? (
-                    <div className="mt-3 space-y-3">
-                      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-                        <span className="rounded-md bg-gray-100 px-2 py-1">
-                          {selectedAlert.siteId}
-                        </span>
-                        <span className="rounded-md bg-gray-100 px-2 py-1">
-                          {selectedAlert.shift}
-                        </span>
-                        <span className="rounded-md bg-gray-100 px-2 py-1">
-                          {selectedAlert.alertDate}
-                        </span>
-                      </div>
-                      <div className="grid gap-2 sm:grid-cols-3">
-                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Gauge className="h-3.5 w-3.5" />
-                            {t("actions.risk")}
-                          </div>
-                          <p className="mt-1 text-sm font-semibold text-charcoal">
-                            {Math.round((selectedAlert.pRupture ?? 0) * 100)}%
-                          </p>
-                        </div>
-                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Euro className="h-3.5 w-3.5" />
-                            {t("actions.impact")}
-                          </div>
-                          <p className="mt-1 text-sm font-semibold text-charcoal">
-                            {queueMetaById.get(selectedAlert.id)
-                              ?.estimatedImpactEur
-                              ? formatCurrency(
-                                  queueMetaById.get(selectedAlert.id)!
-                                    .estimatedImpactEur!,
-                                )
-                              : "--"}
-                          </p>
-                        </div>
-                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Clock3 className="h-3.5 w-3.5" />
-                            {t("actions.breach")}
-                          </div>
-                          <p className="mt-1 text-sm font-semibold text-charcoal">
-                            {queueMetaById.get(selectedAlert.id)
-                              ?.timeToBreachHours != null
-                              ? `${queueMetaById.get(selectedAlert.id)?.timeToBreachHours}h`
-                              : "--"}
-                          </p>
-                        </div>
-                      </div>
+                  <div className="space-y-2">
+                    {loading &&
+                      Array.from({ length: 5 }).map((_, index) => (
+                        <SkeletonCard key={index} />
+                      ))}
 
-                      {diagnostic?.topDrivers?.length ? (
-                        <div className="flex flex-wrap gap-2">
-                          {diagnostic.topDrivers.map((driver) => (
-                            <span
-                              key={driver}
-                              className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs text-amber-700"
-                            >
-                              {driver}
-                            </span>
-                          ))}
-                        </div>
+                    {!loading &&
+                      filteredAlerts.map((alert) => {
+                        const meta = queueMetaById.get(alert.id);
+                        const isActive = alert.id === effectiveAlertId;
+                        return (
+                          <button
+                            key={alert.id}
+                            type="button"
+                            onClick={() => handleSelectAlert(alert.id)}
+                            aria-pressed={isActive}
+                            className={`w-full rounded-lg border bg-card p-3.5 text-left transition-all duration-fast ${
+                              isActive
+                                ? "border-primary/40 shadow-raised"
+                                : "border-border hover:-translate-y-0.5 hover:border-border-hover hover:shadow-floating"
+                            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <p className="text-title-sm text-ink">
+                                  {alert.siteId}
+                                </p>
+                                <p className="text-caption text-ink-secondary">
+                                  {alert.alertDate} — {alert.shift}
+                                </p>
+                              </div>
+                              <Badge
+                                variant={getSeverityBadgeVariant(
+                                  alert.severity,
+                                )}
+                              >
+                                {formatSeverity(alert.severity)}
+                              </Badge>
+                            </div>
+                            <div className="mt-3 grid grid-cols-2 gap-2 text-caption text-ink-secondary">
+                              <div className="rounded-md bg-surface-sunken p-2">
+                                {t("actions.risk")}:{" "}
+                                {`${Math.round((alert.pRupture ?? 0) * 100)}%`}
+                              </div>
+                              <div className="rounded-md bg-surface-sunken p-2">
+                                {t("actions.impact")}:{" "}
+                                {meta?.estimatedImpactEur
+                                  ? formatCurrency(meta.estimatedImpactEur)
+                                  : "--"}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                  </div>
+                </section>
+
+                <section aria-label="Graphique Pareto" className="space-y-3">
+                  <DetailCard>
+                    <h2 className="text-heading-sm text-ink">
+                      {t("actions.diagnosticTitle")}
+                    </h2>
+                    {selectedAlert ? (
+                      (() => {
+                        const selectedMeta = queueMetaById.get(
+                          selectedAlert.id,
+                        );
+                        return (
+                          <div className="mt-3 space-y-3">
+                            <div className="flex flex-wrap items-center gap-2 text-body-sm text-ink-secondary">
+                              <span className="rounded-md bg-surface-sunken px-2 py-1">
+                                {selectedAlert.siteId}
+                              </span>
+                              <span className="rounded-md bg-surface-sunken px-2 py-1">
+                                {selectedAlert.shift}
+                              </span>
+                              <span className="rounded-md bg-surface-sunken px-2 py-1">
+                                {selectedAlert.alertDate}
+                              </span>
+                            </div>
+                            <div className="grid gap-2 sm:grid-cols-3">
+                              <div className="rounded-lg border border-border bg-surface-sunken p-3">
+                                <div className="flex items-center gap-2 text-caption text-ink-secondary">
+                                  <Gauge className="h-3.5 w-3.5" />
+                                  {t("actions.risk")}
+                                </div>
+                                <p className="mt-1 text-title-sm text-ink">
+                                  {Math.round(
+                                    (selectedAlert.pRupture ?? 0) * 100,
+                                  )}
+                                  %
+                                </p>
+                              </div>
+                              <div className="rounded-lg border border-border bg-surface-sunken p-3">
+                                <div className="flex items-center gap-2 text-caption text-ink-secondary">
+                                  <Euro className="h-3.5 w-3.5" />
+                                  {t("actions.impact")}
+                                </div>
+                                <p className="mt-1 text-title-sm text-ink">
+                                  {selectedMeta?.estimatedImpactEur
+                                    ? formatCurrency(
+                                        selectedMeta.estimatedImpactEur,
+                                      )
+                                    : "--"}
+                                </p>
+                              </div>
+                              <div className="rounded-lg border border-border bg-surface-sunken p-3">
+                                <div className="flex items-center gap-2 text-caption text-ink-secondary">
+                                  <Clock3 className="h-3.5 w-3.5" />
+                                  {t("actions.breach")}
+                                </div>
+                                <p className="mt-1 text-title-sm text-ink">
+                                  {selectedMeta?.timeToBreachHours != null
+                                    ? `${selectedMeta.timeToBreachHours}h`
+                                    : "--"}
+                                </p>
+                              </div>
+                            </div>
+
+                            {diagnostic?.topDrivers?.length ? (
+                              <div className="flex flex-wrap gap-2">
+                                {diagnostic.topDrivers.map((driver) => (
+                                  <span
+                                    key={driver}
+                                    className="rounded-full bg-primary/8 px-2.5 py-0.5 text-caption font-medium text-primary"
+                                  >
+                                    {driver}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-body-sm text-ink-secondary">
+                                {selectedAlert.driversJson.length > 0
+                                  ? selectedAlert.driversJson.join(", ")
+                                  : t("actions.noWorkspace")}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      <p className="mt-3 text-body-sm text-ink-secondary">
+                        {t("actions.noWorkspace")}
+                      </p>
+                    )}
+                  </DetailCard>
+
+                  <DetailCard>
+                    <h3 className="text-heading-sm text-ink">
+                      {t("actions.paretoTitle")}
+                    </h3>
+                    <p className="mt-1 text-body-sm text-ink-secondary">
+                      {t("actions.paretoSubtitle")}
+                    </p>
+                    <div className="mt-3">
+                      {workspaceFailure ? (
+                        <ErrorFallback
+                          variant="api"
+                          message={workspaceFailure}
+                        />
+                      ) : workspaceIsLoading ? (
+                        <SkeletonChart />
+                      ) : paretoPoints.length > 0 ? (
+                        <ParetoChart
+                          points={paretoPoints}
+                          onPointClick={(point) => handleSelectOption(point.id)}
+                        />
                       ) : (
-                        <p className="text-sm text-gray-500">
-                          {selectedAlert.driversJson.length > 0
-                            ? selectedAlert.driversJson.join(", ")
-                            : t("actions.noWorkspace")}
-                        </p>
+                        <div className="rounded-lg border border-dashed border-border bg-surface-sunken p-6 text-body-sm text-ink-secondary">
+                          Aucun scenario disponible pour cette alerte.
+                        </div>
                       )}
                     </div>
-                  ) : (
-                    <p className="mt-3 text-sm text-gray-500">
-                      {t("actions.noWorkspace")}
-                    </p>
-                  )}
-                </DetailCard>
+                  </DetailCard>
+                </section>
 
-                <DetailCard>
-                  <h3 className="font-serif text-base font-semibold text-charcoal">
-                    {t("actions.paretoTitle")}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {t("actions.paretoSubtitle")}
-                  </p>
-                  <div className="mt-3">
-                    {workspaceFailure ? (
-                      <ErrorFallback variant="api" message={workspaceFailure} />
-                    ) : workspaceIsLoading ? (
-                      <SkeletonChart />
-                    ) : paretoPoints.length > 0 ? (
-                      <ParetoChart
-                        points={paretoPoints}
-                        onPointClick={(point) => handleSelectOption(point.id)}
+                <section
+                  aria-label="Options d'optimisation"
+                  className="space-y-3 lg:col-span-2 xl:col-span-1"
+                >
+                  <Card variant="premium" className="p-6">
+                    <h2 className="text-heading-sm text-ink">
+                      {t("actions.optionsTitle")}
+                    </h2>
+                    <div className="mt-3">
+                      <OptimizationPanel
+                        options={options}
+                        selectedOptionId={selectedOptionId}
+                        onSelectOption={handleSelectOption}
+                        loading={workspaceIsLoading}
                       />
-                    ) : (
-                      <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-500">
-                        Aucun scenario disponible pour cette alerte.
-                      </div>
-                    )}
-                  </div>
-                </DetailCard>
-              </section>
+                    </div>
 
-              <section
-                aria-label="Options d'optimisation"
-                className="space-y-3 lg:col-span-2 xl:col-span-1"
-              >
-                <DetailCard>
-                  <h2 className="font-serif text-base font-semibold text-charcoal">
-                    {t("actions.optionsTitle")}
-                  </h2>
-                  <div className="mt-3">
-                    <OptimizationPanel
-                      options={options}
-                      selectedOptionId={selectedOptionId}
-                      onSelectOption={handleSelectOption}
-                      loading={workspaceIsLoading}
-                    />
-                  </div>
-
-                  <div className="mt-4 space-y-3">
-                    <Button
-                      onClick={handleValidate}
-                      disabled={!selectedOptionId || submitting}
-                      className="w-full bg-amber-300 text-charcoal hover:bg-amber-200 disabled:opacity-50"
-                    >
-                      {submitting
-                        ? t("actions.validating")
-                        : t("actions.validate")}
-                    </Button>
-                    {submitError && (
-                      <p className="text-sm text-red-600">{submitError}</p>
-                    )}
-                    {effectiveAlertId && (
-                      <Link
-                        href={`/previsions?alert=${encodeURIComponent(
-                          effectiveAlertId,
-                        )}`}
-                        className="inline-flex items-center gap-2 text-xs font-medium text-amber-700 transition-colors hover:text-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    <div className="mt-4 space-y-3">
+                      <Button
+                        onClick={handleValidate}
+                        disabled={!selectedOptionId || submitting}
+                        className="w-full"
                       >
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        Ouvrir l'analyse detaillee de cette alerte
-                      </Link>
-                    )}
-                  </div>
-                </DetailCard>
-              </section>
-            </div>
-          )}
-        </AnimatedSection>
-      )}
-    </div>
+                        {submitting
+                          ? t("actions.validating")
+                          : t("actions.validate")}
+                      </Button>
+                      {submitError && (
+                        <p className="text-body-sm text-red-600">
+                          {submitError}
+                        </p>
+                      )}
+                      {effectiveAlertId && (
+                        <Link
+                          href={`/previsions?alert=${encodeURIComponent(
+                            effectiveAlertId,
+                          )}`}
+                          className="inline-flex items-center gap-2 text-caption font-semibold text-primary transition-colors duration-fast hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                        >
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                          Ouvrir l&apos;analyse détaillée de cette alerte
+                        </Link>
+                      )}
+                    </div>
+                  </Card>
+                </section>
+              </div>
+            )}
+          </AnimatedSection>
+        )}
+      </div>
+    </PageTransition>
   );
 }

@@ -24,6 +24,7 @@ from app.core.dependencies import (
     get_admin_tenant_filter,
     get_current_user,
     get_db_session,
+    get_db_session_for_cross_org,
 )
 from app.core.security import TenantFilter
 from app.main import app
@@ -55,6 +56,7 @@ async def admin_client() -> AsyncGenerator[AsyncClient, None]:
         yield mock_session
 
     app.dependency_overrides[get_db_session] = _session
+    app.dependency_overrides[get_db_session_for_cross_org] = _session
     app.dependency_overrides[get_current_user] = _admin_jwt
 
     transport = ASGITransport(app=app)

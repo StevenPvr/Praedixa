@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { NextRequest } from "next/server";
 
 const mockHeaders = new Map<string, string>();
 const mockResponse = {
@@ -9,10 +10,12 @@ const mockResponse = {
   },
 };
 
-const mockUpdateSession = vi.fn(() => Promise.resolve(mockResponse));
+const mockUpdateSession = vi.fn((_request?: NextRequest) =>
+  Promise.resolve(mockResponse),
+);
 
 vi.mock("@/lib/auth/middleware", () => ({
-  updateSession: (...args: unknown[]) => mockUpdateSession(...args),
+  updateSession: (request: NextRequest) => mockUpdateSession(request),
 }));
 
 vi.mock("@/lib/security/csp", () => ({
@@ -22,9 +25,35 @@ vi.mock("@/lib/security/csp", () => ({
 }));
 
 import { middleware, config } from "../middleware";
-import type { NextRequest } from "next/server";
 
 describe("middleware (root)", () => {
+  const envBackup = process.env.NODE_ENV;
+
+  beforeEach(() => {
+    vi.stubEnv("NODE_ENV", "development");
+  });
+
+  afterEach(() => {
+    vi.stubEnv("NODE_ENV", envBackup);
+  });
+
+  it("should return 404 for /coverage-harness in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.resetModules();
+    const { middleware: mw } = await import("../middleware");
+
+    const mockRequest = {
+      nextUrl: { pathname: "/coverage-harness" },
+      url: "http://localhost:3001/coverage-harness",
+      headers: new Headers(),
+    } as unknown as NextRequest;
+
+    const result = await mw(mockRequest);
+
+    expect(result.status).toBe(404);
+    expect(mockUpdateSession).not.toHaveBeenCalled();
+  });
+
   it("should call updateSession and set CSP header on response", async () => {
     mockHeaders.clear();
     const mockRequest = {

@@ -47,9 +47,7 @@ test.describe("Dashboard page", () => {
   }) => {
     await page.goto("/dashboard");
 
-    await expect(
-      page.getByText("Priorites a traiter maintenant"),
-    ).toBeVisible();
+    await expect(page.getByText("Priorites a traiter")).toBeVisible();
     await expect(page.getByText("Site Lyon-Sat").first()).toBeVisible();
     await expect(page.getByText("Critique").first()).toBeVisible();
   });
@@ -88,10 +86,7 @@ test.describe("Dashboard page", () => {
       ),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", {
-        name: "Ouvrir le centre de traitement",
-        exact: true,
-      }),
+      page.getByRole("link", { name: /centre de traitement/i }),
     ).toHaveAttribute("href", "/actions");
   });
 });

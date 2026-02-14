@@ -26,7 +26,7 @@ export function buildCapacitySeries(
   "Capacite prevue predite": number;
   "Capacite optimale predite": number;
 }> {
-  const sorted = [...data].sort((a, b) =>
+  const sorted = [...data].toSorted((a, b) =>
     a.forecastDate.localeCompare(b.forecastDate),
   );
   const maxDays = options?.maxDays;

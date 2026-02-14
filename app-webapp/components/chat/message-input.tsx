@@ -52,7 +52,7 @@ export function MessageInput({ onSend, disabled, sending }: MessageInputProps) {
   );
 
   return (
-    <div className="border-t border-neutral-200/80 bg-white px-4 py-3">
+    <div className="border-t border-border bg-card px-4 py-3">
       <div className="flex items-end gap-2">
         <textarea
           ref={textareaRef}
@@ -65,8 +65,8 @@ export function MessageInput({ onSend, disabled, sending }: MessageInputProps) {
           }
           rows={1}
           className={cn(
-            "flex-1 resize-none rounded-xl border border-neutral-200 bg-gray-50 px-4 py-2.5 text-sm text-charcoal placeholder-gray-400 outline-none transition-colors",
-            "focus:border-amber-300 focus:bg-white focus:ring-1 focus:ring-amber-200",
+            "flex-1 resize-none rounded-xl border border-border bg-surface-alt px-4 py-2.5 text-sm text-ink placeholder-muted outline-none transition-all duration-fast",
+            "focus:border-primary focus:bg-card focus:ring-2 focus:ring-primary/20 focus:shadow-[0_0_0_3px_var(--glow-primary)]",
             disabled && "cursor-not-allowed opacity-50",
           )}
           aria-label="Saisir un message"
@@ -77,8 +77,8 @@ export function MessageInput({ onSend, disabled, sending }: MessageInputProps) {
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
             canSend
-              ? "bg-amber-300 text-charcoal hover:bg-amber-200"
-              : "bg-gray-100 text-gray-300",
+              ? "bg-primary text-white hover:brightness-110"
+              : "bg-border text-ink-secondary",
           )}
           aria-label="Envoyer"
         >

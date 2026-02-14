@@ -16,8 +16,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
-from app.core.dependencies import get_db_session
-from app.core.pagination import calculate_total_pages
+from app.core.dependencies import get_db_session, get_db_session_for_cross_org
 from app.core.security import require_role
 from app.models.admin import AdminAuditAction
 from app.models.organization import (
@@ -33,8 +32,11 @@ from app.schemas.admin import (
     OrgDepartmentNode,
     OrgSiteNode,
 )
-from app.schemas.base import PaginationMeta
-from app.schemas.responses import ApiResponse, PaginatedResponse
+from app.schemas.responses import (
+    ApiResponse,
+    PaginatedResponse,
+    make_paginated_response,
+)
 from app.services.admin_audit import log_admin_action
 from app.services.admin_orgs import (
     change_org_status,
@@ -58,7 +60,7 @@ async def list_orgs(
     status: OrganizationStatus | None = Query(default=None),
     plan: SubscriptionPlan | None = Query(default=None),
     sector: IndustrySector | None = Query(default=None),
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_db_session_for_cross_org),
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> PaginatedResponse[AdminOrgRead]:
     """List all organizations with pagination and filters."""
@@ -80,22 +82,8 @@ async def list_orgs(
         metadata={"page": page, "search": search},
     )
 
-    total_pages = calculate_total_pages(total, page_size)
     data = [AdminOrgRead.model_validate(org) for org in items]
-
-    return PaginatedResponse(
-        success=True,
-        data=data,
-        pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
-            total_pages=total_pages,
-            has_next_page=page < total_pages,
-            has_previous_page=page > 1,
-        ),
-        timestamp=datetime.now(UTC).isoformat(),
-    )
+    return make_paginated_response(data, total, page, page_size)
 
 
 @router.post("/organizations", status_code=201)
@@ -138,7 +126,7 @@ async def create_org(
 async def get_org_detail(
     request: Request,
     org_id: uuid.UUID,
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_db_session_for_cross_org),
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> ApiResponse[AdminOrgDetail]:
     """Get detailed organization information with hierarchy."""
@@ -311,7 +299,7 @@ async def churn_org(
 async def get_hierarchy(
     request: Request,
     org_id: uuid.UUID,
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(get_db_session_for_cross_org),
     current_user: JWTPayload = Depends(require_role("super_admin")),
 ) -> ApiResponse[list[OrgSiteNode]]:
     """Get organization site/department hierarchy."""

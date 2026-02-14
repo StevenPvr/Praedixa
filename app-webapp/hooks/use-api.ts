@@ -20,6 +20,8 @@ function useAccessToken(): () => Promise<string | null> {
 
 type RouterLike = Pick<ReturnType<typeof useRouter>, "replace">;
 
+const UNEXPECTED_ERROR = "Une erreur inattendue est survenue";
+
 async function redirectToReauth(router: RouterLike): Promise<void> {
   await clearAuthSession();
   router.replace("/login?reauth=1");
@@ -73,11 +75,7 @@ export function useApiGet<T>(
         }
 
         if (!options?.silent) {
-          setError(
-            err instanceof ApiError
-              ? err.message
-              : "Une erreur inattendue est survenue",
-          );
+          setError(err instanceof ApiError ? err.message : UNEXPECTED_ERROR);
         }
       } finally {
         if (id === fetchIdRef.current && !signal.aborted && !options?.silent) {
@@ -174,11 +172,7 @@ export function useApiGetPaginated<T>(
         }
 
         if (!fetchOptions?.silent) {
-          setError(
-            err instanceof ApiError
-              ? err.message
-              : "Une erreur inattendue est survenue",
-          );
+          setError(err instanceof ApiError ? err.message : UNEXPECTED_ERROR);
         }
       } finally {
         if (
@@ -230,8 +224,9 @@ interface UseApiMutationResult<TReq, TRes> {
   reset: () => void;
 }
 
-export function useApiPost<TReq, TRes>(
+function useApiMutation<TReq, TRes>(
   url: string,
+  method: "POST" | "PATCH",
 ): UseApiMutationResult<TReq, TRes> {
   const [data, setData] = useState<TRes | null>(null);
   const [loading, setLoading] = useState(false);
@@ -253,14 +248,15 @@ export function useApiPost<TReq, TRes>(
       setError(null);
 
       try {
-        const response = await apiPost<TRes>(
-          urlRef.current,
-          body,
-          getAccessToken,
-          {
-            signal: controller.signal,
-          },
-        );
+        const request =
+          method === "POST"
+            ? apiPost<TRes>(urlRef.current, body, getAccessToken, {
+                signal: controller.signal,
+              })
+            : apiPatch<TRes>(urlRef.current, body, getAccessToken, {
+                signal: controller.signal,
+              });
+        const response = await request;
         setData(response.data);
         return response.data;
       } catch (err) {
@@ -272,11 +268,7 @@ export function useApiPost<TReq, TRes>(
           return null;
         }
 
-        const message =
-          err instanceof ApiError
-            ? err.message
-            : "Une erreur inattendue est survenue";
-        setError(message);
+        setError(err instanceof ApiError ? err.message : UNEXPECTED_ERROR);
         return null;
         /* v8 ignore next 4 */
       } finally {
@@ -285,7 +277,7 @@ export function useApiPost<TReq, TRes>(
         }
       }
     },
-    [getAccessToken, router],
+    [getAccessToken, method, router],
   );
 
   const reset = useCallback(() => {
@@ -295,83 +287,20 @@ export function useApiPost<TReq, TRes>(
   }, []);
 
   useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-    };
+    return () => abortRef.current?.abort();
   }, []);
 
   return { mutate, loading, error, data, reset };
 }
 
+export function useApiPost<TReq, TRes>(
+  url: string,
+): UseApiMutationResult<TReq, TRes> {
+  return useApiMutation<TReq, TRes>(url, "POST");
+}
+
 export function useApiPatch<TReq, TRes>(
   url: string,
 ): UseApiMutationResult<TReq, TRes> {
-  const [data, setData] = useState<TRes | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  const getAccessToken = useAccessToken();
-  const abortRef = useRef<AbortController | null>(null);
-  const urlRef = useRef(url);
-  urlRef.current = url;
-
-  const mutate = useCallback(
-    async (body: TReq): Promise<TRes | null> => {
-      /* v8 ignore next */
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await apiPatch<TRes>(
-          urlRef.current,
-          body,
-          getAccessToken,
-          {
-            signal: controller.signal,
-          },
-        );
-        setData(response.data);
-        return response.data;
-      } catch (err) {
-        /* v8 ignore next */
-        if (controller.signal.aborted) return null;
-
-        if (err instanceof ApiError && err.status === 401) {
-          await redirectToReauth(router);
-          return null;
-        }
-
-        const message =
-          err instanceof ApiError
-            ? err.message
-            : "Une erreur inattendue est survenue";
-        setError(message);
-        return null;
-        /* v8 ignore next 4 */
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    },
-    [getAccessToken, router],
-  );
-
-  const reset = useCallback(() => {
-    setData(null);
-    setError(null);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-    };
-  }, []);
-
-  return { mutate, loading, error, data, reset };
+  return useApiMutation<TReq, TRes>(url, "PATCH");
 }

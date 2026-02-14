@@ -15,7 +15,12 @@ export {
   CardContent,
   CardFooter,
 } from "./components/card";
-export { StatCard, type StatCardProps } from "./components/stat-card";
+export {
+  StatCard,
+  type StatCardProps,
+  type MetricStatus,
+  type TrendDirection,
+} from "./components/stat-card";
 export {
   DataTable,
   type DataTableColumn,
@@ -29,13 +34,22 @@ export {
 export {
   Skeleton,
   SkeletonCard,
+  SkeletonMetricRow,
   SkeletonTable,
   SkeletonChart,
   type SkeletonProps,
   type SkeletonCardProps,
+  type SkeletonMetricRowProps,
   type SkeletonTableProps,
   type SkeletonChartProps,
 } from "./components/skeleton";
+
+// Logo
+export {
+  PraedixaLogo,
+  LOGO_COLORS,
+  type LogoVariant,
+} from "./components/praedixa-logo";
 
 // Hooks
 export { useMediaQuery } from "./hooks/use-media-query";

@@ -17,7 +17,7 @@ test.describe("Authenticated navigation", () => {
 
     await page.goto("/donnees");
     await expect(
-      page.getByRole("heading", { name: "Referentiel operationnel", level: 1 }),
+      page.getByRole("heading", { name: "Référentiel opérationnel", level: 1 }),
     ).toBeVisible();
 
     await page.goto("/previsions");
@@ -34,7 +34,7 @@ test.describe("Authenticated navigation", () => {
     ).toBeVisible();
 
     const nav = page.getByLabel("Navigation principale");
-    await nav.getByText("War room").click();
+    await nav.getByRole("link", { name: /War room/ }).click();
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(
       page.getByRole("heading", { name: "War room operationnelle" }),
@@ -48,18 +48,15 @@ test.describe("Authenticated navigation", () => {
 
     const nav = page.getByLabel("Navigation principale");
     await expect(nav).toBeVisible();
-    const sidebar = page.locator("aside");
 
-    const dashboardLink = nav.getByRole("link", { name: /^War room$/ });
+    const dashboardLink = nav.getByRole("link", { name: /War room/ });
     await expect(dashboardLink).toHaveAttribute("aria-current", "page");
 
-    // Navigate to Rapports (leaf item, no children) via direct navigation
     await page.goto("/rapports");
-
-    const rapportsLink = sidebar.getByRole("link", { name: /^Rapports$/ });
+    const rapportsLink = nav.getByRole("link", { name: /Rapports/ });
     await expect(rapportsLink).toHaveAttribute("aria-current", "page");
 
-    const dashLink = nav.getByRole("link", { name: /^War room$/ });
+    const dashLink = nav.getByRole("link", { name: /War room/ });
     await expect(dashLink).not.toHaveAttribute("aria-current", "page");
   });
 
@@ -79,7 +76,7 @@ test.describe("Authenticated navigation", () => {
   test("page titles are correct for each section", async ({ page }) => {
     const pageTitles: Array<{ url: string; title: string }> = [
       { url: "/dashboard", title: "War room operationnelle" },
-      { url: "/donnees", title: "Referentiel operationnel" },
+      { url: "/donnees", title: "Référentiel opérationnel" },
       { url: "/previsions", title: "Anticipation des tensions" },
       { url: "/actions", title: "Centre de traitement" },
       { url: "/rapports", title: "Rapports board-ready" },

@@ -46,4 +46,6 @@ export interface DataTableProps<
   stickyHeader?: boolean;
   toolbar?: React.ReactNode;
   onRowClick?: (row: T, index: number) => void;
+  /** Enable row virtualisation (auto-enabled when data.length > 100) */
+  virtualise?: boolean;
 }

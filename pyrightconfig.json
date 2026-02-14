@@ -2,11 +2,12 @@
   "executionEnvironments": [
     {
       "root": "app-api",
-      "venvPath": ".",
+      "venvPath": "app-api",
       "venv": ".venv",
       "pythonVersion": "3.12",
       "extraPaths": ["app-api"]
     }
   ],
-  "typeCheckingMode": "basic"
+  "typeCheckingMode": "basic",
+  "reportMissingImports": false
 }

@@ -1102,12 +1102,12 @@ class TestAuditLogSelfExemption:
     ) -> None:
         """GET /admin/audit-log does not create its own audit entry.
 
-        The endpoint in main.py only imports get_audit_log (read-only),
+        The endpoint in admin_audit router only imports get_audit_log (read-only),
         NOT log_admin_action (write). We verify that the read function
         is called and that session.add is never invoked (no audit entry).
         """
         with patch(
-            "app.main.get_audit_log",
+            "app.routers.admin_audit.get_audit_log",
             new_callable=AsyncMock,
             return_value=([], 0),
         ) as mock_query:
