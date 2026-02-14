@@ -146,7 +146,7 @@ jobs:
           sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
 
       - name: Run gitleaks
-        run: gitleaks git --source . --redact --no-banner
+        run: gitleaks git . --redact --no-banner
 
   integration-tests:
     name: Integration Tests
