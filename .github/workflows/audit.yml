@@ -162,7 +162,7 @@ jobs:
 
       - name: Upload reports artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: secrets-reports
           path: |
@@ -238,7 +238,7 @@ jobs:
 
       - name: Upload reports artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: sast-reports
           if-no-files-found: ignore
@@ -386,7 +386,7 @@ jobs:
 
       - name: Upload reports artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: dependency-reports
           path: |
@@ -445,7 +445,7 @@ jobs:
 
       - name: Upload reports artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: iac-policy-reports
           path: |
@@ -692,7 +692,7 @@ jobs:
 
       - name: Upload SBOM artifact (explicit)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: sbom
           path: sbom.spdx.json
