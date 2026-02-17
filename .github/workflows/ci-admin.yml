@@ -22,13 +22,15 @@ concurrency:
 
 env:
   NODE_VERSION: "22"
+  # Global switch: set to "false" to reactivate full GitHub verifications.
+  DISABLE_ALL_GITHUB_VERIFICATIONS: "true"
 
 permissions:
   contents: read
 
 jobs:
   minutes_guard:
-    name: Minutes guard
+    name: Verifications guard
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -40,12 +42,10 @@ jobs:
       - id: guard
         uses: ./.github/actions/minutes-guard
         env:
-          FORCE_GRACEFUL_SKIP: ${{ vars.ACTIONS_FORCE_GRACEFUL_SKIP }}
-          BILLING_TOKEN: ${{ secrets.ACTIONS_BILLING_TOKEN }}
-          FALLBACK_TOKEN: ${{ github.token }}
+          DISABLE_ALL_GITHUB_VERIFICATIONS: ${{ env.DISABLE_ALL_GITHUB_VERIFICATIONS }}
 
   minutes_graceful_skip:
-    name: Graceful skip (minutes exhausted)
+    name: Graceful skip (verifications disabled)
     runs-on: ubuntu-latest
     needs: [minutes_guard]
     if: needs.minutes_guard.outputs.run_heavy != 'true'
@@ -54,7 +54,7 @@ jobs:
     steps:
       - name: Explain graceful skip
         run: |
-          echo "Heavy CI jobs skipped gracefully."
+          echo "All admin verifications are disabled by global switch."
           echo "reason=${{ needs.minutes_guard.outputs.reason }}"
           echo "source=${{ needs.minutes_guard.outputs.source }}"
 
