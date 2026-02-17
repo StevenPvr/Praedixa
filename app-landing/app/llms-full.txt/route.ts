@@ -5,6 +5,7 @@ const BASE_URL = "https://www.praedixa.com";
 
 const contentKeys = [
   "about",
+  "security",
   "resources",
   "pillarCapacity",
   "pillarLogistics",
