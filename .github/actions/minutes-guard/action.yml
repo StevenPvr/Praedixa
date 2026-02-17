@@ -1,0 +1,89 @@
+name: "Minutes Guard"
+description: "Best-effort gate to skip heavy jobs when Actions minutes are exhausted."
+outputs:
+  run_heavy:
+    description: "true when heavy jobs should run, false when they should be skipped gracefully"
+    value: ${{ steps.guard.outputs.run_heavy }}
+  reason:
+    description: "decision reason"
+    value: ${{ steps.guard.outputs.reason }}
+  source:
+    description: "source used to decide (repo_var/api/fallback)"
+    value: ${{ steps.guard.outputs.source }}
+runs:
+  using: "composite"
+  steps:
+    - id: guard
+      shell: bash
+      env:
+        FORCE_GRACEFUL_SKIP: ${{ env.FORCE_GRACEFUL_SKIP }}
+        BILLING_TOKEN: ${{ env.BILLING_TOKEN }}
+        FALLBACK_TOKEN: ${{ env.FALLBACK_TOKEN }}
+      run: |
+        set -euo pipefail
+
+        truthy() {
+          case "${1,,}" in
+            1|true|yes|on) return 0 ;;
+            *) return 1 ;;
+          esac
+        }
+
+        if truthy "${FORCE_GRACEFUL_SKIP:-}"; then
+          echo "run_heavy=false" >> "$GITHUB_OUTPUT"
+          echo "reason=forced_by_repo_var" >> "$GITHUB_OUTPUT"
+          echo "source=repo_var" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        token="${BILLING_TOKEN:-${FALLBACK_TOKEN:-}}"
+        if [[ -z "${token}" ]]; then
+          echo "run_heavy=true" >> "$GITHUB_OUTPUT"
+          echo "reason=no_token_available" >> "$GITHUB_OUTPUT"
+          echo "source=fallback" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        api="https://api.github.com"
+        owner="${GITHUB_REPOSITORY_OWNER}"
+        auth_headers=(
+          -H "Accept: application/vnd.github+json"
+          -H "Authorization: Bearer ${token}"
+          -H "X-GitHub-Api-Version: 2022-11-28"
+        )
+
+        owner_resp="$(curl -fsSL "${auth_headers[@]}" "${api}/users/${owner}" 2>/dev/null || true)"
+        if [[ -z "${owner_resp}" ]]; then
+          echo "run_heavy=true" >> "$GITHUB_OUTPUT"
+          echo "reason=owner_lookup_unavailable" >> "$GITHUB_OUTPUT"
+          echo "source=fallback" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        owner_type="$(python -c 'import json,sys; data=json.load(sys.stdin); print((data.get("type") or "").lower())' <<<"${owner_resp}" 2>/dev/null || true)"
+        if [[ "${owner_type}" == "organization" ]]; then
+          billing_url="${api}/orgs/${owner}/settings/billing/actions"
+        else
+          billing_url="${api}/users/${owner}/settings/billing/actions"
+        fi
+
+        billing_resp="$(curl -fsSL "${auth_headers[@]}" "${billing_url}" 2>/dev/null || true)"
+        if [[ -z "${billing_resp}" ]]; then
+          echo "run_heavy=true" >> "$GITHUB_OUTPUT"
+          echo "reason=billing_lookup_unavailable" >> "$GITHUB_OUTPUT"
+          echo "source=fallback" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        read -r included used paid <<<"$(python -c 'import json,sys; d=json.load(sys.stdin); to_int=lambda v,default: int(v) if isinstance(v,(int,float,str)) and str(v).lstrip(\"-\").isdigit() else default; print(to_int(d.get(\"included_minutes\"),-1), to_int(d.get(\"total_minutes_used\"),-1), to_int(d.get(\"total_paid_minutes_used\"),0))' <<<"${billing_resp}" 2>/dev/null || echo "-1 -1 0")"
+
+        if [[ "${included}" -gt 0 && "${used}" -ge "${included}" && "${paid}" -le 0 ]]; then
+          echo "run_heavy=false" >> "$GITHUB_OUTPUT"
+          echo "reason=included_minutes_exhausted" >> "$GITHUB_OUTPUT"
+          echo "source=api" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        echo "run_heavy=true" >> "$GITHUB_OUTPUT"
+        echo "reason=budget_ok_or_not_exhausted" >> "$GITHUB_OUTPUT"
+        echo "source=api" >> "$GITHUB_OUTPUT"

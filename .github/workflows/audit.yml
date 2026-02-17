@@ -17,9 +17,42 @@ permissions:
   contents: read
 
 jobs:
+  minutes_guard:
+    name: Minutes guard
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      run_heavy: ${{ steps.guard.outputs.run_heavy }}
+      reason: ${{ steps.guard.outputs.reason }}
+      source: ${{ steps.guard.outputs.source }}
+    steps:
+      - id: guard
+        uses: ./.github/actions/minutes-guard
+        env:
+          FORCE_GRACEFUL_SKIP: ${{ vars.ACTIONS_FORCE_GRACEFUL_SKIP }}
+          BILLING_TOKEN: ${{ secrets.ACTIONS_BILLING_TOKEN }}
+          FALLBACK_TOKEN: ${{ github.token }}
+
+  minutes_graceful_skip:
+    name: Graceful skip (minutes exhausted)
+    runs-on: ubuntu-24.04
+    needs: [minutes_guard]
+    if: needs.minutes_guard.outputs.run_heavy != 'true'
+    permissions:
+      contents: read
+    steps:
+      - name: Explain graceful skip
+        run: |
+          echo "Heavy audit jobs skipped gracefully."
+          echo "reason=${{ needs.minutes_guard.outputs.reason }}"
+          echo "source=${{ needs.minutes_guard.outputs.source }}"
+
   detect:
     name: Detect stack
     runs-on: ubuntu-24.04
+    needs: [minutes_guard]
+    if: needs.minutes_guard.outputs.run_heavy == 'true'
     outputs:
       has_node: ${{ steps.detect.outputs.has_node }}
       node_dir: ${{ steps.detect.outputs.node_dir }}
@@ -109,7 +142,8 @@ jobs:
   secrets:
     name: Secrets (Gitleaks + Trivy)
     runs-on: ubuntu-24.04
-    needs: [detect]
+    needs: [minutes_guard, detect]
+    if: needs.minutes_guard.outputs.run_heavy == 'true'
     permissions:
       contents: read
       security-events: write
@@ -172,7 +206,8 @@ jobs:
   sast:
     name: SAST (Semgrep + Bandit)
     runs-on: ubuntu-24.04
-    needs: [detect]
+    needs: [minutes_guard, detect]
+    if: needs.minutes_guard.outputs.run_heavy == 'true'
     permissions:
       contents: read
       security-events: write
@@ -248,7 +283,8 @@ jobs:
 
   osv_pr:
     name: OSV Scanner (PR diff)
-    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+    needs: [minutes_guard, detect]
+    if: needs.minutes_guard.outputs.run_heavy == 'true' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.3.3
     permissions:
       contents: read
@@ -257,7 +293,8 @@ jobs:
 
   osv_full:
     name: OSV Scanner (full, scheduled/push)
-    if: github.event_name != 'pull_request' && github.event_name != 'merge_group'
+    needs: [minutes_guard, detect]
+    if: needs.minutes_guard.outputs.run_heavy == 'true' && github.event_name != 'pull_request' && github.event_name != 'merge_group'
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.3
     permissions:
       contents: read
@@ -267,7 +304,8 @@ jobs:
   dependencies:
     name: SCA (Trivy vuln + pnpm/npm + pip audit)
     runs-on: ubuntu-24.04
-    needs: [detect]
+    needs: [minutes_guard, detect]
+    if: needs.minutes_guard.outputs.run_heavy == 'true'
     permissions:
       contents: read
       security-events: write
@@ -395,7 +433,8 @@ jobs:
   policy_iac:
     name: IaC + CI/CD Policy (Checkov + Trivy misconfig)
     runs-on: ubuntu-24.04
-    needs: [detect]
+    needs: [minutes_guard, detect]
+    if: needs.minutes_guard.outputs.run_heavy == 'true'
     permissions:
       contents: read
       security-events: write
@@ -454,9 +493,9 @@ jobs:
 
   terraform_quality:
     name: Terraform quality (fmt/validate/tflint)
-    if: needs.detect.outputs.has_terraform == 'true'
+    if: needs.minutes_guard.outputs.run_heavy == 'true' && needs.detect.outputs.has_terraform == 'true'
     runs-on: ubuntu-24.04
-    needs: [detect]
+    needs: [minutes_guard, detect]
     permissions:
       contents: read
     steps:
@@ -509,7 +548,8 @@ jobs:
   quality:
     name: Code quality (Node monorepo + Python)
     runs-on: ubuntu-24.04
-    needs: [detect]
+    needs: [minutes_guard, detect]
+    if: needs.minutes_guard.outputs.run_heavy == 'true'
     permissions:
       contents: read
     steps:
@@ -674,7 +714,8 @@ jobs:
   sbom:
     name: SBOM (Syft via Anchore)
     runs-on: ubuntu-24.04
-    needs: [detect]
+    needs: [minutes_guard, detect]
+    if: needs.minutes_guard.outputs.run_heavy == 'true'
     permissions:
       contents: read
     steps:
@@ -700,7 +741,8 @@ jobs:
   sonarqube:
     name: SonarQube (Quality Gate)
     runs-on: ubuntu-24.04
-    needs: [detect, quality]
+    needs: [minutes_guard, detect, quality]
+    if: needs.minutes_guard.outputs.run_heavy == 'true'
     permissions:
       contents: read
     env:

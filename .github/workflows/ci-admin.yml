@@ -27,9 +27,42 @@ permissions:
   contents: read
 
 jobs:
+  minutes_guard:
+    name: Minutes guard
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      run_heavy: ${{ steps.guard.outputs.run_heavy }}
+      reason: ${{ steps.guard.outputs.reason }}
+      source: ${{ steps.guard.outputs.source }}
+    steps:
+      - id: guard
+        uses: ./.github/actions/minutes-guard
+        env:
+          FORCE_GRACEFUL_SKIP: ${{ vars.ACTIONS_FORCE_GRACEFUL_SKIP }}
+          BILLING_TOKEN: ${{ secrets.ACTIONS_BILLING_TOKEN }}
+          FALLBACK_TOKEN: ${{ github.token }}
+
+  minutes_graceful_skip:
+    name: Graceful skip (minutes exhausted)
+    runs-on: ubuntu-latest
+    needs: [minutes_guard]
+    if: needs.minutes_guard.outputs.run_heavy != 'true'
+    permissions:
+      contents: read
+    steps:
+      - name: Explain graceful skip
+        run: |
+          echo "Heavy CI jobs skipped gracefully."
+          echo "reason=${{ needs.minutes_guard.outputs.reason }}"
+          echo "source=${{ needs.minutes_guard.outputs.source }}"
+
   lint-typecheck:
     name: Lint & Typecheck
     runs-on: ubuntu-latest
+    needs: [minutes_guard]
+    if: needs.minutes_guard.outputs.run_heavy == 'true'
     permissions:
       contents: read
     steps:
@@ -62,6 +95,8 @@ jobs:
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
+    needs: [minutes_guard]
+    if: needs.minutes_guard.outputs.run_heavy == 'true'
     permissions:
       contents: read
     steps:
@@ -88,6 +123,8 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    needs: [minutes_guard]
+    if: needs.minutes_guard.outputs.run_heavy == 'true'
     permissions:
       contents: read
     steps:
