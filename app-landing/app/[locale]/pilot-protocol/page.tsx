@@ -5,6 +5,7 @@ import { getDictionary } from "../../../lib/i18n/get-dictionary";
 import { PraedixaLogo } from "../../../components/logo/PraedixaLogo";
 import { CheckIcon } from "../../../components/icons";
 import type { Metadata } from "next";
+import { buildLocaleMetadata, localePathMap } from "../../../lib/seo/metadata";
 
 export async function generateMetadata({
   params,
@@ -12,13 +13,16 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  if (!isValidLocale(locale)) return {};
   const isFr = locale === "fr";
-  return {
-    title: isFr ? "Praedixa | Protocole pilote" : "Praedixa | Pilot Protocol",
+  return buildLocaleMetadata({
+    locale,
+    paths: localePathMap("/fr/pilot-protocol", "/en/pilot-protocol"),
+    title: isFr ? "Praedixa | Protocole pilote" : "Praedixa | Pilot protocol",
     description: isFr
-      ? "Protocole complet du pilote Praedixa : cadrage, livrables, KPI, gouvernance."
-      : "Complete Praedixa pilot protocol: framing, deliverables, KPIs, governance.",
-  };
+      ? "Protocole du pilote Praedixa : cadrage, livrables et gouvernance."
+      : "Praedixa pilot protocol: framing, deliverables, and governance.",
+  });
 }
 
 export default async function PilotProtocolPage({

@@ -21,16 +21,33 @@ export function Footer({ dict, locale }: FooterProps) {
     { href: "#security", label: dict.nav.security },
     { href: "#pilot", label: dict.pilot.kicker },
     { href: "#faq", label: dict.nav.faq },
+    {
+      href: `/${locale}/${localizedSlugs.resources[locale]}`,
+      label: locale === "fr" ? "Ressources" : "Resources",
+    },
   ];
 
-  const legalLinks = siteConfig.legalLinks.map((link) => ({
-    ...link,
-    href: `/${locale}${link.href}`,
-  }));
+  const legalLinks = [
+    {
+      href: `/${locale}/${localizedSlugs.legal[locale]}`,
+      label: locale === "fr" ? "Mentions légales" : "Legal notice",
+    },
+    {
+      href: `/${locale}/${localizedSlugs.privacy[locale]}`,
+      label: locale === "fr" ? "Confidentialité" : "Privacy policy",
+    },
+    {
+      href: `/${locale}/${localizedSlugs.terms[locale]}`,
+      label: locale === "fr" ? "CGU" : "Terms",
+    },
+    {
+      href: `/${locale}/${localizedSlugs.about[locale]}`,
+      label: locale === "fr" ? "À propos" : "About",
+    },
+  ];
 
   return (
     <footer className="section-dark">
-      {/* CTA banner */}
       <div className="section-shell pb-12 pt-16">
         <div className="flex flex-col items-center rounded-lg border border-white/5 bg-white/[0.03] px-8 py-10 text-center">
           <p className="craft-pill">{footer.ctaBanner.kicker}</p>
@@ -44,10 +61,8 @@ export function Footer({ dict, locale }: FooterProps) {
         </div>
       </div>
 
-      {/* Footer grid */}
       <div className="section-shell border-t border-white/5 pb-8 pt-10">
         <div className="grid gap-8 sm:grid-cols-3">
-          {/* Brand column */}
           <div>
             <div className="flex items-center gap-2.5">
               <PraedixaLogo
@@ -68,7 +83,6 @@ export function Footer({ dict, locale }: FooterProps) {
             </div>
           </div>
 
-          {/* Navigation */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-white">
               {footer.navigation}
@@ -76,12 +90,21 @@ export function Footer({ dict, locale }: FooterProps) {
             <ul className="mt-3 grid gap-1.5">
               {navLinks.map((link) => (
                 <li key={link.href}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-white transition hover:text-white"
-                  >
-                    {link.label}
-                  </a>
+                  {link.href.startsWith("#") ? (
+                    <a
+                      href={link.href}
+                      className="text-sm text-white transition hover:text-white"
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      className="text-sm text-white transition hover:text-white"
+                    >
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
               <li>
@@ -95,7 +118,6 @@ export function Footer({ dict, locale }: FooterProps) {
             </ul>
           </div>
 
-          {/* Legal & contact */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-white">
               {footer.legalContact}
@@ -123,11 +145,9 @@ export function Footer({ dict, locale }: FooterProps) {
           </div>
         </div>
 
-        {/* Bottom bar */}
         <div className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-6">
           <p className="text-xs text-white">&copy; {year} Praedixa</p>
           <p className="text-xs text-white">{footer.copyright}</p>
-          {/* Language switcher */}
           <div className="flex gap-2">
             <Link
               href="/fr"

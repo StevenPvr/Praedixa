@@ -30,7 +30,7 @@ export const en: Dictionary = {
       "Praedixa turns understaffing into executable decisions: early signals, costed scenarios, and auditable proof of impact for operations and finance committees.",
     bullets: [
       {
-        metric: "3–14 days",
+        metric: "Early horizon",
         text: "of early warning before field disruptions",
       },
       {
@@ -44,7 +44,7 @@ export const en: Dictionary = {
     ],
     ctaPrimary: "Request a pilot",
     ctaSecondary: "View the pilot protocol",
-    ctaMeta: "Response within 24h · NDA available · No obligation",
+    ctaMeta: "Quick response · NDA available · No obligation",
     trustBadges: [
       "Hosted in France",
       "Aggregated data only",
@@ -64,14 +64,14 @@ export const en: Dictionary = {
         description:
           "Tension signals are detected when room for maneuver is already reduced.",
         consequence: "Overruns, service degradation, managerial stress",
-        cost: "15–25% average cost overrun in crisis mode",
+        cost: "Significant cost overrun in crisis mode",
       },
       {
         title: "Under-framed trade-offs",
         description:
           "Without structured economic scenarios, decisions rely on urgency alone.",
         consequence: "Operational budget less predictable and harder to defend",
-        cost: "2 to 5 days per unstructured decision cycle",
+        cost: "Slower decision cycle without a clear framework",
       },
       {
         title: "Impact hard to prove",
@@ -102,7 +102,7 @@ export const en: Dictionary = {
         title: "Anticipatory reading",
         subtitle: "See before you act",
         description:
-          "Understaffing signals detected 3 to 14 days ahead, with explanatory factors and criticality levels.",
+          "Understaffing signals surfaced early, with explanatory factors and criticality levels.",
       },
       {
         title: "Economic framing",
@@ -119,6 +119,8 @@ export const en: Dictionary = {
     ],
     differentiators: {
       title: "What Praedixa is not",
+      description:
+        "Approach focused on critical multi-site decisions: risk reading, option comparison, and explicit action rationale.",
       items: [
         { is: "Operational decision tool", isNot: "HRIS or payroll system" },
         { is: "Economic trade-off framework", isNot: "Another BI dashboard" },
@@ -129,14 +131,14 @@ export const en: Dictionary = {
 
   howItWorks: {
     kicker: "Protocol",
-    heading: "From framing to results in 4 steps.",
+    heading: "From framing to outcomes through a structured method.",
     subheading:
       "A structured process to demonstrate value before any commitment.",
     steps: [
       {
         number: "01",
         title: "Framing",
-        subtitle: "45 minutes",
+        subtitle: "Framing workshop",
         description:
           "Objectives, target KPIs, pilot scope, and success criteria co-defined.",
       },
@@ -185,7 +187,7 @@ export const en: Dictionary = {
         context:
           "Hidden structural fragilities, costly last-minute contingency plans.",
         action:
-          "Recurring pattern analysis, exposure ranking, 3/7/14-day windows.",
+          "Recurring pattern analysis, exposure ranking, and short-horizon windows.",
         result:
           "Drift anticipation and reduced reliance on last-minute temp staffing.",
         callout: "No individual data — reading at team and site level only.",
@@ -293,7 +295,7 @@ export const en: Dictionary = {
     kicker: "Pilot offer",
     heading: "A structured pilot to prove value, not promise it.",
     subheading:
-      "Founding cohort limited to 8 companies. Each pilot is framed to produce measurable proof of value.",
+      "Selective founding cohort. Each pilot is framed to produce measurable proof of value.",
     included: {
       title: "What the pilot includes",
       items: [
@@ -326,16 +328,15 @@ export const en: Dictionary = {
     governance: {
       title: "Governance",
       items: [
-        "30-minute weekly check-in",
+        "Regular governance check-in",
         "Executive sponsor identified client-side",
         "Dedicated operational champion",
         "Go/no-go criteria defined at framing",
       ],
     },
-    urgency:
-      "Cohort limited to 8 companies. Applications qualified within 24 business hours.",
+    urgency: "Selective cohort. Applications reviewed with rapid response.",
     ctaPrimary: "Request a pilot",
-    ctaMeta: "Qualification: 20 min · Form: 4–5 min · NDA available",
+    ctaMeta: "Structured qualification · Fast form · NDA available",
   },
 
   faq: {
@@ -428,9 +429,9 @@ export const en: Dictionary = {
     kicker: "Take action",
     heading: "Request a pilot.",
     subheading:
-      "In 20 minutes, we frame scope, criticality, and expected value of a first decision loop.",
+      "We frame scope, criticality, and expected value of a first decision loop.",
     trustItems: [
-      "Response within 24 business hours",
+      "Rapid response",
       "NDA available from first contact",
       "Aggregated data only",
       "No obligation",
@@ -463,11 +464,11 @@ export const en: Dictionary = {
     pill: "Founding cohort",
     valuePoints: [
       "Qualification focused on COO and finance challenges",
-      "Structured process in under 5 minutes",
-      "Response within 24h from the founding team",
+      "Structured and streamlined process",
+      "Founding team response",
     ],
     estimatedTime: "Estimated time",
-    estimatedTimeValue: "4 to 5 minutes",
+    estimatedTimeValue: "A few minutes",
     fieldsets: {
       organisation: "Organisation",
       contact: "Contact",
@@ -503,7 +504,7 @@ export const en: Dictionary = {
     success: {
       title: "Application submitted",
       description:
-        "We are reviewing your application and will get back to you within 24 business hours with a framing adapted to your context.",
+        "We are reviewing your application and will get back to you quickly with a framing adapted to your context.",
       backToSite: "Back to site",
       checkEmail: "Check your inbox",
     },

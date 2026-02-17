@@ -1,17 +1,24 @@
 import { describe, it, expect, vi } from "vitest";
 
-const mockHeaders = new Map<string, string>();
-const mockResponse = {
-  status: 200,
-  headers: {
-    set: vi.fn((key: string, value: string) => mockHeaders.set(key, value)),
-    get: vi.fn((key: string) => mockHeaders.get(key)),
-  },
-};
-
 vi.mock("next/server", () => ({
-  NextResponse: {
-    next: vi.fn(() => mockResponse),
+  NextResponse: class MockNextResponse {
+    status: number;
+    headers: Headers;
+
+    constructor(_: unknown = null, init?: { status?: number }) {
+      this.status = init?.status ?? 200;
+      this.headers = new Headers();
+    }
+
+    static next() {
+      return new MockNextResponse(null, { status: 200 });
+    }
+
+    static redirect(url: URL, status = 307) {
+      const response = new MockNextResponse(null, { status });
+      response.headers.set("location", url.toString());
+      return response;
+    }
   },
 }));
 
@@ -24,22 +31,42 @@ vi.mock("../lib/security/csp", () => ({
 import { middleware, config } from "../middleware";
 import type { NextRequest } from "next/server";
 
-describe("landing middleware", () => {
-  it("sets CSP header on response", async () => {
-    mockHeaders.clear();
-    const req = {
-      url: "http://localhost:3001/fr",
-      headers: new Headers(),
-      cookies: { get: () => undefined },
-      nextUrl: new URL("http://localhost:3001/fr"),
-    } as unknown as NextRequest;
+function makeRequest(pathname: string): NextRequest {
+  const nextUrl = new URL(`http://localhost:3001${pathname}`) as URL & {
+    clone: () => URL;
+  };
+  nextUrl.clone = () => new URL(nextUrl.toString());
 
+  return {
+    headers: new Headers(),
+    nextUrl,
+    cookies: { get: () => undefined },
+  } as unknown as NextRequest;
+}
+
+describe("landing middleware", () => {
+  it("redirects root to /fr with 301", async () => {
+    const req = makeRequest("/");
+    const result = await middleware(req);
+
+    expect(result.status).toBe(301);
+    expect(result.headers.get("location")).toBe("http://localhost:3001/fr");
+  });
+
+  it("returns 410 for legacy non-localized URLs", async () => {
+    const req = makeRequest("/devenir-pilote");
+    const result = await middleware(req);
+
+    expect(result.status).toBe(410);
+  });
+
+  it("sets CSP header on locale-prefixed pages", async () => {
+    const req = makeRequest("/fr");
     const result = await middleware(req);
 
     expect(result.status).toBe(200);
-    expect(result.headers.set).toHaveBeenCalledWith(
-      "Content-Security-Policy",
-      expect.stringContaining("nonce-dGVzdC1ub25jZQ=="),
+    expect(result.headers.get("Content-Security-Policy")).toContain(
+      "nonce-dGVzdC1ub25jZQ==",
     );
   });
 

@@ -56,7 +56,7 @@ describe("Footer", () => {
 
     expect(screen.getByText("Gouvernance COO / DAF")).toBeInTheDocument();
     expect(screen.getByText("Privacy-by-design")).toBeInTheDocument();
-    expect(screen.getByText("steven.poivre@outlook.com")).toBeInTheDocument();
+    expect(screen.getByText("hello@praedixa.com")).toBeInTheDocument();
   });
 
   it("renders copyright with current year", () => {

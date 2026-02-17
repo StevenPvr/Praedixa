@@ -3,62 +3,107 @@ import { locales, localizedSlugs } from "../lib/i18n/config";
 
 const BASE_URL = "https://www.praedixa.com";
 
+const CONTENT_KEYS = [
+  "about",
+  "resources",
+  "pillarCapacity",
+  "pillarLogistics",
+  "pillarAbsence",
+  "pillarPenalties",
+  "pillarImpact",
+  "bofuLogistics",
+  "bofuTransport",
+  "bofuRetail",
+  "clusterCost",
+  "clusterForecast",
+  "clusterPlaybook",
+  "clusterRms",
+  "clusterWarehouseForecast",
+  "clusterWarehousePlanning",
+] as const;
+
+function localizedEntry(
+  locale: (typeof locales)[number],
+  frPath: string,
+  enPath: string,
+  priority: number,
+  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"],
+): MetadataRoute.Sitemap[number] {
+  const altLocale = locale === "fr" ? "en" : "fr";
+  const currentPath = locale === "fr" ? frPath : enPath;
+
+  return {
+    url: `${BASE_URL}${currentPath}`,
+    lastModified: new Date(),
+    changeFrequency,
+    priority,
+    alternates: {
+      languages: {
+        [locale]: `${BASE_URL}${currentPath}`,
+        [altLocale]: `${BASE_URL}${altLocale === "fr" ? frPath : enPath}`,
+      },
+    },
+  };
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = [];
 
   for (const locale of locales) {
-    const altLocale = locale === "fr" ? "en" : "fr";
+    entries.push(localizedEntry(locale, "/fr", "/en", 1, "weekly"));
 
-    // Home
-    entries.push({
-      url: `${BASE_URL}/${locale}`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
-      alternates: {
-        languages: {
-          [locale]: `${BASE_URL}/${locale}`,
-          [altLocale]: `${BASE_URL}/${altLocale}`,
-        },
-      },
-    });
+    entries.push(
+      localizedEntry(
+        locale,
+        `/fr/${localizedSlugs.pilot.fr}`,
+        `/en/${localizedSlugs.pilot.en}`,
+        0.9,
+        "weekly",
+      ),
+    );
 
-    // Pilot form
-    entries.push({
-      url: `${BASE_URL}/${locale}/${localizedSlugs.pilot[locale]}`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.9,
-      alternates: {
-        languages: {
-          [locale]: `${BASE_URL}/${locale}/${localizedSlugs.pilot[locale]}`,
-          [altLocale]: `${BASE_URL}/${altLocale}/${localizedSlugs.pilot[altLocale]}`,
-        },
-      },
-    });
+    entries.push(
+      localizedEntry(
+        locale,
+        `/fr/${localizedSlugs.contact.fr}`,
+        `/en/${localizedSlugs.contact.en}`,
+        0.7,
+        "weekly",
+      ),
+    );
 
-    // Contact form
-    entries.push({
-      url: `${BASE_URL}/${locale}/${localizedSlugs.contact[locale]}`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.7,
-      alternates: {
-        languages: {
-          [locale]: `${BASE_URL}/${locale}/${localizedSlugs.contact[locale]}`,
-          [altLocale]: `${BASE_URL}/${altLocale}/${localizedSlugs.contact[altLocale]}`,
-        },
-      },
-    });
+    entries.push(
+      localizedEntry(
+        locale,
+        "/fr/pilot-protocol",
+        "/en/pilot-protocol",
+        0.5,
+        "monthly",
+      ),
+    );
 
-    // Legal pages
     for (const key of ["legal", "privacy", "terms"] as const) {
-      entries.push({
-        url: `${BASE_URL}/${locale}/${localizedSlugs[key][locale]}`,
-        lastModified: new Date(),
-        changeFrequency: "yearly",
-        priority: 0.2,
-      });
+      entries.push(
+        localizedEntry(
+          locale,
+          `/fr/${localizedSlugs[key].fr}`,
+          `/en/${localizedSlugs[key].en}`,
+          0.3,
+          "yearly",
+        ),
+      );
+    }
+
+    for (const key of CONTENT_KEYS) {
+      entries.push(
+        localizedEntry(
+          locale,
+          `/fr/${localizedSlugs[key].fr}`,
+          `/en/${localizedSlugs[key].en}`,
+          key === "resources" || key.startsWith("pillar") ? 0.8 : 0.6,
+          "weekly",
+        ),
+      );
     }
   }
 

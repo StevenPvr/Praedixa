@@ -4,7 +4,7 @@ export const siteConfig = {
   url: "https://www.praedixa.com",
 
   contact: {
-    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "steven.poivre@outlook.com",
+    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hello@praedixa.com",
   },
 
   routes: {
@@ -14,12 +14,6 @@ export const siteConfig = {
     confidentialite: "/confidentialite",
     cgu: "/cgu",
   },
-
-  legalLinks: [
-    { href: "/mentions-legales", label: "Mentions légales" },
-    { href: "/confidentialite", label: "Confidentialité" },
-    { href: "/cgu", label: "CGU" },
-  ] as const,
 
   hosting: {
     provider: "Cloudflare",

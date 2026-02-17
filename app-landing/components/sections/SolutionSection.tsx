@@ -90,9 +90,7 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
                 {solution.differentiators.title}
               </h3>
               <p className="text-neutral-400 leading-relaxed max-w-md">
-                Our approach specifically targets high-value, complex B2B
-                scenarios where generic tools fail. We prioritize precision over
-                volume.
+                {solution.differentiators.description}
               </p>
             </div>
             <div className="grid gap-3">

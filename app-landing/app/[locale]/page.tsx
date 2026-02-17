@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isValidLocale } from "../../lib/i18n/config";
 import { getDictionary } from "../../lib/i18n/get-dictionary";
+import { buildLocaleMetadata, localePathMap } from "../../lib/seo/metadata";
 import { Navbar } from "../../components/layout/Navbar";
 import { Footer } from "../../components/layout/Footer";
 import { HeroSection } from "../../components/sections/HeroSection";
@@ -14,6 +16,26 @@ import { PilotSection } from "../../components/sections/PilotSection";
 import { FaqSection } from "../../components/sections/FaqSection";
 import { ContactSection } from "../../components/sections/ContactSection";
 import { StickyMobileCTA } from "../../components/layout/StickyMobileCTA";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isValidLocale(locale)) return {};
+
+  const dict = await getDictionary(locale);
+
+  return buildLocaleMetadata({
+    locale,
+    paths: localePathMap("/fr", "/en"),
+    title: dict.meta.title,
+    description: dict.meta.description,
+    ogTitle: dict.meta.ogTitle,
+    ogDescription: dict.meta.ogDescription,
+  });
+}
 
 export default async function LandingPage({
   params,

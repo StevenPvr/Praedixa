@@ -58,6 +58,7 @@ export interface Dictionary {
     }[];
     differentiators: {
       title: string;
+      description: string;
       items: { is: string; isNot: string }[];
     };
   };

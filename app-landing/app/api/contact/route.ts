@@ -223,7 +223,7 @@ function buildConfirmHtml(data: ContactPayload): string {
         Nous avons bien reçu votre message (objet : <strong>${safeSubjectText}</strong>).
       </p>
       <p style="color: #525252; font-size: 16px; line-height: 1.6;">
-        Notre équipe vous répond sous 24h ouvrées.
+        Notre équipe vous répond rapidement.
       </p>
       <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
       <p style="color: #737373; font-size: 14px;">L'équipe Praedixa</p>

@@ -14,13 +14,19 @@ interface NavbarProps {
   locale: Locale;
 }
 
+type NavLink = {
+  href: string;
+  label: string;
+  isInternal?: boolean;
+};
+
 export function Navbar({ dict, locale }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
 
   const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
 
-  const navLinks = [
+  const navLinks: NavLink[] = [
     { href: "#problem", label: dict.nav.problem },
     { href: "#solution", label: dict.nav.method },
     { href: "#how-it-works", label: dict.nav.howItWorks },
@@ -28,6 +34,11 @@ export function Navbar({ dict, locale }: NavbarProps) {
     { href: "#security", label: dict.nav.security },
     { href: "#faq", label: dict.nav.faq },
     { href: "#contact", label: dict.nav.contact },
+    {
+      href: `/${locale}/${localizedSlugs.resources[locale]}`,
+      label: locale === "fr" ? "Ressources" : "Resources",
+      isInternal: true,
+    },
   ];
 
   useEffect(() => {
@@ -57,7 +68,6 @@ export function Navbar({ dict, locale }: NavbarProps) {
                 : "border-neutral-300/50 bg-[oklch(0.92_0.012_72)] shadow-sm backdrop-blur-xl"
             }`}
           >
-            {/* Logo */}
             <Link
               href={`/${locale}`}
               className="group flex items-center gap-2.5"
@@ -74,20 +84,28 @@ export function Navbar({ dict, locale }: NavbarProps) {
               </span>
             </Link>
 
-            {/* Desktop nav — minimal: 3 trust links */}
             <div className="hidden items-center gap-0.5 md:flex">
-              {navLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="rounded px-3 py-1.5 text-sm font-medium text-ink/70 transition hover:text-ink"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) =>
+                link.isInternal ? (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="rounded px-3 py-1.5 text-sm font-medium text-ink/70 transition hover:text-ink"
+                  >
+                    {link.label}
+                  </Link>
+                ) : (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className="rounded px-3 py-1.5 text-sm font-medium text-ink/70 transition hover:text-ink"
+                  >
+                    {link.label}
+                  </a>
+                ),
+              )}
             </div>
 
-            {/* Desktop CTA */}
             <div className="hidden md:flex">
               <Link href={pilotHref} className="btn-primary text-sm">
                 {dict.nav.ctaPrimary}
@@ -95,7 +113,6 @@ export function Navbar({ dict, locale }: NavbarProps) {
               </Link>
             </div>
 
-            {/* Mobile hamburger */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="flex h-9 w-9 items-center justify-center rounded border border-ink/20 bg-ink/5 md:hidden"
@@ -130,7 +147,6 @@ export function Navbar({ dict, locale }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Mobile overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -149,16 +165,27 @@ export function Navbar({ dict, locale }: NavbarProps) {
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             >
               <nav className="flex flex-col gap-1">
-                {navLinks.map((link) => (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    className="rounded px-3 py-2.5 text-base font-medium text-white transition hover:bg-white/10 hover:text-white"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {link.label}
-                  </a>
-                ))}
+                {navLinks.map((link) =>
+                  link.isInternal ? (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="rounded px-3 py-2.5 text-base font-medium text-white transition hover:bg-white/10 hover:text-white"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      className="rounded px-3 py-2.5 text-base font-medium text-white transition hover:bg-white/10 hover:text-white"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {link.label}
+                    </a>
+                  ),
+                )}
               </nav>
               <div className="mt-4 border-t border-white/15 pt-4">
                 <Link

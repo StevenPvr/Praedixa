@@ -31,7 +31,7 @@ export const fr: Dictionary = {
       "Praedixa convertit la sous-couverture en décisions exécutables : signaux précoces, scénarios chiffrés, preuve d'impact défendable en comité.",
     bullets: [
       {
-        metric: "3–14 j",
+        metric: "Horizon anticipé",
         text: "d'anticipation avant les ruptures terrain",
       },
       {
@@ -45,11 +45,11 @@ export const fr: Dictionary = {
     ],
     ctaPrimary: "Demander un pilote",
     ctaSecondary: "Voir le protocole du pilote",
-    ctaMeta: "Réponse sous 24h ouvrées · NDA possible · Aucune obligation",
+    ctaMeta: "Réponse rapide · NDA possible · Aucune obligation",
     trustBadges: [
       "Hébergement France",
       "Données agrégées uniquement",
-      "NDA possible dès le 1er échange",
+      "NDA possible dès le premier échange",
       "Framework ROI auditable",
     ],
   },
@@ -65,14 +65,14 @@ export const fr: Dictionary = {
         description:
           "Les signaux de tension sont détectés quand les marges de manœuvre sont déjà réduites.",
         consequence: "Surcoûts, dégradation de service, stress managérial",
-        cost: "15–25% de surcoût moyen en mode urgence",
+        cost: "Surcoût sensible en mode urgence",
       },
       {
         title: "Arbitrages insuffisamment cadrés",
         description:
           "Sans scénario économique structuré, les décisions reposent sur l'urgence.",
         consequence: "Budget opérationnel moins prévisible et moins défendable",
-        cost: "2 à 5 jours par cycle de décision non outillé",
+        cost: "Cycle de décision ralenti en absence de cadre",
       },
       {
         title: "Impact difficile à prouver",
@@ -103,7 +103,7 @@ export const fr: Dictionary = {
         title: "Lecture anticipative",
         subtitle: "Voir avant d'agir",
         description:
-          "Signaux de sous-couverture détectés 3 à 14 jours en amont, avec facteurs explicatifs et niveau de criticité.",
+          "Signaux de sous-couverture détectés en amont, avec facteurs explicatifs et niveau de criticité.",
       },
       {
         title: "Arbitrage économique",
@@ -120,6 +120,8 @@ export const fr: Dictionary = {
     ],
     differentiators: {
       title: "Ce que Praedixa n'est pas",
+      description:
+        "Approche orientée décisions critiques multi-sites : lecture du risque, comparaison d'options et justification de l'action.",
       items: [
         {
           is: "Outil de décision opérationnel",
@@ -146,7 +148,7 @@ export const fr: Dictionary = {
       {
         number: "01",
         title: "Cadrage",
-        subtitle: "45 minutes",
+        subtitle: "Atelier de cadrage",
         description:
           "Objectifs, KPI cibles, périmètre du pilote et critères de succès co-définis.",
       },
@@ -196,7 +198,7 @@ export const fr: Dictionary = {
         context:
           "Fragilités structurelles masquées, plans de dernière minute coûteux.",
         action:
-          "Analyse des motifs récurrents, hiérarchisation des zones exposées, fenêtres 3/7/14 j.",
+          "Analyse des motifs récurrents, hiérarchisation des zones exposées et lecture de court horizon.",
         result:
           "Anticipation des dérives et réduction du recours à l'intérim de dernière minute.",
         callout:
@@ -308,7 +310,7 @@ export const fr: Dictionary = {
     kicker: "Offre pilote",
     heading: "Un pilote encadré pour prouver la valeur, pas la promettre.",
     subheading:
-      "Cohorte fondatrice limitée à 8 entreprises. Chaque pilote est cadré pour produire une preuve de valeur mesurable.",
+      "Cohorte fondatrice sélective. Chaque pilote est cadré pour produire une preuve de valeur mesurable.",
     included: {
       title: "Ce que le pilote inclut",
       items: [
@@ -341,16 +343,15 @@ export const fr: Dictionary = {
     governance: {
       title: "Gouvernance",
       items: [
-        "Point hebdomadaire de 30 min",
+        "Point de gouvernance régulier",
         "Sponsor exécutif identifié côté client",
         "Champion opérationnel dédié",
         "Critères go/no-go définis au cadrage",
       ],
     },
-    urgency:
-      "Cohorte limitée à 8 entreprises. Candidatures qualifiées sous 24h ouvrées.",
+    urgency: "Cohorte sélective. Candidatures qualifiées avec retour rapide.",
     ctaPrimary: "Demander un pilote",
-    ctaMeta: "Qualification : 20 min · Formulaire : 4–5 min · NDA possible",
+    ctaMeta: "Qualification structurée · Formulaire rapide · NDA possible",
   },
 
   faq: {
@@ -444,9 +445,9 @@ export const fr: Dictionary = {
     kicker: "Passer à l'action",
     heading: "Demandez un pilote.",
     subheading:
-      "En 20 minutes, nous cadrons périmètre, criticité, et valeur attendue d'une première boucle de décision.",
+      "Nous cadrons périmètre, criticité et valeur attendue d'une première boucle de décision.",
     trustItems: [
-      "Réponse sous 24h ouvrées",
+      "Réponse rapide",
       "NDA possible dès le premier échange",
       "Données agrégées uniquement",
       "Aucune obligation",
@@ -479,11 +480,11 @@ export const fr: Dictionary = {
     pill: "Cohorte fondatrice",
     valuePoints: [
       "Qualification orientée enjeux COO et finance",
-      "Processus structuré en moins de 5 minutes",
-      "Réponse sous 24h ouvrées par l'équipe fondatrice",
+      "Processus structuré et fluide",
+      "Réponse de l'équipe fondatrice",
     ],
     estimatedTime: "Temps estimé",
-    estimatedTimeValue: "4 à 5 minutes",
+    estimatedTimeValue: "Quelques minutes",
     fieldsets: {
       organisation: "Organisation",
       contact: "Contact",
@@ -522,7 +523,7 @@ export const fr: Dictionary = {
     success: {
       title: "Candidature transmise",
       description:
-        "Nous analysons votre dossier et revenons vers vous sous 24h ouvrées avec un cadrage adapté à votre contexte.",
+        "Nous analysons votre dossier et revenons vers vous rapidement avec un cadrage adapté à votre contexte.",
       backToSite: "Retour au site",
       checkEmail: "Vérifier ma boîte email",
     },
