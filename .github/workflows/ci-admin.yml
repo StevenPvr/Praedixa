@@ -1,20 +1,7 @@
 name: CI — Admin
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "app-admin/**"
-      - "packages/ui/**"
-      - "packages/shared-types/**"
-      - ".github/workflows/ci-admin.yml"
-  push:
-    branches: [main]
-    paths:
-      - "app-admin/**"
-      - "packages/ui/**"
-      - "packages/shared-types/**"
-      - ".github/workflows/ci-admin.yml"
+  workflow_dispatch:
 
 concurrency:
   group: ci-admin-${{ github.ref }}

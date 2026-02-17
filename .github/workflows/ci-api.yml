@@ -1,16 +1,7 @@
 name: CI — API
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "app-api/**"
-      - ".github/workflows/ci-api.yml"
-  push:
-    branches: [main]
-    paths:
-      - "app-api/**"
-      - ".github/workflows/ci-api.yml"
+  workflow_dispatch:
 
 concurrency:
   group: ci-api-${{ github.ref }}
