@@ -1,6 +1,13 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "app-landing/**"
+      - "packages/ui/**"
+      - "packages/shared-types/**"
+      - ".github/workflows/ci.yml"
   workflow_dispatch:
 
 concurrency:
@@ -277,6 +284,43 @@ jobs:
             test-results/visual-qa/**
             playwright-report/**
           if-no-files-found: warn
+
+  deploy_fast:
+    name: Deploy landing (fast path, checks disabled)
+    needs: [minutes_guard]
+    if: github.ref == 'refs/heads/main' && needs.minutes_guard.outputs.run_heavy != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    concurrency:
+      group: production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
+
+      - name: Deploy landing to Cloudflare Workers
+        run: pnpm run deploy:landing
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy:
     name: Build & Deploy (Cloudflare Workers)
