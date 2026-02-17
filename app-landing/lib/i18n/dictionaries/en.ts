@@ -2,24 +2,28 @@ import type { Dictionary } from "../types";
 
 export const en: Dictionary = {
   meta: {
-    title: "Praedixa | Premium Coverage Intelligence for Multi-Site Operations",
+    title: "Praedixa | Coverage Intelligence for Multi-Site Operations",
     description:
-      "Anticipate understaffing, frame economic trade-offs, and produce auditable proof of impact. Premium SaaS for multi-site COOs.",
-    ogTitle: "Praedixa | Premium Operational Coverage SaaS for Multi-Site COOs",
+      "Anticipate understaffing, frame economic trade-offs, and produce auditable proof of impact. SaaS for multi-site COOs.",
+    ogTitle: "Praedixa | Operational Coverage SaaS for Multi-Site COOs",
     ogDescription:
       "Anticipate coverage gaps, frame trade-offs, and make your decisions auditable with an impact-driven methodology.",
   },
 
   nav: {
-    method: "Method",
+    problem: "Problem",
+    method: "Solution",
+    howItWorks: "How it works",
+    useCases: "Use cases",
     security: "Security",
     faq: "FAQ",
+    contact: "Contact",
     ctaPrimary: "Request a pilot",
     backToSite: "Back to site",
   },
 
   hero: {
-    kicker: "Premium SaaS for multi-site COOs",
+    kicker: "SaaS for multi-site COOs",
     headline: "Anticipate coverage gaps",
     headlineHighlight: "before they become costly.",
     subtitle:
@@ -162,7 +166,7 @@ export const en: Dictionary = {
 
   useCases: {
     kicker: "Use cases",
-    heading: "Real scenarios handled with a premium decision framework.",
+    heading: "Real scenarios handled with a structured decision framework.",
     subheading:
       "Each case follows the same logic: anticipated visibility, comparable options, defensible decision, measurable impact.",
     cases: [
@@ -211,7 +215,7 @@ export const en: Dictionary = {
     kicker: "ROI Framework",
     heading: "Deliverables calibrated to decide, not to present.",
     subheading:
-      "Premium doesn't come from another dashboard, but from the ability to produce structured, defensible trade-offs.",
+      "Value doesn't come from another dashboard, but from the ability to produce structured, defensible trade-offs.",
     roiFrames: [
       {
         label: "Cost of inaction",
@@ -372,7 +376,7 @@ export const en: Dictionary = {
       {
         question: "How much does Praedixa cost?",
         answer:
-          "Premium model, typically several thousand euros per month depending on complexity (number of sites, variability, support level). The founding cohort benefits from a dedicated commercial framework. Qualification establishes a clear pricing trajectory before commitment.",
+          "Subscription model, typically several thousand euros per month depending on complexity (number of sites, variability, support level). The founding cohort benefits from a dedicated commercial framework. Qualification establishes a clear pricing trajectory before commitment.",
         category: "Pilot & pricing",
       },
       {
@@ -436,7 +440,7 @@ export const en: Dictionary = {
   },
 
   footer: {
-    tagline: "Premium coverage intelligence for multi-site operations.",
+    tagline: "Coverage intelligence for multi-site operations.",
     badges: ["COO / CFO governance", "Privacy-by-design"],
     navigation: "Navigation",
     legalContact: "Legal & contact",
@@ -453,7 +457,7 @@ export const en: Dictionary = {
   },
 
   form: {
-    pageTitle: "Premium pilot application",
+    pageTitle: "Pilot application",
     pageSubtitle:
       "This application allows us to qualify your scope and structure a first high-value operational decision loop.",
     pill: "Founding cohort",

@@ -4,7 +4,7 @@ import { WarRoomDashboard } from "@/components/dashboard/war-room";
 import { PageTransition } from "@/components/page-transition";
 
 export const metadata: Metadata = {
-  title: "War room | Praedixa",
+  title: "Tableau de bord | Praedixa",
   description:
     "Centre de pilotage operationnel: risques, couverture, priorites et arbitrages",
 };

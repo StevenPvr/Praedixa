@@ -63,6 +63,7 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    position: relative;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -109,7 +110,7 @@
   /* ── Layout ── */
   .section-shell {
     @apply mx-auto w-full px-6 md:px-8;
-    max-width: 76rem; /* 1216px — slightly tighter than 7xl for premium density */
+    max-width: 76rem; /* 1216px — slightly tighter than 7xl for balanced density */
   }
 
   .section-spacing {
@@ -154,6 +155,29 @@
     color: var(--color-text-secondary);
   }
 
+  /* ── Sunken Container (for dashboard preview) ── */
+  .sunken-container {
+    position: relative;
+    border-radius: 1rem;
+    background: linear-gradient(to bottom, oklch(0.96 0.006 78), oklch(0.985 0.003 70));
+    box-shadow:
+      /* Inner top shadow for depth */
+      inset 0 2px 4px 0 oklch(0.22 0.015 60 / 0.05),
+      /* Outer highlight at bottom */
+      0 1px 0 0 oklch(1 1 1 / 0.5);
+    border: 1px solid oklch(0.12 0.01 55 / 0.03);
+    padding: 0.75rem;
+  }
+
+  .sunken-inner-bezel {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow:
+      0 4px 6px -1px oklch(0 0 0 / 0.1),
+      0 2px 4px -1px oklch(0 0 0 / 0.06);
+    border: 1px solid oklch(1 1 1 / 0.4);
+  }
+
   /* ── Cards ── */
   .craft-card {
     position: relative;
@@ -174,7 +198,7 @@
   }
 
   /* Legacy pilot page card style (restored) */
-  .premium-card {
+  .pilot-card {
     position: relative;
     border: 1px solid var(--color-border);
     border-radius: 1rem;
@@ -185,9 +209,9 @@
   /* ── Dark card variant ── */
   .craft-card-dark {
     position: relative;
-    border: 1px solid oklch(0.25 0.01 55);
+    border: 1px solid oklch(0.30 0.015 62);
     border-radius: 0.75rem;
-    background: oklch(0.14 0.008 55);
+    background: oklch(0.22 0.015 62);
     box-shadow: var(--shadow-sm);
     color: oklch(0.92 0.005 70);
   }
@@ -334,7 +358,7 @@
     border-radius: 0.375rem;
   }
 
-  .premium-pill {
+  .pilot-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
@@ -383,7 +407,7 @@
 
   /* ── Dark sections ── */
   .section-dark {
-    background: oklch(0.13 0.008 55);
+    background: oklch(0.20 0.018 65);
     color: oklch(0.92 0.005 70);
   }
 

@@ -6,7 +6,12 @@ import { motion } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
 import { cn } from "@praedixa/ui";
 
-export function ThemeToggle({ className }: { className?: string }) {
+interface ThemeToggleProps {
+  className?: string;
+  onModeChange?: (mode: "light" | "dark") => void;
+}
+
+export function ThemeToggle({ className, onModeChange }: ThemeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -22,7 +27,11 @@ export function ThemeToggle({ className }: { className?: string }) {
 
   return (
     <button
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      onClick={() => {
+        const nextMode = isDark ? "light" : "dark";
+        setTheme(nextMode);
+        onModeChange?.(nextMode);
+      }}
       className={cn(
         "relative flex h-8 w-8 items-center justify-center rounded-lg text-ink-secondary transition-colors hover:bg-surface-alt hover:text-ink dark:hover:bg-card/10",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",

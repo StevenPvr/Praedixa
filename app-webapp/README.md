@@ -38,16 +38,20 @@ pnpm dev:webapp   # http://localhost:3001
 
 ### Route group `(app)` -- pages authentifiees
 
-| Route               | Fichier                               | Description                                                         |
-| ------------------- | ------------------------------------- | ------------------------------------------------------------------- |
-| `/dashboard`        | `app/(app)/dashboard/page.tsx`        | Vue d'ensemble : KPIs couverture, alertes, prevision 14j, scenarios |
-| `/donnees`          | `app/(app)/donnees/page.tsx`          | Exploration des datasets et journaux d'ingestion                    |
-| `/previsions`       | `app/(app)/previsions/page.tsx`       | Liste des runs de prevision, decomposition, importance des features |
-| `/actions`          | `app/(app)/actions/page.tsx`          | Alertes de couverture, selection d'alerte, panneau d'optimisation   |
-| `/messages`         | `app/(app)/messages/page.tsx`         | Messagerie avec l'equipe Praedixa (conversations, fil de messages)  |
-| `/rapports`         | `app/(app)/rapports/page.tsx`         | Proof packs, exports, historique des couts                          |
-| `/parametres`       | `app/(app)/parametres/page.tsx`       | Configuration organisation, sites, parametres de couts              |
-| `/coverage-harness` | `app/(app)/coverage-harness/page.tsx` | Page utilitaire pour la couverture E2E (bloquée en production)      |
+| Route                 | Fichier                                 | Description                                                   |
+| --------------------- | --------------------------------------- | ------------------------------------------------------------- |
+| `/dashboard`          | `app/(app)/dashboard/page.tsx`          | Tableau de bord prioritaire (risques, couverture, arbitrages) |
+| `/donnees`            | `app/(app)/donnees/page.tsx`            | Vue operationnelle consolidee                                 |
+| `/donnees/datasets`   | `app/(app)/donnees/datasets/page.tsx`   | Fichiers importes, statuts pipeline et volumetrie             |
+| `/donnees/canonique`  | `app/(app)/donnees/canonique/page.tsx`  | Alias de la vue consolidee canonique                          |
+| `/previsions`         | `app/(app)/previsions/page.tsx`         | Projection capacite + decomposition des drivers               |
+| `/previsions/alertes` | `app/(app)/previsions/alertes/page.tsx` | Liste complete des alertes avec filtres severite/statut       |
+| `/actions`            | `app/(app)/actions/page.tsx`            | Centre de traitement des alertes prioritaires                 |
+| `/actions/historique` | `app/(app)/actions/historique/page.tsx` | Historique decisionnel (audit des choix passes)               |
+| `/messages`           | `app/(app)/messages/page.tsx`           | Messagerie avec l'equipe Praedixa                             |
+| `/rapports`           | `app/(app)/rapports/page.tsx`           | Rapports executifs et exports                                 |
+| `/parametres`         | `app/(app)/parametres/page.tsx`         | Gouvernance et reglages organisationnels                      |
+| `/coverage-harness`   | `app/(app)/coverage-harness/page.tsx`   | Page utilitaire de couverture E2E (bloquee en production)     |
 
 ### Route group `(auth)` -- pages publiques
 

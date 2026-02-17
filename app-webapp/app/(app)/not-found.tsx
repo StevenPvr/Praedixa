@@ -12,7 +12,7 @@ export default function AppNotFound() {
         La page que vous recherchez n&apos;existe pas ou a ete deplacee.
       </p>
       <Button asChild variant="premium" size="lg" className="mt-8">
-        <Link href="/dashboard">Retour au dashboard</Link>
+        <Link href="/dashboard">Retour au tableau de bord</Link>
       </Button>
     </div>
   );

@@ -20,26 +20,26 @@ describe("Sidebar", () => {
 
   it("renders grouped headings and labels", () => {
     render(<Sidebar currentPath="/dashboard" userRole="admin" />);
-    expect(screen.getByText("Voir")).toBeInTheDocument();
-    expect(screen.getByText("Anticiper")).toBeInTheDocument();
-    expect(screen.getByText("Decider")).toBeInTheDocument();
-    expect(screen.getByText("Suivre")).toBeInTheDocument();
-    expect(screen.getByText("Gouvernance")).toBeInTheDocument();
-
-    expect(screen.getByText("War room")).toBeInTheDocument();
+    expect(screen.getByText("Pilotage")).toBeInTheDocument();
     expect(screen.getByText("Donnees")).toBeInTheDocument();
-    expect(screen.getByText("Traitement")).toBeInTheDocument();
+    expect(screen.getAllByText("Anticipation").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Traitement").length).toBeGreaterThan(0);
+    expect(screen.getByText("Support & gouvernance")).toBeInTheDocument();
+
+    expect(screen.getByText("Tableau de bord")).toBeInTheDocument();
+    expect(screen.getByText("Donnees operationnelles")).toBeInTheDocument();
+    expect(screen.getAllByText("Traitement").length).toBeGreaterThan(0);
     expect(screen.getByText("Support")).toBeInTheDocument();
   });
 
   it("hides admin-only settings for non-admin roles", () => {
     render(<Sidebar currentPath="/dashboard" userRole="viewer" />);
-    expect(screen.queryByText("Parametres")).not.toBeInTheDocument();
+    expect(screen.queryByText("Reglages")).not.toBeInTheDocument();
   });
 
   it("marks current route as active", () => {
     render(<Sidebar currentPath="/actions" userRole="manager" />);
-    const active = screen.getByText("Traitement").closest("a");
+    const active = screen.getByRole("link", { name: "Traitement" });
     expect(active).toHaveAttribute("aria-current", "page");
   });
 
@@ -59,8 +59,8 @@ describe("Sidebar", () => {
 
   it("collapses labels in collapsed mode", () => {
     render(<Sidebar currentPath="/dashboard" userRole="admin" collapsed />);
-    expect(screen.queryByText("Voir")).not.toBeInTheDocument();
-    expect(screen.queryByText("War room")).not.toBeInTheDocument();
+    expect(screen.queryByText("Pilotage")).not.toBeInTheDocument();
+    expect(screen.queryByText("Tableau de bord")).not.toBeInTheDocument();
   });
 
   it("calls toggle callback", async () => {

@@ -1,0 +1,25 @@
+node_modules/
+.next/
+dist/
+build/
+.venv/
+__pycache__/
+.terraform/
+coverage/
+
+# SQL migration DSL and dynamic identifier composition in Alembic revisions.
+app-api/alembic/versions/
+
+# Security-focused tests intentionally contain adversarial payloads.
+app-api/tests/security/test_auth_jwt.py
+app-api/tests/security/test_jwt_algorithm_confusion.py
+app-api/tests/unit/test_auth.py
+
+# Data engineering scripts use controlled dynamic SQL over validated identifiers.
+app-api/scripts/medallion_orchestrator.py
+app-api/scripts/medallion_pipeline.py
+
+# Psycopg SQL composition (`sql.Identifier`) flagged as raw SQL by generic rules.
+app-api/app/services/schema_manager.py
+app-api/app/services/transform_engine.py
+app-api/app/services/datasets.py

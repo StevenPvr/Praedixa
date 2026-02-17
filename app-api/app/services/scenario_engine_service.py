@@ -70,6 +70,31 @@ def _clamp01(value: Decimal) -> Decimal:
     return value
 
 
+def build_scenario_option_blueprints(
+    *,
+    gap: Decimal,
+    cost_param: object,
+    horizon: object,
+    min_service_threshold: Decimal = _MIN_SERVICE_THRESHOLD,
+    min_feasibility_threshold: Decimal = _MIN_FEASIBILITY_THRESHOLD,
+    policy_version: str = _RECOMMENDATION_POLICY_VERSION,
+) -> list[dict[str, object]]:
+    """Build scenario option payloads without persisting DB rows.
+
+    This is used by Gold-backed live endpoints to provide deterministic
+    scenario exploration directly from medallion data.
+    """
+    horizon_days = _horizon_to_days(horizon)
+    return _compute_all_options(
+        gap,
+        cost_param,
+        horizon_days=horizon_days,
+        min_service_threshold=min_service_threshold,
+        min_feasibility_threshold=min_feasibility_threshold,
+        policy_version=policy_version,
+    )
+
+
 def compute_pareto_frontier(options: list[ScenarioOption]) -> list[ScenarioOption]:
     """Compute Pareto-optimal options (non-dominated set).
 
@@ -190,7 +215,6 @@ async def generate_scenarios(
         raise NotFoundError("CoverageAlert", str(alert_id))
 
     gap = Decimal(str(alert.gap_h))
-    horizon_days = _horizon_to_days(alert.horizon)
 
     # Load effective cost parameter
     cost_param = await get_effective_cost_parameter(
@@ -201,10 +225,10 @@ async def generate_scenarios(
     )
 
     # Build scenario options under active policy thresholds.
-    options_data = _compute_all_options(
-        gap,
-        cost_param,
-        horizon_days=horizon_days,
+    options_data = build_scenario_option_blueprints(
+        gap=gap,
+        cost_param=cost_param,
+        horizon=alert.horizon,
         min_service_threshold=_MIN_SERVICE_THRESHOLD,
         min_feasibility_threshold=_MIN_FEASIBILITY_THRESHOLD,
         policy_version=_RECOMMENDATION_POLICY_VERSION,

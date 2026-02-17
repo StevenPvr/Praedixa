@@ -2,26 +2,29 @@ import type { Dictionary } from "../types";
 
 export const fr: Dictionary = {
   meta: {
-    title:
-      "Praedixa | Intelligence de couverture premium pour opérations multi-sites",
+    title: "Praedixa | Intelligence de couverture pour opérations multi-sites",
     description:
-      "Anticipez la sous-couverture, cadrez vos arbitrages économiques et produisez une preuve auditable de l'impact. SaaS premium pour COO multi-sites.",
+      "Anticipez la sous-couverture, cadrez vos arbitrages économiques et produisez une preuve auditable de l'impact. SaaS pour COO multi-sites.",
     ogTitle:
-      "Praedixa | SaaS premium de couverture opérationnelle pour COO multi-sites",
+      "Praedixa | SaaS de couverture opérationnelle pour COO multi-sites",
     ogDescription:
       "Anticipez vos tensions de couverture, cadrez vos arbitrages et rendez vos décisions auditables avec une méthodologie orientée impact.",
   },
 
   nav: {
-    method: "Méthode",
+    problem: "Problème",
+    method: "Solution",
+    howItWorks: "Comment ça marche",
+    useCases: "Cas d'usage",
     security: "Sécurité",
     faq: "FAQ",
+    contact: "Contact",
     ctaPrimary: "Demander un pilote",
     backToSite: "Retour au site",
   },
 
   hero: {
-    kicker: "SaaS premium pour COO multi-sites",
+    kicker: "SaaS pour COO multi-sites",
     headline: "Anticipez les tensions de couverture",
     headlineHighlight: "avant qu'elles ne coûtent cher.",
     subtitle:
@@ -173,7 +176,7 @@ export const fr: Dictionary = {
 
   useCases: {
     kicker: "Cas d'usage",
-    heading: "Des scénarios réels traités avec un cadre de décision premium.",
+    heading: "Des scénarios réels traités avec un cadre de décision structuré.",
     subheading:
       "Chaque cas suit la même logique : visibilité anticipée, options comparables, décision défendable, impact mesurable.",
     cases: [
@@ -227,7 +230,7 @@ export const fr: Dictionary = {
     kicker: "Framework ROI",
     heading: "Des livrables calibrés pour décider, pas pour présenter.",
     subheading:
-      "Le niveau premium ne vient pas d'un dashboard de plus, mais d'une capacité à produire des arbitrages structurés et défendables.",
+      "La valeur ne vient pas d'un dashboard de plus, mais d'une capacité à produire des arbitrages structurés et défendables.",
     roiFrames: [
       {
         label: "Coût de non-action",
@@ -389,7 +392,7 @@ export const fr: Dictionary = {
       {
         question: "Combien coûte Praedixa ?",
         answer:
-          "Modèle premium, généralement plusieurs milliers d'euros par mois selon la complexité (nombre de sites, variabilité, niveau d'accompagnement). La cohorte fondatrice bénéficie d'un cadre commercial dédié. La qualification permet d'établir une trajectoire tarifaire claire avant engagement.",
+          "Modèle par abonnement, généralement plusieurs milliers d'euros par mois selon la complexité (nombre de sites, variabilité, niveau d'accompagnement). La cohorte fondatrice bénéficie d'un cadre commercial dédié. La qualification permet d'établir une trajectoire tarifaire claire avant engagement.",
         category: "Pilote & tarification",
       },
       {
@@ -453,7 +456,7 @@ export const fr: Dictionary = {
   },
 
   footer: {
-    tagline: "Intelligence de couverture premium pour opérations multi-sites.",
+    tagline: "Intelligence de couverture pour opérations multi-sites.",
     badges: ["Gouvernance COO / DAF", "Privacy-by-design"],
     navigation: "Navigation",
     legalContact: "Légal & contact",
@@ -470,7 +473,7 @@ export const fr: Dictionary = {
   },
 
   form: {
-    pageTitle: "Candidature pilote premium",
+    pageTitle: "Candidature pilote",
     pageSubtitle:
       "Cette candidature nous permet de qualifier votre périmètre et de structurer une première boucle de décision.",
     pill: "Cohorte fondatrice",

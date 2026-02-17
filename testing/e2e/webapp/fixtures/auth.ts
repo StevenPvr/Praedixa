@@ -31,6 +31,7 @@ const MOCK_SESSION = {
     app_metadata: {
       provider: "email",
       providers: ["email"],
+      role: MOCK_USER.role,
     },
     user_metadata: {
       org_id: MOCK_USER.orgId,

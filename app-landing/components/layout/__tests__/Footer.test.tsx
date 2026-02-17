@@ -27,7 +27,7 @@ describe("Footer", () => {
     expect(container.querySelector("footer")).toBeInTheDocument();
   });
 
-  it("renders brand and premium CTA", () => {
+  it("renders brand and CTA", () => {
     render(<Footer {...defaultProps} />);
     expect(screen.getByText("Praedixa")).toBeInTheDocument();
     expect(
@@ -41,7 +41,7 @@ describe("Footer", () => {
   it("renders navigation and legal links", () => {
     render(<Footer {...defaultProps} />);
 
-    expect(screen.getByText("Méthode")).toBeInTheDocument();
+    expect(screen.getByText("Solution")).toBeInTheDocument();
     expect(screen.getByText("Sécurité")).toBeInTheDocument();
     expect(screen.getByText("Offre pilote")).toBeInTheDocument();
     expect(screen.getByText("FAQ")).toBeInTheDocument();

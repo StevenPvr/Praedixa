@@ -18,6 +18,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@praedixa/ui";
+import { useCurrentUser } from "@/lib/auth/client";
+import { canAccessSettings } from "@/lib/auth/roles";
 import { useI18n } from "@/lib/i18n/provider";
 import { EASING, DURATION } from "@/lib/animations/config";
 
@@ -25,6 +27,7 @@ import { EASING, DURATION } from "@/lib/animations/config";
 
 interface CommandItem {
   id: string;
+  labelKey: string;
   label: string;
   description?: string;
   icon: LucideIcon;
@@ -33,6 +36,7 @@ interface CommandItem {
   section: string;
   keywords?: string[];
   shortcut?: string;
+  adminOnly?: boolean;
 }
 
 /* ── Navigation items ── */
@@ -40,34 +44,71 @@ interface CommandItem {
 const NAV_ITEMS: Omit<CommandItem, "label" | "description" | "section">[] = [
   {
     id: "dashboard",
+    labelKey: "sidebar.items.dashboard",
     icon: LayoutDashboard,
     href: "/dashboard",
     keywords: ["war", "room", "accueil", "pilotage"],
     shortcut: "G D",
   },
   {
-    id: "donnees",
+    id: "donnees-sites",
+    labelKey: "sidebar.items.donneesSites",
     icon: Database,
     href: "/donnees",
     keywords: ["data", "referentiel", "qualite"],
     shortcut: "G O",
   },
   {
-    id: "previsions",
+    id: "donnees-datasets",
+    labelKey: "sidebar.items.donneesDatasets",
+    icon: Database,
+    href: "/donnees/datasets",
+    keywords: ["dataset", "imports", "fichiers"],
+    shortcut: "G I",
+  },
+  {
+    id: "donnees-canonique",
+    labelKey: "sidebar.items.donneesCanonique",
+    icon: Database,
+    href: "/donnees/canonique",
+    keywords: ["canonique", "consolide", "qualite"],
+    shortcut: "G C",
+  },
+  {
+    id: "previsions-vue",
+    labelKey: "sidebar.items.previsionsVue",
     icon: TrendingUp,
     href: "/previsions",
     keywords: ["forecast", "anticipation", "prevision"],
     shortcut: "G P",
   },
   {
-    id: "actions",
+    id: "previsions-alertes",
+    labelKey: "sidebar.items.previsionsAlertes",
+    icon: TrendingUp,
+    href: "/previsions/alertes",
+    keywords: ["alertes", "risque", "sous effectif"],
+    shortcut: "G L",
+  },
+  {
+    id: "actions-traitement",
+    labelKey: "sidebar.items.actionsTraitement",
     icon: Zap,
     href: "/actions",
     keywords: ["traitement", "decision", "alerte"],
     shortcut: "G A",
   },
   {
+    id: "actions-historique",
+    labelKey: "sidebar.items.actionsHistorique",
+    icon: Zap,
+    href: "/actions/historique",
+    keywords: ["historique", "decisions", "archive"],
+    shortcut: "G H",
+  },
+  {
     id: "messages",
+    labelKey: "sidebar.items.messages",
     icon: MessageSquare,
     href: "/messages",
     keywords: ["support", "conversation", "chat"],
@@ -75,6 +116,7 @@ const NAV_ITEMS: Omit<CommandItem, "label" | "description" | "section">[] = [
   },
   {
     id: "rapports",
+    labelKey: "sidebar.items.rapports",
     icon: FileBarChart,
     href: "/rapports",
     keywords: ["report", "export", "executive"],
@@ -82,10 +124,12 @@ const NAV_ITEMS: Omit<CommandItem, "label" | "description" | "section">[] = [
   },
   {
     id: "parametres",
+    labelKey: "sidebar.items.parametres",
     icon: Settings,
     href: "/parametres",
     keywords: ["settings", "configuration", "seuil"],
     shortcut: "G S",
+    adminOnly: true,
   },
 ];
 
@@ -118,6 +162,8 @@ interface CommandPaletteProps {
 export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const router = useRouter();
   const { t } = useI18n();
+  const currentUser = useCurrentUser();
+  const canManageSettings = canAccessSettings(currentUser?.role);
   const [query, setQuery] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -125,13 +171,15 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
   const allItems = React.useMemo<CommandItem[]>(() => {
     const navSection = t("commandPalette.sections.navigation");
-    return NAV_ITEMS.map((item) => ({
-      ...item,
-      label: t(`sidebar.items.${item.id}`),
-      description: item.href,
-      section: navSection,
-    }));
-  }, [t]);
+    return NAV_ITEMS.filter((item) => !item.adminOnly || canManageSettings).map(
+      (item) => ({
+        ...item,
+        label: t(item.labelKey),
+        description: item.href,
+        section: navSection,
+      }),
+    );
+  }, [canManageSettings, t]);
 
   const filtered = React.useMemo(() => {
     if (!query.trim()) return allItems;

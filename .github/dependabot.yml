@@ -1,53 +1,25 @@
 version: 2
-
 updates:
-  # npm dependencies (root monorepo)
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "deps"
-    open-pull-requests-limit: 10
-    ignore:
-      - dependency-name: "tailwindcss"
-        update-types: ["version-update:semver-major"]
-    groups:
-      prod-deps:
-        dependency-type: "production"
-        update-types:
-          - "minor"
-          - "patch"
-      dev-tooling:
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
-
-  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
-    labels:
-      - "ci"
-    commit-message:
-      prefix: "ci"
+      interval: "daily"
     open-pull-requests-limit: 10
 
-  # Python dependencies (app-api)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+
   - package-ecosystem: "pip"
     directory: "/app-api"
     schedule:
-      interval: "weekly"
-      day: "monday"
-    labels:
-      - "dependencies"
-      - "python"
-    commit-message:
-      prefix: "deps(py)"
+      interval: "daily"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "terraform"
+    directory: "/"
+    schedule:
+      interval: "daily"
     open-pull-requests-limit: 10

@@ -47,7 +47,7 @@ describe("Navbar", () => {
 
   it("renders the desktop information architecture links", () => {
     render(<Navbar {...defaultProps} />);
-    expect(screen.getAllByText("Méthode").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Solution").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Sécurité").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("FAQ").length).toBeGreaterThanOrEqual(1);
   });

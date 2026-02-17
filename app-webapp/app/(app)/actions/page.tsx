@@ -119,17 +119,7 @@ export default function ActionsPage() {
     error: queueError,
     refetch: refetchQueue,
   } = useApiGet<DecisionQueueItem[]>(
-    "/api/v1/coverage-alerts/queue?status=open&limit=50",
-    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
-  );
-
-  const {
-    data: legacyAlerts,
-    loading: legacyLoading,
-    error: legacyError,
-    refetch: refetchLegacyAlerts,
-  } = useApiGet<CoverageAlert[]>(
-    liveError ? "/api/v1/coverage-alerts?status=open&page_size=200" : null,
+    "/api/v1/live/coverage-alerts/queue?status=open&limit=50",
     { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
   );
 
@@ -148,20 +138,13 @@ export default function ActionsPage() {
     if (queueData && queueData.length > 0) {
       return sortQueueItems(queueData).map(toCoverageAlert);
     }
-    if (legacyAlerts && legacyAlerts.length > 0) {
-      return sortAlertsBySeverity(legacyAlerts);
-    }
     return [];
-  }, [liveAlerts, queueData, legacyAlerts]);
+  }, [liveAlerts, queueData]);
 
-  const loading = liveLoading || queueLoading || legacyLoading;
+  const loading = liveLoading || queueLoading;
   const hasAnyAlertData =
-    (liveAlerts?.length ?? 0) > 0 ||
-    (queueData?.length ?? 0) > 0 ||
-    (legacyAlerts?.length ?? 0) > 0;
-  const error = hasAnyAlertData
-    ? null
-    : (liveError ?? queueError ?? legacyError);
+    (liveAlerts?.length ?? 0) > 0 || (queueData?.length ?? 0) > 0;
+  const error = hasAnyAlertData ? null : (liveError ?? queueError);
 
   const filteredAlerts = useMemo(() => {
     if (severityFilter === "all") return alerts;
@@ -191,7 +174,9 @@ export default function ActionsPage() {
     loading: workspaceLoading,
     error: workspaceError,
   } = useApiGet<DecisionWorkspace>(
-    workspaceAlertId ? `/api/v1/decision-workspace/${workspaceAlertId}` : null,
+    workspaceAlertId
+      ? `/api/v1/live/decision-workspace/${workspaceAlertId}`
+      : null,
     { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
   );
 
@@ -201,7 +186,7 @@ export default function ActionsPage() {
     error: fallbackError,
   } = useApiGet<ParetoFrontierResponse>(
     workspaceAlertId && workspaceError
-      ? `/api/v1/scenarios/alert/${workspaceAlertId}`
+      ? `/api/v1/live/scenarios/alert/${workspaceAlertId}`
       : null,
     { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
   );
@@ -316,7 +301,6 @@ export default function ActionsPage() {
     setSelectedOptionId(null);
     refetchLiveAlerts();
     refetchQueue();
-    refetchLegacyAlerts();
   }, [
     workspaceAlertId,
     selectedAlert,
@@ -328,7 +312,6 @@ export default function ActionsPage() {
     effectiveAlertId,
     refetchLiveAlerts,
     refetchQueue,
-    refetchLegacyAlerts,
   ]);
 
   const workspaceIsLoading = workspaceLoading || fallbackLoading;
@@ -419,7 +402,6 @@ export default function ActionsPage() {
             onRetry={() => {
               refetchLiveAlerts();
               refetchQueue();
-              refetchLegacyAlerts();
             }}
           />
         ) : (

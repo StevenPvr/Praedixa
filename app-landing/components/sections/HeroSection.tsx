@@ -1,189 +1,12 @@
 "use client";
 
-import { Suspense } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRightIcon, ChevronDownIcon } from "../icons";
 import type { Dictionary } from "../../lib/i18n/types";
 import type { Locale } from "../../lib/i18n/config";
 import { localizedSlugs } from "../../lib/i18n/config";
-
-/* ═══════════════════════════════════════════════════
-   REMOTION PLAYER — Lazy loaded, no SSR
-   ═══════════════════════════════════════════════════ */
-
-const CalibrePlayer = dynamic(() => import("../hero/CalibrePlayer"), {
-  ssr: false,
-  loading: () => <CalibrePoster locale="fr" />,
-});
-
-/** Static SVG poster shown while Remotion loads + on mobile */
-function CalibrePoster({ locale = "fr" }: { locale?: Locale }) {
-  const BRASS = "#b08d57";
-  const STAGE_TEXT =
-    locale === "fr"
-      ? ["Signal", "Arbitrage", "Décision", "Preuve"]
-      : ["Signal", "Trade-off", "Decision", "Proof"];
-  const HORIZONS =
-    locale === "fr"
-      ? ["J+14", "J+7", "J+3", "J+0"]
-      : ["D+14", "D+7", "D+3", "D+0"];
-  const point = (radius: number, angle: number) => {
-    const rad = ((angle - 90) * Math.PI) / 180;
-    return {
-      x: 240 + radius * Math.cos(rad),
-      y: 240 + radius * Math.sin(rad),
-    };
-  };
-  const arcPath = (radius: number, startAngle: number, endAngle: number) => {
-    const start = point(radius, endAngle);
-    const end = point(radius, startAngle);
-    return `M ${start.x} ${start.y} A ${radius} ${radius} 0 0 0 ${end.x} ${end.y}`;
-  };
-
-  return (
-    <div className="relative aspect-square w-full overflow-hidden rounded-full opacity-70">
-      <svg viewBox="0 0 480 480" className="h-full w-full">
-        <rect width="480" height="480" fill="oklch(0.08 0.005 55)" />
-        <circle
-          cx="240"
-          cy="240"
-          r="205"
-          fill="none"
-          stroke="oklch(0.35 0.01 65 / 0.15)"
-          strokeWidth="24"
-        />
-        <circle
-          cx="240"
-          cy="240"
-          r="182"
-          fill="oklch(0.17 0.015 62)"
-          opacity="0.65"
-        />
-        <circle
-          cx="240"
-          cy="240"
-          r="204"
-          fill="none"
-          stroke={BRASS}
-          strokeWidth="0.8"
-          opacity="0.35"
-        />
-
-        {STAGE_TEXT.map((label, i) => {
-          const start = -90 + i * 90 + 7;
-          const end = -90 + (i + 1) * 90 - 7;
-          const textPos = point(228, start + 38);
-          return (
-            <g key={label}>
-              <path
-                d={arcPath(204, start, end)}
-                fill="none"
-                stroke={BRASS}
-                strokeWidth="4"
-                strokeLinecap="round"
-                opacity={0.35}
-              />
-              <text
-                x={textPos.x}
-                y={textPos.y}
-                fill={BRASS}
-                fontFamily="Cormorant Garamond, serif"
-                fontSize="11.5"
-                textAnchor="middle"
-                opacity="0.82"
-              >
-                {label}
-              </text>
-            </g>
-          );
-        })}
-
-        {HORIZONS.map((label, i) => {
-          const pos = point(220, -90 + i * 90);
-          return (
-            <text
-              key={label}
-              x={pos.x}
-              y={pos.y}
-              fill={BRASS}
-              fontFamily="Manrope, sans-serif"
-              fontSize="8"
-              fontWeight="700"
-              letterSpacing="0.08em"
-              textAnchor="middle"
-              opacity="0.8"
-            >
-              {label}
-            </text>
-          );
-        })}
-
-        {Array.from({ length: 60 }, (_, i) => {
-          const angle = (i * 6 - 90) * (Math.PI / 180);
-          const isMajor = i % 5 === 0;
-          const outerR = 206;
-          const innerR = isMajor ? 191 : 198;
-          const r = (v: number) => Math.round(v * 100) / 100;
-          return (
-            <line
-              key={i}
-              x1={r(240 + outerR * Math.cos(angle))}
-              y1={r(240 + outerR * Math.sin(angle))}
-              x2={r(240 + innerR * Math.cos(angle))}
-              y2={r(240 + innerR * Math.sin(angle))}
-              stroke={BRASS}
-              strokeWidth={isMajor ? 1.5 : 0.4}
-              opacity={isMajor ? 0.5 : 0.2}
-              strokeLinecap="round"
-            />
-          );
-        })}
-        <circle
-          cx="240"
-          cy="240"
-          r="52"
-          fill="none"
-          stroke={BRASS}
-          strokeWidth="0.6"
-          opacity="0.22"
-        />
-        <text
-          x="240"
-          y="236"
-          textAnchor="middle"
-          fill="oklch(0.78 0.1 76)"
-          fontFamily="Cormorant Garamond, serif"
-          fontSize="15"
-          letterSpacing="0.02em"
-        >
-          {locale === "fr" ? "Calibre Praedixa" : "Praedixa Calibre"}
-        </text>
-        <text
-          x="240"
-          y="252"
-          textAnchor="middle"
-          fill="oklch(0.62 0.01 68)"
-          fontFamily="Manrope, sans-serif"
-          fontSize="7.5"
-          fontWeight="700"
-          letterSpacing="0.18em"
-          opacity="0.85"
-        >
-          {locale === "fr" ? "TEMPS DE DÉCISION" : "TIME TO DECISION"}
-        </text>
-      </svg>
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, transparent 42%, oklch(0.13 0.008 55) 74%)",
-        }}
-      />
-    </div>
-  );
-}
+import { useRef } from "react";
 
 /* ═══════════════════════════════════════════════════
    ANIMATION PRIMITIVES
@@ -200,16 +23,6 @@ const fadeUp = {
   }),
 };
 
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.3 } },
-};
-
-const staggerChild = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease } },
-};
-
 /* ═══════════════════════════════════════════════════
    HERO SECTION
    ═══════════════════════════════════════════════════ */
@@ -222,196 +35,294 @@ interface HeroSectionProps {
 export function HeroSection({ dict, locale }: HeroSectionProps) {
   const { hero } = dict;
   const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
+  const containerRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
 
   return (
     <section
+      ref={containerRef}
       id="hero"
       data-testid="hero-section"
-      className="relative overflow-hidden bg-ink pb-8 pt-20 sm:pt-24 lg:pb-0 lg:pt-26"
+      className="relative overflow-hidden bg-cream pb-24 pt-32 sm:pt-40 lg:pb-32 lg:pt-48"
     >
-      {/* Ambient glow */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        aria-hidden="true"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 50% at 60% 45%, oklch(0.20 0.04 72 / 0.4), transparent)," +
-            "radial-gradient(ellipse 40% 60% at 20% 20%, oklch(0.18 0.02 55 / 0.3), transparent)",
-        }}
-      />
-
-      <div className="section-shell relative">
-        <div className="py-2 lg:py-5">
-          <div className="w-full text-center">
-            <motion.p
-              className="inline-flex items-center gap-2 text-2xs font-semibold uppercase tracking-[0.2em] text-brass-400"
-              variants={fadeUp}
-              custom={0}
-              initial="hidden"
-              animate="visible"
-            >
-              <span
-                className="inline-block h-px w-5 bg-brass-500"
-                aria-hidden="true"
-              />
-              {hero.kicker}
-            </motion.p>
-
-            <motion.h1
-              className="mt-6 font-serif text-[clamp(2.5rem,5.5vw,4.25rem)] leading-[1.08] tracking-[-0.02em] text-white"
-              variants={fadeUp}
-              custom={0.08}
-              initial="hidden"
-              animate="visible"
-            >
-              {hero.headline}{" "}
-              <span className="relative inline-block">
-                <span className="relative z-10 text-brass-300">
-                  {hero.headlineHighlight}
-                </span>
-                <motion.span
-                  className="absolute bottom-1 left-0 z-0 h-[0.12em] rounded-full bg-brass-600/30"
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 1.2, delay: 0.7, ease }}
-                  aria-hidden="true"
-                />
-              </span>
-            </motion.h1>
-
-            <motion.p
-              className="mt-5 text-base leading-[1.75] text-neutral-400"
-              variants={fadeUp}
-              custom={0.16}
-              initial="hidden"
-              animate="visible"
-            >
-              {hero.subtitle}
-            </motion.p>
-          </div>
-
-          <div className="mt-7 grid gap-8 lg:grid-cols-[minmax(0,1fr)_560px] lg:items-stretch lg:gap-12">
-            <div className="flex w-full flex-col lg:min-h-[560px] lg:justify-between">
-              <motion.ul
-                className="grid items-start gap-3 sm:grid-cols-3 lg:mt-5 lg:grid-cols-1 lg:gap-7 lg:translate-y-3"
-                variants={stagger}
-                initial="hidden"
-                animate="visible"
-              >
-                {hero.bullets.map((bullet, index) => (
-                  <motion.li
-                    key={bullet.text}
-                    className={`rounded-lg border border-brass-900/35 bg-black/20 px-4 py-3 ${index > 0 ? "lg:mt-4" : ""}`}
-                    variants={staggerChild}
-                  >
-                    <span className="block font-serif text-lg tracking-tight text-brass-300">
-                      {bullet.metric}
-                    </span>
-                    <span className="mt-1 block text-xs leading-5 text-neutral-400">
-                      {bullet.text}
-                    </span>
-                  </motion.li>
-                ))}
-              </motion.ul>
-
-              <div className="mt-8 lg:mt-0 lg:translate-y-0">
-                <motion.div
-                  className="flex flex-wrap items-center gap-4"
-                  variants={fadeUp}
-                  custom={0.5}
-                  initial="hidden"
-                  animate="visible"
-                >
-                  <Link href={pilotHref} className="btn-primary">
-                    {hero.ctaPrimary}
-                    <ArrowRightIcon className="h-4 w-4" />
-                  </Link>
-                  <a
-                    href="#pilot"
-                    className="inline-flex items-center gap-2 rounded-md border border-white/10 px-5 py-3.5 text-sm font-semibold text-neutral-300 transition hover:border-white/20 hover:text-white"
-                  >
-                    {hero.ctaSecondary}
-                    <ChevronDownIcon className="h-4 w-4" />
-                  </a>
-                </motion.div>
-
-                <motion.p
-                  className="mt-4 text-2xs tracking-wide text-neutral-600"
-                  variants={fadeUp}
-                  custom={0.6}
-                  initial="hidden"
-                  animate="visible"
-                >
-                  {hero.ctaMeta}
-                </motion.p>
-              </div>
-            </div>
-
-            <div className="relative">
-              <motion.div
-                className="relative hidden lg:block"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1.5, delay: 0.3 }}
-              >
-                <div
-                  className="relative ml-auto aspect-square max-w-[560px] overflow-hidden rounded-full"
-                  style={{
-                    maskImage:
-                      "radial-gradient(circle at center, black 62%, transparent 74%)",
-                    WebkitMaskImage:
-                      "radial-gradient(circle at center, black 62%, transparent 74%)",
-                  }}
-                >
-                  <Suspense fallback={<CalibrePoster locale={locale} />}>
-                    <CalibrePlayer locale={locale} />
-                  </Suspense>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className="mx-auto mt-1 max-w-[320px] lg:hidden"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.75 }}
-                transition={{ duration: 1, delay: 0.45 }}
-              >
-                <CalibrePoster locale={locale} />
-              </motion.div>
-            </div>
-          </div>
-        </div>
+      {/* ── Background Effects ── */}
+      <div className="absolute inset-0 pointer-events-none select-none">
+        {/* Subtle animated gradient mesh */}
+        <div
+          className="absolute top-[-20%] left-[-10%] w-[120%] h-[120%] opacity-40 blur-[100px]"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 50%, oklch(0.94 0.04 78), transparent 70%), radial-gradient(circle at 80% 20%, oklch(0.92 0.02 85), transparent 50%)",
+          }}
+        />
+        {/* Grain texture handled by global body style */}
       </div>
 
-      {/* ── Trust strip — case-back engravings ── */}
-      <motion.div
-        className="mt-7 border-t border-white/[0.06] bg-white/[0.015]"
-        variants={fadeUp}
-        custom={0.7}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="section-shell flex flex-wrap items-center justify-between gap-x-8 gap-y-2 py-4">
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
-            {hero.trustBadges.map((badge) => (
-              <span
-                key={badge}
-                className="inline-flex items-center gap-2 text-xs font-medium text-neutral-500"
-              >
-                <span
-                  className="h-1 w-1 rounded-full bg-brass-600"
-                  aria-hidden="true"
+      <div className="section-shell relative z-10">
+        <div className="flex flex-col items-center text-center relative">
+          {/* ── Decorative: forecast curve + data nodes (left) ── */}
+          <motion.div
+            className="absolute -left-4 xl:left-0 top-4 hidden lg:block pointer-events-none select-none"
+            aria-hidden="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.5, delay: 0.6, ease }}
+          >
+            <svg width="200" height="320" viewBox="0 0 200 320" fill="none">
+              {/* Forecast trend line — ascending curve */}
+              <motion.path
+                d="M 10 260 C 40 240, 60 200, 80 180 S 120 100, 160 60"
+                stroke="oklch(0.68 0.13 72 / 0.25)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 2, delay: 0.8, ease }}
+              />
+              {/* Confidence band */}
+              <path
+                d="M 10 260 C 40 240, 60 200, 80 180 S 120 100, 160 60 L 160 80 C 120 120, 100 180, 80 200 S 40 250, 10 270 Z"
+                fill="oklch(0.68 0.13 72 / 0.06)"
+              />
+              {/* Data points on curve */}
+              {[
+                [10, 260],
+                [50, 220],
+                [80, 180],
+                [120, 110],
+                [160, 60],
+              ].map(([cx, cy], i) => (
+                <motion.circle
+                  key={i}
+                  cx={cx}
+                  cy={cy}
+                  r="3"
+                  fill="oklch(0.68 0.13 72 / 0.35)"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.4, delay: 1 + i * 0.15, ease }}
                 />
-                {badge}
-              </span>
-            ))}
-          </div>
-          <span className="text-2xs font-semibold tracking-[0.15em] text-brass-700">
-            {locale === "fr"
-              ? "COHORTE LIMITÉE · 8 ENTREPRISES"
-              : "LIMITED COHORT · 8 COMPANIES"}
-          </span>
+              ))}
+              {/* Horizontal threshold line */}
+              <line
+                x1="0"
+                y1="180"
+                x2="180"
+                y2="180"
+                stroke="oklch(0.60 0.20 25 / 0.12)"
+                strokeWidth="1"
+                strokeDasharray="6 4"
+              />
+              <text
+                x="4"
+                y="175"
+                fill="oklch(0.60 0.20 25 / 0.20)"
+                fontSize="8"
+                fontFamily="sans-serif"
+              >
+                seuil critique
+              </text>
+            </svg>
+          </motion.div>
+
+          {/* ── Decorative: connected nodes network (right) ── */}
+          <motion.div
+            className="absolute -right-4 xl:right-0 top-12 hidden lg:block pointer-events-none select-none"
+            aria-hidden="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.5, delay: 0.7, ease }}
+          >
+            <svg width="180" height="280" viewBox="0 0 180 280" fill="none">
+              {/* Connection lines between nodes */}
+              {(
+                [
+                  ["140,40", "100,100"],
+                  ["100,100", "160,160"],
+                  ["100,100", "40,140"],
+                  ["160,160", "120,230"],
+                  ["40,140", "80,210"],
+                  ["80,210", "120,230"],
+                ] as const
+              ).map(([from, to], i) => (
+                <motion.line
+                  key={i}
+                  x1={from.split(",")[0]}
+                  y1={from.split(",")[1]}
+                  x2={to.split(",")[0]}
+                  y2={to.split(",")[1]}
+                  stroke="oklch(0.68 0.13 72 / 0.15)"
+                  strokeWidth="1"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 0.8, delay: 0.9 + i * 0.1, ease }}
+                />
+              ))}
+              {/* Network nodes — sites/teams */}
+              {[
+                { cx: 140, cy: 40, r: 5, opacity: 0.3 },
+                { cx: 100, cy: 100, r: 7, opacity: 0.4 },
+                { cx: 160, cy: 160, r: 4, opacity: 0.25 },
+                { cx: 40, cy: 140, r: 5, opacity: 0.3 },
+                { cx: 80, cy: 210, r: 4, opacity: 0.25 },
+                { cx: 120, cy: 230, r: 6, opacity: 0.35 },
+              ].map((node, i) => (
+                <motion.circle
+                  key={i}
+                  cx={node.cx}
+                  cy={node.cy}
+                  r={node.r}
+                  fill={`oklch(0.68 0.13 72 / ${node.opacity})`}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.5, delay: 1.2 + i * 0.1, ease }}
+                />
+              ))}
+              {/* Pulse ring on central node */}
+              <motion.circle
+                cx="100"
+                cy="100"
+                r="7"
+                fill="none"
+                stroke="oklch(0.68 0.13 72 / 0.15)"
+                strokeWidth="1"
+                initial={{ scale: 1, opacity: 0.3 }}
+                animate={{ scale: 2.5, opacity: 0 }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeOut",
+                }}
+              />
+            </svg>
+          </motion.div>
+
+          {/* ── Kicker ── */}
+          <motion.div
+            variants={fadeUp}
+            custom={0}
+            initial="hidden"
+            animate="visible"
+            className="mb-6 inline-flex items-center rounded-full border border-brass-200/60 bg-white/50 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-brass-700 backdrop-blur-md"
+          >
+            <span className="mr-2 h-1.5 w-1.5 rounded-full bg-brass-500 animate-pulse" />
+            {hero.kicker}
+          </motion.div>
+
+          {/* ── Headline ── */}
+          <motion.h1
+            className="font-serif text-[clamp(3rem,6.5vw,5rem)] leading-[1.05] tracking-tight text-charcoal sm:max-w-4xl"
+            variants={fadeUp}
+            custom={0.1}
+            initial="hidden"
+            animate="visible"
+          >
+            {hero.headline}{" "}
+            <span className="text-brass-600 block sm:inline italic">
+              {hero.headlineHighlight}
+            </span>
+          </motion.h1>
+
+          {/* ── Subtitle ── */}
+          <motion.p
+            className="mt-8 max-w-2xl text-lg leading-relaxed text-neutral-600 sm:text-xl"
+            variants={fadeUp}
+            custom={0.2}
+            initial="hidden"
+            animate="visible"
+          >
+            {hero.subtitle}
+          </motion.p>
+
+          {/* ── CTA Buttons ── */}
+          <motion.div
+            className="mt-10 flex flex-wrap items-center justify-center gap-4"
+            variants={fadeUp}
+            custom={0.3}
+            initial="hidden"
+            animate="visible"
+          >
+            <Link
+              href={pilotHref}
+              className="btn-primary rounded-full px-8 py-4 text-base shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            >
+              {hero.ctaPrimary}
+              <ArrowRightIcon className="h-5 w-5" />
+            </Link>
+            <a
+              href="#pilot"
+              className="btn-ghost rounded-full px-8 py-4 text-base hover:bg-brass-50/50 transition-colors duration-300"
+            >
+              {hero.ctaSecondary}
+              <ChevronDownIcon className="h-5 w-5 opacity-60" />
+            </a>
+          </motion.div>
+
+          {/* ── Trust Indicators ── */}
+          <motion.div
+            className="mt-12 flex flex-col items-center gap-4 text-sm font-medium text-neutral-400"
+            variants={fadeUp}
+            custom={0.4}
+            initial="hidden"
+            animate="visible"
+          >
+            <p className="tracking-widest uppercase text-xs opacity-70">
+              {locale === "fr" ? "Confiance accordée par" : "Trusted by"}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 opacity-60 grayscale transition-all duration-500 hover:opacity-100 hover:grayscale-0">
+              {/* Replace with actual SVGs in production */}
+              {hero.trustBadges.map((badge) => (
+                <span
+                  key={badge}
+                  className="text-lg font-serif italic text-charcoal"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+          </motion.div>
         </div>
-      </motion.div>
+
+        {/* ── Sunken Dashboard Preview ── */}
+        <motion.div
+          style={{ y }}
+          className="mt-20 md:mt-24 pointer-events-none select-none"
+        >
+          <div className="sunken-container max-w-6xl mx-auto transform-gpu [transform:perspective(2000px)] lg:[transform:perspective(2000px)_rotateX(0.75deg)]">
+            <div className="sunken-inner-bezel bg-white aspect-[16/10] relative overflow-hidden">
+              {/* Dashboard preview video */}
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                poster="/dashboard-poster.jpg"
+                className="absolute inset-0 w-full h-full object-cover motion-reduce:hidden"
+              >
+                <source src="/dashboard-preview.webm" type="video/webm" />
+                <source src="/dashboard-preview.mp4" type="video/mp4" />
+              </video>
+
+              {/* Static poster fallback for prefers-reduced-motion */}
+              <img
+                src="/dashboard-poster.jpg"
+                alt="Praedixa dashboard preview"
+                className="absolute inset-0 w-full h-full object-cover hidden motion-reduce:block"
+              />
+
+              {/* Subtle shine reflection */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent pointer-events-none" />
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </section>
   );
 }

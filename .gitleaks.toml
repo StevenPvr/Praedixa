@@ -1,0 +1,13 @@
+title = "gitleaks config (ultra-strict)"
+
+[allowlist]
+description = "Ignore generated/vendor/build directories"
+paths = [
+  '''(?i)node_modules/''',
+  '''(?i)\.next/''',
+  '''(?i)dist/''',
+  '''(?i)build/''',
+  '''(?i)\.venv/''',
+  '''(?i)__pycache__/''',
+  '''(?i)\.terraform/'''
+]

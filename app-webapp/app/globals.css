@@ -274,6 +274,20 @@
     --chart-crosshair: oklch(0.78 0.10 78 / 0.3);
   }
 
+  :root[data-density="compact"] {
+    --page-padding-x: 24px;
+    --page-padding-y: 24px;
+    --space-section-gap: 24px;
+    --space-card-padding: 18px;
+  }
+
+  :root[data-density="comfortable"] {
+    --page-padding-x: 32px;
+    --page-padding-y: 32px;
+    --space-section-gap: 32px;
+    --space-card-padding: 24px;
+  }
+
   body {
     margin: 0;
     background: var(--page-bg);
@@ -973,6 +987,56 @@
 
   .animate-glow-breath {
     animation: glowBreath 2s ease-in-out infinite;
+  }
+
+  /* ── Sidebar section accents ── */
+  .sidebar-accent-dashboard {
+    background: oklch(0.70 0.14 82);
+  }
+
+  .sidebar-accent-data {
+    background: oklch(0.60 0.16 245);
+  }
+
+  .sidebar-accent-forecast {
+    background: oklch(0.60 0.18 300);
+  }
+
+  .sidebar-accent-action {
+    background: oklch(0.62 0.18 35);
+  }
+
+  .sidebar-accent-support {
+    background: oklch(0.58 0.11 180);
+  }
+
+  .sidebar-accent-report {
+    background: oklch(0.48 0.06 240);
+  }
+
+  .sidebar-accent-settings {
+    background: oklch(0.58 0.01 240);
+  }
+
+  /* ── Density-specific table rhythm ── */
+  :root[data-density="compact"] .praedixa-datatable thead th {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  :root[data-density="compact"] .praedixa-datatable tbody td {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  :root[data-density="comfortable"] .praedixa-datatable thead th {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  :root[data-density="comfortable"] .praedixa-datatable tbody td {
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
   }
 }
 

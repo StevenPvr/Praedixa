@@ -40,7 +40,7 @@ import { ScenarioComparisonChart } from "@/components/dashboard/scenario-compari
 
 export function WarRoomDashboard() {
   const summaryQuery = useApiGet<DashboardSummary>(
-    "/api/v1/dashboard/summary",
+    "/api/v1/live/dashboard/summary",
     { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
   );
   const alertsQuery = useApiGet<CoverageAlert[]>(
@@ -48,7 +48,7 @@ export function WarRoomDashboard() {
     { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
   );
   const queueQuery = useApiGet<DecisionQueueItem[]>(
-    "/api/v1/coverage-alerts/queue?status=open&limit=50",
+    "/api/v1/live/coverage-alerts/queue?status=open&limit=50",
     { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
   );
 

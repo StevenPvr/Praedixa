@@ -58,8 +58,9 @@ test.describe("Landing navigation", () => {
       await firstAnchor.click({ force: true });
 
       if (href && href.startsWith("#")) {
-        const escapedHref = href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        await expect(page).toHaveURL(new RegExp(`${escapedHref}$`));
+        await expect
+          .poll(() => new URL(page.url()).hash, { timeout: 10_000 })
+          .toBe(href);
       }
 
       await expect

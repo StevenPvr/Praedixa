@@ -308,7 +308,7 @@ function setupUseApiGet({
   workspaceError?: string | null;
 } = {}) {
   mockUseApiGet.mockImplementation((url: string | null) => {
-    if (url?.startsWith("/api/v1/coverage-alerts/queue")) {
+    if (url?.startsWith("/api/v1/live/coverage-alerts/queue")) {
       return {
         data: queue,
         loading: false,
@@ -317,11 +317,7 @@ function setupUseApiGet({
       };
     }
 
-    if (url?.startsWith("/api/v1/coverage-alerts?status=open&page_size=200")) {
-      return { data: null, loading: false, error: null, refetch: vi.fn() };
-    }
-
-    if (url?.startsWith("/api/v1/decision-workspace/a1")) {
+    if (url?.startsWith("/api/v1/live/decision-workspace/a1")) {
       return {
         data: workspace,
         loading: false,
@@ -330,7 +326,7 @@ function setupUseApiGet({
       };
     }
 
-    if (url?.startsWith("/api/v1/scenarios/alert/")) {
+    if (url?.startsWith("/api/v1/live/scenarios/alert/")) {
       return { data: null, loading: false, error: null, refetch: vi.fn() };
     }
 
@@ -443,8 +439,8 @@ describe("ActionsPage", () => {
       "/api/v1/live/coverage-alerts?status=open&page_size=200",
     );
     expect(calledUrls).toContain(
-      "/api/v1/coverage-alerts/queue?status=open&limit=50",
+      "/api/v1/live/coverage-alerts/queue?status=open&limit=50",
     );
-    expect(calledUrls).toContain("/api/v1/decision-workspace/a1");
+    expect(calledUrls).toContain("/api/v1/live/decision-workspace/a1");
   });
 });

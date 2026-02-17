@@ -149,6 +149,7 @@ function DataTableInner<T>(
     <div
       ref={ref}
       className={cn(
+        "praedixa-datatable",
         "overflow-hidden rounded-[var(--radius-lg,14px)] border border-[var(--border)] bg-[var(--card-bg)] shadow-[var(--shadow-raised)]",
         className,
       )}

@@ -23,11 +23,15 @@ export function generateNonce(): string {
 
 export function buildCspHeader(nonce: string): string {
   // Build connect-src dynamically based on apiUrl
-  const connectSrc = `'self' ${apiUrl} https://*.supabase.co`;
+  const connectSrc = isProd
+    ? `'self' ${apiUrl} https://*.supabase.co`
+    : `'self' ${apiUrl} https://*.supabase.co ws://localhost:3001 ws://127.0.0.1:3001`;
 
   const directives = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${!isProd ? " 'unsafe-eval'" : ""}`,
+    isProd
+      ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
     `style-src 'self'${!isProd ? " 'unsafe-inline'" : ` 'nonce-${nonce}'`}`,
     "img-src 'self' data: https:",
     "font-src 'self' data:",

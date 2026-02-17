@@ -28,16 +28,18 @@ describe("NotFound (root)", () => {
     expect(screen.getByText("Page introuvable")).toBeInTheDocument();
   });
 
-  it('renders link with text "Retour au dashboard"', () => {
+  it('renders link with text "Retour au tableau de bord"', () => {
     render(<NotFound />);
     expect(
-      screen.getByRole("link", { name: "Retour au dashboard" }),
+      screen.getByRole("link", { name: "Retour au tableau de bord" }),
     ).toBeInTheDocument();
   });
 
   it("link points to /dashboard", () => {
     render(<NotFound />);
-    const link = screen.getByRole("link", { name: "Retour au dashboard" });
+    const link = screen.getByRole("link", {
+      name: "Retour au tableau de bord",
+    });
     expect(link).toHaveAttribute("href", "/dashboard");
   });
 });

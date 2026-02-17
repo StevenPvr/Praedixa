@@ -28,16 +28,18 @@ describe("AppNotFound ((app) layout)", () => {
     expect(screen.getByText("Page introuvable")).toBeInTheDocument();
   });
 
-  it('renders link with text "Retour au dashboard"', () => {
+  it('renders link with text "Retour au tableau de bord"', () => {
     render(<AppNotFound />);
     expect(
-      screen.getByRole("link", { name: "Retour au dashboard" }),
+      screen.getByRole("link", { name: "Retour au tableau de bord" }),
     ).toBeInTheDocument();
   });
 
   it("link points to /dashboard", () => {
     render(<AppNotFound />);
-    const link = screen.getByRole("link", { name: "Retour au dashboard" });
+    const link = screen.getByRole("link", {
+      name: "Retour au tableau de bord",
+    });
     expect(link).toHaveAttribute("href", "/dashboard");
   });
 });

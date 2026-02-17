@@ -148,7 +148,7 @@ export default function DevenirPilotePage() {
       <div className="min-h-screen bg-cream">
         <main className="section-shell flex min-h-screen items-center justify-center py-20">
           <motion.section
-            className="premium-card w-full max-w-2xl p-10 text-center"
+            className="pilot-card w-full max-w-2xl p-10 text-center"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -205,13 +205,13 @@ export default function DevenirPilotePage() {
       <main className="section-shell pb-20 pt-32 md:pt-36">
         <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
           <motion.aside
-            className="premium-card p-8"
+            className="pilot-card p-8"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <p className="premium-pill">Cohorte fondatrice</p>
+            <p className="pilot-pill">Cohorte fondatrice</p>
             <h1 className="mt-5 font-serif text-5xl leading-tight text-charcoal">
-              Candidature pilote premium
+              Candidature pilote
             </h1>
             <p className="mt-4 text-base leading-relaxed text-neutral-600">
               Cette candidature nous permet de qualifier rapidement votre
@@ -240,7 +240,7 @@ export default function DevenirPilotePage() {
           </motion.aside>
 
           <motion.section
-            className="premium-card p-7 md:p-8"
+            className="pilot-card p-7 md:p-8"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
           >

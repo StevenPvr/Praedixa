@@ -8,9 +8,13 @@ export interface Dictionary {
   };
 
   nav: {
+    problem: string;
     method: string;
+    howItWorks: string;
+    useCases: string;
     security: string;
     faq: string;
+    contact: string;
     ctaPrimary: string;
     backToSite: string;
   };

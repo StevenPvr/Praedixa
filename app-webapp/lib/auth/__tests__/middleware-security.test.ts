@@ -274,6 +274,63 @@ describe("Auth Middleware Security", () => {
     });
   });
 
+  describe("settings route role enforcement", () => {
+    it("should redirect viewer from /parametres to /dashboard", async () => {
+      mockGetUser.mockResolvedValue({
+        data: {
+          user: {
+            id: "viewer-1",
+            app_metadata: { role: "viewer" },
+          },
+        },
+      });
+      const req = createMockRequest("/parametres");
+
+      const result = await updateSession(req);
+
+      expect(NextResponse.redirect).toHaveBeenCalled();
+      expect((result as { redirectUrl: string }).redirectUrl).toContain(
+        "/dashboard",
+      );
+    });
+
+    it("should redirect manager from /parametres to /dashboard", async () => {
+      mockGetUser.mockResolvedValue({
+        data: {
+          user: {
+            id: "manager-1",
+            app_metadata: { role: "manager" },
+          },
+        },
+      });
+      const req = createMockRequest("/parametres");
+
+      const result = await updateSession(req);
+
+      expect(NextResponse.redirect).toHaveBeenCalled();
+      expect((result as { redirectUrl: string }).redirectUrl).toContain(
+        "/dashboard",
+      );
+    });
+
+    it("should allow org_admin on /parametres", async () => {
+      mockGetUser.mockResolvedValue({
+        data: {
+          user: {
+            id: "admin-1",
+            app_metadata: { role: "org_admin" },
+          },
+        },
+      });
+      const req = createMockRequest("/parametres");
+
+      const result = await updateSession(req);
+
+      expect(result.status).toBe(200);
+      expect(NextResponse.redirect).not.toHaveBeenCalled();
+    });
+  });
+
   // ── 3. Route boundary edge cases ─────────────────────────────
 
   describe("route boundary edge cases", () => {

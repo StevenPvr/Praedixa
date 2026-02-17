@@ -5,10 +5,10 @@ test.describe("Pilot application form (/devenir-pilote)", () => {
     await page.goto("/fr/devenir-pilote");
   });
 
-  test("loads the premium pilot form page", async ({ page }) => {
+  test("loads the pilot form page", async ({ page }) => {
     await page.waitForLoadState("domcontentloaded");
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
-      /candidature pilote premium/i,
+      /candidature pilote/i,
       { timeout: 15_000 },
     );
     await expect(

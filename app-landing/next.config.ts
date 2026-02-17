@@ -11,7 +11,7 @@ const config: NextConfig = {
   transpilePackages: ["@praedixa/ui", "@praedixa/shared-types"],
 
   experimental: {
-    optimizePackageImports: ["framer-motion", "remotion", "@remotion/player"],
+    optimizePackageImports: ["framer-motion"],
   },
 
   images: {

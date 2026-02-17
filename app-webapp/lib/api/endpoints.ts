@@ -80,7 +80,7 @@ export function getHealth(): Promise<HealthCheckResponse> {
 export function getDashboardSummary(
   token: GetAccessToken,
 ): Promise<ApiResponse<DashboardSummary>> {
-  return apiGet<DashboardSummary>("/api/v1/dashboard/summary", token);
+  return apiGet<DashboardSummary>("/api/v1/live/dashboard/summary", token);
 }
 
 // ─────────────────────────────────────────────────
@@ -337,7 +337,7 @@ export function listCanonical(
   token: GetAccessToken,
 ): Promise<PaginatedResponse<CanonicalRecord>> {
   return apiGetPaginated<CanonicalRecord>(
-    `/api/v1/canonical${qs(params)}`,
+    `/api/v1/live/canonical${qs(params)}`,
     token,
   );
 }
@@ -345,7 +345,10 @@ export function listCanonical(
 export function getCanonicalQuality(
   token: GetAccessToken,
 ): Promise<ApiResponse<CanonicalQualityDashboard>> {
-  return apiGet<CanonicalQualityDashboard>("/api/v1/canonical/quality", token);
+  return apiGet<CanonicalQualityDashboard>(
+    "/api/v1/live/canonical/quality",
+    token,
+  );
 }
 
 // ─────────────────────────────────────────────────
@@ -356,7 +359,10 @@ export function listCoverageAlerts(
   params: Record<string, unknown>,
   token: GetAccessToken,
 ): Promise<ApiResponse<CoverageAlert[]>> {
-  return apiGet<CoverageAlert[]>(`/api/v1/coverage-alerts${qs(params)}`, token);
+  return apiGet<CoverageAlert[]>(
+    `/api/v1/live/coverage-alerts${qs(params)}`,
+    token,
+  );
 }
 
 export function listDecisionQueue(
@@ -364,7 +370,7 @@ export function listDecisionQueue(
   token: GetAccessToken,
 ): Promise<ApiResponse<DecisionQueueItem[]>> {
   return apiGet<DecisionQueueItem[]>(
-    `/api/v1/coverage-alerts/queue${qs(params)}`,
+    `/api/v1/live/coverage-alerts/queue${qs(params)}`,
     token,
   );
 }
@@ -400,7 +406,7 @@ export function getScenariosForAlert(
   token: GetAccessToken,
 ): Promise<ApiResponse<ParetoFrontierResponse>> {
   return apiGet<ParetoFrontierResponse>(
-    `/api/v1/scenarios/alert/${encodeURIComponent(alertId)}`,
+    `/api/v1/live/scenarios/alert/${encodeURIComponent(alertId)}`,
     token,
   );
 }
@@ -410,7 +416,7 @@ export function getDecisionWorkspace(
   token: GetAccessToken,
 ): Promise<ApiResponse<DecisionWorkspace>> {
   return apiGet<DecisionWorkspace>(
-    `/api/v1/decision-workspace/${encodeURIComponent(alertId)}`,
+    `/api/v1/live/decision-workspace/${encodeURIComponent(alertId)}`,
     token,
   );
 }

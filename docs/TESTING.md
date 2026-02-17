@@ -363,6 +363,24 @@ import { MyComponent } from "../MyComponent";
 
 Fichier dans `testing/e2e/{project}/my-feature.spec.ts`. Importer `test` depuis `./fixtures/coverage`. Appeler `setupAuth(page)` avant toute navigation protegee. Le landing n'a pas besoin d'auth.
 
+## 8. Gate MVP (Go/No-Go)
+
+Pour la cloture MVP, le gate officiel est:
+
+```bash
+pnpm mvp:gate
+```
+
+Ce gate impose:
+
+- couverture frontend `100%`
+- couverture backend `100%`
+- checks qualite + securite
+- suites E2E completes `landing`, `webapp`, `admin`
+
+Le runbook detaille (ordre, preuves, decision Go/No-Go) est dans:
+`docs/runbooks/mvp-go-live-readiness.md`.
+
 ---
 
 **Voir aussi** : `CLAUDE.md` (conventions, gotchas), `app-api/pyproject.toml` (config Pytest), `vitest.config.ts` (config Vitest), `playwright.config.ts` (config Playwright), `testing/` (setup, mocks, E2E).

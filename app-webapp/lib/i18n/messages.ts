@@ -13,8 +13,28 @@ export const messages: Record<AppLocale, MessageTree> = {
       openMenu: "Ouvrir le menu",
       closeMenu: "Fermer le menu",
       languageLabel: "Langue",
+      densityLabel: "Densite",
+      densityComfortable: "Confort",
+      densityCompact: "Compact",
+      workspace: "Espace de travail",
+      tenant: "Tenant",
+      environment: "Environnement",
+      timezone: "Fuseau",
+      updatedAt: "Derniere sync",
+      production: "Production",
       statusLive: "Flux en direct",
       statusReview: "Revue executive",
+      profileMenu: {
+        open: "Ouvrir le menu profil",
+        title: "Menu profil",
+        noEmail: "Utilisateur connecte",
+        roleFallback: "role inconnu",
+        dashboard: "Tableau de bord",
+        settings: "Reglages",
+        support: "Support",
+        logout: "Se deconnecter",
+        loggingOut: "Deconnexion...",
+      },
     },
     sidebar: {
       title: "Priorite immediate",
@@ -22,17 +42,32 @@ export const messages: Record<AppLocale, MessageTree> = {
         "Traiter les alertes qui menacent la continuité opérationnelle.",
       cta: "Ouvrir le centre de traitement",
       groups: {
-        voir: "Voir",
-        anticiper: "Anticiper",
-        decider: "Decider",
-        suivre: "Suivre",
-        gouvernance: "Gouvernance",
+        pilotage: "Pilotage",
+        donnees: "Donnees",
+        anticipation: "Anticipation",
+        traitement: "Traitement",
+        support: "Support & gouvernance",
+      },
+      sections: {
+        starred: "Favoris",
+        recent: "Recents",
+      },
+      actions: {
+        star: "Ajouter aux favoris",
+        unstar: "Retirer des favoris",
       },
       items: {
-        dashboard: "War room",
-        donnees: "Donnees",
+        dashboard: "Tableau de bord",
+        donnees: "Donnees operationnelles",
+        donneesSites: "Mes sites",
+        donneesDatasets: "Fichiers importes",
+        donneesCanonique: "Donnees consolidees",
         previsions: "Anticipation",
+        previsionsVue: "Vue par site",
+        previsionsAlertes: "Toutes les alertes",
         actions: "Traitement",
+        actionsTraitement: "Alertes a traiter",
+        actionsHistorique: "Decisions passees",
         messages: "Support",
         rapports: "Rapports",
         parametres: "Reglages",
@@ -102,25 +137,60 @@ export const messages: Record<AppLocale, MessageTree> = {
       openMenu: "Open menu",
       closeMenu: "Close menu",
       languageLabel: "Language",
+      densityLabel: "Density",
+      densityComfortable: "Comfort",
+      densityCompact: "Compact",
+      workspace: "Workspace",
+      tenant: "Tenant",
+      environment: "Environment",
+      timezone: "Timezone",
+      updatedAt: "Last sync",
+      production: "Production",
       statusLive: "Live feed",
       statusReview: "Executive review",
+      profileMenu: {
+        open: "Open profile menu",
+        title: "Profile menu",
+        noEmail: "Signed-in user",
+        roleFallback: "unknown role",
+        dashboard: "Dashboard",
+        settings: "Settings",
+        support: "Support",
+        logout: "Sign out",
+        loggingOut: "Signing out...",
+      },
     },
     sidebar: {
       title: "Immediate priority",
       subtitle: "Resolve alerts that threaten operational continuity first.",
       cta: "Open treatment center",
       groups: {
-        voir: "See",
-        anticiper: "Anticipate",
-        decider: "Decide",
-        suivre: "Follow",
-        gouvernance: "Governance",
+        pilotage: "Control",
+        donnees: "Data",
+        anticipation: "Anticipation",
+        traitement: "Treatment",
+        support: "Support & governance",
+      },
+      sections: {
+        starred: "Starred",
+        recent: "Recent",
+      },
+      actions: {
+        star: "Add to starred",
+        unstar: "Remove from starred",
       },
       items: {
-        dashboard: "War room",
-        donnees: "Data",
+        dashboard: "Control room",
+        donnees: "Operational data",
+        donneesSites: "Sites",
+        donneesDatasets: "Imported files",
+        donneesCanonique: "Consolidated data",
         previsions: "Anticipation",
+        previsionsVue: "Site overview",
+        previsionsAlertes: "All alerts",
         actions: "Treatment",
+        actionsTraitement: "Active alerts",
+        actionsHistorique: "Past decisions",
         messages: "Support",
         rapports: "Reports",
         parametres: "Settings",
@@ -185,12 +255,17 @@ export const messages: Record<AppLocale, MessageTree> = {
 };
 
 function getFromTree(tree: MessageTree, key: string): string | undefined {
+  const blockedSegments = new Set(["__proto__", "prototype", "constructor"]);
   const segments = key.split(".");
   let current: string | MessageTree | undefined = tree;
   for (const segment of segments) {
+    if (blockedSegments.has(segment)) {
+      return undefined;
+    }
     if (!current || typeof current === "string") {
       return undefined;
     }
+    // nosemgrep: javascript.lang.security.audit.prototype-pollution.prototype-pollution-loop.prototype-pollution-loop
     current = current[segment];
   }
   return typeof current === "string" ? current : undefined;

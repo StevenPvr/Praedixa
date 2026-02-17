@@ -1,7 +1,6 @@
 export const siteConfig = {
   name: "Praedixa",
-  description:
-    "Intelligence de couverture premium pour opérations multi-sites.",
+  description: "Intelligence de couverture pour opérations multi-sites.",
   url: "https://www.praedixa.com",
 
   contact: {

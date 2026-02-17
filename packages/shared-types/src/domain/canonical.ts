@@ -23,6 +23,12 @@ export interface CanonicalRecord extends TenantEntity {
   hsH: number;
   /** Interim (temp worker) hours */
   interimH: number;
+  /** Backlog hours not covered */
+  backlogH?: number;
+  /** Number of safety incidents */
+  safetyIncidents?: number;
+  /** Number of quality blocking incidents */
+  qualityBlocking?: number;
   /** Estimated internal cost */
   coutInterneEst?: number;
 }

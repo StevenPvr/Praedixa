@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { canAccessSettings, isSuperAdmin } from "@/lib/auth/roles";
 
 /**
  * Middleware session refresh and route protection.
@@ -72,9 +73,18 @@ export async function updateSession(request: NextRequest) {
   // logged into admin (port 3002) would otherwise pass the auth check here.
   if (user && !isLoginRoute && !isAuthRoute) {
     const role = user.app_metadata?.role;
-    if (role === "super_admin") {
+    if (isSuperAdmin(role)) {
       const loginUrl = new URL("/login", request.url);
       return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  if (user && !isLoginRoute && !isAuthRoute) {
+    const role = user.app_metadata?.role;
+    const isSettingsRoute = request.nextUrl.pathname.startsWith("/parametres");
+    if (isSettingsRoute && !canAccessSettings(role)) {
+      const dashboardUrl = new URL("/dashboard", request.url);
+      return NextResponse.redirect(dashboardUrl);
     }
   }
 
@@ -85,7 +95,7 @@ export async function updateSession(request: NextRequest) {
   // Redirect authenticated client users away from login page
   if (user && isLoginRoute && !isForcedReauth) {
     const role = user.app_metadata?.role;
-    if (role !== "super_admin") {
+    if (!isSuperAdmin(role)) {
       const dashboardUrl = new URL("/dashboard", request.url);
       return NextResponse.redirect(dashboardUrl);
     }

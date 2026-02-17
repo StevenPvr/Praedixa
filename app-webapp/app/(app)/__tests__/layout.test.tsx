@@ -1,13 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import AppLayout from "../layout";
 
 // Mock next/navigation
+const mockRouterPush = vi.fn();
+const mockRouterReplace = vi.fn();
 vi.mock("next/navigation", () => ({
   usePathname: () => "/dashboard",
   useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
+    push: mockRouterPush,
+    replace: mockRouterReplace,
     back: vi.fn(),
     forward: vi.fn(),
     refresh: vi.fn(),
@@ -23,11 +25,42 @@ vi.mock("@praedixa/ui", () => ({
   useMediaQuery: () => mockUseMediaQuery(),
 }));
 
+const mockClearAuthSession = vi.fn(async () => undefined);
 vi.mock("@/lib/auth/client", () => ({
   useCurrentUser: () => ({
     id: "user-abc",
     email: "test@example.com",
     role: "admin",
+  }),
+  clearAuthSession: () => mockClearAuthSession(),
+}));
+
+vi.mock("@/hooks/use-ux-preferences", () => ({
+  useUxPreferences: () => ({
+    preferences: {
+      density: "compact",
+      nav: {
+        sidebarCollapsed: false,
+        sidebarWidth: 268,
+        starredItems: [],
+        recentItems: [],
+      },
+      theme: { mode: "light" },
+    },
+    setDensity: vi.fn(),
+    setSidebarCollapsed: vi.fn(),
+    setSidebarWidth: vi.fn(),
+    toggleStarred: vi.fn(),
+    pushRecent: vi.fn(),
+  }),
+}));
+
+vi.mock("@/hooks/use-api", () => ({
+  useApiGet: () => ({
+    data: { name: "ACME", timezone: "Europe/Paris" },
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
   }),
 }));
 
@@ -64,6 +97,9 @@ vi.mock("@/components/theme-toggle", () => ({
 describe("AppLayout", () => {
   beforeEach(() => {
     mockUseMediaQuery.mockReturnValue(false);
+    mockRouterPush.mockReset();
+    mockRouterReplace.mockReset();
+    mockClearAuthSession.mockClear();
   });
 
   it("renders children content", () => {
@@ -91,7 +127,7 @@ describe("AppLayout", () => {
         <div>Content</div>
       </AppLayout>,
     );
-    expect(screen.getByText("Centre de pilotage")).toBeInTheDocument();
+    expect(screen.getByText("Tableau de bord")).toBeInTheDocument();
   });
 
   it("renders the user avatar with initial from email", () => {
@@ -110,7 +146,7 @@ describe("AppLayout", () => {
       </AppLayout>,
     );
     expect(
-      screen.getByRole("button", { name: /ouvrir le menu/i }),
+      screen.getByRole("button", { name: /^ouvrir le menu$/i }),
     ).toBeInTheDocument();
   });
 
@@ -120,7 +156,9 @@ describe("AppLayout", () => {
         <div>Content</div>
       </AppLayout>,
     );
-    const menuButton = screen.getByRole("button", { name: /ouvrir le menu/i });
+    const menuButton = screen.getByRole("button", {
+      name: /^ouvrir le menu$/i,
+    });
     // Click to open mobile sidebar
     fireEvent.click(menuButton);
     // Now the button label should change to "Fermer le menu"
@@ -167,7 +205,9 @@ describe("AppLayout", () => {
         <div>Content</div>
       </AppLayout>,
     );
-    const menuButton = screen.getByRole("button", { name: /ouvrir le menu/i });
+    const menuButton = screen.getByRole("button", {
+      name: /^ouvrir le menu$/i,
+    });
     fireEvent.click(menuButton);
     // Overlay backdrop should be present
     const overlay = container.querySelector("[aria-hidden='true']");
@@ -182,5 +222,38 @@ describe("AppLayout", () => {
     );
     const main = screen.getByRole("main");
     expect(main.className).toMatch(/px-|py-|p-/);
+  });
+
+  it("opens profile menu and navigates to settings", () => {
+    render(
+      <AppLayout>
+        <div>Content</div>
+      </AppLayout>,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /ouvrir le menu profil/i }),
+    );
+
+    fireEvent.click(screen.getByRole("menuitem", { name: /reglages/i }));
+    expect(mockRouterPush).toHaveBeenCalledWith("/parametres");
+  });
+
+  it("signs out from profile menu and redirects to login", async () => {
+    render(
+      <AppLayout>
+        <div>Content</div>
+      </AppLayout>,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /ouvrir le menu profil/i }),
+    );
+    fireEvent.click(screen.getByRole("menuitem", { name: /se deconnecter/i }));
+
+    await waitFor(() => {
+      expect(mockClearAuthSession).toHaveBeenCalledTimes(1);
+      expect(mockRouterReplace).toHaveBeenCalledWith("/login");
+    });
   });
 });

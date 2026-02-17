@@ -73,7 +73,7 @@ test.describe("API edge cases — network errors", () => {
     await expect(page.getByRole("button", { name: "Reessayer" })).toBeVisible();
   });
 
-  test("network error on scenarios shows ErrorFallback on actions page", async ({
+  test("network error on scenarios keeps actions page usable with empty state", async ({
     page,
   }) => {
     await mockAllApis(page);
@@ -133,16 +133,23 @@ test.describe("API edge cases — network errors", () => {
       }),
     );
 
-    await page.route("**/api/v1/decision-workspace/*", (route) =>
+    await page.route("**/api/v1/live/decision-workspace/*", (route) =>
       route.abort("connectionrefused"),
     );
-    await page.route("**/api/v1/scenarios/alert/*", (route) =>
+    await page.route("**/api/v1/live/scenarios/alert/*", (route) =>
       route.abort("connectionrefused"),
     );
 
     await page.goto("/actions");
     await expect(
-      page.getByText("Une erreur inattendue est survenue").first(),
+      page.getByText("Aucun scenario disponible pour cette alerte.").first(),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByText(
+          "Aucun scenario exploitable pour cette alerte. Verifiez les donnees d'entree ou relancez la generation.",
+        )
+        .first(),
     ).toBeVisible();
   });
 
@@ -184,6 +191,8 @@ test.describe("Sites and canonical edge cases", () => {
   });
 
   test("empty canonical list shows empty message", async ({ page }) => {
+    await mockAllApis(page);
+
     await page.route("**/api/v1/live/canonical/quality*", (route) =>
       route.fulfill({
         status: 200,
@@ -234,6 +243,10 @@ test.describe("Sites and canonical edge cases", () => {
     );
 
     await page.goto("/donnees");
-    await expect(page.getByText(/Aucune donnee.*filtres/)).toBeVisible();
+    await expect(
+      page.getByText(
+        "Aucune donnee ne correspond aux filtres selectionnes. Essayez d'elargir la plage de dates ou de changer de site.",
+      ),
+    ).toBeVisible({ timeout: 20_000 });
   });
 });

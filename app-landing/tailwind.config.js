@@ -12,11 +12,11 @@ export default {
     extend: {
       colors: {
         /* ── Surfaces ── */
-        cream: "oklch(0.975 0.005 85)",
-        charcoal: "oklch(0.16 0.01 55)",
-        ink: "oklch(0.13 0.008 55)",
+        cream: "oklch(0.975 0.008 80)",
+        charcoal: "oklch(0.22 0.015 60)",
+        ink: "oklch(0.20 0.018 65)",
         paper: "oklch(0.998 0.001 85)",
-        stone: "oklch(0.96 0.004 80)",
+        stone: "oklch(0.96 0.006 78)",
 
         /* ── Neutral scale (warm undertone) ── */
         neutral: {

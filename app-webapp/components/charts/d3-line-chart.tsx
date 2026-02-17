@@ -299,15 +299,51 @@ export const D3LineChart = memo(function D3LineChart({
 
         const tooltip = tooltipRef.current;
         if (tooltip) {
-          const values = categories
-            .map((cat, i) => {
-              const val = Number(datum[cat]);
-              const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${resolvedColors[i]};margin-right:6px;flex-shrink:0;"></span>`;
-              return `<div style="display:flex;align-items:center;gap:2px;white-space:nowrap;padding:1px 0;">${dot}<span style="color:var(--ink-secondary);font-size:11px;">${cat}</span><span style="margin-left:auto;font-weight:600;font-size:12px;padding-left:12px;font-variant-numeric:tabular-nums;">${valueFormatter(val)}</span></div>`;
-            })
-            .join("");
+          const tooltipTitle = document.createElement("div");
+          tooltipTitle.style.fontSize = "11px";
+          tooltipTitle.style.fontWeight = "600";
+          tooltipTitle.style.color = "var(--ink)";
+          tooltipTitle.style.marginBottom = "6px";
+          tooltipTitle.style.textTransform = "uppercase";
+          tooltipTitle.style.letterSpacing = "0.04em";
+          tooltipTitle.textContent = String(datum[index]);
 
-          tooltip.innerHTML = `<div style="font-size:11px;font-weight:600;color:var(--ink);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">${datum[index]}</div>${values}`;
+          const rows = categories.map((cat, i) => {
+            const val = Number(datum[cat]);
+            const row = document.createElement("div");
+            row.style.display = "flex";
+            row.style.alignItems = "center";
+            row.style.gap = "2px";
+            row.style.whiteSpace = "nowrap";
+            row.style.padding = "1px 0";
+
+            const dot = document.createElement("span");
+            dot.style.display = "inline-block";
+            dot.style.width = "8px";
+            dot.style.height = "8px";
+            dot.style.borderRadius = "50%";
+            dot.style.background = resolvedColors[i];
+            dot.style.marginRight = "6px";
+            dot.style.flexShrink = "0";
+
+            const label = document.createElement("span");
+            label.style.color = "var(--ink-secondary)";
+            label.style.fontSize = "11px";
+            label.textContent = cat;
+
+            const value = document.createElement("span");
+            value.style.marginLeft = "auto";
+            value.style.fontWeight = "600";
+            value.style.fontSize = "12px";
+            value.style.paddingLeft = "12px";
+            value.style.fontVariantNumeric = "tabular-nums";
+            value.textContent = valueFormatter(val);
+
+            row.append(dot, label, value);
+            return row;
+          });
+
+          tooltip.replaceChildren(tooltipTitle, ...rows);
           tooltip.style.opacity = "1";
           tooltip.style.transform = "translateY(0)";
 

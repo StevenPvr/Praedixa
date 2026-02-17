@@ -21,9 +21,13 @@ export function Navbar({ dict, locale }: NavbarProps) {
   const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
 
   const navLinks = [
+    { href: "#problem", label: dict.nav.problem },
     { href: "#solution", label: dict.nav.method },
+    { href: "#how-it-works", label: dict.nav.howItWorks },
+    { href: "#use-cases", label: dict.nav.useCases },
     { href: "#security", label: dict.nav.security },
     { href: "#faq", label: dict.nav.faq },
+    { href: "#contact", label: dict.nav.contact },
   ];
 
   useEffect(() => {
@@ -47,10 +51,10 @@ export function Navbar({ dict, locale }: NavbarProps) {
       <nav className="fixed left-0 right-0 top-0 z-50">
         <div className="section-shell mt-3 transition-all duration-300">
           <div
-            className={`flex items-center justify-between rounded-lg border px-4 py-2.5 md:px-5 ${
+            className={`flex items-center justify-between rounded-lg border px-4 py-2.5 md:px-5 transition-all duration-300 ${
               hasScrolled
-                ? "border-white/20 bg-ink/90 shadow-sm backdrop-blur-xl"
-                : "border-white/15 bg-ink/75 backdrop-blur"
+                ? "border-neutral-300/50 bg-[oklch(0.92_0.012_72_/_0.8)] backdrop-blur-xl"
+                : "border-neutral-300/50 bg-[oklch(0.92_0.012_72)] shadow-sm backdrop-blur-xl"
             }`}
           >
             {/* Logo */}
@@ -61,11 +65,11 @@ export function Navbar({ dict, locale }: NavbarProps) {
               <PraedixaLogo
                 variant="geometric"
                 size={28}
-                color="oklch(0.98 0 0)"
+                color="oklch(0.20 0.018 65)"
                 strokeWidth={1.1}
                 className="transition-transform duration-300 group-hover:scale-105"
               />
-              <span className="font-serif text-lg tracking-tight text-white">
+              <span className="font-serif text-lg tracking-tight text-ink">
                 Praedixa
               </span>
             </Link>
@@ -76,7 +80,7 @@ export function Navbar({ dict, locale }: NavbarProps) {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="rounded px-3 py-1.5 text-sm font-medium text-white transition hover:text-white"
+                  className="rounded px-3 py-1.5 text-sm font-medium text-ink/70 transition hover:text-ink"
                 >
                   {link.label}
                 </a>
@@ -94,13 +98,13 @@ export function Navbar({ dict, locale }: NavbarProps) {
             {/* Mobile hamburger */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex h-9 w-9 items-center justify-center rounded border border-white/30 bg-white/10 md:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded border border-ink/20 bg-ink/5 md:hidden"
               aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMobileMenuOpen}
             >
               <div className="flex h-3.5 w-4 flex-col items-center justify-center gap-[3px]">
                 <motion.span
-                  className="block h-[1.5px] w-4 bg-white"
+                  className="block h-[1.5px] w-4 bg-ink"
                   animate={{
                     rotate: isMobileMenuOpen ? 45 : 0,
                     y: isMobileMenuOpen ? 2.25 : 0,
@@ -108,12 +112,12 @@ export function Navbar({ dict, locale }: NavbarProps) {
                   transition={{ duration: 0.2 }}
                 />
                 <motion.span
-                  className="block h-[1.5px] w-4 bg-white"
+                  className="block h-[1.5px] w-4 bg-ink"
                   animate={{ opacity: isMobileMenuOpen ? 0 : 1 }}
                   transition={{ duration: 0.15 }}
                 />
                 <motion.span
-                  className="block h-[1.5px] w-4 bg-white"
+                  className="block h-[1.5px] w-4 bg-ink"
                   animate={{
                     rotate: isMobileMenuOpen ? -45 : 0,
                     y: isMobileMenuOpen ? -2.25 : 0,

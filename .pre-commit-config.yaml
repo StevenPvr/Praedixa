@@ -10,6 +10,7 @@ repos:
       - id: detect-private-key
       - id: check-added-large-files
         args: ["--maxkb=500"]
+        exclude: "^app-landing/public/dashboard-preview\\.(mp4|webm)$|^app-landing/public/dashboard-poster\\.jpg$"
 
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.7
@@ -115,6 +116,13 @@ repos:
         always_run: true
         pass_filenames: false
 
+      - id: e2e-critical-ui
+        name: playwright critical-ui (landing/webapp)
+        entry: sh -c 'pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/landing/pilot-form.spec.ts --project=landing --workers=1 --retries=0 && pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/webapp/sidebar-interactions.spec.ts --project=webapp --workers=1 --retries=0'
+        language: system
+        always_run: true
+        pass_filenames: false
+
       - id: pip-audit
         name: pip-audit (Python deps)
         entry: sh -c 'cd app-api && uv run pip-audit --skip-editable'
@@ -122,11 +130,16 @@ repos:
         always_run: true
         pass_filenames: false
 
+      - id: audit-ultra-strict-local
+        name: ultra-strict audit (semgrep/trivy/checkov/terraform)
+        entry: sh -c './scripts/audit-ultra-strict-local.sh'
+        language: system
+        always_run: true
+        pass_filenames: false
+
       - id: audit
-        name: pnpm audit (high/critical)
-        # TODO: lower to --audit-level=moderate once next@15.2.9 transitive
-        # vulnerabilities (via @opennextjs/cloudflare) are resolved upstream.
-        entry: pnpm audit --audit-level=high
+        name: pnpm audit (low+)
+        entry: pnpm audit --audit-level=low
         language: system
         always_run: true
         pass_filenames: false

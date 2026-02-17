@@ -670,7 +670,7 @@ describe("getDashboardSummary", () => {
     await getDashboardSummary(mockToken);
 
     expect(mockApiGet).toHaveBeenCalledWith(
-      "/api/v1/dashboard/summary",
+      "/api/v1/live/dashboard/summary",
       mockToken,
     );
   });
@@ -692,7 +692,7 @@ describe("listCanonical", () => {
     await listCanonical({}, mockToken);
 
     expect(mockApiGetPaginated).toHaveBeenCalledWith(
-      "/api/v1/canonical",
+      "/api/v1/live/canonical",
       mockToken,
     );
   });
@@ -708,7 +708,7 @@ describe("listCanonical", () => {
     await listCanonical({ page: 2, siteId: "site-1" }, mockToken);
 
     const calledPath = mockApiGetPaginated.mock.calls[0][0];
-    expect(calledPath).toContain("/api/v1/canonical");
+    expect(calledPath).toContain("/api/v1/live/canonical");
     expect(calledPath).toContain("page=2");
     expect(calledPath).toContain("siteId=site-1");
   });
@@ -725,7 +725,7 @@ describe("getCanonicalQuality", () => {
     await getCanonicalQuality(mockToken);
 
     expect(mockApiGet).toHaveBeenCalledWith(
-      "/api/v1/canonical/quality",
+      "/api/v1/live/canonical/quality",
       mockToken,
     );
   });
@@ -746,7 +746,7 @@ describe("listCoverageAlerts", () => {
     await listCoverageAlerts({}, mockToken);
 
     expect(mockApiGet).toHaveBeenCalledWith(
-      "/api/v1/coverage-alerts",
+      "/api/v1/live/coverage-alerts",
       mockToken,
     );
   });
@@ -761,7 +761,7 @@ describe("listCoverageAlerts", () => {
     await listCoverageAlerts({ status: "open", siteId: "s1" }, mockToken);
 
     const calledPath = mockApiGet.mock.calls[0][0];
-    expect(calledPath).toContain("/api/v1/coverage-alerts");
+    expect(calledPath).toContain("/api/v1/live/coverage-alerts");
     expect(calledPath).toContain("status=open");
     expect(calledPath).toContain("siteId=s1");
   });
@@ -818,7 +818,7 @@ describe("getScenariosForAlert", () => {
     await getScenariosForAlert("a-1", mockToken);
 
     expect(mockApiGet).toHaveBeenCalledWith(
-      "/api/v1/scenarios/alert/a-1",
+      "/api/v1/live/scenarios/alert/a-1",
       mockToken,
     );
   });

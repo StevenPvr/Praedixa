@@ -1,0 +1,7 @@
+quiet: true
+soft-fail: false
+download-external-modules: true
+framework:
+  - terraform
+  - github_actions
+  - dockerfile

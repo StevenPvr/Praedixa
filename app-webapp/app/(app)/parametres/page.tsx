@@ -1,12 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { CostParameter, Organization } from "@praedixa/shared-types";
+import type {
+  CanonicalRecord,
+  CostParameter,
+  Organization,
+  ProofPack,
+} from "@praedixa/shared-types";
 import { DataTable, Button, SkeletonTable, SkeletonCard } from "@praedixa/ui";
 import type { DataTableColumn } from "@praedixa/ui";
 import { TabBar, type Tab } from "@/components/ui/tab-bar";
 import { PageHeader } from "@/components/ui/page-header";
 import { useApiGet } from "@/hooks/use-api";
+import { apiGetPaginated } from "@/lib/api/client";
+import { getValidAccessToken } from "@/lib/auth/client";
 import { ErrorFallback } from "@/components/error-fallback";
 import { AnimatedSection } from "@/components/animated-section";
 import { PageTransition } from "@/components/page-transition";
@@ -40,8 +47,70 @@ const SETTINGS_TABS: Tab[] = [
   { id: "export", label: "Exporter les données" },
 ];
 
+const EXPORT_PAGE_SIZE = 200;
+const MAX_EXPORT_PAGES = 25;
+
+function toCsvCell(value: unknown): string {
+  if (value == null) return "";
+  const raw = String(value);
+  if (raw.includes(",") || raw.includes('"') || raw.includes("\n")) {
+    return `"${raw.replace(/"/g, '""')}"`;
+  }
+  return raw;
+}
+
+function downloadBlob(blob: Blob, filename: string): void {
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(blobUrl);
+}
+
+function canonicalRowsToCsv(rows: CanonicalRecord[]): string {
+  const headers = [
+    "siteId",
+    "date",
+    "shift",
+    "capacitePlanH",
+    "realiseH",
+    "absH",
+    "hsH",
+    "interimH",
+    "backlogH",
+    "safetyIncidents",
+    "qualityBlocking",
+  ];
+
+  const body = rows.map((row) =>
+    [
+      row.siteId,
+      row.date,
+      row.shift,
+      row.capacitePlanH,
+      row.realiseH,
+      row.absH,
+      row.hsH,
+      row.interimH,
+      row.backlogH,
+      row.safetyIncidents,
+      row.qualityBlocking,
+    ]
+      .map(toCsvCell)
+      .join(","),
+  );
+
+  return `${headers.join(",")}\n${body.join("\n")}`;
+}
+
 export default function ParametresPage() {
   const [activeTab, setActiveTab] = useState("couts");
+  const [isExportingCsv, setIsExportingCsv] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const {
     data: costParams,
@@ -125,6 +194,118 @@ export default function ParametresPage() {
     { key: "capHsShift", label: "Plafond heures sup./poste", align: "right" },
     { key: "effectiveFrom", label: "En vigueur depuis" },
   ];
+
+  const getAccessToken = () => getValidAccessToken({ minTtlSeconds: 0 });
+
+  async function fetchAllCanonicalRows(): Promise<CanonicalRecord[]> {
+    const allRows: CanonicalRecord[] = [];
+    let page = 1;
+    let total = Number.POSITIVE_INFINITY;
+
+    while (page <= MAX_EXPORT_PAGES && allRows.length < total) {
+      const response = await apiGetPaginated<CanonicalRecord>(
+        `/api/v1/live/canonical?page=${page}&page_size=${EXPORT_PAGE_SIZE}`,
+        getAccessToken,
+      );
+      allRows.push(...response.data);
+      total = response.pagination.total;
+      if (response.data.length === 0) break;
+      page += 1;
+    }
+
+    return allRows;
+  }
+
+  async function handleExportCsv(): Promise<void> {
+    if (isExportingCsv) return;
+    setExportError(null);
+    setIsExportingCsv(true);
+
+    try {
+      const rows = await fetchAllCanonicalRows();
+      if (rows.length === 0) {
+        throw new Error("Aucune donnee canonique disponible a exporter.");
+      }
+
+      const csv = canonicalRowsToCsv(rows);
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      downloadBlob(
+        new Blob([csv], { type: "text/csv;charset=utf-8" }),
+        `praedixa-canonical-${dateStamp}.csv`,
+      );
+    } catch (error) {
+      setExportError(
+        error instanceof Error
+          ? error.message
+          : "Impossible d'exporter le CSV.",
+      );
+    } finally {
+      setIsExportingCsv(false);
+    }
+  }
+
+  async function handleExportPdf(): Promise<void> {
+    if (isExportingPdf) return;
+    setExportError(null);
+    setIsExportingPdf(true);
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!baseUrl) {
+        throw new Error("NEXT_PUBLIC_API_URL non configuree.");
+      }
+
+      let siteId: string | null = null;
+      let month = "";
+
+      const latestProof = await apiGetPaginated<ProofPack>(
+        "/api/v1/live/proof?page=1&page_size=1",
+        getAccessToken,
+      );
+
+      if (latestProof.data.length > 0) {
+        siteId = latestProof.data[0].siteId;
+        month = latestProof.data[0].month.slice(0, 10);
+      } else {
+        siteId = siteRows?.[0]?.id ?? null;
+        if (!siteId) {
+          throw new Error("Aucun site disponible pour generer un export PDF.");
+        }
+        const now = new Date();
+        month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+      }
+
+      const token = await getAccessToken();
+      const headers: Record<string, string> = {
+        "X-Request-ID": crypto.randomUUID(),
+      };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const query = new URLSearchParams({ site_id: siteId, month });
+      const response = await fetch(`${baseUrl}/api/v1/proof/pdf?${query}`, {
+        method: "GET",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Echec du telechargement PDF (${response.status}).`);
+      }
+
+      const blob = await response.blob();
+      const dateStamp = month.slice(0, 7);
+      downloadBlob(blob, `praedixa-proof-pack-${siteId}-${dateStamp}.pdf`);
+    } catch (error) {
+      setExportError(
+        error instanceof Error
+          ? error.message
+          : "Impossible d'exporter le PDF.",
+      );
+    } finally {
+      setIsExportingPdf(false);
+    }
+  }
 
   return (
     <PageTransition>
@@ -347,9 +528,29 @@ export default function ParametresPage() {
                   (PDF)
                 </p>
                 <div className="flex gap-3">
-                  <Button>Telecharger CSV</Button>
-                  <Button variant="outline">Telecharger PDF</Button>
+                  <Button
+                    onClick={() => {
+                      void handleExportCsv();
+                    }}
+                    disabled={isExportingCsv}
+                  >
+                    {isExportingCsv ? "Export CSV..." : "Telecharger CSV"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      void handleExportPdf();
+                    }}
+                    disabled={isExportingPdf}
+                  >
+                    {isExportingPdf ? "Export PDF..." : "Telecharger PDF"}
+                  </Button>
                 </div>
+                {exportError ? (
+                  <p className="mt-3 text-body-sm text-danger-text">
+                    {exportError}
+                  </p>
+                ) : null}
               </Card>
             </section>
           </AnimatedSection>

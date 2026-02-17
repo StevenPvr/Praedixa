@@ -16,7 +16,11 @@ const MOCK_USER = {
   role: "authenticated",
   email: "admin@praedixa-demo.com",
   email_confirmed_at: "2026-01-01T00:00:00Z",
-  app_metadata: { provider: "email", providers: ["email"] },
+  app_metadata: {
+    provider: "email",
+    providers: ["email"],
+    role: "admin",
+  },
   user_metadata: {
     org_id: "org-00000000-0000-0000-0000-000000000001",
     role: "admin",

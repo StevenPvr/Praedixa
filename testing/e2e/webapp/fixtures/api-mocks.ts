@@ -1298,6 +1298,20 @@ export async function mockUnreadCount(page: Page): Promise<void> {
 // ─────────────────────────────────────────────────
 
 export async function mockAllApis(page: Page): Promise<void> {
+  // Fallback safety net for endpoints not explicitly mocked below.
+  // Specific route mocks are registered after this and take precedence.
+  await page.route("**/api/v1/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: [],
+        timestamp: NOW,
+      }),
+    }),
+  );
+
   await mockCoverageAlerts(page);
   await mockDecisionQueue(page);
   await mockDashboardSummary(page);
