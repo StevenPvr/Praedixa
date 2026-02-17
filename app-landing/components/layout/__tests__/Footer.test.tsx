@@ -42,7 +42,7 @@ describe("Footer", () => {
     render(<Footer {...defaultProps} />);
 
     expect(screen.getByText("Solution")).toBeInTheDocument();
-    expect(screen.getByText("Sécurité")).toBeInTheDocument();
+    expect(screen.getAllByText("Sécurité").length).toBeGreaterThan(0);
     expect(screen.getByText("Offre pilote")).toBeInTheDocument();
     expect(screen.getByText("FAQ")).toBeInTheDocument();
 

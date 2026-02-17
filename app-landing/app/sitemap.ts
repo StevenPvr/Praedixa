@@ -5,6 +5,7 @@ const BASE_URL = "https://www.praedixa.com";
 
 const CONTENT_KEYS = [
   "about",
+  "security",
   "resources",
   "pillarCapacity",
   "pillarLogistics",
@@ -29,7 +30,6 @@ function localizedEntry(
   priority: number,
   changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"],
 ): MetadataRoute.Sitemap[number] {
-  const altLocale = locale === "fr" ? "en" : "fr";
   const currentPath = locale === "fr" ? frPath : enPath;
 
   return {
@@ -39,8 +39,9 @@ function localizedEntry(
     priority,
     alternates: {
       languages: {
-        [locale]: `${BASE_URL}${currentPath}`,
-        [altLocale]: `${BASE_URL}${altLocale === "fr" ? frPath : enPath}`,
+        "fr-FR": `${BASE_URL}${frPath}`,
+        en: `${BASE_URL}${enPath}`,
+        "x-default": `${BASE_URL}/`,
       },
     },
   };
@@ -48,6 +49,20 @@ function localizedEntry(
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = [];
+
+  entries.push({
+    url: `${BASE_URL}/`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.8,
+    alternates: {
+      languages: {
+        "x-default": `${BASE_URL}/`,
+        "fr-FR": `${BASE_URL}/fr`,
+        en: `${BASE_URL}/en`,
+      },
+    },
+  });
 
   for (const locale of locales) {
     entries.push(localizedEntry(locale, "/fr", "/en", 1, "weekly"));

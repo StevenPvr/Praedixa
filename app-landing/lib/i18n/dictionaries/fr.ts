@@ -393,7 +393,7 @@ export const fr: Dictionary = {
       {
         question: "Combien coûte Praedixa ?",
         answer:
-          "Modèle par abonnement, généralement plusieurs milliers d'euros par mois selon la complexité (nombre de sites, variabilité, niveau d'accompagnement). La cohorte fondatrice bénéficie d'un cadre commercial dédié. La qualification permet d'établir une trajectoire tarifaire claire avant engagement.",
+          "Praedixa fonctionne sur abonnement avec un cadrage commercial adapté au périmètre opérationnel et au niveau d'accompagnement. La qualification permet d'établir une proposition claire avant engagement.",
         category: "Pilote & tarification",
       },
       {

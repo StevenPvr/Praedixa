@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { generateNonce, buildCspHeader } from "./lib/security/csp";
-import { locales, gonePaths } from "./lib/i18n/config";
+import { locales, legacyRedirectMap } from "./lib/i18n/config";
 
 function isApiOrStatic(pathname: string): boolean {
   return (
@@ -40,14 +40,11 @@ export async function middleware(request: NextRequest) {
     return addCsp(request, NextResponse.next());
   }
 
-  if (pathname === "/") {
+  const localizedTarget = legacyRedirectMap[pathname];
+  if (localizedTarget) {
     const target = request.nextUrl.clone();
-    target.pathname = "/fr";
+    target.pathname = localizedTarget;
     return addCsp(request, NextResponse.redirect(target, 301));
-  }
-
-  if (gonePaths.includes(pathname)) {
-    return addCsp(request, new NextResponse(null, { status: 410 }));
   }
 
   if (!hasLocalePrefix(pathname)) {

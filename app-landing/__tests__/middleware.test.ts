@@ -45,19 +45,32 @@ function makeRequest(pathname: string): NextRequest {
 }
 
 describe("landing middleware", () => {
-  it("redirects root to /fr with 301", async () => {
+  it("serves root without redirect", async () => {
     const req = makeRequest("/");
     const result = await middleware(req);
 
-    expect(result.status).toBe(301);
-    expect(result.headers.get("location")).toBe("http://localhost:3001/fr");
+    expect(result.status).toBe(200);
+    expect(result.headers.get("location")).toBeNull();
   });
 
-  it("returns 410 for legacy non-localized URLs", async () => {
+  it("redirects FR legacy non-localized URLs to localized target", async () => {
     const req = makeRequest("/devenir-pilote");
     const result = await middleware(req);
 
-    expect(result.status).toBe(410);
+    expect(result.status).toBe(301);
+    expect(result.headers.get("location")).toBe(
+      "http://localhost:3001/fr/devenir-pilote",
+    );
+  });
+
+  it("redirects EN legacy non-localized URLs to localized target", async () => {
+    const req = makeRequest("/pilot-application");
+    const result = await middleware(req);
+
+    expect(result.status).toBe(301);
+    expect(result.headers.get("location")).toBe(
+      "http://localhost:3001/en/pilot-application",
+    );
   });
 
   it("sets CSP header on locale-prefixed pages", async () => {

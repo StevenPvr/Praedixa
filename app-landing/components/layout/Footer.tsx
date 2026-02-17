@@ -44,6 +44,10 @@ export function Footer({ dict, locale }: FooterProps) {
       href: `/${locale}/${localizedSlugs.about[locale]}`,
       label: locale === "fr" ? "À propos" : "About",
     },
+    {
+      href: `/${locale}/${localizedSlugs.security[locale]}`,
+      label: locale === "fr" ? "Sécurité" : "Security",
+    },
   ];
 
   return (

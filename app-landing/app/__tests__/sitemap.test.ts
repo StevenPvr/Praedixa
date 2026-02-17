@@ -11,6 +11,7 @@ describe("sitemap()", () => {
 
   it("should include the homepage (locale-prefixed)", () => {
     const urls = result.map((entry) => entry.url);
+    expect(urls).toContain("https://www.praedixa.com/");
     expect(urls).toContain("https://www.praedixa.com/fr");
     expect(urls).toContain("https://www.praedixa.com/en");
   });
@@ -26,6 +27,12 @@ describe("sitemap()", () => {
     expect(urls).toContain("https://www.praedixa.com/fr/mentions-legales");
     expect(urls).toContain("https://www.praedixa.com/fr/confidentialite");
     expect(urls).toContain("https://www.praedixa.com/fr/cgu");
+  });
+
+  it("should include security pages in both locales", () => {
+    const urls = result.map((entry) => entry.url);
+    expect(urls).toContain("https://www.praedixa.com/fr/securite");
+    expect(urls).toContain("https://www.praedixa.com/en/security");
   });
 
   it("should have lastModified dates on every entry", () => {

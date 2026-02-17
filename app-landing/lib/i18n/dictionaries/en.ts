@@ -377,7 +377,7 @@ export const en: Dictionary = {
       {
         question: "How much does Praedixa cost?",
         answer:
-          "Subscription model, typically several thousand euros per month depending on complexity (number of sites, variability, support level). The founding cohort benefits from a dedicated commercial framework. Qualification establishes a clear pricing trajectory before commitment.",
+          "Praedixa runs on a subscription model with commercial framing adapted to operational scope and support requirements. Qualification establishes a clear proposal before commitment.",
         category: "Pilot & pricing",
       },
       {

@@ -14,6 +14,7 @@ export const localizedSlugs = {
   privacy: { fr: "confidentialite", en: "privacy-policy" },
   terms: { fr: "cgu", en: "terms" },
   about: { fr: "a-propos", en: "about" },
+  security: { fr: "securite", en: "security" },
   resources: { fr: "ressources", en: "resources" },
   pillarCapacity: {
     fr: "capacite-sous-couverture",
@@ -64,34 +65,24 @@ export const localizedSlugs = {
   },
 } as const;
 
-export const legacyGonePaths = [
-  "/devenir-pilote",
-  "/pilot-application",
-  "/contact",
-  "/mentions-legales",
-  "/legal-notice",
-  "/confidentialite",
-  "/privacy-policy",
-  "/cgu",
-  "/terms",
-  "/a-propos",
-  "/about",
-  "/ressources",
-  "/resources",
-  "/praedixa-logistique",
-  "/praedixa-logistics",
-  "/praedixa-transport",
-  "/praedixa-distribution-retail",
-  "/praedixa-retail-distribution",
-] as const;
+const explicitLegacyRedirects = {
+  "/pilot-protocol": "/fr/pilot-protocol",
+  "/logo-preview": "/fr/logo-preview",
+} as const;
 
-const localizedPathCandidates = Object.values(localizedSlugs).flatMap(
-  (pair) => [`/${pair.fr}`, `/${pair.en}`],
-);
-
-export const gonePaths = Array.from(
-  new Set([...legacyGonePaths, ...localizedPathCandidates]),
-);
+export const legacyRedirectMap: Readonly<Record<string, string>> =
+  Object.freeze(
+    Object.values(localizedSlugs).reduce<Record<string, string>>(
+      (acc, pair) => {
+        acc[`/${pair.fr}`] = `/fr/${pair.fr}`;
+        if (pair.en !== pair.fr) {
+          acc[`/${pair.en}`] = `/en/${pair.en}`;
+        }
+        return acc;
+      },
+      { ...explicitLegacyRedirects },
+    ),
+  );
 
 export function getLocalizedPath(
   locale: Locale,

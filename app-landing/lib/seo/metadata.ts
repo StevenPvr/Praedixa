@@ -20,7 +20,7 @@ export function alternatesFromPaths(
     languages: {
       "fr-FR": absoluteUrl(paths.fr),
       en: absoluteUrl(paths.en),
-      "x-default": absoluteUrl(paths.fr),
+      "x-default": absoluteUrl("/"),
     },
   };
 }

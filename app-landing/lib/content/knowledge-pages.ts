@@ -3,6 +3,7 @@ import { localizedSlugs } from "../i18n/config";
 
 export type KnowledgePageKey =
   | "about"
+  | "security"
   | "resources"
   | "pillarCapacity"
   | "pillarLogistics"
@@ -74,6 +75,46 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
     ],
     ctaLabel: "Demander un pilote",
   },
+  security: {
+    key: "security",
+    kicker: "Sécurité",
+    title: "Sécurité de l'espace Praedixa",
+    description:
+      "Principes de sécurité, gouvernance et posture IT pour un usage enterprise.",
+    lead: "La sécurité est intégrée à la méthode Praedixa: minimisation des données, accès contrôlés, traçabilité des actions et documentation transparente.",
+    sections: [
+      {
+        title: "Principes de conception",
+        paragraphs: [
+          "Praedixa fonctionne avec des données agrégées et en lecture seule pour limiter l'exposition et accélérer le cadrage.",
+          "Les choix de sécurité privilégient la sobriété opérationnelle et la vérifiabilité en due diligence.",
+        ],
+      },
+      {
+        title: "Contrôles clés",
+        paragraphs: [
+          "Chiffrement en transit et au repos, contrôle d'accès par rôle, journalisation des actions sensibles.",
+        ],
+        bullets: [
+          "Aucune prédiction individuelle",
+          "Exports CSV/Excel sans connecteur imposé",
+          "DPA et sous-traitants communiqués sur demande",
+        ],
+      },
+      {
+        title: "Posture de transparence",
+        paragraphs: [
+          "Praedixa documente ses pratiques et précise les éléments non certifiés. Cette transparence évite les promesses floues et facilite la revue IT.",
+        ],
+      },
+    ],
+    links: [
+      { label: "À propos de Praedixa", key: "about" },
+      { label: "Ressources opérationnelles", key: "resources" },
+      { label: "Protocole pilote", key: "pillarImpact" },
+    ],
+    ctaLabel: "Demander un pilote",
+  },
   resources: {
     key: "resources",
     kicker: "Ressources",
@@ -110,6 +151,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Anticiper l'absentéisme", key: "pillarAbsence" },
       { label: "Pénalités logistiques", key: "pillarPenalties" },
       { label: "Preuve d'impact opérationnelle", key: "pillarImpact" },
+      { label: "Sécurité de l'espace Praedixa", key: "security" },
       { label: "Praedixa pour la logistique", key: "bofuLogistics" },
       { label: "Praedixa pour le transport", key: "bofuTransport" },
       { label: "Praedixa pour la distribution retail", key: "bofuRetail" },
@@ -515,6 +557,46 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
     ],
     ctaLabel: "Request a pilot",
   },
+  security: {
+    key: "security",
+    kicker: "Security",
+    title: "Praedixa workspace security",
+    description:
+      "Security principles, governance, and IT posture for enterprise usage.",
+    lead: "Security is embedded in the Praedixa method: data minimization, controlled access, sensitive action traceability, and transparent documentation.",
+    sections: [
+      {
+        title: "Design principles",
+        paragraphs: [
+          "Praedixa runs on aggregated, read-only data to reduce exposure and speed up framing.",
+          "Security choices prioritize operational clarity and due-diligence verifiability.",
+        ],
+      },
+      {
+        title: "Core controls",
+        paragraphs: [
+          "Encryption in transit and at rest, role-based access control, and sensitive activity logging.",
+        ],
+        bullets: [
+          "No individual predictions",
+          "CSV/Excel exports with no mandatory connector",
+          "DPA and subprocessors shared on request",
+        ],
+      },
+      {
+        title: "Transparency posture",
+        paragraphs: [
+          "Praedixa documents current practices and clearly states non-certified elements. This reduces ambiguity and improves IT review quality.",
+        ],
+      },
+    ],
+    links: [
+      { label: "About Praedixa", key: "about" },
+      { label: "Operational resources", key: "resources" },
+      { label: "Operational impact proof", key: "pillarImpact" },
+    ],
+    ctaLabel: "Request a pilot",
+  },
   resources: {
     key: "resources",
     kicker: "Resources",
@@ -548,6 +630,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Anticipate absenteeism", key: "pillarAbsence" },
       { label: "Logistics penalties", key: "pillarPenalties" },
       { label: "Operational impact proof", key: "pillarImpact" },
+      { label: "Praedixa workspace security", key: "security" },
       { label: "Praedixa for logistics", key: "bofuLogistics" },
       { label: "Praedixa for transport", key: "bofuTransport" },
       { label: "Praedixa for retail distribution", key: "bofuRetail" },
