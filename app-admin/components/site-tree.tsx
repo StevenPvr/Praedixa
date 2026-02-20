@@ -54,8 +54,8 @@ export function SiteTree({
         className={cn(
           "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors",
           selectedSiteId === null
-            ? "bg-amber-50 font-medium text-amber-700"
-            : "text-neutral-600 hover:bg-neutral-50",
+            ? "bg-primary-50 font-medium text-primary-700"
+            : "text-ink-secondary hover:bg-surface-sunken",
         )}
       >
         Tous les sites
@@ -70,7 +70,7 @@ export function SiteTree({
             <div className="flex items-center">
               <button
                 onClick={() => toggleExpand(site.id)}
-                className="flex h-7 w-7 shrink-0 items-center justify-center text-neutral-400 hover:text-neutral-600"
+                className="flex h-7 w-7 shrink-0 items-center justify-center text-ink-placeholder hover:text-ink-secondary"
                 aria-label={isExpanded ? "Replier" : "Deplier"}
               >
                 {site.departments.length > 0 &&
@@ -85,14 +85,14 @@ export function SiteTree({
                 className={cn(
                   "flex flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors",
                   isSelected
-                    ? "bg-amber-50 font-medium text-amber-700"
-                    : "text-neutral-700 hover:bg-neutral-50",
+                    ? "bg-primary-50 font-medium text-primary-700"
+                    : "text-ink-secondary hover:bg-surface-sunken",
                 )}
               >
-                <MapPin className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
+                <MapPin className="h-3.5 w-3.5 shrink-0 text-ink-placeholder" />
                 <span className="truncate">{site.name}</span>
                 {site.city && (
-                  <span className="truncate text-xs text-neutral-400">
+                  <span className="truncate text-xs text-ink-placeholder">
                     {site.city}
                   </span>
                 )}
@@ -103,11 +103,11 @@ export function SiteTree({
               site.departments.map((dept) => (
                 <div
                   key={dept.id}
-                  className="ml-9 flex items-center gap-2 px-2 py-1 text-xs text-neutral-500"
+                  className="ml-9 flex items-center gap-2 px-2 py-1 text-xs text-ink-tertiary"
                 >
                   <Users className="h-3 w-3 shrink-0" />
                   <span className="truncate">{dept.name}</span>
-                  <span className="ml-auto shrink-0 text-neutral-400">
+                  <span className="ml-auto shrink-0 text-ink-placeholder">
                     {dept.employeeCount}
                   </span>
                 </div>

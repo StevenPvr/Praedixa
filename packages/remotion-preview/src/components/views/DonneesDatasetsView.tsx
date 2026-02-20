@@ -109,7 +109,7 @@ export const DonneesDatasetsView: React.FC = () => {
               style={{
                 borderRadius: 10,
                 border: `1px dashed ${colors.borderHover}`,
-                backgroundColor: "oklch(0.975 0.005 85 / 0.45)",
+                backgroundColor: "oklch(0.97 0.05 255 / 0.52)",
                 minHeight: 112,
                 display: "flex",
                 alignItems: "center",

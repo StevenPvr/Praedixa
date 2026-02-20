@@ -135,7 +135,7 @@ export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
                   y1={y}
                   x2={chartWidth - paddingX}
                   y2={y}
-                  stroke="oklch(0.88 0.007 250)"
+                  stroke="var(--chart-grid)"
                   strokeDasharray="4 6"
                 />
               );
@@ -143,7 +143,8 @@ export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
 
             <path
               d={`${linePath(demandArea)} Z`}
-              fill="oklch(0.79 0.125 84 / 0.18)"
+              fill="var(--chart-1)"
+              opacity={0.18}
               stroke="none"
               className="animate-chart-fade-in"
             />
@@ -151,7 +152,7 @@ export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
             <path
               d={linePath(capacityPoints)}
               fill="none"
-              stroke="oklch(0.41 0.095 253)"
+              stroke="var(--chart-2)"
               strokeWidth="3"
               strokeLinecap="round"
               pathLength={1}
@@ -162,7 +163,7 @@ export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
             <path
               d={linePath(demandPoints)}
               fill="none"
-              stroke="oklch(0.71 0.135 78)"
+              stroke="var(--chart-1)"
               strokeWidth="3"
               strokeLinecap="round"
               pathLength={1}
@@ -178,8 +179,8 @@ export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
                 cx={point.x}
                 cy={point.y}
                 r="3"
-                fill="white"
-                stroke="oklch(0.71 0.135 78)"
+                fill="var(--card-bg)"
+                stroke="var(--chart-1)"
                 strokeWidth="2"
                 className="animate-chart-fade-in"
                 style={{ animationDelay: `${0.6 + idx * 0.03}s` }}
@@ -192,7 +193,7 @@ export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
                 x={scaleX(idx)}
                 y={chartHeight - 8}
                 textAnchor="middle"
-                fill="oklch(0.56 0.014 250)"
+                fill="var(--chart-axis)"
                 fontSize="10"
               >
                 {point.date}
@@ -203,11 +204,11 @@ export function ForecastTimelineChart({ alerts }: ForecastTimelineChartProps) {
 
         <div className="flex flex-wrap items-center gap-4 text-xs text-ink-secondary">
           <span className="inline-flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-[oklch(0.41_0.095_253)]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--chart-2)]" />
             Capacite disponible
           </span>
           <span className="inline-flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-[oklch(0.71_0.135_78)]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--chart-1)]" />
             Demande previsionnelle
           </span>
         </div>

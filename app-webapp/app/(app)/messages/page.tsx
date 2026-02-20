@@ -170,7 +170,7 @@ export default function MessagesPage() {
                     <button
                       onClick={() => void handleCreateConversation()}
                       disabled={!newSubject.trim() || creating}
-                      className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-normal hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
+                      className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-normal hover:bg-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
                     >
                       {creating ? "Creation..." : "Creer"}
                     </button>

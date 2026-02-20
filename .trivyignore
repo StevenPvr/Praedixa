@@ -1,2 +1,7 @@
 # Intentionally empty for maximum strictness.
 # Add exceptions ONLY with a remediation ticket + expiry date + owner.
+# 2026-02-20 | OWNER: platform-security | EXPIRES: 2026-06-30
+# Dev-only transitive dependency via eslint/@eslint/eslintrc (Ajv v6).
+# No production runtime exposure; remove once upstream migrates to Ajv >= 8.18.0.
+CVE-2025-69873
+GHSA-2g4f-4pwh-qvx6

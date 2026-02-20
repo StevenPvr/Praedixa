@@ -39,7 +39,7 @@ export const BentoGridItem = ({
     <motion.div
       whileHover={{ y: -2 }}
       className={cn(
-        "row-span-1 rounded-xl group/bento hover:shadow-xl transition duration-200 shadow-input dark:shadow-none p-4 bg-white border border-transparent justify-between flex flex-col space-y-4 shadow-sm border-brass-200/40 relative overflow-hidden",
+        "row-span-1 rounded-xl group/bento hover:shadow-xl transition duration-200 shadow-input dark:shadow-none p-4 bg-card border border-transparent justify-between flex flex-col space-y-4 shadow-sm border-brass-200/40 relative overflow-hidden",
         className,
       )}
     >
@@ -54,7 +54,7 @@ export const BentoGridItem = ({
         <div className="font-serif text-lg font-bold text-charcoal mb-2 mt-2">
           {title}
         </div>
-        <div className="font-sans font-normal text-neutral-500 text-xs leading-relaxed">
+        <div className="font-sans font-normal text-ink-tertiary text-xs leading-relaxed">
           {description}
         </div>
       </div>

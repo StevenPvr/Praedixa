@@ -10,6 +10,7 @@ import { useCurrentUser } from "@/lib/auth/client";
 const PAGE_TITLES: Record<string, string> = {
   "/": "Accueil",
   "/clients": "Clients",
+  "/demandes-contact": "Demandes contact",
   "/journal": "Journal",
   "/parametres": "Parametres",
 };

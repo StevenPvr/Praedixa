@@ -25,13 +25,11 @@ describe("Admin CSP wrapper", () => {
     expect(nonce.length).toBeGreaterThan(0);
   });
 
-  it("should pass NEXT_PUBLIC_API_URL to buildCspHeaderBase", async () => {
+  it("should include NEXT_PUBLIC_API_URL in connect-src", async () => {
     const { buildCspHeader } = await import("../csp");
     const csp = buildCspHeader("dGVzdA==");
 
-    expect(csp).toContain(
-      "connect-src 'self' https://api.praedixa.com https://*.supabase.co",
-    );
+    expect(csp).toContain("connect-src 'self' https://api.praedixa.com");
   });
 
   it("should fallback to localhost API URL when env is not set", async () => {
@@ -42,8 +40,6 @@ describe("Admin CSP wrapper", () => {
     const { buildCspHeader } = await import("../csp");
     const csp = buildCspHeader("dGVzdA==");
 
-    expect(csp).toContain(
-      "connect-src 'self' http://localhost:8000 https://*.supabase.co",
-    );
+    expect(csp).toContain("connect-src 'self' http://localhost:8000");
   });
 });

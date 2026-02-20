@@ -77,7 +77,7 @@ export function MessageInput({ onSend, disabled, sending }: MessageInputProps) {
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
             canSend
-              ? "bg-primary text-white hover:brightness-110"
+              ? "bg-primary text-white hover:bg-primary-600"
               : "bg-border text-ink-secondary",
           )}
           aria-label="Envoyer"
@@ -86,7 +86,7 @@ export function MessageInput({ onSend, disabled, sending }: MessageInputProps) {
         </button>
       </div>
       {content.length > MAX_CHARS && (
-        <p className="mt-1 text-xs text-red-500">
+        <p className="mt-1 text-xs text-danger">
           {content.length} / {MAX_CHARS} caracteres maximum
         </p>
       )}

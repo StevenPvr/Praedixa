@@ -4,11 +4,17 @@
   "private": true,
   "scripts": {
     "studio": "remotion studio src/index.ts",
-    "render:webm": "remotion render src/index.ts DashboardPreview out/dashboard-preview.webm --codec=vp9 --crf=12 && ffmpeg -y -i out/dashboard-preview.webm -an -c:v copy out/dashboard-preview.video-only.webm && mv out/dashboard-preview.video-only.webm out/dashboard-preview.webm",
-    "render:mp4": "remotion render src/index.ts DashboardPreview out/dashboard-preview.mp4 --codec=h264 --crf=10 --x264-preset=slow && ffmpeg -y -i out/dashboard-preview.mp4 -an -c:v copy out/dashboard-preview.video-only.mp4 && mv out/dashboard-preview.video-only.mp4 out/dashboard-preview.mp4",
-    "render:poster": "remotion still src/index.ts DashboardPreview out/dashboard-poster.jpg --frame=120 --image-format=jpeg --jpeg-quality=100",
-    "render:all": "pnpm render:webm && pnpm render:mp4 && pnpm render:poster",
-    "sync:landing": "cp out/dashboard-preview.webm ../../app-landing/public/dashboard-preview.webm && cp out/dashboard-preview.mp4 ../../app-landing/public/dashboard-preview.mp4 && cp out/dashboard-poster.jpg ../../app-landing/public/dashboard-poster.jpg",
+    "render:webm:1920": "remotion render src/index.ts DashboardPreview1920 out/dashboard-preview-1920.webm --codec=vp9 --crf=16 && ffmpeg -y -i out/dashboard-preview-1920.webm -an -c:v copy out/dashboard-preview-1920.video-only.webm && mv out/dashboard-preview-1920.video-only.webm out/dashboard-preview-1920.webm",
+    "render:webm:1280": "remotion render src/index.ts DashboardPreview1280 out/dashboard-preview-1280.webm --codec=vp9 --crf=18 && ffmpeg -y -i out/dashboard-preview-1280.webm -an -c:v copy out/dashboard-preview-1280.video-only.webm && mv out/dashboard-preview-1280.video-only.webm out/dashboard-preview-1280.webm",
+    "render:mp4:1920": "remotion render src/index.ts DashboardPreview1920 out/dashboard-preview-1920.mp4 --codec=h264 --crf=16 --x264-preset=slow && ffmpeg -y -i out/dashboard-preview-1920.mp4 -an -c:v copy out/dashboard-preview-1920.video-only.mp4 && mv out/dashboard-preview-1920.video-only.mp4 out/dashboard-preview-1920.mp4",
+    "render:mp4:1280": "remotion render src/index.ts DashboardPreview1280 out/dashboard-preview-1280.mp4 --codec=h264 --crf=18 --x264-preset=slow && ffmpeg -y -i out/dashboard-preview-1280.mp4 -an -c:v copy out/dashboard-preview-1280.video-only.mp4 && mv out/dashboard-preview-1280.video-only.mp4 out/dashboard-preview-1280.mp4",
+    "render:poster": "remotion still src/index.ts DashboardPreview1920 out/dashboard-poster.jpg --frame=120 --image-format=jpeg --jpeg-quality=100",
+    "render:webm": "pnpm render:webm:1280",
+    "render:mp4": "pnpm render:mp4:1280",
+    "render:all": "pnpm render:webm:1920 && pnpm render:webm:1280 && pnpm render:mp4:1920 && pnpm render:mp4:1280 && pnpm render:poster",
+    "sync:landing:profiles": "cp out/dashboard-preview-1920.webm ../../app-landing/public/dashboard-preview-1920.webm && cp out/dashboard-preview-1280.webm ../../app-landing/public/dashboard-preview-1280.webm && cp out/dashboard-preview-1920.mp4 ../../app-landing/public/dashboard-preview-1920.mp4 && cp out/dashboard-preview-1280.mp4 ../../app-landing/public/dashboard-preview-1280.mp4 && cp out/dashboard-poster.jpg ../../app-landing/public/dashboard-poster.jpg",
+    "sync:landing:legacy": "cp out/dashboard-preview-1280.webm ../../app-landing/public/dashboard-preview.webm && cp out/dashboard-preview-1280.mp4 ../../app-landing/public/dashboard-preview.mp4",
+    "sync:landing": "pnpm sync:landing:profiles && pnpm sync:landing:legacy",
     "render:landing-assets": "pnpm render:all && pnpm sync:landing"
   },
   "dependencies": {

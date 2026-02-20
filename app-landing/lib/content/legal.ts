@@ -31,8 +31,8 @@ const fr: Record<LegalPageKey, LegalContent> = {
       {
         title: "Hébergement",
         paragraphs: [
-          "Cloudflare, Inc. — 101 Townsend St, San Francisco, CA 94107, USA.",
-          "https://www.cloudflare.com",
+          "Site vitrine et diffusion statique : Cloudflare, Inc. — 101 Townsend St, San Francisco, CA 94107, USA (https://www.cloudflare.com).",
+          "Données client opérationnelles liées au service : Scaleway, infrastructure localisée à Paris (France). Détails contractuels communiqués en phase de qualification.",
         ],
       },
       {
@@ -58,12 +58,25 @@ const fr: Record<LegalPageKey, LegalContent> = {
       {
         title: "Données collectées",
         paragraphs: [
-          "Les données transmises via les formulaires servent à qualifier une demande de contact ou de pilote.",
+          "Les données transmises via les formulaires servent à qualifier une demande de contact ou une candidature au Pilote fondateur.",
         ],
         bullets: [
           "Entreprise",
           "Coordonnées professionnelles",
           "Contexte opérationnel partagé volontairement",
+        ],
+      },
+      {
+        title: "Hébergement et sous-traitants",
+        paragraphs: [
+          "Le site vitrine est opéré via Cloudflare.",
+          "Les données client opérationnelles liées au service sont hébergées sur une infrastructure localisée à Paris (France) via Scaleway.",
+        ],
+      },
+      {
+        title: "Conservation",
+        paragraphs: [
+          "La politique détaillée de rétention est en cours de formalisation. Une suppression peut être demandée via hello@praedixa.com, sous réserve des obligations légales applicables.",
         ],
       },
       {
@@ -83,7 +96,7 @@ const fr: Record<LegalPageKey, LegalContent> = {
       {
         title: "Objet",
         paragraphs: [
-          "Ces conditions définissent l'accès et l'utilisation du site Praedixa et des échanges liés au programme pilote.",
+          "Ces conditions définissent l'accès et l'utilisation du site Praedixa et les échanges liés au Pilote fondateur.",
         ],
       },
       {
@@ -93,8 +106,14 @@ const fr: Record<LegalPageKey, LegalContent> = {
         ],
       },
       {
+        title: "Pilote fondateur",
+        paragraphs: [
+          "Le Pilote fondateur est une phase de co-construction encadrée. Il ne constitue pas une promesse publique de résultat chiffré prédéfini.",
+        ],
+      },
+      {
         title: "Contact",
-        paragraphs: ["Pour toute question contractuelle : hello@praedixa.com"],
+        paragraphs: ["Pour toute question juridique : hello@praedixa.com"],
       },
     ],
   },
@@ -116,8 +135,8 @@ const en: Record<LegalPageKey, LegalContent> = {
       {
         title: "Hosting",
         paragraphs: [
-          "Cloudflare, Inc. — 101 Townsend St, San Francisco, CA 94107, USA.",
-          "https://www.cloudflare.com",
+          "Marketing site and static delivery: Cloudflare, Inc. — 101 Townsend St, San Francisco, CA 94107, USA (https://www.cloudflare.com).",
+          "Operational client data tied to the service: Scaleway infrastructure located in Paris (France). Contractual details are shared during qualification.",
         ],
       },
       {
@@ -143,12 +162,25 @@ const en: Record<LegalPageKey, LegalContent> = {
       {
         title: "Collected data",
         paragraphs: [
-          "Data shared through forms is used to qualify contact requests and pilot applications.",
+          "Data shared through forms is used to qualify contact requests and Founding Pilot applications.",
         ],
         bullets: [
           "Company name",
           "Professional contact details",
           "Operational context shared voluntarily",
+        ],
+      },
+      {
+        title: "Hosting and subprocessors",
+        paragraphs: [
+          "The marketing site is operated through Cloudflare.",
+          "Operational client data tied to the service is hosted on infrastructure located in Paris (France) via Scaleway.",
+        ],
+      },
+      {
+        title: "Retention",
+        paragraphs: [
+          "The detailed retention policy is currently being formalized. Deletion can be requested via hello@praedixa.com, subject to applicable legal obligations.",
         ],
       },
       {
@@ -168,7 +200,7 @@ const en: Record<LegalPageKey, LegalContent> = {
       {
         title: "Purpose",
         paragraphs: [
-          "These terms define access and usage conditions for the Praedixa website and pilot-related exchanges.",
+          "These terms define access and usage conditions for the Praedixa website and exchanges related to the Founding Pilot.",
         ],
       },
       {
@@ -178,8 +210,14 @@ const en: Record<LegalPageKey, LegalContent> = {
         ],
       },
       {
+        title: "Founding Pilot",
+        paragraphs: [
+          "The Founding Pilot is a structured co-build phase. It is not a public commitment to predefined quantified outcomes.",
+        ],
+      },
+      {
         title: "Contact",
-        paragraphs: ["For contractual questions: hello@praedixa.com"],
+        paragraphs: ["For legal questions: hello@praedixa.com"],
       },
     ],
   },

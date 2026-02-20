@@ -1,8 +1,8 @@
 # Infrastructure Hardening Checklist
 
 **Project:** Praedixa
-**Date:** 2026-02-08
-**Status:** Assessment of current state + recommendations
+**Date:** 2026-02-19
+**Status:** Assessment updated for local exhaustive gate model
 
 ---
 
@@ -26,24 +26,21 @@
 - [x] OCI labels for image provenance
 - [~] Base image pinned to minor version (`python:3.12-slim`) — consider digest pinning for hermetic builds
 - [ ] `read_only: true` filesystem in production orchestrator (Kubernetes/ECS)
-- [ ] Container vulnerability scanning in CI (Trivy/Grype) — currently only in cd-api.yml which does not exist in this repo
+- [~] Container vulnerability scanning in local exhaustive gate (Trivy active, image-level hardening to extend)
 - [ ] Runtime security monitoring (Falco/Sysdig)
 
 ---
 
-## 2. CI/CD Pipeline
+## 2. Verification Gate & Release Pipeline
 
-- [x] All quality checks are hard gates (fail = no deploy)
-- [x] Deploy requires ALL parallel jobs to pass
-- [x] Deploy only on `main` branch
-- [x] Production deploy concurrency prevents parallel deploys
-- [x] Post-deploy health checks with retry logic
-- [x] `--frozen-lockfile` / `--frozen` prevents lockfile modification in CI
-- [x] Least-privilege permissions (`contents: read`)
-- [x] Concurrency groups with `cancel-in-progress` prevent stale builds
-- [~] Secret scanning (Gitleaks in CI + pre-commit) — good coverage
-- [ ] GitHub Actions pinned to SHA hashes (currently use mutable tags)
-- [ ] Branch protection rules enforced (require PR reviews, status checks)
+- [x] All quality/security checks are hard gates locally (fail = no push)
+- [x] Signed gate evidence is required before push
+- [x] `pre-push` verifies report freshness, signature, and commit binding
+- [x] Full monorepo verification is executed from a single orchestrator script
+- [x] `--frozen-lockfile` / locked environments are used in verification commands
+- [x] Secret scanning is enforced in local gate (gitleaks + trivy secret scanner)
+- [x] SAST/SCA/IaC checks integrated in local gate (semgrep, bandit, checkov, audits)
+- [ ] Branch protection rules enforced (if hosted Git provider policy requires PR checks)
 - [ ] Signed commits required
 - [ ] SLSA provenance generation for build artifacts
 - [ ] SBOM (Software Bill of Materials) generation
@@ -58,7 +55,7 @@
 - [x] Service account files in `.gitignore`
 - [x] `config.py` validates JWT secret length at startup (min 32 chars)
 - [x] `config.py` forces `KEY_PROVIDER=scaleway` in production
-- [x] Gitleaks scans full git history in CI
+- [x] Gitleaks scans are enforced in local gate runs
 - [x] `detect-private-key` pre-commit hook
 - [x] No hardcoded production secrets found in codebase
 - [~] Render env vars use `sync: false` for secrets — values set manually in dashboard
@@ -132,8 +129,8 @@
 
 - [x] Dependabot configured for npm, pip, github-actions
 - [x] Weekly update schedule with PR grouping
-- [x] `pip-audit` in CI and pre-commit
-- [x] `pnpm audit` in CI and pre-commit
+- [x] `pip-audit` in local exhaustive gate
+- [x] `pnpm audit` in local exhaustive gate
 - [x] Lock files present and enforced (`pnpm-lock.yaml`, `uv.lock`)
 - [~] Pre-commit hooks cover security tools (gitleaks, bandit, pip-audit, pnpm audit)
 - [ ] Dependabot for Docker base images
@@ -188,12 +185,11 @@
 
 ### Immediate (before production launch)
 
-1. Pin GitHub Actions to SHA hashes
-2. Configure GitHub branch protection on `main`
-3. Set up Redis for distributed rate limiting
-4. Configure Cloudflare Workers secret bindings
-5. Verify database SSL in production connection string
-6. Set up basic alerting (uptime + error rate)
+1. Stabilize all local gate checks to green (no failing quality/security checks)
+2. Set up Redis for distributed rate limiting
+3. Configure Cloudflare Workers secret bindings
+4. Verify database SSL in production connection string
+5. Set up basic alerting (uptime + error rate)
 
 ### Short-term (first 2 weeks post-launch)
 
@@ -208,7 +204,7 @@
 1. Implement APM and distributed tracing
 2. Set up synthetic monitoring
 3. Define and test disaster recovery procedures
-4. SBOM generation in CI
+4. SBOM generation in local gate/pipeline
 5. Infrastructure as Code for all cloud resources
 
 ### Long-term (ongoing)

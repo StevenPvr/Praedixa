@@ -12,37 +12,45 @@ graph TB
         B3["Admin<br/>(super-admin)"]
     end
 
-    subgraph CF["Cloudflare Workers"]
-        L["app-landing<br/>Next.js 15 SSR<br/>:3000"]
-        W["app-webapp<br/>Next.js 15 SSR<br/>:3001"]
-        A["app-admin<br/>Next.js 15 SSR<br/>:3002"]
+    subgraph DNS["DNS public (mode transitoire)"]
+        CFNS["Cloudflare NS<br/>(delegation actuelle)"]
     end
 
-    subgraph Backend["Scaleway Container"]
+    subgraph FE["Scaleway Serverless Containers (fr-par)"]
+        L["app-landing<br/>Next.js 15 SSR<br/>:8080"]
+        W["app-webapp<br/>Next.js 15 SSR<br/>:8080"]
+        A["app-admin<br/>Next.js 15 SSR<br/>:8080"]
+    end
+
+    subgraph Backend["Scaleway Serverless Containers (fr-par)"]
         API["app-api<br/>FastAPI + uvicorn<br/>:8000"]
+    end
+
+    subgraph Auth["Scaleway Serverless Container (fr-par)"]
+        KC["Keycloak OIDC<br/>auth.praedixa.com"]
     end
 
     subgraph Data["PostgreSQL 16"]
         PG[("praedixa<br/>public + {org}_data")]
     end
 
-    subgraph Auth["Supabase"]
-        SB["Auth (JWT)"]
-    end
-
     B1 --> L
     B2 --> W
     B3 --> A
-    L -. "SSR uniquement" .-> L
+    CFNS -. "resolution DNS publique" .-> L
+    CFNS -. "resolution DNS publique" .-> W
+    CFNS -. "resolution DNS publique" .-> A
+    CFNS -. "resolution DNS publique" .-> API
+    CFNS -. "resolution DNS publique" .-> KC
     W -- "Bearer JWT" --> API
     A -- "Bearer JWT" --> API
     API --> PG
-    W -- "getUser()" --> SB
-    A -- "getUser()" --> SB
-    SB -. "JWKS (RS256)" .-> API
+    W -- "OIDC Code + PKCE" --> KC
+    A -- "OIDC Code + PKCE" --> KC
+    KC -. "JWKS (RS256/ES256/EdDSA)" .-> API
 ```
 
-**Legende** : les frontends Next.js tournent sur Cloudflare Workers via `@opennextjs/cloudflare`. L'API tourne dans un conteneur Scaleway. L'authentification passe par Supabase Auth qui emet des JWT verifies cote API par JWKS (RS256/ES256/EdDSA).
+**Legende** : la cible est un hebergement full Scaleway (fr-par) pour les frontends, l'API, et l'IdP OIDC (Keycloak). Tant que la delegation NS n'est pas transferee, le DNS public reste transitoirement sur Cloudflare.
 
 ## Flux requete
 
@@ -54,9 +62,9 @@ Browser
   |  POST /api/v1/decisions  (Authorization: Bearer <jwt>)
   |
   v
-Cloudflare Worker (Next.js SSR)
+Next.js frontend (Serverless Container, SSR)
   |
-  |  Middleware: getUser() valide la session via Supabase
+  |  Middleware: validation de session OIDC (cookies serveur signes)
   |  API call: fetch("https://api.praedixa.com/api/v1/decisions", { headers })
   |
   v
@@ -94,7 +102,7 @@ L'isolation des donnees repose sur **4 couches de defense en profondeur**. Chaqu
 
 ### Couche 1 : JWT `organization_id`
 
-Le claim `organization_id` est extrait du `app_metadata` Supabase, qui est **read-only cote client**. Seul un contexte privilegie Supabase peut le modifier.
+Le claim `organization_id` est extrait des claims OIDC (top-level puis `app_metadata`), emis par l'IdP (Keycloak). Les claims sensibles de role/org ne sont pas modifiables cote client.
 
 ```python
 # app-api/app/core/auth.py
@@ -285,34 +293,34 @@ Contient les **composants React partages** entre les 3 apps :
 
 ## Architecture de deploiement
 
-| Cible   | Plateforme         | CI/CD                                   | Configuration                             |
-| ------- | ------------------ | --------------------------------------- | ----------------------------------------- |
-| Landing | Cloudflare Workers | `.github/workflows/ci.yml` → deploy job | `app-landing/open-next.config.ts`         |
-| Webapp  | Cloudflare Workers | `.github/workflows/ci.yml` → deploy job | `app-webapp/open-next.config.ts`          |
-| Admin   | Cloudflare Workers | `.github/workflows/ci-admin.yml`        | `app-admin/open-next.config.ts`           |
-| API     | Scaleway Container | `.github/workflows/ci-api.yml`          | `app-api/Dockerfile`, `infra/render.yaml` |
+| Cible   | Plateforme cible                         | Etat DNS/traffic                                              | Configuration / scripts                                          |
+| ------- | ---------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Landing | Scaleway Serverless Container (`fr-par`) | Transition en cours (prod publique encore Cloudflare Workers) | `app-landing/Dockerfile.scaleway`                                |
+| Webapp  | Scaleway Serverless Container (`fr-par`) | CNAME public vers Scaleway                                    | `app-webapp/Dockerfile.scaleway`, `pnpm run scw:deploy:webapp:*` |
+| Admin   | Scaleway Serverless Container (`fr-par`) | CNAME public vers Scaleway                                    | `app-admin/Dockerfile.scaleway`, `pnpm run scw:deploy:admin:*`   |
+| API     | Scaleway Serverless Container (`fr-par`) | CNAME public vers Scaleway                                    | `app-api/Dockerfile`, `pnpm run scw:deploy:api:*`                |
+| Auth    | Scaleway Serverless Container (`fr-par`) | CNAME public vers Scaleway                                    | Keycloak `auth-prod` (manuel)                                    |
 
-### Pipeline CI/CD (GitHub Actions)
+### Pipeline de verification (gate local exhaustif)
 
-Le workflow `ci.yml` (frontend) execute en parallele :
+Le gate qualite/securite est local, bloquant, et versionne dans le repo:
 
-1. **Pre-commit checks** : `prek run --all-files` (formatting, lint, typecheck, vitest, ruff, bandit, gitleaks, pip-audit)
-2. **Security audit** : `pnpm audit --audit-level=high`
-3. **Secret scanning** : Gitleaks
-4. **Bundle size check** : build Cloudflare Workers + verification taille
-5. **Frontend coverage** : `vitest run --coverage`
-6. **Frontend e2e** : Playwright (chromium)
+1. `pre-commit` execute `scripts/gate-exhaustive-local.sh`
+2. `pre-push` verifie un rapport signe lie au `HEAD`
+3. si le rapport est absent/stale/invalide, le push est bloque
+4. le gate couvre securite, architecture, qualite, tests, e2e, perf, a11y et schema markup
 
-Apres succes de tous les jobs, le job `deploy` execute le deploiement sur Cloudflare Workers avec verification health check.
+Reference:
 
-Le workflow `ci-api.yml` (backend) execute en parallele :
+- `docs/runbooks/local-gate-exhaustive.md`
+- `scripts/gate.config.yaml`
 
-1. **Lint & Format** : `ruff check` + `ruff format --check`
-2. **Unit tests** : `pytest tests/` (100% coverage)
-3. **Security scan** : Bandit (`-lll` = HIGH/CRITICAL)
-4. **Dependency audit** : `pip-audit`
-5. **Secret scanning** : Gitleaks
-6. **Integration tests** : PostgreSQL 16 + Alembic migrations + `pytest tests/integration/`
+Les deploiements sont executes localement via scripts `scw:*`:
+
+- `scw:bootstrap:*`
+- `scw:configure:*`
+- `scw:preflight:staging`
+- `scw:deploy:*`
 
 ### Infrastructure locale
 
@@ -349,7 +357,7 @@ Trois niveaux via slowapi :
 | Auth     | 10/min  | Endpoints d'authentification |
 | Sensible | 5/min   | Endpoints critiques          |
 
-L'IP client est extraite via `cf-connecting-ip` (Cloudflare), `X-Forwarded-For`, ou `request.client.host`.
+L'IP client est extraite via headers proxy (`CF-Connecting-IP`, `X-Forwarded-For`) ou `request.client.host`, selon le point d'entree reseau actif.
 
 ### Audit logging
 

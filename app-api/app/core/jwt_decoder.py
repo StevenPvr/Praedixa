@@ -2,19 +2,13 @@
 
 Handles:
 - Algorithm selection and validation (RS256, ES256, EdDSA, legacy HS256)
-- JWKS URL resolution from config or token issuer (dev fallback)
+- JWKS URL resolution from explicit OIDC config or legacy Supabase config
 - Token signature verification via PyJWKClient
 
 Security notes:
 - "none" algorithm is ALWAYS rejected.
 - HS256 is only accepted when LEGACY_HS256_ENABLED=true in local development.
-- JWKS hosts are validated against an allowlist (.supabase.co + localhost).
-
-Implementation note:
-- Functions that need `settings` or `jwt` access them through `sys.modules`
-  from the auth.py module namespace. This ensures that when tests patch
-  "app.core.auth.settings" or "app.core.auth.jwt", these functions see the
-  patched versions without requiring test changes.
+- JWKS hosts are validated against an allowlist (.supabase.co + localhost + custom).
 """
 
 import sys
@@ -26,32 +20,18 @@ import structlog
 from fastapi import HTTPException, status
 from jwt import InvalidTokenError, PyJWKClient
 
-from app.core.config import (
-    settings,  # noqa: F401 — re-exported via auth.py for test patching
-)
+from app.core.config import settings  # noqa: F401 — re-exported for test patching
 
 _AUTH_ERROR_DETAIL = "Invalid or expired token"
-
-# Allowed asymmetric algorithms — HS256 and "none" are rejected unless
-# LEGACY_HS256_ENABLED is true (development transition only).
 _ALLOWED_ASYMMETRIC_ALGORITHMS: frozenset[str] = frozenset({"RS256", "ES256", "EdDSA"})
-
 _PLACEHOLDER_SUPABASE_URLS = {"", "https://your-project.supabase.co"}
 
 logger = structlog.get_logger()
-
-# PyJWKClient instance — lazily initialized per JWKS URL.
-# Thread-safe by design (uses urllib3 with connection pooling).
 _jwk_clients: dict[str, PyJWKClient] = {}
 
 
 def _get_auth_module() -> Any:
-    """Get the auth module, falling back to jwt_decoder if auth hasn't loaded yet.
-
-    This enables tests to patch "app.core.auth.settings" and have it propagate
-    to jwt_decoder functions. During normal app startup, auth.py imports from
-    jwt_decoder first, so this fallback ensures no circular import issues.
-    """
+    """Get auth module, falling back to jwt_decoder during early import."""
     auth = sys.modules.get("app.core.auth")
     if auth is not None:
         return auth
@@ -66,79 +46,122 @@ def _auth_error() -> HTTPException:
     )
 
 
-def _is_local_development() -> bool:
+def _setting_str(name: str, default: str = "") -> str:
     _mod = _get_auth_module()
-    environment = str(getattr(_mod.settings, "ENVIRONMENT", "development")).lower()
+    raw = getattr(_mod.settings, name, default)
+    if not isinstance(raw, str):
+        return default
+    return raw.strip()
+
+
+def _setting_str_list(name: str) -> set[str]:
+    _mod = _get_auth_module()
+    raw = getattr(_mod.settings, name, [])
+    if not isinstance(raw, (list, tuple, set)):
+        return set()
+    values: set[str] = set()
+    for item in raw:
+        if isinstance(item, str):
+            normalized = item.strip().lower()
+            if normalized:
+                values.add(normalized)
+    return values
+
+
+def _is_local_development() -> bool:
+    environment = _setting_str("ENVIRONMENT", "development").lower()
     return environment == "development"
 
 
 def _allow_dev_issuer_fallback() -> bool:
-    _mod = _get_auth_module()
     if not _is_local_development():
         return False
+    _mod = _get_auth_module()
     return getattr(_mod.settings, "ALLOW_DEV_ISSUER_FALLBACK", False) is True
+
+
+def _is_hs256_allowed() -> bool:
+    if not _is_local_development():
+        return False
+    _mod = _get_auth_module()
+    return getattr(_mod.settings, "LEGACY_HS256_ENABLED", False) is True
 
 
 def _is_allowed_jwks_host(hostname: str | None) -> bool:
     if not hostname:
         return False
-    return hostname.endswith(".supabase.co") or hostname in {
-        "localhost",
-        "127.0.0.1",
-        "::1",
-    }
+    host = hostname.lower()
+    if host.endswith(".supabase.co"):
+        return True
+    if host in {"localhost", "127.0.0.1", "::1"}:
+        return True
+    allowed_custom_hosts = _setting_str_list("AUTH_ALLOWED_JWKS_HOSTS")
+    return host in allowed_custom_hosts
 
 
 def _jwks_url_from_base(base_url: str) -> str | None:
-    """Derive the JWKS URL from a Supabase base URL."""
-    parsed = urlparse(base_url)
+    """Derive a JWKS URL from a base URL (Supabase or Keycloak-compatible)."""
+    if not isinstance(base_url, str):
+        return None
+    parsed = urlparse(base_url.strip())
     if parsed.scheme not in {"http", "https"}:
         return None
     if not _is_allowed_jwks_host(parsed.hostname):
         return None
 
     normalized_base = f"{parsed.scheme}://{parsed.netloc}"
-    base_path = parsed.path.rstrip("/")
+    path = parsed.path.rstrip("/")
 
-    if not base_path:
+    # Supabase base URL.
+    if not path:
         return f"{normalized_base}/auth/v1/.well-known/jwks.json"
+    if path.endswith("/auth/v1"):
+        return f"{normalized_base}{path}/.well-known/jwks.json"
 
-    if base_path.endswith("/auth/v1"):
-        return f"{normalized_base}{base_path}/.well-known/jwks.json"
+    # Keycloak endpoints.
+    if path.endswith("/protocol/openid-connect"):
+        return f"{normalized_base}{path}/certs"
+    if "/realms/" in path:
+        return f"{normalized_base}{path}/protocol/openid-connect/certs"
 
     return None
 
 
 def _jwks_url_from_issuer(issuer: str) -> str | None:
-    """Derive the JWKS URL from a JWT issuer claim."""
-    parsed = urlparse(issuer)
-    if parsed.scheme not in {"http", "https"}:
-        return None
-    if not _is_allowed_jwks_host(parsed.hostname):
-        return None
-    issuer_path = parsed.path.rstrip("/")
-    if not issuer_path.endswith("/auth/v1"):
-        return None
-    return f"{parsed.scheme}://{parsed.netloc}{issuer_path}/.well-known/jwks.json"
+    return _jwks_url_from_base(issuer)
 
 
 def _resolve_jwks_url(token: str) -> str:
-    """Resolve the JWKS URL from config or token issuer (dev fallback)."""
+    """Resolve JWKS URL from explicit config, legacy config, or dev issuer fallback."""
     _mod = _get_auth_module()
-    configured_url = _mod.settings.SUPABASE_URL.strip()
-    if configured_url not in _PLACEHOLDER_SUPABASE_URLS:
-        jwks_url = _jwks_url_from_base(configured_url)
-        if not jwks_url:
+
+    custom_jwks_url = _setting_str("AUTH_JWKS_URL")
+    if custom_jwks_url:
+        parsed_custom = urlparse(custom_jwks_url)
+        if parsed_custom.scheme not in {"http", "https"}:
             raise _auth_error()
-        return jwks_url
+        if not _is_allowed_jwks_host(parsed_custom.hostname):
+            raise _auth_error()
+        return custom_jwks_url
+
+    configured_issuer = _setting_str("AUTH_ISSUER_URL")
+    if configured_issuer:
+        issuer_jwks_url = _jwks_url_from_issuer(configured_issuer)
+        if not issuer_jwks_url:
+            raise _auth_error()
+        return issuer_jwks_url
+
+    configured_supabase_url = _setting_str("SUPABASE_URL")
+    if configured_supabase_url not in _PLACEHOLDER_SUPABASE_URLS:
+        legacy_jwks_url = _jwks_url_from_base(configured_supabase_url)
+        if not legacy_jwks_url:
+            raise _auth_error()
+        return legacy_jwks_url
 
     if not _allow_dev_issuer_fallback():
         raise _auth_error()
 
-    # Dev fallback: extract issuer from unverified claims.
-    # This is safe because we verify the token signature against
-    # the JWKS endpoint we resolve — an attacker cannot redirect us
-    # to a non-allowlisted host.
+    # Dev fallback: derive issuer from unverified claims, then constrain host.
     try:
         unverified = _mod.jwt.decode(token, options={"verify_signature": False})
     except InvalidTokenError as e:
@@ -154,40 +177,31 @@ def _resolve_jwks_url(token: str) -> str:
     return jwks_url
 
 
-def _get_jwk_client(jwks_url: str) -> PyJWKClient:  # pragma: no cover
-    """Get or create a PyJWKClient for the given JWKS URL.
+def _resolve_audience() -> str:
+    audience = _setting_str("AUTH_AUDIENCE", "authenticated")
+    if not audience:
+        raise _auth_error()
+    return audience
 
-    PyJWKClient handles caching and key rotation internally.
-    The lifespan parameter controls how long fetched keys are cached (5 min).
-    """
+
+def _resolve_issuer() -> str | None:
+    issuer = _setting_str("AUTH_ISSUER_URL")
+    return issuer or None
+
+
+def _get_jwk_client(jwks_url: str) -> PyJWKClient:  # pragma: no cover
+    """Get or create a cached PyJWKClient for a JWKS URL."""
     if jwks_url not in _jwk_clients:
         _jwk_clients[jwks_url] = PyJWKClient(
             jwks_url,
             cache_jwk_set=True,
-            lifespan=300,  # Cache JWKS for 5 minutes
+            lifespan=300,
         )
     return _jwk_clients[jwks_url]
 
 
-def _is_hs256_allowed() -> bool:
-    """Check if legacy HS256 is allowed (dev transition only).
-
-    HS256 is only allowed in local development when explicitly enabled.
-    """
-    _mod = _get_auth_module()
-    if not _is_local_development():
-        return False
-    return getattr(_mod.settings, "LEGACY_HS256_ENABLED", False) is True
-
-
 def decode_token(token: str) -> dict[str, Any]:
-    """Decode and verify a JWT token.
-
-    Algorithm selection:
-    - "none" is ALWAYS rejected (PyJWT default when algorithms= is specified).
-    - HS256 is only accepted when _is_hs256_allowed() returns True.
-    - RS256, ES256, EdDSA use JWKS-based verification with kid resolution.
-    """
+    """Decode and verify a JWT token."""
     _mod = _get_auth_module()
 
     try:
@@ -203,34 +217,30 @@ def decode_token(token: str) -> dict[str, Any]:
 
     logger.debug("jwt_header", alg=algorithm, kid=header.get("kid"))
 
-    # Block "none" algorithm explicitly (defense in depth)
     if algorithm.lower() == "none":
         logger.warning("jwt_none_algorithm_rejected")
         raise _auth_error()
 
-    # ── HS256 (legacy, dev only) ─────────────────────
+    # Legacy HS256 path (dev-only, explicitly gated).
     if algorithm == "HS256":
         if not _is_hs256_allowed():
-            logger.warning("jwt_hs256_rejected_in_production")
+            logger.warning("jwt_hs256_rejected")
             raise _auth_error()
-
         try:
             decoded = _mod.jwt.decode(
                 token,
-                _mod.settings.SUPABASE_JWT_SECRET,
+                _setting_str("SUPABASE_JWT_SECRET"),
                 algorithms=["HS256"],
-                audience="authenticated",
+                audience=_resolve_audience(),
             )
         except InvalidTokenError as e:
             logger.warning("jwt_decode_failed_hs256", error=str(e))
             raise _auth_error() from e
-
         if not isinstance(decoded, dict):
             logger.warning("jwt_payload_not_dict_hs256")
             raise _auth_error()
         return decoded
 
-    # ── Asymmetric algorithms (RS256, ES256, EdDSA) ──
     if algorithm not in _ALLOWED_ASYMMETRIC_ALGORITHMS:
         logger.warning("jwt_unsupported_algorithm", alg=algorithm)
         raise _auth_error()
@@ -241,7 +251,7 @@ def decode_token(token: str) -> dict[str, Any]:
         raise _auth_error()
 
     jwks_url = _resolve_jwks_url(token)
-    client = _mod._get_jwk_client(jwks_url)  # noqa: SLF001 — access via auth module for test patchability
+    client = _mod._get_jwk_client(jwks_url)  # noqa: SLF001
 
     try:
         signing_key = client.get_signing_key(kid)
@@ -256,12 +266,14 @@ def decode_token(token: str) -> dict[str, Any]:
         raise _auth_error() from e
 
     try:
-        decoded = _mod.jwt.decode(
-            token,
-            signing_key.key,
-            algorithms=[algorithm],
-            audience="authenticated",
-        )
+        decode_kwargs: dict[str, Any] = {
+            "algorithms": [algorithm],
+            "audience": _resolve_audience(),
+        }
+        issuer = _resolve_issuer()
+        if issuer:
+            decode_kwargs["issuer"] = issuer
+        decoded = _mod.jwt.decode(token, signing_key.key, **decode_kwargs)
     except InvalidTokenError as e:
         logger.warning(
             "jwt_decode_failed_asymmetric",

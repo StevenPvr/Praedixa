@@ -1,5 +1,7 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -30,21 +32,26 @@ describe("Footer", () => {
   it("renders brand and CTA", () => {
     render(<Footer {...defaultProps} />);
     expect(screen.getByText("Praedixa")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Prenez l'?avantage avant la standardisation du marché/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(fr.footer.ctaBanner.heading)).toBeInTheDocument();
 
-    const ctaLink = screen.getByText(/Candidater à la cohorte/i).closest("a");
+    const ctaHeading = screen.getByRole("heading", {
+      name: fr.footer.ctaBanner.heading,
+    });
+    const ctaBanner = ctaHeading.parentElement;
+    expect(ctaBanner).not.toBeNull();
+    const ctaLink = within(ctaBanner as HTMLElement).getByRole("link", {
+      name: fr.footer.ctaBanner.cta,
+    });
     expect(ctaLink).toHaveAttribute("href", "/fr/devenir-pilote");
   });
 
   it("renders navigation and legal links", () => {
     render(<Footer {...defaultProps} />);
 
-    expect(screen.getByText("Solution")).toBeInTheDocument();
+    expect(screen.getByText(fr.nav.method)).toBeInTheDocument();
     expect(screen.getAllByText("Sécurité").length).toBeGreaterThan(0);
-    expect(screen.getByText("Offre pilote")).toBeInTheDocument();
-    expect(screen.getByText("FAQ")).toBeInTheDocument();
+    expect(screen.getByText(fr.pilot.kicker)).toBeInTheDocument();
+    expect(screen.getByText(fr.nav.faq)).toBeInTheDocument();
 
     expect(screen.getByText("Mentions légales")).toBeInTheDocument();
     expect(screen.getByText("Confidentialité")).toBeInTheDocument();
@@ -65,6 +72,6 @@ describe("Footer", () => {
     expect(
       screen.getByText(new RegExp(`©\\s*${currentYear}\\s*Praedixa`)),
     ).toBeInTheDocument();
-    expect(screen.getByText("Conçu en France")).toBeInTheDocument();
+    expect(screen.getByText(fr.footer.copyright)).toBeInTheDocument();
   });
 });

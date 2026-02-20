@@ -27,8 +27,50 @@ export interface Dictionary {
     bullets: { metric: string; text: string }[];
     ctaPrimary: string;
     ctaSecondary: string;
+    previewTitle: string;
     ctaMeta: string;
     trustBadges: string[];
+  };
+
+  preview: {
+    kicker: string;
+    heading: string;
+    subheading: string;
+    overlayTitle: string;
+    overlayBody: string;
+    overlayCta: string;
+    overlayBackCta: string;
+    loadingLabel: string;
+    liveBadge: string;
+  };
+
+  demo: {
+    title: string;
+    subtitle: string;
+    mockBanner: string;
+    backToLanding: string;
+    screenAriaLabel: string;
+    updatedAtLabel: string;
+    loading: string;
+    empty: string;
+    error: string;
+    retry: string;
+    openAction: string;
+    nav: {
+      dashboard: string;
+      forecasts: string;
+      actions: string;
+      datasets: string;
+      settings: string;
+    };
+    sections: {
+      kpis: string;
+      alerts: string;
+      forecastWindow: string;
+      decisions: string;
+      datasetsHealth: string;
+      governance: string;
+    };
   };
 
   problem: {
@@ -121,10 +163,13 @@ export interface Dictionary {
     kicker: string;
     heading: string;
     subheading: string;
+    statusLabels: string[];
     included: { title: string; items: string[] };
     excluded: { title: string; items: string[] };
     kpis: { title: string; items: string[] };
     governance: { title: string; items: string[] };
+    selection: { title: string; items: string[] };
+    upcoming: { title: string; description: string };
     urgency: string;
     ctaPrimary: string;
     ctaMeta: string;

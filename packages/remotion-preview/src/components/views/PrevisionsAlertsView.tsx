@@ -70,7 +70,7 @@ export const PrevisionsAlertsView: React.FC = () => {
                   minWidth: 180,
                   borderRadius: 8,
                   border: `1px solid ${colors.border}`,
-                  backgroundColor: "oklch(0.975 0.005 85 / 0.5)",
+                  backgroundColor: "oklch(0.97 0.05 255 / 0.58)",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 7,
@@ -177,7 +177,7 @@ export const PrevisionsAlertsView: React.FC = () => {
                 style={{
                   borderRadius: 10,
                   border: `1px solid ${colors.border}`,
-                  backgroundColor: "oklch(0.96 0.03 25 / 0.45)",
+                  backgroundColor: "oklch(0.98 0.03 90 / 0.45)",
                   padding: "10px 12px",
                 }}
               >

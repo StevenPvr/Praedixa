@@ -40,6 +40,7 @@ export const EVENTS = {
   CTA_CLICK_STICKY_MOBILE: "cta_click_sticky_mobile",
   CTA_CLICK_NAV: "cta_click_nav",
   CTA_CLICK_PILOT_SECTION: "cta_click_pilot_section",
+  CTA_CLICK_PREVIEW_DEMO: "cta_click_preview_demo",
   CTA_CLICK_FAQ_SECTION: "cta_click_faq_section",
   CTA_CLICK_CONTACT_PRIMARY: "cta_click_contact_primary",
   CTA_CLICK_CONTACT_EMAIL: "cta_click_contact_email",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { FileText, AlertTriangle, CheckCircle2, Target } from "lucide-react";
 import type { ProofPack, CoverageAlert } from "@praedixa/shared-types";
 import { TabBar, type Tab } from "@/components/ui/tab-bar";
@@ -16,6 +16,7 @@ import { CoutsTab } from "@/components/rapports/couts-tab";
 import { ProofTab } from "@/components/rapports/proof-tab";
 import { toPercent, type ForecastRunSummary } from "@/lib/rapports-helpers";
 import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
+import { useSiteScope } from "@/lib/site-scope";
 
 const REPORT_TABS: Tab[] = [
   { id: "synthese", label: "Bilan de la semaine" },
@@ -25,14 +26,25 @@ const REPORT_TABS: Tab[] = [
 ];
 
 export default function RapportsPage() {
+  const { appendSiteParam } = useSiteScope();
   const [activeTab, setActiveTab] = useState("synthese");
 
-  const proofsQuery = useApiGet<ProofPack[]>(
-    "/api/v1/live/proof?page=1&page_size=200",
-    {
-      pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
-    },
+  const proofsUrl = useMemo(
+    () => appendSiteParam("/api/v1/live/proof?page=1&page_size=200"),
+    [appendSiteParam],
   );
+  const alertsUrl = useMemo(
+    () => appendSiteParam("/api/v1/live/coverage-alerts?page_size=200"),
+    [appendSiteParam],
+  );
+  const forecastsUrl = useMemo(
+    () => appendSiteParam("/api/v1/live/forecasts?status=completed"),
+    [appendSiteParam],
+  );
+
+  const proofsQuery = useApiGet<ProofPack[]>(proofsUrl, {
+    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
+  });
   const {
     data: proofs,
     loading: proofsLoading,
@@ -45,7 +57,7 @@ export default function RapportsPage() {
     loading: alertsLoading,
     error: alertsError,
     refetch: refetchAlerts,
-  } = useApiGet<CoverageAlert[]>("/api/v1/live/coverage-alerts?page_size=200", {
+  } = useApiGet<CoverageAlert[]>(alertsUrl, {
     pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
   });
 
@@ -54,12 +66,9 @@ export default function RapportsPage() {
     loading: forecastsLoading,
     error: forecastsError,
     refetch: refetchForecastRuns,
-  } = useApiGet<ForecastRunSummary[]>(
-    "/api/v1/live/forecasts?status=completed",
-    {
-      pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
-    },
-  );
+  } = useApiGet<ForecastRunSummary[]>(forecastsUrl, {
+    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
+  });
 
   const openAlerts = (coverageAlerts ?? []).filter(
     (alert) => alert.status === "open",

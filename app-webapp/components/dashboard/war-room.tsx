@@ -25,6 +25,7 @@ import {
   getSeverityBadgeVariant,
 } from "@/lib/formatters";
 import { useApiGet } from "@/hooks/use-api";
+import { useSiteScope } from "@/lib/site-scope";
 import { cn } from "@praedixa/ui";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
@@ -39,18 +40,33 @@ import { ForecastTimelineChart } from "@/components/dashboard/forecast-timeline-
 import { ScenarioComparisonChart } from "@/components/dashboard/scenario-comparison-chart";
 
 export function WarRoomDashboard() {
-  const summaryQuery = useApiGet<DashboardSummary>(
-    "/api/v1/live/dashboard/summary",
-    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
+  const { appendSiteParam } = useSiteScope();
+  const summaryUrl = useMemo(
+    () => appendSiteParam("/api/v1/live/dashboard/summary"),
+    [appendSiteParam],
   );
-  const alertsQuery = useApiGet<CoverageAlert[]>(
-    "/api/v1/live/coverage-alerts?status=open&page_size=200",
-    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
+  const alertsUrl = useMemo(
+    () =>
+      appendSiteParam("/api/v1/live/coverage-alerts?status=open&page_size=200"),
+    [appendSiteParam],
   );
-  const queueQuery = useApiGet<DecisionQueueItem[]>(
-    "/api/v1/live/coverage-alerts/queue?status=open&limit=50",
-    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
+  const queueUrl = useMemo(
+    () =>
+      appendSiteParam(
+        "/api/v1/live/coverage-alerts/queue?status=open&limit=50",
+      ),
+    [appendSiteParam],
   );
+
+  const summaryQuery = useApiGet<DashboardSummary>(summaryUrl, {
+    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
+  });
+  const alertsQuery = useApiGet<CoverageAlert[]>(alertsUrl, {
+    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
+  });
+  const queueQuery = useApiGet<DecisionQueueItem[]>(queueUrl, {
+    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
+  });
 
   const summary = summaryQuery.data;
   const alerts = useMemo(

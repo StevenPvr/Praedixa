@@ -13,7 +13,7 @@ interface ConversationListProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  open: "bg-green-100 text-green-700",
+  open: "bg-success-light text-success-text",
   resolved: "bg-border text-ink-secondary",
   archived: "bg-border text-ink-secondary",
 };
@@ -48,7 +48,7 @@ export function ConversationList({
         <h2 className="text-heading-sm text-ink">Conversations</h2>
         <button
           onClick={onNewConversation}
-          className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white shadow-raised transition-all duration-fast hover:brightness-110 hover:shadow-floating focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white shadow-raised transition-all duration-fast hover:bg-primary-600 hover:shadow-floating focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           aria-label="Nouvelle conversation"
         >
           <Plus className="h-4 w-4" />

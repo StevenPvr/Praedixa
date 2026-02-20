@@ -38,7 +38,7 @@ function Toggle({
           width: 44,
           height: 24,
           borderRadius: 999,
-          backgroundColor: enabled ? colors.primary : "oklch(0.90 0.006 70)",
+          backgroundColor: enabled ? colors.primary : colors.borderSubtle,
           position: "relative",
         }}
       >

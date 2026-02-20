@@ -82,8 +82,8 @@ async def invite_user(
         email=email.lower(),
         role=role,
         status=UserStatus.PENDING,
-        # supabase_user_id will be set when user signs up via Supabase
-        supabase_user_id=f"pending-{uuid.uuid4()}",
+        # auth_user_id will be replaced at first successful IdP sign-in.
+        auth_user_id=f"pending-{uuid.uuid4()}",
         site_id=site_id,
     )
     session.add(user)

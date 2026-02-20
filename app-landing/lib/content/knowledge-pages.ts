@@ -13,6 +13,7 @@ export type KnowledgePageKey =
   | "bofuLogistics"
   | "bofuTransport"
   | "bofuRetail"
+  | "bofuQsr"
   | "clusterCost"
   | "clusterForecast"
   | "clusterPlaybook"
@@ -73,7 +74,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   security: {
     key: "security",
@@ -98,7 +99,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         bullets: [
           "Aucune prédiction individuelle",
           "Exports CSV/Excel sans connecteur imposé",
-          "DPA et sous-traitants communiqués sur demande",
+          "Documentation contractuelle et sous-traitants communiqués sur demande",
         ],
       },
       {
@@ -113,7 +114,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Ressources opérationnelles", key: "resources" },
       { label: "Protocole pilote", key: "pillarImpact" },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   resources: {
     key: "resources",
@@ -138,7 +139,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       {
         title: "Pages secteur",
         paragraphs: [
-          "Les pages BOFU traduisent la méthode Praedixa dans des contextes logistique, transport et distribution retail.",
+          "Les pages BOFU traduisent la méthode Praedixa dans des contextes logistique, transport, distribution retail et restauration rapide.",
         ],
       },
     ],
@@ -155,8 +156,9 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Praedixa pour la logistique", key: "bofuLogistics" },
       { label: "Praedixa pour le transport", key: "bofuTransport" },
       { label: "Praedixa pour la distribution retail", key: "bofuRetail" },
+      { label: "Praedixa pour la restauration rapide", key: "bofuQsr" },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   pillarCapacity: {
     key: "pillarCapacity",
@@ -196,7 +198,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Prévision charge/capacité", key: "clusterForecast" },
       { label: "Playbook options de renfort", key: "clusterPlaybook" },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   pillarLogistics: {
     key: "pillarLogistics",
@@ -237,7 +239,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         key: "clusterWarehousePlanning",
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   pillarAbsence: {
     key: "pillarAbsence",
@@ -260,7 +262,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   pillarPenalties: {
     key: "pillarPenalties",
@@ -284,7 +286,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   pillarImpact: {
     key: "pillarImpact",
@@ -307,7 +309,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   bofuLogistics: {
     key: "bofuLogistics",
@@ -336,7 +338,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   bofuTransport: {
     key: "bofuTransport",
@@ -359,7 +361,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   bofuRetail: {
     key: "bofuRetail",
@@ -382,7 +384,36 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
+  },
+  bofuQsr: {
+    key: "bofuQsr",
+    kicker: "Solutions secteur",
+    title: "Praedixa pour la restauration rapide",
+    description:
+      "Anticiper les tensions d'effectifs et sécuriser la continuité de service sur des réseaux de restauration rapide multi-sites.",
+    lead: "Praedixa aide les équipes ops et finance à prioriser les zones sous tension avant la rupture terrain.",
+    sections: [
+      {
+        title: "Enjeux quotidiens",
+        paragraphs: [
+          "Pics de fréquentation, absences de dernière minute, arbitrages entre cuisine, salle et livraison.",
+        ],
+      },
+      {
+        title: "Approche Praedixa",
+        paragraphs: [
+          "Prévision d'effectifs à court horizon, options de renfort/réaffectation et décisions tracées en gouvernance.",
+        ],
+      },
+      {
+        title: "Point de départ recommandé",
+        paragraphs: [
+          "Un pilote ciblé sur la prévision d'effectifs par créneau, site et niveau de service.",
+        ],
+      },
+    ],
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   clusterCost: {
     key: "clusterCost",
@@ -405,7 +436,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   clusterForecast: {
     key: "clusterForecast",
@@ -428,7 +459,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   clusterPlaybook: {
     key: "clusterPlaybook",
@@ -451,7 +482,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   clusterRms: {
     key: "clusterRms",
@@ -474,7 +505,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   clusterWarehouseForecast: {
     key: "clusterWarehouseForecast",
@@ -497,7 +528,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
   clusterWarehousePlanning: {
     key: "clusterWarehousePlanning",
@@ -520,7 +551,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote",
+    ctaLabel: "Demander un pilote prévision effectifs",
   },
 };
 
@@ -555,7 +586,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   security: {
     key: "security",
@@ -580,7 +611,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         bullets: [
           "No individual predictions",
           "CSV/Excel exports with no mandatory connector",
-          "DPA and subprocessors shared on request",
+          "Contractual documentation and primary subprocessors shared on request",
         ],
       },
       {
@@ -595,7 +626,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Operational resources", key: "resources" },
       { label: "Operational impact proof", key: "pillarImpact" },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   resources: {
     key: "resources",
@@ -620,7 +651,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       {
         title: "Industry pages",
         paragraphs: [
-          "BOFU pages translate the Praedixa method for logistics, transport, and retail distribution contexts.",
+          "BOFU pages translate the Praedixa method for logistics, transport, retail distribution, and quick-service restaurant contexts.",
         ],
       },
     ],
@@ -634,8 +665,12 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Praedixa for logistics", key: "bofuLogistics" },
       { label: "Praedixa for transport", key: "bofuTransport" },
       { label: "Praedixa for retail distribution", key: "bofuRetail" },
+      {
+        label: "Praedixa for quick-service restaurants",
+        key: "bofuQsr",
+      },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   pillarCapacity: {
     key: "pillarCapacity",
@@ -675,7 +710,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Workload and capacity forecasting", key: "clusterForecast" },
       { label: "Staffing options playbook", key: "clusterPlaybook" },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   pillarLogistics: {
     key: "pillarLogistics",
@@ -710,7 +745,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Forecast warehouse workload", key: "clusterWarehouseForecast" },
       { label: "Warehouse resource planning", key: "clusterWarehousePlanning" },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   pillarAbsence: {
     key: "pillarAbsence",
@@ -733,7 +768,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   pillarPenalties: {
     key: "pillarPenalties",
@@ -757,7 +792,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   pillarImpact: {
     key: "pillarImpact",
@@ -780,7 +815,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   bofuLogistics: {
     key: "bofuLogistics",
@@ -807,7 +842,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   bofuTransport: {
     key: "bofuTransport",
@@ -830,7 +865,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   bofuRetail: {
     key: "bofuRetail",
@@ -853,7 +888,36 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
+  },
+  bofuQsr: {
+    key: "bofuQsr",
+    kicker: "Industry solution",
+    title: "Praedixa for quick-service restaurants",
+    description:
+      "Anticipate staffing tensions and protect service continuity in multi-site quick-service restaurant networks.",
+    lead: "Praedixa helps operations and finance teams prioritize exposed zones before service quality drops.",
+    sections: [
+      {
+        title: "Daily pressure points",
+        paragraphs: [
+          "Demand peaks, last-minute absences, and staffing trade-offs between kitchen, front-of-house, and delivery.",
+        ],
+      },
+      {
+        title: "Praedixa approach",
+        paragraphs: [
+          "Short-horizon workforce forecasting, comparable staffing options, and traceable decisions for governance.",
+        ],
+      },
+      {
+        title: "Recommended starting point",
+        paragraphs: [
+          "A focused pilot on workforce forecasting by shift, site, and service level.",
+        ],
+      },
+    ],
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   clusterCost: {
     key: "clusterCost",
@@ -876,7 +940,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   clusterForecast: {
     key: "clusterForecast",
@@ -899,7 +963,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   clusterPlaybook: {
     key: "clusterPlaybook",
@@ -922,7 +986,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   clusterRms: {
     key: "clusterRms",
@@ -945,7 +1009,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   clusterWarehouseForecast: {
     key: "clusterWarehouseForecast",
@@ -968,7 +1032,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
   clusterWarehousePlanning: {
     key: "clusterWarehousePlanning",
@@ -990,7 +1054,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a pilot",
+    ctaLabel: "Request a workforce forecasting pilot",
   },
 };
 

@@ -160,7 +160,7 @@ export default function ParametresPage() {
       key: "organizationId",
       label: "Organisation",
       render: (row) => (
-        <span className="font-mono text-xs text-gray-500">
+        <span className="font-mono text-xs text-ink-tertiary">
           {row.organizationId.substring(0, 8)}...
         </span>
       ),
@@ -175,15 +175,15 @@ export default function ParametresPage() {
       label: "Progression",
       render: (row) => (
         <div className="flex items-center gap-2">
-          <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-100">
+          <div className="h-2 w-24 overflow-hidden rounded-full bg-surface-sunken">
             <div
-              className="h-full rounded-full bg-amber-500 transition-all"
+              className="h-full rounded-full bg-primary transition-all"
               style={{
                 width: `${(row.currentStep / TOTAL_STEPS) * 100}%`,
               }}
             />
           </div>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-ink-tertiary">
             {row.currentStep}/{TOTAL_STEPS}
           </span>
         </div>
@@ -193,7 +193,7 @@ export default function ParametresPage() {
       key: "createdAt",
       label: "Demarre le",
       render: (row) => (
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-ink-tertiary">
           {new Date(row.createdAt).toLocaleDateString("fr-FR")}
         </span>
       ),
@@ -203,11 +203,11 @@ export default function ParametresPage() {
       label: "Termine le",
       render: (row) =>
         row.completedAt ? (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-ink-tertiary">
             {new Date(row.completedAt).toLocaleDateString("fr-FR")}
           </span>
         ) : (
-          <span className="text-sm text-gray-300">En cours</span>
+          <span className="text-sm text-ink-placeholder">En cours</span>
         ),
     },
     {
@@ -221,7 +221,7 @@ export default function ParametresPage() {
             row.status === "completed" ||
             actionLoadingId === row.id
           }
-          className="rounded border border-gray-200 px-2 py-1 text-xs text-charcoal hover:bg-gray-50 disabled:opacity-50"
+          className="rounded border border-border px-2 py-1 text-xs text-charcoal hover:bg-surface-sunken disabled:opacity-50"
         >
           {row.currentStep >= TOTAL_STEPS || row.status === "completed"
             ? "Termine"
@@ -246,42 +246,40 @@ export default function ParametresPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-2xl font-bold text-neutral-900">
-          Parametres
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="font-serif text-2xl font-bold text-ink">Parametres</h1>
+        <p className="mt-1 text-sm text-ink-tertiary">
           Onboarding et configuration systeme
         </p>
       </div>
 
       {/* Section tabs */}
-      <div className="flex gap-1 border-b border-neutral-200">
+      <div className="flex gap-1 border-b border-border-subtle">
         <button
           onClick={() => setSection("onboarding")}
           className={`relative px-4 py-2.5 text-sm transition-colors ${
             section === "onboarding"
-              ? "font-medium text-amber-600"
-              : "text-neutral-500 hover:text-neutral-700"
+              ? "font-medium text-primary"
+              : "text-ink-tertiary hover:text-ink-secondary"
           }`}
         >
           <Rocket className="mr-1.5 inline-block h-4 w-4" />
           Onboarding ({obTotal})
           {section === "onboarding" && (
-            <span className="absolute inset-x-0 bottom-0 h-0.5 bg-amber-500" />
+            <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary" />
           )}
         </button>
         <button
           onClick={() => setSection("config")}
           className={`relative px-4 py-2.5 text-sm transition-colors ${
             section === "config"
-              ? "font-medium text-amber-600"
-              : "text-neutral-500 hover:text-neutral-700"
+              ? "font-medium text-primary"
+              : "text-ink-tertiary hover:text-ink-secondary"
           }`}
         >
           <Settings className="mr-1.5 inline-block h-4 w-4" />
           Configuration
           {section === "config" && (
-            <span className="absolute inset-x-0 bottom-0 h-0.5 bg-amber-500" />
+            <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary" />
           )}
         </button>
       </div>
@@ -289,8 +287,8 @@ export default function ParametresPage() {
       {/* Onboarding section */}
       {section === "onboarding" && (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-soft">
-            <h2 className="mb-3 text-sm font-medium text-gray-500">
+          <div className="rounded-2xl border border-border-subtle bg-card p-5 shadow-soft">
+            <h2 className="mb-3 text-sm font-medium text-ink-tertiary">
               Demarrer un onboarding
             </h2>
             <div className="grid gap-3 md:grid-cols-4">
@@ -298,26 +296,26 @@ export default function ParametresPage() {
                 value={orgName}
                 onChange={(event) => setOrgName(event.target.value)}
                 placeholder="Nom organisation"
-                className="min-h-[44px] rounded-lg border border-gray-200 px-3 py-2 text-sm text-charcoal placeholder:text-gray-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="min-h-[44px] rounded-lg border border-border px-3 py-2 text-sm text-charcoal placeholder:text-ink-placeholder focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
               <input
                 value={orgSlug}
                 onChange={(event) => setOrgSlug(event.target.value)}
                 placeholder="slug"
-                className="min-h-[44px] rounded-lg border border-gray-200 px-3 py-2 text-sm text-charcoal placeholder:text-gray-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="min-h-[44px] rounded-lg border border-border px-3 py-2 text-sm text-charcoal placeholder:text-ink-placeholder focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
               <input
                 type="email"
                 value={contactEmail}
                 onChange={(event) => setContactEmail(event.target.value)}
                 placeholder="email contact"
-                className="min-h-[44px] rounded-lg border border-gray-200 px-3 py-2 text-sm text-charcoal placeholder:text-gray-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="min-h-[44px] rounded-lg border border-border px-3 py-2 text-sm text-charcoal placeholder:text-ink-placeholder focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
               <div className="flex gap-2">
                 <select
                   value={plan}
                   onChange={(event) => setPlan(event.target.value)}
-                  className="min-h-[44px] flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-charcoal focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="min-h-[44px] flex-1 rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   <option value="free">free</option>
                   <option value="starter">starter</option>
@@ -332,7 +330,7 @@ export default function ParametresPage() {
                     !orgSlug ||
                     !contactEmail
                   }
-                  className="inline-flex min-h-[44px] items-center rounded-lg bg-amber-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-600 disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-600 disabled:opacity-50"
                 >
                   Lancer
                 </button>
@@ -396,12 +394,12 @@ export default function ParametresPage() {
               </div>
 
               {allConfigured ? (
-                <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+                <div className="rounded-lg border border-success bg-success-light px-4 py-3 text-sm text-success-text">
                   Toutes les organisations ont leurs parametres de cout
                   configures.
                 </div>
               ) : (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                <div className="rounded-lg border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-700">
                   {totalOrgsWithMissing} organisation
                   {totalOrgsWithMissing > 1 ? "s" : ""} avec des parametres
                   manquants.
@@ -409,14 +407,14 @@ export default function ParametresPage() {
               )}
 
               {orgs.length > 0 && (
-                <div className="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-soft">
-                  <h2 className="mb-4 text-sm font-medium text-gray-500">
+                <div className="rounded-2xl border border-border-subtle bg-card p-5 shadow-soft">
+                  <h2 className="mb-4 text-sm font-medium text-ink-tertiary">
                     Configurations manquantes par organisation
                   </h2>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead>
-                        <tr className="border-b border-gray-100 text-xs text-gray-400">
+                        <tr className="border-b border-border-subtle text-xs text-ink-placeholder">
                           <th className="pb-2 font-medium">Organisation</th>
                           <th className="pb-2 text-right font-medium">
                             Manquants
@@ -427,7 +425,7 @@ export default function ParametresPage() {
                       <tbody className="divide-y divide-gray-50">
                         {orgs.map((org) => (
                           <tr key={org.organizationId}>
-                            <td className="py-2 font-mono text-xs text-gray-600">
+                            <td className="py-2 font-mono text-xs text-ink-secondary">
                               {org.organizationId.slice(0, 8)}...
                             </td>
                             <td className="py-2 text-right text-charcoal">
@@ -438,7 +436,7 @@ export default function ParametresPage() {
                                 {org.missingTypes.map((type) => (
                                   <span
                                     key={type}
-                                    className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-700"
+                                    className="rounded bg-primary-100 px-1.5 py-0.5 text-xs text-primary-700"
                                   >
                                     {TYPE_LABELS[type] ?? type}
                                   </span>

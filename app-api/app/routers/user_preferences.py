@@ -122,7 +122,7 @@ async def _get_org_and_user(
     user_result = await session.execute(
         select(User).where(
             User.organization_id == org_uuid,
-            User.supabase_user_id == current_user.user_id,
+            User.auth_user_id == current_user.user_id,
         )
     )
     user = user_result.scalar_one_or_none()

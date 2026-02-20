@@ -1,93 +1,147 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import {
+  ACCESS_TOKEN_COOKIE,
+  REFRESH_TOKEN_COOKIE,
+  SESSION_COOKIE,
+  clearAuthCookies,
+  getOidcEnv,
+  getTokenExp,
+  isTokenExpired,
+  refreshTokens,
+  setAuthCookies,
+  signSession,
+  userFromAccessToken,
+  verifySession,
+} from "@/lib/auth/oidc";
 
-/**
- * Admin middleware session refresh and route protection.
- *
- * Security notes:
- * - Same as webapp middleware PLUS super_admin role check.
- * - Uses getUser() (server-validated) instead of getSession() (client-cached).
- * - Unauthenticated users are redirected to /login.
- * - Authenticated non-super_admin users are redirected to /unauthorized.
- * - /login?reauth=1 remains accessible even for authenticated users.
- * - The role is read from app_metadata.role (set by Supabase admin API),
- *   which cannot be modified by the user themselves.
- */
+interface AuthState {
+  session: Awaited<ReturnType<typeof verifySession>>;
+  accessToken: string | null;
+}
+
+async function tryRefresh(
+  request: NextRequest,
+  response: NextResponse,
+): Promise<AuthState> {
+  const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
+  const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value ?? null;
+  const signedSession = request.cookies.get(SESSION_COOKIE)?.value ?? null;
+
+  let session = null;
+  try {
+    if (signedSession) {
+      const { sessionSecret } = getOidcEnv();
+      session = await verifySession(signedSession, sessionSecret);
+    }
+  } catch {
+    session = null;
+  }
+
+  const hasUsableAccessToken =
+    !!accessToken && !isTokenExpired(accessToken, 60) && !!session;
+  if (hasUsableAccessToken) {
+    return { session, accessToken };
+  }
+
+  if (!refreshToken) {
+    return { session: null, accessToken: null };
+  }
+
+  try {
+    const { issuerUrl, clientId, clientSecret, sessionSecret } = getOidcEnv();
+    const refreshed = await refreshTokens({
+      issuerUrl,
+      clientId,
+      clientSecret,
+      refreshToken,
+    });
+
+    if (!refreshed?.access_token) {
+      clearAuthCookies(response);
+      return { session: null, accessToken: null };
+    }
+
+    const user = userFromAccessToken(refreshed.access_token, clientId);
+    const accessTokenExp = getTokenExp(refreshed.access_token);
+    if (!user || !accessTokenExp || user.role !== "super_admin") {
+      clearAuthCookies(response);
+      return { session: null, accessToken: null };
+    }
+
+    const nextSession = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      organizationId: user.organizationId,
+      siteId: user.siteId,
+      accessTokenExp,
+      issuedAt: Math.floor(Date.now() / 1000),
+    };
+
+    const sessionToken = await signSession(nextSession, sessionSecret);
+    setAuthCookies(response, request, {
+      accessToken: refreshed.access_token,
+      refreshToken: refreshed.refresh_token ?? refreshToken,
+      sessionToken,
+      accessTokenMaxAge: refreshed.expires_in ?? 900,
+      refreshTokenMaxAge: refreshed.refresh_expires_in ?? 60 * 60 * 24 * 14,
+    });
+
+    return {
+      session: nextSession,
+      accessToken: refreshed.access_token,
+    };
+  } catch {
+    clearAuthCookies(response);
+    return { session: null, accessToken: null };
+  }
+}
+
+function redirectTo(
+  request: NextRequest,
+  path: string,
+  clearCookies = false,
+): NextResponse {
+  const response = NextResponse.redirect(new URL(path, request.url));
+  if (clearCookies) {
+    clearAuthCookies(response);
+  }
+  return response;
+}
 
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  const response = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(
-          cookiesToSet: {
-            name: string;
-            value: string;
-            options: CookieOptions;
-          }[],
-        ) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          );
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
-          );
-        },
-      },
-    },
-  );
+  const isLoginRoute = pathname.startsWith("/login");
+  const isAuthRoute = pathname.startsWith("/auth");
+  const isUnauthorizedRoute = pathname.startsWith("/unauthorized");
 
-  // Refresh the session — validates token with Supabase auth server.
-  let user = null;
-  try {
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
-    /* v8 ignore next 2 -- Supabase unreachable — fall through as unauthenticated */
-  } catch {}
-
-  const isLoginRoute = request.nextUrl.pathname.startsWith("/login");
-  const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
-  const isUnauthorizedRoute =
-    request.nextUrl.pathname.startsWith("/unauthorized");
-
-  // Allow public routes without auth
-  if (isUnauthorizedRoute) {
+  if (isAuthRoute || isUnauthorizedRoute) {
     return response;
   }
 
-  // Redirect unauthenticated users to login (except auth routes)
-  if (!user && !isLoginRoute && !isAuthRoute) {
-    const loginUrl = new URL("/login", request.url);
-    return NextResponse.redirect(loginUrl);
+  const authState = await tryRefresh(request, response);
+  const userRole = authState.session?.role;
+
+  if (!authState.session && !isLoginRoute) {
+    return redirectTo(request, "/login", true);
   }
 
-  // Check super_admin role for authenticated users on protected routes
-  if (user && !isLoginRoute && !isAuthRoute) {
-    const role = user.app_metadata?.role;
-    if (role !== "super_admin") {
-      const unauthorizedUrl = new URL("/unauthorized", request.url);
-      return NextResponse.redirect(unauthorizedUrl);
-    }
+  if (authState.session && !isLoginRoute && userRole !== "super_admin") {
+    return redirectTo(request, "/unauthorized", true);
   }
 
   const isForcedReauth =
-    request.nextUrl.pathname === "/login" &&
-    request.nextUrl.searchParams.get("reauth") === "1";
+    pathname === "/login" && request.nextUrl.searchParams.get("reauth") === "1";
 
-  // Redirect authenticated super_admin users away from login page
-  if (user && isLoginRoute && !isForcedReauth) {
-    const role = user.app_metadata?.role;
-    if (role === "super_admin") {
-      const homeUrl = new URL("/", request.url);
-      return NextResponse.redirect(homeUrl);
-    }
+  if (
+    authState.session &&
+    isLoginRoute &&
+    !isForcedReauth &&
+    userRole === "super_admin"
+  ) {
+    return redirectTo(request, "/");
   }
 
   return response;

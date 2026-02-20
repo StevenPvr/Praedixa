@@ -1,52 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-
-const mockSignInWithPassword = vi.fn();
-const mockGetValidAccessToken = vi.fn();
 
 let mockSearchParams = new URLSearchParams();
 
 const originalLocation = window.location;
 
-function resetMocks() {
-  mockSignInWithPassword.mockReset();
-  mockSignInWithPassword.mockResolvedValue({
-    data: { user: { id: "u1", email: "test@example.com" }, session: {} },
-    error: null,
-  });
-  mockGetValidAccessToken.mockReset();
-  mockGetValidAccessToken.mockResolvedValue("test-token");
-  mockSearchParams = new URLSearchParams();
-}
-
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    refresh: vi.fn(),
-  }),
   useSearchParams: () => mockSearchParams,
-}));
-
-vi.mock("@/lib/auth/client", () => ({
-  getSupabaseBrowserClient: () => ({
-    auth: {
-      signInWithPassword: mockSignInWithPassword,
-    },
-  }),
-  getValidAccessToken: (...args: unknown[]) => mockGetValidAccessToken(...args),
 }));
 
 import LoginPage from "../page";
 
 describe("Admin LoginPage", () => {
   beforeEach(() => {
-    resetMocks();
-    // Replace window.location with a writable mock so we can assert on href
+    mockSearchParams = new URLSearchParams();
     Object.defineProperty(window, "location", {
       configurable: true,
       writable: true,
-      value: { href: "" },
+      value: { href: "", origin: "https://admin.praedixa.com" },
     });
   });
 
@@ -59,7 +31,11 @@ describe("Admin LoginPage", () => {
 
   it("renders admin subtitle", () => {
     render(<LoginPage />);
+
     expect(screen.getByText("Espace administration")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Continuer vers la connexion" }),
+    ).toBeInTheDocument();
   });
 
   it("renders reauth banner when reauth=1", () => {
@@ -71,77 +47,59 @@ describe("Admin LoginPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("submits credentials and navigates via hard redirect", async () => {
-    const user = userEvent.setup();
+  it("renders auth error banner", () => {
+    mockSearchParams = new URLSearchParams("error=auth_callback_failed");
     render(<LoginPage />);
 
-    await user.type(screen.getByLabelText("Email"), "test@example.com");
-    await user.type(screen.getByLabelText("Mot de passe"), "password");
-    await user.click(screen.getByRole("button", { name: "Se connecter" }));
-
-    await waitFor(() => {
-      expect(mockSignInWithPassword).toHaveBeenCalledWith({
-        email: "test@example.com",
-        password: "password",
-      });
-      expect(window.location.href).toBe("/");
-    });
+    expect(
+      screen.getByText(/La connexion a echoue \(auth_callback_failed\)/),
+    ).toBeInTheDocument();
   });
 
-  it("shows auth error when signIn fails", async () => {
-    const user = userEvent.setup();
-    mockSignInWithPassword.mockResolvedValueOnce({
-      data: { user: null, session: null },
-      error: { message: "Invalid login credentials" },
-    });
-
+  it("renders explicit missing OIDC config banner", () => {
+    mockSearchParams = new URLSearchParams("error=oidc_config_missing");
     render(<LoginPage />);
 
-    await user.type(screen.getByLabelText("Email"), "bad@example.com");
-    await user.type(screen.getByLabelText("Mot de passe"), "wrong");
-    await user.click(screen.getByRole("button", { name: "Se connecter" }));
-
-    await waitFor(() => {
-      expect(screen.getByText("Invalid login credentials")).toBeInTheDocument();
-      expect(window.location.href).toBe("");
-    });
+    expect(
+      screen.getByText(/Configuration OIDC manquante en local/),
+    ).toBeInTheDocument();
   });
 
-  it("shows session error when token retrieval fails", async () => {
-    const user = userEvent.setup();
-    mockGetValidAccessToken.mockResolvedValueOnce(null);
-
+  it("renders explicit untrusted OIDC provider banner", () => {
+    mockSearchParams = new URLSearchParams("error=oidc_provider_untrusted");
     render(<LoginPage />);
 
-    await user.type(screen.getByLabelText("Email"), "test@example.com");
-    await user.type(screen.getByLabelText("Mot de passe"), "password");
-    await user.click(screen.getByRole("button", { name: "Se connecter" }));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("Session invalide. Veuillez reessayer."),
-      ).toBeInTheDocument();
-      expect(window.location.href).toBe("");
-    });
+    expect(
+      screen.getByText(/Le fournisseur OIDC est non fiable ou mal configure/),
+    ).toBeInTheDocument();
   });
 
-  it("shows generic error and resets loading when exception is thrown", async () => {
+  it("redirects to /auth/login with safe next path", async () => {
     const user = userEvent.setup();
-    mockSignInWithPassword.mockRejectedValueOnce(new Error("Network failure"));
-
+    mockSearchParams = new URLSearchParams("next=/clients");
     render(<LoginPage />);
 
-    await user.type(screen.getByLabelText("Email"), "test@example.com");
-    await user.type(screen.getByLabelText("Mot de passe"), "password");
-    await user.click(screen.getByRole("button", { name: "Se connecter" }));
+    await user.click(
+      screen.getByRole("button", { name: "Continuer vers la connexion" }),
+    );
 
-    await waitFor(() => {
-      expect(
-        screen.getByText("Erreur de connexion. Veuillez reessayer."),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Se connecter" }),
-      ).not.toBeDisabled();
-    });
+    expect(window.location.href).toBe(
+      "https://admin.praedixa.com/auth/login?next=%2Fclients",
+    );
+  });
+
+  it("sanitizes unsafe next path and forwards prompt=login when reauth", async () => {
+    const user = userEvent.setup();
+    mockSearchParams = new URLSearchParams("next=//evil.com&reauth=1");
+    render(<LoginPage />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Continuer vers la connexion" }),
+    );
+
+    const redirected = new URL(window.location.href);
+    expect(redirected.pathname).toBe("/auth/login");
+    expect(redirected.searchParams.get("next")).toBe("/");
+    expect(redirected.searchParams.get("prompt")).toBe("login");
   });
 });

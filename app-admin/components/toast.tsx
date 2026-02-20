@@ -36,9 +36,9 @@ const VARIANT_STYLES: Record<
     icon: AlertTriangle,
   },
   info: {
-    bg: "bg-blue-50",
-    border: "border-blue-500",
-    text: "text-blue-700",
+    bg: "bg-info-light",
+    border: "border-info",
+    text: "text-info-text",
     icon: Info,
   },
 };
@@ -89,7 +89,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
         className={cn(
           "flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
           style.text,
-          "hover:bg-gray-200/50",
+          "hover:bg-surface-sunken/70",
         )}
         aria-label="Fermer la notification"
       >

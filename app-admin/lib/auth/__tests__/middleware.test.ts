@@ -1,186 +1,223 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockGetUser = vi.fn();
-const mockClient = {
-  auth: {
-    getUser: mockGetUser,
-  },
-};
+const mockNext = vi.fn();
+const mockRedirect = vi.fn();
 
-let capturedCookieHandlers: {
-  getAll: () => unknown;
-  setAll: (
-    cookies: {
-      name: string;
-      value: string;
-      options: Record<string, unknown>;
-    }[],
-  ) => void;
-} | null = null;
-
-vi.mock("@supabase/ssr", () => ({
-  createServerClient: vi.fn(
-    (
-      _url: string,
-      _key: string,
-      opts: { cookies: typeof capturedCookieHandlers },
-    ) => {
-      capturedCookieHandlers = opts.cookies as typeof capturedCookieHandlers;
-      return mockClient;
-    },
-  ),
-}));
-
-function makeMockResponse() {
-  return {
-    status: 200,
-    cookies: {
-      set: vi.fn(),
-      getAll: vi.fn(() => []),
-    },
-  };
-}
-
-const mockNextResponse = makeMockResponse();
+const mockVerifySession = vi.fn();
+const mockIsTokenExpired = vi.fn();
+const mockRefreshTokens = vi.fn();
+const mockUserFromAccessToken = vi.fn();
+const mockGetTokenExp = vi.fn();
+const mockGetOidcEnv = vi.fn();
+const mockSignSession = vi.fn();
+const mockSetAuthCookies = vi.fn();
+const mockClearAuthCookies = vi.fn();
 
 vi.mock("next/server", () => ({
   NextResponse: {
-    next: vi.fn(() => mockNextResponse),
-    redirect: vi.fn((url: URL) => ({
-      status: 302,
-      redirectUrl: url.toString(),
-    })),
+    next: (...args: unknown[]) => mockNext(...args),
+    redirect: (...args: unknown[]) => mockRedirect(...args),
   },
 }));
 
-import { updateSession } from "../middleware";
-import { NextResponse } from "next/server";
+vi.mock("@/lib/auth/oidc", () => ({
+  ACCESS_TOKEN_COOKIE: "prx_admin_at",
+  REFRESH_TOKEN_COOKIE: "prx_admin_rt",
+  SESSION_COOKIE: "prx_admin_sess",
+  clearAuthCookies: (...args: unknown[]) => mockClearAuthCookies(...args),
+  getOidcEnv: (...args: unknown[]) => mockGetOidcEnv(...args),
+  getTokenExp: (...args: unknown[]) => mockGetTokenExp(...args),
+  isTokenExpired: (...args: unknown[]) => mockIsTokenExpired(...args),
+  refreshTokens: (...args: unknown[]) => mockRefreshTokens(...args),
+  setAuthCookies: (...args: unknown[]) => mockSetAuthCookies(...args),
+  signSession: (...args: unknown[]) => mockSignSession(...args),
+  userFromAccessToken: (...args: unknown[]) => mockUserFromAccessToken(...args),
+  verifySession: (...args: unknown[]) => mockVerifySession(...args),
+}));
 
-function createMockRequest(path: string, origin = "http://localhost:3001") {
-  const url = new URL(path, origin);
-  const requestCookies = new Map<string, string>();
+import { updateSession } from "../middleware";
+
+type RequestCookies = Record<string, string>;
+
+function createMockRequest(path: string, cookies: RequestCookies = {}) {
+  const url = new URL(path, "https://admin.praedixa.com");
 
   return {
     url: url.toString(),
     nextUrl: {
       pathname: url.pathname,
       searchParams: url.searchParams,
-      toString: () => url.toString(),
     },
     cookies: {
-      getAll: vi.fn(() =>
-        Array.from(requestCookies.entries()).map(([name, value]) => ({
-          name,
-          value,
-        })),
-      ),
-      set: vi.fn((name: string, value: string) => {
-        requestCookies.set(name, value);
-      }),
+      get: (name: string) => {
+        const value = cookies[name];
+        return value ? { name, value } : undefined;
+      },
     },
-  } as unknown as Parameters<typeof updateSession>[0];
+  } as Parameters<typeof updateSession>[0];
+}
+
+function createSession(role: string) {
+  return {
+    sub: "u1",
+    email: "user@praedixa.com",
+    role,
+    organizationId: "org-1",
+    siteId: "site-1",
+    accessTokenExp: Math.floor(Date.now() / 1000) + 1800,
+    issuedAt: Math.floor(Date.now() / 1000),
+  };
 }
 
 describe("updateSession (admin)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    capturedCookieHandlers = null;
-    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://test.supabase.co");
-    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-anon-key");
+
+    mockNext.mockReturnValue({
+      status: 200,
+      cookies: { set: vi.fn(), delete: vi.fn() },
+    });
+    mockRedirect.mockImplementation((url: URL) => ({
+      status: 302,
+      redirectUrl: url.toString(),
+      cookies: { set: vi.fn(), delete: vi.fn() },
+    }));
+
+    mockVerifySession.mockResolvedValue(null);
+    mockIsTokenExpired.mockReturnValue(false);
+    mockRefreshTokens.mockResolvedValue(null);
+    mockUserFromAccessToken.mockReturnValue(null);
+    mockGetTokenExp.mockReturnValue(Math.floor(Date.now() / 1000) + 1800);
+    mockGetOidcEnv.mockReturnValue({
+      issuerUrl: "https://sso.praedixa.com",
+      clientId: "admin-client",
+      clientSecret: "secret",
+      sessionSecret: "session-secret",
+    });
+    mockSignSession.mockResolvedValue("signed-session");
   });
 
-  it("allows /unauthorized route without auth", async () => {
-    mockGetUser.mockResolvedValueOnce({ data: { user: null } });
-    const req = createMockRequest("/unauthorized");
-
-    const result = await updateSession(req);
+  it("allows auth routes without auth checks", async () => {
+    const result = await updateSession(createMockRequest("/auth/callback"));
 
     expect(result.status).toBe(200);
-    expect(NextResponse.redirect).not.toHaveBeenCalled();
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 
   it("redirects unauthenticated users to /login", async () => {
-    mockGetUser.mockResolvedValueOnce({ data: { user: null } });
-    const req = createMockRequest("/dashboard");
+    const result = await updateSession(createMockRequest("/dashboard"));
 
-    const result = await updateSession(req);
-
-    expect((result as { redirectUrl: string }).redirectUrl).toContain("/login");
+    expect((result as { redirectUrl: string }).redirectUrl).toBe(
+      "https://admin.praedixa.com/login",
+    );
+    expect(mockClearAuthCookies).toHaveBeenCalled();
   });
 
-  it("redirects non-super_admin users to /unauthorized", async () => {
-    mockGetUser.mockResolvedValueOnce({
-      data: { user: { id: "u1", app_metadata: { role: "org_admin" } } },
-    });
-    const req = createMockRequest("/dashboard");
+  it("redirects non super_admin users to /unauthorized", async () => {
+    mockVerifySession.mockResolvedValue(createSession("manager"));
 
-    const result = await updateSession(req);
+    const result = await updateSession(
+      createMockRequest("/dashboard", {
+        prx_admin_at: "access-token",
+        prx_admin_sess: "session-cookie",
+      }),
+    );
 
-    expect((result as { redirectUrl: string }).redirectUrl).toContain(
-      "/unauthorized",
+    expect((result as { redirectUrl: string }).redirectUrl).toBe(
+      "https://admin.praedixa.com/unauthorized",
     );
   });
 
-  it("allows super_admin users on protected routes", async () => {
-    mockGetUser.mockResolvedValueOnce({
-      data: { user: { id: "u1", app_metadata: { role: "super_admin" } } },
-    });
-    const req = createMockRequest("/dashboard");
+  it("allows super_admin on protected routes", async () => {
+    mockVerifySession.mockResolvedValue(createSession("super_admin"));
 
-    const result = await updateSession(req);
-
-    expect(result.status).toBe(200);
-    expect(NextResponse.redirect).not.toHaveBeenCalled();
-  });
-
-  it("redirects super_admin from /login to /", async () => {
-    mockGetUser.mockResolvedValueOnce({
-      data: { user: { id: "u1", app_metadata: { role: "super_admin" } } },
-    });
-    const req = createMockRequest("/login");
-
-    const result = await updateSession(req);
-
-    const redirectUrl = (result as { redirectUrl: string }).redirectUrl;
-    expect(redirectUrl).toMatch(/\/$/);
-  });
-
-  it("does not redirect /login?reauth=1", async () => {
-    mockGetUser.mockResolvedValueOnce({
-      data: { user: { id: "u1", app_metadata: { role: "super_admin" } } },
-    });
-    const req = createMockRequest("/login?reauth=1");
-
-    const result = await updateSession(req);
+    const result = await updateSession(
+      createMockRequest("/dashboard", {
+        prx_admin_at: "access-token",
+        prx_admin_sess: "session-cookie",
+      }),
+    );
 
     expect(result.status).toBe(200);
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 
-  it("treats Supabase errors as unauthenticated", async () => {
-    mockGetUser.mockRejectedValueOnce(new Error("supabase down"));
-    const req = createMockRequest("/dashboard");
+  it("redirects authenticated super_admin away from /login", async () => {
+    mockVerifySession.mockResolvedValue(createSession("super_admin"));
 
-    const result = await updateSession(req);
+    const result = await updateSession(
+      createMockRequest("/login", {
+        prx_admin_at: "access-token",
+        prx_admin_sess: "session-cookie",
+      }),
+    );
 
-    expect((result as { redirectUrl: string }).redirectUrl).toContain("/login");
+    expect((result as { redirectUrl: string }).redirectUrl).toBe(
+      "https://admin.praedixa.com/",
+    );
   });
 
-  it("wires cookie getAll/setAll handlers", async () => {
-    mockGetUser.mockResolvedValueOnce({
-      data: { user: { id: "u1", app_metadata: { role: "super_admin" } } },
+  it("does not redirect /login when forced reauth", async () => {
+    mockVerifySession.mockResolvedValue(createSession("super_admin"));
+
+    const result = await updateSession(
+      createMockRequest("/login?reauth=1", {
+        prx_admin_at: "access-token",
+        prx_admin_sess: "session-cookie",
+      }),
+    );
+
+    expect(result.status).toBe(200);
+  });
+
+  it("uses refresh token path and updates cookies", async () => {
+    mockVerifySession.mockResolvedValue(createSession("super_admin"));
+    mockIsTokenExpired.mockReturnValue(true);
+    mockRefreshTokens.mockResolvedValue({
+      access_token: "new-access",
+      refresh_token: "new-refresh",
+      expires_in: 1200,
+      refresh_expires_in: 2400,
     });
-    const req = createMockRequest("/dashboard");
+    mockUserFromAccessToken.mockReturnValue({
+      id: "u1",
+      email: "admin@praedixa.com",
+      role: "super_admin",
+      organizationId: "org-1",
+      siteId: "site-1",
+    });
 
-    await updateSession(req);
+    const result = await updateSession(
+      createMockRequest("/dashboard", {
+        prx_admin_at: "expired-access",
+        prx_admin_rt: "refresh-token",
+        prx_admin_sess: "session-cookie",
+      }),
+    );
 
-    expect(capturedCookieHandlers).not.toBeNull();
-    capturedCookieHandlers!.getAll();
-    expect(req.cookies.getAll).toHaveBeenCalled();
+    expect(result.status).toBe(200);
+    expect(mockRefreshTokens).toHaveBeenCalled();
+    expect(mockSetAuthCookies).toHaveBeenCalled();
+  });
 
-    capturedCookieHandlers!.setAll([
-      { name: "sb-access", value: "new-token", options: { path: "/" } },
-    ]);
-    expect(req.cookies.set).toHaveBeenCalledWith("sb-access", "new-token");
-    expect(NextResponse.next).toHaveBeenCalled();
+  it("clears cookies and redirects to /login when refresh returns no access token", async () => {
+    mockVerifySession.mockResolvedValue(createSession("super_admin"));
+    mockIsTokenExpired.mockReturnValue(true);
+    mockRefreshTokens.mockResolvedValue({
+      access_token: "",
+    });
+
+    const result = await updateSession(
+      createMockRequest("/dashboard", {
+        prx_admin_at: "expired-access",
+        prx_admin_rt: "refresh-token",
+        prx_admin_sess: "session-cookie",
+      }),
+    );
+
+    expect((result as { redirectUrl: string }).redirectUrl).toBe(
+      "https://admin.praedixa.com/login",
+    );
+    expect(mockClearAuthCookies).toHaveBeenCalled();
   });
 });

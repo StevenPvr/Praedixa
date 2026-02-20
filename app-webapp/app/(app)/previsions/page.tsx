@@ -26,6 +26,7 @@ import { buildCapacitySeries } from "@/lib/capacity-chart";
 import { formatDateShort } from "@/lib/formatters";
 import { useLatestForecasts } from "@/hooks/use-latest-forecasts";
 import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
+import { useSiteScope } from "@/lib/site-scope";
 
 type Dimension = "human" | "merchandise";
 const MAX_FORECAST_DAYS = 7;
@@ -68,6 +69,7 @@ function PrevisionsContent() {
   const router = useRouter();
   const pathname = usePathname();
   const dimension = parseDimension(searchParams.get("dimension"));
+  const { selectedSiteId, appendSiteParam } = useSiteScope();
   const [selectedForecastDate, setSelectedForecastDate] = useState<
     string | null
   >(null);
@@ -92,12 +94,17 @@ function PrevisionsContent() {
     error: forecastError,
     refetchRuns,
     refetchDaily,
-  } = useLatestForecasts(dimension);
+  } = useLatestForecasts(dimension, selectedSiteId);
 
-  const alertsQuery = useApiGet<CoverageAlert[]>(
-    "/api/v1/live/coverage-alerts?status=open&page_size=200",
-    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
+  const alertsUrl = useMemo(
+    () =>
+      appendSiteParam("/api/v1/live/coverage-alerts?status=open&page_size=200"),
+    [appendSiteParam],
   );
+
+  const alertsQuery = useApiGet<CoverageAlert[]>(alertsUrl, {
+    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
+  });
   const {
     data: alerts,
     loading: alertsLoading,

@@ -3,16 +3,16 @@
 import { cn } from "@praedixa/ui";
 
 const PLAN_STYLES = {
-  free: { bg: "bg-gray-100", text: "text-gray-600", label: "Free" },
-  starter: { bg: "bg-blue-100", text: "text-blue-700", label: "Starter" },
+  free: { bg: "bg-surface-sunken", text: "text-ink-secondary", label: "Free" },
+  starter: { bg: "bg-info-light", text: "text-info-text", label: "Starter" },
   professional: {
-    bg: "bg-amber-100",
-    text: "text-amber-700",
+    bg: "bg-primary-100",
+    text: "text-primary-700",
     label: "Pro",
   },
   enterprise: {
-    bg: "bg-violet-100",
-    text: "text-violet-700",
+    bg: "bg-primary-200",
+    text: "text-primary-800",
     label: "Enterprise",
   },
 } as const;

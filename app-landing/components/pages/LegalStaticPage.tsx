@@ -12,11 +12,15 @@ export function LegalStaticPage({ locale, pageKey }: LegalStaticPageProps) {
   const content = getLegalContent(locale, pageKey);
 
   return (
-    <main className="min-h-screen bg-cream py-24">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="min-h-screen bg-cream py-24"
+    >
       <div className="mx-auto max-w-3xl px-6">
         <Link
           href={`/${locale}`}
-          className="mb-8 inline-flex items-center gap-2 text-sm text-gray-secondary transition-colors hover:text-charcoal"
+          className="mb-8 inline-flex items-center gap-2 text-sm text-ink-secondary transition-colors hover:text-charcoal"
         >
           <span aria-hidden>←</span>
           {content.backLabel}
@@ -26,7 +30,7 @@ export function LegalStaticPage({ locale, pageKey }: LegalStaticPageProps) {
           {content.title}
         </h1>
 
-        <div className="space-y-10 text-gray-secondary">
+        <div className="space-y-10 text-ink-secondary">
           {content.sections.map((section) => (
             <section key={section.title}>
               <h2 className="mb-4 text-xl font-bold text-charcoal">

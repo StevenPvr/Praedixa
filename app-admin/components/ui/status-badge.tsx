@@ -14,8 +14,9 @@ const statusBadgeVariants = cva(
           "bg-warning-50 text-warning-700 ring-1 ring-inset ring-warning-200 shadow-sm",
         danger:
           "bg-danger-50 text-danger-700 ring-1 ring-inset ring-danger-200 shadow-sm",
-        info: "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200",
-        neutral: "bg-gray-100 text-gray-600 ring-1 ring-inset ring-gray-200",
+        info: "bg-info-50 text-info-700 ring-1 ring-inset ring-info-200",
+        neutral:
+          "bg-surface-sunken text-ink-secondary ring-1 ring-inset ring-border-subtle",
       },
       size: {
         sm: "px-2 py-0.5 text-xs",
@@ -33,8 +34,8 @@ const dotColors: Record<string, string> = {
   success: "bg-success-500",
   warning: "bg-warning-500",
   danger: "bg-danger-500",
-  info: "bg-blue-500",
-  neutral: "bg-gray-400",
+  info: "bg-info-500",
+  neutral: "bg-ink-placeholder",
 };
 
 export interface StatusBadgeProps

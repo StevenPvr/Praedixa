@@ -260,14 +260,18 @@ Les tests vivent dans un dossier `__tests__/` adjacent au code source (ex: `comp
 | `webapp`  | 3001 | `testing/e2e/webapp/`  |
 | `admin`   | 3002 | `testing/e2e/admin/`   |
 
-Playwright demarre automatiquement 4 serveurs : mock Supabase (port 54321), landing, webapp, admin.
+Playwright demarre automatiquement 3 serveurs applicatifs : landing (`3000`), webapp (`3001`) et admin (`3002`).
+Les variables d'environnement OIDC de test sont injectees par projet dans `playwright.config.ts` (`AUTH_OIDC_ISSUER_URL`, `AUTH_OIDC_CLIENT_ID`, `AUTH_SESSION_SECRET`).
 
 ### Auth E2E
 
-Deux mecanismes combinees :
+Les parcours authentifies reposent sur des cookies OIDC signes (pas de login UI dans les tests proteges) :
 
-1. **Mock Supabase server** (`testing/e2e/webapp/fixtures/mock-supabase-server.mjs`) : serveur HTTP minimal repondant aux endpoints GoTrue v2
-2. **Fixture `setupAuth(page)`** : intercepte les appels Supabase et injecte le cookie de session au format `@supabase/ssr` (base64url)
+1. **Helper commun** (`testing/e2e/fixtures/oidc-auth.ts`) : genere un access token de test + un cookie de session signe (HMAC SHA-256) pour webapp/admin.
+2. **Fixture webapp** (`testing/e2e/webapp/fixtures/auth.ts`) : `setupAuth(page, { role, organizationId, siteId })` pour les scenarios client (`org_admin`, `manager`, etc.).
+3. **Fixture admin** (`testing/e2e/admin/fixtures/auth.ts`) : `setupAdminAuth(page)` pour les scenarios `super_admin`.
+
+Le fichier legacy `testing/e2e/webapp/fixtures/mock-supabase-server.mjs` n'est plus lance par Playwright par defaut.
 
 ### Couverture V8
 
@@ -361,25 +365,32 @@ import { MyComponent } from "../MyComponent";
 
 ### Test E2E Playwright
 
-Fichier dans `testing/e2e/{project}/my-feature.spec.ts`. Importer `test` depuis `./fixtures/coverage`. Appeler `setupAuth(page)` avant toute navigation protegee. Le landing n'a pas besoin d'auth.
+Fichier dans `testing/e2e/{project}/my-feature.spec.ts`. Importer `test` depuis `./fixtures/coverage`. Appeler `setupAuth(page)` (webapp) ou `setupAdminAuth(page)` (admin) avant toute navigation protegee. Le landing n'a pas besoin d'auth.
 
-## 8. Gate MVP (Go/No-Go)
+## 8. Gate officiel (Go/No-Go)
 
-Pour la cloture MVP, le gate officiel est:
+Le gate officiel est le gate local exhaustif:
 
 ```bash
-pnpm mvp:gate
+pnpm gate:exhaustive
+```
+
+Pour verification pre-push:
+
+```bash
+pnpm gate:prepush
 ```
 
 Ce gate impose:
 
-- couverture frontend `100%`
-- couverture backend `100%`
-- checks qualite + securite
-- suites E2E completes `landing`, `webapp`, `admin`
+- checks qualite + securite exhaustifs
+- tests unitaires/integration/backend
+- e2e critiques frontends
+- audits SAST/SCA/IaC/secrets
+- perf/a11y/schema markup
 
 Le runbook detaille (ordre, preuves, decision Go/No-Go) est dans:
-`docs/runbooks/mvp-go-live-readiness.md`.
+`docs/runbooks/mvp-go-live-readiness.md` et `docs/runbooks/local-gate-exhaustive.md`.
 
 ---
 

@@ -35,6 +35,16 @@ describe("sitemap()", () => {
     expect(urls).toContain("https://www.praedixa.com/en/security");
   });
 
+  it("should include quick-service restaurant sector pages in both locales", () => {
+    const urls = result.map((entry) => entry.url);
+    expect(urls).toContain(
+      "https://www.praedixa.com/fr/praedixa-restauration-rapide",
+    );
+    expect(urls).toContain(
+      "https://www.praedixa.com/en/praedixa-quick-service-restaurants",
+    );
+  });
+
   it("should have lastModified dates on every entry", () => {
     for (const entry of result) {
       expect(entry.lastModified).toBeInstanceOf(Date);

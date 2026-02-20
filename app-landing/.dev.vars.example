@@ -1,3 +1,7 @@
 NEXTJS_ENV=development
 RESEND_API_KEY=your-resend-api-key
+RESEND_FROM_EMAIL=Praedixa <noreply@praedixa.com>
+RESEND_REPLY_TO_EMAIL=hello@praedixa.com
+CONTACT_API_BASE_URL=http://localhost:8000
+CONTACT_API_INGEST_TOKEN=change-me-long-random-token
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX

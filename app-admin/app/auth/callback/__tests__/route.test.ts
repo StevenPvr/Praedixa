@@ -1,53 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// ---------------------------------------------------------------------------
-// Mocks
-// ---------------------------------------------------------------------------
+const mockRedirect = vi.fn();
 
-const mockExchangeCodeForSession = vi.fn();
-const mockCookieGetAll = vi.fn(() => [
-  { name: "sb-token", value: "test-cookie-value" },
-]);
-const mockCookieSet = vi.fn();
-
-let capturedCookieOpts: {
-  getAll: () => unknown[];
-  setAll: (
-    cookies: { name: string; value: string; options: unknown }[],
-  ) => void;
-} | null = null;
-
-vi.mock("@supabase/ssr", () => ({
-  createServerClient: vi.fn(
-    (
-      _url: string,
-      _key: string,
-      opts: { cookies: typeof capturedCookieOpts },
-    ) => {
-      capturedCookieOpts = opts.cookies;
-      return {
-        auth: {
-          exchangeCodeForSession: mockExchangeCodeForSession,
-        },
-      };
-    },
-  ),
-}));
-
-vi.mock("next/headers", () => ({
-  cookies: vi.fn(() =>
-    Promise.resolve({
-      getAll: mockCookieGetAll,
-      set: mockCookieSet,
-    }),
-  ),
-}));
-
-// Mock NextResponse.redirect to capture redirect URL
-const mockRedirect = vi.fn((url: string | URL) => ({
-  status: 302,
-  redirectUrl: typeof url === "string" ? url : url.toString(),
-}));
+const mockClearAuthCookies = vi.fn();
+const mockExchangeCodeForTokens = vi.fn();
+const mockGetOidcEnv = vi.fn();
+const mockGetTokenExp = vi.fn();
+const mockSanitizeNextPath = vi.fn();
+const mockSetAuthCookies = vi.fn();
+const mockSignSession = vi.fn();
+const mockUserFromAccessToken = vi.fn();
 
 vi.mock("next/server", () => ({
   NextResponse: {
@@ -55,150 +17,187 @@ vi.mock("next/server", () => ({
   },
 }));
 
+vi.mock("@/lib/auth/oidc", () => ({
+  LOGIN_NEXT_COOKIE: "prx_admin_next",
+  LOGIN_STATE_COOKIE: "prx_admin_state",
+  LOGIN_VERIFIER_COOKIE: "prx_admin_verifier",
+  clearAuthCookies: (...args: unknown[]) => mockClearAuthCookies(...args),
+  exchangeCodeForTokens: (...args: unknown[]) =>
+    mockExchangeCodeForTokens(...args),
+  getOidcEnv: (...args: unknown[]) => mockGetOidcEnv(...args),
+  getTokenExp: (...args: unknown[]) => mockGetTokenExp(...args),
+  sanitizeNextPath: (...args: unknown[]) => mockSanitizeNextPath(...args),
+  setAuthCookies: (...args: unknown[]) => mockSetAuthCookies(...args),
+  signSession: (...args: unknown[]) => mockSignSession(...args),
+  userFromAccessToken: (...args: unknown[]) => mockUserFromAccessToken(...args),
+}));
+
 import { GET } from "../route";
-import type { NextRequest } from "next/server";
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function createMockRequest(
-  searchParams: Record<string, string>,
-  origin = "http://localhost:3001",
-): NextRequest {
-  const params = new URLSearchParams(searchParams);
-  const url = `${origin}/auth/callback?${params.toString()}`;
-  return { url } as NextRequest;
+function createRedirectResponse(url: string | URL) {
+  return {
+    status: 302,
+    redirectUrl: typeof url === "string" ? url : url.toString(),
+    cookies: {
+      delete: vi.fn(),
+      set: vi.fn(),
+    },
+  };
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+function createMockRequest(
+  query: Record<string, string>,
+  cookieValues: Record<string, string> = {},
+) {
+  const url = new URL("/auth/callback", "https://admin.praedixa.com");
+  for (const [key, value] of Object.entries(query)) {
+    url.searchParams.set(key, value);
+  }
 
-describe("GET /auth/callback", () => {
+  return {
+    nextUrl: {
+      origin: url.origin,
+      searchParams: url.searchParams,
+    },
+    cookies: {
+      get: (name: string) => {
+        const value = cookieValues[name];
+        return value ? { name, value } : undefined;
+      },
+    },
+  } as Parameters<typeof GET>[0];
+}
+
+describe("GET /auth/callback (admin)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    capturedCookieOpts = null;
-    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://test.supabase.co");
-    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-anon-key");
-  });
 
-  it("should exchange code for session and redirect to /", async () => {
-    mockExchangeCodeForSession.mockResolvedValueOnce({ error: null });
-    const req = createMockRequest({ code: "valid-code" });
+    mockRedirect.mockImplementation((url: string | URL) =>
+      createRedirectResponse(url),
+    );
 
-    await GET(req);
-
-    expect(mockExchangeCodeForSession).toHaveBeenCalledWith("valid-code");
-    expect(mockRedirect).toHaveBeenCalledTimes(1);
-    const redirectUrl = mockRedirect.mock.calls[0][0];
-    expect(redirectUrl).toMatch(/\/(\?|$)/);
-  });
-
-  it("should redirect to custom next path after successful exchange", async () => {
-    mockExchangeCodeForSession.mockResolvedValueOnce({ error: null });
-    const req = createMockRequest({ code: "valid-code", next: "/settings" });
-
-    await GET(req);
-
-    const redirectUrl = mockRedirect.mock.calls[0][0];
-    expect(redirectUrl).toContain("/settings");
-  });
-
-  it("should prevent open redirect: next=//evil.com redirects to /", async () => {
-    mockExchangeCodeForSession.mockResolvedValueOnce({ error: null });
-    const req = createMockRequest({ code: "valid-code", next: "//evil.com" });
-
-    await GET(req);
-
-    const redirectUrl = mockRedirect.mock.calls[0][0];
-    expect(redirectUrl).toMatch(/\/(\?|$)/);
-    expect(redirectUrl).not.toContain("evil.com");
-  });
-
-  it("should prevent open redirect: next=https://evil.com redirects to /", async () => {
-    mockExchangeCodeForSession.mockResolvedValueOnce({ error: null });
-    const req = createMockRequest({
-      code: "valid-code",
-      next: "https://evil.com",
+    mockGetOidcEnv.mockReturnValue({
+      issuerUrl: "https://sso.praedixa.com",
+      clientId: "admin-client",
+      clientSecret: "secret",
+      sessionSecret: "session-secret",
     });
 
-    await GET(req);
+    mockSanitizeNextPath.mockImplementation(
+      (next: string | null | undefined, fallback: string) => {
+        if (!next || !next.startsWith("/") || next.startsWith("//")) {
+          return fallback;
+        }
+        return next;
+      },
+    );
 
-    const redirectUrl = mockRedirect.mock.calls[0][0];
-    expect(redirectUrl).toMatch(/\/(\?|$)/);
-    expect(redirectUrl).not.toContain("evil.com");
-  });
-
-  it("should redirect to /login with error on exchange failure", async () => {
-    mockExchangeCodeForSession.mockResolvedValueOnce({
-      error: { message: "invalid code" },
+    mockExchangeCodeForTokens.mockResolvedValue({
+      access_token: "access-token",
+      refresh_token: "refresh-token",
+      expires_in: 900,
+      refresh_expires_in: 7200,
     });
-    const req = createMockRequest({ code: "invalid-code" });
-
-    await GET(req);
-
-    const redirectUrl = mockRedirect.mock.calls[0][0];
-    expect(redirectUrl).toContain("/login");
-    expect(redirectUrl).toContain("error=auth_callback_failed");
-  });
-
-  it("should redirect to /login with error when no code param", async () => {
-    const req = createMockRequest({});
-
-    await GET(req);
-
-    const redirectUrl = mockRedirect.mock.calls[0][0];
-    expect(redirectUrl).toContain("/login");
-    expect(redirectUrl).toContain("error=auth_callback_failed");
-  });
-
-  it("should not call exchangeCodeForSession when no code param", async () => {
-    const req = createMockRequest({});
-
-    await GET(req);
-
-    expect(mockExchangeCodeForSession).not.toHaveBeenCalled();
-  });
-
-  it("should redirect to /previsions when next=/previsions after success", async () => {
-    mockExchangeCodeForSession.mockResolvedValueOnce({ error: null });
-    const req = createMockRequest({ code: "valid", next: "/previsions" });
-
-    await GET(req);
-
-    const redirectUrl = mockRedirect.mock.calls[0][0];
-    expect(redirectUrl).toContain("/previsions");
-  });
-
-  it("should pass cookies from cookieStore via getAll", async () => {
-    mockExchangeCodeForSession.mockResolvedValueOnce({ error: null });
-    const req = createMockRequest({ code: "valid-code" });
-
-    await GET(req);
-
-    // The createServerClient should have been called and cookies captured
-    expect(capturedCookieOpts).not.toBeNull();
-    // Exercise getAll
-    const allCookies = capturedCookieOpts!.getAll();
-    expect(allCookies).toEqual([
-      { name: "sb-token", value: "test-cookie-value" },
-    ]);
-  });
-
-  it("should set cookies via setAll", async () => {
-    mockExchangeCodeForSession.mockResolvedValueOnce({ error: null });
-    const req = createMockRequest({ code: "valid-code" });
-
-    await GET(req);
-
-    expect(capturedCookieOpts).not.toBeNull();
-    // Exercise setAll
-    capturedCookieOpts!.setAll([
-      { name: "sb-access", value: "token123", options: { path: "/" } },
-    ]);
-    expect(mockCookieSet).toHaveBeenCalledWith("sb-access", "token123", {
-      path: "/",
+    mockUserFromAccessToken.mockReturnValue({
+      id: "admin-1",
+      email: "admin@praedixa.com",
+      role: "super_admin",
+      organizationId: "org-1",
+      siteId: "site-1",
     });
+    mockGetTokenExp.mockReturnValue(2000000000);
+    mockSignSession.mockResolvedValue("signed-session");
+  });
+
+  it("redirects to sanitized next path after successful callback", async () => {
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-123" },
+        {
+          prx_admin_state: "state-123",
+          prx_admin_verifier: "verifier-123",
+          prx_admin_next: "/clients",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe("https://admin.praedixa.com/clients");
+    expect(mockExchangeCodeForTokens).toHaveBeenCalled();
+    expect(mockSetAuthCookies).toHaveBeenCalled();
+  });
+
+  it("redirects to /login with callback error when params are invalid", async () => {
+    const response = (await GET(
+      createMockRequest(
+        { state: "state-123" },
+        {
+          prx_admin_state: "state-123",
+          prx_admin_verifier: "verifier-123",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe(
+      "https://admin.praedixa.com/login?error=auth_callback_failed",
+    );
+    expect(mockClearAuthCookies).toHaveBeenCalled();
+  });
+
+  it("rejects mismatched state", async () => {
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-returned" },
+        {
+          prx_admin_state: "state-stored",
+          prx_admin_verifier: "verifier-123",
+          prx_admin_next: "/clients",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe(
+      "https://admin.praedixa.com/login?error=auth_callback_failed",
+    );
+    expect(mockExchangeCodeForTokens).not.toHaveBeenCalled();
+  });
+
+  it("sanitizes unsafe next cookie to /", async () => {
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-123" },
+        {
+          prx_admin_state: "state-123",
+          prx_admin_verifier: "verifier-123",
+          prx_admin_next: "//evil.com",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe("https://admin.praedixa.com/");
+  });
+
+  it("redirects non-super-admin users to /unauthorized", async () => {
+    mockUserFromAccessToken.mockReturnValueOnce({
+      id: "u1",
+      email: "viewer@praedixa.com",
+      role: "viewer",
+      organizationId: "org-1",
+      siteId: "site-1",
+    });
+
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-123" },
+        {
+          prx_admin_state: "state-123",
+          prx_admin_verifier: "verifier-123",
+          prx_admin_next: "/clients",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe(
+      "https://admin.praedixa.com/unauthorized",
+    );
   });
 });

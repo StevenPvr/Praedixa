@@ -1,5 +1,7 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 import type { ScenarioOption } from "@praedixa/shared-types";
 import { OptimizationPanel } from "../optimization-panel";
 
@@ -232,7 +234,7 @@ describe("OptimizationPanel", () => {
       />,
     );
     const card = screen.getByTestId("option-card-o1");
-    expect(card.className).not.toContain("bg-amber-50/50");
+    expect(card.className).not.toContain("bg-primary-50/50");
   });
 
   it("highlights selected option with ring", () => {

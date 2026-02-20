@@ -38,7 +38,7 @@ export default async function PilotProtocolPage({
   const isFr = locale === "fr";
 
   return (
-    <div className="min-h-screen bg-cream print:bg-white">
+    <div className="min-h-screen bg-cream print:bg-card">
       {/* Print-optimized header */}
       <header className="section-shell py-8">
         <div className="flex items-center justify-between">
@@ -46,7 +46,7 @@ export default async function PilotProtocolPage({
             <PraedixaLogo
               variant="geometric"
               size={32}
-              color="oklch(0.16 0.01 55)"
+              color="var(--warm-ink)"
               strokeWidth={1.1}
             />
             <span className="font-serif text-xl text-charcoal">Praedixa</span>
@@ -57,9 +57,9 @@ export default async function PilotProtocolPage({
         </div>
       </header>
 
-      <main className="section-shell pb-16">
+      <main id="main-content" tabIndex={-1} className="section-shell pb-16">
         {/* Title */}
-        <div className="border-b border-neutral-200 pb-8">
+        <div className="border-b border-border-subtle pb-8">
           <p className="section-kicker">{pilot.kicker}</p>
           <h1 className="mt-3 font-serif text-4xl text-charcoal sm:text-5xl">
             {pilot.heading}
@@ -86,7 +86,7 @@ export default async function PilotProtocolPage({
                     <p className="text-2xs text-brass-600">{step.subtitle}</p>
                   </div>
                 </div>
-                <p className="mt-3 text-sm text-neutral-600">
+                <p className="mt-3 text-sm text-ink-secondary">
                   {step.description}
                 </p>
               </div>
@@ -104,7 +104,7 @@ export default async function PilotProtocolPage({
               {pilot.included.items.map((item) => (
                 <li
                   key={item}
-                  className="flex items-start gap-2.5 text-sm text-neutral-600"
+                  className="flex items-start gap-2.5 text-sm text-ink-secondary"
                 >
                   <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-brass-500" />
                   {item}
@@ -120,9 +120,9 @@ export default async function PilotProtocolPage({
               {pilot.excluded.items.map((item) => (
                 <li
                   key={item}
-                  className="flex items-start gap-2.5 text-sm text-neutral-500"
+                  className="flex items-start gap-2.5 text-sm text-ink-tertiary"
                 >
-                  <span className="mt-1.5 h-3 w-3 shrink-0 rounded-full border border-neutral-300" />
+                  <span className="mt-1.5 h-3 w-3 shrink-0 rounded-full border border-border" />
                   {item}
                 </li>
               ))}
@@ -139,7 +139,7 @@ export default async function PilotProtocolPage({
             {pilot.kpis.items.map((item) => (
               <li
                 key={item}
-                className="flex items-start gap-2.5 text-sm text-neutral-600"
+                className="flex items-start gap-2.5 text-sm text-ink-secondary"
               >
                 <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-brass-500" />
                 {item}
@@ -157,7 +157,7 @@ export default async function PilotProtocolPage({
             {pilot.governance.items.map((item) => (
               <li
                 key={item}
-                className="flex items-start gap-2.5 text-sm text-neutral-600"
+                className="flex items-start gap-2.5 text-sm text-ink-secondary"
               >
                 <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-brass-500" />
                 {item}
@@ -167,7 +167,7 @@ export default async function PilotProtocolPage({
         </section>
 
         {/* Security summary */}
-        <section className="mt-10 border-t border-neutral-200 pt-8">
+        <section className="mt-10 border-t border-border-subtle pt-8">
           <h2 className="font-serif text-xl text-charcoal">
             {security.heading}
           </h2>
@@ -175,7 +175,7 @@ export default async function PilotProtocolPage({
             {security.tiles.slice(0, 4).map((tile) => (
               <div key={tile.title} className="text-sm">
                 <p className="font-medium text-charcoal">{tile.title}</p>
-                <p className="text-neutral-600">{tile.description}</p>
+                <p className="text-ink-secondary">{tile.description}</p>
               </div>
             ))}
           </div>
@@ -186,7 +186,7 @@ export default async function PilotProtocolPage({
 
         {/* CTA */}
         <section className="mt-10 text-center print:hidden">
-          <p className="text-sm text-neutral-600">{pilot.urgency}</p>
+          <p className="text-sm text-ink-secondary">{pilot.urgency}</p>
           <Link
             href={`/${locale}/${locale === "fr" ? "devenir-pilote" : "pilot-application"}`}
             className="btn-primary mt-4"
@@ -196,7 +196,7 @@ export default async function PilotProtocolPage({
         </section>
 
         {/* Print footer */}
-        <div className="mt-12 hidden border-t border-neutral-200 pt-6 text-center text-xs text-neutral-500 print:block">
+        <div className="mt-12 hidden border-t border-border-subtle pt-6 text-center text-xs text-ink-tertiary print:block">
           praedixa.com &middot;{" "}
           {isFr ? "Document confidentiel" : "Confidential document"}
         </div>

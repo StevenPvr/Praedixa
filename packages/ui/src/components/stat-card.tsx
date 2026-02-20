@@ -51,11 +51,11 @@ const statusDotStyle: Record<MetricStatus, string> = {
 
 /* ── Subtle background glow per status ── */
 const statusGlowHover: Record<MetricStatus, string> = {
-  good: "hover:shadow-[0_0_0_1px_var(--border),0_0_28px_-6px_var(--glow-success,oklch(0.60_0.18_155/0.20))]",
+  good: "hover:shadow-[0_0_0_1px_var(--border),0_0_28px_-6px_var(--glow-success)]",
   warning:
-    "hover:shadow-[0_0_0_1px_var(--border),0_0_28px_-6px_var(--glow-warning,oklch(0.72_0.18_70/0.20))]",
+    "hover:shadow-[0_0_0_1px_var(--border),0_0_28px_-6px_var(--glow-warning)]",
   danger:
-    "hover:shadow-[0_0_0_1px_var(--border),0_0_28px_-6px_var(--glow-danger,oklch(0.57_0.22_25/0.20))]",
+    "hover:shadow-[0_0_0_1px_var(--border),0_0_28px_-6px_var(--glow-danger)]",
   neutral: "hover:shadow-[var(--shadow-card-hover,var(--shadow-floating))]",
 };
 

@@ -28,15 +28,18 @@ export function Navbar({ dict, locale }: NavbarProps) {
 
   const navLinks: NavLink[] = [
     { href: "#problem", label: dict.nav.problem },
-    { href: "#solution", label: dict.nav.method },
-    { href: "#how-it-works", label: dict.nav.howItWorks },
-    { href: "#use-cases", label: dict.nav.useCases },
+    { href: "#methode", label: dict.nav.method },
+    { href: "#cas-usage", label: dict.nav.useCases },
     { href: "#security", label: dict.nav.security },
     { href: "#faq", label: dict.nav.faq },
-    { href: "#contact", label: dict.nav.contact },
     {
       href: `/${locale}/${localizedSlugs.resources[locale]}`,
       label: locale === "fr" ? "Ressources" : "Resources",
+      isInternal: true,
+    },
+    {
+      href: `/${locale}/${localizedSlugs.contact[locale]}`,
+      label: dict.nav.contact,
       isInternal: true,
     },
   ];
@@ -64,8 +67,8 @@ export function Navbar({ dict, locale }: NavbarProps) {
           <div
             className={`flex items-center justify-between rounded-lg border px-4 py-2.5 md:px-5 transition-all duration-300 ${
               hasScrolled
-                ? "border-neutral-300/50 bg-[oklch(0.92_0.012_72_/_0.8)] backdrop-blur-xl"
-                : "border-neutral-300/50 bg-[oklch(0.92_0.012_72)] shadow-sm backdrop-blur-xl"
+                ? "border-primary/30 bg-[color-mix(in_oklch,var(--color-panel)_84%,transparent)] backdrop-blur-xl"
+                : "border-primary/25 bg-[color-mix(in_oklch,var(--color-surface-elevated)_96%,transparent)] shadow-sm backdrop-blur-xl"
             }`}
           >
             <Link
@@ -75,7 +78,7 @@ export function Navbar({ dict, locale }: NavbarProps) {
               <PraedixaLogo
                 variant="geometric"
                 size={28}
-                color="oklch(0.20 0.018 65)"
+                color="var(--color-text-secondary)"
                 strokeWidth={1.1}
                 className="transition-transform duration-300 group-hover:scale-105"
               />
@@ -115,7 +118,7 @@ export function Navbar({ dict, locale }: NavbarProps) {
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex h-9 w-9 items-center justify-center rounded border border-ink/20 bg-ink/5 md:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded border border-primary/25 bg-primary/10 md:hidden"
               aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMobileMenuOpen}
             >
@@ -170,7 +173,7 @@ export function Navbar({ dict, locale }: NavbarProps) {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className="rounded px-3 py-2.5 text-base font-medium text-white transition hover:bg-white/10 hover:text-white"
+                      className="rounded px-3 py-2.5 text-base font-medium text-white transition hover:bg-card/10 hover:text-white"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       {link.label}
@@ -179,7 +182,7 @@ export function Navbar({ dict, locale }: NavbarProps) {
                     <a
                       key={link.href}
                       href={link.href}
-                      className="rounded px-3 py-2.5 text-base font-medium text-white transition hover:bg-white/10 hover:text-white"
+                      className="rounded px-3 py-2.5 text-base font-medium text-white transition hover:bg-card/10 hover:text-white"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       {link.label}

@@ -1,0 +1,12 @@
+[importlinter]
+root_package = app
+
+[contract:layers]
+name = api layering contract
+type = layers
+layers =
+    routers
+    services
+    schemas
+    models
+    core

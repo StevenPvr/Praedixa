@@ -19,24 +19,28 @@ export function KnowledgePage({ locale, pageKey }: KnowledgePageProps) {
   const resourcesHref = `/${locale}/${localizedSlugs.resources[locale]}`;
 
   return (
-    <main className="min-h-screen bg-cream py-24">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="min-h-screen bg-cream py-24"
+    >
       <div className="mx-auto max-w-5xl px-6">
         <Link
           href={`/${locale}`}
-          className="inline-flex items-center gap-2 text-sm text-gray-secondary transition-colors hover:text-charcoal"
+          className="inline-flex items-center gap-2 text-sm text-ink-secondary transition-colors hover:text-charcoal"
         >
           <span aria-hidden>←</span>
           {locale === "fr" ? "Retour à l'accueil" : "Back to homepage"}
         </Link>
 
-        <div className="mt-8 rounded-3xl border border-neutral-200 bg-white p-8 shadow-[var(--shadow-soft)] sm:p-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
+        <div className="mt-8 rounded-3xl border border-border-subtle bg-card p-8 shadow-[var(--shadow-soft)] sm:p-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
             {page.kicker}
           </p>
           <h1 className="mt-3 font-serif text-4xl text-charcoal sm:text-5xl">
             {page.title}
           </h1>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-neutral-600 sm:text-lg">
+          <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink-secondary sm:text-lg">
             {page.lead}
           </p>
 
@@ -46,7 +50,7 @@ export function KnowledgePage({ locale, pageKey }: KnowledgePageProps) {
                 <h2 className="font-serif text-2xl text-charcoal">
                   {section.title}
                 </h2>
-                <div className="mt-3 space-y-3 text-neutral-700">
+                <div className="mt-3 space-y-3 text-ink-secondary">
                   {section.paragraphs.map((paragraph) => (
                     <p key={paragraph} className="leading-relaxed">
                       {paragraph}
@@ -54,7 +58,7 @@ export function KnowledgePage({ locale, pageKey }: KnowledgePageProps) {
                   ))}
                 </div>
                 {section.bullets && section.bullets.length > 0 ? (
-                  <ul className="mt-4 list-disc space-y-2 pl-5 text-neutral-700">
+                  <ul className="mt-4 list-disc space-y-2 pl-5 text-ink-secondary">
                     {section.bullets.map((bullet) => (
                       <li key={bullet}>{bullet}</li>
                     ))}
@@ -65,7 +69,7 @@ export function KnowledgePage({ locale, pageKey }: KnowledgePageProps) {
           </div>
 
           {page.links && page.links.length > 0 ? (
-            <section className="mt-10 border-t border-neutral-200 pt-8">
+            <section className="mt-10 border-t border-border-subtle pt-8">
               <h2 className="font-serif text-2xl text-charcoal">
                 {locale === "fr" ? "Ressources associées" : "Related resources"}
               </h2>
@@ -74,7 +78,7 @@ export function KnowledgePage({ locale, pageKey }: KnowledgePageProps) {
                   <Link
                     key={link.label}
                     href={getKnowledgePath(locale, link.key)}
-                    className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-medium text-charcoal transition-colors hover:bg-neutral-100"
+                    className="rounded-xl border border-border-subtle bg-surface-sunken px-4 py-3 text-sm font-medium text-charcoal transition-colors hover:bg-surface-sunken"
                   >
                     {link.label}
                   </Link>
@@ -83,7 +87,7 @@ export function KnowledgePage({ locale, pageKey }: KnowledgePageProps) {
             </section>
           ) : null}
 
-          <div className="mt-10 flex flex-wrap gap-3 border-t border-neutral-200 pt-8">
+          <div className="mt-10 flex flex-wrap gap-3 border-t border-border-subtle pt-8">
             <Link href={resourcesHref} className="ghost-cta">
               {locale === "fr" ? "Voir les ressources" : "Browse resources"}
             </Link>

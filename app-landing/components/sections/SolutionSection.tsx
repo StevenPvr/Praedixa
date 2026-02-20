@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { sectionReveal, viewportOnce } from "../../lib/animations/variants";
 import type { Dictionary } from "../../lib/i18n/types";
-import { BentoGrid, BentoGridItem } from "../ui/BentoGrid";
 import { BoltIcon, ShieldCheckIcon, LockIcon } from "../icons";
 
 interface SolutionSectionProps {
@@ -42,38 +41,37 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
           <p className="section-lead">{solution.subheading}</p>
         </motion.div>
 
-        {/* 3 principles — using BentoGrid */}
-        <div className="mt-16">
-          <BentoGrid className="md:auto-rows-[20rem]">
-            {solution.principles.map((principle, i) => (
-              <BentoGridItem
-                key={principle.title}
-                title={
-                  <span className="text-brass-100 group-hover/bento:text-brass-300 transition-colors">
-                    {principle.title}
-                  </span>
-                }
-                description={
-                  <span className="text-neutral-400 group-hover/bento:text-neutral-300 transition-colors">
-                    {principle.description}
-                  </span>
-                }
-                header={
-                  <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-lg bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/5 opacity-80 group-hover/bento:opacity-100 transition-opacity" />
-                }
-                icon={
-                  <div className="text-brass-400 group-hover/bento:text-brass-300 transition-colors">
+        {/* 3 principles — premium glass blue cards */}
+        <div className="mt-16 grid gap-5 md:grid-cols-3">
+          {solution.principles.map((principle, i) => (
+            <motion.article
+              key={principle.title}
+              className="method-card-glass-blue group relative overflow-hidden rounded-2xl p-6"
+              whileHover={{ y: -4 }}
+              transition={{ duration: 0.25 }}
+            >
+              <div className="relative z-10 flex h-full flex-col">
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="method-card-icon">
                     {icons[i] || <BoltIcon className="h-6 w-6" />}
                   </div>
-                }
-                className={
-                  i === 1
-                    ? "md:col-span-1 bg-white/[0.03] border-white/10"
-                    : "bg-white/[0.03] border-white/10"
-                }
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-brass-300">
+                    {principle.subtitle}
+                  </p>
+                </div>
+                <h3 className="font-serif text-2xl leading-tight text-white">
+                  {principle.title}
+                </h3>
+                <p className="mt-4 text-sm leading-relaxed text-ink-secondary">
+                  {principle.description}
+                </p>
+              </div>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,oklch(0.76_0.16_255_/_0.35),transparent_52%)] opacity-80"
               />
-            ))}
-          </BentoGrid>
+            </motion.article>
+          ))}
         </div>
 
         {/* What we're NOT — differentiator table */}
@@ -89,7 +87,7 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
               <h3 className="font-serif text-2xl text-white mb-6">
                 {solution.differentiators.title}
               </h3>
-              <p className="text-neutral-400 leading-relaxed max-w-md">
+              <p className="text-ink-placeholder leading-relaxed max-w-md">
                 {solution.differentiators.description}
               </p>
             </div>
@@ -97,13 +95,13 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
               {solution.differentiators.items.map((item) => (
                 <div
                   key={item.is}
-                  className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-lg border border-white/5 bg-white/[0.02] px-6 py-4 transition-colors hover:bg-white/[0.04]"
+                  className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-lg border border-white/5 bg-card/[0.02] px-6 py-4 transition-colors hover:bg-card/[0.04]"
                 >
                   <span className="text-sm font-medium text-brass-300">
                     {item.is}
                   </span>
-                  <span className="text-xs text-neutral-600">≠</span>
-                  <span className="text-sm text-neutral-500 text-right">
+                  <span className="text-xs text-ink-secondary">≠</span>
+                  <span className="text-sm text-ink-tertiary text-right">
                     {item.isNot}
                   </span>
                 </div>

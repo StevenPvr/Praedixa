@@ -58,6 +58,7 @@ detect_terraform() {
 scan_dirs=(
   .claude
   .codex
+  .tools
   node_modules
   .next
   dist

@@ -45,10 +45,11 @@ describe("AdminSidebar", () => {
     expect(screen.getByText("Admin")).toBeInTheDocument();
   });
 
-  it("renders all 4 navigation items", () => {
+  it("renders all 5 navigation items", () => {
     render(<AdminSidebar {...defaultProps} />);
     expect(screen.getByText("Accueil")).toBeInTheDocument();
     expect(screen.getByText("Clients")).toBeInTheDocument();
+    expect(screen.getByText("Demandes contact")).toBeInTheDocument();
     expect(screen.getByText("Journal")).toBeInTheDocument();
     expect(screen.getByText("Parametres")).toBeInTheDocument();
   });
@@ -80,6 +81,12 @@ describe("AdminSidebar", () => {
   it("marks journal as active on /journal path", () => {
     render(<AdminSidebar currentPath="/journal" />);
     const link = screen.getByText("Journal").closest("a");
+    expect(link).toHaveAttribute("aria-current", "page");
+  });
+
+  it("marks demandes contact as active on /demandes-contact path", () => {
+    render(<AdminSidebar currentPath="/demandes-contact" />);
+    const link = screen.getByText("Demandes contact").closest("a");
     expect(link).toHaveAttribute("aria-current", "page");
   });
 
@@ -167,6 +174,7 @@ describe("AdminSidebar", () => {
     const hrefs = links.map((l) => l.getAttribute("href"));
     expect(hrefs).toContain("/");
     expect(hrefs).toContain("/clients");
+    expect(hrefs).toContain("/demandes-contact");
     expect(hrefs).toContain("/journal");
     expect(hrefs).toContain("/parametres");
   });

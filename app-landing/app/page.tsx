@@ -22,13 +22,15 @@ export const metadata: Metadata = {
 export default function RootLanguageSelectorPage() {
   return (
     <main
+      id="main-content"
+      tabIndex={-1}
       style={{
         minHeight: "100vh",
         display: "grid",
         placeItems: "center",
         padding: "24px",
         background:
-          "linear-gradient(135deg, oklch(0.97 0.02 85), oklch(0.94 0.015 72))",
+          "linear-gradient(135deg, var(--warm-bg), color-mix(in oklch, var(--brass-100) 55%, var(--warm-bg) 45%))",
       }}
     >
       <section
@@ -36,12 +38,12 @@ export default function RootLanguageSelectorPage() {
           width: "100%",
           maxWidth: "640px",
           borderRadius: "20px",
-          border: "1px solid oklch(0.85 0.01 70)",
+          border: "1px solid var(--warm-border)",
           background: "oklch(1 0 0 / 0.85)",
-          boxShadow: "0 16px 40px oklch(0.35 0.02 70 / 0.12)",
+          boxShadow: "0 16px 40px oklch(0.32 0.03 250 / 0.12)",
           padding: "32px",
           fontFamily: "system-ui, -apple-system, sans-serif",
-          color: "oklch(0.24 0.01 65)",
+          color: "var(--warm-ink)",
         }}
       >
         <p
@@ -51,7 +53,7 @@ export default function RootLanguageSelectorPage() {
             textTransform: "uppercase",
             fontSize: "12px",
             fontWeight: 700,
-            color: "oklch(0.62 0.14 75)",
+            color: "var(--brass-600)",
           }}
         >
           Praedixa
@@ -83,11 +85,13 @@ export default function RootLanguageSelectorPage() {
             style={{
               display: "block",
               borderRadius: "14px",
-              border: "1px solid oklch(0.68 0.13 72 / 0.5)",
+              border:
+                "1px solid color-mix(in oklch, var(--brass-500) 70%, transparent)",
               padding: "16px",
               textDecoration: "none",
-              color: "oklch(0.26 0.01 65)",
-              background: "oklch(0.97 0.02 84)",
+              color: "var(--warm-ink)",
+              background:
+                "color-mix(in oklch, var(--brass-50) 80%, var(--warm-bg-card) 20%)",
             }}
           >
             <strong style={{ display: "block", fontSize: "16px" }}>
@@ -103,11 +107,11 @@ export default function RootLanguageSelectorPage() {
             style={{
               display: "block",
               borderRadius: "14px",
-              border: "1px solid oklch(0.8 0.01 70)",
+              border: "1px solid var(--warm-border)",
               padding: "16px",
               textDecoration: "none",
-              color: "oklch(0.26 0.01 65)",
-              background: "oklch(1 0 0)",
+              color: "var(--warm-ink)",
+              background: "var(--warm-bg-elevated)",
             }}
           >
             <strong style={{ display: "block", fontSize: "16px" }}>

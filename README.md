@@ -13,7 +13,7 @@ praedixa/
 ├── packages/
 │   ├── ui/              # Composants React partages
 │   └── shared-types/    # Types TypeScript partages
-├── infra/               # docker-compose.yml, render.yaml
+├── infra/               # docker-compose local (PostgreSQL)
 ├── testing/             # E2E tests, shared test utils
 ├── scripts/             # Dev setup, migrations, seed scripts
 └── docs/                # Architecture docs, security reports
@@ -24,7 +24,8 @@ praedixa/
 - Node.js 22+
 - pnpm 9+
 - Python 3.12+ et [uv](https://docs.astral.sh/uv/)
-- pre-commit (recommande)
+- prek (installe via `./scripts/install-prek.sh`)
+- Outils de gate local exhaustif: `semgrep`, `checkov`, `trivy`, `codeql`, `osv-scanner`, `k6`
 
 ## Installation locale
 
@@ -64,7 +65,7 @@ docker compose -f infra/docker-compose.yml down
 
 ```bash
 cd app-api
-cp .env.example .env          # configurer DATABASE_URL, SUPABASE_JWT_SECRET, etc.
+cp .env.example .env          # configurer DATABASE_URL, AUTH_ISSUER_URL, etc.
 uv sync --extra dev            # installer les dependances Python
 uv run uvicorn app.main:app --reload --port 8000
 ```
@@ -90,7 +91,61 @@ uv run alembic upgrade head
 pnpm dev:admin
 ```
 
-Accessible sur http://localhost:3002. Necessite un compte Supabase avec le role `super_admin` dans `app_metadata`.
+Accessible sur http://localhost:3002. Necessite un compte OIDC avec le role `super_admin`.
+
+### Comptes OIDC (Keycloak)
+
+Commandes utiles via le wrapper local `scripts/kcadm` :
+
+```bash
+# 1) Connexion admin Keycloak (master realm)
+scripts/kcadm config credentials \
+  --server "https://auth.praedixa.com" \
+  --realm master \
+  --user kcadmin \
+  --password "<KCADMIN_PASSWORD>"
+
+# 2) Lister les comptes du realm applicatif
+scripts/kcadm get users -r praedixa --fields id,username,email,enabled,emailVerified --format csv
+
+# 3) Voir un compte par email
+scripts/kcadm get users -r praedixa -q email=ops.client@praedixa.com
+
+# 4) Voir les roles realm d'un utilisateur
+scripts/kcadm get users/<USER_ID>/role-mappings/realm -r praedixa
+
+# 5) Creer un compte client (org_admin)
+scripts/kcadm create users -r praedixa \
+  -s username=ops.client@praedixa.com \
+  -s email=ops.client@praedixa.com \
+  -s firstName=Ops \
+  -s lastName=Client \
+  -s enabled=true \
+  -s emailVerified=true
+scripts/kcadm set-password -r praedixa --username ops.client@praedixa.com --new-password "praedixa2026!"
+scripts/kcadm add-roles -r praedixa --uusername ops.client@praedixa.com --rolename org_admin
+
+# 6) Reset mot de passe
+scripts/kcadm set-password -r praedixa --username ops.client@praedixa.com --new-password "praedixa2026!"
+```
+
+Notes:
+
+- Compte client fake (demo): `ops.client@praedixa.com` / `praedixa2026!`
+- `super_admin` doit se connecter sur `app-admin` (pas sur `app-webapp`).
+- `org_admin`/`manager` se connectent sur `app-webapp`.
+- `manager`/`hr_manager` doivent avoir un `site_id` dans le token OIDC (sinon acces API refuse en `403`).
+
+### Visibilite Gold (webapp)
+
+La webapp expose la couche Gold complete via `/donnees/gold` en lisant :
+
+- `/api/v1/live/gold/schema`
+- `/api/v1/live/gold/rows`
+- `/api/v1/live/gold/coverage`
+- `/api/v1/live/gold/provenance`
+
+Le endpoint de provenance controle la politique data stricte : seules les colonnes forecasting peuvent rester mock.
 
 ### Tout en parallele
 
@@ -191,47 +246,63 @@ COVERAGE=1 pnpm test:e2e:admin
 PW_WORKERS=1 pnpm test:e2e:admin
 ```
 
-> Les serveurs dev (mock supabase :54321, landing :3000, webapp :3001, admin :3002) sont lances automatiquement par Playwright.
+> Les serveurs dev requis sont lances automatiquement par Playwright selon la suite executee.
 > Les scripts `pnpm test:e2e*` nettoient ces ports avant execution et desactivent la reutilisation des serveurs pour garantir des runs reproductibles.
 > Pour le debug sur des serveurs deja lances volontairement, utilisez `PW_REUSE_SERVER=1`.
 
-### Tout verifier (pre-commit complet)
+### Tout verifier (gate complet)
 
 ```bash
-pnpm pre-commitaa
+pnpm gate:exhaustive
 ```
 
-## Qualite & Securite (pre-commit)
+## Qualite & Securite (gate local exhaustif)
 
 ```bash
-pipx install pre-commit
-pre-commit install --install-hooks
-pnpm pre-commit
+./scripts/install-prek.sh
+pnpm gate:exhaustive
+pnpm gate:verify
 ```
 
-Les hooks couvrent : formatting, lint, typecheck, tests (vitest + pytest), build, ruff, bandit, actionlint, gitleaks.
+Les hooks couvrent:
 
-## CI/CD (automatise)
+- format/lint/typecheck/tests/build
+- scans secrets/SAST/SCA/IaC
+- e2e critiques
+- audits dynamiques API
+- budgets perf, a11y et schema markup
 
-### Declencheurs
+Le `pre-push` bloque si le rapport signe du commit courant est absent, stale, invalide, ou genere en dry-run.
 
-- **PR vers main** : execute les checks pre-commit
-- **Push sur main** : checks + build + deploiement Cloudflare Workers
+## Verification & Deploiement (etat actuel)
 
-### Secrets GitHub requis
+### Verification bloquante
 
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
-- `SCW_ACCESS_KEY`
-- `SCW_SECRET_KEY`
-- `SCW_PROJECT_ID`
-- `SCW_ORGANIZATION_ID`
+- Les verifications bloquantes sont locales (hooks `pre-commit` + `pre-push`).
+- Les workflows GitHub de verification generaliste (`ci.yml`, `audit.yml`) ne sont plus la source d'autorite.
+
+### Deploiement production
+
+- Non automatise par GitHub Actions.
+- Deploiement local via scripts `scw:*`.
 
 ### Deploiement
 
-| Service | Hebergement                 | URL                | Config                       |
-| ------- | --------------------------- | ------------------ | ---------------------------- |
-| Landing | Cloudflare Workers          | praedixa.com       | `app-landing/wrangler.jsonc` |
-| Web app | Cloudflare Workers          | app.praedixa.com   | `app-webapp/wrangler.jsonc`  |
-| Admin   | Cloudflare Workers          | admin.praedixa.com | `app-admin/wrangler.jsonc`   |
-| API     | Scaleway Container (France) | api.praedixa.com   | `app-api/Dockerfile`         |
+| Service              | Hebergement actuel                       | URL principale                          | Config / scripts                                                      |
+| -------------------- | ---------------------------------------- | --------------------------------------- | --------------------------------------------------------------------- |
+| Landing              | Scaleway Serverless Container (`fr-par`) | `praedixa.com` (cutover DNS en attente) | `app-landing/Dockerfile.scaleway`, `pnpm run scw:deploy:landing:prod` |
+| Web app client       | Scaleway Serverless Container (`fr-par`) | `app.praedixa.com`                      | `app-webapp/Dockerfile.scaleway`, `pnpm run scw:deploy:webapp:*`      |
+| Admin back-office    | Scaleway Serverless Container (`fr-par`) | `admin.praedixa.com`                    | `app-admin/Dockerfile.scaleway`, `pnpm run scw:deploy:admin:*`        |
+| API backend          | Scaleway Serverless Container (`fr-par`) | `api.praedixa.com`                      | `app-api/Dockerfile`, `pnpm run scw:deploy:api:*`                     |
+| Auth OIDC (Keycloak) | Scaleway Serverless Container (`fr-par`) | `auth.praedixa.com`                     | configuration manuelle + env secrets                                  |
+
+Preflight complet sans deploy:
+
+```bash
+pnpm run scw:preflight:deploy
+```
+
+Voir aussi :
+
+- `docs/runbooks/scaleway-frontends-100-fr.md`
+- `docs/deployment/scaleway-container.md`

@@ -9,7 +9,7 @@ Backend de la plateforme Praedixa -- prevision de capacite pour sites logistique
 ## Demarrage rapide
 
 ```bash
-cp .env.example .env                                           # Adapter DATABASE_URL, SUPABASE_*
+cp .env.example .env                                           # Adapter DATABASE_URL, AUTH_*
 uv sync --extra dev                                            # Dependances Python
 docker compose -f ../infra/docker-compose.yml up -d postgres   # PG 16 sur port 5433
 uv run alembic upgrade head                                    # Migrations
@@ -101,7 +101,7 @@ Request → Middleware (rate limit, audit, request-id)
 
 Chaque requete protegee suit la chaine : `extract_token(request)` → `verify_jwt(token)` → `JWTPayload` (frozen dataclass : `user_id`, `email`, `organization_id`, `role`, `site_id`).
 
-**Algorithmes** : RS256 / ES256 / EdDSA en production (JWKS Supabase avec cache 5 min). HS256 uniquement en dev avec `LEGACY_HS256_ENABLED=true`. `none` toujours rejete.
+**Algorithmes** : RS256 / ES256 / EdDSA (JWKS OIDC avec cache 5 min). `none` toujours rejete.
 
 ### Roles
 
@@ -309,7 +309,7 @@ docker run -p 8000:8000 --env-file .env praedixa-api
 
 `docker-entrypoint.sh` execute `alembic upgrade head` puis lance uvicorn (2 workers prod, reload dev).
 
-**Variables cles** : `DATABASE_URL`, `SUPABASE_JWT_SECRET` (min 32 chars en prod), `SUPABASE_URL`, `CORS_ORIGINS`, `ENVIRONMENT`, `KEY_PROVIDER` (`scaleway` obligatoire en prod). Voir `.env.example`.
+**Variables cles** : `DATABASE_URL`, `AUTH_JWKS_URL`, `AUTH_ISSUER_URL`, `AUTH_AUDIENCE`, `AUTH_ALLOWED_JWKS_HOSTS`, `CORS_ORIGINS`, `ENVIRONMENT`, `KEY_PROVIDER` (`scaleway` obligatoire en prod). Voir `.env.example`.
 
 Deploiement Scaleway : [`docs/deployment/scaleway-container.md`](../docs/deployment/scaleway-container.md).
 

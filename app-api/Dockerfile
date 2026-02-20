@@ -63,5 +63,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD python -c "from urllib.request import urlopen; exit(0 if urlopen('http://localhost:8000/health').status == 200 else 1)"
 
-# Run with uvicorn — bind to 0.0.0.0, no reload in production
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# Entrypoint runs migrations, then starts uvicorn with environment-specific mode.
+ENTRYPOINT ["./docker-entrypoint.sh"]

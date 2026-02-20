@@ -1,16 +1,14 @@
-"""JWT verification for Supabase tokens — hardened with PyJWT.
+"""JWT verification for OIDC tokens — hardened with PyJWT.
 
 Security notes:
 - Uses PyJWT (actively maintained) instead of python-jose.
 - Asymmetric algorithms only by default: RS256, ES256, EdDSA.
-- HS256 is only accepted when LEGACY_HS256_ENABLED=true in local development.
 - The "none" algorithm is ALWAYS rejected — PyJWT rejects it by default
   when algorithms= is specified, but we also explicitly block it.
 - PyJWKClient handles JWKS fetching with built-in caching and kid resolution.
-- Audience claim is validated to "authenticated" to reject tokens issued
-  for other Supabase services (e.g. service_role, anon).
+- Audience claim is validated to reject tokens issued for other clients.
 - app_metadata (organization_id, role) cannot be tampered with by users
-  via Supabase client APIs — only privileged Supabase contexts can write it.
+  via self-service profile APIs — only privileged IdP/admin contexts can write it.
 - All claim extraction uses .get() with explicit None checks to prevent
   KeyError from malformed tokens.
 """
@@ -47,6 +45,14 @@ _KNOWN_ROLES = {
     "employee",
     "viewer",
 }
+_ROLE_PRIORITY = (
+    "super_admin",
+    "org_admin",
+    "hr_manager",
+    "manager",
+    "employee",
+    "viewer",
+)
 logger = structlog.get_logger()
 
 
@@ -71,8 +77,57 @@ def _allow_dev_user_metadata_org_id() -> bool:
     return getattr(settings, "ALLOW_DEV_USER_METADATA_ORG_ID", False) is True
 
 
+def _first_known_role(candidates: list[str]) -> str | None:
+    if not candidates:
+        return None
+    for role in _ROLE_PRIORITY:
+        if role in candidates:
+            return role
+    for role in candidates:
+        if role in _KNOWN_ROLES:
+            return role
+    return None
+
+
+def _extract_role(payload: dict[str, object], app_metadata: dict[str, object]) -> str:
+    # 1) Authoritative app metadata role (when present)
+    app_role = app_metadata.get("role")
+    if isinstance(app_role, str) and app_role in _KNOWN_ROLES:
+        return app_role
+
+    # 2) Top-level role compatibility (legacy/custom mappers)
+    direct_role = payload.get("role")
+    if isinstance(direct_role, str) and direct_role in _KNOWN_ROLES:
+        return direct_role
+
+    # 3) Keycloak realm roles
+    realm_access = payload.get("realm_access")
+    if isinstance(realm_access, dict):
+        roles = realm_access.get("roles")
+        if isinstance(roles, list):
+            realm_roles = [r for r in roles if isinstance(r, str)]
+            matched = _first_known_role(realm_roles)
+            if matched is not None:
+                return matched
+
+    # 4) Keycloak client roles for the authorized party (azp)
+    azp = payload.get("azp")
+    resource_access = payload.get("resource_access")
+    if isinstance(azp, str) and isinstance(resource_access, dict):
+        client_access = resource_access.get(azp)
+        if isinstance(client_access, dict):
+            roles = client_access.get("roles")
+            if isinstance(roles, list):
+                client_roles = [r for r in roles if isinstance(r, str)]
+                matched = _first_known_role(client_roles)
+                if matched is not None:
+                    return matched
+
+    return "viewer"
+
+
 def verify_jwt(token: str) -> JWTPayload:
-    """Verify and decode a Supabase JWT token.
+    """Verify and decode an OIDC JWT token.
 
     Validates:
     - Signature (HS256 in dev only, RS256/ES256/EdDSA via JWKS)
@@ -99,7 +154,7 @@ def verify_jwt(token: str) -> JWTPayload:
 
     user_id = payload.get("sub")
 
-    # Validate user_id is a valid UUID string -- Supabase uses UUID for user IDs.
+    # Validate user_id is a valid UUID string.
     # Prevents malformed sub claims from causing 500 errors in downstream UUID() calls.
     if not isinstance(user_id, str):
         raise _auth_error()
@@ -128,13 +183,7 @@ def verify_jwt(token: str) -> JWTPayload:
             "org_id"
         )
 
-    # Application role must come from app_metadata (admin-set, authoritative).
-    # Top-level JWT role is ignored because it represents DB role context.
-    role = app_metadata.get("role") or "viewer"
-
-    if not isinstance(role, str) or role not in _KNOWN_ROLES:
-        logger.warning("jwt_unknown_role", role=str(role)[:50])
-        role = "viewer"
+    role = _extract_role(payload, app_metadata)
 
     if not user_id or not email or not organization_id:
         raise _auth_error()
@@ -147,10 +196,12 @@ def verify_jwt(token: str) -> JWTPayload:
         logger.warning("jwt_invalid_organization_id", organization_id=organization_id)
         raise _auth_error() from e
 
-    # Extract optional site_id from app_metadata.
+    # Extract optional site_id from claims.
     # site_id restricts the user to a single site. When absent (None),
     # the user (typically org_admin) sees all sites.
-    raw_site_id = app_metadata.get("site_id")
+    raw_site_id = payload.get("site_id")
+    if not isinstance(raw_site_id, str) or not raw_site_id:
+        raw_site_id = app_metadata.get("site_id")
     site_id: str | None = None
     if isinstance(raw_site_id, str) and raw_site_id:
         try:

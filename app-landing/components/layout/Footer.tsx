@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { PraedixaLogo } from "../logo/PraedixaLogo";
 import { ArrowRightIcon } from "../icons";
-import { siteConfig } from "../../lib/config/site";
 import type { Dictionary } from "../../lib/i18n/types";
 import type { Locale } from "../../lib/i18n/config";
 import { localizedSlugs } from "../../lib/i18n/config";
+import { siteConfig } from "../../lib/config/site";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 
 interface FooterProps {
   dict: Dictionary;
@@ -17,13 +18,17 @@ export function Footer({ dict, locale }: FooterProps) {
   const year = new Date().getFullYear();
 
   const navLinks = [
-    { href: "#solution", label: dict.nav.method },
+    { href: "#methode", label: dict.nav.method },
     { href: "#security", label: dict.nav.security },
     { href: "#pilot", label: dict.pilot.kicker },
     { href: "#faq", label: dict.nav.faq },
     {
       href: `/${locale}/${localizedSlugs.resources[locale]}`,
       label: locale === "fr" ? "Ressources" : "Resources",
+    },
+    {
+      href: `/${locale}/${localizedSlugs.contact[locale]}`,
+      label: "Contact",
     },
   ];
 
@@ -48,12 +53,16 @@ export function Footer({ dict, locale }: FooterProps) {
       href: `/${locale}/${localizedSlugs.security[locale]}`,
       label: locale === "fr" ? "Sécurité" : "Security",
     },
+    {
+      href: `mailto:${siteConfig.contact.email}`,
+      label: siteConfig.contact.email,
+    },
   ];
 
   return (
     <footer className="section-dark">
       <div className="section-shell pb-12 pt-16">
-        <div className="flex flex-col items-center rounded-lg border border-white/5 bg-white/[0.03] px-8 py-10 text-center">
+        <div className="flex flex-col items-center rounded-lg border border-white/5 bg-card/[0.03] px-8 py-10 text-center">
           <p className="craft-pill">{footer.ctaBanner.kicker}</p>
           <h2 className="mt-4 max-w-lg font-serif text-2xl text-white sm:text-3xl">
             {footer.ctaBanner.heading}
@@ -137,14 +146,6 @@ export function Footer({ dict, locale }: FooterProps) {
                   </Link>
                 </li>
               ))}
-              <li>
-                <a
-                  href={`mailto:${siteConfig.contact.email}`}
-                  className="text-sm text-white transition hover:text-white"
-                >
-                  {siteConfig.contact.email}
-                </a>
-              </li>
             </ul>
           </div>
         </div>
@@ -152,21 +153,7 @@ export function Footer({ dict, locale }: FooterProps) {
         <div className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-6">
           <p className="text-xs text-white">&copy; {year} Praedixa</p>
           <p className="text-xs text-white">{footer.copyright}</p>
-          <div className="flex gap-2">
-            <Link
-              href="/fr"
-              className={`text-xs transition ${locale === "fr" ? "font-semibold text-white" : "text-white hover:text-white"}`}
-            >
-              FR
-            </Link>
-            <span className="text-xs text-white">|</span>
-            <Link
-              href="/en"
-              className={`text-xs transition ${locale === "en" ? "font-semibold text-white" : "text-white hover:text-white"}`}
-            >
-              EN
-            </Link>
-          </div>
+          <LocaleSwitcher locale={locale} />
         </div>
       </div>
     </footer>

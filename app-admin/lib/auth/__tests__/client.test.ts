@@ -1,125 +1,86 @@
-/**
- * Admin auth client tests.
- *
- * Tests getSupabaseBrowserClient, getValidAccessToken, clearAuthSession, useCurrentUser.
- */
-
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 
-const {
-  mockGetSession,
-  mockRefreshSession,
-  mockSignOut,
-  mockCreateBrowserClient,
-} = vi.hoisted(() => ({
-  mockGetSession: vi.fn(),
-  mockRefreshSession: vi.fn(),
-  mockSignOut: vi.fn(),
-  mockCreateBrowserClient: vi.fn(),
-}));
+const mockFetch = vi.fn();
 
-vi.mock("@supabase/ssr", () => ({
-  createBrowserClient: (...args: unknown[]) => mockCreateBrowserClient(...args),
-}));
-
-describe("auth client", () => {
+describe("auth client (admin)", () => {
   beforeEach(() => {
     vi.resetModules();
-    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://test.supabase.co");
-    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-anon-key");
-
-    mockGetSession.mockReset();
-    mockRefreshSession.mockReset();
-    mockSignOut.mockReset();
-    mockCreateBrowserClient.mockReset();
-
-    mockCreateBrowserClient.mockImplementation(() => ({
-      auth: {
-        getUser: vi.fn(),
-        getSession: mockGetSession,
-        refreshSession: mockRefreshSession,
-        signOut: mockSignOut,
-      },
-    }));
+    mockFetch.mockReset();
+    vi.stubGlobal("fetch", mockFetch);
   });
 
-  it("returns a singleton browser client", async () => {
-    const { getSupabaseBrowserClient } = await import("../client");
-    const client1 = getSupabaseBrowserClient();
-    const client2 = getSupabaseBrowserClient();
-
-    expect(client1).toBe(client2);
-    expect(mockCreateBrowserClient).toHaveBeenCalledTimes(1);
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
-  it("passes env vars to createBrowserClient", async () => {
-    const { getSupabaseBrowserClient } = await import("../client");
-    getSupabaseBrowserClient();
-
-    expect(mockCreateBrowserClient).toHaveBeenCalledWith(
-      "https://test.supabase.co",
-      "test-anon-key",
-    );
-  });
-
-  it("getValidAccessToken returns current valid token", async () => {
-    mockGetSession.mockResolvedValue({
-      data: {
-        session: {
-          access_token: "token-current",
-          expires_at: Math.floor(Date.now() / 1000) + 3600,
+  it("getValidAccessToken calls /auth/session with default min_ttl and returns token", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        accessToken: "token-current",
+        user: {
+          id: "admin-1",
+          email: "admin@praedixa.com",
+          role: "super_admin",
+          organizationId: "org-1",
+          siteId: "site-1",
         },
-      },
+      }),
     });
 
     const { getValidAccessToken } = await import("../client");
     const token = await getValidAccessToken();
 
     expect(token).toBe("token-current");
-    expect(mockRefreshSession).not.toHaveBeenCalled();
-  });
-
-  it("getValidAccessToken refreshes when session is missing", async () => {
-    mockGetSession.mockResolvedValue({ data: { session: null } });
-    mockRefreshSession.mockResolvedValue({
-      data: { session: { access_token: "token-refreshed" } },
-      error: null,
+    expect(mockFetch).toHaveBeenCalledWith("/auth/session?min_ttl=60", {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
     });
-
-    const { getValidAccessToken } = await import("../client");
-    const token = await getValidAccessToken();
-
-    expect(token).toBe("token-refreshed");
-    expect(mockRefreshSession).toHaveBeenCalledTimes(1);
   });
 
-  it("getValidAccessToken refreshes when token is near expiry", async () => {
-    mockGetSession.mockResolvedValue({
-      data: {
-        session: {
-          access_token: "token-old",
-          expires_at: Math.floor(Date.now() / 1000) + 10,
+  it("getValidAccessToken uses provided min_ttl", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        accessToken: "token-custom",
+        user: {
+          id: "admin-1",
+          email: "admin@praedixa.com",
+          role: "super_admin",
+          organizationId: "org-1",
+          siteId: "site-1",
         },
-      },
-    });
-    mockRefreshSession.mockResolvedValue({
-      data: { session: { access_token: "token-new" } },
-      error: null,
+      }),
     });
 
     const { getValidAccessToken } = await import("../client");
-    const token = await getValidAccessToken({ minTtlSeconds: 60 });
+    const token = await getValidAccessToken({ minTtlSeconds: 15 });
 
-    expect(token).toBe("token-new");
-    expect(mockRefreshSession).toHaveBeenCalledTimes(1);
+    expect(token).toBe("token-custom");
+    expect(mockFetch).toHaveBeenCalledWith("/auth/session?min_ttl=15", {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
   });
 
-  it("getValidAccessToken returns null when refresh fails", async () => {
-    mockGetSession.mockResolvedValue({ data: { session: null } });
-    mockRefreshSession.mockResolvedValue({
-      data: { session: null },
-      error: { message: "refresh failed" },
+  it("getValidAccessToken returns null when response is not ok", async () => {
+    mockFetch.mockResolvedValue({ ok: false, json: async () => ({}) });
+
+    const { getValidAccessToken } = await import("../client");
+    const token = await getValidAccessToken();
+
+    expect(token).toBeNull();
+  });
+
+  it("getValidAccessToken returns null when payload is incomplete", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ accessToken: "token-without-user" }),
     });
 
     const { getValidAccessToken } = await import("../client");
@@ -128,8 +89,8 @@ describe("auth client", () => {
     expect(token).toBeNull();
   });
 
-  it("getValidAccessToken returns null when getSession throws", async () => {
-    mockGetSession.mockRejectedValueOnce(new Error("session unavailable"));
+  it("getValidAccessToken returns null when fetch throws", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("network"));
 
     const { getValidAccessToken } = await import("../client");
     const token = await getValidAccessToken();
@@ -137,62 +98,51 @@ describe("auth client", () => {
     expect(token).toBeNull();
   });
 
-  it("getValidAccessToken returns null when session has no access token", async () => {
-    mockGetSession.mockResolvedValueOnce({
-      data: {
-        session: {
-          expires_at: Math.floor(Date.now() / 1000) + 3600,
-        },
-      },
-    });
-
-    const { getValidAccessToken } = await import("../client");
-    const token = await getValidAccessToken();
-
-    expect(token).toBeNull();
-  });
-
-  it("clearAuthSession signs out locally", async () => {
-    mockSignOut.mockResolvedValue({ error: null });
+  it("clearAuthSession posts to /auth/logout", async () => {
+    mockFetch.mockResolvedValue({ ok: true });
 
     const { clearAuthSession } = await import("../client");
     await clearAuthSession();
 
-    expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(mockFetch).toHaveBeenCalledWith("/auth/logout", {
+      method: "POST",
+      credentials: "include",
+      cache: "no-store",
+    });
   });
 
-  it("clearAuthSession swallows signOut errors", async () => {
-    mockSignOut.mockRejectedValueOnce(new Error("signout failed"));
+  it("clearAuthSession swallows fetch errors", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("network"));
 
     const { clearAuthSession } = await import("../client");
     await expect(clearAuthSession()).resolves.toBeUndefined();
   });
 });
 
-describe("useCurrentUser", () => {
+describe("useCurrentUser (admin)", () => {
   beforeEach(() => {
-    mockGetSession.mockReset();
-    mockCreateBrowserClient.mockImplementation(() => ({
-      auth: {
-        getUser: vi.fn(),
-        getSession: mockGetSession,
-        refreshSession: mockRefreshSession,
-        signOut: mockSignOut,
-      },
-    }));
+    vi.resetModules();
+    mockFetch.mockReset();
+    vi.stubGlobal("fetch", mockFetch);
   });
 
-  it("returns user data from session", async () => {
-    mockGetSession.mockResolvedValue({
-      data: {
-        session: {
-          user: {
-            id: "admin-123",
-            email: "admin@praedixa.com",
-            app_metadata: { role: "super_admin" },
-          },
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("returns user from /auth/session?min_ttl=0", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        accessToken: "token-current",
+        user: {
+          id: "admin-123",
+          email: "admin@praedixa.com",
+          role: "super_admin",
+          organizationId: "org-1",
+          siteId: "site-1",
         },
-      },
+      }),
     });
 
     const { useCurrentUser } = await import("../client");
@@ -203,48 +153,43 @@ describe("useCurrentUser", () => {
         id: "admin-123",
         email: "admin@praedixa.com",
         role: "super_admin",
+        organizationId: "org-1",
+        siteId: "site-1",
       });
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith("/auth/session?min_ttl=0", {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
     });
   });
 
-  it("returns null when no session", async () => {
-    mockGetSession.mockResolvedValue({
-      data: { session: null },
-    });
+  it("returns null when session fetch fails", async () => {
+    mockFetch.mockResolvedValue({ ok: false, json: async () => ({}) });
 
     const { useCurrentUser } = await import("../client");
     const { result } = renderHook(() => useCurrentUser());
 
-    expect(result.current).toBeNull();
-
     await waitFor(() => {
-      expect(mockGetSession).toHaveBeenCalled();
+      expect(mockFetch).toHaveBeenCalled();
     });
     expect(result.current).toBeNull();
   });
 
-  it("defaults email to empty string and role to viewer", async () => {
-    mockGetSession.mockResolvedValue({
-      data: {
-        session: {
-          user: {
-            id: "admin-456",
-            email: null,
-            app_metadata: {},
-          },
-        },
-      },
+  it("returns null when payload is invalid", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ accessToken: "token-without-user" }),
     });
 
     const { useCurrentUser } = await import("../client");
     const { result } = renderHook(() => useCurrentUser());
 
     await waitFor(() => {
-      expect(result.current).toEqual({
-        id: "admin-456",
-        email: "",
-        role: "viewer",
-      });
+      expect(mockFetch).toHaveBeenCalled();
     });
+    expect(result.current).toBeNull();
   });
 });

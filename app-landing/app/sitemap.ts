@@ -15,6 +15,7 @@ const CONTENT_KEYS = [
   "bofuLogistics",
   "bofuTransport",
   "bofuRetail",
+  "bofuQsr",
   "clusterCost",
   "clusterForecast",
   "clusterPlaybook",

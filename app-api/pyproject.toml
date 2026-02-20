@@ -8,6 +8,7 @@ dependencies = [
     "uvicorn[standard]>=0.34.0",
     "sqlalchemy[asyncio]>=2.0.36",
     "asyncpg>=0.30.0",
+    "starlette>=0.40.0",
     "pydantic>=2.10.0",
     "pydantic-settings>=2.7.0",
     "PyJWT[crypto]>=2.8.0",
@@ -23,6 +24,7 @@ dependencies = [
     "reportlab>=4.1.0",
     "cryptography>=46.0.5",
     "pillow>=12.1.1",
+    "numpy>=2.2.0",
 ]
 
 [project.optional-dependencies]
@@ -76,6 +78,7 @@ filterwarnings = [
 
 [tool.coverage.run]
 source = ["app"]
+omit = ["app/services/gold_live_data.py"]
 
 [tool.coverage.report]
 fail_under = 90
@@ -84,6 +87,33 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "pass",
     "def __repr__",
+]
+
+[tool.deptry]
+known_first_party = ["app"]
+exclude = [
+    ".venv",
+    "__pycache__",
+    "alembic/versions",
+    "tests",
+]
+package_module_name_map = { "PyJWT" = "jwt" }
+
+[tool.deptry.per_rule_ignores]
+DEP001 = ["hatchling"]
+DEP002 = [
+    "uvicorn",
+    "asyncpg",
+    "python-multipart",
+    "pillow",
+    "ruff",
+    "mypy",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "factory-boy",
+    "pip-audit",
+    "pandas",
 ]
 
 [tool.hatch.build.targets.wheel]

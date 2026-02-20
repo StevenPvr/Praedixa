@@ -12,40 +12,40 @@ export default {
   theme: {
     extend: {
       colors: {
-        /* ── Landing-matching surfaces ── */
-        cream: "oklch(0.975 0.005 85)",
-        charcoal: "oklch(0.16 0.01 55)",
-        ink: "oklch(0.16 0.01 55)",
-        paper: "oklch(0.998 0.001 85)",
-        stone: "oklch(0.96 0.004 80)",
+        /* ── Premium blue surfaces ── */
+        cream: "var(--warm-bg)",
+        charcoal: "var(--warm-ink)",
+        ink: "var(--warm-ink)",
+        paper: "var(--warm-bg-elevated)",
+        stone: "var(--warm-bg-muted)",
 
-        /* ── Brand: Burnished Brass (matching landing identity) ── */
+        /* ── Brand (mapped to shared tokens) ── */
         brass: {
-          DEFAULT: "oklch(0.68 0.13 72)",
-          50: "oklch(0.97 0.02 82)",
-          100: "oklch(0.94 0.04 82)",
-          200: "oklch(0.88 0.07 78)",
-          300: "oklch(0.82 0.10 76)",
-          400: "oklch(0.78 0.10 78)",
-          500: "oklch(0.68 0.13 72)",
-          600: "oklch(0.58 0.14 68)",
-          700: "oklch(0.48 0.12 65)",
-          800: "oklch(0.38 0.10 62)",
-          900: "oklch(0.28 0.08 58)",
+          DEFAULT: "var(--brand)",
+          50: "var(--brand-50)",
+          100: "var(--brand-100)",
+          200: "var(--brand-200)",
+          300: "var(--brand-300)",
+          400: "var(--brand-400)",
+          500: "var(--brand)",
+          600: "var(--brand-600)",
+          700: "var(--brand-700)",
+          800: "var(--brand-800)",
+          900: "var(--brand-800)",
         },
 
-        /* ── Warm neutral scale (matching landing) ── */
+        /* ── Blue-neutral scale ── */
         neutral: {
-          50: "oklch(0.985 0.003 70)",
-          100: "oklch(0.97 0.004 70)",
-          200: "oklch(0.92 0.005 70)",
-          300: "oklch(0.87 0.008 65)",
-          400: "oklch(0.72 0.01 60)",
-          500: "oklch(0.55 0.008 60)",
-          600: "oklch(0.40 0.012 55)",
-          700: "oklch(0.30 0.01 55)",
-          800: "oklch(0.22 0.01 55)",
-          900: "oklch(0.16 0.01 55)",
+          50: "var(--warm-neutral-50)",
+          100: "var(--warm-neutral-100)",
+          200: "var(--warm-neutral-200)",
+          300: "var(--warm-neutral-300)",
+          400: "var(--warm-neutral-400)",
+          500: "var(--warm-neutral-500)",
+          600: "var(--warm-neutral-600)",
+          700: "var(--warm-neutral-700)",
+          800: "var(--warm-neutral-800)",
+          900: "var(--warm-neutral-900)",
         },
 
         /* ── Sidebar ── */

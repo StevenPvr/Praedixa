@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   CanonicalRecord,
   CanonicalQualityDashboard,
@@ -27,6 +27,7 @@ import { AnimatedSection } from "@/components/animated-section";
 import { EmptyState } from "@/components/empty-state";
 import { PageTransition } from "@/components/page-transition";
 import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
+import { useSiteScope } from "@/lib/site-scope";
 
 const PAGE_SIZE = 20;
 const COVERAGE_THRESHOLD_PCT = 85;
@@ -78,17 +79,34 @@ const columns: DataTableColumn<CanonicalRecord>[] = [
 ];
 
 export default function DonneesPage() {
+  const {
+    selectedSiteId: scopedSiteId,
+    isSiteLocked,
+    appendSiteParam,
+  } = useSiteScope();
   const [siteFilter, setSiteFilter] = useState("");
   const [shiftFilter, setShiftFilter] = useState("");
   const [dateRange, setDateRange] = useState<DateRange>({ from: "", to: "" });
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    if (!scopedSiteId) return;
+    if (isSiteLocked || !siteFilter) {
+      setSiteFilter(scopedSiteId);
+    }
+  }, [isSiteLocked, scopedSiteId, siteFilter]);
+
+  const qualityUrl = useMemo(
+    () => appendSiteParam("/api/v1/live/canonical/quality"),
+    [appendSiteParam],
+  );
 
   const {
     data: quality,
     loading: qualityLoading,
     error: qualityError,
     refetch: refetchQuality,
-  } = useApiGet<CanonicalQualityDashboard>("/api/v1/live/canonical/quality", {
+  } = useApiGet<CanonicalQualityDashboard>(qualityUrl, {
     pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
   });
 
@@ -110,7 +128,7 @@ export default function DonneesPage() {
     error: recordsError,
     refetch: refetchRecords,
   } = useApiGetPaginated<CanonicalRecord>(
-    `/api/v1/live/canonical${queryParams}`,
+    appendSiteParam(`/api/v1/live/canonical${queryParams}`),
     page,
     PAGE_SIZE,
     { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
@@ -247,10 +265,12 @@ export default function DonneesPage() {
               options={siteOptions}
               value={siteFilter}
               onChange={(v) => {
+                if (isSiteLocked) return;
                 setSiteFilter(v);
                 setPage(1);
               }}
               placeholder="Tous les sites"
+              disabled={isSiteLocked}
             />
             <SelectDropdown
               label="Poste"

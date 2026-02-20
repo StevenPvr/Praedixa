@@ -45,20 +45,20 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
               className="craft-card-dark p-6"
               variants={staggerItem}
             >
-              <p className="text-2xs font-semibold uppercase tracking-widest text-neutral-500">
+              <p className="text-2xs font-semibold uppercase tracking-widest text-ink-tertiary">
                 {frame.label}
               </p>
               <p className="mt-2 font-serif text-3xl text-brass-400">
                 {frame.value}
               </p>
-              <p className="mt-2 text-sm text-neutral-400">{frame.note}</p>
+              <p className="mt-2 text-sm text-ink-placeholder">{frame.note}</p>
             </motion.div>
           ))}
         </motion.div>
 
         {/* Checklist */}
         <motion.div
-          className="mt-8 rounded-lg border border-white/5 bg-white/[0.03] p-6"
+          className="mt-8 rounded-lg border border-white/5 bg-card/[0.03] p-6"
           variants={sectionReveal}
           initial="hidden"
           whileInView="visible"
@@ -68,7 +68,7 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
             {deliverables.checklist.map((item) => (
               <li
                 key={item}
-                className="flex items-start gap-2.5 text-sm text-neutral-300"
+                className="flex items-start gap-2.5 text-sm text-ink-placeholder"
               >
                 <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-brass-400" />
                 {item}

@@ -50,7 +50,7 @@ export function HowItWorksSection({ dict }: HowItWorksSectionProps) {
                   {step.number}
                 </span>
                 {i < howItWorks.steps.length - 1 && (
-                  <div className="hidden h-px flex-1 bg-neutral-200 md:block" />
+                  <div className="hidden h-px flex-1 bg-surface-interactive md:block" />
                 )}
               </div>
               <h3 className="mt-4 font-serif text-lg text-charcoal">
@@ -59,7 +59,7 @@ export function HowItWorksSection({ dict }: HowItWorksSectionProps) {
               <p className="mt-1 text-2xs font-semibold uppercase tracking-widest text-brass-600">
                 {step.subtitle}
               </p>
-              <p className="mt-3 flex-1 text-sm leading-relaxed text-neutral-600">
+              <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-secondary">
                 {step.description}
               </p>
             </motion.div>

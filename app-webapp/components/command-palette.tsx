@@ -65,6 +65,7 @@ const NAV_ITEMS: Omit<CommandItem, "label" | "description" | "section">[] = [
     href: "/donnees/datasets",
     keywords: ["dataset", "imports", "fichiers"],
     shortcut: "G I",
+    adminOnly: true,
   },
   {
     id: "donnees-canonique",
@@ -73,6 +74,14 @@ const NAV_ITEMS: Omit<CommandItem, "label" | "description" | "section">[] = [
     href: "/donnees/canonique",
     keywords: ["canonique", "consolide", "qualite"],
     shortcut: "G C",
+  },
+  {
+    id: "donnees-gold",
+    labelKey: "sidebar.items.donneesGold",
+    icon: Database,
+    href: "/donnees/gold",
+    keywords: ["gold", "schema", "explorer", "medallion"],
+    shortcut: "G G",
   },
   {
     id: "previsions-vue",
@@ -89,6 +98,14 @@ const NAV_ITEMS: Omit<CommandItem, "label" | "description" | "section">[] = [
     href: "/previsions/alertes",
     keywords: ["alertes", "risque", "sous effectif"],
     shortcut: "G L",
+  },
+  {
+    id: "previsions-modeles",
+    labelKey: "sidebar.items.previsionsModeles",
+    icon: TrendingUp,
+    href: "/previsions/modeles",
+    keywords: ["modeles", "monitoring", "drift", "mape"],
+    shortcut: "G T",
   },
   {
     id: "actions-traitement",
@@ -121,6 +138,14 @@ const NAV_ITEMS: Omit<CommandItem, "label" | "description" | "section">[] = [
     href: "/rapports",
     keywords: ["report", "export", "executive"],
     shortcut: "G R",
+  },
+  {
+    id: "onboarding",
+    labelKey: "sidebar.items.onboarding",
+    icon: Clock,
+    href: "/onboarding",
+    keywords: ["onboarding", "setup", "readiness"],
+    shortcut: "G O",
   },
   {
     id: "parametres",

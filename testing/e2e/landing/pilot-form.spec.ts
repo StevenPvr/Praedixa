@@ -8,7 +8,7 @@ test.describe("Pilot application form (/devenir-pilote)", () => {
   test("loads the pilot form page", async ({ page }) => {
     await page.waitForLoadState("domcontentloaded");
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
-      /candidature pilote/i,
+      /demande de pilote prévision effectifs/i,
       { timeout: 15_000 },
     );
     await expect(
@@ -23,7 +23,7 @@ test.describe("Pilot application form (/devenir-pilote)", () => {
     await expect(page.getByLabel(/Fonction/)).toBeVisible();
     await expect(page.getByLabel(/Horizon projet/)).toBeVisible();
     await expect(
-      page.getByLabel(/Quel est votre principal enjeu de couverture/),
+      page.getByLabel(/Principal enjeu de couverture/),
     ).toBeVisible();
   });
 
@@ -64,7 +64,7 @@ test.describe("Pilot application form (/devenir-pilote)", () => {
 
     await page.getByLabel(/Horizon projet/).selectOption("0-3 mois");
     await page
-      .getByLabel(/Quel est votre principal enjeu de couverture/)
+      .getByLabel(/Principal enjeu de couverture/)
       .fill(
         "Nous devons anticiper les tensions de couverture entre nos principaux sites.",
       );

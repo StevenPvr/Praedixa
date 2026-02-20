@@ -73,10 +73,8 @@ export default function AccueilPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-2xl font-bold text-neutral-900">
-          Accueil
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="font-serif text-2xl font-bold text-ink">Accueil</h1>
+        <p className="mt-1 text-sm text-ink-tertiary">
           Inbox operationnel — vue d&apos;ensemble de la plateforme
         </p>
       </div>
@@ -117,16 +115,16 @@ export default function AccueilPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Inbox items — 2/3 width */}
         <div className="space-y-3 lg:col-span-2">
-          <h2 className="font-serif text-lg font-semibold text-neutral-900">
+          <h2 className="font-serif text-lg font-semibold text-ink">
             Inbox ({inboxItems.length})
           </h2>
           {inboxItems.length === 0 ? (
-            <div className="flex flex-col items-center rounded-2xl border border-neutral-200/80 bg-white p-8 shadow-soft">
+            <div className="flex flex-col items-center rounded-2xl border border-border-subtle bg-card p-8 shadow-soft">
               <CheckCircle className="h-8 w-8 text-success-500" />
               <p className="mt-3 text-sm font-medium text-charcoal">
                 Aucun element en attente
               </p>
-              <p className="mt-1 text-sm text-gray-400">
+              <p className="mt-1 text-sm text-ink-placeholder">
                 Tout est en ordre sur la plateforme
               </p>
             </div>

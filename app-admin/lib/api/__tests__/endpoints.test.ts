@@ -12,6 +12,9 @@ describe("ADMIN_ENDPOINTS", () => {
     expect(ADMIN_ENDPOINTS.auditLog).toBe("/api/v1/admin/audit-log");
     expect(ADMIN_ENDPOINTS.onboardingList).toBe("/api/v1/admin/onboarding");
     expect(ADMIN_ENDPOINTS.onboardingStart).toBe("/api/v1/admin/onboarding");
+    expect(ADMIN_ENDPOINTS.contactRequests).toBe(
+      "/api/v1/admin/contact-requests",
+    );
   });
 
   it("encodes path params", () => {
@@ -64,6 +67,10 @@ describe("ADMIN_ENDPOINTS", () => {
     );
     expect(ADMIN_ENDPOINTS.orgDatasetFeatures(orgId, datasetId)).toContain(
       "datasets/dataset%2F01/features",
+    );
+
+    expect(ADMIN_ENDPOINTS.contactRequestStatus(orgId)).toContain(
+      "contact-requests/org%2Fa%20b/status",
     );
   });
 });

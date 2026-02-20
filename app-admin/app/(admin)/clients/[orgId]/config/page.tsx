@@ -55,7 +55,7 @@ export default function ConfigPage() {
       key: "category",
       label: "Categorie",
       render: (row) => (
-        <span className="font-medium text-neutral-900">{row.category}</span>
+        <span className="font-medium text-ink">{row.category}</span>
       ),
     },
     {
@@ -68,7 +68,7 @@ export default function ConfigPage() {
       key: "effectiveFrom",
       label: "Debut",
       render: (row) => (
-        <span className="text-xs text-neutral-500">
+        <span className="text-xs text-ink-tertiary">
           {new Date(row.effectiveFrom).toLocaleDateString("fr-FR")}
         </span>
       ),
@@ -77,7 +77,7 @@ export default function ConfigPage() {
       key: "effectiveUntil",
       label: "Fin",
       render: (row) => (
-        <span className="text-xs text-neutral-500">
+        <span className="text-xs text-ink-tertiary">
           {row.effectiveUntil
             ? new Date(row.effectiveUntil).toLocaleDateString("fr-FR")
             : "-"}
@@ -95,9 +95,7 @@ export default function ConfigPage() {
     {
       key: "name",
       label: "Nom",
-      render: (row) => (
-        <span className="font-medium text-neutral-900">{row.name}</span>
-      ),
+      render: (row) => <span className="font-medium text-ink">{row.name}</span>,
     },
     {
       key: "status",
@@ -106,10 +104,10 @@ export default function ConfigPage() {
         <span
           className={
             row.status === "generated"
-              ? "text-green-600"
+              ? "text-success"
               : row.status === "pending"
-                ? "text-amber-500"
-                : "text-neutral-500"
+                ? "text-primary"
+                : "text-ink-tertiary"
           }
         >
           {row.status}
@@ -120,7 +118,7 @@ export default function ConfigPage() {
       key: "generatedAt",
       label: "Genere le",
       render: (row) => (
-        <span className="text-xs text-neutral-500">
+        <span className="text-xs text-ink-tertiary">
           {row.generatedAt
             ? new Date(row.generatedAt).toLocaleDateString("fr-FR")
             : "-"}
@@ -136,25 +134,25 @@ export default function ConfigPage() {
             href={row.downloadUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-amber-600 hover:text-amber-700"
+            className="text-sm text-primary hover:text-primary-700"
           >
             PDF
           </a>
         ) : (
-          <span className="text-xs text-neutral-400">-</span>
+          <span className="text-xs text-ink-placeholder">-</span>
         ),
     },
   ];
 
   return (
     <div className="space-y-6">
-      <h2 className="font-serif text-lg font-semibold text-neutral-900">
+      <h2 className="font-serif text-lg font-semibold text-ink">
         Configuration
       </h2>
 
       {/* Cost Parameters */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-neutral-700">
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
           Parametres de cout
         </h3>
         {costLoading ? (
@@ -176,7 +174,7 @@ export default function ConfigPage() {
 
       {/* Proof Packs */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-neutral-700">
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
           Packs de preuves
         </h3>
         {proofLoading ? (

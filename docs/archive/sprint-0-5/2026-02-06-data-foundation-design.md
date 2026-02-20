@@ -1,9 +1,10 @@
-# Document 1 — Data Foundation Design Document (UPDATED)
+# Document 1 — Data Foundation Design Document (ARCHIVED SNAPSHOT)
 
 **Date:** 6 February 2026
-**Revision:** 1.1 (design hardening + dev-start completeness pass)
-**Status:** ACTIVE — implementation kickoff approved (Phase 0 hardening + scaffolding)
-**Security Review:** GO for controlled development start with synthetic data only. NO-GO for real client HR data until Gate P0 closure.
+**Revision:** 1.2 (archive normalization, current path alignment)
+**Status:** ARCHIVED — historical design snapshot from Sprint 0.5
+**Security Review (historical):** GO for controlled development start with synthetic data only. NO-GO for real client HR data until Gate P0 closure.
+**Superseded by:** `docs/ARCHITECTURE.md`, `docs/runbooks/local-gate-exhaustive.md`, `docs/security/security-posture-report.md`
 **Author:** Praedixa Engineering
 **Classification:** Internal / Confidential
 
@@ -748,13 +749,13 @@ Managed Postgres offerings may restrict extensions (notably `pg_cron`, `pgaudit`
 
 Additions (NEW):
 
-| File                                                 | Purpose                                                                |
-| ---------------------------------------------------- | ---------------------------------------------------------------------- |
-| `apps/api/app/core/key_management.py`                | Fetch per-org DEKs/HMAC keys from Secrets Manager/KMS, handle versions |
-| `scripts/verify_db_extensions.sql`                   | Assert required extensions exist (pgcrypto mandatory)                  |
-| `scripts/verify_roles_and_grants.sql`                | Automated verification for DF-SEC-P0-04 evidence                       |
-| `scripts/freeze_client_schema.sql`                   | Parameterized freeze/unfreeze script for incident drills               |
-| `apps/api/tests/security/test_default_privileges.py` | Ensures new Schema Manager tables inherit grants correctly             |
+| File                                                | Purpose                                                                |
+| --------------------------------------------------- | ---------------------------------------------------------------------- |
+| `app-api/app/core/key_management.py`                | Fetch per-org DEKs/HMAC keys from Secrets Manager/KMS, handle versions |
+| `scripts/verify_db_extensions.sql`                  | Assert required extensions exist (pgcrypto mandatory)                  |
+| `scripts/verify_roles_and_grants.sql`               | Automated verification for DF-SEC-P0-04 evidence                       |
+| `scripts/freeze_client_schema.sql`                  | Parameterized freeze/unfreeze script for incident drills               |
+| `app-api/tests/security/test_default_privileges.py` | Ensures new Schema Manager tables inherit grants correctly             |
 
 Existing lists remain.
 

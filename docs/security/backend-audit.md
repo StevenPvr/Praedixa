@@ -2,7 +2,7 @@
 
 **Auditor**: sentinel (Backend Security Architect Agent)
 **Date**: 2026-02-08
-**Scope**: `apps/api/` -- all core modules, routers, services, models
+**Scope**: `app-api/` -- all core modules, routers, services, models
 **Methodology**: Static code review, OWASP API Security Top 10 mapping, STRIDE threat analysis
 
 ---
@@ -41,10 +41,10 @@ The Praedixa backend demonstrates **mature security posture** for an early-stage
 
 **Files Modified**:
 
-- `apps/api/app/core/database.py` -- ContextVar + SET LOCAL
-- `apps/api/app/core/dependencies.py` -- set_rls_org_id() calls
-- `apps/api/tests/unit/test_database.py` -- 14 new tests
-- `apps/api/tests/unit/test_dependencies.py` -- 3 new tests
+- `app-api/app/core/database.py` -- ContextVar + SET LOCAL
+- `app-api/app/core/dependencies.py` -- set_rls_org_id() calls
+- `app-api/tests/unit/test_database.py` -- 14 new tests
+- `app-api/tests/unit/test_dependencies.py` -- 3 new tests
 
 **Verification**: 3025/3025 tests pass after fix.
 
@@ -54,7 +54,7 @@ The Praedixa backend demonstrates **mature security posture** for an early-stage
 
 ### P1-1: Admin Org Update Uses Raw `dict` Body (Mass Assignment Risk)
 
-**File**: `apps/api/app/routers/admin_orgs.py:188-206`
+**File**: `app-api/app/routers/admin_orgs.py:188-206`
 **OWASP**: API6 -- Mass Assignment
 
 **Issue**: The `update_org` endpoint accepts `body: dict` instead of a Pydantic schema with `extra="forbid"`. While there IS an allowlist filter (`_ALLOWED_FIELDS`), using a raw dict bypasses Pydantic's type validation. An attacker could send:
@@ -69,7 +69,7 @@ The service layer's `sanitize_text()` mitigates XSS but doesn't validate types/f
 
 ### P1-2: Rate Limiting IP Spoofing via X-Forwarded-For
 
-**File**: `apps/api/app/core/rate_limit.py:49-72`
+**File**: `app-api/app/core/rate_limit.py:49-72`
 **OWASP**: API4 -- Unrestricted Resource Consumption
 
 **Issue**: `_get_client_ip()` trusts `cf-connecting-ip` and `X-Forwarded-For` headers without verifying they come from a trusted proxy. In a non-Cloudflare deployment (or if Cloudflare is misconfigured), an attacker can spoof these headers to bypass rate limiting entirely:
@@ -116,7 +116,7 @@ Each request appears to come from a different IP, making rate limiting ineffecti
 
 ### P2-2: RGPD Erasure In-Memory Store (No Persistence)
 
-**File**: `apps/api/app/services/rgpd_erasure.py:116-161`
+**File**: `app-api/app/services/rgpd_erasure.py:116-161`
 **OWASP**: API8 -- Security Misconfiguration
 
 **Issue**: Erasure requests are stored in a Python dict (`_erasure_requests`). On process restart, all erasure state is lost -- including requests in `executing` state, which could leave an org in a partially-erased limbo. The service correctly notes this is MVP-acceptable, but it's a compliance risk for CNIL audits.
@@ -125,7 +125,7 @@ Each request appears to come from a different IP, making rate limiting ineffecti
 
 ### P2-3: `text("1")` Positional References in SQL
 
-**File**: `apps/api/app/services/admin_monitoring.py:129-130`
+**File**: `app-api/app/services/admin_monitoring.py:129-130`
 
 **Issue**: `group_by(text("1")).order_by(text("1"))` uses positional column references. While not directly exploitable (the string is hardcoded), this pattern is fragile and could break if the SELECT columns are reordered. More importantly, `text()` usage in any context invites accidental copy-paste into user-input paths.
 
@@ -133,7 +133,7 @@ Each request appears to come from a different IP, making rate limiting ineffecti
 
 ### P2-4: Admin Data Router Creates TenantFilter Without SET LOCAL Override
 
-**File**: `apps/api/app/routers/admin_data.py:44-46`
+**File**: `app-api/app/routers/admin_data.py:44-46`
 
 **Issue**: `_admin_tenant(org_id)` creates a TenantFilter for admin queries but does NOT call `set_rls_org_id()`. This means the RLS context is set to the admin's own org (from `get_current_user`), while the application-level TenantFilter queries a different org. If RLS is active, the application TenantFilter may return rows that RLS blocks, causing empty results.
 
@@ -145,7 +145,7 @@ Each request appears to come from a different IP, making rate limiting ineffecti
 
 ### P3-1: CORS `allow_headers` Includes Wildcard Potential
 
-**File**: `apps/api/app/main.py:135`
+**File**: `app-api/app/main.py:135`
 
 **Issue**: `allow_headers=["Authorization", "Content-Type", "X-Request-ID"]` is an explicit allowlist (good). However, if this is ever changed to `["*"]`, it would allow any custom header including `X-Forwarded-For` spoofing from the browser.
 
@@ -153,7 +153,7 @@ Each request appears to come from a different IP, making rate limiting ineffecti
 
 ### P3-2: Health Endpoint Exposes Environment Name
 
-**File**: `apps/api/app/routers/health.py:53`
+**File**: `app-api/app/routers/health.py:53`
 
 **Issue**: `"environment": settings.ENVIRONMENT` in the health response reveals whether the server is in development/staging/production. This aids reconnaissance.
 
@@ -161,7 +161,7 @@ Each request appears to come from a different IP, making rate limiting ineffecti
 
 ### P3-3: Erasure Audit Log Contains User IDs in Plain Text
 
-**File**: `apps/api/app/services/rgpd_erasure.py:244-247`
+**File**: `app-api/app/services/rgpd_erasure.py:244-247`
 
 **Issue**: `audit_log` entries contain raw `initiated_by` and `approved_by` user_id strings. If these logs are exposed, they reveal admin identifiers.
 
@@ -169,7 +169,7 @@ Each request appears to come from a different IP, making rate limiting ineffecti
 
 ### P3-4: `_KNOWN_ROLES` Not Enforced as Enum
 
-**File**: `apps/api/app/core/auth.py:38-45`
+**File**: `app-api/app/core/auth.py:38-45`
 
 **Issue**: Known roles are a set of strings, not a Python enum. If a new role is added in Supabase but not in `_KNOWN_ROLES`, it silently falls back to `"viewer"`. This is actually a GOOD security default (unknown role gets minimum privilege), but could cause confusion when onboarding new role types.
 
@@ -204,7 +204,7 @@ Each request appears to come from a different IP, making rate limiting ineffecti
 
 ## Crypto Review (Key Management)
 
-**File**: `apps/api/app/core/key_management.py`
+**File**: `app-api/app/core/key_management.py`
 
 | Parameter            | Value                    | Assessment                                        |
 | -------------------- | ------------------------ | ------------------------------------------------- |
@@ -245,7 +245,7 @@ All other queries use SQLAlchemy ORM query builder (parameterized by constructio
 
 ## DDL Validation Assessment
 
-**File**: `apps/api/app/core/ddl_validation.py`
+**File**: `app-api/app/core/ddl_validation.py`
 
 The DDL validation module is **well-designed**:
 
@@ -341,7 +341,7 @@ No skipping or replaying transitions is possible. The `_validate_transition()` f
 
 ### Medical Masking (GDPR Art. 9)
 
-**File**: `apps/api/app/services/medical_masking.py`
+**File**: `app-api/app/services/medical_masking.py`
 
 **Status**: **GOOD**
 
@@ -353,7 +353,7 @@ No skipping or replaying transitions is possible. The `_validate_transition()` f
 
 ### Admin Audit Log Completeness
 
-**File**: `apps/api/app/services/admin_audit.py`
+**File**: `app-api/app/services/admin_audit.py`
 
 **Status**: **GOOD**
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   Home,
   Building2,
+  Mail,
   BookOpen,
   Settings,
   LogOut,
@@ -40,6 +41,7 @@ interface AdminSidebarProps {
 const NAV_ITEMS: NavItem[] = [
   { label: "Accueil", href: "/", icon: Home },
   { label: "Clients", href: "/clients", icon: Building2 },
+  { label: "Demandes contact", href: "/demandes-contact", icon: Mail },
   { label: "Journal", href: "/journal", icon: BookOpen },
   { label: "Parametres", href: "/parametres", icon: Settings },
 ];
@@ -73,7 +75,7 @@ export function AdminSidebar({
         <div className="flex items-center gap-2.5 overflow-hidden">
           <PraedixaLogo
             size={32}
-            color="oklch(0.85 0.01 250)"
+            color="var(--sidebar-text)"
             className="shrink-0"
           />
           {!collapsed && (
@@ -81,7 +83,7 @@ export function AdminSidebar({
               <span className="truncate font-serif text-lg font-semibold text-sidebar-text">
                 Praedixa
               </span>
-              <span className="shrink-0 rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-charcoal">
+              <span className="shrink-0 rounded bg-primary px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
                 Admin
               </span>
             </div>
@@ -106,7 +108,7 @@ export function AdminSidebar({
                   className={cn(
                     "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                     active
-                      ? "border-l-[3px] border-amber-500 bg-sidebar-active pl-[9px] font-medium text-amber-400"
+                      ? "border-l-[3px] border-primary bg-sidebar-active pl-[9px] font-medium text-sidebar-text"
                       : "text-sidebar-text-muted hover:bg-sidebar-hover hover:text-sidebar-text",
                     collapsed && "justify-center px-0",
                   )}
@@ -116,7 +118,7 @@ export function AdminSidebar({
                     className={cn(
                       "h-5 w-5 shrink-0",
                       active
-                        ? "text-amber-400"
+                        ? "text-sidebar-text"
                         : "text-sidebar-text-muted group-hover:text-sidebar-text",
                     )}
                     aria-hidden="true"
@@ -138,7 +140,7 @@ export function AdminSidebar({
               collapsed && "justify-center",
             )}
           >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-charcoal">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
               {userEmail.charAt(0).toUpperCase()}
             </div>
             {!collapsed && (

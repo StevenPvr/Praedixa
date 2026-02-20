@@ -1,15 +1,18 @@
-# Document 2 — Data Foundation Hardening Gate Checklist (UPDATED)
+# Document 2 — Data Foundation Hardening Gate Checklist (ARCHIVED SNAPSHOT)
 
 **Date:** 6 February 2026
-**Revision:** 1.1 (key mgmt + privileges correctness + RLS scope fixes)
-**Scope:** `docs/plans-web-app/2026-02-06-data-foundation-design.md`
-**Mode:** Controlled kickoff
+**Revision:** 1.2 (archive normalization, current path alignment)
+**Archive status:** Historical sprint artifact (Sprint 0.5), not the canonical operational gate.
+**Superseded by:** `docs/runbooks/local-gate-exhaustive.md`, `docs/runbooks/mvp-go-live-readiness.md`, `docs/security/devops-audit.md`
+**Scope (historical):** `docs/archive/sprint-0-5/2026-02-06-data-foundation-design.md`
+**Mode:** Historical reference
+**Note:** Ticket statuses and target dates below are historical and must not be used as the active source of truth.
 
 ## 1. Start Decision
 
 Development starts **now** with Phase 0 hardening and technical scaffolding.
 
-- `GO` for coding, migrations, tests, and CI hardening with synthetic data.
+- `GO` for coding, migrations, tests, and security hardening with synthetic data.
 - `NO-GO` for real client HR data until all P0 tickets are `DONE`.
 - `NO-GO` for production deployment until P0 is closed and sign-off is recorded.
 
@@ -33,12 +36,12 @@ Development starts **now** with Phase 0 hardening and technical scaffolding.
   - Add `kid`-based key rotation.
   - Validate sensitive endpoint role against DB state (not token-only).
 - Acceptance criteria:
-  1. No runtime dependency on `python-jose` in `apps/api/pyproject.toml`.
+  1. No runtime dependency on `python-jose` in `app-api/pyproject.toml`.
   2. Tokens signed with `none`/`HS256` are rejected.
   3. Expired, malformed, wrong-issuer, wrong-audience tokens are rejected.
   4. Admin endpoints require DB-backed privileged role confirmation.
 - Evidence:
-  - Unit tests in `apps/api/tests/security/test_auth_jwt.py`.
+  - Unit tests in `app-api/tests/security/test_auth_jwt.py`.
   - CI test log attached.
 - Target date: `2026-02-09`
 
@@ -57,7 +60,7 @@ Development starts **now** with Phase 0 hardening and technical scaffolding.
   3. 429 responses are deterministic and logged with request ID.
   4. Brute-force simulation test triggers block.
 - Evidence:
-  - Integration tests in `apps/api/tests/security/test_rate_limits.py`.
+  - Integration tests in `app-api/tests/security/test_rate_limits.py`.
   - Load test output showing throttling behavior.
 - Target date: `2026-02-09`
 
@@ -67,7 +70,7 @@ Development starts **now** with Phase 0 hardening and technical scaffolding.
 - Owner: Data Platform
 - Status: `OPEN`
 - Deliverables:
-  - Implement `apps/api/app/core/ddl_validation.py`.
+  - Implement `app-api/app/core/ddl_validation.py`.
   - Validate `client slug`, schema, table, column, and type via strict allowlists.
   - Enforce `strictyaml` schema validation with field allowlist.
   - Ensure all DDL uses `psycopg.sql.Identifier`.
@@ -77,7 +80,7 @@ Development starts **now** with Phase 0 hardening and technical scaffolding.
   3. Unsupported type strings are rejected.
   4. No f-string interpolation in DDL paths.
 - Evidence:
-  - Tests in `apps/api/tests/security/test_schema_manager_validation.py`.
+  - Tests in `app-api/tests/security/test_schema_manager_validation.py`.
   - Static grep evidence showing no dynamic DDL f-strings in schema manager.
 - Target date: `2026-02-10`
 
@@ -97,7 +100,7 @@ Development starts **now** with Phase 0 hardening and technical scaffolding.
   4. Newly created tables inherit grants automatically **without manual GRANT**.
 - Evidence:
   - SQL verification script output saved in `docs/security-evidence/roles-verify-2026-02-xx.md`.
-  - Automated test: `apps/api/tests/security/test_default_privileges.py`.
+  - Automated test: `app-api/tests/security/test_default_privileges.py`.
 - Target date: `2026-02-10`
 
 ### DF-SEC-P0-05 — RLS full coverage and isolation tests (UPDATED scope)
@@ -117,7 +120,7 @@ Development starts **now** with Phase 0 hardening and technical scaffolding.
   3. Cross-tenant write attempts fail.
   4. Tenant-local read/write still works.
 - Evidence:
-  - `uv run pytest apps/api/tests/test_rls_isolation.py -q` output.
+  - `uv run pytest app-api/tests/test_rls_isolation.py -q` output.
 - Target date: `2026-02-10`
 
 ### DF-SEC-P0-06 — RGPD erasure with crypto-shredding and backup lifecycle (UPDATED key storage)
@@ -156,21 +159,21 @@ Development starts **now** with Phase 0 hardening and technical scaffolding.
   - Drill transcript in `docs/security-evidence/incident-freeze-drill-2026-02-xx.md`.
 - Target date: `2026-02-11`
 
-### DF-SEC-P0-08 — CI security gates
+### DF-SEC-P0-08 — Verification gate hardening
 
 - Priority: `P0`
 - Owner: DevSecOps
 - Status: `OPEN`
 - Deliverables:
-  - Add `bandit`, `pip-audit`, `gitleaks`, `trivy` to CI.
-  - Fail pipeline on HIGH/CRITICAL findings.
-  - Add dependency and secret scanning to PR checks.
+  - Maintain local exhaustive gate coverage for `bandit`, `pip-audit`, `gitleaks`, `trivy`.
+  - Keep blocking behavior on policy-defined findings.
+  - Keep dependency and secret scanning as mandatory checks in the gate flow.
 - Acceptance criteria:
-  1. CI fails on test repository seeded with known vulnerable dependency.
-  2. CI fails on seeded fake secret.
-  3. CI passes on clean branch.
+  1. `pnpm gate:exhaustive` fails on a seeded vulnerable dependency.
+  2. `pnpm gate:exhaustive` fails on a seeded fake secret.
+  3. `pnpm gate:exhaustive` passes on a clean branch.
 - Evidence:
-  - Workflow run links/logs attached in PR.
+  - Local gate logs + signed report (`.git/gate-reports/<sha>.json`).
 - Target date: `2026-02-11`
 
 ### DF-SEC-P0-09 — Managed DB extensions availability check (NEW)
@@ -249,4 +252,4 @@ Day 0 kickoff order (updated to include extensions/ownership early):
 3. Implement `DF-SEC-P0-01` (JWT hardening) and `DF-SEC-P0-02` (rate limiting).
 4. Implement `DF-SEC-P0-05` tests and RLS migration.
 5. Implement `DF-SEC-P0-06` erasure workflow and `DF-SEC-P0-07` incident drill.
-6. Wire `DF-SEC-P0-08` CI gates and collect evidence.
+6. Wire `DF-SEC-P0-08` gate checks and collect evidence.

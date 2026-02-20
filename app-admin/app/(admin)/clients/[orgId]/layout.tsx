@@ -72,8 +72,8 @@ export default function ClientWorkspaceLayout({
 
         <div className="flex">
           {/* Site tree panel */}
-          <aside className="hidden w-60 shrink-0 border-r border-neutral-200 p-4 lg:block">
-            <h3 className="mb-3 text-xs font-medium uppercase tracking-wider text-neutral-400">
+          <aside className="hidden w-60 shrink-0 border-r border-border-subtle p-4 lg:block">
+            <h3 className="mb-3 text-xs font-medium uppercase tracking-wider text-ink-placeholder">
               Sites
             </h3>
             <SiteTree

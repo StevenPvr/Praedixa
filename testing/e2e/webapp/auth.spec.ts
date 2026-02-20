@@ -1,51 +1,5 @@
 import { test, expect } from "./fixtures/coverage";
-import type { Page } from "@playwright/test";
 import { setupAuth } from "./fixtures/auth";
-
-function toBase64Url(value: string): string {
-  return Buffer.from(value, "utf8")
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/g, "");
-}
-
-async function setSuperAdminSessionCookie(page: Page) {
-  const session = {
-    access_token: "mock-access-token-admin-e2e",
-    token_type: "bearer",
-    expires_in: 3600,
-    expires_at: Math.floor(Date.now() / 1000) + 3600,
-    refresh_token: "mock-refresh-token-admin-e2e",
-    user: {
-      id: "sa-00000000-0000-0000-0000-000000000001",
-      aud: "authenticated",
-      role: "authenticated",
-      email: "superadmin@praedixa.com",
-      email_confirmed_at: "2026-01-01T00:00:00Z",
-      app_metadata: {
-        provider: "email",
-        providers: ["email"],
-        role: "super_admin",
-      },
-      user_metadata: {},
-      created_at: "2026-01-01T00:00:00Z",
-      updated_at: "2026-01-01T00:00:00Z",
-    },
-  };
-
-  await page.context().addCookies([
-    {
-      name: "sb-localhost-auth-token",
-      value: `base64-${toBase64Url(JSON.stringify(session))}`,
-      domain: "localhost",
-      path: "/",
-      httpOnly: false,
-      secure: false,
-      sameSite: "Lax",
-    },
-  ]);
-}
 
 test.describe("Webapp authentication", () => {
   test("/login page loads successfully", async ({ page }) => {
@@ -55,33 +9,26 @@ test.describe("Webapp authentication", () => {
     ).toBeVisible();
   });
 
-  test("login page has email input", async ({ page }) => {
-    await page.goto("/login");
-    const emailInput = page.getByLabel(/Email/);
-    await expect(emailInput).toBeVisible();
-    await expect(emailInput).toHaveAttribute("type", "email");
-  });
-
-  test("login page has password input", async ({ page }) => {
-    await page.goto("/login");
-    const passwordInput = page.getByLabel("Mot de passe");
-    await expect(passwordInput).toBeVisible();
-    await expect(passwordInput).toHaveAttribute("type", "password");
-  });
-
-  test("login page has submit button", async ({ page }) => {
-    await page.goto("/login");
-    const submitButton = page.getByRole("button", { name: /se connecter/i });
-    await expect(submitButton).toBeVisible();
-    await expect(submitButton).toBeEnabled();
-  });
-
-  test("login page shows subtitle", async ({ page }) => {
+  test("login page exposes OIDC CTA", async ({ page }) => {
     await page.goto("/login");
     await expect(
+      page.getByRole("button", { name: "Continuer vers la connexion" }),
+    ).toBeVisible();
+  });
+
+  test("login page displays reauth banner when reauth=1", async ({ page }) => {
+    await page.goto("/login?reauth=1");
+    await expect(
       page.getByText(
-        "Accedez a votre war room operationnelle et vos priorites critiques.",
+        "Session expiree ou droits insuffisants. Veuillez vous reconnecter.",
       ),
+    ).toBeVisible();
+  });
+
+  test("login page displays OIDC config error", async ({ page }) => {
+    await page.goto("/login?error=oidc_config_missing");
+    await expect(
+      page.getByText(/Configuration OIDC manquante en local\./),
     ).toBeVisible();
   });
 
@@ -112,72 +59,24 @@ test.describe("Webapp authentication", () => {
     );
 
     await page.goto("/dashboard");
-
     await expect(page).toHaveURL(/\/login\?reauth=1/);
-    await expect(
-      page.getByText(
-        "Session expiree ou droits insuffisants. Veuillez vous reconnecter.",
-      ),
-    ).toBeVisible();
   });
 
   test("super_admin session is blocked from protected webapp routes", async ({
     page,
   }) => {
-    await setupAuth(page);
-    await setSuperAdminSessionCookie(page);
+    await setupAuth(page, {
+      role: "super_admin",
+      email: "superadmin@praedixa.com",
+      userId: "sa-00000000-0000-0000-0000-000000000001",
+      organizationId: null,
+      siteId: null,
+    });
 
     await page.goto("/dashboard");
-
     await expect(page).toHaveURL(/\/login(?:\?|$)/);
     await expect(
       page.getByRole("heading", { name: "Connexion securisee" }),
     ).toBeVisible();
-  });
-
-  test("email input has placeholder text", async ({ page }) => {
-    await page.goto("/login");
-    const emailInput = page.getByPlaceholder("vous@entreprise.com");
-    await expect(emailInput).toBeVisible();
-  });
-
-  test("submit button shows loading state on click", async ({ page }) => {
-    await page.addInitScript(() => {
-      const origFetch = window.fetch.bind(window);
-      window.fetch = async (input, init) => {
-        const url =
-          typeof input === "string"
-            ? input
-            : input instanceof Request
-              ? input.url
-              : "";
-        if (url.includes("/auth/v1/token")) {
-          await new Promise((resolve) => setTimeout(resolve, 3000));
-          return new Response(
-            JSON.stringify({
-              error: "invalid_grant",
-              error_description: "Invalid login credentials",
-              message: "Invalid login credentials",
-            }),
-            { status: 400, headers: { "Content-Type": "application/json" } },
-          );
-        }
-        return origFetch(input, init);
-      };
-    });
-
-    await page.goto("/login");
-    await page.getByLabel("Email").fill("test@example.com");
-    await page.getByLabel("Mot de passe").fill("password");
-
-    const submitButton = page.getByRole("button", { name: /se connecter/i });
-    await submitButton.click();
-
-    await expect(
-      page.getByRole("button", { name: "Connexion en cours..." }),
-    ).toBeVisible({ timeout: 5000 });
-    await expect(
-      page.getByRole("button", { name: "Connexion en cours..." }),
-    ).toBeDisabled();
   });
 });

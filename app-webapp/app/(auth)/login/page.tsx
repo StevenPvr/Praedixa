@@ -1,58 +1,41 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { fadeScale } from "@/lib/animations/config";
-import {
-  getSupabaseBrowserClient,
-  getValidAccessToken,
-} from "@/lib/auth/client";
+
+function toLoginErrorMessage(error: string | null): string | null {
+  if (!error) return null;
+  if (error === "oidc_config_missing") {
+    return "Configuration OIDC manquante en local. Renseignez AUTH_OIDC_ISSUER_URL, AUTH_OIDC_CLIENT_ID et AUTH_SESSION_SECRET dans app-webapp/.env.local.";
+  }
+  if (error === "oidc_provider_untrusted") {
+    return "Le fournisseur OIDC est non fiable ou mal configure (TLS/certificat/endpoints). Contactez l'administrateur.";
+  }
+  return `La connexion a echoue (${error}). Veuillez reessayer.`;
+}
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const isReauth = searchParams.get("reauth") === "1";
+  const error = searchParams.get("error");
+  const errorMessage = toLoginErrorMessage(error);
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  const next = searchParams.get("next") ?? "/dashboard";
+  const safeNext =
+    next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
 
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) {
-        setError(authError.message);
-        setLoading(false);
-        return;
-      }
-
-      const token = await getValidAccessToken({ minTtlSeconds: 0 });
-      if (!token) {
-        setError("Session invalide. Veuillez reessayer.");
-        setLoading(false);
-        return;
-      }
-
-      window.location.href = "/dashboard";
-    } catch {
-      setError("Erreur de connexion. Veuillez reessayer.");
-      setLoading(false);
+  function handleLogin(): void {
+    const loginUrl = new URL("/auth/login", window.location.origin);
+    loginUrl.searchParams.set("next", safeNext);
+    if (isReauth) {
+      loginUrl.searchParams.set("prompt", "login");
     }
+    window.location.href = loginUrl.toString();
   }
-
-  const inputClasses =
-    "w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-body-sm text-ink placeholder:text-ink-placeholder outline-none transition-all duration-fast focus:border-primary focus:ring-2 focus:ring-[var(--ring)]";
 
   return (
     <motion.div
@@ -67,79 +50,35 @@ function LoginForm() {
           Connexion securisee
         </h2>
         <p className="text-body-sm text-ink-secondary">
-          Accedez a votre war room operationnelle et vos priorites critiques.
+          Authentification geree par votre fournisseur d'identite entreprise.
         </p>
       </div>
 
-      <form onSubmit={handleLogin} className="mt-8 space-y-4">
+      <div className="mt-8 space-y-4">
         {isReauth && (
           <div className="rounded-lg border border-warning-light bg-warning-light/50 px-4 py-3 text-body-sm text-warning-text">
             Session expiree ou droits insuffisants. Veuillez vous reconnecter.
           </div>
         )}
 
-        {error && (
+        {errorMessage && (
           <div className="rounded-lg border border-danger-light bg-danger-light/50 px-4 py-3 text-body-sm text-danger-text">
-            {error}
+            {errorMessage}
           </div>
         )}
 
-        <div>
-          <label
-            htmlFor="email"
-            className="mb-1.5 block text-body-sm font-medium text-ink"
-          >
-            Email professionnel
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-            autoComplete="email"
-            className={inputClasses}
-            placeholder="vous@entreprise.com"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="password"
-            className="mb-1.5 block text-body-sm font-medium text-ink"
-          >
-            Mot de passe
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-            autoComplete="current-password"
-            className={inputClasses}
-          />
-        </div>
-
         <Button
-          type="submit"
-          disabled={loading}
-          loading={loading}
+          type="button"
+          onClick={handleLogin}
           variant="premium"
           className="w-full"
           size="lg"
         >
-          {loading ? (
-            "Connexion en cours..."
-          ) : (
-            <>
-              <LockKeyhole className="mr-2 h-4 w-4" />
-              Se connecter
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
-          )}
+          <LockKeyhole className="mr-2 h-4 w-4" />
+          Continuer vers la connexion
+          <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
-      </form>
+      </div>
     </motion.div>
   );
 }

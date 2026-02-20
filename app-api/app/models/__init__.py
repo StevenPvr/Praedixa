@@ -15,6 +15,11 @@ from app.models.admin import (
     RgpdErasureStatus,
 )
 from app.models.base import Base
+from app.models.contact_request import (
+    ContactRequest,
+    ContactRequestStatus,
+    ContactRequestType,
+)
 from app.models.conversation import (
     Conversation,
     ConversationInitiator,
@@ -51,6 +56,14 @@ from app.models.forecast_run import (
     ForecastModelType,
     ForecastRun,
     ForecastStatus,
+)
+from app.models.mlops import (
+    DataLineageEvent,
+    InferenceJobStatus,
+    ModelArtifactAccessLog,
+    ModelInferenceJob,
+    ModelRegistry,
+    ModelRegistryStatus,
 )
 from app.models.operational import (
     CanonicalRecord,
@@ -96,6 +109,13 @@ __all__ = [
     "ForecastRun",
     "ForecastModelType",
     "ForecastStatus",
+    # MLOps
+    "ModelRegistry",
+    "ModelRegistryStatus",
+    "ModelInferenceJob",
+    "InferenceJobStatus",
+    "ModelArtifactAccessLog",
+    "DataLineageEvent",
     "DailyForecast",
     "ForecastDimension",
     # Decision
@@ -133,6 +153,10 @@ __all__ = [
     "ConversationStatus",
     "ConversationInitiator",
     "Message",
+    # Contact requests
+    "ContactRequest",
+    "ContactRequestStatus",
+    "ContactRequestType",
     # Operational
     "CanonicalRecord",
     "CostParameter",

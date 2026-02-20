@@ -46,8 +46,8 @@ export async function JsonLd({ locale }: JsonLdProps) {
       availability: "https://schema.org/LimitedAvailability",
       description:
         locale === "fr"
-          ? "Accès via programme pilote encadré"
-          : "Access through a structured pilot program",
+          ? "Accès via un pilote prévision effectifs sur 3 mois, avec extension optionnelle vers un socle décisionnel complet"
+          : "Access through a 3-month workforce forecasting pilot, with optional extension to a broader decision platform",
     },
   };
 

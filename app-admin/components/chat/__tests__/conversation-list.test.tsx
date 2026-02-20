@@ -212,7 +212,7 @@ describe("ConversationList", () => {
     const buttons = container.querySelectorAll("button[type='button']");
     // First 3 are filter tabs, next 3 are conversations
     const convButton = buttons[3];
-    expect(convButton.className).toContain("amber-50");
+    expect(convButton.className).toContain("primary-50");
   });
 
   it("filters by open status via URL param", () => {

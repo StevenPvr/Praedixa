@@ -7,6 +7,7 @@ import { PraedixaLogo } from "../logo/PraedixaLogo";
 import { ArrowRightIcon, CheckIcon } from "../icons";
 import { localizedSlugs } from "../../lib/i18n/config";
 import type { Locale } from "../../lib/i18n/config";
+import type { Dictionary } from "../../lib/i18n/types";
 
 interface FormData {
   companyName: string;
@@ -21,77 +22,94 @@ interface FormData {
   timeline: string;
   currentStack: string;
   painPoint: string;
-  website: string; // honeypot
+  website: string;
   consent: boolean;
 }
 
-const SECTORS = [
-  "Logistique",
-  "Transport",
-  "Santé",
-  "Industrie",
-  "Distribution",
-  "Agroalimentaire",
-  "BTP",
-  "Services",
-  "Autre",
-] as const;
+const INITIAL_FORM_DATA: FormData = {
+  companyName: "",
+  sector: "",
+  employeeRange: "",
+  siteCount: "",
+  firstName: "",
+  lastName: "",
+  role: "",
+  email: "",
+  phone: "",
+  timeline: "",
+  currentStack: "",
+  painPoint: "",
+  website: "",
+  consent: false,
+};
 
-const EMPLOYEE_RANGES = [
-  "50-100",
-  "100-250",
-  "250-500",
-  "500-1 000",
-  "1 000+",
-] as const;
+function getField(
+  fields: Dictionary["form"]["fields"],
+  key: string,
+  fallbackLabel: string,
+  fallbackPlaceholder?: string,
+): { label: string; placeholder?: string } {
+  return (
+    fields[key] ?? {
+      label: fallbackLabel,
+      placeholder: fallbackPlaceholder,
+    }
+  );
+}
 
-const SITE_COUNTS = ["1-3", "4-10", "11-30", "31+"] as const;
+function splitConsentTemplate(template: string): {
+  prefix: string;
+  between: string;
+  suffix: string;
+} {
+  const [prefix = "", afterCguRaw = ""] = template.split("{cgu}");
+  const [between = "", suffix = ""] = afterCguRaw.split("{privacy}");
 
-const ROLES = [
-  "COO / Direction des opérations",
-  "Responsable des opérations",
-  "Direction de site",
-  "DAF / Direction financière",
-  "Direction générale",
-  "Autre",
-] as const;
+  return { prefix, between, suffix };
+}
 
-const TIMELINES = ["0-3 mois", "3-6 mois", "6-12 mois", "Exploration"] as const;
-
-const VALUE_POINTS = [
-  "Qualification orientée enjeux COO et finance",
-  "Processus structuré en quelques minutes",
-  "Réponse rapidement par l'équipe fondatrice",
-] as const;
-
-export function PilotApplicationPageClient({ locale }: { locale: Locale }) {
+export function PilotApplicationPageClient({
+  locale,
+  dict,
+}: {
+  locale: Locale;
+  dict: Dictionary;
+}) {
   const homeHref = `/${locale}`;
   const cguHref = `/${locale}/${localizedSlugs.terms[locale]}`;
   const privacyHref = `/${locale}/${localizedSlugs.privacy[locale]}`;
+  const { form, nav } = dict;
 
-  const [formData, setFormData] = useState<FormData>({
-    companyName: "",
-    sector: "",
-    employeeRange: "",
-    siteCount: "",
-    firstName: "",
-    lastName: "",
-    role: "",
-    email: "",
-    phone: "",
-    timeline: "",
-    currentStack: "",
-    painPoint: "",
-    website: "",
-    consent: false,
-  });
+  const fields = form.fields;
+  const companyField = getField(fields, "companyName", "Company");
+  const sectorField = getField(fields, "sector", "Sector");
+  const employeeRangeField = getField(fields, "employeeRange", "Headcount");
+  const siteCountField = getField(fields, "siteCount", "Number of sites");
+  const firstNameField = getField(fields, "firstName", "First name");
+  const lastNameField = getField(fields, "lastName", "Last name");
+  const roleField = getField(fields, "role", "Role");
+  const emailField = getField(fields, "email", "Professional email");
+  const phoneField = getField(fields, "phone", "Phone");
+  const timelineField = getField(fields, "timeline", "Project horizon");
+  const currentStackField = getField(
+    fields,
+    "currentStack",
+    "Current stack (optional)",
+  );
+  const painPointField = getField(
+    fields,
+    "painPoint",
+    "Main coverage challenge",
+  );
+
+  const consentTokens = splitConsentTemplate(form.consent);
+
+  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isComplete = useMemo(() => {
-    const painPointReady = formData.painPoint.trim().length >= 20;
-
     return (
       formData.companyName.trim().length > 1 &&
       formData.sector !== "" &&
@@ -102,7 +120,7 @@ export function PilotApplicationPageClient({ locale }: { locale: Locale }) {
       formData.role !== "" &&
       formData.email.trim().length > 3 &&
       formData.timeline !== "" &&
-      painPointReady &&
+      formData.painPoint.trim().length > 0 &&
       formData.consent
     );
   }, [formData]);
@@ -125,15 +143,13 @@ export function PilotApplicationPageClient({ locale }: { locale: Locale }) {
         const payload = (await response.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(payload?.error || "Erreur lors de l'envoi");
+        throw new Error(payload?.error || form.error);
       }
 
       setIsSuccess(true);
     } catch (submitError) {
       const message =
-        submitError instanceof Error
-          ? submitError.message
-          : "Une erreur est survenue. Veuillez réessayer.";
+        submitError instanceof Error ? submitError.message : form.error;
       setError(message);
     } finally {
       setIsSubmitting(false);
@@ -143,28 +159,31 @@ export function PilotApplicationPageClient({ locale }: { locale: Locale }) {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-cream">
-        <main className="section-shell flex min-h-screen items-center justify-center py-20">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="section-shell flex min-h-screen items-center justify-center py-20"
+        >
           <motion.section
             className="pilot-card w-full max-w-2xl p-10 text-center"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-amber-200 bg-amber-50">
-              <CheckIcon className="h-8 w-8 text-amber-700" />
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-primary-200 bg-primary-50">
+              <CheckIcon className="h-8 w-8 text-primary-700" />
             </div>
             <h1 className="mt-6 font-serif text-5xl leading-tight text-charcoal">
-              Candidature transmise
+              {form.success.title}
             </h1>
-            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-neutral-600">
-              Nous analysons votre dossier et revenons vers vous rapidement avec
-              un cadrage de premier échange adapté à votre contexte.
+            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-secondary">
+              {form.success.description}
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link href={homeHref} className="ghost-cta">
-                Retour à la landing
+                {form.success.backToSite}
               </Link>
               <a href={`mailto:${formData.email}`} className="gold-cta">
-                Vérifier ma boîte email
+                {form.success.checkEmail}
               </a>
             </div>
           </motion.section>
@@ -177,12 +196,12 @@ export function PilotApplicationPageClient({ locale }: { locale: Locale }) {
     <div className="min-h-screen bg-cream">
       <nav className="fixed left-0 right-0 top-0 z-50">
         <div className="section-shell mt-4">
-          <div className="flex items-center justify-between rounded-2xl border border-neutral-300 bg-white/90 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur md:px-6">
+          <div className="flex items-center justify-between rounded-2xl border border-primary/25 bg-[color-mix(in_oklch,var(--color-panel)_92%,transparent)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur md:px-6">
             <Link href={homeHref} className="group flex items-center gap-2.5">
               <PraedixaLogo
                 variant="geometric"
                 size={30}
-                color="oklch(0.2 0.01 65)"
+                color="var(--color-text-secondary)"
                 strokeWidth={1.1}
                 className="transition-transform duration-200 group-hover:scale-105"
               />
@@ -192,46 +211,50 @@ export function PilotApplicationPageClient({ locale }: { locale: Locale }) {
               href={homeHref}
               className="text-sm font-semibold text-charcoal/70 transition hover:text-charcoal"
             >
-              Retour au site
+              {nav.backToSite}
             </Link>
           </div>
         </div>
       </nav>
 
-      <main className="section-shell pb-20 pt-32 md:pt-36">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="section-shell pb-20 pt-32 md:pt-36"
+      >
         <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
           <motion.aside
             className="pilot-card p-8"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <p className="pilot-pill">Cohorte fondatrice</p>
+            <p className="pilot-pill">{form.pill}</p>
             <h1 className="mt-5 font-serif text-5xl leading-tight text-charcoal">
-              Candidature pilote
+              {form.pageTitle}
             </h1>
-            <p className="mt-4 text-base leading-relaxed text-neutral-600">
-              Cette candidature nous permet de qualifier rapidement votre
-              périmètre et de structurer une première boucle de décision
-              opérationnelle à forte valeur.
+            <p className="mt-4 text-base leading-relaxed text-ink-secondary">
+              {form.pageSubtitle}
             </p>
 
             <ul className="mt-7 space-y-3">
-              {VALUE_POINTS.map((point) => (
+              {form.valuePoints.map((point) => (
                 <li
                   key={point}
                   className="flex items-start gap-2.5 text-sm text-charcoal/85"
                 >
-                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-primary-700" />
                   {point}
                 </li>
               ))}
             </ul>
 
-            <div className="mt-7 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
-                Temps estimé
+            <div className="mt-7 rounded-2xl border border-primary-200 bg-primary-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">
+                {form.estimatedTime}
               </p>
-              <p className="mt-2 text-sm text-charcoal/85">Quelques minutes</p>
+              <p className="mt-2 text-sm text-charcoal/85">
+                {form.estimatedTimeValue}
+              </p>
             </div>
           </motion.aside>
 
@@ -242,60 +265,63 @@ export function PilotApplicationPageClient({ locale }: { locale: Locale }) {
           >
             <form onSubmit={handleSubmit} className="space-y-8" noValidate>
               <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
-                  Organisation
+                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
+                  {form.fieldsets.organisation}
                 </legend>
                 <div className="grid gap-4 md:grid-cols-2">
                   <Input
-                    label="Entreprise"
+                    label={companyField.label}
                     name="companyName"
                     value={formData.companyName}
                     onChange={(value) =>
                       setFormData((prev) => ({ ...prev, companyName: value }))
                     }
-                    placeholder="Ex: Groupe Atlas"
+                    placeholder={companyField.placeholder}
                     required
                   />
                   <Select
-                    label="Secteur"
+                    label={sectorField.label}
                     name="sector"
                     value={formData.sector}
-                    options={SECTORS}
+                    options={form.sectors}
                     onChange={(value) =>
                       setFormData((prev) => ({ ...prev, sector: value }))
                     }
                     required
+                    selectLabel={form.select}
                   />
                   <Select
-                    label="Effectif"
+                    label={employeeRangeField.label}
                     name="employeeRange"
                     value={formData.employeeRange}
-                    options={EMPLOYEE_RANGES}
+                    options={form.employeeRanges}
                     onChange={(value) =>
                       setFormData((prev) => ({ ...prev, employeeRange: value }))
                     }
                     required
+                    selectLabel={form.select}
                   />
                   <Select
-                    label="Nombre de sites"
+                    label={siteCountField.label}
                     name="siteCount"
                     value={formData.siteCount}
-                    options={SITE_COUNTS}
+                    options={form.siteCounts}
                     onChange={(value) =>
                       setFormData((prev) => ({ ...prev, siteCount: value }))
                     }
                     required
+                    selectLabel={form.select}
                   />
                 </div>
               </fieldset>
 
               <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
-                  Contact
+                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
+                  {form.fieldsets.contact}
                 </legend>
                 <div className="grid gap-4 md:grid-cols-2">
                   <Input
-                    label="Prénom"
+                    label={firstNameField.label}
                     name="firstName"
                     value={formData.firstName}
                     onChange={(value) =>
@@ -304,7 +330,7 @@ export function PilotApplicationPageClient({ locale }: { locale: Locale }) {
                     required
                   />
                   <Input
-                    label="Nom"
+                    label={lastNameField.label}
                     name="lastName"
                     value={formData.lastName}
                     onChange={(value) =>
@@ -313,70 +339,72 @@ export function PilotApplicationPageClient({ locale }: { locale: Locale }) {
                     required
                   />
                   <Select
-                    label="Fonction"
+                    label={roleField.label}
                     name="role"
                     value={formData.role}
-                    options={ROLES}
+                    options={form.roles}
                     onChange={(value) =>
                       setFormData((prev) => ({ ...prev, role: value }))
                     }
                     required
+                    selectLabel={form.select}
                   />
                   <Input
                     type="email"
-                    label="Email professionnel"
+                    label={emailField.label}
                     name="email"
                     value={formData.email}
                     onChange={(value) =>
                       setFormData((prev) => ({ ...prev, email: value }))
                     }
-                    placeholder="vous@entreprise.com"
+                    placeholder={emailField.placeholder}
                     required
                   />
                   <Input
-                    label="Téléphone"
+                    label={phoneField.label}
                     name="phone"
                     value={formData.phone}
                     onChange={(value) =>
                       setFormData((prev) => ({ ...prev, phone: value }))
                     }
-                    placeholder="06 00 00 00 00"
+                    placeholder={phoneField.placeholder}
                   />
                 </div>
               </fieldset>
 
               <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
-                  Enjeux
+                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
+                  {form.fieldsets.challenges}
                 </legend>
                 <div className="grid gap-4">
                   <Select
-                    label="Horizon projet"
+                    label={timelineField.label}
                     name="timeline"
                     value={formData.timeline}
-                    options={TIMELINES}
+                    options={form.timelines}
                     onChange={(value) =>
                       setFormData((prev) => ({ ...prev, timeline: value }))
                     }
                     required
+                    selectLabel={form.select}
                   />
                   <Input
-                    label="Stack actuelle (optionnel)"
+                    label={currentStackField.label}
                     name="currentStack"
                     value={formData.currentStack}
                     onChange={(value) =>
                       setFormData((prev) => ({ ...prev, currentStack: value }))
                     }
-                    placeholder="Ex: ERP + planning interne"
+                    placeholder={currentStackField.placeholder}
                   />
                   <TextArea
-                    label="Quel est votre principal enjeu de couverture aujourd'hui ?"
+                    label={painPointField.label}
                     name="painPoint"
                     value={formData.painPoint}
                     onChange={(value) =>
                       setFormData((prev) => ({ ...prev, painPoint: value }))
                     }
-                    placeholder="Décrivez le problème opérationnel que vous voulez traiter en priorité."
+                    placeholder={painPointField.placeholder}
                     required
                   />
                 </div>
@@ -402,7 +430,7 @@ export function PilotApplicationPageClient({ locale }: { locale: Locale }) {
                 />
               </div>
 
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 bg-white p-4">
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border-subtle bg-card p-4">
                 <input
                   type="checkbox"
                   checked={formData.consent}
@@ -412,31 +440,37 @@ export function PilotApplicationPageClient({ locale }: { locale: Locale }) {
                       consent: event.target.checked,
                     }))
                   }
-                  className="mt-1 h-4 w-4 rounded border-neutral-300 text-amber-600 focus:ring-amber-500"
+                  className="mt-1 h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-sm leading-relaxed text-neutral-600">
-                  J'accepte les{" "}
+                <span className="text-sm leading-relaxed text-ink-secondary">
+                  {consentTokens.prefix}
                   <Link
                     href={cguHref}
                     target="_blank"
-                    className="font-semibold text-amber-700 hover:underline"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-primary-700 hover:underline"
                   >
-                    CGU
-                  </Link>{" "}
-                  et la{" "}
+                    {form.cguLabel}
+                  </Link>
+                  {consentTokens.between}
                   <Link
                     href={privacyHref}
                     target="_blank"
-                    className="font-semibold text-amber-700 hover:underline"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-primary-700 hover:underline"
                   >
-                    politique de confidentialité
+                    {form.privacyLabel}
                   </Link>
-                  .
+                  {consentTokens.suffix}
                 </span>
               </label>
 
               {error && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div
+                  role="alert"
+                  aria-live="assertive"
+                  className="rounded-xl border border-danger bg-danger-light px-4 py-3 text-sm text-danger-text"
+                >
                   {error}
                 </div>
               )}
@@ -444,9 +478,9 @@ export function PilotApplicationPageClient({ locale }: { locale: Locale }) {
               <button
                 type="submit"
                 disabled={!isComplete || isSubmitting}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-amber-500 px-7 py-3.5 text-sm font-semibold text-charcoal transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+                className="btn-primary w-full rounded-full px-7 py-3.5 text-sm"
               >
-                {isSubmitting ? "Envoi en cours..." : "Envoyer ma candidature"}
+                {isSubmitting ? form.submitting : form.submit}
                 {!isSubmitting && <ArrowRightIcon className="h-4 w-4" />}
               </button>
             </form>
@@ -486,7 +520,7 @@ function Input({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-12 rounded-xl border border-neutral-200 bg-white px-3.5 text-sm text-charcoal outline-none ring-0 transition focus:border-amber-400"
+        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none ring-0 transition focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         required={required}
       />
     </label>
@@ -500,6 +534,7 @@ function Select({
   options,
   onChange,
   required = false,
+  selectLabel,
 }: {
   label: string;
   name: string;
@@ -507,6 +542,7 @@ function Select({
   options: readonly string[];
   onChange: (value: string) => void;
   required?: boolean;
+  selectLabel: string;
 }) {
   return (
     <label className="grid gap-1.5">
@@ -518,10 +554,10 @@ function Select({
         name={name}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-12 rounded-xl border border-neutral-200 bg-white px-3.5 text-sm text-charcoal outline-none transition focus:border-amber-400"
+        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none transition focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         required={required}
       >
-        <option value="">Sélectionner</option>
+        <option value="">{selectLabel}</option>
         {options.map((option) => (
           <option key={option} value={option}>
             {option}
@@ -558,9 +594,8 @@ function TextArea({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        minLength={20}
         rows={5}
-        className="rounded-xl border border-neutral-200 bg-white px-3.5 py-3 text-sm leading-relaxed text-charcoal outline-none transition focus:border-amber-400"
+        className="rounded-xl border border-border-subtle bg-card px-3.5 py-3 text-sm leading-relaxed text-charcoal outline-none transition focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         required={required}
       />
     </label>

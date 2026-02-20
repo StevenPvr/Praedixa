@@ -12,7 +12,7 @@ test.describe("Mentions legales page", () => {
     await page.goto("/fr/mentions-legales");
     const backLink = page.getByText("Retour");
     await expect(backLink).toBeVisible();
-    await expect(backLink).toHaveAttribute("href", "/");
+    await expect(backLink).toHaveAttribute("href", "/fr");
   });
 
   test("displays legal sections", async ({ page }) => {
@@ -24,7 +24,6 @@ test.describe("Mentions legales page", () => {
     await expect(
       page.getByRole("heading", { name: /Propri.*intellectuelle/ }),
     ).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Cookies/ })).toBeVisible();
   });
 
   test("mentions Cloudflare as host", async ({ page }) => {

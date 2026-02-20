@@ -1,5 +1,7 @@
+import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 import {
   triggerIntersection,
   resetIntersectionObserver,
@@ -35,7 +37,7 @@ describe("StickyMobileCTA", () => {
     const heroEl = setup();
 
     const { container } = render(<StickyMobileCTA {...defaultProps} />);
-    expect(screen.getByText("Demander un pilote")).toBeInTheDocument();
+    expect(screen.getByText(fr.stickyCta.text)).toBeInTheDocument();
     expect(container.firstElementChild).toHaveAttribute("aria-hidden", "true");
 
     document.body.removeChild(heroEl);
@@ -45,7 +47,7 @@ describe("StickyMobileCTA", () => {
     const heroEl = setup();
 
     render(<StickyMobileCTA {...defaultProps} />);
-    const link = screen.getByText("Demander un pilote").closest("a");
+    const link = screen.getByText(fr.stickyCta.text).closest("a");
     expect(link).toHaveAttribute("href", "/fr/devenir-pilote");
 
     document.body.removeChild(heroEl);
@@ -73,7 +75,7 @@ describe("StickyMobileCTA", () => {
     const heroEl = setup();
 
     render(<StickyMobileCTA {...defaultProps} />);
-    const link = screen.getByText("Demander un pilote").closest("a");
+    const link = screen.getByText(fr.stickyCta.text).closest("a");
     expect(link).toHaveAttribute("tabindex", "-1");
 
     act(() => {

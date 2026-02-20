@@ -8,6 +8,7 @@ export function isValidLocale(value: string): value is Locale {
 
 /** Route slugs that differ between locales */
 export const localizedSlugs = {
+  demo: { fr: "demo", en: "demo" },
   pilot: { fr: "devenir-pilote", en: "pilot-application" },
   contact: { fr: "contact", en: "contact" },
   legal: { fr: "mentions-legales", en: "legal-notice" },
@@ -41,6 +42,10 @@ export const localizedSlugs = {
   bofuRetail: {
     fr: "praedixa-distribution-retail",
     en: "praedixa-retail-distribution",
+  },
+  bofuQsr: {
+    fr: "praedixa-restauration-rapide",
+    en: "praedixa-quick-service-restaurants",
   },
   clusterCost: {
     fr: "calculer-cout-sous-couverture",

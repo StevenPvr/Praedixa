@@ -6,6 +6,10 @@ import {
   getClientIp,
   isRateLimited,
 } from "../../../lib/api/pilot-application/rate-limit";
+import {
+  hasTrustedFormOrigin,
+  isCrossSiteRequest,
+} from "../../../lib/security/request-origin";
 import { sendPilotEmails } from "../../../lib/api/pilot-application/email";
 
 let resend: Resend | null = null;
@@ -39,6 +43,13 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Trop de requêtes. Veuillez réessayer plus tard." },
         { status: 429 },
+      );
+    }
+
+    if (isCrossSiteRequest(request) || !hasTrustedFormOrigin(request)) {
+      return NextResponse.json(
+        { error: "Origine de requête non autorisée." },
+        { status: 403 },
       );
     }
 

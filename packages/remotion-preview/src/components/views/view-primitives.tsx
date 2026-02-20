@@ -29,9 +29,9 @@ export const PageFrame: React.FC<PageFrameProps> = ({
         padding: `${layout.pagePaddingY}px ${layout.pagePaddingX}px`,
         fontFamily: fonts.sans,
         background: `
-          radial-gradient(ellipse 80% 60% at 10% 20%, oklch(0.68 0.13 72 / 0.04) 0%, transparent 60%),
-          radial-gradient(ellipse 60% 80% at 85% 70%, oklch(0.58 0.14 68 / 0.04) 0%, transparent 60%),
-          radial-gradient(ellipse 70% 50% at 50% 90%, oklch(0.65 0.15 155 / 0.03) 0%, transparent 50%),
+          radial-gradient(ellipse 80% 60% at 10% 20%, oklch(0.63 0.14 247 / 0.10) 0%, transparent 60%),
+          radial-gradient(ellipse 60% 80% at 85% 70%, oklch(0.58 0.20 248 / 0.08) 0%, transparent 60%),
+          radial-gradient(ellipse 70% 50% at 50% 90%, oklch(0.64 0.18 238 / 0.06) 0%, transparent 50%),
           ${colors.pageBg}
         `,
       }}
@@ -138,7 +138,7 @@ export const Card: React.FC<{
             style={{
               height: 1,
               background:
-                "linear-gradient(to right, transparent, oklch(0.68 0.13 72 / 0.15), oklch(0.87 0.008 65), oklch(0.68 0.13 72 / 0.15), transparent)",
+                "linear-gradient(to right, transparent, oklch(0.63 0.165 246 / 0.26), oklch(0.84 0.016 247), oklch(0.63 0.165 246 / 0.26), transparent)",
             }}
           />
         </>
@@ -153,7 +153,7 @@ export const TinyBadge: React.FC<{
   tone?: "neutral" | "danger" | "warning" | "success";
 }> = ({ label, tone = "neutral" }) => {
   const styles: Record<string, { color: string; bg: string }> = {
-    neutral: { color: colors.inkSecondary, bg: "oklch(0.96 0.004 80 / 0.85)" },
+    neutral: { color: colors.inkSecondary, bg: "oklch(0.93 0.08 255 / 0.70)" },
     warning: { color: colors.warningText, bg: colors.warningLight },
     danger: { color: colors.dangerText, bg: colors.dangerLight },
     success: { color: colors.successText, bg: colors.successLight },

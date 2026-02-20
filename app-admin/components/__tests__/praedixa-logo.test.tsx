@@ -37,10 +37,10 @@ describe("PraedixaLogo", () => {
     expect(circle).toHaveAttribute("fill", "#ff0000");
   });
 
-  it("uses dark oklch default color", () => {
+  it("uses tokenized default color", () => {
     const { container } = render(<PraedixaLogo />);
     const rect = container.querySelector("rect");
-    expect(rect).toHaveAttribute("stroke", "oklch(0.145 0 0)");
+    expect(rect).toHaveAttribute("stroke", "var(--warm-ink)");
   });
 
   it("applies className to SVG", () => {

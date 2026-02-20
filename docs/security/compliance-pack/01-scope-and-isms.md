@@ -9,7 +9,7 @@
   - `app-webapp`
   - `app-admin`
   - production data plane (compute, DB, backups, logs)
-  - source control and CI/CD
+  - source control, local verification gate, deployment scripts
 - Out-of-scope (phase 1):
   - pure marketing analytics without customer production data
   - historical archive docs not containing production customer data

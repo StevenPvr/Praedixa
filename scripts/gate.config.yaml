@@ -1,0 +1,29 @@
+version: 1
+policy:
+  zero_exceptions: true
+  severity_floor: low
+  full_monorepo_every_commit: true
+  allow_missing_tools: false
+report:
+  max_age_seconds: 21600
+  output_dir: .git/gate-reports
+thresholds:
+  coverage_percent: 100
+  lighthouse:
+    performance_min_score: 0.9
+    lcp_max_ms: 2500
+    cls_max: 0.1
+    tbt_max_ms: 300
+  k6:
+    p95_max_ms: 750
+    error_rate_max: 0.01
+tools:
+  codeql: required
+  osv_scanner: required
+  depcruise: required
+  import_linter: required
+  knip: required
+  deptry: required
+  schemathesis: required
+  lighthouse_ci: required
+  k6: required

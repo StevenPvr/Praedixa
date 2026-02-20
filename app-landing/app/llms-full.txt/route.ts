@@ -15,6 +15,7 @@ const contentKeys = [
   "bofuLogistics",
   "bofuTransport",
   "bofuRetail",
+  "bofuQsr",
   "clusterCost",
   "clusterForecast",
   "clusterPlaybook",

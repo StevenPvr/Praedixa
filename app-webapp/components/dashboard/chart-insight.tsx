@@ -19,8 +19,9 @@ export function ChartInsight({
       className={cn(
         "flex items-start gap-3 rounded-xl border p-3.5 text-sm transition-colors",
         trend === "positive" &&
-          "bg-emerald-50/50 border-emerald-100 text-emerald-900",
-        trend === "negative" && "bg-red-50/50 border-red-100 text-red-900",
+          "bg-success-light/50 border-success text-success-text",
+        trend === "negative" &&
+          "bg-danger-light/50 border-danger-light text-danger-text",
         trend === "neutral" && "bg-surface-alt border-border text-ink",
         className,
       )}
@@ -29,8 +30,9 @@ export function ChartInsight({
         className={cn(
           "flex h-5 w-5 shrink-0 items-center justify-center rounded-full ring-1 ring-inset",
           trend === "positive" &&
-            "bg-emerald-100 text-emerald-600 ring-emerald-200",
-          trend === "negative" && "bg-red-100 text-red-600 ring-red-200",
+            "bg-success-100 text-success-700 ring-success-200",
+          trend === "negative" &&
+            "bg-danger-light text-danger-text ring-danger",
           trend === "neutral" && "bg-border text-ink-secondary ring-border",
         )}
       >

@@ -42,7 +42,7 @@ describe("ClientTabsNav", () => {
     mockPathname.mockReturnValue("/clients/org-1/donnees");
     render(<ClientTabsNav basePath="/clients/org-1" />);
     const donneesLink = screen.getByText("Donnees").closest("a");
-    expect(donneesLink?.className).toContain("text-amber-600");
+    expect(donneesLink?.className).toContain("text-primary");
   });
 
   it("renders correct hrefs", () => {

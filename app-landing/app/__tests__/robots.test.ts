@@ -24,6 +24,8 @@ describe("robots()", () => {
     expect(wildcardRule!.disallow).toContain("/_next/");
     expect(wildcardRule!.disallow).toContain("/fr/logo-preview");
     expect(wildcardRule!.disallow).toContain("/en/logo-preview");
+    expect(wildcardRule!.disallow).toContain("/fr/demo");
+    expect(wildcardRule!.disallow).toContain("/en/demo");
   });
 
   it("should include a rule for AdsBot-Google", () => {

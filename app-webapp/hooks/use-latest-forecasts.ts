@@ -27,14 +27,21 @@ interface UseLatestForecastsResult {
 
 export function useLatestForecasts(
   dimension: string,
+  siteId: string | null = null,
 ): UseLatestForecastsResult {
+  const params = new URLSearchParams({
+    dimension,
+  });
+  if (siteId) {
+    params.set("site_id", siteId);
+  }
   const {
     data: dailyData,
     loading,
     error,
     refetch,
   } = useApiGet<DailyForecastData[]>(
-    `/api/v1/live/forecasts/latest/daily?dimension=${encodeURIComponent(dimension)}`,
+    `/api/v1/live/forecasts/latest/daily?${params.toString()}`,
     { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
   );
 

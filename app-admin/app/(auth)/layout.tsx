@@ -10,14 +10,14 @@ export default function AuthLayout({
       <div className="w-full max-w-md space-y-8 px-4">
         {/* Logo */}
         <div className="flex flex-col items-center gap-3">
-          <PraedixaLogo size={48} color="oklch(0.145 0 0)" />
+          <PraedixaLogo size={48} color="var(--text-primary)" />
           <h1 className="font-serif text-2xl font-semibold text-charcoal">
             Praedixa Admin
           </h1>
         </div>
 
         {/* Card container */}
-        <div className="rounded-card border border-gray-200 bg-card p-8 shadow-card">
+        <div className="rounded-card border border-border bg-card p-8 shadow-card">
           {children}
         </div>
       </div>

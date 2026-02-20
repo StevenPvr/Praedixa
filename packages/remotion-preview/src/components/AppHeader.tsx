@@ -41,8 +41,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         style={{
           height: layout.topbarHeight,
           borderBottom: `1px solid ${colors.borderSubtle}`,
-          background: "oklch(0.998 0.001 85 / 0.85)",
-          backdropFilter: "blur(20px) saturate(1.4)",
+          background:
+            "linear-gradient(180deg, oklch(0.92 0.08 255 / 0.94) 0%, oklch(0.88 0.12 256 / 0.90) 100%)",
+          backdropFilter: "blur(20px) saturate(1.65)",
           boxShadow: shadows.raised,
         }}
       >
@@ -92,7 +93,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 height: 34,
                 borderRadius: 8,
                 border: `1px solid ${colors.border}`,
-                backgroundColor: "oklch(0.975 0.005 85 / 0.5)",
+                backgroundColor: "oklch(0.97 0.05 255 / 0.58)",
                 padding: "0 11px",
                 display: "inline-flex",
                 alignItems: "center",
@@ -123,7 +124,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               style={{
                 borderRadius: 8,
                 border: `1px solid ${colors.border}`,
-                backgroundColor: "oklch(0.96 0.004 80 / 0.7)",
+                backgroundColor: "oklch(0.90 0.08 255 / 0.78)",
                 padding: 2,
                 display: "inline-flex",
                 alignItems: "center",
@@ -191,7 +192,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 height: 36,
                 borderRadius: 8,
                 border: `1px solid ${colors.border}`,
-                backgroundColor: "oklch(0.998 0.001 85)",
+                backgroundColor: colors.surfaceElevated,
                 color: colors.inkTertiary,
                 display: "inline-flex",
                 alignItems: "center",
@@ -257,7 +258,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         style={{
           height: layout.contextBarHeight,
           borderBottom: `1px solid ${colors.borderSubtle}`,
-          background: "oklch(0.96 0.004 80 / 0.55)",
+          background: "oklch(0.63 0.165 246 / 0.16)",
         }}
       >
         <div

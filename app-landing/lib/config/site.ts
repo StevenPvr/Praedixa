@@ -4,7 +4,11 @@ export const siteConfig = {
   url: "https://www.praedixa.com",
 
   contact: {
-    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hello@praedixa.com",
+    email: "hello@praedixa.com",
+  },
+
+  brand: {
+    primaryEmailColor: "#2563eb",
   },
 
   routes: {

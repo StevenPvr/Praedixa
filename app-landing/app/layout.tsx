@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import "@praedixa/ui/brand-tokens.css";
+import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.praedixa.com"),
@@ -22,5 +24,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return children;
+  return (
+    <html lang="fr" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <body>
+        <a href="#main-content" className="skip-link">
+          Aller au contenu principal
+        </a>
+        {children}
+      </body>
+    </html>
+  );
 }

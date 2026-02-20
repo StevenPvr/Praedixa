@@ -73,12 +73,6 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "node testing/e2e/webapp/fixtures/mock-supabase-server.mjs",
-      url: "http://localhost:54321/auth/v1/user",
-      reuseExistingServer: REUSE_EXISTING_SERVERS,
-      timeout: 20_000,
-    },
-    {
       command: "pnpm dev:landing:webpack",
       url: "http://localhost:3000",
       reuseExistingServer: REUSE_EXISTING_SERVERS,
@@ -93,6 +87,9 @@ export default defineConfig({
         NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321",
         NEXT_PUBLIC_SUPABASE_ANON_KEY: "mock-anon-key-e2e",
         NEXT_PUBLIC_API_URL: "http://localhost:8000",
+        AUTH_OIDC_ISSUER_URL: "https://sso.e2e.local/realms/praedixa",
+        AUTH_OIDC_CLIENT_ID: "praedixa-webapp",
+        AUTH_SESSION_SECRET: "e2e-oidc-session-secret",
       },
     },
     {
@@ -104,6 +101,9 @@ export default defineConfig({
         NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321",
         NEXT_PUBLIC_SUPABASE_ANON_KEY: "mock-anon-key-e2e",
         NEXT_PUBLIC_API_URL: "http://localhost:8000",
+        AUTH_OIDC_ISSUER_URL: "https://sso.e2e.local/realms/praedixa",
+        AUTH_OIDC_CLIENT_ID: "praedixa-admin",
+        AUTH_SESSION_SECRET: "e2e-oidc-session-secret",
       },
     },
   ],

@@ -120,6 +120,6 @@ describe("SiteTree", () => {
       />,
     );
     const siteButton = screen.getByText("Paris Nord").closest("button");
-    expect(siteButton?.className).toContain("text-amber-700");
+    expect(siteButton?.className).toContain("text-primary-700");
   });
 });

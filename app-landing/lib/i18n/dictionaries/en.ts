@@ -2,12 +2,12 @@ import type { Dictionary } from "../types";
 
 export const en: Dictionary = {
   meta: {
-    title: "Praedixa | Coverage Intelligence for Multi-Site Operations",
+    title: "Praedixa | Multi-Site Workforce Forecasting & Coverage Decisions",
     description:
-      "Anticipate understaffing, frame economic trade-offs, and produce auditable proof of impact. SaaS for multi-site COOs.",
-    ogTitle: "Praedixa | Operational Coverage SaaS for Multi-Site COOs",
+      "Anticipate multi-site staffing tensions with a workforce forecasting pilot, then expand to a broader decision layer when needed.",
+    ogTitle: "Praedixa | Workforce Forecasting Pilot for Multi-Site Operations",
     ogDescription:
-      "Anticipate coverage gaps, frame trade-offs, and make your decisions auditable with an impact-driven methodology.",
+      "3-month pilot to improve workforce forecasting, compare coverage options, and align operations/finance decisions.",
   },
 
   nav: {
@@ -18,39 +18,86 @@ export const en: Dictionary = {
     security: "Security",
     faq: "FAQ",
     contact: "Contact",
-    ctaPrimary: "Request a pilot",
+    ctaPrimary: "Request a workforce forecasting pilot",
     backToSite: "Back to site",
   },
 
   hero: {
-    kicker: "SaaS for multi-site COOs",
-    headline: "Anticipate coverage gaps",
-    headlineHighlight: "before they become costly.",
+    kicker: "Workforce forecasting pilot",
+    headline: "Anticipate multi-site staffing tensions",
+    headlineHighlight: "with a structured entry pilot.",
     subtitle:
-      "Praedixa turns understaffing into executable decisions: early signals, costed scenarios, and auditable proof of impact for operations and finance committees.",
+      "Praedixa runs a 3-month pilot to improve workforce forecasting, structure ops/finance trade-offs, and prepare optional extension to a broader decision platform.",
     bullets: [
       {
-        metric: "Early horizon",
-        text: "of early warning before field disruptions",
+        metric: "3 months",
+        text: "to improve workforce forecasting quality",
       },
       {
-        metric: "Cost vs risk",
-        text: "comparable scenarios for every trade-off",
+        metric: "Month 1",
+        text: "setup on existing exports",
       },
       {
-        metric: "Auditable",
-        text: "traceable decisions for C-suite, CFO, and audit",
+        metric: "Decisions",
+        text: "traceable ops/finance arbitration",
       },
     ],
-    ctaPrimary: "Request a pilot",
+    ctaPrimary: "Request a workforce forecasting pilot",
     ctaSecondary: "View the pilot protocol",
-    ctaMeta: "Quick response · NDA available · No obligation",
+    previewTitle: "A preview of what awaits you",
+    ctaMeta:
+      "NDA available from first contact · Start with a focused perimeter",
     trustBadges: [
-      "Hosted in France",
       "Aggregated data only",
       "NDA from first contact",
-      "Auditable ROI framework",
+      "Start with a focused perimeter",
+      "100% Scaleway hosting, 100% French",
     ],
+  },
+
+  preview: {
+    kicker: "A preview",
+    heading: "The Praedixa interface",
+    subheading:
+      "See how coverage intelligence turns into actionable operational decisions.",
+    overlayTitle: "Discover the web app",
+    overlayBody:
+      "Explore an interactive product walkthrough powered by 100% mock data.",
+    overlayCta: "Discover the web app",
+    overlayBackCta: "Back to video",
+    loadingLabel: "Loading preview video…",
+    liveBadge: "Praedixa Calibre",
+  },
+
+  demo: {
+    title: "Praedixa interactive demo",
+    subtitle:
+      "Product walkthrough in a demo environment, powered only by fictitious data.",
+    mockBanner:
+      "Demonstration environment — all data is fictitious and no customer data is used.",
+    backToLanding: "Back to landing page",
+    screenAriaLabel: "Interactive demonstration of the Praedixa interface",
+    updatedAtLabel: "Latest mock update",
+    loading: "Loading mock data…",
+    empty: "No mock data available for this screen.",
+    error: "Unable to load this demo screen.",
+    retry: "Retry",
+    openAction: "Open",
+    nav: {
+      dashboard: "Dashboard",
+      forecasts: "Forecasts",
+      actions: "Actions",
+      datasets: "Datasets",
+      settings: "Settings",
+    },
+    sections: {
+      kpis: "Key indicators",
+      alerts: "Priority alerts",
+      forecastWindow: "Forecast window (7 days)",
+      decisions: "Recommended decisions",
+      datasetsHealth: "Dataset health",
+      governance: "Governance framework",
+    },
   },
 
   problem: {
@@ -131,37 +178,37 @@ export const en: Dictionary = {
 
   howItWorks: {
     kicker: "Protocol",
-    heading: "From framing to outcomes through a structured method.",
+    heading: "Workforce forecasting pilot in 4 steps.",
     subheading:
-      "A structured process to demonstrate value before any commitment.",
+      "A 3-month execution flow with setup-first delivery and explicit governance.",
     steps: [
       {
         number: "01",
         title: "Framing",
         subtitle: "Framing workshop",
         description:
-          "Objectives, target KPIs, pilot scope, and success criteria co-defined.",
+          "Workforce forecasting objectives, scope, operating roles, and validation criteria are co-defined.",
       },
       {
         number: "02",
-        title: "Data connection",
+        title: "Initialization",
         subtitle: "Existing exports",
         description:
-          "CSV or Excel of capacity, workload, and absences. Read-only, aggregated data, zero IT integration.",
+          "Month 1: CSV/Excel exports (capacity, workload, absences), read-only access, aggregated data. No heavy IT integration for initialization.",
       },
       {
         number: "03",
-        title: "Diagnostic",
-        subtitle: "Risk map",
+        title: "Build phase",
+        subtitle: "Pipelines & calibration",
         description:
-          "Tensions identified, explanatory factors, inaction cost quantified, action playbook delivered.",
+          "Forecast pipelines are built and calibrated progressively based on your available data, with weekly reporting.",
       },
       {
         number: "04",
-        title: "Pilot",
-        subtitle: "Impact measurement",
+        title: "Consolidation",
+        subtitle: "Governance & next phase",
         description:
-          "ROI loop on your actual KPIs. Go/no-go decision based on measured results, not promises.",
+          "Pilot routines are stabilized, decision governance is documented, and optional extension is framed.",
       },
     ],
   },
@@ -246,19 +293,19 @@ export const en: Dictionary = {
 
   security: {
     kicker: "Security & IT",
-    heading: "Built to pass due diligence.",
+    heading: "Security and data framework for IT review.",
     subheading:
-      "Security and compliance are not a footnote. They are at the center of the architecture.",
+      "The statements below describe the current rollout perimeter and the information shared during qualification.",
     tiles: [
       {
-        title: "Hosted in France",
+        title: "100% Scaleway hosting — Paris (France)",
         description:
-          "Infrastructure hosted in France. Controlled data residency.",
+          "The entire platform and data is hosted on Scaleway in France (Paris). No subprocessor outside French sovereignty.",
       },
       {
         title: "Aggregated data only",
         description:
-          "No individual prediction. Reading at team and site level. Privacy-by-design.",
+          "No individual prediction and no nominative processing. Team/site aggregation only.",
       },
       {
         title: "Encryption & access",
@@ -266,84 +313,99 @@ export const en: Dictionary = {
           "Encryption in transit and at rest. Role-based access control (RBAC). Activity logs.",
       },
       {
-        title: "DPA & subprocessors",
+        title: "Primary data subprocessors",
         description:
-          "Data Processing Agreement available. Subprocessor list provided on request.",
+          "Scaleway — full platform and data hosting (Paris, France servers). 100% French.",
       },
       {
-        title: "Read-only access",
+        title: "Setup-first, no heavy IT integration",
         description:
-          "Read-only connection to your exports. No write access to your systems.",
+          "Initialization runs on read-only exports. Light automation of scheduled exports can be added next.",
       },
       {
         title: "NDA & confidentiality",
         description:
-          "NDA signable from first contact. Documented retention policy.",
+          "NDA can be signed from first contact. Retention policy currently in formalization.",
       },
     ],
     compatibility: {
       title: "Compatible with your stack",
       description:
-        "CSV/Excel exports from your existing tools. No IT integration required to start.",
+        "CSV/Excel exports for initialization, then light automation of scheduled exports when relevant.",
       tools: ["ERP", "HRIS", "Scheduling", "BI", "Excel"],
     },
     honesty:
-      "We don't yet have SOC 2 or ISO 27001 certification. Our security practices are documented and auditable. Transparency is part of the product.",
+      "Security practices are documented on request. Full hosting on Scaleway — 100% French infrastructure, servers in Paris.",
   },
 
   pilot: {
-    kicker: "Pilot offer",
-    heading: "A structured pilot to prove value, not promise it.",
+    kicker: "Workforce forecasting pilot",
+    heading: "An entry pilot to improve workforce forecasting quality.",
     subheading:
-      "Selective founding cohort. Each pilot is framed to produce measurable proof of value.",
+      "3-month program with setup, calibration, and governance. Scope can stay focused on staffing forecasting first, then expand if needed.",
+    statusLabels: ["Active today", "In extension", "Upcoming"],
     included: {
-      title: "What the pilot includes",
+      title: "What the workforce forecasting pilot covers (3 months)",
       items: [
-        "Framing workshop (objectives, KPIs, scope)",
-        "Coverage diagnostic on your actual data",
-        "Risk map with explanatory factors",
-        "Costed action playbook",
-        "Impact measurement loop (before/after)",
-        "Final report with recommendations",
+        "Month 1: setup and pipeline build on your exports",
+        "Month 2: calibration of workload/capacity readings and assumptions",
+        "Month 3: pilot stabilization and operational recommendations",
+        "One weekly working session with one client-side operations lead",
+        "Formal next-step plan, with optional extension",
       ],
     },
     excluded: {
       title: "What it does not include",
       items: [
+        "Predefined quantified outcome commitment",
         "Global multi-country deployment",
         "Unlimited custom development",
-        "Large-scale data migration",
+        "Mandatory full-service rollout at kickoff",
       ],
     },
     kpis: {
-      title: "KPIs measured during the pilot",
+      title: "Build and validation objectives",
       items: [
-        "Coverage prediction rate (accuracy)",
-        "Costs avoided vs historical emergency costs",
-        "Average decision time (before/after)",
-        "Adoption rate by field managers",
-        "Quality of documented trade-offs",
+        "Improve short-horizon workload/capacity signal quality",
+        "Validate pipeline quality based on available client data",
+        "Stabilize decision rituals and traceability",
+        "Document extension conditions to a broader decision platform",
       ],
     },
     governance: {
       title: "Governance",
       items: [
-        "Regular governance check-in",
-        "Executive sponsor identified client-side",
-        "Dedicated operational champion",
-        "Go/no-go criteria defined at framing",
+        "Weekly pilot steering session",
+        "Operations sponsor identified client-side",
+        "Dedicated operations lead client-side",
+        "Shared decision log",
       ],
     },
-    urgency: "Selective cohort. Applications reviewed with rapid response.",
-    ctaPrimary: "Request a pilot",
-    ctaMeta: "Structured qualification · Fast form · NDA available",
+    selection: {
+      title: "Selection criteria (focused scope)",
+      items: [
+        "Multi-site organization (logistics, retail, QSR, industry, services)",
+        "Committed operations sponsor",
+        "Usable data exports (capacity, workload, absences)",
+      ],
+    },
+    upcoming: {
+      title: "Full decision-platform extension — optional",
+      description:
+        "After the entry pilot, extension is possible based on your priorities.",
+    },
+    urgency:
+      "Applications reviewed within 48 business hours. Focused-scope kickoff available.",
+    ctaPrimary: "Request a workforce forecasting pilot",
+    ctaMeta:
+      "Entry pricing for staffing-forecast scope · No post-pilot commercial commitment",
   },
 
   faq: {
     kicker: "FAQ",
-    heading: "Direct questions, direct answers.",
+    heading: "Frequently asked questions",
     subheading:
-      "No corporate speak. The questions operations and finance leaders actually ask.",
+      "Institutional answers on the workforce forecasting pilot, kickoff conditions, and extension options.",
     categories: [
       "Understanding Praedixa",
       "Pilot & pricing",
@@ -359,7 +421,7 @@ export const en: Dictionary = {
       {
         question: "Who is Praedixa for?",
         answer:
-          "Operations directors, Ops managers, and CFOs of multi-site companies with field teams. Entry sector: logistics, warehousing, transport. Common thread: fluctuating workload, capacity that doesn't keep up, and exploding emergency costs.",
+          "Operations directors, Ops managers, and CFOs of multi-site companies with field teams. Typical sectors include logistics, retail/distribution, transport, quick-service restaurants, healthcare, industry, and services. Common thread: fluctuating workload, capacity gaps, and rising emergency costs.",
         category: "Understanding Praedixa",
       },
       {
@@ -377,19 +439,19 @@ export const en: Dictionary = {
       {
         question: "How much does Praedixa cost?",
         answer:
-          "Praedixa runs on a subscription model with commercial framing adapted to operational scope and support requirements. Qualification establishes a clear proposal before commitment.",
+          "The workforce forecasting pilot is scoped commercially based on operational perimeter. It can start on a focused scope before broader extension.",
         category: "Pilot & pricing",
       },
       {
         question: "How does the pilot work?",
         answer:
-          "Step 1: existing exports (capacity, workload, absences — CSV or Excel). Step 2: risk calculation, explanatory factors, costing. Step 3: risk map, action playbook, testable assumptions. We iterate together to calibrate the system on your real constraints.",
+          "The pilot runs over 3 months. Month 1: setup and pipeline build from your exports. Month 2: calibration based on available data. Month 3: stabilization of decision routines and governance documentation.",
         category: "Pilot & pricing",
       },
       {
-        question: "How do you measure ROI?",
+        question: "What do you measure during the pilot?",
         answer:
-          "Every decision is logged. Praedixa measures before/after: costs avoided, forecast vs actual gap, economic impact. Auditable data, presentable to C-suite or CFO.",
+          "The pilot measures signal quality for workforce forecasting, robustness of evaluated options, and decision traceability. No predefined quantified outcome is promised publicly.",
         category: "Pilot & pricing",
       },
       {
@@ -401,25 +463,25 @@ export const en: Dictionary = {
       {
         question: "Is IT integration required?",
         answer:
-          "Not for the initial diagnostic. Simple exports (CSV, Excel), no connectors to install. For continuous monitoring, Praedixa can progressively integrate your data flows.",
+          "Not for pilot initialization. Kickoff runs on simple CSV/Excel exports. Then light automation of scheduled exports can be added when relevant.",
         category: "Technical & data",
       },
       {
         question: "GDPR: individual data?",
         answer:
-          "No. Privacy-by-design: aggregated level (team/site), data limited to strict necessity. No individual prediction, no nominative processing. Hosted in France.",
+          "No. Privacy-by-design: aggregated team/site level, data limited to strict necessity, no individual prediction, no nominative processing. 100% Scaleway hosting, in France.",
         category: "Technical & data",
       },
       {
-        question: "Do you have SOC 2 or ISO 27001?",
+        question: "What security information is shared during qualification?",
         answer:
-          "Not yet. Our security practices are documented and auditable: encryption, RBAC, logs, France hosting, DPA available. We prioritize transparency over premature labels.",
+          "We share the applicable security framework for pilot scope (encryption, access controls, logging, hosting perimeter, and subprocessors). Full hosting on Scaleway — 100% French.",
         category: "Technical & data",
       },
       {
         question: "What if the pilot doesn't deliver results?",
         answer:
-          "Success criteria are defined during framing. If KPIs aren't met, you get a factual report on why, and no obligation to continue. The pilot is designed to produce a clear answer, not to lock you in.",
+          "The pilot includes a validation frame and end-of-phase documentation. You receive a formal next-step plan and no post-pilot commercial commitment.",
         category: "Pilot & pricing",
       },
     ],
@@ -427,16 +489,16 @@ export const en: Dictionary = {
 
   contact: {
     kicker: "Take action",
-    heading: "Request a pilot.",
+    heading: "Request a workforce forecasting pilot.",
     subheading:
-      "We frame scope, criticality, and expected value of a first decision loop.",
+      "We frame a focused kickoff perimeter, then optional extension based on your priorities.",
     trustItems: [
-      "Rapid response",
+      "Response within 48 business hours",
       "NDA available from first contact",
       "Aggregated data only",
-      "No obligation",
+      "No post-pilot commercial commitment",
     ],
-    ctaPrimary: "Request a pilot",
+    ctaPrimary: "Request a workforce forecasting pilot",
     ctaSecondary: "Email the team",
   },
 
@@ -445,27 +507,27 @@ export const en: Dictionary = {
     badges: ["COO / CFO governance", "Privacy-by-design"],
     navigation: "Navigation",
     legalContact: "Legal & contact",
-    copyright: "Designed in France",
+    copyright: "Designed and hosted in France",
     ctaBanner: {
-      kicker: "Founding cohort",
-      heading: "Get ahead before the market standardizes.",
-      cta: "Apply to the cohort",
+      kicker: "Entry pilot",
+      heading: "Workforce forecasting pilot — focused kickoff available.",
+      cta: "Request a workforce forecasting pilot",
     },
   },
 
   stickyCta: {
-    text: "Request a pilot",
+    text: "Request a workforce forecasting pilot",
   },
 
   form: {
-    pageTitle: "Pilot application",
+    pageTitle: "Workforce forecasting pilot request",
     pageSubtitle:
-      "This application allows us to qualify your scope and structure a first high-value operational decision loop.",
-    pill: "Founding cohort",
+      "This request helps qualify your 3-month workforce forecasting perimeter.",
+    pill: "Workforce forecasting pilot (3 months)",
     valuePoints: [
-      "Qualification focused on COO and finance challenges",
-      "Structured and streamlined process",
-      "Founding team response",
+      "Qualification focused on staffing, operations, and finance challenges",
+      "Response within 48 business hours",
+      "Product team response",
     ],
     estimatedTime: "Estimated time",
     estimatedTimeValue: "A few minutes",
@@ -504,7 +566,7 @@ export const en: Dictionary = {
     success: {
       title: "Application submitted",
       description:
-        "We are reviewing your application and will get back to you quickly with a framing adapted to your context.",
+        "We are reviewing your application and will get back to you within 48 business hours with framing adapted to your context.",
       backToSite: "Back to site",
       checkEmail: "Check your inbox",
     },
@@ -512,6 +574,7 @@ export const en: Dictionary = {
     sectors: [
       "Logistics",
       "Transport",
+      "Quick-service restaurants",
       "Healthcare",
       "Manufacturing",
       "Retail",

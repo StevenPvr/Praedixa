@@ -65,6 +65,12 @@ class AdminAuditAction(str, enum.Enum):
     ERASURE_INITIATE = "erasure_initiate"
     ERASURE_APPROVE = "erasure_approve"
     ERASURE_EXECUTE = "erasure_execute"
+    MODEL_REGISTER = "model_register"
+    MODEL_ACTIVATE = "model_activate"
+    MODEL_VIEW = "model_view"
+    INFERENCE_JOB_CREATE = "inference_job_create"
+    INFERENCE_JOB_RUN = "inference_job_run"
+    INFERENCE_JOB_VIEW = "inference_job_view"
 
 
 class OnboardingStatus(str, enum.Enum):

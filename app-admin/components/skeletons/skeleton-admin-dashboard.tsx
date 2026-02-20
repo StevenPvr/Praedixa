@@ -23,7 +23,7 @@ export function SkeletonAdminDashboard() {
           <SkeletonChart />
         </div>
         {/* Error rate card */}
-        <div className="rounded-card border border-gray-200 bg-card p-5 shadow-card">
+        <div className="rounded-card border border-border bg-card p-5 shadow-card">
           <Skeleton className="mb-4 h-5 w-32" />
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -41,13 +41,13 @@ export function SkeletonAdminDashboard() {
       </div>
 
       {/* Recent activity table */}
-      <div className="rounded-card border border-gray-200 bg-card p-5 shadow-card">
+      <div className="rounded-card border border-border bg-card p-5 shadow-card">
         <Skeleton className="mb-4 h-5 w-40" />
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={`activity-${i}`}
-              className="flex items-center gap-4 border-b border-gray-100 py-3 last:border-0"
+              className="flex items-center gap-4 border-b border-border-subtle py-3 last:border-0"
             >
               <Skeleton className="h-8 w-8 rounded-full" />
               <Skeleton className="h-3.5 flex-1 max-w-[200px]" />

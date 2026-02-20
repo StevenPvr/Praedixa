@@ -36,7 +36,7 @@ interface ColorOption {
 
 const COLORS: [ColorOption, ...ColorOption[]] = [
   { name: "Ink", value: "#0f0f0f" },
-  { name: "Amber", value: "#f59e0b" },
+  { name: "Blue", value: "#2563eb" },
   { name: "Blue", value: "#3b82f6" },
   { name: "Emerald", value: "#10b981" },
   { name: "Violet", value: "#8b5cf6" },
@@ -49,20 +49,20 @@ export default function LogoPreviewPage() {
   const [strokeWidth, setStrokeWidth] = useState(2);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 py-12 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-page to-surface-sunken py-12 px-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-serif font-bold text-charcoal mb-4">
             Logo Praedixa - Style linéaire
           </h1>
-          <p className="text-gray-secondary text-lg">
+          <p className="text-ink-secondary text-lg">
             Lignes fines, style industriel comme la splash screen
           </p>
         </div>
 
         {/* Controls */}
-        <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-6 mb-8">
+        <div className="bg-card rounded-2xl shadow-sm border border-border-subtle p-6 mb-8">
           <div className="flex flex-wrap gap-6 items-center justify-center">
             {/* Color selector */}
             <div className="flex items-center gap-3">
@@ -77,8 +77,8 @@ export default function LogoPreviewPage() {
                     className={`w-8 h-8 rounded-full transition-all hover:scale-110 border-2 ${
                       selectedColor.name === c.name
                         ? "ring-2 ring-offset-2 ring-charcoal scale-110"
-                        : "border-neutral-200"
-                    } ${c.name === "White" ? "border-neutral-300" : ""}`}
+                        : "border-border-subtle"
+                    } ${c.name === "White" ? "border-border" : ""}`}
                     style={{ backgroundColor: c.value }}
                     title={c.name}
                   />
@@ -95,9 +95,9 @@ export default function LogoPreviewPage() {
                 max={200}
                 value={size}
                 onChange={(e) => setSize(Number(e.target.value))}
-                className="w-24 accent-amber-500"
+                className="w-24 accent-primary"
               />
-              <span className="text-sm text-gray-secondary w-12">{size}px</span>
+              <span className="text-sm text-ink-secondary w-12">{size}px</span>
             </div>
 
             {/* Stroke width slider */}
@@ -112,9 +112,9 @@ export default function LogoPreviewPage() {
                 step={0.5}
                 value={strokeWidth}
                 onChange={(e) => setStrokeWidth(Number(e.target.value))}
-                className="w-24 accent-amber-500"
+                className="w-24 accent-primary"
               />
-              <span className="text-sm text-gray-secondary w-8">
+              <span className="text-sm text-ink-secondary w-8">
                 {strokeWidth}
               </span>
             </div>
@@ -126,7 +126,7 @@ export default function LogoPreviewPage() {
           {VARIANTS.map((variant) => (
             <div
               key={variant.id}
-              className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-8 flex flex-col items-center transition-shadow hover:shadow-md"
+              className="bg-card rounded-2xl shadow-sm border border-border-subtle p-8 flex flex-col items-center transition-shadow hover:shadow-md"
             >
               <div
                 className="flex items-center justify-center mb-6 rounded-xl"
@@ -148,7 +148,7 @@ export default function LogoPreviewPage() {
               <h2 className="text-xl font-semibold text-charcoal mb-2">
                 {variant.name}
               </h2>
-              <p className="text-gray-secondary text-center text-sm">
+              <p className="text-ink-secondary text-center text-sm">
                 {variant.description}
               </p>
             </div>
@@ -156,14 +156,14 @@ export default function LogoPreviewPage() {
         </div>
 
         {/* Usage Preview */}
-        <div className="mt-12 bg-white rounded-2xl shadow-sm border border-neutral-200 p-8">
+        <div className="mt-12 bg-card rounded-2xl shadow-sm border border-border-subtle p-8">
           <h2 className="text-2xl font-serif font-semibold text-charcoal mb-6 text-center">
             Aperçu en contexte (navbar)
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Light background */}
-            <div className="bg-white border border-neutral-200 rounded-xl p-6">
-              <p className="text-xs text-gray-secondary mb-4 uppercase tracking-wide">
+            <div className="bg-card border border-border-subtle rounded-xl p-6">
+              <p className="text-xs text-ink-secondary mb-4 uppercase tracking-wide">
                 Fond clair
               </p>
               {VARIANTS.map((variant) => (
@@ -180,7 +180,7 @@ export default function LogoPreviewPage() {
                   <span className="font-serif text-lg font-semibold text-charcoal">
                     Praedixa
                   </span>
-                  <span className="text-xs text-gray-secondary ml-auto">
+                  <span className="text-xs text-ink-secondary ml-auto">
                     {variant.name}
                   </span>
                 </div>
@@ -189,7 +189,7 @@ export default function LogoPreviewPage() {
 
             {/* Dark background */}
             <div className="bg-charcoal rounded-xl p-6">
-              <p className="text-xs text-neutral-400 mb-4 uppercase tracking-wide">
+              <p className="text-xs text-ink-placeholder mb-4 uppercase tracking-wide">
                 Fond sombre
               </p>
               {VARIANTS.map((variant) => (
@@ -206,7 +206,7 @@ export default function LogoPreviewPage() {
                   <span className="font-serif text-lg font-semibold text-white">
                     Praedixa
                   </span>
-                  <span className="text-xs text-neutral-400 ml-auto">
+                  <span className="text-xs text-ink-placeholder ml-auto">
                     {variant.name}
                   </span>
                 </div>
@@ -216,14 +216,14 @@ export default function LogoPreviewPage() {
         </div>
 
         {/* Small sizes test */}
-        <div className="mt-8 bg-white rounded-2xl shadow-sm border border-neutral-200 p-8">
+        <div className="mt-8 bg-card rounded-2xl shadow-sm border border-border-subtle p-8">
           <h2 className="text-xl font-serif font-semibold text-charcoal mb-6 text-center">
             Test petites tailles (favicon)
           </h2>
           <div className="flex justify-center gap-8 flex-wrap">
             {[16, 24, 32, 48, 64].map((s) => (
               <div key={s} className="flex flex-col items-center gap-2">
-                <div className="bg-neutral-100 p-2 rounded">
+                <div className="bg-surface-sunken p-2 rounded">
                   <PraedixaLogo
                     variant="industrial"
                     size={s}
@@ -231,7 +231,7 @@ export default function LogoPreviewPage() {
                     strokeWidth={s < 32 ? 1 : 1.5}
                   />
                 </div>
-                <span className="text-xs text-gray-secondary">{s}px</span>
+                <span className="text-xs text-ink-secondary">{s}px</span>
               </div>
             ))}
           </div>

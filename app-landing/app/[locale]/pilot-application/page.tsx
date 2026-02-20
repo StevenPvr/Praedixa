@@ -4,6 +4,7 @@ import { localizedSlugs } from "../../../lib/i18n/config";
 import { resolveLocale } from "../../../lib/seo/knowledge";
 import { buildLocaleMetadata, localePathMap } from "../../../lib/seo/metadata";
 import { PilotApplicationPageClient } from "../../../components/pages/PilotApplicationPageClient";
+import { getDictionary } from "../../../lib/i18n/get-dictionary";
 
 const FR_PATH = `/fr/${localizedSlugs.pilot.fr}`;
 const EN_PATH = `/en/${localizedSlugs.pilot.en}`;
@@ -20,12 +21,12 @@ export async function generateMetadata({
     paths: localePathMap(FR_PATH, EN_PATH),
     title:
       locale === "fr"
-        ? "Praedixa | Devenir entreprise pilote"
-        : "Praedixa | Apply for pilot program",
+        ? "Praedixa | Demande de pilote prévision effectifs"
+        : "Praedixa | Workforce forecasting pilot request",
     description:
       locale === "fr"
-        ? "Déposez votre candidature au programme pilote Praedixa pour cadrer vos décisions de couverture multi-sites."
-        : "Apply to the Praedixa pilot program to frame multi-site coverage decisions.",
+        ? "Demandez un pilote prévision effectifs pour anticiper les tensions multi-sites et structurer vos arbitrages ops/finance."
+        : "Request a workforce forecasting pilot to anticipate multi-site staffing tensions and structure ops/finance trade-offs.",
   });
 }
 
@@ -41,5 +42,7 @@ export default async function PilotApplicationPage({
     permanentRedirect(`/${locale}/${expected}`);
   }
 
-  return <PilotApplicationPageClient locale={locale} />;
+  const dict = await getDictionary(locale);
+
+  return <PilotApplicationPageClient locale={locale} dict={dict} />;
 }

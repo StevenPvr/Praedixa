@@ -48,9 +48,9 @@ export function MessageInput({
   const isEmpty = content.trim().length === 0;
 
   return (
-    <div className="border-t border-neutral-200 px-4 py-3">
+    <div className="border-t border-border-subtle px-4 py-3">
       {disabled ? (
-        <p className="text-center text-sm text-neutral-400">
+        <p className="text-center text-sm text-ink-placeholder">
           Cette conversation est fermee. Vous ne pouvez plus envoyer de
           messages.
         </p>
@@ -63,7 +63,7 @@ export function MessageInput({
               onKeyDown={handleKeyDown}
               placeholder="Ecrire un message..."
               rows={2}
-              className="flex-1 resize-none rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              className="flex-1 resize-none rounded-xl border border-border-subtle bg-card px-3 py-2 text-sm text-ink placeholder:text-ink-placeholder focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
               disabled={loading}
               aria-label="Message"
             />
@@ -77,11 +77,11 @@ export function MessageInput({
             </Button>
           </div>
           <div className="mt-1 flex justify-between text-xs">
-            <span className="text-neutral-400">
+            <span className="text-ink-placeholder">
               Maj+Entree pour un retour a la ligne
             </span>
             <span
-              className={`${isOverLimit ? "text-danger-600 font-medium" : "text-neutral-400"}`}
+              className={`${isOverLimit ? "text-danger-600 font-medium" : "text-ink-placeholder"}`}
             >
               {charCount}/{MAX_CHARS}
             </span>

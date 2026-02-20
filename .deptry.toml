@@ -1,0 +1,11 @@
+[tool.deptry]
+known_first_party = ["app"]
+exclude = [
+  ".venv",
+  "__pycache__",
+  "alembic/versions",
+  "tests"
+]
+
+[tool.deptry.per_rule_ignores]
+DEP001 = ["hatchling"]

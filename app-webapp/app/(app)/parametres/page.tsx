@@ -470,7 +470,7 @@ export default function ParametresPage() {
                       <p className="text-caption text-ink-secondary">
                         Absences consecutives max.
                       </p>
-                      <p className="text-metric-sm text-red-500">
+                      <p className="text-metric-sm text-danger">
                         {org.settings.alertThresholds.consecutiveAbsences}j
                       </p>
                     </div>

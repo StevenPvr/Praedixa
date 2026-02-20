@@ -2,6 +2,15 @@ import { Resend } from "resend";
 import { siteConfig } from "../../config/site";
 import type { ValidatedData } from "./validation";
 
+const EMAIL_COLORS = {
+  border: "#d9e3f6",
+  title: "#162c5b",
+  body: "#2f3e5c",
+  muted: "#62708c",
+  subtle: "#7c879f",
+} as const;
+const DEFAULT_FROM_EMAIL = "Praedixa <noreply@praedixa.com>";
+
 export function escapeHtml(unsafe: string): string {
   return unsafe
     .replace(/&/g, "&amp;")
@@ -35,64 +44,86 @@ function buildAdminHtml(data: {
   return `
     <h2>Nouvelle candidature entreprise pilote</h2>
     <table style="border-collapse: collapse; width: 100%; max-width: 500px;">
-      <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Entreprise</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${data.companyName}</td></tr>
-      <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Email</td><td style="padding: 10px; border-bottom: 1px solid #eee;"><a href="mailto:${data.email}">${data.email}</a></td></tr>
-      <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Contact</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${data.firstName || "N/A"} ${data.lastName || ""}</td></tr>
-      <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Fonction</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${data.role || naRole}</td></tr>
-      <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">T\u00e9l\u00e9phone</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${data.phone || na}</td></tr>
-      <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Effectif</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${data.employeeRange} salari\u00e9s</td></tr>
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Entreprise</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.companyName}</td></tr>
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Email</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};"><a href="mailto:${data.email}">${data.email}</a></td></tr>
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Contact</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.firstName || "N/A"} ${data.lastName || ""}</td></tr>
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Fonction</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.role || naRole}</td></tr>
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">T\u00e9l\u00e9phone</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.phone || na}</td></tr>
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Effectif</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.employeeRange} salari\u00e9s</td></tr>
       <tr><td style="padding: 10px; font-weight: bold;">Secteur</td><td style="padding: 10px;">${data.sector}</td></tr>
       <tr><td style="padding: 10px; font-weight: bold;">Nombre de sites</td><td style="padding: 10px;">${data.siteCount || na}</td></tr>
       <tr><td style="padding: 10px; font-weight: bold;">Horizon projet</td><td style="padding: 10px;">${data.timeline || na}</td></tr>
       <tr><td style="padding: 10px; font-weight: bold;">Stack actuelle</td><td style="padding: 10px;">${data.currentStack || na}</td></tr>
       <tr><td style="padding: 10px; font-weight: bold;">Enjeu prioritaire</td><td style="padding: 10px;">${data.painPoint || na}</td></tr>
     </table>
-    <p style="margin-top: 20px; color: #666;">Recontacter dans les prochains jours.</p>
-    <p style="margin-top: 10px; color: #999; font-size: 12px;">IP: ${data.ip}</p>
+    <p style="margin-top: 20px; color: ${EMAIL_COLORS.muted};">Recontacter dans les prochains jours.</p>
+    <p style="margin-top: 10px; color: ${EMAIL_COLORS.subtle}; font-size: 12px;">IP: ${data.ip}</p>
   `;
 }
 
 function buildConfirmHtml(data: {
+  firstName: string;
   companyName: string;
   employeeRange: string;
   sector: string;
   timeline: string;
 }): string {
   const contactEmail = escapeHtml(siteConfig.contact.email);
+  const firstName = data.firstName || "Bonjour";
+  const timeline = data.timeline || "À préciser";
   return `
-    <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1 style="color: #1a1a1a;">Merci pour votre candidature !</h1>
-      <p style="color: #525252; font-size: 16px; line-height: 1.6;">Bonjour,</p>
-      <p style="color: #525252; font-size: 16px; line-height: 1.6;">
-        Nous avons bien re\u00e7u votre candidature pour devenir entreprise pilote de Praedixa.
+    <div style="font-family: Arial, sans-serif; max-width: 620px; margin: 0 auto; color: ${EMAIL_COLORS.body};">
+      <h1 style="color: ${EMAIL_COLORS.title}; font-size: 24px; margin-bottom: 20px;">Confirmation de réception</h1>
+      <p style="font-size: 16px; line-height: 1.6;">${firstName},</p>
+      <p style="font-size: 16px; line-height: 1.6;">
+        Nous confirmons la bonne réception de votre demande de programme pilote Praedixa.
       </p>
-      <div style="background: #fef3c7; border-radius: 8px; padding: 20px; margin: 20px 0;">
-        <h3 style="color: #92400e; margin-top: 0;">R\u00e9capitulatif</h3>
-        <ul style="color: #78350f; padding-left: 20px;">
-          <li><strong>Entreprise :</strong> ${data.companyName}</li>
-          <li><strong>Effectif :</strong> ${data.employeeRange} salari\u00e9s</li>
-          <li><strong>Secteur :</strong> ${data.sector}</li>
-          <li><strong>Horizon :</strong> ${data.timeline || "À préciser"}</li>
-        </ul>
-      </div>
-      <h3 style="color: #1a1a1a;">Prochaines \u00e9tapes</h3>
-      <ol style="color: #525252; font-size: 16px; line-height: 1.8;">
-        <li>Nous analysons votre candidature</li>
-        <li>Nous vous contacterons dans les prochains jours</li>
-        <li>Un premier \u00e9change pour comprendre vos besoins</li>
-      </ol>
-      <p style="color: #525252; font-size: 16px; line-height: 1.6;">
-        En tant qu'entreprise pilote, vous b\u00e9n\u00e9ficierez d'un <strong style="color: #d97706;">rabais exclusif</strong>
-        lors du d\u00e9ploiement du service.
+      <p style="font-size: 16px; line-height: 1.6; margin-bottom: 6px;"><strong>Récapitulatif transmis :</strong></p>
+      <ul style="font-size: 15px; line-height: 1.7; margin-top: 6px; margin-bottom: 22px;">
+        <li>Entreprise : ${data.companyName}</li>
+        <li>Effectif : ${data.employeeRange} salariés</li>
+        <li>Secteur : ${data.sector}</li>
+        <li>Horizon : ${timeline}</li>
+      </ul>
+      <p style="font-size: 16px; line-height: 1.6;">
+        Notre équipe revient vers vous rapidement pour organiser la suite.
       </p>
-      <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-      <p style="color: #737373; font-size: 14px;">\u00c0 tr\u00e8s bient\u00f4t,<br>L'\u00e9quipe Praedixa</p>
-      <p style="color: #999; font-size: 12px; margin-top: 20px;">
-        Vous recevez cet email car vous avez soumis une candidature sur praedixa.com.<br>
-        Pour toute question : <a href="mailto:${contactEmail}" style="color: #d97706;">${contactEmail}</a>
+      <hr style="border: none; border-top: 1px solid ${EMAIL_COLORS.border}; margin: 28px 0;" />
+      <p style="font-size: 14px; color: ${EMAIL_COLORS.muted}; margin: 0;">
+        Praedixa<br />
+        Contact : <a href="mailto:${contactEmail}" style="color: ${EMAIL_COLORS.title};">${contactEmail}</a>
+      </p>
+      <p style="font-size: 12px; color: ${EMAIL_COLORS.subtle}; margin-top: 16px;">
+        Ce message confirme uniquement la réception de votre demande.
       </p>
     </div>
   `;
+}
+
+function buildConfirmText(data: {
+  firstName: string;
+  companyName: string;
+  employeeRange: string;
+  sector: string;
+  timeline: string;
+}): string {
+  const firstName = data.firstName || "Bonjour";
+  const timeline = data.timeline || "À préciser";
+  return [
+    `${firstName},`,
+    "",
+    "Nous confirmons la bonne réception de votre demande de programme pilote Praedixa.",
+    "",
+    "Récapitulatif transmis :",
+    `- Entreprise : ${data.companyName}`,
+    `- Effectif : ${data.employeeRange} salariés`,
+    `- Secteur : ${data.sector}`,
+    `- Horizon : ${timeline}`,
+    "",
+    "Notre équipe revient vers vous rapidement pour organiser la suite.",
+    "",
+    `Contact : ${siteConfig.contact.email}`,
+  ].join("\n");
 }
 
 export async function sendPilotEmails(
@@ -117,19 +148,25 @@ export async function sendPilotEmails(
   };
 
   const subjectCompany = safeSubject(data.companyName);
+  const fromEmail = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM_EMAIL;
+  const replyToEmail =
+    process.env.RESEND_REPLY_TO_EMAIL || siteConfig.contact.email;
 
   const [adminResult, confirmResult] = await Promise.all([
     resend.emails.send({
-      from: "Praedixa <noreply@praedixa.com>",
+      from: fromEmail,
       to: [siteConfig.contact.email],
       subject: `Nouvelle candidature pilote - ${subjectCompany}`,
       html: buildAdminHtml(safe),
+      replyTo: replyToEmail,
     }),
     resend.emails.send({
-      from: "Praedixa <noreply@praedixa.com>",
+      from: fromEmail,
       to: [data.email],
       subject: "Candidature entreprise pilote re\u00e7ue - Praedixa",
       html: buildConfirmHtml(safe),
+      text: buildConfirmText(safe),
+      replyTo: replyToEmail,
     }),
   ]);
 

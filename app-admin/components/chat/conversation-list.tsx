@@ -90,7 +90,7 @@ export function ConversationList({
   return (
     <div className="flex h-full flex-col">
       {/* Filter tabs */}
-      <div className="flex gap-1 border-b border-neutral-200 px-3 pb-2">
+      <div className="flex gap-1 border-b border-border-subtle px-3 pb-2">
         {FILTER_TABS.map((tab) => (
           <button
             key={tab.key}
@@ -98,8 +98,8 @@ export function ConversationList({
             onClick={() => setFilter(tab.key)}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
               filter === tab.key
-                ? "bg-amber-100 text-amber-800"
-                : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700"
+                ? "bg-primary-100 text-primary-700"
+                : "text-ink-tertiary hover:bg-surface-sunken hover:text-ink-secondary"
             }`}
           >
             {tab.label}
@@ -110,15 +110,17 @@ export function ConversationList({
       {/* List */}
       <div className="flex-1 overflow-y-auto">
         {loading && !data && (
-          <p className="px-3 py-4 text-sm text-neutral-400">Chargement...</p>
+          <p className="px-3 py-4 text-sm text-ink-placeholder">
+            Chargement...
+          </p>
         )}
 
         {error && <p className="px-3 py-4 text-sm text-danger-600">{error}</p>}
 
         {!loading && !error && data && filtered.length === 0 && (
           <div className="flex flex-col items-center gap-2 px-3 py-8 text-center">
-            <MessageSquare className="h-8 w-8 text-neutral-300" />
-            <p className="text-sm text-neutral-400">Aucune conversation</p>
+            <MessageSquare className="h-8 w-8 text-ink-placeholder" />
+            <p className="text-sm text-ink-placeholder">Aucune conversation</p>
           </div>
         )}
 
@@ -131,15 +133,15 @@ export function ConversationList({
               key={conv.id}
               type="button"
               onClick={() => onSelect(conv.id)}
-              className={`w-full border-b border-neutral-100 px-3 py-3 text-left transition-colors ${
+              className={`w-full border-b border-border-subtle px-3 py-3 text-left transition-colors ${
                 isSelected
-                  ? "border-l-2 border-l-amber-400 bg-amber-50/60"
-                  : "hover:bg-neutral-50"
+                  ? "border-l-2 border-l-primary-400 bg-primary-50/60"
+                  : "hover:bg-surface-sunken"
               }`}
             >
               <div className="flex items-start justify-between gap-2">
                 <span
-                  className={`text-sm font-medium ${isSelected ? "text-amber-900" : "text-neutral-800"}`}
+                  className={`text-sm font-medium ${isSelected ? "text-primary-800" : "text-ink"}`}
                 >
                   {conv.subject}
                 </span>
@@ -150,7 +152,7 @@ export function ConversationList({
                 />
               </div>
 
-              <div className="mt-1 flex items-center gap-2 text-xs text-neutral-400">
+              <div className="mt-1 flex items-center gap-2 text-xs text-ink-placeholder">
                 {conv.initiatedBy === "client" ? (
                   <User className="h-3 w-3" />
                 ) : (

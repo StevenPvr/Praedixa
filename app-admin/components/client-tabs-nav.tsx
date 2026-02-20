@@ -28,7 +28,7 @@ export function ClientTabsNav({ basePath }: ClientTabsNavProps) {
 
   return (
     <nav
-      className="flex gap-1 border-b border-neutral-200 px-6"
+      className="flex gap-1 border-b border-border-subtle px-6"
       aria-label="Onglets client"
     >
       {TABS.map((tab) => {
@@ -42,13 +42,13 @@ export function ClientTabsNav({ basePath }: ClientTabsNavProps) {
             className={cn(
               "relative px-3 py-2.5 text-sm transition-colors",
               isActive
-                ? "font-medium text-amber-600"
-                : "text-neutral-500 hover:text-neutral-700",
+                ? "font-medium text-primary"
+                : "text-ink-tertiary hover:text-ink-secondary",
             )}
           >
             {tab.label}
             {isActive && (
-              <span className="absolute inset-x-0 bottom-0 h-0.5 bg-amber-500" />
+              <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary" />
             )}
           </Link>
         );

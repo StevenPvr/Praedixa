@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
+
+MODE="manual"
+RUN_IF_MISSING="0"
+MAX_AGE_SECONDS="21600"
+KEY_PATH="${ROOT_DIR}/.git/gate-signing.key"
+COMMIT_SHA="$(git rev-parse HEAD)"
+REPORT_PATH="${ROOT_DIR}/.git/gate-reports/${COMMIT_SHA}.json"
+
+while (($# > 0)); do
+  case "$1" in
+    --report-path)
+      REPORT_PATH="${2:-}"
+      shift 2
+      ;;
+    --max-age-seconds)
+      MAX_AGE_SECONDS="${2:-}"
+      shift 2
+      ;;
+    --mode)
+      MODE="${2:-manual}"
+      shift 2
+      ;;
+    --key-file)
+      KEY_PATH="${2:-}"
+      shift 2
+      ;;
+    --run-if-missing)
+      RUN_IF_MISSING="1"
+      shift
+      ;;
+    *)
+      echo "[gate-verify] Unknown argument: $1" >&2
+      exit 2
+      ;;
+  esac
+done
+
+rerun_gate_and_reverify() {
+  echo "[gate-verify] Regenerating report with exhaustive gate..."
+  ./scripts/gate-exhaustive-local.sh --mode "$MODE" --report-path "$REPORT_PATH"
+  exec ./scripts/verify-gate-report.sh \
+    --report-path "$REPORT_PATH" \
+    --max-age-seconds "$MAX_AGE_SECONDS" \
+    --mode "$MODE" \
+    --key-file "$KEY_PATH"
+}
+
+if [[ ! -f "$REPORT_PATH" && "$RUN_IF_MISSING" == "1" ]]; then
+  echo "[gate-verify] Missing report for HEAD, running exhaustive gate..."
+  ./scripts/gate-exhaustive-local.sh --mode "$MODE" --report-path "$REPORT_PATH"
+fi
+
+if [[ ! -f "$REPORT_PATH" ]]; then
+  echo "[gate-verify] Missing gate report: $REPORT_PATH" >&2
+  exit 1
+fi
+
+if [[ ! -f "$KEY_PATH" ]]; then
+  echo "[gate-verify] Missing gate signing key: $KEY_PATH" >&2
+  exit 1
+fi
+
+REPORT_SHA="$(jq -r '.commit_sha // empty' "$REPORT_PATH")"
+if [[ -z "$REPORT_SHA" || "$REPORT_SHA" != "$COMMIT_SHA" ]]; then
+  echo "[gate-verify] Report commit mismatch: expected $COMMIT_SHA got ${REPORT_SHA:-<empty>}" >&2
+  exit 1
+fi
+
+REPORT_TS="$(jq -r '.timestamp_epoch // empty' "$REPORT_PATH")"
+if [[ -z "$REPORT_TS" ]]; then
+  echo "[gate-verify] Missing report timestamp_epoch" >&2
+  exit 1
+fi
+NOW_TS="$(date +%s)"
+AGE="$((NOW_TS - REPORT_TS))"
+if ((AGE < 0 || AGE > MAX_AGE_SECONDS)); then
+  if [[ "$RUN_IF_MISSING" == "1" ]]; then
+    rerun_gate_and_reverify
+  fi
+  echo "[gate-verify] Report is stale (age=${AGE}s, max=${MAX_AGE_SECONDS}s)" >&2
+  exit 1
+fi
+
+REPORT_STATUS="$(jq -r '.summary.status // empty' "$REPORT_PATH")"
+if [[ "$REPORT_STATUS" != "pass" ]]; then
+  echo "[gate-verify] Report status is not pass: ${REPORT_STATUS:-<empty>}" >&2
+  exit 1
+fi
+
+REPORT_DRY_RUN="$(jq -r '.dry_run // false' "$REPORT_PATH")"
+if [[ "$REPORT_DRY_RUN" == "true" ]]; then
+  if [[ "$RUN_IF_MISSING" == "1" ]]; then
+    rerun_gate_and_reverify
+  fi
+  echo "[gate-verify] Dry-run reports are not valid for pre-push verification" >&2
+  exit 1
+fi
+
+SIG_EXPECTED="$(jq -r '.signature // empty' "$REPORT_PATH")"
+if [[ -z "$SIG_EXPECTED" ]]; then
+  echo "[gate-verify] Missing signature field in report" >&2
+  exit 1
+fi
+
+UNSIGNED_TMP="$(mktemp)"
+trap 'rm -f "$UNSIGNED_TMP"' EXIT
+jq 'del(.signature)' "$REPORT_PATH" >"$UNSIGNED_TMP"
+
+KEY_CONTENT="$(cat "$KEY_PATH")"
+SIG_ACTUAL="$(openssl dgst -sha256 -hmac "$KEY_CONTENT" "$UNSIGNED_TMP" | awk '{print $2}')"
+if [[ "$SIG_ACTUAL" != "$SIG_EXPECTED" ]]; then
+  echo "[gate-verify] Invalid signature" >&2
+  exit 1
+fi
+
+echo "[gate-verify] OK (${REPORT_PATH})"

@@ -20,29 +20,29 @@ describe("PlanBadge", () => {
   it("applies correct background class for free plan", () => {
     const { container } = render(<PlanBadge plan="free" />);
     const badge = container.firstChild as HTMLElement;
-    expect(badge.className).toContain("bg-gray-100");
-    expect(badge.className).toContain("text-gray-600");
+    expect(badge.className).toContain("bg-surface-sunken");
+    expect(badge.className).toContain("text-ink-secondary");
   });
 
   it("applies correct background class for starter plan", () => {
     const { container } = render(<PlanBadge plan="starter" />);
     const badge = container.firstChild as HTMLElement;
-    expect(badge.className).toContain("bg-blue-100");
-    expect(badge.className).toContain("text-blue-700");
+    expect(badge.className).toContain("bg-info-light");
+    expect(badge.className).toContain("text-info-text");
   });
 
   it("applies correct background class for professional plan", () => {
     const { container } = render(<PlanBadge plan="professional" />);
     const badge = container.firstChild as HTMLElement;
-    expect(badge.className).toContain("bg-amber-100");
-    expect(badge.className).toContain("text-amber-700");
+    expect(badge.className).toContain("bg-primary-100");
+    expect(badge.className).toContain("text-primary-700");
   });
 
   it("applies correct background class for enterprise plan", () => {
     const { container } = render(<PlanBadge plan="enterprise" />);
     const badge = container.firstChild as HTMLElement;
-    expect(badge.className).toContain("bg-violet-100");
-    expect(badge.className).toContain("text-violet-700");
+    expect(badge.className).toContain("bg-primary-200");
+    expect(badge.className).toContain("text-primary-800");
   });
 
   it("applies custom className", () => {

@@ -16,9 +16,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-white shadow-raised hover:brightness-110 hover:shadow-floating shine-effect",
+          "border border-primary bg-primary text-white shadow-raised hover:border-primary-600 hover:bg-primary-600 hover:shadow-[var(--shadow-premium-glow)] shine-effect",
         premium:
-          "bg-gradient-to-br from-primary to-primary-dark text-white shadow-raised hover:shadow-[0_0_24px_-6px_var(--brand-glow)] hover:brightness-110 shine-effect",
+          "border border-primary bg-primary text-white shadow-raised hover:border-primary-600 hover:bg-primary-600 hover:shadow-[var(--shadow-premium-glow)] shine-effect",
         destructive: "bg-danger text-white shadow-raised hover:opacity-90",
         outline:
           "border border-border bg-surface text-ink hover:border-border-hover hover:bg-surface-interactive hover:shadow-raised",

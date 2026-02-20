@@ -61,8 +61,8 @@ const variantConfig: Record<
   },
   empty: {
     icon: Inbox,
-    iconBg: "bg-gray-50",
-    iconColor: "text-gray-400",
+    iconBg: "bg-surface-sunken",
+    iconColor: "text-ink-placeholder",
     defaultTitle: "Aucune donnee",
     defaultMessage: "Aucune donnee a afficher pour le moment.",
   },
@@ -76,7 +76,7 @@ export function ErrorFallback(props: ErrorFallbackProps) {
   const message = props.message ?? config.defaultMessage;
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-card border border-gray-200 bg-card px-6 py-12">
+    <div className="flex flex-col items-center justify-center rounded-card border border-border bg-card px-6 py-12">
       <div
         className={`flex h-12 w-12 items-center justify-center rounded-full ${config.iconBg}`}
       >
@@ -85,12 +85,12 @@ export function ErrorFallback(props: ErrorFallbackProps) {
       <p className="mt-4 text-sm font-medium text-charcoal">
         {config.defaultTitle}
       </p>
-      <p className="mt-1 max-w-sm text-center text-sm text-gray-500">
+      <p className="mt-1 max-w-sm text-center text-sm text-ink-tertiary">
         {message}
       </p>
 
       {variant === "api" && "detail" in props && props.detail && (
-        <p className="mt-2 max-w-md rounded-md bg-gray-50 px-3 py-2 font-mono text-xs text-gray-400">
+        <p className="mt-2 max-w-md rounded-md bg-surface-sunken px-3 py-2 font-mono text-xs text-ink-placeholder">
           {props.detail}
         </p>
       )}
@@ -98,7 +98,7 @@ export function ErrorFallback(props: ErrorFallbackProps) {
       {props.onRetry && (
         <button
           onClick={props.onRetry}
-          className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-charcoal transition-colors hover:bg-gray-50"
+          className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-charcoal transition-colors hover:bg-surface-sunken"
         >
           <RefreshCw className="h-4 w-4" aria-hidden="true" />
           Reessayer
@@ -108,7 +108,7 @@ export function ErrorFallback(props: ErrorFallbackProps) {
       {variant === "empty" && "onAction" in props && props.onAction && (
         <button
           onClick={props.onAction}
-          className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-amber-400"
+          className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-500"
         >
           {"ctaLabel" in props && props.ctaLabel ? props.ctaLabel : "Commencer"}
         </button>

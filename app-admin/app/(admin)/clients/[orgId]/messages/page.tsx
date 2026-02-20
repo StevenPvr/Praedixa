@@ -25,11 +25,11 @@ export default function MessagesPage() {
   }, [refetch]);
 
   return (
-    <div className="flex h-[calc(100vh-220px)] gap-0 overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-soft">
+    <div className="flex h-[calc(100vh-220px)] gap-0 overflow-hidden rounded-2xl border border-border-subtle bg-card shadow-soft">
       {/* Left panel — conversation list */}
-      <div className="w-1/3 min-w-[240px] border-r border-neutral-200 pt-3">
+      <div className="w-1/3 min-w-[240px] border-r border-border-subtle pt-3">
         <div className="px-3 pb-2">
-          <h2 className="font-serif text-base font-semibold text-neutral-900">
+          <h2 className="font-serif text-base font-semibold text-ink">
             Conversations
           </h2>
         </div>
@@ -50,7 +50,7 @@ export default function MessagesPage() {
             onStatusChange={handleStatusChange}
           />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-3 text-neutral-400">
+          <div className="flex h-full flex-col items-center justify-center gap-3 text-ink-placeholder">
             <MessageSquare className="h-12 w-12" />
             <p className="text-sm">
               Selectionnez une conversation pour afficher les messages

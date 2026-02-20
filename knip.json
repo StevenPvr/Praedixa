@@ -1,0 +1,29 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignore": [
+    ".next/**",
+    "dist/**",
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
+    "testing/e2e/**/snapshots/**"
+  ],
+  "ignoreBinaries": [
+    "semgrep",
+    "trivy",
+    "checkov",
+    "codeql",
+    "osv-scanner",
+    "k6"
+  ],
+  "ignoreDependencies": [
+    "@tremor/react",
+    "date-fns",
+    "@opennextjs/cloudflare",
+    "@praedixa/shared-types",
+    "clsx",
+    "tailwind-merge",
+    "@remotion/cli",
+    "zod"
+  ]
+}

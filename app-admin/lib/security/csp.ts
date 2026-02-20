@@ -16,14 +16,26 @@
 
 const isProd = process.env.NODE_ENV === "production";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const oidcIssuerUrl = process.env.AUTH_OIDC_ISSUER_URL ?? "";
+
+function getOriginOrEmpty(value: string): string {
+  try {
+    return value ? new URL(value).origin : "";
+  } catch {
+    return "";
+  }
+}
 
 export function generateNonce(): string {
   return Buffer.from(crypto.randomUUID()).toString("base64");
 }
 
 export function buildCspHeader(nonce: string): string {
+  const authOrigin = getOriginOrEmpty(oidcIssuerUrl);
+  const optionalAuthSource = authOrigin ? ` ${authOrigin}` : "";
+
   // Build connect-src dynamically based on apiUrl
-  const connectSrc = `'self' ${apiUrl} https://*.supabase.co`;
+  const connectSrc = `'self' ${apiUrl}${optionalAuthSource}`;
 
   const directives = [
     "default-src 'self'",

@@ -12,7 +12,7 @@ export default function GlobalError({
   void error;
 
   return (
-    <html lang="fr">
+    <html lang="fr" data-scroll-behavior="smooth">
       <body
         style={{
           margin: 0,
@@ -20,9 +20,9 @@ export default function GlobalError({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#FFFBF0",
+          backgroundColor: "var(--warm-bg)",
           fontFamily: "Plus Jakarta Sans, system-ui, -apple-system, sans-serif",
-          color: "#1A1A1A",
+          color: "var(--warm-ink)",
         }}
       >
         <div style={{ textAlign: "center", padding: "2rem", maxWidth: 480 }}>
@@ -31,14 +31,15 @@ export default function GlobalError({
               width: 64,
               height: 64,
               borderRadius: 16,
-              background: "linear-gradient(135deg, #FBBF24, #D97706)",
+              background:
+                "linear-gradient(135deg, var(--brass-400), var(--brass-600))",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               margin: "0 auto 1.5rem",
               fontSize: 28,
               fontWeight: 700,
-              color: "#fff",
+              color: "var(--warm-bg-card)",
             }}
           >
             P
@@ -54,7 +55,7 @@ export default function GlobalError({
           </h1>
           <p
             style={{
-              color: "#525252",
+              color: "var(--warm-ink-secondary)",
               lineHeight: 1.6,
               marginBottom: "2rem",
             }}
@@ -71,8 +72,8 @@ export default function GlobalError({
                 padding: "0.75rem 1.5rem",
                 borderRadius: 12,
                 border: "none",
-                backgroundColor: "#F59E0B",
-                color: "#fff",
+                backgroundColor: "var(--brass-600)",
+                color: "var(--warm-bg-card)",
                 fontWeight: 600,
                 fontSize: "0.9rem",
                 cursor: "pointer",
@@ -85,9 +86,9 @@ export default function GlobalError({
               style={{
                 padding: "0.75rem 1.5rem",
                 borderRadius: 12,
-                border: "1px solid #E5E5E5",
-                backgroundColor: "#fff",
-                color: "#1A1A1A",
+                border: "1px solid var(--warm-border)",
+                backgroundColor: "var(--warm-bg-elevated)",
+                color: "var(--warm-ink)",
                 fontWeight: 600,
                 fontSize: "0.9rem",
                 textDecoration: "none",

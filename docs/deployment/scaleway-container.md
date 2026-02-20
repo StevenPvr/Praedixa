@@ -1,273 +1,181 @@
-# Scaleway Container Deployment Guide
+# Guide de deploiement Scaleway Containers (FR-only)
 
-Production deployment of the Praedixa API using Scaleway Serverless Containers.
+Ce document decrit le deploiement cible sur Scaleway Serverless Containers pour:
 
-## Architecture Overview
+- `app-landing`
+- `app-webapp`
+- `app-admin`
+- `app-api`
+- `auth` (Keycloak)
 
-```
-                 +-----------------+
-                 |   Cloudflare    |
-                 |  app.praedixa   |
-                 +--------+--------+
-                          |
-                          | HTTPS (CORS)
-                          v
-+---------------------------------------------------+
-|  Scaleway fr-par                                  |
-|                                                   |
-|  +--------------------+    +------------------+   |
-|  | Serverless         |    | Managed DB       |   |
-|  | Container          +--->+ PostgreSQL 16    |   |
-|  | (API)              |    | (DB-GP-XS)      |   |
-|  | api.praedixa.com   |    |                  |   |
-|  +--------------------+    +------------------+   |
-|         Private Network (10.0.1.0/24)             |
-+---------------------------------------------------+
-```
+La landing est prete sur Scaleway; le cutover public de `praedixa.com`/`www.praedixa.com` reste en attente tant que le transfert domaine/delegation n'est pas termine.
 
-## Prerequisites
+## Etat de reference (2026-02-19)
 
-- Scaleway account with the project set up
-- Docker image pushed to `ghcr.io` (handled by CD pipeline)
-- PostgreSQL instance provisioned (see `scaleway-setup.md`)
-- DNS access for `api.praedixa.com`
+- Region compute/data cible: `fr-par`.
+- Environnements prepares: `staging` et `production`.
+- Namespaces existants: `landing-prod`, `webapp-staging`, `webapp-prod`, `admin-staging`, `admin-prod`, `api-staging`, `api-prod`, `auth-prod`.
+- `auth-prod` (Keycloak) est deployee et `ready`.
+- Containers `landing/webapp/admin/api` sont provisionnes mais restent en `error` tant qu'aucune image n'est deployee (normal).
+- Preflight staging: `pnpm run scw:preflight:staging` passe, avec warning attendu si delegation NS encore Cloudflare.
+- Preflight global deploy readiness: `pnpm run scw:preflight:deploy` (sans deploy).
 
-## 1. Create the Serverless Container
+## Prerequis
 
-### Via Scaleway Console
+- CLI Scaleway configuree (`scw init`, projet actif).
+- `scw`, `jq`, `pnpm`, Docker disponibles localement.
+- Acces DNS du domaine `praedixa.com` (mode transitoire Cloudflare ou delegation complete Scaleway).
 
-1. Go to **Serverless > Containers** in the fr-par region
-2. Create a new container namespace: `praedixa`
-3. Create a container:
-   - **Name**: `praedixa-api`
-   - **Registry**: External registry (ghcr.io)
-   - **Image URL**: `ghcr.io/<GITHUB_ORG>/praedixa/api:latest`
-   - **Port**: `8000`
-   - **Resources**: 512 MB RAM, 560 mVCPU
-   - **Scaling**: Min 1, Max 3 instances
-   - **Privacy**: Public (API handles its own auth)
+## Scripts de reference
 
-### Via CLI
+| Commande                                | Role                                                          |
+| --------------------------------------- | ------------------------------------------------------------- |
+| `pnpm run scw:bootstrap:frontends`      | Cree namespaces/containers frontends + buckets frontends      |
+| `pnpm run scw:bootstrap:api`            | Cree namespaces/containers API                                |
+| `pnpm run scw:configure:landing:prod`   | Injecte env vars/secrets landing prod                         |
+| `pnpm run scw:configure:webapp:staging` | Injecte env vars/secrets webapp staging                       |
+| `pnpm run scw:configure:webapp:prod`    | Injecte env vars/secrets webapp prod                          |
+| `pnpm run scw:configure:admin:staging`  | Injecte env vars/secrets admin staging                        |
+| `pnpm run scw:configure:admin:prod`     | Injecte env vars/secrets admin prod                           |
+| `pnpm run scw:configure:api:staging`    | Injecte env vars/secrets API staging                          |
+| `pnpm run scw:configure:api:prod`       | Injecte env vars/secrets API prod                             |
+| `pnpm run scw:preflight:deploy`         | Controle readiness globale staging+prod+landing (sans deploy) |
+| `pnpm run scw:preflight:prod`           | Controle readiness prod+landing (sans deploy)                 |
+| `pnpm run scw:preflight:staging`        | Controle readiness infra + DNS staging (sans deploy)          |
+| `pnpm run scw:deploy:landing:prod`      | Build + deploy landing prod                                   |
+| `pnpm run scw:deploy:webapp:staging`    | Build + deploy webapp staging                                 |
+| `pnpm run scw:deploy:webapp:prod`       | Build + deploy webapp prod                                    |
+| `pnpm run scw:deploy:admin:staging`     | Build + deploy admin staging                                  |
+| `pnpm run scw:deploy:admin:prod`        | Build + deploy admin prod                                     |
+| `pnpm run scw:deploy:api:staging`       | Build + deploy API staging                                    |
+| `pnpm run scw:deploy:api:prod`          | Build + deploy API prod                                       |
 
-```bash
-# Create namespace
-scw container namespace create \
-  name=praedixa \
-  region=fr-par
+## Sequence recommandee (sans surprise)
 
-# Create container
-scw container container create \
-  namespace-id=<NAMESPACE_ID> \
-  name=praedixa-api \
-  registry-image=ghcr.io/<GITHUB_ORG>/praedixa/api:latest \
-  port=8000 \
-  min-scale=1 \
-  max-scale=3 \
-  memory-limit=512 \
-  cpu-limit=560 \
-  timeout=60s \
-  region=fr-par \
-  privacy=public \
-  http-option=redirected \
-  deploy=true
-```
-
-## 2. Environment Variables
-
-Set these on the Scaleway Container (via Console or CLI):
-
-| Variable              | Value                                                                             | Secret |
-| --------------------- | --------------------------------------------------------------------------------- | ------ |
-| `DATABASE_URL`        | `postgresql+asyncpg://praedixa_api:<PWD>@10.0.1.10:5432/praedixa?sslmode=require` | Yes    |
-| `SUPABASE_JWT_SECRET` | `<from Supabase dashboard>`                                                       | Yes    |
-| `SUPABASE_URL`        | `https://<project>.supabase.co`                                                   | No     |
-| `CORS_ORIGINS`        | `["https://app.praedixa.com"]`                                                    | No     |
-| `ENVIRONMENT`         | `production`                                                                      | No     |
-| `DEBUG`               | `false`                                                                           | No     |
-| `LOG_LEVEL`           | `info`                                                                            | No     |
-
-### Via CLI
+1. Provisionner (idempotent):
 
 ```bash
-scw container container update <CONTAINER_ID> \
-  region=fr-par \
-  environment-variables.ENVIRONMENT=production \
-  environment-variables.DEBUG=false \
-  environment-variables.LOG_LEVEL=info \
-  environment-variables.CORS_ORIGINS='["https://app.praedixa.com"]' \
-  environment-variables.SUPABASE_URL=https://<project>.supabase.co \
-  secret-environment-variables.0.key=DATABASE_URL \
-  secret-environment-variables.0.value='postgresql+asyncpg://praedixa_api:<PWD>@10.0.1.10:5432/praedixa?sslmode=require' \
-  secret-environment-variables.1.key=SUPABASE_JWT_SECRET \
-  secret-environment-variables.1.value='<JWT_SECRET>'
+pnpm run scw:bootstrap:frontends
+pnpm run scw:bootstrap:api
 ```
 
-> **Secrets** (`DATABASE_URL`, `SUPABASE_JWT_SECRET`) are stored encrypted by Scaleway and not visible in plain text after creation.
+2. Configurer les variables runtime/secrets.
 
-## 3. Private Network Attachment
-
-The container must be on the same Private Network as the database:
+3. Verifier avant deploy:
 
 ```bash
-scw container container update <CONTAINER_ID> \
-  region=fr-par \
-  sandbox=v2 \
-  scaling-option.concurrent-requests-threshold=50
+pnpm run scw:preflight:deploy
+pnpm run scw:preflight:staging
 ```
 
-> Private Network support for Serverless Containers requires the v2 sandbox. Check Scaleway documentation for current availability and configuration steps.
-
-## 4. Healthcheck
-
-The API exposes `GET /health` which checks database connectivity:
+4. Deployer quand valide:
 
 ```bash
-curl -s https://api.praedixa.com/health | jq .
-# Expected: {"status": "healthy", "database": "connected"}
+pnpm run scw:deploy:api:staging
+pnpm run scw:deploy:webapp:staging
+pnpm run scw:deploy:admin:staging
+pnpm run scw:deploy:landing:prod
 ```
 
-Scaleway Serverless Containers use the HTTP port (8000) for health detection. The platform automatically routes traffic away from unhealthy instances.
+## Variables requises (configuration containers)
 
-## 5. Custom Domain (api.praedixa.com)
+### Frontends (`scw-configure-frontend-env.sh`)
 
-### 5.1 Get the Container Endpoint
+Variables shell requises:
 
-After deployment, Scaleway assigns an endpoint like:
+- `NEXT_PUBLIC_API_URL`
+- `AUTH_OIDC_ISSUER_URL`
+- `AUTH_SESSION_SECRET`
 
-```
-praedixa-api-<hash>.functions.fnc.fr-par.scw.cloud
-```
+Variables optionnelles:
 
-### 5.2 Configure DNS
+- `AUTH_OIDC_CLIENT_ID` (defaut selon app)
+- `AUTH_OIDC_SCOPE` (defaut: `openid profile email offline_access`)
+- `AUTH_OIDC_CLIENT_SECRET`
 
-Add a CNAME record in your DNS provider:
+### Landing (`scw-configure-landing-env.sh`)
 
-| Type  | Name             | Target                                             | TTL |
-| ----- | ---------------- | -------------------------------------------------- | --- |
-| CNAME | api.praedixa.com | praedixa-api-<hash>.functions.fnc.fr-par.scw.cloud | 300 |
+Variables shell requises:
 
-### 5.3 Add Custom Domain in Scaleway
+- `CONTACT_API_BASE_URL`
+- `CONTACT_API_INGEST_TOKEN`
+- `RESEND_API_KEY`
+
+Variables optionnelles:
+
+- `RESEND_FROM_EMAIL`
+- `RESEND_REPLY_TO_EMAIL`
+- `ALLOWED_FORM_ORIGINS`
+- `NEXT_PUBLIC_GA_MEASUREMENT_ID`
+
+### API (`scw-configure-api-env.sh`)
+
+Variables shell requises:
+
+- `DATABASE_URL`
+- `AUTH_JWKS_URL`
+- `AUTH_ISSUER_URL`
+- `AUTH_AUDIENCE`
+- `AUTH_ALLOWED_JWKS_HOSTS`
+- `CORS_ORIGINS`
+- `RATE_LIMIT_STORAGE_URI`
+- `CONTACT_API_INGEST_TOKEN`
+- `SCW_SECRET_KEY`
+- `SCW_DEFAULT_PROJECT_ID`
+
+## DNS: deux modes supportes
+
+### 1) Mode transitoire (actuel)
+
+- Delegation NS publique: Cloudflare.
+- CNAME publics pointes vers Scaleway pour:
+  - `auth.praedixa.com`
+  - `app.praedixa.com`
+  - `admin.praedixa.com`
+  - `api.praedixa.com`
+  - `staging-app.praedixa.com`
+  - `staging-admin.praedixa.com`
+  - `staging-api.praedixa.com`
+- `praedixa.com` / `www.praedixa.com` peuvent rester sur Workers pendant la transition landing.
+
+### 2) Mode delegation complete
+
+- Delegation NS publique vers Scaleway (`ns0.dom.scw.cloud`, `ns1.dom.scw.cloud`).
+- Le preflight peut etre force en mode strict:
 
 ```bash
-scw container domain create \
-  container-id=<CONTAINER_ID> \
-  hostname=api.praedixa.com \
-  region=fr-par
+DNS_DELEGATION_MODE=full ./scripts/scw-preflight-staging.sh
 ```
 
-### 5.4 TLS
+## Authentification OIDC (FR)
 
-Scaleway automatically provisions and renews TLS certificates via Let's Encrypt for custom domains. No additional configuration is needed.
+- IdP: Keycloak self-hosted sur Scaleway (`auth-prod`).
+- Realm: `praedixa`.
+- Clients: `praedixa-webapp`, `praedixa-admin`, `praedixa-api`.
+- Roles: `super_admin`, `org_admin`, `hr_manager`, `manager`, `employee`, `viewer`.
 
-## 6. Scaling Configuration
+## Stockage et data plane FR
 
-| Parameter     | Value     | Rationale                                        |
-| ------------- | --------- | ------------------------------------------------ |
-| Min instances | 1         | Avoids cold starts; always-on for production     |
-| Max instances | 3         | Handles traffic spikes without over-provisioning |
-| Memory        | 512 MB    | Sufficient for FastAPI + SQLAlchemy async        |
-| CPU           | 560 mVCPU | ~0.5 vCPU, adequate for API workloads            |
-| Timeout       | 60s       | Max request duration (most respond in <1s)       |
-| Concurrency   | 50        | Requests per instance before scaling out         |
+Buckets object storage prives prepares:
 
-### Scaling Up
+- `praedixa-stg-client-files-fr-14b3676c`
+- `praedixa-prd-client-files-fr-14b3676c`
+- `praedixa-stg-client-exports-fr-14b3676c`
+- `praedixa-prd-client-exports-fr-14b3676c`
+- `praedixa-stg-model-artifacts-fr-14b3676c`
+- `praedixa-prd-model-artifacts-fr-14b3676c`
+- `praedixa-stg-model-inference-fr-14b3676c`
+- `praedixa-prd-model-inference-fr-14b3676c`
 
-If response times degrade under load:
+## Garde-fous deployment
 
-1. Increase `max-scale` (e.g., to 5)
-2. Increase memory to 1024 MB (gets proportionally more CPU)
-3. Consider upgrading to dedicated containers if sustained high traffic
-
-## 7. Deployment Procedure
-
-Deployments are automated via the CD pipeline (`.github/workflows/cd-api.yml`):
-
-1. CI passes on `main` branch
-2. CD builds Docker image and pushes to `ghcr.io`
-3. CD triggers Scaleway container redeployment with the new image
-4. Scaleway performs a rolling update (zero-downtime)
-5. Smoke test verifies `/health` returns 200
-
-### Manual Deployment (emergency)
+- Les scripts `scw:deploy:*` refusent un workspace git `dirty` par defaut.
+- Override explicite possible uniquement si necessaire:
 
 ```bash
-# Deploy a specific image tag
-scw container container deploy <CONTAINER_ID> \
-  region=fr-par
-
-# Or update the image and redeploy
-scw container container update <CONTAINER_ID> \
-  registry-image=ghcr.io/<GITHUB_ORG>/praedixa/api:sha-<COMMIT> \
-  region=fr-par \
-  redeploy=true
+SCW_DEPLOY_ALLOW_DIRTY=1 pnpm run scw:deploy:api:staging
 ```
 
-### Rollback
+## Runbook associe
 
-```bash
-# Deploy the previous known-good image tag
-scw container container update <CONTAINER_ID> \
-  registry-image=ghcr.io/<GITHUB_ORG>/praedixa/api:sha-<PREVIOUS_COMMIT> \
-  region=fr-par \
-  redeploy=true
-```
-
-## 8. Logging & Monitoring
-
-### Logs
-
-View container logs via Scaleway Cockpit (Grafana):
-
-```bash
-# Or via CLI
-scw container container get <CONTAINER_ID> region=fr-par
-# Then check Cockpit dashboard for logs
-```
-
-The API outputs structured JSON logs (via Python `logging` module). Key fields:
-
-- `timestamp`, `level`, `message`, `request_id`, `path`, `status_code`, `duration_ms`
-
-### Metrics to Monitor
-
-| Metric              | Warning | Critical         |
-| ------------------- | ------- | ---------------- |
-| Response time (p95) | > 1s    | > 3s             |
-| Error rate (5xx)    | > 1%    | > 5%             |
-| Instance count      | At max  | Sustained at max |
-| Memory usage        | > 80%   | > 95%            |
-
-### Recommended Alerts
-
-Set up in Scaleway Cockpit or external monitoring:
-
-1. **Health check failure**: `GET /health` returns non-200 for > 1 minute
-2. **High error rate**: 5xx rate exceeds 5% over 5 minutes
-3. **Scaling saturation**: All instances at max for > 10 minutes
-
-## 9. Webapp Configuration
-
-The Next.js webapp (`apps/webapp`) needs to know the API URL. Set this in the Cloudflare Workers environment:
-
-| Variable              | Value                      |
-| --------------------- | -------------------------- |
-| `NEXT_PUBLIC_API_URL` | `https://api.praedixa.com` |
-
-This is a build-time variable for Next.js. Set it in the Cloudflare dashboard under Workers > Settings > Environment Variables, or in `wrangler.toml`:
-
-```toml
-[vars]
-NEXT_PUBLIC_API_URL = "https://api.praedixa.com"
-```
-
-## 10. Security Checklist
-
-- [ ] Database accessible only via Private Network (no public endpoint)
-- [ ] `DATABASE_URL` and `SUPABASE_JWT_SECRET` stored as Scaleway secrets
-- [ ] `ENVIRONMENT=production` and `DEBUG=false`
-- [ ] `CORS_ORIGINS` allows only `https://app.praedixa.com`
-- [ ] TLS enforced on all connections (API and database)
-- [ ] Container runs as non-root user (configured in Dockerfile)
-- [ ] Alembic migrations run with admin user, API runs with least-privilege user
-- [ ] Logs do not contain secrets or PII
-- [ ] Health endpoint is unauthenticated but reveals minimal information
+- `docs/runbooks/scaleway-frontends-100-fr.md`

@@ -37,7 +37,7 @@ describe("middleware (root)", () => {
     vi.stubEnv("NODE_ENV", envBackup);
   });
 
-  it("should return 404 for /coverage-harness in production", async () => {
+  it("should process /coverage-harness like any protected route", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.resetModules();
     const { middleware: mw } = await import("../middleware");
@@ -50,8 +50,8 @@ describe("middleware (root)", () => {
 
     const result = await mw(mockRequest);
 
-    expect(result.status).toBe(404);
-    expect(mockUpdateSession).not.toHaveBeenCalled();
+    expect(result.status).toBe(200);
+    expect(mockUpdateSession).toHaveBeenCalledWith(mockRequest);
   });
 
   it("should call updateSession and set CSP header on response", async () => {

@@ -17,8 +17,8 @@
 
   <!-- Sidebar icons -->
   <!-- Home — active -->
-  <rect x="10" y="46" width="28" height="28" rx="8" fill="oklch(0.769 0.205 70)" opacity="0.15" />
-  <path d="M24 52 L30 57 L30 66 L27 66 L27 61 L21 61 L21 66 L18 66 L18 57 Z" fill="oklch(0.769 0.205 70)" />
+  <rect x="10" y="46" width="28" height="28" rx="8" fill="oklch(0.56 0.16 261)" opacity="0.15" />
+  <path d="M24 52 L30 57 L30 66 L27 66 L27 61 L21 61 L21 66 L18 66 L18 57 Z" fill="oklch(0.56 0.16 261)" />
   <!-- Chart -->
   <g opacity="0.4">
     <path d="M18 96 L18 104 L22 100 L26 102 L30 94" stroke="oklch(0.871 0 0)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
@@ -54,11 +54,11 @@
   <!-- Card 1: Cout evitable -->
   <rect x="60" y="84" width="192" height="80" rx="12" fill="oklch(0.175 0 0)" />
   <text x="78" y="105" fill="oklch(0.556 0 0)" font-size="10" font-family="system-ui, sans-serif">Co&#251;t &#233;vitable estim&#233;</text>
-  <text x="78" y="136" fill="oklch(0.769 0.205 70)" font-size="28" font-weight="bold" font-family="system-ui, sans-serif">47k&#8201;&#8364;</text>
+  <text x="78" y="136" fill="oklch(0.56 0.16 261)" font-size="28" font-weight="bold" font-family="system-ui, sans-serif">47k&#8201;&#8364;</text>
   <text x="149" y="136" fill="oklch(0.556 0 0)" font-size="11" font-family="system-ui, sans-serif">/mois</text>
   <!-- Trend pill -->
   <rect x="78" y="146" width="52" height="18" rx="9" fill="oklch(0.666 0.195 58)" opacity="0.15" />
-  <text x="104" y="159" text-anchor="middle" fill="oklch(0.769 0.205 70)" font-size="9" font-weight="bold" font-family="system-ui, sans-serif">&#9660; 12%</text>
+  <text x="104" y="159" text-anchor="middle" fill="oklch(0.56 0.16 261)" font-size="9" font-weight="bold" font-family="system-ui, sans-serif">&#9660; 12%</text>
 
   <!-- Card 2: Taux de couverture -->
   <rect x="264" y="84" width="192" height="80" rx="12" fill="oklch(0.175 0 0)" />
@@ -77,11 +77,11 @@
   <g opacity="0.5">
     <rect x="576" y="120" width="6" height="24" rx="2" fill="oklch(0.723 0.219 149.6)" />
     <rect x="586" y="114" width="6" height="30" rx="2" fill="oklch(0.723 0.219 149.6)" />
-    <rect x="596" y="126" width="6" height="18" rx="2" fill="oklch(0.769 0.205 70)" />
+    <rect x="596" y="126" width="6" height="18" rx="2" fill="oklch(0.56 0.16 261)" />
     <rect x="606" y="110" width="6" height="34" rx="2" fill="oklch(0.723 0.219 149.6)" />
     <rect x="616" y="128" width="6" height="16" rx="2" fill="oklch(0.666 0.195 58)" />
     <rect x="626" y="122" width="6" height="22" rx="2" fill="oklch(0.666 0.195 58)" />
-    <rect x="636" y="118" width="6" height="26" rx="2" fill="oklch(0.769 0.205 70)" />
+    <rect x="636" y="118" width="6" height="26" rx="2" fill="oklch(0.56 0.16 261)" />
   </g>
 
   <!-- ZONE 2: CHART — Capacite vs Demande -->
@@ -121,20 +121,20 @@
   <!-- Capacity line (gray, stable) -->
   <polyline points="84,258 135,256 186,262 237,258 288,260 339,258 390,260 441,262 492,262 543,258 594,260 644,258" stroke="oklch(0.871 0 0)" stroke-width="2" fill="none" opacity="0.4" stroke-linecap="round" stroke-linejoin="round" />
 
-  <!-- Demand line (amber, fluctuating) -->
-  <polyline points="84,264 135,254 186,242 237,234 288,230 339,236 390,240 441,252 492,232 543,226 594,234 644,228" stroke="oklch(0.769 0.205 70)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Demand line (brand, fluctuating) -->
+  <polyline points="84,264 135,254 186,242 237,234 288,230 339,236 390,240 441,252 492,232 543,226 594,234 644,228" stroke="oklch(0.56 0.16 261)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
 
   <!-- Demand area fill (subtle) -->
-  <path d="M84,264 L135,254 L186,242 L237,234 L288,230 L339,236 L390,240 L441,252 L492,232 L543,226 L594,234 L644,228 L644,302 L84,302 Z" fill="oklch(0.769 0.205 70)" opacity="0.04" />
+  <path d="M84,264 L135,254 L186,242 L237,234 L288,230 L339,236 L390,240 L441,252 L492,232 L543,226 L594,234 L644,228 L644,302 L84,302 Z" fill="oklch(0.56 0.16 261)" opacity="0.04" />
 
   <!-- Data point highlight on max -->
-  <circle cx="543" cy="226" r="4" fill="oklch(0.769 0.205 70)" />
-  <circle cx="543" cy="226" r="7" fill="oklch(0.769 0.205 70)" opacity="0.2" />
+  <circle cx="543" cy="226" r="4" fill="oklch(0.56 0.16 261)" />
+  <circle cx="543" cy="226" r="7" fill="oklch(0.56 0.16 261)" opacity="0.2" />
 
   <!-- Legend -->
   <circle cx="430" cy="198" r="3" fill="oklch(0.871 0 0)" opacity="0.5" />
   <text x="438" y="201" fill="oklch(0.556 0 0)" font-size="9" font-family="system-ui, sans-serif">Capacit&#233;</text>
-  <circle cx="502" cy="198" r="3" fill="oklch(0.769 0.205 70)" />
+  <circle cx="502" cy="198" r="3" fill="oklch(0.56 0.16 261)" />
   <text x="510" y="201" fill="oklch(0.556 0 0)" font-size="9" font-family="system-ui, sans-serif">Demande</text>
   <rect x="574" y="195" width="7" height="7" rx="1.5" fill="oklch(0.666 0.195 58)" opacity="0.3" />
   <text x="586" y="201" fill="oklch(0.556 0 0)" font-size="9" font-family="system-ui, sans-serif">Risque</text>
@@ -162,20 +162,20 @@
   <!-- Heatmap cells — Lyon-A -->
   <rect x="125" y="375" width="24" height="12" rx="2.5" fill="oklch(0.723 0.219 149.6)" opacity="0.3" />
   <rect x="153" y="375" width="24" height="12" rx="2.5" fill="oklch(0.723 0.219 149.6)" opacity="0.2" />
-  <rect x="181" y="375" width="24" height="12" rx="2.5" fill="oklch(0.769 0.205 70)" opacity="0.4" />
+  <rect x="181" y="375" width="24" height="12" rx="2.5" fill="oklch(0.56 0.16 261)" opacity="0.4" />
   <rect x="209" y="375" width="24" height="12" rx="2.5" fill="oklch(0.666 0.195 58)" opacity="0.5" />
   <rect x="237" y="375" width="24" height="12" rx="2.5" fill="oklch(0.666 0.195 58)" opacity="0.7" />
-  <rect x="265" y="375" width="24" height="12" rx="2.5" fill="oklch(0.769 0.205 70)" opacity="0.4" />
+  <rect x="265" y="375" width="24" height="12" rx="2.5" fill="oklch(0.56 0.16 261)" opacity="0.4" />
   <rect x="293" y="375" width="24" height="12" rx="2.5" fill="oklch(0.723 0.219 149.6)" opacity="0.25" />
   <rect x="321" y="375" width="24" height="12" rx="2.5" fill="oklch(0.723 0.219 149.6)" opacity="0.2" />
 
   <!-- Heatmap cells — Paris-B -->
-  <rect x="125" y="390" width="24" height="12" rx="2.5" fill="oklch(0.769 0.205 70)" opacity="0.3" />
-  <rect x="153" y="390" width="24" height="12" rx="2.5" fill="oklch(0.769 0.205 70)" opacity="0.5" />
+  <rect x="125" y="390" width="24" height="12" rx="2.5" fill="oklch(0.56 0.16 261)" opacity="0.3" />
+  <rect x="153" y="390" width="24" height="12" rx="2.5" fill="oklch(0.56 0.16 261)" opacity="0.5" />
   <rect x="181" y="390" width="24" height="12" rx="2.5" fill="oklch(0.666 0.195 58)" opacity="0.6" />
   <rect x="209" y="390" width="24" height="12" rx="2.5" fill="oklch(0.666 0.195 58)" opacity="0.8" />
   <rect x="237" y="390" width="24" height="12" rx="2.5" fill="oklch(0.666 0.195 58)" opacity="0.5" />
-  <rect x="265" y="390" width="24" height="12" rx="2.5" fill="oklch(0.769 0.205 70)" opacity="0.3" />
+  <rect x="265" y="390" width="24" height="12" rx="2.5" fill="oklch(0.56 0.16 261)" opacity="0.3" />
   <rect x="293" y="390" width="24" height="12" rx="2.5" fill="oklch(0.723 0.219 149.6)" opacity="0.3" />
   <rect x="321" y="390" width="24" height="12" rx="2.5" fill="oklch(0.723 0.219 149.6)" opacity="0.25" />
 
@@ -183,8 +183,8 @@
   <rect x="125" y="405" width="24" height="12" rx="2.5" fill="oklch(0.723 0.219 149.6)" opacity="0.2" />
   <rect x="153" y="405" width="24" height="12" rx="2.5" fill="oklch(0.723 0.219 149.6)" opacity="0.2" />
   <rect x="181" y="405" width="24" height="12" rx="2.5" fill="oklch(0.723 0.219 149.6)" opacity="0.3" />
-  <rect x="209" y="405" width="24" height="12" rx="2.5" fill="oklch(0.769 0.205 70)" opacity="0.3" />
-  <rect x="237" y="405" width="24" height="12" rx="2.5" fill="oklch(0.769 0.205 70)" opacity="0.4" />
+  <rect x="209" y="405" width="24" height="12" rx="2.5" fill="oklch(0.56 0.16 261)" opacity="0.3" />
+  <rect x="237" y="405" width="24" height="12" rx="2.5" fill="oklch(0.56 0.16 261)" opacity="0.4" />
   <rect x="265" y="405" width="24" height="12" rx="2.5" fill="oklch(0.723 0.219 149.6)" opacity="0.25" />
   <rect x="293" y="405" width="24" height="12" rx="2.5" fill="oklch(0.723 0.219 149.6)" opacity="0.2" />
   <rect x="321" y="405" width="24" height="12" rx="2.5" fill="oklch(0.723 0.219 149.6)" opacity="0.15" />
@@ -208,7 +208,7 @@
   <text x="416" y="385" fill="oklch(0.871 0 0)" font-size="9" font-family="system-ui, sans-serif">Lyon-A Sous-couverture S07 &#8212; 6 ETP manquants</text>
 
   <!-- Alert 2 -->
-  <circle cx="406" cy="402" r="3.5" fill="oklch(0.769 0.205 70)" />
+  <circle cx="406" cy="402" r="3.5" fill="oklch(0.56 0.16 261)" />
   <text x="416" y="405" fill="oklch(0.871 0 0)" font-size="9" font-family="system-ui, sans-serif">Paris-B Risque haut S06-S07 &#8212; co&#251;t : 12k&#8364;</text>
 
   <!-- Alert 3 -->

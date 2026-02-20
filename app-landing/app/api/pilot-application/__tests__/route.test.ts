@@ -185,6 +185,29 @@ describe("POST /api/pilot-application", () => {
   });
 
   // =========================================================================
+  // Origin guard
+  // =========================================================================
+
+  describe("origin guard", () => {
+    it("should return 403 when origin host is not trusted", async () => {
+      const req = makeRequest(validBody(), {
+        origin: "https://evil.example",
+      });
+      const res = await POST(req);
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({ error: "Origine de requête non autorisée." });
+    });
+
+    it("should return 403 when sec-fetch-site is cross-site", async () => {
+      const req = makeRequest(validBody(), {
+        "sec-fetch-site": "cross-site",
+      });
+      const res = await POST(req);
+      expect(res.status).toBe(403);
+    });
+  });
+
+  // =========================================================================
   // Invalid JSON
   // =========================================================================
 
@@ -510,6 +533,10 @@ describe("POST /api/pilot-application", () => {
       const confirmCall = mockEmailsSend.mock.calls[1][0];
       expect(confirmCall.to).toEqual(["test@example.com"]);
       expect(confirmCall.subject).toContain("Candidature entreprise pilote");
+      expect(confirmCall.replyTo).toBe("admin@praedixa.com");
+      expect(confirmCall.text).toContain(
+        "Nous confirmons la bonne réception de votre demande",
+      );
     });
   });
 

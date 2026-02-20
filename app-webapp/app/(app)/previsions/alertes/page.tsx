@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/empty-state";
 import { PageTransition } from "@/components/page-transition";
 import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
 import { formatSeverity, getSeverityBadgeVariant } from "@/lib/formatters";
+import { useSiteScope } from "@/lib/site-scope";
 
 const SEVERITY_OPTIONS: SelectOption[] = [
   { value: "", label: "Toutes les severites" },
@@ -81,11 +82,19 @@ const columns: DataTableColumn<CoverageAlert>[] = [
 ];
 
 export default function PrevisionsAlertesPage() {
+  const { appendSiteParam } = useSiteScope();
   const [severity, setSeverity] = useState("");
   const [status, setStatus] = useState("open");
+  const baseUrl = useMemo(
+    () =>
+      appendSiteParam(
+        `/api/v1/live/coverage-alerts?page_size=400${status ? `&status=${status}` : ""}`,
+      ),
+    [appendSiteParam, status],
+  );
 
   const { data, loading, error, refetch } = useApiGet<CoverageAlert[]>(
-    `/api/v1/live/coverage-alerts?page_size=400${status ? `&status=${status}` : ""}`,
+    baseUrl,
     { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
   );
 

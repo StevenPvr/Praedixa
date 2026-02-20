@@ -37,8 +37,20 @@ _ORG_CLIENT_FALLBACKS: dict[str, str] = {
     "praedixa-demo": "acme-logistics",
     "demo_org": "acme-logistics",
 }
+_SITE_CODE_CITY_ALIASES: dict[str, str] = {
+    "BORDEAUX": "BDX",
+    "CDG": "CDG",
+    "LILLE": "LIL",
+    "LYON": "LYO",
+    "MARSEILLE": "MRS",
+    "PARIS": "CDG",
+    "RUNGIS": "RGS",
+}
 
 _CACHE_LOCK = threading.Lock()
+_MOCK_COLUMN_PREFIX = "mock_"
+_ALLOWED_MOCK_PREFIXES = ("mock_forecasts_daily__",)
+_ALLOWED_MOCK_DOMAINS = ("forecasts",)
 
 
 @dataclass(frozen=True)
@@ -260,7 +272,57 @@ async def resolve_site_code_for_filter(
     tenant: TenantFilter,
     site_filter: SiteFilter,
     requested_site: str | None,
+    allowed_site_codes: set[str] | None = None,
 ) -> str | None:
+    normalized_allowed = {
+        code.strip().upper()
+        for code in (allowed_site_codes or set())
+        if isinstance(code, str) and code.strip()
+    }
+
+    def _normalize_with_alias(
+        raw_code: str,
+        *,
+        site_name: str | None = None,
+    ) -> str:
+        normalized = raw_code.strip().upper()
+        if not normalized:
+            return normalized
+        if not normalized_allowed:
+            return normalized
+
+        candidates: list[str] = []
+
+        def _push(value: str | None) -> None:
+            if not isinstance(value, str):
+                return
+            token = value.strip().upper()
+            if not token or token in candidates:
+                return
+            candidates.append(token)
+
+        _push(normalized)
+        if normalized.startswith("S_"):
+            suffix = normalized[2:]
+            _push(suffix)
+            if len(suffix) >= 3:
+                _push(suffix[:3])
+            _push(_SITE_CODE_CITY_ALIASES.get(suffix))
+
+        if site_name:
+            cleaned = (
+                site_name.upper().replace("-", " ").replace("_", " ").replace("/", " ")
+            )
+            for token in cleaned.split():
+                _push(_SITE_CODE_CITY_ALIASES.get(token))
+                if len(token) >= 3:
+                    _push(token[:3])
+
+        for candidate_code in candidates:
+            if candidate_code in normalized_allowed:
+                return candidate_code
+        return normalized
+
     candidate = site_filter.site_id or requested_site
     if not candidate:
         return None
@@ -272,12 +334,21 @@ async def resolve_site_code_for_filter(
     try:
         site_uuid = uuid.UUID(normalized)
     except ValueError:
-        return normalized.upper()
+        return _normalize_with_alias(normalized)
 
-    query = tenant.apply(select(Site.code).where(Site.id == site_uuid), Site)
-    site_code = (await session.execute(query)).scalar_one_or_none()
-    if isinstance(site_code, str) and site_code.strip():
-        return site_code.strip().upper()
+    query = tenant.apply(
+        select(Site.code, Site.name).where(Site.id == site_uuid),
+        Site,
+    )
+    row = (await session.execute(query)).one_or_none()
+    if row is not None:
+        site_code = row[0]
+        site_name = row[1]
+        if isinstance(site_code, str) and site_code.strip():
+            return _normalize_with_alias(
+                site_code,
+                site_name=site_name if isinstance(site_name, str) else None,
+            )
     return normalized.upper()
 
 
@@ -834,6 +905,407 @@ def build_forecast_runs(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if len(out) >= 50:
             break
     return out
+
+
+_BUSINESS_VIEW_COLUMN_MAP: dict[str, set[str]] = {
+    "dashboard": {
+        "workforce_daily__present_fte",
+        "mock_forecasts_daily__predicted_required_fte",
+        "operations_daily__orders_processed",
+        "mock_forecasts_daily__forecasted_orders",
+        "mock_forecasts_daily__predicted_service_risk_pct",
+        "model_monitoring_daily__mape_orders_pct",
+    },
+    "donnees": {
+        "workforce_daily__planned_fte",
+        "workforce_daily__present_fte",
+        "workforce_daily__absent_fte",
+        "workforce_daily__interim_fte",
+        "workforce_daily__overtime_hours",
+        "operations_daily__orders_received",
+        "labor_cost_daily__wage_eur",
+    },
+    "previsions": {
+        "mock_forecasts_daily__predicted_required_fte",
+        "mock_forecasts_daily__forecasted_orders",
+        "mock_forecasts_daily__predicted_service_risk_pct",
+        "mock_forecasts_daily__confidence_low_orders",
+        "mock_forecasts_daily__confidence_high_orders",
+    },
+    "actions": {
+        "mock_forecasts_daily__predicted_service_risk_pct",
+        "operations_daily__backlog_orders",
+        "workforce_daily__absent_fte",
+        "operations_daily__on_time_rate_pct",
+        "weather_precip_mm",
+    },
+    "rapports": {
+        "finance_monthly__labor_cost_eur",
+        "roi_monthly__savings_eur",
+        "roi_monthly__avoided_cost_eur",
+        "roi_monthly__net_gain_eur",
+        "actions_adoption_daily__adoption_rate_pct",
+        "quality_incidents_daily__quality_incidents",
+    },
+    "ml_monitoring": {
+        "model_monitoring_daily__mape_orders_pct",
+        "model_monitoring_daily__data_drift_score",
+        "model_monitoring_daily__concept_drift_score",
+        "model_monitoring_daily__feature_coverage_pct",
+        "model_monitoring_daily__inference_latency_ms",
+        "model_monitoring_daily__model_version",
+        "model_monitoring_daily__retrain_recommended",
+    },
+}
+
+
+def _infer_gold_dtype(values: list[Any]) -> str:
+    tokens = [value for value in values if value is not None]
+    if not tokens:
+        return "unknown"
+    if all(isinstance(value, bool) for value in tokens):
+        return "boolean"
+    if all(
+        isinstance(value, (int, float)) and not isinstance(value, bool)
+        for value in tokens
+    ):
+        return "number"
+    if all(isinstance(value, date) for value in tokens):
+        return "date"
+    if all(isinstance(value, str) for value in tokens):
+        sample_dates = [_to_date(value) for value in tokens[:20]]
+        if sample_dates and all(item is not None for item in sample_dates):
+            return "date"
+        return "string"
+    return "unknown"
+
+
+def _serialize_sample(value: Any) -> str | float | bool | None:
+    if value is None:
+        return None
+    if isinstance(value, (bool, str)):
+        return value
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, date):
+        return value.isoformat()
+    return str(value)
+
+
+def build_gold_schema(
+    snapshot: GoldSnapshot,
+    *,
+    rows: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    rows = snapshot.rows if rows is None else rows
+    columns = snapshot.columns
+    descriptors: list[dict[str, Any]] = []
+    for name in columns:
+        values = [row.get(name) for row in rows[:500]]
+        sample = next((value for value in values if value is not None), None)
+        descriptors.append(
+            {
+                "name": name,
+                "dtype": _infer_gold_dtype(values),
+                "nullable": any(value is None for value in values),
+                "sample": _serialize_sample(sample),
+            }
+        )
+
+    return {
+        "revision": snapshot.revision,
+        "loaded_at": snapshot.loaded_at,
+        "total_rows": len(rows),
+        "total_columns": len(columns),
+        "columns": descriptors,
+    }
+
+
+def build_gold_coverage(snapshot: GoldSnapshot) -> dict[str, Any]:
+    columns = snapshot.columns
+    mapped_columns = {
+        column
+        for mapped in _BUSINESS_VIEW_COLUMN_MAP.values()
+        for column in mapped
+        if column in columns
+    }
+    coverage_columns: list[dict[str, Any]] = []
+    for name in columns:
+        mapped_views = [
+            view for view, mapped in _BUSINESS_VIEW_COLUMN_MAP.items() if name in mapped
+        ]
+        coverage_columns.append(
+            {
+                "name": name,
+                "exposed_in_explorer": True,
+                "used_in_business_views": len(mapped_views) > 0,
+                "mapped_views": mapped_views,
+            }
+        )
+
+    return {
+        "total_columns": len(columns),
+        "explorer_exposed_columns": len(columns),
+        "business_mapped_columns": len(mapped_columns),
+        "columns": coverage_columns,
+    }
+
+
+def build_gold_provenance(
+    snapshot: GoldSnapshot,
+    *,
+    rows: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    scoped_rows = snapshot.rows if rows is None else rows
+    columns = snapshot.columns
+
+    mock_columns = sorted(
+        column for column in columns if column.startswith(_MOCK_COLUMN_PREFIX)
+    )
+    forecast_mock_columns = sorted(
+        column
+        for column in mock_columns
+        if any(column.startswith(prefix) for prefix in _ALLOWED_MOCK_PREFIXES)
+    )
+    non_forecast_mock_columns = sorted(
+        column for column in mock_columns if column not in set(forecast_mock_columns)
+    )
+
+    reports = load_live_quality_reports()
+    silver_quality = reports.get("silver_quality")
+    gold_feature_quality = reports.get("gold_feature_quality")
+    last_run_summary = reports.get("last_run_summary")
+
+    last_run_at = (
+        str(last_run_summary.get("run_at"))
+        if isinstance(last_run_summary, dict)
+        and isinstance(last_run_summary.get("run_at"), str)
+        else None
+    )
+    last_run_gold_rows = None
+    if isinstance(last_run_summary, dict):
+        raw_gold_rows = _to_float(last_run_summary.get("gold_rows"))
+        if raw_gold_rows is not None:
+            last_run_gold_rows = int(raw_gold_rows)
+
+    try:
+        source_path = str(snapshot.source_path.relative_to(_ROOT))
+    except ValueError:
+        source_path = str(snapshot.source_path)
+
+    return {
+        "revision": snapshot.revision,
+        "loaded_at": snapshot.loaded_at,
+        "source_path": source_path,
+        "scoped_rows": len(scoped_rows),
+        "total_rows": len(snapshot.rows),
+        "total_columns": len(columns),
+        "policy": {
+            "allowed_mock_domains": list(_ALLOWED_MOCK_DOMAINS),
+            "forecast_mock_columns": forecast_mock_columns,
+            "non_forecast_mock_columns": non_forecast_mock_columns,
+            "strict_data_policy_ok": len(non_forecast_mock_columns) == 0,
+        },
+        "quality_reports": {
+            "silver_quality_available": isinstance(silver_quality, dict)
+            and len(silver_quality) > 0,
+            "gold_feature_quality_available": isinstance(gold_feature_quality, dict)
+            and len(gold_feature_quality) > 0,
+            "last_run_summary_available": isinstance(last_run_summary, dict)
+            and len(last_run_summary) > 0,
+            "last_run_at": last_run_at,
+            "last_run_gold_rows": last_run_gold_rows,
+        },
+    }
+
+
+def build_ml_monitoring_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    if not rows:
+        return {
+            "latest_model_version": None,
+            "latest_date": None,
+            "avg_mape_pct": None,
+            "avg_data_drift_score": None,
+            "avg_concept_drift_score": None,
+            "avg_feature_coverage_pct": None,
+            "avg_inference_latency_ms": None,
+            "retrain_recommended_days": 0,
+        }
+
+    def _avg(values: list[float]) -> float | None:
+        if not values:
+            return None
+        return round(sum(values) / len(values), 4)
+
+    mape_values: list[float] = []
+    data_drift_values: list[float] = []
+    concept_drift_values: list[float] = []
+    coverage_values: list[float] = []
+    latency_values: list[float] = []
+    retrain_days = 0
+    latest_date: date | None = None
+    latest_version: str | None = None
+
+    for row in rows:
+        d = _to_date(row.get("date"))
+        if d is not None and (latest_date is None or d > latest_date):
+            latest_date = d
+            model_version = row.get("model_monitoring_daily__model_version")
+            latest_version = str(model_version) if model_version is not None else None
+
+        mape = _to_float(row.get("model_monitoring_daily__mape_orders_pct"))
+        data_drift = _to_float(row.get("model_monitoring_daily__data_drift_score"))
+        concept_drift = _to_float(
+            row.get("model_monitoring_daily__concept_drift_score")
+        )
+        coverage = _to_float(row.get("model_monitoring_daily__feature_coverage_pct"))
+        latency = _to_float(row.get("model_monitoring_daily__inference_latency_ms"))
+        retrain = row.get("model_monitoring_daily__retrain_recommended")
+
+        if mape is not None:
+            mape_values.append(mape)
+        if data_drift is not None:
+            data_drift_values.append(data_drift)
+        if concept_drift is not None:
+            concept_drift_values.append(concept_drift)
+        if coverage is not None:
+            coverage_values.append(coverage)
+        if latency is not None:
+            latency_values.append(latency)
+        if isinstance(retrain, bool) and retrain:
+            retrain_days += 1
+
+    return {
+        "latest_model_version": latest_version,
+        "latest_date": latest_date,
+        "avg_mape_pct": _avg(mape_values),
+        "avg_data_drift_score": _avg(data_drift_values),
+        "avg_concept_drift_score": _avg(concept_drift_values),
+        "avg_feature_coverage_pct": _avg(coverage_values),
+        "avg_inference_latency_ms": _avg(latency_values),
+        "retrain_recommended_days": retrain_days,
+    }
+
+
+def build_ml_monitoring_trend(
+    rows: list[dict[str, Any]],
+    *,
+    limit_days: int = 60,
+) -> list[dict[str, Any]]:
+    per_day: dict[date, dict[str, Any]] = {}
+    for row in rows:
+        d = _to_date(row.get("date"))
+        if d is None:
+            continue
+        bucket = per_day.setdefault(
+            d,
+            {
+                "mape_values": [],
+                "data_drift_values": [],
+                "concept_drift_values": [],
+                "coverage_values": [],
+                "latency_values": [],
+                "retrain_recommended": False,
+            },
+        )
+        for key, target in (
+            ("model_monitoring_daily__mape_orders_pct", "mape_values"),
+            ("model_monitoring_daily__data_drift_score", "data_drift_values"),
+            ("model_monitoring_daily__concept_drift_score", "concept_drift_values"),
+            ("model_monitoring_daily__feature_coverage_pct", "coverage_values"),
+            ("model_monitoring_daily__inference_latency_ms", "latency_values"),
+        ):
+            value = _to_float(row.get(key))
+            if value is not None:
+                bucket[target].append(value)
+        retrain = row.get("model_monitoring_daily__retrain_recommended")
+        if isinstance(retrain, bool) and retrain:
+            bucket["retrain_recommended"] = True
+
+    def _avg(values: list[float]) -> float | None:
+        if not values:
+            return None
+        return round(sum(values) / len(values), 4)
+
+    out: list[dict[str, Any]] = []
+    for d in sorted(per_day):
+        bucket = per_day[d]
+        out.append(
+            {
+                "date": d,
+                "mape_pct": _avg(bucket["mape_values"]),
+                "data_drift_score": _avg(bucket["data_drift_values"]),
+                "concept_drift_score": _avg(bucket["concept_drift_values"]),
+                "feature_coverage_pct": _avg(bucket["coverage_values"]),
+                "inference_latency_ms": _avg(bucket["latency_values"]),
+                "retrain_recommended": bool(bucket["retrain_recommended"]),
+            }
+        )
+    return out[-max(limit_days, 1) :]
+
+
+def build_client_onboarding_status(
+    *,
+    rows: list[dict[str, Any]],
+    organization_id: uuid.UUID,
+) -> dict[str, Any]:
+    has_rows = len(rows) > 0
+    has_forecasts = any(
+        _to_float(row.get("mock_forecasts_daily__forecasted_orders")) is not None
+        for row in rows
+    )
+    has_monitoring = any(
+        _to_float(row.get("model_monitoring_daily__mape_orders_pct")) is not None
+        for row in rows
+    )
+    has_alerts = (
+        len(build_coverage_alerts(rows=rows, organization_id=organization_id)) > 0
+    )
+    has_reports = (
+        len(build_proof_records(rows=rows, organization_id=organization_id)) > 0
+    )
+
+    steps = [
+        {
+            "id": "data_connected",
+            "label": "Data connected",
+            "description": "Gold rows are available for your organization.",
+            "completed": has_rows,
+        },
+        {
+            "id": "forecast_ready",
+            "label": "Forecast signals ready",
+            "description": "Forecast features are available in Gold.",
+            "completed": has_forecasts,
+        },
+        {
+            "id": "monitoring_ready",
+            "label": "Model monitoring visible",
+            "description": "MAPE/drift monitoring fields are populated.",
+            "completed": has_monitoring,
+        },
+        {
+            "id": "decision_ready",
+            "label": "Decision loop active",
+            "description": "Coverage alerts can be generated from current data.",
+            "completed": has_alerts,
+        },
+        {
+            "id": "reporting_ready",
+            "label": "Executive reporting ready",
+            "description": "Proof/reporting metrics are available.",
+            "completed": has_reports,
+        },
+    ]
+
+    completed = sum(1 for step in steps if step["completed"])
+    total = len(steps)
+    return {
+        "completed_steps": completed,
+        "total_steps": total,
+        "completion_pct": round((completed / total) * 100, 2) if total > 0 else 0.0,
+        "steps": steps,
+    }
 
 
 def load_json_report(path: Path) -> dict[str, Any]:

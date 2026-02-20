@@ -54,14 +54,14 @@ const items: SidebarItem[] = [
     label: "Tableau de bord",
     icon: LayoutDashboard,
     group: "pilotage",
-    accent: "oklch(0.70 0.14 82)",
+    accent: "oklch(0.63 0.145 247)",
   },
   {
     id: "donnees",
     label: "Donnees operationnelles",
     icon: Database,
     group: "donnees",
-    accent: "oklch(0.60 0.16 245)",
+    accent: "oklch(0.54 0.22 245)",
     children: [
       { id: "donnees-sites", label: "Mes sites" },
       { id: "donnees-datasets", label: "Fichiers importes" },
@@ -73,7 +73,7 @@ const items: SidebarItem[] = [
     label: "Anticipation",
     icon: TrendingUp,
     group: "anticipation",
-    accent: "oklch(0.60 0.18 300)",
+    accent: "oklch(0.63 0.165 246)",
     children: [
       { id: "previsions-vue", label: "Vue par site" },
       { id: "previsions-alertes", label: "Toutes les alertes" },
@@ -84,7 +84,7 @@ const items: SidebarItem[] = [
     label: "Traitement",
     icon: Zap,
     group: "traitement",
-    accent: "oklch(0.62 0.18 35)",
+    accent: "oklch(0.50 0.20 255)",
     badge: 3,
     children: [
       { id: "actions-traitement", label: "Alertes a traiter" },
@@ -96,7 +96,7 @@ const items: SidebarItem[] = [
     label: "Support",
     icon: MessageSquare,
     group: "support",
-    accent: "oklch(0.58 0.11 180)",
+    accent: "oklch(0.50 0.18 230)",
     badge: 2,
   },
   {
@@ -104,14 +104,14 @@ const items: SidebarItem[] = [
     label: "Rapports",
     icon: FileBarChart,
     group: "support",
-    accent: "oklch(0.48 0.06 240)",
+    accent: "oklch(0.46 0.16 245)",
   },
   {
     id: "parametres",
     label: "Reglages",
     icon: Settings,
     group: "support",
-    accent: "oklch(0.58 0.01 240)",
+    accent: "oklch(0.42 0.14 250)",
   },
 ];
 
@@ -222,7 +222,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           height: 2,
           width: "100%",
           background:
-            "linear-gradient(to right, oklch(0.68 0.13 72), oklch(0.68 0.13 72 / 0.65), transparent)",
+            "linear-gradient(to right, oklch(0.63 0.145 247), oklch(0.63 0.145 247 / 0.72), transparent)",
         }}
       />
 
@@ -387,7 +387,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             backgroundColor:
                               item.id === "actions"
                                 ? colors.dangerLight
-                                : "oklch(0.68 0.13 72 / 0.15)",
+                                : "oklch(0.63 0.145 247 / 0.22)",
                           }}
                         >
                           {item.badge}
@@ -424,7 +424,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                   ? colors.sidebarText
                                   : colors.sidebarMuted,
                                 backgroundColor: childActive
-                                  ? "oklch(0.94 0.04 82 / 0.8)"
+                                  ? "oklch(0.93 0.08 256 / 0.86)"
                                   : "transparent",
                               }}
                             >
@@ -446,7 +446,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             height: 1,
             margin: "6px 0",
             background:
-              "linear-gradient(to right, transparent, oklch(0.68 0.13 72 / 0.15), oklch(0.87 0.008 65), oklch(0.68 0.13 72 / 0.15), transparent)",
+              "linear-gradient(to right, transparent, oklch(0.63 0.165 246 / 0.26), oklch(0.84 0.016 247), oklch(0.63 0.165 246 / 0.26), transparent)",
           }}
         />
 
@@ -479,7 +479,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : colors.sidebarMuted,
               backgroundColor:
                 activeItemId === "dashboard"
-                  ? "oklch(0.94 0.04 82 / 0.8)"
+                  ? "oklch(0.93 0.08 256 / 0.86)"
                   : "transparent",
             }}
           >
@@ -497,7 +497,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : colors.sidebarMuted,
               backgroundColor:
                 activeItemId === "actions"
-                  ? "oklch(0.94 0.04 82 / 0.8)"
+                  ? "oklch(0.93 0.08 256 / 0.86)"
                   : "transparent",
             }}
           >

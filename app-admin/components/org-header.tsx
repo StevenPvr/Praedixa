@@ -24,9 +24,7 @@ export function OrgHeader({
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
       <div className="flex items-center gap-3">
-        <h1 className="font-serif text-xl font-bold text-neutral-900">
-          {name}
-        </h1>
+        <h1 className="font-serif text-xl font-bold text-ink">{name}</h1>
         {plan && <PlanBadge plan={plan} />}
         {status && <OrgStatusBadge status={status} />}
       </div>

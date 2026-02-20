@@ -4,7 +4,7 @@ Security notes:
 - Secrets are loaded from environment variables, never hardcoded.
 - CORS_ORIGINS uses an explicit allowlist, never wildcards in production.
 - Staging/production startup is fail-closed for unsafe dev settings.
-- JWT secret minimum length is enforced to prevent weak-key attacks.
+- Supports both legacy Supabase JWT config and explicit OIDC/JWKS config.
 """
 
 from ipaddress import ip_address, ip_network
@@ -13,12 +13,16 @@ from urllib.parse import urlparse
 from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
-# Minimum JWT secret length to prevent brute-force attacks.
-# Supabase default JWT secrets are 40+ chars, so 32 is a safe minimum.
 _MIN_JWT_SECRET_LENGTH = 32
+_MIN_CONTACT_INGEST_TOKEN_LENGTH = 32
 _VALID_ENVIRONMENTS = {"development", "staging", "production"}
 _LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 _PLACEHOLDER_SUPABASE_URLS = {"", "https://your-project.supabase.co"}
+
+
+def _is_valid_absolute_http_url(value: str) -> bool:
+    parsed = urlparse(value.strip())
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
 def _is_valid_proxy_entry(value: str) -> bool:
@@ -42,9 +46,15 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://praedixa:changeme@localhost:5433/praedixa"
 
-    # Supabase Auth — JWT verification
+    # Legacy Supabase Auth (kept for compatibility during transition).
     SUPABASE_JWT_SECRET: str = ""
     SUPABASE_URL: str = ""
+
+    # OIDC Auth — JWT verification (preferred).
+    AUTH_JWKS_URL: str = ""
+    AUTH_ISSUER_URL: str = ""
+    AUTH_AUDIENCE: str = "authenticated"
+    AUTH_ALLOWED_JWKS_HOSTS: list[str] = []
 
     # CORS — explicit origin allowlist
     # Include common local origins used by Safari/Chrome/Firefox in dev.
@@ -78,6 +88,7 @@ class Settings(BaseSettings):
     # Optional Redis backend for distributed rate limiting.
     # Required in staging/production.
     RATE_LIMIT_STORAGE_URI: str = ""
+    CONTACT_API_INGEST_TOKEN: str = ""
     # Forwarded headers are trusted only when request.client.host
     # belongs to this allowlist (IP or CIDR notation).
     TRUSTED_PROXY_IPS: list[str] = ["127.0.0.1", "::1"]
@@ -154,12 +165,75 @@ class Settings(BaseSettings):
                 msg = "CORS_ORIGINS cannot include localhost in staging/production"
                 raise ValueError(msg)
 
+    @staticmethod
+    def _has_oidc_provider_configured(settings: "Settings") -> bool:
+        return bool(settings.AUTH_JWKS_URL.strip() or settings.AUTH_ISSUER_URL.strip())
+
+    @staticmethod
+    def _validate_oidc_provider_settings(settings: "Settings") -> None:
+        """Validate OIDC/JWKS authentication settings."""
+        jwks_url = settings.AUTH_JWKS_URL.strip()
+        issuer = settings.AUTH_ISSUER_URL.strip()
+        audience = settings.AUTH_AUDIENCE.strip()
+
+        if not audience:
+            raise ValueError("AUTH_AUDIENCE cannot be empty")
+
+        if not jwks_url and not issuer:
+            raise ValueError(
+                "AUTH_JWKS_URL or AUTH_ISSUER_URL must be configured in staging/production"
+            )
+
+        allowed_jwks_hosts = {
+            host.strip().lower()
+            for host in settings.AUTH_ALLOWED_JWKS_HOSTS
+            if host.strip()
+        }
+
+        if jwks_url:
+            if not _is_valid_absolute_http_url(jwks_url):
+                raise ValueError("AUTH_JWKS_URL must be an absolute http(s) URL")
+            if not allowed_jwks_hosts:
+                raise ValueError(
+                    "AUTH_ALLOWED_JWKS_HOSTS cannot be empty in staging/production"
+                )
+            jwks_host = (urlparse(jwks_url).hostname or "").lower()
+            if not jwks_host or jwks_host not in allowed_jwks_hosts:
+                raise ValueError(
+                    "AUTH_JWKS_URL host must be present in AUTH_ALLOWED_JWKS_HOSTS"
+                )
+            if jwks_host in _LOCAL_HOSTS:
+                raise ValueError(
+                    "AUTH_JWKS_URL cannot target localhost in staging/production"
+                )
+
+        if issuer:
+            if not _is_valid_absolute_http_url(issuer):
+                raise ValueError("AUTH_ISSUER_URL must be an absolute http(s) URL")
+            if allowed_jwks_hosts:
+                issuer_host = (urlparse(issuer).hostname or "").lower()
+                if issuer_host not in allowed_jwks_hosts:
+                    raise ValueError(
+                        "AUTH_ISSUER_URL host must be present in AUTH_ALLOWED_JWKS_HOSTS"
+                    )
+
+    @staticmethod
+    def _validate_legacy_supabase_settings(settings: "Settings") -> None:
+        secret_len = len(settings.SUPABASE_JWT_SECRET)
+        if secret_len < _MIN_JWT_SECRET_LENGTH:
+            msg = (
+                f"SUPABASE_JWT_SECRET must be at least {_MIN_JWT_SECRET_LENGTH} "
+                "characters in staging/production to prevent brute-force attacks"
+            )
+            raise ValueError(msg)
+
+        if settings.SUPABASE_URL.strip() in _PLACEHOLDER_SUPABASE_URLS:
+            msg = "SUPABASE_URL must be explicitly configured in staging/production"
+            raise ValueError(msg)
+
     @model_validator(mode="after")
     def _validate_secrets(self) -> "Settings":
-        """Enforce minimum security for JWT secret and production safety.
-
-        In staging/production, a missing or weak JWT secret would allow
-        trivial token forgery. We enforce strict validation at startup.
+        """Enforce production safety constraints.
 
         Staging/production is fail-closed: unsafe development toggles are
         rejected at startup instead of being silently overridden.
@@ -181,17 +255,10 @@ class Settings(BaseSettings):
         if normalized_env in {"staging", "production"}:
             Settings._validate_dev_toggles_off(self)
 
-            secret_len = len(self.SUPABASE_JWT_SECRET)
-            if secret_len < _MIN_JWT_SECRET_LENGTH:
-                msg = (
-                    f"SUPABASE_JWT_SECRET must be at least {_MIN_JWT_SECRET_LENGTH} "
-                    "characters in staging/production to prevent brute-force attacks"
-                )
-                raise ValueError(msg)
-
-            if self.SUPABASE_URL.strip() in _PLACEHOLDER_SUPABASE_URLS:
-                msg = "SUPABASE_URL must be explicitly configured in staging/production"
-                raise ValueError(msg)
+            if Settings._has_oidc_provider_configured(self):
+                Settings._validate_oidc_provider_settings(self)
+            else:
+                Settings._validate_legacy_supabase_settings(self)
 
             # Force Scaleway key provider in staging/production — LocalKeyProvider
             # cannot perform real crypto-shredding.
@@ -207,10 +274,22 @@ class Settings(BaseSettings):
                     "RATE_LIMIT_STORAGE_URI must be configured in staging/production"
                 )
 
+            token = self.CONTACT_API_INGEST_TOKEN.strip()
+            if token and len(token) < _MIN_CONTACT_INGEST_TOKEN_LENGTH:
+                raise ValueError(
+                    "CONTACT_API_INGEST_TOKEN must be at least "
+                    f"{_MIN_CONTACT_INGEST_TOKEN_LENGTH} characters "
+                    "when configured"
+                )
+
             Settings._validate_cors_origins(self.CORS_ORIGINS)
         return self
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
+    }
 
 
 settings = Settings()

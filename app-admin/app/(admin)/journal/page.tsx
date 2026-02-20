@@ -116,7 +116,7 @@ export default function JournalPage() {
       key: "createdAt",
       label: "Date",
       render: (row) => (
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-ink-tertiary">
           {new Date(row.createdAt).toLocaleString("fr-FR", {
             day: "2-digit",
             month: "2-digit",
@@ -146,23 +146,25 @@ export default function JournalPage() {
       label: "Ressource",
       render: (row) =>
         row.resourceType ? (
-          <span className="text-sm text-gray-500">{row.resourceType}</span>
+          <span className="text-sm text-ink-tertiary">{row.resourceType}</span>
         ) : (
-          <span className="text-sm text-gray-300">-</span>
+          <span className="text-sm text-ink-placeholder">-</span>
         ),
     },
     {
       key: "ipAddress",
       label: "IP",
       render: (row) => (
-        <span className="font-mono text-xs text-gray-400">{row.ipAddress}</span>
+        <span className="font-mono text-xs text-ink-placeholder">
+          {row.ipAddress}
+        </span>
       ),
     },
     {
       key: "requestId",
       label: "Request ID",
       render: (row) => (
-        <span className="font-mono text-xs text-gray-400">
+        <span className="font-mono text-xs text-ink-placeholder">
           {row.requestId.substring(0, 8)}...
         </span>
       ),
@@ -172,40 +174,40 @@ export default function JournalPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-2xl font-bold text-neutral-900">
-          Journal
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">Audit et conformite RGPD</p>
+        <h1 className="font-serif text-2xl font-bold text-ink">Journal</h1>
+        <p className="mt-1 text-sm text-ink-tertiary">
+          Audit et conformite RGPD
+        </p>
       </div>
 
       {/* Section tabs */}
-      <div className="flex gap-1 border-b border-neutral-200">
+      <div className="flex gap-1 border-b border-border-subtle">
         <button
           onClick={() => setSection("audit")}
           className={`relative px-4 py-2.5 text-sm transition-colors ${
             section === "audit"
-              ? "font-medium text-amber-600"
-              : "text-neutral-500 hover:text-neutral-700"
+              ? "font-medium text-primary"
+              : "text-ink-tertiary hover:text-ink-secondary"
           }`}
         >
           <FileText className="mr-1.5 inline-block h-4 w-4" />
           Audit ({total})
           {section === "audit" && (
-            <span className="absolute inset-x-0 bottom-0 h-0.5 bg-amber-500" />
+            <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary" />
           )}
         </button>
         <button
           onClick={() => setSection("rgpd")}
           className={`relative px-4 py-2.5 text-sm transition-colors ${
             section === "rgpd"
-              ? "font-medium text-amber-600"
-              : "text-neutral-500 hover:text-neutral-700"
+              ? "font-medium text-primary"
+              : "text-ink-tertiary hover:text-ink-secondary"
           }`}
         >
           <Shield className="mr-1.5 inline-block h-4 w-4" />
           RGPD
           {section === "rgpd" && (
-            <span className="absolute inset-x-0 bottom-0 h-0.5 bg-amber-500" />
+            <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary" />
           )}
         </button>
       </div>
@@ -220,7 +222,7 @@ export default function JournalPage() {
                 setActionFilter(e.target.value);
                 setPage(1);
               }}
-              className="min-h-[44px] rounded-lg border border-gray-200 px-3 py-2 text-sm text-charcoal focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="min-h-[44px] rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             >
               <option value="">Toutes les actions</option>
               {Object.entries(ACTION_LABELS).map(([value, label]) => (
@@ -277,22 +279,22 @@ export default function JournalPage() {
             return (
               <div
                 key={action.title}
-                className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-soft"
+                className="rounded-2xl border border-border-subtle bg-card p-6 shadow-soft"
               >
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-gray-50">
-                  <Icon className="h-5 w-5 text-gray-500" />
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-surface-sunken">
+                  <Icon className="h-5 w-5 text-ink-tertiary" />
                 </div>
                 <h3 className="mb-2 text-sm font-semibold text-charcoal">
                   {action.title}
                 </h3>
-                <p className="mb-4 text-sm text-gray-500">
+                <p className="mb-4 text-sm text-ink-tertiary">
                   {action.description}
                 </p>
                 <button
                   className={`inline-flex min-h-[44px] items-center rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
                     action.variant === "danger"
-                      ? "border border-red-300 text-red-700 hover:bg-red-50"
-                      : "border border-gray-200 text-charcoal hover:bg-gray-50"
+                      ? "border border-danger text-danger-text hover:bg-danger-light"
+                      : "border border-border text-charcoal hover:bg-surface-sunken"
                   }`}
                 >
                   {action.buttonLabel}

@@ -93,9 +93,9 @@ export function MessageThread({
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
         <div className="flex items-center gap-3">
-          <h3 className="text-sm font-semibold text-neutral-800">
+          <h3 className="text-sm font-semibold text-ink">
             {conversationSubject}
           </h3>
           <StatusBadge
@@ -144,7 +144,7 @@ export function MessageThread({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {loading && !messages && (
-          <p className="text-center text-sm text-neutral-400">
+          <p className="text-center text-sm text-ink-placeholder">
             Chargement des messages...
           </p>
         )}
@@ -154,7 +154,7 @@ export function MessageThread({
         )}
 
         {!loading && !error && messages?.length === 0 && (
-          <p className="text-center text-sm text-neutral-400">
+          <p className="text-center text-sm text-ink-placeholder">
             Aucun message dans cette conversation
           </p>
         )}
@@ -170,7 +170,7 @@ export function MessageThread({
             <div key={msg.id}>
               {showDate && (
                 <div className="my-3 text-center">
-                  <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-500">
+                  <span className="rounded-full bg-surface-sunken px-3 py-1 text-xs text-ink-tertiary">
                     {formatDate(msg.createdAt)}
                   </span>
                 </div>
@@ -182,8 +182,8 @@ export function MessageThread({
                 <div
                   className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
                     admin
-                      ? "bg-amber-100 text-amber-900"
-                      : "bg-neutral-100 text-neutral-800"
+                      ? "bg-primary-100 text-primary-800"
+                      : "bg-surface-sunken text-ink"
                   }`}
                 >
                   <div className="mb-1 flex items-center gap-2">
@@ -197,7 +197,7 @@ export function MessageThread({
                   <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
                   <div className="mt-1 flex justify-end">
                     {msg.isRead ? (
-                      <CheckCheck className="h-3.5 w-3.5 text-amber-600" />
+                      <CheckCheck className="h-3.5 w-3.5 text-primary" />
                     ) : (
                       <Clock className="h-3.5 w-3.5 opacity-40" />
                     )}

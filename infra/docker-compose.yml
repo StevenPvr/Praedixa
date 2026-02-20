@@ -42,8 +42,10 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+asyncpg://praedixa:changeme@postgres:5432/praedixa
-      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:-your-supabase-jwt-secret-here}
-      SUPABASE_URL: ${SUPABASE_URL:-https://your-project.supabase.co}
+      AUTH_JWKS_URL: ${AUTH_JWKS_URL:-}
+      AUTH_ISSUER_URL: ${AUTH_ISSUER_URL:-}
+      AUTH_AUDIENCE: ${AUTH_AUDIENCE:-authenticated}
+      AUTH_ALLOWED_JWKS_HOSTS: ${AUTH_ALLOWED_JWKS_HOSTS:-[]}
       CORS_ORIGINS: '["http://localhost:3001"]'
       ENVIRONMENT: development
       DEBUG: "true"

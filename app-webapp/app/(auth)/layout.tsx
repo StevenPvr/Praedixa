@@ -7,13 +7,13 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid min-h-screen bg-page lg:grid-cols-2">
+    <div className="grid min-h-screen bg-[var(--hero-blue-deep)] lg:grid-cols-2">
       {/* Left branding panel */}
-      <section className="relative hidden overflow-hidden border-r border-border bg-[linear-gradient(165deg,oklch(0.14_0.008_55),oklch(0.10_0.006_55))] p-12 text-white lg:block">
+      <section className="relative hidden overflow-hidden border-r border-white/16 bg-[linear-gradient(165deg,color-mix(in_oklch,var(--hero-blue-deep)_90%,black),var(--hero-blue-deep))] p-12 text-white lg:block">
         {/* Ambient glow effects */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_12%,oklch(0.68_0.13_72_/_0.20),transparent_38%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_84%,oklch(0.48_0.12_65_/_0.15),transparent_40%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,oklch(0.20_0.015_55_/_0.3),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_20%_10%,var(--hero-blue-aurora-1)_0%,transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_80%_90%,var(--hero-blue-aurora-2)_0%,transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_50%_50%,var(--hero-blue-aurora-3)_0%,transparent_60%)]" />
 
         <div className="relative z-10 flex h-full flex-col justify-between">
           {/* Logo */}
@@ -55,7 +55,7 @@ export default function AuthLayout({
                   key={text}
                   className="flex items-start gap-3 text-body-sm text-white/85"
                 >
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/10">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/14">
                     <Icon className="h-3.5 w-3.5 text-accent" />
                   </div>
                   {text}
@@ -73,9 +73,9 @@ export default function AuthLayout({
       {/* Right form panel */}
       <section
         id="main-content"
-        className="gradient-mesh relative flex min-h-screen items-center justify-center p-6 sm:p-10"
+        className="relative flex min-h-screen items-center justify-center bg-[radial-gradient(ellipse_80%_60%_at_20%_10%,var(--hero-blue-aurora-1)_0%,transparent_60%),radial-gradient(ellipse_60%_50%_at_80%_90%,var(--hero-blue-aurora-2)_0%,transparent_60%),radial-gradient(ellipse_50%_40%_at_50%_50%,var(--hero-blue-aurora-3)_0%,transparent_60%),var(--hero-blue-deep)] p-6 sm:p-10"
       >
-        <div className="w-full max-w-md space-y-6 rounded-xl border border-border p-8 surface-glass shadow-floating">
+        <div className="w-full max-w-md space-y-6 rounded-xl border border-white/18 bg-[oklch(0.985_0.016_252_/_0.92)] p-8 shadow-floating backdrop-blur-[24px]">
           {/* Mobile logo */}
           <div className="flex flex-col items-center gap-3 lg:hidden">
             <PraedixaLogo size={44} />

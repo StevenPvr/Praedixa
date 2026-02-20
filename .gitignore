@@ -13,6 +13,7 @@
 # AI tooling (Codex, Claude, etc.)
 # -----------------------------------------------------------------------------
 .codex/
+.tools/
 !.env.example
 
 # -----------------------------------------------------------------------------
@@ -47,6 +48,7 @@ ENV/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.hypothesis/
 htmlcov/
 .coverage
 coverage.xml
@@ -98,6 +100,9 @@ coverage/
 playwright-report/
 test-results/
 e2e-coverage/
+.lighthouseci/
+.git/gate-work/
+tmp-preview-screen*.png
 
 # -----------------------------------------------------------------------------
 # Data & ML (ne pas commit les données/modèles)

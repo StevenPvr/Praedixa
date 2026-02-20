@@ -3,8 +3,8 @@
 Maps to shared-types: User, UserRole, UserStatus.
 
 Security notes:
-- supabase_user_id is unique and indexed — this is the link between
-  Supabase Auth JWT claims and our database.
+- auth_user_id is unique and indexed — this is the link between
+  IdP JWT claims and our database.
 - email is unique and indexed for efficient lookups during auth.
 - role is stored as a DB enum to prevent injection of arbitrary roles.
 """
@@ -39,8 +39,8 @@ class UserStatus(str, enum.Enum):
 class User(TenantMixin, Base):
     """User entity — authentication identity and authorization role.
 
-    The supabase_user_id column links this record to the Supabase Auth
-    user. FastAPI extracts this from the verified JWT and uses it to
+    The auth_user_id column links this record to the IdP identity.
+    FastAPI extracts this from the verified JWT and uses it to
     resolve the User + organization_id for tenant-scoped queries.
     """
 
@@ -57,8 +57,11 @@ class User(TenantMixin, Base):
         nullable=False,
         index=True,
     )
-    supabase_user_id: Mapped[str] = mapped_column(
-        String(255), unique=True, nullable=False, index=True
+    auth_user_id: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        nullable=False,
+        index=True,
     )
     email: Mapped[str] = mapped_column(
         String(320), unique=True, nullable=False, index=True

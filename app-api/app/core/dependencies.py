@@ -23,7 +23,7 @@ Security notes:
 import uuid
 from collections.abc import AsyncGenerator
 
-from fastapi import Depends, Request
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload, extract_token, verify_jwt
@@ -39,6 +39,9 @@ __all__ = [
     "get_site_filter",
     "get_tenant_filter",
 ]
+
+_ORG_WIDE_ROLES = {"org_admin", "super_admin"}
+_SITE_LOCKED_ROLES = {"manager", "hr_manager"}
 
 
 def get_current_user(request: Request) -> JWTPayload:
@@ -84,6 +87,15 @@ def get_site_filter(
     filtered to that site only. When site_id is None (org_admin),
     no site filtering is applied — the user sees all sites.
     """
+    if current_user.role in _ORG_WIDE_ROLES:
+        return SiteFilter(None)
+
+    if current_user.role in _SITE_LOCKED_ROLES and current_user.site_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Manager role requires a site assignment",
+        )
+
     return SiteFilter(current_user.site_id)
 
 

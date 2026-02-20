@@ -32,7 +32,7 @@ export function StickyMobileCTA({ dict, locale }: StickyMobileCTAProps) {
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-200 bg-cream/95 px-4 py-3 backdrop-blur-xl transition-transform duration-300 ease-out-expo md:hidden ${
+      className={`fixed bottom-0 left-0 right-0 z-40 border-t border-border-subtle bg-cream/95 px-4 py-3 backdrop-blur-xl transition-transform duration-300 ease-out-expo md:hidden ${
         isVisible ? "translate-y-0" : "translate-y-full"
       }`}
       aria-hidden={!isVisible}

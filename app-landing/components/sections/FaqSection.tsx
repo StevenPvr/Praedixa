@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { sectionReveal, viewportOnce } from "../../lib/animations/variants";
+import { TextReveal } from "../cinema/TextReveal";
+import { MagneticButton } from "../cinema/MagneticButton";
+import { blurReveal, viewportEarly } from "../../lib/animations/variants";
 import { PlusIcon, ArrowRightIcon } from "../icons";
 import type { Dictionary } from "../../lib/i18n/types";
 import type { Locale } from "../../lib/i18n/config";
@@ -30,13 +31,17 @@ export function FaqSection({ dict, locale }: FaqSectionProps) {
     <section id="faq" className="section-spacing">
       <div className="section-shell">
         <motion.div
-          variants={sectionReveal}
+          variants={blurReveal}
           initial="hidden"
           whileInView="visible"
-          viewport={viewportOnce}
+          viewport={viewportEarly}
         >
           <p className="section-kicker">{faq.kicker}</p>
-          <h2 className="section-title mt-4">{faq.heading}</h2>
+          <TextReveal
+            text={faq.heading}
+            as="h2"
+            className="section-title mt-4"
+          />
           <p className="section-lead">{faq.subheading}</p>
         </motion.div>
 
@@ -52,7 +57,7 @@ export function FaqSection({ dict, locale }: FaqSectionProps) {
               className={`rounded px-3.5 py-2 text-sm font-medium transition ${
                 activeCategory === category
                   ? "bg-charcoal text-cream"
-                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                  : "bg-surface-sunken text-ink-secondary hover:bg-surface-interactive"
               }`}
             >
               {category}
@@ -74,11 +79,13 @@ export function FaqSection({ dict, locale }: FaqSectionProps) {
                   <span className="text-base font-medium text-charcoal">
                     {item.question}
                   </span>
-                  <PlusIcon
-                    className={`mt-1 h-4 w-4 shrink-0 text-neutral-400 transition-transform duration-200 ${
-                      isOpen ? "rotate-45" : ""
-                    }`}
-                  />
+                  <motion.span
+                    className="mt-1 inline-flex h-4 w-4 shrink-0 text-ink-placeholder"
+                    animate={{ rotate: isOpen ? 45 : 0 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 24 }}
+                  >
+                    <PlusIcon className="h-4 w-4" />
+                  </motion.span>
                 </button>
                 <AnimatePresence initial={false}>
                   {isOpen && (
@@ -87,9 +94,9 @@ export function FaqSection({ dict, locale }: FaqSectionProps) {
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                      className="overflow-hidden"
+                      className="accordion-content overflow-hidden"
                     >
-                      <p className="pb-5 text-sm leading-relaxed text-neutral-600">
+                      <p className="pb-5 text-sm leading-relaxed text-ink-secondary">
                         {item.answer}
                       </p>
                     </motion.div>
@@ -102,16 +109,20 @@ export function FaqSection({ dict, locale }: FaqSectionProps) {
 
         {/* CTA after FAQ */}
         <motion.div
-          className="mt-10 flex justify-center"
-          variants={sectionReveal}
+          className="mt-16 flex justify-center"
+          variants={blurReveal}
           initial="hidden"
           whileInView="visible"
-          viewport={viewportOnce}
+          viewport={viewportEarly}
         >
-          <Link href={pilotHref} className="btn-primary">
+          <MagneticButton
+            as="a"
+            href={pilotHref}
+            className="btn-primary px-8 py-3.5"
+          >
             {dict.hero.ctaPrimary}
-            <ArrowRightIcon className="h-4 w-4" />
-          </Link>
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </MagneticButton>
         </motion.div>
       </div>
     </section>

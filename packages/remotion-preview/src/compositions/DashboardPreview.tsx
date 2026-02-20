@@ -1,4 +1,10 @@
-import { AbsoluteFill, Sequence, interpolate, useCurrentFrame } from "remotion";
+import {
+  AbsoluteFill,
+  Sequence,
+  interpolate,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 import { AppHeader } from "../components/AppHeader";
 import { MouseActor, type MouseKeyframe } from "../components/MouseActor";
 import { Sidebar } from "../components/Sidebar";
@@ -57,6 +63,11 @@ function SceneView({
  */
 export const DashboardPreview: React.FC = () => {
   const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  const scale = Math.min(
+    width / layout.logicalWidth,
+    height / layout.logicalHeight,
+  );
 
   const shellOpacity = interpolate(frame, [0, 24], [0, 1], {
     extrapolateRight: "clamp",
@@ -84,7 +95,7 @@ export const DashboardPreview: React.FC = () => {
     >
       <div
         style={{
-          transform: "scale(2)",
+          transform: `scale(${scale})`,
           transformOrigin: "top left",
           width: layout.logicalWidth,
           height: layout.logicalHeight,

@@ -28,7 +28,9 @@ const CMP_SCRIPT_SRC =
   "https://cdn.jsdelivr.net/npm/tarteaucitronjs@1.26.0/tarteaucitron.min.js";
 
 export function CookieService({ locale }: CookieServiceProps) {
-  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "";
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  if (!gaId) return null;
+
   const privacyUrl = `/${locale}/${localizedSlugs.privacy[locale]}`;
 
   return (
@@ -105,10 +107,6 @@ export function CookieService({ locale }: CookieServiceProps) {
                 window.tarteaucitron.job = window.tarteaucitron.job || [];
                 if (window.tarteaucitron.job.indexOf("praedixa_ga") === -1) {
                   window.tarteaucitron.job.push("praedixa_ga");
-                }
-
-                if (!${JSON.stringify(Boolean(gaId))}) {
-                  updateGtagConsent("denied");
                 }
 
                 var hasConsentCookie = document.cookie

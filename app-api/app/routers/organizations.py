@@ -12,7 +12,7 @@ Security:
 import uuid
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import JWTPayload
@@ -83,14 +83,32 @@ async def get_sites(
 async def get_departments(
     tenant: TenantFilter = Depends(get_tenant_filter),
     session: AsyncSession = Depends(get_db_session),
+    site_filter: SiteFilter = Depends(get_site_filter),
     _user: JWTPayload = Depends(get_current_user),
     site_id: uuid.UUID | None = Query(default=None, description="Filter by site UUID"),
 ) -> ApiResponse[list[DepartmentRead]]:
     """Return all departments, optionally filtered by site."""
+    effective_site_id = site_id
+    if site_filter.site_id is not None:
+        try:
+            scoped_site_id = uuid.UUID(site_filter.site_id)
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Invalid site scope in token",
+            ) from exc
+
+        if site_id is not None and site_id != scoped_site_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Insufficient permissions for requested site",
+            )
+        effective_site_id = scoped_site_id
+
     items = await list_departments(
         tenant=tenant,
         session=session,
-        site_id=site_id,
+        site_id=effective_site_id,
     )
 
     return ApiResponse(

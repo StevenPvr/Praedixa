@@ -10,7 +10,7 @@ Use this as a short due diligence response pack for enterprise buyers.
 
 ## Security controls summary
 
-- Secure SDLC with hard-gate CI checks
+- Secure SDLC with hard-gate local exhaustive checks and signed evidence
 - Secrets scanning and dependency scanning
 - RBAC for privileged operations
 - Audit logging for admin operations

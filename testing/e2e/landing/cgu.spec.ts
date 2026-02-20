@@ -12,37 +12,21 @@ test.describe("CGU page", () => {
     await page.goto("/fr/cgu");
     const backLink = page.getByRole("link", { name: /retour à l'accueil/i });
     await expect(backLink).toBeVisible();
-    await expect(backLink).toHaveAttribute("href", "/");
+    await expect(backLink).toHaveAttribute("href", "/fr");
   });
 
   test("displays section headings", async ({ page }) => {
     await page.goto("/fr/cgu");
     await expect(page.getByRole("heading", { name: /Objet/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Usage/ })).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: /finitions/ }),
+      page.getByRole("heading", { name: /Pilote fondateur/ }),
     ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: /Programme Entreprise/ }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: /Acc.*Service/ }),
-    ).toBeVisible();
-  });
-
-  test("contains links to other legal pages", async ({ page }) => {
-    await page.goto("/fr/cgu");
-    const main = page.locator("main");
-    await expect(main.getByRole("link", { name: /mentions/ })).toHaveAttribute(
-      "href",
-      /mentions-legales/,
-    );
-    await expect(
-      main.getByRole("link", { name: /confidentialit/ }),
-    ).toHaveAttribute("href", /confidentialite/);
+    await expect(page.getByRole("heading", { name: /Contact/ })).toBeVisible();
   });
 
   test("displays contact email", async ({ page }) => {
     await page.goto("/fr/cgu");
-    await expect(page.getByText(/contact/i).last()).toBeVisible();
+    await expect(page.getByText("hello@praedixa.com")).toBeVisible();
   });
 });

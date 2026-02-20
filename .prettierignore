@@ -3,4 +3,8 @@ dist
 .next
 .codex
 coverage
+.lighthouseci
+.git/gate-work
 pnpm-lock.yaml
+.import_linter_cache
+app-api/.import_linter_cache

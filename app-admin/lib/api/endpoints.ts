@@ -103,4 +103,9 @@ export const ADMIN_ENDPOINTS = {
   conversationStatus: (convId: string) =>
     `${V1}/conversations/${encodeURIComponent(convId)}`,
   conversationsUnread: `${V1}/conversations/unread-count`,
+
+  // Contact requests
+  contactRequests: `${V1}/contact-requests`,
+  contactRequestStatus: (requestId: string) =>
+    `${V1}/contact-requests/${encodeURIComponent(requestId)}/status`,
 } as const;

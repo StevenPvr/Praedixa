@@ -15,7 +15,7 @@ Define how Praedixa grants, reviews, and revokes access.
 
 ## Scope
 
-- GitHub, cloud providers, database, CI/CD, observability tools.
+- GitHub, cloud providers, database, local gate tooling, observability tools.
 
 ## Exceptions
 

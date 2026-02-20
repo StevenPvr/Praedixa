@@ -1,18 +1,9 @@
 import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import { updateSession } from "@/lib/auth/middleware";
 import { generateNonce, buildCspHeader } from "@/lib/security/csp";
 
 export async function middleware(request: NextRequest) {
-  // Block coverage harness in production
-  if (
-    process.env.NODE_ENV === "production" &&
-    request.nextUrl.pathname === "/coverage-harness"
-  ) {
-    return new NextResponse(null, { status: 404 });
-  }
-
   // Generate a per-request nonce for CSP
   const nonce = generateNonce();
   const cspHeader = buildCspHeader(nonce);

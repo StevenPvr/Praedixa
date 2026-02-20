@@ -70,15 +70,15 @@ export const PRIORITY_CONFIG: Record<
     label: "Urgent",
   },
   warning: {
-    bg: "bg-amber-50",
-    border: "border-amber-200",
-    dot: "bg-amber-500",
+    bg: "bg-primary-50",
+    border: "border-primary-200",
+    dot: "bg-primary",
     label: "A surveiller",
   },
   info: {
-    bg: "bg-white",
-    border: "border-neutral-200/80",
-    dot: "bg-neutral-300",
+    bg: "bg-card",
+    border: "border-border-subtle",
+    dot: "bg-ink-placeholder",
     label: "Info",
   },
 };

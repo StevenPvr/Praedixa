@@ -15,15 +15,15 @@ export function InboxItemCard({ item }: { item: InboxItem }) {
           <span className="text-sm font-semibold text-charcoal">
             {item.title}
           </span>
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500">
+          <span className="rounded-full bg-surface-sunken px-2 py-0.5 text-xs text-ink-tertiary">
             {item.source}
           </span>
         </div>
-        <p className="mt-0.5 truncate text-sm text-gray-500">
+        <p className="mt-0.5 truncate text-sm text-ink-tertiary">
           {item.description}
         </p>
       </div>
-      <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" />
+      <ChevronRight className="h-4 w-4 shrink-0 text-ink-placeholder" />
     </a>
   );
 }

@@ -35,19 +35,19 @@ function buildScenarioPoints(queue: DecisionQueueItem[]): ScenarioPoint[] {
       label: "Impact financier",
       value: Math.max(estimatedImpact, 3000),
       helper: `${Math.round(estimatedImpact).toLocaleString("fr-FR")} EUR en jeu`,
-      color: "oklch(0.62 0.18 27)",
+      color: "var(--warning)",
     },
     {
       label: "Heures a couvrir",
       value: Math.max(unresolvedGap * 180, 2000),
       helper: `${unresolvedGap.toFixed(1)} h a arbitrer`,
-      color: "oklch(0.71 0.135 78)",
+      color: "var(--chart-1)",
     },
     {
       label: "Urgence < 24h",
       value: Math.max(urgentQueue * 950, 1200),
       helper: `${urgentQueue} alertes avant rupture`,
-      color: "oklch(0.41 0.095 253)",
+      color: "var(--chart-2)",
     },
   ];
 }

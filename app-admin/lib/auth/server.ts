@@ -1,63 +1,33 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import {
+  SESSION_COOKIE,
+  type AuthSessionData,
+  verifySession,
+  getOidcEnv,
+} from "@/lib/auth/oidc";
 
-/**
- * Supabase server client for Server Components and Route Handlers.
- *
- * Security notes:
- * - Cookie-based auth: tokens are stored in HttpOnly cookies managed by
- *   @supabase/ssr, not in localStorage (immune to XSS token theft).
- * - setAll is wrapped in try/catch because Server Components have
- *   read-only cookie access — writes silently fail there but succeed
- *   in Route Handlers and Server Actions.
- * - getUser() is preferred over getSession() for auth checks because
- *   getUser() always hits the Supabase auth server to validate the token,
- *   while getSession() may return a cached (potentially expired) session.
- */
-
-export async function getSupabaseServerClient() {
+export async function getSession(): Promise<AuthSessionData | null> {
   const cookieStore = await cookies();
+  const signed = cookieStore.get(SESSION_COOKIE)?.value;
+  if (!signed) return null;
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(
-          cookiesToSet: {
-            name: string;
-            value: string;
-            options: CookieOptions;
-          }[],
-        ) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // Ignore errors in Server Components (read-only cookie access)
-          }
-        },
-      },
-    },
-  );
+  try {
+    const { sessionSecret } = getOidcEnv();
+    return await verifySession(signed, sessionSecret);
+  } catch {
+    return null;
+  }
 }
 
 export async function getUser() {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-}
+  const session = await getSession();
+  if (!session) return null;
 
-export async function getSession() {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  return session;
+  return {
+    id: session.sub,
+    email: session.email,
+    role: session.role,
+    organization_id: session.organizationId,
+    site_id: session.siteId,
+  };
 }

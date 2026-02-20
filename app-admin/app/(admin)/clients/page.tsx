@@ -53,7 +53,7 @@ const STATIC_COLUMNS: DataTableColumn<OrgListItem>[] = [
     render: (row) => (
       <div>
         <p className="font-medium text-charcoal">{row.name}</p>
-        <p className="text-xs text-gray-400">{row.slug}</p>
+        <p className="text-xs text-ink-placeholder">{row.slug}</p>
       </div>
     ),
   },
@@ -83,7 +83,7 @@ const STATIC_COLUMNS: DataTableColumn<OrgListItem>[] = [
     key: "contactEmail",
     label: "Contact",
     render: (row) => (
-      <span className="text-sm text-gray-500">{row.contactEmail}</span>
+      <span className="text-sm text-ink-tertiary">{row.contactEmail}</span>
     ),
   },
 ];
@@ -160,7 +160,7 @@ export default function ClientsPage() {
           onClick={() =>
             router.push(`/clients/${encodeURIComponent(row.id)}/vue-client`)
           }
-          className="inline-flex items-center text-gray-400 transition-colors hover:text-charcoal"
+          className="inline-flex items-center text-ink-placeholder transition-colors hover:text-charcoal"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -176,16 +176,14 @@ export default function ClientsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-serif text-2xl font-bold text-neutral-900">
-            Clients
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="font-serif text-2xl font-bold text-ink">Clients</h1>
+          <p className="mt-1 text-sm text-ink-tertiary">
             {total} client{total !== 1 ? "s" : ""} au total
           </p>
         </div>
         <button
           onClick={() => router.push("/parametres")}
-          className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-amber-600"
+          className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600"
         >
           <Plus className="h-4 w-4" />
           Nouveau client
@@ -195,7 +193,7 @@ export default function ClientsPage() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative min-w-[200px] max-w-sm flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-placeholder" />
           <input
             type="text"
             placeholder="Rechercher par nom..."
@@ -204,7 +202,7 @@ export default function ClientsPage() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="min-h-[44px] w-full rounded-lg border border-gray-200 py-2 pl-10 pr-4 text-sm text-charcoal placeholder:text-gray-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="min-h-[44px] w-full rounded-lg border border-border py-2 pl-10 pr-4 text-sm text-charcoal placeholder:text-ink-placeholder focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
         <select
@@ -213,7 +211,7 @@ export default function ClientsPage() {
             setStatusFilter(e.target.value);
             setPage(1);
           }}
-          className="min-h-[44px] rounded-lg border border-gray-200 px-3 py-2 text-sm text-charcoal focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          className="min-h-[44px] rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         >
           {STATUS_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -227,7 +225,7 @@ export default function ClientsPage() {
             setPlanFilter(e.target.value);
             setPage(1);
           }}
-          className="min-h-[44px] rounded-lg border border-gray-200 px-3 py-2 text-sm text-charcoal focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          className="min-h-[44px] rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         >
           {PLAN_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>

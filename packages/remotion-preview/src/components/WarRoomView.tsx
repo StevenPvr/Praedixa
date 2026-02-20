@@ -146,21 +146,21 @@ const statusMap = {
     dot: colors.success,
     iconBg: colors.successLight,
     iconFg: colors.success,
-    bg: `linear-gradient(145deg, ${colors.cardBg} 0%, oklch(0.97 0.01 150) 100%)`,
+    bg: `linear-gradient(145deg, ${colors.cardBg} 0%, oklch(0.96 0.03 155) 100%)`,
   },
   warning: {
     border: colors.warning,
     dot: colors.warning,
     iconBg: colors.warningLight,
     iconFg: colors.warning,
-    bg: `linear-gradient(145deg, ${colors.cardBg} 0%, oklch(0.97 0.02 75) 100%)`,
+    bg: `linear-gradient(145deg, ${colors.cardBg} 0%, oklch(0.98 0.03 90) 100%)`,
   },
   danger: {
     border: colors.danger,
     dot: colors.danger,
     iconBg: colors.dangerLight,
     iconFg: colors.danger,
-    bg: `linear-gradient(145deg, ${colors.cardBg} 0%, oklch(0.97 0.015 25) 100%)`,
+    bg: `linear-gradient(145deg, ${colors.cardBg} 0%, oklch(0.96 0.03 25) 100%)`,
   },
 } as const;
 
@@ -275,9 +275,9 @@ export const WarRoomView: React.FC = () => {
         padding: `${layout.pagePaddingY}px ${layout.pagePaddingX}px`,
         fontFamily: fonts.sans,
         background: `
-          radial-gradient(ellipse 80% 60% at 10% 20%, oklch(0.68 0.13 72 / 0.04) 0%, transparent 60%),
-          radial-gradient(ellipse 60% 80% at 85% 70%, oklch(0.58 0.14 68 / 0.04) 0%, transparent 60%),
-          radial-gradient(ellipse 70% 50% at 50% 90%, oklch(0.65 0.15 155 / 0.03) 0%, transparent 50%),
+          radial-gradient(ellipse 80% 60% at 10% 20%, oklch(0.63 0.14 247 / 0.10) 0%, transparent 60%),
+          radial-gradient(ellipse 60% 80% at 85% 70%, oklch(0.58 0.20 248 / 0.08) 0%, transparent 60%),
+          radial-gradient(ellipse 70% 50% at 50% 90%, oklch(0.64 0.18 238 / 0.06) 0%, transparent 50%),
           ${colors.pageBg}
         `,
       }}
@@ -384,7 +384,7 @@ export const WarRoomView: React.FC = () => {
           style={{
             border: `1px solid ${colors.dangerLight}`,
             borderRadius: 10,
-            background: "oklch(0.998 0.001 85 / 0.72)",
+            background: "oklch(0.985 0.032 254 / 0.82)",
             backdropFilter: "blur(24px) saturate(1.5)",
             position: "relative",
             display: "flex",
@@ -392,7 +392,7 @@ export const WarRoomView: React.FC = () => {
             gap: 12,
             padding: "14px 16px",
             marginBottom: 18,
-            boxShadow: `0 0 0 1px ${colors.border}, 0 0 28px -6px oklch(0.60 0.20 25 / 0.20)`,
+            boxShadow: `0 0 0 1px ${colors.border}, 0 0 30px -6px ${colors.borderGlow}`,
           }}
         >
           <div
@@ -626,7 +626,7 @@ export const WarRoomView: React.FC = () => {
                 style={{
                   height: 1,
                   background:
-                    "linear-gradient(to right, transparent, oklch(0.68 0.13 72 / 0.15), oklch(0.87 0.008 65), oklch(0.68 0.13 72 / 0.15), transparent)",
+                    "linear-gradient(to right, transparent, oklch(0.63 0.165 246 / 0.26), oklch(0.84 0.016 247), oklch(0.63 0.165 246 / 0.26), transparent)",
                 }}
               />
               <div style={{ padding: 18 }}>
@@ -664,8 +664,8 @@ export const WarRoomView: React.FC = () => {
                     <div
                       style={{
                         borderRadius: 12,
-                        border: "1px solid oklch(0.96 0.03 25)",
-                        backgroundColor: "oklch(0.96 0.03 25 / 0.5)",
+                        border: "1px solid oklch(0.98 0.03 90)",
+                        backgroundColor: "oklch(0.98 0.03 90 / 0.45)",
                         color: colors.dangerText,
                         padding: "10px 12px",
                         display: "flex",
@@ -682,7 +682,7 @@ export const WarRoomView: React.FC = () => {
                           display: "inline-flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          backgroundColor: "oklch(0.90 0.06 25)",
+                          backgroundColor: "oklch(0.72 0.12 88)",
                           marginTop: 1,
                         }}
                       >
@@ -752,7 +752,7 @@ export const WarRoomView: React.FC = () => {
 
                         <path
                           d={demandAreaPath(chartProgress)}
-                          fill="oklch(0.71 0.135 78 / 0.18)"
+                          fill="oklch(0.54 0.155 246 / 0.18)"
                         />
                         <path
                           d={linePath("capacity", chartProgress)}
@@ -887,7 +887,7 @@ export const WarRoomView: React.FC = () => {
                 style={{
                   height: 1,
                   background:
-                    "linear-gradient(to right, transparent, oklch(0.68 0.13 72 / 0.15), oklch(0.87 0.008 65), oklch(0.68 0.13 72 / 0.15), transparent)",
+                    "linear-gradient(to right, transparent, oklch(0.63 0.165 246 / 0.26), oklch(0.84 0.016 247), oklch(0.63 0.165 246 / 0.26), transparent)",
                 }}
               />
               <div
@@ -1130,7 +1130,7 @@ export const WarRoomView: React.FC = () => {
                 style={{
                   height: 1,
                   background:
-                    "linear-gradient(to right, transparent, oklch(0.68 0.13 72 / 0.15), oklch(0.87 0.008 65), oklch(0.68 0.13 72 / 0.15), transparent)",
+                    "linear-gradient(to right, transparent, oklch(0.63 0.165 246 / 0.26), oklch(0.84 0.016 247), oklch(0.63 0.165 246 / 0.26), transparent)",
                 }}
               />
               <div style={{ padding: 16 }}>
@@ -1168,8 +1168,8 @@ export const WarRoomView: React.FC = () => {
                     <div
                       style={{
                         borderRadius: 12,
-                        border: "1px solid oklch(0.96 0.03 25)",
-                        backgroundColor: "oklch(0.96 0.03 25 / 0.5)",
+                        border: "1px solid oklch(0.98 0.03 90)",
+                        backgroundColor: "oklch(0.98 0.03 90 / 0.45)",
                         color: colors.dangerText,
                         padding: "10px 12px",
                         display: "flex",
@@ -1186,7 +1186,7 @@ export const WarRoomView: React.FC = () => {
                           display: "inline-flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          backgroundColor: "oklch(0.90 0.06 25)",
+                          backgroundColor: "oklch(0.72 0.12 88)",
                           marginTop: 1,
                         }}
                       >
@@ -1250,7 +1250,7 @@ export const WarRoomView: React.FC = () => {
                               style={{
                                 height: 9,
                                 borderRadius: 999,
-                                backgroundColor: "oklch(0.92 0.005 70)",
+                                backgroundColor: colors.borderSubtle,
                                 overflow: "hidden",
                               }}
                             >

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, Cormorant_Garamond } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import "@praedixa/ui/brand-tokens.css";
 import "./globals.css";
 
 const manrope = Manrope({

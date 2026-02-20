@@ -2,7 +2,7 @@
 
 Application de pilotage de capacite pour les responsables de sites logistiques. Previsions d'absences, alertes de couverture, scenarios d'arbitrage et suivi des decisions -- le tout centralise dans un tableau de bord unique.
 
-**Stack** : Next.js 15 / React 19 / Supabase SSR / Tailwind CSS (OKLCH) / Cloudflare Workers
+**Stack** : Next.js 15 / React 19 / OIDC (PKCE) / Tailwind CSS (OKLCH) / Scaleway Containers
 **Port** : `3001`
 **Package** : `@praedixa/webapp`
 
@@ -13,7 +13,7 @@ Application de pilotage de capacite pour les responsables de sites logistiques. 
 ```bash
 # 1. Variables d'environnement
 cp app-webapp/.env.local.example app-webapp/.env.local
-# Remplir NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_API_URL
+# Remplir NEXT_PUBLIC_API_URL + AUTH_OIDC_* + AUTH_SESSION_SECRET
 
 # 2. Installer les dependances (depuis la racine du monorepo)
 pnpm install
@@ -26,11 +26,14 @@ pnpm dev:webapp   # http://localhost:3001
 
 ### Variables d'environnement
 
-| Variable                        | Description                  | Exemple                   |
-| ------------------------------- | ---------------------------- | ------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | URL du projet Supabase       | `https://xxx.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Cle publique (anon) Supabase | `eyJhbGciOi...`           |
-| `NEXT_PUBLIC_API_URL`           | URL de l'API backend         | `http://localhost:8000`   |
+| Variable                  | Description                                     | Exemple                                     |
+| ------------------------- | ----------------------------------------------- | ------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`     | URL de l'API backend                            | `http://localhost:8000`                     |
+| `AUTH_OIDC_ISSUER_URL`    | URL realm OIDC (Keycloak)                       | `https://auth.praedixa.com/realms/praedixa` |
+| `AUTH_OIDC_CLIENT_ID`     | Client ID OIDC webapp                           | `praedixa-webapp`                           |
+| `AUTH_OIDC_CLIENT_SECRET` | Client secret OIDC (optionnel si client public) | `<secret>`                                  |
+| `AUTH_OIDC_SCOPE`         | Scope OIDC                                      | `openid profile email offline_access`       |
+| `AUTH_SESSION_SECRET`     | Secret de signature session                     | `<long random secret>`                      |
 
 ---
 
@@ -44,33 +47,38 @@ pnpm dev:webapp   # http://localhost:3001
 | `/donnees`            | `app/(app)/donnees/page.tsx`            | Vue operationnelle consolidee                                 |
 | `/donnees/datasets`   | `app/(app)/donnees/datasets/page.tsx`   | Fichiers importes, statuts pipeline et volumetrie             |
 | `/donnees/canonique`  | `app/(app)/donnees/canonique/page.tsx`  | Alias de la vue consolidee canonique                          |
+| `/donnees/gold`       | `app/(app)/donnees/gold/page.tsx`       | Explorateur complet de la couche Gold                         |
 | `/previsions`         | `app/(app)/previsions/page.tsx`         | Projection capacite + decomposition des drivers               |
 | `/previsions/alertes` | `app/(app)/previsions/alertes/page.tsx` | Liste complete des alertes avec filtres severite/statut       |
+| `/previsions/modeles` | `app/(app)/previsions/modeles/page.tsx` | Monitoring IA/ML (MAPE, drift, latence, retrain)              |
 | `/actions`            | `app/(app)/actions/page.tsx`            | Centre de traitement des alertes prioritaires                 |
 | `/actions/historique` | `app/(app)/actions/historique/page.tsx` | Historique decisionnel (audit des choix passes)               |
 | `/messages`           | `app/(app)/messages/page.tsx`           | Messagerie avec l'equipe Praedixa                             |
 | `/rapports`           | `app/(app)/rapports/page.tsx`           | Rapports executifs et exports                                 |
+| `/onboarding`         | `app/(app)/onboarding/page.tsx`         | Readiness client et checklist de mise en route                |
 | `/parametres`         | `app/(app)/parametres/page.tsx`         | Gouvernance et reglages organisationnels                      |
-| `/coverage-harness`   | `app/(app)/coverage-harness/page.tsx`   | Page utilitaire de couverture E2E (bloquee en production)     |
 
-### Route group `(auth)` -- pages publiques
+### Route group `(auth)` -- pages et route handlers publics
 
 | Route            | Description                           |
 | ---------------- | ------------------------------------- |
-| `/login`         | Connexion via Supabase Auth           |
+| `/login`         | Connexion via OIDC (Keycloak)         |
 | `/auth/callback` | Callback OAuth apres authentification |
+| `/auth/login`    | Route handler qui initie le flow OIDC |
+| `/auth/logout`   | Route handler de deconnexion          |
+| `/auth/session`  | Refresh de token et lecture session   |
 
 ---
 
 ## Authentification
 
-L'authentification repose sur **Supabase SSR** (`@supabase/ssr`). Trois fichiers cles composent le systeme :
+L'authentification repose sur **OIDC Authorization Code + PKCE**. Trois fichiers cles composent le systeme :
 
 | Fichier                  | Role                                              |
 | ------------------------ | ------------------------------------------------- |
 | `lib/auth/middleware.ts` | Validation serveur de la session a chaque requete |
-| `lib/auth/server.ts`     | Client Supabase cote serveur (Server Components)  |
-| `lib/auth/client.ts`     | Client Supabase cote navigateur (singleton)       |
+| `lib/auth/server.ts`     | Lecture/verification de session cote serveur      |
+| `lib/auth/client.ts`     | Recuperation de token via `/auth/session`         |
 
 ### Flux middleware
 
@@ -86,6 +94,12 @@ Regles de routage :
 - **Authentifie sur `/login`** → redirection vers `/dashboard`
 - **`/login?reauth=1`** → accessible meme authentifie (recovery apres 401)
 
+Regles de scope role/site :
+
+- **`super_admin`** : bloque sur `app-webapp`, doit utiliser `app-admin`
+- **`org_admin`** : acces a tous les sites de son organisation
+- **`manager` / `hr_manager`** : scope limite au site du claim `site_id` (absence de `site_id` => `403`)
+
 ### Token refresh cote client
 
 ```typescript
@@ -94,21 +108,14 @@ export async function getValidAccessToken(
   options: { minTtlSeconds?: number } = {},
 ): Promise<string | null> {
   const { minTtlSeconds = 60 } = options;
-  const supabase = getSupabaseBrowserClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  let nextSession = session;
-  const isExpiringSoon =
-    !!nextSession?.expires_at &&
-    nextSession.expires_at - Math.floor(Date.now() / 1000) <= minTtlSeconds;
-
-  if (!nextSession || isExpiringSoon) {
-    const { data } = await supabase.auth.refreshSession();
-    nextSession = data.session;
-  }
-  return nextSession?.access_token ?? null;
+  const response = await fetch(`/auth/session?min_ttl=${minTtlSeconds}`, {
+    method: "GET",
+    credentials: "include",
+    cache: "no-store",
+  });
+  if (!response.ok) return null;
+  const payload = (await response.json()) as { accessToken?: string };
+  return payload.accessToken ?? null;
 }
 ```
 
@@ -128,6 +135,17 @@ lib/api/endpoints.ts  -- wrappers types par domaine (forecasts, decisions, alert
 ```
 
 Chaque fonction accepte un callback `GetAccessToken` qui est injecte par les hooks. Cela permet aux Server Components et aux Client Components d'utiliser la meme couche API avec des strategies d'authentification differentes.
+
+### Endpoints Gold (explorer)
+
+La page `/donnees/gold` consomme directement les endpoints live suivants :
+
+- `/api/v1/live/gold/schema`
+- `/api/v1/live/gold/rows`
+- `/api/v1/live/gold/coverage`
+- `/api/v1/live/gold/provenance`
+
+Le endpoint `/api/v1/live/gold/provenance` expose notamment `strictDataPolicyOk`, `forecastMockColumns` et `nonForecastMockColumns` pour verifier la politique "pas de mock hors forecasting".
 
 ```typescript
 // Exemple d'utilisation dans un composant
@@ -227,16 +245,22 @@ Tous les hooks API gèrent automatiquement :
 
 ### Design system
 
-Le design utilise l'espace colorimetrique **OKLCH** pour toutes les couleurs, defini dans `tailwind.config.js` et `app/globals.css`.
+Le design utilise l'espace colorimetrique **OKLCH** avec une source de verite partagee:
 
-| Token            | Valeur OKLCH             | Usage                         |
-| ---------------- | ------------------------ | ----------------------------- |
-| `page` / `cream` | `oklch(0.984 0.003 106)` | Fond de page (creme chaud)    |
-| `card` / `paper` | `oklch(1 0 0)`           | Fond des cartes               |
-| `sidebar`        | `oklch(0.145 0 0)`       | Fond sidebar (charcoal fonce) |
-| `charcoal`       | `oklch(0.145 0 0)`       | Texte principal               |
-| `amber-400`      | `oklch(0.828 0.208 84)`  | Couleur active sidebar        |
-| `amber-500`      | `oklch(0.769 0.205 70)`  | Accent principal              |
+- `packages/ui/src/brand-tokens.css` (primitives globales)
+- `packages/ui/tailwind.preset.js` (tokens semantiques Tailwind)
+- `app/globals.css` (mapping app-specific light/dark)
+
+| Token              | Valeur OKLCH             | Usage            |
+| ------------------ | ------------------------ | ---------------- |
+| `page` / `cream`   | `oklch(0.965 0.012 246)` | Fond principal   |
+| `card` / `paper`   | `oklch(0.995 0.004 246)` | Surface elevee   |
+| `ink` / `charcoal` | `oklch(0.24 0.04 248)`   | Texte principal  |
+| `primary`          | `oklch(0.54 0.155 246)`  | Accent marque    |
+| `success`          | `oklch(0.62 0.12 156)`   | Etat positif     |
+| `warning`          | `oklch(0.72 0.12 88)`    | Etat attention   |
+| `danger`           | `oklch(0.62 0.16 26)`    | Etat erreur      |
+| `info`             | `oklch(0.62 0.11 226)`   | Etat information |
 
 ### Typographie
 
@@ -286,15 +310,20 @@ Les tests s'executent via **Vitest** avec la config partagee `testing/vitest.set
 
 ## Deploiement
 
-L'application est deployee sur **Cloudflare Workers** via [OpenNext](https://opennext.js.org/) :
+L'application est deployee sur **Scaleway Serverless Containers (fr-par)** via script local (sans GitHub Actions) :
 
 ```bash
-pnpm --filter @praedixa/webapp cf:build   # Build pour Cloudflare
-pnpm --filter @praedixa/webapp preview    # Preview locale (Wrangler)
-pnpm --filter @praedixa/webapp deploy     # Deployer en production
+pnpm run scw:bootstrap:frontends      # Bootstrap infra (idempotent)
+pnpm run scw:deploy:webapp:staging    # Deploy staging
+pnpm run scw:deploy:webapp:prod       # Deploy production
 ```
 
-La configuration OpenNext est dans `open-next.config.ts`. Le build Next.js utilise `output: "standalone"` avec `transpilePackages` pour les packages monorepo (`@praedixa/ui`, `@praedixa/shared-types`).
+Le conteneur utilise `app-webapp/Dockerfile.scaleway`. Le build Next.js conserve `output: "standalone"` avec `transpilePackages` pour les packages monorepo (`@praedixa/ui`, `@praedixa/shared-types`).
+
+Note DNS:
+
+- Le routage public est actuellement en mode transitoire (delegation NS Cloudflare).
+- `app.praedixa.com` et `staging-app.praedixa.com` resolvent deja vers les endpoints Scaleway.
 
 ### Securite HTTP
 

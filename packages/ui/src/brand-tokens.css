@@ -9,61 +9,81 @@
   /* ── Typography ──
      Actual font loading happens via next/font in each app.
      These are the resolved names after next/font loads. */
-  --brand-font-sans: var(--font-sans, "Manrope"), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --brand-font-serif: var(--font-serif, "Cormorant Garamond"), ui-serif, Georgia, "Times New Roman", serif;
+  --brand-font-sans: var(--font-sans, "Manrope"), ui-sans-serif, system-ui,
+    -apple-system, sans-serif;
+  --brand-font-serif: var(--font-serif, "Cormorant Garamond"), ui-serif,
+    Georgia, "Times New Roman", serif;
 
-  /* ── Brand: Burnished Brass (hue 72) ── */
-  --brass-50: oklch(0.97 0.02 82);
-  --brass-100: oklch(0.94 0.04 82);
-  --brass-200: oklch(0.88 0.07 78);
-  --brass-300: oklch(0.82 0.10 76);
-  --brass-400: oklch(0.78 0.10 78);
-  --brass-500: oklch(0.68 0.13 72);
-  --brass-600: oklch(0.58 0.14 68);
-  --brass-700: oklch(0.48 0.12 65);
-  --brass-800: oklch(0.38 0.10 62);
-  --brass-900: oklch(0.28 0.08 58);
+  /* ── Brand: Praedixa Premium Blue (light mode ramp)
+     Light end (50–200): neutral-pearl with minimal chroma.
+     Saturated core (300+): deep blue — the Praedixa signature. ── */
+  --brass-50: oklch(0.985 0.005 260);
+  --brass-100: oklch(0.965 0.008 255);
+  --brass-200: oklch(0.925 0.015 250);
+  --brass-300: oklch(0.82 0.09 245);
+  --brass-400: oklch(0.72 0.13 246);
+  --brass-500: oklch(0.63 0.165 246);
+  --brass-600: oklch(0.54 0.155 246);
+  --brass-700: oklch(0.45 0.13 247);
+  --brass-800: oklch(0.37 0.105 247);
+  --brass-900: oklch(0.31 0.085 248);
 
-  /* ── Warm Surfaces (hue 80-85) ── */
-  --warm-bg: oklch(0.975 0.005 85);
-  --warm-bg-muted: oklch(0.96 0.004 80);
-  --warm-bg-panel: oklch(0.992 0.002 85);
-  --warm-bg-elevated: oklch(0.998 0.001 85);
+  /* ── Brand: Praedixa Blue (dark mode ramp) ── */
+  --brass-dark-50: oklch(0.18 0.045 247);
+  --brass-dark-100: oklch(0.24 0.065 247);
+  --brass-dark-200: oklch(0.33 0.09 247);
+  --brass-dark-300: oklch(0.45 0.12 247);
+  --brass-dark-400: oklch(0.58 0.14 247);
+  --brass-dark-500: oklch(0.70 0.15 247);
+  --brass-dark-600: oklch(0.78 0.13 247);
+  --brass-dark-700: oklch(0.85 0.11 248);
+  --brass-dark-800: oklch(0.90 0.085 248);
+
+  /* ── Premium Surfaces (neutral-pearl base) ── */
+  --warm-bg: oklch(0.975 0.004 260);
+  --warm-bg-muted: oklch(0.955 0.006 255);
+  --warm-bg-panel: oklch(0.985 0.003 260);
+  --warm-bg-elevated: oklch(0.995 0.002 260);
   --warm-bg-white: oklch(1 0 0);
 
-  /* ── Warm Ink (hue 55) ── */
-  --warm-ink: oklch(0.16 0.01 55);
-  --warm-ink-secondary: oklch(0.40 0.012 55);
-  --warm-ink-muted: oklch(0.55 0.008 60);
+  /* ── Ink (blue-neutral) ── */
+  --warm-ink: oklch(0.24 0.04 248);
+  --warm-ink-secondary: oklch(0.38 0.03 248);
+  --warm-ink-muted: oklch(0.53 0.02 248);
 
-  /* ── Warm Neutral Scale (hue 65-80) ── */
-  --warm-neutral-50: oklch(0.985 0.003 70);
-  --warm-neutral-100: oklch(0.97 0.004 70);
-  --warm-neutral-200: oklch(0.92 0.005 70);
-  --warm-neutral-300: oklch(0.87 0.008 65);
-  --warm-neutral-400: oklch(0.72 0.01 60);
-  --warm-neutral-500: oklch(0.55 0.008 60);
-  --warm-neutral-600: oklch(0.40 0.012 55);
-  --warm-neutral-700: oklch(0.30 0.01 55);
-  --warm-neutral-800: oklch(0.22 0.01 55);
-  --warm-neutral-900: oklch(0.16 0.01 55);
+  /* ── Neutral Scale (blue-neutral) ── */
+  --warm-neutral-50: oklch(0.99 0.005 246);
+  --warm-neutral-100: oklch(0.97 0.008 246);
+  --warm-neutral-200: oklch(0.93 0.012 247);
+  --warm-neutral-300: oklch(0.86 0.016 247);
+  --warm-neutral-400: oklch(0.72 0.02 248);
+  --warm-neutral-500: oklch(0.58 0.02 248);
+  --warm-neutral-600: oklch(0.46 0.022 248);
+  --warm-neutral-700: oklch(0.37 0.024 248);
+  --warm-neutral-800: oklch(0.30 0.026 248);
+  --warm-neutral-900: oklch(0.24 0.03 248);
 
-  /* ── Warm Borders (hue 65) ── */
-  --warm-border: oklch(0.87 0.008 65);
-  --warm-border-subtle: oklch(0.92 0.005 70);
-  --warm-border-strong: oklch(0.75 0.012 60);
+  /* ── Borders ── */
+  --warm-border: oklch(0.84 0.016 247);
+  --warm-border-subtle: oklch(0.90 0.012 247);
+  --warm-border-strong: oklch(0.66 0.03 247);
 
-  /* ── Status Colors ── */
-  --status-success: oklch(0.65 0.15 155);
-  --status-warning: oklch(0.75 0.15 85);
-  --status-danger: oklch(0.60 0.20 25);
+  /* ── Status Colors (distinct but calm) ── */
+  --status-success: oklch(0.62 0.12 156);
+  --status-warning: oklch(0.72 0.12 88);
+  --status-danger: oklch(0.62 0.16 26);
+  --status-info: oklch(0.62 0.11 226);
 
-  /* ── Shadows (warm hue) ── */
-  --shadow-warm-xs: 0 1px 2px oklch(0.12 0.01 55 / 0.06);
-  --shadow-warm-sm: 0 1px 3px oklch(0.12 0.01 55 / 0.08), 0 4px 8px -2px oklch(0.12 0.01 55 / 0.04);
-  --shadow-warm-md: 0 2px 6px oklch(0.12 0.01 55 / 0.06), 0 8px 24px -4px oklch(0.12 0.01 55 / 0.08);
-  --shadow-warm-lg: 0 4px 12px oklch(0.12 0.01 55 / 0.05), 0 16px 40px -8px oklch(0.12 0.01 55 / 0.1);
-  --shadow-brass-glow: 0 0 20px -4px oklch(0.68 0.13 72 / 0.25), 0 0 40px -8px oklch(0.68 0.13 72 / 0.12);
+  /* ── Shadows (cool-neutral) ── */
+  --shadow-warm-xs: 0 1px 2px oklch(0.24 0.03 248 / 0.07);
+  --shadow-warm-sm: 0 1px 3px oklch(0.24 0.03 248 / 0.1),
+    0 4px 10px -3px oklch(0.24 0.03 248 / 0.06);
+  --shadow-warm-md: 0 2px 6px oklch(0.24 0.03 248 / 0.1),
+    0 10px 24px -6px oklch(0.24 0.03 248 / 0.12);
+  --shadow-warm-lg: 0 4px 12px oklch(0.24 0.03 248 / 0.1),
+    0 18px 40px -10px oklch(0.24 0.03 248 / 0.15);
+  --shadow-brass-glow: 0 0 24px -4px oklch(0.63 0.165 246 / 0.32),
+    0 0 56px -10px oklch(0.63 0.165 246 / 0.2);
 
   /* ── Transitions ── */
   --brand-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);

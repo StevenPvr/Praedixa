@@ -2,7 +2,7 @@
 
 **Date**: 2026-02-08
 **Analyst**: prover (Security Test Gap Analyst)
-**Scope**: Full codebase — `apps/api/tests/security/`, `apps/webapp/lib/security/`, `apps/webapp/lib/auth/`
+**Scope**: Full codebase — `app-api/tests/security/`, `app-webapp/lib/security/`, `app-webapp/lib/auth/`
 
 ## Executive Summary
 
@@ -172,7 +172,7 @@ None. All P0 gaps are now covered by tests that PASS.
 
 ### P2 (Medium — Backlog)
 
-3. **Tighten `/login` route matching** in `apps/webapp/lib/auth/middleware.ts`. Change `startsWith("/login")` to an exact match or regex `^/login(\?|$)` to prevent future route collisions.
+3. **Tighten `/login` route matching** in `app-webapp/lib/auth/middleware.ts`. Change `startsWith("/login")` to an exact match or regex `^/login(\?|$)` to prevent future route collisions.
 
 4. **Add Content-Security-Policy-Report-Only** header in staging environment to catch CSP violations before they block legitimate resources in production.
 
@@ -186,13 +186,13 @@ All tests pass as of 2026-02-08:
 
 ```
 # Backend (140 passed, 2 xfailed)
-cd apps/api && uv run pytest tests/security/test_rls_enforcement.py \
+cd app-api && uv run pytest tests/security/test_rls_enforcement.py \
   tests/security/test_jwt_algorithm_confusion.py \
   tests/security/test_rate_limit_bypass.py \
   tests/security/test_rgpd_bypass.py \
   tests/security/test_medical_masking_completeness.py --no-cov -q
 
 # Frontend (34 passed)
-pnpm vitest run apps/webapp/lib/security/__tests__/csp-security.test.ts \
-  apps/webapp/lib/auth/__tests__/middleware-security.test.ts --no-coverage
+pnpm vitest run app-webapp/lib/security/__tests__/csp-security.test.ts \
+  app-webapp/lib/auth/__tests__/middleware-security.test.ts --no-coverage
 ```

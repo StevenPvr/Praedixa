@@ -66,7 +66,15 @@ describe("useLatestForecasts", () => {
   it("encodes special characters in dimension query", () => {
     renderHook(() => useLatestForecasts("human & ops"));
     expect(mockUseApiGet).toHaveBeenCalledWith(
-      "/api/v1/live/forecasts/latest/daily?dimension=human%20%26%20ops",
+      "/api/v1/live/forecasts/latest/daily?dimension=human+%26+ops",
+      { pollInterval: 10000 },
+    );
+  });
+
+  it("adds site_id when provided", () => {
+    renderHook(() => useLatestForecasts("human", "site_a"));
+    expect(mockUseApiGet).toHaveBeenCalledWith(
+      "/api/v1/live/forecasts/latest/daily?dimension=human&site_id=site_a",
       { pollInterval: 10000 },
     );
   });

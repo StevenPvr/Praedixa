@@ -130,36 +130,34 @@ export default function VueClientPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-serif text-lg font-semibold text-neutral-900">
-        Vue client
-      </h2>
+      <h2 className="font-serif text-lg font-semibold text-ink">Vue client</h2>
 
       {/* Organization Info */}
       <Card className="rounded-2xl shadow-soft">
         <CardContent className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
           <div className="flex items-start gap-3">
-            <Building2 className="mt-0.5 h-4 w-4 text-neutral-400" />
+            <Building2 className="mt-0.5 h-4 w-4 text-ink-placeholder" />
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+              <p className="text-xs font-medium uppercase tracking-wider text-ink-placeholder">
                 Organisation
               </p>
-              <p className="text-sm font-medium text-neutral-900">{org.name}</p>
-              <p className="text-xs text-neutral-500">{org.slug}</p>
+              <p className="text-sm font-medium text-ink">{org.name}</p>
+              <p className="text-xs text-ink-tertiary">{org.slug}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <Mail className="mt-0.5 h-4 w-4 text-neutral-400" />
+            <Mail className="mt-0.5 h-4 w-4 text-ink-placeholder" />
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+              <p className="text-xs font-medium uppercase tracking-wider text-ink-placeholder">
                 Contact
               </p>
-              <p className="text-sm text-neutral-700">{org.contactEmail}</p>
+              <p className="text-sm text-ink-secondary">{org.contactEmail}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <Activity className="mt-0.5 h-4 w-4 text-neutral-400" />
+            <Activity className="mt-0.5 h-4 w-4 text-ink-placeholder" />
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+              <p className="text-xs font-medium uppercase tracking-wider text-ink-placeholder">
                 Statut / Plan
               </p>
               <div className="mt-1 flex items-center gap-2">
@@ -170,34 +168,34 @@ export default function VueClientPage() {
           </div>
           {org.sector && (
             <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 h-4 w-4 text-neutral-400" />
+              <MapPin className="mt-0.5 h-4 w-4 text-ink-placeholder" />
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+                <p className="text-xs font-medium uppercase tracking-wider text-ink-placeholder">
                   Secteur
                 </p>
-                <p className="text-sm text-neutral-700">{org.sector}</p>
+                <p className="text-sm text-ink-secondary">{org.sector}</p>
               </div>
             </div>
           )}
           {org.siteCount != null && (
             <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 h-4 w-4 text-neutral-400" />
+              <MapPin className="mt-0.5 h-4 w-4 text-ink-placeholder" />
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+                <p className="text-xs font-medium uppercase tracking-wider text-ink-placeholder">
                   Sites
                 </p>
-                <p className="text-sm text-neutral-700">{org.siteCount}</p>
+                <p className="text-sm text-ink-secondary">{org.siteCount}</p>
               </div>
             </div>
           )}
           {org.userCount != null && (
             <div className="flex items-start gap-3">
-              <Users className="mt-0.5 h-4 w-4 text-neutral-400" />
+              <Users className="mt-0.5 h-4 w-4 text-ink-placeholder" />
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+                <p className="text-xs font-medium uppercase tracking-wider text-ink-placeholder">
                   Utilisateurs
                 </p>
-                <p className="text-sm text-neutral-700">{org.userCount}</p>
+                <p className="text-sm text-ink-secondary">{org.userCount}</p>
               </div>
             </div>
           )}
@@ -206,7 +204,7 @@ export default function VueClientPage() {
 
       {/* Mirror KPIs */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-neutral-700">
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
           Indicateurs cles
         </h3>
         {mirrorLoading ? (
@@ -216,7 +214,7 @@ export default function VueClientPage() {
             <SkeletonCard />
           </div>
         ) : mirrorError ? (
-          <p className="text-sm text-neutral-500">{mirrorError}</p>
+          <p className="text-sm text-ink-tertiary">{mirrorError}</p>
         ) : mirror ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <StatCard
@@ -245,18 +243,18 @@ export default function VueClientPage() {
 
       {/* Billing Summary */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-neutral-700">
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
           Facturation
         </h3>
         {billingLoading ? (
           <SkeletonCard />
         ) : billingError ? (
-          <p className="text-sm text-neutral-500">{billingError}</p>
+          <p className="text-sm text-ink-tertiary">{billingError}</p>
         ) : billing ? (
           <Card className="rounded-2xl shadow-soft">
             <CardContent className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+                <p className="text-xs font-medium uppercase tracking-wider text-ink-placeholder">
                   Plan
                 </p>
                 <div className="mt-1">
@@ -264,29 +262,29 @@ export default function VueClientPage() {
                 </div>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+                <p className="text-xs font-medium uppercase tracking-wider text-ink-placeholder">
                   Cycle
                 </p>
-                <p className="mt-1 text-sm text-neutral-700">
+                <p className="mt-1 text-sm text-ink-secondary">
                   {billing.billingCycle ?? "-"}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+                <p className="text-xs font-medium uppercase tracking-wider text-ink-placeholder">
                   <CreditCard className="mr-1 inline h-3 w-3" />
                   Montant mensuel
                 </p>
-                <p className="mt-1 text-sm text-neutral-700">
+                <p className="mt-1 text-sm text-ink-secondary">
                   {billing.monthlyAmount != null
                     ? `${billing.monthlyAmount} EUR`
                     : "-"}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+                <p className="text-xs font-medium uppercase tracking-wider text-ink-placeholder">
                   Prochaine echeance
                 </p>
-                <p className="mt-1 text-sm text-neutral-700">
+                <p className="mt-1 text-sm text-ink-secondary">
                   {billing.nextBillingDate ?? "-"}
                 </p>
               </div>
@@ -297,7 +295,7 @@ export default function VueClientPage() {
 
       {/* Quick Actions */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-neutral-700">
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
           Actions rapides
         </h3>
         <div className="flex flex-wrap gap-3">

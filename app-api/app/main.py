@@ -25,6 +25,7 @@ from app.routers import (
     admin_cost_params,
     admin_data,
     admin_decisions_enhanced,
+    admin_models,
     admin_monitoring,
     admin_onboarding,
     admin_operational,
@@ -35,6 +36,7 @@ from app.routers import (
     alerts,
     arbitrage,
     canonical,
+    contact_requests,
     conversations,
     cost_parameters,
     coverage_alerts,
@@ -56,7 +58,6 @@ from app.routers import (
 )
 
 logger = structlog.get_logger()
-_PLACEHOLDER_SUPABASE_URLS = {"", "https://your-project.supabase.co"}
 
 
 def _is_mock_forecast_enabled() -> bool:
@@ -112,16 +113,15 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
         ),
     )
     logger.info("Starting Praedixa API", version=settings.APP_VERSION)
-    _placeholder_secrets = {"", "your-supabase-jwt-secret-here"}
-    if settings.SUPABASE_JWT_SECRET in _placeholder_secrets:  # pragma: no cover
+    has_configured_auth_provider = bool(
+        settings.AUTH_JWKS_URL.strip() or settings.AUTH_ISSUER_URL.strip()
+    )
+    has_dev_fallback = settings.ALLOW_DEV_ISSUER_FALLBACK is True
+    if not has_configured_auth_provider and not has_dev_fallback:  # pragma: no cover
         logger.warning(
-            "SUPABASE_JWT_SECRET appears unset/placeholder; authenticated "
-            "endpoints will return 401 until configured"
-        )
-    if settings.SUPABASE_URL.strip() in _PLACEHOLDER_SUPABASE_URLS:  # pragma: no cover
-        logger.warning(
-            "SUPABASE_URL appears unset/placeholder; RS256 JWT verification "
-            "will fail unless issuer fallback is available (development only)"
+            "No auth provider configured (AUTH_JWKS_URL and AUTH_ISSUER_URL missing, "
+            "and ALLOW_DEV_ISSUER_FALLBACK disabled). "
+            "Authenticated endpoints will return 401"
         )
     if settings.DEBUG:  # pragma: no cover
         await _auto_seed_dev()
@@ -204,6 +204,7 @@ app.include_router(transforms.router)
 app.include_router(canonical.router)
 app.include_router(cost_parameters.router)
 app.include_router(coverage_alerts.router)
+app.include_router(contact_requests.public_router)
 app.include_router(decision_workspace.router)
 app.include_router(scenarios.router)
 app.include_router(operational_decisions.router)
@@ -231,6 +232,8 @@ admin_backoffice.include_router(admin_decisions_enhanced.router)
 admin_backoffice.include_router(admin_proof_packs.router)
 admin_backoffice.include_router(admin_cost_params.router)
 admin_backoffice.include_router(admin_conversations.router)
+admin_backoffice.include_router(contact_requests.admin_router)
+admin_backoffice.include_router(admin_models.router)
 
 
 app.include_router(admin_backoffice)

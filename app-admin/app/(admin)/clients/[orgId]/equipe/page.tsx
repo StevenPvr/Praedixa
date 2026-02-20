@@ -27,12 +27,12 @@ interface UserItem {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  super_admin: "bg-violet-100 text-violet-700",
-  org_admin: "bg-blue-100 text-blue-700",
-  hr_manager: "bg-amber-100 text-amber-700",
-  manager: "bg-emerald-100 text-emerald-700",
-  employee: "bg-gray-100 text-gray-600",
-  viewer: "bg-gray-100 text-gray-500",
+  super_admin: "bg-primary-100 text-primary-700",
+  org_admin: "bg-info-light text-info-text",
+  hr_manager: "bg-primary-100 text-primary-700",
+  manager: "bg-success-light text-success-text",
+  employee: "bg-surface-sunken text-ink-secondary",
+  viewer: "bg-surface-sunken text-ink-tertiary",
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -82,8 +82,8 @@ export default function EquipePage() {
       label: "Nom",
       render: (row) => (
         <div>
-          <p className="font-medium text-neutral-900">{row.fullName ?? "-"}</p>
-          <p className="text-xs text-neutral-500">{row.email}</p>
+          <p className="font-medium text-ink">{row.fullName ?? "-"}</p>
+          <p className="text-xs text-ink-tertiary">{row.email}</p>
         </div>
       ),
     },
@@ -92,7 +92,7 @@ export default function EquipePage() {
       label: "Role",
       render: (row) => (
         <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_COLORS[row.role] ?? "bg-gray-100 text-gray-600"}`}
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_COLORS[row.role] ?? "bg-surface-sunken text-ink-secondary"}`}
         >
           {ROLE_LABELS[row.role] ?? row.role}
         </span>
@@ -105,10 +105,10 @@ export default function EquipePage() {
         <span
           className={
             row.status === "active"
-              ? "text-green-600"
+              ? "text-success"
               : row.status === "deactivated"
-                ? "text-red-500"
-                : "text-neutral-500"
+                ? "text-danger"
+                : "text-ink-tertiary"
           }
         >
           {row.status === "active"
@@ -128,7 +128,7 @@ export default function EquipePage() {
       key: "lastLoginAt",
       label: "Derniere connexion",
       render: (row) => (
-        <span className="text-xs text-neutral-500">
+        <span className="text-xs text-ink-tertiary">
           {row.lastLoginAt
             ? new Date(row.lastLoginAt).toLocaleDateString("fr-FR")
             : "Jamais"}
@@ -140,9 +140,7 @@ export default function EquipePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-serif text-lg font-semibold text-neutral-900">
-          Equipe
-        </h2>
+        <h2 className="font-serif text-lg font-semibold text-ink">Equipe</h2>
         <Button
           variant="outline"
           size="sm"
@@ -158,7 +156,7 @@ export default function EquipePage() {
         <Card className="rounded-2xl shadow-soft">
           <CardContent className="flex flex-wrap items-end gap-3 p-4">
             <div className="flex-1">
-              <label className="mb-1 block text-xs font-medium text-neutral-500">
+              <label className="mb-1 block text-xs font-medium text-ink-tertiary">
                 Email
               </label>
               <input
@@ -166,17 +164,17 @@ export default function EquipePage() {
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="nom@entreprise.com"
-                className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="w-full rounded-lg border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-neutral-500">
+              <label className="mb-1 block text-xs font-medium text-ink-tertiary">
                 Role
               </label>
               <select
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value)}
-                className="rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="rounded-lg border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <option value="viewer">Lecteur</option>
                 <option value="employee">Employe</option>

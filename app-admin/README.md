@@ -2,10 +2,10 @@
 
 Interface d'administration reservee a l'equipe Praedixa. Gestion multi-tenant des organisations clientes : supervision des donnees, previsions, alertes, facturation, onboarding, et messagerie -- avec une vue par client et par site.
 
-**Stack** : Next.js 15 / React 19 / Supabase SSR / Tailwind CSS (OKLCH) / Vitest
+**Stack** : Next.js 15 / React 19 / OIDC (PKCE) / Tailwind CSS (OKLCH) / Vitest
 **Port** : `3002`
 **Package** : `@praedixa/admin`
-**Acces** : role `super_admin` requis dans `app_metadata.role` (Supabase)
+**Acces** : role `super_admin` requis dans les claims token OIDC
 
 ---
 
@@ -14,7 +14,7 @@ Interface d'administration reservee a l'equipe Praedixa. Gestion multi-tenant de
 ```bash
 # 1. Variables d'environnement
 cp app-admin/.env.local.example app-admin/.env.local
-# Remplir NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_API_URL
+# Remplir NEXT_PUBLIC_API_URL, AUTH_OIDC_ISSUER_URL, AUTH_OIDC_CLIENT_ID, AUTH_SESSION_SECRET
 
 # 2. Installer les dependances (depuis la racine du monorepo)
 pnpm install
@@ -23,15 +23,16 @@ pnpm install
 pnpm dev:admin   # http://localhost:3002
 ```
 
-> **Prerequis** : un utilisateur Supabase avec `app_metadata.role = "super_admin"` est necessaire. Cela se configure via l'API Supabase Admin ou le dashboard Supabase (Authentication > Users > Edit > `app_metadata`). L'API backend doit tourner sur le port 8000.
+> **Prerequis** : un utilisateur IdP avec role `super_admin` est necessaire. L'API backend doit tourner sur le port 8000.
 
 ### Variables d'environnement
 
-| Variable                        | Description                  | Exemple                   |
-| ------------------------------- | ---------------------------- | ------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | URL du projet Supabase       | `https://xxx.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Cle publique (anon) Supabase | `eyJhbGciOi...`           |
-| `NEXT_PUBLIC_API_URL`           | URL de l'API backend         | `http://localhost:8000`   |
+| Variable               | Description                 | Exemple                                     |
+| ---------------------- | --------------------------- | ------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`  | URL de l'API backend        | `http://localhost:8000`                     |
+| `AUTH_OIDC_ISSUER_URL` | URL realm OIDC (Keycloak)   | `https://auth.praedixa.com/realms/praedixa` |
+| `AUTH_OIDC_CLIENT_ID`  | Client ID OIDC admin        | `praedixa-admin`                            |
+| `AUTH_SESSION_SECRET`  | Secret de signature session | `<long random secret>`                      |
 
 ---
 
@@ -221,16 +222,15 @@ Le middleware (`middleware.ts`) fonctionne comme celui du webapp avec une differ
 
 ```typescript
 // lib/auth/middleware.ts -- extrait
-if (user && !isLoginRoute && !isAuthRoute) {
-  const role = user.app_metadata?.role;
-  if (role !== "super_admin") {
+if (session && !isLoginRoute && !isAuthRoute) {
+  if (session.role !== "super_admin") {
     const unauthorizedUrl = new URL("/unauthorized", request.url);
     return NextResponse.redirect(unauthorizedUrl);
   }
 }
 ```
 
-Le role est lu depuis `app_metadata.role`, un champ que **seule l'API Supabase Admin peut modifier** -- l'utilisateur ne peut pas le changer lui-meme.
+Le role est lu depuis les claims du token OIDC (`realm_access` / `resource_access` / `app_metadata` selon l'IdP) puis normalise cote serveur.
 
 ### CSP nonce-based
 
@@ -286,6 +286,25 @@ Les tests suivent le pattern de **co-location** (`__tests__/` adjacent au fichie
 
 ---
 
+## Deploiement
+
+L'application admin est deployee sur **Scaleway Serverless Containers (fr-par)** via script local (sans GitHub Actions) :
+
+```bash
+pnpm run scw:bootstrap:frontends      # Bootstrap infra (idempotent)
+pnpm run scw:deploy:admin:staging     # Deploy staging
+pnpm run scw:deploy:admin:prod        # Deploy production
+```
+
+Le conteneur utilise `app-admin/Dockerfile.scaleway`.
+
+Note DNS:
+
+- Le routage public est actuellement en mode transitoire (delegation NS Cloudflare).
+- `admin.praedixa.com` et `staging-admin.praedixa.com` resolvent deja vers les endpoints Scaleway.
+
+---
+
 ## Structure des fichiers
 
 ```
@@ -332,9 +351,9 @@ app-admin/
   lib/
     api/client.ts               # apiGet, apiPost, apiPatch, apiDelete, ApiError
     api/endpoints.ts            # ADMIN_ENDPOINTS (40+ endpoints)
-    auth/client.ts              # Client Supabase navigateur (singleton)
+    auth/client.ts              # Client auth navigateur (session endpoint)
     auth/middleware.ts           # Validation session + role super_admin
-    auth/server.ts              # Client Supabase serveur
+    auth/server.ts              # Lecture session serveur
     security/csp.ts             # Nonce CSP + header builder
 ```
 

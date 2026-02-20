@@ -1,119 +1,64 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-import {
-  getSupabaseBrowserClient,
-  getValidAccessToken,
-} from "@/lib/auth/client";
+function toLoginErrorMessage(error: string | null): string | null {
+  if (!error) return null;
+  if (error === "oidc_config_missing") {
+    return "Configuration OIDC manquante en local. Renseignez AUTH_OIDC_ISSUER_URL, AUTH_OIDC_CLIENT_ID et AUTH_SESSION_SECRET dans app-admin/.env.local.";
+  }
+  if (error === "oidc_provider_untrusted") {
+    return "Le fournisseur OIDC est non fiable ou mal configure (TLS/certificat/endpoints).";
+  }
+  return `La connexion a echoue (${error}). Veuillez reessayer.`;
+}
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const isReauth = searchParams.get("reauth") === "1";
+  const error = searchParams.get("error");
+  const errorMessage = toLoginErrorMessage(error);
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  const next = searchParams.get("next") ?? "/";
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
 
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) {
-        setError(authError.message);
-        setLoading(false);
-        return;
-      }
-
-      const token = await getValidAccessToken({ minTtlSeconds: 0 });
-      if (!token) {
-        setError("Session invalide. Veuillez reessayer.");
-        setLoading(false);
-        return;
-      }
-
-      // Hard navigation ensures the server middleware sees fresh session cookies
-      // and the page fully remounts (avoids stale loading state on redirect back).
-      window.location.href = "/";
-    } catch {
-      setError("Erreur de connexion. Veuillez reessayer.");
-      setLoading(false);
+  function handleLogin(): void {
+    const loginUrl = new URL("/auth/login", window.location.origin);
+    loginUrl.searchParams.set("next", safeNext);
+    if (isReauth) {
+      loginUrl.searchParams.set("prompt", "login");
     }
+    window.location.href = loginUrl.toString();
   }
 
   return (
     <>
-      <p className="mb-6 text-center text-sm text-gray-500">
+      <p className="mb-6 text-center text-sm text-ink-tertiary">
         Espace administration
       </p>
 
-      <form onSubmit={handleLogin} className="space-y-4">
+      <div className="space-y-4">
         {isReauth && (
-          <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+          <div className="rounded-md bg-primary-50 p-3 text-sm text-primary-700">
             Session expiree ou droits insuffisants. Veuillez vous reconnecter.
           </div>
         )}
 
-        {error && (
+        {errorMessage && (
           <div className="rounded-md bg-danger-50 p-3 text-sm text-danger-700">
-            {error}
+            {errorMessage}
           </div>
         )}
 
-        <div>
-          <label
-            htmlFor="email"
-            className="mb-1 block text-sm font-medium text-charcoal"
-          >
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-            className="min-h-[44px] w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-charcoal placeholder:text-gray-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-            placeholder="admin@praedixa.com"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="password"
-            className="mb-1 block text-sm font-medium text-charcoal"
-          >
-            Mot de passe
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-            className="min-h-[44px] w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-charcoal placeholder:text-gray-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-          />
-        </div>
-
         <button
-          type="submit"
-          disabled={loading}
-          className="min-h-[44px] w-full rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-600 disabled:opacity-50"
+          type="button"
+          onClick={handleLogin}
+          className="min-h-[44px] w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-600"
         >
-          {loading ? "Connexion..." : "Se connecter"}
+          Continuer vers la connexion
         </button>
-      </form>
+      </div>
     </>
   );
 }

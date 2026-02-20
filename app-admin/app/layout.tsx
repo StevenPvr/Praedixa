@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { ToastProvider } from "@/components/toast-provider";
+import { ThemeProvider } from "@/components/theme-provider";
+import "@praedixa/ui/brand-tokens.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,9 +16,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <ToastProvider>{children}</ToastProvider>
+        <ThemeProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

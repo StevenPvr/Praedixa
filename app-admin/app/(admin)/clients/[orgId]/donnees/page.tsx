@@ -37,10 +37,10 @@ const INGESTION_COLUMNS: DataTableColumn<IngestionLogEntry>[] = [
       <span
         className={
           row.status === "completed"
-            ? "text-green-600"
+            ? "text-success"
             : row.status === "failed"
-              ? "text-red-500"
-              : "text-amber-500"
+              ? "text-danger"
+              : "text-primary"
         }
       >
         {row.status}
@@ -58,7 +58,7 @@ const INGESTION_COLUMNS: DataTableColumn<IngestionLogEntry>[] = [
     label: "Rejets",
     align: "right",
     render: (row) => (
-      <span className={row.rowsRejected ? "text-red-500" : ""}>
+      <span className={row.rowsRejected ? "text-danger" : ""}>
         {row.rowsRejected ?? 0}
       </span>
     ),
@@ -67,7 +67,7 @@ const INGESTION_COLUMNS: DataTableColumn<IngestionLogEntry>[] = [
     key: "createdAt",
     label: "Date",
     render: (row) => (
-      <span className="text-xs text-neutral-500">
+      <span className="text-xs text-ink-tertiary">
         {new Date(row.createdAt).toLocaleDateString("fr-FR")}
       </span>
     ),
@@ -175,18 +175,16 @@ export default function DonneesPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-serif text-lg font-semibold text-neutral-900">
-        Donnees
-      </h2>
+      <h2 className="font-serif text-lg font-semibold text-ink">Donnees</h2>
 
       <div>
-        <h3 className="mb-3 text-sm font-medium text-neutral-700">
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
           Rapport imputation & outliers (admin)
         </h3>
         {medallionLoading ? (
           <SkeletonCard />
         ) : medallionError ? (
-          <p className="text-sm text-neutral-500">{medallionError}</p>
+          <p className="text-sm text-ink-tertiary">{medallionError}</p>
         ) : medallionReport ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
@@ -230,7 +228,7 @@ export default function DonneesPage() {
 
       {/* Data Quality */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-neutral-700">
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
           Qualite des donnees
         </h3>
         {qualityLoading ? (
@@ -241,7 +239,7 @@ export default function DonneesPage() {
             <SkeletonCard />
           </div>
         ) : qualityError ? (
-          <p className="text-sm text-neutral-500">{qualityError}</p>
+          <p className="text-sm text-ink-tertiary">{qualityError}</p>
         ) : quality ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
@@ -279,7 +277,7 @@ export default function DonneesPage() {
 
       {/* Canonical Data */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-neutral-700">
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
           Donnees consolidees
         </h3>
         {canonicalLoading ? (
@@ -301,7 +299,7 @@ export default function DonneesPage() {
 
       {/* Ingestion Logs */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-neutral-700">
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
           Journal d&apos;ingestion
         </h3>
         {ingestionLoading ? (

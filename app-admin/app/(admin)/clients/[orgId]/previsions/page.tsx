@@ -22,10 +22,10 @@ interface ScenarioItem {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  completed: "text-green-600",
-  running: "text-amber-500",
-  pending: "text-neutral-500",
-  failed: "text-red-500",
+  completed: "text-success",
+  running: "text-primary",
+  pending: "text-ink-tertiary",
+  failed: "text-danger",
 };
 
 export default function PrevisionsPage() {
@@ -42,16 +42,14 @@ export default function PrevisionsPage() {
     {
       key: "name",
       label: "Nom",
-      render: (row) => (
-        <span className="font-medium text-neutral-900">{row.name}</span>
-      ),
+      render: (row) => <span className="font-medium text-ink">{row.name}</span>,
     },
     { key: "type", label: "Type" },
     {
       key: "status",
       label: "Statut",
       render: (row) => (
-        <span className={STATUS_COLORS[row.status] ?? "text-neutral-500"}>
+        <span className={STATUS_COLORS[row.status] ?? "text-ink-tertiary"}>
           {row.status}
         </span>
       ),
@@ -60,7 +58,7 @@ export default function PrevisionsPage() {
       key: "parameters",
       label: "Parametres",
       render: (row) => (
-        <span className="text-xs text-neutral-500">
+        <span className="text-xs text-ink-tertiary">
           {row.parameters ? Object.keys(row.parameters).length : 0} param.
         </span>
       ),
@@ -69,7 +67,7 @@ export default function PrevisionsPage() {
       key: "createdAt",
       label: "Cree le",
       render: (row) => (
-        <span className="text-xs text-neutral-500">
+        <span className="text-xs text-ink-tertiary">
           {new Date(row.createdAt).toLocaleDateString("fr-FR")}
         </span>
       ),
@@ -78,13 +76,13 @@ export default function PrevisionsPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-serif text-lg font-semibold text-neutral-900">
-        Previsions
-      </h2>
+      <h2 className="font-serif text-lg font-semibold text-ink">Previsions</h2>
 
       {/* Scenarios */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-neutral-700">Scenarios</h3>
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
+          Scenarios
+        </h3>
         {scenariosLoading ? (
           <SkeletonCard />
         ) : scenariosError ? (

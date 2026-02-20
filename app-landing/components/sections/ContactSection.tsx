@@ -4,6 +4,9 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { sectionReveal, viewportOnce } from "../../lib/animations/variants";
 import { ArrowRightIcon, MailIcon } from "../icons";
+import { TextReveal } from "../cinema/TextReveal";
+import { MagneticButton } from "../cinema/MagneticButton";
+import { CheckDraw } from "../cinema/CheckDraw";
 import type { Dictionary } from "../../lib/i18n/types";
 import type { Locale } from "../../lib/i18n/config";
 import { localizedSlugs } from "../../lib/i18n/config";
@@ -19,40 +22,86 @@ export function ContactSection({ dict, locale }: ContactSectionProps) {
   const contactHref = `/${locale}/${localizedSlugs.contact[locale]}`;
 
   return (
-    <section id="contact" className="section-spacing">
+    <section
+      id="contact"
+      className="section-dark section-spacing"
+      style={{
+        background:
+          "linear-gradient(180deg, oklch(0.14 0.025 247) 0%, oklch(0.10 0.018 248) 100%)",
+      }}
+    >
       <div className="section-shell">
-        <motion.div
-          className="mx-auto max-w-2xl text-center"
-          variants={sectionReveal}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportOnce}
-        >
-          <p className="section-kicker justify-center">{contact.kicker}</p>
-          <h2 className="section-title mt-4">{contact.heading}</h2>
-          <p className="section-lead mx-auto">{contact.subheading}</p>
+        <div className="mx-auto max-w-2xl text-center">
+          <motion.p
+            className="section-kicker justify-center"
+            variants={sectionReveal}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
+            {contact.kicker}
+          </motion.p>
 
-          {/* Trust items */}
+          <TextReveal
+            text={contact.heading}
+            className="section-title mt-4"
+            as="h2"
+            staggerMs={40}
+          />
+
+          <motion.p
+            className="section-lead mx-auto mt-4"
+            variants={sectionReveal}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
+            {contact.subheading}
+          </motion.p>
+
+          {/* Trust items with CheckDraw */}
           <ul className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2">
-            {contact.trustItems.map((item) => (
-              <li key={item} className="trust-badge">
+            {contact.trustItems.map((item, i) => (
+              <motion.li
+                key={item}
+                className="flex items-center gap-2 text-sm font-medium text-white/80"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.3 + i * 0.1,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+              >
+                <CheckDraw className="h-3.5 w-3.5 text-brass-400" />
                 {item}
-              </li>
+              </motion.li>
             ))}
           </ul>
 
           {/* CTAs */}
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href={pilotHref} className="btn-primary">
+          <motion.div
+            className="mt-8 flex flex-wrap justify-center gap-3"
+            variants={sectionReveal}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
+            <MagneticButton
+              as="a"
+              href={pilotHref}
+              className="btn-primary px-10 py-4 text-base animate-glow-pulse"
+            >
               {contact.ctaPrimary}
               <ArrowRightIcon className="h-4 w-4" />
-            </Link>
-            <Link href={contactHref} className="btn-ghost">
+            </MagneticButton>
+            <Link href={contactHref} className="btn-ghost px-8 py-4">
               <MailIcon className="h-4 w-4" />
               {contact.ctaSecondary}
             </Link>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );

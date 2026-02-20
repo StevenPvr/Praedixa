@@ -38,6 +38,7 @@ import {
 import { useI18n } from "@/lib/i18n/provider";
 import { trackProductEvent } from "@/lib/product-events";
 import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
+import { useSiteScope } from "@/lib/site-scope";
 
 interface DecisionBody {
   coverageAlertId: string;
@@ -93,6 +94,7 @@ function sortQueueItems(items: DecisionQueueItem[]): DecisionQueueItem[] {
 
 export default function ActionsPage() {
   const { t } = useI18n();
+  const { appendSiteParam } = useSiteScope();
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [severityFilter, setSeverityFilter] = useState<
@@ -103,25 +105,36 @@ export default function ActionsPage() {
   const alertStartedAtRef = useRef<number | null>(null);
   const hasTrackedQueueOpenRef = useRef(false);
 
+  const liveAlertsUrl = useMemo(
+    () =>
+      appendSiteParam("/api/v1/live/coverage-alerts?status=open&page_size=200"),
+    [appendSiteParam],
+  );
+  const queueUrl = useMemo(
+    () =>
+      appendSiteParam(
+        "/api/v1/live/coverage-alerts/queue?status=open&limit=50",
+      ),
+    [appendSiteParam],
+  );
+
   const {
     data: liveAlerts,
     loading: liveLoading,
     error: liveError,
     refetch: refetchLiveAlerts,
-  } = useApiGet<CoverageAlert[]>(
-    "/api/v1/live/coverage-alerts?status=open&page_size=200",
-    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
-  );
+  } = useApiGet<CoverageAlert[]>(liveAlertsUrl, {
+    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
+  });
 
   const {
     data: queueData,
     loading: queueLoading,
     error: queueError,
     refetch: refetchQueue,
-  } = useApiGet<DecisionQueueItem[]>(
-    "/api/v1/live/coverage-alerts/queue?status=open&limit=50",
-    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
-  );
+  } = useApiGet<DecisionQueueItem[]>(queueUrl, {
+    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
+  });
 
   const queueMetaById = useMemo(() => {
     const map = new Map<string, DecisionQueueItem>();
@@ -408,7 +421,7 @@ export default function ActionsPage() {
           <AnimatedSection>
             {noAlerts ? (
               <EmptyState
-                icon={<CheckCircle className="h-6 w-6 text-green-500" />}
+                icon={<CheckCircle className="h-6 w-6 text-success" />}
                 title={t("actions.queueEmptyTitle")}
                 description={t("actions.queueEmptyDescription")}
               />
@@ -648,7 +661,7 @@ export default function ActionsPage() {
                           : t("actions.validate")}
                       </Button>
                       {submitError && (
-                        <p className="text-body-sm text-red-600">
+                        <p className="text-body-sm text-danger-text">
                           {submitError}
                         </p>
                       )}

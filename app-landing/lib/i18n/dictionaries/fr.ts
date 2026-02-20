@@ -2,13 +2,13 @@ import type { Dictionary } from "../types";
 
 export const fr: Dictionary = {
   meta: {
-    title: "Praedixa | Intelligence de couverture pour opérations multi-sites",
+    title: "Praedixa | Prévision d'effectifs et arbitrages multi-sites",
     description:
-      "Anticipez la sous-couverture, cadrez vos arbitrages économiques et produisez une preuve auditable de l'impact. SaaS pour COO multi-sites.",
+      "Anticipez les tensions d'effectifs multi-sites avec un pilote de prévision d'effectifs, puis étendez si besoin vers un socle décisionnel complet.",
     ogTitle:
-      "Praedixa | SaaS de couverture opérationnelle pour COO multi-sites",
+      "Praedixa | Pilote prévision effectifs pour opérations multi-sites",
     ogDescription:
-      "Anticipez vos tensions de couverture, cadrez vos arbitrages et rendez vos décisions auditables avec une méthodologie orientée impact.",
+      "Programme pilote sur 3 mois pour fiabiliser la prévision d'effectifs, comparer les options de couverture et sécuriser les décisions ops/finance.",
   },
 
   nav: {
@@ -19,39 +19,86 @@ export const fr: Dictionary = {
     security: "Sécurité",
     faq: "FAQ",
     contact: "Contact",
-    ctaPrimary: "Demander un pilote",
+    ctaPrimary: "Demander un pilote prévision effectifs",
     backToSite: "Retour au site",
   },
 
   hero: {
-    kicker: "SaaS pour COO multi-sites",
-    headline: "Anticipez les tensions de couverture",
-    headlineHighlight: "avant qu'elles ne coûtent cher.",
+    kicker: "Pilote prévision effectifs",
+    headline: "Anticipez vos tensions d'effectifs multi-sites",
+    headlineHighlight: "avec un pilote d'entrée cadré.",
     subtitle:
-      "Praedixa convertit la sous-couverture en décisions exécutables : signaux précoces, scénarios chiffrés, preuve d'impact défendable en comité.",
+      "Praedixa lance un pilote sur 3 mois pour fiabiliser la prévision d'effectifs, cadrer les arbitrages ops/finance et préparer, si besoin, une extension vers un socle décisionnel plus large.",
     bullets: [
       {
-        metric: "Horizon anticipé",
-        text: "d'anticipation avant les ruptures terrain",
+        metric: "3 mois",
+        text: "pour sécuriser la prévision d'effectifs",
       },
       {
-        metric: "Coût vs risque",
-        text: "scénarios comparables pour chaque arbitrage",
+        metric: "Mois 1",
+        text: "démarrage sur exports existants",
       },
       {
-        metric: "Traçable",
-        text: "décisions auditables pour CODIR, DAF et audit",
+        metric: "Décisions",
+        text: "arbitrages ops/finance tracés",
       },
     ],
-    ctaPrimary: "Demander un pilote",
+    ctaPrimary: "Demander un pilote prévision effectifs",
     ctaSecondary: "Voir le protocole du pilote",
-    ctaMeta: "Réponse rapide · NDA possible · Aucune obligation",
+    previewTitle: "Un aperçu de ce qui vous attend",
+    ctaMeta:
+      "NDA possible dès le premier échange · Démarrage possible sur un périmètre restreint",
     trustBadges: [
-      "Hébergement France",
       "Données agrégées uniquement",
       "NDA possible dès le premier échange",
-      "Framework ROI auditable",
+      "Démarrage possible sur un périmètre restreint",
+      "Hébergement 100 % Scaleway, 100 % français",
     ],
+  },
+
+  preview: {
+    kicker: "Un avant-goût",
+    heading: "L'interface Praedixa",
+    subheading:
+      "Découvrez comment l'intelligence de couverture se matérialise pour vos opérations.",
+    overlayTitle: "Découvrir la web app",
+    overlayBody:
+      "Explorez une démonstration interactive en données 100 % mock, sans engagement.",
+    overlayCta: "Découvrir la web app",
+    overlayBackCta: "Revenir à la vidéo",
+    loadingLabel: "Chargement de l'aperçu vidéo…",
+    liveBadge: "Praedixa Calibre",
+  },
+
+  demo: {
+    title: "Démo interactive Praedixa",
+    subtitle:
+      "Parcours produit en environnement de démonstration, alimenté uniquement par des données fictives.",
+    mockBanner:
+      "Environnement de démonstration — toutes les données sont fictives, aucune donnée client n'est utilisée.",
+    backToLanding: "Retour à la landing",
+    screenAriaLabel: "Démonstration interactive de l'interface Praedixa",
+    updatedAtLabel: "Dernière mise à jour mock",
+    loading: "Chargement des données mock…",
+    empty: "Aucune donnée mock disponible pour cet écran.",
+    error: "Impossible de charger cet écran de démonstration.",
+    retry: "Réessayer",
+    openAction: "Ouvrir",
+    nav: {
+      dashboard: "Dashboard",
+      forecasts: "Prévisions",
+      actions: "Actions",
+      datasets: "Données",
+      settings: "Paramètres",
+    },
+    sections: {
+      kpis: "Indicateurs clés",
+      alerts: "Alertes prioritaires",
+      forecastWindow: "Fenêtre de prévision (7 jours)",
+      decisions: "Décisions recommandées",
+      datasetsHealth: "Santé des datasets",
+      governance: "Cadre de gouvernance",
+    },
   },
 
   problem: {
@@ -141,37 +188,37 @@ export const fr: Dictionary = {
 
   howItWorks: {
     kicker: "Protocole",
-    heading: "Du cadrage au résultat en 4 étapes.",
+    heading: "Pilote prévision effectifs en 4 étapes.",
     subheading:
-      "Un processus structuré pour démontrer la valeur avant tout engagement.",
+      "Un déroulé sur 3 mois, avec initialisation sans intégration SI lourde et gouvernance explicite.",
     steps: [
       {
         number: "01",
         title: "Cadrage",
         subtitle: "Atelier de cadrage",
         description:
-          "Objectifs, KPI cibles, périmètre du pilote et critères de succès co-définis.",
+          "Objectifs de prévision d'effectifs, périmètre, rôles et critères de validation co-définis.",
       },
       {
         number: "02",
-        title: "Connexion data",
+        title: "Initialisation",
         subtitle: "Exports existants",
         description:
-          "CSV ou Excel de capacité, charge et absences. Lecture seule, données agrégées, zéro intégration SI.",
+          "Mois 1 : exports CSV/Excel (capacité, charge, absences), lecture seule et données agrégées. Sans intégration SI pour l'initialisation.",
       },
       {
         number: "03",
-        title: "Diagnostic",
-        subtitle: "Carte des risques",
+        title: "Construction",
+        subtitle: "Pipelines & calibration",
         description:
-          "Tensions identifiées, facteurs explicatifs, chiffrage du coût de non-action, playbook d'actions.",
+          "Construction des pipelines de prévision et calibration progressive selon vos données disponibles, avec comptes-rendus hebdomadaires.",
       },
       {
         number: "04",
-        title: "Pilote",
-        subtitle: "Mesure d'impact",
+        title: "Consolidation",
+        subtitle: "Gouvernance & suite",
         description:
-          "Boucle ROI sur vos KPI réels. Décision go/no-go basée sur des résultats mesurés, pas des promesses.",
+          "Stabilisation du pilote, documentation des arbitrages et options d'extension vers un socle décisionnel complet.",
       },
     ],
   },
@@ -261,19 +308,19 @@ export const fr: Dictionary = {
 
   security: {
     kicker: "Sécurité & IT",
-    heading: "Conçu pour passer la due diligence.",
+    heading: "Cadre sécurité et données pour la revue IT.",
     subheading:
-      "La sécurité et la conformité ne sont pas une note de bas de page. Elles sont au centre de l'architecture.",
+      "Les éléments présentés ci-dessous décrivent le périmètre actuel de mise en service et les informations partagées en phase de qualification.",
     tiles: [
       {
-        title: "Hébergement France",
+        title: "Hébergement 100 % Scaleway — Paris (France)",
         description:
-          "Infrastructure hébergée en France. Data residency contrôlée.",
+          "L'intégralité de la plateforme et des données est hébergée sur Scaleway, en France (Paris). Aucun sous-traitant hors souveraineté française.",
       },
       {
         title: "Données agrégées uniquement",
         description:
-          "Aucune prédiction individuelle. Lecture au niveau équipe et site. Privacy-by-design.",
+          "Aucune prédiction individuelle, aucun traitement nominatif. Lecture au niveau équipe et site uniquement.",
       },
       {
         title: "Chiffrement & accès",
@@ -281,84 +328,99 @@ export const fr: Dictionary = {
           "Chiffrement en transit et au repos. Contrôle d'accès par rôle (RBAC). Logs d'activité.",
       },
       {
-        title: "DPA & sous-traitants",
+        title: "Sous-traitants data principaux",
         description:
-          "Accord de traitement disponible. Liste des sous-traitants communiquée sur demande.",
+          "Scaleway — hébergement intégral de la plateforme et des données (serveurs Paris, France). 100 % français.",
       },
       {
-        title: "Lecture seule",
+        title: "Initialisation sans intégration SI lourde",
         description:
-          "Connexion en lecture seule sur vos exports. Aucune écriture dans vos systèmes.",
+          "Démarrage sur exports en lecture seule. Automatisation d'exports planifiés possible ensuite selon votre contexte.",
       },
       {
         title: "NDA & confidentialité",
         description:
-          "NDA signable dès le premier échange. Politique de rétention documentée.",
+          "NDA possible dès le premier échange. Politique de rétention en formalisation.",
       },
     ],
     compatibility: {
       title: "Compatible avec votre stack",
       description:
-        "Exports CSV/Excel depuis vos outils existants. Aucune intégration SI requise pour démarrer.",
+        "Exports CSV/Excel depuis vos outils existants pour l'initialisation, puis automatisation légère possible des exports planifiés.",
       tools: ["ERP", "SIRH", "Planning", "BI", "Excel"],
     },
     honesty:
-      "Nous n'avons pas encore de certification SOC 2 ou ISO 27001. Nos pratiques de sécurité sont documentées et auditables. La transparence fait partie du produit.",
+      "Pratiques de sécurité documentées sur demande. Hébergement intégral sur Scaleway — infrastructure 100 % française, serveurs à Paris.",
   },
 
   pilot: {
-    kicker: "Offre pilote",
-    heading: "Un pilote encadré pour prouver la valeur, pas la promettre.",
+    kicker: "Pilote prévision effectifs",
+    heading: "Un pilote d'entrée pour fiabiliser la prévision d'effectifs.",
     subheading:
-      "Cohorte fondatrice sélective. Chaque pilote est cadré pour produire une preuve de valeur mesurable.",
+      "Programme de 3 mois avec initialisation, calibration et gouvernance. Le périmètre peut rester ciblé sur la prévision d'effectifs puis s'étendre si nécessaire.",
+    statusLabels: ["Actif aujourd'hui", "En extension", "À venir"],
     included: {
-      title: "Ce que le pilote inclut",
+      title: "Ce que couvre le pilote prévision effectifs (3 mois)",
       items: [
-        "Atelier de cadrage (objectifs, KPI, périmètre)",
-        "Diagnostic couverture sur vos données réelles",
-        "Carte des risques avec facteurs explicatifs",
-        "Playbook d'actions chiffrées",
-        "Boucle de mesure d'impact (avant/après)",
-        "Rapport final avec recommandations",
+        "Mois 1 : initialisation et construction des pipelines sur vos exports",
+        "Mois 2 : calibration des lectures charge/capacité et des hypothèses",
+        "Mois 3 : stabilisation du pilote et recommandations opérationnelles",
+        "1 point hebdomadaire avec un référent opérationnel côté client",
+        "Plan de suite formalisé, avec extension optionnelle",
       ],
     },
     excluded: {
       title: "Ce qu'il n'inclut pas",
       items: [
+        "Engagement de résultat chiffré prédéfini",
         "Déploiement global multi-pays",
         "Développement custom illimité",
-        "Migration de données à grande échelle",
+        "Déploiement full service imposé dès le démarrage",
       ],
     },
     kpis: {
-      title: "KPI mesurés pendant le pilote",
+      title: "Objectifs de construction et de validation",
       items: [
-        "Taux de prédiction couverture (précision)",
-        "Coûts évités vs coûts d'urgence historiques",
-        "Délai moyen de décision (avant/après)",
-        "Taux d'adoption par les managers terrain",
-        "Qualité des arbitrages documentés",
+        "Fiabiliser la lecture charge/capacité à court horizon",
+        "Valider la qualité des pipelines selon les données disponibles",
+        "Stabiliser les rituels de décision et la traçabilité",
+        "Documenter les conditions d'extension vers un socle décisionnel complet",
       ],
     },
     governance: {
       title: "Gouvernance",
       items: [
-        "Point de gouvernance régulier",
-        "Sponsor exécutif identifié côté client",
-        "Champion opérationnel dédié",
-        "Critères go/no-go définis au cadrage",
+        "Point hebdomadaire de pilotage",
+        "Sponsor opérations identifié côté client",
+        "Référent opérationnel dédié côté client",
+        "Journal de décisions partagé",
       ],
     },
-    urgency: "Cohorte sélective. Candidatures qualifiées avec retour rapide.",
-    ctaPrimary: "Demander un pilote",
-    ctaMeta: "Qualification structurée · Formulaire rapide · NDA possible",
+    selection: {
+      title: "Critères de sélection (pilotage ciblé)",
+      items: [
+        "Organisation multi-sites (logistique, retail, restauration rapide, industrie, services)",
+        "Sponsor opérations engagé",
+        "Exports data exploitables (capacité, charge, absences)",
+      ],
+    },
+    upcoming: {
+      title: "Extension socle décision complet — optionnelle",
+      description:
+        "Après le pilote d'entrée, extension possible vers des usages plus larges selon vos priorités.",
+    },
+    urgency:
+      "Candidatures examinées sous 48h ouvrées. Démarrage possible sur un périmètre restreint.",
+    ctaPrimary: "Demander un pilote prévision effectifs",
+    ctaMeta:
+      "Tarif d'entrée pour périmètre prévision d'effectifs · Sans engagement commercial post-pilote",
   },
 
   faq: {
     kicker: "FAQ",
-    heading: "Questions directes, réponses directes.",
+    heading: "Questions fréquentes",
     subheading:
-      "Pas de langue de bois. Les questions que posent réellement les directions opérations et finance.",
+      "Réponses institutionnelles sur le pilote prévision effectifs, ses modalités de démarrage et ses options d'extension.",
     categories: [
       "Comprendre Praedixa",
       "Pilote & tarification",
@@ -374,7 +436,7 @@ export const fr: Dictionary = {
       {
         question: "À qui s'adresse Praedixa ?",
         answer:
-          "Dir. d'exploitation, responsables Ops et DAF d'entreprises multi-sites avec des équipes terrain. Secteur d'entrée : logistique, entrepôts, transport. Point commun : charge fluctuante, capacité qui ne suit pas, coûts d'urgence qui explosent.",
+          "Dir. d'exploitation, responsables Ops et DAF d'entreprises multi-sites avec des équipes terrain. Exemples de secteurs: logistique, retail/distribution, transport, restauration rapide, industrie, santé et services. Point commun: charge fluctuante, capacité qui ne suit pas, coûts d'urgence qui explosent.",
         category: "Comprendre Praedixa",
       },
       {
@@ -393,19 +455,19 @@ export const fr: Dictionary = {
       {
         question: "Combien coûte Praedixa ?",
         answer:
-          "Praedixa fonctionne sur abonnement avec un cadrage commercial adapté au périmètre opérationnel et au niveau d'accompagnement. La qualification permet d'établir une proposition claire avant engagement.",
+          "Le pilote prévision effectifs fait l'objet d'un cadrage commercial adapté au périmètre. Il peut démarrer sur un scope ciblé avant extension.",
         category: "Pilote & tarification",
       },
       {
         question: "Comment se déroule le pilote ?",
         answer:
-          "Étape 1 : exports existants (capacité, charge, absences — CSV ou Excel). Étape 2 : calcul du risque, facteurs explicatifs, chiffrage. Étape 3 : carte des risques, playbook d'actions, hypothèses validables. On itère ensemble pour calibrer le système sur vos contraintes réelles.",
+          "Le pilote dure 3 mois. Mois 1: initialisation et construction des pipelines à partir de vos exports. Mois 2: calibration selon vos données disponibles. Mois 3: stabilisation des rituels de décision et documentation de gouvernance.",
         category: "Pilote & tarification",
       },
       {
-        question: "Comment mesurez-vous le ROI ?",
+        question: "Que mesurez-vous pendant le pilote ?",
         answer:
-          "Chaque décision est tracée. Praedixa mesure l'avant/après : coûts évités, écart prévision vs réel, impact économique. Données auditables, présentables en CODIR ou au DAF.",
+          "Le pilote mesure la qualité des signaux de prévision d'effectifs, la robustesse des options proposées et la traçabilité des décisions. Aucun résultat chiffré prédéfini n'est promis publiquement.",
         category: "Pilote & tarification",
       },
       {
@@ -417,25 +479,25 @@ export const fr: Dictionary = {
       {
         question: "Faut-il une intégration IT ?",
         answer:
-          "Non pour le diagnostic initial. Exports simples (CSV, Excel), sans connecteur. Pour le pilotage continu, Praedixa peut intégrer progressivement vos flux de données.",
+          "Pas pour l'initialisation du pilote. Le démarrage se fait sur exports simples (CSV/Excel). Ensuite, une automatisation légère d'exports planifiés peut être mise en place selon votre contexte.",
         category: "Technique & données",
       },
       {
         question: "RGPD : données individuelles ?",
         answer:
-          "Non. Privacy-by-design : niveau agrégé (équipe/site), données limitées au strict nécessaire. Aucune prédiction individuelle, aucun traitement nominatif. Hébergement France.",
+          "Non. Privacy-by-design : niveau agrégé (équipe/site), données limitées au strict nécessaire. Aucune prédiction individuelle, aucun traitement nominatif. Hébergement 100 % Scaleway, en France.",
         category: "Technique & données",
       },
       {
-        question: "Avez-vous SOC 2 ou ISO 27001 ?",
+        question: "Quels éléments sécurité partagez-vous en qualification ?",
         answer:
-          "Pas encore. Nos pratiques de sécurité sont documentées et auditables : chiffrement, RBAC, logs, hébergement France, DPA disponible. Nous privilégions la transparence sur les labels prématurés.",
+          "Nous partageons le cadre sécurité applicable au périmètre du pilote (chiffrement, contrôles d'accès, journalisation, périmètre d'hébergement et sous-traitants). Hébergement intégral sur Scaleway — 100 % français.",
         category: "Technique & données",
       },
       {
         question: "Que se passe-t-il si le pilote ne donne pas de résultat ?",
         answer:
-          "Les critères de succès sont définis au cadrage. Si les KPI ne sont pas atteints, vous avez un rapport factuel sur pourquoi, et aucune obligation de poursuivre. Le pilote est conçu pour produire une réponse claire, pas pour engager.",
+          "Le pilote inclut un cadre de validation et une documentation de fin de phase. Vous disposez d'un plan de suite formalisé et d'aucun engagement commercial post-pilote.",
         category: "Pilote & tarification",
       },
     ],
@@ -443,16 +505,16 @@ export const fr: Dictionary = {
 
   contact: {
     kicker: "Passer à l'action",
-    heading: "Demandez un pilote.",
+    heading: "Demandez un pilote prévision effectifs.",
     subheading:
-      "Nous cadrons périmètre, criticité et valeur attendue d'une première boucle de décision.",
+      "Nous cadrons un périmètre de démarrage ciblé (prévision d'effectifs), puis les options d'extension selon vos priorités.",
     trustItems: [
-      "Réponse rapide",
+      "Réponse sous 48h ouvrées",
       "NDA possible dès le premier échange",
       "Données agrégées uniquement",
-      "Aucune obligation",
+      "Sans engagement commercial post-pilote",
     ],
-    ctaPrimary: "Demander un pilote",
+    ctaPrimary: "Demander un pilote prévision effectifs",
     ctaSecondary: "Écrire à l'équipe",
   },
 
@@ -461,27 +523,28 @@ export const fr: Dictionary = {
     badges: ["Gouvernance COO / DAF", "Privacy-by-design"],
     navigation: "Navigation",
     legalContact: "Légal & contact",
-    copyright: "Conçu en France",
+    copyright: "Conçu et hébergé en France",
     ctaBanner: {
-      kicker: "Cohorte fondatrice",
-      heading: "Prenez l'avantage avant la standardisation du marché.",
-      cta: "Candidater à la cohorte",
+      kicker: "Pilote d'entrée",
+      heading:
+        "Pilote prévision effectifs — démarrage possible en périmètre ciblé.",
+      cta: "Demander un pilote prévision effectifs",
     },
   },
 
   stickyCta: {
-    text: "Demander un pilote",
+    text: "Demander un pilote prévision effectifs",
   },
 
   form: {
-    pageTitle: "Candidature pilote",
+    pageTitle: "Demande de pilote prévision effectifs",
     pageSubtitle:
-      "Cette candidature nous permet de qualifier votre périmètre et de structurer une première boucle de décision.",
-    pill: "Cohorte fondatrice",
+      "Cette demande permet de qualifier votre périmètre de prévision d'effectifs sur 3 mois.",
+    pill: "Pilote prévision effectifs (3 mois)",
     valuePoints: [
-      "Qualification orientée enjeux COO et finance",
-      "Processus structuré et fluide",
-      "Réponse de l'équipe fondatrice",
+      "Qualification orientée enjeux effectifs, Ops et finance",
+      "Réponse sous 48h ouvrées",
+      "Réponse de l'équipe produit",
     ],
     estimatedTime: "Temps estimé",
     estimatedTimeValue: "Quelques minutes",
@@ -523,7 +586,7 @@ export const fr: Dictionary = {
     success: {
       title: "Candidature transmise",
       description:
-        "Nous analysons votre dossier et revenons vers vous rapidement avec un cadrage adapté à votre contexte.",
+        "Nous analysons votre dossier et revenons vers vous sous 48h ouvrées avec un cadrage adapté à votre contexte.",
       backToSite: "Retour au site",
       checkEmail: "Vérifier ma boîte email",
     },
@@ -531,6 +594,7 @@ export const fr: Dictionary = {
     sectors: [
       "Logistique",
       "Transport",
+      "Restauration rapide",
       "Santé",
       "Industrie",
       "Distribution",

@@ -53,7 +53,7 @@ export default function AlertesPage() {
       key: "date",
       label: "Date",
       render: (row) => (
-        <span className="text-xs text-neutral-500">
+        <span className="text-xs text-ink-tertiary">
           {new Date(row.date).toLocaleDateString("fr-FR")}
         </span>
       ),
@@ -85,10 +85,10 @@ export default function AlertesPage() {
         <span
           className={
             row.status === "resolved"
-              ? "text-green-600"
+              ? "text-success"
               : row.status === "acknowledged"
-                ? "text-amber-500"
-                : "text-neutral-500"
+                ? "text-primary"
+                : "text-ink-tertiary"
           }
         >
           {row.status}
@@ -99,9 +99,7 @@ export default function AlertesPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-serif text-lg font-semibold text-neutral-900">
-        Alertes
-      </h2>
+      <h2 className="font-serif text-lg font-semibold text-ink">Alertes</h2>
 
       {/* Summary cards */}
       {loading ? (

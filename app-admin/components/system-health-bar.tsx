@@ -8,14 +8,16 @@ export function SystemHealthBar({ kpis }: { kpis: PlatformKPIs }) {
 
   return (
     <Card className="p-5">
-      <h2 className="mb-4 font-serif text-lg font-semibold text-neutral-900">
+      <h2 className="mb-4 font-serif text-lg font-semibold text-ink">
         Sante plateforme
       </h2>
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Database className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-600">Taux d&apos;ingestion</span>
+            <Database className="h-4 w-4 text-ink-placeholder" />
+            <span className="text-sm text-ink-secondary">
+              Taux d&apos;ingestion
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div
@@ -37,8 +39,8 @@ export function SystemHealthBar({ kpis }: { kpis: PlatformKPIs }) {
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Server className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-600">
+            <Server className="h-4 w-4 text-ink-placeholder" />
+            <span className="text-sm text-ink-secondary">
               Taux d&apos;erreur API
             </span>
           </div>

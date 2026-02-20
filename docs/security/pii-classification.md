@@ -3,7 +3,7 @@
 **Date**: 2026-02-08
 **Version**: 1.0
 **Auteur**: Security Audit Team (counsel agent)
-**Scope**: Tous les modeles ORM (`apps/api/app/models/*.py`) -- 16 modeles, 14+ tables
+**Scope**: Tous les modeles ORM (`app-api/app/models/*.py`) -- 16 modeles, 14+ tables
 
 ---
 

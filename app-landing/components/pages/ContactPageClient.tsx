@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { PraedixaLogo } from "../logo/PraedixaLogo";
@@ -11,21 +11,55 @@ import { localizedSlugs } from "../../lib/i18n/config";
 const MAX_SUBJECT_LENGTH = 120;
 const MAX_MESSAGE_LENGTH = 800;
 const MIN_MESSAGE_LENGTH = 30;
+const REQUEST_TYPE_VALUES = [
+  "founding_pilot",
+  "product_demo",
+  "partnership",
+  "press_other",
+] as const;
+
+type ContactRequestType = (typeof REQUEST_TYPE_VALUES)[number];
 
 const contactDict = {
   fr: {
     pill: "Échange prioritaire",
     title: "Contactez l'équipe Praedixa",
     subtitle:
-      "Partagez votre contexte opérationnel. Nous revenons vers vous avec une réponse structurée rapidement.",
+      "Décrivez votre contexte opérationnel et l'objectif attendu. Nous revenons vers vous avec une réponse structurée sous 48h ouvrées.",
     valuePoints: [
-      "Message transmis directement à l'équipe fondatrice",
-      "Réponse qualifiée orientée COO / Finance",
+      "Canal traité directement par l'équipe fondatrice",
+      "Réponse opérationnelle sous 48h ouvrées",
       "Aucun démarchage automatisé",
     ],
-    time: "Temps estimé",
-    timeValue: "Quelques minutes",
-    fieldsets: { org: "Organisation", contact: "Contact", message: "Message" },
+    time: "Délai de traitement",
+    timeValue: "48h ouvrées",
+    channelsTitle: "Canaux directs",
+    channels: [
+      {
+        title: "Email principal",
+        value: "hello@praedixa.com",
+        detail: "Pour tout besoin commercial ou opérationnel.",
+        href: "mailto:hello@praedixa.com",
+      },
+      {
+        title: "Pilote prévision effectifs",
+        value: "Candidature dédiée",
+        detail: "Accès direct au protocole et au cadrage d'un pilote d'entrée.",
+        href: "pilot",
+      },
+    ],
+    fieldsets: {
+      org: "Organisation",
+      contact: "Contact",
+      message: "Message",
+    },
+    requestTypesLabel: "Type de demande *",
+    requestTypes: {
+      founding_pilot: "Pilote prévision effectifs",
+      product_demo: "Démonstration produit",
+      partnership: "Partenariat",
+      press_other: "Presse / Autre",
+    },
     fields: {
       companyName: { label: "Entreprise *", ph: "Ex : Groupe Atlas" },
       firstName: { label: "Prénom *" },
@@ -39,7 +73,7 @@ const contactDict = {
       },
       message: {
         label: "Votre message *",
-        ph: "Décrivez votre situation, vos contraintes et ce que vous souhaitez obtenir.",
+        ph: "Contexte, contraintes, périmètre, délais et résultat attendu.",
       },
       spam: { label: "Anti-spam *" },
     },
@@ -51,11 +85,11 @@ const contactDict = {
       privacy: "politique de confidentialité",
       suffix: ".",
     },
-    submit: "Envoyer mon message",
+    submit: "Envoyer ma demande",
     submitting: "Envoi en cours...",
     success: {
       title: "Message envoyé",
-      body: "Nous avons bien reçu votre message. Notre équipe revient vers vous rapidement.",
+      body: "Votre demande est bien reçue. Nous revenons vers vous sous 48h ouvrées.",
       back: "Retour au site",
       email: "Vérifier ma boîte email",
     },
@@ -67,15 +101,41 @@ const contactDict = {
     pill: "Priority contact",
     title: "Contact the Praedixa team",
     subtitle:
-      "Share your operational context. We get back to you with a structured response quickly.",
+      "Describe your operational context and target outcome. We send a structured answer within 48 business hours.",
     valuePoints: [
-      "Message sent directly to the founding team",
-      "Qualified response focused on COO / Finance",
+      "Inbox monitored directly by the founding team",
+      "Operational response within 48 business hours",
       "No automated outreach",
     ],
-    time: "Estimated time",
-    timeValue: "A few minutes",
-    fieldsets: { org: "Organisation", contact: "Contact", message: "Message" },
+    time: "Response window",
+    timeValue: "48 business hours",
+    channelsTitle: "Direct channels",
+    channels: [
+      {
+        title: "Primary email",
+        value: "hello@praedixa.com",
+        detail: "For commercial or operational requests.",
+        href: "mailto:hello@praedixa.com",
+      },
+      {
+        title: "Workforce forecasting pilot",
+        value: "Dedicated application",
+        detail: "Direct access to pilot protocol and focused-scope framing.",
+        href: "pilot",
+      },
+    ],
+    fieldsets: {
+      org: "Organisation",
+      contact: "Contact",
+      message: "Message",
+    },
+    requestTypesLabel: "Request type *",
+    requestTypes: {
+      founding_pilot: "Workforce forecasting pilot",
+      product_demo: "Product demo",
+      partnership: "Partnership",
+      press_other: "Press / Other",
+    },
     fields: {
       companyName: { label: "Company *", ph: "E.g.: Atlas Group" },
       firstName: { label: "First name *" },
@@ -89,7 +149,7 @@ const contactDict = {
       },
       message: {
         label: "Your message *",
-        ph: "Describe your situation, constraints, and what you want to achieve.",
+        ph: "Context, constraints, scope, timeline, expected outcome.",
       },
       spam: { label: "Anti-spam *" },
     },
@@ -101,11 +161,11 @@ const contactDict = {
       privacy: "privacy policy",
       suffix: ".",
     },
-    submit: "Send my message",
+    submit: "Send my request",
     submitting: "Sending...",
     success: {
       title: "Message sent",
-      body: "We received your message. Our team will get back to you quickly.",
+      body: "Your request was received. Our team will get back to you within 48 business hours.",
       back: "Back to site",
       email: "Check my inbox",
     },
@@ -116,6 +176,7 @@ const contactDict = {
 } as const;
 
 interface ContactFormData {
+  requestType: ContactRequestType;
   companyName: string;
   firstName: string;
   lastName: string;
@@ -130,6 +191,7 @@ interface ContactFormData {
 }
 
 const INITIAL: ContactFormData = {
+  requestType: "founding_pilot",
   companyName: "",
   firstName: "",
   lastName: "",
@@ -155,6 +217,15 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
   const [formStartedAt, setFormStartedAt] = useState(0);
   const [captcha, setCaptcha] = useState(DEFAULT_CAPTCHA);
 
+  const requestTypeOptions = useMemo(
+    () =>
+      REQUEST_TYPE_VALUES.map((value) => ({
+        value,
+        label: t.requestTypes[value],
+      })),
+    [t.requestTypes],
+  );
+
   useEffect(() => {
     setFormStartedAt(Date.now());
     setCaptcha({
@@ -164,6 +235,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
   }, []);
 
   const isComplete =
+    formData.requestType.length > 0 &&
     formData.companyName.trim().length > 1 &&
     formData.firstName.trim().length > 1 &&
     formData.lastName.trim().length > 1 &&
@@ -195,6 +267,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          locale,
           captchaA: captcha.a,
           captchaB: captcha.b,
           formStartedAt,
@@ -221,19 +294,23 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-cream">
-        <main className="section-shell flex min-h-screen items-center justify-center py-20">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="section-shell flex min-h-screen items-center justify-center py-20"
+        >
           <motion.section
             className="pilot-card w-full max-w-2xl p-10 text-center"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-amber-200 bg-amber-50">
-              <CheckIcon className="h-8 w-8 text-amber-700" />
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-primary-200 bg-primary-50">
+              <CheckIcon className="h-8 w-8 text-primary-700" />
             </div>
             <h1 className="mt-6 font-serif text-5xl leading-tight text-charcoal">
               {t.success.title}
             </h1>
-            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-neutral-600">
+            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-secondary">
               {t.success.body}
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -254,7 +331,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
     <div className="min-h-screen bg-cream">
       <nav className="fixed left-0 right-0 top-0 z-50">
         <div className="section-shell mt-4">
-          <div className="flex items-center justify-between rounded-2xl border border-neutral-300 bg-white/90 px-4 py-3 shadow-[var(--shadow-sm)] backdrop-blur md:px-6">
+          <div className="flex items-center justify-between rounded-2xl border border-primary/25 bg-[color-mix(in_oklch,var(--color-panel)_92%,transparent)] px-4 py-3 shadow-[var(--shadow-sm)] backdrop-blur md:px-6">
             <Link
               href={`/${locale}`}
               className="group flex items-center gap-2.5"
@@ -262,7 +339,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
               <PraedixaLogo
                 variant="geometric"
                 size={30}
-                color="oklch(0.2 0.01 65)"
+                color="var(--color-text-secondary)"
                 strokeWidth={1.1}
                 className="transition-transform duration-200 group-hover:scale-105"
               />
@@ -278,7 +355,11 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
         </div>
       </nav>
 
-      <main className="section-shell pb-20 pt-32 md:pt-36">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="section-shell pb-20 pt-32 md:pt-36"
+      >
         <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
           <motion.aside
             className="pilot-card p-8"
@@ -289,7 +370,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
             <h1 className="mt-5 font-serif text-5xl leading-tight text-charcoal">
               {t.title}
             </h1>
-            <p className="mt-4 text-base leading-relaxed text-neutral-600">
+            <p className="mt-4 text-base leading-relaxed text-ink-secondary">
               {t.subtitle}
             </p>
 
@@ -299,17 +380,54 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                   key={point}
                   className="flex items-start gap-2.5 text-sm text-charcoal/85"
                 >
-                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-primary-700" />
                   {point}
                 </li>
               ))}
             </ul>
 
-            <div className="mt-7 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+            <div className="mt-7 rounded-2xl border border-primary-200 bg-primary-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">
                 {t.time}
               </p>
               <p className="mt-2 text-sm text-charcoal/85">{t.timeValue}</p>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
+                {t.channelsTitle}
+              </p>
+              {t.channels.map((channel) => {
+                const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
+                const href =
+                  channel.href === "pilot" ? pilotHref : channel.href;
+
+                return (
+                  <div
+                    key={channel.title}
+                    className="rounded-xl border border-border-subtle bg-card p-4"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-wide text-ink-tertiary">
+                      {channel.title}
+                    </p>
+                    {href ? (
+                      <a
+                        href={href}
+                        className="mt-1 inline-block text-sm font-semibold text-primary-700 hover:underline"
+                      >
+                        {channel.value}
+                      </a>
+                    ) : (
+                      <p className="mt-1 text-sm font-semibold text-primary-700">
+                        {channel.value}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs leading-relaxed text-ink-tertiary">
+                      {channel.detail}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </motion.aside>
 
@@ -320,10 +438,18 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
           >
             <form onSubmit={handleSubmit} className="space-y-8" noValidate>
               <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
+                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
                   {t.fieldsets.org}
                 </legend>
                 <div className="grid gap-4 md:grid-cols-2">
+                  <Select
+                    label={t.requestTypesLabel}
+                    value={formData.requestType}
+                    options={requestTypeOptions}
+                    onChange={(value) =>
+                      setField("requestType", value as ContactRequestType)
+                    }
+                  />
                   <Input
                     label={t.fields.companyName.label}
                     value={formData.companyName}
@@ -343,7 +469,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
               </fieldset>
 
               <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
+                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
                   {t.fieldsets.contact}
                 </legend>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -381,7 +507,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
               </fieldset>
 
               <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
+                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
                   {t.fieldsets.message}
                 </legend>
                 <div className="grid gap-4">
@@ -402,7 +528,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                     maxLength={MAX_MESSAGE_LENGTH}
                     required
                   />
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-ink-tertiary">
                     {t.charCount(formData.message.length)}
                   </p>
                   <Input
@@ -430,21 +556,22 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                 />
               </div>
 
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 bg-white p-4">
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border-subtle bg-card p-4">
                 <input
                   type="checkbox"
                   checked={formData.consent}
                   onChange={(event) =>
                     setField("consent", event.target.checked)
                   }
-                  className="mt-1 h-4 w-4 rounded border-neutral-300 text-amber-600 focus:ring-amber-500"
+                  className="mt-1 h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-sm leading-relaxed text-neutral-600">
+                <span className="text-sm leading-relaxed text-ink-secondary">
                   {t.consent.prefix}
                   <Link
                     href={`/${locale}/${localizedSlugs.terms[locale]}`}
                     target="_blank"
-                    className="font-semibold text-amber-700 hover:underline"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-primary-700 hover:underline"
                   >
                     {t.consent.cgu}
                   </Link>{" "}
@@ -452,7 +579,8 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                   <Link
                     href={`/${locale}/${localizedSlugs.privacy[locale]}`}
                     target="_blank"
-                    className="font-semibold text-amber-700 hover:underline"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-primary-700 hover:underline"
                   >
                     {t.consent.privacy}
                   </Link>
@@ -461,7 +589,11 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
               </label>
 
               {error && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div
+                  role="alert"
+                  aria-live="assertive"
+                  className="rounded-xl border border-danger bg-danger-light px-4 py-3 text-sm text-danger-text"
+                >
                   {error}
                 </div>
               )}
@@ -507,10 +639,39 @@ function Input({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-12 rounded-xl border border-neutral-200 bg-white px-3.5 text-sm text-charcoal outline-none ring-0 transition focus:border-amber-400"
+        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none ring-0 transition focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         required={required}
         maxLength={maxLength}
       />
+    </label>
+  );
+}
+
+function Select({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: Array<{ value: string; label: string }>;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="grid gap-1.5">
+      <span className="text-sm font-semibold text-charcoal/80">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none ring-0 transition focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </label>
   );
 }
@@ -540,7 +701,7 @@ function TextArea({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         rows={6}
-        className="rounded-xl border border-neutral-200 bg-white px-3.5 py-3 text-sm leading-relaxed text-charcoal outline-none transition focus:border-amber-400"
+        className="rounded-xl border border-border-subtle bg-card px-3.5 py-3 text-sm leading-relaxed text-charcoal outline-none transition focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         required={required}
         minLength={minLength}
         maxLength={maxLength}

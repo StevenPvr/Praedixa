@@ -1,145 +1,43 @@
+default_install_hook_types:
+  - pre-commit
+  - pre-push
+default_stages:
+  - pre-commit
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
       - id: end-of-file-fixer
+        stages: [pre-commit]
       - id: trailing-whitespace
+        stages: [pre-commit]
       - id: check-merge-conflict
+        stages: [pre-commit]
       - id: check-yaml
         exclude: "pnpm-lock.yaml"
+        stages: [pre-commit]
       - id: detect-private-key
+        stages: [pre-commit]
       - id: check-added-large-files
         args: ["--maxkb=500"]
-        exclude: "^app-landing/public/dashboard-preview\\.(mp4|webm)$|^app-landing/public/dashboard-poster\\.jpg$"
-
-  - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.7
-    hooks:
-      - id: actionlint
-        name: actionlint (GitHub Actions)
-        files: "^.github/workflows/"
-
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.24.2
-    hooks:
-      - id: gitleaks
-
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.8.3
-    hooks:
-      - id: bandit
-        name: bandit (Python security)
-        args: ["-ll"]
-        types: [python]
+        exclude: "^app-landing/public/dashboard-preview(-(?:1280|1920))?\\.(mp4|webm)$|^app-landing/public/dashboard-poster\\.jpg$"
+        stages: [pre-commit]
 
   - repo: local
     hooks:
-      - id: ruff
-        name: ruff (Python lint)
-        entry: sh -c 'cd app-api && uv run ruff check .'
+      - id: gate-exhaustive-local
+        name: gate exhaustive local (all categories)
+        entry: sh -c './scripts/gate-exhaustive-local.sh --mode pre-commit'
         language: system
         always_run: true
         pass_filenames: false
+        stages: [pre-commit]
 
-      - id: ruff-format
-        name: ruff (Python format)
-        entry: sh -c 'cd app-api && uv run ruff format --check .'
+      - id: gate-report-verify-pre-push
+        name: gate report verify (signed + fresh + HEAD-bound)
+        entry: sh -c './scripts/verify-gate-report.sh --mode pre-push --run-if-missing --max-age-seconds 21600'
         language: system
         always_run: true
         pass_filenames: false
-
-      - id: clean-artifacts
-        name: clean stale build artifacts
-        entry: sh -c 'rm -rf app-landing/dist app-landing/.next app-webapp/dist app-webapp/.next app-admin/dist app-admin/.next'
-        language: system
-        always_run: true
-        pass_filenames: false
-
-      - id: prettier
-        name: prettier (check)
-        entry: pnpm format:check
-        language: system
-        always_run: true
-        pass_filenames: false
-
-      - id: eslint
-        name: eslint (check)
-        entry: pnpm lint
-        language: system
-        types_or: [ts, tsx, javascript, jsx]
-        pass_filenames: false
-
-      - id: typecheck
-        name: typescript (check)
-        entry: pnpm typecheck
-        language: system
-        types_or: [ts, tsx]
-        pass_filenames: false
-
-      - id: test
-        name: vitest (check)
-        entry: pnpm test
-        language: system
-        pass_filenames: false
-
-      - id: test-coverage
-        name: vitest coverage (100%)
-        entry: pnpm test:coverage
-        language: system
-        always_run: true
-        pass_filenames: false
-
-      - id: pytest
-        name: pytest (Python tests)
-        entry: sh -c 'cd app-api && uv run pytest'
-        language: system
-        always_run: true
-        pass_filenames: false
-
-      - id: build
-        name: next build (check)
-        entry: pnpm build
-        language: system
-        pass_filenames: false
-
-      - id: playwright-chromium-ready
-        name: playwright chromium installed (blocking)
-        entry: sh -c './scripts/check-playwright-chromium.sh'
-        language: system
-        always_run: true
-        pass_filenames: false
-
-      - id: e2e-api-edge-webapp
-        name: playwright api-edge (webapp)
-        entry: sh -c 'pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/webapp/api-edge-cases.spec.ts --project=webapp --workers=1 --retries=0'
-        language: system
-        always_run: true
-        pass_filenames: false
-
-      - id: e2e-critical-ui
-        name: playwright critical-ui (landing/webapp)
-        entry: sh -c 'pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/landing/pilot-form.spec.ts --project=landing --workers=1 --retries=0 && pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/webapp/sidebar-interactions.spec.ts --project=webapp --workers=1 --retries=0'
-        language: system
-        always_run: true
-        pass_filenames: false
-
-      - id: pip-audit
-        name: pip-audit (Python deps)
-        entry: sh -c 'cd app-api && uv run pip-audit --skip-editable'
-        language: system
-        always_run: true
-        pass_filenames: false
-
-      - id: audit-ultra-strict-local
-        name: ultra-strict audit (semgrep/trivy/checkov/terraform)
-        entry: sh -c './scripts/audit-ultra-strict-local.sh'
-        language: system
-        always_run: true
-        pass_filenames: false
-
-      - id: audit
-        name: pnpm audit (low+)
-        entry: pnpm audit --audit-level=low
-        language: system
-        always_run: true
-        pass_filenames: false
+        stages: [pre-push]

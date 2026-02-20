@@ -28,7 +28,7 @@ vi.mock("../lib/security/csp", () => ({
     `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
 }));
 
-import { middleware, config } from "../middleware";
+import { proxy, config } from "../proxy";
 import type { NextRequest } from "next/server";
 
 function makeRequest(pathname: string): NextRequest {
@@ -44,10 +44,10 @@ function makeRequest(pathname: string): NextRequest {
   } as unknown as NextRequest;
 }
 
-describe("landing middleware", () => {
+describe("landing proxy", () => {
   it("serves root without redirect", async () => {
     const req = makeRequest("/");
-    const result = await middleware(req);
+    const result = await proxy(req);
 
     expect(result.status).toBe(200);
     expect(result.headers.get("location")).toBeNull();
@@ -55,7 +55,7 @@ describe("landing middleware", () => {
 
   it("redirects FR legacy non-localized URLs to localized target", async () => {
     const req = makeRequest("/devenir-pilote");
-    const result = await middleware(req);
+    const result = await proxy(req);
 
     expect(result.status).toBe(301);
     expect(result.headers.get("location")).toBe(
@@ -65,7 +65,7 @@ describe("landing middleware", () => {
 
   it("redirects EN legacy non-localized URLs to localized target", async () => {
     const req = makeRequest("/pilot-application");
-    const result = await middleware(req);
+    const result = await proxy(req);
 
     expect(result.status).toBe(301);
     expect(result.headers.get("location")).toBe(
@@ -75,7 +75,7 @@ describe("landing middleware", () => {
 
   it("sets CSP header on locale-prefixed pages", async () => {
     const req = makeRequest("/fr");
-    const result = await middleware(req);
+    const result = await proxy(req);
 
     expect(result.status).toBe(200);
     expect(result.headers.get("Content-Security-Policy")).toContain(

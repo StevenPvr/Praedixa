@@ -1,5 +1,7 @@
+import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 
 vi.mock("framer-motion", async () => {
   const { createFramerMotionMock } =
@@ -54,7 +56,7 @@ describe("Navbar", () => {
 
   it("renders the main CTA link to pilot page", () => {
     render(<Navbar {...defaultProps} />);
-    const cta = screen.getByText("Demander un pilote").closest("a");
+    const cta = screen.getByText(fr.nav.ctaPrimary).closest("a");
     expect(cta).toHaveAttribute("href", "/fr/devenir-pilote");
   });
 

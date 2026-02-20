@@ -1,7 +1,7 @@
 # Audit Securite Frontend — Praedixa
 
 **Date** : 2026-02-08
-**Scope** : apps/webapp, apps/admin, apps/landing, packages/ui
+**Scope** : app-webapp, app-admin, app-landing, packages/ui
 **Auditeur** : bastion (agent securite frontend)
 
 ---
@@ -22,7 +22,7 @@ Le frontend Praedixa presente une posture de securite **solide** avec des fondat
 ## 1. Content Security Policy (CSP) — FIXE
 
 **Severite** : P1
-**Fichiers** : `apps/*/middleware.ts`, `apps/*/next.config.ts`, `apps/*/lib/security/csp.ts`
+**Fichiers** : `app-*/middleware.ts`, `app-*/next.config.ts`, `app-*/lib/security/csp.ts`
 
 ### Avant (vulnerabilite)
 
@@ -39,18 +39,18 @@ Les 3 apps utilisaient `script-src 'self' 'unsafe-inline'` et `style-src 'self' 
 
 ### Fichiers modifies
 
-- `apps/webapp/middleware.ts` — fusion auth + CSP nonce
-- `apps/admin/middleware.ts` — fusion auth + CSP nonce
-- `apps/landing/middleware.ts` — cree (n'existait pas)
-- `apps/*/lib/security/csp.ts` — module genNonce + buildCspHeader
-- `apps/*/next.config.ts` — suppression CSP statique
+- `app-webapp/middleware.ts` — fusion auth + CSP nonce
+- `app-admin/middleware.ts` — fusion auth + CSP nonce
+- `app-landing/middleware.ts` — cree (n'existait pas)
+- `app-*/lib/security/csp.ts` — module genNonce + buildCspHeader
+- `app-*/next.config.ts` — suppression CSP statique
 
 ---
 
 ## 2. Rate Limiting In-Memory (Landing) — ACCEPTED RISK
 
 **Severite** : P1
-**Fichier** : `apps/landing/app/api/pilot-application/route.ts:28-57`
+**Fichier** : `app-landing/app/api/pilot-application/route.ts:28-57`
 
 ### Constat
 
@@ -83,7 +83,7 @@ Pour une protection robuste en production :
 ## 3. Open Redirect — SECURE
 
 **Severite** : Info (pas de vulnerabilite)
-**Fichiers** : `apps/*/app/auth/callback/route.ts`
+**Fichiers** : `app-*/app/auth/callback/route.ts`
 
 ### Analyse
 
@@ -111,7 +111,7 @@ Toutes les autres redirections dans le code sont vers des chemins relatifs hardc
 
 ### dangerouslySetInnerHTML
 
-Utilise uniquement dans `apps/landing/components/seo/JsonLd.tsx` et `BreadcrumbSchema.tsx` pour les schemas JSON-LD. Les donnees sont :
+Utilise uniquement dans `app-landing/components/seo/JsonLd.tsx` et `BreadcrumbSchema.tsx` pour les schemas JSON-LD. Les donnees sont :
 
 - **JsonLd** : schemas statiques (pas de donnees utilisateur), avec `toJsonLd()` qui escape `<` en `\u003c`
 - **BreadcrumbSchema** : items passes par props depuis des donnees statiques, avec le meme escaping
@@ -135,7 +135,7 @@ React echappe automatiquement les strings dans JSX, donc pas de risque XSS. Cepe
 ## 5. Gestion des Tokens & Cookies — SECURE
 
 **Severite** : Info
-**Fichiers** : `apps/*/lib/auth/client.ts`, `apps/*/lib/auth/middleware.ts`
+**Fichiers** : `app-*/lib/auth/client.ts`, `app-*/lib/auth/middleware.ts`
 
 ### Architecture
 
@@ -159,7 +159,7 @@ Les flags cookies (httpOnly, secure, sameSite) sont geres par `@supabase/ssr` se
 ## 6. Messages d'Erreur Login — P2
 
 **Severite** : P2 (Moyenne)
-**Fichiers** : `apps/webapp/app/(auth)/login/page.tsx:31-34`, `apps/admin/app/(auth)/login/page.tsx:31-34`
+**Fichiers** : `app-webapp/app/(auth)/login/page.tsx:31-34`, `app-admin/app/(auth)/login/page.tsx:31-34`
 
 ### Constat
 
@@ -194,7 +194,7 @@ Sauf pour le cas specifique `reauth=1` qui affiche deja un message fixe.
 
 **Severite** : Info (pas de vulnerabilite)
 
-### Webapp (`apps/webapp/lib/api/endpoints.ts`)
+### Webapp (`app-webapp/lib/api/endpoints.ts`)
 
 Tous les path params sont encodes :
 
@@ -202,7 +202,7 @@ Tous les path params sont encodes :
 `/api/v1/forecasts/${encodeURIComponent(forecastId)}/summary``/api/v1/decisions/${encodeURIComponent(decisionId)}``/api/v1/arbitrage/${encodeURIComponent(alertId)}/options`;
 ```
 
-### Admin (`apps/admin/lib/api/endpoints.ts`)
+### Admin (`app-admin/lib/api/endpoints.ts`)
 
 Idem, encodage systematique :
 
@@ -234,7 +234,7 @@ acknowledge: (id: string) => `/api/v1/coverage-alerts/${id}/acknowledge`,
 ## 8. Client API — P3
 
 **Severite** : P3 (Faible)
-**Fichier** : `apps/webapp/lib/api/client.ts`, `apps/admin/lib/api/client.ts`
+**Fichier** : `app-webapp/lib/api/client.ts`, `app-admin/lib/api/client.ts`
 
 ### Erreurs exposees
 
@@ -278,7 +278,7 @@ Le `X-Request-ID: crypto.randomUUID()` est genere cote client — c'est un heade
 ## 10. Super Admin Enforcement — SECURE
 
 **Severite** : Info
-**Fichiers** : `apps/webapp/lib/auth/middleware.ts`, `apps/admin/lib/auth/middleware.ts`
+**Fichiers** : `app-webapp/lib/auth/middleware.ts`, `app-admin/lib/auth/middleware.ts`
 
 ### Webapp
 
@@ -321,7 +321,7 @@ Audit des 15 composants partages (`alert`, `avatar`, `badge`, `button`, `card`, 
 ## 12. Email Template XSS (Landing) — P3
 
 **Severite** : P3 (Faible, bien gere)
-**Fichier** : `apps/landing/app/api/pilot-application/route.ts`
+**Fichier** : `app-landing/app/api/pilot-application/route.ts`
 
 ### Constat
 

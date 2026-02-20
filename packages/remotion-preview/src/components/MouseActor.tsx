@@ -106,7 +106,7 @@ export const MouseActor: React.FC<MouseActorProps> = ({
           <path
             d="M3 2 L3 30 L9.8 23.7 L14.8 34 L19 31.9 L14 21.9 L23.8 21.9 Z"
             fill="white"
-            stroke="oklch(0.16 0.01 55)"
+            stroke="oklch(0.22 0.02 255)"
             strokeWidth="1.4"
             strokeLinejoin="round"
           />
@@ -120,7 +120,7 @@ export const MouseActor: React.FC<MouseActorProps> = ({
             width: 26,
             height: 26,
             borderRadius: "999px",
-            border: "2px solid oklch(0.68 0.13 72 / 0.7)",
+            border: "2px solid oklch(0.63 0.145 247 / 0.78)",
             transform: `scale(${0.7 + clickPulse * 0.8})`,
             opacity: clickPulse,
           }}

@@ -1,6 +1,7 @@
 export const SECTORS = [
   "Logistique",
   "Transport",
+  "Restauration rapide",
   "Santé",
   "Industrie",
   "Distribution",

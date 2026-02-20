@@ -9,8 +9,8 @@ interface PraedixaLogoProps {
 }
 
 const COLORS = {
-  dark: "oklch(0.145 0 0)",
-  light: "oklch(1 0 0)",
+  dark: "var(--warm-ink)",
+  light: "var(--warm-bg-white)",
 } as const;
 
 export { COLORS as LOGO_COLORS };

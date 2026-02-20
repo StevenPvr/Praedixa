@@ -70,11 +70,11 @@ export function ConsentBanner({ locale }: ConsentBannerProps) {
 
   return (
     <div
-      className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-lg rounded-lg border border-neutral-200 bg-cream/95 p-4 shadow-md backdrop-blur-xl md:bottom-6 md:left-auto md:right-6"
+      className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-lg rounded-lg border border-border-subtle bg-cream/95 p-4 shadow-md backdrop-blur-xl md:bottom-6 md:left-auto md:right-6"
       role="dialog"
       aria-label="Cookie consent"
     >
-      <p className="text-sm text-neutral-600">{t.text}</p>
+      <p className="text-sm text-ink-secondary">{t.text}</p>
       <div className="mt-3 flex items-center gap-2">
         <button
           onClick={() => handleChoice("granted")}
