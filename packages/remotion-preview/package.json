@@ -20,13 +20,13 @@
   "dependencies": {
     "@remotion/cli": "4.0.259",
     "lucide-react": "^0.469.0",
-    "react": "^19.1.0",
+    "react": "^19.2.4",
     "react-dom": "^19.1.0",
     "remotion": "4.0.259"
   },
   "devDependencies": {
     "@remotion/renderer": "4.0.259",
-    "@types/react": "^19.1.0",
+    "@types/react": "^19.2.14",
     "typescript": "^5.8.3"
   }
 }
