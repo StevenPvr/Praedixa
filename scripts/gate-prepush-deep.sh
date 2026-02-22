@@ -119,7 +119,7 @@ python3 scripts/check-security-invariants.py --mode full
 echo "[prepush-deep] Targeted backend security tests..."
 (
   cd app-api
-  "$APP_API_PYTHON" -m pytest \
+  "$APP_API_PYTHON" -m pytest --no-cov \
     tests/security/test_tenant_isolation.py \
     tests/security/test_admin_role_escalation.py \
     tests/security/test_rgpd_bypass.py \
