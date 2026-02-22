@@ -24,7 +24,6 @@ export async function JsonLd({ locale }: JsonLdProps) {
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "Sales",
-      email: "hello@praedixa.com",
       availableLanguage: ["French", "English"],
     },
     areaServed: {

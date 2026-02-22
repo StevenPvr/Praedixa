@@ -32,10 +32,10 @@
     --ink-on-color: oklch(1 0 0);
 
     /* ── Landing hero anchors (match app-landing .section-dark) ── */
-    --hero-blue-deep: oklch(0.14 0.025 247);
-    --hero-blue-aurora-1: oklch(0.3 0.12 247 / 0.15);
-    --hero-blue-aurora-2: oklch(0.25 0.1 255 / 0.12);
-    --hero-blue-aurora-3: oklch(0.2 0.08 240 / 0.08);
+    --hero-blue-deep: var(--praedixa-hero-blue-deep);
+    --hero-blue-aurora-1: var(--praedixa-hero-blue-aurora-1);
+    --hero-blue-aurora-2: var(--praedixa-hero-blue-aurora-2);
+    --hero-blue-aurora-3: var(--praedixa-hero-blue-aurora-3);
 
     /* ── Brand — primary now aligned with landing hero dark blue ── */
     --brand-50: var(--brass-50);
@@ -44,9 +44,9 @@
     --brand-300: var(--brass-300);
     --brand-400: var(--brass-400);
     --brand: var(--hero-blue-deep);
-    --brand-600: oklch(0.18 0.045 247);
-    --brand-700: oklch(0.12 0.022 247);
-    --brand-800: oklch(0.1 0.018 247);
+    --brand-600: var(--praedixa-hero-blue-mid);
+    --brand-700: var(--praedixa-hero-blue-low);
+    --brand-800: var(--praedixa-hero-blue-ultra);
     --brand-strong: var(--brand-700);
     --brand-subtle: var(--brass-100);
     --brand-glow: oklch(0.3 0.09 247 / 0.34);
@@ -189,10 +189,10 @@
     --ink-placeholder: oklch(0.52 0.012 252);
     --ink-on-color: oklch(1 0 0);
 
-    --hero-blue-deep: oklch(0.14 0.025 247);
-    --hero-blue-aurora-1: oklch(0.3 0.12 247 / 0.15);
-    --hero-blue-aurora-2: oklch(0.25 0.1 255 / 0.12);
-    --hero-blue-aurora-3: oklch(0.2 0.08 240 / 0.08);
+    --hero-blue-deep: var(--praedixa-hero-blue-deep);
+    --hero-blue-aurora-1: var(--praedixa-hero-blue-aurora-1);
+    --hero-blue-aurora-2: var(--praedixa-hero-blue-aurora-2);
+    --hero-blue-aurora-3: var(--praedixa-hero-blue-aurora-3);
 
     /* ── Brand — dark-mode mapping from shared tokens ── */
     --brand-50: var(--brass-dark-50);

@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
+source "${ROOT_DIR}/scripts/lib/pnpm.sh"
 
 MODE="manual"
 REPORT_PATH=""
@@ -37,6 +38,11 @@ done
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "[gate] Missing jq" >&2
+  exit 1
+fi
+
+if ! setup_pnpm; then
+  echo "[gate] Missing pnpm (tried PATH, PNPM_HOME, local pnpm tools, corepack, npx)." >&2
   exit 1
 fi
 

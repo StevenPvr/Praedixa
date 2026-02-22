@@ -1,33 +1,53 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("next/link", () => ({
-  default: ({
-    children,
-    ...props
-  }: React.PropsWithChildren<Record<string, unknown>>) => (
-    <a {...props}>{children}</a>
-  ),
+const redirectMock = vi.fn(() => {
+  throw new Error("NEXT_REDIRECT");
+});
+const headersMock = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  redirect: (target: string) => redirectMock(target),
 }));
 
-import RootLanguageSelectorPage, { metadata } from "../page";
+vi.mock("next/headers", () => ({
+  headers: () => headersMock(),
+}));
 
-describe("root language selector page", () => {
-  it("renders both language entry points", () => {
-    render(<RootLanguageSelectorPage />);
+import RootPage, { metadata } from "../page";
 
-    expect(
-      screen.getByText("Continuer en français").closest("a"),
-    ).toHaveAttribute("href", "/fr");
-    expect(
-      screen.getByText("Continue in English").closest("a"),
-    ).toHaveAttribute("href", "/en");
+describe("root page redirect", () => {
+  beforeEach(() => {
+    redirectMock.mockClear();
+    headersMock.mockReset();
+  });
+
+  it("redirects to /fr for French country", async () => {
+    headersMock.mockReturnValue(new Headers({ "cf-ipcountry": "FR" }));
+
+    await expect(RootPage()).rejects.toThrow("NEXT_REDIRECT");
+    expect(redirectMock).toHaveBeenCalledWith("/fr");
+  });
+
+  it("redirects to /en for non-French country", async () => {
+    headersMock.mockReturnValue(new Headers({ "cf-ipcountry": "US" }));
+
+    await expect(RootPage()).rejects.toThrow("NEXT_REDIRECT");
+    expect(redirectMock).toHaveBeenCalledWith("/en");
+  });
+
+  it("falls back to accept-language when country is unavailable", async () => {
+    headersMock.mockReturnValue(
+      new Headers({ "accept-language": "fr-FR,fr;q=0.9,en;q=0.8" }),
+    );
+
+    await expect(RootPage()).rejects.toThrow("NEXT_REDIRECT");
+    expect(redirectMock).toHaveBeenCalledWith("/fr");
   });
 
   it("exposes alternates with x-default", () => {
     expect(metadata.alternates?.canonical).toBe("/");
     expect(metadata.alternates?.languages?.["fr-FR"]).toBe("/fr");
     expect(metadata.alternates?.languages?.en).toBe("/en");
-    expect(metadata.alternates?.languages?.["x-default"]).toBe("/");
+    expect(metadata.alternates?.languages?.["x-default"]).toBe("/en");
   });
 });

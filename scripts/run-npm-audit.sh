@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
+source "${ROOT_DIR}/scripts/lib/pnpm.sh"
 
 EXCEPTIONS_FILE="${ROOT_DIR}/scripts/npm-audit-exceptions.json"
 AUDIT_OUTPUT="${ROOT_DIR}/.git/gate-work/npm-audit.json"
@@ -14,6 +15,7 @@ fail() {
 }
 
 command -v jq >/dev/null 2>&1 || fail "Missing required command: jq"
+setup_pnpm || fail "Missing pnpm (tried PATH, PNPM_HOME, local pnpm tools, corepack, npx)."
 [[ -f "$EXCEPTIONS_FILE" ]] || fail "Missing exceptions file: ${EXCEPTIONS_FILE}"
 
 jq -e '

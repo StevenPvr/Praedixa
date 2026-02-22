@@ -63,25 +63,25 @@ export const fr: Dictionary = {
       "Découvrez comment l'intelligence de couverture se matérialise pour vos opérations.",
     overlayTitle: "Découvrir la web app",
     overlayBody:
-      "Explorez une démonstration interactive en données 100 % mock, sans engagement.",
+      "Ouvrez la vraie interface web app en mode aperçu public, avec une UI identique.",
     overlayCta: "Découvrir la web app",
     overlayBackCta: "Revenir à la vidéo",
     loadingLabel: "Chargement de l'aperçu vidéo…",
-    liveBadge: "Praedixa Calibre",
+    liveBadge: "Aperçu public",
   },
 
   demo: {
-    title: "Démo interactive Praedixa",
+    title: "Aperçu interactif Praedixa",
     subtitle:
-      "Parcours produit en environnement de démonstration, alimenté uniquement par des données fictives.",
+      "Parcours produit en environnement d'aperçu, alimenté uniquement par des données fictives.",
     mockBanner:
-      "Environnement de démonstration — toutes les données sont fictives, aucune donnée client n'est utilisée.",
+      "Environnement d'aperçu — toutes les données sont fictives, aucune donnée client n'est utilisée.",
     backToLanding: "Retour à la landing",
-    screenAriaLabel: "Démonstration interactive de l'interface Praedixa",
-    updatedAtLabel: "Dernière mise à jour mock",
-    loading: "Chargement des données mock…",
-    empty: "Aucune donnée mock disponible pour cet écran.",
-    error: "Impossible de charger cet écran de démonstration.",
+    screenAriaLabel: "Aperçu interactif de l'interface Praedixa",
+    updatedAtLabel: "Dernière mise à jour de l'aperçu",
+    loading: "Chargement des données d'aperçu…",
+    empty: "Aucune donnée d'aperçu disponible pour cet écran.",
+    error: "Impossible de charger cet écran d'aperçu.",
     retry: "Réessayer",
     openAction: "Ouvrir",
     nav: {
@@ -588,7 +588,7 @@ export const fr: Dictionary = {
       description:
         "Nous analysons votre dossier et revenons vers vous sous 48h ouvrées avec un cadrage adapté à votre contexte.",
       backToSite: "Retour au site",
-      checkEmail: "Vérifier ma boîte email",
+      checkEmail: "Voir le protocole pilote",
     },
     error: "Une erreur est survenue. Veuillez réessayer.",
     sectors: [

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRightIcon } from "../icons";
+import { ArrowUpRight, Sparkle } from "@phosphor-icons/react/dist/ssr";
 import type { Dictionary } from "../../lib/i18n/types";
 import type { Locale } from "../../lib/i18n/config";
 import { localizedSlugs } from "../../lib/i18n/config";
@@ -24,26 +24,28 @@ export function StickyMobileCTA({ dict, locale }: StickyMobileCTAProps) {
       ([entry]) => {
         if (entry) setIsVisible(!entry.isIntersecting);
       },
-      { threshold: 0.2 },
+      { threshold: 0.18 },
     );
+
     observer.observe(heroEl);
     return () => observer.disconnect();
   }, []);
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-40 border-t border-border-subtle bg-cream/95 px-4 py-3 backdrop-blur-xl transition-transform duration-300 ease-out-expo md:hidden ${
+      className={`fixed inset-x-0 bottom-0 z-20 border-t border-[var(--line)] bg-[color-mix(in_oklch,var(--panel)_92%,transparent)] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl transition-transform duration-300 md:hidden ${
         isVisible ? "translate-y-0" : "translate-y-full"
       }`}
       aria-hidden={!isVisible}
     >
       <Link
         href={pilotHref}
-        className="btn-primary w-full text-sm"
+        className="btn-primary w-full"
         tabIndex={isVisible ? 0 : -1}
       >
+        <Sparkle size={15} weight="fill" />
         {dict.stickyCta.text}
-        <ArrowRightIcon className="h-3.5 w-3.5" />
+        <ArrowUpRight size={15} weight="bold" />
       </Link>
     </div>
   );

@@ -62,25 +62,25 @@ export const en: Dictionary = {
       "See how coverage intelligence turns into actionable operational decisions.",
     overlayTitle: "Discover the web app",
     overlayBody:
-      "Explore an interactive product walkthrough powered by 100% mock data.",
+      "Open the real web app interface in public preview mode, with matching UI.",
     overlayCta: "Discover the web app",
     overlayBackCta: "Back to video",
     loadingLabel: "Loading preview video…",
-    liveBadge: "Praedixa Calibre",
+    liveBadge: "Public preview",
   },
 
   demo: {
-    title: "Praedixa interactive demo",
+    title: "Praedixa interactive preview",
     subtitle:
-      "Product walkthrough in a demo environment, powered only by fictitious data.",
+      "Product walkthrough in a preview environment, powered only by fictitious data.",
     mockBanner:
-      "Demonstration environment — all data is fictitious and no customer data is used.",
+      "Preview environment — all data is fictitious and no customer data is used.",
     backToLanding: "Back to landing page",
-    screenAriaLabel: "Interactive demonstration of the Praedixa interface",
-    updatedAtLabel: "Latest mock update",
-    loading: "Loading mock data…",
-    empty: "No mock data available for this screen.",
-    error: "Unable to load this demo screen.",
+    screenAriaLabel: "Interactive preview of the Praedixa interface",
+    updatedAtLabel: "Latest preview update",
+    loading: "Loading preview data…",
+    empty: "No preview data available for this screen.",
+    error: "Unable to load this preview screen.",
     retry: "Retry",
     openAction: "Open",
     nav: {
@@ -568,7 +568,7 @@ export const en: Dictionary = {
       description:
         "We are reviewing your application and will get back to you within 48 business hours with framing adapted to your context.",
       backToSite: "Back to site",
-      checkEmail: "Check your inbox",
+      checkEmail: "View the pilot protocol",
     },
     error: "Something went wrong. Please try again.",
     sectors: [

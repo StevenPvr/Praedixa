@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${ROOT_DIR}/scripts/lib/pnpm.sh"
+setup_pnpm || {
+  echo "Unable to resolve pnpm command (tried PATH, PNPM_HOME, local pnpm tools, corepack, npx)."
+  exit 2
+}
+
 INSTALL_HINT="pnpm exec playwright install chromium"
 
 if ! LIST_OUTPUT="$(pnpm exec playwright install --list 2>&1)"; then

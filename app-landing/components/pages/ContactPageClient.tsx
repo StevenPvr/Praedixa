@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { ArrowUpRight, Check } from "@phosphor-icons/react/dist/ssr";
 import { PraedixaLogo } from "../logo/PraedixaLogo";
-import { ArrowRightIcon, CheckIcon } from "../icons";
 import type { Locale } from "../../lib/i18n/config";
 import { localizedSlugs } from "../../lib/i18n/config";
 
@@ -36,10 +36,10 @@ const contactDict = {
     channelsTitle: "Canaux directs",
     channels: [
       {
-        title: "Email principal",
-        value: "hello@praedixa.com",
-        detail: "Pour tout besoin commercial ou opérationnel.",
-        href: "mailto:hello@praedixa.com",
+        title: "Canal sécurisé",
+        value: "Formulaire web",
+        detail: "Toutes les demandes passent par ce formulaire sécurisé.",
+        href: "",
       },
       {
         title: "Pilote prévision effectifs",
@@ -91,7 +91,7 @@ const contactDict = {
       title: "Message envoyé",
       body: "Votre demande est bien reçue. Nous revenons vers vous sous 48h ouvrées.",
       back: "Retour au site",
-      email: "Vérifier ma boîte email",
+      pilot: "Voir le protocole pilote",
     },
     error: "Une erreur est survenue. Veuillez réessayer.",
     back: "Retour au site",
@@ -112,10 +112,10 @@ const contactDict = {
     channelsTitle: "Direct channels",
     channels: [
       {
-        title: "Primary email",
-        value: "hello@praedixa.com",
-        detail: "For commercial or operational requests.",
-        href: "mailto:hello@praedixa.com",
+        title: "Secure channel",
+        value: "Web form",
+        detail: "All requests are handled through this secure form.",
+        href: "",
       },
       {
         title: "Workforce forecasting pilot",
@@ -167,7 +167,7 @@ const contactDict = {
       title: "Message sent",
       body: "Your request was received. Our team will get back to you within 48 business hours.",
       back: "Back to site",
-      email: "Check my inbox",
+      pilot: "View pilot protocol",
     },
     error: "Something went wrong. Please try again.",
     back: "Back to site",
@@ -207,8 +207,17 @@ const INITIAL: ContactFormData = {
 
 const DEFAULT_CAPTCHA = { a: 5, b: 2 };
 
+function ArrowRightIcon({ className }: { className?: string }) {
+  return <ArrowUpRight className={className} size={16} weight="bold" />;
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return <Check className={className} size={16} weight="bold" />;
+}
+
 export function ContactPageClient({ locale }: { locale: Locale }) {
   const t = contactDict[locale];
+  const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
 
   const [formData, setFormData] = useState<ContactFormData>(INITIAL);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -293,21 +302,21 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-cream">
+      <div className="min-h-[100dvh] bg-cream">
         <main
           id="main-content"
           tabIndex={-1}
-          className="section-shell flex min-h-screen items-center justify-center py-20"
+          className="section-shell flex min-h-[100dvh] items-center justify-center py-20"
         >
           <motion.section
             className="pilot-card w-full max-w-2xl p-10 text-center"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-primary-200 bg-primary-50">
-              <CheckIcon className="h-8 w-8 text-primary-700" />
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-brass-200 bg-brass-50">
+              <CheckIcon className="h-8 w-8 text-brass-700" />
             </div>
-            <h1 className="mt-6 font-serif text-5xl leading-tight text-charcoal">
+            <h1 className="mt-6 font-sans text-5xl leading-tight text-charcoal">
               {t.success.title}
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-secondary">
@@ -317,9 +326,9 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
               <Link href={`/${locale}`} className="ghost-cta">
                 {t.success.back}
               </Link>
-              <a href={`mailto:${formData.email}`} className="gold-cta">
-                {t.success.email}
-              </a>
+              <Link href={pilotHref} className="gold-cta">
+                {t.success.pilot}
+              </Link>
             </div>
           </motion.section>
         </main>
@@ -328,10 +337,10 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-[100dvh] bg-cream">
       <nav className="fixed left-0 right-0 top-0 z-50">
         <div className="section-shell mt-4">
-          <div className="flex items-center justify-between rounded-2xl border border-primary/25 bg-[color-mix(in_oklch,var(--color-panel)_92%,transparent)] px-4 py-3 shadow-[var(--shadow-sm)] backdrop-blur md:px-6">
+          <div className="flex items-center justify-between rounded-2xl border border-brass/25 bg-[color-mix(in_oklch,var(--color-panel)_92%,transparent)] px-4 py-3 shadow-[var(--shadow-sm)] backdrop-blur md:px-6">
             <Link
               href={`/${locale}`}
               className="group flex items-center gap-2.5"
@@ -343,7 +352,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                 strokeWidth={1.1}
                 className="transition-transform duration-200 group-hover:scale-105"
               />
-              <span className="font-serif text-xl text-charcoal">Praedixa</span>
+              <span className="font-sans text-xl text-charcoal">Praedixa</span>
             </Link>
             <Link
               href={`/${locale}`}
@@ -367,7 +376,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
             animate={{ opacity: 1, y: 0 }}
           >
             <p className="pilot-pill">{t.pill}</p>
-            <h1 className="mt-5 font-serif text-5xl leading-tight text-charcoal">
+            <h1 className="mt-5 font-sans text-5xl leading-tight text-charcoal">
               {t.title}
             </h1>
             <p className="mt-4 text-base leading-relaxed text-ink-secondary">
@@ -380,25 +389,24 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                   key={point}
                   className="flex items-start gap-2.5 text-sm text-charcoal/85"
                 >
-                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-primary-700" />
+                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-brass-700" />
                   {point}
                 </li>
               ))}
             </ul>
 
-            <div className="mt-7 rounded-2xl border border-primary-200 bg-primary-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">
+            <div className="mt-7 rounded-2xl border border-brass-200 bg-brass-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brass-700">
                 {t.time}
               </p>
               <p className="mt-2 text-sm text-charcoal/85">{t.timeValue}</p>
             </div>
 
             <div className="mt-6 space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brass-700">
                 {t.channelsTitle}
               </p>
               {t.channels.map((channel) => {
-                const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
                 const href =
                   channel.href === "pilot" ? pilotHref : channel.href;
 
@@ -413,12 +421,12 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                     {href ? (
                       <a
                         href={href}
-                        className="mt-1 inline-block text-sm font-semibold text-primary-700 hover:underline"
+                        className="mt-1 inline-block text-sm font-semibold text-brass-700 hover:underline"
                       >
                         {channel.value}
                       </a>
                     ) : (
-                      <p className="mt-1 text-sm font-semibold text-primary-700">
+                      <p className="mt-1 text-sm font-semibold text-brass-700">
                         {channel.value}
                       </p>
                     )}
@@ -438,7 +446,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
           >
             <form onSubmit={handleSubmit} className="space-y-8" noValidate>
               <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
+                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-brass-700">
                   {t.fieldsets.org}
                 </legend>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -469,7 +477,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
               </fieldset>
 
               <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
+                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-brass-700">
                   {t.fieldsets.contact}
                 </legend>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -507,7 +515,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
               </fieldset>
 
               <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
+                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-brass-700">
                   {t.fieldsets.message}
                 </legend>
                 <div className="grid gap-4">
@@ -563,7 +571,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                   onChange={(event) =>
                     setField("consent", event.target.checked)
                   }
-                  className="mt-1 h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500"
+                  className="mt-1 h-4 w-4 rounded border-border text-brass-600 focus:ring-brass-500"
                 />
                 <span className="text-sm leading-relaxed text-ink-secondary">
                   {t.consent.prefix}
@@ -571,7 +579,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                     href={`/${locale}/${localizedSlugs.terms[locale]}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-semibold text-primary-700 hover:underline"
+                    className="font-semibold text-brass-700 hover:underline"
                   >
                     {t.consent.cgu}
                   </Link>{" "}
@@ -580,7 +588,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                     href={`/${locale}/${localizedSlugs.privacy[locale]}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-semibold text-primary-700 hover:underline"
+                    className="font-semibold text-brass-700 hover:underline"
                   >
                     {t.consent.privacy}
                   </Link>
@@ -639,7 +647,7 @@ function Input({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none ring-0 transition focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none ring-0 transition focus-visible:border-brass-400 focus-visible:ring-2 focus-visible:ring-brass-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         required={required}
         maxLength={maxLength}
       />
@@ -664,7 +672,7 @@ function Select({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none ring-0 transition focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none ring-0 transition focus-visible:border-brass-400 focus-visible:ring-2 focus-visible:ring-brass-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -701,7 +709,7 @@ function TextArea({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         rows={6}
-        className="rounded-xl border border-border-subtle bg-card px-3.5 py-3 text-sm leading-relaxed text-charcoal outline-none transition focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+        className="rounded-xl border border-border-subtle bg-card px-3.5 py-3 text-sm leading-relaxed text-charcoal outline-none transition focus-visible:border-brass-400 focus-visible:ring-2 focus-visible:ring-brass-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         required={required}
         minLength={minLength}
         maxLength={maxLength}

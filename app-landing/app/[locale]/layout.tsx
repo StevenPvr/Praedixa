@@ -5,10 +5,6 @@ import { getDictionary } from "../../lib/i18n/get-dictionary";
 import { JsonLd } from "../../components/seo/JsonLd";
 import { GoogleAnalytics } from "../../components/analytics/GoogleAnalytics";
 import { CookieService } from "../../components/analytics/CookieService";
-import { LenisProvider } from "../../components/cinema/LenisProvider";
-import { GpuTierProvider } from "../../components/cinema/GpuTier";
-import { GlobalCanvas } from "../../components/cinema/GlobalCanvas";
-import { Preloader } from "../../components/cinema/Preloader";
 
 export async function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -41,22 +37,11 @@ export default async function LocaleLayout({
   if (!isValidLocale(locale)) notFound();
 
   return (
-    <LenisProvider>
-      <GpuTierProvider>
-        <div
-          id="global-bg"
-          className="fixed inset-0 -z-10 transition-colors"
-          style={{ backgroundColor: "oklch(0.14 0.025 247)" }}
-        />
-        <Preloader />
-        <GlobalCanvas />
-        <div className="relative z-10 min-h-screen font-sans text-charcoal antialiased">
-          <JsonLd locale={locale} />
-          <GoogleAnalytics />
-          <CookieService locale={locale} />
-          {children}
-        </div>
-      </GpuTierProvider>
-    </LenisProvider>
+    <div className="relative min-h-[100dvh] font-sans text-[var(--ink)] antialiased">
+      <JsonLd locale={locale} />
+      <GoogleAnalytics />
+      <CookieService locale={locale} />
+      {children}
+    </div>
   );
 }

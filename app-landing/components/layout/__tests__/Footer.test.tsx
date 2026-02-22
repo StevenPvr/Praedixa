@@ -58,12 +58,12 @@ describe("Footer", () => {
     expect(screen.getByText("CGU")).toBeInTheDocument();
   });
 
-  it("renders contact and compliance hints", () => {
+  it("renders compliance hints without exposing email address", () => {
     render(<Footer {...defaultProps} />);
 
     expect(screen.getByText("Gouvernance COO / DAF")).toBeInTheDocument();
     expect(screen.getByText("Privacy-by-design")).toBeInTheDocument();
-    expect(screen.getByText("hello@praedixa.com")).toBeInTheDocument();
+    expect(screen.queryByText("hello@praedixa.com")).not.toBeInTheDocument();
   });
 
   it("renders copyright with current year", () => {

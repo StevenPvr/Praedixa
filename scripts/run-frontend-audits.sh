@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
+source "${ROOT_DIR}/scripts/lib/pnpm.sh"
 
 mkdir -p .git/gate-work
 
@@ -38,8 +39,8 @@ wait_for_url() {
   done
 }
 
-if ! command -v pnpm >/dev/null 2>&1; then
-  echo "[frontend-audits] Missing pnpm command" >&2
+if ! setup_pnpm; then
+  echo "[frontend-audits] Missing pnpm (tried PATH, PNPM_HOME, local pnpm tools, corepack, npx)." >&2
   exit 1
 fi
 

@@ -2,14 +2,18 @@
 
 import { motion } from "framer-motion";
 import {
-  sectionReveal,
-  staggerContainer,
-  staggerItem,
+  ArrowUpRight,
+  Check,
+  Circle,
+  Clock,
+  Sparkle,
+} from "@phosphor-icons/react/dist/ssr";
+import {
+  blurReveal,
+  blurStaggerContainer,
+  blurStaggerItem,
   viewportOnce,
 } from "../../lib/animations/variants";
-import { ArrowRightIcon, CheckIcon } from "../icons";
-import { TextReveal } from "../cinema/TextReveal";
-import { SpotlightCard } from "../cinema/SpotlightCard";
 import { MagneticButton } from "../cinema/MagneticButton";
 import type { Dictionary } from "../../lib/i18n/types";
 import type { Locale } from "../../lib/i18n/config";
@@ -20,31 +24,44 @@ interface PilotSectionProps {
   locale: Locale;
 }
 
-function PilotList({
+function ListGroup({
   title,
   items,
-  variant = "default",
+  excluded = false,
 }: {
   title: string;
   items: string[];
-  variant?: "default" | "excluded" | "accent";
+  excluded?: boolean;
 }) {
   return (
-    <div>
-      <h3 className="text-sm font-semibold text-white">{title}</h3>
-      <ul className="mt-3 grid gap-2">
+    <article className="rounded-2xl border border-white/16 bg-white/[0.04] px-4 py-4">
+      <p className="text-xs uppercase tracking-[0.16em] text-white/58">
+        {title}
+      </p>
+      <ul className="mt-3 grid gap-2.5">
         {items.map((item) => (
-          <li key={item} className="flex items-start gap-2.5 text-sm">
-            {variant === "excluded" ? (
-              <span className="mt-1 h-3 w-3 shrink-0 rounded-full border border-border" />
+          <li
+            key={item}
+            className="flex items-start gap-2.5 text-sm leading-relaxed text-white/84"
+          >
+            {excluded ? (
+              <Circle
+                size={12}
+                weight="regular"
+                className="mt-1 shrink-0 text-white/52"
+              />
             ) : (
-              <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-brass-500" />
+              <Check
+                size={14}
+                weight="bold"
+                className="mt-0.5 shrink-0 text-[var(--accent-400)]"
+              />
             )}
-            <span className="text-white">{item}</span>
+            {item}
           </li>
         ))}
       </ul>
-    </div>
+    </article>
   );
 }
 
@@ -56,145 +73,108 @@ export function PilotSection({ dict, locale }: PilotSectionProps) {
     <section id="pilot" className="section-dark section-spacing">
       <div className="section-shell">
         <motion.div
-          variants={sectionReveal}
+          variants={blurReveal}
           initial="hidden"
           whileInView="visible"
           viewport={viewportOnce}
+          className="grid grid-cols-1 gap-6 md:grid-cols-[1.1fr_1fr]"
         >
-          <p className="section-kicker text-white">{pilot.kicker}</p>
-          <TextReveal
-            text={pilot.heading}
-            as="h2"
-            className="section-title mt-4 text-white"
-          />
-          <p className="section-lead text-white">{pilot.subheading}</p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            {pilot.statusLabels.map((label, index) => (
-              <span
-                key={label}
-                className={`rounded-full border px-2.5 py-1 text-2xs font-semibold uppercase tracking-wide ${
-                  index === 0
-                    ? "border-emerald-300/60 bg-emerald-400/14 text-emerald-100"
-                    : index === 1
-                      ? "border-amber-300/60 bg-amber-400/14 text-amber-100"
-                      : "border-sky-300/60 bg-sky-400/14 text-sky-100"
-                }`}
-              >
-                {label}
-              </span>
-            ))}
+          <div>
+            <p className="section-kicker">{pilot.kicker}</p>
+            <h2 className="section-title">{pilot.heading}</h2>
+            <p className="section-lead">{pilot.subheading}</p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {pilot.statusLabels.map((label, index) => (
+                <span
+                  key={label}
+                  className={`rounded-full border px-2.5 py-1 text-xs uppercase tracking-[0.16em] ${
+                    index === 0
+                      ? "border-blue-300/50 bg-blue-300/14 text-blue-100"
+                      : index === 1
+                        ? "border-amber-300/50 bg-amber-300/14 text-amber-100"
+                        : "border-sky-300/50 bg-sky-300/14 text-sky-100"
+                  }`}
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-white/16 bg-white/[0.04] p-5">
+            <p className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-white/58">
+              <Clock size={14} weight="duotone" />
+              Timebox
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-white/80">
+              {pilot.urgency}
+            </p>
+            <p className="mt-3 font-mono text-xs text-white/58">
+              {pilot.ctaMeta}
+            </p>
           </div>
         </motion.div>
 
         <motion.div
-          className="mt-12 grid gap-4 sm:grid-cols-2"
-          variants={staggerContainer}
+          variants={blurStaggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={viewportOnce}
+          className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-12"
         >
-          <motion.div variants={staggerItem}>
-            <SpotlightCard
-              variant="dark"
-              className="p-6 h-full"
-              spotlightColor="oklch(0.63 0.165 246 / 0.08)"
-            >
-              <PilotList
-                title={pilot.included.title}
-                items={pilot.included.items}
-                variant="accent"
-              />
-            </SpotlightCard>
+          <motion.div variants={blurStaggerItem} className="md:col-span-6">
+            <ListGroup
+              title={pilot.included.title}
+              items={pilot.included.items}
+            />
           </motion.div>
-          <motion.div variants={staggerItem}>
-            <SpotlightCard
-              variant="dark"
-              className="p-6 h-full"
-              spotlightColor="oklch(0.63 0.165 246 / 0.08)"
-            >
-              <PilotList
-                title={pilot.excluded.title}
-                items={pilot.excluded.items}
-                variant="excluded"
-              />
-            </SpotlightCard>
+          <motion.div variants={blurStaggerItem} className="md:col-span-6">
+            <ListGroup
+              title={pilot.excluded.title}
+              items={pilot.excluded.items}
+              excluded
+            />
           </motion.div>
-          <motion.div variants={staggerItem}>
-            <SpotlightCard
-              variant="dark"
-              className="p-6 h-full"
-              spotlightColor="oklch(0.63 0.165 246 / 0.08)"
-            >
-              <PilotList title={pilot.kpis.title} items={pilot.kpis.items} />
-            </SpotlightCard>
+          <motion.div variants={blurStaggerItem} className="md:col-span-7">
+            <ListGroup title={pilot.kpis.title} items={pilot.kpis.items} />
           </motion.div>
-          <motion.div variants={staggerItem}>
-            <SpotlightCard
-              variant="dark"
-              className="p-6 h-full"
-              spotlightColor="oklch(0.63 0.165 246 / 0.08)"
-            >
-              <PilotList
-                title={pilot.governance.title}
-                items={pilot.governance.items}
-              />
-            </SpotlightCard>
+          <motion.div variants={blurStaggerItem} className="md:col-span-5">
+            <ListGroup
+              title={pilot.governance.title}
+              items={pilot.governance.items}
+            />
           </motion.div>
-        </motion.div>
-
-        <motion.div
-          className="mt-4 grid gap-4 sm:grid-cols-2"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportOnce}
-        >
-          <motion.div variants={staggerItem}>
-            <SpotlightCard
-              variant="dark"
-              className="p-6 h-full"
-              spotlightColor="oklch(0.63 0.165 246 / 0.08)"
-            >
-              <PilotList
-                title={pilot.selection.title}
-                items={pilot.selection.items}
-              />
-            </SpotlightCard>
+          <motion.div variants={blurStaggerItem} className="md:col-span-5">
+            <ListGroup
+              title={pilot.selection.title}
+              items={pilot.selection.items}
+            />
           </motion.div>
-          <motion.div variants={staggerItem}>
-            <SpotlightCard
-              variant="dark"
-              className="p-6 h-full"
-              spotlightColor="oklch(0.63 0.165 246 / 0.08)"
-            >
-              <h3 className="text-sm font-semibold text-white">
-                {pilot.upcoming.title}
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-white">
-                {pilot.upcoming.description}
-              </p>
-            </SpotlightCard>
-          </motion.div>
-        </motion.div>
-
-        {/* CTA */}
-        <motion.div
-          className="mt-10 flex flex-col items-center text-center"
-          variants={sectionReveal}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportOnce}
-        >
-          <p className="text-sm text-white">{pilot.urgency}</p>
-          <MagneticButton
-            as="a"
-            href={pilotHref}
-            className="btn-primary mt-6 px-10 py-4 text-base animate-glow-pulse"
+          <motion.article
+            variants={blurStaggerItem}
+            className="rounded-2xl border border-white/16 bg-white/[0.04] px-4 py-4 md:col-span-7"
           >
+            <p className="text-xs uppercase tracking-[0.16em] text-white/58">
+              {pilot.upcoming.title}
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-white/84">
+              {pilot.upcoming.description}
+            </p>
+          </motion.article>
+        </motion.div>
+
+        <motion.div
+          variants={blurReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mt-8 flex flex-wrap items-center gap-3"
+        >
+          <MagneticButton as="a" href={pilotHref} className="btn-primary">
+            <Sparkle size={15} weight="fill" />
             {pilot.ctaPrimary}
-            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <ArrowUpRight size={16} weight="bold" />
           </MagneticButton>
-          <p className="mt-3 text-2xs text-white">{pilot.ctaMeta}</p>
         </motion.div>
       </div>
     </section>

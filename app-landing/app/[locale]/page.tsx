@@ -6,7 +6,6 @@ import { buildLocaleMetadata, localePathMap } from "../../lib/seo/metadata";
 import { Navbar } from "../../components/layout/Navbar";
 import { Footer } from "../../components/layout/Footer";
 import { HeroTransitionWrapper } from "../../components/sections/HeroTransitionWrapper";
-import { PreviewSection } from "../../components/sections/PreviewSection";
 import { MethodSection } from "../../components/sections/MethodSection";
 import { UseCasesSection } from "../../components/sections/UseCasesSection";
 import { SecuritySection } from "../../components/sections/SecuritySection";
@@ -49,7 +48,6 @@ export default async function LandingPage({
       <Navbar dict={dict} locale={locale} />
       <main id="main-content" tabIndex={-1}>
         <HeroTransitionWrapper dict={dict} locale={locale} />
-        <PreviewSection dict={dict} locale={locale} />
         <MethodSection solution={dict.solution} howItWorks={dict.howItWorks} />
         <UseCasesSection
           useCases={dict.useCases}

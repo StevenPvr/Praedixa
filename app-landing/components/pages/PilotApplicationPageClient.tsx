@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { ArrowUpRight, Check } from "@phosphor-icons/react/dist/ssr";
 import { PraedixaLogo } from "../logo/PraedixaLogo";
-import { ArrowRightIcon, CheckIcon } from "../icons";
 import { localizedSlugs } from "../../lib/i18n/config";
 import type { Locale } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
@@ -43,6 +43,14 @@ const INITIAL_FORM_DATA: FormData = {
   consent: false,
 };
 
+function ArrowRightIcon({ className }: { className?: string }) {
+  return <ArrowUpRight className={className} size={16} weight="bold" />;
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return <Check className={className} size={16} weight="bold" />;
+}
+
 function getField(
   fields: Dictionary["form"]["fields"],
   key: string,
@@ -76,6 +84,7 @@ export function PilotApplicationPageClient({
   dict: Dictionary;
 }) {
   const homeHref = `/${locale}`;
+  const protocolHref = `/${locale}/pilot-protocol`;
   const cguHref = `/${locale}/${localizedSlugs.terms[locale]}`;
   const privacyHref = `/${locale}/${localizedSlugs.privacy[locale]}`;
   const { form, nav } = dict;
@@ -158,21 +167,21 @@ export function PilotApplicationPageClient({
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-cream">
+      <div className="min-h-[100dvh] bg-cream">
         <main
           id="main-content"
           tabIndex={-1}
-          className="section-shell flex min-h-screen items-center justify-center py-20"
+          className="section-shell flex min-h-[100dvh] items-center justify-center py-20"
         >
           <motion.section
             className="pilot-card w-full max-w-2xl p-10 text-center"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-primary-200 bg-primary-50">
-              <CheckIcon className="h-8 w-8 text-primary-700" />
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-brass-200 bg-brass-50">
+              <CheckIcon className="h-8 w-8 text-brass-700" />
             </div>
-            <h1 className="mt-6 font-serif text-5xl leading-tight text-charcoal">
+            <h1 className="mt-6 font-sans text-5xl leading-tight text-charcoal">
               {form.success.title}
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-secondary">
@@ -182,9 +191,9 @@ export function PilotApplicationPageClient({
               <Link href={homeHref} className="ghost-cta">
                 {form.success.backToSite}
               </Link>
-              <a href={`mailto:${formData.email}`} className="gold-cta">
+              <Link href={protocolHref} className="gold-cta">
                 {form.success.checkEmail}
-              </a>
+              </Link>
             </div>
           </motion.section>
         </main>
@@ -193,10 +202,10 @@ export function PilotApplicationPageClient({
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-[100dvh] bg-cream">
       <nav className="fixed left-0 right-0 top-0 z-50">
         <div className="section-shell mt-4">
-          <div className="flex items-center justify-between rounded-2xl border border-primary/25 bg-[color-mix(in_oklch,var(--color-panel)_92%,transparent)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur md:px-6">
+          <div className="flex items-center justify-between rounded-2xl border border-brass/25 bg-[color-mix(in_oklch,var(--color-panel)_92%,transparent)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur md:px-6">
             <Link href={homeHref} className="group flex items-center gap-2.5">
               <PraedixaLogo
                 variant="geometric"
@@ -205,7 +214,7 @@ export function PilotApplicationPageClient({
                 strokeWidth={1.1}
                 className="transition-transform duration-200 group-hover:scale-105"
               />
-              <span className="font-serif text-xl text-charcoal">Praedixa</span>
+              <span className="font-sans text-xl text-charcoal">Praedixa</span>
             </Link>
             <Link
               href={homeHref}
@@ -229,7 +238,7 @@ export function PilotApplicationPageClient({
             animate={{ opacity: 1, y: 0 }}
           >
             <p className="pilot-pill">{form.pill}</p>
-            <h1 className="mt-5 font-serif text-5xl leading-tight text-charcoal">
+            <h1 className="mt-5 font-sans text-5xl leading-tight text-charcoal">
               {form.pageTitle}
             </h1>
             <p className="mt-4 text-base leading-relaxed text-ink-secondary">
@@ -242,14 +251,14 @@ export function PilotApplicationPageClient({
                   key={point}
                   className="flex items-start gap-2.5 text-sm text-charcoal/85"
                 >
-                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-primary-700" />
+                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-brass-700" />
                   {point}
                 </li>
               ))}
             </ul>
 
-            <div className="mt-7 rounded-2xl border border-primary-200 bg-primary-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">
+            <div className="mt-7 rounded-2xl border border-brass-200 bg-brass-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brass-700">
                 {form.estimatedTime}
               </p>
               <p className="mt-2 text-sm text-charcoal/85">
@@ -265,7 +274,7 @@ export function PilotApplicationPageClient({
           >
             <form onSubmit={handleSubmit} className="space-y-8" noValidate>
               <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
+                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-brass-700">
                   {form.fieldsets.organisation}
                 </legend>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -316,7 +325,7 @@ export function PilotApplicationPageClient({
               </fieldset>
 
               <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
+                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-brass-700">
                   {form.fieldsets.contact}
                 </legend>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -373,7 +382,7 @@ export function PilotApplicationPageClient({
               </fieldset>
 
               <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
+                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-brass-700">
                   {form.fieldsets.challenges}
                 </legend>
                 <div className="grid gap-4">
@@ -440,7 +449,7 @@ export function PilotApplicationPageClient({
                       consent: event.target.checked,
                     }))
                   }
-                  className="mt-1 h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500"
+                  className="mt-1 h-4 w-4 rounded border-border text-brass-600 focus:ring-brass-500"
                 />
                 <span className="text-sm leading-relaxed text-ink-secondary">
                   {consentTokens.prefix}
@@ -448,7 +457,7 @@ export function PilotApplicationPageClient({
                     href={cguHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-semibold text-primary-700 hover:underline"
+                    className="font-semibold text-brass-700 hover:underline"
                   >
                     {form.cguLabel}
                   </Link>
@@ -457,7 +466,7 @@ export function PilotApplicationPageClient({
                     href={privacyHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-semibold text-primary-700 hover:underline"
+                    className="font-semibold text-brass-700 hover:underline"
                   >
                     {form.privacyLabel}
                   </Link>
@@ -520,7 +529,7 @@ function Input({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none ring-0 transition focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none ring-0 transition focus-visible:border-brass-400 focus-visible:ring-2 focus-visible:ring-brass-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         required={required}
       />
     </label>
@@ -554,7 +563,7 @@ function Select({
         name={name}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none transition focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none transition focus-visible:border-brass-400 focus-visible:ring-2 focus-visible:ring-brass-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         required={required}
       >
         <option value="">{selectLabel}</option>
@@ -595,7 +604,7 @@ function TextArea({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         rows={5}
-        className="rounded-xl border border-border-subtle bg-card px-3.5 py-3 text-sm leading-relaxed text-charcoal outline-none transition focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+        className="rounded-xl border border-border-subtle bg-card px-3.5 py-3 text-sm leading-relaxed text-charcoal outline-none transition focus-visible:border-brass-400 focus-visible:ring-2 focus-visible:ring-brass-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         required={required}
       />
     </label>

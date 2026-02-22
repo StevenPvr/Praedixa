@@ -1,10 +1,14 @@
 import Link from "next/link";
+import {
+  ArrowUpRight,
+  Compass,
+  LockKey,
+  Sparkle,
+} from "@phosphor-icons/react/dist/ssr";
 import { PraedixaLogo } from "../logo/PraedixaLogo";
-import { ArrowRightIcon } from "../icons";
 import type { Dictionary } from "../../lib/i18n/types";
 import type { Locale } from "../../lib/i18n/config";
 import { localizedSlugs } from "../../lib/i18n/config";
-import { siteConfig } from "../../lib/config/site";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 
 interface FooterProps {
@@ -53,43 +57,47 @@ export function Footer({ dict, locale }: FooterProps) {
       href: `/${locale}/${localizedSlugs.security[locale]}`,
       label: locale === "fr" ? "Sécurité" : "Security",
     },
-    {
-      href: `mailto:${siteConfig.contact.email}`,
-      label: siteConfig.contact.email,
-    },
   ];
 
   return (
-    <footer className="section-dark">
-      <div className="section-shell pb-12 pt-16">
-        <div className="flex flex-col items-center rounded-lg border border-white/5 bg-card/[0.03] px-8 py-10 text-center">
-          <p className="craft-pill">{footer.ctaBanner.kicker}</p>
-          <h2 className="mt-4 max-w-lg font-serif text-2xl text-white sm:text-3xl">
+    <footer className="section-dark border-t border-white/10">
+      <div className="section-shell py-16">
+        <div className="panel-dark rounded-3xl p-6 md:p-9">
+          <p className="section-kicker">
+            <Sparkle size={12} weight="fill" />
+            {footer.ctaBanner.kicker}
+          </p>
+          <h2 className="mt-4 max-w-3xl text-3xl tracking-tight text-white md:text-5xl">
             {footer.ctaBanner.heading}
           </h2>
           <Link href={pilotHref} className="btn-primary mt-6">
             {footer.ctaBanner.cta}
-            <ArrowRightIcon className="h-4 w-4" />
+            <ArrowUpRight size={16} weight="bold" />
           </Link>
         </div>
-      </div>
 
-      <div className="section-shell border-t border-white/5 pb-8 pt-10">
-        <div className="grid gap-8 sm:grid-cols-3">
+        <div className="mt-10 grid gap-10 border-t border-white/10 pt-8 md:grid-cols-[1.3fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2.5">
               <PraedixaLogo
                 variant="geometric"
                 size={24}
-                color="oklch(0.92 0.005 70)"
+                color="oklch(0.9 0.005 250)"
                 strokeWidth={1}
               />
-              <span className="font-serif text-lg text-white">Praedixa</span>
+              <span className="text-base font-semibold tracking-tight text-white">
+                Praedixa
+              </span>
             </div>
-            <p className="mt-3 text-sm text-white">{footer.tagline}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <p className="mt-3 text-sm leading-relaxed text-white/72">
+              {footer.tagline}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
               {footer.badges.map((badge) => (
-                <span key={badge} className="text-xs text-white">
+                <span
+                  key={badge}
+                  className="rounded-full border border-white/20 px-3 py-1 text-xs text-white/78"
+                >
                   {badge}
                 </span>
               ))}
@@ -97,50 +105,42 @@ export function Footer({ dict, locale }: FooterProps) {
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-white">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-white/60">
               {footer.navigation}
             </p>
-            <ul className="mt-3 grid gap-1.5">
+            <ul className="grid gap-2">
               {navLinks.map((link) => (
                 <li key={link.href}>
                   {link.href.startsWith("#") ? (
                     <a
                       href={link.href}
-                      className="text-sm text-white transition hover:text-white"
+                      className="text-sm text-white/78 hover:text-white"
                     >
                       {link.label}
                     </a>
                   ) : (
                     <Link
                       href={link.href}
-                      className="text-sm text-white transition hover:text-white"
+                      className="text-sm text-white/78 hover:text-white"
                     >
                       {link.label}
                     </Link>
                   )}
                 </li>
               ))}
-              <li>
-                <Link
-                  href={pilotHref}
-                  className="text-sm font-medium text-brass-400 transition hover:text-brass-300"
-                >
-                  {dict.nav.ctaPrimary}
-                </Link>
-              </li>
             </ul>
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-white">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-white/60">
               {footer.legalContact}
             </p>
-            <ul className="mt-3 grid gap-1.5">
+            <ul className="grid gap-2">
               {legalLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-white transition hover:text-white"
+                    className="text-sm text-white/78 hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -150,10 +150,16 @@ export function Footer({ dict, locale }: FooterProps) {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-6">
-          <p className="text-xs text-white">&copy; {year} Praedixa</p>
-          <p className="text-xs text-white">{footer.copyright}</p>
-          <LocaleSwitcher locale={locale} />
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/66">
+          <div className="inline-flex items-center gap-2">
+            <Compass size={14} weight="duotone" />
+            <span>&copy; {year} Praedixa</span>
+          </div>
+          <span>{footer.copyright}</span>
+          <div className="inline-flex items-center gap-2">
+            <LockKey size={14} weight="duotone" />
+            <LocaleSwitcher locale={locale} />
+          </div>
         </div>
       </div>
     </footer>

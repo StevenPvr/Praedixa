@@ -12,800 +12,346 @@
         rel="stylesheet" />
 
     <style>
-        /* ── Variables ── */
         :root {
-            --bg: #090b0e;
-            --surface-1: #0f1318;
-            --surface-2: #141920;
-            --surface-3: #1a2028;
-            --border: #222b35;
-            --border-soft: #1a2129;
-            --border-dim: #151c23;
-
-            --text: #e6ecf2;
-            --text-muted: #879aaf;
-            --text-dim: #47566a;
-
-            --accent: #3d7fff;
-            --accent-2: #c8a96e;
-            --accent-dim: rgba(61, 127, 255, .07);
-            --accent-2-dim: rgba(200, 169, 110, .07);
+            --bg: #10243a;
+            --surface-1: #17324e;
+            --surface-2: #1d3b5b;
+            --surface-3: #25466a;
+            --border: #335276;
+            --border-soft: #2a4566;
+            --border-dim: #233a58;
+            --text: #edf4ff;
+            --text-muted: #b6c8e1;
+            --text-dim: #7e96b8;
+            --accent: #5f9dff;
+            --accent-2: #d7b577;
+            --accent-dim: rgba(95, 157, 255, .12);
+            --accent-2-dim: rgba(215, 181, 119, .12);
             --danger: #d95555;
             --success: #38b373;
-
-            --r: 10px;
-            /* card radius */
-            --header-h: 57px;
-            --footer-h: 49px;
-
+            --r: 8px;
+            --header-h: 52px;
+            --footer-h: 44px;
             --font-display: "Instrument Serif", Georgia, serif;
             --font-ui: "Geist", ui-sans-serif, system-ui, sans-serif;
             --font-mono: "DM Mono", monospace;
         }
 
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            background: var(--bg);
-            color: var(--text);
+        html, body {
+            width: 100%; height: 100%;
+            background: var(--bg); color: var(--text);
             font-family: var(--font-ui);
             -webkit-font-smoothing: antialiased;
             overflow: hidden;
         }
 
-        /* Noise grain */
         body::after {
             content: "";
-            position: fixed;
-            inset: 0;
-            z-index: 9990;
-            pointer-events: none;
-            opacity: .022;
+            position: fixed; inset: 0; z-index: 9990;
+            pointer-events: none; opacity: .022;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
-        /* ── HEADER ── */
+        /* HEADER */
         .deck-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: var(--header-h);
-            padding: 0 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            position: fixed; top: 0; left: 0; right: 0;
+            height: var(--header-h); padding: 0 36px;
+            display: flex; align-items: center; justify-content: space-between;
             z-index: 200;
-            background: rgba(9, 11, 14, .9);
+            background: rgba(16, 36, 58, .92);
             backdrop-filter: blur(14px);
             border-bottom: 1px solid var(--border-dim);
         }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .brand { display: flex; align-items: center; gap: 9px; }
 
         .brand-icon {
-            width: 28px;
-            height: 28px;
-            border: 1px solid var(--border);
-            border-radius: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--accent);
-            background: var(--surface-2);
-            flex-shrink: 0;
+            width: 26px; height: 26px;
+            border: 1px solid var(--border); border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent); background: var(--surface-2); flex-shrink: 0;
         }
 
-        .brand-name {
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .14em;
-            text-transform: uppercase;
-        }
+        .brand-name { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 
         .deck-badge {
-            font-family: var(--font-mono);
-            font-size: 10px;
-            letter-spacing: .07em;
-            color: var(--text-dim);
-            border: 1px solid var(--border-soft);
-            border-radius: 4px;
-            padding: 5px 12px;
-            background: var(--surface-1);
+            font-family: var(--font-mono); font-size: 10px; letter-spacing: .07em;
+            color: var(--text-dim); border: 1px solid var(--border-soft); border-radius: 4px;
+            padding: 4px 11px; background: var(--surface-1);
         }
 
-        /* ── PROGRESS ── */
+        /* PROGRESS */
         .deck-progress {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 2px;
+            position: fixed; top: 0; left: 0; height: 2px;
             background: linear-gradient(90deg, var(--accent-2), var(--accent));
-            z-index: 300;
-            transition: width .5s cubic-bezier(.23, 1, .32, 1);
+            z-index: 300; transition: width .5s cubic-bezier(.23, 1, .32, 1);
         }
 
-        /* ── NAV DOTS ── */
+        /* NAV DOTS */
         .nav-dots {
-            position: fixed;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            position: fixed; right: 16px; top: 50%; transform: translateY(-50%);
+            z-index: 200; display: flex; flex-direction: column; gap: 7px;
         }
 
         .nav-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 999px;
-            background: var(--border);
-            cursor: pointer;
-            border: none;
+            width: 5px; height: 5px; border-radius: 999px;
+            background: var(--border); cursor: pointer; border: none;
             transition: all 260ms cubic-bezier(.23, 1, .32, 1);
         }
 
-        .nav-dot.active {
-            background: var(--accent);
-            height: 20px;
-        }
+        .nav-dot.active { background: var(--accent); height: 18px; }
+        .nav-dot:hover:not(.active) { background: var(--text-dim); }
 
-        .nav-dot:hover:not(.active) {
-            background: var(--text-dim);
-        }
-
-        /* ── FOOTER ── */
+        /* FOOTER */
         .deck-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: var(--footer-h);
-            padding: 0 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: var(--footer-h); padding: 0 36px;
+            display: flex; align-items: center; justify-content: space-between;
             z-index: 200;
-            background: rgba(9, 11, 14, .9);
+            background: rgba(16, 36, 58, .92);
             backdrop-filter: blur(14px);
             border-top: 1px solid var(--border-dim);
         }
 
         .footer-left {
-            font-family: var(--font-mono);
-            font-size: 9px;
-            color: var(--text-dim);
-            letter-spacing: .08em;
-            text-transform: uppercase;
+            font-family: var(--font-mono); font-size: 9px;
+            color: var(--text-dim); letter-spacing: .08em; text-transform: uppercase;
         }
 
-        .slide-counter {
-            font-family: var(--font-mono);
-            font-size: 10px;
-            color: var(--text-dim);
-            letter-spacing: .1em;
-        }
+        .slide-counter { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: .1em; }
+        .slide-counter .cur { color: var(--accent); font-weight: 500; }
 
-        .slide-counter .cur {
-            color: var(--accent);
-            font-weight: 500;
-        }
-
-        /* ── SCROLL CONTAINER ── */
+        /* SCROLL */
         .slides-wrap {
-            height: 100vh;
-            width: 100vw;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            scroll-behavior: smooth;
-            scrollbar-width: none;
+            height: 100vh; width: 100vw;
+            overflow-y: scroll; scroll-snap-type: y mandatory;
+            scroll-behavior: smooth; scrollbar-width: none;
         }
+        .slides-wrap::-webkit-scrollbar { display: none; }
 
-        .slides-wrap::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* ══════════════════════════════════════════
-       CORE SLIDE SYSTEM — full height fill
-    ══════════════════════════════════════════ */
+        /* SLIDE SYSTEM */
         .slide {
-            height: 100vh;
-            width: 100vw;
+            height: 100vh; width: 100vw;
             scroll-snap-align: start;
-            padding-top: var(--header-h);
-            padding-bottom: var(--footer-h);
-            display: flex;
-            align-items: stretch;
+            padding-top: var(--header-h); padding-bottom: var(--footer-h);
+            display: flex; align-items: stretch; overflow: hidden;
         }
 
         .slide-inner {
-            width: 100%;
-            height: 100%;
-            padding: 3% 5%;
-            display: flex;
-            flex-direction: column;
-            gap: 2.2%;
+            width: 100%; height: 100%;
+            padding: 2% 4.5%;
+            display: flex; flex-direction: column; gap: 1.4%; overflow: hidden;
         }
 
-        /* ── ANIMATION ── */
-        .slide-inner>* {
-            opacity: 0;
-            transform: translateY(12px);
-            transition: opacity .5s cubic-bezier(.23, 1, .32, 1),
-                transform .5s cubic-bezier(.23, 1, .32, 1);
+        /* ANIMATION */
+        .slide-inner > * {
+            opacity: 0; transform: translateY(10px);
+            transition: opacity .45s cubic-bezier(.23, 1, .32, 1), transform .45s cubic-bezier(.23, 1, .32, 1);
         }
 
-        .slide.in-view .slide-inner>*:nth-child(1) {
-            opacity: 1;
-            transform: none;
-            transition-delay: .04s;
-        }
+        .slide.in-view .slide-inner > *:nth-child(1) { opacity:1; transform:none; transition-delay:.04s; }
+        .slide.in-view .slide-inner > *:nth-child(2) { opacity:1; transform:none; transition-delay:.10s; }
+        .slide.in-view .slide-inner > *:nth-child(3) { opacity:1; transform:none; transition-delay:.16s; }
+        .slide.in-view .slide-inner > *:nth-child(4) { opacity:1; transform:none; transition-delay:.22s; }
+        .slide.in-view .slide-inner > *:nth-child(5) { opacity:1; transform:none; transition-delay:.28s; }
+        .slide.in-view .slide-inner > *:nth-child(6) { opacity:1; transform:none; transition-delay:.34s; }
 
-        .slide.in-view .slide-inner>*:nth-child(2) {
-            opacity: 1;
-            transform: none;
-            transition-delay: .11s;
-        }
+        .grow { flex: 1; min-height: 0; }
 
-        .slide.in-view .slide-inner>*:nth-child(3) {
-            opacity: 1;
-            transform: none;
-            transition-delay: .18s;
-        }
-
-        .slide.in-view .slide-inner>*:nth-child(4) {
-            opacity: 1;
-            transform: none;
-            transition-delay: .25s;
-        }
-
-        .slide.in-view .slide-inner>*:nth-child(5) {
-            opacity: 1;
-            transform: none;
-            transition-delay: .32s;
-        }
-
-        .slide.in-view .slide-inner>*:nth-child(6) {
-            opacity: 1;
-            transform: none;
-            transition-delay: .38s;
-        }
-
-        .grow {
-            flex: 1;
-            min-height: 0;
-        }
-
-        /* ── SLIDE HEADER ── */
-        .slide-head {
-            border-bottom: 1px solid var(--border-soft);
-            padding-bottom: 3.5%;
-            flex-shrink: 0;
-        }
+        /* SLIDE HEADER */
+        .slide-head { border-bottom: 1px solid var(--border-soft); padding-bottom: 2%; flex-shrink: 0; }
 
         .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            font-family: var(--font-mono);
-            font-size: clamp(9px, .9vw, 12px);
-            letter-spacing: .16em;
-            text-transform: lowercase;
-            color: var(--text-dim);
-            border: 1px solid var(--border);
-            border-radius: 3px;
-            padding: 4px 10px;
-            background: var(--surface-1);
-            margin-bottom: 1.2%;
+            display: inline-flex; align-items: center; gap: 6px;
+            font-family: var(--font-mono); font-size: clamp(9px, .82vw, 11px);
+            letter-spacing: .16em; text-transform: lowercase;
+            color: var(--text-dim); border: 1px solid var(--border); border-radius: 3px;
+            padding: 3px 9px; background: var(--surface-1); margin-bottom: .8%;
         }
 
-        .badge-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: var(--accent);
-            flex-shrink: 0;
-        }
+        .badge-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 
         .slide h1 {
-            font-family: var(--font-display);
-            font-size: clamp(36px, 6.5vw, 96px);
-            line-height: .95;
-            font-weight: 400;
-            letter-spacing: -.03em;
-            color: var(--text);
+            font-family: var(--font-display); font-size: clamp(32px, 5.5vw, 80px);
+            line-height: .95; font-weight: 400; letter-spacing: -.03em; color: var(--text);
         }
 
-        .slide h1 em {
-            font-style: italic;
-            color: var(--accent-2);
-        }
+        .slide h1 em { font-style: italic; color: var(--accent-2); }
 
         .slide h2 {
-            font-family: var(--font-display);
-            font-size: clamp(24px, 4.2vw, 64px);
-            line-height: 1.05;
-            font-weight: 400;
-            letter-spacing: -.025em;
-            color: var(--text);
+            font-family: var(--font-display); font-size: clamp(22px, 3.4vw, 54px);
+            line-height: 1.1; font-weight: 400; letter-spacing: -.025em; color: var(--text);
         }
 
-        .slide h2 em {
-            font-style: italic;
-            color: var(--accent-2);
-        }
+        .slide h2 em { font-style: italic; color: var(--accent-2); }
 
         .subhead {
-            font-size: clamp(12px, 1.3vw, 18px);
-            color: var(--text-muted);
-            font-weight: 300;
-            line-height: 1.5;
-            margin-top: 1.5%;
+            font-size: clamp(12px, 1.2vw, 16px); color: var(--text-muted);
+            font-weight: 400; line-height: 1.55; margin-top: .8%;
         }
 
-        /* ── PILLS ── */
-        .pill-row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-            flex-shrink: 0;
-        }
+        /* PILLS */
+        .pill-row { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
 
         .pill {
-            font-family: var(--font-mono);
-            font-size: clamp(9px, .85vw, 12px);
-            letter-spacing: .05em;
-            padding: 5px 12px;
-            border-radius: 3px;
-            border: 1px solid var(--border);
-            background: var(--surface-1);
-            color: var(--text-dim);
-            white-space: nowrap;
+            font-family: var(--font-mono); font-size: clamp(8px, .78vw, 11px);
+            letter-spacing: .05em; padding: 4px 10px; border-radius: 3px;
+            border: 1px solid var(--border); background: var(--surface-1);
+            color: var(--text-dim); white-space: nowrap;
         }
 
-        .pill.accent {
-            border-color: rgba(61, 127, 255, .35);
-            color: var(--accent);
-            background: var(--accent-dim);
-        }
+        .pill.accent { border-color: rgba(61,127,255,.35); color: var(--accent); background: var(--accent-dim); }
+        .pill.warm { border-color: rgba(200,169,110,.3); color: var(--accent-2); background: var(--accent-2-dim); }
+        .pill.success { border-color: rgba(56,179,115,.3); color: var(--success); background: rgba(56,179,115,.08); }
 
-        .pill.warm {
-            border-color: rgba(200, 169, 110, .3);
-            color: var(--accent-2);
-            background: var(--accent-2-dim);
-        }
+        /* GRIDS */
+        .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.2%; align-items: stretch; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.2%; align-items: stretch; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.2%; align-items: stretch; }
 
-        /* ── GRIDS ── */
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.4%;
-            align-items: stretch;
-        }
-
-        .grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.4%;
-            align-items: stretch;
-        }
-
-        .grid-4 {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.4%;
-            align-items: stretch;
-        }
-
-        /* ── CARD ── */
+        /* CARD */
         .card {
-            background: var(--surface-1);
-            border: 1px solid var(--border-soft);
-            border-radius: var(--r);
-            padding: 2.2% 2.5%;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            transition: border-color .2s, background .2s;
+            background: var(--surface-1); border: 1px solid var(--border-soft);
+            border-radius: var(--r); padding: 1.6% 2%;
+            display: flex; flex-direction: column; gap: 10px;
+            transition: border-color .2s, background .2s; overflow: hidden;
         }
 
-        .card:hover {
-            border-color: var(--border);
-            background: var(--surface-2);
-        }
+        .card:hover { border-color: var(--border); background: var(--surface-2); }
 
         .card-label {
-            font-family: var(--font-mono);
-            font-size: clamp(8px, .7vw, 11px);
-            letter-spacing: .14em;
-            text-transform: uppercase;
-            color: var(--text-dim);
+            font-family: var(--font-mono); font-size: clamp(7px, .65vw, 10px);
+            letter-spacing: .14em; text-transform: uppercase;
+            color: var(--text-dim); flex-shrink: 0;
         }
 
-        .card-title {
-            font-size: clamp(12px, 1.2vw, 17px);
-            font-weight: 600;
-            color: var(--text);
-            line-height: 1.3;
-        }
+        .card-title { font-size: clamp(11px, 1.05vw, 15px); font-weight: 600; color: var(--text); line-height: 1.25; flex-shrink: 0; }
 
-        .card p,
-        .card li {
-            font-size: clamp(11px, 1.1vw, 15px);
-            color: var(--text-muted);
-            line-height: 1.7;
-            font-weight: 300;
-        }
+        .card p, .card li { font-size: clamp(11px, 1vw, 14px); color: var(--text-muted); line-height: 1.6; font-weight: 400; }
 
-        .card ul {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 4px;
-        }
+        .card ul { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
+        .card ul li { padding-left: 1.2em; position: relative; }
+        .card ul li::before { content: "–"; position: absolute; left: 0; color: var(--text-dim); }
 
-        .card ul li {
-            padding-left: 1.2em;
-            position: relative;
-        }
-
-        .card ul li::before {
-            content: "–";
-            position: absolute;
-            left: 0;
-            color: var(--text-dim);
-        }
-
-        /* ── METRICS ── */
+        /* METRICS */
         .metric {
-            background: var(--surface-1);
-            border: 1px solid var(--border-soft);
-            border-radius: var(--r);
-            padding: 1.8% 2%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-            transition: border-color .2s;
+            background: var(--surface-1); border: 1px solid var(--border-soft);
+            border-radius: var(--r); padding: 1.4% 1.8%;
+            display: flex; flex-direction: column; justify-content: space-between;
+            position: relative; overflow: hidden; transition: border-color .2s;
         }
 
-        .metric:hover {
-            border-color: var(--border);
-        }
+        .metric:hover { border-color: var(--border); }
 
         .metric-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 2px;
-            width: 50%;
+            position: absolute; bottom: 0; left: 0; height: 2px; width: 50%;
             background: linear-gradient(90deg, var(--accent), transparent);
         }
 
-        .metric-bar.warm {
-            background: linear-gradient(90deg, var(--accent-2), transparent);
-        }
-
-        .metric-bar.green {
-            background: linear-gradient(90deg, var(--success), transparent);
-        }
+        .metric-bar.warm { background: linear-gradient(90deg, var(--accent-2), transparent); }
+        .metric-bar.green { background: linear-gradient(90deg, var(--success), transparent); }
 
         .metric-value {
-            font-family: var(--font-display);
-            font-size: clamp(28px, 4vw, 64px);
-            line-height: 1;
-            color: var(--text);
-            letter-spacing: -.03em;
-            margin-bottom: 15px;
+            font-family: var(--font-display); font-size: clamp(22px, 3.2vw, 52px);
+            line-height: 1; color: var(--text); letter-spacing: -.03em; margin-bottom: 10px;
         }
 
-        .metric-value .unit {
-            font-size: .5em;
-            color: var(--accent-2);
-        }
+        .metric-value .unit { font-size: .5em; color: var(--accent-2); }
 
-        .metric-label {
-            font-size: clamp(12px, 1.1vw, 16px);
-            font-weight: 600;
-            color: var(--text);
-            line-height: 1.3;
-            margin-bottom: 6px;
-        }
+        .metric-label { font-size: clamp(11px, 1vw, 14px); font-weight: 600; color: var(--text); line-height: 1.25; margin-bottom: 5px; }
 
-        .metric-note {
-            font-family: var(--font-mono);
-            font-size: clamp(9px, .75vw, 12px);
-            color: var(--text-dim);
-            line-height: 1.4;
-        }
+        .metric-note { font-family: var(--font-mono); font-size: clamp(9px, .75vw, 11px); color: var(--text-dim); line-height: 1.35; }
 
-        /* ── DIAGRAM STEPS ── */
-        .diagram-row {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 1.2%;
-            align-items: stretch;
-        }
+        /* DIAGRAM */
+        .diagram-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1%; align-items: stretch; }
 
         .diagram-step {
-            background: var(--surface-1);
-            border: 1px solid var(--border-soft);
-            border-radius: var(--r);
-            padding: 2% 2.2%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            position: relative;
+            background: var(--surface-1); border: 1px solid var(--border-soft);
+            border-radius: var(--r); padding: 1.5% 1.7%;
+            display: flex; flex-direction: column; gap: 8px;
+            position: relative; overflow: hidden;
         }
 
         .diagram-step::after {
-            content: "→";
-            position: absolute;
-            right: -.7em;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: clamp(10px, .9vw, 14px);
-            color: var(--text-dim);
-            z-index: 2;
+            content: "→"; position: absolute; right: -.65em; top: 50%;
+            transform: translateY(-50%); font-size: clamp(10px, .85vw, 13px);
+            color: var(--text-dim); z-index: 2;
         }
 
-        .diagram-step:last-child::after {
-            display: none;
-        }
+        .diagram-step:last-child::after { display: none; }
 
         .step-index {
-            width: 2.4em;
-            height: 2.4em;
-            border-radius: 6px;
-            background: var(--accent-dim);
-            border: 1px solid rgba(61, 127, 255, .22);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: var(--font-mono);
-            font-size: clamp(9px, .85vw, 12px);
-            font-weight: 500;
-            color: var(--accent);
-            flex-shrink: 0;
-            margin-bottom: 4px;
+            width: 2.2em; height: 2.2em; border-radius: 5px;
+            background: var(--accent-dim); border: 1px solid rgba(61,127,255,.22);
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-mono); font-size: clamp(8px, .78vw, 11px);
+            font-weight: 500; color: var(--accent); flex-shrink: 0;
         }
 
-        .step-title {
-            font-size: clamp(12px, 1.1vw, 15px);
-            font-weight: 600;
-            color: var(--text);
-        }
+        .step-title { font-size: clamp(11px, 1vw, 14px); font-weight: 600; color: var(--text); }
 
-        .step-copy {
-            font-size: clamp(10px, .95vw, 13px);
-            color: var(--text-muted);
-            line-height: 1.55;
-            font-weight: 300;
-            flex: 1;
-        }
+        .step-copy { font-size: clamp(10px, .9vw, 13px); color: var(--text-muted); line-height: 1.55; font-weight: 400; flex: 1; }
 
-        /* ── CALLOUT ── */
+        /* CALLOUT */
         .callout {
-            background: var(--surface-1);
-            border-left: 2px solid var(--accent);
-            border-radius: 0 var(--r) var(--r) 0;
-            padding: 1.8% 2.2%;
-            font-size: clamp(11px, 1.05vw, 15px);
-            color: var(--text-muted);
-            line-height: 1.65;
-            font-weight: 300;
-            flex-shrink: 0;
+            background: var(--surface-1); border-left: 2px solid var(--accent);
+            border-radius: 0 var(--r) var(--r) 0; padding: 1.2% 1.8%;
+            font-size: clamp(11px, 1vw, 14px); color: var(--text-muted);
+            line-height: 1.6; font-weight: 400; flex-shrink: 0;
         }
 
-        .callout strong {
-            color: var(--accent);
-            font-weight: 600;
-        }
+        .callout strong { color: var(--accent); font-weight: 600; }
 
-        /* ── TABLE ── */
-        .mini-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            border: 1px solid var(--border-soft);
-            border-radius: var(--r);
-            overflow: hidden;
-        }
-
-        .mini-table th,
-        .mini-table td {
-            padding: 1.4% 1.8%;
-            text-align: left;
-            vertical-align: middle;
-            border-bottom: 1px solid var(--border-soft);
-        }
-
-        .mini-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .mini-table th {
-            background: var(--surface-2);
-            color: var(--text);
-            font-weight: 600;
-            font-size: clamp(9px, .8vw, 12px);
-            letter-spacing: .07em;
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-        }
-
-        .mini-table td {
-            background: var(--surface-1);
-            color: var(--text-muted);
-            font-weight: 300;
-            font-size: clamp(11px, 1vw, 14px);
-        }
-
-        .mini-table tr:hover td {
-            background: var(--surface-2);
-        }
-
-        /* ── TIMELINE ── */
+        /* TIMELINE */
         .timeline-track {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.4%;
-            position: relative;
-            height: 100%;
-            align-items: stretch;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 1.2%; position: relative; align-items: stretch;
         }
 
         .timeline-track::before {
-            content: "";
-            position: absolute;
-            top: 2px;
-            left: 3%;
-            right: 3%;
-            height: 1px;
-            background: linear-gradient(90deg, var(--accent), var(--accent-2));
-            opacity: .22;
+            content: ""; position: absolute; top: 2px; left: 3%; right: 3%;
+            height: 1px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); opacity: .22;
         }
 
         .milestone {
-            background: var(--surface-1);
-            border: 1px solid var(--border-soft);
-            border-radius: var(--r);
-            padding: 2.2% 2.5%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            position: relative;
-            overflow: hidden;
+            background: var(--surface-1); border: 1px solid var(--border-soft);
+            border-radius: var(--r); padding: 1.6% 2%;
+            display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden;
         }
 
         .milestone::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
             background: linear-gradient(90deg, var(--accent), var(--accent-2));
         }
 
-        .ms-quarter {
-            font-family: var(--font-mono);
-            font-size: clamp(9px, .75vw, 12px);
-            color: var(--accent);
-            letter-spacing: .1em;
-            margin-bottom: 4px;
+        .ms-quarter { font-family: var(--font-mono); font-size: clamp(8px, .7vw, 11px); color: var(--accent); letter-spacing: .1em; }
+        .ms-title { font-size: clamp(11px, 1vw, 14px); font-weight: 600; color: var(--text); }
+        .ms-copy { font-size: clamp(10px, .88vw, 13px); color: var(--text-muted); line-height: 1.5; font-weight: 400; }
+
+        /* TRL BADGE */
+        .trl-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-family: var(--font-mono); font-size: clamp(8px, .72vw, 10px);
+            padding: 3px 8px; border-radius: 3px; font-weight: 500;
         }
 
-        .ms-title {
-            font-size: clamp(12px, 1.1vw, 16px);
-            font-weight: 600;
-            color: var(--text);
-        }
+        .trl-done { background: rgba(56,179,115,.1); color: var(--success); border: 1px solid rgba(56,179,115,.25); }
+        .trl-now { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(95,157,255,.3); }
+        .trl-next { background: var(--accent-2-dim); color: var(--accent-2); border: 1px solid rgba(215,181,119,.25); }
+        .trl-future { background: var(--surface-2); color: var(--text-dim); border: 1px solid var(--border-soft); }
 
-        .ms-copy {
-            font-size: clamp(10px, .95vw, 14px);
-            color: var(--text-muted);
-            line-height: 1.55;
-            font-weight: 300;
-        }
-
-        /* ── RISK / MITIGATION ── */
-        .risk-cell {
-            background: rgba(217, 85, 85, .05);
-            border: 1px solid rgba(217, 85, 85, .18);
-            border-radius: var(--r);
-            padding: 1.8% 2.2%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .risk-label {
-            font-family: var(--font-mono);
-            font-size: clamp(9px, .75vw, 11px);
-            color: var(--danger);
-            font-weight: 500;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-        }
-
-        .risk-copy,
-        .mitigation-copy {
-            font-size: clamp(10px, .95vw, 14px);
-            color: var(--text-muted);
-            line-height: 1.5;
-            font-weight: 300;
-        }
-
-        .mitigation-cell {
-            background: rgba(56, 179, 115, .05);
-            border: 1px solid rgba(56, 179, 115, .18);
-            border-radius: var(--r);
-            padding: 1.8% 2.2%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .mitigation-label {
-            font-family: var(--font-mono);
-            font-size: clamp(9px, .75vw, 11px);
-            color: var(--success);
-            font-weight: 500;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-        }
-
-        /* ── SOURCES ── */
+        /* SOURCES */
         .sources {
-            font-family: var(--font-mono);
-            font-size: clamp(8px, .7vw, 11px);
-            color: var(--text-dim);
-            border-top: 1px solid var(--border-soft);
-            padding-top: 1.5%;
-            line-height: 1.7;
-            flex-shrink: 0;
-            margin-top: 1%;
+            font-family: var(--font-mono); font-size: clamp(8px, .7vw, 10.5px);
+            color: var(--text-dim); border-top: 1px solid var(--border-soft);
+            padding-top: 1%; line-height: 1.6; flex-shrink: 0;
         }
 
-        .sources a {
-            color: rgba(61, 127, 255, .65);
-            text-decoration: none;
-        }
-
-        .sources a:hover {
-            color: var(--accent);
-        }
-
-        .tiny {
-            font-family: var(--font-mono);
-            font-size: clamp(8px, .72vw, 11px);
-            color: var(--text-dim);
-            line-height: 1.55;
-            flex-shrink: 0;
-        }
-
-        /* ==================== PRINT FIX ULTRA-ROBUSTE (V3) ==================== */
+        /* PRINT */
         @media print {
-            * {
+            *, *::before, *::after {
                 box-shadow: none !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -813,69 +359,31 @@
                 transition: none !important;
             }
 
-            @page {
-                size: 16in 9in;
-                margin: 0;
-            }
+            @page { size: 16in 9in; margin: 0; }
 
-            html,
-            body {
-                width: 16in !important;
-                height: auto !important;
-                overflow: visible !important;
-                background: var(--bg) !important;
-            }
+            html, body { width: 16in !important; height: auto !important; overflow: visible !important; background: var(--bg) !important; }
 
-            /* Cacher UI et Scrollbars */
-            .nav-dots,
-            .deck-progress,
-            .slides-wrap::-webkit-scrollbar {
-                display: none !important;
-            }
+            .nav-dots, .deck-progress { display: none !important; }
 
-            .deck-header,
-            .deck-footer,
-            .deck-bg {
-                position: absolute !important;
-                width: 16in !important;
-            }
+            .deck-header, .deck-footer { position: absolute !important; width: 16in !important; }
 
             .slides-wrap {
-                height: auto !important;
-                width: 16in !important;
-                overflow: visible !important;
-                scroll-snap-type: none !important;
-                display: block !important;
+                height: auto !important; width: 16in !important;
+                overflow: visible !important; scroll-snap-type: none !important; display: block !important;
             }
 
             .slide {
-                width: 16in !important;
-                height: 9in !important;
-                min-height: 9in !important;
-                max-height: 9in !important;
+                width: 16in !important; height: 9in !important;
+                min-height: 9in !important; max-height: 9in !important;
                 margin: 0 !important;
-                padding-top: var(--header-h) !important;
-                padding-bottom: var(--footer-h) !important;
-                page-break-after: always !important;
-                break-after: page !important;
-                break-inside: avoid !important;
-                display: flex !important;
-                align-items: stretch !important;
-                position: relative !important;
+                padding-top: var(--header-h) !important; padding-bottom: var(--footer-h) !important;
+                page-break-after: always !important; break-after: page !important;
+                break-inside: avoid !important; display: flex !important;
+                align-items: stretch !important; position: relative !important;
             }
 
-            .slide-inner {
-                width: 100% !important;
-                height: 100% !important;
-                margin: 0 !important;
-                padding: 3% 5% !important;
-            }
-
-            /* FORCER LA VISIBILITÉ MÊME SANS JAVASCRIPT / SCROLL */
-            .slide-inner>* {
-                opacity: 1 !important;
-                transform: none !important;
-            }
+            .slide-inner { width: 100% !important; height: 100% !important; }
+            .slide-inner > * { opacity: 1 !important; transform: none !important; }
         }
     </style>
 </head>
@@ -887,29 +395,24 @@
     <header class="deck-header">
         <div class="brand">
             <div class="brand-icon">
-                <svg width="16" height="16" viewBox="0 0 64 64" fill="none">
-                    <rect x="4" y="4" width="56" height="56" stroke="currentColor" stroke-width="2.5" fill="none"
-                        rx="8" />
-                    <line x1="18" y1="16" x2="18" y2="48" stroke="currentColor" stroke-width="3"
-                        stroke-linecap="round" />
-                    <line x1="18" y1="16" x2="38" y2="16" stroke="currentColor" stroke-width="3"
-                        stroke-linecap="round" />
-                    <line x1="38" y1="16" x2="38" y2="29" stroke="currentColor" stroke-width="3"
-                        stroke-linecap="round" />
-                    <line x1="38" y1="29" x2="18" y2="29" stroke="currentColor" stroke-width="3"
-                        stroke-linecap="round" />
-                    <circle cx="50" cy="42" r="4.5" fill="currentColor" />
+                <svg width="15" height="15" viewBox="0 0 64 64" fill="none">
+                    <rect x="4" y="4" width="56" height="56" stroke="currentColor" stroke-width="2.5" fill="none" rx="8"/>
+                    <line x1="18" y1="16" x2="18" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="18" y1="16" x2="38" y2="16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="38" y1="16" x2="38" y2="29" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="38" y1="29" x2="18" y2="29" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="50" cy="42" r="4.5" fill="currentColor"/>
                 </svg>
             </div>
             <span class="brand-name">Praedixa</span>
         </div>
-        <div class="deck-badge">Parcours DeepTech · Euratechnologies · Fév. 2026</div>
+        <div class="deck-badge">Parcours DeepTech · Solution française · Serveurs 100 % France</div>
     </header>
 
     <nav class="nav-dots" id="nav-dots" aria-label="Navigation"></nav>
 
     <footer class="deck-footer">
-        <span class="footer-left">Praedixa · 21.02.2026</span>
+        <span class="footer-left">Praedixa · solution française · 21.02.2026</span>
         <span class="slide-counter">
             <span class="cur" id="cur">01</span>
             <span style="color:var(--border)"> / </span>
@@ -919,792 +422,749 @@
 
     <main class="slides-wrap" id="wrap">
 
+        <!-- ═══════════════ SLIDE 01 — EXECUTIVE SUMMARY ═══════════════ -->
         <section class="slide" id="s1">
             <div class="slide-inner">
 
                 <header class="slide-head">
                     <div class="badge"><span class="badge-dot"></span>01 · executive summary</div>
                     <h1>Praedixa</h1>
-                    <p class="subhead">Stratégie Dual-Track : Un produit SaaS vendu aujourd'hui, une R&D DeepTech menée
-                        en parallèle.</p>
+                    <p class="subhead">Stratégie Dual-Track : un SaaS français déjà commercialisé et un programme de R&D DeepTech structuré autour d'un verrou scientifique précis.</p>
                 </header>
 
                 <div class="pill-row">
-                    <span class="pill warm">Stade · Prospection ciblée (POC à venir)</span>
-                    <span class="pill">Parcours DeepTech</span>
+                    <span class="pill warm">Stade · Recherche entreprise pilote (pipeline ML)</span>
+                    <span class="pill">Parcours DeepTech · EuraTechnologies</span>
+                    <span class="pill accent">100 % serveurs hébergés en France</span>
                 </div>
 
-                <div class="grid-2" style="flex: 0 0 auto; margin-bottom: 2%;">
+                <div class="grid-2" style="flex: 0 0 28%;">
                     <article class="card">
                         <div class="card-label">Thèse stratégique</div>
-                        <div class="card-title">Boucle décisionnelle Ops/DAF</div>
-                        <p>Praedixa anticipe les tensions de couverture, compare les options coût/service et produit une
-                            preuve d'impact audit-ready — sans remplacer les outils existants.</p>
+                        <div class="card-title">La couche décisionnelle manquante entre WFM et DAF</div>
+                        <p>Les outils WFM enregistrent. Les outils BI expliquent le passé. Praedixa est le seul outil qui compare les options coût/service, trace la décision prise et prouve l'impact net — sans remplacer l'existant.</p>
                     </article>
                     <article class="card" style="border-color:var(--accent); background:rgba(61,127,255,.03)">
                         <div class="card-label" style="color:var(--accent)">Objet de ce dossier</div>
-                        <div class="card-title">Intégration Parcours DeepTech</div>
+                        <div class="card-title">Intégration Parcours DeepTech EuraTechnologies</div>
                         <ul>
-                            <li><strong>(i)</strong> Cadrage scientifique + Advisor ciblé avant fin avril.</li>
-                            <li><strong>(ii)</strong> Dossier de subvention Bpifrance DeepTech prêt pour juin.</li>
-                            <li><strong>(iii)</strong> Thèse CIFRE recrutée d'ici septembre.</li>
+                            <li><strong>(i)</strong> Cadrage scientifique du programme par un chercheur senior reconnu avant fin avril 2026.</li>
+                            <li><strong>(ii)</strong> Dossier Bpifrance Emergence prêt pour juin, adossé à une feuille de route scientifique validée et un TRL documenté.</li>
+                            <li><strong>(iii)</strong> Thèse CIFRE Decision-Focused Learning recrutée d'ici septembre 2026.</li>
                         </ul>
                     </article>
                 </div>
 
                 <div class="grid-3 grow">
                     <article class="card">
-                        <div class="card-label">Statut actuel</div>
+                        <div class="card-label">Statut produit actuel (Track 1)</div>
                         <ul>
-                            <li>Lancement de la campagne d'acquisition avec ciblage prioritaire des multi-franchisés
-                                restauration rapide.</li>
-                            <li>Objectif de cycle court pour sécuriser les premiers jeux de données historiques.</li>
+                            <li>SaaS B2B opérationnel, déployable immédiatement sur données WFM exportées.</li>
+                            <li>Infrastructure 100 % hébergée en France. Zéro dépendance cloud US.</li>
+                            <li>Protocole offline replay validé sur données historiques synthétiques.</li>
                         </ul>
                     </article>
                     <article class="card">
-                        <div class="card-label">Ce que le Parcours DeepTech change</div>
+                        <div class="card-label">Statut R&D actuel (Track 2)</div>
                         <ul>
-                            <li>Accompagnement renforcé sur la gouvernance scientifique.</li>
-                            <li>Accompagnement BPI et ingénierie de financement.</li>
-                            <li>Accès direct au réseau de laboratoires des Hauts-de-France.</li>
+                            <li>Verrous identifiés : contraintes HCR non-différentiables, boucle endogène absentéisme/planning.</li>
+                            <li>Fondations mathématiques posées (SPO+, OptNet, cvxpylayers).</li>
+                            <li>Recherche active d'une entreprise pilote pour construire les premiers pipelines ML sur données réelles.</li>
                         </ul>
                     </article>
                     <article class="card">
-                        <div class="card-label">Le modèle "Dual-Track"</div>
-                        <p><strong>1. Le Produit :</strong> Un SaaS B2B déjà sur le marché (MRR immédiat, constitution
-                            du dataset offline).<br>
-                            <strong>2. La R&D :</strong> Un programme de recherche académique mené en parallèle (Advisor
-                            + CIFRE) pour décupler les performances sous 18 mois.
-                        </p>
+                        <div class="card-label">Le modèle Dual-Track</div>
+                        <p><strong>Track 1 — Le Produit :</strong> SaaS B2B commercialisé aujourd'hui. Génère MRR et capture le dataset décisionnel réel (Decision Log).<br><br><strong>Track 2 — La R&D :</strong> Programme scientifique structuré autour du Decision-Focused Learning, piloté par un chercheur Inria senior, exécuté avec un doctorant CIFRE.</p>
                     </article>
                 </div>
 
             </div>
         </section>
 
+        <!-- ═══════════════ SLIDE 02 — WHY NOW ═══════════════ -->
         <section class="slide" id="s2">
             <div class="slide-inner">
                 <header class="slide-head">
                     <div class="badge"><span class="badge-dot"></span>02 · why now</div>
-                    <h2>Fenêtre d'opportunité <em>immédiate</em></h2>
-                    <p class="subhead">Tension opérationnelle critique et marges affaiblies. Nos cibles ont la maturité
-                        pour adopter une aide à la décision outillée.</p>
+                    <h2>Trois inflexions simultanées.<br><em>La fenêtre est maintenant.</em></h2>
+                    <p class="subhead">Crise structurelle du staffing HCR, maturité data suffisante pour le ML, et obligation de souveraineté numérique : les conditions d'adoption convergent en 2026.</p>
                 </header>
 
-                <div class="grid-4 grow">
+                <div class="grid-4" style="flex: 0 0 30%;">
                     <article class="metric">
                         <div class="metric-bar"></div>
                         <div class="metric-value">2,43 M</div>
-                        <div class="metric-label">Intentions d’embauche France 2025</div>
-                        <div class="metric-note">BMO · dont 50,1 % jugées difficiles (HCR souvent >60 %)</div>
+                        <div class="metric-label">Intentions d'embauche France 2025</div>
+                        <div class="metric-note">BMO France Travail 2025 · 50,1 % jugées difficiles à pourvoir</div>
                     </article>
                     <article class="metric">
                         <div class="metric-bar"></div>
                         <div class="metric-value">8 %</div>
-                        <div class="metric-label">Absentéisme HCR</div>
-                        <div class="metric-note">WTW 2025 · vs 5,1 % moyenne privé</div>
+                        <div class="metric-label">Taux d'absentéisme HCR</div>
+                        <div class="metric-note">WTW Baromètre 2025 · vs 5,1 % moyenne secteur privé</div>
                     </article>
                     <article class="metric">
                         <div class="metric-bar warm"></div>
-                        <div class="metric-value" style="color:var(--accent-2)">2,2×</div>
-                        <div class="metric-label">Coût intérim last-minute</div>
-                        <div class="metric-note">Charges + IFM + ICCP + prime urgence</div>
+                        <div class="metric-value" style="color:var(--accent-2)">×2,2</div>
+                        <div class="metric-label">Surcoût intérim last-minute</div>
+                        <div class="metric-note">Charges patronales + IFM + ICCP + prime d'urgence effective</div>
                     </article>
                     <article class="metric">
                         <div class="metric-bar green"></div>
-                        <div class="metric-value" style="color:var(--success)">5 %</div>
-                        <div class="metric-label">HCR avec IA</div>
-                        <div class="metric-note">Insee 2024 · vs 10 % moyenne France</div>
+                        <div class="metric-value" style="color:var(--success)">24 %</div>
+                        <div class="metric-label">Croissance Cloud souverain France</div>
+                        <div class="metric-note">L'Usine Digitale 2025 · Hosting France = critère Tier-1 achat public</div>
                     </article>
                 </div>
 
-                <div class="grid-2 grow">
-                    <article class="card" style="display:flex; flex-direction:column;">
-                        <div class="card-label">La réalité d'une direction de réseau aujourd'hui</div>
-                        <ul style="flex:1;">
-                            <li>Complexité de gestion multi-sites (variabilité et micro-absences)</li>
-                            <li>Dérives salariales structurelles liées aux urgences et intérim</li>
-                            <li>Déficit total d'audit financier sur les prises de décision locales</li>
-                        </ul>
+                <div class="grid-3 grow">
+                    <article class="card">
+                        <div class="card-label">Inflexion 1 — Crise structurelle staffing</div>
+                        <p>La pénurie de main-d'œuvre HCR n'est pas cyclique. Elle est démographique et conventionnelle. Les directions de réseau ne peuvent plus absorber la variabilité avec des managers seuls.</p>
                     </article>
-                    <article class="card" style="display:flex; flex-direction:column;">
-                        <div class="card-label">Pourquoi l'approche de Praedixa porte aujourd'hui</div>
-                        <p style="flex:1;">Données WFM désormais normées, maturité du DFL (Decision-Focused Learning) et
-                            exigence réglementaire naissante. C'est le carrefour idéal pour imposer une barrière
-                            d'entrée technologique.</p>
+                    <article class="card">
+                        <div class="card-label">Inflexion 2 — Maturité data enfin suffisante</div>
+                        <p>Les WFM modernes (Skello, Combo, Planday) ont normalisé l'export de données structurées. Pour la première fois, un pipeline ML sur données de staffing multi-sites est techniquement faisable sans projet IT lourd.</p>
+                    </article>
+                    <article class="card">
+                        <div class="card-label">Inflexion 3 — Souveraineté numérique obligatoire</div>
+                        <p>L'AI Act (Art. 9 & 27) et le Cloud au Centre imposent une traçabilité totale des décisions RH automatisées. Une infrastructure 100 % France n'est plus un différenciateur : c'est un prérequis contractuel.</p>
                     </article>
                 </div>
 
-                <p class="sources" style="margin-top:2%">Sources 21/02/2026 : BMO France Travail 2025 · WTW Baromètre
-                    Absentéisme 2025 · Insee IA 2024</p>
+                <p class="sources">Sources : BMO France Travail 2025 · WTW Baromètre Absentéisme 2025 · L'Usine Digitale 2025 · Règlement UE AI Act 2024</p>
             </div>
         </section>
 
+        <!-- ═══════════════ SLIDE 03 — PROBLÈME ═══════════════ -->
         <section class="slide" id="s3">
             <div class="slide-inner">
                 <header class="slide-head">
                     <div class="badge"><span class="badge-dot"></span>03 · problème</div>
-                    <h2>Le vrai risque n'est pas la variation.<br>C'est sa <em>mauvaise anticipation</em>.</h2>
-                    <p class="subhead">Une direction d'exploitation condamnée à gérer l'urgence, sans certitude que le
-                        choix fait était le moins coûteux.</p>
+                    <h2>Le vrai risque n'est pas la variation.<br>C'est l'<em>absence de preuve</em> que le choix était bon.</h2>
+                    <p class="subhead">Les outils actuels enregistrent et affichent. Aucun ne dit "voilà l'option la moins chère" ni "voilà combien ça t'a coûté de ne pas nous suivre".</p>
                 </header>
 
                 <div class="grid-3 grow">
-                    <article class="card" style="display:flex; flex-direction:column;">
+                    <article class="card">
                         <div class="card-label">Ce qui se passe vraiment sur le terrain</div>
-                        <ul style="flex:1;">
-                            <li>Données éclatées par site, zéro vue groupe</li>
-                            <li>Arbitrages à J+1/J+0 sur absences + pics</li>
-                            <li>Hypothèses métier différentes à chaque manager</li>
+                        <ul>
+                            <li>Données éclatées par site : zéro vue groupe consolidée en temps réel</li>
+                            <li>Arbitrages à J+0 sur absences et pics non anticipés</li>
+                            <li>Chaque manager applique ses propres règles implicites, non comparables</li>
+                            <li>Aucune trace formelle de la décision prise ni de son hypothèse de coût</li>
                         </ul>
                     </article>
-                    <article class="card"
-                        style="border-top:2px solid var(--accent-2); display:flex; flex-direction:column;">
-                        <div class="card-label" style="color:var(--accent-2)">Le prix de la réactivité précipitée</div>
-                        <ul style="flex:1;">
-                            <li>Intérim last-minute : jusqu'à ×2,2 le coût normal</li>
-                            <li>Turnover fast-food : 70 % → 15-25 k€ de coût indirect par départ</li>
-                            <li>Heures Sup. majorées + taux d'absentéisme élevés : hémorragie structurelle</li>
+                    <article class="card" style="border-top:2px solid var(--accent-2);">
+                        <div class="card-label" style="color:var(--accent-2)">Le coût réel de la réactivité non pilotée</div>
+                        <ul>
+                            <li>Intérim last-minute : jusqu'à ×2,2 le coût normal (IFM + ICCP + prime)</li>
+                            <li>Turnover fast-food supérieur à 70 % → 15-25 k€ de coût indirect par départ (recrutement + formation)</li>
+                            <li>Heures supplémentaires majorées liées aux absences non anticipées : charge structurelle non budgétée</li>
                         </ul>
                     </article>
-                    <article class="card" style="display:flex; flex-direction:column;">
-                        <div class="card-label">Pourquoi rien ne marche aujourd’hui</div>
-                        <ul style="flex:1;">
-                            <li>WFM = pointe et paie</li>
-                            <li>BI = joli graphique du passé</li>
-                            <li>Aucun outil ne prouve l’impact économique</li>
+                    <article class="card">
+                        <div class="card-label">Le paradoxe Predict-then-Optimize</div>
+                        <ul>
+                            <li><strong>WFM :</strong> planifie et paie — ne prescrit pas</li>
+                            <li><strong>BI :</strong> explique le passé — ne prescrit pas</li>
+                            <li><strong>IA standard :</strong> prédit la charge — optimise séparément — ignore que la décision de planning modifie l'absentéisme futur (endogénéité)</li>
                         </ul>
                     </article>
                 </div>
 
-                <div class="callout" style="border-left-color:var(--accent);">
-                    <strong>Résultat :</strong> performance dépendante des managers et du hasard. La variabilité n’est
-                    plus un risque opérationnel. C’est un risque financier et de gouvernance pure.
+                <div class="callout">
+                    <strong>Le verrou :</strong> les outils actuels minimisent l'erreur de prévision. Praedixa minimise directement le coût opérationnel réel de la décision. Ce n'est pas la même fonction objectif — c'est le cœur du verrou scientifique DeepTech.
                 </div>
             </div>
         </section>
 
+        <!-- ═══════════════ SLIDE 04 — PAYSAGE & MOAT ═══════════════ -->
         <section class="slide" id="s4">
             <div class="slide-inner">
                 <header class="slide-head">
-                    <div class="badge"><span class="badge-dot"></span>04 · paysage concurrentiel</div>
-                    <h2>Dépasser le planning local<br>et les simples <em>rapports statiques</em></h2>
-                    <p class="subhead">Praedixa n'est ni un logiciel WFM ni un pur outil métier BI. C'est la couche
-                        prédictive algorithmique qui manquait aux gestions multi-sites.</p>
+                    <div class="badge"><span class="badge-dot"></span>04 · paysage concurrentiel & moat</div>
+                    <h2>Trois générations d'outils.<br>Praedixa est la <em>quatrième couche</em>.</h2>
+                    <p class="subhead">Ni WFM, ni BI, ni IA prédictive : une couche décisionnelle différentiable, souveraine, adossée à un dataset que personne d'autre ne capture.</p>
                 </header>
 
-                <div class="grid-3 grow">
-                    <article class="card" style="display:flex; flex-direction:column;">
-                        <div class="card-label">WFM terrain</div>
-                        <div class="card-title">Skello, Combo, Snapshift…</div>
-                        <p style="flex:1; margin-top:8px;">Excellent pour pointer et exporter la
-                            paie.<br><br><strong>Limite :</strong> zéro arbitrage coût/service prédictif.</p>
-                    </article>
-                    <article class="card" style="display:flex; flex-direction:column;">
-                        <div class="card-label">BI / Reporting</div>
-                        <div class="card-title">PowerBI, Tableau…</div>
-                        <p style="flex:1; margin-top:8px;">Beaux graphiques a posteriori.<br><br><strong>Limite
-                                :</strong> aucune recommandation actionnable, zéro preuve contrefactuelle.</p>
-                    </article>
-                    <article class="card" style="display:flex; flex-direction:column;">
-                        <div class="card-label">Solveurs OR classiques</div>
-                        <div class="card-title">Blue Yonder, RELEX, etc.</div>
-                        <p style="flex:1; margin-top:8px;">Predict-then-optimize en silo.<br><br><strong>Limite
-                                :</strong> ignore l’humain, l’endogénéité et la confiance Ops.</p>
-                    </article>
-                </div>
-
-                <div class="callout"
-                    style="border-left-color:var(--accent); display:flex; flex-direction:column; justify-content:center;">
-                    <div
-                        style="font-family:var(--font-mono);font-size:clamp(10px,.85vw,13px);color:var(--accent);text-transform:uppercase;letter-spacing:.12em; margin-bottom: 8px;">
-                        Ce que Praedixa apporte (et personne d’autre)
-                    </div>
-                    <span style="font-size: clamp(14px, 1.4vw, 18px); color: var(--text);">Preuve 0 % / 100 % / réel +
-                        endogénéité prise en compte + décision traçable + auditabilité financière immédiate.</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="slide" id="s5">
-            <div class="slide-inner">
-                <header class="slide-head">
-                    <div class="badge"><span class="badge-dot"></span>05 · produit SaaS actuel</div>
-                    <h2>Un SaaS B2B commercialisé <em>dès aujourd'hui</em></h2>
-                    <p class="subhead">Une architecture logicielle opérationnelle en vente directe, qui génère des
-                        revenus tout en qualifiant le terrain pour la DeepTech.</p>
-                </header>
-
-                <div class="diagram-row grow" style="height: auto; align-items: stretch;">
-                    <article class="diagram-step">
-                        <span class="step-index">01</span>
-                        <div class="step-title">Détecter</div>
-                        <p class="step-copy">Tensions de couverture J+14 / J+7 / J+3. Alerte rouge immédiate.</p>
-                    </article>
-                    <article class="diagram-step">
-                        <span class="step-index">02</span>
-                        <div class="step-title">Expliquer</div>
-                        <p class="step-copy">Pourquoi ça pète ? Absences, pics, turn-over, tout visible en 3 clics.</p>
-                    </article>
-                    <article class="diagram-step">
-                        <span class="step-index">03</span>
-                        <div class="step-title">Comparer</div>
-                        <p class="step-copy">3-4 options coût/service sous contraintes réelles. Choisis sans regret.</p>
-                    </article>
-                    <article class="diagram-step">
-                        <span class="step-index">04</span>
-                        <div class="step-title">Tracer</div>
-                        <p class="step-copy">Décision + hypothèses = log complet. DAF adore.</p>
-                    </article>
-                    <article class="diagram-step">
-                        <span class="step-index">05</span>
-                        <div class="step-title">Prouver</div>
-                        <p class="step-copy">BAU vs Praedixa vs réel. Chiffre net tous les mois.</p>
-                    </article>
-                </div>
-
-                <div class="grid-2 grow">
-                    <article class="card" style="display:flex; flex-direction:column;">
-                        <div class="card-label">Position produit</div>
-                        <div class="card-title">Couche au-dessus, jamais à la place</div>
-                        <p style="flex:1; margin-top:8px;">Skello, Combo, When I Work… restent. Praedixa ajoute
-                            l’arbitrage intelligent + la preuve financière. Point.</p>
-                    </article>
-                    <article class="card" style="display:flex; flex-direction:column;">
-                        <div class="card-label">Déploiement initial</div>
-                        <div class="card-title">3 mois, intégration hors de vue métier</div>
-                        <p style="flex:1; margin-top:8px;">Protocoles API lecture seule ou exports de fichiers. Preuve
-                            de valeur "Offline" pour ne créer aucune adhérence ni risque d'architecture avant
-                            contractualisation.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <section class="slide" id="s6">
-            <div class="slide-inner">
-                <header class="slide-head">
-                    <div class="badge"><span class="badge-dot"></span>06 · protocole de preuve</div>
-                    <h2>0 % / 100 % / réel : <em>la trajectoire évaluée</em></h2>
-                    <p class="subhead">Découplage strict entre performance de l'algorithme et choix métier des managers
-                        locaux.</p>
-                </header>
-
-                <div class="grid-3" style="flex: 0 0 auto; margin-bottom: 2.5%;">
-                    <article class="card" style="border-top:2px solid var(--text-dim);">
-                        <div class="card-label" style="color:var(--text-dim)">BAU</div>
-                        <div class="card-title">Scénario 0 %</div>
-                        <p>Ce qui se serait passé sans nous. Référence neutre, figée sur les règles historiques. Le “on
-                            a toujours fait comme ça”.</p>
-                    </article>
-                    <article class="card" style="border-top:2px solid var(--accent);">
-                        <div class="card-label" style="color:var(--accent)">Praedixa</div>
-                        <div class="card-title">Scénario 100 %</div>
-                        <p>Si tout le monde suivait nos recommandations à la lettre. Le potentiel max sous contraintes
-                            réelles.</p>
-                    </article>
-                    <article class="card" style="border-top:2px solid var(--accent-2);">
-                        <div class="card-label" style="color:var(--accent-2)">Exploitation</div>
-                        <div class="card-title">Scénario réel</div>
-                        <p>Ce qui s’est vraiment passé. Overrides tracés. On voit exactement qui a suivi ou pas.</p>
-                    </article>
-                </div>
-
-                <div class="mini-table grow" style="display:flex; flex-direction:column; justify-content:center;">
-                    <table
-                        style="width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border-soft);border-radius:var(--r);overflow:hidden;">
+                <div class="grow" style="display:flex;flex-direction:column;min-height:0;gap:1.2%;">
+                    <table style="width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border-soft);border-radius:var(--r);overflow:hidden;flex:1;">
                         <thead>
                             <tr>
-                                <th
-                                    style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(9px,.8vw,12px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.4% 2%;border-bottom:1px solid var(--border-soft)">
-                                    Sortie mensuelle</th>
-                                <th
-                                    style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(9px,.8vw,12px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.4% 2%;border-bottom:1px solid var(--border-soft)">
-                                    Valeur pour la gouvernance</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);text-align:left;">Catégorie</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);text-align:left;">Exemples</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);text-align:left;">Ce qu'ils font</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);text-align:left;">Ce qu'ils ne font pas</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;border-bottom:1px solid var(--border-soft);font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Coût BAU vs coût réel vs coût 100 %</td>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;border-bottom:1px solid var(--border-soft);font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Écarts clairs + discipline d’exécution mesurée</td>
+                                <td style="background:var(--surface-1);color:var(--text);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);font-weight:600;">WFM Terrain</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Skello, Combo, Snapshift</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Planifie, pointe, exporte la paie</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Zéro arbitrage coût/service. Zéro prescription.</td>
                             </tr>
                             <tr>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;border-bottom:1px solid var(--border-soft);font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Adoption des recommandations</td>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;border-bottom:1px solid var(--border-soft);font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    On sépare qualité modèle vs choix Ops</td>
+                                <td style="background:var(--surface-1);color:var(--text);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);font-weight:600;">WFM Enterprise</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Workday, UKG, SAP, Oracle</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Standardise RH et paie à l'échelle groupe</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Arbitrage coût/service local non piloté. Preuve contrefactuelle absente.</td>
                             </tr>
                             <tr>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Service vs coût</td>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Arbitrage rendu visible et rejouable</td>
+                                <td style="background:var(--surface-1);color:var(--text);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);font-weight:600;">IA Prédictive (AI-WFM)</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Legion, Quinyx, Planday AI</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Prédit la charge, optimise séparément (Predict-then-Optimize)</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Ignore l'endogénéité. Pas de Decision Log. Infra US (AI Act risk). Pas de preuve financière.</td>
+                            </tr>
+                            <tr>
+                                <td style="background:rgba(61,127,255,.05);color:var(--accent);padding:1.2% 1.8%;font-size:clamp(10px,.9vw,13px);font-weight:600;border:1px solid rgba(61,127,255,.2);">Praedixa</td>
+                                <td style="background:rgba(61,127,255,.05);color:var(--text);padding:1.2% 1.8%;font-size:clamp(10px,.9vw,13px);border:1px solid rgba(61,127,255,.2);">Couche décisionnelle française</td>
+                                <td style="background:rgba(61,127,255,.05);color:var(--text);padding:1.2% 1.8%;font-size:clamp(10px,.9vw,13px);border:1px solid rgba(61,127,255,.2);">Decision-Focused Learning · Proof 0%/100%/réel · Decision Log traçable · Infra 100 % France</td>
+                                <td style="background:rgba(61,127,255,.05);color:var(--success);padding:1.2% 1.8%;font-size:clamp(10px,.9vw,13px);font-weight:600;border:1px solid rgba(61,127,255,.2);">— Le seul outil qui prouve le coût de ne pas l'avoir suivi.</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div class="callout" style="border-left-color:var(--accent-2);">
-                    <strong>Axe de rigueur :</strong> Sans log formel de décision (decision log) ni validation de
-                    conformité des données (data integrity), aucun gain n'est revendiqué. Modélisation stricte.
+                    <strong>Moat data :</strong> Le Decision Log capture pourquoi le manager a rejeté la recommandation. Ce dataset — contrefactuels humains sur décisions de staffing — n'existe dans aucune base WFM standard. C'est notre barrière à l'entrée croissante, non reproductible par un pivot feature d'un acteur existant.
                 </div>
             </div>
         </section>
 
-        <section class="slide" id="s7">
+        <!-- ═══════════════ SLIDE 05 — PRODUIT SAAS ═══════════════ -->
+        <section class="slide" id="s5">
             <div class="slide-inner">
-                <header class="slide-head" style="padding-bottom:1.5%">
-                    <div class="badge"><span class="badge-dot"></span>07 · marché et business model</div>
-                    <h2>Marché d'envergure + <em>ROI structurel</em></h2>
-                    <p class="subhead">La restauration rapide multi-franchisés est un environnement de départ idéal
-                        ("wedge") du fait de ses cycles courts.</p>
+                <header class="slide-head">
+                    <div class="badge"><span class="badge-dot"></span>05 · produit SaaS actuel</div>
+                    <h2>Un SaaS B2B opérationnel <em>dès aujourd'hui</em></h2>
+                    <p class="subhead">Déployable en lecture seule sur exports WFM existants. Génère revenus et dataset décisionnel réel simultanément. Infrastructure 100 % France.</p>
                 </header>
 
-                <div class="grid-2" style="flex: 0 0 auto; margin-bottom: 2%;">
+                <div class="diagram-row" style="flex: 0 0 36%;">
+                    <article class="diagram-step">
+                        <span class="step-index">01</span>
+                        <div class="step-title">Détecter</div>
+                        <p class="step-copy">Tensions de couverture J+14 / J+7 / J+3. Alerte rouge avant l'urgence.</p>
+                    </article>
+                    <article class="diagram-step">
+                        <span class="step-index">02</span>
+                        <div class="step-title">Expliquer</div>
+                        <p class="step-copy">Absences, pics, turn-over : causes identifiées, visibles en 3 clics, par site et par groupe.</p>
+                    </article>
+                    <article class="diagram-step">
+                        <span class="step-index">03</span>
+                        <div class="step-title">Comparer</div>
+                        <p class="step-copy">3-4 options coût/service sous contraintes réelles (convention HCR, SLA). Choix éclairé.</p>
+                    </article>
+                    <article class="diagram-step">
+                        <span class="step-index">04</span>
+                        <div class="step-title">Tracer</div>
+                        <p class="step-copy">Décision + hypothèse de coût = Decision Log complet. Auditabilité AI Act intégrée.</p>
+                    </article>
+                    <article class="diagram-step">
+                        <span class="step-index">05</span>
+                        <div class="step-title">Prouver</div>
+                        <p class="step-copy">BAU vs Praedixa vs réel. Impact net chiffré tous les mois. La preuve devient le renouvellement.</p>
+                    </article>
+                </div>
+
+                <div class="grid-2 grow">
+                    <article class="card">
+                        <div class="card-label">Position produit — couche au-dessus, jamais à la place</div>
+                        <div class="card-title">Zéro remplacement, zéro adhérence technique</div>
+                        <p>Skello, Combo, When I Work continuent. Praedixa se connecte en lecture seule via API ou export de fichiers. Déploiement en 3 mois, hors du champ IT, sans risque d'architecture ni de contractualisation anticipée.</p>
+                    </article>
+                    <article class="card">
+                        <div class="card-label">Le double rôle stratégique du produit</div>
+                        <div class="card-title">MRR aujourd'hui · Dataset DeepTech demain</div>
+                        <p>Chaque client qui utilise Praedixa enrichit le Decision Log : un corpus de décisions de staffing réelles avec overrides humains tracés. C'est le terrain d'entraînement unique du futur modèle Decision-Focused Learning.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ SLIDE 06 — PROTOCOLE DE PREUVE ═══════════════ -->
+        <section class="slide" id="s6">
+            <div class="slide-inner">
+                <header class="slide-head">
+                    <div class="badge"><span class="badge-dot"></span>06 · protocole de preuve</div>
+                    <h2>0 % / 100 % / réel :<br><em>la trajectoire contrefactuelle</em></h2>
+                    <p class="subhead">Séparation formelle entre performance algorithmique et comportement décisionnel des managers. Sans ce découplage, aucun gain ne peut être revendiqué.</p>
+                </header>
+
+                <div class="grid-3" style="flex: 0 0 28%;">
+                    <article class="card" style="border-top:2px solid var(--text-dim);">
+                        <div class="card-label" style="color:var(--text-dim)">Scénario BAU</div>
+                        <div class="card-title">0 % — La ligne de base</div>
+                        <p>Ce qui se serait passé sans Praedixa. Référence figée sur les règles historiques de chaque site. Le "on a toujours fait comme ça" quantifié.</p>
+                    </article>
+                    <article class="card" style="border-top:2px solid var(--accent);">
+                        <div class="card-label" style="color:var(--accent)">Scénario Praedixa</div>
+                        <div class="card-title">100 % — Le potentiel théorique</div>
+                        <p>Si toutes les recommandations avaient été suivies à la lettre. Le plafond de gain atteignable sous contraintes réelles (convention, SLA).</p>
+                    </article>
+                    <article class="card" style="border-top:2px solid var(--accent-2);">
+                        <div class="card-label" style="color:var(--accent-2)">Scénario terrain</div>
+                        <div class="card-title">Réel — La vérité d'exécution</div>
+                        <p>Ce qui s'est passé. Overrides tracés. Adoption mesurée manager par manager. La qualité du modèle est dissociée de la qualité d'exécution.</p>
+                    </article>
+                </div>
+
+                <div class="grow" style="display:flex;flex-direction:column;min-height:0;">
+                    <table style="width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border-soft);border-radius:var(--r);overflow:hidden;flex:1;">
+                        <thead>
+                            <tr>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);">Sortie mensuelle livrée</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);">Valeur pour la gouvernance</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);">Valeur pour la R&D</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Coût BAU vs réel vs 100 % Praedixa</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Écart quantifié · discipline d'exécution mesurée · DAF satisfait</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Données OPE (Offline Policy Evaluation) pour le CIFRE</td>
+                            </tr>
+                            <tr>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Taux d'adoption des recommandations</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Qualité modèle dissociée des choix Ops locaux</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Label humain sur chaque override = dataset contrefactuel unique</td>
+                            </tr>
+                            <tr>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;font-size:clamp(10px,.9vw,13px);">Service vs coût par site</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;font-size:clamp(10px,.9vw,13px);">Arbitrage rendu visible, rejouable, auditable</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.2% 1.8%;font-size:clamp(10px,.9vw,13px);">Signal de retour pour entraîner le modèle Decision-Focused</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="callout" style="border-left-color:var(--accent-2);">
+                    <strong>Rigueur de protocole :</strong> Aucun gain n'est revendiqué sans Decision Log formalisé et validation de l'intégrité des données source. Ce protocole est le socle de la crédibilité BPI et la matière première de la R&D CIFRE.
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ SLIDE 07 — MARCHÉ & BUSINESS MODEL ═══════════════ -->
+        <section class="slide" id="s7">
+            <div class="slide-inner">
+                <header class="slide-head" style="padding-bottom:1.2%">
+                    <div class="badge"><span class="badge-dot"></span>07 · marché et business model</div>
+                    <h2>Wedge restauration pour l'acquisition.<br><em>Expansion sectorielle disciplinée.</em></h2>
+                    <p class="subhead">La restauration rapide multi-franchisés est le wedge d'entrée : cycle de décision court, données WFM exportables immédiatement, preuve ROI en 8 semaines.</p>
+                </header>
+
+                <div class="grid-2" style="flex: 0 0 24%;">
                     <article class="card">
                         <div class="card-label">TAM / SAM / SOM</div>
-                        <ul style="margin-top:4px; gap:8px;">
-                            <li><strong>TAM :</strong> Groupes multi-sites France/UE</li>
-                            <li><strong>SAM :</strong> 302 enseignes fast-food · 8 953 points de vente</li>
-                            <li><strong>SOM (24 mois) :</strong> ~50 multi-franchisés capturés</li>
+                        <ul style="margin-top:2px;gap:6px;">
+                            <li><strong>TAM :</strong> Groupes multi-sites France et Europe à forte variabilité de staffing</li>
+                            <li><strong>SAM :</strong> 302 enseignes fast-food · 8 953 points de vente en France</li>
+                            <li><strong>SOM (24 mois) :</strong> ~50 multi-franchisés actifs (6-40 sites)</li>
                         </ul>
                     </article>
                     <article class="card" style="border-top:2px solid var(--success);">
-                        <div class="card-label" style="color:var(--success)">Impact économique cible (exemple 20 sites)
-                        </div>
-                        <p style="margin-top:4px; font-size:clamp(10px,1vw,13px)">Masse salariale ~300 k€/site •
-                            Surcoûts typiques 3-6 %</p>
-                        <ul style="margin-top:8px; gap:8px;">
-                            <li><strong>Impact Praedixa :</strong> 10-18 k€ d’économie / site / an</li>
-                            <li><strong>Total :</strong> <strong>200-360 k€ / an</strong></li>
+                        <div class="card-label" style="color:var(--success)">Impact économique cible — exemple réseau 20 sites</div>
+                        <p style="margin-top:2px;font-size:clamp(10px,.9vw,13px);">Masse salariale ~300 k€/site · surcoûts staffing typiques 3–6 % de la masse salariale</p>
+                        <ul style="margin-top:4px;gap:5px;">
+                            <li><strong>Impact Praedixa estimé :</strong> 10–18 k€ d'économie / site / an sur les surcoûts adressables</li>
+                            <li><strong>Total réseau :</strong> <strong>200–360 k€ / an</strong></li>
                             <li><strong>Payback :</strong> <strong>&lt; 3 mois</strong> sur Offre Pro</li>
                         </ul>
                     </article>
                 </div>
 
-                <div class="grid-3" style="flex: 0 0 auto; margin-bottom: 2%;">
+                <div class="grid-3" style="flex: 0 0 22%;">
                     <article class="metric">
                         <div class="metric-bar"></div>
                         <div class="metric-value">3–5<span class="unit"> k€</span></div>
                         <div class="metric-label">Pilote packagé</div>
-                        <div class="metric-note">3 mois · preuve de valeur</div>
+                        <div class="metric-note">3 mois · replay offline · proof pack livré</div>
                     </article>
                     <article class="metric">
                         <div class="metric-bar warm"></div>
-                        <div class="metric-value" style="color:var(--accent-2);">25–50<span class="unit"
-                                style="color:var(--text-muted)"> k€/an</span></div>
+                        <div class="metric-value" style="color:var(--accent-2);">25–50<span class="unit" style="color:var(--text-muted)"> k€/an</span></div>
                         <div class="metric-label">Offre Pro</div>
-                        <div class="metric-note">Moteur + proof pack mensuel</div>
+                        <div class="metric-note">Moteur décisionnel + proof pack mensuel</div>
                     </article>
                     <article class="metric">
                         <div class="metric-bar green"></div>
-                        <div class="metric-value" style="color:var(--success);">70–150+<span class="unit"
-                                style="color:var(--text-muted)"> k€/an</span></div>
+                        <div class="metric-value" style="color:var(--success);">70–150+<span class="unit" style="color:var(--text-muted)"> k€/an</span></div>
                         <div class="metric-label">Offre Enterprise</div>
-                        <div class="metric-note">40+ sites + extensions</div>
+                        <div class="metric-note">40+ sites + extensions sectorielles</div>
                     </article>
                 </div>
 
                 <div class="grid-3 grow">
                     <article class="card">
-                        <div class="card-label">Traction visée</div>
-                        <p>3 POC haut niveau signés d’ici fin Q2 2026</p>
+                        <div class="card-label">Benchmark conversion B2B SaaS décisionnel</div>
+                        <p>En B2B software à preuve de ROI, <strong>25–40 % des prospects qualifiés</strong> convertissent en client payant après pilote (Salesforce State of Sales 2024, Gartner). Notre modèle preuve-first vise la borne haute de cette fourchette.</p>
                     </article>
                     <article class="card">
-                        <div class="card-label">Conversion</div>
-                        <p>67 % des pilotes → abonnement</p>
+                        <div class="card-label">Expansion sectorielle</div>
+                        <p>Logistique multi-sites → Retail à forte variabilité → Santé (SLA critiques). Même structure de douleur coût/service. Même architecture produit.</p>
                     </article>
                     <article class="card">
                         <div class="card-label">Objectif 12 mois</div>
-                        <p><strong>180 k€ ARR</strong> sécurisés pour la levée</p>
+                        <p><strong>180 k€ ARR</strong> comme signal de traction avant levée de fonds amorçage.</p>
                     </article>
                 </div>
             </div>
         </section>
 
+        <!-- ═══════════════ SLIDE 08 — POSITIONNEMENT TRL ═══════════════ -->
         <section class="slide" id="s8">
             <div class="slide-inner">
                 <header class="slide-head">
-                    <div class="badge"><span class="badge-dot"></span>08 · icp et expansion</div>
-                    <h2>Wedge restauration rapide.<br>Expansion multi-secteurs.</h2>
-                    <p class="subhead">Un marché prioritaire validé, avec une stratégie d'élargissement disciplinée.</p>
+                    <div class="badge"><span class="badge-dot"></span>08 · positionnement trl</div>
+                    <h2>Où en sommes-nous ?<br><em>TRL 3 → 7 : une trajectoire honnête.</em></h2>
+                    <p class="subhead">Le SaaS (Track 1) est opérationnel (TRL 8-9). Le DeepTech (Track 2) démarre à TRL 3, avec des fondations mathématiques solides et une recherche active d'entreprise pilote.</p>
                 </header>
 
-                <div class="grid-2" style="flex: 0 0 auto; margin-bottom: 2%;">
-                    <article class="card">
-                        <div class="card-label">Cible prioritaire d'adoption (Wedge)</div>
-                        <ul>
-                            <li>Multi-franchisés de restauration rapide (6 à 40 sites)</li>
-                            <li>Forte variabilité d'activité (aléas, événements)</li>
-                            <li>Arbitrages de staffing fréquents et complexes</li>
-                            <li>Directions sous tension opérationnelle et financière</li>
-                            <li>Maturité data suffisante (exports immédiatement exploitables)</li>
-                        </ul>
-                    </article>
-                    <article class="card">
-                        <div class="card-label">Après la preuve (6-12 mois)</div>
-                        <ul>
-                            <li>Logistique multi-sites (même douleur staffing)</li>
-                            <li>Retail & services à forte variabilité</li>
-                            <li>Santé & opérations critiques (SLA intouchables)</li>
-                        </ul>
-                        <p
-                            style="font-family:var(--font-mono);font-size:clamp(9px,.75vw,11px);color:var(--text-dim);border-top:1px solid var(--border-soft);padding-top:10px;margin-top:10px">
-                            Condition unique : même structure coût/service + données agrégées exploitables.
-                        </p>
-                    </article>
-                </div>
-
-                <article class="card grow" style="display:flex; flex-direction:column; justify-content:center;">
-                    <div class="card-label" style="margin-bottom:1.5%">Séquence go-to-market (structurée et itérative)
-                    </div>
-                    <div class="diagram-row" style="height: auto; flex:1">
-                        <article class="diagram-step">
-                            <span class="step-index">A</span>
-                            <div class="step-title">Pilote ciblé</div>
-                            <p class="step-copy">3-5 sites · replay historique · proof pack en 8 semaines</p>
-                        </article>
-                        <article class="diagram-step">
-                            <span class="step-index">B</span>
-                            <div class="step-title">Proof pack</div>
-                            <p class="step-copy">BAU vs réel vs Praedixa → Validation financière rigoureuse</p>
-                        </article>
-                        <article class="diagram-step">
-                            <span class="step-index">C</span>
-                            <div class="step-title">Conversion</div>
-                            <p class="step-copy">Abonnement mensuel + proof tous les mois</p>
-                        </article>
-                        <article class="diagram-step">
-                            <span class="step-index">D</span>
-                            <div class="step-title">Réplication</div>
-                            <p class="step-copy">Déploiement site par site puis nouvelle verticale</p>
-                        </article>
-                        <article class="diagram-step">
-                            <span class="step-index">E</span>
-                            <div class="step-title">DeepTech scale</div>
-                            <p class="step-copy">Shadow mode → optimisation full différentiable</p>
-                        </article>
-                    </div>
-                </article>
-            </div>
-        </section>
-
-        <section class="slide" id="s9">
-            <div class="slide-inner">
-                <header class="slide-head">
-                    <div class="badge"><span class="badge-dot"></span>09 · traction et pipeline</div>
-                    <h2>Exécution commerciale enclenchée.<br><em>Pipeline B2B validé.</em></h2>
-                    <p class="subhead">Déploiement initié fin février. Les métriques confirment l'urgence de notre
-                        proposition de valeur.</p>
-                </header>
-
-                <div class="mini-table grow" style="display:flex; flex-direction:column; justify-content:center;">
-                    <table
-                        style="width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border-soft);border-radius:var(--r);overflow:hidden;">
+                <div class="grow" style="display:flex;flex-direction:column;min-height:0;gap:1.2%;">
+                    <table style="width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border-soft);border-radius:var(--r);overflow:hidden;flex:1;">
                         <thead>
                             <tr>
-                                <th
-                                    style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(9px,.8vw,12px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.4% 2%;border-bottom:1px solid var(--border-soft)">
-                                    Étape</th>
-                                <th
-                                    style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(9px,.8vw,12px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.4% 2%;border-bottom:1px solid var(--border-soft)">
-                                    Action terrain</th>
-                                <th
-                                    style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(9px,.8vw,12px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.4% 2%;border-bottom:1px solid var(--border-soft)">
-                                    Statut aujourd’hui</th>
-                                <th
-                                    style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(9px,.8vw,12px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.4% 2%;border-bottom:1px solid var(--border-soft)">
-                                    Prochain milestone</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);text-align:left;width:8%">TRL</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);text-align:left;width:28%">Définition</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);text-align:left;">Praedixa DeepTech — état réel</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);text-align:left;width:16%">Statut</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;border-bottom:1px solid var(--border-soft);font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Ciblage massif</td>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;border-bottom:1px solid var(--border-soft);font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Multi-franchisés 6-40 sites · Cold outreach + LinkedIn + events HCR</td>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;border-bottom:1px solid var(--border-soft);font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    <span class="pill accent">En cours · 180+ contacts qualifiés</span>
-                                </td>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;border-bottom:1px solid var(--border-soft);font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Février – Mars 2026</td>
+                                <td style="background:var(--surface-1);color:var(--text);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);font-weight:700;font-family:var(--font-mono);">TRL 1–2</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Principes fondamentaux identifiés · Concept technologique formulé</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Architecture Decision-Focused Learning définie. Baselines identifiées : SPO+, OptNet, cvxpylayers. Verrous documentés (endogénéité, contraintes HCR non-différentiables).</td>
+                                <td style="background:var(--surface-1);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);"><span class="trl-badge trl-done">✓ Atteint</span></td>
                             </tr>
                             <tr>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;border-bottom:1px solid var(--border-soft);font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Qualification</td>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;border-bottom:1px solid var(--border-soft);font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Appels découverte + audit douleur + check data exports</td>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;border-bottom:1px solid var(--border-soft);font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    <span class="pill">Objectif : 12 comptes qualifiés</span>
-                                </td>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;border-bottom:1px solid var(--border-soft);font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Mars – Avril 2026</td>
+                                <td style="background:rgba(95,157,255,.04);color:var(--accent);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);font-weight:700;font-family:var(--font-mono);border-left:2px solid var(--accent);">TRL 3</td>
+                                <td style="background:rgba(95,157,255,.04);color:var(--text-muted);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Preuve de concept expérimentale</td>
+                                <td style="background:rgba(95,157,255,.04);color:var(--text);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);"><strong>Nous construisons les pipelines ML.</strong> Recherche active d'une entreprise pilote pour accéder à des données de staffing réelles multi-sites et valider SPO+ sur cas concret.</td>
+                                <td style="background:rgba(95,157,255,.04);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);"><span class="trl-badge trl-now">→ En cours</span></td>
                             </tr>
                             <tr>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    POC / Pre-pilote</td>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Replay offline 3 mois sur données historiques · proof pack livré</td>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    <span class="pill">Objectif : 3 POC signés</span>
-                                </td>
-                                <td
-                                    style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 2%;font-size:clamp(11px,1vw,14px);font-weight:300">
-                                    Avril – Mai 2026</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);font-weight:700;font-family:var(--font-mono);">TRL 4</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Validation en conditions contrôlées</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Premier pipeline ML entraîné et évalué sur données réelles client. Protocole d'évaluation offline (OPE / Doubly Robust). Chercheur référent nommé, protocole validé.</td>
+                                <td style="background:var(--surface-1);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);"><span class="trl-badge trl-next">Q4 2026</span></td>
+                            </tr>
+                            <tr>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);font-weight:700;font-family:var(--font-mono);">TRL 5–6</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Prototype validé en environnement représentatif</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Modèle DFL déployé en shadow-mode sur 3–5 sites réels. Comparaison live vs heuristiques actuelles. Exécuté par le doctorant CIFRE sous supervision du chercheur.</td>
+                                <td style="background:var(--surface-1);padding:1.1% 1.8%;border-bottom:1px solid var(--border-soft);"><span class="trl-badge trl-future">2027 · CIFRE</span></td>
+                            </tr>
+                            <tr>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.1% 1.8%;font-size:clamp(10px,.9vw,13px);font-weight:700;font-family:var(--font-mono);">TRL 7</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.1% 1.8%;font-size:clamp(10px,.9vw,13px);">Démonstration en environnement opérationnel</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.1% 1.8%;font-size:clamp(10px,.9vw,13px);">Optimisation différentiable intégrée en production. Gain mesuré sur P&L client. Brevetabilité évaluée avec le chercheur référent.</td>
+                                <td style="background:var(--surface-1);padding:1.1% 1.8%;"><span class="trl-badge trl-future">Fin programme</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="callout" style="border-left-color:var(--accent-2);">
+                    <strong>Pourquoi ce TRL 3 est une force :</strong> Le SaaS (Track 1, TRL 8-9) finance la R&D et constitue le dataset. Le Parcours DeepTech finance le saut TRL 3 → 7. C'est exactement le modèle que Bpifrance Emergence est conçu pour soutenir.
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ SLIDE 09 — TRACTION ═══════════════ -->
+        <section class="slide" id="s9">
+            <div class="slide-inner">
+                <header class="slide-head">
+                    <div class="badge"><span class="badge-dot"></span>09 · traction et pipeline</div>
+                    <h2>Acquisition terrain enclenchée.<br><em>Approche structurée et réaliste.</em></h2>
+                    <p class="subhead">Campagne outreach lancée sur le wedge restauration. Présence physique aux salons sectoriels planifiée pour qualifier les premiers comptes à haute valeur.</p>
+                </header>
+
+                <div class="grow" style="display:flex;flex-direction:column;min-height:0;">
+                    <table style="width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border-soft);border-radius:var(--r);overflow:hidden;flex:1;">
+                        <thead>
+                            <tr>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);">Étape</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);">Action terrain</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);">Statut réel aujourd'hui</th>
+                                <th style="background:var(--surface-2);color:var(--text);font-weight:600;font-size:clamp(8px,.75vw,11px);letter-spacing:.07em;font-family:var(--font-mono);text-transform:uppercase;padding:1.2% 1.8%;border-bottom:1px solid var(--border-soft);">Prochain jalons</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Outreach ciblé</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Campagne de prises de contact directes : multi-franchisés 6–40 sites via LinkedIn, email, réseaux sectoriels HCR</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);"><span class="pill accent">Campagne en cours — Feb. 2026</span></td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Fév. – Mars 2026</td>
+                            </tr>
+                            <tr>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Salons & événements</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Présence physique aux salons sectoriels restauration et franchise pour qualifier des comptes et signer des LOI pilote (Franchise Expo Paris, SIRHA, événements RH HCR)</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);"><span class="pill warm">Planifié — Q2 2026</span></td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Mars – Juin 2026</td>
+                            </tr>
+                            <tr>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Qualification & audit data</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Appels découverte + audit douleur staffing + vérification faisabilité exports WFM (condition d'éligibilité pilote)</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);"><span class="pill">Objectif : 12 comptes qualifiés</span></td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;border-bottom:1px solid var(--border-soft);font-size:clamp(10px,.9vw,13px);">Avril – Mai 2026</td>
+                            </tr>
+                            <tr>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;font-size:clamp(10px,.9vw,13px);">Pilote / Entreprise pilote R&D</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;font-size:clamp(10px,.9vw,13px);">Replay offline sur 3 mois de données historiques réelles + proof pack livré. Pour la R&D : accès aux données qui permettent de construire les pipelines ML (TRL 3 → 4)</td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;font-size:clamp(10px,.9vw,13px);"><span class="pill">Objectif : 3 LOI / POC signés</span></td>
+                                <td style="background:var(--surface-1);color:var(--text-muted);padding:1.4% 1.8%;font-size:clamp(10px,.9vw,13px);">Avril – Juin 2026</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div class="callout" style="border-left-color:var(--accent);">
-                    <strong>Traction dérisquée :</strong> La faisabilité technique est validée a priori via offline
-                    replay sur données historiques. La contractualisation intervient sur un périmètre technologique
-                    maîtrisé.
+                    <strong>Double valeur du premier pilote :</strong> Le même accès aux données client sert à démontrer le ROI produit (Track 1) <em>et</em> à construire les pipelines ML nécessaires au passage TRL 3 → 4 (Track 2). Une entreprise pilote = deux dérisquages simultanés.
                 </div>
             </div>
         </section>
 
+        <!-- ═══════════════ SLIDE 10 — VISION DEEPTECH ═══════════════ -->
         <section class="slide" id="s10">
             <div class="slide-inner">
                 <header class="slide-head">
                     <div class="badge"><span class="badge-dot"></span>10 · vision deeptech</div>
-                    <h2>Au-delà de la simple prévision :<br><em>optimiser l'impact décisionnel</em>.</h2>
-                    <p class="subhead">Decision-Focused Learning = entraîner le modèle directement sur la qualité de la
-                        décision finale, pas sur la précision de la prévision.</p>
+                    <h2>Du Predict-then-Optimize<br>au <em>Decision-Focused Learning</em> (TRL 3 → 7)</h2>
+                    <p class="subhead">Le verrou scientifique est précis et documenté : entraîner le modèle sur la perte économique réelle de la décision, pas sur l'erreur de prévision. C'est ça le DeepTech.</p>
                 </header>
 
                 <div class="grid-2 grow">
                     <article class="card">
-                        <div class="card-label">Hypothèse de recherche (socle DeepTech)</div>
-                        <div class="card-title">Decision-Focused Learning au lieu de Predict-then-Optimize</div>
-                        <p>Minimiser directement la perte réelle de la décision (coût + service + stabilité) plutôt que
-                            l’erreur de forecast.</p>
+                        <div class="card-label">Hypothèse de recherche principale (socle DeepTech)</div>
+                        <div class="card-title">Decision-Focused Learning — la fonction objectif change</div>
+                        <p>Minimiser directement la perte économique de la décision (coût staffing + SLA + stabilité) plutôt que l'erreur de forecast (RMSE). Elmachtoub & Grigas (2022) montrent des gains de 12–22 % sur le coût décisionnel versus MLP/XGBoost standard.</p>
                         <ul>
-                            <li>Baselines : SPO+, OptNet, cvxpylayers</li>
-                            <li>Off-policy evaluation sur nos decision logs</li>
-                            <li>Replay historique = terrain d’entraînement parfait</li>
+                            <li>Baselines identifiées : SPO+, OptNet, cvxpylayers</li>
+                            <li>Évaluation offline (OPE / Doubly Robust estimators) sur Decision Logs</li>
+                            <li>Replay historique = terrain d'entraînement sans risquer les opérations</li>
                         </ul>
                     </article>
                     <article class="card" style="border-color:var(--accent); background:rgba(61,127,255,.03)">
-                        <div class="card-label" style="color:var(--accent)">Les deux gros verrous qu’on va attaquer
-                        </div>
-                        <div class="card-title">Endogénéité + optimisation bi-niveau</div>
+                        <div class="card-label" style="color:var(--accent)">Les deux verrous scientifiques à lever</div>
+                        <div class="card-title">Endogénéité + contraintes discrètes non-différentiables</div>
                         <ul>
-                            <li>Une bonne décision staffing change l’absentéisme futur → boucle fermée</li>
-                            <li>Contraintes métier discrètes (convention HCR, SLA clients) qui cassent la
-                                différentiabilité</li>
+                            <li><strong>Verrou 1 — Endogénéité :</strong> une bonne décision de staffing réduit l'absentéisme futur. Le modèle doit apprendre cette boucle fermée, sinon il optimise sur un monde statique qui n'existe pas.</li>
+                            <li><strong>Verrou 2 — Contraintes HCR :</strong> les conventions collectives HCR créent des contraintes discrètes qui cassent la différentiabilité du pipeline bout-en-bout. Résoudre ça via bi-level programming (cible INOCS Inria).</li>
                         </ul>
+                        <div style="font-family:var(--font-mono);font-size:clamp(8px,.72vw,10px);color:var(--accent);border-top:1px solid var(--border-soft);padding-top:8px;margin-top:4px;letter-spacing:.08em;">STADE ACTUEL : TRL 3 · Recherche entreprise pilote pour données réelles</div>
                     </article>
                 </div>
 
                 <div class="callout" style="border-left-color:var(--success);">
-                    <strong>Axe de recherche visé :</strong> baisser le coût opérationnel sous contrainte stricte de
-                    SLA, stabiliser la planification via offline replay. La R&D doit démontrer un impact mesurable sur
-                    la décision finale.
+                    <strong>Référence scientifique :</strong> Elmachtoub & Grigas (2022), "Smart Predict-then-Optimize", Operations Research. Nos cibles académiques : INOCS Inria Lille (optimisation bi-niveau sous incertitude) · SCOOL Inria Lille (offline RL, sequential decisions). EWRL 2026 à Lille = ancrage naturel.
                 </div>
             </div>
         </section>
 
+        <!-- ═══════════════ SLIDE 11 — ARCHITECTURE PRODUIT & R&D ═══════════════ -->
         <section class="slide" id="s11">
             <div class="slide-inner">
                 <header class="slide-head">
                     <div class="badge"><span class="badge-dot"></span>11 · architecture produit & r&d</div>
-                    <h2>Un produit déjà vendu.<br>Une R&D <em>en parallèle</em> pour disrupter.</h2>
-                    <p class="subhead">Nous commercialisons une solution rentable aujourd'hui (cash/MRR), tout en
-                        structurant la percée algorithmique de demain (DeepTech).</p>
+                    <h2>Un produit opérationnel.<br>Une R&D <em>en construction parallèle</em>.</h2>
+                    <p class="subhead">Les deux tracks partagent la même infrastructure de données et le même protocole de preuve. Ils ne sont pas concurrents : le Track 1 finance et alimente le Track 2.</p>
                 </header>
 
-                <div class="diagram-row" style="height: auto; flex: 0 0 auto; margin-bottom: 2.5%;">
+                <div class="diagram-row" style="flex: 0 0 34%;">
                     <article class="diagram-step">
                         <span class="step-index">01</span>
-                        <div class="step-title">Données</div>
-                        <p class="step-copy">Logs WFM + contexte métier</p>
+                        <div class="step-title">Données WFM</div>
+                        <p class="step-copy">Exports API ou fichiers · logs planification + paie + absences</p>
                     </article>
                     <article class="diagram-step">
                         <span class="step-index">02</span>
-                        <div class="step-title">Features</div>
-                        <p class="step-copy">Prévision si besoin</p>
+                        <div class="step-title">Features & Prévision</div>
+                        <p class="step-copy">Contexte métier · signaux absentéisme · prévision charge si besoin</p>
                     </article>
                     <article class="diagram-step" style="border-color:var(--accent); background:var(--accent-dim)">
                         <span class="step-index" style="background:var(--accent); color:var(--bg)">03</span>
-                        <div class="step-title" style="color:var(--accent)">Orchestration & Opti</div>
-                        <p class="step-copy" style="color:var(--text)"><strong>Couche décisionnelle différentiable
-                                (future)</strong></p>
+                        <div class="step-title" style="color:var(--accent)">Orchestration & Optimisation</div>
+                        <p class="step-copy" style="color:var(--text)"><strong>Track 1 :</strong> heuristiques + optim sous contrainte<br><strong>Track 2 (futur) :</strong> pipeline DFL différentiable</p>
                     </article>
                     <article class="diagram-step">
                         <span class="step-index">04</span>
                         <div class="step-title">Recommandations</div>
-                        <p class="step-copy">Décisions tracées</p>
+                        <p class="step-copy">Options coût/service tracées · Decision Log alimenté à chaque choix</p>
                     </article>
                     <article class="diagram-step">
                         <span class="step-index">05</span>
                         <div class="step-title">Proof Pack</div>
-                        <p class="step-copy">Impact mesuré tous les mois</p>
+                        <p class="step-copy">BAU vs Praedixa vs réel · Impact net mensuel · données OPE pour R&D</p>
                     </article>
                 </div>
 
                 <div class="grid-2 grow">
                     <article class="card">
-                        <div class="card-label">Track Produit (Vente actuelle)</div>
-                        <div class="card-title">SaaS & Offline Replay</div>
-                        <p>Démonstration du ROI en 8 semaines avec contrefactuels basés sur la prévision et
-                            l'optimisation sous contraintes. Génération
-                            de revenus (MRR) et capture du dataset réel.</p>
+                        <div class="card-label">Track 1 — Produit SaaS (opérationnel)</div>
+                        <div class="card-title">Arbitrage décisionnel + preuve financière</div>
+                        <p>Heuristiques + optimisation sous contraintes réelles. ROI démontrable en 8 semaines via offline replay. Génère MRR et capture le Decision Log qui servira de terrain d'entraînement au Track 2.</p>
                     </article>
                     <article class="card" style="border-top:2px solid var(--accent)">
-                        <div class="card-label" style="color:var(--accent)">Track DeepTech (En parallèle sur 18 mois)
-                        </div>
-                        <div class="card-title">Decision-Focused Learning & CIFRE</div>
-                        <p>Recherche sur l'optimisation bi-niveau sous contraintes via Advisor et Doctorant. L'objectif
-                            : automatiser les gains massifs et verrouiller la barrière technologique.</p>
+                        <div class="card-label" style="color:var(--accent)">Track 2 — R&D DeepTech (en construction · TRL 3)</div>
+                        <div class="card-title">Decision-Focused Learning · CIFRE · Inria Lille</div>
+                        <p>Pipeline bout-en-bout différentiable entraîné sur la perte économique réelle. Piloté par le chercheur référent (sélection en cours, cible : INOCS ou SCOOL Inria). Exécuté par un doctorant CIFRE recruté en septembre 2026. Objectif : TRL 7 en 24 mois.</p>
                     </article>
                 </div>
             </div>
         </section>
 
+        <!-- ═══════════════ SLIDE 12 — IP & DATA GOVERNANCE ═══════════════ -->
         <section class="slide" id="s12">
             <div class="slide-inner">
                 <header class="slide-head">
                     <div class="badge"><span class="badge-dot"></span>12 · ip & data governance</div>
-                    <h2>Barrière technologique.<br>Conformité <em>"by design"</em>.</h2>
-                    <p class="subhead">Nous orchestrons la propriété intellectuelle tout en érigeant les standards
-                        légaux au rang d'avantage compétitif.</p>
+                    <h2>Souveraineté par construction.<br>IP définie avec le <em>chercheur référent</em>.</h2>
+                    <p class="subhead">La conformité n'est pas subie : elle est notre principal accélérateur de confiance face aux grandes enseignes. La stratégie IP sera formalisée avec le chercheur nommé en avril 2026.</p>
                 </header>
 
                 <div class="grid-2 grow">
                     <article class="card">
-                        <div class="card-label">Stratégie IP (Barrière à l'entrée)</div>
-                        <div class="card-title">Secret Industriel & Brevetabilité</div>
-                        <ul style="gap: 14px; margin-top: 6px;">
-                            <li>Veille brevets INPI/Espacenet dès le jour 1</li>
-                            <li>Étude de brevetabilité avec Advisor (optimisation sous contrainte différentiable)</li>
-                            <li>Co-construction de la PI avec l’Advisor et le CIFRE</li>
+                        <div class="card-label">Stratégie IP — Approche en deux temps</div>
+                        <div class="card-title">Secret industriel aujourd'hui · Brevet défini avec le chercheur</div>
+                        <ul style="gap:12px;margin-top:6px;">
+                            <li><strong>Aujourd'hui :</strong> Protection par secret industriel sur les connecteurs WFM standardisés et le protocole Decision Log (données agrégées, overrides tracés).</li>
+                            <li><strong>Avec le chercheur (Q2–Q3 2026) :</strong> Étude de brevetabilité INPI sur la couche technique que les recherches auront validée — architecture différentiable, méthode d'évaluation offline. La portée exacte sera définie par le chercheur référent.</li>
+                            <li><strong>Moat data :</strong> Le Decision Log est notre actif IP le plus défensible à court terme — non reproductible par un acteur WFM sans repartir de zéro.</li>
                         </ul>
                     </article>
                     <article class="card">
-                        <div class="card-label">Data Governance & Conformité</div>
-                        <div class="card-title">Conformité RGPD & AI Act stricte</div>
-                        <ul style="gap: 14px; margin-top: 6px;">
-                            <li>100 % hébergement souverain France</li>
-                            <li>Aucune PII absorbée – données agrégées seulement</li>
-                            <li>Connexion read-only aux WFM/SIRH</li>
-                            <li>Decision Log complet = conformité AI Act high-risk RH</li>
+                        <div class="card-label">Data Governance & Conformité — Non négociable</div>
+                        <div class="card-title">AI Act · RGPD · Cloud souverain France</div>
+                        <ul style="gap:12px;margin-top:6px;">
+                            <li><strong>100 % serveurs hébergés en France</strong> — Zéro transfert de données hors UE. Aucune dépendance FISA / Cloud Act US.</li>
+                            <li><strong>Zéro PII absorbée</strong> — Données agrégées uniquement. Connexion read-only aux WFM/SIRH.</li>
+                            <li><strong>AI Act Art. 9 & 27</strong> — Decision Log complet = conformité "High-Risk RH" intégrée nativement, pas ajoutée après-coup.</li>
+                            <li><strong>Argument commercial direct :</strong> pour les enseignes nationales (santé, logistique critique), le hosting 100 % France est un prérequis contractuel de Tier-1, pas un bonus.</li>
                         </ul>
                     </article>
                 </div>
 
                 <div class="callout">
-                    <strong>Philosophie d'exécution :</strong> La conformité n'est pas subie. Face à de grands réseaux,
-                    la rigueur AI Act & RGPD constitue notre principal accélérateur de confiance institutionnelle.
+                    <strong>Philosophie :</strong> Nous ne brevèterons pas une idée. Nous brevèterons une démonstration scientifique validée. La stratégie IP sera la traduction commerciale du travail du chercheur et du doctorant CIFRE — c'est le bon ordre.
                 </div>
             </div>
         </section>
 
-
-
-
-
+        <!-- ═══════════════ SLIDE 13 — FEUILLE DE ROUTE & FINANCEMENT ═══════════════ -->
         <section class="slide" id="s13">
             <div class="slide-inner">
                 <header class="slide-head">
-                    <div class="badge"><span class="badge-dot"></span>13 · feuille de route deeptech</div>
-                    <h2>Gouvernance scientifique<br>et trajectoire de financement.</h2>
-                    <p class="subhead">Anticipation d'une roadmap DeepTech structurée dès le lancement opérationnel.</p>
+                    <div class="badge"><span class="badge-dot"></span>13 · feuille de route deeptech & financement</div>
+                    <h2>Traverser la Vallée de la Mort<br>avec un <em>financement hybride discipliné</em>.</h2>
+                    <p class="subhead">Le SaaS (Track 1) couvre l'opérationnel. Les leviers non-dilutifs Bpifrance + CIFRE financent le saut TRL 3 → 7 sans dilution excessive pour les fondateurs.</p>
                 </header>
 
-                <div class="timeline-track grow">
+                <div class="timeline-track" style="flex: 0 0 38%;">
                     <article class="milestone">
-                        <div class="ms-quarter">Mars-Avril 2026</div>
-                        <div class="ms-title">Cadrage Advisor</div>
-                        <p class="ms-copy">Identification d'un profil de Scientific Advisor et validation des verrous
-                            technologiques pertinents.</p>
+                        <div class="ms-quarter">Mars–Avril 2026</div>
+                        <div class="ms-title">Chercheur référent nommé</div>
+                        <p class="ms-copy">Sélection du chercheur senior (DR/CR Inria) parmi les équipes INOCS et SCOOL. Formalisation du protocole de recherche. Définition des jalons TRL scientifiques.</p>
                     </article>
                     <article class="milestone">
                         <div class="ms-quarter">Juin 2026</div>
                         <div class="ms-title">Bourse French Tech Emergence</div>
-                        <p class="ms-copy">Dossier Bpifrance prêt. Jusqu’à 90 k€ non-dilutif pour lancer la R&D.</p>
+                        <p class="ms-copy">Dossier Bpifrance déposé. Jusqu'à 90 k€ non-dilutifs dédiés à la R&D. Adossé au protocole scientifique validé par le chercheur référent et au TRL documenté.</p>
                     </article>
                     <article class="milestone">
-                        <div class="ms-quarter">Juillet-Sept. 2026</div>
+                        <div class="ms-quarter">Juil.–Sept. 2026</div>
                         <div class="ms-title">CIFRE recruté</div>
-                        <p class="ms-copy">Doctorant Decision-Focused Learning intégré. Thèse co-financée.</p>
+                        <p class="ms-copy">Doctorant Decision-Focused Learning intégré. Convention ANRT : ~14 k€/an de coût net pour Praedixa après crédit impôt CIR. Thèse co-financée ANRT + Praedixa.</p>
                     </article>
                     <article class="milestone">
-                        <div class="ms-quarter">Sept. 2026 → Sept. 2027</div>
-                        <div class="ms-title">Phase 1 R&D</div>
-                        <p class="ms-copy">Lancement des travaux encadrés avec des jalons d'itérations R&D mesurables
-                            périodiquement.</p>
+                        <div class="ms-quarter">2027 → fin programme</div>
+                        <div class="ms-title">TRL 5–7 · Aide DeepTech BPI</div>
+                        <p class="ms-copy">Dossier Aide Bpifrance DeepTech (250–400 k€) conditionné à la démonstration TRL 5. Dépôt prévu mi-2027 avec résultats pilote shadow-mode en appui.</p>
                     </article>
                 </div>
 
-                <div class="grid-2 grow">
+                <div class="grid-3 grow">
                     <article class="card">
-                        <div class="card-label">Financement non-dilutif</div>
-                        <div class="card-title">Levier Bpifrance massif</div>
-                        <p>Stratégie de dépôt Bourse Emergence + Aides DeepTech pour soutenir le développement logiciel
-                            et sécuriser l'amorçage financier.</p>
+                        <div class="card-label">Pourquoi ce modèle évite la Vallée de la Mort</div>
+                        <p>Contrairement à une DeepTech pure (0 revenu, 3 ans de burn), le Track 1 génère du MRR dès aujourd'hui. La Bpifrance Emergence n'est pas de la survie : c'est de l'accélération R&D pure. Le CIFRE est le levier le plus capital-efficient qui existe en France pour une thèse appliquée.</p>
                     </article>
                     <article class="card">
-                        <div class="card-label">Écosystème Lille</div>
-                        <div class="card-title">INOCS & SCOOL Inria</div>
-                        <p>Accès direct aux meilleurs sur optimisation sous incertitude et évaluation de politiques
-                            séquentielles. EWRL 2026 à Lille = timing parfait.</p>
+                        <div class="card-label">Structure de financement non-dilutive</div>
+                        <ul style="gap:6px;margin-top:2px;">
+                            <li><strong>Bpifrance Emergence :</strong> jusqu'à 90 k€ · subvention</li>
+                            <li><strong>CIFRE (ANRT) :</strong> ~14 k€/an net · 3 ans · thèse</li>
+                            <li><strong>CIR (Crédit Impôt Recherche) :</strong> 30 % des dépenses R&D éligibles</li>
+                            <li><strong>Aide BPI DeepTech (2027) :</strong> 250–400 k€ · conditionné TRL 5</li>
+                        </ul>
+                    </article>
+                    <article class="card">
+                        <div class="card-label">Écosystème Lille — timing parfait</div>
+                        <p>INOCS (optimisation combinatoire sous incertitude) + SCOOL (sequential decisions, offline RL) = les deux équipes Inria Lille directement alignées avec nos verrous scientifiques. EWRL 2026 à Lille renforce l'ancrage académique local au moment exact du démarrage CIFRE.</p>
                     </article>
                 </div>
             </div>
         </section>
 
+        <!-- ═══════════════ SLIDE 14 — ÉQUIPE & SAB ═══════════════ -->
         <section class="slide" id="s14">
             <div class="slide-inner">
                 <header class="slide-head">
-                    <div class="badge"><span class="badge-dot"></span>14 · équipe et scientifique</div>
-                    <h2>Duo fondateur opérationnel.<br>Dispositif scientifique en structuration.</h2>
-                    <p class="subhead">Une alliance Business / Data, en recherche d'ancrage académique régional fort.
-                    </p>
+                    <div class="badge"><span class="badge-dot"></span>14 · équipe et gouvernance scientifique</div>
+                    <h2>Duo fondateur opérationnel.<br>Gouvernance scientifique structurée en <em>Scientific Advisory Board</em>.</h2>
+                    <p class="subhead">Nous ne cherchons pas "un chercheur". Nous construisons un cadre de gouvernance scientifique que le chercheur habitera. C'est plus robuste qu'un nom.</p>
                 </header>
 
-                <div class="grid-3 grow">
+                <div class="grid-4 grow">
                     <article class="card">
-                        <div class="card-label">CEO Tech & Co-founder</div>
+                        <div class="card-label">CEO & Co-founder</div>
                         <div class="card-title">Steven Poivre</div>
-                        <p>Économie quantitative & Data Science. Conception et développement de la plateforme technique.
-                            Garant de l'architecture logicielle et du pilotage produit.</p>
+                        <p>CEO de Praedixa. Porte la vision, l'exécution et l'alignement business-produit. Responsable de la data science appliquée et de l'économétrie produit, sans responsabilité R&amp;D scientifique.</p>
+                        <ul>
+                            <li>Pilote la stratégie produit, la roadmap et l'exécution globale</li>
+                            <li>Prend en charge la data science appliquée et l'économétrie produit (hors R&amp;D scientifique)</li>
+                            <li>Supervise le protocole de preuve business et l'industrialisation produit</li>
+                        </ul>
                     </article>
                     <article class="card">
                         <div class="card-label">Head of Sales & Co-founder</div>
                         <div class="card-title">Clément Jacquelard</div>
-                        <p>Stratégie Go-to-Market et qualification commerciale B2B experte. Identification des leviers
-                            de financement et de l'acquisition client terrain.</p>
-                    </article>
-                    <article class="card" style="border-color:var(--accent); background:rgba(61,127,255,.03)">
-                        <div class="card-label" style="color:var(--accent)">Gouvernance Académique (en cours)</div>
-                        <div class="card-title">Advisor + CIFRE pipeline</div>
-                        <p>Ciblage prioritaire :</p>
+                        <p>Head of Sales orienté exécution. Responsable du pipeline commercial, de l'acquisition B2B, de la conversion et du closing grands comptes.</p>
                         <ul>
-                            <li><strong>INOCS Inria Lille</strong> – optimisation sous incertitude & bi-niveau</li>
-                            <li><strong>SCOOL Inria Lille</strong> – sequential decisions & offline evaluation</li>
-                            <li><strong>Thèse CIFRE</strong> – Decision-Focused Learning pour staffing multi-sites</li>
+                            <li>Déploiement de la campagne outreach multi-franchisés</li>
+                            <li>Qualification des comptes pilotes sur critères commerciaux et opérationnels</li>
+                            <li>Structuration de l'offre pilote, négociation et conversion</li>
+                            <li>Pilote la recherche et le montage des subventions hors DeepTech</li>
                         </ul>
                     </article>
+                    <article class="card" style="border-color:rgba(56,179,115,.55); background:rgba(56,179,115,.10)">
+                        <div class="card-label" style="color:var(--success)">Scientific Advisory Board — Structure cible (pas un nom, un cadre)</div>
+                        <div class="card-title">Scientifique référent Inria + CIFRE</div>
+                        <p>Le cadre SAB est défini avant nomination, pour sécuriser méthode, gouvernance et trajectoire scientifique.</p>
+                        <ul>
+                            <li><strong>Profil ciblé :</strong> DR/CR Inria, OR ou offline RL, expérience CIFRE</li>
+                            <li><strong>Cible prioritaire :</strong> INOCS + SCOOL (Inria Lille)</li>
+                            <li><strong>Rôle formel :</strong> protocole CIFRE, validation TRL, subventions DeepTech, stratégie IP</li>
+                            <li><strong>Échéance :</strong> Avril 2026</li>
+                        </ul>
+                    </article>
+                    <article class="card" style="border-color:var(--accent-2); background:rgba(200,169,110,.08)">
+                        <div class="card-label" style="color:var(--accent-2)">CTO — Structure cible (pas un nom, un cadre)</div>
+                        <div class="card-title">CTO backend + data engineering</div>
+                        <p>Nous ne recrutons pas un CTO opportuniste. Nous définissons un cadre de rôle avant nomination, au même niveau d'exigence que le cadre scientifique.</p>
+                        <ul>
+                            <li><strong>Profil ciblé :</strong> CTO hands-on SaaS B2B, expertise API, backend Python/SQL, sécurité et scalabilité by design</li>
+                            <li><strong>Rôle formel :</strong> ownership architecture backend, data engineering, fiabilité et delivery technique</li>
+                            <li><strong>Impact organisationnel :</strong> libère Steven pour le rôle CEO, la data science et l'économétrie</li>
+                            <li><strong>Échéance de recrutement :</strong> H1 2026</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <div class="callout" style="border-left-color:var(--accent-2);">
+                    <strong>"Pourquoi eux, pourquoi maintenant, pourquoi Lille ?"</strong> Steven porte le rôle de CEO et la couche data science/économétrie appliquée au produit. Clément transforme l'exécution produit en revenus et pilote les subventions hors DeepTech. Le scientifique via le SAB/CIFRE porte la R&amp;D à 100% et le montage des subventions DeepTech, pendant que le CTO prend le relais backend et data engineering. Lille, avec INOCS, SCOOL, EWRL 2026 et EuraTechnologies, est l'écosystème où ces couches se connectent naturellement.
                 </div>
             </div>
         </section>
@@ -1732,6 +1192,7 @@
             });
 
             let active = 0;
+
             function setActive(i) {
                 active = i;
                 dots.forEach((d, j) => d.classList.toggle('active', j === i));
@@ -1753,7 +1214,7 @@
             setActive(0);
             slides[0].classList.add('in-view');
 
-            window.addEventListener('keydown', e => {
+            globalThis.addEventListener('keydown', e => {
                 if ([' ', 'ArrowDown', 'PageDown'].includes(e.key)) {
                     e.preventDefault();
                     slides[Math.min(slides.length - 1, active + 1)].scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1766,5 +1227,4 @@
         })();
     </script>
 </body>
-
 </html>

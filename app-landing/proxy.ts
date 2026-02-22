@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { generateNonce, buildCspHeader } from "./lib/security/csp";
 import { locales, legacyRedirectMap } from "./lib/i18n/config";
+import { detectRequestLocale } from "./lib/i18n/request-locale";
 
 function isApiOrStatic(pathname: string): boolean {
   return (
@@ -38,6 +39,12 @@ export async function proxy(request: NextRequest) {
 
   if (isApiOrStatic(pathname)) {
     return addCsp(request, NextResponse.next());
+  }
+
+  if (pathname === "/") {
+    const target = request.nextUrl.clone();
+    target.pathname = `/${detectRequestLocale(request.headers)}`;
+    return addCsp(request, NextResponse.redirect(target));
   }
 
   const localizedTarget = legacyRedirectMap[pathname];

@@ -1,9 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Check,
+  Circle,
+  LockKey,
+  Sparkle,
+} from "@phosphor-icons/react/dist/ssr";
 import { isValidLocale } from "../../../lib/i18n/config";
 import { getDictionary } from "../../../lib/i18n/get-dictionary";
 import { PraedixaLogo } from "../../../components/logo/PraedixaLogo";
-import { CheckIcon } from "../../../components/icons";
 import type { Metadata } from "next";
 import { buildLocaleMetadata, localePathMap } from "../../../lib/seo/metadata";
 
@@ -36,171 +43,189 @@ export default async function PilotProtocolPage({
   const dict = await getDictionary(locale);
   const { pilot, howItWorks, security } = dict;
   const isFr = locale === "fr";
+  const pilotHref = `/${locale}/${locale === "fr" ? "devenir-pilote" : "pilot-application"}`;
 
   return (
-    <div className="min-h-screen bg-cream print:bg-card">
-      {/* Print-optimized header */}
-      <header className="section-shell py-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <main id="main-content" tabIndex={-1} className="min-h-[100dvh] py-24">
+      <div className="section-shell max-w-6xl">
+        <header className="panel-glass flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3">
+          <div className="flex items-center gap-2.5">
             <PraedixaLogo
               variant="geometric"
-              size={32}
-              color="var(--warm-ink)"
+              size={28}
+              color="var(--ink-soft)"
               strokeWidth={1.1}
             />
-            <span className="font-serif text-xl text-charcoal">Praedixa</span>
+            <span className="text-base font-semibold tracking-tight text-[var(--ink)]">
+              Praedixa
+            </span>
           </div>
-          <Link href={`/${locale}`} className="btn-ghost text-sm print:hidden">
+          <Link href={`/${locale}`} className="btn-secondary">
+            <ArrowLeft size={14} weight="bold" />
             {isFr ? "Retour au site" : "Back to site"}
           </Link>
-        </div>
-      </header>
+        </header>
 
-      <main id="main-content" tabIndex={-1} className="section-shell pb-16">
-        {/* Title */}
-        <div className="border-b border-border-subtle pb-8">
-          <p className="section-kicker">{pilot.kicker}</p>
-          <h1 className="mt-3 font-serif text-4xl text-charcoal sm:text-5xl">
+        <article className="panel-glass mt-6 rounded-3xl p-6 md:p-10">
+          <p className="section-kicker">
+            <Sparkle size={12} weight="fill" />
+            {pilot.kicker}
+          </p>
+          <h1 className="mt-3 text-4xl leading-none tracking-tighter text-[var(--ink)] md:text-6xl">
             {pilot.heading}
           </h1>
           <p className="section-lead">{pilot.subheading}</p>
-        </div>
 
-        {/* Steps */}
-        <section className="mt-10">
-          <h2 className="font-serif text-2xl text-charcoal">
-            {howItWorks.heading}
-          </h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {howItWorks.steps.map((step) => (
-              <div key={step.number} className="craft-card p-5">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded border border-brass-200 bg-brass-50 text-xs font-bold text-brass-700">
+          <section className="mt-10">
+            <h2 className="text-2xl tracking-tight text-[var(--ink)]">
+              {howItWorks.heading}
+            </h2>
+            <div className="mt-5 grid gap-4 md:grid-cols-12">
+              {howItWorks.steps.map((step, index) => (
+                <article
+                  key={step.number}
+                  className={`rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4 ${
+                    index % 2 === 0 ? "md:col-span-7" : "md:col-span-5"
+                  }`}
+                >
+                  <p className="font-mono text-xs text-[var(--ink-muted)]">
                     {step.number}
-                  </span>
-                  <div>
-                    <h3 className="text-sm font-semibold text-charcoal">
-                      {step.title}
-                    </h3>
-                    <p className="text-2xs text-brass-600">{step.subtitle}</p>
-                  </div>
-                </div>
-                <p className="mt-3 text-sm text-ink-secondary">
-                  {step.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Included / Excluded */}
-        <section className="mt-10 grid gap-6 sm:grid-cols-2">
-          <div>
-            <h2 className="font-serif text-xl text-charcoal">
-              {pilot.included.title}
-            </h2>
-            <ul className="mt-4 grid gap-2">
-              {pilot.included.items.map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-2.5 text-sm text-ink-secondary"
-                >
-                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-brass-500" />
-                  {item}
-                </li>
+                  </p>
+                  <h3 className="mt-2 text-lg tracking-tight text-[var(--ink)]">
+                    {step.title}
+                  </h3>
+                  <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[var(--accent-700)]">
+                    {step.subtitle}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">
+                    {step.description}
+                  </p>
+                </article>
               ))}
-            </ul>
-          </div>
-          <div>
-            <h2 className="font-serif text-xl text-charcoal">
-              {pilot.excluded.title}
-            </h2>
-            <ul className="mt-4 grid gap-2">
-              {pilot.excluded.items.map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-2.5 text-sm text-ink-tertiary"
+            </div>
+          </section>
+
+          <section className="mt-10 grid gap-4 md:grid-cols-2">
+            <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+              <h2 className="text-xl tracking-tight text-[var(--ink)]">
+                {pilot.included.title}
+              </h2>
+              <ul className="mt-3 grid gap-2">
+                {pilot.included.items.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-2 text-sm text-[var(--ink-soft)]"
+                  >
+                    <Check
+                      size={14}
+                      weight="bold"
+                      className="mt-0.5 shrink-0 text-[var(--accent-700)]"
+                    />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </article>
+
+            <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+              <h2 className="text-xl tracking-tight text-[var(--ink)]">
+                {pilot.excluded.title}
+              </h2>
+              <ul className="mt-3 grid gap-2">
+                {pilot.excluded.items.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-2 text-sm text-[var(--ink-soft)]"
+                  >
+                    <Circle
+                      size={12}
+                      weight="regular"
+                      className="mt-1 shrink-0 text-[var(--ink-muted)]"
+                    />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          </section>
+
+          <section className="mt-10 grid gap-4 md:grid-cols-[1.2fr_1fr]">
+            <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+              <h2 className="text-xl tracking-tight text-[var(--ink)]">
+                {pilot.kpis.title}
+              </h2>
+              <ul className="mt-3 grid gap-2 md:grid-cols-2">
+                {pilot.kpis.items.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-2 text-sm text-[var(--ink-soft)]"
+                  >
+                    <Check
+                      size={14}
+                      weight="bold"
+                      className="mt-0.5 shrink-0 text-[var(--accent-700)]"
+                    />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </article>
+
+            <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+              <h2 className="text-xl tracking-tight text-[var(--ink)]">
+                {pilot.governance.title}
+              </h2>
+              <ul className="mt-3 grid gap-2">
+                {pilot.governance.items.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-2 text-sm text-[var(--ink-soft)]"
+                  >
+                    <Check
+                      size={14}
+                      weight="bold"
+                      className="mt-0.5 shrink-0 text-[var(--accent-700)]"
+                    />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          </section>
+
+          <section className="mt-10 border-t border-[var(--line)] pt-8">
+            <p className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-[var(--ink-muted)]">
+              <LockKey size={14} weight="duotone" />
+              {security.heading}
+            </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {security.tiles.slice(0, 4).map((tile) => (
+                <article
+                  key={tile.title}
+                  className="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-3"
                 >
-                  <span className="mt-1.5 h-3 w-3 shrink-0 rounded-full border border-border" />
-                  {item}
-                </li>
+                  <p className="text-sm font-medium text-[var(--ink)]">
+                    {tile.title}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--ink-soft)]">
+                    {tile.description}
+                  </p>
+                </article>
               ))}
-            </ul>
-          </div>
-        </section>
+            </div>
+            <p className="mt-4 rounded-xl border border-[var(--accent-200)] bg-[var(--accent-50)] px-4 py-3 text-sm text-[var(--ink-soft)]">
+              {security.honesty}
+            </p>
+          </section>
 
-        {/* KPIs */}
-        <section className="mt-10">
-          <h2 className="font-serif text-xl text-charcoal">
-            {pilot.kpis.title}
-          </h2>
-          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-            {pilot.kpis.items.map((item) => (
-              <li
-                key={item}
-                className="flex items-start gap-2.5 text-sm text-ink-secondary"
-              >
-                <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-brass-500" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {/* Governance */}
-        <section className="mt-10">
-          <h2 className="font-serif text-xl text-charcoal">
-            {pilot.governance.title}
-          </h2>
-          <ul className="mt-4 grid gap-2">
-            {pilot.governance.items.map((item) => (
-              <li
-                key={item}
-                className="flex items-start gap-2.5 text-sm text-ink-secondary"
-              >
-                <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-brass-500" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {/* Security summary */}
-        <section className="mt-10 border-t border-border-subtle pt-8">
-          <h2 className="font-serif text-xl text-charcoal">
-            {security.heading}
-          </h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {security.tiles.slice(0, 4).map((tile) => (
-              <div key={tile.title} className="text-sm">
-                <p className="font-medium text-charcoal">{tile.title}</p>
-                <p className="text-ink-secondary">{tile.description}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-4 rounded-lg border border-brass-100 bg-brass-50 px-4 py-3 text-sm text-brass-800">
-            {security.honesty}
-          </p>
-        </section>
-
-        {/* CTA */}
-        <section className="mt-10 text-center print:hidden">
-          <p className="text-sm text-ink-secondary">{pilot.urgency}</p>
-          <Link
-            href={`/${locale}/${locale === "fr" ? "devenir-pilote" : "pilot-application"}`}
-            className="btn-primary mt-4"
-          >
-            {pilot.ctaPrimary}
-          </Link>
-        </section>
-
-        {/* Print footer */}
-        <div className="mt-12 hidden border-t border-border-subtle pt-6 text-center text-xs text-ink-tertiary print:block">
-          praedixa.com &middot;{" "}
-          {isFr ? "Document confidentiel" : "Confidential document"}
-        </div>
-      </main>
-    </div>
+          <section className="mt-10 flex flex-wrap items-center gap-3">
+            <Link href={pilotHref} className="btn-primary">
+              {pilot.ctaPrimary}
+              <ArrowUpRight size={15} weight="bold" />
+            </Link>
+          </section>
+        </article>
+      </div>
+    </main>
   );
 }

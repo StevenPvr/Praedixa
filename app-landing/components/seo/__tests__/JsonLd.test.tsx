@@ -16,7 +16,7 @@ describe("JsonLd", () => {
     expect(script).toBeTruthy();
   });
 
-  it("contains Organization with official sameAs and contact", async () => {
+  it("contains Organization with official sameAs and no public email", async () => {
     const node = await JsonLd({ locale: "fr" });
     const { container } = render(node);
     const script = container.querySelector(
@@ -30,9 +30,7 @@ describe("JsonLd", () => {
     expect(org).toBeDefined();
     expect(org?.name).toBe("Praedixa");
     expect(org?.sameAs).toEqual(["https://linkedin.com/company/praedixa"]);
-    expect((org?.contactPoint as { email?: string }).email).toBe(
-      "hello@praedixa.com",
-    );
+    expect((org?.contactPoint as { email?: string }).email).toBeUndefined();
   });
 
   it("contains WebSite SearchAction", async () => {

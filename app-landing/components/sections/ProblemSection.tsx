@@ -2,131 +2,125 @@
 
 import { motion } from "framer-motion";
 import {
+  Check,
+  ClockCounterClockwise,
+  CurrencyDollar,
+  WarningDiamond,
+} from "@phosphor-icons/react/dist/ssr";
+import {
   blurReveal,
   blurStaggerContainer,
   blurStaggerItem,
-  viewportOnce,
   viewportEarly,
+  viewportOnce,
 } from "../../lib/animations/variants";
-import { CheckDraw } from "../cinema/CheckDraw";
-import { SpotlightCard } from "../cinema/SpotlightCard";
-import { CountUp } from "../cinema/CountUp";
 import type { Dictionary } from "../../lib/i18n/types";
 
 interface ProblemSectionProps {
   dict: Dictionary;
 }
 
-const CARD_NUMBERS = ["01", "02", "03"];
+const icons = [ClockCounterClockwise, CurrencyDollar, WarningDiamond];
 
 export function ProblemSection({ dict }: ProblemSectionProps) {
   const { problem } = dict;
 
   return (
-    <section
-      id="problem"
-      className="section-spacing relative overflow-hidden"
-      style={{
-        background:
-          "radial-gradient(ellipse at 50% 40%, oklch(0.96 0.008 80 / 0.5) 0%, oklch(0.975 0.004 260) 65%)",
-      }}
-    >
-      <div className="section-shell relative z-10">
-        {/* Header */}
-        <motion.div
-          variants={blurReveal}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportEarly}
-          className="max-w-2xl"
-        >
-          <p className="section-kicker">{problem.kicker}</p>
-          <h2 className="section-title mt-4 leading-[1.15]">
-            {problem.heading}
-          </h2>
-          <p className="section-lead mt-6 text-base leading-relaxed">
-            {problem.subheading}
-          </p>
-        </motion.div>
+    <section id="problem" className="section-spacing">
+      <div className="section-shell">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-10">
+          <motion.div
+            variants={blurReveal}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportEarly}
+            className="md:col-span-5"
+          >
+            <p className="section-kicker">{problem.kicker}</p>
+            <h2 className="section-title">{problem.heading}</h2>
+            <p className="section-lead">{problem.subheading}</p>
 
-        {/* Pain Cards — Institutional "Constats" */}
-        <motion.div
-          className="mt-16 grid gap-5 md:grid-cols-3"
-          variants={blurStaggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportOnce}
-        >
-          {problem.pains.map((pain, i) => (
-            <motion.div key={pain.title} variants={blurStaggerItem}>
-              <SpotlightCard
-                className="flex flex-col p-7 h-full"
-                spotlightColor="oklch(0.63 0.165 246 / 0.08)"
-                tilt
-              >
-                {/* Filigrane number */}
-                <span className="font-serif text-4xl font-extralight tracking-tight text-charcoal/[0.07] select-none">
-                  {CARD_NUMBERS[i]}
-                </span>
+            <div className="mt-8 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ink-muted)]">
+                Diagnostic
+              </p>
+              <h3 className="mt-2 text-xl tracking-tight text-[var(--ink)]">
+                {problem.diagnostic.title}
+              </h3>
+              <ul className="mt-4 grid gap-3">
+                {problem.diagnostic.signals.map((signal) => (
+                  <li
+                    key={signal}
+                    className="flex items-start gap-2.5 text-sm leading-relaxed text-[var(--ink-soft)]"
+                  >
+                    <Check
+                      size={14}
+                      weight="bold"
+                      className="mt-1 shrink-0 text-[var(--accent-600)]"
+                    />
+                    <span>{signal}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </motion.div>
 
-                <h3 className="mt-3 font-serif text-xl leading-snug text-charcoal">
-                  {pain.title}
-                </h3>
-                <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-secondary">
-                  {pain.description}
-                </p>
+          <motion.div
+            variants={blurStaggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+            className="md:col-span-7"
+          >
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {problem.pains.map((pain, index) => {
+                const Icon = icons[index] ?? WarningDiamond;
+                const isLarge = index === 0;
 
-                {/* Consequence + cost metric */}
-                <div className="mt-5 border-t border-border-subtle pt-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-ink-tertiary">
-                    {pain.consequence}
-                  </p>
-                  <CountUp
-                    value={pain.cost}
-                    className="mt-2 inline-block font-serif text-lg tracking-tight text-brass-600"
-                  />
-                </div>
-              </SpotlightCard>
-            </motion.div>
-          ))}
-        </motion.div>
+                return (
+                  <motion.article
+                    key={pain.title}
+                    variants={blurStaggerItem}
+                    className={`panel-glass rounded-3xl p-6 ${
+                      isLarge ? "md:col-span-2" : ""
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ink-muted)]">
+                          Point critique {String(index + 1).padStart(2, "0")}
+                        </p>
+                        <h3 className="mt-2 text-2xl tracking-tight text-[var(--ink)]">
+                          {pain.title}
+                        </h3>
+                      </div>
+                      <div className="rounded-xl border border-[var(--line)] bg-[var(--panel-muted)] p-2.5">
+                        <Icon
+                          size={18}
+                          weight="duotone"
+                          className="text-[var(--accent-600)]"
+                        />
+                      </div>
+                    </div>
 
-        {/* Separator */}
-        <div className="mx-auto my-16 h-px max-w-xs bg-gradient-to-r from-transparent via-brass-400/30 to-transparent" />
+                    <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">
+                      {pain.description}
+                    </p>
 
-        {/* Diagnostic — Elegant minimalist checklist */}
-        <motion.div
-          className="mx-auto max-w-3xl"
-          variants={blurReveal}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportOnce}
-        >
-          <div className="flex flex-col items-center text-center">
-            <h3 className="font-serif text-xl italic text-charcoal/80">
-              {problem.diagnostic.title}
-            </h3>
-            <ul className="mt-8 flex flex-col items-center gap-4 text-left sm:items-start sm:grid sm:grid-cols-2 sm:gap-x-12 sm:gap-y-5">
-              {problem.diagnostic.signals.map((signal, i) => (
-                <motion.li
-                  key={signal}
-                  className="flex items-start gap-3.5 text-[0.9rem] leading-relaxed text-ink-secondary"
-                  initial={{ opacity: 0, x: -6 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{
-                    delay: i * 0.1,
-                    duration: 0.4,
-                    ease: "easeOut",
-                  }}
-                  viewport={{ once: true, margin: "-20px" }}
-                >
-                  <CheckDraw className="mt-[3px] h-3.5 w-3.5 shrink-0 text-brass-400" />
-                  {signal}
-                </motion.li>
-              ))}
-            </ul>
-          </div>
-        </motion.div>
+                    <div className="mt-5 grid gap-2 border-t border-[var(--line)] pt-4 md:grid-cols-[1fr_auto] md:items-end">
+                      <p className="text-xs uppercase tracking-[0.16em] text-[var(--ink-muted)]">
+                        {pain.consequence}
+                      </p>
+                      <p className="font-mono text-sm text-[var(--accent-700)]">
+                        {pain.cost}
+                      </p>
+                    </div>
+                  </motion.article>
+                );
+              })}
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );
