@@ -18,7 +18,7 @@
     "render:landing-assets": "pnpm render:all && pnpm sync:landing"
   },
   "dependencies": {
-    "@remotion/cli": "4.0.259",
+    "@remotion/cli": "4.0.427",
     "lucide-react": "^0.469.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
