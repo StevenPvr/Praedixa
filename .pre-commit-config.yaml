@@ -26,13 +26,21 @@ repos:
 
   - repo: local
     hooks:
-      - id: gate-exhaustive-local
-        name: gate exhaustive local (all categories)
-        entry: sh -c './scripts/gate-exhaustive-local.sh --mode pre-commit'
+      - id: gate-precommit-delta
+        name: gate pre-commit delta (fast + blocking)
+        entry: sh -c './scripts/gate-precommit-delta.sh'
         language: system
         always_run: true
         pass_filenames: false
         stages: [pre-commit]
+
+      - id: gate-prepush-deep
+        name: gate pre-push deep security (blocking)
+        entry: sh -c './scripts/gate-prepush-deep.sh'
+        language: system
+        always_run: true
+        pass_filenames: false
+        stages: [pre-push]
 
       - id: gate-report-verify-pre-push
         name: gate report verify (signed + fresh + HEAD-bound)
