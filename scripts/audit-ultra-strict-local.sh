@@ -4,6 +4,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+export UV_CACHE_DIR="${TMPDIR:-/tmp}/praedixa-uv-cache"
+export UV_TOOL_DIR="${TMPDIR:-/tmp}/praedixa-uv-tools"
+mkdir -p "$UV_CACHE_DIR" "$UV_TOOL_DIR"
+
 fail() {
   echo "[audit-ultra-strict] $*" >&2
   exit 1
@@ -21,13 +25,51 @@ require_cmd() {
 }
 
 run_semgrep() {
+  local semgrep_home="${TMPDIR:-/tmp}/praedixa-semgrep-home"
+  mkdir -p "${semgrep_home}/config" "${semgrep_home}/cache" "${semgrep_home}/logs"
+
+  local cert_path=""
+  if has_cmd python3; then
+    cert_path="$(python3 -c 'import certifi; print(certifi.where())' 2>/dev/null || true)"
+  fi
+
+  local -a semgrep_env=(
+    "HOME=${semgrep_home}"
+    "XDG_CONFIG_HOME=${semgrep_home}/config"
+    "XDG_CACHE_HOME=${semgrep_home}/cache"
+    "SEMGREP_LOG_FILE=${semgrep_home}/logs/semgrep.log"
+    "SEMGREP_SETTINGS_FILE=${semgrep_home}/config/settings.yml"
+    "SEMGREP_SEND_METRICS=off"
+    "SEMGREP_ENABLE_VERSION_CHECK=0"
+  )
+  if [[ -n "$cert_path" && -f "$cert_path" ]]; then
+    semgrep_env+=(
+      "SSL_CERT_FILE=${cert_path}"
+      "REQUESTS_CA_BUNDLE=${cert_path}"
+      "CURL_CA_BUNDLE=${cert_path}"
+      "X509_CERT_FILE=${cert_path}"
+    )
+  fi
+
   if has_cmd semgrep; then
-    semgrep "$@"
-    return
+    set +e
+    env "${semgrep_env[@]}" semgrep --metrics=off --disable-version-check "$@"
+    local rc=$?
+    set -e
+    if [[ "$rc" -eq 0 || "$rc" -eq 1 ]]; then
+      return "$rc"
+    fi
+    echo "[audit-ultra-strict] WARN: semgrep binary failed (rc=${rc}), trying uv tool..." >&2
   fi
   if has_cmd uv; then
-    uv tool run --from semgrep semgrep "$@"
-    return
+    set +e
+    env "${semgrep_env[@]}" uv tool run --from semgrep semgrep --metrics=off --disable-version-check "$@"
+    local rc=$?
+    set -e
+    if [[ "$rc" -eq 0 || "$rc" -eq 1 ]]; then
+      return "$rc"
+    fi
+    fail "Semgrep unavailable (binary + uv fallback failed, rc=${rc})."
   fi
   fail "Semgrep is not available (install semgrep or uv)."
 }
@@ -87,7 +129,7 @@ if [[ "$HAS_TERRAFORM" == "true" ]]; then
 fi
 
 echo "[audit-ultra-strict] Semgrep..."
-run_semgrep scan --config auto --error
+run_semgrep --error --config scripts/semgrep/custom-critical-rules.yml .
 
 echo "[audit-ultra-strict] Trivy secrets..."
 trivy fs "${skip_dir_args[@]}" \

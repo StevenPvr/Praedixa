@@ -2,15 +2,16 @@
 
 ## Incident register
 
-| Incident ID | Date/time | Severity (P1/P2/P3) | Description | Impact   | Detection source | Response lead | Containment time | Root cause | Corrective actions | Status        | Evidence |
-| ----------- | --------- | ------------------- | ----------- | -------- | ---------------- | ------------- | ---------------- | ---------- | ------------------ | ------------- | -------- |
-| INC-001     | [DATE]    | [P1/P2/P3]          | [SUMMARY]   | [IMPACT] | [ALERT/REPORT]   | [NAME]        | [DURATION]       | [CAUSE]    | [ACTIONS]          | [OPEN/CLOSED] | [LINK]   |
+| Incident ID | Detection datetime | Severity (P0/P1/P2/P3) | Description | Impact summary | Detection source | Response lead | Acknowledge time | Containment time | Recovery time | Root cause | Corrective actions | Preventive actions | Residency impact assessed (Y/N) | Status        | Evidence |
+| ----------- | ------------------ | ---------------------- | ----------- | -------------- | ---------------- | ------------- | ---------------- | ---------------- | ------------- | ---------- | ------------------ | ------------------ | ------------------------------- | ------------- | -------- |
+| INC-001     | [DATE/TIME]        | [P0/P1/P2/P3]          | [SUMMARY]   | [IMPACT]       | [ALERT/REPORT]   | [NAME]        | [DURATION]       | [DURATION]       | [DURATION]    | [CAUSE]    | [ACTIONS]          | [ACTIONS]          | [Y/N + NOTE]                    | [OPEN/CLOSED] | [LINK]   |
 
 ## SLA target
 
-- P1: acknowledge < 15 min, contain < 60 min
-- P2: acknowledge < 60 min, contain < 4 h
-- P3: acknowledge same day
+- P0: acknowledge < 15 min, contain < 60 min
+- P1: acknowledge < 30 min, contain < 4 h
+- P2: acknowledge < 4 h, contain < 24 h
+- P3: acknowledge < 1 business day
 
 ## Post-incident mandatory fields
 

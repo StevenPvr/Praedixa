@@ -1,0 +1,52 @@
+version: 1
+policy_name: security-gate-unified
+updated_at: "2026-02-22"
+severity:
+  critical:
+    action: block
+    allowed_exception: false
+  high:
+    action: block
+    allowed_exception: false
+  medium:
+    action: block
+    allowed_exception: false
+  low:
+    action: track
+    allowed_exception: true
+exceptions:
+  require_owner: true
+  require_reviewer: true
+  require_reviewer_distinct_from_owner: true
+  require_justification: true
+  require_evidence: true
+  require_scope: true
+  require_removal_plan: true
+  max_acceptance_days: 90
+  max_ttl_days:
+    low: 30
+  fail_on_expired: true
+  fail_on_incomplete: true
+supply_chain:
+  require_sbom: true
+  prioritize_actively_exploited_signals: true
+  zero_day_statement_required: true
+layers:
+  pre_commit:
+    mode: delta
+    target_duration_seconds: 90
+  pre_push:
+    mode: deep
+  exhaustive:
+    mode: full
+response_sla:
+  critical:
+    decision_hours: 4
+    mitigation_hours: 24
+  high:
+    decision_hours: 24
+    mitigation_hours: 72
+  medium:
+    mitigation_days: 14
+  low:
+    mitigation_days: 90

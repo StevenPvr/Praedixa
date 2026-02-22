@@ -7,9 +7,13 @@ Define onboarding and review of vendors/subprocessors.
 ## Requirements
 
 - Risk classification before onboarding.
+- Vendor risk score (0-100) recorded before onboarding.
 - DPA and security terms reviewed.
 - Data residency documented at country level.
-- Annual or quarterly review based on risk.
+- Review frequency based on risk:
+  - High/Critical: quarterly
+  - Medium: semi-annual
+  - Low: annual
 - Exit plan documented for critical vendors.
 
 ## Residency gate (mandatory)

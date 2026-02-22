@@ -9,3 +9,4 @@ This folder contains minimum policy templates for an early-stage team.
 - data-retention-policy.md
 - vendor-management-policy.md
 - data-residency-france-only-policy.md
+- residual-risk-acceptance-policy.md

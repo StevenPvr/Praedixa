@@ -40,6 +40,11 @@ while (($# > 0)); do
   esac
 done
 
+if ! command -v jq >/dev/null 2>&1; then
+  echo "[gate-verify] Missing jq" >&2
+  exit 1
+fi
+
 rerun_gate_and_reverify() {
   echo "[gate-verify] Regenerating report with exhaustive gate..."
   ./scripts/gate-exhaustive-local.sh --mode "$MODE" --report-path "$REPORT_PATH"
@@ -62,6 +67,12 @@ fi
 
 if [[ ! -f "$KEY_PATH" ]]; then
   echo "[gate-verify] Missing gate signing key: $KEY_PATH" >&2
+  exit 1
+fi
+
+REPORT_SCHEMA="$(jq -r '.schema_version // empty' "$REPORT_PATH")"
+if [[ "$REPORT_SCHEMA" != "2" ]]; then
+  echo "[gate-verify] Unsupported report schema_version: ${REPORT_SCHEMA:-<empty>}" >&2
   exit 1
 fi
 
@@ -92,12 +103,34 @@ if [[ "$REPORT_STATUS" != "pass" ]]; then
   exit 1
 fi
 
+BLOCKING_FAILED="$(jq -r '.summary.blocking_failed_checks // empty' "$REPORT_PATH")"
+if [[ -z "$BLOCKING_FAILED" ]]; then
+  echo "[gate-verify] Missing summary.blocking_failed_checks" >&2
+  exit 1
+fi
+if [[ "$BLOCKING_FAILED" != "0" ]]; then
+  echo "[gate-verify] Blocking checks are non-zero: ${BLOCKING_FAILED}" >&2
+  exit 1
+fi
+
 REPORT_DRY_RUN="$(jq -r '.dry_run // false' "$REPORT_PATH")"
 if [[ "$REPORT_DRY_RUN" == "true" ]]; then
   if [[ "$RUN_IF_MISSING" == "1" ]]; then
     rerun_gate_and_reverify
   fi
   echo "[gate-verify] Dry-run reports are not valid for pre-push verification" >&2
+  exit 1
+fi
+
+POLICY_VERSION="$(jq -r '.policy.version // empty' "$REPORT_PATH")"
+if [[ -z "$POLICY_VERSION" ]]; then
+  echo "[gate-verify] Missing policy.version in report" >&2
+  exit 1
+fi
+
+RISK_NOTICE="$(jq -r '.residual_risk_notice // empty' "$REPORT_PATH")"
+if [[ -z "$RISK_NOTICE" ]]; then
+  echo "[gate-verify] Missing residual_risk_notice in report" >&2
   exit 1
 fi
 

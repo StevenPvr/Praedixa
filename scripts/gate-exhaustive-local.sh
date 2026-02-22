@@ -10,6 +10,8 @@ REPORT_PATH=""
 GATE_ALLOW_MISSING_TOOLS="${GATE_ALLOW_MISSING_TOOLS:-0}"
 DRY_RUN="0"
 CONFIG_PATH="${ROOT_DIR}/scripts/gate.config.yaml"
+POLICY_PATH="${ROOT_DIR}/scripts/security-policy.yaml"
+EXCEPTIONS_PATH="${ROOT_DIR}/scripts/security-exceptions.yaml"
 
 while (($# > 0)); do
   case "$1" in
@@ -35,6 +37,14 @@ while (($# > 0)); do
       ;;
   esac
 done
+
+case "$MODE" in
+  pre-commit|pre-push|manual) ;;
+  *)
+    echo "[gate] Unsupported mode '$MODE' (expected pre-commit|pre-push|manual)" >&2
+    exit 2
+    ;;
+esac
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "[gate] Missing jq" >&2
@@ -171,45 +181,134 @@ run_check() {
   fi
 }
 
-echo "[gate] mode=${MODE} sha=${COMMIT_SHA} strict_missing_tools=$((1 - GATE_ALLOW_MISSING_TOOLS)) dry_run=${DRY_RUN}"
+policy_json() {
+  python3 - <<'PY' "$POLICY_PATH"
+import json
+import sys
+from pathlib import Path
+import yaml
 
-run_check "tooling:codeql-installed" "tooling" "low" "assert_required_tool codeql"
-run_check "tooling:osv-scanner-installed" "tooling" "low" "assert_required_tool osv-scanner"
-run_check "tooling:k6-installed" "tooling" "low" "assert_required_tool k6"
+path = Path(sys.argv[1])
+data = yaml.safe_load(path.read_text(encoding='utf-8'))
+print(json.dumps(data, ensure_ascii=False))
+PY
+}
 
-run_check "format:prettier-check" "quality" "low" "pnpm format:check"
-run_check "lint:eslint" "quality" "low" "pnpm lint"
-run_check "types:typescript" "quality" "low" "pnpm typecheck"
-run_check "tests:vitest-coverage" "quality" "low" "pnpm test:coverage"
-run_check "tests:pytest" "quality" "low" "cd app-api && uv run pytest"
-run_check "build:next-monorepo" "quality" "low" "pnpm build"
+exceptions_summary_json() {
+  python3 - <<'PY' "$EXCEPTIONS_PATH"
+import json
+import sys
+from datetime import date
+from pathlib import Path
+import yaml
 
-run_check "security:pip-audit" "security" "low" "cd app-api && uv run pip-audit --skip-editable"
-run_check "security:npm-audit" "security" "low" "./scripts/run-npm-audit.sh"
-run_check "security:ultra-strict-audit" "security" "low" "./scripts/audit-ultra-strict-local.sh"
-run_check "security:codeql" "security" "low" "./scripts/run-codeql-local.sh"
-run_check "security:osv-scanner" "security" "low" "./scripts/run-osv-scan.sh"
+path = Path(sys.argv[1])
+data = yaml.safe_load(path.read_text(encoding='utf-8'))
+exceptions = data.get('exceptions', []) if isinstance(data, dict) else []
 
-run_check "architecture:dependency-cruiser" "architecture" "low" "pnpm dlx dependency-cruiser@16.10.4 --config .dependency-cruiser.cjs --output-type err app-landing app-webapp app-admin packages"
-run_check "architecture:knip" "architecture" "low" "pnpm dlx knip@5.62.0 --config knip.json --strict --dependencies --no-config-hints"
-run_check "architecture:import-linter" "architecture" "low" "cd app-api && uv tool run --from import-linter lint-imports --config .importlinter"
-run_check "quality:deptry" "quality" "low" "cd app-api && uv tool run --from deptry deptry . --config pyproject.toml"
-run_check "quality:radon-complexity" "quality" "low" "uv tool run --from radon radon cc app-api/app -s -n B"
-run_check "quality:radon-maintainability" "quality" "low" "uv tool run --from radon radon mi app-api/app -s -n B"
+today = date.today()
+active = 0
+expired = 0
+for item in exceptions:
+    if not isinstance(item, dict):
+        continue
+    status = str(item.get('status', '')).strip().lower()
+    if status != 'active':
+        continue
+    try:
+        expires = date.fromisoformat(str(item.get('expires_at', '')))
+    except ValueError:
+        expired += 1
+        continue
+    if expires < today:
+        expired += 1
+    else:
+        active += 1
 
-run_check "e2e:playwright-chromium-ready" "quality" "low" "./scripts/check-playwright-chromium.sh"
-run_check "e2e:api-edge-webapp" "quality" "low" "pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/webapp/api-edge-cases.spec.ts --project=webapp --workers=1 --retries=0"
-run_check "e2e:critical-ui" "quality" "low" "pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/landing/pilot-form.spec.ts --project=landing --workers=1 --retries=0 && pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/webapp/sidebar-interactions.spec.ts --project=webapp --workers=1 --retries=0"
-run_check "e2e:admin-navigation-a11y" "quality" "low" "pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/admin/navigation.spec.ts --project=admin --workers=1 --retries=0"
+print(json.dumps({
+    'total': len(exceptions),
+    'active': active,
+    'expired': expired,
+}, ensure_ascii=False))
+PY
+}
 
-run_check "performance:bundle-size-landing" "performance" "low" "./scripts/check-bundle-size.sh app-landing"
-run_check "security:dynamic-api-audits" "security" "low" "./scripts/run-api-dynamic-audits.sh"
-run_check "performance:frontend-audits" "performance" "low" "./scripts/run-frontend-audits.sh"
+run_precommit_layer() {
+  run_check "policy:exceptions" "governance" "high" "python3 scripts/validate-security-exceptions.py --quiet"
+  run_check "layer-a:precommit-delta" "security" "high" "./scripts/gate-precommit-delta.sh"
+}
+
+run_prepush_layer() {
+  run_check "policy:exceptions" "governance" "high" "python3 scripts/validate-security-exceptions.py --quiet"
+  run_check "layer-b:prepush-deep" "security" "high" "./scripts/gate-prepush-deep.sh"
+}
+
+run_manual_exhaustive_layer() {
+  run_check "tooling:codeql-installed" "tooling" "medium" "assert_required_tool codeql"
+  run_check "tooling:k6-installed" "tooling" "medium" "assert_required_tool k6"
+
+  run_check "layer-b:prepush-deep" "security" "high" "./scripts/gate-prepush-deep.sh"
+
+  run_check "format:prettier-check" "quality" "low" "pnpm format:check"
+  run_check "lint:eslint" "quality" "low" "pnpm lint"
+  run_check "types:typescript" "quality" "low" "pnpm typecheck"
+  run_check "tests:vitest-coverage" "quality" "low" "pnpm test:coverage"
+  run_check "tests:pytest" "quality" "low" "cd app-api && uv run pytest"
+  run_check "build:next-monorepo" "quality" "low" "pnpm build"
+
+  run_check "security:codeql" "security" "medium" "./scripts/run-codeql-local.sh"
+  run_check "security:dynamic-api-audits" "security" "medium" "./scripts/run-api-dynamic-audits.sh"
+
+  run_check "architecture:dependency-cruiser" "architecture" "low" "pnpm dlx dependency-cruiser@16.10.4 --config .dependency-cruiser.cjs --output-type err app-landing app-webapp app-admin packages"
+  run_check "architecture:knip" "architecture" "low" "pnpm dlx knip@5.62.0 --config knip.json --strict --dependencies --no-config-hints"
+  run_check "architecture:import-linter" "architecture" "low" "cd app-api && uv tool run --from import-linter lint-imports --config .importlinter"
+  run_check "quality:deptry" "quality" "low" "cd app-api && uv tool run --from deptry deptry . --config pyproject.toml"
+  run_check "quality:radon-complexity" "quality" "low" "uv tool run --from radon radon cc app-api/app -s -n B"
+  run_check "quality:radon-maintainability" "quality" "low" "uv tool run --from radon radon mi app-api/app -s -n B"
+
+  run_check "e2e:playwright-chromium-ready" "quality" "low" "./scripts/check-playwright-chromium.sh"
+  run_check "e2e:api-edge-webapp" "quality" "low" "pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/webapp/api-edge-cases.spec.ts --project=webapp --workers=1 --retries=0"
+  run_check "e2e:critical-ui" "quality" "low" "pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/landing/pilot-form.spec.ts --project=landing --workers=1 --retries=0 && pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/webapp/sidebar-interactions.spec.ts --project=webapp --workers=1 --retries=0"
+  run_check "e2e:admin-navigation-a11y" "quality" "low" "pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/admin/navigation.spec.ts --project=admin --workers=1 --retries=0"
+
+  run_check "performance:bundle-size-landing" "performance" "low" "./scripts/check-bundle-size.sh app-landing"
+  run_check "performance:frontend-audits" "performance" "low" "./scripts/run-frontend-audits.sh"
+}
+
+LAYER=""
+case "$MODE" in
+  pre-commit)
+    LAYER="A"
+    ;;
+  pre-push)
+    LAYER="B"
+    ;;
+  manual)
+    LAYER="C"
+    ;;
+esac
+
+echo "[gate] mode=${MODE} layer=${LAYER} sha=${COMMIT_SHA} strict_missing_tools=$((1 - GATE_ALLOW_MISSING_TOOLS)) dry_run=${DRY_RUN}"
+
+case "$MODE" in
+  pre-commit)
+    run_precommit_layer
+    ;;
+  pre-push)
+    run_prepush_layer
+    ;;
+  manual)
+    run_manual_exhaustive_layer
+    ;;
+esac
 
 SUMMARY_STATUS="pass"
 if ((FAILED_COUNT > 0)); then
   SUMMARY_STATUS="fail"
 fi
+
+BLOCKING_FAILED_COUNT="$(jq -s '[.[] | select(.status == "fail") | select(.severity_floor == "critical" or .severity_floor == "high" or .severity_floor == "medium")] | length' "$CHECKS_FILE")"
+LOW_FAILED_COUNT="$(jq -s '[.[] | select(.status == "fail" and .severity_floor == "low")] | length' "$CHECKS_FILE")"
 
 TOOL_VERSIONS_JSON="$(jq -n \
   --arg node "$(tool_version node)" \
@@ -222,6 +321,9 @@ TOOL_VERSIONS_JSON="$(jq -n \
   --arg codeql "$(tool_version codeql)" \
   --arg k6 "$(tool_version k6)" \
   --arg osv_scanner "$(tool_version osv-scanner)" \
+  --arg gitleaks "$(tool_version gitleaks)" \
+  --arg syft "$(tool_version syft)" \
+  --arg grype "$(tool_version grype)" \
   '{
     node: $node,
     pnpm: $pnpm,
@@ -232,36 +334,57 @@ TOOL_VERSIONS_JSON="$(jq -n \
     checkov: $checkov,
     codeql: $codeql,
     k6: $k6,
-    osv_scanner: $osv_scanner
+    osv_scanner: $osv_scanner,
+    gitleaks: $gitleaks,
+    syft: $syft,
+    grype: $grype
   }')"
+
+POLICY_JSON="$(policy_json)"
+EXCEPTIONS_SUMMARY_JSON="$(exceptions_summary_json)"
 
 UNSIGNED_REPORT="$(mktemp)"
 jq -s \
-  --arg schema_version "1" \
+  --arg schema_version "2" \
   --arg mode "$MODE" \
+  --arg layer "$LAYER" \
   --arg config_path "${CONFIG_PATH#${ROOT_DIR}/}" \
+  --arg policy_path "${POLICY_PATH#${ROOT_DIR}/}" \
+  --arg exceptions_path "${EXCEPTIONS_PATH#${ROOT_DIR}/}" \
   --arg commit_sha "$COMMIT_SHA" \
   --arg timestamp_utc "$TIMESTAMP_ISO" \
   --argjson timestamp_epoch "$TIMESTAMP_EPOCH" \
   --argjson dry_run "$DRY_RUN" \
   --argjson tool_versions "$TOOL_VERSIONS_JSON" \
+  --argjson policy "$POLICY_JSON" \
+  --argjson exceptions_summary "$EXCEPTIONS_SUMMARY_JSON" \
   --arg status "$SUMMARY_STATUS" \
   --argjson total_checks "$TOTAL_COUNT" \
   --argjson failed_checks "$FAILED_COUNT" \
+  --argjson blocking_failed_checks "$BLOCKING_FAILED_COUNT" \
+  --argjson low_failed_checks "$LOW_FAILED_COUNT" \
   '{
     schema_version: $schema_version,
     mode: $mode,
+    layer: $layer,
     dry_run: ($dry_run == 1),
     config_path: $config_path,
+    policy_path: $policy_path,
+    exceptions_path: $exceptions_path,
     commit_sha: $commit_sha,
     timestamp_utc: $timestamp_utc,
     timestamp_epoch: $timestamp_epoch,
     tool_versions: $tool_versions,
+    policy: $policy,
+    exceptions_summary: $exceptions_summary,
+    residual_risk_notice: "Unknown zero-days cannot be fully detected automatically.",
     checks: .,
     summary: {
       status: $status,
       total_checks: $total_checks,
-      failed_checks: $failed_checks
+      failed_checks: $failed_checks,
+      blocking_failed_checks: $blocking_failed_checks,
+      low_failed_checks: $low_failed_checks
     }
   }' "$CHECKS_FILE" >"$UNSIGNED_REPORT"
 
@@ -271,7 +394,7 @@ rm -f "$UNSIGNED_REPORT"
 echo "[gate] report: $REPORT_PATH"
 
 if [[ "$SUMMARY_STATUS" == "fail" ]]; then
-  echo "[gate] FAIL (${FAILED_COUNT}/${TOTAL_COUNT} checks failed)" >&2
+  echo "[gate] FAIL (${FAILED_COUNT}/${TOTAL_COUNT} checks failed; blocking=${BLOCKING_FAILED_COUNT})" >&2
   exit 1
 fi
 

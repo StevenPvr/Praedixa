@@ -1,0 +1,107 @@
+rules:
+  - id: praedixa-js-eval
+    message: "Use of eval is forbidden in production code."
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern: eval($X)
+    paths:
+      exclude:
+        - "**/__tests__/**"
+        - "**/*.test.*"
+
+  - id: praedixa-js-function-constructor
+    message: "Dynamic Function constructor is forbidden."
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern: new Function($X)
+    paths:
+      exclude:
+        - "**/__tests__/**"
+        - "**/*.test.*"
+
+  - id: praedixa-python-eval-exec
+    message: "Use of eval/exec is forbidden in backend runtime code."
+    severity: ERROR
+    languages: [python]
+    patterns:
+      - pattern-either:
+          - pattern: eval($X)
+          - pattern: exec($X)
+    paths:
+      exclude:
+        - "/app-api/tests/**"
+
+  - id: praedixa-python-unsafe-deserialization
+    message: "Unsafe deserialization primitive detected."
+    severity: ERROR
+    languages: [python]
+    pattern-either:
+      - pattern: pickle.loads($X)
+      - pattern: yaml.load($X, Loader=yaml.Loader)
+      - pattern: yaml.unsafe_load($X)
+
+  - id: praedixa-python-command-injection-shell-true
+    message: "subprocess with shell=True is forbidden (command injection risk)."
+    severity: ERROR
+    languages: [python]
+    patterns:
+      - pattern-either:
+          - pattern: subprocess.run($CMD, ..., shell=True, ...)
+          - pattern: subprocess.Popen($CMD, ..., shell=True, ...)
+          - pattern: subprocess.call($CMD, ..., shell=True, ...)
+    paths:
+      exclude:
+        - "/app-api/tests/**"
+        - "/scripts/**"
+
+  - id: praedixa-python-weak-random
+    message: "Insecure random generator for security-sensitive flow."
+    severity: ERROR
+    languages: [python]
+    pattern-either:
+      - pattern: random.random()
+      - pattern: random.randint($A, $B)
+      - pattern: random.choice($X)
+    paths:
+      include:
+        - "/app-api/app/**"
+
+  - id: praedixa-python-ssrf-metadata
+    message: "Potential SSRF to cloud metadata endpoint."
+    severity: ERROR
+    languages: [python]
+    pattern-regex: 'https?://169\\.254\\.169\\.254'
+
+  - id: praedixa-ts-ssrf-metadata
+    message: "Potential SSRF to cloud metadata endpoint."
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-regex: 'https?://169\\.254\\.169\\.254'
+
+  - id: praedixa-fastapi-admin-route-missing-require-role
+    message: "Admin endpoint appears to miss explicit require_role dependency."
+    severity: ERROR
+    languages: [python]
+    patterns:
+      - pattern-regex: '@router\\.(?:get|post|patch|put|delete)\\([^\\n]*admin[^\\n]*\\)'
+      - pattern-not-regex: 'require_role\('
+    paths:
+      include:
+        - "/app-api/app/routers/**"
+
+  - id: praedixa-security-bypass-todo
+    message: "Security bypass marker detected (TODO/FIXME bypass)."
+    severity: ERROR
+    languages: [regex]
+    pattern-regex: '(?i)(TODO|FIXME).*(bypass|disable|skip).*(auth|security|csrf|tenant|role|rate.?limit)'
+    paths:
+      exclude:
+        - "**/__tests__/**"
+        - "/scripts/semgrep/custom-critical-rules.yml"
+        - "/scripts/check-prod-security-config.py"
+
+  - id: praedixa-debug-in-prod-flag
+    message: "Debug/dev mode must not be enabled in production configuration."
+    severity: ERROR
+    languages: [regex]
+    pattern-regex: "(?i)(ENVIRONMENT\\s*=\\s*['\\\"]production['\\\"]).*(DEBUG\\s*=\\s*true)"

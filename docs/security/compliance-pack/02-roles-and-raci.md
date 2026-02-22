@@ -27,5 +27,6 @@ Legend: R = Responsible, A = Accountable, C = Consulted, I = Informed
 ## Meeting rhythm
 
 - Weekly 30 min: security + delivery review
+- Weekly 30 min: residual risk board (owner/reviewer/expiry checks)
 - Monthly 60 min: risk and access review
 - Quarterly 90 min: management review and policy updates

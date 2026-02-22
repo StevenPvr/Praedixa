@@ -1,0 +1,71 @@
+version: 1
+owasp_control_coverage:
+  - id: OWASP-A01
+    category: Broken Access Control
+    controls:
+      - "RLS + tenant isolation tests"
+      - "Role-based authorization checks"
+      - "Abuse-case review for privilege escalation"
+    evidence:
+      - docs/security/invariants/security-invariants.yaml
+      - docs/security/invariants/abuse-scenarios.yaml
+      - docs/security/compliance-pack/15-abuse-case-review-template.md
+    owner: Security Lead
+
+  - id: OWASP-A03
+    category: Injection
+    controls:
+      - "SAST rules (semgrep custom critical rules)"
+      - "Input validation and parameterized query policy"
+      - "Security gate blocking policy for medium+ findings"
+    evidence:
+      - scripts/semgrep/custom-critical-rules.yml
+      - docs/security/compliance-pack/policies/vulnerability-management-policy.md
+      - scripts/gate.config.yaml
+    owner: Backend Lead
+
+  - id: OWASP-A05
+    category: Security Misconfiguration
+    controls:
+      - "Three-layer local gate"
+      - "Strict exception validation"
+      - "Runbook-driven hardening checks"
+    evidence:
+      - docs/runbooks/local-gate-exhaustive.md
+      - docs/runbooks/security-gate-hardening.md
+      - scripts/validate-security-exceptions.py
+    owner: DevOps Lead
+
+  - id: OWASP-A06
+    category: Vulnerable and Outdated Components
+    controls:
+      - "Supply-chain audit and SBOM"
+      - "Threat intel and CVE triage log"
+      - "Blocking policy for critical/high/medium"
+    evidence:
+      - scripts/run-supply-chain-audit.sh
+      - docs/security/compliance-pack/14-threat-intel-and-cve-log.md
+      - scripts/security-policy.yaml
+    owner: Security Lead
+
+  - id: OWASP-A09
+    category: Security Logging and Monitoring Failures
+    controls:
+      - "Incident response policy with SLA"
+      - "Incident register with timeline fields"
+      - "Evidence index for auditability"
+    evidence:
+      - docs/security/compliance-pack/policies/incident-response-policy.md
+      - docs/security/compliance-pack/09-incident-register-template.md
+      - docs/security/compliance-pack/11-evidence-index-template.md
+    owner: Compliance Owner
+
+  - id: OWASP-A10
+    category: SSRF
+    controls:
+      - "Abuse-scenario coverage for URL and proxy paths"
+      - "Runbook-based rapid containment"
+    evidence:
+      - docs/security/invariants/abuse-scenarios.yaml
+      - docs/runbooks/zero-day-rapid-response.md
+    owner: Backend Lead

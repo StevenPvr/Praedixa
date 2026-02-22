@@ -1,12 +1,30 @@
-version: 1
+version: 2
 policy:
   zero_exceptions: true
-  severity_floor: low
-  full_monorepo_every_commit: true
+  severity_floor: medium
+  full_monorepo_every_commit: false
   allow_missing_tools: false
+  severity:
+    critical: block
+    high: block
+    medium: block
+    low: track
+layers:
+  pre_commit:
+    mode: delta
+    max_duration_seconds: 90
+    script: ./scripts/gate-precommit-delta.sh
+  pre_push:
+    mode: deep
+    script: ./scripts/gate-prepush-deep.sh
+  exhaustive:
+    mode: full
+    script: ./scripts/gate-exhaustive-local.sh --mode manual
 report:
+  schema_version: 2
   max_age_seconds: 21600
   output_dir: .git/gate-reports
+  require_signature: true
 thresholds:
   coverage_percent: 100
   lighthouse:
@@ -18,12 +36,12 @@ thresholds:
     p95_max_ms: 750
     error_rate_max: 0.01
 tools:
+  semgrep: required
+  checkov: required
+  trivy: required
   codeql: required
   osv_scanner: required
-  depcruise: required
-  import_linter: required
-  knip: required
-  deptry: required
-  schemathesis: required
-  lighthouse_ci: required
   k6: required
+  gitleaks: required
+  syft: required
+  grype: required

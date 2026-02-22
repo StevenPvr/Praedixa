@@ -11,6 +11,19 @@
 - Le controle bloquant est desormais le gate local exhaustif avec rapport signe.
 - Les constats historiques sur "GitHub Actions non SHA-pin" ne sont plus des blocages actuels sur le flux principal.
 
+## Addendum pilotage continu (2026-02-22)
+
+Suivre mensuellement les indicateurs ci-dessous pour reduire le risque residuel:
+
+| KPI                          | Cible                   |
+| ---------------------------- | ----------------------- |
+| MTTD incidents P0/P1         | < 30 min                |
+| MTTR incidents P0/P1         | < 24 h                  |
+| Taux faux positifs scanners  | tendance baissiere QoQ  |
+| Taux faux negatifs detectes  | tendance baissiere QoQ  |
+| Backlog `Critical/High`      | 0 hors fenetre SLA      |
+| Abuse-cases couverts/release | 100% features sensibles |
+
 ---
 
 ## 1. Executive Summary

@@ -33,21 +33,27 @@ Politique cible production:
 10. `10-bcp-dr-test-template.md`
 11. `11-evidence-index-template.md`
 12. `12-customer-trust-pack-template.md`
-13. `policies/*.md`
+13. `13-residual-risk-acceptance-log.md`
+14. `14-threat-intel-and-cve-log.md`
+15. `15-abuse-case-review-template.md`
+16. `policies/*.md`
 
 ## Mode d'emploi (cadence minimale)
 
 - Hebdomadaire:
   - mise a jour `08-change-management-log-template.md`
   - revue findings critiques (CI, scanner, incidents)
+  - revue `13-residual-risk-acceptance-log.md` (expirations et revalidations)
 - Mensuelle:
   - revue d'acces et completion `07-access-review-log-template.md`
   - mise a jour registre des risques `03-risk-register-template.md`
+  - revue du threat log `14-threat-intel-and-cve-log.md`
   - ajout des preuves dans `11-evidence-index-template.md`
 - Trimestrielle:
   - test incident + post-mortem (`09`)
   - exercice restore backup (`10`)
   - revue fournisseurs (`06`)
+  - revue abuse-cases sensibles (`15`)
   - revue policies (`policies/*.md`)
 
 ## Definition of Done "audit-ready"
