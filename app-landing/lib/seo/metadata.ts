@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { locales } from "../i18n/config";
 import type { Locale } from "../i18n/config";
+import type { SeoPageContract } from "./types";
 
 const BASE_URL = "https://www.praedixa.com";
 
@@ -20,7 +21,7 @@ export function alternatesFromPaths(
     languages: {
       "fr-FR": absoluteUrl(paths.fr),
       en: absoluteUrl(paths.en),
-      "x-default": absoluteUrl("/"),
+      "x-default": absoluteUrl(paths.fr),
     },
   };
 }
@@ -46,18 +47,28 @@ export function buildLocaleMetadata({
 }: LocaleMetadataInput): Metadata {
   const currentPath = paths[locale];
   const altLocale = locale === "fr" ? "en" : "fr";
+  const alternates = alternatesFromPaths(paths, locale);
+  const robots = noindex
+    ? { index: false, follow: false }
+    : { index: true, follow: true };
+
+  const seoContract: SeoPageContract = {
+    locale,
+    canonicalPath: currentPath,
+    alternates,
+    robots,
+    structuredDataTypes: ["Organization", "WebSite", "SoftwareApplication"],
+  };
 
   return {
     title,
     description,
-    alternates: alternatesFromPaths(paths, locale),
-    robots: noindex
-      ? { index: false, follow: false }
-      : { index: true, follow: true },
+    alternates: seoContract.alternates,
+    robots: seoContract.robots,
     openGraph: {
       title: ogTitle ?? title,
       description: ogDescription ?? description,
-      url: absoluteUrl(currentPath),
+      url: absoluteUrl(seoContract.canonicalPath),
       siteName: "Praedixa",
       locale: locale === "fr" ? "fr_FR" : "en_US",
       alternateLocale: altLocale === "fr" ? "fr_FR" : "en_US",

@@ -23,12 +23,14 @@ const variantStyles: Record<
   }
 > = {
   success: {
-    container: "border border-success-light bg-success-light/30 text-success-text",
+    container:
+      "border border-success-light bg-success-light/30 text-success-text",
     icon: "text-success",
     title: "text-success-text",
   },
   warning: {
-    container: "border border-warning-light bg-warning-light/30 text-warning-text",
+    container:
+      "border border-warning-light bg-warning-light/30 text-warning-text",
     icon: "text-warning",
     title: "text-warning-text",
   },

@@ -58,7 +58,6 @@ export default {
           border: "var(--sidebar-border)",
           accent: "var(--sidebar-accent)",
         },
-
       },
 
       spacing: {

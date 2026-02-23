@@ -48,29 +48,11 @@ function makeRequest(
 }
 
 describe("landing proxy", () => {
-  it("redirects root to FR locale for French geo-country", async () => {
-    const req = makeRequest("/", { "cf-ipcountry": "FR" });
-    const result = await proxy(req);
-
-    expect(result.status).toBe(307);
-    expect(result.headers.get("location")).toBe("http://localhost:3001/fr");
-  });
-
-  it("redirects root to EN locale for non-French geo-country", async () => {
+  it("redirects root to /fr with permanent status", async () => {
     const req = makeRequest("/", { "cf-ipcountry": "US" });
     const result = await proxy(req);
 
-    expect(result.status).toBe(307);
-    expect(result.headers.get("location")).toBe("http://localhost:3001/en");
-  });
-
-  it("falls back to Accept-Language when country is unavailable", async () => {
-    const req = makeRequest("/", {
-      "accept-language": "fr-FR,fr;q=0.9,en;q=0.8",
-    });
-    const result = await proxy(req);
-
-    expect(result.status).toBe(307);
+    expect(result.status).toBe(301);
     expect(result.headers.get("location")).toBe("http://localhost:3001/fr");
   });
 

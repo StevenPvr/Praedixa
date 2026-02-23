@@ -30,6 +30,9 @@ export interface ValidatedData {
   currentStack: string;
   painPoint: string;
   consent: true;
+  acquisitionSource: string;
+  acquisitionSlug: string;
+  acquisitionQuery: string;
 }
 
 type ValidationResult<T> =
@@ -85,6 +88,13 @@ function normaliseOptionalField(
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   if (trimmed.length > maxLength) return null;
+  return trimmed;
+}
+
+function optionalTrackingField(value: unknown, maxLength: number): string {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (trimmed.length === 0 || trimmed.length > maxLength) return "";
   return trimmed;
 }
 
@@ -212,6 +222,10 @@ export function validateRequestBody(
     };
   }
 
+  const acquisitionSource = optionalTrackingField(obj.acquisitionSource, 64);
+  const acquisitionSlug = optionalTrackingField(obj.acquisitionSlug, 120);
+  const acquisitionQuery = optionalTrackingField(obj.acquisitionQuery, 240);
+
   return {
     valid: true,
     data: {
@@ -229,6 +243,9 @@ export function validateRequestBody(
       currentStack,
       painPoint,
       consent: true,
+      acquisitionSource,
+      acquisitionSlug,
+      acquisitionQuery,
     },
   };
 }

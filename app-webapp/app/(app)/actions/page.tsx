@@ -469,12 +469,13 @@ export default function ActionsPage() {
                   </DetailCard>
 
                   <div className="max-h-[65vh] space-y-2 overflow-y-auto pr-1">
-                    {!loading && filteredAlertsTotal > filteredAlerts.length && (
-                      <p className="rounded-lg border border-border bg-surface-sunken px-3 py-2 text-caption text-ink-secondary">
-                        Affichage limite aux {MAX_VISIBLE_ALERTS} alertes les
-                        plus prioritaires.
-                      </p>
-                    )}
+                    {!loading &&
+                      filteredAlertsTotal > filteredAlerts.length && (
+                        <p className="rounded-lg border border-border bg-surface-sunken px-3 py-2 text-caption text-ink-secondary">
+                          Affichage limite aux {MAX_VISIBLE_ALERTS} alertes les
+                          plus prioritaires.
+                        </p>
+                      )}
                     {loading &&
                       Array.from({ length: 5 }).map((_, index) => (
                         <SkeletonCard key={index} />

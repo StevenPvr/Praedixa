@@ -364,7 +364,9 @@ export function Sidebar({
                 }}
                 className="w-full cursor-pointer rounded-lg border border-sidebar-border bg-sidebar px-2.5 py-2 text-caption text-sidebar-text outline-none transition-colors duration-fast hover:bg-sidebar-hover focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
               >
-                <option value="">{siteFallbackLabel ?? t("sidebar.siteFallback")}</option>
+                <option value="">
+                  {siteFallbackLabel ?? t("sidebar.siteFallback")}
+                </option>
                 {siteOptions.map((site) => (
                   <option key={site.id} value={site.id}>
                     {site.label}
@@ -373,7 +375,9 @@ export function Sidebar({
               </select>
             ) : (
               <div className="rounded-lg border border-sidebar-border bg-sidebar px-2.5 py-2 text-caption text-sidebar-text">
-                {selectedSiteLabel ?? siteFallbackLabel ?? t("sidebar.siteFallback")}
+                {selectedSiteLabel ??
+                  siteFallbackLabel ??
+                  t("sidebar.siteFallback")}
               </div>
             )}
           </div>

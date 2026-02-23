@@ -14,6 +14,58 @@ export const MOCK_USER = {
   siteId: "site-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
 } as const;
 
+async function installShellApiDefaults(
+  page: Page,
+  siteId: string | null,
+): Promise<void> {
+  await page.route("**/api/v1/sites*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: [
+          {
+            id: siteId ?? MOCK_USER.siteId,
+            organizationId: MOCK_USER.orgId,
+            code: "LYS-01",
+            name: "Lyon-Sat",
+            timezone: "Europe/Paris",
+            active: true,
+            createdAt: "2026-02-07T12:00:00Z",
+            updatedAt: "2026-02-07T12:00:00Z",
+          },
+        ],
+        timestamp: "2026-02-07T12:00:00Z",
+      }),
+    }),
+  );
+
+  await page.route("**/api/v1/conversations/unread-count*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: { unreadCount: 0 },
+        timestamp: "2026-02-07T12:00:00Z",
+      }),
+    }),
+  );
+
+  await page.route("**/api/v1/live/coverage-alerts*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: [],
+        timestamp: "2026-02-07T12:00:00Z",
+      }),
+    }),
+  );
+}
+
 type WebappRole =
   | "org_admin"
   | "manager"
@@ -51,4 +103,6 @@ export async function setupAuth(
     organizationId: options.organizationId ?? MOCK_USER.orgId,
     siteId,
   });
+
+  await installShellApiDefaults(page, siteId);
 }

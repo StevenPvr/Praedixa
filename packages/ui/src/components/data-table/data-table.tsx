@@ -7,10 +7,7 @@ import { DataTablePaginationBar } from "./data-table-pagination";
 
 const VIRTUALISE_THRESHOLD = 100;
 
-function _normalizePositiveInt(
-  value: number,
-  fallback: number,
-): number {
+function _normalizePositiveInt(value: number, fallback: number): number {
   if (!Number.isFinite(value)) return fallback;
   const normalized = Math.floor(value);
   return normalized > 0 ? normalized : fallback;

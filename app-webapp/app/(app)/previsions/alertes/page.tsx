@@ -89,40 +89,32 @@ export default function PrevisionsAlertesPage() {
   const [status, setStatus] = useState("open");
   const [page, setPage] = useState(1);
 
-  const baseUrl = useMemo(
-    () => {
-      const params = new URLSearchParams();
-      if (status) params.set("status", status);
-      if (severity) params.set("severity", severity);
-      const query = params.toString();
-      return appendSiteParam(
-        query
-          ? `/api/v1/live/coverage-alerts?${query}`
-          : "/api/v1/live/coverage-alerts",
-      );
-    },
-    [appendSiteParam, status, severity],
-  );
+  const baseUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    if (status) params.set("status", status);
+    if (severity) params.set("severity", severity);
+    const query = params.toString();
+    return appendSiteParam(
+      query
+        ? `/api/v1/live/coverage-alerts?${query}`
+        : "/api/v1/live/coverage-alerts",
+    );
+  }, [appendSiteParam, status, severity]);
 
   useEffect(() => {
     setPage(1);
   }, [status, severity]);
 
   const { data, total, loading, error, refetch } =
-    useApiGetPaginated<CoverageAlert>(
-      baseUrl,
-      page,
-      PAGE_SIZE,
-      { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
-    );
+    useApiGetPaginated<CoverageAlert>(baseUrl, page, PAGE_SIZE, {
+      pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
+    });
 
   const alerts = data ?? [];
   const criticalCount = alerts.filter(
     (alert) => alert.severity === "critical",
   ).length;
-  const highCount = alerts.filter(
-    (alert) => alert.severity === "high",
-  ).length;
+  const highCount = alerts.filter((alert) => alert.severity === "high").length;
 
   return (
     <PageTransition>

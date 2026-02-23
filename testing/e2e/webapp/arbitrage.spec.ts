@@ -3,6 +3,7 @@ import { setupAuth } from "./fixtures/auth";
 import {
   mockCoverageAlerts,
   mockDecisionQueue,
+  mockDecisionWorkspace,
   mockScenarios,
   mockScenariosError,
   mockOperationalDecisions,
@@ -13,6 +14,7 @@ test.describe("Actions page (ex-Arbitrage)", () => {
     await setupAuth(page);
     await mockCoverageAlerts(page);
     await mockDecisionQueue(page);
+    await mockDecisionWorkspace(page);
     await mockScenarios(page);
     await mockOperationalDecisions(page);
   });
@@ -75,7 +77,7 @@ test.describe("Actions page (ex-Arbitrage)", () => {
     await mockDecisionQueue(page);
     await mockScenariosError(page);
     await mockOperationalDecisions(page);
-    await page.route("**/api/v1/decision-workspace/*", (route) =>
+    await page.route("**/api/v1/**decision-workspace/*", (route) =>
       route.fulfill({
         status: 500,
         contentType: "application/json",

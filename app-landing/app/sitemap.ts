@@ -1,7 +1,12 @@
 import type { MetadataRoute } from "next";
 import { locales, localizedSlugs } from "../lib/i18n/config";
+import { getSerpResourceSlugs } from "../lib/content/serp-resources-fr";
 
 const BASE_URL = "https://www.praedixa.com";
+const DEFAULT_LAST_MODIFIED = "2026-02-23T00:00:00.000Z";
+const SITE_LAST_MODIFIED = new Date(
+  process.env.SEO_SITEMAP_LASTMOD ?? DEFAULT_LAST_MODIFIED,
+);
 
 const CONTENT_KEYS = [
   "about",
@@ -35,14 +40,14 @@ function localizedEntry(
 
   return {
     url: `${BASE_URL}${currentPath}`,
-    lastModified: new Date(),
+    lastModified: SITE_LAST_MODIFIED,
     changeFrequency,
     priority,
     alternates: {
       languages: {
         "fr-FR": `${BASE_URL}${frPath}`,
         en: `${BASE_URL}${enPath}`,
-        "x-default": `${BASE_URL}/`,
+        "x-default": `${BASE_URL}${frPath}`,
       },
     },
   };
@@ -50,20 +55,7 @@ function localizedEntry(
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = [];
-
-  entries.push({
-    url: `${BASE_URL}/`,
-    lastModified: new Date(),
-    changeFrequency: "monthly",
-    priority: 0.8,
-    alternates: {
-      languages: {
-        "x-default": `${BASE_URL}/`,
-        "fr-FR": `${BASE_URL}/fr`,
-        en: `${BASE_URL}/en`,
-      },
-    },
-  });
+  const serpSlugs = getSerpResourceSlugs();
 
   for (const locale of locales) {
     entries.push(localizedEntry(locale, "/fr", "/en", 1, "weekly"));
@@ -121,6 +113,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
         ),
       );
     }
+  }
+
+  for (const slug of serpSlugs) {
+    const url = `${BASE_URL}/fr/ressources/${slug}`;
+    entries.push({
+      url,
+      lastModified: SITE_LAST_MODIFIED,
+      changeFrequency: "weekly",
+      priority: 0.8,
+      alternates: {
+        languages: {
+          "fr-FR": url,
+          "x-default": url,
+        },
+      },
+    });
   }
 
   return entries;

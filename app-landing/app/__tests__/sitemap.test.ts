@@ -9,11 +9,11 @@ describe("sitemap()", () => {
     expect(result.length).toBeGreaterThan(0);
   });
 
-  it("should include the homepage (locale-prefixed)", () => {
+  it("should include localized homepage URLs and exclude root redirect URL", () => {
     const urls = result.map((entry) => entry.url);
-    expect(urls).toContain("https://www.praedixa.com/");
     expect(urls).toContain("https://www.praedixa.com/fr");
     expect(urls).toContain("https://www.praedixa.com/en");
+    expect(urls).not.toContain("https://www.praedixa.com/");
   });
 
   it("should include pilot page (locale-prefixed)", () => {
@@ -45,10 +45,37 @@ describe("sitemap()", () => {
     );
   });
 
+  it("should include SERP campaign pages under /fr/ressources", () => {
+    const urls = result.map((entry) => entry.url);
+    expect(urls).toContain(
+      "https://www.praedixa.com/fr/ressources/cout-sous-couverture",
+    );
+    expect(urls).toContain(
+      "https://www.praedixa.com/fr/ressources/wfm-logistique",
+    );
+    expect(urls).toContain(
+      "https://www.praedixa.com/fr/ressources/taux-de-service-logistique",
+    );
+  });
+
   it("should have lastModified dates on every entry", () => {
     for (const entry of result) {
       expect(entry.lastModified).toBeInstanceOf(Date);
     }
+  });
+
+  it("should declare x-default on the French canonical URL", () => {
+    const frenchHome = result.find(
+      (entry) => entry.url === "https://www.praedixa.com/fr",
+    );
+    expect(frenchHome?.alternates?.languages?.["x-default"]).toBe(
+      "https://www.praedixa.com/fr",
+    );
+  });
+
+  it("should not contain duplicate URLs", () => {
+    const urls = result.map((entry) => entry.url);
+    expect(new Set(urls).size).toBe(urls.length);
   });
 
   it("should set homepage priority to 1", () => {

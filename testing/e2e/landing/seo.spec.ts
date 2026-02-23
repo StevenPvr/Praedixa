@@ -1,6 +1,13 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Landing SEO", () => {
+  test("root URL permanently redirects to /fr", async ({ request }) => {
+    const response = await request.get("/", { maxRedirects: 0 });
+    expect(response).not.toBeNull();
+    expect(response.status()).toBe(301);
+    expect(response.headers()["location"]).toContain("/fr");
+  });
+
   test("page has a meta title", async ({ page }) => {
     await page.goto("/fr");
     const title = await page.title();
@@ -59,16 +66,81 @@ test.describe("Landing SEO", () => {
   test("page has canonical URL", async ({ page }) => {
     await page.goto("/fr");
     const canonical = page.locator('link[rel="canonical"]');
-    const count = await canonical.count();
-    // Canonical may be set via Next.js metadata
-    if (count > 0) {
-      await expect(canonical).toHaveAttribute("href", /.+/);
-    }
+    await expect(canonical).toHaveAttribute(
+      "href",
+      "https://www.praedixa.com/fr",
+    );
+
+    const hreflangFr = page.locator('link[rel="alternate"][hreflang="fr-FR"]');
+    await expect(hreflangFr).toHaveAttribute(
+      "href",
+      "https://www.praedixa.com/fr",
+    );
+
+    const hreflangEn = page.locator('link[rel="alternate"][hreflang="en"]');
+    await expect(hreflangEn).toHaveAttribute(
+      "href",
+      "https://www.praedixa.com/en",
+    );
+
+    const hreflangDefault = page.locator(
+      'link[rel="alternate"][hreflang="x-default"]',
+    );
+    await expect(hreflangDefault).toHaveAttribute(
+      "href",
+      "https://www.praedixa.com/fr",
+    );
   });
 
-  test("page has proper lang attribute", async ({ page }) => {
+  test("FR page has proper lang attribute", async ({ page }) => {
     await page.goto("/fr");
     const html = page.locator("html");
     await expect(html).toHaveAttribute("lang", "fr");
+  });
+
+  test("EN page has proper lang attribute", async ({ page }) => {
+    await page.goto("/en");
+    const html = page.locator("html");
+    await expect(html).toHaveAttribute("lang", "en");
+  });
+
+  test("SERP resource page exposes canonical and breadcrumb JSON-LD", async ({
+    page,
+  }) => {
+    await page.goto("/fr/ressources/cout-sous-couverture");
+    const canonical = page.locator('link[rel="canonical"]');
+    await expect(canonical).toHaveAttribute(
+      "href",
+      "https://www.praedixa.com/fr/ressources/cout-sous-couverture",
+    );
+
+    const breadcrumbScript = page.locator(
+      'script[type="application/ld+json"]#praedixa-breadcrumb-json-ld-cout-sous-couverture',
+    );
+    await expect(breadcrumbScript).toBeAttached();
+  });
+
+  test("SERP resource page exposes tracked pilot CTA and downloadable asset", async ({
+    page,
+    request,
+  }) => {
+    await page.goto("/fr/ressources/cout-sous-couverture");
+
+    const pilotCta = page.getByRole("link", {
+      name: /Demander un pilote prevision effectifs/i,
+    });
+    const pilotHref = await pilotCta.getAttribute("href");
+    expect(pilotHref).toContain("source=seo_resource");
+    expect(pilotHref).toContain("seo_slug=cout-sous-couverture");
+
+    const assetLink = page.getByRole("link", { name: /Telecharger asset/i });
+    const assetHref = await assetLink.getAttribute("href");
+    expect(assetHref).toBe("/fr/ressources/cout-sous-couverture/asset");
+
+    const assetResponse = await request.get(assetHref ?? "");
+    expect(assetResponse.status()).toBe(200);
+    expect(assetResponse.headers()["content-disposition"]).toContain(
+      "attachment",
+    );
   });
 });

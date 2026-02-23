@@ -25,6 +25,12 @@ vi.mock("next/font/google", () => ({
   }),
 }));
 
+const headersMock = vi.fn(() => new Headers());
+
+vi.mock("next/headers", () => ({
+  headers: () => headersMock(),
+}));
+
 vi.mock("../../components/seo/JsonLd", () => ({
   JsonLd: () => <script type="application/ld+json" />,
 }));
@@ -32,12 +38,11 @@ vi.mock("../../components/seo/JsonLd", () => ({
 import RootLayout, { metadata } from "../layout";
 
 describe("Landing RootLayout", () => {
-  it("renders children", () => {
-    const { container } = render(
-      <RootLayout>
-        <div data-testid="child">Landing content</div>
-      </RootLayout>,
-    );
+  it("renders children", async () => {
+    const node = await RootLayout({
+      children: <div data-testid="child">Landing content</div>,
+    });
+    const { container } = render(node);
     expect(screen.getByTestId("child")).toBeInTheDocument();
     expect(container.innerHTML).toContain("Landing content");
   });
@@ -48,5 +53,13 @@ describe("Landing RootLayout", () => {
 
   it("has robots configuration allowing indexing", () => {
     expect(metadata.robots).toEqual({ index: true, follow: true });
+  });
+
+  it("uses locale header to set html lang", async () => {
+    headersMock.mockReturnValueOnce(new Headers({ "x-request-locale": "en" }));
+    const node = await RootLayout({
+      children: <div data-testid="child">Landing content</div>,
+    });
+    expect(node.props.lang).toBe("en");
   });
 });

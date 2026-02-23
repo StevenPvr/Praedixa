@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Check } from "@phosphor-icons/react/dist/ssr";
 import { PraedixaLogo } from "../logo/PraedixaLogo";
 import { localizedSlugs } from "../../lib/i18n/config";
 import type { Locale } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import { EVENTS, trackEvent } from "../../lib/analytics/events";
 
 interface FormData {
   companyName: string;
@@ -42,6 +44,22 @@ const INITIAL_FORM_DATA: FormData = {
   website: "",
   consent: false,
 };
+
+interface AcquisitionContext {
+  acquisitionSource: string;
+  acquisitionSlug: string;
+  acquisitionQuery: string;
+}
+
+function normaliseTrackingParam(
+  value: string | null,
+  maxLength: number,
+): string {
+  if (!value) return "";
+  const trimmed = value.trim();
+  if (trimmed.length === 0 || trimmed.length > maxLength) return "";
+  return trimmed;
+}
 
 function ArrowRightIcon({ className }: { className?: string }) {
   return <ArrowUpRight className={className} size={16} weight="bold" />;
@@ -84,6 +102,7 @@ export function PilotApplicationPageClient({
   dict: Dictionary;
 }) {
   const homeHref = `/${locale}`;
+  const searchParams = useSearchParams();
   const protocolHref = `/${locale}/pilot-protocol`;
   const cguHref = `/${locale}/${localizedSlugs.terms[locale]}`;
   const privacyHref = `/${locale}/${localizedSlugs.privacy[locale]}`;
@@ -118,6 +137,31 @@ export function PilotApplicationPageClient({
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const acquisitionContext = useMemo<AcquisitionContext>(() => {
+    return {
+      acquisitionSource: normaliseTrackingParam(searchParams.get("source"), 64),
+      acquisitionSlug: normaliseTrackingParam(
+        searchParams.get("seo_slug"),
+        120,
+      ),
+      acquisitionQuery: normaliseTrackingParam(
+        searchParams.get("seo_query"),
+        240,
+      ),
+    };
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (acquisitionContext.acquisitionSource !== "seo_resource") return;
+
+    trackEvent(EVENTS.SEO_PILOT_PAGE_VIEW, {
+      locale,
+      source: acquisitionContext.acquisitionSource,
+      seo_slug: acquisitionContext.acquisitionSlug,
+      seo_query: acquisitionContext.acquisitionQuery,
+    });
+  }, [acquisitionContext, locale]);
+
   const isComplete = useMemo(() => {
     return (
       formData.companyName.trim().length > 1 &&
@@ -141,11 +185,24 @@ export function PilotApplicationPageClient({
     setIsSubmitting(true);
     setError(null);
 
+    const eventPayload = {
+      locale,
+      source: acquisitionContext.acquisitionSource || "direct",
+      seo_slug: acquisitionContext.acquisitionSlug,
+      seo_query: acquisitionContext.acquisitionQuery,
+    };
+
+    trackEvent(EVENTS.FORM_SUBMIT, eventPayload);
+    trackEvent(EVENTS.SEO_PILOT_FORM_SUBMIT, eventPayload);
+
     try {
       const response = await fetch("/api/pilot-application", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          ...acquisitionContext,
+        }),
       });
 
       if (!response.ok) {
@@ -156,6 +213,7 @@ export function PilotApplicationPageClient({
       }
 
       setIsSuccess(true);
+      trackEvent(EVENTS.SEO_PILOT_FORM_SUCCESS, eventPayload);
     } catch (submitError) {
       const message =
         submitError instanceof Error ? submitError.message : form.error;

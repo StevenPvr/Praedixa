@@ -50,4 +50,18 @@ describe("JsonLd", () => {
       "SearchAction",
     );
   });
+
+  it("does not include FAQPage at layout level", async () => {
+    const node = await JsonLd({ locale: "fr" });
+    const { container } = render(node);
+    const script = container.querySelector(
+      'script[type="application/ld+json"]#praedixa-json-ld',
+    );
+
+    const parsed = parseJsonLd(script?.textContent ?? "{}");
+    const graph = parsed["@graph"] as Array<Record<string, unknown>>;
+    const faq = graph.find((item) => item["@type"] === "FAQPage");
+
+    expect(faq).toBeUndefined();
+  });
 });

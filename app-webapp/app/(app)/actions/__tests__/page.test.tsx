@@ -321,7 +321,9 @@ function setupUseApiGet({
       };
     }
 
-    if (url?.startsWith("/api/v1/live/coverage-alerts?status=open&page_size=200")) {
+    if (
+      url?.startsWith("/api/v1/live/coverage-alerts?status=open&page_size=200")
+    ) {
       return {
         data: liveAlerts,
         loading: false,

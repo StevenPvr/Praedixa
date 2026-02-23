@@ -180,3 +180,19 @@ export const cardHover = {
   y: -3,
   transition: { type: "spring" as const, stiffness: 200, damping: 24 },
 };
+
+/** Hero headline: cinematic blur-reveal with subtle scale — more impact than standard reveal */
+export const heroHeadlineReveal: Variants = {
+  hidden: { opacity: 0, y: 32, filter: "blur(14px)", scale: 0.98 },
+  visible: (delay: number) => ({
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    scale: 1,
+    transition: {
+      duration: 0.9,
+      delay,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  }),
+};

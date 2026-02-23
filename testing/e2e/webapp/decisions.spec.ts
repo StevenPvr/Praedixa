@@ -3,6 +3,7 @@ import { setupAuth } from "./fixtures/auth";
 import {
   mockCoverageAlerts,
   mockDecisionQueue,
+  mockDecisionWorkspace,
   mockScenarios,
   mockOperationalDecisions,
 } from "./fixtures/api-mocks";
@@ -12,6 +13,7 @@ test.describe("Actions decisions flow", () => {
     await setupAuth(page);
     await mockCoverageAlerts(page);
     await mockDecisionQueue(page);
+    await mockDecisionWorkspace(page);
     await mockScenarios(page);
     await mockOperationalDecisions(page);
   });

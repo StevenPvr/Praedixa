@@ -80,7 +80,9 @@ test.describe("Login page error handling", () => {
     );
 
     await page.goto("/login?next=/actions");
-    await page.getByRole("button", { name: "Continuer vers la connexion" }).click();
+    await page
+      .getByRole("button", { name: "Continuer vers la connexion" })
+      .click();
 
     await expect(page).toHaveURL(/\/auth\/login\?next=%2Factions/);
   });
@@ -95,7 +97,9 @@ test.describe("Login page error handling", () => {
     );
 
     await page.goto("/login?next=//malicious.example");
-    await page.getByRole("button", { name: "Continuer vers la connexion" }).click();
+    await page
+      .getByRole("button", { name: "Continuer vers la connexion" })
+      .click();
 
     await expect(page).toHaveURL(/\/auth\/login\?next=%2Fdashboard/);
   });

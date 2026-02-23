@@ -24,11 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="fr"
-      className={manrope.variable}
-      suppressHydrationWarning
-    >
+    <html lang="fr" className={manrope.variable} suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ThemeProvider>
           <a href="#main-content" className="skip-link">

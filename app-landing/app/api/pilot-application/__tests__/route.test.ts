@@ -538,6 +538,23 @@ describe("POST /api/pilot-application", () => {
         "Nous confirmons la bonne réception de votre demande",
       );
     });
+
+    it("should include acquisition context in the admin email when present", async () => {
+      await POST(
+        makeRequest(
+          validBody({
+            acquisitionSource: "seo_resource",
+            acquisitionSlug: "cout-sous-couverture",
+            acquisitionQuery: "cout de la sous-couverture",
+          }),
+        ),
+      );
+
+      const adminCall = mockEmailsSend.mock.calls[0][0];
+      expect(adminCall.html).toContain("Attribution");
+      expect(adminCall.html).toContain("seo_resource");
+      expect(adminCall.html).toContain("cout-sous-couverture");
+    });
   });
 
   // =========================================================================

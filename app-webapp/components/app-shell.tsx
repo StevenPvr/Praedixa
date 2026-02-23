@@ -383,9 +383,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
               marginLeft: isDesktop ? `${sidebarWidth}px` : "0",
             }}
           >
-            <header
-              className="sticky top-0 z-20 flex h-topbar items-center justify-between border-b border-border bg-white px-page-x"
-            >
+            <header className="sticky top-0 z-20 flex h-topbar items-center justify-between border-b border-border bg-white px-page-x">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() =>

@@ -269,13 +269,6 @@ export function useUxPreferences() {
       setSidebarWidth,
       setThemeMode,
     }),
-    [
-      state,
-      loaded,
-      error,
-      setSidebarCollapsed,
-      setSidebarWidth,
-      setThemeMode,
-    ],
+    [state, loaded, error, setSidebarCollapsed, setSidebarWidth, setThemeMode],
   );
 }

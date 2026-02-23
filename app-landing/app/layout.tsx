@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
+import { headers } from "next/headers";
 import "@praedixa/ui/brand-tokens.css";
 import "./globals.css";
+import { defaultLocale, isValidLocale } from "../lib/i18n/config";
 
 const outfit = Outfit({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-sans",
-  display: "swap",
+  display: "optional",
 });
 
 export const metadata: Metadata = {
@@ -27,13 +29,28 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+async function resolveHtmlLang(): Promise<string> {
+  const requestHeaders = await headers();
+  const candidate = requestHeaders.get("x-request-locale");
+  if (candidate && isValidLocale(candidate)) {
+    return candidate;
+  }
+  return defaultLocale;
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const htmlLang = await resolveHtmlLang();
+
   return (
-    <html lang="fr" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html
+      lang={htmlLang}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <body className={outfit.variable}>
         <a href="#main-content" className="skip-link">
           Aller au contenu principal

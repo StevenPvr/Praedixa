@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { detectRequestLocale } from "../request-locale";
+import {
+  detectRequestLocale,
+  resolveLocaleFromPathname,
+} from "../request-locale";
 
 describe("detectRequestLocale", () => {
   it("returns fr for French geo-country", () => {
@@ -22,5 +25,15 @@ describe("detectRequestLocale", () => {
   it("falls back to default locale when hints are missing", () => {
     const locale = detectRequestLocale(new Headers());
     expect(locale).toBe("fr");
+  });
+
+  it("resolves locale from pathname", () => {
+    expect(resolveLocaleFromPathname("/fr")).toBe("fr");
+    expect(resolveLocaleFromPathname("/en/resources")).toBe("en");
+  });
+
+  it("falls back to default locale for non-localized pathname", () => {
+    expect(resolveLocaleFromPathname("/")).toBe("fr");
+    expect(resolveLocaleFromPathname("/contact")).toBe("fr");
   });
 });

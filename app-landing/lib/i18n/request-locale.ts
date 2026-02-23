@@ -1,4 +1,4 @@
-import { defaultLocale, type Locale } from "./config";
+import { defaultLocale, isValidLocale, type Locale } from "./config";
 
 type HeaderLookup = Pick<Headers, "get">;
 
@@ -85,5 +85,13 @@ export function detectRequestLocale(headers: HeaderLookup): Locale {
   if (preferredLanguage?.startsWith("fr")) return "fr";
   if (preferredLanguage?.startsWith("en")) return "en";
 
+  return defaultLocale;
+}
+
+export function resolveLocaleFromPathname(pathname: string): Locale {
+  const [, localeCandidate] = pathname.split("/");
+  if (localeCandidate && isValidLocale(localeCandidate)) {
+    return localeCandidate;
+  }
   return defaultLocale;
 }

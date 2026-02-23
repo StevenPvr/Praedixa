@@ -19,7 +19,9 @@ export default function AuthLayout({
           {/* Logo */}
           <div className="flex items-center gap-3">
             <PraedixaLogo size={34} className="text-white" color="white" />
-            <span className="font-sans font-bold text-2xl tracking-tight">Praedixa</span>
+            <span className="font-sans font-bold text-2xl tracking-tight">
+              Praedixa
+            </span>
           </div>
 
           {/* Hero content */}
@@ -79,7 +81,9 @@ export default function AuthLayout({
           {/* Mobile logo */}
           <div className="flex flex-col items-center gap-3 lg:hidden">
             <PraedixaLogo size={44} />
-            <h1 className="font-sans font-bold text-heading-lg text-ink">Praedixa</h1>
+            <h1 className="font-sans font-bold text-heading-lg text-ink">
+              Praedixa
+            </h1>
           </div>
           {children}
         </div>

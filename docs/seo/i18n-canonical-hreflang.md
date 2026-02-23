@@ -11,12 +11,13 @@ Every localized page pair must expose:
 
 - `fr-FR` -> FR URL
 - `en` -> EN URL
-- `x-default` -> `/fr/...` URL
+- `x-default` -> `/fr/...` URL (French canonical variant)
 
 ## Routing rules
 
 - `/` redirects to `/fr`.
-- Non-localized legacy routes return `410`.
+- Known non-localized legacy routes redirect `301` to localized canonical routes.
+- Unknown non-localized routes are non-canonical and must not be internally linked.
 - Locale mismatch slug routes redirect to locale-correct slug.
 
 ## Verification

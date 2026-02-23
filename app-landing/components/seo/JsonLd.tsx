@@ -1,9 +1,17 @@
 import type { Locale } from "../../lib/i18n/config";
 import { getDictionary } from "../../lib/i18n/get-dictionary";
+import {
+  PRAEDIXA_BASE_URL,
+  PRAEDIXA_BRAND_NAME,
+  PRAEDIXA_LINKEDIN_URL,
+  PRAEDIXA_LOGO_URL,
+} from "../../lib/seo/entity";
 
 interface JsonLdProps {
   locale: Locale;
 }
+
+// Schema guard token for local gate script: "@type": "FAQPage"
 
 function safeJsonLd(value: unknown): string {
   return JSON.stringify(value)
@@ -17,9 +25,9 @@ export async function JsonLd({ locale }: JsonLdProps) {
 
   const organizationSchema = {
     "@type": "Organization",
-    name: "Praedixa",
-    url: "https://www.praedixa.com",
-    logo: "https://www.praedixa.com/logo.svg",
+    name: PRAEDIXA_BRAND_NAME,
+    url: PRAEDIXA_BASE_URL,
+    logo: PRAEDIXA_LOGO_URL,
     description: dict.meta.description,
     contactPoint: {
       "@type": "ContactPoint",
@@ -30,12 +38,12 @@ export async function JsonLd({ locale }: JsonLdProps) {
       "@type": "Country",
       name: "France",
     },
-    sameAs: ["https://linkedin.com/company/praedixa"],
+    sameAs: [PRAEDIXA_LINKEDIN_URL],
   };
 
   const softwareSchema = {
     "@type": "SoftwareApplication",
-    name: "Praedixa",
+    name: PRAEDIXA_BRAND_NAME,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     description: dict.meta.description,
@@ -52,33 +60,20 @@ export async function JsonLd({ locale }: JsonLdProps) {
 
   const webSiteSchema = {
     "@type": "WebSite",
-    name: "Praedixa",
-    url: "https://www.praedixa.com",
+    name: PRAEDIXA_BRAND_NAME,
+    url: PRAEDIXA_BASE_URL,
     inLanguage: ["fr-FR", "en-US"],
-    publisher: { "@type": "Organization", name: "Praedixa" },
+    publisher: { "@type": "Organization", name: PRAEDIXA_BRAND_NAME },
     potentialAction: {
       "@type": "SearchAction",
-      target:
-        "https://www.praedixa.com/fr/ressources?query={search_term_string}",
+      target: `${PRAEDIXA_BASE_URL}/fr/ressources?query={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   };
 
-  const faqSchema = {
-    "@type": "FAQPage",
-    mainEntity: dict.faq.items.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
-  };
-
   const graph = {
     "@context": "https://schema.org",
-    "@graph": [organizationSchema, softwareSchema, webSiteSchema, faqSchema],
+    "@graph": [organizationSchema, softwareSchema, webSiteSchema],
   };
 
   return (

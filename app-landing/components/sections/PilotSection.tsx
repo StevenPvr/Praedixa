@@ -18,6 +18,7 @@ import { MagneticButton } from "../cinema/MagneticButton";
 import type { Dictionary } from "../../lib/i18n/types";
 import type { Locale } from "../../lib/i18n/config";
 import { localizedSlugs } from "../../lib/i18n/config";
+import { EVENTS, trackEvent } from "../../lib/analytics/events";
 
 interface PilotSectionProps {
   dict: Dictionary;
@@ -68,6 +69,13 @@ function ListGroup({
 export function PilotSection({ dict, locale }: PilotSectionProps) {
   const { pilot } = dict;
   const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
+
+  function handlePilotClick() {
+    trackEvent(EVENTS.CTA_CLICK_PILOT_SECTION, {
+      source: "landing_pilot_section",
+      locale,
+    });
+  }
 
   return (
     <section id="pilot" className="section-dark section-spacing">
@@ -170,7 +178,12 @@ export function PilotSection({ dict, locale }: PilotSectionProps) {
           viewport={viewportOnce}
           className="mt-8 flex flex-wrap items-center gap-3"
         >
-          <MagneticButton as="a" href={pilotHref} className="btn-primary">
+          <MagneticButton
+            as="a"
+            href={pilotHref}
+            className="btn-primary"
+            onClick={handlePilotClick}
+          >
             <Sparkle size={15} weight="fill" />
             {pilot.ctaPrimary}
             <ArrowUpRight size={16} weight="bold" />

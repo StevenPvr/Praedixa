@@ -61,4 +61,11 @@ export const EVENTS = {
 
   // Assets
   PDF_DOWNLOAD: "pdf_download",
+
+  // SEO resources funnel
+  SEO_RESOURCE_ASSET_DOWNLOAD: "seo_resource_asset_download",
+  SEO_RESOURCE_PILOT_CTA_CLICK: "seo_resource_pilot_cta_click",
+  SEO_PILOT_PAGE_VIEW: "seo_pilot_page_view",
+  SEO_PILOT_FORM_SUBMIT: "seo_pilot_form_submit",
+  SEO_PILOT_FORM_SUCCESS: "seo_pilot_form_success",
 } as const;

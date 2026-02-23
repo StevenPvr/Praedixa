@@ -11,6 +11,7 @@ import {
   Sparkle,
   WaveSine,
 } from "@phosphor-icons/react/dist/ssr";
+import { SpotlightCard } from "../cinema/SpotlightCard";
 
 const loopTransition = {
   duration: 2.4,
@@ -71,7 +72,7 @@ function HeroSignalBoardBase() {
 
   return (
     <div className="grid gap-3 md:grid-cols-[1.25fr_1fr]">
-      <div className="panel-glass rounded-3xl p-5">
+      <SpotlightCard className="panel-glass rounded-3xl p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ink-muted)]">
           Intelligent list
         </p>
@@ -99,9 +100,9 @@ function HeroSignalBoardBase() {
             </AnimatePresence>
           </div>
         </LayoutGroup>
-      </div>
+      </SpotlightCard>
 
-      <div className="panel-glass rounded-3xl p-5">
+      <SpotlightCard className="panel-glass rounded-3xl p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ink-muted)]">
           Command input
         </p>
@@ -119,9 +120,9 @@ function HeroSignalBoardBase() {
             />
           </p>
         </div>
-      </div>
+      </SpotlightCard>
 
-      <div className="panel-glass rounded-3xl p-5 md:col-span-2">
+      <SpotlightCard className="panel-glass rounded-3xl p-5 md:col-span-2">
         <div className="flex items-center justify-between">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ink-muted)]">
             Live status
@@ -174,7 +175,7 @@ function HeroSignalBoardBase() {
             </div>
           </div>
         </div>
-      </div>
+      </SpotlightCard>
     </div>
   );
 }

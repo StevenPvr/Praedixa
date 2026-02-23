@@ -6,6 +6,7 @@ import { ArrowUpRight, Sparkle } from "@phosphor-icons/react/dist/ssr";
 import type { Dictionary } from "../../lib/i18n/types";
 import type { Locale } from "../../lib/i18n/config";
 import { localizedSlugs } from "../../lib/i18n/config";
+import { EVENTS, trackEvent } from "../../lib/analytics/events";
 
 interface StickyMobileCTAProps {
   dict: Dictionary;
@@ -15,6 +16,13 @@ interface StickyMobileCTAProps {
 export function StickyMobileCTA({ dict, locale }: StickyMobileCTAProps) {
   const [isVisible, setIsVisible] = useState(false);
   const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
+
+  function handleClick() {
+    trackEvent(EVENTS.CTA_CLICK_STICKY_MOBILE, {
+      source: "landing_sticky_mobile",
+      locale,
+    });
+  }
 
   useEffect(() => {
     const heroEl = document.getElementById("hero");
@@ -42,6 +50,7 @@ export function StickyMobileCTA({ dict, locale }: StickyMobileCTAProps) {
         href={pilotHref}
         className="btn-primary w-full"
         tabIndex={isVisible ? 0 : -1}
+        onClick={handleClick}
       >
         <Sparkle size={15} weight="fill" />
         {dict.stickyCta.text}

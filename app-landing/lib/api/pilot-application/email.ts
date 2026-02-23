@@ -37,10 +37,22 @@ function buildAdminHtml(data: {
   timeline: string;
   currentStack: string;
   painPoint: string;
+  acquisitionSource: string;
+  acquisitionSlug: string;
+  acquisitionQuery: string;
   ip: string;
 }): string {
   const na = "Non renseigné";
   const naRole = "Non renseignée";
+  const attribution = data.acquisitionSource
+    ? [
+        data.acquisitionSource,
+        data.acquisitionSlug ? `slug: ${data.acquisitionSlug}` : "",
+        data.acquisitionQuery ? `query: ${data.acquisitionQuery}` : "",
+      ]
+        .filter(Boolean)
+        .join(" | ")
+    : na;
   return `
     <h2>Nouvelle candidature entreprise pilote</h2>
     <table style="border-collapse: collapse; width: 100%; max-width: 500px;">
@@ -55,6 +67,7 @@ function buildAdminHtml(data: {
       <tr><td style="padding: 10px; font-weight: bold;">Horizon projet</td><td style="padding: 10px;">${data.timeline || na}</td></tr>
       <tr><td style="padding: 10px; font-weight: bold;">Stack actuelle</td><td style="padding: 10px;">${data.currentStack || na}</td></tr>
       <tr><td style="padding: 10px; font-weight: bold;">Enjeu prioritaire</td><td style="padding: 10px;">${data.painPoint || na}</td></tr>
+      <tr><td style="padding: 10px; font-weight: bold;">Attribution</td><td style="padding: 10px;">${attribution}</td></tr>
     </table>
     <p style="margin-top: 20px; color: ${EMAIL_COLORS.muted};">Recontacter dans les prochains jours.</p>
     <p style="margin-top: 10px; color: ${EMAIL_COLORS.subtle}; font-size: 12px;">IP: ${data.ip}</p>
@@ -144,6 +157,9 @@ export async function sendPilotEmails(
     timeline: escapeHtml(data.timeline),
     currentStack: escapeHtml(data.currentStack),
     painPoint: escapeHtml(data.painPoint),
+    acquisitionSource: escapeHtml(data.acquisitionSource),
+    acquisitionSlug: escapeHtml(data.acquisitionSlug),
+    acquisitionQuery: escapeHtml(data.acquisitionQuery),
     ip: escapeHtml(ip),
   };
 

@@ -4,12 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import AlertesPage from "../page";
 
-const { mockUseApiGetPaginated, mockAppendSiteParam, mockRefetch } =
-  vi.hoisted(() => ({
+const { mockUseApiGetPaginated, mockAppendSiteParam, mockRefetch } = vi.hoisted(
+  () => ({
     mockUseApiGetPaginated: vi.fn(),
     mockAppendSiteParam: vi.fn((url: string) => url),
     mockRefetch: vi.fn(),
-  }));
+  }),
+);
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGetPaginated: (...args: unknown[]) => mockUseApiGetPaginated(...args),
@@ -34,7 +35,9 @@ vi.mock("@/components/ui/detail-card", () => ({
 }));
 
 vi.mock("@/components/status-banner", () => ({
-  StatusBanner: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  StatusBanner: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 vi.mock("@/components/ui/metric-card", () => ({
