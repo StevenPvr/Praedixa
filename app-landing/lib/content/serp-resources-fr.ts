@@ -6,6 +6,8 @@ export type SerpIntent =
   | "Achat"
   | "Commercial/Decision";
 
+export type SerpSchemaType = "Article" | "WebPage";
+
 export interface SerpResourceAsset {
   title: string;
   description: string;
@@ -827,6 +829,89 @@ export const serpResourceTargetsFr: readonly SerpResourceEntry[] = [
   },
 ] as const;
 
+const SERP_SCHEMA_TYPE_BY_ID: Partial<Record<number, SerpSchemaType>> = {
+  11: "WebPage",
+};
+
+const SERP_PRIMARY_CTA_BY_ID: Record<number, string> = {
+  1: "Telecharger la checklist diagnostic",
+  2: "Voir un exemple de carte des risques",
+  3: "Telecharger le template de revue hebdo",
+  4: "Telecharger le modele capacite/charge",
+  5: "Lancer le calculateur de couverture",
+  6: "Tester le mini-diagnostic early-warning",
+  7: "Obtenir la checklist de scoring",
+  8: "Telecharger le modele de carte des risques",
+  9: "Telecharger la checklist revue planning",
+  10: "Ouvrir le simulateur FTE",
+  11: "Lancer le calculateur FTE",
+  12: "Telecharger le dataset d'exemple",
+  13: "Telecharger le template revue capacite",
+  14: "Telecharger le playbook multi-sites",
+  15: "Telecharger la matrice de decision",
+  16: "Calculer le cout de l'inaction",
+  17: "Telecharger le tableau de couts",
+  18: "Lancer le simulateur interim vs anticipe",
+  19: "Lancer le calculateur heures sup",
+  20: "Telecharger l'arbre de decision",
+  21: "Telecharger le template absenteisme",
+  22: "Lancer le calculateur turnover",
+  23: "Telecharger le template revue Ops/DAF",
+  24: "Calculer le cout de l'inaction logistique",
+  25: "Telecharger le pack playbook",
+  26: "Telecharger le template decision log",
+  27: "Telecharger le toolkit avant/apres",
+  28: "Telecharger la grille de scoring achat",
+  29: "Telecharger la checklist WFM",
+  30: "Telecharger le template KPI service",
+};
+
+const SERP_INTERNAL_LINK_GRAPH_BY_ID: Record<number, number[]> = {
+  1: [4, 5, 16],
+  2: [6, 10, 20],
+  3: [1, 6, 25],
+  4: [10, 11, 12],
+  5: [1, 6, 16],
+  6: [8, 20, 26],
+  7: [6, 21, 25],
+  8: [6, 25, 26],
+  9: [13, 14, 28],
+  10: [11, 12, 16],
+  11: [10, 20, 24],
+  12: [6, 10, 13],
+  13: [9, 14, 23],
+  14: [15, 26, 23],
+  15: [20, 23, 14],
+  16: [24, 23, 26],
+  17: [21, 22, 20],
+  18: [6, 20, 24],
+  19: [20, 23, 16],
+  20: [18, 19, 15],
+  21: [6, 7, 27],
+  22: [27, 16, 25],
+  23: [26, 24, 30],
+  24: [16, 23, 26],
+  25: [3, 7, 20],
+  26: [27, 24, 6],
+  27: [26, 23, 16],
+  28: [29, 9, 14],
+  29: [28, 26, 6],
+  30: [23, 16, 5],
+};
+
+const SERP_RESOURCES_BY_ID = new Map(
+  serpResourceTargetsFr.map((entry) => [entry.id, entry]),
+);
+
+function fallbackRelatedResources(
+  current: SerpResourceEntry,
+  take: number,
+): SerpResourceEntry[] {
+  return serpResourceTargetsFr
+    .filter((entry) => entry.slug !== current.slug)
+    .slice(Math.max(0, current.id - 2), Math.max(0, current.id - 2) + take);
+}
+
 export function getSerpResourceBySlug(
   slug: string,
 ): SerpResourceEntry | undefined {
@@ -837,13 +922,43 @@ export function getSerpResourceSlugs(): string[] {
   return serpResourceTargetsFr.map((entry) => entry.slug);
 }
 
-export function getRelatedSerpResources(
+export function getSerpResourceSchemaType(slug: string): SerpSchemaType {
+  const entry = getSerpResourceBySlug(slug);
+  if (!entry) return "Article";
+  return SERP_SCHEMA_TYPE_BY_ID[entry.id] ?? "Article";
+}
+
+export function getSerpResourcePrimaryCta(slug: string): string {
+  const entry = getSerpResourceBySlug(slug);
+  if (!entry) return "Demander un pilote prevision effectifs";
+  return (
+    SERP_PRIMARY_CTA_BY_ID[entry.id] ?? "Demander un pilote prevision effectifs"
+  );
+}
+
+export function getSerpResourceInternalLinks(
   slug: string,
   take = 3,
 ): SerpResourceEntry[] {
   const current = getSerpResourceBySlug(slug);
   if (!current) return [];
-  return serpResourceTargetsFr
-    .filter((entry) => entry.slug !== slug)
-    .slice(Math.max(0, current.id - 2), Math.max(0, current.id - 2) + take);
+
+  const linkedIds = SERP_INTERNAL_LINK_GRAPH_BY_ID[current.id] ?? [];
+  const linkedEntries = linkedIds
+    .map((id) => SERP_RESOURCES_BY_ID.get(id))
+    .filter((entry): entry is SerpResourceEntry => Boolean(entry))
+    .filter((entry) => entry.slug !== slug);
+
+  if (linkedEntries.length > 0) {
+    return linkedEntries.slice(0, take);
+  }
+
+  return fallbackRelatedResources(current, take);
+}
+
+export function getRelatedSerpResources(
+  slug: string,
+  take = 3,
+): SerpResourceEntry[] {
+  return getSerpResourceInternalLinks(slug, take);
 }

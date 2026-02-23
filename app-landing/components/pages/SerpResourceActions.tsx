@@ -17,6 +17,7 @@ interface SerpResourceActionsProps {
   asset: SerpResourceAsset;
   assetHref: string;
   pilotHref: string;
+  ctaLabel: string;
 }
 
 function buildEventParams({
@@ -50,6 +51,7 @@ export function SerpResourceActions({
   asset,
   assetHref,
   pilotHref,
+  ctaLabel,
 }: SerpResourceActionsProps) {
   const eventParams = buildEventParams({
     locale,
@@ -70,7 +72,7 @@ export function SerpResourceActions({
   return (
     <div className="mt-4 flex flex-wrap gap-3">
       <Link href={pilotHref} className="btn-primary" onClick={handlePilotClick}>
-        Demander un pilote prevision effectifs
+        {ctaLabel}
         <ArrowUpRight size={15} weight="bold" />
       </Link>
       <a

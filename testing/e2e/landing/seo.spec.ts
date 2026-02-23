@@ -120,14 +120,14 @@ test.describe("Landing SEO", () => {
     await expect(breadcrumbScript).toBeAttached();
   });
 
-  test("SERP resource page exposes tracked pilot CTA and downloadable asset", async ({
+  test("SERP resource page exposes tracked primary CTA and downloadable asset", async ({
     page,
     request,
   }) => {
     await page.goto("/fr/ressources/cout-sous-couverture");
 
     const pilotCta = page.getByRole("link", {
-      name: /Demander un pilote prevision effectifs/i,
+      name: /Calculer le cout de l'inaction/i,
     });
     const pilotHref = await pilotCta.getAttribute("href");
     expect(pilotHref).toContain("source=seo_resource");
@@ -142,5 +142,14 @@ test.describe("Landing SEO", () => {
     expect(assetResponse.headers()["content-disposition"]).toContain(
       "attachment",
     );
+  });
+
+  test("SERP resource page exposes article-level JSON-LD", async ({ page }) => {
+    await page.goto("/fr/ressources/cout-sous-couverture");
+
+    const articleScript = page.locator(
+      'script[type="application/ld+json"]#praedixa-article-json-ld-cout-sous-couverture',
+    );
+    await expect(articleScript).toBeAttached();
   });
 });

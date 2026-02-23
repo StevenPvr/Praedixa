@@ -6,10 +6,15 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { localizedSlugs, type Locale } from "../../lib/i18n/config";
 import type { SerpResourceEntry } from "../../lib/content/serp-resources-fr";
-import { getRelatedSerpResources } from "../../lib/content/serp-resources-fr";
+import {
+  getSerpResourceInternalLinks,
+  getSerpResourcePrimaryCta,
+  getSerpResourceSchemaType,
+} from "../../lib/content/serp-resources-fr";
 import { getSerpBriefBySlug } from "../../lib/content/serp-briefs-fr";
 import { getSerpAssetDownloadHref } from "../../lib/content/serp-asset-downloads";
 import { BreadcrumbJsonLd } from "../seo/BreadcrumbJsonLd";
+import { ArticleJsonLd } from "../seo/ArticleJsonLd";
 import { SerpResourceActions } from "./SerpResourceActions";
 
 interface SerpResourcePageProps {
@@ -46,8 +51,10 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
     seo_query: entry.query,
   });
   const pilotHrefWithContext = `${pilotHref}?${pilotParams.toString()}`;
-  const related = getRelatedSerpResources(entry.slug, 4);
+  const internalLinks = getSerpResourceInternalLinks(entry.slug, 4);
   const brief = getSerpBriefBySlug(entry.slug);
+  const ctaLabel = getSerpResourcePrimaryCta(entry.slug);
+  const schemaType = getSerpResourceSchemaType(entry.slug);
 
   const breadcrumbItems = [
     { name: "Accueil", path: `/${locale}` },
@@ -60,6 +67,15 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
       <BreadcrumbJsonLd
         id={`praedixa-breadcrumb-json-ld-${entry.slug}`}
         items={breadcrumbItems}
+      />
+      <ArticleJsonLd
+        id={`praedixa-article-json-ld-${entry.slug}`}
+        schemaType={schemaType}
+        headline={entry.title}
+        description={entry.description}
+        path={`/fr/ressources/${entry.slug}`}
+        locale="fr-FR"
+        query={entry.query}
       />
       <div className="section-shell">
         <nav aria-label="Fil d'ariane" className="mb-4">
@@ -132,6 +148,7 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
               asset={entry.asset}
               assetHref={assetHref}
               pilotHref={pilotHrefWithContext}
+              ctaLabel={ctaLabel}
             />
           </section>
 
@@ -218,10 +235,10 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
 
           <section className="mt-10 border-t border-[var(--line)] pt-8">
             <h2 className="text-2xl tracking-tight text-[var(--ink)]">
-              Ressources associées
+              Maillage interne recommandé
             </h2>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
-              {related.map((item) => (
+              {internalLinks.map((item) => (
                 <Link
                   key={item.slug}
                   href={`/${locale}/ressources/${item.slug}`}

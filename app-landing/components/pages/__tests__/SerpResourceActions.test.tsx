@@ -47,14 +47,13 @@ describe("SerpResourceActions", () => {
     assetHref: "/fr/ressources/cout-sous-couverture/asset",
     pilotHref:
       "/fr/devenir-pilote?source=seo_resource&seo_slug=cout-sous-couverture&seo_query=cout",
+    ctaLabel: "Calculer le cout de l'inaction",
   };
 
   it("renders pilot and asset links", () => {
     render(<SerpResourceActions {...props} />);
 
-    const pilotLink = screen
-      .getByText(/Demander un pilote prevision effectifs/i)
-      .closest("a");
+    const pilotLink = screen.getByText(props.ctaLabel).closest("a");
     const assetLink = screen.getByText(/Telecharger asset/i).closest("a");
 
     expect(pilotLink).toHaveAttribute("href", props.pilotHref);
@@ -64,9 +63,7 @@ describe("SerpResourceActions", () => {
   it("tracks click on pilot CTA", () => {
     render(<SerpResourceActions {...props} />);
 
-    fireEvent.click(
-      screen.getByText(/Demander un pilote prevision effectifs/i),
-    );
+    fireEvent.click(screen.getByText(props.ctaLabel));
 
     expect(trackEventMock).toHaveBeenCalledWith(
       "seo_resource_pilot_cta_click",
