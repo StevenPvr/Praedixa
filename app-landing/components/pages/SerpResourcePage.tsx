@@ -22,6 +22,11 @@ interface SerpResourcePageProps {
   entry: SerpResourceEntry;
 }
 
+const RESOURCE_AUTHOR = "Equipe Praedixa · Ops x Finance";
+const RESOURCE_METHOD =
+  "Analyse terrain multi-sites, arbitrage economique chiffre, puis decision log pour preuve d'impact.";
+const RESOURCE_LAST_UPDATED = "2026-02-23";
+
 function intentLabel(intent: SerpResourceEntry["intent"]): string {
   switch (intent) {
     case "Info":
@@ -41,6 +46,20 @@ function intentLabel(intent: SerpResourceEntry["intent"]): string {
   }
 }
 
+function slugifyHeading(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+}
+
+function buildFaqAnswer(entry: SerpResourceEntry): string {
+  const intent = intentLabel(entry.intent).toLowerCase();
+  return `Praedixa recommande une approche ${intent} basee sur capacite vs charge, facteurs explicatifs et arbitrage chiffre (HS, interim, reallocation) avec preuve d'impact.`;
+}
+
 export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
   const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
   const resourcesHref = `/${locale}/${localizedSlugs.resources[locale]}`;
@@ -55,6 +74,10 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
   const brief = getSerpBriefBySlug(entry.slug);
   const ctaLabel = getSerpResourcePrimaryCta(entry.slug);
   const schemaType = getSerpResourceSchemaType(entry.slug);
+  const sectionAnchors = entry.sections.map((section) => ({
+    label: section.title,
+    id: `section-${slugifyHeading(section.title)}`,
+  }));
 
   const breadcrumbItems = [
     { name: "Accueil", path: `/${locale}` },
@@ -129,6 +152,54 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
           <p className="mt-4 max-w-[68ch] text-base leading-relaxed text-[var(--ink-soft)] md:text-lg">
             {entry.openingSnippet}
           </p>
+
+          <nav
+            aria-label="Sommaire de la ressource"
+            className="mt-6 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+              Sommaire
+            </p>
+            <ul className="mt-3 grid gap-2 md:grid-cols-2">
+              {sectionAnchors.map((anchor) => (
+                <li key={anchor.id}>
+                  <a
+                    href={`#${anchor.id}`}
+                    className="inline-flex w-full items-center justify-between rounded-xl border border-[var(--line)] bg-[var(--panel-muted)] px-3 py-2 text-sm text-[var(--ink-soft)] hover:border-[var(--line-strong)] hover:text-[var(--ink)]"
+                  >
+                    {anchor.label}
+                    <ArrowUpRight
+                      size={14}
+                      weight="bold"
+                      className="text-[var(--ink-soft)]"
+                    />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <section className="mt-8 grid gap-4 md:grid-cols-2">
+            <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+                Ce que c&apos;est
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">
+                Une methode orientee execution pour {entry.query}, avec mesures,
+                arbitrages et sortie actionnable en contexte multi-sites.
+              </p>
+            </article>
+            <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+                Ce que ce n&apos;est pas
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">
+                Un contenu generique sans cadre de decision. Cette ressource ne
+                remplace pas un outil de planning: elle structure l&apos;arbitrage
+                economique et la preuve d&apos;impact.
+              </p>
+            </article>
+          </section>
 
           <section className="mt-8 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
@@ -205,8 +276,10 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
           ) : null}
 
           <div className="mt-10 space-y-8">
-            {entry.sections.map((section) => (
-              <section key={section.title}>
+            {entry.sections.map((section) => {
+              const sectionId = `section-${slugifyHeading(section.title)}`;
+              return (
+                <section key={section.title} id={sectionId}>
                 <h2 className="text-2xl tracking-tight text-[var(--ink)]">
                   {section.title}
                 </h2>
@@ -230,8 +303,64 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
                   </ul>
                 ) : null}
               </section>
-            ))}
+              );
+            })}
           </div>
+
+          {brief ? (
+            <section className="mt-10 border-t border-[var(--line)] pt-8">
+              <h2 className="text-2xl tracking-tight text-[var(--ink)]">
+                Questions frequentes
+              </h2>
+              <div className="mt-4 grid gap-3">
+                {brief.paa.map((question) => (
+                  <article
+                    key={question}
+                    className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4"
+                  >
+                    <h3 className="text-base font-semibold text-[var(--ink)]">
+                      {question}
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">
+                      {buildFaqAnswer(entry)}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          <section className="mt-10 border-t border-[var(--line)] pt-8">
+            <h2 className="text-2xl tracking-tight text-[var(--ink)]">
+              Transparence editoriale
+            </h2>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+                <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+                  Auteur
+                </h3>
+                <p className="mt-2 text-sm text-[var(--ink-soft)]">
+                  {RESOURCE_AUTHOR}
+                </p>
+              </article>
+              <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+                <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+                  Methode
+                </h3>
+                <p className="mt-2 text-sm text-[var(--ink-soft)]">
+                  {RESOURCE_METHOD}
+                </p>
+              </article>
+              <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+                <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+                  Derniere mise a jour
+                </h3>
+                <p className="mt-2 text-sm text-[var(--ink-soft)]">
+                  {RESOURCE_LAST_UPDATED}
+                </p>
+              </article>
+            </div>
+          </section>
 
           <section className="mt-10 border-t border-[var(--line)] pt-8">
             <h2 className="text-2xl tracking-tight text-[var(--ink)]">
