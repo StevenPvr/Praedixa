@@ -84,7 +84,7 @@ export function WarRoomDashboard() {
     summaryQuery.error || (alerts.length === 0 ? alertsQuery.error : null);
 
   return (
-    <div className="gradient-mesh space-y-8 pb-12">
+    <div className="space-y-12 pb-12">
       <PageHeader
         eyebrow="Centre decisionnel"
         title="War room operationnelle"
@@ -98,7 +98,7 @@ export function WarRoomDashboard() {
                 Rapport executif
               </Link>
             </Button>
-            <Button asChild variant="premium">
+            <Button asChild>
               <Link href="/actions">
                 <ArrowUpRight className="mr-2 h-4 w-4" />
                 Centre de traitement
@@ -130,7 +130,7 @@ export function WarRoomDashboard() {
 
       {/* KPI Grid */}
       <motion.div
-        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4"
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
@@ -234,7 +234,7 @@ export function WarRoomDashboard() {
                     key={alert.id}
                     href="/actions"
                     className={cn(
-                      "shine-effect group block rounded-lg border border-border bg-card px-5 py-4",
+                      "group block rounded-lg border border-border bg-card px-5 py-4",
                       "transition-all duration-fast",
                       "hover:-translate-y-0.5 hover:border-border-hover hover:shadow-[var(--shadow-card-hover)]",
                       alert.severity === "critical"
@@ -281,7 +281,7 @@ export function WarRoomDashboard() {
                           {formatSeverity(alert.severity)}
                         </Badge>
                         <div className="flex flex-col items-end">
-                          <span className="font-serif text-metric-xs tabular-nums text-ink">
+                          <span className="font-sans font-bold text-metric-xs tabular-nums text-ink">
                             {alert.gapH.toFixed(1)} h
                           </span>
                           <span className="text-caption-compact text-ink-placeholder">
@@ -323,7 +323,7 @@ export function WarRoomDashboard() {
 
           {/* Health score */}
           {!summaryQuery.loading && summary && (
-            <div className="surface-premium p-6">
+            <div className="surface-card p-6">
               <div className="flex items-center gap-5">
                 <ProgressRing
                   value={Math.round(summary.coverageHuman ?? 0)}

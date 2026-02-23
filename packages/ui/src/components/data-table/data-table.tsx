@@ -7,6 +7,21 @@ import { DataTablePaginationBar } from "./data-table-pagination";
 
 const VIRTUALISE_THRESHOLD = 100;
 
+function _normalizePositiveInt(
+  value: number,
+  fallback: number,
+): number {
+  if (!Number.isFinite(value)) return fallback;
+  const normalized = Math.floor(value);
+  return normalized > 0 ? normalized : fallback;
+}
+
+function _normalizeNonNegativeInt(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  const normalized = Math.floor(value);
+  return normalized > 0 ? normalized : 0;
+}
+
 function DataTableInner<T>(
   {
     columns,
@@ -39,9 +54,37 @@ function DataTableInner<T>(
   } | null>(null);
   const resizeCleanupRef = React.useRef<(() => void) | null>(null);
 
-  const totalPages = pagination
-    ? Math.ceil(pagination.total / pagination.pageSize)
-    : 0;
+  const normalizedPagination = React.useMemo(() => {
+    if (!pagination) return null;
+
+    const pageSize = _normalizePositiveInt(pagination.pageSize, 1);
+    const total = _normalizeNonNegativeInt(pagination.total);
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(
+      totalPages,
+      Math.max(1, _normalizePositiveInt(pagination.page, 1)),
+    );
+
+    return {
+      totalPages,
+      pagination: {
+        ...pagination,
+        page,
+        pageSize,
+        total,
+        onPageChange: (nextPage: number) => {
+          const clamped = Math.min(
+            totalPages,
+            Math.max(1, _normalizePositiveInt(nextPage, page)),
+          );
+          if (clamped === page) return;
+          pagination.onPageChange(clamped);
+        },
+      },
+    };
+  }, [pagination]);
+
+  const totalPages = normalizedPagination?.totalPages ?? 0;
 
   /* ── Selection helpers ── */
   const rowKeys = React.useMemo(() => {
@@ -214,9 +257,9 @@ function DataTableInner<T>(
         </div>
       </div>
 
-      {pagination && (
+      {normalizedPagination && (
         <DataTablePaginationBar
-          pagination={pagination}
+          pagination={normalizedPagination.pagination}
           totalPages={totalPages}
         />
       )}

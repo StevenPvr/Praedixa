@@ -15,9 +15,9 @@ afterAll(() => {
 });
 
 vi.mock("next/font/google", () => ({
-  Manrope: () => ({
+  Outfit: () => ({
     variable: "--font-sans",
-    style: { fontFamily: "Manrope" },
+    style: { fontFamily: "Outfit" },
   }),
   Cormorant_Garamond: () => ({
     variable: "--font-serif",

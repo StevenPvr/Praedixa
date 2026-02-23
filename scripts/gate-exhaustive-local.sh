@@ -235,7 +235,7 @@ PY
 
 run_precommit_layer() {
   run_check "policy:exceptions" "governance" "high" "python3 scripts/validate-security-exceptions.py --quiet"
-  run_check "layer-a:precommit-delta" "security" "high" "./scripts/gate-precommit-delta.sh"
+  run_check "layer-a:precommit-blocking" "security" "high" "./scripts/gate-precommit-blocking.sh"
 }
 
 run_prepush_layer() {

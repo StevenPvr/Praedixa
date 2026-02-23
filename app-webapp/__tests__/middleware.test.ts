@@ -24,9 +24,9 @@ vi.mock("@/lib/security/csp", () => ({
     `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
 }));
 
-import { middleware, config } from "../middleware";
+import { proxy, config } from "../proxy";
 
-describe("middleware (root)", () => {
+describe("proxy (root)", () => {
   const envBackup = process.env.NODE_ENV;
 
   beforeEach(() => {
@@ -40,7 +40,7 @@ describe("middleware (root)", () => {
   it("should process /coverage-harness like any protected route", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.resetModules();
-    const { middleware: mw } = await import("../middleware");
+    const { proxy: mw } = await import("../proxy");
 
     const mockRequest = {
       nextUrl: { pathname: "/coverage-harness" },
@@ -61,7 +61,7 @@ describe("middleware (root)", () => {
       headers: new Headers(),
     } as unknown as NextRequest;
 
-    const result = await middleware(mockRequest);
+    const result = await proxy(mockRequest);
 
     expect(mockUpdateSession).toHaveBeenCalledWith(mockRequest);
     expect(result.status).toBe(200);

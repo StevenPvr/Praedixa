@@ -20,37 +20,27 @@ const variantStyles: Record<
     container: string;
     icon: string;
     title: string;
-    accent: string;
-    glow: string;
   }
 > = {
   success: {
-    container: "border border-success-light surface-glass text-success-text",
+    container: "border border-success-light bg-success-light/30 text-success-text",
     icon: "text-success",
     title: "text-success-text",
-    accent: "bg-success",
-    glow: "glow-success",
   },
   warning: {
-    container: "border border-warning-light surface-glass text-warning-text",
+    container: "border border-warning-light bg-warning-light/30 text-warning-text",
     icon: "text-warning",
     title: "text-warning-text",
-    accent: "bg-warning",
-    glow: "glow-warning",
   },
   danger: {
-    container: "border border-danger-light surface-glass text-danger-text",
+    container: "border border-danger-light bg-danger-light/30 text-danger-text",
     icon: "text-danger",
     title: "text-danger-text",
-    accent: "bg-danger",
-    glow: "glow-danger",
   },
   info: {
-    container: "border border-info-light surface-glass text-info-text",
+    container: "border border-info-light bg-info-light/30 text-info-text",
     icon: "text-info",
     title: "text-info-text",
-    accent: "bg-info",
-    glow: "",
   },
 };
 
@@ -82,17 +72,11 @@ export function StatusBanner({
         opacity: { duration: DURATION.slow, ease: EASING.smooth },
       }}
       className={cn(
-        "relative flex items-start gap-3.5 overflow-hidden rounded-lg border px-5 py-4 text-body-sm transition-shadow duration-normal",
+        "flex items-start gap-3.5 rounded-lg px-4 py-3 text-body-sm transition-shadow duration-normal",
         styles.container,
-        styles.glow,
         className,
       )}
     >
-      {/* Left accent line */}
-      <div
-        className={cn("absolute left-0 top-0 h-full w-[3px]", styles.accent)}
-      />
-
       <Icon
         className={cn("mt-0.5 h-5 w-5 shrink-0", styles.icon)}
         aria-hidden="true"

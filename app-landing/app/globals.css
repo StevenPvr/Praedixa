@@ -63,14 +63,13 @@
   --color-brass-strong: var(--brand-600);
   --color-brass-dark: var(--brand-700);
 
-  --shadow-soft: 0 18px 44px -28px oklch(0.16 0.01 250 / 0.35);
-  --shadow-diffuse: 0 28px 70px -38px oklch(0.16 0.01 250 / 0.28);
+  --shadow-soft: 0 18px 44px -28px oklch(0.16 0.01 250 / 0.3);
+  --shadow-diffuse: 0 28px 70px -38px oklch(0.16 0.01 250 / 0.24);
+  --shadow-elevated: 0 22px 54px -24px oklch(0.16 0.01 250 / 0.38);
 
   --font-sans:
     "Outfit",
     "Geist",
-    "Satoshi",
-    "Manrope",
     ui-sans-serif,
     system-ui,
     -apple-system,
@@ -152,8 +151,8 @@
   body {
     min-height: 100dvh;
     background:
-      radial-gradient(circle at 14% -6%, oklch(0.95 0.024 246 / 0.42), transparent 42%),
-      radial-gradient(circle at 82% 2%, oklch(0.97 0.01 250 / 0.85), transparent 45%),
+      radial-gradient(circle at 14% -6%, oklch(0.95 0.024 246 / 0.36), transparent 38%),
+      radial-gradient(circle at 82% 2%, oklch(0.97 0.01 250 / 0.7), transparent 40%),
       var(--bg);
     color: var(--ink);
     font-family: var(--font-sans);
@@ -167,7 +166,7 @@
     inset: 0;
     pointer-events: none;
     z-index: 60;
-    opacity: 0.024;
+    opacity: 0.018;
     background-image: radial-gradient(oklch(0.52 0.01 250) 0.6px, transparent 0.6px);
     background-size: 4px 4px;
   }
@@ -178,7 +177,7 @@
   h4 {
     font-family: var(--font-sans);
     font-weight: 600;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.035em;
     text-wrap: balance;
   }
 
@@ -220,7 +219,7 @@
   }
 
   .section-spacing {
-    padding-block: clamp(4rem, 6vw, 7.5rem);
+    padding-block: clamp(5rem, 8vw, 10rem);
   }
 
   .section-kicker {
@@ -229,7 +228,7 @@
     gap: 0.5rem;
     font-size: 0.69rem;
     font-weight: 600;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--accent-700);
   }
@@ -244,17 +243,17 @@
   }
 
   .section-title {
-    margin-top: 0.9rem;
+    margin-top: 1.1rem;
     font-size: clamp(2rem, 3.9vw, 3.9rem);
     line-height: 1.02;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.045em;
     color: var(--ink);
   }
 
   .section-lead {
-    margin-top: 1rem;
-    max-width: 65ch;
-    font-size: 1rem;
+    margin-top: 1.25rem;
+    max-width: 58ch;
+    font-size: 1.0625rem;
     line-height: 1.75;
     color: var(--ink-soft);
   }
@@ -307,6 +306,13 @@
     color: var(--ink);
     background: color-mix(in oklch, var(--panel) 82%, transparent);
     box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.25);
+    transition: transform 220ms var(--transition-smooth), box-shadow 220ms var(--transition-smooth), border-color 220ms var(--transition-smooth), background 220ms var(--transition-smooth);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--line-strong);
+    background: color-mix(in oklch, var(--panel) 90%, transparent);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.25), 0 2px 8px -4px oklch(0.16 0.01 250 / 0.15);
   }
 
   .btn-secondary:active {
@@ -316,16 +322,22 @@
   .panel-glass {
     border: 1px solid color-mix(in oklch, var(--line-strong) 78%, transparent);
     background: color-mix(in oklch, var(--panel) 88%, transparent);
-    backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px) saturate(1.2);
     box-shadow:
       var(--shadow-soft),
-      inset 0 1px 0 oklch(1 0 0 / 0.4);
+      inset 0 1px 0 oklch(1 0 0 / 0.45),
+      inset 0 -1px 0 oklch(0 0 0 / 0.03);
+    transition: box-shadow 320ms var(--transition-smooth), border-color 320ms var(--transition-smooth);
   }
 
   .panel-dark {
     border: 1px solid oklch(0.34 0.02 250);
     background: oklch(0.24 0.013 250 / 0.6);
-    box-shadow: var(--shadow-diffuse), inset 0 1px 0 oklch(1 0 0 / 0.08);
+    backdrop-filter: blur(12px) saturate(1.15);
+    box-shadow:
+      var(--shadow-diffuse),
+      inset 0 1px 0 oklch(1 0 0 / 0.1),
+      inset 0 -1px 0 oklch(0 0 0 / 0.12);
   }
 
   .text-body {
@@ -412,6 +424,14 @@
     border: 1px solid var(--line-strong);
     background: color-mix(in oklch, var(--panel) 82%, transparent);
     color: var(--ink);
+    transition: transform 220ms var(--transition-smooth), box-shadow 220ms var(--transition-smooth), border-color 220ms var(--transition-smooth), background 220ms var(--transition-smooth);
+  }
+
+  .ghost-cta:hover,
+  .btn-ghost:hover {
+    border-color: var(--line-strong);
+    background: color-mix(in oklch, var(--panel) 90%, transparent);
+    box-shadow: 0 2px 8px -4px oklch(0.16 0.01 250 / 0.12);
   }
 
   .ghost-cta:active,
@@ -440,7 +460,7 @@
   }
 
   .section-spacing {
-    @apply py-8;
+    padding-block: 3rem;
   }
 }
 

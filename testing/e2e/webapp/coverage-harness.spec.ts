@@ -8,20 +8,15 @@ test.describe("Webapp coverage harness", () => {
     await mockAllApis(page);
   });
 
-  test("executes harness branches", async ({ page }) => {
+  test("coverage harness route falls back to not-found page", async ({
+    page,
+  }) => {
     await page.goto("/coverage-harness");
 
+    await expect(page.getByText("404")).toBeVisible();
+    await expect(page.getByText("Page introuvable")).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Coverage Harness Webapp" }),
+      page.getByRole("link", { name: "Retour au tableau de bord" }),
     ).toBeVisible();
-    await expect(page.locator("#decomposition-trend-count")).toHaveText("3");
-    await expect(page.locator("#decomposition-empty-count")).toHaveText("0");
-    await expect(page.locator("#drivers-count")).toHaveText("2");
-    await expect(page.locator("#drivers-empty-count")).toHaveText("0");
-
-    await expect(page.locator("#format-severity-known")).toHaveText("Critique");
-    await expect(page.locator("#format-severity-unknown")).toHaveText(
-      "unexpected",
-    );
   });
 });

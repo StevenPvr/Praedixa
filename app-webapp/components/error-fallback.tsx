@@ -117,7 +117,7 @@ export function ErrorFallback(props: ErrorFallbackProps) {
       className={cn(
         "flex flex-col items-center justify-center rounded-xl border px-8 py-16",
         "surface-card shadow-raised",
-        isCritical && "glow-danger border-danger-light",
+        isCritical && "border-danger-light",
       )}
     >
       <div

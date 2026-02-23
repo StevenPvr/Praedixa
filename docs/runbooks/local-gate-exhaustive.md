@@ -6,7 +6,7 @@ Appliquer un gate sécurité/qualité bloquant avec preuve locale signée.
 
 ## Architecture actuelle (3 couches)
 
-- Couche A (pre-commit, delta rapide): `./scripts/gate-precommit-delta.sh`
+- Couche A (pre-commit, bloquante): `./scripts/gate-precommit-blocking.sh`
 - Couche B (pre-push, deep): `./scripts/gate-prepush-deep.sh`
 - Couche C (exhaustive): `pnpm gate:exhaustive`
 
@@ -22,7 +22,9 @@ Appliquer un gate sécurité/qualité bloquant avec preuve locale signée.
 ## Hooks
 
 - `pre-commit` execute:
-  - `./scripts/gate-precommit-delta.sh`
+  - `./scripts/gate-precommit-blocking.sh`
+    - `./scripts/gate-precommit-delta.sh` (garde-fous securite)
+    - `./scripts/gate-precommit-tests.sh` (pytest complet incluant unit + vitest Next.js + Playwright e2e)
 - `pre-push` execute:
   - `./scripts/gate-prepush-deep.sh`
   - puis `./scripts/verify-gate-report.sh --mode pre-push --run-if-missing --max-age-seconds 21600`

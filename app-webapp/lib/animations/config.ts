@@ -41,7 +41,7 @@ export const SPRING = {
 
 /* ── Stagger timing ── */
 export const STAGGER = {
-  fast: 0.04,
+  fast: 0.03,
   normal: 0.06,
   slow: 0.1,
   dramatic: 0.12,
@@ -53,24 +53,22 @@ export const STAGGER = {
 
 /** Page enter/exit — crossfade + y slide + blur */
 export const pageEnter = {
-  hidden: { opacity: 0, y: 12, filter: "blur(6px)" },
+  hidden: { opacity: 0, y: 12 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: { duration: DURATION.page, ease: EASING.premium },
   },
   exit: {
     opacity: 0,
     y: -8,
-    filter: "blur(4px)",
     transition: { duration: DURATION.fast, ease: EASING.snappy },
   },
 } as const;
 
 /** Section reveal — larger amplitude for page sections */
 export const sectionReveal = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 12 },
   visible: {
     opacity: 1,
     y: 0,
@@ -92,7 +90,7 @@ export const staggerContainer = {
 
 /** Staggered child item */
 export const staggerItem = {
-  hidden: { opacity: 0, y: 14 },
+  hidden: { opacity: 0, y: 8 },
   visible: {
     opacity: 1,
     y: 0,
@@ -102,7 +100,7 @@ export const staggerItem = {
 
 /** Card reveal — scale + opacity for grid cards */
 export const cardReveal = {
-  hidden: { opacity: 0, scale: 0.95, y: 8 },
+  hidden: { opacity: 0, scale: 1, y: 8 },
   visible: {
     opacity: 1,
     scale: 1,
@@ -137,68 +135,60 @@ export const buttonPress = {
 
 /** Fade scale — for modals, tooltips, overlays */
 export const fadeScale = {
-  hidden: { opacity: 0, scale: 0.95, filter: "blur(6px)" },
+  hidden: { opacity: 0, scale: 0.95 },
   visible: {
     opacity: 1,
     scale: 1,
-    filter: "blur(0px)",
     transition: { duration: DURATION.normal, ease: EASING.premium },
   },
   exit: {
     opacity: 0,
     scale: 0.95,
-    filter: "blur(4px)",
     transition: { duration: DURATION.fast },
   },
 } as const;
 
 /** Slide from right — toasts, drawers */
 export const slideRight = {
-  hidden: { opacity: 0, x: 40, filter: "blur(4px)" },
+  hidden: { opacity: 0, x: 40 },
   visible: {
     opacity: 1,
     x: 0,
-    filter: "blur(0px)",
     transition: SPRING.gentle,
   },
   exit: {
     opacity: 0,
     x: 40,
-    filter: "blur(4px)",
     transition: { duration: DURATION.fast, ease: EASING.smooth },
   },
 } as const;
 
 /** Slide from left — sidebar panels */
 export const slideLeft = {
-  hidden: { opacity: 0, x: -40, filter: "blur(4px)" },
+  hidden: { opacity: 0, x: -40 },
   visible: {
     opacity: 1,
     x: 0,
-    filter: "blur(0px)",
     transition: SPRING.gentle,
   },
   exit: {
     opacity: 0,
     x: -40,
-    filter: "blur(4px)",
     transition: { duration: DURATION.fast, ease: EASING.smooth },
   },
 } as const;
 
 /** Slide up — for bottom sheets, popups */
 export const slideUp = {
-  hidden: { opacity: 0, y: 20, filter: "blur(4px)" },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: SPRING.premium,
   },
   exit: {
     opacity: 0,
     y: 12,
-    filter: "blur(2px)",
     transition: { duration: DURATION.fast, ease: EASING.snappy },
   },
 } as const;

@@ -29,7 +29,7 @@ const staggerContainer = {
 };
 
 const staggerChild = {
-  hidden: { opacity: 0, y: 8 },
+  hidden: { opacity: 0, y: 4 },
   visible: {
     opacity: 1,
     y: 0,
@@ -113,7 +113,7 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
             {eyebrow && (
               <motion.p
                 variants={staggerChild}
-                className="text-overline text-primary"
+                className="text-caption font-medium uppercase tracking-wider text-ink-tertiary"
               >
                 {eyebrow}
               </motion.p>
@@ -130,7 +130,7 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
             {subtitle && (
               <motion.p
                 variants={staggerChild}
-                className="max-w-2xl text-body text-ink-secondary text-balance"
+                className="max-w-2xl text-body text-ink-tertiary text-balance"
               >
                 {subtitle}
               </motion.p>

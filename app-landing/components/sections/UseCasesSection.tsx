@@ -16,6 +16,7 @@ import {
   blurReveal,
   blurStaggerContainer,
   blurStaggerItem,
+  cardHover,
   viewportEarly,
   viewportOnce,
 } from "@/lib/animations/variants";
@@ -63,6 +64,7 @@ export function UseCasesSection({
                 <motion.article
                   key={useCase.id}
                   variants={blurStaggerItem}
+                  whileHover={cardHover}
                   className={`panel-glass rounded-3xl p-6 ${span}`}
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -142,6 +144,7 @@ export function UseCasesSection({
                 <motion.article
                   key={frame.label}
                   variants={blurStaggerItem}
+                  whileHover={cardHover}
                   className={`panel-glass rounded-3xl p-6 ${roiSpans[index] ?? "md:col-span-6"}`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -176,7 +179,7 @@ export function UseCasesSection({
               <motion.div
                 key={item}
                 variants={blurStaggerItem}
-                className="inline-flex items-start gap-2.5 rounded-xl border border-[var(--line)] bg-[var(--panel)] px-3 py-2.5 text-sm text-[var(--ink-soft)]"
+                className="inline-flex items-start gap-2.5 rounded-xl border border-[var(--line)] bg-[var(--panel)] px-3 py-2.5 text-sm text-[var(--ink-soft)] transition-colors duration-200 hover:border-[var(--line-strong)]"
               >
                 <ArrowUpRight
                   size={14}

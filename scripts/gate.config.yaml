@@ -11,9 +11,9 @@ policy:
     low: track
 layers:
   pre_commit:
-    mode: delta
-    max_duration_seconds: 90
-    script: ./scripts/gate-precommit-delta.sh
+    mode: full
+    max_duration_seconds: 7200
+    script: ./scripts/gate-precommit-blocking.sh
   pre_push:
     mode: deep
     script: ./scripts/gate-prepush-deep.sh

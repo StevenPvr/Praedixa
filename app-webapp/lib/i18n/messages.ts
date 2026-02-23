@@ -13,9 +13,6 @@ export const messages: Record<AppLocale, MessageTree> = {
       openMenu: "Ouvrir le menu",
       closeMenu: "Fermer le menu",
       languageLabel: "Langue",
-      densityLabel: "Densite",
-      densityComfortable: "Confort",
-      densityCompact: "Compact",
       workspace: "Espace de travail",
       tenant: "Tenant",
       environment: "Environnement",
@@ -47,14 +44,6 @@ export const messages: Record<AppLocale, MessageTree> = {
         anticipation: "Anticipation",
         traitement: "Traitement",
         support: "Support & gouvernance",
-      },
-      sections: {
-        starred: "Favoris",
-        recent: "Recents",
-      },
-      actions: {
-        star: "Ajouter aux favoris",
-        unstar: "Retirer des favoris",
       },
       items: {
         dashboard: "Tableau de bord",
@@ -140,9 +129,6 @@ export const messages: Record<AppLocale, MessageTree> = {
       openMenu: "Open menu",
       closeMenu: "Close menu",
       languageLabel: "Language",
-      densityLabel: "Density",
-      densityComfortable: "Comfort",
-      densityCompact: "Compact",
       workspace: "Workspace",
       tenant: "Tenant",
       environment: "Environment",
@@ -173,14 +159,6 @@ export const messages: Record<AppLocale, MessageTree> = {
         anticipation: "Anticipation",
         traitement: "Treatment",
         support: "Support & governance",
-      },
-      sections: {
-        starred: "Starred",
-        recent: "Recent",
-      },
-      actions: {
-        star: "Add to starred",
-        unstar: "Remove from starred",
       },
       items: {
         dashboard: "Control room",

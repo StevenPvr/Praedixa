@@ -298,13 +298,17 @@ const workspaceForA1 = {
 
 function setupUseApiGet({
   queue = queueItems,
+  liveAlerts = null,
   workspace = workspaceForA1,
   queueError = null,
+  liveError = null,
   workspaceError = null,
 }: {
   queue?: unknown[] | null;
+  liveAlerts?: unknown[] | null;
   workspace?: unknown | null;
   queueError?: string | null;
+  liveError?: string | null;
   workspaceError?: string | null;
 } = {}) {
   mockUseApiGet.mockImplementation((url: string | null) => {
@@ -313,6 +317,15 @@ function setupUseApiGet({
         data: queue,
         loading: false,
         error: queueError,
+        refetch: vi.fn(),
+      };
+    }
+
+    if (url?.startsWith("/api/v1/live/coverage-alerts?status=open&page_size=200")) {
+      return {
+        data: liveAlerts,
+        loading: false,
+        error: liveError,
         refetch: vi.fn(),
       };
     }
@@ -358,6 +371,31 @@ describe("ActionsPage", () => {
     render(<ActionsPage />);
     expect(screen.getByTestId("empty-state")).toBeInTheDocument();
     expect(screen.getByText("Aucune alerte active")).toBeInTheDocument();
+  });
+
+  it("does not fallback to full live alerts when queue is empty", () => {
+    setupUseApiGet({
+      queue: [],
+      liveAlerts: [
+        {
+          id: "live-1",
+          siteId: "SiteMassif",
+          alertDate: "2026-02-13",
+          shift: "AM",
+          severity: "critical",
+          gapH: 12,
+          pRupture: 0.9,
+          horizon: "j7",
+          status: "open",
+          driversJson: [],
+          createdAt: "2026-02-13T00:00:00Z",
+          updatedAt: "2026-02-13T00:00:00Z",
+        },
+      ],
+    });
+    render(<ActionsPage />);
+    expect(screen.getByTestId("empty-state")).toBeInTheDocument();
+    expect(screen.queryByText("SiteMassif")).not.toBeInTheDocument();
   });
 
   it("renders queue cards and auto-selects first alert workspace", () => {

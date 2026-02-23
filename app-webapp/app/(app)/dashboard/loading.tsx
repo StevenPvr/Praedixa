@@ -2,7 +2,7 @@ import { SkeletonMetricRow, SkeletonChart, SkeletonCard } from "@praedixa/ui";
 
 export default function DashboardLoading() {
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-12 pb-12">
       <div className="space-y-2">
         <div className="h-5 w-32 animate-shimmer-pearl rounded-md" />
         <div className="h-8 w-72 animate-shimmer-pearl rounded-md" />

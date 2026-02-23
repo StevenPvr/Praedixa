@@ -1,6 +1,6 @@
 version: 1
 policy_name: security-gate-unified
-updated_at: "2026-02-22"
+updated_at: "2026-02-23"
 severity:
   critical:
     action: block
@@ -33,8 +33,8 @@ supply_chain:
   zero_day_statement_required: true
 layers:
   pre_commit:
-    mode: delta
-    target_duration_seconds: 90
+    mode: full
+    target_duration_seconds: 7200
   pre_push:
     mode: deep
   exhaustive:

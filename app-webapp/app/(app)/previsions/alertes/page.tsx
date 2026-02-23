@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CoverageAlert } from "@praedixa/shared-types";
 import { AlertOctagon, ShieldAlert, Siren, Filter } from "lucide-react";
 import { DataTable, type DataTableColumn, SkeletonTable } from "@praedixa/ui";
@@ -13,7 +13,7 @@ import {
   type SelectOption,
 } from "@/components/ui/select-dropdown";
 import { Badge } from "@/components/ui/badge";
-import { useApiGet } from "@/hooks/use-api";
+import { useApiGetPaginated } from "@/hooks/use-api";
 import { ErrorFallback } from "@/components/error-fallback";
 import { EmptyState } from "@/components/empty-state";
 import { PageTransition } from "@/components/page-transition";
@@ -36,6 +36,8 @@ const STATUS_OPTIONS: SelectOption[] = [
   { value: "resolved", label: "Resolue" },
   { value: "expired", label: "Expiree" },
 ];
+
+const PAGE_SIZE = 50;
 
 const columns: DataTableColumn<CoverageAlert>[] = [
   { key: "siteId", label: "Site" },
@@ -85,37 +87,46 @@ export default function PrevisionsAlertesPage() {
   const { appendSiteParam } = useSiteScope();
   const [severity, setSeverity] = useState("");
   const [status, setStatus] = useState("open");
+  const [page, setPage] = useState(1);
+
   const baseUrl = useMemo(
-    () =>
-      appendSiteParam(
-        `/api/v1/live/coverage-alerts?page_size=400${status ? `&status=${status}` : ""}`,
-      ),
-    [appendSiteParam, status],
+    () => {
+      const params = new URLSearchParams();
+      if (status) params.set("status", status);
+      if (severity) params.set("severity", severity);
+      const query = params.toString();
+      return appendSiteParam(
+        query
+          ? `/api/v1/live/coverage-alerts?${query}`
+          : "/api/v1/live/coverage-alerts",
+      );
+    },
+    [appendSiteParam, status, severity],
   );
 
-  const { data, loading, error, refetch } = useApiGet<CoverageAlert[]>(
-    baseUrl,
-    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
-  );
+  useEffect(() => {
+    setPage(1);
+  }, [status, severity]);
 
-  const filteredAlerts = useMemo(
-    () =>
-      (data ?? []).filter((alert) =>
-        severity ? alert.severity === severity : true,
-      ),
-    [data, severity],
-  );
+  const { data, total, loading, error, refetch } =
+    useApiGetPaginated<CoverageAlert>(
+      baseUrl,
+      page,
+      PAGE_SIZE,
+      { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
+    );
 
-  const criticalCount = filteredAlerts.filter(
+  const alerts = data ?? [];
+  const criticalCount = alerts.filter(
     (alert) => alert.severity === "critical",
   ).length;
-  const highCount = filteredAlerts.filter(
+  const highCount = alerts.filter(
     (alert) => alert.severity === "high",
   ).length;
 
   return (
     <PageTransition>
-      <div className="gradient-mesh min-h-full space-y-8">
+      <div className="min-h-full space-y-12">
         <PageHeader
           eyebrow="Anticipation"
           title="Toutes les alertes"
@@ -138,10 +149,10 @@ export default function PrevisionsAlertesPage() {
         )}
 
         <DetailCard>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Alertes affichees"
-              value={loading ? "..." : filteredAlerts.length}
+              value={loading ? "..." : alerts.length}
               status={criticalCount > 0 ? "danger" : "neutral"}
               icon={<AlertOctagon className="h-5 w-5" />}
               animate
@@ -190,7 +201,7 @@ export default function PrevisionsAlertesPage() {
           <ErrorFallback message={error} onRetry={refetch} />
         ) : loading ? (
           <SkeletonTable rows={10} columns={8} />
-        ) : filteredAlerts.length === 0 ? (
+        ) : alerts.length === 0 ? (
           <EmptyState
             icon={<AlertOctagon className="h-6 w-6 text-ink-tertiary" />}
             title="Aucune alerte"
@@ -199,9 +210,15 @@ export default function PrevisionsAlertesPage() {
         ) : (
           <DataTable<CoverageAlert>
             columns={columns}
-            data={filteredAlerts}
+            data={alerts}
             getRowKey={(row) => row.id}
             emptyMessage="Aucune alerte disponible"
+            pagination={{
+              page,
+              pageSize: PAGE_SIZE,
+              total,
+              onPageChange: setPage,
+            }}
             stickyHeader
             className="overflow-hidden rounded-[var(--radius-lg)] border border-border bg-card shadow-[var(--shadow-floating)]"
           />

@@ -46,7 +46,7 @@ function LoginForm() {
     >
       <div className="space-y-2 text-center">
         <p className="text-overline text-ink-tertiary">Client access</p>
-        <h2 className="font-serif text-display-sm text-ink">
+        <h2 className="font-sans font-bold text-display-sm text-ink">
           Connexion securisee
         </h2>
         <p className="text-body-sm text-ink-secondary">
@@ -70,7 +70,6 @@ function LoginForm() {
         <Button
           type="button"
           onClick={handleLogin}
-          variant="premium"
           className="w-full"
           size="lg"
         >

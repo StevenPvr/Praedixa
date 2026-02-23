@@ -13,7 +13,10 @@ test.describe("Responsive behavior", () => {
     await page.goto("/dashboard");
 
     // On mobile, the sidebar is hidden and a hamburger button is visible
-    const menuButton = page.getByRole("button", { name: "Ouvrir le menu" });
+    const menuButton = page.getByRole("button", {
+      name: "Ouvrir le menu",
+      exact: true,
+    });
     await expect(menuButton).toBeVisible();
   });
 
@@ -22,7 +25,10 @@ test.describe("Responsive behavior", () => {
     await page.goto("/dashboard");
 
     // Open menu
-    const menuButton = page.getByRole("button", { name: "Ouvrir le menu" });
+    const menuButton = page.getByRole("button", {
+      name: "Ouvrir le menu",
+      exact: true,
+    });
     await menuButton.click();
 
     // Sidebar should now be visible with nav items
@@ -30,9 +36,15 @@ test.describe("Responsive behavior", () => {
     await expect(nav).toBeVisible();
 
     // Should show navigation items
-    await expect(nav.getByText("War room")).toBeVisible();
-    await expect(nav.getByText("Donnees")).toBeVisible();
-    await expect(nav.getByText("Anticipation")).toBeVisible();
+    await expect(
+      nav.getByRole("link", { name: "Tableau de bord", exact: true }),
+    ).toBeVisible();
+    await expect(
+      nav.getByRole("link", { name: "Donnees operationnelles", exact: true }),
+    ).toBeVisible();
+    await expect(
+      nav.getByRole("link", { name: "Anticipation", exact: true }),
+    ).toBeVisible();
   });
 
   test("mobile touch targets are at least 24px", async ({ page }) => {
@@ -40,7 +52,10 @@ test.describe("Responsive behavior", () => {
     await page.goto("/dashboard");
 
     // Hamburger button should have usable touch target (WCAG 2.5.5 recommends 44px; current design uses ~24px)
-    const menuButton = page.getByRole("button", { name: "Ouvrir le menu" });
+    const menuButton = page.getByRole("button", {
+      name: "Ouvrir le menu",
+      exact: true,
+    });
     await expect(menuButton).toBeVisible();
     const box = await menuButton.boundingBox();
     expect(box).not.toBeNull();

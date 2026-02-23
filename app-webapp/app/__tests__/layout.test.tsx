@@ -20,10 +20,6 @@ vi.mock("next/font/google", () => ({
     variable: "--font-sans",
     style: { fontFamily: "Manrope" },
   }),
-  Cormorant_Garamond: () => ({
-    variable: "--font-serif",
-    style: { fontFamily: "Cormorant Garamond" },
-  }),
 }));
 
 vi.mock("@/components/theme-provider", () => ({

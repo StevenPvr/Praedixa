@@ -509,6 +509,49 @@ describe("DataTable", () => {
       expect(screen.getByRole("button", { name: "20" })).toBeInTheDocument();
       expect(screen.getByText("...")).toBeInTheDocument();
     });
+
+    it("sanitizes invalid pageSize to avoid infinite pagination controls", () => {
+      const onPageChange = vi.fn();
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          pagination={{
+            page: 1,
+            pageSize: 0,
+            total: 20,
+            onPageChange,
+          }}
+        />,
+      );
+
+      expect(
+        screen.queryByRole("button", { name: "Infinity" }),
+      ).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByLabelText("Page suivante"));
+      expect(onPageChange).toHaveBeenCalledWith(2);
+    });
+
+    it("clamps out-of-range current page before rendering controls", () => {
+      const onPageChange = vi.fn();
+      render(
+        <DataTable
+          columns={sampleColumns}
+          data={sampleData}
+          pagination={{
+            page: 999,
+            pageSize: 10,
+            total: 35,
+            onPageChange,
+          }}
+        />,
+      );
+
+      expect(screen.getByLabelText("Page suivante")).toBeDisabled();
+      fireEvent.click(screen.getByLabelText("Page precedente"));
+      expect(onPageChange).toHaveBeenCalledWith(3);
+    });
   });
 
   describe("styling", () => {

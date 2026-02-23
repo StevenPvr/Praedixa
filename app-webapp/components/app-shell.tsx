@@ -9,17 +9,12 @@ import {
   Search,
   Bell,
   ChevronRight,
-  Building2,
-  Globe2,
-  Clock3,
-  PanelLeft,
-  Rows3,
   LayoutDashboard,
   Settings,
   MessageSquare,
   LogOut,
 } from "lucide-react";
-import type { Organization, Site } from "@praedixa/shared-types";
+import type { Site } from "@praedixa/shared-types";
 import { useMediaQuery } from "@praedixa/ui";
 import { SidebarWithUnread } from "@/components/sidebar-with-unread";
 import { ToastProvider } from "@/components/toast-provider";
@@ -72,34 +67,6 @@ function formatHeaderDate(locale: "fr" | "en"): string {
   }).format(new Date());
 }
 
-function formatTime(locale: "fr" | "en"): string {
-  return new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date());
-}
-
-function pathToNavItem(pathname: string): string {
-  if (pathname.startsWith("/donnees/gold")) return "donnees-gold";
-  if (pathname.startsWith("/donnees/datasets")) return "donnees-datasets";
-  if (pathname.startsWith("/donnees/canonique")) return "donnees-canonique";
-  if (pathname.startsWith("/donnees")) return "donnees-sites";
-
-  if (pathname.startsWith("/previsions/modeles")) return "previsions-modeles";
-  if (pathname.startsWith("/previsions/alertes")) return "previsions-alertes";
-  if (pathname.startsWith("/previsions")) return "previsions-vue";
-
-  if (pathname.startsWith("/actions/historique")) return "actions-historique";
-  if (pathname.startsWith("/actions")) return "actions-traitement";
-
-  if (pathname.startsWith("/messages")) return "messages";
-  if (pathname.startsWith("/rapports")) return "rapports";
-  if (pathname.startsWith("/onboarding")) return "onboarding";
-  if (pathname.startsWith("/parametres")) return "parametres";
-
-  return "dashboard";
-}
-
 function AppShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -108,16 +75,12 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
   const {
     preferences,
     loaded,
-    setDensity,
     setSidebarCollapsed,
     setSidebarWidth,
-    toggleStarred,
-    pushRecent,
     setThemeMode,
   } = useUxPreferences();
 
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  const [scrolled, setScrolled] = React.useState(false);
   const [resizing, setResizing] = React.useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = React.useState(false);
   const [isSigningOut, setIsSigningOut] = React.useState(false);
@@ -128,9 +91,6 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const { setTheme } = useTheme();
 
-  const { data: organization } = useApiGet<Organization>(
-    "/api/v1/organizations/me",
-  );
   const { data: sites } = useApiGet<Site[]>("/api/v1/sites");
   const safeSites = React.useMemo(
     () => (Array.isArray(sites) ? sites : []),
@@ -148,7 +108,6 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
 
   const breadcrumbs = getBreadcrumbs(pathname);
   const currentDate = formatHeaderDate(locale);
-  const currentTime = formatTime(locale);
   const userInitial = currentUser?.email?.charAt(0).toUpperCase() ?? "U";
   const canManageSettings = canAccessSettings(currentUser?.role);
   const isManagerRole =
@@ -252,16 +211,6 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
   }, [isDesktop]);
 
   React.useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 4);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  React.useEffect(() => {
-    pushRecent(pathToNavItem(pathname));
-  }, [pathname, pushRecent]);
-
-  React.useEffect(() => {
     document.documentElement.dataset.density = preferences.density;
     return () => {
       delete document.documentElement.dataset.density;
@@ -347,9 +296,6 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
     [isDesktop, collapsed, sidebarWidth, setSidebarWidth],
   );
 
-  const densityButtonBase =
-    "inline-flex min-h-[32px] items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-semibold transition-colors duration-fast";
-
   return (
     <ToastProvider>
       <RouteProgressBar />
@@ -405,9 +351,15 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                   ? () => setSidebarCollapsed(!collapsed)
                   : () => setMobileOpen(false)
               }
-              starredItems={preferences.nav.starredItems}
-              recentItems={preferences.nav.recentItems}
-              onToggleStar={toggleStarred}
+              siteOptions={siteOptions}
+              selectedSiteId={selectedSiteId}
+              selectedSiteLabel={selectedSiteLabel}
+              siteFallbackLabel={t("sidebar.siteFallback")}
+              onSiteChange={
+                isAdminRole && !isManagerRole
+                  ? (siteId) => setSelectedGlobalSiteId(siteId)
+                  : undefined
+              }
             />
 
             {isDesktop && !collapsed && (
@@ -432,12 +384,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             }}
           >
             <header
-              className={cn(
-                "sticky top-0 z-20 flex h-topbar items-center justify-between border-b px-page-x text-white transition-all duration-fast",
-                scrolled
-                  ? "glass-header border-white/20 shadow-[0_8px_22px_-12px_oklch(0_0_0_/_0.55)]"
-                  : "border-white/16 bg-[color-mix(in_oklch,var(--brand-700)_82%,var(--brand-600)_18%)] backdrop-blur-sm",
-              )}
+              className="sticky top-0 z-20 flex h-topbar items-center justify-between border-b border-border bg-white px-page-x"
             >
               <div className="flex items-center gap-3">
                 <button
@@ -448,9 +395,9 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                   }
                   className={cn(
                     "flex h-9 w-9 items-center justify-center rounded-lg",
-                    "text-white/72 transition-colors duration-fast",
-                    "hover:bg-white/10 hover:text-white",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/36",
+                    "text-ink-tertiary transition-colors duration-fast",
+                    "hover:bg-surface-sunken hover:text-ink",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
                     "lg:hidden",
                   )}
                   aria-label={
@@ -474,7 +421,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                     <React.Fragment key={i}>
                       {i > 0 && (
                         <ChevronRight
-                          className="h-3 w-3 text-white/45"
+                          className="h-3 w-3 text-ink-placeholder"
                           aria-hidden="true"
                         />
                       )}
@@ -482,15 +429,15 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                         className={cn(
                           "text-sm font-semibold tracking-[-0.01em]",
                           i === breadcrumbs.length - 1
-                            ? "text-white"
-                            : "text-white/66",
+                            ? "text-ink"
+                            : "text-ink-secondary",
                         )}
                       >
                         {crumb.label}
                       </span>
                     </React.Fragment>
                   ))}
-                  <span className="ml-2 hidden text-caption text-white/62 sm:inline">
+                  <span className="ml-2 hidden text-caption text-ink-tertiary sm:inline">
                     {currentDate}
                   </span>
                 </nav>
@@ -502,56 +449,25 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                   onClick={() => setCmdOpen(true)}
                   className={cn(
                     "hidden items-center gap-2 rounded-lg px-3 py-1.5",
-                    "border border-white/22 bg-white/10",
-                    "text-caption text-white/70",
+                    "border border-border bg-surface-sunken",
+                    "text-caption text-ink-tertiary",
                     "transition-all duration-fast",
-                    "hover:border-white/35 hover:bg-white/14 hover:text-white",
+                    "hover:border-border-hover hover:bg-surface hover:text-ink",
                     "sm:flex",
                   )}
                 >
                   <Search className="h-3.5 w-3.5" />
                   <span>{t("commandPalette.placeholder").split(",")[0]}…</span>
-                  <kbd className="rounded-[var(--radius-xs)] border border-white/25 bg-white/12 px-1.5 py-px font-mono text-[10px] font-semibold text-white/80">
+                  <kbd className="rounded-[var(--radius-xs)] border border-border bg-surface px-1.5 py-px font-mono text-[10px] font-semibold text-ink-secondary">
                     ⌘K
                   </kbd>
                 </button>
 
-                <div className="hidden items-center rounded-lg border border-white/20 bg-white/10 p-0.5 sm:flex">
-                  <button
-                    type="button"
-                    onClick={() => setDensity("compact")}
-                    className={cn(
-                      densityButtonBase,
-                      preferences.density === "compact"
-                        ? "bg-white/16 text-white shadow-[inset_0_0_0_1px_oklch(1_0_0_/_0.14)]"
-                        : "text-white/70 hover:text-white",
-                    )}
-                    aria-label={t("appShell.densityCompact")}
-                  >
-                    <Rows3 className="h-3.5 w-3.5" />
-                    {t("appShell.densityCompact")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDensity("comfortable")}
-                    className={cn(
-                      densityButtonBase,
-                      preferences.density === "comfortable"
-                        ? "bg-white/16 text-white shadow-[inset_0_0_0_1px_oklch(1_0_0_/_0.14)]"
-                        : "text-white/70 hover:text-white",
-                    )}
-                    aria-label={t("appShell.densityComfortable")}
-                  >
-                    <PanelLeft className="h-3.5 w-3.5" />
-                    {t("appShell.densityComfortable")}
-                  </button>
-                </div>
-
                 <button
                   className={cn(
                     "relative flex h-9 w-9 items-center justify-center rounded-lg",
-                    "text-white/72 transition-colors duration-fast",
-                    "hover:bg-white/10 hover:text-white",
+                    "text-ink-tertiary transition-colors duration-fast",
+                    "hover:bg-surface-sunken hover:text-ink",
                   )}
                   aria-label="Notifications"
                 >
@@ -560,7 +476,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
 
                 <ThemeToggle
                   onModeChange={setThemeMode}
-                  className="text-white/72 hover:bg-white/10 hover:text-white dark:hover:bg-white/10"
+                  className="text-ink-tertiary hover:bg-surface-sunken hover:text-ink dark:hover:bg-surface-sunken"
                 />
 
                 <label htmlFor="app-language" className="sr-only">
@@ -574,25 +490,25 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                       setLocale(event.target.value === "en" ? "en" : "fr")
                     }
                     className={cn(
-                      "cursor-pointer appearance-none rounded-lg border border-white/22",
-                      "bg-white/12 py-1.5 pl-2.5 pr-7",
-                      "text-xs font-semibold text-white outline-none",
+                      "cursor-pointer appearance-none rounded-lg border border-border",
+                      "bg-surface py-1.5 pl-2.5 pr-7",
+                      "text-xs font-semibold text-ink outline-none",
                       "transition-all duration-fast",
-                      "hover:border-white/35 hover:bg-white/16",
-                      "focus:border-white/45 focus:ring-2 focus:ring-white/22",
+                      "hover:border-border-hover hover:bg-surface-sunken",
+                      "focus:border-primary/40 focus:ring-2 focus:ring-primary/20",
                     )}
                   >
                     <option value="fr">FR</option>
                     <option value="en">EN</option>
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-white/72">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-ink-tertiary">
                     <svg className="h-3 w-3 fill-current" viewBox="0 0 20 20">
                       <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                     </svg>
                   </div>
                 </div>
 
-                <div className="mx-0.5 h-5 w-px bg-white/20" />
+                <div className="mx-0.5 h-5 w-px bg-border" />
 
                 <div className="relative" ref={profileMenuRef}>
                   <button
@@ -601,10 +517,10 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                     onClick={() => setProfileMenuOpen((prev) => !prev)}
                     className={cn(
                       "flex h-9 w-9 items-center justify-center rounded-full",
-                      "bg-gradient-to-br from-primary to-primary-dark",
+                      "bg-primary",
                       "text-xs font-bold text-white",
-                      "shadow-sm transition-all duration-fast",
-                      "hover:shadow-[var(--shadow-premium-glow)] hover:brightness-110",
+                      "shadow-raised transition-colors duration-fast",
+                      "hover:bg-primary-600",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                     )}
                     aria-label={t("appShell.profileMenu.open")}
@@ -686,62 +602,6 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
             </header>
-
-            <div className="border-b border-white/14 bg-[color-mix(in_oklch,var(--brand-700)_74%,var(--brand-600)_26%)] px-page-x py-2.5">
-              <div className="mx-auto flex max-w-page flex-wrap items-center gap-2.5 text-caption text-white/75">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/16 bg-white/12 px-2.5 py-1 text-caption text-white">
-                  <Building2 className="h-3.5 w-3.5 text-primary" />
-                  <strong className="font-semibold">
-                    {t("appShell.tenant")}:
-                  </strong>
-                  {organization?.name ?? t("appShell.organization")}
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/16 bg-white/10 px-2.5 py-1">
-                  <Globe2 className="h-3.5 w-3.5 text-info" />
-                  <strong className="font-semibold">
-                    {t("appShell.environment")}:
-                  </strong>
-                  {t("appShell.production")}
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/16 bg-white/10 px-2.5 py-1">
-                  <Clock3 className="h-3.5 w-3.5 text-warning" />
-                  <strong className="font-semibold">
-                    {t("appShell.timezone")}:
-                  </strong>
-                  {organization?.timezone ?? "Europe/Paris"}
-                </span>
-
-                {isAdminRole && !isManagerRole && siteOptions.length > 1 ? (
-                  <label className="inline-flex items-center gap-1.5 rounded-full border border-white/16 bg-white/10 px-2 py-0.5 text-white">
-                    <span className="font-semibold">Site:</span>
-                    <select
-                      value={selectedSiteId ?? ""}
-                      onChange={(event) => {
-                        const next = event.target.value || null;
-                        setSelectedGlobalSiteId(next);
-                      }}
-                      className="min-w-[180px] cursor-pointer rounded-md border border-white/22 bg-white/10 px-2 py-1 text-caption text-white outline-none focus:border-white/45 focus:ring-2 focus:ring-white/25"
-                    >
-                      <option value="">{t("sidebar.siteFallback")}</option>
-                      {siteOptions.map((site) => (
-                        <option key={site.id} value={site.id}>
-                          {site.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/16 bg-white/10 px-2.5 py-1">
-                    <strong className="font-semibold">Site:</strong>
-                    {selectedSiteLabel}
-                  </span>
-                )}
-
-                <span className="text-white/60 sm:ml-auto">
-                  {t("appShell.updatedAt")}: {currentTime}
-                </span>
-              </div>
-            </div>
 
             <main
               id="main-content"

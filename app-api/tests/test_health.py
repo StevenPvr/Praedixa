@@ -78,3 +78,20 @@ async def test_health_includes_process_time(client: AsyncClient) -> None:
 
     assert "X-Process-Time" in response.headers
     assert float(response.headers["X-Process-Time"]) >= 0
+
+
+@pytest.mark.asyncio
+async def test_api_v1_health_alias_returns_same_payload(client: AsyncClient) -> None:
+    """GET /api/v1/health should remain backward-compatible with /health."""
+    mock_session = AsyncMock()
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock(return_value=False)
+    mock_session.execute = AsyncMock()
+
+    with patch("app.routers.health.async_session_factory", return_value=mock_session):
+        response = await client.get("/api/v1/health")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "healthy"
+    assert data["checks"] == [{"name": "database", "status": "pass"}]

@@ -53,7 +53,7 @@ export default {
 
       fontFamily: {
         sans: [
-          "Manrope",
+          "var(--font-sans)",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",

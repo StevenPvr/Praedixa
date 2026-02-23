@@ -107,7 +107,7 @@ export default function MessagesPage() {
   if (convsError) {
     return (
       <PageTransition>
-        <div className="space-y-8">
+        <div className="space-y-12">
           <PageHeader
             eyebrow="Suivre"
             title="Support strategique"
@@ -125,7 +125,7 @@ export default function MessagesPage() {
 
   return (
     <PageTransition>
-      <div className="gradient-mesh min-h-full space-y-8">
+      <div className="min-h-full space-y-12">
         <PageHeader
           eyebrow="Suivre"
           title="Support strategique"

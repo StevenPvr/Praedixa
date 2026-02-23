@@ -35,6 +35,7 @@ invariants:
       - app-api/app/routers/admin.py
     required_tests:
       - app-api/tests/security/test_rgpd_bypass.py
+      - app-api/tests/security/test_rgpd_erasure.py
       - app-api/tests/security/test_scenario_engine_integrity.py
 
   - id: INV-IDEMPOTENCE-004

@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
+import { Outfit } from "next/font/google";
 import "@praedixa/ui/brand-tokens.css";
 import "./globals.css";
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.praedixa.com"),
@@ -26,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body>
+      <body className={outfit.variable}>
         <a href="#main-content" className="skip-link">
           Aller au contenu principal
         </a>

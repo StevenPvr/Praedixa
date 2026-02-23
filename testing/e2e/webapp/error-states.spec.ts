@@ -21,10 +21,10 @@ test.describe("Error states", () => {
         }),
       }),
     );
-    await page.route("**/api/v1/dashboard/summary*", (route) =>
+    await page.route("**/api/v1/**dashboard/summary*", (route) =>
       route.abort("connectionrefused"),
     );
-    await page.route("**/api/v1/coverage-alerts/queue*", (route) =>
+    await page.route("**/api/v1/**coverage-alerts/queue*", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -43,7 +43,7 @@ test.describe("Error states", () => {
 
   test("401 error on dashboard redirects to login", async ({ page }) => {
     await mockAllApis(page);
-    await page.route("**/api/v1/dashboard/summary*", (route) =>
+    await page.route("**/api/v1/**dashboard/summary*", (route) =>
       route.fulfill({
         status: 401,
         contentType: "application/json",
@@ -110,7 +110,7 @@ test.describe("Error states", () => {
         }),
       }),
     );
-    await page.route("**/api/v1/coverage-alerts/queue*", (route) =>
+    await page.route("**/api/v1/**coverage-alerts/queue*", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -132,7 +132,7 @@ test.describe("Error states", () => {
         }),
       }),
     );
-    await page.route("**/api/v1/decision-workspace/*", (route) =>
+    await page.route("**/api/v1/**decision-workspace/*", (route) =>
       route.fulfill({
         status: 500,
         contentType: "application/json",
@@ -145,7 +145,7 @@ test.describe("Error states", () => {
         }),
       }),
     );
-    await page.route("**/api/v1/scenarios/alert/*", (route) =>
+    await page.route("**/api/v1/**scenarios/alert/*", (route) =>
       route.fulfill({
         status: 500,
         contentType: "application/json",

@@ -19,7 +19,7 @@ export default function AuthLayout({
           {/* Logo */}
           <div className="flex items-center gap-3">
             <PraedixaLogo size={34} className="text-white" color="white" />
-            <span className="font-serif text-2xl tracking-tight">Praedixa</span>
+            <span className="font-sans font-bold text-2xl tracking-tight">Praedixa</span>
           </div>
 
           {/* Hero content */}
@@ -27,7 +27,7 @@ export default function AuthLayout({
             <p className="text-overline text-white/80">
               Executive operations platform
             </p>
-            <h1 className="font-serif text-display-lg text-balance leading-[1.02]">
+            <h1 className="font-sans font-bold text-display-lg text-balance leading-[1.02]">
               Pilotez vos decisions critiques avant la rupture.
             </h1>
             <p className="max-w-lg text-body leading-relaxed text-white/75">
@@ -79,7 +79,7 @@ export default function AuthLayout({
           {/* Mobile logo */}
           <div className="flex flex-col items-center gap-3 lg:hidden">
             <PraedixaLogo size={44} />
-            <h1 className="font-serif text-heading-lg text-ink">Praedixa</h1>
+            <h1 className="font-sans font-bold text-heading-lg text-ink">Praedixa</h1>
           </div>
           {children}
         </div>

@@ -1,5 +1,6 @@
 """RGPD erasure service tests for the DB-backed implementation."""
 
+import re
 import uuid
 from datetime import UTC, datetime
 from types import SimpleNamespace
@@ -13,6 +14,7 @@ from app.services.rgpd_erasure import (
     _VERIFICATION_TABLES,
     ErasureRequest,
     ErasureStatus,
+    _delete_org_data,
     _validate_transition,
     approve_erasure,
     execute_erasure,
@@ -33,6 +35,19 @@ class _ScalarResult:
 
     def scalar_one(self) -> int:
         return self.value
+
+
+class _RowsResult:
+    def __init__(self, rows: list[tuple[uuid.UUID]]) -> None:
+        self.rows = rows
+
+    def fetchall(self) -> list[tuple[uuid.UUID]]:
+        return self.rows
+
+
+class _DeleteResult:
+    def __init__(self, rowcount: int) -> None:
+        self.rowcount = rowcount
 
 
 @pytest.fixture
@@ -288,6 +303,71 @@ class TestExecution:
 
 
 class TestVerificationAndRead:
+    def test_verification_tables_cover_critical_domains(self) -> None:
+        names = {name for name, _ in _VERIFICATION_TABLES}
+        assert {
+            "quality_reports",
+            "canonical_records",
+            "cost_parameters",
+            "coverage_alerts",
+            "scenario_options",
+            "operational_decisions",
+            "proof_records",
+            "model_registry",
+            "model_inference_jobs",
+            "model_artifact_access_log",
+            "data_lineage_events",
+            "plan_change_history",
+            "onboarding_states",
+            "organizations",
+        }.issubset(names)
+
+    async def test_delete_org_data_purges_critical_tables(self, db: AsyncMock) -> None:
+        dataset_id = uuid.uuid4()
+        seen_deletes: set[str] = set()
+
+        async def execute_side_effect(statement: object) -> _RowsResult | _DeleteResult:
+            sql = str(statement)
+            if "SELECT client_datasets.id" in sql:
+                return _RowsResult([(dataset_id,)])
+
+            match = re.search(r"DELETE FROM ([a-z_]+)", sql)
+            if match is not None:
+                seen_deletes.add(match.group(1))
+                return _DeleteResult(1)
+
+            return _DeleteResult(0)
+
+        db.execute = AsyncMock(side_effect=execute_side_effect)
+
+        counts = await _delete_org_data(db, ORG_ID)
+
+        assert {
+            "canonical_records",
+            "cost_parameters",
+            "coverage_alerts",
+            "scenario_options",
+            "operational_decisions",
+            "proof_records",
+            "model_registry",
+            "model_inference_jobs",
+            "model_artifact_access_log",
+            "data_lineage_events",
+            "quality_reports",
+            "pipeline_config_history",
+            "ingestion_log",
+            "fit_parameters",
+            "dataset_columns",
+            "client_datasets",
+            "users",
+            "organizations",
+        }.issubset(seen_deletes)
+
+        assert counts["canonical_records"] == 1
+        assert counts["operational_decisions"] == 1
+        assert counts["quality_reports"] == 1
+        assert counts["organizations"] == 1
+
     async def test_verify_erasure_returns_table_counts(self, db: AsyncMock) -> None:
         db.execute = AsyncMock(
             side_effect=[_ScalarResult(0) for _ in _VERIFICATION_TABLES]

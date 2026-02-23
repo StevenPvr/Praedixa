@@ -15,12 +15,12 @@ import sys
 from typing import Any
 from urllib.parse import urlparse
 
-import jwt  # noqa: F401 — re-exported via auth.py for test patching
+import jwt
 import structlog
 from fastapi import HTTPException, status
 from jwt import InvalidTokenError, PyJWKClient
 
-from app.core.config import settings  # noqa: F401 — re-exported for test patching
+from app.core.config import settings
 
 _AUTH_ERROR_DETAIL = "Invalid or expired token"
 _ALLOWED_ASYMMETRIC_ALGORITHMS: frozenset[str] = frozenset({"RS256", "ES256", "EdDSA"})
@@ -28,6 +28,19 @@ _PLACEHOLDER_SUPABASE_URLS = {"", "https://your-project.supabase.co"}
 
 logger = structlog.get_logger()
 _jwk_clients: dict[str, PyJWKClient] = {}
+
+__all__ = [
+    "_allow_dev_issuer_fallback",
+    "_auth_error",
+    "_get_jwk_client",
+    "_is_allowed_jwks_host",
+    "_is_local_development",
+    "_jwks_url_from_base",
+    "_jwks_url_from_issuer",
+    "decode_token",
+    "jwt",
+    "settings",
+]
 
 
 def _get_auth_module() -> Any:
@@ -99,7 +112,7 @@ def _is_allowed_jwks_host(hostname: str | None) -> bool:
     return host in allowed_custom_hosts
 
 
-def _jwks_url_from_base(base_url: str) -> str | None:
+def _jwks_url_from_base(base_url: str) -> str | None:  # noqa: PLR0911
     """Derive a JWKS URL from a base URL (Supabase or Keycloak-compatible)."""
     if not isinstance(base_url, str):
         return None
@@ -200,7 +213,7 @@ def _get_jwk_client(jwks_url: str) -> PyJWKClient:  # pragma: no cover
     return _jwk_clients[jwks_url]
 
 
-def decode_token(token: str) -> dict[str, Any]:
+def decode_token(token: str) -> dict[str, Any]:  # noqa: PLR0912, PLR0915
     """Decode and verify a JWT token."""
     _mod = _get_auth_module()
 

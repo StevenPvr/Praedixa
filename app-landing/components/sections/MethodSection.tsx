@@ -13,6 +13,7 @@ import {
   blurReveal,
   blurStaggerContainer,
   blurStaggerItem,
+  cardHover,
   viewportEarly,
   viewportOnce,
 } from "@/lib/animations/variants";
@@ -63,16 +64,22 @@ export function MethodSection({ solution, howItWorks }: MethodSectionProps) {
             initial="hidden"
             whileInView="visible"
             viewport={viewportOnce}
-            className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-12"
+            className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-12"
           >
             {solution.principles.map((principle, index) => {
               const Icon = principleIcons[index] ?? ChartLine;
-              const span = index === 0 ? "md:col-span-12" : "md:col-span-6";
+              const span =
+                index === 0
+                  ? "md:col-span-12"
+                  : index === 1
+                    ? "md:col-span-7"
+                    : "md:col-span-5";
 
               return (
                 <motion.article
                   key={principle.title}
                   variants={blurStaggerItem}
+                  whileHover={cardHover}
                   className={`panel-glass rounded-3xl p-6 ${span}`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -118,13 +125,14 @@ export function MethodSection({ solution, howItWorks }: MethodSectionProps) {
             initial="hidden"
             whileInView="visible"
             viewport={viewportOnce}
-            className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-12"
+            className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-12"
           >
             {howItWorks.steps.map((step, index) => (
               <motion.article
                 key={step.number}
                 variants={blurStaggerItem}
-                className={`rounded-3xl border border-white/14 bg-white/[0.03] p-6 ${
+                whileHover={cardHover}
+                className={`rounded-3xl border border-white/14 bg-white/[0.03] p-6 transition-colors duration-300 hover:border-white/24 hover:bg-white/[0.05] ${
                   protocolSpans[index] ?? "md:col-span-6"
                 }`}
               >

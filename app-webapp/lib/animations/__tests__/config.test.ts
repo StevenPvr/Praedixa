@@ -74,8 +74,8 @@ describe("animation config", () => {
   });
 
   describe("sectionReveal variant", () => {
-    it("has hidden state with opacity 0 and y 24", () => {
-      expect(sectionReveal.hidden).toEqual({ opacity: 0, y: 24 });
+    it("has hidden state with opacity 0 and y 12", () => {
+      expect(sectionReveal.hidden).toEqual({ opacity: 0, y: 12 });
     });
 
     it("has visible state with opacity 1 and y 0", () => {

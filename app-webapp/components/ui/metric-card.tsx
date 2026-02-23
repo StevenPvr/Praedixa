@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { cn } from "@praedixa/ui";
 import { TrendIndicator } from "@/components/ui/trend-indicator";
 import { useCountUp } from "@/hooks/use-count-up";
-import { cardReveal, SPRING } from "@/lib/animations/config";
+import { cardReveal } from "@/lib/animations/config";
 
 export type MetricStatus = "good" | "warning" | "danger" | "neutral";
 
@@ -20,27 +20,6 @@ export interface MetricCardProps extends React.HTMLAttributes<HTMLDivElement> {
   trendInverted?: boolean;
   icon?: React.ReactNode;
 }
-
-const statusBorder: Record<MetricStatus, string> = {
-  good: "border-l-[3px] border-l-success",
-  warning: "border-l-[3px] border-l-warning",
-  danger: "border-l-[3px] border-l-danger",
-  neutral: "",
-};
-
-const statusBg: Record<MetricStatus, string> = {
-  good: "metric-bg-good",
-  warning: "metric-bg-warning",
-  danger: "metric-bg-danger",
-  neutral: "metric-bg-neutral",
-};
-
-const statusHoverGlow: Record<MetricStatus, string> = {
-  good: "metric-hover-good",
-  warning: "metric-hover-warning",
-  danger: "metric-hover-danger",
-  neutral: "metric-hover-neutral",
-};
 
 const statusDot: Record<MetricStatus, string> = {
   good: "bg-success shadow-[0_0_0_3px_var(--success-light)]",
@@ -72,7 +51,7 @@ function AnimatedValue({
   });
 
   return (
-    <span className="font-serif text-metric-sm tabular-nums text-ink">
+    <span className="font-sans text-metric-sm font-bold tabular-nums text-ink">
       {isNumeric ? animated : value}
       {unit && (
         <span className="ml-0.5 font-sans text-body-sm font-medium text-ink-secondary">
@@ -104,14 +83,9 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
         variants={cardReveal}
         initial="hidden"
         animate="visible"
-        whileHover={{ y: -2, transition: SPRING.premium }}
         className={cn(
           "relative overflow-hidden rounded-lg border border-border",
-          "shadow-raised transition-shadow duration-fast",
-          "shine-effect px-5 py-4",
-          statusBg[status],
-          statusHoverGlow[status],
-          statusBorder[status],
+          "bg-card px-7 py-6 shadow-raised transition-shadow duration-fast hover:shadow-card-hover",
           className,
         )}
       >
@@ -131,7 +105,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
               {animate ? (
                 <AnimatedValue value={value} unit={unit} />
               ) : (
-                <span className="font-serif text-metric-sm tabular-nums text-ink">
+                <span className="font-sans text-metric-sm font-bold tabular-nums text-ink">
                   {value}
                   {unit && (
                     <span className="ml-0.5 font-sans text-body-sm font-medium text-ink-secondary">

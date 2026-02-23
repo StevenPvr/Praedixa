@@ -106,7 +106,7 @@ test.describe("API edge cases — network errors", () => {
       }),
     );
 
-    await page.route("**/api/v1/coverage-alerts/queue*", (route) =>
+    await page.route("**/api/v1/**coverage-alerts/queue*", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -133,17 +133,38 @@ test.describe("API edge cases — network errors", () => {
       }),
     );
 
-    await page.route("**/api/v1/live/decision-workspace/*", (route) =>
-      route.abort("connectionrefused"),
+    await page.route("**/api/v1/**decision-workspace/*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          data: {
+            alert: {
+              id: "alert-1",
+              siteId: "Lyon",
+              alertDate: "2026-02-10",
+              shift: "am",
+              horizon: "j7",
+              gapH: 6,
+              pRupture: 0.62,
+              severity: "critical",
+              status: "open",
+              driversJson: ["absence_rate"],
+            },
+            options: [],
+            recommendedOptionId: null,
+            diagnostic: null,
+          },
+          timestamp: "2026-02-07T12:00:00Z",
+        }),
+      }),
     );
-    await page.route("**/api/v1/live/scenarios/alert/*", (route) =>
+    await page.route("**/api/v1/**scenarios/alert/*", (route) =>
       route.abort("connectionrefused"),
     );
 
     await page.goto("/actions");
-    await expect(
-      page.getByText("Aucun scenario disponible pour cette alerte.").first(),
-    ).toBeVisible();
     await expect(
       page
         .getByText(

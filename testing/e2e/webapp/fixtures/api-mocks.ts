@@ -202,7 +202,7 @@ const decisionQueue = [
 ];
 
 export async function mockDecisionQueue(page: Page): Promise<void> {
-  await page.route("**/api/v1/coverage-alerts/queue*", (route) =>
+  await page.route("**/api/v1/**coverage-alerts/queue*", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -262,8 +262,15 @@ const dashboardSummary = {
 };
 
 export async function mockDashboardSummary(page: Page): Promise<void> {
-  await page.route("**/api/v1/dashboard/summary*", (route) =>
-    route.fulfill({
+  await page.route("**/api/v1/**dashboard/summary*", (route) => {
+    const url = new URL(route.request().url());
+    if (
+      url.pathname !== "/api/v1/dashboard/summary" &&
+      url.pathname !== "/api/v1/live/dashboard/summary"
+    ) {
+      return route.fallback();
+    }
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
@@ -271,8 +278,8 @@ export async function mockDashboardSummary(page: Page): Promise<void> {
         data: dashboardSummary,
         timestamp: NOW,
       }),
-    }),
-  );
+    });
+  });
 }
 
 // ─────────────────────────────────────────────────
@@ -561,7 +568,7 @@ const paretoFrontierResponse = {
 };
 
 export async function mockDecisionWorkspace(page: Page): Promise<void> {
-  await page.route("**/api/v1/decision-workspace/*", (route) => {
+  await page.route("**/api/v1/**decision-workspace/*", (route) => {
     const alertId = route.request().url().split("/").pop() ?? IDS.alert1;
     const alert = coverageAlerts.find((entry) => entry.id === alertId);
 
@@ -606,7 +613,7 @@ export async function mockDecisionWorkspace(page: Page): Promise<void> {
 }
 
 export async function mockScenarios(page: Page): Promise<void> {
-  await page.route("**/api/v1/scenarios/alert/*", (route) =>
+  await page.route("**/api/v1/**scenarios/alert/*", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -620,7 +627,7 @@ export async function mockScenarios(page: Page): Promise<void> {
 }
 
 export async function mockScenariosError(page: Page): Promise<void> {
-  await page.route("**/api/v1/scenarios/alert/*", (route) =>
+  await page.route("**/api/v1/**scenarios/alert/*", (route) =>
     route.fulfill({
       status: 500,
       contentType: "application/json",

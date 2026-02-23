@@ -115,7 +115,7 @@ export default function PrevisionsModelesPage() {
 
   return (
     <PageTransition>
-      <div className="gradient-mesh min-h-full space-y-8">
+      <div className="min-h-full space-y-12">
         <PageHeader
           eyebrow="Anticipation"
           title="Monitoring IA/ML"
@@ -140,7 +140,7 @@ export default function PrevisionsModelesPage() {
         )}
 
         <DetailCard>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Version active"
               value={

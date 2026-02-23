@@ -60,6 +60,7 @@ const FILTER_OPTIONS: Array<{
   { id: "medium", label: "Moyennes" },
   { id: "low", label: "Basses" },
 ];
+const MAX_VISIBLE_ALERTS = 50;
 
 function toCoverageAlert(item: DecisionQueueItem): CoverageAlert {
   return {
@@ -145,14 +146,14 @@ export default function ActionsPage() {
   }, [queueData]);
 
   const alerts = useMemo(() => {
-    if (liveAlerts && liveAlerts.length > 0) {
-      return sortAlertsBySeverity(liveAlerts);
-    }
-    if (queueData && queueData.length > 0) {
+    if (queueData) {
       return sortQueueItems(queueData).map(toCoverageAlert);
     }
+    if (queueError && liveAlerts && liveAlerts.length > 0) {
+      return sortAlertsBySeverity(liveAlerts);
+    }
     return [];
-  }, [liveAlerts, queueData]);
+  }, [liveAlerts, queueData, queueError]);
 
   const loading = liveLoading || queueLoading;
   const hasAnyAlertData =
@@ -160,9 +161,19 @@ export default function ActionsPage() {
   const error = hasAnyAlertData ? null : (liveError ?? queueError);
 
   const filteredAlerts = useMemo(() => {
-    if (severityFilter === "all") return alerts;
-    return alerts.filter((alert) => alert.severity === severityFilter);
+    const matching =
+      severityFilter === "all"
+        ? alerts
+        : alerts.filter((alert) => alert.severity === severityFilter);
+    return matching.slice(0, MAX_VISIBLE_ALERTS);
   }, [alerts, severityFilter]);
+  const filteredAlertsTotal = useMemo(
+    () =>
+      severityFilter === "all"
+        ? alerts.length
+        : alerts.filter((alert) => alert.severity === severityFilter).length,
+    [alerts, severityFilter],
+  );
 
   const effectiveAlertId =
     selectedAlertId ??
@@ -333,7 +344,7 @@ export default function ActionsPage() {
       ? (fallbackError ?? workspaceError)
       : null;
 
-  const noAlerts = !loading && filteredAlerts.length === 0;
+  const noAlerts = !loading && filteredAlertsTotal === 0;
   const criticalCount = alerts.filter(
     (alert) => alert.severity === "critical",
   ).length;
@@ -346,7 +357,7 @@ export default function ActionsPage() {
 
   return (
     <PageTransition>
-      <div className="gradient-mesh min-h-full space-y-8">
+      <div className="min-h-full space-y-12">
         <PageHeader
           eyebrow="Decider"
           title={t("actions.title")}
@@ -372,7 +383,7 @@ export default function ActionsPage() {
           ))}
 
         {!error && (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Alertes ouvertes"
               value={loading ? "..." : alerts.length}
@@ -432,7 +443,7 @@ export default function ActionsPage() {
                   className="space-y-3"
                 >
                   <DetailCard>
-                    <h2 className="font-serif text-base font-semibold text-ink">
+                    <h2 className="font-sans text-base font-semibold text-ink">
                       {t("actions.queueTitle")}
                     </h2>
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -457,7 +468,13 @@ export default function ActionsPage() {
                     </div>
                   </DetailCard>
 
-                  <div className="space-y-2">
+                  <div className="max-h-[65vh] space-y-2 overflow-y-auto pr-1">
+                    {!loading && filteredAlertsTotal > filteredAlerts.length && (
+                      <p className="rounded-lg border border-border bg-surface-sunken px-3 py-2 text-caption text-ink-secondary">
+                        Affichage limite aux {MAX_VISIBLE_ALERTS} alertes les
+                        plus prioritaires.
+                      </p>
+                    )}
                     {loading &&
                       Array.from({ length: 5 }).map((_, index) => (
                         <SkeletonCard key={index} />

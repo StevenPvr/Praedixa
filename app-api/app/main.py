@@ -34,6 +34,7 @@ from app.routers import (
     admin_scenarios,
     admin_users,
     alerts,
+    analytics,
     arbitrage,
     canonical,
     contact_requests,
@@ -44,6 +45,7 @@ from app.routers import (
     datasets,
     decision_workspace,
     decisions,
+    exports,
     forecasts,
     health,
     live_client,
@@ -194,7 +196,9 @@ app.include_router(health.router)
 app.include_router(live_client.router)
 app.include_router(dashboard.router)
 app.include_router(forecasts.router)
+app.include_router(exports.router)
 app.include_router(alerts.router)
+app.include_router(analytics.router)
 app.include_router(organizations.router)
 app.include_router(decisions.router)
 app.include_router(arbitrage.router)

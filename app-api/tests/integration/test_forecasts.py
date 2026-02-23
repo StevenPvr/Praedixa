@@ -205,3 +205,59 @@ async def test_list_forecasts_invalid_page_size(client_a: AsyncClient) -> None:
     """GET /api/v1/forecasts rejects page_size > 100."""
     response = await client_a.get("/api/v1/forecasts?page_size=200")
     assert response.status_code == 422
+
+
+async def test_forecast_summary_200(client_a: AsyncClient) -> None:
+    """GET /api/v1/forecasts/{run_id}/summary returns compatibility payload."""
+    run_id = uuid.uuid4()
+    forecasts = [
+        _make_mock_daily_forecast("2026-02-05"),
+        _make_mock_daily_forecast("2026-02-06"),
+    ]
+    for forecast in forecasts:
+        forecast.forecast_run_id = run_id
+
+    with patch(
+        "app.routers.forecasts.get_daily_forecasts",
+        new_callable=AsyncMock,
+        return_value=forecasts,
+    ):
+        response = await client_a.get(f"/api/v1/forecasts/{run_id}/summary")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["data"]["period"]["startDate"] == "2026-02-05"
+    assert body["data"]["period"]["endDate"] == "2026-02-06"
+    assert len(body["data"]["dailyForecasts"]) == 2
+    assert body["data"]["dailyForecasts"][0]["forecastRunId"] == str(run_id)
+
+
+async def test_forecast_what_if_200(client_a: AsyncClient) -> None:
+    """POST /api/v1/forecasts/what-if returns baseline + scenario summaries."""
+    run_id = uuid.uuid4()
+    baseline = [_make_mock_daily_forecast("2026-02-07")]
+    baseline[0].forecast_run_id = run_id
+
+    with patch(
+        "app.routers.forecasts.get_latest_daily_forecasts",
+        new_callable=AsyncMock,
+        return_value=baseline,
+    ):
+        response = await client_a.post(
+            "/api/v1/forecasts/what-if",
+            json={
+                "name": "Stress test",
+                "description": "Peak season simulation",
+                "absenceRateModifier": 1.2,
+            },
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["data"]["scenario"]["name"] == "Stress test"
+    assert "baselineForecast" in body["data"]
+    assert "scenarioForecast" in body["data"]
+    assert "impact" in body["data"]
+    assert body["data"]["impact"]["absenceRateChange"] >= 0

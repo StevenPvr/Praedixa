@@ -13,155 +13,90 @@ test.describe("Login page error handling", () => {
     ).toBeVisible();
   });
 
-  test("displays error message on invalid credentials", async ({ page }) => {
-    // Override fetch to intercept Supabase signInWithPassword
-    await page.addInitScript(() => {
-      const origFetch = window.fetch.bind(window);
-      window.fetch = async (input, init) => {
-        const url =
-          typeof input === "string"
-            ? input
-            : input instanceof Request
-              ? input.url
-              : "";
-        if (url.includes("/auth/v1/token")) {
-          return new Response(
-            JSON.stringify({
-              error: "invalid_grant",
-              error_description: "Invalid login credentials",
-              message: "Invalid login credentials",
-            }),
-            { status: 400, headers: { "Content-Type": "application/json" } },
-          );
-        }
-        return origFetch(input, init);
-      };
-    });
-
-    await page.goto("/login");
-
-    await page.getByLabel(/Email/).fill("wrong@example.com");
-    await page.getByLabel("Mot de passe").fill("wrongpassword");
-    await page.getByRole("button", { name: "Se connecter" }).click();
-
-    await expect(page.getByText("Invalid login credentials")).toBeVisible();
-  });
-
-  test("shows loading state during login submission", async ({ page }) => {
-    // Override fetch with delay to capture loading state
-    await page.addInitScript(() => {
-      const origFetch = window.fetch.bind(window);
-      window.fetch = async (input, init) => {
-        const url =
-          typeof input === "string"
-            ? input
-            : input instanceof Request
-              ? input.url
-              : "";
-        if (url.includes("/auth/v1/token")) {
-          await new Promise((r) => setTimeout(r, 3000));
-          return new Response(
-            JSON.stringify({
-              error: "invalid_grant",
-              error_description: "Invalid login credentials",
-              message: "Invalid login credentials",
-            }),
-            { status: 400, headers: { "Content-Type": "application/json" } },
-          );
-        }
-        return origFetch(input, init);
-      };
-    });
-
-    await page.goto("/login");
-
-    await page.getByLabel(/Email/).fill("test@example.com");
-    await page.getByLabel("Mot de passe").fill("password");
-    await page.getByRole("button", { name: "Se connecter" }).click();
-
-    await expect(
-      page.getByRole("button", { name: "Connexion en cours..." }),
-    ).toBeVisible({ timeout: 5000 });
-    await expect(
-      page.getByRole("button", { name: "Connexion en cours..." }),
-    ).toBeDisabled();
-  });
-
-  test("handles session validation failure after successful auth", async ({
+  test("displays OIDC configuration error when provider config is missing", async ({
     page,
   }) => {
-    // Override fetch: password grant returns expired session, refresh grant fails
-    await page.addInitScript(() => {
-      const origFetch = window.fetch.bind(window);
-      window.fetch = async (input, init) => {
-        const url =
-          typeof input === "string"
-            ? input
-            : input instanceof Request
-              ? input.url
-              : "";
-        if (url.includes("/auth/v1/token")) {
-          if (url.includes("grant_type=refresh_token")) {
-            return new Response(
-              JSON.stringify({
-                error: "invalid_grant",
-                error_description: "Token has been revoked",
-                message: "Token has been revoked",
-              }),
-              { status: 400, headers: { "Content-Type": "application/json" } },
-            );
-          }
-          return new Response(
-            JSON.stringify({
-              access_token: "mock-expired-token",
-              token_type: "bearer",
-              expires_in: 0,
-              expires_at: 0,
-              refresh_token: "mock-refresh",
-              user: {
-                id: "user-1",
-                aud: "authenticated",
-                role: "authenticated",
-                email: "test@example.com",
-              },
-            }),
-            { status: 200, headers: { "Content-Type": "application/json" } },
-          );
-        }
-        return origFetch(input, init);
-      };
-    });
-
-    await page.goto("/login");
-
-    await page.getByLabel(/Email/).fill("test@example.com");
-    await page.getByLabel("Mot de passe").fill("password");
-    await page.getByRole("button", { name: "Se connecter" }).click();
+    await page.goto("/login?error=oidc_config_missing");
 
     await expect(
       page.getByText(
-        /Session invalide\. Veuillez reessayer\.|Auth session or user missing/,
+        "Configuration OIDC manquante en local. Renseignez AUTH_OIDC_ISSUER_URL, AUTH_OIDC_CLIENT_ID et AUTH_SESSION_SECRET dans app-webapp/.env.local.",
       ),
-    ).toBeVisible({ timeout: 10000 });
+    ).toBeVisible();
   });
 
-  test("login form requires email and password fields", async ({ page }) => {
+  test("displays provider trust error when OIDC provider is untrusted", async ({
+    page,
+  }) => {
+    await page.goto("/login?error=oidc_provider_untrusted");
+
+    await expect(
+      page.getByText(
+        "Le fournisseur OIDC est non fiable ou mal configure (TLS/certificat/endpoints). Contactez l'administrateur.",
+      ),
+    ).toBeVisible();
+  });
+
+  test("displays generic error message for unknown error code", async ({
+    page,
+  }) => {
+    await page.goto("/login?error=upstream_failure");
+
+    await expect(
+      page.getByText(
+        "La connexion a echoue (upstream_failure). Veuillez reessayer.",
+      ),
+    ).toBeVisible();
+  });
+
+  test("login page presents OIDC CTA and no legacy password fields", async ({
+    page,
+  }) => {
     await page.goto("/login");
 
-    const emailInput = page.getByLabel(/Email/);
-    const passwordInput = page.getByLabel("Mot de passe");
-
-    await expect(emailInput).toHaveAttribute("required", "");
-    await expect(passwordInput).toHaveAttribute("required", "");
+    await expect(
+      page.getByRole("button", { name: "Continuer vers la connexion" }),
+    ).toBeVisible();
+    await expect(page.getByLabel(/Email/)).toHaveCount(0);
+    await expect(page.getByLabel("Mot de passe")).toHaveCount(0);
   });
 
   test("login page subtitle is displayed", async ({ page }) => {
     await page.goto("/login");
-
     await expect(
       page.getByText(
-        "Accedez a votre war room operationnelle et vos priorites critiques.",
+        "Authentification geree par votre fournisseur d'identite entreprise.",
       ),
     ).toBeVisible();
+  });
+
+  test("login CTA preserves safe next path", async ({ page }) => {
+    await page.route("**/auth/login**", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "text/plain",
+        body: "ok",
+      }),
+    );
+
+    await page.goto("/login?next=/actions");
+    await page.getByRole("button", { name: "Continuer vers la connexion" }).click();
+
+    await expect(page).toHaveURL(/\/auth\/login\?next=%2Factions/);
+  });
+
+  test("unsafe next path falls back to dashboard", async ({ page }) => {
+    await page.route("**/auth/login**", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "text/plain",
+        body: "ok",
+      }),
+    );
+
+    await page.goto("/login?next=//malicious.example");
+    await page.getByRole("button", { name: "Continuer vers la connexion" }).click();
+
+    await expect(page).toHaveURL(/\/auth\/login\?next=%2Fdashboard/);
   });
 });

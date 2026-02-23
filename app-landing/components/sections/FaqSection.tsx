@@ -80,7 +80,7 @@ export function FaqSection({ dict, locale }: FaqSectionProps) {
                     setActiveCategory(category);
                     setOpenIndex(null);
                   }}
-                  className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                  className={`rounded-full border px-3 py-1.5 text-sm font-medium transition active:scale-[0.97] ${
                     activeCategory === category
                       ? "border-[var(--accent-500)] bg-[var(--accent-50)] text-[var(--accent-700)]"
                       : "border-[var(--line)] bg-[var(--panel)] text-[var(--ink-soft)] hover:border-[var(--line-strong)]"
@@ -91,7 +91,7 @@ export function FaqSection({ dict, locale }: FaqSectionProps) {
               ))}
             </div>
 
-            <div className="mt-5 rounded-2xl border border-[var(--line)] bg-[var(--panel)]">
+            <div className="mt-6 rounded-2xl border border-[var(--line)] bg-[var(--panel)]">
               {isLoading ? (
                 <div className="grid gap-3 p-4">
                   {Array.from({ length: 4 }).map((_, index) => (
@@ -126,7 +126,7 @@ export function FaqSection({ dict, locale }: FaqSectionProps) {
                       <button
                         type="button"
                         onClick={() => setOpenIndex(isOpen ? null : index)}
-                        className="flex w-full items-start justify-between gap-4 px-4 py-4 text-left"
+                        className="flex w-full items-start justify-between gap-4 rounded-lg px-4 py-4 text-left transition-colors duration-200 hover:bg-[var(--panel-muted)]"
                         aria-expanded={isOpen}
                       >
                         <span className="text-base font-medium text-[var(--ink)]">
@@ -175,7 +175,7 @@ export function FaqSection({ dict, locale }: FaqSectionProps) {
         )}
 
         <motion.div
-          className="mt-8 flex flex-wrap items-center gap-3"
+          className="mt-10 flex flex-wrap items-center gap-3"
           variants={blurReveal}
           initial="hidden"
           whileInView="visible"

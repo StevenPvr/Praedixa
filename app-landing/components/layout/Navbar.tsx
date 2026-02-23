@@ -65,7 +65,7 @@ export function Navbar({ dict, locale }: NavbarProps) {
 
   return (
     <>
-      <nav className="fixed inset-x-0 top-0 z-20 py-3">
+      <nav className="fixed inset-x-0 top-0 z-20 py-3" style={{ filter: "drop-shadow(0 4px 12px oklch(0.16 0.01 250 / 0.06))" }}>
         <div className="section-shell">
           <div className="panel-glass flex items-center justify-between rounded-2xl px-3 py-2 md:px-4">
             <Link
@@ -87,7 +87,7 @@ export function Navbar({ dict, locale }: NavbarProps) {
             <div className="hidden items-center gap-1 md:flex">
               {navLinks.map((link) => {
                 const classes =
-                  "rounded-full px-3 py-1.5 text-sm font-medium text-[var(--ink-soft)] transition hover:bg-[var(--panel-muted)] hover:text-[var(--ink)]";
+                  "rounded-full px-3 py-1.5 text-sm font-medium text-[var(--ink-soft)] transition hover:bg-[var(--panel-muted)] hover:text-[var(--ink)] active:scale-[0.97]";
 
                 return link.isInternal ? (
                   <Link key={link.href} href={link.href} className={classes}>

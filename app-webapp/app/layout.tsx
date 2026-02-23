@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Manrope, Cormorant_Garamond } from "next/font/google";
+import { Manrope } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "@praedixa/ui/brand-tokens.css";
 import "./globals.css";
@@ -9,13 +9,6 @@ const manrope = Manrope({
   variable: "--font-sans",
   display: "swap",
   weight: ["300", "400", "500", "600", "700", "800"],
-});
-
-const cormorant = Cormorant_Garamond({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin"],
-  variable: "--font-serif",
-  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -33,7 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${manrope.variable} ${cormorant.variable}`}
+      className={manrope.variable}
       suppressHydrationWarning
     >
       <body className="font-sans antialiased">

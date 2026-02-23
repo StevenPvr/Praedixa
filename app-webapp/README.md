@@ -80,9 +80,9 @@ L'authentification repose sur **OIDC Authorization Code + PKCE**. Trois fichiers
 | `lib/auth/server.ts`     | Lecture/verification de session cote serveur      |
 | `lib/auth/client.ts`     | Recuperation de token via `/auth/session`         |
 
-### Flux middleware
+### Flux proxy
 
-Le middleware (`middleware.ts`) execute deux operations sur chaque requete :
+Le proxy (`proxy.ts`) execute deux operations sur chaque requete :
 
 1. **CSP nonce** -- genere un nonce unique par requete et l'injecte dans le header `Content-Security-Policy`.
 2. **Session auth** -- appelle `updateSession()` qui valide le token via `getUser()` (validation serveur, pas `getSession()`).
@@ -329,7 +329,7 @@ Note DNS:
 
 Les headers de securite sont configures dans `next.config.ts` :
 
-- **CSP** : nonce-based, genere par requete dans `middleware.ts`
+- **CSP** : nonce-based, genere par requete dans `proxy.ts`
 - **HSTS** : active en production (2 ans, preload)
 - **X-Frame-Options** : `DENY`
 - **Permissions-Policy** : geolocation, microphone, camera, payment desactives

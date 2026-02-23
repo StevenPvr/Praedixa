@@ -11,8 +11,8 @@
      These are the resolved names after next/font loads. */
   --brand-font-sans: var(--font-sans, "Manrope"), ui-sans-serif, system-ui,
     -apple-system, sans-serif;
-  --brand-font-serif: var(--font-serif, "Cormorant Garamond"), ui-serif,
-    Georgia, "Times New Roman", serif;
+  --brand-font-serif: var(--font-sans, "Manrope"), ui-sans-serif, system-ui,
+    -apple-system, sans-serif;
 
   /* ── Brand: Praedixa Premium Blue (light mode ramp)
      Light end (50–200): neutral-pearl with minimal chroma.
@@ -91,8 +91,8 @@
     0 10px 24px -6px oklch(0.24 0.03 248 / 0.12);
   --shadow-warm-lg: 0 4px 12px oklch(0.24 0.03 248 / 0.1),
     0 18px 40px -10px oklch(0.24 0.03 248 / 0.15);
-  --shadow-brass-glow: 0 0 24px -4px oklch(0.63 0.165 246 / 0.32),
-    0 0 56px -10px oklch(0.63 0.165 246 / 0.2);
+  --shadow-brass-glow: 0 0 16px -6px oklch(0.63 0.165 246 / 0.22),
+    0 0 36px -12px oklch(0.63 0.165 246 / 0.14);
 
   /* ── Transitions ── */
   --brand-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);

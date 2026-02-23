@@ -34,7 +34,7 @@ test.describe("Authenticated navigation", () => {
     ).toBeVisible();
 
     const nav = page.getByLabel("Navigation principale");
-    await nav.getByRole("link", { name: /War room/ }).click();
+    await nav.getByRole("link", { name: /Tableau de bord/ }).click();
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(
       page.getByRole("heading", { name: "War room operationnelle" }),
@@ -49,14 +49,14 @@ test.describe("Authenticated navigation", () => {
     const nav = page.getByLabel("Navigation principale");
     await expect(nav).toBeVisible();
 
-    const dashboardLink = nav.getByRole("link", { name: /War room/ });
+    const dashboardLink = nav.getByRole("link", { name: /Tableau de bord/ });
     await expect(dashboardLink).toHaveAttribute("aria-current", "page");
 
     await page.goto("/rapports");
     const rapportsLink = nav.getByRole("link", { name: /Rapports/ });
     await expect(rapportsLink).toHaveAttribute("aria-current", "page");
 
-    const dashLink = nav.getByRole("link", { name: /War room/ });
+    const dashLink = nav.getByRole("link", { name: /Tableau de bord/ });
     await expect(dashLink).not.toHaveAttribute("aria-current", "page");
   });
 
@@ -69,7 +69,7 @@ test.describe("Authenticated navigation", () => {
 
     // Should have a link back to dashboard
     await expect(
-      page.getByRole("link", { name: "Retour au dashboard" }),
+      page.getByRole("link", { name: "Retour au tableau de bord" }),
     ).toBeVisible();
   });
 

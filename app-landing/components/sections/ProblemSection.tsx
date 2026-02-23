@@ -11,6 +11,7 @@ import {
   blurReveal,
   blurStaggerContainer,
   blurStaggerItem,
+  cardHover,
   viewportEarly,
   viewportOnce,
 } from "../../lib/animations/variants";
@@ -28,7 +29,7 @@ export function ProblemSection({ dict }: ProblemSectionProps) {
   return (
     <section id="problem" className="section-spacing">
       <div className="section-shell">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-10">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-14">
           <motion.div
             variants={blurReveal}
             initial="hidden"
@@ -81,6 +82,7 @@ export function ProblemSection({ dict }: ProblemSectionProps) {
                   <motion.article
                     key={pain.title}
                     variants={blurStaggerItem}
+                    whileHover={cardHover}
                     className={`panel-glass rounded-3xl p-6 ${
                       isLarge ? "md:col-span-2" : ""
                     }`}

@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, LiteralString, cast
+from typing import TYPE_CHECKING, Any
 
 from psycopg import errors, sql
 
@@ -335,7 +335,7 @@ def _create_raw_table(
         col_defs.append(
             sql.SQL("{} {}").format(
                 sql.Identifier(col_name),
-                sql.SQL(cast("LiteralString", pg_type)),
+                sql.SQL(pg_type),
             )
         )
 
@@ -397,7 +397,7 @@ def _create_transformed_table(
         col_defs.append(
             sql.SQL("{} {}").format(
                 sql.Identifier(col_name),
-                sql.SQL(cast("LiteralString", pg_type)),
+                sql.SQL(pg_type),
             )
         )
 
@@ -408,7 +408,7 @@ def _create_transformed_table(
         col_defs.append(
             sql.SQL("{} {}").format(
                 sql.Identifier(col_name),
-                sql.SQL(cast("LiteralString", pg_type)),
+                sql.SQL(pg_type),
             )
         )
 

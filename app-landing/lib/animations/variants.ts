@@ -22,13 +22,16 @@ export const staggerContainer: Variants = {
   },
 };
 
-/** Individual staggered child — pairs with staggerContainer */
+/** Individual staggered child — pairs with staggerContainer (spring on y) */
 export const staggerItem: Variants = {
   hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+    transition: {
+      y: { type: "spring", stiffness: 120, damping: 18 },
+      opacity: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+    },
   },
 };
 
@@ -84,26 +87,30 @@ export const blurReveal: Variants = {
   },
 };
 
-/** Stagger container with blur-reveal children */
+/** Stagger container with blur-reveal children — deliberate cascade */
 export const blurStaggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.12,
-      delayChildren: 0.1,
+      staggerChildren: 0.14,
+      delayChildren: 0.12,
     },
   },
 };
 
-/** Blur stagger child — pairs with blurStaggerContainer */
+/** Blur stagger child — pairs with blurStaggerContainer (spring on y) */
 export const blurStaggerItem: Variants = {
   hidden: { opacity: 0, filter: "blur(8px)", y: 20 },
   visible: {
     opacity: 1,
     filter: "blur(0px)",
     y: 0,
-    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+    transition: {
+      y: { type: "spring", stiffness: 100, damping: 20 },
+      opacity: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+      filter: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+    },
   },
 };
 
@@ -160,4 +167,16 @@ export const viewportOnce = {
 export const viewportEarly = {
   once: true,
   margin: "-100px" as const,
+};
+
+/** Generous viewport margin for smoother trigger on secondary elements */
+export const viewportGenerous = {
+  once: true,
+  margin: "-80px" as const,
+};
+
+/** Spring-based hover lift for cards — apply as whileHover prop */
+export const cardHover = {
+  y: -3,
+  transition: { type: "spring" as const, stiffness: 200, damping: 24 },
 };

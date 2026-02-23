@@ -59,14 +59,6 @@ export default {
           accent: "var(--sidebar-accent)",
         },
 
-        /* ── Glows ── */
-        glow: {
-          brand: "var(--glow-brand)",
-          accent: "var(--glow-accent)",
-          success: "var(--glow-success)",
-          warning: "var(--glow-warning)",
-          danger: "var(--glow-danger)",
-        },
       },
 
       spacing: {
@@ -89,7 +81,6 @@ export default {
         sidebar: "1px 0 0 var(--sidebar-border)",
         command: "var(--shadow-modal)",
         float: "var(--shadow-floating)",
-        premium: "var(--shadow-premium-glow)",
       },
 
       animation: {
@@ -106,9 +97,6 @@ export default {
         "draw-line":
           "drawLine var(--duration-cinematic) var(--ease-smooth) forwards",
         checkmark: "checkmark 300ms ease forwards",
-        "glow-pulse": "glowPulse 2.5s ease-in-out infinite",
-        "glow-breath": "glowBreath 2s ease-in-out infinite",
-        "glow-in": "glowIn var(--duration-fast) var(--ease-smooth) forwards",
         "scale-in": "scaleIn 300ms var(--ease-smooth)",
         "expand-width":
           "expandWidth var(--duration-slow) var(--ease-smooth) forwards",

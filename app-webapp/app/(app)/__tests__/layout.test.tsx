@@ -42,16 +42,12 @@ vi.mock("@/hooks/use-ux-preferences", () => ({
       nav: {
         sidebarCollapsed: false,
         sidebarWidth: 268,
-        starredItems: [],
-        recentItems: [],
       },
       theme: { mode: "light" },
     },
-    setDensity: vi.fn(),
     setSidebarCollapsed: vi.fn(),
     setSidebarWidth: vi.fn(),
-    toggleStarred: vi.fn(),
-    pushRecent: vi.fn(),
+    setThemeMode: vi.fn(),
   }),
 }));
 

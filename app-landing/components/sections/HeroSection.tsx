@@ -41,10 +41,10 @@ export function HeroSection({ dict, locale }: HeroSectionProps) {
   return (
     <section
       id="hero"
-      className="relative flex min-h-[100dvh] items-center overflow-hidden pt-24"
+      className="relative flex min-h-[100dvh] items-center overflow-hidden pt-28 md:pt-32"
     >
       <div className="section-shell section-spacing">
-        <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[1.35fr_1fr] md:gap-10">
+        <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[1.35fr_1fr] md:gap-14">
           <div>
             <motion.p
               variants={reveal}
@@ -62,7 +62,7 @@ export function HeroSection({ dict, locale }: HeroSectionProps) {
               custom={0.1}
               initial="hidden"
               animate="visible"
-              className="mt-4 text-4xl leading-none tracking-tighter text-[var(--ink)] md:text-6xl"
+              className="mt-4 text-4xl font-semibold leading-[0.98] tracking-[-0.04em] text-[var(--ink)] md:text-[3.75rem]"
             >
               {hero.headline}
               <span className="block text-[var(--accent-600)]">
@@ -85,7 +85,7 @@ export function HeroSection({ dict, locale }: HeroSectionProps) {
               custom={0.3}
               initial="hidden"
               animate="visible"
-              className="mt-8 flex flex-wrap items-center gap-3"
+              className="mt-8 flex flex-wrap items-center gap-4"
             >
               <MagneticButton as="a" href={pilotHref} className="btn-primary">
                 <Sparkle size={15} weight="fill" />
@@ -104,7 +104,7 @@ export function HeroSection({ dict, locale }: HeroSectionProps) {
               custom={0.4}
               initial="hidden"
               animate="visible"
-              className="mt-8 grid gap-2 text-sm text-[var(--ink-soft)] md:grid-cols-2"
+              className="mt-10 grid gap-2 text-sm text-[var(--ink-soft)] md:grid-cols-2"
             >
               {hero.trustBadges.map((badge) => (
                 <li

@@ -54,7 +54,7 @@ export default function OnboardingPage() {
 
   return (
     <PageTransition>
-      <div className="gradient-mesh min-h-full space-y-8">
+      <div className="min-h-full space-y-12">
         <PageHeader
           eyebrow="Pilotage"
           title="Onboarding client"
@@ -83,7 +83,7 @@ export default function OnboardingPage() {
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-overline text-ink-tertiary">Progression</p>
-                <h2 className="text-heading text-ink font-serif">
+                <h2 className="text-heading text-ink font-sans font-bold">
                   {(data?.completionPct ?? 0).toFixed(0)}% complete
                 </h2>
               </div>

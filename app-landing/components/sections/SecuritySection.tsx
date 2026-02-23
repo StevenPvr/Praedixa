@@ -46,7 +46,7 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
             <motion.article
               key={tile.title}
               variants={blurStaggerItem}
-              className="grid gap-2 px-4 py-4 md:grid-cols-[1fr_2.2fr] md:px-6"
+              className="grid gap-2 rounded-lg px-4 py-4 transition-colors duration-200 hover:bg-[var(--panel-muted)] md:grid-cols-[1fr_2.2fr] md:px-6"
             >
               <p className="inline-flex items-start gap-2 text-sm font-medium text-[var(--ink)]">
                 <ShieldCheck
@@ -68,9 +68,9 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
           initial="hidden"
           whileInView="visible"
           viewport={viewportOnce}
-          className="mt-6 grid gap-4 md:grid-cols-[1.5fr_1fr]"
+          className="mt-8 grid gap-4 md:grid-cols-[1.5fr_1fr]"
         >
-          <article className="panel-glass rounded-3xl p-5">
+          <article className="panel-glass rounded-3xl p-5 transition-shadow duration-300 hover:shadow-[var(--shadow-elevated)]">
             <p className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-[var(--ink-muted)]">
               <StackSimple size={14} weight="duotone" />
               {security.compatibility.title}
@@ -90,7 +90,7 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
             </div>
           </article>
 
-          <article className="panel-glass rounded-3xl border-[var(--accent-200)] bg-[var(--accent-50)] p-5">
+          <article className="panel-glass rounded-3xl border-[var(--accent-200)] bg-[var(--accent-50)] p-5 transition-shadow duration-300 hover:shadow-[var(--shadow-elevated)]">
             <p className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-[var(--accent-700)]">
               <LockKey size={14} weight="duotone" />
               Security note

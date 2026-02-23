@@ -51,7 +51,7 @@ const TabBar = React.forwardRef<HTMLDivElement, TabBarProps>(
               role="tab"
               aria-selected={isActive}
               className={cn(
-                "relative inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-body-sm font-medium",
+                "relative inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-body-sm font-medium",
                 "transition-colors duration-fast",
                 isActive
                   ? "text-ink"
@@ -64,7 +64,7 @@ const TabBar = React.forwardRef<HTMLDivElement, TabBarProps>(
               {isActive && (
                 <motion.span
                   layoutId="tab-pill"
-                  className="absolute inset-0 rounded-lg bg-card shadow-raised"
+                  className="absolute inset-0 rounded-lg bg-card shadow-[0_1px_2px_oklch(0.24_0.03_248_/_0.06)]"
                   transition={SPRING.premium}
                 />
               )}

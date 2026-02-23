@@ -309,7 +309,7 @@ export default function ParametresPage() {
 
   return (
     <PageTransition>
-      <div className="gradient-mesh min-h-full space-y-8">
+      <div className="min-h-full space-y-12">
         <PageHeader
           eyebrow="Gouvernance"
           title="Gouvernance et reglages"

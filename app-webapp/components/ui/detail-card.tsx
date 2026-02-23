@@ -9,7 +9,7 @@ export interface DetailCardProps extends React.HTMLAttributes<HTMLDivElement> {
   action?: React.ReactNode;
   /** Optional status indicator on the left border */
   status?: "success" | "warning" | "danger" | "info";
-  /** Visual variant: default (solid), glass (frosted), premium (gradient + glow) */
+  /** Visual variant aliases retained for backward compatibility */
   variant?: DetailCardVariant;
 }
 
@@ -21,12 +21,9 @@ const statusBorders: Record<string, string> = {
 };
 
 const variantStyles: Record<DetailCardVariant, string> = {
-  default:
-    "border border-border bg-card shadow-raised transition-all duration-fast hover:shadow-floating",
-  glass:
-    "surface-glass shadow-raised transition-all duration-fast hover:shadow-floating",
-  premium:
-    "border border-border bg-gradient-card shadow-raised transition-all duration-fast hover:shadow-premium hover:border-[var(--border-glow)]",
+  default: "border border-border bg-card shadow-raised",
+  glass: "border border-border bg-card shadow-raised",
+  premium: "border border-border bg-card shadow-raised",
 };
 
 const paddingMap = {
@@ -67,7 +64,7 @@ const DetailCard = React.forwardRef<HTMLDivElement, DetailCardProps>(
             <div
               className={cn(
                 "flex items-center justify-between",
-                padding === "compact" ? "px-4 py-4" : "px-6 py-5",
+                padding === "compact" ? "px-4 py-4" : "px-7 py-6",
               )}
             >
               <h3 className="text-title-sm text-ink">{title}</h3>
@@ -75,7 +72,7 @@ const DetailCard = React.forwardRef<HTMLDivElement, DetailCardProps>(
                 <div className="flex items-center gap-2">{action}</div>
               )}
             </div>
-            <div className="gradient-divider -mx-1" aria-hidden="true" />
+            <div className="border-b border-border" aria-hidden="true" />
           </>
         )}
         <div

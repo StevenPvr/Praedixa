@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import uuid  # noqa: TC003 - needed at runtime by Pydantic
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from pydantic import BaseModel, ConfigDict, Field
@@ -27,19 +27,42 @@ from sqlalchemy.exc import IntegrityError
 
 from app.core.exceptions import ConflictError, ForbiddenError, NotFoundError
 from app.models.admin import (
+    OnboardingState,
+    PlanChangeHistory,
     RgpdErasureAuditEvent,
     RgpdErasureRequest,
     RgpdErasureStatus,
 )
 from app.models.conversation import Conversation
+from app.models.daily_forecast import DailyForecast
+from app.models.dashboard_alert import DashboardAlert
 from app.models.data_catalog import (
     ClientDataset,
     DatasetColumn,
     FitParameter,
     IngestionLog,
     PipelineConfigHistory,
+    QualityReport,
+)
+from app.models.decision import Decision
+from app.models.department import Department
+from app.models.forecast_run import ForecastRun
+from app.models.mlops import (
+    DataLineageEvent,
+    ModelArtifactAccessLog,
+    ModelInferenceJob,
+    ModelRegistry,
+)
+from app.models.operational import (
+    CanonicalRecord,
+    CostParameter,
+    CoverageAlert,
+    OperationalDecision,
+    ProofRecord,
+    ScenarioOption,
 )
 from app.models.organization import Organization
+from app.models.site import Site
 from app.models.user import User
 
 if TYPE_CHECKING:
@@ -92,15 +115,46 @@ class ErasureRequest(BaseModel):
     audit_log: list[str] = Field(default_factory=list)
 
 
-# ── Tables verified after erasure ────────────────────────
+# ── Tables verified/deleted after erasure ───────────────
 
-_VERIFICATION_TABLES: list[tuple[str, type]] = [
+# dataset_id-scoped tables (resolved via client_datasets.organization_id)
+_DATASET_SCOPED_TABLES: list[tuple[str, type]] = [
     ("pipeline_config_history", PipelineConfigHistory),
+    ("quality_reports", QualityReport),
     ("ingestion_log", IngestionLog),
     ("fit_parameters", FitParameter),
     ("dataset_columns", DatasetColumn),
-    ("client_datasets", ClientDataset),
+]
+
+# organization_id-scoped tables that must be explicitly purged.
+# We do not rely on FK cascades because some operational tables intentionally
+# omit FK constraints on organization_id.
+_ORG_DIRECT_DELETE_TABLES: list[tuple[str, type]] = [
+    ("operational_decisions", OperationalDecision),
+    ("scenario_options", ScenarioOption),
+    ("coverage_alerts", CoverageAlert),
+    ("cost_parameters", CostParameter),
+    ("canonical_records", CanonicalRecord),
+    ("proof_records", ProofRecord),
+    ("data_lineage_events", DataLineageEvent),
+    ("model_artifact_access_log", ModelArtifactAccessLog),
+    ("model_inference_jobs", ModelInferenceJob),
+    ("model_registry", ModelRegistry),
     ("conversations", Conversation),
+    ("dashboard_alerts", DashboardAlert),
+    ("decisions", Decision),
+    ("daily_forecasts", DailyForecast),
+    ("forecast_runs", ForecastRun),
+    ("onboarding_states", OnboardingState),
+    ("plan_change_history", PlanChangeHistory),
+    ("departments", Department),
+    ("sites", Site),
+]
+
+_VERIFICATION_TABLES: list[tuple[str, type]] = [
+    *_DATASET_SCOPED_TABLES,
+    ("client_datasets", ClientDataset),
+    *_ORG_DIRECT_DELETE_TABLES,
     ("users", User),
     ("organizations", Organization),
 ]
@@ -438,36 +492,55 @@ async def _delete_org_data(
     )
     dataset_ids = [row[0] for row in dataset_ids_result.fetchall()]
 
-    deleted_counts: dict[str, int] = {}
+    deleted_counts: dict[str, int] = {
+        table_name: 0
+        for table_name, _ in [
+            *_DATASET_SCOPED_TABLES,
+            ("client_datasets", ClientDataset),
+            *_ORG_DIRECT_DELETE_TABLES,
+            ("users", User),
+            ("organizations", Organization),
+        ]
+    }
+
+    for table_name, model in _ORG_DIRECT_DELETE_TABLES:
+        result = await db.execute(
+            delete(model).where(
+                model.organization_id == org_id,  # type: ignore[attr-defined]
+            )
+        )
+        deleted_counts[table_name] = _rowcount(result)
 
     if dataset_ids:
-        for table_name, model in [
-            ("pipeline_config_history", PipelineConfigHistory),
-            ("ingestion_log", IngestionLog),
-            ("fit_parameters", FitParameter),
-            ("dataset_columns", DatasetColumn),
-        ]:
+        for table_name, model in _DATASET_SCOPED_TABLES:
             result = await db.execute(
                 delete(model).where(
                     model.dataset_id.in_(dataset_ids),  # type: ignore[attr-defined]
                 )
             )
-            deleted_counts[table_name] = result.rowcount  # type: ignore[attr-defined]
+            deleted_counts[table_name] = _rowcount(result)
 
         result = await db.execute(
             delete(ClientDataset).where(
                 ClientDataset.organization_id == org_id,
             )
         )
-        deleted_counts["client_datasets"] = result.rowcount  # type: ignore[attr-defined]
+        deleted_counts["client_datasets"] = _rowcount(result)
 
     result = await db.execute(delete(User).where(User.organization_id == org_id))
-    deleted_counts["users"] = result.rowcount  # type: ignore[attr-defined]
+    deleted_counts["users"] = _rowcount(result)
 
     result = await db.execute(delete(Organization).where(Organization.id == org_id))
-    deleted_counts["organizations"] = result.rowcount  # type: ignore[attr-defined]
+    deleted_counts["organizations"] = _rowcount(result)
 
     return deleted_counts
+
+
+def _rowcount(result: Any) -> int:
+    raw = getattr(result, "rowcount", 0)
+    if isinstance(raw, int):
+        return raw
+    return int(raw or 0)
 
 
 # ── Persistence helpers ─────────────────────────────────

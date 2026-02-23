@@ -176,7 +176,7 @@ function PrevisionsContent() {
 
   return (
     <PageTransition>
-      <div className="gradient-mesh min-h-full space-y-8">
+      <div className="min-h-full space-y-12">
         <PageHeader
           eyebrow="Anticiper"
           title="Anticipation des tensions"
@@ -207,7 +207,7 @@ function PrevisionsContent() {
           </StatusBanner>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             label="Alertes ouvertes"
             value={alertsLoading ? "..." : (alerts?.length ?? 0)}
@@ -247,7 +247,7 @@ function PrevisionsContent() {
           <DetailCard>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-heading text-ink font-serif">
+                <h2 className="text-heading text-ink font-sans font-bold">
                   Prevision de couverture sur 7 jours
                 </h2>
                 <p className="mt-1 text-body-sm text-ink-secondary">
@@ -395,7 +395,7 @@ function PrevisionsContent() {
 
         <AnimatedSection>
           <section aria-label="Decomposition SARIMAX">
-            <h2 className="mb-4 text-heading text-ink font-serif">
+            <h2 className="mb-4 text-heading text-ink font-sans font-bold">
               Decomposition du signal
             </h2>
             <p className="mb-3 text-body-sm text-ink-secondary">
@@ -412,7 +412,7 @@ function PrevisionsContent() {
 
         <AnimatedSection>
           <section aria-label="Facteurs explicatifs">
-            <h2 className="mb-4 text-heading text-ink font-serif">
+            <h2 className="mb-4 text-heading text-ink font-sans font-bold">
               Pourquoi cette prevision ?
             </h2>
             <p className="mb-3 text-body-sm text-ink-secondary">
@@ -430,7 +430,7 @@ function PrevisionsContent() {
 
         <AnimatedSection>
           <section aria-label="Alertes prioritaires">
-            <h2 className="mb-4 text-heading text-ink font-serif">
+            <h2 className="mb-4 text-heading text-ink font-sans font-bold">
               Alertes prioritaires
             </h2>
             <p className="mb-3 text-body-sm text-ink-secondary">
@@ -503,7 +503,7 @@ export default function PrevisionsPage() {
   return (
     <Suspense
       fallback={
-        <div className="space-y-8">
+        <div className="space-y-12">
           <SkeletonChart />
         </div>
       }

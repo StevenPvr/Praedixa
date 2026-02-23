@@ -13,8 +13,6 @@ import {
   ClipboardList,
   ChevronLeft,
   ChevronRight,
-  Star,
-  Clock3,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@praedixa/ui";
@@ -48,9 +46,11 @@ interface SidebarProps {
   onToggleCollapse?: () => void;
   unreadCount?: number;
   priorityCount?: number;
-  starredItems?: string[];
-  recentItems?: string[];
-  onToggleStar?: (itemId: string) => void;
+  siteOptions?: Array<{ id: string; label: string }>;
+  selectedSiteId?: string | null;
+  selectedSiteLabel?: string;
+  siteFallbackLabel?: string;
+  onSiteChange?: (siteId: string | null) => void;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -181,38 +181,6 @@ const GROUP_ORDER: Array<NavItem["group"]> = [
   "support",
 ];
 
-interface FlatNavItem {
-  id: string;
-  href: string;
-  label: string;
-}
-
-function useFlatItemMap(t: (key: string) => string, userRole: UserRole) {
-  return React.useMemo(() => {
-    const map = new Map<string, FlatNavItem>();
-
-    for (const item of NAV_ITEMS) {
-      if (item.adminOnly && userRole !== "admin") continue;
-      map.set(item.id, {
-        id: item.id,
-        href: item.href,
-        label: t(item.labelKey),
-      });
-
-      for (const child of item.children ?? []) {
-        if (child.adminOnly && userRole !== "admin") continue;
-        map.set(child.id, {
-          id: child.id,
-          href: child.href,
-          label: t(child.labelKey),
-        });
-      }
-    }
-
-    return map;
-  }, [t, userRole]);
-}
-
 export function Sidebar({
   currentPath,
   userRole,
@@ -220,12 +188,13 @@ export function Sidebar({
   onToggleCollapse,
   unreadCount = 0,
   priorityCount = 0,
-  starredItems = [],
-  recentItems = [],
-  onToggleStar,
+  siteOptions = [],
+  selectedSiteId = null,
+  selectedSiteLabel,
+  siteFallbackLabel,
+  onSiteChange,
 }: SidebarProps) {
   const { t } = useI18n();
-  const flatItemMap = useFlatItemMap(t, userRole);
 
   const isActive = React.useCallback(
     (href: string) =>
@@ -238,62 +207,6 @@ export function Sidebar({
     [userRole],
   );
 
-  const favoriteItems = React.useMemo(
-    () =>
-      starredItems
-        .map((id) => flatItemMap.get(id))
-        .filter(Boolean) as FlatNavItem[],
-    [flatItemMap, starredItems],
-  );
-
-  const recentNavItems = React.useMemo(
-    () =>
-      recentItems
-        .map((id) => flatItemMap.get(id))
-        .filter(Boolean) as FlatNavItem[],
-    [flatItemMap, recentItems],
-  );
-
-  const renderQuickList = (
-    title: string,
-    icon: React.ReactNode,
-    entries: FlatNavItem[],
-  ) => {
-    if (collapsed || entries.length === 0) return null;
-
-    return (
-      <section className="space-y-1.5" aria-label={title}>
-        <p className="px-3 text-overline text-sidebar-muted">
-          <span className="inline-flex items-center gap-1.5">
-            {icon}
-            {title}
-          </span>
-        </p>
-        <ul className="space-y-0.5" role="list">
-          {entries.map((entry) => {
-            const active = isActive(entry.href);
-            return (
-              <li key={entry.id}>
-                <Link
-                  href={entry.href}
-                  aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "group flex items-center rounded-lg px-3 py-2 text-caption transition-colors duration-fast",
-                    active
-                      ? "bg-sidebar-active text-sidebar-text"
-                      : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-text",
-                  )}
-                >
-                  <span className="truncate">{entry.label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-    );
-  };
-
   return (
     <aside
       className={cn(
@@ -302,8 +215,6 @@ export function Sidebar({
         collapsed ? "w-sidebar-collapsed" : "w-sidebar",
       )}
     >
-      <div className="h-[2px] w-full bg-gradient-to-r from-primary via-primary/65 to-transparent" />
-
       <div
         className={cn(
           "flex h-topbar items-center border-b border-sidebar-border",
@@ -323,9 +234,6 @@ export function Sidebar({
             <div className="flex min-w-0 flex-col">
               <span className="truncate text-[15px] font-bold tracking-[-0.02em] text-sidebar-text">
                 Praedixa
-              </span>
-              <span className="truncate text-[10px] uppercase tracking-[0.12em] text-sidebar-muted">
-                Client Workspace
               </span>
             </div>
           )}
@@ -351,7 +259,6 @@ export function Sidebar({
                 {items.map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.href);
-                  const isStarred = starredItems.includes(item.id);
 
                   return (
                     <li key={item.id}>
@@ -404,35 +311,6 @@ export function Sidebar({
                               </>
                             )}
                           </Link>
-
-                          {!collapsed && onToggleStar && (
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.preventDefault();
-                                onToggleStar(item.id);
-                              }}
-                              aria-label={
-                                isStarred
-                                  ? t("sidebar.actions.unstar")
-                                  : t("sidebar.actions.star")
-                              }
-                              className={cn(
-                                "absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 transition-opacity duration-fast",
-                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                                isStarred
-                                  ? "opacity-100 text-primary"
-                                  : "opacity-0 text-sidebar-muted group-hover:opacity-100 hover:text-sidebar-text",
-                              )}
-                            >
-                              <Star
-                                className={cn(
-                                  "h-3.5 w-3.5",
-                                  isStarred && "fill-current",
-                                )}
-                              />
-                            </button>
-                          )}
                         </div>
 
                         {!collapsed && (item.children?.length ?? 0) > 0 && (
@@ -471,24 +349,36 @@ export function Sidebar({
             </section>
           );
         })}
-
-        <div className="gradient-divider my-2" aria-hidden="true" />
-
-        {renderQuickList(
-          t("sidebar.sections.starred"),
-          <Star className="h-3 w-3" aria-hidden="true" />,
-          favoriteItems,
-        )}
-
-        {renderQuickList(
-          t("sidebar.sections.recent"),
-          <Clock3 className="h-3 w-3" aria-hidden="true" />,
-          recentNavItems,
-        )}
       </nav>
 
-      {onToggleCollapse && (
-        <div className="mt-auto border-t border-sidebar-border p-3">
+      <div className="mt-auto border-t border-sidebar-border p-3">
+        {!collapsed && (
+          <div className="mb-3 space-y-1.5 px-0.5">
+            <p className="text-overline text-sidebar-muted">Site</p>
+            {onSiteChange && siteOptions.length > 1 ? (
+              <select
+                value={selectedSiteId ?? ""}
+                onChange={(event) => {
+                  const next = event.target.value || null;
+                  onSiteChange(next);
+                }}
+                className="w-full cursor-pointer rounded-lg border border-sidebar-border bg-sidebar px-2.5 py-2 text-caption text-sidebar-text outline-none transition-colors duration-fast hover:bg-sidebar-hover focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">{siteFallbackLabel ?? t("sidebar.siteFallback")}</option>
+                {siteOptions.map((site) => (
+                  <option key={site.id} value={site.id}>
+                    {site.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="rounded-lg border border-sidebar-border bg-sidebar px-2.5 py-2 text-caption text-sidebar-text">
+                {selectedSiteLabel ?? siteFallbackLabel ?? t("sidebar.siteFallback")}
+              </div>
+            )}
+          </div>
+        )}
+        {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
             className={cn(
@@ -510,8 +400,8 @@ export function Sidebar({
               </>
             )}
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </aside>
   );
 }

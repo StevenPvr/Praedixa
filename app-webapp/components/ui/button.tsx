@@ -16,17 +16,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "border border-primary bg-primary text-white shadow-raised hover:border-primary-600 hover:bg-primary-600 hover:shadow-[var(--shadow-premium-glow)] shine-effect",
+          "border border-primary bg-primary text-white shadow-raised hover:border-primary-600 hover:bg-primary-600 hover:shadow-raised",
         premium:
-          "border border-primary bg-primary text-white shadow-raised hover:border-primary-600 hover:bg-primary-600 hover:shadow-[var(--shadow-premium-glow)] shine-effect",
+          "border border-primary bg-primary text-white shadow-raised hover:border-primary-600 hover:bg-primary-600 hover:shadow-raised",
         destructive: "bg-danger text-white shadow-raised hover:opacity-90",
         outline:
           "border border-border bg-surface text-ink hover:border-border-hover hover:bg-surface-interactive hover:shadow-raised",
         secondary: "bg-surface-interactive text-ink hover:bg-border",
         ghost: "text-ink-secondary hover:bg-surface-interactive hover:text-ink",
         link: "text-primary underline-offset-4 hover:underline shadow-none",
-        glass: "surface-glass text-ink shadow-raised hover:shadow-floating",
-        accent: "bg-accent text-ink shadow-raised hover:bg-accent-500",
       },
       size: {
         default: "h-10 px-5 py-2 gap-2",

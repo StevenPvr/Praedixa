@@ -13,9 +13,11 @@ interface SidebarWithUnreadProps {
   userRole: "admin" | "manager" | "viewer";
   collapsed: boolean;
   onToggleCollapse: () => void;
-  starredItems?: string[];
-  recentItems?: string[];
-  onToggleStar?: (itemId: string) => void;
+  siteOptions?: Array<{ id: string; label: string }>;
+  selectedSiteId?: string | null;
+  selectedSiteLabel?: string;
+  siteFallbackLabel?: string;
+  onSiteChange?: (siteId: string | null) => void;
 }
 
 export function SidebarWithUnread({
@@ -23,9 +25,11 @@ export function SidebarWithUnread({
   userRole,
   collapsed,
   onToggleCollapse,
-  starredItems,
-  recentItems,
-  onToggleStar,
+  siteOptions,
+  selectedSiteId,
+  selectedSiteLabel,
+  siteFallbackLabel,
+  onSiteChange,
 }: SidebarWithUnreadProps) {
   const { appendSiteParam } = useSiteScope();
   const { data: unreadData } = useApiGet<{ unreadCount: number }>(
@@ -48,9 +52,11 @@ export function SidebarWithUnread({
       onToggleCollapse={onToggleCollapse}
       unreadCount={unreadData?.unreadCount ?? 0}
       priorityCount={queueItems?.length ?? 0}
-      starredItems={starredItems}
-      recentItems={recentItems}
-      onToggleStar={onToggleStar}
+      siteOptions={siteOptions}
+      selectedSiteId={selectedSiteId}
+      selectedSiteLabel={selectedSiteLabel}
+      siteFallbackLabel={siteFallbackLabel}
+      onSiteChange={onSiteChange}
     />
   );
 }

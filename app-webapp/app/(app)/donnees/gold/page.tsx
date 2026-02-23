@@ -177,7 +177,7 @@ export default function GoldExplorerPage() {
 
   return (
     <PageTransition>
-      <div className="gradient-mesh min-h-full space-y-8">
+      <div className="min-h-full space-y-12">
         <PageHeader
           eyebrow="Donnees"
           title="Gold Explorer"
@@ -211,7 +211,7 @@ export default function GoldExplorerPage() {
         )}
 
         <DetailCard>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Colonnes Gold"
               value={schemaLoading ? "..." : (schema?.totalColumns ?? 0)}
@@ -245,7 +245,7 @@ export default function GoldExplorerPage() {
         </DetailCard>
 
         <DetailCard>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Lignes scope verifiees"
               value={

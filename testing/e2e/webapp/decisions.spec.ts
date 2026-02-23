@@ -61,7 +61,7 @@ test.describe("Actions decisions flow", () => {
         }),
       }),
     );
-    await page.route("**/api/v1/coverage-alerts/queue*", (route) =>
+    await page.route("**/api/v1/**coverage-alerts/queue*", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",

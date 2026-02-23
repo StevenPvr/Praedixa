@@ -1,5 +1,5 @@
 /**
- * Next.js security headers. CSP is set per-request in middleware.ts (nonce-based).
+ * Next.js security headers. CSP is set per-request in proxy.ts (nonce-based).
  */
 
 type HeaderEntry = { key: string; value: string };

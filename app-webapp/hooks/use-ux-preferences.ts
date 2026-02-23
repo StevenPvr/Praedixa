@@ -19,8 +19,6 @@ interface UxPreferencesState {
   nav: {
     sidebarCollapsed: boolean;
     sidebarWidth: number;
-    starredItems: string[];
-    recentItems: string[];
   };
   theme: {
     mode: "light" | "dark" | "system";
@@ -32,8 +30,6 @@ const DEFAULT_PREFERENCES: UxPreferencesState = {
   nav: {
     sidebarCollapsed: false,
     sidebarWidth: 268,
-    starredItems: ["dashboard", "actions", "previsions"],
-    recentItems: [],
   },
   theme: {
     mode: "light",
@@ -48,16 +44,6 @@ function clampSidebarWidth(value: unknown): number {
 
 function parseDensity(value: unknown): UiDensity {
   return value === "comfortable" ? "comfortable" : "compact";
-}
-
-function parseStringList(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .filter(
-      (entry): entry is string =>
-        typeof entry === "string" && entry.trim().length > 0,
-    )
-    .slice(0, 24);
 }
 
 function parseThemeMode(value: unknown): "light" | "dark" | "system" {
@@ -77,21 +63,25 @@ function fromUnknown(source: unknown): Partial<UxPreferencesState> {
       ? (value.theme as Record<string, unknown>)
       : null;
 
-  return {
-    density: parseDensity(value.density),
-    nav: {
+  const next: Partial<UxPreferencesState> = {};
+  if ("density" in value) {
+    next.density = parseDensity(value.density);
+  }
+  if (nav) {
+    next.nav = {
       sidebarCollapsed:
-        nav?.sidebarCollapsed === true
+        nav.sidebarCollapsed === true
           ? true
           : DEFAULT_PREFERENCES.nav.sidebarCollapsed,
-      sidebarWidth: clampSidebarWidth(nav?.sidebarWidth),
-      starredItems: parseStringList(nav?.starredItems),
-      recentItems: parseStringList(nav?.recentItems),
-    },
-    theme: {
-      mode: parseThemeMode(theme?.mode),
-    },
-  };
+      sidebarWidth: clampSidebarWidth(nav.sidebarWidth),
+    };
+  }
+  if (theme) {
+    next.theme = {
+      mode: parseThemeMode(theme.mode),
+    };
+  }
+  return next;
 }
 
 function mergePreferences(
@@ -106,8 +96,6 @@ function mergePreferences(
       sidebarWidth: clampSidebarWidth(
         update.nav?.sidebarWidth ?? base.nav.sidebarWidth,
       ),
-      starredItems: update.nav?.starredItems ?? base.nav.starredItems,
-      recentItems: update.nav?.recentItems ?? base.nav.recentItems,
     },
     theme: {
       mode: update.theme?.mode ?? base.theme.mode,
@@ -118,15 +106,6 @@ function mergePreferences(
 function toPatchPayload(state: UxPreferencesState): UserUxPreferencesPatch {
   return {
     density: state.density,
-    nav: {
-      sidebarCollapsed: state.nav.sidebarCollapsed,
-      sidebarWidth: state.nav.sidebarWidth,
-      starredItems: state.nav.starredItems,
-      recentItems: state.nav.recentItems,
-    },
-    theme: {
-      mode: state.theme.mode,
-    },
   };
 }
 
@@ -251,13 +230,6 @@ export function useUxPreferences() {
     [persist],
   );
 
-  const setDensity = useCallback(
-    (density: UiDensity) => {
-      update((prev) => ({ ...prev, density }));
-    },
-    [update],
-  );
-
   const setSidebarCollapsed = useCallback(
     (sidebarCollapsed: boolean) => {
       update((prev) => ({
@@ -278,39 +250,6 @@ export function useUxPreferences() {
     [update],
   );
 
-  const toggleStarred = useCallback(
-    (itemId: string) => {
-      update((prev) => {
-        const exists = prev.nav.starredItems.includes(itemId);
-        const starredItems = exists
-          ? prev.nav.starredItems.filter((id) => id !== itemId)
-          : [itemId, ...prev.nav.starredItems].slice(0, 12);
-
-        return {
-          ...prev,
-          nav: { ...prev.nav, starredItems },
-        };
-      });
-    },
-    [update],
-  );
-
-  const pushRecent = useCallback(
-    (itemId: string) => {
-      update((prev) => {
-        const recentItems = [
-          itemId,
-          ...prev.nav.recentItems.filter((id) => id !== itemId),
-        ].slice(0, 10);
-        return {
-          ...prev,
-          nav: { ...prev.nav, recentItems },
-        };
-      });
-    },
-    [update],
-  );
-
   const setThemeMode = useCallback(
     (mode: "light" | "dark" | "system") => {
       update((prev) => ({
@@ -326,22 +265,16 @@ export function useUxPreferences() {
       preferences: state,
       loaded,
       error,
-      setDensity,
       setSidebarCollapsed,
       setSidebarWidth,
-      toggleStarred,
-      pushRecent,
       setThemeMode,
     }),
     [
       state,
       loaded,
       error,
-      setDensity,
       setSidebarCollapsed,
       setSidebarWidth,
-      toggleStarred,
-      pushRecent,
       setThemeMode,
     ],
   );

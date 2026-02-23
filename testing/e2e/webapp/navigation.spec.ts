@@ -1,10 +1,6 @@
 import { test, expect } from "./fixtures/coverage";
 
 test.describe("Webapp navigation", () => {
-  // These tests assume the user is authenticated.
-  // In a real setup, we'd use a storage state fixture for auth.
-  // For now, they test what loads even without full auth.
-
   test("login page renders the application name", async ({ page }) => {
     await page.goto("/login");
     await expect(
@@ -12,24 +8,31 @@ test.describe("Webapp navigation", () => {
     ).toBeVisible();
   });
 
-  test("login page form elements are interactive", async ({ page }) => {
-    await page.goto("/login");
-    const emailInput = page.getByLabel(/Email/);
-    await emailInput.fill("user@company.com");
-    await expect(emailInput).toHaveValue("user@company.com");
+  test("login page OIDC action is interactive", async ({ page }) => {
+    await page.route("**/auth/login**", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "text/plain",
+        body: "ok",
+      }),
+    );
 
-    const passwordInput = page.getByLabel("Mot de passe");
-    await passwordInput.fill("test-password");
-    await expect(passwordInput).toHaveValue("test-password");
+    await page.goto("/login");
+    await page
+      .getByRole("button", { name: "Continuer vers la connexion" })
+      .click();
+    await expect(page).toHaveURL(/\/auth\/login\?next=%2Fdashboard/);
   });
 
-  test("devenir-pilote back link goes to landing", async ({ page }) => {
-    // The webapp and landing are on different ports, but we can test
-    // that the login page has the expected structure
+  test("login page uses OIDC-only flow", async ({ page }) => {
     await page.goto("/login");
-    // The page should have a form element
-    const form = page.locator("form");
-    await expect(form).toBeVisible();
+
+    await expect(page.getByText("Client access")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Continuer vers la connexion" }),
+    ).toBeVisible();
+    await expect(page.getByLabel(/Email/)).toHaveCount(0);
+    await expect(page.getByLabel("Mot de passe")).toHaveCount(0);
   });
 
   test("direct navigation to protected routes without auth", async ({
@@ -60,8 +63,10 @@ test.describe("Webapp navigation", () => {
     await expect(
       page.getByRole("heading", { name: "Connexion securisee" }),
     ).toBeVisible();
-    // Form should still be visible and usable
-    await expect(page.getByLabel(/Email/)).toBeVisible();
-    await expect(page.getByLabel("Mot de passe")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Continuer vers la connexion" }),
+    ).toBeVisible();
+    await expect(page.getByLabel(/Email/)).toHaveCount(0);
+    await expect(page.getByLabel("Mot de passe")).toHaveCount(0);
   });
 });

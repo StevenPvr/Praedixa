@@ -61,7 +61,7 @@ export function Footer({ dict, locale }: FooterProps) {
 
   return (
     <footer className="section-dark border-t border-white/10">
-      <div className="section-shell py-16">
+      <div className="section-shell py-20">
         <div className="panel-dark rounded-3xl p-6 md:p-9">
           <p className="section-kicker">
             <Sparkle size={12} weight="fill" />
@@ -76,7 +76,7 @@ export function Footer({ dict, locale }: FooterProps) {
           </Link>
         </div>
 
-        <div className="mt-10 grid gap-10 border-t border-white/10 pt-8 md:grid-cols-[1.3fr_1fr_1fr]">
+        <div className="mt-14 grid gap-10 border-t border-white/10 pt-10 md:grid-cols-[1.3fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2.5">
               <PraedixaLogo
@@ -114,14 +114,14 @@ export function Footer({ dict, locale }: FooterProps) {
                   {link.href.startsWith("#") ? (
                     <a
                       href={link.href}
-                      className="text-sm text-white/78 hover:text-white"
+                      className="text-sm text-white/78 transition-colors duration-200 hover:text-white"
                     >
                       {link.label}
                     </a>
                   ) : (
                     <Link
                       href={link.href}
-                      className="text-sm text-white/78 hover:text-white"
+                      className="text-sm text-white/78 transition-colors duration-200 hover:text-white"
                     >
                       {link.label}
                     </Link>
@@ -140,7 +140,7 @@ export function Footer({ dict, locale }: FooterProps) {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-white/78 hover:text-white"
+                    className="text-sm text-white/78 transition-colors duration-200 hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -150,7 +150,7 @@ export function Footer({ dict, locale }: FooterProps) {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/66">
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-8 text-xs text-white/66">
           <div className="inline-flex items-center gap-2">
             <Compass size={14} weight="duotone" />
             <span>&copy; {year} Praedixa</span>

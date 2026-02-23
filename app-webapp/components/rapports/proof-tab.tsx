@@ -171,7 +171,7 @@ export function ProofTab({ proofs, loading, error, onRetry }: ProofTabProps) {
         </Card>
 
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-serif text-lg font-semibold text-ink">
+          <h2 className="font-sans text-lg font-semibold text-ink">
             Bilans mensuels detailes
           </h2>
           <Button

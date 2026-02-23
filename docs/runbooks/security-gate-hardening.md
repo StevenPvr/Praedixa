@@ -6,14 +6,21 @@ Appliquer une rigueur "Apple-like" sur l'exécution locale des contrôles de sé
 
 ## Couches de contrôle
 
-1. Couche A (pre-commit, delta rapide, cible < 90s)
+1. Couche A (pre-commit, bloquante)
 
-- `./scripts/gate-precommit-delta.sh`
-- Secrets sur diff stagé (`gitleaks --staged`)
-- SAST diff (`semgrep` + règles custom critiques)
-- Garde-fous fichiers sensibles + invariants
-- Check config prod sur fichiers stagés
-- Validation stricte des exceptions
+- `./scripts/gate-precommit-blocking.sh`
+- Garde-fous securite:
+  - `./scripts/gate-precommit-delta.sh`
+  - Secrets sur diff stage (`gitleaks --staged`)
+  - SAST diff (`semgrep` + regles custom critiques)
+  - Garde-fous fichiers sensibles + invariants
+  - Check config prod sur fichiers stages
+  - Validation stricte des exceptions
+- Suites de tests obligatoires:
+  - `./scripts/gate-precommit-tests.sh`
+  - Python (inclut les unitaires): `uv run pytest`
+  - Next.js unit: `pnpm vitest run --project default --project admin`
+  - E2E: `pnpm test:e2e`
 
 2. Couche B (pre-push, deep, bloquante)
 
@@ -85,7 +92,7 @@ Règles:
 ## Commandes opérationnelles
 
 ```bash
-./scripts/gate-precommit-delta.sh
+./scripts/gate-precommit-blocking.sh
 ./scripts/gate-prepush-deep.sh
 pnpm gate:exhaustive
 pnpm gate:verify

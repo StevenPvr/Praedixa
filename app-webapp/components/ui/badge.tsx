@@ -16,8 +16,6 @@ const badgeVariants = cva(
         info: "border-info-light bg-info-light text-info-text",
         outline:
           "border-border bg-transparent text-ink-secondary hover:border-border-hover",
-        premium:
-          "border-[var(--accent-200)] bg-gradient-to-r from-[var(--accent-50)] to-[var(--accent-100)] text-[var(--accent-strong)]",
         destructive: "border-danger-light bg-danger-light text-danger-text",
       },
       size: {
@@ -36,19 +34,12 @@ const badgeVariants = cva(
 export interface BadgeProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {
-  /** Show a pulse animation for attention */
-  pulse?: boolean;
-}
+    VariantProps<typeof badgeVariants> {}
 
-function Badge({ className, variant, size, pulse, ...props }: BadgeProps) {
+function Badge({ className, variant, size, ...props }: BadgeProps) {
   return (
     <div
-      className={cn(
-        badgeVariants({ variant, size }),
-        pulse && "animate-glow-pulse",
-        className,
-      )}
+      className={cn(badgeVariants({ variant, size }), className)}
       {...props}
     />
   );
