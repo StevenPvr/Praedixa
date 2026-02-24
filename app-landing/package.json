@@ -10,7 +10,7 @@
     "build": "next build --webpack",
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
-    "lint": "eslint app/ components/ lib/ proxy.ts proxy.node.ts next.config.ts open-next.config.ts",
+    "lint": "eslint app/ components/ lib/ middleware.ts next.config.ts open-next.config.ts",
     "typecheck": "tsc --noEmit",
     "cf:build": "opennextjs-cloudflare build",
     "preview": "pnpm cf:build && opennextjs-cloudflare preview",

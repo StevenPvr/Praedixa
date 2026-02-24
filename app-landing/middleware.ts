@@ -116,7 +116,7 @@ function addCsp(
   return nextResponse;
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const canonicalTarget = resolveCanonicalTarget(request);
   if (canonicalTarget) {
     return addCsp(request, NextResponse.redirect(canonicalTarget, 301));
@@ -134,6 +134,8 @@ export async function proxy(request: NextRequest) {
 
   return addCsp(request);
 }
+
+export const proxy = middleware;
 
 export const config = {
   matcher: [
