@@ -79,7 +79,7 @@ Both form endpoints implement:
 ## Security headers
 
 - CSP generated in `lib/security/csp.ts`
-- middleware applies CSP per request (`middleware.ts`)
+- proxy applies CSP per request (`proxy.ts`)
 - additional headers configured through `lib/security/headers.ts` and `next.config.ts`
 
 ## Deployment

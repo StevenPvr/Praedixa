@@ -50,7 +50,7 @@ function addCsp(
   return nextResponse;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (isApiOrStatic(pathname)) {
