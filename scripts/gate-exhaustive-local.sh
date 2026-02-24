@@ -253,7 +253,8 @@ run_manual_exhaustive_layer() {
   run_check "lint:eslint" "quality" "low" "pnpm lint"
   run_check "types:typescript" "quality" "low" "pnpm typecheck"
   run_check "tests:vitest-coverage" "quality" "low" "pnpm test:coverage"
-  run_check "tests:pytest" "quality" "low" "cd app-api && uv run pytest"
+  run_check "tests:api-ts" "quality" "low" "pnpm --filter @praedixa/api-ts test"
+  run_check "tests:pytest-data" "quality" "low" "cd app-api && uv run pytest tests/"
   run_check "build:next-monorepo" "quality" "low" "pnpm build"
 
   run_check "security:codeql" "security" "medium" "./scripts/run-codeql-local.sh"

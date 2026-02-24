@@ -3,15 +3,16 @@ import { notFound } from "next/navigation";
 import { isValidLocale } from "../../lib/i18n/config";
 import { getDictionary } from "../../lib/i18n/get-dictionary";
 import { buildLocaleMetadata, localePathMap } from "../../lib/seo/metadata";
-import { Footer } from "../../components/layout/Footer";
-import { Navbar } from "../../components/layout/Navbar";
-import { StickyMobileCTA } from "../../components/layout/StickyMobileCTA";
-import { HeroTransitionWrapper } from "../../components/sections/HeroTransitionWrapper";
-import { MethodSection } from "../../components/sections/MethodSection";
-import { UseCasesSection } from "../../components/sections/UseCasesSection";
-import { SecuritySection } from "../../components/sections/SecuritySection";
-import { PilotSection } from "../../components/sections/PilotSection";
-import { FaqSection } from "../../components/sections/FaqSection";
+import { HeroSection } from "../../components/homepage/HeroSection";
+import { ProblemSection } from "../../components/homepage/ProblemSection";
+import { SolutionSection } from "../../components/homepage/SolutionSection";
+import { HowItWorksSection } from "../../components/homepage/HowItWorksSection";
+import { UseCasesSection } from "../../components/homepage/UseCasesSection";
+import { DeliverablesSection } from "../../components/homepage/DeliverablesSection";
+import { SecuritySection } from "../../components/homepage/SecuritySection";
+import { PilotSection } from "../../components/homepage/PilotSection";
+import { FaqSection } from "../../components/homepage/FaqSection";
+import { ContactCtaSection } from "../../components/homepage/ContactCtaSection";
 
 export async function generateMetadata({
   params,
@@ -45,20 +46,16 @@ export default async function LandingPage({
 
   return (
     <>
-      <Navbar dict={dict} locale={locale} />
-      <main id="main-content" tabIndex={-1}>
-        <HeroTransitionWrapper dict={dict} locale={locale} />
-        <MethodSection solution={dict.solution} howItWorks={dict.howItWorks} />
-        <UseCasesSection
-          useCases={dict.useCases}
-          deliverables={dict.deliverables}
-        />
-        <SecuritySection dict={dict} />
-        <PilotSection dict={dict} locale={locale} />
-        <FaqSection dict={dict} locale={locale} />
-      </main>
-      <Footer dict={dict} locale={locale} />
-      <StickyMobileCTA dict={dict} locale={locale} />
+      <HeroSection locale={locale} dict={dict} />
+      <ProblemSection dict={dict} />
+      <SolutionSection dict={dict} />
+      <HowItWorksSection dict={dict} />
+      <UseCasesSection dict={dict} />
+      <DeliverablesSection dict={dict} />
+      <SecuritySection dict={dict} />
+      <PilotSection locale={locale} dict={dict} />
+      <FaqSection dict={dict} />
+      <ContactCtaSection locale={locale} dict={dict} />
     </>
   );
 }

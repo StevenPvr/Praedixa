@@ -34,14 +34,14 @@ describe("NotFound Page (app/not-found.tsx)", () => {
     render(<NotFound />);
     expect(
       screen.getByText(
-        "La page que vous recherchez n'existe pas ou a été déplacée.",
+        "Cette page n'existe pas ou a été déplacée.",
       ),
     ).toBeInTheDocument();
   });
 
-  it('should render the "Retour à l\'accueil" link', () => {
+  it('should render the "Retour au site" link', () => {
     render(<NotFound />);
-    const homeLink = screen.getByText("Retour à l'accueil").closest("a");
-    expect(homeLink).toHaveAttribute("href", "/");
+    const homeLink = screen.getByText("Retour au site").closest("a");
+    expect(homeLink).toHaveAttribute("href", "/fr");
   });
 });

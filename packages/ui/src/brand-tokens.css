@@ -14,19 +14,19 @@
   --brand-font-serif: var(--font-sans, "Manrope"), ui-sans-serif, system-ui,
     -apple-system, sans-serif;
 
-  /* ── Brand: Praedixa Premium Blue (light mode ramp)
-     Light end (50–200): neutral-pearl with minimal chroma.
-     Saturated core (300+): deep blue — the Praedixa signature. ── */
-  --brass-50: oklch(0.985 0.005 260);
-  --brass-100: oklch(0.965 0.008 255);
-  --brass-200: oklch(0.925 0.015 250);
-  --brass-300: oklch(0.82 0.09 245);
-  --brass-400: oklch(0.72 0.13 246);
-  --brass-500: oklch(0.63 0.165 246);
-  --brass-600: oklch(0.54 0.155 246);
-  --brass-700: oklch(0.45 0.13 247);
-  --brass-800: oklch(0.37 0.105 247);
-  --brass-900: oklch(0.31 0.085 248);
+  /* ── Brand: Praedixa Deep Navy (light mode ramp)
+     50–200: cool pearl with minimal chroma.
+     300+: deep navy-indigo — premium business signature. ── */
+  --brass-50: oklch(0.975 0.003 260);
+  --brass-100: oklch(0.95 0.006 258);
+  --brass-200: oklch(0.90 0.012 256);
+  --brass-300: oklch(0.76 0.035 258);
+  --brass-400: oklch(0.56 0.075 262);
+  --brass-500: oklch(0.40 0.105 264);
+  --brass-600: oklch(0.33 0.095 264);
+  --brass-700: oklch(0.27 0.08 265);
+  --brass-800: oklch(0.22 0.065 266);
+  --brass-900: oklch(0.17 0.05 267);
 
   /* ── Brand: Praedixa Blue (dark mode ramp) ── */
   --brass-dark-50: oklch(0.18 0.045 247);
@@ -91,8 +91,8 @@
     0 10px 24px -6px oklch(0.24 0.03 248 / 0.12);
   --shadow-warm-lg: 0 4px 12px oklch(0.24 0.03 248 / 0.1),
     0 18px 40px -10px oklch(0.24 0.03 248 / 0.15);
-  --shadow-brass-glow: 0 0 16px -6px oklch(0.63 0.165 246 / 0.22),
-    0 0 36px -12px oklch(0.63 0.165 246 / 0.14);
+  --shadow-brass-glow: 0 0 16px -6px oklch(0.40 0.105 264 / 0.25),
+    0 0 36px -12px oklch(0.40 0.105 264 / 0.16);
 
   /* ── Transitions ── */
   --brand-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);

@@ -3,7 +3,7 @@
 #
 # Services:
 #   postgres  — PostgreSQL 16 (port 5433 externally to avoid conflicts)
-#   api       — FastAPI with hot reload (port 8000)
+#   api       — TypeScript API runtime (port 8000)
 #
 # The webapp (Next.js) runs outside Docker via `pnpm dev:webapp`
 # because Node.js hot reload is faster natively.
@@ -29,9 +29,9 @@ services:
 
   api:
     build:
-      context: ../app-api
-      dockerfile: Dockerfile
-      target: production
+      context: ..
+      dockerfile: app-api-ts/Dockerfile
+      target: runtime
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -41,23 +41,8 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql+asyncpg://praedixa:changeme@postgres:5432/praedixa
-      AUTH_JWKS_URL: ${AUTH_JWKS_URL:-}
-      AUTH_ISSUER_URL: ${AUTH_ISSUER_URL:-}
-      AUTH_AUDIENCE: ${AUTH_AUDIENCE:-authenticated}
-      AUTH_ALLOWED_JWKS_HOSTS: ${AUTH_ALLOWED_JWKS_HOSTS:-[]}
-      CORS_ORIGINS: '["http://localhost:3001"]'
-      ENVIRONMENT: development
-      DEBUG: "true"
-      LOG_LEVEL: debug
-    volumes:
-      # Bind mounts for hot reload in development
-      - ../app-api/app:/app/app
-      - ../app-api/alembic:/app/alembic
-      - ../app-api/alembic.ini:/app/alembic.ini
-      - ../app-api/scripts:/app/scripts
-      - ../app-api/docker-entrypoint.sh:/app/docker-entrypoint.sh
-    entrypoint: ["/app/docker-entrypoint.sh"]
+      NODE_ENV: development
+      PORT: 8000
 
 volumes:
   pgdata:

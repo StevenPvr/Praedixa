@@ -3,6 +3,9 @@ import { generateNonce, buildCspHeader } from "./lib/security/csp";
 import { locales, legacyRedirectMap } from "./lib/i18n/config";
 import { resolveLocaleFromPathname } from "./lib/i18n/request-locale";
 
+const CANONICAL_HOST = "www.praedixa.com";
+const PRODUCTION_HOSTS = new Set(["praedixa.com", CANONICAL_HOST]);
+
 function isApiOrStatic(pathname: string): boolean {
   return (
     pathname.startsWith("/api/") ||
@@ -11,10 +14,73 @@ function isApiOrStatic(pathname: string): boolean {
   );
 }
 
+function normalizeHost(host: string): string {
+  const normalized = host.trim().toLowerCase();
+  if (normalized.endsWith(":443")) return normalized.slice(0, -4);
+  if (normalized.endsWith(":80")) return normalized.slice(0, -3);
+  return normalized;
+}
+
+function resolveRequestHost(request: NextRequest): string {
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  if (forwardedHost) {
+    return normalizeHost(forwardedHost.split(",")[0] ?? "");
+  }
+  const host = request.headers.get("host");
+  if (host) {
+    return normalizeHost(host);
+  }
+  return normalizeHost(request.nextUrl.host);
+}
+
 function hasLocalePrefix(pathname: string): boolean {
   return locales.some(
     (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
   );
+}
+
+function normalizePathname(pathname: string): string {
+  if (pathname === "/") return pathname;
+  return pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+}
+
+function resolveCanonicalTarget(request: NextRequest): URL | null {
+  const target = request.nextUrl.clone();
+  let shouldRedirect = false;
+
+  const requestHost = resolveRequestHost(request);
+  if (PRODUCTION_HOSTS.has(requestHost)) {
+    if (target.protocol !== "https:") {
+      target.protocol = "https:";
+      shouldRedirect = true;
+    }
+    if (target.hostname !== CANONICAL_HOST) {
+      target.hostname = CANONICAL_HOST;
+      target.port = "";
+      shouldRedirect = true;
+    }
+  }
+
+  if (!isApiOrStatic(target.pathname)) {
+    const normalizedPathname = normalizePathname(target.pathname);
+    if (normalizedPathname !== target.pathname) {
+      target.pathname = normalizedPathname;
+      shouldRedirect = true;
+    }
+
+    if (target.pathname === "/") {
+      target.pathname = "/fr";
+      shouldRedirect = true;
+    } else {
+      const localizedTarget = legacyRedirectMap[target.pathname];
+      if (localizedTarget && localizedTarget !== target.pathname) {
+        target.pathname = localizedTarget;
+        shouldRedirect = true;
+      }
+    }
+  }
+
+  return shouldRedirect ? target : null;
 }
 
 function buildRequestHeaders(
@@ -51,23 +117,15 @@ function addCsp(
 }
 
 export async function proxy(request: NextRequest) {
+  const canonicalTarget = resolveCanonicalTarget(request);
+  if (canonicalTarget) {
+    return addCsp(request, NextResponse.redirect(canonicalTarget, 301));
+  }
+
   const { pathname } = request.nextUrl;
 
   if (isApiOrStatic(pathname)) {
     return addCsp(request);
-  }
-
-  if (pathname === "/") {
-    const target = request.nextUrl.clone();
-    target.pathname = "/fr";
-    return addCsp(request, NextResponse.redirect(target, 301));
-  }
-
-  const localizedTarget = legacyRedirectMap[pathname];
-  if (localizedTarget) {
-    const target = request.nextUrl.clone();
-    target.pathname = localizedTarget;
-    return addCsp(request, NextResponse.redirect(target, 301));
   }
 
   if (!hasLocalePrefix(pathname)) {

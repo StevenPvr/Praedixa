@@ -9,9 +9,8 @@ export function trackEvent(
   eventName: string,
   params?: Record<string, string | number | boolean>,
 ) {
-  if (typeof window !== "undefined" && typeof window.gtag === "function") {
-    window.gtag("event", eventName, params);
-  }
+  void eventName;
+  void params;
 }
 
 /* ── Pre-defined event names (from the playbook instrumentation plan) ── */

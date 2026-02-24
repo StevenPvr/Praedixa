@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { headers } from "next/headers";
-import "@praedixa/ui/brand-tokens.css";
 import "./globals.css";
 import { defaultLocale, isValidLocale } from "../lib/i18n/config";
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-sans",
-  display: "optional",
-});
+const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.praedixa.com"),
@@ -27,6 +22,13 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  ...(googleSiteVerification
+    ? {
+        verification: {
+          google: googleSiteVerification,
+        },
+      }
+    : {}),
 };
 
 async function resolveHtmlLang(): Promise<string> {
@@ -48,14 +50,13 @@ export default async function RootLayout({
   return (
     <html
       lang={htmlLang}
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
-      <body className={outfit.variable}>
-        <a href="#main-content" className="skip-link">
-          Aller au contenu principal
-        </a>
+      <body className="font-sans antialiased">
         {children}
+        <div className="grain-overlay" aria-hidden="true" />
       </body>
     </html>
   );

@@ -4,7 +4,7 @@ export const fr: Dictionary = {
   meta: {
     title: "Praedixa | Prévision d'effectifs et arbitrages multi-sites",
     description:
-      "Anticipez les tensions d'effectifs multi-sites avec un pilote de prévision d'effectifs, puis étendez si besoin vers un socle décisionnel complet.",
+      "Anticipez les tensions d'effectifs multi-sites, notamment sur des réseaux multi-franchisés de restauration rapide, avec un pilote de prévision d'effectifs.",
     ogTitle:
       "Praedixa | Pilote prévision effectifs pour opérations multi-sites",
     ogDescription:
@@ -53,6 +53,7 @@ export const fr: Dictionary = {
       "NDA possible dès le premier échange",
       "Démarrage possible sur un périmètre restreint",
       "Hébergement 100 % Scaleway, 100 % français",
+      "Cible prioritaire: réseaux multi-franchisés restauration rapide",
     ],
   },
 
@@ -399,7 +400,7 @@ export const fr: Dictionary = {
     selection: {
       title: "Critères de sélection (pilotage ciblé)",
       items: [
-        "Organisation multi-sites (logistique, retail, restauration rapide, industrie, services)",
+        "Organisation multi-sites (logistique, retail, restauration rapide, industrie, services), avec priorité aux réseaux multi-franchisés restauration rapide",
         "Sponsor opérations engagé",
         "Exports data exploitables (capacité, charge, absences)",
       ],
@@ -436,7 +437,7 @@ export const fr: Dictionary = {
       {
         question: "À qui s'adresse Praedixa ?",
         answer:
-          "Dir. d'exploitation, responsables Ops et DAF d'entreprises multi-sites avec des équipes terrain. Exemples de secteurs: logistique, retail/distribution, transport, restauration rapide, industrie, santé et services. Point commun: charge fluctuante, capacité qui ne suit pas, coûts d'urgence qui explosent.",
+          "Dir. d'exploitation, responsables Ops et DAF d'entreprises multi-sites avec des équipes terrain. Cible prioritaire: réseaux multi-franchisés de restauration rapide. Autres secteurs: logistique, retail/distribution, transport, industrie, santé et services. Point commun: charge fluctuante, capacité qui ne suit pas, coûts d'urgence qui explosent.",
         category: "Comprendre Praedixa",
       },
       {

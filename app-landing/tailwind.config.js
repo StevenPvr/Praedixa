@@ -53,18 +53,17 @@ export default {
 
       fontFamily: {
         sans: [
-          "var(--font-sans)",
+          "var(--font-geist-sans)",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
           "sans-serif",
         ],
-        serif: [
-          "Cormorant Garamond",
-          "ui-serif",
-          "Georgia",
-          "Times New Roman",
-          "serif",
+        mono: [
+          "var(--font-geist-mono)",
+          "ui-monospace",
+          "SFMono-Regular",
+          "monospace",
         ],
       },
 
@@ -75,6 +74,11 @@ export default {
         base: ["0.9375rem", { lineHeight: "1.625rem" }],
         lg: ["1.0625rem", { lineHeight: "1.75rem" }],
         xl: ["1.25rem", { lineHeight: "1.875rem" }],
+        "2xl": ["1.5rem", { lineHeight: "1.2", letterSpacing: "-0.02em" }],
+        "3xl": ["1.875rem", { lineHeight: "1.15", letterSpacing: "-0.02em" }],
+        "4xl": ["2.25rem", { lineHeight: "1.1", letterSpacing: "-0.03em" }],
+        "5xl": ["3rem", { lineHeight: "1.05", letterSpacing: "-0.03em" }],
+        "6xl": ["3.75rem", { lineHeight: "1", letterSpacing: "-0.04em" }],
       },
 
       spacing: {

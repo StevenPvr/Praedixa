@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { locales, isValidLocale } from "../../lib/i18n/config";
 import { getDictionary } from "../../lib/i18n/get-dictionary";
+import { Header } from "../../components/shared/Header";
+import { Footer } from "../../components/shared/Footer";
 import { JsonLd } from "../../components/seo/JsonLd";
-import { GoogleAnalytics } from "../../components/analytics/GoogleAnalytics";
-import { CookieService } from "../../components/analytics/CookieService";
 
 export async function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -36,12 +36,17 @@ export default async function LocaleLayout({
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
 
+  const dict = await getDictionary(locale);
+
   return (
-    <div className="relative min-h-[100dvh] font-sans text-[var(--ink)] antialiased">
+    <>
+      <a href="#main-content" className="skip-link">
+        {locale === "fr" ? "Aller au contenu" : "Skip to content"}
+      </a>
+      <Header locale={locale} dict={dict} />
+      <main id="main-content">{children}</main>
       <JsonLd locale={locale} />
-      <GoogleAnalytics />
-      <CookieService locale={locale} />
-      {children}
-    </div>
+      <Footer locale={locale} dict={dict} />
+    </>
   );
 }

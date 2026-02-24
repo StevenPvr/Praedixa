@@ -15,13 +15,6 @@ afterAll(() => {
   console.error = originalError;
 });
 
-vi.mock("next/font/google", () => ({
-  Manrope: () => ({
-    variable: "--font-sans",
-    style: { fontFamily: "Manrope" },
-  }),
-}));
-
 vi.mock("@/components/theme-provider", () => ({
   ThemeProvider: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>

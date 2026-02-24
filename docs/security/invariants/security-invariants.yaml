@@ -1,49 +1,36 @@
-version: 1
+version: 2
 invariants:
-  - id: INV-TENANT-001
-    statement: Tenant A ne lit ni ne modifie jamais les ressources du tenant B.
+  - id: INV-TS-TENANT-001
+    statement: Un utilisateur ne lit/modifie jamais les ressources d'une autre organisation.
     critical_paths:
-      - app-api/app/core/security.py
-      - app-api/app/routers/organizations.py
-      - app-api/app/routers/decisions.py
-      - app-api/app/routers/alerts.py
-      - app-api/app/routers/arbitrage.py
-      - app-api/app/routers/admin*.py
+      - app-api-ts/src/auth.ts
+      - app-api-ts/src/routes.ts
+      - contracts/openapi/public.yaml
     required_tests:
-      - app-api/tests/security/test_tenant_isolation.py
-      - app-api/tests/security/test_operational_isolation.py
-      - app-api/tests/security/test_data_catalog_isolation.py
-      - app-api/tests/security/test_decisions_isolation.py
+      - app-api-ts/src/__tests__/auth.test.ts
 
-  - id: INV-ROLE-002
-    statement: Un rôle inférieur ne doit jamais exécuter une action admin.
+  - id: INV-TS-ROLE-002
+    statement: Les routes admin restent reservees au role super_admin.
     critical_paths:
-      - app-api/app/core/auth.py
-      - app-api/app/routers/admin*.py
-      - app-webapp/lib/auth/**
+      - app-api-ts/src/auth.ts
+      - app-api-ts/src/routes.ts
       - app-admin/lib/auth/**
+      - app-webapp/lib/auth/**
     required_tests:
-      - app-api/tests/security/test_admin_role_escalation.py
-      - app-api/tests/security/test_admin_cross_tenant.py
-      - app-api/tests/security/test_operational_admin_auth.py
+      - app-api-ts/src/__tests__/server.test.ts
 
-  - id: INV-WORKFLOW-003
-    statement: Les transitions d'état métier interdites restent impossibles.
+  - id: INV-TS-CONTRACT-003
+    statement: Le contrat OpenAPI public reste coherent avec le routage API TS.
     critical_paths:
-      - app-api/app/services/**
-      - app-api/app/models/**
-      - app-api/app/routers/admin.py
+      - app-api-ts/src/routes.ts
+      - contracts/openapi/public.yaml
     required_tests:
-      - app-api/tests/security/test_rgpd_bypass.py
-      - app-api/tests/security/test_rgpd_erasure.py
-      - app-api/tests/security/test_scenario_engine_integrity.py
+      - app-api-ts/src/__tests__/auth.test.ts
 
-  - id: INV-IDEMPOTENCE-004
-    statement: Les opérations irréversibles/financières résistent au replay.
+  - id: INV-TS-HEADERS-004
+    statement: Les en-tetes de securite HTTP restent actives sur toutes les reponses API.
     critical_paths:
-      - app-api/app/routers/admin.py
-      - app-api/app/core/rate_limit.py
-      - app-api/app/routers/contact_requests.py
+      - app-api-ts/src/server.ts
+      - scripts/check-prod-security-config.py
     required_tests:
-      - app-api/tests/security/test_rgpd_bypass.py
-      - app-api/tests/security/test_rate_limit_bypass.py
+      - app-api-ts/src/__tests__/server.test.ts

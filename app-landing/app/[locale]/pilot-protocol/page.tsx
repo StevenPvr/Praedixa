@@ -1,16 +1,5 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import {
-  ArrowLeft,
-  ArrowUpRight,
-  Check,
-  Circle,
-  LockKey,
-  Sparkle,
-} from "@phosphor-icons/react/dist/ssr";
 import { isValidLocale } from "../../../lib/i18n/config";
-import { getDictionary } from "../../../lib/i18n/get-dictionary";
-import { PraedixaLogo } from "../../../components/logo/PraedixaLogo";
 import type { Metadata } from "next";
 import { buildLocaleMetadata, localePathMap } from "../../../lib/seo/metadata";
 
@@ -40,192 +29,99 @@ export default async function PilotProtocolPage({
   const { locale } = await params;
   if (!isValidLocale(locale)) notFound();
 
+  const { getDictionary } = await import("../../../lib/i18n/get-dictionary");
   const dict = await getDictionary(locale);
-  const { pilot, howItWorks, security } = dict;
+  const p = dict.pilot;
   const isFr = locale === "fr";
-  const pilotHref = `/${locale}/${locale === "fr" ? "devenir-pilote" : "pilot-application"}`;
+
+  const { getLocalizedPath } = await import("../../../lib/i18n/config");
+  const pilotHref = getLocalizedPath(locale, "pilot");
 
   return (
-    <main id="main-content" tabIndex={-1} className="min-h-[100dvh] py-24">
-      <div className="section-shell max-w-6xl">
-        <header className="panel-glass flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            <PraedixaLogo
-              variant="geometric"
-              size={28}
-              color="var(--ink-soft)"
-              strokeWidth={1.1}
-            />
-            <span className="text-base font-semibold tracking-tight text-[var(--ink)]">
-              Praedixa
-            </span>
-          </div>
-          <Link href={`/${locale}`} className="btn-secondary">
-            <ArrowLeft size={14} weight="bold" />
-            {isFr ? "Retour au site" : "Back to site"}
-          </Link>
-        </header>
+    <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+      <span className="inline-block text-xs font-semibold uppercase tracking-[0.08em] text-brass">
+        {p.kicker}
+      </span>
+      <h1 className="mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl md:text-4xl">
+        {isFr ? "Protocole pilote" : "Pilot protocol"}
+      </h1>
+      <p className="mt-4 max-w-[58ch] text-base leading-relaxed text-neutral-500">
+        {p.subheading}
+      </p>
 
-        <article className="panel-glass mt-6 rounded-3xl p-6 md:p-10">
-          <p className="section-kicker">
-            <Sparkle size={12} weight="fill" />
-            {pilot.kicker}
-          </p>
-          <h1 className="mt-3 text-4xl leading-none tracking-tighter text-[var(--ink)] md:text-6xl">
-            {pilot.heading}
-          </h1>
-          <p className="section-lead">{pilot.subheading}</p>
+      <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="rounded-xl border border-border-subtle bg-white p-6">
+          <h2 className="text-sm font-semibold text-ink">{p.included.title}</h2>
+          <ul className="mt-3 list-none space-y-2 p-0">
+            {p.included.items.map((item: string) => (
+              <li key={item} className="m-0 flex items-start gap-2 text-sm text-neutral-600">
+                <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-brass-300" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
 
-          <section className="mt-10">
-            <h2 className="text-2xl tracking-tight text-[var(--ink)]">
-              {howItWorks.heading}
-            </h2>
-            <div className="mt-5 grid gap-4 md:grid-cols-12">
-              {howItWorks.steps.map((step, index) => (
-                <article
-                  key={step.number}
-                  className={`rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4 ${
-                    index % 2 === 0 ? "md:col-span-7" : "md:col-span-5"
-                  }`}
-                >
-                  <p className="font-mono text-xs text-[var(--ink-muted)]">
-                    {step.number}
-                  </p>
-                  <h3 className="mt-2 text-lg tracking-tight text-[var(--ink)]">
-                    {step.title}
-                  </h3>
-                  <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[var(--accent-700)]">
-                    {step.subtitle}
-                  </p>
-                  <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">
-                    {step.description}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="mt-10 grid gap-4 md:grid-cols-2">
-            <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
-              <h2 className="text-xl tracking-tight text-[var(--ink)]">
-                {pilot.included.title}
-              </h2>
-              <ul className="mt-3 grid gap-2">
-                {pilot.included.items.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-2 text-sm text-[var(--ink-soft)]"
-                  >
-                    <Check
-                      size={14}
-                      weight="bold"
-                      className="mt-0.5 shrink-0 text-[var(--accent-700)]"
-                    />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </article>
-
-            <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
-              <h2 className="text-xl tracking-tight text-[var(--ink)]">
-                {pilot.excluded.title}
-              </h2>
-              <ul className="mt-3 grid gap-2">
-                {pilot.excluded.items.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-2 text-sm text-[var(--ink-soft)]"
-                  >
-                    <Circle
-                      size={12}
-                      weight="regular"
-                      className="mt-1 shrink-0 text-[var(--ink-muted)]"
-                    />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </article>
-          </section>
-
-          <section className="mt-10 grid gap-4 md:grid-cols-[1.2fr_1fr]">
-            <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
-              <h2 className="text-xl tracking-tight text-[var(--ink)]">
-                {pilot.kpis.title}
-              </h2>
-              <ul className="mt-3 grid gap-2 md:grid-cols-2">
-                {pilot.kpis.items.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-2 text-sm text-[var(--ink-soft)]"
-                  >
-                    <Check
-                      size={14}
-                      weight="bold"
-                      className="mt-0.5 shrink-0 text-[var(--accent-700)]"
-                    />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </article>
-
-            <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
-              <h2 className="text-xl tracking-tight text-[var(--ink)]">
-                {pilot.governance.title}
-              </h2>
-              <ul className="mt-3 grid gap-2">
-                {pilot.governance.items.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-2 text-sm text-[var(--ink-soft)]"
-                  >
-                    <Check
-                      size={14}
-                      weight="bold"
-                      className="mt-0.5 shrink-0 text-[var(--accent-700)]"
-                    />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </article>
-          </section>
-
-          <section className="mt-10 border-t border-[var(--line)] pt-8">
-            <p className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-[var(--ink-muted)]">
-              <LockKey size={14} weight="duotone" />
-              {security.heading}
-            </p>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              {security.tiles.slice(0, 4).map((tile) => (
-                <article
-                  key={tile.title}
-                  className="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-3"
-                >
-                  <p className="text-sm font-medium text-[var(--ink)]">
-                    {tile.title}
-                  </p>
-                  <p className="mt-1 text-sm text-[var(--ink-soft)]">
-                    {tile.description}
-                  </p>
-                </article>
-              ))}
-            </div>
-            <p className="mt-4 rounded-xl border border-[var(--accent-200)] bg-[var(--accent-50)] px-4 py-3 text-sm text-[var(--ink-soft)]">
-              {security.honesty}
-            </p>
-          </section>
-
-          <section className="mt-10 flex flex-wrap items-center gap-3">
-            <Link href={pilotHref} className="btn-primary">
-              {pilot.ctaPrimary}
-              <ArrowUpRight size={15} weight="bold" />
-            </Link>
-          </section>
-        </article>
+        <div className="rounded-xl border border-border-subtle bg-white p-6">
+          <h2 className="text-sm font-semibold text-ink">{p.excluded.title}</h2>
+          <ul className="mt-3 list-none space-y-2 p-0">
+            {p.excluded.items.map((item: string) => (
+              <li key={item} className="m-0 flex items-start gap-2 text-sm text-neutral-400 line-through">
+                <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-300" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-    </main>
+
+      <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="rounded-xl border border-border-subtle bg-white p-6">
+          <h2 className="text-sm font-semibold text-ink">{p.kpis.title}</h2>
+          <ul className="mt-3 list-none space-y-2 p-0">
+            {p.kpis.items.map((item: string) => (
+              <li key={item} className="m-0 text-sm text-neutral-600">{item}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-border-subtle bg-white p-6">
+          <h2 className="text-sm font-semibold text-ink">{p.governance.title}</h2>
+          <ul className="mt-3 list-none space-y-2 p-0">
+            {p.governance.items.map((item: string) => (
+              <li key={item} className="m-0 text-sm text-neutral-600">{item}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-8 rounded-xl border border-border-subtle bg-white p-6">
+        <h2 className="text-sm font-semibold text-ink">{p.selection.title}</h2>
+        <ul className="mt-3 list-none space-y-2 p-0">
+          {p.selection.items.map((item: string) => (
+            <li key={item} className="m-0 text-sm text-neutral-600">{item}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="mt-8 rounded-xl border border-brass-200 bg-brass-50/50 p-6">
+        <h2 className="text-sm font-semibold text-brass-700">{p.upcoming.title}</h2>
+        <p className="mt-1.5 text-sm leading-relaxed text-brass-600">
+          {p.upcoming.description}
+        </p>
+      </div>
+
+      <p className="mt-6 text-xs text-neutral-400">{p.urgency}</p>
+
+      <div className="mt-8 border-t border-border-subtle pt-8">
+        <a
+          href={pilotHref}
+          className="inline-flex items-center rounded-lg bg-brass px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-150 hover:bg-brass-600 active:scale-[0.98]"
+        >
+          {p.ctaPrimary}
+        </a>
+        <p className="mt-2 text-xs text-neutral-400">{p.ctaMeta}</p>
+      </div>
+    </div>
   );
 }

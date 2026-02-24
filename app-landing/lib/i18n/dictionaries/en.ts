@@ -4,7 +4,7 @@ export const en: Dictionary = {
   meta: {
     title: "Praedixa | Multi-Site Workforce Forecasting & Coverage Decisions",
     description:
-      "Anticipate multi-site staffing tensions with a workforce forecasting pilot, then expand to a broader decision layer when needed.",
+      "Anticipate multi-site staffing tensions, especially in multi-franchise quick-service restaurant networks, with a workforce forecasting pilot.",
     ogTitle: "Praedixa | Workforce Forecasting Pilot for Multi-Site Operations",
     ogDescription:
       "3-month pilot to improve workforce forecasting, compare coverage options, and align operations/finance decisions.",
@@ -52,6 +52,7 @@ export const en: Dictionary = {
       "NDA from first contact",
       "Start with a focused perimeter",
       "100% Scaleway hosting, 100% French",
+      "Priority target: multi-franchise quick-service restaurant networks",
     ],
   },
 
@@ -384,7 +385,7 @@ export const en: Dictionary = {
     selection: {
       title: "Selection criteria (focused scope)",
       items: [
-        "Multi-site organization (logistics, retail, QSR, industry, services)",
+        "Multi-site organization (logistics, retail, QSR, industry, services), with priority on multi-franchise quick-service restaurant networks",
         "Committed operations sponsor",
         "Usable data exports (capacity, workload, absences)",
       ],
@@ -421,7 +422,7 @@ export const en: Dictionary = {
       {
         question: "Who is Praedixa for?",
         answer:
-          "Operations directors, Ops managers, and CFOs of multi-site companies with field teams. Typical sectors include logistics, retail/distribution, transport, quick-service restaurants, healthcare, industry, and services. Common thread: fluctuating workload, capacity gaps, and rising emergency costs.",
+          "Operations directors, Ops managers, and CFOs of multi-site companies with field teams. Priority target: multi-franchise quick-service restaurant networks. Other sectors include logistics, retail/distribution, transport, healthcare, industry, and services. Common thread: fluctuating workload, capacity gaps, and rising emergency costs.",
         category: "Understanding Praedixa",
       },
       {

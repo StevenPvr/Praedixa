@@ -23,7 +23,7 @@ describe("GlobalError Page (app/global-error.tsx)", () => {
   it("should render without errors", () => {
     render(<GlobalError error={mockError} reset={mockReset} />);
     expect(
-      screen.getByText("Une erreur inattendue est survenue"),
+      screen.getByText("Une erreur critique est survenue"),
     ).toBeInTheDocument();
   });
 
@@ -31,7 +31,7 @@ describe("GlobalError Page (app/global-error.tsx)", () => {
     render(<GlobalError error={mockError} reset={mockReset} />);
     expect(
       screen.getByRole("heading", {
-        name: "Une erreur inattendue est survenue",
+        name: "Une erreur critique est survenue",
       }),
     ).toBeInTheDocument();
   });
@@ -40,7 +40,7 @@ describe("GlobalError Page (app/global-error.tsx)", () => {
     render(<GlobalError error={mockError} reset={mockReset} />);
     expect(
       screen.getByText(
-        /Nous en avons été informés et travaillons à la résoudre/,
+        /Le site a rencontré un problème inattendu/,
       ),
     ).toBeInTheDocument();
   });
@@ -58,15 +58,9 @@ describe("GlobalError Page (app/global-error.tsx)", () => {
     expect(mockReset).toHaveBeenCalledTimes(1);
   });
 
-  it('should render the "Retour à l\'accueil" link', () => {
+  it("should render the Réessayer button text", () => {
     render(<GlobalError error={mockError} reset={mockReset} />);
-    const homeLink = screen.getByText("Retour à l'accueil");
-    expect(homeLink.closest("a")).toHaveAttribute("href", "/");
-  });
-
-  it("should render the P logo mark", () => {
-    render(<GlobalError error={mockError} reset={mockReset} />);
-    expect(screen.getByText("P")).toBeInTheDocument();
+    expect(screen.getByText("Réessayer")).toBeInTheDocument();
   });
 
   it("should render as a standalone page with inline styles", () => {

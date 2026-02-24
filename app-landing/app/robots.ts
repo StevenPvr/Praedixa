@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/_next/", "/fr/logo-preview", "/en/logo-preview"],
+        disallow: ["/api/", "/fr/logo-preview", "/en/logo-preview"],
       },
       {
         userAgent: "AdsBot-Google",
@@ -17,6 +17,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
       },
     ],
+    host: "https://www.praedixa.com",
     sitemap: "https://www.praedixa.com/sitemap.xml",
   };
 }

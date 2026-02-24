@@ -14,21 +14,22 @@ afterAll(() => {
   console.error = originalError;
 });
 
-vi.mock("next/font/google", () => ({
-  Outfit: () => ({
-    variable: "--font-sans",
-    style: { fontFamily: "Outfit" },
-  }),
-  Cormorant_Garamond: () => ({
-    variable: "--font-serif",
-    style: { fontFamily: "Cormorant Garamond" },
-  }),
-}));
-
 const headersMock = vi.fn(() => new Headers());
 
 vi.mock("next/headers", () => ({
   headers: () => headersMock(),
+}));
+
+vi.mock("next/font/google", () => ({
+  Manrope: () => ({ variable: "font-sans-mock" }),
+}));
+
+vi.mock("geist/font/sans", () => ({
+  GeistSans: { variable: "geist-sans-mock" },
+}));
+
+vi.mock("geist/font/mono", () => ({
+  GeistMono: { variable: "geist-mono-mock" },
 }));
 
 vi.mock("../../components/seo/JsonLd", () => ({

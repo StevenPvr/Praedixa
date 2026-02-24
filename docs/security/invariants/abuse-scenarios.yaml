@@ -1,56 +1,13 @@
-version: 1
+version: 2
 abuse_scenarios:
-  - id: ABUSE-HORIZONTAL-001
-    title: Élèv. horizontale cross-tenant
-    description: Un utilisateur A tente d'accéder aux objets du tenant B.
+  - id: ABUSE-TS-001
+    title: Token forge avec claims incomplets
+    description: Un token mal forme ou incomplet ne doit jamais passer l'auth.
     required_tests:
-      - app-api/tests/security/test_tenant_isolation.py
-      - app-api/tests/security/test_decisions_isolation.py
+      - app-api-ts/src/__tests__/auth.test.ts
 
-  - id: ABUSE-VERTICAL-002
-    title: Élèv. verticale de privilèges
-    description: Un rôle viewer/employee tente des actions réservées admin.
+  - id: ABUSE-TS-002
+    title: Escalade de role sur endpoints admin
+    description: Un role non super_admin ne doit pas acceder aux routes /api/v1/admin/*.
     required_tests:
-      - app-api/tests/security/test_admin_role_escalation.py
-      - app-api/tests/security/test_operational_role_access.py
-
-  - id: ABUSE-WORKFLOW-003
-    title: Bypass workflow de validation
-    description: Contournement des transitions d'état et auto-approbation.
-    required_tests:
-      - app-api/tests/security/test_rgpd_bypass.py
-      - app-api/tests/security/test_scenario_engine_integrity.py
-
-  - id: ABUSE-QUOTA-004
-    title: Contournement quota/rate-limit
-    description: Spoof d'entêtes proxy et contournement des limites.
-    required_tests:
-      - app-api/tests/security/test_rate_limit_bypass.py
-      - app-api/tests/security/test_rate_limits.py
-
-  - id: ABUSE-RACE-005
-    title: Race condition / double spend
-    description: Soumissions concurrentes sur opération critique.
-    required_tests:
-      - app-api/tests/security/test_rgpd_bypass.py
-
-  - id: ABUSE-IDOR-006
-    title: IDOR sur objets métiers
-    description: Accès à des ressources par identifiant direct hors périmètre autorisé.
-    required_tests:
-      - app-api/tests/security/test_tenant_isolation.py
-      - app-api/tests/security/test_data_catalog_isolation.py
-
-  - id: ABUSE-AUTOMATION-007
-    title: Abuse API par automation
-    description: Boucle de requêtes pour contourner protections applicatives et quotas.
-    required_tests:
-      - app-api/tests/security/test_rate_limits.py
-      - app-api/tests/security/test_rate_limit_bypass.py
-
-  - id: ABUSE-WORKFLOW-008
-    title: Fraude par bypass de validation métier
-    description: Enchaînement d'actions techniquement valides mais interdites métier.
-    required_tests:
-      - app-api/tests/security/test_scenario_engine_integrity.py
-      - app-api/tests/security/test_operational_role_access.py
+      - app-api-ts/src/__tests__/server.test.ts

@@ -341,5 +341,6 @@ Les headers de securite sont configures dans `next.config.ts` :
 
 - [`docs/ux-redesign-webapp.md`](../docs/ux-redesign-webapp.md) -- Specifications UX du tableau de bord
 - [`packages/ui/README.md`](../packages/ui/README.md) -- Librairie de composants partagee
-- [`app-api/`](../app-api/) -- Backend FastAPI
+- [`app-api-ts/`](../app-api-ts/) -- Backend API TypeScript (HTTP)
+- [`app-api/`](../app-api/) -- Data/ML engine Python (batch/jobs)
 - [`CLAUDE.md`](../CLAUDE.md) -- Guide complet du monorepo

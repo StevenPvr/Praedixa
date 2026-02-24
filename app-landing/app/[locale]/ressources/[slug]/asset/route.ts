@@ -2,13 +2,11 @@ import { getSerpAssetDownloadBySlug } from "../../../../../lib/content/serp-asse
 import { isValidLocale } from "../../../../../lib/i18n/config";
 
 interface RouteContext {
-  params:
-    | Promise<{ locale: string; slug: string }>
-    | { locale: string; slug: string };
+  params: Promise<{ locale: string; slug: string }>;
 }
 
 export async function GET(_request: Request, context: RouteContext) {
-  const { locale, slug } = await Promise.resolve(context.params);
+  const { locale, slug } = await context.params;
 
   if (!isValidLocale(locale) || locale !== "fr") {
     return new Response("Not found", { status: 404 });

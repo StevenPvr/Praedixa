@@ -56,6 +56,34 @@ describe("landing proxy", () => {
     expect(result.headers.get("location")).toBe("http://localhost:3001/fr");
   });
 
+  it("canonicalizes apex host to https www host in one redirect", async () => {
+    const req = makeRequest("/", { host: "praedixa.com" });
+    const result = await proxy(req);
+
+    expect(result.status).toBe(301);
+    expect(result.headers.get("location")).toBe("https://www.praedixa.com/fr");
+  });
+
+  it("canonicalizes apex host and legacy path while preserving query params", async () => {
+    const req = makeRequest("/devenir-pilote?src=brand", {
+      host: "praedixa.com",
+    });
+    const result = await proxy(req);
+
+    expect(result.status).toBe(301);
+    expect(result.headers.get("location")).toBe(
+      "https://www.praedixa.com/fr/devenir-pilote?src=brand",
+    );
+  });
+
+  it("removes trailing slash on localized routes", async () => {
+    const req = makeRequest("/fr/");
+    const result = await proxy(req);
+
+    expect(result.status).toBe(301);
+    expect(result.headers.get("location")).toBe("http://localhost:3001/fr");
+  });
+
   it("redirects FR legacy non-localized URLs to localized target", async () => {
     const req = makeRequest("/devenir-pilote");
     const result = await proxy(req);

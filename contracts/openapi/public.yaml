@@ -1,0 +1,385 @@
+openapi: 3.1.0
+info:
+  title: Praedixa API TS
+  version: 2.0.0
+  description: Big-bang TypeScript API contract.
+servers:
+  - url: http://localhost:8000
+paths:
+  /api/v1/health:
+    get:
+      operationId: getHealth
+      responses:
+        "200":
+          description: Health status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessObject"
+  /api/v1/live/dashboard/summary:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: getDashboardSummary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessObject"
+  /api/v1/organizations/me:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: getOrganizationMe
+      responses:
+        "200":
+          description: Organization details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessObject"
+  /api/v1/forecasts:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: listForecasts
+      responses:
+        "200":
+          description: Paginated forecasts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccess"
+    post:
+      security:
+        - bearerAuth: []
+      operationId: createForecastRequest
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Forecast request queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessObject"
+  /api/v1/decisions:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: listDecisions
+      responses:
+        "200":
+          description: Paginated decisions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccess"
+  /api/v1/decisions/{decisionId}:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: getDecision
+      parameters:
+        - $ref: "#/components/parameters/DecisionId"
+      responses:
+        "200":
+          description: Decision details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessObject"
+  /api/v1/alerts:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: listAlerts
+      responses:
+        "200":
+          description: Alerts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessArray"
+  /api/v1/datasets:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: listDatasets
+      responses:
+        "200":
+          description: Paginated datasets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccess"
+  /api/v1/live/canonical:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: listCanonical
+      responses:
+        "200":
+          description: Paginated canonical rows
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccess"
+  /api/v1/operational-decisions:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: listOperationalDecisions
+      responses:
+        "200":
+          description: Paginated operational decisions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccess"
+  /api/v1/proof:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: listProof
+      responses:
+        "200":
+          description: Proof packs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessArray"
+  /api/v1/conversations:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: listConversations
+      responses:
+        "200":
+          description: Conversations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessArray"
+    post:
+      security:
+        - bearerAuth: []
+      operationId: createConversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subject:
+                  type: string
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessObject"
+
+  /api/v1/admin/organizations:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: adminListOrganizations
+      responses:
+        "200":
+          description: Paginated organizations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccess"
+    post:
+      security:
+        - bearerAuth: []
+      operationId: adminCreateOrganization
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Organization created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessObject"
+  /api/v1/admin/audit-log:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: adminAuditLog
+      responses:
+        "200":
+          description: Paginated audit entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccess"
+  /api/v1/admin/onboarding:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: adminListOnboarding
+      responses:
+        "200":
+          description: Paginated onboarding
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccess"
+    post:
+      security:
+        - bearerAuth: []
+      operationId: adminCreateOnboarding
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Onboarding created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessObject"
+  /api/v1/admin/contact-requests:
+    get:
+      security:
+        - bearerAuth: []
+      operationId: adminListContactRequests
+      responses:
+        "200":
+          description: Paginated contact requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSuccess"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    DecisionId:
+      name: decisionId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    SuccessObject:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          type: object
+          additionalProperties: true
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        requestId:
+          type: string
+      required: [success, data, timestamp]
+    SuccessArray:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+        requestId:
+          type: string
+      required: [success, data, timestamp]
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+        hasNextPage:
+          type: boolean
+        hasPreviousPage:
+          type: boolean
+      required:
+        - total
+        - page
+        - pageSize
+        - totalPages
+        - hasNextPage
+        - hasPreviousPage
+    PaginatedSuccess:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        pagination:
+          $ref: "#/components/schemas/PaginationMeta"
+        timestamp:
+          type: string
+          format: date-time
+        requestId:
+          type: string
+      required: [success, data, pagination, timestamp]
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+          required: [code, message]
+        timestamp:
+          type: string
+          format: date-time
+        requestId:
+          type: string
+      required: [success, error, timestamp]

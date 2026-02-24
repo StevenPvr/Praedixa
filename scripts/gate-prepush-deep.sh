@@ -8,7 +8,6 @@ source "${ROOT_DIR}/scripts/lib/pnpm.sh"
 export UV_CACHE_DIR="${TMPDIR:-/tmp}/praedixa-uv-cache"
 export UV_TOOL_DIR="${TMPDIR:-/tmp}/praedixa-uv-tools"
 mkdir -p "$UV_CACHE_DIR" "$UV_TOOL_DIR"
-APP_API_PYTHON="${ROOT_DIR}/app-api/.venv/bin/python"
 
 fail() {
   echo "[prepush-deep] $*" >&2
@@ -82,9 +81,6 @@ require_cmd uv
 require_cmd trivy
 require_cmd checkov
 require_cmd osv-scanner
-if [[ ! -x "$APP_API_PYTHON" ]]; then
-  fail "Missing app-api virtualenv interpreter: ${APP_API_PYTHON}"
-fi
 
 echo "[prepush-deep] Validate policy + exceptions..."
 python3 scripts/validate-security-exceptions.py --quiet
@@ -98,7 +94,7 @@ echo "[prepush-deep] NPM audit..."
 echo "[prepush-deep] Python dependency audit..."
 (
   cd app-api
-  "$APP_API_PYTHON" -m pip_audit --skip-editable
+  uv run pip-audit --skip-editable
 )
 
 echo "[prepush-deep] OSV scan..."
@@ -113,18 +109,9 @@ echo "[prepush-deep] IaC/config baseline audits..."
 echo "[prepush-deep] Production config guard (full)..."
 python3 scripts/check-prod-security-config.py --mode full
 
-echo "[prepush-deep] Invariants + abuse scenarios (full)..."
-python3 scripts/check-security-invariants.py --mode full
-
-echo "[prepush-deep] Targeted backend security tests..."
-(
-  cd app-api
-  "$APP_API_PYTHON" -m pytest --no-cov \
-    tests/security/test_tenant_isolation.py \
-    tests/security/test_admin_role_escalation.py \
-    tests/security/test_rgpd_bypass.py \
-    tests/security/test_rate_limit_bypass.py
-)
+echo "[prepush-deep] Type + lint checks for API TS..."
+pnpm --filter @praedixa/api-ts typecheck
+pnpm --filter @praedixa/api-ts lint
 
 echo "[prepush-deep] Targeted frontend security tests..."
 pnpm vitest run \

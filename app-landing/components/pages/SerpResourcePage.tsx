@@ -1,390 +1,173 @@
 import Link from "next/link";
-import {
-  ArrowLeft,
-  ArrowUpRight,
-  CaretRight,
-} from "@phosphor-icons/react/dist/ssr";
-import { localizedSlugs, type Locale } from "../../lib/i18n/config";
+import type { Locale } from "../../lib/i18n/config";
+import { getLocalizedPath } from "../../lib/i18n/config";
 import type { SerpResourceEntry } from "../../lib/content/serp-resources-fr";
-import {
-  getSerpResourceInternalLinks,
-  getSerpResourcePrimaryCta,
-  getSerpResourceSchemaType,
-} from "../../lib/content/serp-resources-fr";
-import { getSerpBriefBySlug } from "../../lib/content/serp-briefs-fr";
-import { getSerpAssetDownloadHref } from "../../lib/content/serp-asset-downloads";
-import { BreadcrumbJsonLd } from "../seo/BreadcrumbJsonLd";
-import { ArticleJsonLd } from "../seo/ArticleJsonLd";
-import { SerpResourceActions } from "./SerpResourceActions";
+import { PRAEDIXA_BASE_URL } from "../../lib/seo/entity";
+import { SectionShell } from "../shared/SectionShell";
+import { Kicker } from "../shared/Kicker";
 
 interface SerpResourcePageProps {
   locale: Locale;
   entry: SerpResourceEntry;
 }
 
-const RESOURCE_AUTHOR = "Equipe Praedixa · Ops x Finance";
-const RESOURCE_METHOD =
-  "Analyse terrain multi-sites, arbitrage economique chiffre, puis decision log pour preuve d'impact.";
-const RESOURCE_LAST_UPDATED = "2026-02-23";
-
-function intentLabel(intent: SerpResourceEntry["intent"]): string {
-  switch (intent) {
-    case "Info":
-      return "Information";
-    case "Info/Decision":
-      return "Information + décision";
-    case "Decision":
-      return "Décision";
-    case "Tool":
-      return "Outil";
-    case "Achat":
-      return "Achat";
-    case "Commercial/Decision":
-      return "Commercial + décision";
-    default:
-      return intent;
-  }
-}
-
-function slugifyHeading(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "");
-}
-
-function buildFaqAnswer(entry: SerpResourceEntry): string {
-  const intent = intentLabel(entry.intent).toLowerCase();
-  return `Praedixa recommande une approche ${intent} basee sur capacite vs charge, facteurs explicatifs et arbitrage chiffre (HS, interim, reallocation) avec preuve d'impact.`;
-}
-
 export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
-  const pilotHref = `/${locale}/${localizedSlugs.pilot[locale]}`;
-  const resourcesHref = `/${locale}/${localizedSlugs.resources[locale]}`;
-  const assetHref = getSerpAssetDownloadHref(locale, entry.slug);
-  const pilotParams = new URLSearchParams({
+  const pilotHref = getLocalizedPath(locale, "pilot");
+  const trackedPilotHref = `${pilotHref}?${new URLSearchParams({
     source: "seo_resource",
     seo_slug: entry.slug,
-    seo_query: entry.query,
-  });
-  const pilotHrefWithContext = `${pilotHref}?${pilotParams.toString()}`;
-  const internalLinks = getSerpResourceInternalLinks(entry.slug, 4);
-  const brief = getSerpBriefBySlug(entry.slug);
-  const ctaLabel = getSerpResourcePrimaryCta(entry.slug);
-  const schemaType = getSerpResourceSchemaType(entry.slug);
-  const sectionAnchors = entry.sections.map((section) => ({
-    label: section.title,
-    id: `section-${slugifyHeading(section.title)}`,
-  }));
+  }).toString()}`;
+  const assetHref = `/${locale}/ressources/${entry.slug}/asset`;
+  const canonicalPath = `/${locale}/ressources/${entry.slug}`;
+  const canonicalUrl = `${PRAEDIXA_BASE_URL}${canonicalPath}`;
 
-  const breadcrumbItems = [
-    { name: "Accueil", path: `/${locale}` },
-    { name: "Ressources", path: resourcesHref },
-    { name: entry.title, path: `/${locale}/ressources/${entry.slug}` },
-  ];
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Praedixa",
+        item: `${PRAEDIXA_BASE_URL}/${locale}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: locale === "fr" ? "Ressources" : "Resources",
+        item: `${PRAEDIXA_BASE_URL}/${locale}/ressources`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: entry.title,
+        item: canonicalUrl,
+      },
+    ],
+  };
+
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: entry.title,
+    description: entry.description,
+    inLanguage: locale,
+    mainEntityOfPage: canonicalUrl,
+    author: {
+      "@type": "Organization",
+      name: "Praedixa",
+      url: PRAEDIXA_BASE_URL,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Praedixa",
+      logo: {
+        "@type": "ImageObject",
+        url: `${PRAEDIXA_BASE_URL}/logo-black.svg`,
+      },
+    },
+  };
 
   return (
-    <main id="main-content" tabIndex={-1} className="min-h-[100dvh] py-24">
-      <BreadcrumbJsonLd
-        id={`praedixa-breadcrumb-json-ld-${entry.slug}`}
-        items={breadcrumbItems}
-      />
-      <ArticleJsonLd
-        id={`praedixa-article-json-ld-${entry.slug}`}
-        schemaType={schemaType}
-        headline={entry.title}
-        description={entry.description}
-        path={`/fr/ressources/${entry.slug}`}
-        locale="fr-FR"
-        query={entry.query}
-      />
-      <div className="section-shell">
-        <nav aria-label="Fil d'ariane" className="mb-4">
-          <ol className="flex flex-wrap items-center gap-1.5 text-xs text-[var(--ink-soft)]">
-            {breadcrumbItems.map((item, index) => {
-              const isLast = index === breadcrumbItems.length - 1;
-              return (
-                <li key={`${item.path}-${item.name}`} className="contents">
-                  {isLast ? (
-                    <span aria-current="page" className="text-[var(--ink)]">
-                      {item.name}
-                    </span>
-                  ) : (
-                    <Link
-                      href={item.path}
-                      className="hover:text-[var(--ink)] hover:underline"
-                    >
-                      {item.name}
-                    </Link>
-                  )}
-                  {!isLast ? (
-                    <CaretRight size={11} weight="bold" aria-hidden="true" />
-                  ) : null}
-                </li>
-              );
-            })}
-          </ol>
+    <SectionShell className="py-16 md:py-24">
+      <article className="mx-auto max-w-3xl">
+        <script
+          id={`praedixa-breadcrumb-json-ld-${entry.slug}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
+        <script
+          id={`praedixa-article-json-ld-${entry.slug}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        />
+
+        <nav className="mb-6 text-xs text-neutral-400" aria-label="Breadcrumb">
+          <Link
+            href={`/${locale}`}
+            className="text-neutral-400 no-underline hover:text-ink"
+          >
+            Praedixa
+          </Link>
+          {" / "}
+          <Link
+            href={`/${locale}/ressources`}
+            className="text-neutral-400 no-underline hover:text-ink"
+          >
+            {locale === "fr" ? "Ressources" : "Resources"}
+          </Link>
+          {" / "}
+          <span className="text-neutral-600">{entry.title}</span>
         </nav>
 
-        <Link
-          href={resourcesHref}
-          className="inline-flex items-center gap-2 text-sm text-[var(--ink-soft)] hover:text-[var(--ink)]"
-        >
-          <ArrowLeft size={14} weight="bold" />
-          Retour aux ressources
-        </Link>
+        <Kicker>{entry.intent}</Kicker>
+        <h1 className="mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl md:text-4xl">
+          {entry.title}
+        </h1>
+        <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-neutral-500">
+          {entry.openingSnippet}
+        </p>
 
-        <article className="panel-glass mt-6 rounded-3xl p-6 md:p-10">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-[var(--line)] bg-[var(--panel)] px-3 py-1 text-xs font-medium text-[var(--ink-soft)]">
-              Requête cible: {entry.query}
-            </span>
-            <span className="rounded-full border border-[var(--line)] bg-[var(--panel)] px-3 py-1 text-xs font-medium text-[var(--accent-700)]">
-              Intent: {intentLabel(entry.intent)}
-            </span>
-          </div>
-
-          <h1 className="mt-4 text-4xl leading-none tracking-tighter text-[var(--ink)] md:text-6xl">
-            {entry.title}
-          </h1>
-          <p className="mt-4 max-w-[68ch] text-base leading-relaxed text-[var(--ink-soft)] md:text-lg">
-            {entry.openingSnippet}
+        <div className="mt-8 rounded-xl border border-brass-200 bg-brass-50/50 p-5">
+          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-brass-600">
+            {entry.asset.type}
+          </span>
+          <h2 className="mt-1 text-sm font-semibold text-ink">
+            {entry.asset.title}
+          </h2>
+          <p className="mt-1 text-sm text-neutral-500">
+            {entry.asset.description}
           </p>
-
-          <nav
-            aria-label="Sommaire de la ressource"
-            className="mt-6 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5"
+          <Link
+            href={assetHref}
+            className="mt-4 inline-flex text-sm font-semibold text-brass no-underline hover:text-brass-600"
           >
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
-              Sommaire
-            </p>
-            <ul className="mt-3 grid gap-2 md:grid-cols-2">
-              {sectionAnchors.map((anchor) => (
-                <li key={anchor.id}>
-                  <a
-                    href={`#${anchor.id}`}
-                    className="inline-flex w-full items-center justify-between rounded-xl border border-[var(--line)] bg-[var(--panel-muted)] px-3 py-2 text-sm text-[var(--ink-soft)] hover:border-[var(--line-strong)] hover:text-[var(--ink)]"
-                  >
-                    {anchor.label}
-                    <ArrowUpRight
-                      size={14}
-                      weight="bold"
-                      className="text-[var(--ink-soft)]"
-                    />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
+            Telecharger asset
+          </Link>
+        </div>
 
-          <section className="mt-8 grid gap-4 md:grid-cols-2">
-            <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
-                Ce que c&apos;est
+        <div className="mt-12 space-y-10">
+          {entry.sections.map((section) => (
+            <section key={section.title}>
+              <h2 className="text-lg font-semibold tracking-tight text-ink">
+                {section.title}
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">
-                Une methode orientee execution pour {entry.query}, avec mesures,
-                arbitrages et sortie actionnable en contexte multi-sites.
-              </p>
-            </article>
-            <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
-                Ce que ce n&apos;est pas
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">
-                Un contenu generique sans cadre de decision. Cette ressource ne
-                remplace pas un outil de planning: elle structure l&apos;arbitrage
-                economique et la preuve d&apos;impact.
-              </p>
-            </article>
-          </section>
-
-          <section className="mt-8 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
-              Asset différenciant
-            </p>
-            <h2 className="mt-2 text-xl tracking-tight text-[var(--ink)]">
-              {entry.asset.title}
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">
-              {entry.asset.description}
-            </p>
-            <SerpResourceActions
-              locale={locale}
-              slug={entry.slug}
-              query={entry.query}
-              intent={entry.intent}
-              asset={entry.asset}
-              assetHref={assetHref}
-              pilotHref={pilotHrefWithContext}
-              ctaLabel={ctaLabel}
-            />
-          </section>
-
-          {brief ? (
-            <section className="mt-8 grid gap-4 md:grid-cols-3">
-              <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
-                <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
-                  Outline H2
-                </h2>
-                <ul className="mt-3 grid gap-2">
-                  {brief.outlineH2.map((item) => (
-                    <li
-                      key={item}
-                      className="rounded-lg border border-[var(--line)] bg-[var(--panel-muted)] px-2.5 py-2 text-xs text-[var(--ink-soft)]"
-                    >
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-
-              <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
-                <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
-                  PAA probables
-                </h2>
-                <ul className="mt-3 grid gap-2">
-                  {brief.paa.map((item) => (
-                    <li
-                      key={item}
-                      className="rounded-lg border border-[var(--line)] bg-[var(--panel-muted)] px-2.5 py-2 text-xs text-[var(--ink-soft)]"
-                    >
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-
-              <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
-                <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
-                  Backlinks white-hat
-                </h2>
-                <ul className="mt-3 grid gap-2">
-                  {brief.backlinks.map((item) => (
-                    <li
-                      key={item}
-                      className="rounded-lg border border-[var(--line)] bg-[var(--panel-muted)] px-2.5 py-2 text-xs text-[var(--ink-soft)]"
-                    >
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            </section>
-          ) : null}
-
-          <div className="mt-10 space-y-8">
-            {entry.sections.map((section) => {
-              const sectionId = `section-${slugifyHeading(section.title)}`;
-              return (
-                <section key={section.title} id={sectionId}>
-                <h2 className="text-2xl tracking-tight text-[var(--ink)]">
-                  {section.title}
-                </h2>
-                <div className="mt-3 space-y-3 text-[var(--ink-soft)]">
-                  {section.paragraphs.map((paragraph) => (
-                    <p key={paragraph} className="leading-relaxed">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-                {section.bullets && section.bullets.length > 0 ? (
-                  <ul className="mt-4 grid gap-2">
-                    {section.bullets.map((bullet) => (
-                      <li
-                        key={bullet}
-                        className="rounded-xl border border-[var(--line)] bg-[var(--panel)] px-3 py-2 text-sm text-[var(--ink-soft)]"
-                      >
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </section>
-              );
-            })}
-          </div>
-
-          {brief ? (
-            <section className="mt-10 border-t border-[var(--line)] pt-8">
-              <h2 className="text-2xl tracking-tight text-[var(--ink)]">
-                Questions frequentes
-              </h2>
-              <div className="mt-4 grid gap-3">
-                {brief.paa.map((question) => (
-                  <article
-                    key={question}
-                    className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4"
-                  >
-                    <h3 className="text-base font-semibold text-[var(--ink)]">
-                      {question}
-                    </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">
-                      {buildFaqAnswer(entry)}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          <section className="mt-10 border-t border-[var(--line)] pt-8">
-            <h2 className="text-2xl tracking-tight text-[var(--ink)]">
-              Transparence editoriale
-            </h2>
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
-              <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
-                <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
-                  Auteur
-                </h3>
-                <p className="mt-2 text-sm text-[var(--ink-soft)]">
-                  {RESOURCE_AUTHOR}
-                </p>
-              </article>
-              <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
-                <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
-                  Methode
-                </h3>
-                <p className="mt-2 text-sm text-[var(--ink-soft)]">
-                  {RESOURCE_METHOD}
-                </p>
-              </article>
-              <article className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
-                <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
-                  Derniere mise a jour
-                </h3>
-                <p className="mt-2 text-sm text-[var(--ink-soft)]">
-                  {RESOURCE_LAST_UPDATED}
-                </p>
-              </article>
-            </div>
-          </section>
-
-          <section className="mt-10 border-t border-[var(--line)] pt-8">
-            <h2 className="text-2xl tracking-tight text-[var(--ink)]">
-              Maillage interne recommandé
-            </h2>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              {internalLinks.map((item) => (
-                <Link
-                  key={item.slug}
-                  href={`/${locale}/ressources/${item.slug}`}
-                  className="inline-flex items-center justify-between rounded-2xl border border-[var(--line)] bg-[var(--panel)] px-4 py-3 text-sm font-medium text-[var(--ink)] hover:border-[var(--line-strong)]"
+              {section.paragraphs.map((p, i) => (
+                <p
+                  key={i}
+                  className="mt-3 max-w-[60ch] text-sm leading-relaxed text-neutral-600"
                 >
-                  {item.query}
-                  <ArrowUpRight
-                    size={14}
-                    weight="bold"
-                    className="text-[var(--ink-soft)]"
-                  />
-                </Link>
+                  {p}
+                </p>
               ))}
-            </div>
-          </section>
-        </article>
-      </div>
-    </main>
+              {section.bullets && section.bullets.length > 0 && (
+                <ul className="mt-3 list-none space-y-2 p-0">
+                  {section.bullets.map((bullet) => (
+                    <li
+                      key={bullet}
+                      className="m-0 flex items-start gap-2 text-sm text-neutral-600"
+                    >
+                      <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-brass-300" />
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ))}
+        </div>
+
+        <div className="mt-12 border-t border-border-subtle pt-8">
+          <Link
+            href={trackedPilotHref}
+            className="btn-primary-gradient inline-flex items-center rounded-lg px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-150 active:scale-[0.98]"
+          >
+            {locale === "fr"
+              ? "Calculer le cout de l'inaction"
+              : "Request a workforce forecasting pilot"}
+          </Link>
+        </div>
+      </article>
+    </SectionShell>
   );
 }

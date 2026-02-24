@@ -19,7 +19,7 @@ describe("Error Page (app/error.tsx)", () => {
   it("should render without errors", () => {
     render(<ErrorPage error={mockError} reset={mockReset} />);
     expect(
-      screen.getByText("Quelque chose s'est mal passé"),
+      screen.getByText("Une erreur est survenue"),
     ).toBeInTheDocument();
   });
 
@@ -27,7 +27,7 @@ describe("Error Page (app/error.tsx)", () => {
     render(<ErrorPage error={mockError} reset={mockReset} />);
     expect(
       screen.getByRole("heading", {
-        name: "Quelque chose s'est mal passé",
+        name: "Une erreur est survenue",
       }),
     ).toBeInTheDocument();
   });
@@ -36,7 +36,7 @@ describe("Error Page (app/error.tsx)", () => {
     render(<ErrorPage error={mockError} reset={mockReset} />);
     expect(
       screen.getByText(
-        /Nous en avons été informés et travaillons à la résoudre/,
+        /Le chargement de cette page a échoué/,
       ),
     ).toBeInTheDocument();
   });
@@ -54,14 +54,8 @@ describe("Error Page (app/error.tsx)", () => {
     expect(mockReset).toHaveBeenCalledTimes(1);
   });
 
-  it('should render the "Retour à l\'accueil" link', () => {
+  it("should render the Erreur label", () => {
     render(<ErrorPage error={mockError} reset={mockReset} />);
-    const homeLink = screen.getByText("Retour à l'accueil").closest("a");
-    expect(homeLink).toHaveAttribute("href", "/");
-  });
-
-  it("should render the P logo mark", () => {
-    render(<ErrorPage error={mockError} reset={mockReset} />);
-    expect(screen.getByText("P")).toBeInTheDocument();
+    expect(screen.getByText("Erreur")).toBeInTheDocument();
   });
 });

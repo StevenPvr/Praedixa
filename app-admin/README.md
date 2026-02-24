@@ -363,6 +363,7 @@ app-admin/
 
 - [`app-webapp/README.md`](../app-webapp/README.md) -- Application client
 - [`packages/ui/README.md`](../packages/ui/README.md) -- Librairie de composants partagee
-- [`app-api/`](../app-api/) -- Backend FastAPI (routes admin sous `/api/v1/admin/`)
+- [`app-api-ts/`](../app-api-ts/) -- Backend API TypeScript (routes admin sous `/api/v1/admin/`)
+- [`app-api/`](../app-api/) -- Data/ML engine Python (batch/jobs)
 - [`docs/security/`](../docs/security/) -- Rapports de securite
 - [`CLAUDE.md`](../CLAUDE.md) -- Guide complet du monorepo

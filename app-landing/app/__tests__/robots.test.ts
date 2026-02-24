@@ -16,14 +16,18 @@ describe("robots()", () => {
     expect(wildcardRule!.allow).toBe("/");
   });
 
-  it("should disallow /api/ and /_next/ for the wildcard agent", () => {
+  it("should disallow only private paths for the wildcard agent", () => {
     const wildcardRule = (
       result.rules as Array<{ userAgent: string; disallow: string[] }>
     ).find((r) => r.userAgent === "*");
     expect(wildcardRule!.disallow).toContain("/api/");
-    expect(wildcardRule!.disallow).toContain("/_next/");
+    expect(wildcardRule!.disallow).not.toContain("/_next/");
     expect(wildcardRule!.disallow).toContain("/fr/logo-preview");
     expect(wildcardRule!.disallow).toContain("/en/logo-preview");
+  });
+
+  it("should specify the canonical host", () => {
+    expect(result.host).toBe("https://www.praedixa.com");
   });
 
   it("should include a rule for AdsBot-Google", () => {

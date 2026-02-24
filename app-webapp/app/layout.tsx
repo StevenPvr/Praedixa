@@ -1,15 +1,7 @@
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "@praedixa/ui/brand-tokens.css";
 import "./globals.css";
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800"],
-});
 
 export const metadata: Metadata = {
   title: "Praedixa — War room operationnelle",
@@ -24,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={manrope.variable} suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ThemeProvider>
           <a href="#main-content" className="skip-link">

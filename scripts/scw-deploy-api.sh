@@ -8,7 +8,7 @@ fi
 
 ENV="$1"
 REGION="fr-par"
-BUILD_SOURCE="app-api"
+BUILD_SOURCE="app-api-ts"
 DOCKERFILE="Dockerfile"
 
 case "$ENV" in

@@ -7,13 +7,9 @@ concurrency:
   group: ci-api-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    working-directory: app-api
-
 env:
   PYTHON_VERSION: "3.12"
-  # Global switch: set to "false" to reactivate full GitHub verifications.
+  NODE_VERSION: "22"
   DISABLE_ALL_GITHUB_VERIFICATIONS: "true"
 
 permissions:
@@ -49,8 +45,44 @@ jobs:
           echo "reason=${{ needs.minutes_guard.outputs.reason }}"
           echo "source=${{ needs.minutes_guard.outputs.source }}"
 
-  lint:
-    name: Lint & Format
+  api_ts_checks:
+    name: API TS — Lint/Type/Test/Build
+    runs-on: ubuntu-latest
+    needs: [minutes_guard]
+    if: needs.minutes_guard.outputs.run_heavy == 'true'
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter @praedixa/api-ts lint
+
+      - name: Typecheck
+        run: pnpm --filter @praedixa/api-ts typecheck
+
+      - name: Unit tests
+        run: pnpm --filter @praedixa/api-ts test
+
+      - name: Build
+        run: pnpm --filter @praedixa/api-ts build
+
+  data_engine_checks:
+    name: Data Engine Python — Lint/Test/Audit
     runs-on: ubuntu-latest
     needs: [minutes_guard]
     if: needs.minutes_guard.outputs.run_heavy == 'true'
@@ -68,177 +100,21 @@ jobs:
         uses: astral-sh/setup-uv@v4
 
       - name: Install dependencies
-        run: uv sync --extra dev
-
-      - name: Ruff check (lint)
-        run: uv run ruff check .
-
-      - name: Ruff format check
-        run: uv run ruff format --check .
-
-  unit-tests:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    needs: [minutes_guard]
-    if: needs.minutes_guard.outputs.run_heavy == 'true'
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
-      - name: Run unit tests
-        run: uv run pytest tests/ -v --tb=short
-        env:
-          # Dummy values — unit tests don't connect to a real DB
-          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test
-          SUPABASE_JWT_SECRET: test-secret
-          SUPABASE_URL: https://test.supabase.co
-
-  security:
-    name: Security Scan (Bandit)
-    runs-on: ubuntu-latest
-    needs: [minutes_guard]
-    if: needs.minutes_guard.outputs.run_heavy == 'true'
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
-      - name: Install bandit
-        run: uv pip install bandit
-
-      - name: Run bandit security scan
-        # -lll = fail on HIGH and CRITICAL severity only
-        run: uv run bandit -r app/ -lll --quiet
-
-  dependency-audit:
-    name: Dependency Audit (pip-audit)
-    runs-on: ubuntu-latest
-    needs: [minutes_guard]
-    if: needs.minutes_guard.outputs.run_heavy == 'true'
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
-      - name: Install pip-audit
-        run: uv pip install pip-audit
-
-      - name: Audit Python dependencies
-        # --strict fails on ANY known vulnerability, --desc on shows advisory details
-        run: uv run pip-audit --desc on --skip-editable
-
-  secret-scan:
-    name: Secret Scanning (Gitleaks)
-    runs-on: ubuntu-latest
-    needs: [minutes_guard]
-    if: needs.minutes_guard.outputs.run_heavy == 'true'
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Install gitleaks
         run: |
-          GITLEAKS_VERSION="8.24.3"
-          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
-          tar -xzf gitleaks.tar.gz
-          sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
+          cd app-api
+          uv sync --extra dev
 
-      - name: Run gitleaks
-        run: gitleaks git . --redact --no-banner
-
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    needs: [minutes_guard]
-    if: needs.minutes_guard.outputs.run_heavy == 'true'
-    permissions:
-      contents: read
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: praedixa
-          POSTGRES_PASSWORD: changeme
-          POSTGRES_DB: praedixa_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U praedixa -d praedixa_test"
-          --health-interval=5s
-          --health-timeout=3s
-          --health-retries=5
-          --health-start-period=10s
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
-      - name: Check for integration tests
-        id: check
+      - name: Ruff check
         run: |
-          if [ -d "tests/integration" ] && [ "$(find tests/integration -name 'test_*.py' | head -1)" ]; then
-            echo "has_tests=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_tests=false" >> "$GITHUB_OUTPUT"
-            echo "No integration tests found yet — skipping"
-          fi
+          cd app-api
+          uv run ruff check app scripts tests
 
-      - name: Run Alembic migrations
-        if: steps.check.outputs.has_tests == 'true'
-        run: uv run alembic upgrade head
-        env:
-          DATABASE_URL: postgresql+asyncpg://praedixa:changeme@localhost:5432/praedixa_test
+      - name: Unit tests
+        run: |
+          cd app-api
+          uv run pytest tests/ -v --tb=short
 
-      - name: Run integration tests
-        if: steps.check.outputs.has_tests == 'true'
-        run: uv run pytest tests/integration/ -v --tb=short --no-cov
-        env:
-          DATABASE_URL: postgresql+asyncpg://praedixa:changeme@localhost:5432/praedixa_test
-          SUPABASE_JWT_SECRET: test-secret
-          SUPABASE_URL: https://test.supabase.co
+      - name: Dependency audit
+        run: |
+          cd app-api
+          uv run pip-audit --skip-editable

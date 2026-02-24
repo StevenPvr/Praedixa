@@ -1,19 +1,19 @@
 #!/bin/bash
-# Praedixa API — Local development setup
+# Praedixa API TS + Data Engine — Local development setup
 #
 # Sets up the local development environment:
 #   1. Checks Docker and PostgreSQL availability
 #   2. Starts PostgreSQL via docker compose if not running
 #   3. Waits for PostgreSQL readiness
-#   4. Runs Alembic migrations
-#   5. Starts the API with hot reload
+#   4. Runs Alembic migrations for Python data engine
+#   5. Starts the TypeScript API with hot reload
 #
 # Usage:
-#   ./scripts/dev-setup.sh           # Full setup + start API
-#   ./scripts/dev-setup.sh --no-api  # Setup only (migrations), don't start API
+#   ./scripts/dev-setup.sh           # Full setup + start API TS
+#   ./scripts/dev-setup.sh --no-api  # Setup only (migrations), don't start API TS
 set -e
 
-API_DIR="$(cd "$(dirname "$0")/../app-api" && pwd)"
+DATA_DIR="$(cd "$(dirname "$0")/../app-api" && pwd)"
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 START_API=true
 
@@ -56,18 +56,19 @@ for i in $(seq 1 $MAX_RETRIES); do
     sleep 1
 done
 
-# 4. Run migrations
+# 4. Run data-engine migrations
 echo "[3/4] Running Alembic migrations..."
-cd "$API_DIR"
+cd "$DATA_DIR"
 uv run alembic upgrade head
 echo "      Migrations applied"
 
 echo ""
 echo "=== Setup complete ==="
 
-# 6. Start API
+# 5. Start API TS
 if [ "$START_API" = true ]; then
     echo ""
-    echo "Starting API on http://localhost:8000 ..."
-    exec uv run uvicorn app.main:app --reload --port 8000
+    echo "Starting API TS on http://localhost:8000 ..."
+    cd "$ROOT_DIR"
+    exec pnpm --filter @praedixa/api-ts dev
 fi

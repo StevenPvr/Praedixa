@@ -16,15 +16,13 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "allowJs": true
+    "allowJs": true,
+    "types": ["@testing-library/jest-dom/vitest"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": [
     "node_modules",
     "dist",
-    "**/dist/**",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/__tests__"
+    "**/dist/**"
   ]
 }

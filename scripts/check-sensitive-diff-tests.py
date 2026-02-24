@@ -9,12 +9,11 @@ import subprocess
 from pathlib import Path
 
 SENSITIVE_PATH_PATTERNS = (
-    "app-api/app/core/auth.py",
-    "app-api/app/core/security.py",
-    "app-api/app/core/config.py",
-    "app-api/app/routers/admin*.py",
-    "app-api/app/routers/*auth*.py",
-    "app-api/app/routers/*security*.py",
+    "app-api-ts/src/auth.ts",
+    "app-api-ts/src/server.ts",
+    "app-api-ts/src/routes.ts",
+    "app-api-ts/src/config.ts",
+    "contracts/openapi/public.yaml",
     "app-webapp/lib/auth/**",
     "app-admin/lib/auth/**",
     "app-landing/lib/security/**",
@@ -25,10 +24,8 @@ SENSITIVE_PATH_PATTERNS = (
 )
 
 SECURITY_TEST_PATTERNS = (
-    "app-api/tests/security/test_*.py",
-    "app-api/tests/unit/test_*security*.py",
-    "app-api/tests/unit/test_*auth*.py",
-    "app-api/tests/unit/test_*config*.py",
+    "app-api-ts/**/*.test.ts",
+    "app-api-ts/**/*.test.tsx",
     "app-webapp/**/__tests__/*.test.ts",
     "app-webapp/**/__tests__/*.test.tsx",
     "app-admin/**/__tests__/*.test.ts",
@@ -42,54 +39,42 @@ ABUSE_REQUIREMENTS = (
     {
         "name": "tenant-isolation",
         "critical_paths": (
-            "app-api/app/core/security.py",
-            "app-api/app/routers/organizations.py",
-            "app-api/app/routers/decisions.py",
-            "app-api/app/routers/alerts.py",
-            "app-api/app/routers/arbitrage.py",
-            "app-api/app/routers/admin*.py",
+            "app-api-ts/src/auth.ts",
+            "app-api-ts/src/routes.ts",
         ),
         "required_tests": (
-            "app-api/tests/security/test_tenant_isolation.py",
-            "app-api/tests/security/test_operational_isolation.py",
-            "app-api/tests/security/test_data_catalog_isolation.py",
+            "app-api-ts/src/__tests__/auth.test.ts",
         ),
     },
     {
         "name": "role-escalation",
         "critical_paths": (
-            "app-api/app/core/auth.py",
-            "app-api/app/routers/admin*.py",
+            "app-api-ts/src/auth.ts",
+            "app-api-ts/src/routes.ts",
             "app-webapp/lib/auth/**",
             "app-admin/lib/auth/**",
         ),
         "required_tests": (
-            "app-api/tests/security/test_admin_role_escalation.py",
-            "app-api/tests/security/test_admin_cross_tenant.py",
+            "app-api-ts/src/__tests__/server.test.ts",
         ),
     },
     {
-        "name": "workflow-bypass-and-replay",
+        "name": "api-contract-and-routing",
         "critical_paths": (
-            "app-api/app/routers/admin.py",
-            "app-api/app/services/**",
-            "app-api/app/models/**",
+            "app-api-ts/src/routes.ts",
+            "contracts/openapi/public.yaml",
         ),
         "required_tests": (
-            "app-api/tests/security/test_rgpd_bypass.py",
-            "app-api/tests/security/test_scenario_engine_integrity.py",
+            "app-api-ts/src/__tests__/auth.test.ts",
         ),
     },
     {
-        "name": "rate-limit-and-abuse",
+        "name": "transport-security-headers",
         "critical_paths": (
-            "app-api/app/core/rate_limit.py",
-            "app-api/app/main.py",
-            "app-api/app/routers/contact_requests.py",
+            "app-api-ts/src/server.ts",
         ),
         "required_tests": (
-            "app-api/tests/security/test_rate_limit_bypass.py",
-            "app-api/tests/security/test_rate_limits.py",
+            "app-api-ts/src/__tests__/server.test.ts",
         ),
     },
 )

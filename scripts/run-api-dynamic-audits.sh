@@ -35,22 +35,21 @@ wait_for_url() {
   done
 }
 
-echo "[api-dynamic] Starting FastAPI on 127.0.0.1:8000..."
+echo "[api-dynamic] Starting API TS on 127.0.0.1:8000..."
 (
-  cd app-api
-  uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 >"${ROOT_DIR}/${API_LOG}" 2>&1
+  pnpm --filter @praedixa/api-ts dev >"${ROOT_DIR}/${API_LOG}" 2>&1
 ) &
 API_PID="$!"
 
-wait_for_url "http://127.0.0.1:8000/health" 120
+wait_for_url "http://127.0.0.1:8000/api/v1/health" 120
 
 echo "[api-dynamic] Schemathesis scan..."
 if command -v st >/dev/null 2>&1; then
-  st run --max-examples 50 --checks not_a_server_error --suppress-health-check=filter_too_much http://127.0.0.1:8000/openapi.json
+  st run --max-examples 50 --checks not_a_server_error --suppress-health-check=filter_too_much contracts/openapi/public.yaml --base-url http://127.0.0.1:8000
 elif command -v schemathesis >/dev/null 2>&1; then
-  schemathesis run --max-examples 50 --checks not_a_server_error --suppress-health-check=filter_too_much http://127.0.0.1:8000/openapi.json
+  schemathesis run --max-examples 50 --checks not_a_server_error --suppress-health-check=filter_too_much contracts/openapi/public.yaml --base-url http://127.0.0.1:8000
 else
-  uv tool run --from schemathesis st run --max-examples 50 --checks not_a_server_error --suppress-health-check=filter_too_much http://127.0.0.1:8000/openapi.json
+  uv tool run --from schemathesis st run --max-examples 50 --checks not_a_server_error --suppress-health-check=filter_too_much contracts/openapi/public.yaml --base-url http://127.0.0.1:8000
 fi
 
 echo "[api-dynamic] k6 smoke..."

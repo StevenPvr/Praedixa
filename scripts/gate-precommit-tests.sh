@@ -24,8 +24,11 @@ has_cmd uv || fail "Missing required command 'uv'."
 echo "[precommit-tests] Python test suite (includes unit tests)..."
 (
   cd app-api
-  uv run pytest
+  uv run pytest tests/
 )
+
+echo "[precommit-tests] API TS unit tests..."
+pnpm --filter @praedixa/api-ts test
 
 echo "[precommit-tests] Next.js unit tests..."
 pnpm vitest run --project default --project admin

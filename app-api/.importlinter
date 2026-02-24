@@ -2,10 +2,9 @@
 root_package = app
 
 [contract:layers]
-name = api layering contract
+name = data engine layering contract
 type = layers
 layers =
-    routers
     services
     schemas
     models

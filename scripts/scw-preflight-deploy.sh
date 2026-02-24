@@ -314,7 +314,7 @@ require_cmd jq
 check_file_exists "app-landing/Dockerfile.scaleway"
 check_file_exists "app-webapp/Dockerfile.scaleway"
 check_file_exists "app-admin/Dockerfile.scaleway"
-check_file_exists "app-api/Dockerfile"
+check_file_exists "app-api-ts/Dockerfile"
 check_file_exists "scripts/scw-deploy-landing.sh"
 check_file_exists "scripts/scw-deploy-frontend.sh"
 check_file_exists "scripts/scw-deploy-api.sh"

@@ -9,7 +9,8 @@ praedixa/
 ├── app-landing/         # Landing page marketing (Next.js 15)
 ├── app-webapp/          # Dashboard client (Next.js 15)
 ├── app-admin/           # Back-office super admin (Next.js 15)
-├── app-api/             # API backend (FastAPI + SQLAlchemy)
+├── app-api-ts/          # API backend applicatif (TypeScript)
+├── app-api/             # Data/ML engine Python (medallion + jobs)
 ├── packages/
 │   ├── ui/              # Composants React partages
 │   └── shared-types/    # Types TypeScript partages
@@ -61,22 +62,21 @@ Pour arreter :
 docker compose -f infra/docker-compose.yml down
 ```
 
-### API backend (port 8000)
-
-```bash
-cd app-api
-cp .env.example .env          # configurer DATABASE_URL, AUTH_ISSUER_URL, etc.
-uv sync --extra dev            # installer les dependances Python
-uv run uvicorn app.main:app --reload --port 8000
-```
-
-Ou depuis la racine :
+### API backend TypeScript (port 8000)
 
 ```bash
 pnpm dev:api
 ```
 
-L'API expose sa documentation OpenAPI sur http://localhost:8000/docs.
+### Data/ML Python (medallion + jobs)
+
+```bash
+cd app-api
+uv sync --extra dev
+uv run python -m scripts.medallion_pipeline --force-rebuild
+```
+
+Contrat OpenAPI backend TS: `contracts/openapi/public.yaml`.
 
 ### Migrer la base de donnees
 
@@ -186,25 +186,20 @@ pnpm vitest run app-webapp/hooks/__tests__/use-api.test.ts
 pnpm vitest run --reporter=verbose -t "renders loading"
 ```
 
-### Tests unitaires backend (Pytest)
+### Tests backend TypeScript (API)
 
 ```bash
-# Gate stricte de couverture unitaire backend (bloque si < 100%)
-cd app-api && uv run pytest
+pnpm --filter @praedixa/api-ts typecheck
+pnpm --filter @praedixa/api-ts lint
+pnpm --filter @praedixa/api-ts test
+```
 
-# Tests d'un seul fichier
-cd app-api && uv run pytest tests/unit/test_services_decisions.py
+### Tests Python Data/ML (optionnel)
 
-# Tests d'un seul dossier
-cd app-api && uv run pytest tests/unit/
-cd app-api && uv run pytest tests/integration/
-cd app-api && uv run pytest tests/security/
-
-# Verbose avec details des echecs
-cd app-api && uv run pytest -v --tb=short
-
-# Sans couverture (plus rapide pour le dev)
-cd app-api && uv run pytest --no-cov
+```bash
+cd app-api
+uv sync --extra dev
+# Ajoutez ici vos tests data/ml si necessaire
 ```
 
 ### Tests E2E (Playwright)
@@ -293,7 +288,7 @@ Le `pre-push` bloque si le rapport signe du commit courant est absent, stale, in
 | Landing              | Scaleway Serverless Container (`fr-par`) | `praedixa.com` (cutover DNS en attente) | `app-landing/Dockerfile.scaleway`, `pnpm run scw:deploy:landing:prod` |
 | Web app client       | Scaleway Serverless Container (`fr-par`) | `app.praedixa.com`                      | `app-webapp/Dockerfile.scaleway`, `pnpm run scw:deploy:webapp:*`      |
 | Admin back-office    | Scaleway Serverless Container (`fr-par`) | `admin.praedixa.com`                    | `app-admin/Dockerfile.scaleway`, `pnpm run scw:deploy:admin:*`        |
-| API backend          | Scaleway Serverless Container (`fr-par`) | `api.praedixa.com`                      | `app-api/Dockerfile`, `pnpm run scw:deploy:api:*`                     |
+| API backend          | Scaleway Serverless Container (`fr-par`) | `api.praedixa.com`                      | `app-api-ts/Dockerfile`, `pnpm run scw:deploy:api:*`                  |
 | Auth OIDC (Keycloak) | Scaleway Serverless Container (`fr-par`) | `auth.praedixa.com`                     | configuration manuelle + env secrets                                  |
 
 Preflight complet sans deploy:

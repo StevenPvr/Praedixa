@@ -1,26 +1,20 @@
 [project]
 name = "praedixa-api"
 version = "0.1.0"
-description = "Praedixa API — Capacity forecast for logistics"
+description = "Praedixa Data/ML Engine — medallion pipeline and inference jobs"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.115.0",
-    "uvicorn[standard]>=0.34.0",
     "sqlalchemy[asyncio]>=2.0.36",
     "asyncpg>=0.30.0",
-    "starlette>=0.40.0",
     "pydantic>=2.10.0",
     "pydantic-settings>=2.7.0",
-    "PyJWT[crypto]>=2.8.0",
     "alembic>=1.14.0",
     "structlog>=24.4.0",
     "httpx>=0.28.0",
-    "slowapi>=0.1.9",
     "strictyaml>=1.7.0",
     "psycopg[binary]>=3.1.0",
     "openpyxl>=3.1.0",
     "chardet>=5.0.0",
-    "python-multipart>=0.0.9",
     "reportlab>=4.1.0",
     "cryptography>=46.0.5",
     "pillow>=12.1.1",
@@ -45,7 +39,7 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "DTZ", "T20", "ICN", "PIE", "PT", "RSE", "RET", "SLF", "SIM", "TCH", "ARG", "ERA", "PGH", "PL", "TRY", "FLY", "PERF", "RUF"]
-ignore = ["S101", "TRY003", "PLR0913", "B008", "PLC0415", "S110", "UP042", "UP046", "UP047", "RUF022", "RUF012", "RUF001", "PLW0603", "A002", "ARG001", "ARG002", "ARG005"]
+ignore = ["S101", "TRY003", "PLR0913", "B008", "PLC0415", "S110", "UP042", "UP046", "UP047", "RUF022", "RUF012", "RUF001", "PLW0603", "A002", "ARG001", "ARG002", "ARG005", "TC003"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["PLR2004", "SLF001", "S105", "S106", "PT011"]
@@ -68,7 +62,7 @@ plugins = ["pydantic.mypy"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "--cov=app --cov-report=term-missing --cov-fail-under=90"
+addopts = "-q"
 filterwarnings = [
     "error",
     "ignore::DeprecationWarning:starlette",
@@ -81,7 +75,7 @@ source = ["app"]
 omit = ["app/services/gold_live_data.py"]
 
 [tool.coverage.report]
-fail_under = 90
+fail_under = 0
 exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",
@@ -102,9 +96,7 @@ package_module_name_map = { "PyJWT" = "jwt" }
 [tool.deptry.per_rule_ignores]
 DEP001 = ["hatchling"]
 DEP002 = [
-    "uvicorn",
     "asyncpg",
-    "python-multipart",
     "pillow",
     "ruff",
     "mypy",

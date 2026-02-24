@@ -6,7 +6,7 @@ export const sectionReveal: Variants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+    transition: { type: "spring", stiffness: 100, damping: 20 },
   },
 };
 
@@ -40,7 +40,7 @@ export const fadeIn: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+    transition: { type: "spring", stiffness: 100, damping: 20 },
   },
 };
 
@@ -50,7 +50,7 @@ export const scaleReveal: Variants = {
   visible: {
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+    transition: { type: "spring", stiffness: 120, damping: 20 },
   },
 };
 
@@ -60,7 +60,7 @@ export const slideInLeft: Variants = {
   visible: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+    transition: { type: "spring", stiffness: 100, damping: 20 },
   },
 };
 
@@ -70,7 +70,7 @@ export const slideInRight: Variants = {
   visible: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+    transition: { type: "spring", stiffness: 100, damping: 20 },
   },
 };
 
@@ -83,7 +83,11 @@ export const blurReveal: Variants = {
     opacity: 1,
     filter: "blur(0px)",
     y: 0,
-    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+    transition: {
+      y: { type: "spring", stiffness: 100, damping: 20 },
+      opacity: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+      filter: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+    },
   },
 };
 
@@ -135,10 +139,7 @@ export const glowPulse: Variants = {
   visible: {
     opacity: 1,
     scale: 1,
-    transition: {
-      duration: 0.6,
-      ease: [0.16, 1, 0.3, 1],
-    },
+    transition: { type: "spring", stiffness: 120, damping: 20 },
   },
 };
 
@@ -183,16 +184,17 @@ export const cardHover = {
 
 /** Hero headline: cinematic blur-reveal with subtle scale — more impact than standard reveal */
 export const heroHeadlineReveal: Variants = {
-  hidden: { opacity: 0, y: 32, filter: "blur(14px)", scale: 0.98 },
+  hidden: { opacity: 0, y: 32, filter: "blur(10px)", scale: 0.98 },
   visible: (delay: number) => ({
     opacity: 1,
     y: 0,
     filter: "blur(0px)",
     scale: 1,
     transition: {
-      duration: 0.9,
+      type: "spring",
+      stiffness: 100,
+      damping: 20,
       delay,
-      ease: [0.16, 1, 0.3, 1],
     },
   }),
 };

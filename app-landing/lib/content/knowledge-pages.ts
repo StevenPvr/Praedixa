@@ -49,8 +49,8 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
     kicker: "Praedixa",
     title: "À propos",
     description:
-      "Mission, positionnement et gouvernance de Praedixa pour le pilotage de couverture multi-sites.",
-    lead: "Praedixa aide les équipes opérations et finance à cadrer des décisions de couverture multi-sites avec des signaux lisibles, des options comparables et une preuve d'impact exploitable.",
+      "Mission, positionnement et gouvernance de Praedixa pour le pilotage de couverture multi-sites, avec une priorité sur les réseaux multi-franchisés de restauration rapide.",
+    lead: "Praedixa aide les équipes opérations et finance à cadrer des décisions de couverture multi-sites avec des signaux lisibles, des options comparables et une preuve d'impact exploitable, notamment pour les réseaux multi-franchisés de restauration rapide.",
     sections: [
       {
         title: "Mission",
@@ -71,6 +71,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         paragraphs: [
           "Email principal : hello@praedixa.com",
           "Canal institutionnel : linkedin.com/company/praedixa",
+          "Entrée au programme d'incubation d'EuraTechnologies (Lille) le 3 mars 2026.",
         ],
       },
     ],
@@ -391,8 +392,8 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
     kicker: "Solutions secteur",
     title: "Praedixa pour la restauration rapide",
     description:
-      "Anticiper les tensions d'effectifs et sécuriser la continuité de service sur des réseaux de restauration rapide multi-sites.",
-    lead: "Praedixa aide les équipes ops et finance à prioriser les zones sous tension avant la rupture terrain.",
+      "Anticiper les tensions d'effectifs et sécuriser la continuité de service sur des réseaux multi-franchisés de restauration rapide.",
+    lead: "Praedixa aide les équipes ops et finance à prioriser les zones sous tension avant la rupture terrain, avec un cadre adapté aux réseaux multi-franchisés de restauration rapide.",
     sections: [
       {
         title: "Enjeux quotidiens",
@@ -561,8 +562,8 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
     kicker: "Praedixa",
     title: "About",
     description:
-      "Mission, positioning, and governance of Praedixa for multi-site coverage steering.",
-    lead: "Praedixa helps operations and finance teams frame multi-site coverage decisions with readable signals, comparable options, and auditable impact evidence.",
+      "Mission, positioning, and governance of Praedixa for multi-site coverage steering, with a priority on multi-franchise quick-service restaurant networks.",
+    lead: "Praedixa helps operations and finance teams frame multi-site coverage decisions with readable signals, comparable options, and auditable impact evidence, especially for multi-franchise quick-service restaurant networks.",
     sections: [
       {
         title: "Mission",
@@ -583,6 +584,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         paragraphs: [
           "Main email: hello@praedixa.com",
           "Institutional channel: linkedin.com/company/praedixa",
+          "Joined the EuraTechnologies incubation program (Lille, France) on March 3, 2026.",
         ],
       },
     ],
@@ -895,8 +897,8 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
     kicker: "Industry solution",
     title: "Praedixa for quick-service restaurants",
     description:
-      "Anticipate staffing tensions and protect service continuity in multi-site quick-service restaurant networks.",
-    lead: "Praedixa helps operations and finance teams prioritize exposed zones before service quality drops.",
+      "Anticipate staffing tensions and protect service continuity in multi-franchise quick-service restaurant networks.",
+    lead: "Praedixa helps operations and finance teams prioritize exposed zones before service quality drops, with a framework tailored to multi-franchise quick-service restaurant networks.",
     sections: [
       {
         title: "Daily pressure points",

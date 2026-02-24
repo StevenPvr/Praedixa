@@ -16,7 +16,7 @@ Security notes:
 
 from __future__ import annotations
 
-import uuid  # noqa: TC003 - needed at runtime by Pydantic
+import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 

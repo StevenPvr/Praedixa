@@ -3,7 +3,7 @@ import { locales, localizedSlugs } from "../lib/i18n/config";
 import { getSerpResourceSlugs } from "../lib/content/serp-resources-fr";
 
 const BASE_URL = "https://www.praedixa.com";
-const DEFAULT_LAST_MODIFIED = "2026-02-23T00:00:00.000Z";
+const DEFAULT_LAST_MODIFIED = new Date().toISOString();
 const SITE_LAST_MODIFIED = new Date(
   process.env.SEO_SITEMAP_LASTMOD ?? DEFAULT_LAST_MODIFIED,
 );

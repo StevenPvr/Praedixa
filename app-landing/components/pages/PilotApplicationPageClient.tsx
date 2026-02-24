@@ -1,17 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Check } from "@phosphor-icons/react/dist/ssr";
-import { PraedixaLogo } from "../logo/PraedixaLogo";
-import { localizedSlugs } from "../../lib/i18n/config";
+import {
+  PaperPlaneRight,
+  CheckCircle,
+  WarningCircle,
+  SpinnerGap,
+  ArrowLeft,
+  Clock,
+  ArrowRight,
+} from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
+import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
-import { EVENTS, trackEvent } from "../../lib/analytics/events";
 
-interface FormData {
+interface PilotFormData {
   companyName: string;
   sector: string;
   employeeRange: string;
@@ -24,75 +29,11 @@ interface FormData {
   timeline: string;
   currentStack: string;
   painPoint: string;
-  website: string;
   consent: boolean;
+  website: string;
 }
 
-const INITIAL_FORM_DATA: FormData = {
-  companyName: "",
-  sector: "",
-  employeeRange: "",
-  siteCount: "",
-  firstName: "",
-  lastName: "",
-  role: "",
-  email: "",
-  phone: "",
-  timeline: "",
-  currentStack: "",
-  painPoint: "",
-  website: "",
-  consent: false,
-};
-
-interface AcquisitionContext {
-  acquisitionSource: string;
-  acquisitionSlug: string;
-  acquisitionQuery: string;
-}
-
-function normaliseTrackingParam(
-  value: string | null,
-  maxLength: number,
-): string {
-  if (!value) return "";
-  const trimmed = value.trim();
-  if (trimmed.length === 0 || trimmed.length > maxLength) return "";
-  return trimmed;
-}
-
-function ArrowRightIcon({ className }: { className?: string }) {
-  return <ArrowUpRight className={className} size={16} weight="bold" />;
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return <Check className={className} size={16} weight="bold" />;
-}
-
-function getField(
-  fields: Dictionary["form"]["fields"],
-  key: string,
-  fallbackLabel: string,
-  fallbackPlaceholder?: string,
-): { label: string; placeholder?: string } {
-  return (
-    fields[key] ?? {
-      label: fallbackLabel,
-      placeholder: fallbackPlaceholder,
-    }
-  );
-}
-
-function splitConsentTemplate(template: string): {
-  prefix: string;
-  between: string;
-  suffix: string;
-} {
-  const [prefix = "", afterCguRaw = ""] = template.split("{cgu}");
-  const [between = "", suffix = ""] = afterCguRaw.split("{privacy}");
-
-  return { prefix, between, suffix };
-}
+const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export function PilotApplicationPageClient({
   locale,
@@ -101,570 +42,451 @@ export function PilotApplicationPageClient({
   locale: Locale;
   dict: Dictionary;
 }) {
-  const homeHref = `/${locale}`;
-  const searchParams = useSearchParams();
-  const protocolHref = `/${locale}/pilot-protocol`;
-  const cguHref = `/${locale}/${localizedSlugs.terms[locale]}`;
-  const privacyHref = `/${locale}/${localizedSlugs.privacy[locale]}`;
-  const { form, nav } = dict;
+  const isFr = locale === "fr";
+  const f = dict.form;
+  const field = (key: string) =>
+    f.fields[key] ?? { label: key, placeholder: "" };
 
-  const fields = form.fields;
-  const companyField = getField(fields, "companyName", "Company");
-  const sectorField = getField(fields, "sector", "Sector");
-  const employeeRangeField = getField(fields, "employeeRange", "Headcount");
-  const siteCountField = getField(fields, "siteCount", "Number of sites");
-  const firstNameField = getField(fields, "firstName", "First name");
-  const lastNameField = getField(fields, "lastName", "Last name");
-  const roleField = getField(fields, "role", "Role");
-  const emailField = getField(fields, "email", "Professional email");
-  const phoneField = getField(fields, "phone", "Phone");
-  const timelineField = getField(fields, "timeline", "Project horizon");
-  const currentStackField = getField(
-    fields,
-    "currentStack",
-    "Current stack (optional)",
+  const [form, setForm] = useState<PilotFormData>({
+    companyName: "",
+    sector: "",
+    employeeRange: "",
+    siteCount: "",
+    firstName: "",
+    lastName: "",
+    role: "",
+    email: "",
+    phone: "",
+    timeline: "",
+    currentStack: "",
+    painPoint: "",
+    consent: false,
+    website: "",
+  });
+
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const isSubmitDisabled =
+    status === "submitting" ||
+    form.companyName.trim().length === 0 ||
+    form.sector.length === 0 ||
+    form.employeeRange.length === 0 ||
+    form.email.trim().length === 0 ||
+    !form.consent;
+
+  const update = useCallback(
+    (key: keyof PilotFormData, value: string | boolean) => {
+      setForm((prev) => ({ ...prev, [key]: value }));
+    },
+    [],
   );
-  const painPointField = getField(
-    fields,
-    "painPoint",
-    "Main coverage challenge",
-  );
 
-  const consentTokens = splitConsentTemplate(form.consent);
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setStatus("submitting");
+      setErrorMsg("");
 
-  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+      try {
+        const res = await fetch("/api/pilot-application", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        });
 
-  const acquisitionContext = useMemo<AcquisitionContext>(() => {
-    return {
-      acquisitionSource: normaliseTrackingParam(searchParams.get("source"), 64),
-      acquisitionSlug: normaliseTrackingParam(
-        searchParams.get("seo_slug"),
-        120,
-      ),
-      acquisitionQuery: normaliseTrackingParam(
-        searchParams.get("seo_query"),
-        240,
-      ),
-    };
-  }, [searchParams]);
+        const data = (await res.json()) as { success?: boolean; error?: string };
 
-  useEffect(() => {
-    if (acquisitionContext.acquisitionSource !== "seo_resource") return;
+        if (!res.ok || data.error) {
+          setErrorMsg(data.error ?? (isFr ? "Erreur inconnue." : "Unknown error."));
+          setStatus("error");
+          return;
+        }
 
-    trackEvent(EVENTS.SEO_PILOT_PAGE_VIEW, {
-      locale,
-      source: acquisitionContext.acquisitionSource,
-      seo_slug: acquisitionContext.acquisitionSlug,
-      seo_query: acquisitionContext.acquisitionQuery,
-    });
-  }, [acquisitionContext, locale]);
-
-  const isComplete = useMemo(() => {
-    return (
-      formData.companyName.trim().length > 1 &&
-      formData.sector !== "" &&
-      formData.employeeRange !== "" &&
-      formData.siteCount !== "" &&
-      formData.firstName.trim().length > 1 &&
-      formData.lastName.trim().length > 1 &&
-      formData.role !== "" &&
-      formData.email.trim().length > 3 &&
-      formData.timeline !== "" &&
-      formData.painPoint.trim().length > 0 &&
-      formData.consent
-    );
-  }, [formData]);
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!isComplete || isSubmitting) return;
-
-    setIsSubmitting(true);
-    setError(null);
-
-    const eventPayload = {
-      locale,
-      source: acquisitionContext.acquisitionSource || "direct",
-      seo_slug: acquisitionContext.acquisitionSlug,
-      seo_query: acquisitionContext.acquisitionQuery,
-    };
-
-    trackEvent(EVENTS.FORM_SUBMIT, eventPayload);
-    trackEvent(EVENTS.SEO_PILOT_FORM_SUBMIT, eventPayload);
-
-    try {
-      const response = await fetch("/api/pilot-application", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          ...acquisitionContext,
-        }),
-      });
-
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        throw new Error(payload?.error || form.error);
+        setStatus("success");
+      } catch {
+        setErrorMsg(isFr ? "Erreur réseau. Veuillez réessayer." : "Network error. Please try again.");
+        setStatus("error");
       }
+    },
+    [form, isFr],
+  );
 
-      setIsSuccess(true);
-      trackEvent(EVENTS.SEO_PILOT_FORM_SUCCESS, eventPayload);
-    } catch (submitError) {
-      const message =
-        submitError instanceof Error ? submitError.message : form.error;
-      setError(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+  const privacyHref = getLocalizedPath(locale, "privacy");
+  const termsHref = getLocalizedPath(locale, "terms");
+  const protocolHref = `/${locale}/pilot-protocol`;
 
-  if (isSuccess) {
+  if (status === "success") {
     return (
-      <div className="min-h-[100dvh] bg-cream">
-        <main
-          id="main-content"
-          tabIndex={-1}
-          className="section-shell flex min-h-[100dvh] items-center justify-center py-20"
-        >
-          <motion.section
-            className="pilot-card w-full max-w-2xl p-10 text-center"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: EASE }}
+        className="mx-auto max-w-lg px-4 py-20 text-center"
+      >
+        <CheckCircle size={48} weight="fill" className="mx-auto text-brass" />
+        <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink">
+          {f.success.title}
+        </h1>
+        <p className="mt-2 text-base text-neutral-500">{f.success.description}</p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href={`/${locale}`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-brass no-underline hover:text-brass-600"
           >
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-brass-200 bg-brass-50">
-              <CheckIcon className="h-8 w-8 text-brass-700" />
-            </div>
-            <h1 className="mt-6 font-sans text-5xl leading-tight text-charcoal">
-              {form.success.title}
-            </h1>
-            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-secondary">
-              {form.success.description}
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Link href={homeHref} className="ghost-cta">
-                {form.success.backToSite}
-              </Link>
-              <Link href={protocolHref} className="gold-cta">
-                {form.success.checkEmail}
-              </Link>
-            </div>
-          </motion.section>
-        </main>
-      </div>
+            <ArrowLeft size={16} />
+            {f.success.backToSite}
+          </Link>
+          <Link
+            href={protocolHref}
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-ink no-underline transition-colors hover:bg-neutral-50"
+          >
+            {f.success.checkEmail}
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] bg-cream">
-      <nav className="fixed left-0 right-0 top-0 z-50">
-        <div className="section-shell mt-4">
-          <div className="flex items-center justify-between rounded-2xl border border-brass/25 bg-[color-mix(in_oklch,var(--color-panel)_92%,transparent)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur md:px-6">
-            <Link href={homeHref} className="group flex items-center gap-2.5">
-              <PraedixaLogo
-                variant="geometric"
-                size={30}
-                color="var(--color-text-secondary)"
-                strokeWidth={1.1}
-                className="transition-transform duration-200 group-hover:scale-105"
-              />
-              <span className="font-sans text-xl text-charcoal">Praedixa</span>
-            </Link>
-            <Link
-              href={homeHref}
-              className="text-sm font-semibold text-charcoal/70 transition hover:text-charcoal"
+    <div className="mx-auto grid max-w-5xl grid-cols-1 gap-12 px-4 py-16 sm:px-6 md:grid-cols-[1fr_1.5fr] md:py-24 lg:px-8">
+      <div>
+        <span className="inline-flex rounded-full border border-brass-200 bg-brass-50 px-3 py-1 text-xs font-semibold text-brass-700">
+          {f.pill}
+        </span>
+        <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+          {f.pageTitle}
+        </h1>
+        <p className="mt-3 max-w-sm text-sm leading-relaxed text-neutral-500">
+          {f.pageSubtitle}
+        </p>
+        <Link
+          href={`/${locale}`}
+          className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brass no-underline hover:text-brass-600"
+        >
+          <ArrowLeft size={14} />
+          {isFr ? "Retour au site" : "Back to site"}
+        </Link>
+
+        <ul className="mt-6 list-none space-y-2.5 p-0">
+          {f.valuePoints.map((point) => (
+            <li
+              key={point}
+              className="m-0 flex items-start gap-2 text-sm text-neutral-600"
             >
-              {nav.backToSite}
-            </Link>
-          </div>
+              <CheckCircle
+                size={16}
+                weight="fill"
+                className="mt-0.5 shrink-0 text-brass-300"
+              />
+              {point}
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-6 flex items-center gap-2 text-xs text-neutral-400">
+          <Clock size={14} />
+          {f.estimatedTime}: {f.estimatedTimeValue}
         </div>
-      </nav>
+      </div>
 
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="section-shell pb-20 pt-32 md:pt-36"
-      >
-        <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-          <motion.aside
-            className="pilot-card p-8"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <p className="pilot-pill">{form.pill}</p>
-            <h1 className="mt-5 font-sans text-5xl leading-tight text-charcoal">
-              {form.pageTitle}
-            </h1>
-            <p className="mt-4 text-base leading-relaxed text-ink-secondary">
-              {form.pageSubtitle}
-            </p>
+      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+        <input
+          type="text"
+          name="website"
+          value={form.website}
+          onChange={(e) => update("website", e.target.value)}
+          className="sr-only"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+        />
 
-            <ul className="mt-7 space-y-3">
-              {form.valuePoints.map((point) => (
-                <li
-                  key={point}
-                  className="flex items-start gap-2.5 text-sm text-charcoal/85"
-                >
-                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-brass-700" />
-                  {point}
-                </li>
-              ))}
-            </ul>
+        <fieldset className="space-y-4">
+          <legend className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
+            {f.fieldsets.organisation}
+          </legend>
 
-            <div className="mt-7 rounded-2xl border border-brass-200 bg-brass-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-brass-700">
-                {form.estimatedTime}
-              </p>
-              <p className="mt-2 text-sm text-charcoal/85">
-                {form.estimatedTimeValue}
-              </p>
-            </div>
-          </motion.aside>
-
-          <motion.section
-            className="pilot-card p-7 md:p-8"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <form onSubmit={handleSubmit} className="space-y-8" noValidate>
-              <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-brass-700">
-                  {form.fieldsets.organisation}
-                </legend>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Input
-                    label={companyField.label}
-                    name="companyName"
-                    value={formData.companyName}
-                    onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, companyName: value }))
-                    }
-                    placeholder={companyField.placeholder}
-                    required
-                  />
-                  <Select
-                    label={sectorField.label}
-                    name="sector"
-                    value={formData.sector}
-                    options={form.sectors}
-                    onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, sector: value }))
-                    }
-                    required
-                    selectLabel={form.select}
-                  />
-                  <Select
-                    label={employeeRangeField.label}
-                    name="employeeRange"
-                    value={formData.employeeRange}
-                    options={form.employeeRanges}
-                    onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, employeeRange: value }))
-                    }
-                    required
-                    selectLabel={form.select}
-                  />
-                  <Select
-                    label={siteCountField.label}
-                    name="siteCount"
-                    value={formData.siteCount}
-                    options={form.siteCounts}
-                    onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, siteCount: value }))
-                    }
-                    required
-                    selectLabel={form.select}
-                  />
-                </div>
-              </fieldset>
-
-              <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-brass-700">
-                  {form.fieldsets.contact}
-                </legend>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Input
-                    label={firstNameField.label}
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, firstName: value }))
-                    }
-                    required
-                  />
-                  <Input
-                    label={lastNameField.label}
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, lastName: value }))
-                    }
-                    required
-                  />
-                  <Select
-                    label={roleField.label}
-                    name="role"
-                    value={formData.role}
-                    options={form.roles}
-                    onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, role: value }))
-                    }
-                    required
-                    selectLabel={form.select}
-                  />
-                  <Input
-                    type="email"
-                    label={emailField.label}
-                    name="email"
-                    value={formData.email}
-                    onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, email: value }))
-                    }
-                    placeholder={emailField.placeholder}
-                    required
-                  />
-                  <Input
-                    label={phoneField.label}
-                    name="phone"
-                    value={formData.phone}
-                    onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, phone: value }))
-                    }
-                    placeholder={phoneField.placeholder}
-                  />
-                </div>
-              </fieldset>
-
-              <fieldset className="space-y-4">
-                <legend className="text-xs font-semibold uppercase tracking-[0.2em] text-brass-700">
-                  {form.fieldsets.challenges}
-                </legend>
-                <div className="grid gap-4">
-                  <Select
-                    label={timelineField.label}
-                    name="timeline"
-                    value={formData.timeline}
-                    options={form.timelines}
-                    onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, timeline: value }))
-                    }
-                    required
-                    selectLabel={form.select}
-                  />
-                  <Input
-                    label={currentStackField.label}
-                    name="currentStack"
-                    value={formData.currentStack}
-                    onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, currentStack: value }))
-                    }
-                    placeholder={currentStackField.placeholder}
-                  />
-                  <TextArea
-                    label={painPointField.label}
-                    name="painPoint"
-                    value={formData.painPoint}
-                    onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, painPoint: value }))
-                    }
-                    placeholder={painPointField.placeholder}
-                    required
-                  />
-                </div>
-              </fieldset>
-
-              <div
-                className="absolute left-[-9999px] top-[-9999px]"
-                aria-hidden="true"
-              >
-                <label htmlFor="website">Website</label>
-                <input
-                  id="website"
-                  name="website"
-                  value={formData.website}
-                  onChange={(event) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      website: event.target.value,
-                    }))
-                  }
-                  tabIndex={-1}
-                  autoComplete="off"
-                />
-              </div>
-
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border-subtle bg-card p-4">
-                <input
-                  type="checkbox"
-                  checked={formData.consent}
-                  onChange={(event) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      consent: event.target.checked,
-                    }))
-                  }
-                  className="mt-1 h-4 w-4 rounded border-border text-brass-600 focus:ring-brass-500"
-                />
-                <span className="text-sm leading-relaxed text-ink-secondary">
-                  {consentTokens.prefix}
-                  <Link
-                    href={cguHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-brass-700 hover:underline"
-                  >
-                    {form.cguLabel}
-                  </Link>
-                  {consentTokens.between}
-                  <Link
-                    href={privacyHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-brass-700 hover:underline"
-                  >
-                    {form.privacyLabel}
-                  </Link>
-                  {consentTokens.suffix}
-                </span>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="pilot-companyName" className="mb-1.5 block text-sm font-medium text-ink">
+                {field("companyName").label} *
               </label>
-
-              {error && (
-                <div
-                  role="alert"
-                  aria-live="assertive"
-                  className="rounded-xl border border-danger bg-danger-light px-4 py-3 text-sm text-danger-text"
-                >
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={!isComplete || isSubmitting}
-                className="btn-primary w-full rounded-full px-7 py-3.5 text-sm"
+              <input
+                id="pilot-companyName"
+                name="companyName"
+                type="text"
+                required
+                maxLength={200}
+                placeholder={field("companyName").placeholder}
+                value={form.companyName}
+                onChange={(e) => update("companyName", e.target.value)}
+                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-neutral-300 focus:border-brass focus:ring-1 focus:ring-brass"
+              />
+            </div>
+            <div>
+              <label htmlFor="pilot-sector" className="mb-1.5 block text-sm font-medium text-ink">
+                {field("sector").label} *
+              </label>
+              <select
+                id="pilot-sector"
+                name="sector"
+                required
+                value={form.sector}
+                onChange={(e) => update("sector", e.target.value)}
+                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
               >
-                {isSubmitting ? form.submitting : form.submit}
-                {!isSubmitting && <ArrowRightIcon className="h-4 w-4" />}
-              </button>
-            </form>
-          </motion.section>
+                <option value="">{f.select}</option>
+                {f.sectors.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="pilot-employeeRange" className="mb-1.5 block text-sm font-medium text-ink">
+                {field("employeeRange").label} *
+              </label>
+              <select
+                id="pilot-employeeRange"
+                name="employeeRange"
+                required
+                value={form.employeeRange}
+                onChange={(e) => update("employeeRange", e.target.value)}
+                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
+              >
+                <option value="">{f.select}</option>
+                {f.employeeRanges.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="pilot-siteCount" className="mb-1.5 block text-sm font-medium text-ink">
+                {field("siteCount").label}
+              </label>
+              <select
+                id="pilot-siteCount"
+                name="siteCount"
+                value={form.siteCount}
+                onChange={(e) => update("siteCount", e.target.value)}
+                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
+              >
+                <option value="">{f.select}</option>
+                {f.siteCounts.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset className="space-y-4">
+          <legend className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
+            {f.fieldsets.contact}
+          </legend>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="pilot-firstName" className="mb-1.5 block text-sm font-medium text-ink">
+                {field("firstName").label}
+              </label>
+              <input
+                id="pilot-firstName"
+                name="firstName"
+                type="text"
+                maxLength={100}
+                value={form.firstName}
+                onChange={(e) => update("firstName", e.target.value)}
+                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
+              />
+            </div>
+            <div>
+              <label htmlFor="pilot-lastName" className="mb-1.5 block text-sm font-medium text-ink">
+                {field("lastName").label}
+              </label>
+              <input
+                id="pilot-lastName"
+                name="lastName"
+                type="text"
+                maxLength={100}
+                value={form.lastName}
+                onChange={(e) => update("lastName", e.target.value)}
+                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="pilot-role" className="mb-1.5 block text-sm font-medium text-ink">
+              {field("role").label}
+            </label>
+            <select
+              id="pilot-role"
+              name="role"
+              value={form.role}
+              onChange={(e) => update("role", e.target.value)}
+              className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
+            >
+              <option value="">{f.select}</option>
+              {f.roles.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="pilot-email" className="mb-1.5 block text-sm font-medium text-ink">
+                {field("email").label} *
+              </label>
+              <input
+                id="pilot-email"
+                name="email"
+                type="email"
+                required
+                maxLength={254}
+                placeholder={field("email").placeholder}
+                value={form.email}
+                onChange={(e) => update("email", e.target.value)}
+                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-neutral-300 focus:border-brass focus:ring-1 focus:ring-brass"
+              />
+            </div>
+            <div>
+              <label htmlFor="pilot-phone" className="mb-1.5 block text-sm font-medium text-ink">
+                {field("phone").label}
+              </label>
+              <input
+                id="pilot-phone"
+                name="phone"
+                type="tel"
+                maxLength={30}
+                placeholder={field("phone").placeholder}
+                value={form.phone}
+                onChange={(e) => update("phone", e.target.value)}
+                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-neutral-300 focus:border-brass focus:ring-1 focus:ring-brass"
+              />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset className="space-y-4">
+          <legend className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
+            {f.fieldsets.challenges}
+          </legend>
+
+          <div>
+            <label htmlFor="pilot-timeline" className="mb-1.5 block text-sm font-medium text-ink">
+              {field("timeline").label}
+            </label>
+            <select
+              id="pilot-timeline"
+              name="timeline"
+              value={form.timeline}
+              onChange={(e) => update("timeline", e.target.value)}
+              className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
+            >
+              <option value="">{f.select}</option>
+              {f.timelines.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="pilot-currentStack" className="mb-1.5 block text-sm font-medium text-ink">
+              {field("currentStack").label}
+            </label>
+            <input
+              id="pilot-currentStack"
+              name="currentStack"
+              type="text"
+              maxLength={300}
+              placeholder={field("currentStack").placeholder}
+              value={form.currentStack}
+              onChange={(e) => update("currentStack", e.target.value)}
+              className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-neutral-300 focus:border-brass focus:ring-1 focus:ring-brass"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="pilot-painPoint" className="mb-1.5 block text-sm font-medium text-ink">
+              {field("painPoint").label}
+            </label>
+            <textarea
+              id="pilot-painPoint"
+              name="painPoint"
+              rows={4}
+              maxLength={1200}
+              placeholder={field("painPoint").placeholder}
+              value={form.painPoint}
+              onChange={(e) => update("painPoint", e.target.value)}
+              className="w-full resize-y rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-neutral-300 focus:border-brass focus:ring-1 focus:ring-brass"
+            />
+          </div>
+        </fieldset>
+
+        <div className="flex items-start gap-2.5">
+          <input
+            id="pilot-consent"
+            type="checkbox"
+            checked={form.consent}
+            onChange={(e) => update("consent", e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-border text-brass accent-brass"
+          />
+          <label htmlFor="pilot-consent" className="text-sm text-neutral-600">
+            {isFr ? "J'accepte les " : "I accept the "}
+            <Link href={termsHref} className="text-brass hover:text-brass-600">
+              {f.cguLabel}
+            </Link>
+            {isFr ? " et la " : " and the "}
+            <Link href={privacyHref} className="text-brass hover:text-brass-600">
+              {f.privacyLabel}
+            </Link>
+            .
+          </label>
         </div>
-      </main>
+
+        {status === "error" && errorMsg && (
+          <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <WarningCircle size={18} weight="fill" className="mt-0.5 shrink-0" />
+            {errorMsg}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isSubmitDisabled}
+          className="btn-primary-gradient inline-flex w-full items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold text-white transition-all duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {status === "submitting" ? (
+            <>
+              <SpinnerGap size={16} className="animate-spin" />
+              {f.submitting}
+            </>
+          ) : (
+            <>
+              <PaperPlaneRight size={16} weight="bold" />
+              {f.submit}
+            </>
+          )}
+        </button>
+      </form>
     </div>
-  );
-}
-
-function Input({
-  label,
-  name,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-  required = false,
-}: {
-  label: string;
-  name: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  type?: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="grid gap-1.5">
-      <span className="text-sm font-semibold text-charcoal/80">
-        {label}
-        {required ? " *" : ""}
-      </span>
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none ring-0 transition focus-visible:border-brass-400 focus-visible:ring-2 focus-visible:ring-brass-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-        required={required}
-      />
-    </label>
-  );
-}
-
-function Select({
-  label,
-  name,
-  value,
-  options,
-  onChange,
-  required = false,
-  selectLabel,
-}: {
-  label: string;
-  name: string;
-  value: string;
-  options: readonly string[];
-  onChange: (value: string) => void;
-  required?: boolean;
-  selectLabel: string;
-}) {
-  return (
-    <label className="grid gap-1.5">
-      <span className="text-sm font-semibold text-charcoal/80">
-        {label}
-        {required ? " *" : ""}
-      </span>
-      <select
-        name={name}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-12 rounded-xl border border-border-subtle bg-card px-3.5 text-sm text-charcoal outline-none transition focus-visible:border-brass-400 focus-visible:ring-2 focus-visible:ring-brass-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-        required={required}
-      >
-        <option value="">{selectLabel}</option>
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function TextArea({
-  label,
-  name,
-  value,
-  onChange,
-  placeholder,
-  required = false,
-}: {
-  label: string;
-  name: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="grid gap-1.5">
-      <span className="text-sm font-semibold text-charcoal/80">
-        {label}
-        {required ? " *" : ""}
-      </span>
-      <textarea
-        name={name}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        rows={5}
-        className="rounded-xl border border-border-subtle bg-card px-3.5 py-3 text-sm leading-relaxed text-charcoal outline-none transition focus-visible:border-brass-400 focus-visible:ring-2 focus-visible:ring-brass-300 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-        required={required}
-      />
-    </label>
   );
 }

@@ -23,7 +23,11 @@ graph TB
     end
 
     subgraph Backend["Scaleway Serverless Containers (fr-par)"]
-        API["app-api<br/>FastAPI + uvicorn<br/>:8000"]
+        API["app-api-ts<br/>TypeScript API server<br/>:8000"]
+    end
+
+    subgraph DataML["Python Data/ML Engine"]
+        DML["app-api<br/>medallion + quality + ML jobs"]
     end
 
     subgraph Auth["Scaleway Serverless Container (fr-par)"]
@@ -45,6 +49,7 @@ graph TB
     W -- "Bearer JWT" --> API
     A -- "Bearer JWT" --> API
     API --> PG
+    API --> DML
     W -- "OIDC Code + PKCE" --> KC
     A -- "OIDC Code + PKCE" --> KC
     KC -. "JWKS (RS256/ES256/EdDSA)" .-> API
@@ -68,22 +73,13 @@ Next.js frontend (Serverless Container, SSR)
   |  API call: fetch("https://api.praedixa.com/api/v1/decisions", { headers })
   |
   v
-FastAPI (app-api)
+TypeScript API (app-api-ts)
   |
-  |  1. CORS middleware (allowlist explicite)
-  |  2. AuditLogMiddleware (log user_id, org_id, path, status)
-  |  3. SlowAPIMiddleware (rate limit par IP)
-  |  4. RequestBodySizeLimitMiddleware (max 10 MB)
-  |  5. Request ID middleware (X-Request-ID, timing)
-  |
-  |  Route handler:
-  |  6. extract_token() → Bearer token depuis le header Authorization
-  |  7. verify_jwt() → decode + validation signature (JWKS), audience, expiry
-  |  8. get_current_user() → JWTPayload(user_id, email, organization_id, role, site_id)
-  |  9. set_rls_org_id() → ContextVar pour RLS PostgreSQL
-  | 10. get_tenant_filter() → TenantFilter(organization_id)
-  | 11. get_site_filter() → SiteFilter(site_id | None)
-  | 12. get_db_session() → SET LOCAL app.current_organization_id = :org_id
+  |  1. Security headers (HSTS, X-Frame-Options, nosniff, Referrer-Policy)
+  |  2. JWT parsing + role enforcement (routes admin vs client)
+  |  3. Route handler (contract OpenAPI public)
+  |  4. PostgreSQL access (tenant/site scoping)
+  |  5. Data/ML orchestration calls vers app-api Python (jobs batch)
   |
   v
 PostgreSQL 16
@@ -171,12 +167,12 @@ class SiteFilter:
 
 ### Acces admin cross-tenant
 
-Les super-admins peuvent acceder aux donnees de n'importe quelle organisation via `get_admin_tenant_filter`. Cette dependency FastAPI :
+L'acces admin cross-tenant est controle par les guards de role API TS :
 
-1. Verifie le role `super_admin` via `require_role("super_admin")`
-2. Accepte un `target_org_id` en parametre de route (valide UUID par FastAPI)
-3. Override le `ContextVar` RLS vers l'organisation cible
-4. Retourne un `TenantFilter` scope a l'organisation cible
+1. JWT requis sur toutes les routes `/api/v1/admin/*`
+2. role `super_admin` obligatoire
+3. `org_id` cible passe en path et valide cote handler
+4. les lectures/ecritures restent scopees au tenant cible
 
 ## Graphe de build monorepo
 
@@ -203,8 +199,9 @@ La commande `pnpm build` execute sequentiellement :
 ```bash
 # package.json (root)
 pnpm --filter @praedixa/shared-types build  # 1. Types partages
-&& pnpm --filter @praedixa/ui build         # 2. Composants UI
-&& pnpm --filter @praedixa/landing build    # 3. Apps (parallelisable)
+&& pnpm --filter @praedixa/api-ts build     # 2. API TS
+&& pnpm --filter @praedixa/ui build         # 3. Composants UI
+&& pnpm --filter @praedixa/landing build    # 4. Apps (parallelisable)
 && pnpm --filter @praedixa/webapp build
 && pnpm --filter @praedixa/admin build
 ```
@@ -213,60 +210,18 @@ pnpm --filter @praedixa/shared-types build  # 1. Types partages
 
 ## Patterns service layer
 
-L'API suit un pattern **Router -> Service -> Session** avec injection de dependances FastAPI.
+L'API applicative TS suit un pattern **Route table -> Handler -> Service -> DB** :
 
-### Endpoints utilisateur standard
+- Route table centralisee (`app-api-ts/src/routes.ts`)
+- Verification JWT + role guard au niveau transport (`app-api-ts/src/server.ts`, `app-api-ts/src/auth.ts`)
+- Reponses normalisees (`success`, `paginated`, `failure`)
+- Contrat public versionne dans `contracts/openapi/public.yaml`
 
-```python
-# Pattern typique d'un router
-@router.get("/coverage-alerts")
-async def list_coverage_alerts(
-    session: AsyncSession = Depends(get_db_session),         # DB session
-    tenant_filter: TenantFilter = Depends(get_tenant_filter), # Isolation org
-    site_filter: SiteFilter = Depends(get_site_filter),       # Isolation site
-    current_user: JWTPayload = Depends(get_current_user),     # Auth
-) -> SuccessResponse[list[CoverageAlertRead]]:
-    items = await coverage_alerts_service.list_alerts(
-        session, tenant_filter, site_filter
-    )
-    return SuccessResponse(success=True, data=items, timestamp=...)
-```
+Le moteur Python reste dedie aux workflows Data/ML :
 
-### Endpoints admin back-office
-
-Les routers admin utilisent `get_admin_tenant_filter` au lieu de `get_tenant_filter`, compose sous le prefix `/api/v1/admin` :
-
-```python
-# app-api/app/main.py
-admin_backoffice = APIRouter(prefix="/api/v1/admin", tags=["admin"])
-admin_backoffice.include_router(admin_orgs.router)       # 14 sous-routers
-admin_backoffice.include_router(admin_users.router)
-admin_backoffice.include_router(admin_conversations.router)
-# ...
-```
-
-### Chaine de dependances
-
-```
-get_current_user
-  ├─ extract_token(request)    → str (Bearer token)
-  ├─ verify_jwt(token)         → JWTPayload
-  ├─ set_rls_org_id(org_id)    → ContextVar
-  └─ request.state.audit_*     → pour AuditLogMiddleware
-
-get_tenant_filter
-  └─ Depends(get_current_user) → TenantFilter(organization_id)
-
-get_site_filter
-  └─ Depends(get_current_user) → SiteFilter(site_id | None)
-
-get_admin_tenant_filter
-  ├─ Depends(require_role("super_admin"))
-  └─ set_rls_org_id(target_org_id) → TenantFilter(target_org_id)
-
-get_db_session
-  └─ _current_org_id.get()     → SET LOCAL app.current_organization_id
-```
+- pipeline medallion (`app-api/scripts/medallion_pipeline.py`)
+- orchestration (`app-api/scripts/medallion_orchestrator.py`)
+- inference jobs (`app-api/scripts/run_inference_job.py`)
 
 ## Packages partages
 
@@ -332,7 +287,7 @@ docker compose -f infra/docker-compose.yml up -d postgres
 pnpm dev:landing   # :3000
 pnpm dev:webapp    # :3001
 pnpm dev:admin     # :3002
-pnpm dev:api       # :8000 (alembic upgrade head + uvicorn --reload)
+pnpm dev:api       # :8000 (API TypeScript)
 ```
 
 ## Securite

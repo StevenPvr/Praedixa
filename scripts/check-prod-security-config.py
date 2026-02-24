@@ -12,16 +12,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_PATTERNS: dict[str, tuple[str, ...]] = {
-    "app-api/app/main.py": (
-        'response.headers["X-Content-Type-Options"] = "nosniff"',
-        'response.headers["X-Frame-Options"] = "DENY"',
-        'response.headers["Referrer-Policy"] = "no-referrer"',
-        'response.headers["Strict-Transport-Security"]',
+    "app-api-ts/src/server.ts": (
+        '"X-Content-Type-Options": "nosniff"',
+        '"X-Frame-Options": "DENY"',
+        '"Referrer-Policy": "no-referrer"',
+        '"Strict-Transport-Security":',
     ),
     "app-api/app/core/config.py": (
         "DEBUG must be false in staging/production",
-        "CORS_ORIGINS must use https in staging/production",
-        "CORS_ORIGINS cannot include localhost in staging/production",
+        "KEY_PROVIDER must be 'scaleway' in staging/production",
+        "LOCAL_KEY_SEED must be configured when KEY_PROVIDER=local",
     ),
     "app-webapp/lib/security/headers.ts": (
         "X-Content-Type-Options",

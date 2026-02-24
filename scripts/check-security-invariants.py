@@ -71,31 +71,31 @@ def _run_full_invariant_tests(
 
     for inv in invariants:
         for test_path in inv.get("required_tests", []):
-            if isinstance(test_path, str) and test_path.startswith("app-api/tests/"):
-                required_tests.add(test_path.replace("app-api/", "", 1))
+            if isinstance(test_path, str) and test_path.startswith("app-api-ts/"):
+                required_tests.add(test_path)
 
     for abuse in abuse_scenarios:
         for test_path in abuse.get("required_tests", []):
-            if isinstance(test_path, str) and test_path.startswith("app-api/tests/"):
-                required_tests.add(test_path.replace("app-api/", "", 1))
+            if isinstance(test_path, str) and test_path.startswith("app-api-ts/"):
+                required_tests.add(test_path)
 
     if not required_tests:
-        print("[invariants] No executable backend tests declared")
+        print("[invariants] No executable API TS tests declared")
         return 0
 
     tests = sorted(required_tests)
-    pytest_bin = ROOT / "app-api/.venv/bin/pytest"
-    if pytest_bin.exists():
-        cmd = [str(pytest_bin), "-o", "addopts=", *tests]
-    else:
-        cmd = ["uv", "run", "pytest", "-o", "addopts=", *tests]
-    print(f"[invariants] Running backend invariant tests ({len(tests)} files)")
-    proc = subprocess.run(cmd, cwd=ROOT / "app-api")
+    cmd = ["pnpm", "--filter", "@praedixa/api-ts", "test"]
+    print(f"[invariants] Running API TS invariant tests ({len(tests)} file(s) declared)")
+    proc = subprocess.run(cmd, cwd=ROOT)
     return proc.returncode
 
 
 def _check_staged_coverage(invariants: list[dict[str, Any]], staged: list[str]) -> list[str]:
-    staged_tests = [path for path in staged if path.startswith("app-api/tests/security/")]
+    staged_tests = [
+        path
+        for path in staged
+        if path.startswith("app-api-ts/") and ("test" in path or "__tests__" in path)
+    ]
     errors: list[str] = []
 
     for inv in invariants:
