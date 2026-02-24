@@ -4,6 +4,7 @@ import {
   ShieldCheck,
   Sparkle,
 } from "@phosphor-icons/react/dist/ssr";
+import { HeroSignalBoard } from "./HeroSignalBoard";
 import type { Dictionary } from "../../lib/i18n/types";
 import type { Locale } from "../../lib/i18n/config";
 import { localizedSlugs } from "../../lib/i18n/config";
@@ -11,29 +12,6 @@ import { localizedSlugs } from "../../lib/i18n/config";
 interface HeroSectionProps {
   dict: Dictionary;
   locale: Locale;
-}
-
-function HeroSignalBoardSkeleton() {
-  return (
-    <div className="grid gap-3 md:grid-cols-[1.25fr_1fr]">
-      <div className="panel-glass rounded-3xl p-5">
-        <div className="h-3 w-28 rounded bg-[var(--line)]" />
-        <div className="mt-4 space-y-2">
-          <div className="h-10 rounded-xl border border-[var(--line)] bg-[var(--panel-muted)]" />
-          <div className="h-10 rounded-xl border border-[var(--line)] bg-[var(--panel-muted)]" />
-          <div className="h-10 rounded-xl border border-[var(--line)] bg-[var(--panel-muted)]" />
-        </div>
-      </div>
-      <div className="panel-glass rounded-3xl p-5">
-        <div className="h-3 w-32 rounded bg-[var(--line)]" />
-        <div className="mt-4 h-24 rounded-2xl border border-[var(--line)] bg-[var(--panel)]" />
-      </div>
-      <div className="panel-glass rounded-3xl p-5 md:col-span-2">
-        <div className="h-3 w-24 rounded bg-[var(--line)]" />
-        <div className="mt-4 h-20 rounded-2xl border border-[var(--line)] bg-[var(--panel)]" />
-      </div>
-    </div>
-  );
 }
 
 export function HeroSection({ dict, locale }: HeroSectionProps) {
@@ -108,7 +86,7 @@ export function HeroSection({ dict, locale }: HeroSectionProps) {
           </div>
 
           <div className="hero-board-glow relative">
-            <HeroSignalBoardSkeleton />
+            <HeroSignalBoard />
           </div>
         </div>
       </div>
