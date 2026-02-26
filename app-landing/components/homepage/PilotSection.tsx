@@ -192,7 +192,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
           {dict.pilot.ctaPrimary}
           <ArrowRight size={16} weight="bold" />
         </Link>
-        <p className="text-xs text-neutral-200/90">{dict.pilot.ctaMeta}</p>
+        <p className="text-xs text-white/95">{dict.pilot.ctaMeta}</p>
       </motion.div>
 
       <motion.p
@@ -200,7 +200,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         whileInView={{ opacity: 1 }}
         viewport={VP}
         transition={{ ...SPRING, delay: 0.2 }}
-        className="mt-4 text-xs text-neutral-200/90"
+        className="mt-4 text-xs text-white/95"
       >
         {dict.pilot.urgency}
       </motion.p>
