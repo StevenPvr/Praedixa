@@ -167,9 +167,9 @@ export const fr: Dictionary = {
       },
     ],
     differentiators: {
-      title: "Ce que Praedixa n'est pas",
+      title: "Ce que Praedixa est / n'est pas",
       description:
-        "Approche orientée décisions critiques multi-sites : lecture du risque, comparaison d'options et justification de l'action.",
+        "Praedixa complète votre stack opérationnelle. Ce n'est ni un SIRH, ni un outil de paie, ni un dashboard BI de plus, ni un outil de planification terrain.",
       items: [
         {
           is: "Outil de décision opérationnel",

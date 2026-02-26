@@ -166,9 +166,9 @@ export const en: Dictionary = {
       },
     ],
     differentiators: {
-      title: "What Praedixa is not",
+      title: "What Praedixa is / is not",
       description:
-        "Approach focused on critical multi-site decisions: risk reading, option comparison, and explicit action rationale.",
+        "Praedixa complements your operational stack. It is not an HRIS, a payroll system, an extra BI dashboard, or a field scheduling tool.",
       items: [
         { is: "Operational decision tool", isNot: "HRIS or payroll system" },
         { is: "Economic trade-off framework", isNot: "Another BI dashboard" },
