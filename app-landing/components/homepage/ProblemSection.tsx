@@ -76,7 +76,7 @@ export function ProblemSection({ dict }: ProblemSectionProps) {
                     <span className="font-medium text-white">Impact:</span>{" "}
                     {pain.consequence}
                   </span>
-                  <span className="text-sm text-neutral-200/90">{pain.cost}</span>
+                  <span className="text-sm text-white/90">{pain.cost}</span>
                 </div>
               </motion.div>
             ))}

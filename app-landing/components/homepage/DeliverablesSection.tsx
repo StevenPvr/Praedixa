@@ -60,7 +60,7 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
                 }}
                 className="py-6 first:pt-0"
               >
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-200/85">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-white/90">
                   {frame.label}
                 </span>
                 <p className="mt-2 font-mono text-3xl font-bold tracking-tight text-white">
