@@ -42,7 +42,7 @@ export function ProblemSection({ dict }: ProblemSectionProps) {
             <h2 className="mt-3 max-w-2xl text-4xl font-bold tracking-tighter text-white md:text-5xl" style={{ lineHeight: 1.05 }}>
               {dict.problem.heading}
             </h2>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-neutral-300">
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-neutral-200">
               {dict.problem.subheading}
             </p>
           </motion.div>
@@ -68,11 +68,11 @@ export function ProblemSection({ dict }: ProblemSectionProps) {
                     {pain.title}
                   </h3>
                 </div>
-                <p className="mt-2 max-w-md text-sm leading-relaxed text-neutral-300">
+                <p className="mt-2 max-w-md text-sm leading-relaxed text-neutral-200">
                   {pain.description}
                 </p>
                 <div className="mt-2 flex flex-col gap-1">
-                  <span className="text-sm text-neutral-300">
+                  <span className="text-sm text-neutral-200">
                     <span className="font-medium text-white">Impact:</span>{" "}
                     {pain.consequence}
                   </span>
@@ -99,7 +99,7 @@ export function ProblemSection({ dict }: ProblemSectionProps) {
               {dict.problem.diagnostic.signals.map((signal) => (
                 <li
                   key={signal}
-                  className="m-0 flex items-start gap-2.5 text-sm text-neutral-300"
+                  className="m-0 flex items-start gap-2.5 text-sm text-neutral-200"
                 >
                   <CheckCircle
                     size={18}

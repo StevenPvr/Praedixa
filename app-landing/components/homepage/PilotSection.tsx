@@ -45,7 +45,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         <h2 className="mt-3 max-w-2xl text-4xl font-bold tracking-tighter text-white md:text-5xl" style={{ lineHeight: 1.05 }}>
           {dict.pilot.heading}
         </h2>
-        <p className="mt-4 max-w-xl text-base leading-relaxed text-neutral-300">
+        <p className="mt-4 max-w-xl text-base leading-relaxed text-neutral-200">
           {dict.pilot.subheading}
         </p>
 
@@ -56,7 +56,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
               className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
                 i === 0
                   ? "border border-brass-400/40 bg-brass-800 text-white"
-                  : "border border-white/10 bg-white/5 text-neutral-400"
+                  : "border border-white/10 bg-white/5 text-neutral-200"
               }`}
             >
               {label}
@@ -89,7 +89,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
                 <motion.li
                   key={item}
                   variants={listItem}
-                  className="m-0 flex items-start gap-2 text-sm text-neutral-300"
+                  className="m-0 flex items-start gap-2 text-sm text-neutral-200"
                 >
                   <CheckCircle
                     size={16}
@@ -110,20 +110,20 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
           transition={{ ...SPRING, delay: 0.1 }}
         >
           <div className="border-t border-white/10 pt-5">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-300">
-              <XCircle size={18} weight="fill" className="text-neutral-500" />
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-200">
+              <XCircle size={18} weight="fill" className="text-neutral-200" />
               {dict.pilot.excluded.title}
             </h3>
             <ul className="mt-4 list-none space-y-2.5 p-0">
               {dict.pilot.excluded.items.map((item) => (
                 <li
                   key={item}
-                  className="m-0 flex items-start gap-2 text-sm text-neutral-500"
+                  className="m-0 flex items-start gap-2 text-sm text-neutral-200"
                 >
                   <XCircle
                     size={16}
                     weight="fill"
-                    className="mt-0.5 shrink-0 text-neutral-600"
+                    className="mt-0.5 shrink-0 text-neutral-200"
                   />
                   <span className="line-through">{item}</span>
                 </li>
@@ -153,7 +153,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
             </h3>
             <ul className="list-none space-y-1.5 p-0">
               {data.items.map((item) => (
-                <li key={item} className="m-0 text-sm text-neutral-300">
+                <li key={item} className="m-0 text-sm text-neutral-200">
                   {item}
                 </li>
               ))}
@@ -173,7 +173,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         <h3 className="text-sm font-semibold text-neutral-100">
           {dict.pilot.upcoming.title}
         </h3>
-        <p className="mt-1.5 max-w-lg text-sm leading-relaxed text-neutral-300">
+        <p className="mt-1.5 max-w-lg text-sm leading-relaxed text-neutral-200">
           {dict.pilot.upcoming.description}
         </p>
       </motion.div>
@@ -192,7 +192,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
           {dict.pilot.ctaPrimary}
           <ArrowRight size={16} weight="bold" />
         </Link>
-        <p className="text-xs text-neutral-400/70">{dict.pilot.ctaMeta}</p>
+        <p className="text-xs text-neutral-200/90">{dict.pilot.ctaMeta}</p>
       </motion.div>
 
       <motion.p
@@ -200,7 +200,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         whileInView={{ opacity: 1 }}
         viewport={VP}
         transition={{ ...SPRING, delay: 0.2 }}
-        className="mt-4 text-xs text-neutral-400/70"
+        className="mt-4 text-xs text-neutral-200/90"
       >
         {dict.pilot.urgency}
       </motion.p>

@@ -25,7 +25,7 @@ export function HowItWorksSection({ dict }: HowItWorksSectionProps) {
         <h2 className="mt-3 max-w-2xl text-4xl font-bold tracking-tighter text-white md:text-5xl" style={{ lineHeight: 1.05 }}>
           {dict.howItWorks.heading}
         </h2>
-        <p className="mt-4 max-w-xl text-base leading-relaxed text-neutral-300">
+        <p className="mt-4 max-w-xl text-base leading-relaxed text-neutral-200">
           {dict.howItWorks.subheading}
         </p>
       </motion.div>
@@ -60,7 +60,7 @@ export function HowItWorksSection({ dict }: HowItWorksSectionProps) {
                 <h3 className="mt-1.5 text-xl font-semibold tracking-tight text-white">
                   {step.title}
                 </h3>
-                <p className="mt-2 max-w-lg text-sm leading-relaxed text-neutral-300">
+                <p className="mt-2 max-w-lg text-sm leading-relaxed text-neutral-200">
                   {step.description}
                 </p>
               </div>

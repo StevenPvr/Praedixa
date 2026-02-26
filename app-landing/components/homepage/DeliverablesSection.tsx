@@ -41,7 +41,7 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
             <h2 className="mt-3 max-w-2xl text-4xl font-bold tracking-tighter text-white md:text-5xl" style={{ lineHeight: 1.05 }}>
               {dict.deliverables.heading}
             </h2>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-neutral-300">
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-neutral-200">
               {dict.deliverables.subheading}
             </p>
           </motion.div>
@@ -66,7 +66,7 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
                 <p className="mt-2 font-mono text-3xl font-bold tracking-tight text-white">
                   {frame.value}
                 </p>
-                <p className="mt-1 max-w-md text-sm leading-relaxed text-neutral-300">
+                <p className="mt-1 max-w-md text-sm leading-relaxed text-neutral-200">
                   {frame.note}
                 </p>
               </motion.div>
@@ -94,7 +94,7 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
                 <motion.li
                   key={item}
                   variants={checkItem}
-                  className="m-0 flex items-start gap-2.5 text-sm text-neutral-300"
+                  className="m-0 flex items-start gap-2.5 text-sm text-neutral-200"
                 >
                   <CheckSquare
                     size={18}

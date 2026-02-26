@@ -35,7 +35,7 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
           <h2 className="mt-3 max-w-xl text-4xl font-bold tracking-tighter text-white md:text-5xl" style={{ lineHeight: 1.05 }}>
             {dict.contact.heading}
           </h2>
-          <p className="mt-4 max-w-lg text-base leading-relaxed text-neutral-300">
+          <p className="mt-4 max-w-lg text-base leading-relaxed text-neutral-200">
             {dict.contact.subheading}
           </p>
 
@@ -69,7 +69,7 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
               {dict.contact.trustItems.map((item) => (
                 <div
                   key={item}
-                  className="flex items-center gap-2.5 text-sm text-neutral-300"
+                  className="flex items-center gap-2.5 text-sm text-neutral-200"
                 >
                   <CheckCircle
                     size={16}
