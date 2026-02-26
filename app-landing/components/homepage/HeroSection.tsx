@@ -63,7 +63,9 @@ const bulletItem = {
 export function HeroSection({ locale, dict }: HeroSectionProps) {
   const pilotHref = getLocalizedPath(locale, "pilot");
   const incubatorLabel =
-    locale === "fr" ? "Incubé à Euratechnologies" : "Incubated at Euratechnologies";
+    locale === "fr"
+      ? "Incubé à Euratechnologies — verticale IA/Data"
+      : "Incubated at Euratechnologies — AI/Data track";
 
   return (
     <section className="relative overflow-hidden bg-white">
