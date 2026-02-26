@@ -38,7 +38,7 @@ export function ProblemSection({ dict }: ProblemSectionProps) {
             viewport={VP}
             transition={SPRING}
           >
-            <Kicker className="text-brass-300">{dict.problem.kicker}</Kicker>
+            <Kicker className="text-neutral-100">{dict.problem.kicker}</Kicker>
             <h2 className="mt-3 max-w-2xl text-4xl font-bold tracking-tighter text-white md:text-5xl" style={{ lineHeight: 1.05 }}>
               {dict.problem.heading}
             </h2>
@@ -76,7 +76,7 @@ export function ProblemSection({ dict }: ProblemSectionProps) {
                     <span className="font-medium text-white">Impact:</span>{" "}
                     {pain.consequence}
                   </span>
-                  <span className="text-sm text-neutral-400/70">{pain.cost}</span>
+                  <span className="text-sm text-neutral-200/90">{pain.cost}</span>
                 </div>
               </motion.div>
             ))}

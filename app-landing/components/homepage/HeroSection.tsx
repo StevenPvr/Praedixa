@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, ShieldCheck } from "@phosphor-icons/react";
@@ -61,6 +62,8 @@ const bulletItem = {
 
 export function HeroSection({ locale, dict }: HeroSectionProps) {
   const pilotHref = getLocalizedPath(locale, "pilot");
+  const incubatorLabel =
+    locale === "fr" ? "Incubé à Euratechnologies" : "Incubated at Euratechnologies";
 
   return (
     <section className="relative overflow-hidden bg-white">
@@ -152,6 +155,28 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
           >
             {dict.hero.ctaMeta}
           </motion.p>
+
+          <motion.div
+            custom={0.75}
+            variants={headlineReveal}
+            initial="hidden"
+            animate="visible"
+            className="mt-5"
+          >
+            <div className="inline-flex max-w-full flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-brass-200 bg-white/90 px-3.5 py-2.5 shadow-[0_10px_24px_-18px_rgba(17,24,39,0.7)]">
+              <Image
+                src="/partners/euratechnologies-logo-black.svg"
+                alt="Logo Euratechnologies"
+                width={150}
+                height={28}
+                className="h-5 w-auto md:h-6"
+                priority
+              />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-neutral-600 md:text-xs">
+                {incubatorLabel}
+              </span>
+            </div>
+          </motion.div>
         </div>
 
         <div className="relative hidden md:block">

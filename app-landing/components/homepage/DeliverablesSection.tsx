@@ -37,7 +37,7 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
             viewport={VP}
             transition={SPRING}
           >
-            <Kicker className="text-brass-300">{dict.deliverables.kicker}</Kicker>
+            <Kicker className="text-neutral-100">{dict.deliverables.kicker}</Kicker>
             <h2 className="mt-3 max-w-2xl text-4xl font-bold tracking-tighter text-white md:text-5xl" style={{ lineHeight: 1.05 }}>
               {dict.deliverables.heading}
             </h2>
@@ -60,10 +60,10 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
                 }}
                 className="py-6 first:pt-0"
               >
-                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400/70">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-200/85">
                   {frame.label}
                 </span>
-                <p className="mt-2 font-mono text-3xl font-bold tracking-tight text-brass-300">
+                <p className="mt-2 font-mono text-3xl font-bold tracking-tight text-white">
                   {frame.value}
                 </p>
                 <p className="mt-1 max-w-md text-sm leading-relaxed text-neutral-300">

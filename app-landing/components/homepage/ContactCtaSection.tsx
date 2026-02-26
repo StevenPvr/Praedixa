@@ -31,7 +31,7 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
           viewport={VP}
           transition={SPRING}
         >
-          <Kicker className="text-brass-300">{dict.contact.kicker}</Kicker>
+          <Kicker className="text-neutral-100">{dict.contact.kicker}</Kicker>
           <h2 className="mt-3 max-w-xl text-4xl font-bold tracking-tighter text-white md:text-5xl" style={{ lineHeight: 1.05 }}>
             {dict.contact.heading}
           </h2>
