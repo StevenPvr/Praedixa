@@ -1,6 +1,7 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY scripts/install-prek.sh ./scripts/install-prek.sh
 COPY app-api-ts/package.json ./app-api-ts/package.json
 RUN corepack enable && pnpm install --frozen-lockfile
 
