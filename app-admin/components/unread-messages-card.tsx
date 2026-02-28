@@ -3,6 +3,14 @@ import { Card } from "@praedixa/ui";
 import type { UnreadCount } from "@/lib/inbox-helpers";
 
 export function UnreadMessagesCard({ unread }: { unread: UnreadCount }) {
+  const byOrg = Array.isArray(unread.byOrg) ? unread.byOrg : [];
+  const total = Number.isFinite(unread.total)
+    ? unread.total
+    : byOrg.reduce((acc, org) => {
+        const count = Number.isFinite(org.count) ? org.count : 0;
+        return acc + count;
+      }, 0);
+
   return (
     <Card className="p-5">
       <div className="mb-4 flex items-center justify-between">
@@ -10,17 +18,17 @@ export function UnreadMessagesCard({ unread }: { unread: UnreadCount }) {
           Messages non lus
         </h2>
         <span className="rounded-full bg-primary-100 px-2.5 py-0.5 text-sm font-medium text-primary-700">
-          {unread.total}
+          {total}
         </span>
       </div>
-      {unread.byOrg.length === 0 ? (
+      {byOrg.length === 0 ? (
         <div className="flex items-center gap-2 text-sm text-ink-placeholder">
           <CheckCircle className="h-4 w-4 text-success-500" />
           Aucun message en attente
         </div>
       ) : (
         <div className="space-y-2">
-          {unread.byOrg.map((org) => (
+          {byOrg.map((org) => (
             <a
               key={org.orgId}
               href={`/clients/${org.orgId}/messages`}

@@ -109,6 +109,7 @@ tmp-preview-screen*.png
 # -----------------------------------------------------------------------------
 data/
 data-ready/
+data-sante/raw/**/*.xlsx
 *.parquet
 *.csv
 !tests/fixtures/*.csv
@@ -116,6 +117,9 @@ data-ready/
 *.joblib
 mlruns/
 mlartifacts/
+
+# Assets export lourds
+linkedin_banners/*.png
 
 # -----------------------------------------------------------------------------
 # Infrastructure

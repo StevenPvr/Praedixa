@@ -21,12 +21,12 @@ export async function generateMetadata({
     paths: localePathMap(FR_PATH, EN_PATH),
     title:
       locale === "fr"
-        ? "Praedixa | Demande de pilote prévision effectifs"
-        : "Praedixa | Workforce forecasting pilot request",
+        ? "Praedixa | Demande de pilote Workforce & ProofOps"
+        : "Praedixa | Workforce & ProofOps pilot request",
     description:
       locale === "fr"
-        ? "Demandez un pilote prévision effectifs pour anticiper les tensions multi-sites et structurer vos arbitrages ops/finance."
-        : "Request a workforce forecasting pilot to anticipate multi-site staffing tensions and structure ops/finance trade-offs.",
+        ? "Cadrons un pilote Workforce & ProofOps (MVP restauration rapide) pour rendre vos décisions de couverture défendables et traçables."
+        : "Scope a QSR-first Workforce & ProofOps pilot to make coverage decisions defensible and traceable across multi-site operations.",
   });
 }
 

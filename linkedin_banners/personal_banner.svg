@@ -1,0 +1,107 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="4752"
+  height="1188"
+  viewBox="0 0 1584 396"
+  style="background-color: #0b1120; font-family: 'Geist', 'Satoshi', 'Inter', system-ui, sans-serif;"
+>
+  <defs>
+    <!-- Background Noise -->
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+      <feColorMatrix type="matrix" values="1 0 0 0 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 0.04 0" />
+    </filter>
+
+    <!-- Radial Gradients -->
+    <radialGradient id="glowBrand" cx="80%" cy="50%" r="50%" fx="80%" fy="50%">
+      <stop offset="0%" stop-color="#2755AE" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#0b1120" stop-opacity="0" />
+    </radialGradient>
+
+    <radialGradient id="glowBrand2" cx="30%" cy="20%" r="60%" fx="30%" fy="20%">
+      <stop offset="0%" stop-color="#183B7D" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#0b1120" stop-opacity="0" />
+    </radialGradient>
+
+    <linearGradient id="gradientText" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#a8bde3" />
+    </linearGradient>
+
+    <!-- Glass Pill Filter -->
+    <filter id="glassBlur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="100%" height="100%" fill="#0b1120" />
+  <rect width="100%" height="100%" fill="url(#glowBrand2)" />
+  <rect width="100%" height="100%" fill="url(#glowBrand)" />
+
+  <!-- Animated grid lines / decorative elements -->
+  <g stroke="#ffffff" stroke-opacity="0.05" stroke-width="1">
+    <line x1="100" y1="0" x2="100" y2="396" />
+    <line x1="300" y1="0" x2="300" y2="396" />
+    <line x1="1200" y1="0" x2="1200" y2="396" />
+    <line x1="1400" y1="0" x2="1400" y2="396" />
+    <line x1="0" y1="100" x2="1584" y2="100" />
+    <line x1="0" y1="300" x2="1584" y2="300" />
+  </g>
+
+  <!-- Giant faint logo mark in background -->
+  <g transform="translate(1000, -100) scale(8)" opacity="0.04">
+    <g fill="none" stroke="#FFFFFF">
+      <rect x="10" y="10" width="44" height="44" transform="rotate(45 32 32)" stroke-width="1.1" />
+      <line x1="22" y1="18" x2="22" y2="46" stroke-width="1.65" stroke-linecap="square" />
+      <path d="M22 18H36C42 18 46 22 46 28C46 34 42 38 36 38H22" stroke-width="1.65" stroke-linecap="square" stroke-linejoin="miter" />
+    </g>
+  </g>
+
+  <!-- Noise Overlay -->
+  <rect width="100%" height="100%" filter="url(#noise)" opacity="0.8" pointer-events="none" />
+
+  <!-- Logo (Top Left, safe from profile pic) -->
+  <g transform="translate(60, 50)">
+    <g fill="none" stroke="#FFFFFF">
+      <rect x="10" y="10" width="44" height="44" transform="rotate(45 32 32)" stroke-width="1.1" />
+      <line x1="22" y1="18" x2="22" y2="46" stroke-width="1.65" stroke-linecap="square" />
+      <path d="M22 18H36C42 18 46 22 46 28C46 34 42 38 36 38H22" stroke-width="1.65" stroke-linecap="square" stroke-linejoin="miter" />
+    </g>
+    <text x="76" y="44" fill="#ffffff" font-size="32" font-weight="700" letter-spacing="-0.02em">
+      Praedixa
+    </text>
+  </g>
+
+  <!-- Main Statement (Right-aligned to avoid profile pic area) -->
+  <!-- Note: Profile pic radius is around 152px at bottom left for personal banners -->
+  <g transform="translate(620, 160)">
+    <text x="0" y="0" fill="url(#gradientText)" font-size="64" font-weight="800" letter-spacing="-0.03em">
+      Anticipez vos effectifs.
+    </text>
+    <text x="0" y="70" fill="#ffffff" font-size="64" font-weight="800" letter-spacing="-0.03em">
+      Prenez la décision optimale.
+    </text>
+    <text x="0" y="130" fill="#7B9FE0" font-size="28" font-weight="500" letter-spacing="-0.01em">
+      Intelligence de couverture pour opérations multi-sites.
+    </text>
+  </g>
+
+  <!-- CTA Pill (Top Right) -->
+  <g transform="translate(1120, 50)">
+    <!-- Glass Background -->
+    <rect x="0" y="0" width="400" height="60" rx="30" fill="rgba(255, 255, 255, 0.05)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
+    <!-- Inner subtle glow -->
+    <rect x="1" y="1" width="398" height="58" rx="29" fill="none" stroke="rgba(255, 255, 255, 0.03)" stroke-width="1" />
+    <g transform="translate(30, 37)">
+      <!-- Pulsing Dot -->
+      <circle cx="0" cy="-7" r="5" fill="#2755AE" opacity="0.8" />
+      <circle cx="0" cy="-7" r="5" fill="#2755AE" stroke="#2755AE" stroke-width="2" opacity="0.4" />
+      <text x="18" y="0" fill="#ffffff" font-size="18" font-weight="600" letter-spacing="0.0em">
+        Demandez un pilote sur Praedixa.com
+      </text>
+    </g>
+  </g>
+
+</svg>

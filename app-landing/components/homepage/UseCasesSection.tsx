@@ -110,7 +110,7 @@ export function UseCasesSection({ dict }: UseCasesSectionProps) {
                         <div className="space-y-4">
                           <div>
                             <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
-                              Contexte
+                              {dict.useCases.labels.context}
                             </span>
                             <p className="mt-1 text-sm leading-relaxed text-neutral-600">
                               {c.context}
@@ -118,7 +118,7 @@ export function UseCasesSection({ dict }: UseCasesSectionProps) {
                           </div>
                           <div>
                             <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
-                              Action
+                              {dict.useCases.labels.action}
                             </span>
                             <p className="mt-1 text-sm leading-relaxed text-neutral-600">
                               {c.action}
@@ -127,7 +127,7 @@ export function UseCasesSection({ dict }: UseCasesSectionProps) {
                         </div>
                         <div>
                           <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
-                            Impact
+                            {dict.useCases.labels.impact}
                           </span>
                           <p className="mt-1 text-sm leading-relaxed text-neutral-600">
                             {c.result}

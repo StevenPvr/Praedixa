@@ -89,4 +89,5 @@ export interface CompiledRoute {
 export interface AppConfig {
   port: number;
   nodeEnv: "development" | "staging" | "production";
+  corsOrigins: readonly string[];
 }

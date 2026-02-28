@@ -20,12 +20,50 @@ const PLAN_STYLES = {
 export type PlanTier = keyof typeof PLAN_STYLES;
 
 interface PlanBadgeProps {
-  plan: PlanTier;
+  plan: PlanTier | string | null | undefined;
   className?: string;
 }
 
+const UNKNOWN_PLAN_STYLE = {
+  bg: "bg-surface-sunken",
+  text: "text-ink-secondary",
+  label: "Inconnu",
+} as const;
+
+const PLAN_ALIASES: Record<string, { tier: PlanTier; label?: string }> = {
+  pro: { tier: "professional", label: "Pro" },
+  pilot: { tier: "starter", label: "Pilot" },
+  core: { tier: "free", label: "Core" },
+};
+
+function resolvePlanStyle(plan: PlanBadgeProps["plan"]) {
+  if (typeof plan !== "string") {
+    return UNKNOWN_PLAN_STYLE;
+  }
+
+  const normalized = plan.trim().toLowerCase();
+  if (normalized in PLAN_STYLES) {
+    return PLAN_STYLES[normalized as PlanTier];
+  }
+
+  const alias = PLAN_ALIASES[normalized];
+  if (alias) {
+    const base = PLAN_STYLES[alias.tier];
+    return {
+      ...base,
+      label: alias.label ?? base.label,
+    };
+  }
+
+  const fallbackLabel = plan.trim();
+  return {
+    ...UNKNOWN_PLAN_STYLE,
+    label: fallbackLabel.length > 0 ? fallbackLabel : UNKNOWN_PLAN_STYLE.label,
+  };
+}
+
 export function PlanBadge({ plan, className }: PlanBadgeProps) {
-  const style = PLAN_STYLES[plan];
+  const style = resolvePlanStyle(plan);
 
   return (
     <span

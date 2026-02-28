@@ -8,6 +8,10 @@ import { routes } from "./routes.js";
 import type { AppConfig, HttpMethod, RouteContext } from "./types.js";
 
 const compiledRoutes = compileRoutes(routes);
+export const CORS_ALLOWED_METHODS = "GET,POST,PATCH,PUT,DELETE,OPTIONS";
+export const CORS_ALLOWED_HEADERS =
+  "Authorization,Content-Type,X-Request-ID,Accept,Accept-Language";
+
 export const SECURITY_HEADERS = {
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
@@ -15,12 +19,67 @@ export const SECURITY_HEADERS = {
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
 } as const;
 
-function writeJson(response: ServerResponse, statusCode: number, payload: unknown): void {
+export function normalizeOrigin(rawOrigin: string | undefined): string | null {
+  if (rawOrigin == null || rawOrigin.trim() === "") {
+    return null;
+  }
+
+  try {
+    return new URL(rawOrigin).origin;
+  } catch {
+    return null;
+  }
+}
+
+function isHttpOrigin(origin: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(origin);
+  } catch {
+    return false;
+  }
+
+  return parsed.protocol === "http:" || parsed.protocol === "https:";
+}
+
+export function resolveCorsHeaders(
+  requestOrigin: string | null,
+  allowedOrigins: readonly string[],
+  nodeEnv: AppConfig["nodeEnv"] = "production",
+): Record<string, string> {
+  if (requestOrigin == null) {
+    return {};
+  }
+
+  const allowlisted = allowedOrigins.includes(requestOrigin);
+  const allowDevOrigin =
+    nodeEnv === "development" && isHttpOrigin(requestOrigin);
+
+  if (!allowlisted && !allowDevOrigin) {
+    return {};
+  }
+
+  return {
+    "Access-Control-Allow-Origin": requestOrigin,
+    "Access-Control-Allow-Methods": CORS_ALLOWED_METHODS,
+    "Access-Control-Allow-Headers": CORS_ALLOWED_HEADERS,
+    "Access-Control-Max-Age": "600",
+    Vary: "Origin",
+  };
+}
+
+function writeJson(
+  response: ServerResponse,
+  statusCode: number,
+  payload: unknown,
+  corsHeaders: Record<string, string>,
+): void {
   const body = JSON.stringify(payload);
   response.writeHead(statusCode, {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
     ...SECURITY_HEADERS,
+    ...corsHeaders,
   });
   response.end(body);
 }
@@ -80,6 +139,34 @@ export function createAppServer(config: AppConfig) {
   return createServer(async (request, response) => {
     const requestId =
       (request.headers["x-request-id"] as string | undefined) ?? randomUUID();
+    const requestOrigin = normalizeOrigin(request.headers.origin);
+    const corsHeaders = resolveCorsHeaders(
+      requestOrigin,
+      config.corsOrigins,
+      config.nodeEnv,
+    );
+
+    if (request.method?.toUpperCase() === "OPTIONS") {
+      if (requestOrigin != null && corsHeaders["Access-Control-Allow-Origin"] == null) {
+        const result = failure(
+          "FORBIDDEN",
+          "Origin is not allowed by CORS policy",
+          requestId,
+          403,
+          { origin: requestOrigin },
+        );
+        writeJson(response, result.statusCode, result.payload, corsHeaders);
+        return;
+      }
+
+      response.writeHead(200, {
+        "cache-control": "no-store",
+        ...SECURITY_HEADERS,
+        ...corsHeaders,
+      });
+      response.end();
+      return;
+    }
 
     const method = normalizeMethod(request.method);
     if (method == null) {
@@ -89,7 +176,7 @@ export function createAppServer(config: AppConfig) {
         requestId,
         405,
       );
-      writeJson(response, result.statusCode, result.payload);
+      writeJson(response, result.statusCode, result.payload, corsHeaders);
       return;
     }
 
@@ -104,7 +191,7 @@ export function createAppServer(config: AppConfig) {
         404,
         { path: requestUrl.pathname, method },
       );
-      writeJson(response, result.statusCode, result.payload);
+      writeJson(response, result.statusCode, result.payload, corsHeaders);
       return;
     }
 
@@ -118,7 +205,7 @@ export function createAppServer(config: AppConfig) {
           requestId,
           401,
         );
-        writeJson(response, result.statusCode, result.payload);
+        writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
 
@@ -130,7 +217,7 @@ export function createAppServer(config: AppConfig) {
           requestId,
           401,
         );
-        writeJson(response, result.statusCode, result.payload);
+        writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
 
@@ -143,7 +230,7 @@ export function createAppServer(config: AppConfig) {
           403,
           { role: user.role, allowedRoles },
         );
-        writeJson(response, result.statusCode, result.payload);
+        writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
     }
@@ -161,7 +248,7 @@ export function createAppServer(config: AppConfig) {
 
     try {
       const result = await matched.route.handler(context);
-      writeJson(response, result.statusCode, result.payload);
+      writeJson(response, result.statusCode, result.payload, corsHeaders);
     } catch {
       const result = failure(
         "INTERNAL_ERROR",
@@ -169,7 +256,7 @@ export function createAppServer(config: AppConfig) {
         requestId,
         500,
       );
-      writeJson(response, result.statusCode, result.payload);
+      writeJson(response, result.statusCode, result.payload, corsHeaders);
     }
   }).listen(config.port);
 }

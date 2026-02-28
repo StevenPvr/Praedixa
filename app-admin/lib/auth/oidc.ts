@@ -13,6 +13,7 @@ type KnownRole = (typeof ROLE_PRIORITY)[number];
 
 const DEFAULT_ROLE: KnownRole = "viewer";
 const DEFAULT_SCOPE = "openid profile email offline_access";
+const DEFAULT_DEV_AUTH_ORIGIN = "http://localhost:3002";
 
 export const ACCESS_TOKEN_COOKIE = "prx_admin_at";
 export const REFRESH_TOKEN_COOKIE = "prx_admin_rt";
@@ -146,17 +147,66 @@ function getNestedString(
     : null;
 }
 
+function normalizeRoleValue(rawRole: string): string {
+  const trimmed = rawRole.trim();
+  if (trimmed.length === 0) return "";
+
+  const withoutPath = trimmed.includes("/")
+    ? (trimmed.split("/").at(-1) ?? "")
+    : trimmed;
+
+  return withoutPath
+    .toLowerCase()
+    .replace(/^role[_:-]?/, "")
+    .replace(/[\s-]+/g, "_");
+}
+
+function mapToKnownRole(rawRole: string): KnownRole | null {
+  const normalized = normalizeRoleValue(rawRole);
+  if (normalized.length === 0) return null;
+
+  if (
+    normalized === "admin" ||
+    normalized === "orgadmin" ||
+    normalized === "organization_admin" ||
+    normalized === "org_administrator"
+  ) {
+    return "org_admin";
+  }
+
+  if (
+    normalized === "superadmin" ||
+    normalized === "super_administrator"
+  ) {
+    return "super_admin";
+  }
+
+  if (normalized === "hrmanager") {
+    return "hr_manager";
+  }
+
+  return ROLE_PRIORITY.includes(normalized as KnownRole)
+    ? (normalized as KnownRole)
+    : null;
+}
+
 function getRoleFromList(value: unknown): string | null {
   if (!Array.isArray(value)) return null;
   const roles = value.filter(
     (entry): entry is string => typeof entry === "string",
   );
+  if (roles.length === 0) return null;
+
+  const knownRoles = roles
+    .map((role) => mapToKnownRole(role))
+    .filter((role): role is KnownRole => role != null);
+
   for (const candidate of ROLE_PRIORITY) {
-    if (roles.includes(candidate)) {
+    if (knownRoles.includes(candidate)) {
       return candidate;
     }
   }
-  return roles.length > 0 ? roles[0] : null;
+  return null;
 }
 
 function extractRole(payload: JwtPayload, clientId: string): string {
@@ -164,6 +214,12 @@ function extractRole(payload: JwtPayload, clientId: string): string {
     getString(payload, "role") ??
     getNestedString(payload, "app_metadata", "role");
   if (directRole) return directRole;
+
+  const topLevelRoles = getRoleFromList(getOwnValue(payload, "roles"));
+  if (topLevelRoles) return topLevelRoles;
+
+  const groupsRole = getRoleFromList(getOwnValue(payload, "groups"));
+  if (groupsRole) return groupsRole;
 
   const realmAccess = getOwnValue(payload, "realm_access");
   const realmRoles = getRoleFromList(
@@ -204,7 +260,7 @@ function extractRole(payload: JwtPayload, clientId: string): string {
 }
 
 function toKnownRole(role: string): string {
-  return ROLE_PRIORITY.includes(role as KnownRole) ? role : DEFAULT_ROLE;
+  return mapToKnownRole(role) ?? DEFAULT_ROLE;
 }
 
 export function decodeJwtPayload(token: string): JwtPayload | null {
@@ -277,6 +333,52 @@ export function getOidcEnv(): OidcEnv {
     scope,
     sessionSecret,
   };
+}
+
+function normalizeHttpOrigin(origin: string): string | null {
+  try {
+    const parsed = new URL(origin);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return null;
+    }
+    return parsed.origin;
+  } catch {
+    return null;
+  }
+}
+
+function readForwardedOrigin(request: NextRequest): string | null {
+  const forwardedHost =
+    request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() ?? "";
+  const forwardedProto =
+    request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ?? "";
+
+  if (!forwardedHost || !forwardedProto) return null;
+  return normalizeHttpOrigin(`${forwardedProto}://${forwardedHost}`);
+}
+
+export function resolveAuthAppOrigin(request: NextRequest): string {
+  const configuredOrigin =
+    process.env.AUTH_APP_ORIGIN?.trim() ??
+    process.env.NEXT_PUBLIC_APP_ORIGIN?.trim() ??
+    "";
+  const normalizedConfiguredOrigin = configuredOrigin
+    ? normalizeHttpOrigin(configuredOrigin)
+    : null;
+  if (normalizedConfiguredOrigin) {
+    return normalizedConfiguredOrigin;
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    return DEFAULT_DEV_AUTH_ORIGIN;
+  }
+
+  const forwardedOrigin = readForwardedOrigin(request);
+  if (forwardedOrigin) {
+    return forwardedOrigin;
+  }
+
+  return request.nextUrl.origin;
 }
 
 export function isMissingOidcEnvError(error: unknown): boolean {

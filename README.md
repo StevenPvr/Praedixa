@@ -65,15 +65,19 @@ docker compose -f infra/docker-compose.yml down
 ### API backend TypeScript (port 8000)
 
 ```bash
+# Option 1 (raccourci depuis la racine)
 pnpm dev:api
+
+# Option 2 (commande package explicite)
+pnpm --filter @praedixa/api-ts dev
 ```
 
 ### Data/ML Python (medallion + jobs)
 
 ```bash
 cd app-api
-uv sync --extra dev
-uv run python -m scripts.medallion_pipeline --force-rebuild
+uv sync --active --extra dev
+uv run --active python -m scripts.medallion_pipeline --force-rebuild
 ```
 
 Contrat OpenAPI backend TS: `contracts/openapi/public.yaml`.
@@ -82,7 +86,7 @@ Contrat OpenAPI backend TS: `contracts/openapi/public.yaml`.
 
 ```bash
 cd app-api
-uv run alembic upgrade head
+uv run --active alembic upgrade head
 ```
 
 ### Back-office admin (port 3002)
@@ -92,6 +96,16 @@ pnpm dev:admin
 ```
 
 Accessible sur http://localhost:3002. Necessite un compte OIDC avec le role `super_admin`.
+
+Si Keycloak rejette `redirect_uri` pour `praedixa-admin` en local:
+
+```bash
+# Admin local sur un callback deja autorise (3001)
+pnpm dev:admin:local-auth
+
+# Et deplacer temporairement la webapp sur 3004
+pnpm dev:webapp:3004
+```
 
 ### Comptes OIDC (Keycloak)
 
@@ -127,11 +141,23 @@ scripts/kcadm add-roles -r praedixa --uusername ops.client@praedixa.com --rolena
 
 # 6) Reset mot de passe
 scripts/kcadm set-password -r praedixa --username ops.client@praedixa.com --new-password "praedixa2026!"
+
+# 7) Creer un compte back-office (super_admin)
+scripts/kcadm create users -r praedixa \
+  -s username=ops.admin@praedixa.com \
+  -s email=ops.admin@praedixa.com \
+  -s firstName=Ops \
+  -s lastName=Admin \
+  -s enabled=true \
+  -s emailVerified=true
+scripts/kcadm set-password -r praedixa --username ops.admin@praedixa.com --new-password "praedixa2026!"
+scripts/kcadm add-roles -r praedixa --uusername ops.admin@praedixa.com --rolename super_admin
 ```
 
 Notes:
 
 - Compte client fake (demo): `ops.client@praedixa.com` / `praedixa2026!`
+- Compte admin fake (demo): `ops.admin@praedixa.com` / `praedixa2026!`
 - `super_admin` doit se connecter sur `app-admin` (pas sur `app-webapp`).
 - `org_admin`/`manager` se connectent sur `app-webapp`.
 - `manager`/`hr_manager` doivent avoir un `site_id` dans le token OIDC (sinon acces API refuse en `403`).
@@ -161,8 +187,10 @@ pnpm dev:webapp
 # Terminal 3 — Back-office admin
 pnpm dev:admin
 
-# Terminal 4 — API
+# Terminal 4 — API TS
 pnpm dev:api
+# ou, en explicite :
+pnpm --filter @praedixa/api-ts dev
 ```
 
 ## Tests
@@ -198,7 +226,7 @@ pnpm --filter @praedixa/api-ts test
 
 ```bash
 cd app-api
-uv sync --extra dev
+uv sync --active --extra dev
 # Ajoutez ici vos tests data/ml si necessaire
 ```
 

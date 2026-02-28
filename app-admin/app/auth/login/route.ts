@@ -8,12 +8,14 @@ import {
   getOidcEnv,
   getTrustedOidcEndpoints,
   isMissingOidcEnvError,
+  resolveAuthAppOrigin,
   sanitizeNextPath,
   secureCookie,
 } from "@/lib/auth/oidc";
 
 export async function GET(request: NextRequest) {
   const next = sanitizeNextPath(request.nextUrl.searchParams.get("next"), "/");
+  const appOrigin = resolveAuthAppOrigin(request);
 
   try {
     const { issuerUrl, clientId, scope } = getOidcEnv();
@@ -28,7 +30,7 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set("scope", scope);
     authUrl.searchParams.set(
       "redirect_uri",
-      `${request.nextUrl.origin}/auth/callback`,
+      `${appOrigin}/auth/callback`,
     );
     authUrl.searchParams.set("state", state);
     authUrl.searchParams.set("code_challenge", challenge);
@@ -65,7 +67,7 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    const fallbackUrl = new URL("/login", request.nextUrl.origin);
+    const fallbackUrl = new URL("/login", appOrigin);
     fallbackUrl.searchParams.set(
       "error",
       isMissingOidcEnvError(error)

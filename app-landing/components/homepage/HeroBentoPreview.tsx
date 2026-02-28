@@ -8,21 +8,23 @@ import { CounterTick } from "./bento/CounterTick";
 
 const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
 
+/**
+ * Card class — diffusion shadow + subtle border.
+ * Inner 1px white refraction (inset shadow) for a premium "glass" feel.
+ */
+const card =
+  "rounded-[1.5rem] border border-neutral-200/60 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05),inset_0_1px_0_rgba(255,255,255,0.8)]";
+
 export function HeroBentoPreview() {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.92 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ ...SPRING, delay: 0.35 }}
-      className="relative w-full"
-    >
+    <div className="relative w-full">
       <div className="grid grid-cols-[2fr_1fr] grid-rows-[auto_auto] gap-3">
-        {/* Top-left: Chart card (large) */}
+        {/* Top-left: Forecast chart (large) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...SPRING, delay: 0.5 }}
-          className="row-span-1 rounded-[1.5rem] border border-neutral-200/60 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+          className={`row-span-1 ${card}`}
         >
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
@@ -35,12 +37,12 @@ export function HeroBentoPreview() {
           </div>
         </motion.div>
 
-        {/* Top-right: Counter card */}
+        {/* Top-right: Counter */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...SPRING, delay: 0.65 }}
-          className="flex flex-col justify-between rounded-[1.5rem] border border-neutral-200/60 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+          className={`flex flex-col justify-between ${card}`}
         >
           <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
             Processed
@@ -48,12 +50,12 @@ export function HeroBentoPreview() {
           <CounterTick />
         </motion.div>
 
-        {/* Bottom-left: Progress card */}
+        {/* Bottom-left: Coverage progress */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...SPRING, delay: 0.8 }}
-          className="rounded-[1.5rem] border border-neutral-200/60 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+          className={card}
         >
           <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
             Coverage analysis
@@ -67,12 +69,12 @@ export function HeroBentoPreview() {
           </div>
         </motion.div>
 
-        {/* Bottom-right: Status list card */}
+        {/* Bottom-right: Pipeline status */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...SPRING, delay: 0.95 }}
-          className="rounded-[1.5rem] border border-neutral-200/60 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+          className={card}
         >
           <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
             Status
@@ -95,6 +97,6 @@ export function HeroBentoPreview() {
           </div>
         </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 }

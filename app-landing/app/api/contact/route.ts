@@ -33,8 +33,8 @@ const EMAIL_COLORS = {
 const REQUEST_TYPE_LABELS = {
   founding_pilot: {
     tag: "PILOT",
-    fr: "Pilote prévision effectifs",
-    en: "Workforce forecasting pilot",
+    fr: "Pilote Workforce & ProofOps",
+    en: "Workforce & ProofOps pilot",
   },
   product_demo: {
     tag: "DEMO",

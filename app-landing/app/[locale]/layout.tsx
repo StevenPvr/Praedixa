@@ -45,7 +45,7 @@ export default async function LocaleLayout({
       </a>
       <Header locale={locale} dict={dict} />
       <main id="main-content">{children}</main>
-      <JsonLd locale={locale} />
+      <JsonLd locale={locale} dict={dict} />
       <Footer locale={locale} dict={dict} />
     </>
   );

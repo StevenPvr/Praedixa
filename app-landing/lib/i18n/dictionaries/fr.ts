@@ -2,13 +2,12 @@ import type { Dictionary } from "../types";
 
 export const fr: Dictionary = {
   meta: {
-    title: "Praedixa | Prévision d'effectifs et arbitrages multi-sites",
+    title: "Praedixa | Workforce & ProofOps multi-sites (MVP restauration rapide)",
     description:
-      "Anticipez les tensions d'effectifs multi-sites, notamment sur des réseaux multi-franchisés de restauration rapide, avec un pilote de prévision d'effectifs.",
-    ogTitle:
-      "Praedixa | Pilote prévision effectifs pour opérations multi-sites",
+      "Workforce & ProofOps pour décisions de couverture multi-sites. MVP prioritaire: réseaux multi-franchisés de restauration rapide. Méthode transposable à la logistique, au retail, au transport, à l'industrie et aux services.",
+    ogTitle: "Praedixa | Pilote Workforce & ProofOps avec Decision Ledger",
     ogDescription:
-      "Programme pilote sur 3 mois pour fiabiliser la prévision d'effectifs, comparer les options de couverture et sécuriser les décisions ops/finance.",
+      "Pilote 3 mois pour rendre les arbitrages ops/finance défendables, tracer chaque décision et produire une preuve d'impact sourcée.",
   },
 
   nav: {
@@ -19,31 +18,31 @@ export const fr: Dictionary = {
     security: "Sécurité",
     faq: "FAQ",
     contact: "Contact",
-    ctaPrimary: "Demander un pilote prévision effectifs",
+    ctaPrimary: "Demander un pilote Workforce & ProofOps",
     backToSite: "Retour au site",
   },
 
   hero: {
-    kicker: "Pilote prévision effectifs",
-    headline: "Anticipez vos tensions d'effectifs multi-sites",
-    headlineHighlight: "avec un pilote d'entrée cadré.",
+    kicker: "Pilote Workforce & ProofOps (multi-franchisé, multi-site)",
+    headline: "Décidez la couverture avant la rupture terrain",
+    headlineHighlight: "avec Workforce & ProofOps.",
     subtitle:
-      "Praedixa lance un pilote sur 3 mois pour fiabiliser la prévision d'effectifs, cadrer les arbitrages ops/finance et préparer, si besoin, une extension vers un socle décisionnel plus large.",
+      "Praedixa lance un pilote de 3 mois pour structurer vos arbitrages de couverture dans des environnements multi-franchisés et multi-sites. Cadre directement réutilisable pour logistique, retail, transport, industrie, santé et services.",
     bullets: [
       {
         metric: "3 mois",
-        text: "pour sécuriser la prévision d'effectifs",
+        text: "pour installer une boucle Decision Ledger exploitable",
       },
       {
-        metric: "Mois 1",
-        text: "démarrage sur exports existants",
+        metric: "Cible",
+        text: "organisations multi-franchisées et multi-sites",
       },
       {
-        metric: "Décisions",
-        text: "arbitrages ops/finance tracés",
+        metric: "ICP ouverts",
+        text: "méthode transposable aux autres réseaux multi-sites",
       },
     ],
-    ctaPrimary: "Demander un pilote prévision effectifs",
+    ctaPrimary: "Demander un pilote Workforce & ProofOps",
     ctaSecondary: "Voir le protocole du pilote",
     previewTitle: "Un aperçu de ce qui vous attend",
     ctaMeta:
@@ -53,7 +52,8 @@ export const fr: Dictionary = {
       "NDA possible dès le premier échange",
       "Démarrage possible sur un périmètre restreint",
       "Hébergement 100 % Scaleway, 100 % français",
-      "Cible prioritaire: réseaux multi-franchisés restauration rapide",
+      "Conçu pour réseaux multi-franchisés et multi-sites",
+      "Cadre transposable logistique, retail, transport, industrie, services",
     ],
   },
 
@@ -189,7 +189,7 @@ export const fr: Dictionary = {
 
   howItWorks: {
     kicker: "Protocole",
-    heading: "Pilote prévision effectifs en 4 étapes.",
+    heading: "Pilote Workforce & ProofOps en 4 étapes.",
     subheading:
       "Un déroulé sur 3 mois, avec initialisation sans intégration SI lourde et gouvernance explicite.",
     steps: [
@@ -229,6 +229,11 @@ export const fr: Dictionary = {
     heading: "Des scénarios réels traités avec un cadre de décision structuré.",
     subheading:
       "Chaque cas suit la même logique : visibilité anticipée, options comparables, décision défendable, impact mesurable.",
+    labels: {
+      context: "Contexte",
+      action: "Action",
+      impact: "Impact",
+    },
     cases: [
       {
         id: "volatilite",
@@ -277,33 +282,39 @@ export const fr: Dictionary = {
   },
 
   deliverables: {
-    kicker: "Framework ROI",
-    heading: "Des livrables calibrés pour décider, pas pour présenter.",
+    kicker: "Preuves terrain",
+    heading: "Decision-proof first: des preuves qui orientent les arbitrages.",
     subheading:
-      "La valeur ne vient pas d'un dashboard de plus, mais d'une capacité à produire des arbitrages structurés et défendables.",
+      "On ancre les décisions dans des ordres de grandeur publiés, puis on contextualise sur votre périmètre.",
     roiFrames: [
       {
-        label: "Coût de non-action",
-        value: "Élevé",
-        note: "Pénalités, heures supplémentaires, qualité de service",
+        label: "Sous-effectif retail: effet mesuré",
+        value: "6,15% ventes perdues évitées",
+        note: "Étude retail US: corriger le sous-effectif réduit les ventes perdues de 6,15% et augmente la profitabilité de 5,74%.",
+        sourceLabel: "Source: Kesavan et al. (UNC, 2022)",
+        sourceUrl: "https://cdr.lib.unc.edu/downloads/9880w142w?locale=en",
       },
       {
-        label: "Options d'intervention",
-        value: "Comparées",
-        note: "Scénarios documentés avec hypothèses transparentes",
+        label: "Stabilité planning: effet business",
+        value: "+7% ventes médianes",
+        note: "Étude pilote de planning stable: +7% ventes médianes et +5% productivité du travail.",
+        sourceLabel: "Source: WorkLife Law / Shift Project",
+        sourceUrl: "https://worklifelaw.org/publication/stable-scheduling-increases-productivity-and-sales/",
       },
       {
-        label: "Impact démontré",
-        value: "Traçable",
-        note: "Mesure avant/après en revue de gouvernance",
+        label: "Contexte France: pression absentéisme",
+        value: "8,0% taux d'absence (2024)",
+        note: "En France, l'absentéisme moyen atteint 8,0% en 2024: signal d'urgence pour les modèles de couverture.",
+        sourceLabel: "Source: WTW France (2025)",
+        sourceUrl: "https://www.wtwco.com/fr-fr/news/2025/09/hausse-del-absenteisme-en-2024-un-signal-dalerte-pour-les-entreprises",
       },
     ],
     checklist: [
-      "Cartographie des points de tension couverture",
-      "Hypothèses de coûts explicites par scénario",
-      "Priorisation par niveau de criticité",
-      "Cadre de revue hebdomadaire pour comité opérations",
-      "Traçabilité des décisions et impacts observés",
+      "Decision Ledger: contexte, options, décision, impact observé",
+      "Hypothèses économiques explicites avant arbitrage",
+      "Rituels hebdomadaires ops/finance alignés",
+      "Priorisation par criticité et niveau de service",
+      "Preuve avant/après exploitable en comité",
     ],
   },
 
@@ -355,13 +366,13 @@ export const fr: Dictionary = {
   },
 
   pilot: {
-    kicker: "Pilote prévision effectifs",
-    heading: "Un pilote d'entrée pour fiabiliser la prévision d'effectifs.",
+    kicker: "Pilote Workforce & ProofOps",
+    heading: "Un pilote Workforce & ProofOps pour rendre vos décisions défendables.",
     subheading:
-      "Programme de 3 mois avec initialisation, calibration et gouvernance. Le périmètre peut rester ciblé sur la prévision d'effectifs puis s'étendre si nécessaire.",
+      "Programme de 3 mois avec initialisation, calibration et gouvernance. MVP prioritaire: restauration rapide multi-franchisée. Cadre ouvert aux autres ICP multi-sites.",
     statusLabels: ["Actif aujourd'hui", "En extension", "À venir"],
     included: {
-      title: "Ce que couvre le pilote prévision effectifs (3 mois)",
+      title: "Ce que couvre le pilote Workforce & ProofOps (3 mois)",
       items: [
         "Mois 1 : initialisation et construction des pipelines sur vos exports",
         "Mois 2 : calibration des lectures charge/capacité et des hypothèses",
@@ -412,16 +423,16 @@ export const fr: Dictionary = {
     },
     urgency:
       "Candidatures examinées sous 48h ouvrées. Démarrage possible sur un périmètre restreint.",
-    ctaPrimary: "Demander un pilote prévision effectifs",
+    ctaPrimary: "Demander un pilote Workforce & ProofOps",
     ctaMeta:
-      "Tarif d'entrée pour périmètre prévision d'effectifs · Sans engagement commercial post-pilote",
+      "Tarif d'entrée MVP restauration rapide · Méthode transposable aux autres activités multi-sites",
   },
 
   faq: {
     kicker: "FAQ",
     heading: "Questions fréquentes",
     subheading:
-      "Réponses institutionnelles sur le pilote prévision effectifs, ses modalités de démarrage et ses options d'extension.",
+      "Réponses institutionnelles sur le pilote Workforce & ProofOps, ses modalités de démarrage et son extension.",
     categories: [
       "Comprendre Praedixa",
       "Pilote & tarification",
@@ -431,13 +442,13 @@ export const fr: Dictionary = {
       {
         question: "Praedixa, c'est quoi en une phrase ?",
         answer:
-          "Une couche d'intelligence de couverture : on prédit les risques de sous-couverture par site et équipe, on chiffre le coût de l'inaction vs le coût des options, puis on trace l'impact pour produire une preuve économique auditable.",
+          "Une couche Workforce & ProofOps: on anticipe les risques de sous-couverture par site et équipe, on compare les options, puis on trace chaque arbitrage dans un Decision Ledger pour produire une preuve économique auditable.",
         category: "Comprendre Praedixa",
       },
       {
         question: "À qui s'adresse Praedixa ?",
         answer:
-          "Dir. d'exploitation, responsables Ops et DAF d'entreprises multi-sites avec des équipes terrain. Cible prioritaire: réseaux multi-franchisés de restauration rapide. Autres secteurs: logistique, retail/distribution, transport, industrie, santé et services. Point commun: charge fluctuante, capacité qui ne suit pas, coûts d'urgence qui explosent.",
+          "Dir. d'exploitation, responsables Ops et DAF d'organisations multi-sites avec équipes terrain. MVP prioritaire: réseaux multi-franchisés de restauration rapide. ICP également adressés: logistique, retail/distribution, transport, industrie, santé et services. Point commun: charge fluctuante, capacité contrainte, coûts d'urgence en hausse.",
         category: "Comprendre Praedixa",
       },
       {
@@ -456,7 +467,7 @@ export const fr: Dictionary = {
       {
         question: "Combien coûte Praedixa ?",
         answer:
-          "Le pilote prévision effectifs fait l'objet d'un cadrage commercial adapté au périmètre. Il peut démarrer sur un scope ciblé avant extension.",
+          "Le pilote Workforce & ProofOps fait l'objet d'un cadrage commercial adapté au périmètre. Il peut démarrer sur un scope ciblé (MVP restauration rapide) avant extension.",
         category: "Pilote & tarification",
       },
       {
@@ -506,16 +517,16 @@ export const fr: Dictionary = {
 
   contact: {
     kicker: "Passer à l'action",
-    heading: "Demandez un pilote prévision effectifs.",
+    heading: "Demandez un pilote Workforce & ProofOps.",
     subheading:
-      "Nous cadrons un périmètre de démarrage ciblé (prévision d'effectifs), puis les options d'extension selon vos priorités.",
+      "Nous cadrons un démarrage MVP (restauration rapide multi-franchisée) puis un plan d'extension selon vos priorités sectorielles.",
     trustItems: [
       "Réponse sous 48h ouvrées",
       "NDA possible dès le premier échange",
       "Données agrégées uniquement",
       "Sans engagement commercial post-pilote",
     ],
-    ctaPrimary: "Demander un pilote prévision effectifs",
+    ctaPrimary: "Demander un pilote Workforce & ProofOps",
     ctaSecondary: "Écrire à l'équipe",
   },
 
@@ -528,20 +539,20 @@ export const fr: Dictionary = {
     ctaBanner: {
       kicker: "Pilote d'entrée",
       heading:
-        "Pilote prévision effectifs — démarrage possible en périmètre ciblé.",
-      cta: "Demander un pilote prévision effectifs",
+        "Pilote Workforce & ProofOps — démarrage possible en périmètre ciblé.",
+      cta: "Demander un pilote Workforce & ProofOps",
     },
   },
 
   stickyCta: {
-    text: "Demander un pilote prévision effectifs",
+    text: "Demander un pilote Workforce & ProofOps",
   },
 
   form: {
-    pageTitle: "Demande de pilote prévision effectifs",
+    pageTitle: "Demande de pilote Workforce & ProofOps",
     pageSubtitle:
-      "Cette demande permet de qualifier votre périmètre de prévision d'effectifs sur 3 mois.",
-    pill: "Pilote prévision effectifs (3 mois)",
+      "Cette demande permet de qualifier votre périmètre pilote Workforce & ProofOps sur 3 mois (MVP restauration rapide puis extension possible).",
+    pill: "Pilote Workforce & ProofOps (3 mois)",
     valuePoints: [
       "Qualification orientée enjeux effectifs, Ops et finance",
       "Réponse sous 48h ouvrées",

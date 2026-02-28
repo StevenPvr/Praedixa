@@ -14,6 +14,11 @@ import {
   verifySession,
 } from "@/lib/auth/oidc";
 
+function canAccessAdminConsole(role: string | undefined): boolean {
+  if (role === "super_admin") return true;
+  return process.env.NODE_ENV !== "production" && role === "org_admin";
+}
+
 function unauthorized(_request: NextRequest): NextResponse {
   const response = NextResponse.json(
     { error: "unauthorized" },
@@ -68,7 +73,7 @@ export async function GET(request: NextRequest) {
 
       const user = userFromAccessToken(refreshed.access_token, clientId);
       const exp = getTokenExp(refreshed.access_token);
-      if (!user || !exp || user.role !== "super_admin") {
+      if (!user || !exp || !canAccessAdminConsole(user.role)) {
         return unauthorized(request);
       }
 
@@ -109,7 +114,7 @@ export async function GET(request: NextRequest) {
       return response;
     }
 
-    if (session.role !== "super_admin") {
+    if (!canAccessAdminConsole(session.role)) {
       return unauthorized(request);
     }
 

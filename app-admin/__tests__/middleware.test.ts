@@ -21,10 +21,10 @@ vi.mock("@/lib/security/csp", () => ({
     `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
 }));
 
-import { middleware, config } from "../middleware";
+import { proxy, config } from "../proxy";
 import type { NextRequest } from "next/server";
 
-describe("middleware (root)", () => {
+describe("proxy (root)", () => {
   it("should call updateSession and set CSP header on response", async () => {
     mockHeaders.clear();
     const mockRequest = {
@@ -32,7 +32,7 @@ describe("middleware (root)", () => {
       headers: new Headers(),
     } as unknown as NextRequest;
 
-    const result = await middleware(mockRequest);
+    const result = await proxy(mockRequest);
 
     expect(mockUpdateSession).toHaveBeenCalledWith(mockRequest);
     expect(result.status).toBe(200);

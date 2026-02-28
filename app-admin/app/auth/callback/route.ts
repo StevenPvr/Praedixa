@@ -7,11 +7,17 @@ import {
   exchangeCodeForTokens,
   getOidcEnv,
   getTokenExp,
+  resolveAuthAppOrigin,
   sanitizeNextPath,
   setAuthCookies,
   signSession,
   userFromAccessToken,
 } from "@/lib/auth/oidc";
+
+function canAccessAdminConsole(role: string | undefined): boolean {
+  if (role === "super_admin") return true;
+  return process.env.NODE_ENV !== "production" && role === "org_admin";
+}
 
 function clearLoginFlowCookies(response: NextResponse): void {
   response.cookies.delete(LOGIN_STATE_COOKIE);
@@ -20,6 +26,7 @@ function clearLoginFlowCookies(response: NextResponse): void {
 }
 
 export async function GET(request: NextRequest) {
+  const appOrigin = resolveAuthAppOrigin(request);
   const code = request.nextUrl.searchParams.get("code");
   const returnedState = request.nextUrl.searchParams.get("state");
 
@@ -36,7 +43,7 @@ export async function GET(request: NextRequest) {
     !verifier
   ) {
     const redirect = NextResponse.redirect(
-      `${request.nextUrl.origin}/login?error=auth_callback_failed`,
+      `${appOrigin}/login?error=auth_callback_failed`,
     );
     clearAuthCookies(redirect);
     clearLoginFlowCookies(redirect);
@@ -50,13 +57,13 @@ export async function GET(request: NextRequest) {
       clientId,
       clientSecret,
       code,
-      redirectUri: `${request.nextUrl.origin}/auth/callback`,
+      redirectUri: `${appOrigin}/auth/callback`,
       codeVerifier: verifier,
     });
 
     if (!tokenPayload?.access_token) {
       const redirect = NextResponse.redirect(
-        `${request.nextUrl.origin}/login?error=auth_callback_failed`,
+        `${appOrigin}/login?error=auth_callback_failed`,
       );
       clearAuthCookies(redirect);
       clearLoginFlowCookies(redirect);
@@ -65,9 +72,9 @@ export async function GET(request: NextRequest) {
 
     const user = userFromAccessToken(tokenPayload.access_token, clientId);
     const exp = getTokenExp(tokenPayload.access_token);
-    if (!user || !exp || user.role !== "super_admin") {
+    if (!user || !exp || !canAccessAdminConsole(user.role)) {
       const redirect = NextResponse.redirect(
-        `${request.nextUrl.origin}/unauthorized`,
+        `${appOrigin}/unauthorized`,
       );
       clearAuthCookies(redirect);
       clearLoginFlowCookies(redirect);
@@ -87,9 +94,7 @@ export async function GET(request: NextRequest) {
       sessionSecret,
     );
 
-    const redirect = NextResponse.redirect(
-      `${request.nextUrl.origin}${safeNext}`,
-    );
+    const redirect = NextResponse.redirect(`${appOrigin}${safeNext}`);
     setAuthCookies(redirect, request, {
       accessToken: tokenPayload.access_token,
       refreshToken: tokenPayload.refresh_token ?? null,
@@ -102,7 +107,7 @@ export async function GET(request: NextRequest) {
     return redirect;
   } catch {
     const redirect = NextResponse.redirect(
-      `${request.nextUrl.origin}/login?error=auth_callback_failed`,
+      `${appOrigin}/login?error=auth_callback_failed`,
     );
     clearAuthCookies(redirect);
     clearLoginFlowCookies(redirect);

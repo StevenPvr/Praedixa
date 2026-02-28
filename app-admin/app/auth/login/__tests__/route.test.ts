@@ -7,6 +7,7 @@ const mockCreateRandomToken = vi.fn();
 const mockGetOidcEnv = vi.fn();
 const mockGetTrustedOidcEndpoints = vi.fn();
 const mockIsMissingOidcEnvError = vi.fn();
+const mockResolveAuthAppOrigin = vi.fn();
 const mockSanitizeNextPath = vi.fn();
 const mockSecureCookie = vi.fn();
 
@@ -27,6 +28,8 @@ vi.mock("@/lib/auth/oidc", () => ({
     mockGetTrustedOidcEndpoints(...args),
   isMissingOidcEnvError: (...args: unknown[]) =>
     mockIsMissingOidcEnvError(...args),
+  resolveAuthAppOrigin: (...args: unknown[]) =>
+    mockResolveAuthAppOrigin(...args),
   sanitizeNextPath: (...args: unknown[]) => mockSanitizeNextPath(...args),
   secureCookie: (...args: unknown[]) => mockSecureCookie(...args),
 }));
@@ -75,6 +78,7 @@ describe("GET /auth/login (admin)", () => {
       tokenEndpoint: "https://sso.praedixa.com/protocol/openid-connect/token",
     });
     mockIsMissingOidcEnvError.mockReturnValue(false);
+    mockResolveAuthAppOrigin.mockReturnValue("https://admin.praedixa.com");
     mockCreateRandomToken
       .mockReturnValueOnce("state-token")
       .mockReturnValueOnce("verifier-token");

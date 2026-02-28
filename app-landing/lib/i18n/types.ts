@@ -121,6 +121,11 @@ export interface Dictionary {
     kicker: string;
     heading: string;
     subheading: string;
+    labels: {
+      context: string;
+      action: string;
+      impact: string;
+    };
     cases: {
       id: string;
       title: string;
@@ -139,6 +144,8 @@ export interface Dictionary {
       label: string;
       value: string;
       note: string;
+      sourceLabel: string;
+      sourceUrl: string;
     }[];
     checklist: string[];
   };

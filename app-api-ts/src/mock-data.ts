@@ -5,7 +5,7 @@ export const demo = {
     id: "11111111-1111-1111-1111-111111111111",
     name: "Praedixa Demo Org",
     status: "active",
-    subscriptionPlan: "pro",
+    subscriptionPlan: "professional",
     createdAt: now,
     updatedAt: now,
   },

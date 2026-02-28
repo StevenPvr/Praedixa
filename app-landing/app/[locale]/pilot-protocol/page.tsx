@@ -14,10 +14,12 @@ export async function generateMetadata({
   return buildLocaleMetadata({
     locale,
     paths: localePathMap("/fr/pilot-protocol", "/en/pilot-protocol"),
-    title: isFr ? "Praedixa | Protocole pilote" : "Praedixa | Pilot protocol",
+    title: isFr
+      ? "Praedixa | Protocole pilote Workforce & ProofOps"
+      : "Praedixa | Workforce & ProofOps pilot protocol",
     description: isFr
-      ? "Protocole du pilote Praedixa : cadrage, livrables et gouvernance."
-      : "Praedixa pilot protocol: framing, deliverables, and governance.",
+      ? "Protocole du pilote Workforce & ProofOps : cadrage, Decision Ledger, livrables et gouvernance."
+      : "Workforce & ProofOps pilot protocol: framing, Decision Ledger, deliverables, and governance.",
   });
 }
 
@@ -43,7 +45,7 @@ export default async function PilotProtocolPage({
         {p.kicker}
       </span>
       <h1 className="mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl md:text-4xl">
-        {isFr ? "Protocole pilote" : "Pilot protocol"}
+        {isFr ? "Protocole pilote Workforce & ProofOps" : "Workforce & ProofOps pilot protocol"}
       </h1>
       <p className="mt-4 max-w-[58ch] text-base leading-relaxed text-neutral-500">
         {p.subheading}

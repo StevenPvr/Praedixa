@@ -133,7 +133,10 @@ test.describe("Landing SEO", () => {
     expect(pilotHref).toContain("source=seo_resource");
     expect(pilotHref).toContain("seo_slug=cout-sous-couverture");
 
-    const assetLink = page.getByRole("link", { name: /Telecharger asset/i });
+    const assetLink = page.locator(
+      'a[href="/fr/ressources/cout-sous-couverture/asset"]',
+    );
+    await expect(assetLink).toBeVisible();
     const assetHref = await assetLink.getAttribute("href");
     expect(assetHref).toBe("/fr/ressources/cout-sous-couverture/asset");
 

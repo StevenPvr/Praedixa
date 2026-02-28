@@ -22,7 +22,10 @@ import {
   decomposeForecast,
   extractFeatureImportance,
 } from "@/lib/forecast-decomposition";
-import { buildCapacitySeries } from "@/lib/capacity-chart";
+import {
+  buildCapacitySeries,
+  CAPACITY_CHART_CATEGORIES,
+} from "@/lib/capacity-chart";
 import { formatDateShort } from "@/lib/formatters";
 import { useLatestForecasts } from "@/hooks/use-latest-forecasts";
 import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
@@ -308,11 +311,7 @@ function PrevisionsContent() {
                   <LazyLineChart
                     data={chartData}
                     index="date"
-                    categories={[
-                      "Capacité prévue actuelle",
-                      "Capacité prévue predite",
-                      "Capacité optimale predite",
-                    ]}
+                    categories={[...CAPACITY_CHART_CATEGORIES]}
                     colors={[
                       "var(--ink-tertiary)",
                       "var(--brand)",

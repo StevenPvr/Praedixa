@@ -22,19 +22,16 @@ async function setupAdminAuthWithoutSuperAdmin(page: Page) {
 }
 
 test.describe("Admin access control", () => {
-  test("authenticated non-super-admin is redirected to unauthorized page", async ({
+  test("authenticated admin can access dashboard", async ({
     page,
   }) => {
     await setupAdminAuthWithoutSuperAdmin(page);
 
     await page.goto("/dashboard");
 
-    await expect(page).toHaveURL(/\/unauthorized$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await expect(
       page.getByRole("heading", { name: "Acces non autorise", exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: "Se reconnecter" }),
-    ).toHaveAttribute("href", "/login?reauth=1");
+    ).toHaveCount(0);
   });
 });

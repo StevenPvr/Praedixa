@@ -3,11 +3,14 @@ import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import PrevisionsPage from "../page";
+import { CAPACITY_CHART_CATEGORIES } from "@/lib/capacity-chart";
 import "@testing-library/jest-dom/vitest";
 
-const { mockUseApiGet, mockUseLatestForecasts } = vi.hoisted(() => ({
+const { mockUseApiGet, mockUseLatestForecasts, mockLineChartProps } =
+  vi.hoisted(() => ({
   mockUseApiGet: vi.fn(),
   mockUseLatestForecasts: vi.fn(),
+  mockLineChartProps: vi.fn(),
 }));
 
 const { mockReplace, mockSearchParams } = vi.hoisted(() => ({
@@ -51,7 +54,10 @@ vi.mock("@/lib/forecast-decomposition", () => ({
 }));
 
 vi.mock("@/components/charts", () => ({
-  D3LineChart: () => <div data-testid="line-chart" />,
+  D3LineChart: (props: unknown) => {
+    mockLineChartProps(props);
+    return <div data-testid="line-chart" />;
+  },
 }));
 
 vi.mock("@praedixa/ui", () => ({
@@ -263,6 +269,15 @@ describe("PrevisionsPage", () => {
     setupMocks({ dailyData: [] });
     render(<PrevisionsPage />);
     expect(screen.getByText("Aucune prevision disponible")).toBeInTheDocument();
+  });
+
+  it("passes chart categories matching capacity series keys", () => {
+    render(<PrevisionsPage />);
+    const lastCall =
+      mockLineChartProps.mock.calls[mockLineChartProps.mock.calls.length - 1];
+    expect(lastCall?.[0]).toMatchObject({
+      categories: [...CAPACITY_CHART_CATEGORIES],
+    });
   });
 
   it("updates URL when switching dimension to merchandise", () => {

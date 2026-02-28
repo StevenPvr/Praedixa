@@ -8,7 +8,7 @@ test.describe("Pilot application form (/devenir-pilote)", () => {
   test("loads the pilot form page", async ({ page }) => {
     await page.waitForLoadState("domcontentloaded");
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
-      /demande de pilote prévision effectifs/i,
+      /demande de pilote workforce & proofops/i,
       { timeout: 15_000 },
     );
     await expect(

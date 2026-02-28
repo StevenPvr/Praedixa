@@ -363,6 +363,21 @@ describe("AccueilPage", () => {
     expect(screen.getByText("0.3%")).toBeInTheDocument();
   });
 
+  it("falls back to 0.0% when KPI rates are missing", () => {
+    setupMockApiGet({
+      kpis: {
+        data: {
+          totalOrganizations: 4,
+          activeOrganizations: 3,
+          totalUsers: 42,
+        },
+      },
+    });
+    render(<AccueilPage />);
+    expect(screen.getByText("Sante plateforme")).toBeInTheDocument();
+    expect(screen.getAllByText("0.0%")).toHaveLength(2);
+  });
+
   it("renders unread messages card with total badge", () => {
     setupMockApiGet();
     render(<AccueilPage />);
@@ -408,6 +423,15 @@ describe("AccueilPage", () => {
       unread: { data: { total: 0, byOrg: [] } },
     });
     render(<AccueilPage />);
+    expect(screen.getByText("Aucun message en attente")).toBeInTheDocument();
+  });
+
+  it("handles legacy unread payload without crashing", () => {
+    setupMockApiGet({
+      unread: { data: { unreadCount: 3 } },
+    });
+    render(<AccueilPage />);
+    expect(screen.getByText("Messages non lus")).toBeInTheDocument();
     expect(screen.getByText("Aucun message en attente")).toBeInTheDocument();
   });
 

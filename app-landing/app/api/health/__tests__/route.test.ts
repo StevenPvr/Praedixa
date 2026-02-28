@@ -28,7 +28,7 @@ describe("GET /api/health", () => {
   it("should return 200 with status 'healthy' when RESEND_API_KEY is set", async () => {
     process.env.RESEND_API_KEY = "re_test_key";
     const { GET } = await import("../route");
-    const res = (await GET()) as {
+    const res = (await GET()) as unknown as {
       status: number;
       body: { status: string; timestamp: string };
     };
@@ -40,7 +40,7 @@ describe("GET /api/health", () => {
   it("should return 503 with status 'degraded' when RESEND_API_KEY is unset", async () => {
     delete process.env.RESEND_API_KEY;
     const { GET } = await import("../route");
-    const res = (await GET()) as {
+    const res = (await GET()) as unknown as {
       status: number;
       body: { status: string; timestamp: string };
     };
@@ -51,7 +51,7 @@ describe("GET /api/health", () => {
   it("should include a valid ISO timestamp", async () => {
     process.env.RESEND_API_KEY = "re_test_key";
     const { GET } = await import("../route");
-    const res = (await GET()) as {
+    const res = (await GET()) as unknown as {
       status: number;
       body: { status: string; timestamp: string };
     };

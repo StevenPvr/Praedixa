@@ -1,5 +1,16 @@
 // Build UX-friendly capacity series from forecast rows (real or mock).
 
+export const CAPACITY_CHART_CATEGORIES = [
+  "Capacite prevue actuelle",
+  "Capacite prevue predite",
+  "Capacite optimale predite",
+] as const;
+type CapacityChartCategory = (typeof CAPACITY_CHART_CATEGORIES)[number];
+export type CapacitySeriesPoint = {
+  date: string;
+  isoDate: string;
+} & Record<CapacityChartCategory, number>;
+
 export interface CapacityDailyForecast {
   forecastDate: string;
   capacityOptimalPredicted: number;
@@ -19,13 +30,7 @@ export function buildCapacitySeries(
   data: CapacityDailyForecast[],
   formatDate: (isoDate: string) => string,
   options?: CapacitySeriesOptions,
-): Array<{
-  date: string;
-  isoDate: string;
-  "Capacite prevue actuelle": number;
-  "Capacite prevue predite": number;
-  "Capacite optimale predite": number;
-}> {
+): CapacitySeriesPoint[] {
   const sorted = [...data].toSorted((a, b) =>
     a.forecastDate.localeCompare(b.forecastDate),
   );
@@ -35,8 +40,8 @@ export function buildCapacitySeries(
   return visible.map((d) => ({
     date: formatDate(d.forecastDate),
     isoDate: d.forecastDate,
-    "Capacite prevue actuelle": round2(d.capacityPlannedCurrent),
-    "Capacite prevue predite": round2(d.capacityPlannedPredicted),
-    "Capacite optimale predite": round2(d.capacityOptimalPredicted),
+    [CAPACITY_CHART_CATEGORIES[0]]: round2(d.capacityPlannedCurrent),
+    [CAPACITY_CHART_CATEGORIES[1]]: round2(d.capacityPlannedPredicted),
+    [CAPACITY_CHART_CATEGORIES[2]]: round2(d.capacityOptimalPredicted),
   }));
 }

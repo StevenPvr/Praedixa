@@ -69,6 +69,14 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
                 <p className="mt-1 max-w-md text-sm leading-relaxed text-neutral-200">
                   {frame.note}
                 </p>
+                <a
+                  href={frame.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex text-xs font-semibold uppercase tracking-[0.08em] text-neutral-300 no-underline transition-colors hover:text-white"
+                >
+                  {frame.sourceLabel}
+                </a>
               </motion.div>
             ))}
           </div>

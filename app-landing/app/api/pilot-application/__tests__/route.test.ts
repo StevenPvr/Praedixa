@@ -4,7 +4,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // Mocks — must be declared before any import that touches the source module
 // ---------------------------------------------------------------------------
 
-const mockEmailsSend = vi.fn(() =>
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const mockEmailsSend = vi.fn((_args: any) =>
   Promise.resolve({ data: { id: "mock-id" }, error: null }),
 );
 
@@ -327,7 +328,7 @@ describe("POST /api/pilot-application", () => {
       const res = await POST(makeRequest(validBody({ email: "Jean@ACME.FR" })));
       expect(res.status).toBe(200);
       // The confirmation email should be sent to the lowercase version
-      const confirmCall = mockEmailsSend.mock.calls[1];
+      const confirmCall = mockEmailsSend.mock.calls[1]!;
       expect(confirmCall[0].to).toEqual(["jean@acme.fr"]);
     });
   });
@@ -522,7 +523,7 @@ describe("POST /api/pilot-application", () => {
 
     it("should send admin email to configured contact address", async () => {
       await POST(makeRequest(validBody()));
-      const adminCall = mockEmailsSend.mock.calls[0][0];
+      const adminCall = mockEmailsSend.mock.calls[0]![0];
       expect(adminCall.to).toEqual(["admin@praedixa.com"]);
       expect(adminCall.from).toBe("Praedixa <noreply@praedixa.com>");
       expect(adminCall.subject).toContain("ACME Corp");
@@ -530,7 +531,7 @@ describe("POST /api/pilot-application", () => {
 
     it("should send confirmation email to the applicant", async () => {
       await POST(makeRequest(validBody({ email: "test@example.com" })));
-      const confirmCall = mockEmailsSend.mock.calls[1][0];
+      const confirmCall = mockEmailsSend.mock.calls[1]![0];
       expect(confirmCall.to).toEqual(["test@example.com"]);
       expect(confirmCall.subject).toContain("Candidature entreprise pilote");
       expect(confirmCall.replyTo).toBe("admin@praedixa.com");
@@ -550,7 +551,7 @@ describe("POST /api/pilot-application", () => {
         ),
       );
 
-      const adminCall = mockEmailsSend.mock.calls[0][0];
+      const adminCall = mockEmailsSend.mock.calls[0]![0];
       expect(adminCall.html).toContain("Attribution");
       expect(adminCall.html).toContain("seo_resource");
       expect(adminCall.html).toContain("cout-sous-couverture");
@@ -568,14 +569,14 @@ describe("POST /api/pilot-application", () => {
           validBody({ companyName: '<script>alert("xss")</script>' }),
         ),
       );
-      const adminCall = mockEmailsSend.mock.calls[0][0];
+      const adminCall = mockEmailsSend.mock.calls[0]![0];
       expect(adminCall.html).not.toContain("<script>");
       expect(adminCall.html).toContain("&lt;script&gt;");
     });
 
     it("should escape quotes in email address within email body", async () => {
       await POST(makeRequest(validBody({ email: 'user"inject@test.com' })));
-      const adminCall = mockEmailsSend.mock.calls[0][0];
+      const adminCall = mockEmailsSend.mock.calls[0]![0];
       expect(adminCall.html).toContain("&quot;");
     });
 
@@ -585,7 +586,7 @@ describe("POST /api/pilot-application", () => {
           validBody({ companyName: "Company\r\nBcc: spam@evil.com" }),
         ),
       );
-      const adminCall = mockEmailsSend.mock.calls[0][0];
+      const adminCall = mockEmailsSend.mock.calls[0]![0];
       expect(adminCall.subject).not.toContain("\r");
       expect(adminCall.subject).not.toContain("\n");
     });

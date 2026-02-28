@@ -122,7 +122,7 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
             href={assetHref}
             className="mt-4 inline-flex text-sm font-semibold text-brass no-underline hover:text-brass-600"
           >
-            Telecharger asset
+            {locale === "fr" ? "Télécharger l'asset" : "Download asset"}
           </Link>
         </div>
 
@@ -164,7 +164,7 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
           >
             {locale === "fr"
               ? "Calculer le cout de l'inaction"
-              : "Request a workforce forecasting pilot"}
+              : "Request a Workforce & ProofOps pilot"}
           </Link>
         </div>
       </article>

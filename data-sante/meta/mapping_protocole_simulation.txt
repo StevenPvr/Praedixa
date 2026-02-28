@@ -1,0 +1,261 @@
+MAPPING + PROTOCOLE DE SIMULATION
+Dataset source: data-sante/processed/nhs_trust_daily_simulation_ready.csv
+Date de redaction: 2026-02-25
+Cohorte standardisee: 2022-23 -> 2025-26 (2020-21 et 2021-22 exclus)
+
+============================================================
+1) MAPPING COLONNE PAR COLONNE
+============================================================
+
+- date
+  Signification: date d'observation (jour calendaire)
+  Role: axe temporel principal
+
+- trust_code
+  Signification: identifiant court du trust NHS
+  Role: cle entite (site/organisation)
+
+- trust_name
+  Signification: libelle du trust NHS
+  Role: metadata descriptive
+
+- region
+  Signification: region NHS du trust
+  Role: segment geographique / feature categorielle
+
+- total_ga_beds_open
+  Signification: nombre de lits G&A ouverts (total)
+  Role: capacite disponible (global)
+
+- total_ga_beds_unavailable_non_covid
+  Signification: lits G&A indisponibles pour admissions non-covid
+  Role: contrainte capacitaire / inefficacite
+
+- total_ga_beds_occupied
+  Signification: lits G&A total occupes
+  Role: charge observee
+
+- adult_ga_beds_open
+  Signification: nombre de lits G&A adultes ouverts
+  Role: capacite adulte
+
+- adult_ga_beds_unavailable_non_covid
+  Signification: lits adultes indisponibles non-covid
+  Role: contrainte capacitaire adulte
+
+- adult_ga_beds_occupied
+  Signification: lits adultes occupes
+  Role: charge observee adulte
+
+- staff_absent_total
+  Signification: total staff absent (sickness/self-isolation)
+  Role: pression RH / driver operationnel
+
+- covid_patients_total
+  Signification: patients covid hospitalises
+  Role: charge exogene clinique
+
+- ambulance_handover_known
+  Signification: handovers ambulance avec duree connue
+  Role: volume d'arrivees mesurables
+
+- ambulance_over_15_min
+  Signification: handovers > 15 minutes
+  Role: KPI delai (palier 15 min)
+
+- ambulance_over_30_min
+  Signification: handovers > 30 minutes
+  Role: KPI delai (palier 30 min)
+
+- ambulance_over_45_min
+  Signification: handovers > 45 minutes
+  Role: KPI delai (palier 45 min)
+
+- ambulance_over_60_min
+  Signification: handovers > 60 minutes
+  Role: KPI delai critique
+
+- ambulance_handover_unknown
+  Signification: handovers avec duree inconnue
+  Role: qualite de mesure / incertitude
+
+- ambulance_all_handovers
+  Signification: total handovers (known + unknown)
+  Role: volume total
+
+- ambulance_handover_total_hours
+  Signification: somme des durees de handover (heures)
+  Role: proxy direct du cout de congestion
+
+- ambulance_handover_mean_hours
+  Signification: duree moyenne de handover (heures)
+  Role: severite moyenne
+
+- bed_occupancy_total_pct
+  Signification: taux d'occupation total = total_ga_beds_occupied / total_ga_beds_open
+  Role: KPI capacite global
+
+- bed_occupancy_adult_pct
+  Signification: taux d'occupation adulte = adult_ga_beds_occupied / adult_ga_beds_open
+  Role: KPI capacite adulte
+
+- absence_per_100_adult_open_beds
+  Signification: absents staff pour 100 lits adultes ouverts
+  Role: normalisation RH/capacite
+
+- ambulance_over_60_rate
+  Signification: part des handovers >60 min = ambulance_over_60_min / ambulance_handover_known
+  Role: target service recommandee
+
+- day_of_week
+  Signification: nom du jour (Monday...Sunday)
+  Role: saisonnalite hebdomadaire
+
+- is_weekend
+  Signification: indicateur week-end
+  Role: regime operationnel (charge/effectif differents)
+
+- is_bank_holiday_england_wales
+  Signification: indicateur jour ferie (Angleterre/Pays de Galles)
+  Role: effet calendrier exogene
+
+============================================================
+2) TARGETS A UTILISER
+============================================================
+
+Target principale (service / rupture):
+- y_service = ambulance_over_60_rate
+  Pourquoi: KPI directement interpretable "part des delais critiques".
+
+Target cout (proxy economique):
+- y_cost_proxy_eur
+  Definition recommandee:
+    y_cost_proxy_eur =
+      C_HANDOVER_H * ambulance_handover_total_hours
+      + C_ABSENCE * staff_absent_total
+      + C_VOID_BED * total_ga_beds_unavailable_non_covid
+
+  Coefficients de depart (a calibrer):
+  - C_HANDOVER_H = 120 EUR / heure
+  - C_ABSENCE = 280 EUR / absence-jour
+  - C_VOID_BED = 450 EUR / lit indisponible-jour
+
+  Notes:
+  - Ces coefficients ne sont PAS des tarifs officiels NHS.
+  - Ils servent a obtenir un proxy economique stable/comparable.
+  - Faire une analyse de sensibilite +/-20%, +/-40%.
+
+============================================================
+3) PROTOCOLE CLAIR ET PRECIS (POC)
+============================================================
+
+Objectif:
+- Predire le risque J+1 de degradation service (y_service)
+- Estimer le cout journalier (y_cost_proxy_eur)
+- Simuler des decisions d'alerte et mesurer le cout evite
+
+Etape 0 - Scope
+- Unite: trust_code x date (granularite journaliere)
+- Horizon: J+1 (premier jet robuste)
+- Fichier de travail: nhs_trust_daily_simulation_ready.csv
+- Regle de cohorte: importer uniquement les annees >= 2022-23
+
+Etape 1 - Preparation
+- Parse date en datetime
+- Trier par trust_code, date
+- Construire y_cost_proxy_eur avec la formule ci-dessus
+- Exclure toute ligne avec valeurs aberrantes impossibles (<0 sur compteurs)
+
+Etape 2 - Features (sans fuite)
+- Features t:
+  bed_occupancy_total_pct, bed_occupancy_adult_pct,
+  staff_absent_total,
+  ambulance_all_handovers, ambulance_handover_total_hours,
+  absence_per_100_adult_open_beds,
+  day_of_week, is_weekend, is_bank_holiday_england_wales
+- Feature optionnelle:
+  covid_patients_total (non disponible sur toute la cohorte, utiliser avec
+  indicateur de missing ou exclusion dans le modele de base)
+- Lags par trust (obligatoire):
+  lag_1, lag_3, lag_7 sur:
+  y_service, staff_absent_total, bed_occupancy_adult_pct,
+  ambulance_all_handovers, y_cost_proxy_eur
+- Rolling means (optionnel recommande):
+  moyenne glissante 7 jours sur les memes variables
+
+Etape 3 - Cibles modeles
+- Modele A (service):
+  y_service_t+1 = ambulance_over_60_rate a date t+1
+- Modele B (cout):
+  y_cost_proxy_eur_t+1 = cout proxy a date t+1
+
+Etape 4 - Split temporel strict
+- Train: 2022-11-14 -> 2024-12-31
+- Validation: 2025-01-01 -> 2025-08-31
+- Test: 2025-09-01 -> 2026-02-15
+- Interdiction de melanger les dates (pas de random split)
+
+Etape 5 - Baselines minimales
+- Service baseline 1: y_service_t+1 = y_service_t (naif persistence)
+- Service baseline 2: moyenne 7 jours precedents
+- Cout baseline 1: y_cost_proxy_eur_t+1 = y_cost_proxy_eur_t
+- Cout baseline 2: moyenne 7 jours precedents
+
+Etape 6 - Modeles POC
+- Priorite simplicite + robustesse:
+  - Gradient Boosting Regressor ou XGBoost (si dispo)
+  - Alternative rapide: RandomForestRegressor
+- Un modele par target (A et B)
+
+Etape 7 - Politique d'alerte simulee
+- Declencher alerte si:
+  y_service_pred_t+1 >= 0.12
+  (a ajuster sur validation pour controler precision/rappel)
+- Priorite haute si >= 0.20
+
+Etape 8 - Simulation de decision (sans sur-ingenerie)
+- Si alerte:
+  Action "renfort" suppose:
+  - reduction relative de y_service de 10%
+  - cout action = 0.35 * C_HANDOVER_H * ambulance_handover_total_hours_pred
+- Si pas d'alerte: pas d'action
+- Cout net simule:
+  cout_net = y_cost_proxy_eur_real + cout_action
+  cout_evite = y_cost_proxy_eur_real_sans_action - cout_net
+
+Etape 9 - Evaluation
+- Service:
+  MAE, RMSE, R2 sur y_service_t+1
+  Precision/Recall/F1 si conversion en classe (alerte oui/non)
+- Cout:
+  MAE, MAPE (si utile), erreur aggregatee sur periode test
+- Decision:
+  somme cout_evite test
+  taux d'alertes utiles (alertes avec gain net positif)
+
+Etape 10 - Gates de credibilite POC
+- Le modele doit battre la baseline naif sur test:
+  - MAE service: improvement >= 5%
+  - MAE cout: improvement >= 5%
+- Le protocole doit rester stable sous sensibilite des coefficients cout
+  (+/-20% au minimum)
+
+============================================================
+4) LIVRABLES ATTENDUS
+============================================================
+
+- predictions_test.csv (y_true, y_pred, trust_code, date)
+- simulation_decisions_test.csv (alerte, action, cout_action, cout_evite)
+- metrics.json (service/cout/decision)
+- one-pager resultat:
+  "conditions", "gains simules", "limites", "next step"
+
+============================================================
+5) LIMITES A EXPLICITER
+============================================================
+
+- Cout en EUR = proxy (pas cout comptable reel)
+- Fenetre temporelle multi-saisons (2022-11-14 -> 2026-02-15)
+- Continuite de schema garantie uniquement pour 2022-23 -> 2025-26
+- Pas d'information locale fine de staffing planifie
+- Extrapolation hors NHS non garantie sans recalibrage

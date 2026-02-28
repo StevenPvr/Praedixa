@@ -3,8 +3,13 @@ import { Card } from "@praedixa/ui";
 import type { PlatformKPIs } from "@/lib/inbox-helpers";
 
 export function SystemHealthBar({ kpis }: { kpis: PlatformKPIs }) {
-  const ingestionOk = kpis.ingestionSuccessRate >= 95;
-  const apiOk = kpis.apiErrorRate <= 2;
+  const ingestionSuccessRate = Number.isFinite(kpis.ingestionSuccessRate)
+    ? kpis.ingestionSuccessRate
+    : 0;
+  const apiErrorRate = Number.isFinite(kpis.apiErrorRate) ? kpis.apiErrorRate : 0;
+
+  const ingestionOk = ingestionSuccessRate >= 95;
+  const apiOk = apiErrorRate <= 2;
 
   return (
     <Card className="p-5">
@@ -26,14 +31,14 @@ export function SystemHealthBar({ kpis }: { kpis: PlatformKPIs }) {
               <div
                 className={`h-full rounded-full transition-all ${ingestionOk ? "bg-success-500" : "bg-danger-500"}`}
                 style={{
-                  width: `${Math.min(100, kpis.ingestionSuccessRate)}%`,
+                  width: `${Math.min(100, ingestionSuccessRate)}%`,
                 }}
               />
             </div>
             <span
               className={`text-sm font-medium ${ingestionOk ? "text-success-600" : "text-danger-600"}`}
             >
-              {kpis.ingestionSuccessRate.toFixed(1)}%
+              {ingestionSuccessRate.toFixed(1)}%
             </span>
           </div>
         </div>
@@ -50,13 +55,13 @@ export function SystemHealthBar({ kpis }: { kpis: PlatformKPIs }) {
             >
               <div
                 className={`h-full rounded-full transition-all ${apiOk ? "bg-success-500" : "bg-danger-500"}`}
-                style={{ width: `${Math.min(100, kpis.apiErrorRate * 10)}%` }}
+                style={{ width: `${Math.min(100, apiErrorRate * 10)}%` }}
               />
             </div>
             <span
               className={`text-sm font-medium ${apiOk ? "text-success-600" : "text-danger-600"}`}
             >
-              {kpis.apiErrorRate.toFixed(1)}%
+              {apiErrorRate.toFixed(1)}%
             </span>
           </div>
         </div>

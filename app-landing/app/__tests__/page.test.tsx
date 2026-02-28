@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const redirectMock = vi.fn(() => {
+const redirectMock = vi.fn((_target: string) => {
   throw new Error("NEXT_REDIRECT");
 });
 

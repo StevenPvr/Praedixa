@@ -39,7 +39,7 @@ interface ContactFormData {
 }
 
 const REQUEST_TYPES: { value: RequestType; fr: string; en: string }[] = [
-  { value: "founding_pilot", fr: "Pilote prévision effectifs", en: "Workforce forecasting pilot" },
+  { value: "founding_pilot", fr: "Pilote Workforce & ProofOps", en: "Workforce & ProofOps pilot" },
   { value: "product_demo", fr: "Démonstration produit", en: "Product demo" },
   { value: "partnership", fr: "Partenariat", en: "Partnership" },
   { value: "press_other", fr: "Presse / Autre", en: "Press / Other" },
@@ -178,7 +178,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
             href={pilotHref}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-brass no-underline hover:text-brass-600"
           >
-            {isFr ? "Demander un pilote prévision effectifs" : "Request a workforce forecasting pilot"}
+            {isFr ? "Demander un pilote Workforce & ProofOps" : "Request a Workforce & ProofOps pilot"}
           </Link>
         </div>
       </div>

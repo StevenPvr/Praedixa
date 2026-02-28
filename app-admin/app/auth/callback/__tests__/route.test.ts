@@ -6,6 +6,7 @@ const mockClearAuthCookies = vi.fn();
 const mockExchangeCodeForTokens = vi.fn();
 const mockGetOidcEnv = vi.fn();
 const mockGetTokenExp = vi.fn();
+const mockResolveAuthAppOrigin = vi.fn();
 const mockSanitizeNextPath = vi.fn();
 const mockSetAuthCookies = vi.fn();
 const mockSignSession = vi.fn();
@@ -26,6 +27,8 @@ vi.mock("@/lib/auth/oidc", () => ({
     mockExchangeCodeForTokens(...args),
   getOidcEnv: (...args: unknown[]) => mockGetOidcEnv(...args),
   getTokenExp: (...args: unknown[]) => mockGetTokenExp(...args),
+  resolveAuthAppOrigin: (...args: unknown[]) =>
+    mockResolveAuthAppOrigin(...args),
   sanitizeNextPath: (...args: unknown[]) => mockSanitizeNextPath(...args),
   setAuthCookies: (...args: unknown[]) => mockSetAuthCookies(...args),
   signSession: (...args: unknown[]) => mockSignSession(...args),
@@ -82,6 +85,7 @@ describe("GET /auth/callback (admin)", () => {
       clientSecret: "secret",
       sessionSecret: "session-secret",
     });
+    mockResolveAuthAppOrigin.mockReturnValue("https://admin.praedixa.com");
 
     mockSanitizeNextPath.mockImplementation(
       (next: string | null | undefined, fallback: string) => {

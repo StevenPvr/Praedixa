@@ -2,12 +2,12 @@ import type { Dictionary } from "../types";
 
 export const en: Dictionary = {
   meta: {
-    title: "Praedixa | Multi-Site Workforce Forecasting & Coverage Decisions",
+    title: "Praedixa | Multi-site Workforce & ProofOps (QSR-first MVP)",
     description:
-      "Anticipate multi-site staffing tensions, especially in multi-franchise quick-service restaurant networks, with a workforce forecasting pilot.",
-    ogTitle: "Praedixa | Workforce Forecasting Pilot for Multi-Site Operations",
+      "Workforce & ProofOps for multi-site coverage decisions. QSR multi-franchise is the MVP focus, with a transferable method for logistics, retail, transport, industry, healthcare, and services.",
+    ogTitle: "Praedixa | Workforce & ProofOps pilot with Decision Ledger",
     ogDescription:
-      "3-month pilot to improve workforce forecasting, compare coverage options, and align operations/finance decisions.",
+      "3-month pilot to make ops/finance trade-offs defensible, trace each decision, and produce sourced impact evidence.",
   },
 
   nav: {
@@ -18,31 +18,31 @@ export const en: Dictionary = {
     security: "Security",
     faq: "FAQ",
     contact: "Contact",
-    ctaPrimary: "Request a workforce forecasting pilot",
+    ctaPrimary: "Request a Workforce & ProofOps pilot",
     backToSite: "Back to site",
   },
 
   hero: {
-    kicker: "Workforce forecasting pilot",
-    headline: "Anticipate multi-site staffing tensions",
-    headlineHighlight: "with a structured entry pilot.",
+    kicker: "Workforce & ProofOps pilot (multi-franchise, multi-site)",
+    headline: "Decide coverage before field disruption",
+    headlineHighlight: "with Workforce & ProofOps.",
     subtitle:
-      "Praedixa runs a 3-month pilot to improve workforce forecasting, structure ops/finance trade-offs, and prepare optional extension to a broader decision platform.",
+      "Praedixa runs a 3-month pilot to structure coverage trade-offs in multi-franchise, multi-site environments. The method is directly reusable for logistics, retail, transport, industry, healthcare, and services.",
     bullets: [
       {
         metric: "3 months",
-        text: "to improve workforce forecasting quality",
+        text: "to install an operational Decision Ledger loop",
       },
       {
-        metric: "Month 1",
-        text: "setup on existing exports",
+        metric: "Focus",
+        text: "multi-franchise, multi-site organizations",
       },
       {
-        metric: "Decisions",
-        text: "traceable ops/finance arbitration",
+        metric: "Open ICP",
+        text: "transferable method across multi-site sectors",
       },
     ],
-    ctaPrimary: "Request a workforce forecasting pilot",
+    ctaPrimary: "Request a Workforce & ProofOps pilot",
     ctaSecondary: "View the pilot protocol",
     previewTitle: "A preview of what awaits you",
     ctaMeta:
@@ -52,7 +52,8 @@ export const en: Dictionary = {
       "NDA from first contact",
       "Start with a focused perimeter",
       "100% Scaleway hosting, 100% French",
-      "Priority target: multi-franchise quick-service restaurant networks",
+      "Built for multi-franchise, multi-site networks",
+      "Transferable framework for logistics, retail, transport, industry, and services",
     ],
   },
 
@@ -179,7 +180,7 @@ export const en: Dictionary = {
 
   howItWorks: {
     kicker: "Protocol",
-    heading: "Workforce forecasting pilot in 4 steps.",
+    heading: "Workforce & ProofOps pilot in 4 steps.",
     subheading:
       "A 3-month execution flow with setup-first delivery and explicit governance.",
     steps: [
@@ -219,6 +220,11 @@ export const en: Dictionary = {
     heading: "Real scenarios handled with a structured decision framework.",
     subheading:
       "Each case follows the same logic: anticipated visibility, comparable options, defensible decision, measurable impact.",
+    labels: {
+      context: "Context",
+      action: "Action",
+      impact: "Impact",
+    },
     cases: [
       {
         id: "volatility",
@@ -262,33 +268,39 @@ export const en: Dictionary = {
   },
 
   deliverables: {
-    kicker: "ROI Framework",
-    heading: "Deliverables calibrated to decide, not to present.",
+    kicker: "Field evidence",
+    heading: "Decision-proof first: evidence that frames trade-offs.",
     subheading:
-      "Value doesn't come from another dashboard, but from the ability to produce structured, defensible trade-offs.",
+      "We anchor decisions in published benchmarks, then contextualize them for your perimeter.",
     roiFrames: [
       {
-        label: "Cost of inaction",
-        value: "High",
-        note: "Penalties, overtime, service quality degradation",
+        label: "Retail understaffing: measured effect",
+        value: "6.15% lost sales reduction",
+        note: "US retail field study: correcting understaffing reduced lost sales by 6.15% and increased profitability by 5.74%.",
+        sourceLabel: "Source: Kesavan et al. (UNC, 2022)",
+        sourceUrl: "https://cdr.lib.unc.edu/downloads/9880w142w?locale=en",
       },
       {
-        label: "Intervention options",
-        value: "Compared",
-        note: "Documented scenarios with transparent assumptions",
+        label: "Schedule stability: business effect",
+        value: "+7% median sales",
+        note: "Stable scheduling pilot: +7% median sales and +5% labor productivity.",
+        sourceLabel: "Source: WorkLife Law / Shift Project",
+        sourceUrl: "https://worklifelaw.org/publication/stable-scheduling-increases-productivity-and-sales/",
       },
       {
-        label: "Demonstrated impact",
-        value: "Traceable",
-        note: "Before/after measurement for governance review",
+        label: "France baseline: absenteeism pressure",
+        value: "8.0% absence rate (2024)",
+        note: "Average absenteeism in France reached 8.0% in 2024, reinforcing the need for coverage decision discipline.",
+        sourceLabel: "Source: WTW France (2025)",
+        sourceUrl: "https://www.wtwco.com/fr-fr/news/2025/09/hausse-del-absenteisme-en-2024-un-signal-dalerte-pour-les-entreprises",
       },
     ],
     checklist: [
-      "Coverage tension map by perimeter",
-      "Explicit cost assumptions per scenario",
-      "Prioritization by criticality level",
-      "Weekly review framework for operations committee",
-      "Decision and impact traceability",
+      "Decision Ledger: context, options, decision, observed impact",
+      "Explicit economic assumptions before arbitration",
+      "Weekly ops/finance decision review cadence",
+      "Prioritization by criticality and service level",
+      "Before/after impact proof usable in committee",
     ],
   },
 
@@ -340,13 +352,13 @@ export const en: Dictionary = {
   },
 
   pilot: {
-    kicker: "Workforce forecasting pilot",
-    heading: "An entry pilot to improve workforce forecasting quality.",
+    kicker: "Workforce & ProofOps pilot",
+    heading: "A Workforce & ProofOps pilot to make decisions defensible.",
     subheading:
-      "3-month program with setup, calibration, and governance. Scope can stay focused on staffing forecasting first, then expand if needed.",
+      "3-month program with setup, calibration, and governance. MVP priority is quick-service restaurant networks, with an open frame for other multi-site ICPs.",
     statusLabels: ["Active today", "In extension", "Upcoming"],
     included: {
-      title: "What the workforce forecasting pilot covers (3 months)",
+      title: "What the Workforce & ProofOps pilot covers (3 months)",
       items: [
         "Month 1: setup and pipeline build on your exports",
         "Month 2: calibration of workload/capacity readings and assumptions",
@@ -397,16 +409,16 @@ export const en: Dictionary = {
     },
     urgency:
       "Applications reviewed within 48 business hours. Focused-scope kickoff available.",
-    ctaPrimary: "Request a workforce forecasting pilot",
+    ctaPrimary: "Request a Workforce & ProofOps pilot",
     ctaMeta:
-      "Entry pricing for staffing-forecast scope · No post-pilot commercial commitment",
+      "QSR-first MVP entry pricing · Transferable method across multi-site activities",
   },
 
   faq: {
     kicker: "FAQ",
     heading: "Frequently asked questions",
     subheading:
-      "Institutional answers on the workforce forecasting pilot, kickoff conditions, and extension options.",
+      "Institutional answers on the Workforce & ProofOps pilot, kickoff conditions, and extension model.",
     categories: [
       "Understanding Praedixa",
       "Pilot & pricing",
@@ -416,13 +428,13 @@ export const en: Dictionary = {
       {
         question: "What is Praedixa in one sentence?",
         answer:
-          "A coverage intelligence layer: we predict understaffing risks by site and team, cost inaction vs options, then track impact to produce auditable economic proof.",
+          "A Workforce & ProofOps layer: we anticipate understaffing risk by site and team, compare options, and trace each trade-off in a Decision Ledger to produce auditable economic proof.",
         category: "Understanding Praedixa",
       },
       {
         question: "Who is Praedixa for?",
         answer:
-          "Operations directors, Ops managers, and CFOs of multi-site companies with field teams. Priority target: multi-franchise quick-service restaurant networks. Other sectors include logistics, retail/distribution, transport, healthcare, industry, and services. Common thread: fluctuating workload, capacity gaps, and rising emergency costs.",
+          "Operations directors, Ops leaders, and CFOs in multi-site organizations with field teams. QSR multi-franchise is the MVP priority. Other ICPs include logistics, retail/distribution, transport, healthcare, industry, and services. Common thread: fluctuating workload, constrained capacity, and growing emergency costs.",
         category: "Understanding Praedixa",
       },
       {
@@ -440,7 +452,7 @@ export const en: Dictionary = {
       {
         question: "How much does Praedixa cost?",
         answer:
-          "The workforce forecasting pilot is scoped commercially based on operational perimeter. It can start on a focused scope before broader extension.",
+          "The Workforce & ProofOps pilot is scoped commercially to your operational perimeter. It can start on a focused scope (QSR-first MVP) before broader extension.",
         category: "Pilot & pricing",
       },
       {
@@ -490,16 +502,16 @@ export const en: Dictionary = {
 
   contact: {
     kicker: "Take action",
-    heading: "Request a workforce forecasting pilot.",
+    heading: "Request a Workforce & ProofOps pilot.",
     subheading:
-      "We frame a focused kickoff perimeter, then optional extension based on your priorities.",
+      "We frame a QSR-first MVP kickoff perimeter, then define the extension plan based on your sector priorities.",
     trustItems: [
       "Response within 48 business hours",
       "NDA available from first contact",
       "Aggregated data only",
       "No post-pilot commercial commitment",
     ],
-    ctaPrimary: "Request a workforce forecasting pilot",
+    ctaPrimary: "Request a Workforce & ProofOps pilot",
     ctaSecondary: "Email the team",
   },
 
@@ -511,20 +523,20 @@ export const en: Dictionary = {
     copyright: "Designed and hosted in France",
     ctaBanner: {
       kicker: "Entry pilot",
-      heading: "Workforce forecasting pilot — focused kickoff available.",
-      cta: "Request a workforce forecasting pilot",
+      heading: "Workforce & ProofOps pilot — focused kickoff available.",
+      cta: "Request a Workforce & ProofOps pilot",
     },
   },
 
   stickyCta: {
-    text: "Request a workforce forecasting pilot",
+    text: "Request a Workforce & ProofOps pilot",
   },
 
   form: {
-    pageTitle: "Workforce forecasting pilot request",
+    pageTitle: "Workforce & ProofOps pilot request",
     pageSubtitle:
-      "This request helps qualify your 3-month workforce forecasting perimeter.",
-    pill: "Workforce forecasting pilot (3 months)",
+      "This request helps qualify your 3-month Workforce & ProofOps pilot perimeter (QSR-first MVP with optional extension).",
+    pill: "Workforce & ProofOps pilot (3 months)",
     valuePoints: [
       "Qualification focused on staffing, operations, and finance challenges",
       "Response within 48 business hours",

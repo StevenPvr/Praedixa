@@ -57,4 +57,20 @@ describe("PlanBadge", () => {
     const { container } = render(<PlanBadge plan="free" />);
     expect(container.firstChild?.nodeName).toBe("SPAN");
   });
+
+  it("supports legacy pro alias", () => {
+    const { container } = render(<PlanBadge plan="pro" />);
+    const badge = container.firstChild as HTMLElement;
+    expect(screen.getByText("Pro")).toBeInTheDocument();
+    expect(badge.className).toContain("bg-primary-100");
+    expect(badge.className).toContain("text-primary-700");
+  });
+
+  it("falls back safely for unknown plan values", () => {
+    const { container } = render(<PlanBadge plan="legacy_plan" />);
+    const badge = container.firstChild as HTMLElement;
+    expect(screen.getByText("legacy_plan")).toBeInTheDocument();
+    expect(badge.className).toContain("bg-surface-sunken");
+    expect(badge.className).toContain("text-ink-secondary");
+  });
 });

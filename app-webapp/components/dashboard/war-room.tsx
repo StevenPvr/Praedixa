@@ -130,7 +130,7 @@ export function WarRoomDashboard() {
 
       {/* KPI Grid */}
       <motion.div
-        className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4"
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
@@ -149,7 +149,8 @@ export function WarRoomDashboard() {
             trend={alerts.length > 0 ? -2.3 : undefined}
             trendInverted
             animate
-            icon={<Siren className="h-5 w-5" />}
+            icon={<Siren className="h-4 w-4" />}
+            className="px-5 py-4"
           />
         </motion.div>
         <motion.div variants={staggerItem}>
@@ -159,7 +160,8 @@ export function WarRoomDashboard() {
             status={exposedSites > 0 ? "warning" : "good"}
             trendInverted
             animate
-            icon={<ShieldAlert className="h-5 w-5" />}
+            icon={<ShieldAlert className="h-4 w-4" />}
+            className="px-5 py-4"
           />
         </motion.div>
         <motion.div variants={staggerItem}>
@@ -172,7 +174,8 @@ export function WarRoomDashboard() {
             }
             status={(summary?.coverageHuman ?? 0) >= 95 ? "good" : "warning"}
             animate
-            icon={<Target className="h-5 w-5" />}
+            icon={<Target className="h-4 w-4" />}
+            className="px-5 py-4"
           />
         </motion.div>
         <motion.div variants={staggerItem}>
@@ -185,6 +188,7 @@ export function WarRoomDashboard() {
             }
             status={(summary?.forecastAccuracy ?? 0) >= 90 ? "good" : "neutral"}
             animate
+            className="px-5 py-4"
           />
         </motion.div>
       </motion.div>
@@ -234,7 +238,7 @@ export function WarRoomDashboard() {
                     key={alert.id}
                     href="/actions"
                     className={cn(
-                      "group block rounded-lg border border-border bg-card px-5 py-4",
+                      "group block rounded-lg border border-border bg-card px-4 py-3.5",
                       "transition-all duration-fast",
                       "hover:-translate-y-0.5 hover:border-border-hover hover:shadow-[var(--shadow-card-hover)]",
                       alert.severity === "critical"
@@ -246,16 +250,16 @@ export function WarRoomDashboard() {
                       <div className="flex items-center gap-4">
                         <span
                           className={cn(
-                            "inline-flex h-10 w-10 items-center justify-center rounded-lg",
+                            "inline-flex h-9 w-9 items-center justify-center rounded-lg",
                             alert.severity === "critical"
                               ? "bg-danger-light text-danger"
                               : "bg-warning-light text-warning",
                           )}
                         >
                           {alert.severity === "critical" ? (
-                            <Siren className="h-5 w-5" />
+                            <Siren className="h-4 w-4" />
                           ) : (
-                            <ShieldAlert className="h-5 w-5" />
+                            <ShieldAlert className="h-4 w-4" />
                           )}
                         </span>
                         <div>
@@ -291,7 +295,7 @@ export function WarRoomDashboard() {
                       </div>
                     </div>
 
-                    <div className="mt-3 flex flex-wrap items-center gap-6 pl-14 text-caption text-ink-tertiary">
+                    <div className="mt-2 flex flex-wrap items-center gap-4 pl-12 text-caption-compact text-ink-tertiary">
                       <span className="inline-flex items-center gap-1.5 transition-colors group-hover:text-ink-secondary">
                         <AlertTriangle className="h-3.5 w-3.5" />
                         Risque rupture :{" "}
