@@ -8,8 +8,8 @@ fi
 
 ENV="$1"
 REGION="fr-par"
-BUILD_SOURCE="app-api-ts"
-DOCKERFILE="Dockerfile"
+BUILD_SOURCE="."
+DOCKERFILE="app-api-ts/Dockerfile"
 
 case "$ENV" in
   staging)
