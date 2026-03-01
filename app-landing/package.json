@@ -17,9 +17,11 @@
     "deploy": "pnpm resend:check && pnpm cf:build && opennextjs-cloudflare deploy",
     "deploy:scw:staging": "../scripts/scw-deploy-landing.sh staging",
     "deploy:scw:prod": "../scripts/scw-deploy-landing.sh prod",
-    "dev:webpack": "next dev"
+    "dev:webpack": "next dev",
+    "blog:audit-links": "node ./scripts/audit-blog-links.mjs"
   },
   "dependencies": {
+    "@mdx-js/mdx": "^3.1.1",
     "@opennextjs/cloudflare": "^1.16.0",
     "@phosphor-icons/react": "^2.1.10",
     "@praedixa/shared-types": "workspace:*",
@@ -27,11 +29,16 @@
     "clsx": "^2.1.0",
     "framer-motion": "^12.31.0",
     "geist": "^1.7.0",
+    "gray-matter": "^4.0.3",
     "next": "16.1.5",
+    "reading-time": "^1.5.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "rehype-autolink-headings": "^7.1.0",
+    "rehype-slug": "^6.0.0",
     "resend": "^6.9.1",
-    "tailwind-merge": "^2.2.0"
+    "tailwind-merge": "^2.2.0",
+    "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^15.5.11",

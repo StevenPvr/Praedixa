@@ -100,6 +100,58 @@
   .skip-link:focus-visible {
     @apply top-3;
   }
+
+  .blog-prose {
+    @apply text-base leading-relaxed text-neutral-700;
+  }
+
+  .blog-prose h2 {
+    @apply mt-10 text-2xl font-semibold tracking-tight text-ink;
+  }
+
+  .blog-prose h3 {
+    @apply mt-8 text-xl font-semibold tracking-tight text-ink;
+  }
+
+  .blog-prose p {
+    @apply mt-4 text-base leading-relaxed text-neutral-700;
+  }
+
+  .blog-prose ul {
+    @apply mt-4 list-disc space-y-2 pl-6;
+  }
+
+  .blog-prose ol {
+    @apply mt-4 list-decimal space-y-2 pl-6;
+  }
+
+  .blog-prose li {
+    @apply text-base leading-relaxed text-neutral-700;
+  }
+
+  .blog-prose blockquote {
+    @apply mt-6 border-l-4 border-brass-300 pl-4 text-neutral-600;
+  }
+
+  .blog-prose a {
+    @apply font-medium text-brass-700 underline decoration-brass-300 underline-offset-2 transition-colors duration-150 hover:text-brass-800;
+  }
+
+  .blog-prose pre {
+    @apply mt-6 overflow-x-auto rounded-xl border border-border-subtle bg-neutral-950 p-4 text-sm text-neutral-100;
+  }
+
+  .blog-prose code {
+    @apply rounded bg-neutral-100 px-1.5 py-0.5 text-[0.9em] text-neutral-800;
+  }
+
+  .blog-prose pre code {
+    @apply bg-transparent p-0 text-inherit;
+  }
+
+  .blog-heading-anchor {
+    @apply ml-2 text-neutral-300 no-underline transition-colors duration-150 hover:text-brass-600;
+  }
 }
 
 @layer utilities {

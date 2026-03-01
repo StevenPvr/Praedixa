@@ -30,6 +30,7 @@ WORKDIR /app
 COPY --from=builder --chown=praedixa:praedixa /app/app-landing/.next/standalone ./
 COPY --from=builder --chown=praedixa:praedixa /app/app-landing/.next/static ./app-landing/.next/static
 COPY --from=builder --chown=praedixa:praedixa /app/app-landing/public ./app-landing/public
+COPY --from=builder --chown=praedixa:praedixa /app/content ./content
 USER praedixa
 WORKDIR /app/app-landing
 EXPOSE 8080

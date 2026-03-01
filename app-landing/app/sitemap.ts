@@ -1,6 +1,10 @@
 import type { MetadataRoute } from "next";
 import { locales, localizedSlugs } from "../lib/i18n/config";
 import { getSerpResourceSlugs } from "../lib/content/serp-resources-fr";
+import {
+  buildBlogPostPath,
+  getPublishedBlogPosts,
+} from "../lib/blog/posts";
 
 const BASE_URL = "https://www.praedixa.com";
 const DEFAULT_LAST_MODIFIED = new Date().toISOString();
@@ -56,6 +60,33 @@ function localizedEntry(
 export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = [];
   const serpSlugs = getSerpResourceSlugs();
+  const publishedBlogPosts = getPublishedBlogPosts();
+
+  function buildBlogAlternates(
+    slug: string,
+    fallbackLocale: (typeof locales)[number],
+  ): Record<string, string> {
+    const sameSlugPosts = publishedBlogPosts.filter((post) => post.slug === slug);
+    const frPost = sameSlugPosts.find((post) => post.locale === "fr");
+    const enPost = sameSlugPosts.find((post) => post.locale === "en");
+    const fallbackPath = `${BASE_URL}${buildBlogPostPath(fallbackLocale, slug)}`;
+
+    const languages: Record<string, string> = {
+      "x-default": frPost
+        ? `${BASE_URL}${buildBlogPostPath("fr", frPost.slug)}`
+        : fallbackPath,
+    };
+
+    if (frPost) {
+      languages["fr-FR"] = `${BASE_URL}${buildBlogPostPath("fr", frPost.slug)}`;
+    }
+
+    if (enPost) {
+      languages.en = `${BASE_URL}${buildBlogPostPath("en", enPost.slug)}`;
+    }
+
+    return languages;
+  }
 
   for (const locale of locales) {
     entries.push(localizedEntry(locale, "/fr", "/en", 1, "weekly"));
@@ -123,6 +154,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
         ),
       );
     }
+
+    entries.push(
+      localizedEntry(locale, "/fr/blog", "/en/blog", 0.8, "weekly"),
+    );
   }
 
   for (const slug of serpSlugs) {
@@ -137,6 +172,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
           "fr-FR": url,
           "x-default": url,
         },
+      },
+    });
+  }
+
+  for (const post of publishedBlogPosts) {
+    const path = buildBlogPostPath(post.locale, post.slug);
+    entries.push({
+      url: `${BASE_URL}${path}`,
+      lastModified: post.date,
+      changeFrequency: "monthly",
+      priority: 0.7,
+      alternates: {
+        languages: buildBlogAlternates(post.slug, post.locale),
       },
     });
   }

@@ -104,6 +104,14 @@ describe("landing proxy", () => {
     );
   });
 
+  it("redirects /blog to the localized french blog index", async () => {
+    const req = makeRequest("/blog");
+    const result = await proxy(req);
+
+    expect(result.status).toBe(301);
+    expect(result.headers.get("location")).toBe("http://localhost:3001/fr/blog");
+  });
+
   it("sets CSP header on locale-prefixed pages", async () => {
     const req = makeRequest("/fr");
     const result = await proxy(req);

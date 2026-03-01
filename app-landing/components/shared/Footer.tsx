@@ -15,6 +15,7 @@ interface FooterProps {
 export function Footer({ locale, dict }: FooterProps) {
   const pilotHref = getLocalizedPath(locale, "pilot");
   const servicesHref = getLocalizedPath(locale, "services");
+  const blogHref = `/${locale}/blog`;
   const contactHref = getLocalizedPath(locale, "contact");
   const legalHref = getLocalizedPath(locale, "legal");
   const privacyHref = getLocalizedPath(locale, "privacy");
@@ -26,6 +27,7 @@ export function Footer({ locale, dict }: FooterProps) {
     { label: dict.nav.problem, href: `/${locale}#problem` },
     { label: dict.nav.method, href: `/${locale}#solution` },
     { label: dict.nav.services, href: servicesHref },
+    { label: "Blog", href: blogHref },
     { label: dict.nav.howItWorks, href: `/${locale}#how-it-works` },
     { label: dict.nav.security, href: securityHref },
     { label: dict.nav.faq, href: `/${locale}#faq` },

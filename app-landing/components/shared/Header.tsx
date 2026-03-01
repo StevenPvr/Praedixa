@@ -59,6 +59,7 @@ function resolveNavLabel(
 export function Header({ locale, dict }: HeaderProps) {
   const pilotHref = getLocalizedPath(locale, "pilot");
   const servicesHref = getLocalizedPath(locale, "services");
+  const blogHref = `/${locale}/blog`;
 
   return (
     <header className="sticky top-0 z-30 border-b border-neutral-200/65 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,255,255,0.86))] backdrop-blur-xl">
@@ -89,6 +90,14 @@ export function Header({ locale, dict }: HeaderProps) {
                 className="inline-flex rounded-full px-3.5 py-2 text-[13px] font-medium tracking-[-0.01em] text-neutral-700 no-underline transition-all duration-200 hover:bg-neutral-100 hover:text-ink"
               >
                 {dict.nav.services}
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={blogHref}
+                className="inline-flex rounded-full px-3.5 py-2 text-[13px] font-medium tracking-[-0.01em] text-neutral-700 no-underline transition-all duration-200 hover:bg-neutral-100 hover:text-ink"
+              >
+                Blog
               </Link>
             </li>
             {navAnchors.map((key) => (

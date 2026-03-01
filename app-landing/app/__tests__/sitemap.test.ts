@@ -41,6 +41,19 @@ describe("sitemap()", () => {
     expect(urls).toContain("https://www.praedixa.com/en/services");
   });
 
+  it("should include blog index in both locales", () => {
+    const urls = result.map((entry) => entry.url);
+    expect(urls).toContain("https://www.praedixa.com/fr/blog");
+    expect(urls).toContain("https://www.praedixa.com/en/blog");
+  });
+
+  it("should include published blog posts", () => {
+    const urls = result.map((entry) => entry.url);
+    expect(urls).toContain(
+      "https://www.praedixa.com/fr/blog/sous-sureeffectif-multi-sites-methode-j3-j7-j14",
+    );
+  });
+
   it("should include quick-service restaurant sector pages in both locales", () => {
     const urls = result.map((entry) => entry.url);
     expect(urls).toContain(

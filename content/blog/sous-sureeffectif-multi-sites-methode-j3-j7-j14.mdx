@@ -1,0 +1,275 @@
+---
+title: "Sous/sureeffectif multi-sites: decider a J+3/J+7/J+14"
+description: "Cadre concret pour detecter les risques de sous/sureffectif a J+3, J+7, J+14, choisir une action, puis tracer l'impact en gouvernance Ops/DAF."
+date: "2026-03-01"
+tags: ["workforce-planning", "operations", "multi-sites", "forecasting", "governance", "risk"]
+draft: false
+canonical: "https://www.praedixa.com/fr/blog/sous-sureeffectif-multi-sites-methode-j3-j7-j14"
+image: "/og-image.png"
+authors: ["Praedixa"]
+lang: "fr"
+---
+
+Le sous-effectif n'arrive pas le jour J.
+Il s'installe quand la decision arrive trop tard.
+
+Le sureffectif suit la meme logique.
+Vous payez, mais vous ne savez pas quoi couper.
+
+Vous pouvez piloter ces deux risques avec une boucle courte.
+Trois horizons suffisent: J+3, J+7, J+14.
+
+## TL;DR
+
+- Alignez une definition simple de la charge, de la capacite et de la criticite.
+- Separez le signal (risque) de la decision (action possible a l'horizon).
+- Utilisez une matrice J+3/J+7/J+14 pour trier les sites en 15 minutes.
+- Consignez chaque arbitrage dans un Decision Log.
+- Mesurez l'impact avec une baseline et une comparaison "0% action".
+- Fixez un garde-fou fatigue avant d'utiliser l'overtime comme reflexe.
+
+## Ce que vous pilotez vraiment: un risque, pas un effectif
+
+La planification des effectifs vise a aligner besoins futurs et ressources. [1] [2]
+Les guides RH la decrivent comme un processus continu, pas un exercice annuel. [1] [2]
+
+En multi-sites, la variable utile n'est pas "combien de personnes".
+C'est un risque de sous-couverture a un horizon donne.
+
+ISO definit le risque comme l'effet de l'incertitude sur des objectifs. [3]
+Votre objectif n'est pas "un planning".
+Votre objectif est "un service tenu, a cout defendable".
+
+Posez trois definitions stables.
+Sans elles, vous comparez des choses incomparables.
+
+- Charge: volume attendu converti en travail (heures, lignes, commandes).
+- Capacite mobilisable: heures reelles, apres contraintes et indisponibilites.
+- Criticite: cout d'un ecart (service, securite, finance, image).
+
+## Les 3 modes d'echec qui creent la rupture
+
+### 1) La decision arrive trop tard
+
+A J-0, il reste souvent un seul levier.
+Vous "mettez des heures" et vous esperez.
+
+Ce levier a un cout et un risque.
+Les organismes de sante et securite lient les longues durees de travail a plus de fatigue. [6] [7]
+Ils documentent aussi des risques sante accrus en cas d'heures tres longues. [8]
+
+### 2) Vous ne comparez pas les options sur une base commune
+
+Sans cadre, vous ne comparez pas "des actions".
+Vous comparez des opinions.
+
+Le terrain parle service.
+La finance parle cout.
+Vous avez besoin d'un format commun.
+
+### 3) Rien ne trace l'avant/apres
+
+Sans trace, le comite rejoue le meme debat.
+Vous perdez du temps et vous perdez la confiance.
+
+Un journal de decision simple suffit.
+Il doit lier contexte, hypothese, action et mesure.
+
+> Repere France (statistique).
+> DARES estime 10,4 millions de salaries, soit environ 10 a 11 millions, avec au moins un horaire atypique sur 4 semaines (France, 2021). [9]
+> Hypothese: definition DARES "au moins une fois" sur 4 semaines. Confiance: H.
+
+## La matrice J+3 / J+7 / J+14 pour trier et agir
+
+Plus l'horizon s'allonge, plus l'incertitude augmente.
+Les intervalles de prevision s'elargissent avec l'horizon. [4]
+
+Ne forcez pas un detail faux.
+Changez plutot de type de decision selon l'horizon.
+
+| Horizon | But | Decisions encore possibles | Donnees minimales | Sortie attendue |
+| --- | --- | --- | --- | --- |
+| J+3 | Eviter la rupture | Ajuster planning, activer vivier, micro-reallocation | absences connues, pics attendus, contraintes du jour | liste courte des sites a proteger + action immediate |
+| J+7 | Acheter de la marge | Renfort cible, transferts inter-sites, arbitrage service/cout | trajectoire de charge, capacite mobilisable, rigidites | top risques par criticite + options comparees |
+| J+14 | Reduire la variance | Lisser activite, reconfigurer regles, planifier recrutement | tendance, variabilite, limites structurelles | decisions structurelles a valider en gouvernance |
+
+Si vous n'avez pas de boucle simple, partez par une [prevision charge et capacite a court horizon](/fr/prevision-charge-capacite-court-horizon).
+
+### Ce que vous figez a chaque horizon
+
+J+3, c'est l'urgence.
+Vous cherchez a tenir le service sans casser la semaine.
+
+- Validez les plages vraiment critiques.
+- Appliquez vos garde-fous fatigue avant d'ajouter des heures. [6] [7]
+- Ecrivez la decision en une phrase, pas en 12 messages.
+
+J+7, c'est l'arbitrage.
+Vous pouvez encore deplacer des moyens.
+
+- Comparez deux options, pas cinq.
+- Justifiez cout vs service avec une hypothese visible.
+- Bloquez une decision par site, meme si elle est imparfaite.
+
+J+14, c'est la stabilisation.
+Vous cherchez a reduire la variance, pas a courir plus vite.
+
+- Changez une regle, pas dix.
+- Clarifiez ce qui declenche un renfort.
+- Planifiez ce que vous allez mesurer, avant d'agir.
+
+## Donnees minimales: un fichier, pas une usine
+
+Vous n'avez pas besoin d'une refonte SI.
+Vous avez besoin d'un format commun, stable, partage.
+
+Commencez par un fichier hebdo.
+Il doit etre lisible en comite Ops/DAF.
+
+Champs minimaux, par site et par horizon:
+
+- Site (ou zone) + metier.
+- Horizon (J+3, J+7, J+14).
+- Charge attendue (unite explicite).
+- Capacite mobilisable (meme unite).
+- Ecart (capacite - charge).
+- Criticite (1 a 3).
+- 2 options maximum, deja autorisees.
+- Owner Ops + owner Finance.
+
+Vous pouvez le tenir en tableur.
+La valeur vient de la boucle, pas de l'outil. [1] [2]
+
+Ce que vous ne faites pas:
+
+- Vous ne predisez pas au niveau individuel.
+- Vous ne remplacez pas votre outil de planning.
+- Vous ne pilotez pas 30 KPI a la fois.
+
+## Un score de risque simple, comparable, et actionnable
+
+Ne cherchez pas un modele parfait.
+Cherchez un score qui tient en revue.
+
+Vous pouvez utiliser trois facteurs.
+Ils collent a la definition ISO: objectif, incertitude, effet. [3]
+
+Score = Exposition x Criticite x Incertitude.
+Notez chaque facteur de 1 a 5.
+
+- Exposition: taille de l'ecart capacite/charge a l'horizon.
+- Criticite: cout d'un ecart au meme horizon.
+- Incertitude: volatilite de la charge et stabilite des effectifs.
+
+Regle de tri.
+Traitez d'abord les sites avec forte criticite, meme si l'ecart est faible.
+
+Garde-fou operations.
+Quand la capacite est proche du plafond, de petites variations creent de gros retards.
+C'est un resultat classique des systemes en "heavy traffic". [5]
+
+## La revue hebdo en 30 minutes (et ce qu'elle doit produire)
+
+Votre but n'est pas de faire un "point".
+Votre but est de sortir des decisions.
+
+Tenez un rituel court, chaque semaine.
+Gardez le meme ordre du jour.
+
+Avant la reunion (15 minutes):
+
+- L'owner Ops prepare la liste "Top risques" par horizon.
+- L'owner Finance verifie les hypotheses cout/service.
+- Vous refusez les discussions sans option.
+
+Pendant la reunion (30 minutes):
+
+1) Validez le top 3 des sites a proteger.
+2) Prenez une decision par site.
+3) Notez deux hypotheses maximum.
+4) Fixez la mesure a suivre la semaine suivante.
+
+Sortie attendue (une page):
+
+- 3 a 10 decisions, pas plus.
+- Le Decision Log mis a jour.
+- Une liste courte de questions a trancher (si besoin).
+
+## Decision Log: rendre l'arbitrage defendable
+
+Ne cherchez pas a tout tracer.
+Tracez ce qui change la facture ou le service.
+
+Format minimal, une ligne par decision.
+Gardez le meme format pour tous les sites.
+
+```text
+Date:
+Horizon: J+3 | J+7 | J+14
+Site / zone:
+Risque (score):
+Options comparees:
+Decision retenue:
+Hypotheses (2 max):
+Mesure (avant/apres):
+Owner:
+```
+
+La mesure doit comparer, pas raconter.
+Utilisez une baseline (BAU) et une comparaison "0% action".
+Ajoutez un scenario "100% recommande" si vous le pouvez.
+
+Trois regles evitent les fausses preuves:
+
+- Comparez a charge equivalente (jour, saison, promo).
+- Seule une chose change: l'action de couverture.
+- Documentez les exceptions, sinon elles deviennent la norme.
+
+Sans [preuve d'impact operationnelle](/fr/preuve-impact-operations), le debat revient chaque semaine au point de depart.
+
+## Mise en place en 2 semaines, sans refonte SI
+
+Objectif: une revue hebdo qui sort des decisions.
+Vous pouvez la monter avec des exports agreges.
+
+Checklist de depart:
+
+- Choisissez une unite commune (heures, quarts, ETP) par metier.
+- Definissez la criticite en trois niveaux, pas plus.
+- Fixez les seuils d'alerte par horizon (J+3, J+7, J+14).
+- Construisez une liste d'options autorisees par metier.
+- Decideur: un owner Ops et un owner Finance.
+- Sortie: une page "Top risques + decisions" par semaine.
+- Mesure: une metrique service + une metrique cout, stables.
+- Trace: Decision Log unique, pas un email.
+- Revue: 30 minutes, cadence fixe, meme si "tout va bien".
+- Retro: 10 minutes pour corriger les seuils, pas pour se justifier.
+
+Cote DAF, commencez par [calculer le cout de la sous-couverture](/fr/calculer-cout-sous-couverture) avec des hypotheses explicites.
+
+Ensuite, formalisez un [playbook options de renfort et reaffectation](/fr/playbook-options-renfort-reaffectation) pour eviter les decisions improvisees.
+
+Dernier garde-fou.
+Les organismes de prevention recommandent de limiter les changements brusques de rythmes.
+Ils rappellent aussi l'importance de la recuperation. [7] [10]
+
+## Prochaines etapes
+
+1) Prenez 10 sites.
+2) Faites tourner la matrice J+3/J+7/J+14 pendant 4 semaines.
+3) Conservez un Decision Log unique et relisez-le chaque vendredi.
+
+Si vous voulez installer cette boucle avec un cadre de gouvernance, vous pouvez demander un pilote.
+
+## References
+
+1. Workforce planning (Factsheet). CIPD, 2025. https://www.cipd.org/en/knowledge/factsheets/workforce-planning-factsheet/ (acces: 2026-03-01)
+2. Workforce Planning Guide. Chief Human Capital Officers Council (CHCOC), 2022. https://www.chcoc.gov/content/workforce-planning-guide (acces: 2026-03-01)
+3. ISO 31000:2018 has now published. ISO/TC 262, 2018. https://committee.iso.org/sites/tc262/home/projects/iso-31000---risk-management.html (acces: 2026-03-01)
+4. Forecasting: Principles and Practice (3rd ed.) - Prediction intervals. Hyndman & Athanasopoulos, 2021. https://otexts.com/fpp3/prediction-intervals.html (acces: 2026-03-01)
+5. On Queues in Heavy Traffic. J.F.C. Kingman, 1962. https://academic.oup.com/jrsssb/article/24/2/383/7035157 (acces: 2026-03-01)
+6. Overtime and Extended Work Shifts. OSHA, n.d. https://www.osha.gov/emergency-preparedness/guides/extended-unusual-work-shifts (acces: 2026-03-01)
+7. Worker Fatigue. OSHA, n.d. https://www.osha.gov/worker-fatigue (acces: 2026-03-01)
+8. Long working hours increasing deaths from heart disease and stroke - WHO, ILO. WHO, 2021. https://www.who.int/news/item/17-05-2021-long-working-hours-increasing-deaths-from-heart-disease-and-stroke-who-ilo (acces: 2026-03-01)
+9. Le travail en horaires atypiques en 2021. DARES, 2022. https://dares.travail-emploi.gouv.fr/sites/default/files/9ecbd7771cb5901b009b74fc253e5623/DR%20travail_horaires%20atypiques_2021.pdf (acces: 2026-03-01)
+10. Horaires atypiques: quels conseils pour les organiser? INRS, 2025. https://www.inrs.fr/faq/horaires-atypiques-conseils-organiser.html (acces: 2026-03-01)

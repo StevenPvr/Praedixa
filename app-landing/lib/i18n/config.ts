@@ -18,6 +18,7 @@ export const localizedSlugs = {
   about: { fr: "a-propos", en: "about" },
   security: { fr: "securite", en: "security" },
   resources: { fr: "ressources", en: "resources" },
+  blog: { fr: "blog", en: "blog" },
   pillarCapacity: {
     fr: "capacite-sous-couverture",
     en: "capacity-coverage-gap",
