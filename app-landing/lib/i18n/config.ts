@@ -11,6 +11,7 @@ export const localizedSlugs = {
   demo: { fr: "demo", en: "demo" },
   pilot: { fr: "devenir-pilote", en: "pilot-application" },
   contact: { fr: "contact", en: "contact" },
+  services: { fr: "services", en: "services" },
   legal: { fr: "mentions-legales", en: "legal-notice" },
   privacy: { fr: "confidentialite", en: "privacy-policy" },
   terms: { fr: "cgu", en: "terms" },

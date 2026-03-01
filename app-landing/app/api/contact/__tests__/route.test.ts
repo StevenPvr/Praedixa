@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createContactChallenge } from "../../../../lib/security/contact-challenge";
 
 vi.mock("next/server", () => ({
   NextResponse: {
@@ -11,6 +12,11 @@ vi.mock("next/server", () => ({
 }));
 
 function validBody(overrides: Record<string, unknown> = {}) {
+  const challenge = createContactChallenge(Date.now() - 5_000);
+  if (!challenge) {
+    throw new Error("Unable to create contact challenge in tests");
+  }
+
   return {
     locale: "fr",
     requestType: "founding_pilot",
@@ -24,10 +30,8 @@ function validBody(overrides: Record<string, unknown> = {}) {
     message: "Bonjour, ceci est un message de test suffisamment long.",
     consent: true,
     website: "",
-    captchaA: 2,
-    captchaB: 3,
-    captchaAnswer: 5,
-    formStartedAt: Date.now() - 5_000,
+    challengeToken: challenge.challengeToken,
+    captchaAnswer: challenge.captchaA + challenge.captchaB,
     ...overrides,
   };
 }
@@ -84,6 +88,17 @@ describe("POST /api/contact", () => {
     });
   });
 
+  it("returns 403 when source headers are missing", async () => {
+    const request = makeRequest(validBody());
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({
+      error: "Origine de requête non autorisée.",
+    });
+  });
+
   it("returns 200 silently when honeypot field is filled", async () => {
     const request = makeRequest(
       validBody({ website: "https://spam.example" }),
@@ -108,12 +123,13 @@ describe("POST /api/contact", () => {
   });
 
   it("returns 400 when form was submitted too quickly", async () => {
-    const request = makeRequest(
-      validBody({ formStartedAt: Date.now() - 100 }),
-      {
-        origin: "http://localhost:3000",
-      },
-    );
+    const challenge = createContactChallenge(Date.now() - 100);
+    if (!challenge) throw new Error("Unable to create fast challenge");
+
+    const request = makeRequest(validBody({
+      challengeToken: challenge.challengeToken,
+      captchaAnswer: challenge.captchaA + challenge.captchaB,
+    }), { origin: "http://localhost:3000" });
 
     const response = await POST(request);
 
@@ -122,10 +138,13 @@ describe("POST /api/contact", () => {
   });
 
   it("returns 400 when form is older than allowed window", async () => {
-    const request = makeRequest(
-      validBody({ formStartedAt: Date.now() - 1000 * 60 * 60 * 5 }),
-      { origin: "http://localhost:3000" },
-    );
+    const challenge = createContactChallenge(Date.now() - 1000 * 60 * 60 * 5);
+    if (!challenge) throw new Error("Unable to create expired challenge");
+
+    const request = makeRequest(validBody({
+      challengeToken: challenge.challengeToken,
+      captchaAnswer: challenge.captchaA + challenge.captchaB,
+    }), { origin: "http://localhost:3000" });
 
     const response = await POST(request);
 

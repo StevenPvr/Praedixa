@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 <prod>" >&2
+  echo "Usage: $0 <staging|prod>" >&2
   exit 1
 fi
 
@@ -10,6 +10,10 @@ ENV="$1"
 REGION="fr-par"
 
 case "$ENV" in
+  staging)
+    NAMESPACE_NAME="landing-staging"
+    CONTAINER_NAME="landing-staging"
+    ;;
   prod)
     NAMESPACE_NAME="landing-prod"
     CONTAINER_NAME="landing-web"

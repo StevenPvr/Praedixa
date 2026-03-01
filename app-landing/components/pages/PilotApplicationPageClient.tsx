@@ -1,20 +1,22 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
-  PaperPlaneRight,
-  CheckCircle,
-  WarningCircle,
-  SpinnerGap,
   ArrowLeft,
-  Clock,
   ArrowRight,
+  CheckCircle,
+  Clock,
+  PaperPlaneRight,
+  Sparkle,
+  SpinnerGap,
+  WarningCircle,
 } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import { PulseDot } from "../shared/motion/PulseDot";
+import { ShimmerTrack } from "../shared/motion/ShimmerTrack";
 
 interface PilotFormData {
   companyName: string;
@@ -33,7 +35,9 @@ interface PilotFormData {
   website: string;
 }
 
-const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
+function toList(value: string[] | null | undefined): string[] {
+  return Array.isArray(value) ? value : [];
+}
 
 export function PilotApplicationPageClient({
   locale,
@@ -44,8 +48,14 @@ export function PilotApplicationPageClient({
 }) {
   const isFr = locale === "fr";
   const f = dict.form;
-  const field = (key: string) =>
-    f.fields[key] ?? { label: key, placeholder: "" };
+  const field = (key: string) => f.fields[key] ?? { label: key, placeholder: "" };
+
+  const sectors = toList(f.sectors);
+  const employeeRanges = toList(f.employeeRanges);
+  const siteCounts = toList(f.siteCounts);
+  const roles = toList(f.roles);
+  const timelines = toList(f.timelines);
+  const valuePoints = toList(f.valuePoints);
 
   const [form, setForm] = useState<PilotFormData>({
     companyName: "",
@@ -64,10 +74,41 @@ export function PilotApplicationPageClient({
     website: "",
   });
 
-  const [status, setStatus] = useState<
-    "idle" | "submitting" | "success" | "error"
-  >("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+
+  const ui =
+    isFr
+      ? {
+          backToSite: "Retour au site",
+          formKicker: "Demande de pilote",
+          optionFallback: "Option indisponible",
+          missingTitle: "Configuration de formulaire indisponible",
+          missingBody:
+            "Certaines options necessaires au formulaire sont manquantes. Reessayez dans quelques minutes.",
+          requiredHint: "Les champs marques d'un asterisque sont requis.",
+          legalJoinA: "J'accepte les ",
+          legalJoinB: " et la ",
+          unknownError: "Erreur inconnue.",
+          networkError: "Erreur reseau. Veuillez reessayer.",
+        }
+      : {
+          backToSite: "Back to site",
+          formKicker: "Pilot request",
+          optionFallback: "No option available",
+          missingTitle: "Form configuration unavailable",
+          missingBody:
+            "Some required form options are missing. Please retry in a few minutes.",
+          requiredHint: "Fields marked with an asterisk are required.",
+          legalJoinA: "I accept the ",
+          legalJoinB: " and the ",
+          unknownError: "Unknown error.",
+          networkError: "Network error. Please try again.",
+        };
+
+  const update = useCallback((key: keyof PilotFormData, value: string | boolean) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
   const isSubmitDisabled =
     status === "submitting" ||
@@ -77,12 +118,7 @@ export function PilotApplicationPageClient({
     form.email.trim().length === 0 ||
     !form.consent;
 
-  const update = useCallback(
-    (key: keyof PilotFormData, value: string | boolean) => {
-      setForm((prev) => ({ ...prev, [key]: value }));
-    },
-    [],
-  );
+  const hasCoreOptions = sectors.length > 0 && employeeRanges.length > 0;
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -100,393 +136,493 @@ export function PilotApplicationPageClient({
         const data = (await res.json()) as { success?: boolean; error?: string };
 
         if (!res.ok || data.error) {
-          setErrorMsg(data.error ?? (isFr ? "Erreur inconnue." : "Unknown error."));
+          setErrorMsg(data.error ?? ui.unknownError);
           setStatus("error");
           return;
         }
 
         setStatus("success");
       } catch {
-        setErrorMsg(isFr ? "Erreur réseau. Veuillez réessayer." : "Network error. Please try again.");
+        setErrorMsg(ui.networkError);
         setStatus("error");
       }
     },
-    [form, isFr],
+    [form, ui.networkError, ui.unknownError],
   );
 
   const privacyHref = getLocalizedPath(locale, "privacy");
   const termsHref = getLocalizedPath(locale, "terms");
   const protocolHref = `/${locale}/pilot-protocol`;
+  const homeHref = `/${locale}`;
+
+  const inputClass =
+    "w-full rounded-xl border border-neutral-300/90 bg-white/95 px-3 py-2.5 text-sm text-ink outline-none transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] placeholder:text-neutral-400 focus:border-brass focus:ring-1 focus:ring-brass";
+  const legendClass =
+    "text-xs font-semibold uppercase tracking-[0.11em] text-neutral-500";
+
+  if (!hasCoreOptions) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 md:py-24">
+        <div className="rounded-[2rem] border border-neutral-200/80 bg-white/95 p-8 text-center shadow-[0_22px_46px_-40px_rgba(15,23,42,0.28),inset_0_1px_0_rgba(255,255,255,0.85)]">
+          <WarningCircle size={44} weight="fill" className="mx-auto text-neutral-500" />
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-ink">
+            {ui.missingTitle}
+          </h1>
+          <p className="mx-auto mt-3 max-w-[52ch] text-base leading-relaxed text-neutral-600">
+            {ui.missingBody}
+          </p>
+          <Link
+            href={homeHref}
+            className="mt-6 inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-neutral-400 hover:bg-neutral-50 active:-translate-y-[1px] active:scale-[0.99]"
+          >
+            <ArrowLeft size={16} />
+            {ui.backToSite}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (status === "success") {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: EASE }}
-        className="mx-auto max-w-lg px-4 py-20 text-center"
-      >
-        <CheckCircle size={48} weight="fill" className="mx-auto text-brass" />
-        <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink">
-          {f.success.title}
-        </h1>
-        <p className="mt-2 text-base text-neutral-500">{f.success.description}</p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href={`/${locale}`}
-            className="inline-flex items-center gap-2 text-sm font-medium text-brass no-underline hover:text-brass-600"
-          >
-            <ArrowLeft size={16} />
-            {f.success.backToSite}
-          </Link>
-          <Link
-            href={protocolHref}
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-ink no-underline transition-colors hover:bg-neutral-50"
-          >
-            {f.success.checkEmail}
-            <ArrowRight size={14} />
-          </Link>
+      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 md:py-24">
+        <div className="rounded-[2rem] border border-brass-200/80 bg-[linear-gradient(165deg,rgba(244,231,198,0.62)_0%,rgba(252,248,238,0.9)_72%,rgba(255,255,255,0.96)_100%)] p-8 text-center shadow-[0_22px_46px_-38px_rgba(32,24,4,0.45),inset_0_1px_0_rgba(255,255,255,0.82)] md:p-10">
+          <CheckCircle size={56} weight="fill" className="mx-auto text-brass-700" />
+          <h1 className="mt-5 text-3xl font-semibold tracking-tight text-ink md:text-4xl">
+            {f.success.title}
+          </h1>
+          <p className="mx-auto mt-3 max-w-[54ch] text-base leading-relaxed text-neutral-700">
+            {f.success.description}
+          </p>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href={homeHref}
+              className="inline-flex items-center gap-2 rounded-xl border border-brass-300 bg-white/80 px-4 py-2.5 text-sm font-semibold text-brass-800 no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-brass-400 hover:bg-white active:-translate-y-[1px] active:scale-[0.99]"
+            >
+              <ArrowLeft size={16} />
+              {f.success.backToSite}
+            </Link>
+            <Link
+              href={protocolHref}
+              className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-neutral-400 hover:bg-neutral-50 active:-translate-y-[1px] active:scale-[0.99]"
+            >
+              {f.success.checkEmail}
+              <ArrowRight size={14} />
+            </Link>
+          </div>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <div className="mx-auto grid max-w-5xl grid-cols-1 gap-12 px-4 py-16 sm:px-6 md:grid-cols-[1fr_1.5fr] md:py-24 lg:px-8">
-      <div>
-        <span className="inline-flex rounded-full border border-brass-200 bg-brass-50 px-3 py-1 text-xs font-semibold text-brass-700">
-          {f.pill}
-        </span>
-        <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
-          {f.pageTitle}
-        </h1>
-        <p className="mt-3 max-w-sm text-sm leading-relaxed text-neutral-500">
-          {f.pageSubtitle}
-        </p>
-        <Link
-          href={`/${locale}`}
-          className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brass no-underline hover:text-brass-600"
-        >
-          <ArrowLeft size={14} />
-          {isFr ? "Retour au site" : "Back to site"}
-        </Link>
-
-        <ul className="mt-6 list-none space-y-2.5 p-0">
-          {f.valuePoints.map((point) => (
-            <li
-              key={point}
-              className="m-0 flex items-start gap-2 text-sm text-neutral-600"
-            >
-              <CheckCircle
-                size={16}
-                weight="fill"
-                className="mt-0.5 shrink-0 text-brass-300"
-              />
-              {point}
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-6 flex items-center gap-2 text-xs text-neutral-400">
-          <Clock size={14} />
-          {f.estimatedTime}: {f.estimatedTimeValue}
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        <input
-          type="text"
-          name="website"
-          value={form.website}
-          onChange={(e) => update("website", e.target.value)}
-          className="sr-only"
-          tabIndex={-1}
-          autoComplete="off"
-          aria-hidden="true"
-        />
-
-        <fieldset className="space-y-4">
-          <legend className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
-            {f.fieldsets.organisation}
-          </legend>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="pilot-companyName" className="mb-1.5 block text-sm font-medium text-ink">
-                {field("companyName").label} *
-              </label>
-              <input
-                id="pilot-companyName"
-                name="companyName"
-                type="text"
-                required
-                maxLength={200}
-                placeholder={field("companyName").placeholder}
-                value={form.companyName}
-                onChange={(e) => update("companyName", e.target.value)}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-neutral-300 focus:border-brass focus:ring-1 focus:ring-brass"
-              />
-            </div>
-            <div>
-              <label htmlFor="pilot-sector" className="mb-1.5 block text-sm font-medium text-ink">
-                {field("sector").label} *
-              </label>
-              <select
-                id="pilot-sector"
-                name="sector"
-                required
-                value={form.sector}
-                onChange={(e) => update("sector", e.target.value)}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
-              >
-                <option value="">{f.select}</option>
-                {f.sectors.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="pilot-employeeRange" className="mb-1.5 block text-sm font-medium text-ink">
-                {field("employeeRange").label} *
-              </label>
-              <select
-                id="pilot-employeeRange"
-                name="employeeRange"
-                required
-                value={form.employeeRange}
-                onChange={(e) => update("employeeRange", e.target.value)}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
-              >
-                <option value="">{f.select}</option>
-                {f.employeeRanges.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="pilot-siteCount" className="mb-1.5 block text-sm font-medium text-ink">
-                {field("siteCount").label}
-              </label>
-              <select
-                id="pilot-siteCount"
-                name="siteCount"
-                value={form.siteCount}
-                onChange={(e) => update("siteCount", e.target.value)}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
-              >
-                <option value="">{f.select}</option>
-                {f.siteCounts.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </fieldset>
-
-        <fieldset className="space-y-4">
-          <legend className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
-            {f.fieldsets.contact}
-          </legend>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="pilot-firstName" className="mb-1.5 block text-sm font-medium text-ink">
-                {field("firstName").label}
-              </label>
-              <input
-                id="pilot-firstName"
-                name="firstName"
-                type="text"
-                maxLength={100}
-                value={form.firstName}
-                onChange={(e) => update("firstName", e.target.value)}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
-              />
-            </div>
-            <div>
-              <label htmlFor="pilot-lastName" className="mb-1.5 block text-sm font-medium text-ink">
-                {field("lastName").label}
-              </label>
-              <input
-                id="pilot-lastName"
-                name="lastName"
-                type="text"
-                maxLength={100}
-                value={form.lastName}
-                onChange={(e) => update("lastName", e.target.value)}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
-              />
-            </div>
-          </div>
-
+    <div className="mx-auto max-w-[1400px] px-4 py-14 sm:px-6 md:py-20 lg:px-8">
+      <div className="grid grid-cols-1 gap-7 md:grid-cols-[0.7fr_1.3fr] md:gap-10">
+        <aside className="space-y-6 md:pt-2">
           <div>
-            <label htmlFor="pilot-role" className="mb-1.5 block text-sm font-medium text-ink">
-              {field("role").label}
-            </label>
-            <select
-              id="pilot-role"
-              name="role"
-              value={form.role}
-              onChange={(e) => update("role", e.target.value)}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
+            <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-brass-700">
+              <Sparkle size={14} weight="fill" />
+              {ui.formKicker}
+            </span>
+            <h1 className="mt-4 max-w-[18ch] text-4xl font-bold leading-none tracking-tighter text-ink md:text-6xl">
+              {f.pageTitle}
+            </h1>
+            <p className="mt-5 max-w-[54ch] text-base leading-relaxed text-neutral-600">
+              {f.pageSubtitle}
+            </p>
+            <Link
+              href={homeHref}
+              className="mt-5 inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white/85 px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-neutral-400 hover:bg-white active:-translate-y-[1px] active:scale-[0.99]"
             >
-              <option value="">{f.select}</option>
-              {f.roles.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
+              <ArrowLeft size={15} />
+              {ui.backToSite}
+            </Link>
+          </div>
+
+          <section className="rounded-[1.75rem] border border-brass-200/80 bg-brass-50/75 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] md:p-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.11em] text-brass-800">
+              {f.pill}
+            </p>
+            <ul className="mt-4 list-none space-y-2.5 p-0">
+              {valuePoints.map((point) => (
+                <li key={point} className="m-0 flex items-start gap-2.5 text-sm text-neutral-700">
+                  <CheckCircle
+                    size={16}
+                    weight="fill"
+                    className="mt-0.5 shrink-0 text-brass-600"
+                  />
+                  {point}
+                </li>
               ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="pilot-email" className="mb-1.5 block text-sm font-medium text-ink">
-                {field("email").label} *
-              </label>
-              <input
-                id="pilot-email"
-                name="email"
-                type="email"
-                required
-                maxLength={254}
-                placeholder={field("email").placeholder}
-                value={form.email}
-                onChange={(e) => update("email", e.target.value)}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-neutral-300 focus:border-brass focus:ring-1 focus:ring-brass"
-              />
+            </ul>
+            <div className="mt-5 flex items-center gap-2 text-xs text-neutral-600">
+              <Clock size={14} className="text-brass-700" />
+              <span>
+                {f.estimatedTime}: {f.estimatedTimeValue}
+              </span>
             </div>
-            <div>
-              <label htmlFor="pilot-phone" className="mb-1.5 block text-sm font-medium text-ink">
-                {field("phone").label}
-              </label>
-              <input
-                id="pilot-phone"
-                name="phone"
-                type="tel"
-                maxLength={30}
-                placeholder={field("phone").placeholder}
-                value={form.phone}
-                onChange={(e) => update("phone", e.target.value)}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-neutral-300 focus:border-brass focus:ring-1 focus:ring-brass"
-              />
-            </div>
-          </div>
-        </fieldset>
+            <ShimmerTrack className="mt-4 bg-brass-100/80" indicatorClassName="via-brass-500/60" />
+          </section>
 
-        <fieldset className="space-y-4">
-          <legend className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
-            {f.fieldsets.challenges}
-          </legend>
-
-          <div>
-            <label htmlFor="pilot-timeline" className="mb-1.5 block text-sm font-medium text-ink">
-              {field("timeline").label}
-            </label>
-            <select
-              id="pilot-timeline"
-              name="timeline"
-              value={form.timeline}
-              onChange={(e) => update("timeline", e.target.value)}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brass focus:ring-1 focus:ring-brass"
+          <section className="rounded-[1.75rem] border border-neutral-200/80 bg-white/95 p-5 md:p-6">
+            <p className="text-sm leading-relaxed text-neutral-600">
+              {isFr
+                ? "Vous pouvez consulter le protocole complet avant la soumission."
+                : "You can review the complete pilot protocol before submitting."}
+            </p>
+            <Link
+              href={protocolHref}
+              className="mt-3 inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-neutral-400 hover:bg-neutral-50 active:-translate-y-[1px] active:scale-[0.99]"
             >
-              <option value="">{f.select}</option>
-              {f.timelines.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
+              {f.success.checkEmail}
+              <ArrowRight size={14} />
+            </Link>
+          </section>
+        </aside>
 
-          <div>
-            <label htmlFor="pilot-currentStack" className="mb-1.5 block text-sm font-medium text-ink">
-              {field("currentStack").label}
-            </label>
+        <section className="rounded-[2rem] border border-neutral-200/80 bg-white/95 p-6 shadow-[0_22px_46px_-40px_rgba(15,23,42,0.28),inset_0_1px_0_rgba(255,255,255,0.85)] md:p-8">
+          <header className="border-b border-neutral-200/80 pb-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <PulseDot className="h-2 w-2 bg-brass-500" />
+              <p className="text-xs font-semibold uppercase tracking-[0.1em] text-neutral-500">
+                {f.pageTitle}
+              </p>
+            </div>
+            <p className="mt-2 text-sm text-neutral-600">{ui.requiredHint}</p>
+          </header>
+
+          <form onSubmit={handleSubmit} className="mt-6 space-y-8" noValidate>
             <input
-              id="pilot-currentStack"
-              name="currentStack"
               type="text"
-              maxLength={300}
-              placeholder={field("currentStack").placeholder}
-              value={form.currentStack}
-              onChange={(e) => update("currentStack", e.target.value)}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-neutral-300 focus:border-brass focus:ring-1 focus:ring-brass"
+              name="website"
+              value={form.website}
+              onChange={(e) => update("website", e.target.value)}
+              className="sr-only"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
             />
-          </div>
 
-          <div>
-            <label htmlFor="pilot-painPoint" className="mb-1.5 block text-sm font-medium text-ink">
-              {field("painPoint").label}
-            </label>
-            <textarea
-              id="pilot-painPoint"
-              name="painPoint"
-              rows={4}
-              maxLength={1200}
-              placeholder={field("painPoint").placeholder}
-              value={form.painPoint}
-              onChange={(e) => update("painPoint", e.target.value)}
-              className="w-full resize-y rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-neutral-300 focus:border-brass focus:ring-1 focus:ring-brass"
-            />
-          </div>
-        </fieldset>
+            <fieldset className="space-y-4">
+              <legend className={legendClass}>{f.fieldsets.organisation}</legend>
 
-        <div className="flex items-start gap-2.5">
-          <input
-            id="pilot-consent"
-            type="checkbox"
-            checked={form.consent}
-            onChange={(e) => update("consent", e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-border text-brass accent-brass"
-          />
-          <label htmlFor="pilot-consent" className="text-sm text-neutral-600">
-            {isFr ? "J'accepte les " : "I accept the "}
-            <Link href={termsHref} className="text-brass hover:text-brass-600">
-              {f.cguLabel}
-            </Link>
-            {isFr ? " et la " : " and the "}
-            <Link href={privacyHref} className="text-brass hover:text-brass-600">
-              {f.privacyLabel}
-            </Link>
-            .
-          </label>
-        </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="pilot-companyName" className="mb-1.5 block text-sm font-medium text-ink">
+                    {field("companyName").label} *
+                  </label>
+                  <input
+                    id="pilot-companyName"
+                    name="companyName"
+                    type="text"
+                    required
+                    maxLength={200}
+                    placeholder={field("companyName").placeholder}
+                    value={form.companyName}
+                    onChange={(e) => update("companyName", e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="pilot-sector" className="mb-1.5 block text-sm font-medium text-ink">
+                    {field("sector").label} *
+                  </label>
+                  <select
+                    id="pilot-sector"
+                    name="sector"
+                    required
+                    value={form.sector}
+                    onChange={(e) => update("sector", e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">{f.select}</option>
+                    {sectors.length > 0 ? (
+                      sectors.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>
+                        {ui.optionFallback}
+                      </option>
+                    )}
+                  </select>
+                </div>
+              </div>
 
-        {status === "error" && errorMsg && (
-          <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            <WarningCircle size={18} weight="fill" className="mt-0.5 shrink-0" />
-            {errorMsg}
-          </div>
-        )}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="pilot-employeeRange"
+                    className="mb-1.5 block text-sm font-medium text-ink"
+                  >
+                    {field("employeeRange").label} *
+                  </label>
+                  <select
+                    id="pilot-employeeRange"
+                    name="employeeRange"
+                    required
+                    value={form.employeeRange}
+                    onChange={(e) => update("employeeRange", e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">{f.select}</option>
+                    {employeeRanges.length > 0 ? (
+                      employeeRanges.map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>
+                        {ui.optionFallback}
+                      </option>
+                    )}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="pilot-siteCount" className="mb-1.5 block text-sm font-medium text-ink">
+                    {field("siteCount").label}
+                  </label>
+                  <select
+                    id="pilot-siteCount"
+                    name="siteCount"
+                    value={form.siteCount}
+                    onChange={(e) => update("siteCount", e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">{f.select}</option>
+                    {siteCounts.length > 0 ? (
+                      siteCounts.map((count) => (
+                        <option key={count} value={count}>
+                          {count}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>
+                        {ui.optionFallback}
+                      </option>
+                    )}
+                  </select>
+                </div>
+              </div>
+            </fieldset>
 
-        <button
-          type="submit"
-          disabled={isSubmitDisabled}
-          className="btn-primary-gradient inline-flex w-full items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold text-white transition-all duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {status === "submitting" ? (
-            <>
-              <SpinnerGap size={16} className="animate-spin" />
-              {f.submitting}
-            </>
-          ) : (
-            <>
-              <PaperPlaneRight size={16} weight="bold" />
-              {f.submit}
-            </>
-          )}
-        </button>
-      </form>
+            <fieldset className="space-y-4 border-t border-neutral-200/80 pt-6">
+              <legend className={legendClass}>{f.fieldsets.contact}</legend>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="pilot-firstName" className="mb-1.5 block text-sm font-medium text-ink">
+                    {field("firstName").label}
+                  </label>
+                  <input
+                    id="pilot-firstName"
+                    name="firstName"
+                    type="text"
+                    maxLength={100}
+                    value={form.firstName}
+                    onChange={(e) => update("firstName", e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="pilot-lastName" className="mb-1.5 block text-sm font-medium text-ink">
+                    {field("lastName").label}
+                  </label>
+                  <input
+                    id="pilot-lastName"
+                    name="lastName"
+                    type="text"
+                    maxLength={100}
+                    value={form.lastName}
+                    onChange={(e) => update("lastName", e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="pilot-role" className="mb-1.5 block text-sm font-medium text-ink">
+                  {field("role").label}
+                </label>
+                <select
+                  id="pilot-role"
+                  name="role"
+                  value={form.role}
+                  onChange={(e) => update("role", e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="">{f.select}</option>
+                  {roles.length > 0 ? (
+                    roles.map((role) => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>
+                      {ui.optionFallback}
+                    </option>
+                  )}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="pilot-email" className="mb-1.5 block text-sm font-medium text-ink">
+                    {field("email").label} *
+                  </label>
+                  <input
+                    id="pilot-email"
+                    name="email"
+                    type="email"
+                    required
+                    maxLength={254}
+                    placeholder={field("email").placeholder}
+                    value={form.email}
+                    onChange={(e) => update("email", e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="pilot-phone" className="mb-1.5 block text-sm font-medium text-ink">
+                    {field("phone").label}
+                  </label>
+                  <input
+                    id="pilot-phone"
+                    name="phone"
+                    type="tel"
+                    maxLength={30}
+                    placeholder={field("phone").placeholder}
+                    value={form.phone}
+                    onChange={(e) => update("phone", e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset className="space-y-4 border-t border-neutral-200/80 pt-6">
+              <legend className={legendClass}>{f.fieldsets.challenges}</legend>
+
+              <div>
+                <label htmlFor="pilot-timeline" className="mb-1.5 block text-sm font-medium text-ink">
+                  {field("timeline").label}
+                </label>
+                <select
+                  id="pilot-timeline"
+                  name="timeline"
+                  value={form.timeline}
+                  onChange={(e) => update("timeline", e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="">{f.select}</option>
+                  {timelines.length > 0 ? (
+                    timelines.map((timeline) => (
+                      <option key={timeline} value={timeline}>
+                        {timeline}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>
+                      {ui.optionFallback}
+                    </option>
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="pilot-currentStack"
+                  className="mb-1.5 block text-sm font-medium text-ink"
+                >
+                  {field("currentStack").label}
+                </label>
+                <input
+                  id="pilot-currentStack"
+                  name="currentStack"
+                  type="text"
+                  maxLength={300}
+                  placeholder={field("currentStack").placeholder}
+                  value={form.currentStack}
+                  onChange={(e) => update("currentStack", e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="pilot-painPoint" className="mb-1.5 block text-sm font-medium text-ink">
+                  {field("painPoint").label}
+                </label>
+                <textarea
+                  id="pilot-painPoint"
+                  name="painPoint"
+                  rows={4}
+                  maxLength={1200}
+                  placeholder={field("painPoint").placeholder}
+                  value={form.painPoint}
+                  onChange={(e) => update("painPoint", e.target.value)}
+                  className={`${inputClass} resize-y`}
+                />
+              </div>
+            </fieldset>
+
+            <div className="flex items-start gap-2.5 border-t border-neutral-200/80 pt-4">
+              <input
+                id="pilot-consent"
+                type="checkbox"
+                checked={form.consent}
+                onChange={(e) => update("consent", e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-neutral-300 text-brass accent-brass"
+              />
+              <label htmlFor="pilot-consent" className="text-sm leading-relaxed text-neutral-600">
+                {ui.legalJoinA}
+                <Link href={termsHref} className="text-brass-700 no-underline hover:text-brass-800">
+                  {f.cguLabel}
+                </Link>
+                {ui.legalJoinB}
+                <Link
+                  href={privacyHref}
+                  className="text-brass-700 no-underline hover:text-brass-800"
+                >
+                  {f.privacyLabel}
+                </Link>
+                .
+              </label>
+            </div>
+
+            {status === "error" && errorMsg ? (
+              <div
+                className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                aria-live="polite"
+              >
+                <WarningCircle size={18} weight="fill" className="mt-0.5 shrink-0" />
+                {errorMsg}
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={isSubmitDisabled}
+              className="btn-primary-gradient inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] active:-translate-y-[1px] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {status === "submitting" ? (
+                <>
+                  <SpinnerGap size={16} className="animate-spin" />
+                  {f.submitting}
+                </>
+              ) : (
+                <>
+                  <PaperPlaneRight size={16} weight="bold" />
+                  {f.submit}
+                </>
+              )}
+            </button>
+          </form>
+        </section>
+      </div>
     </div>
   );
 }

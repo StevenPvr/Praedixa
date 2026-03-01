@@ -64,7 +64,7 @@ if command -v dig >/dev/null 2>&1; then
   fi
 fi
 
-for ns_name in webapp-staging admin-staging api-staging; do
+for ns_name in landing-staging webapp-staging admin-staging api-staging; do
   ns_status="$(printf '%s' "$NAMESPACES_JSON" | jq -r --arg n "$ns_name" '.[] | select(.name == $n) | .status' | head -n1)"
   if [ "$ns_status" = "ready" ]; then
     ok "Namespace ${ns_name} is ready"
@@ -141,6 +141,36 @@ check_api_container() {
   fi
 }
 
+check_landing_container() {
+  local name="$1"
+  local id env_json
+  id="$(get_container_id "$name")"
+  if [ -z "$id" ]; then
+    fail "Container ${name} is missing"
+    return
+  fi
+  env_json="$(scw container container get "$id" region="$REGION" -o json)"
+
+  if printf '%s' "$env_json" | jq -e '.environment_variables | has("CONTACT_API_BASE_URL")' >/dev/null; then
+    ok "${name}: env CONTACT_API_BASE_URL configured"
+  else
+    warn "${name}: env CONTACT_API_BASE_URL missing (contact form persistence disabled until configured)"
+  fi
+
+  if printf '%s' "$env_json" | jq -e '.secret_environment_variables[]? | select(.key == "CONTACT_API_INGEST_TOKEN")' >/dev/null; then
+    ok "${name}: secret CONTACT_API_INGEST_TOKEN configured"
+  else
+    warn "${name}: secret CONTACT_API_INGEST_TOKEN missing (contact form persistence disabled until configured)"
+  fi
+
+  if printf '%s' "$env_json" | jq -e '.secret_environment_variables[]? | select(.key == "RESEND_API_KEY")' >/dev/null; then
+    ok "${name}: secret RESEND_API_KEY configured"
+  else
+    warn "${name}: secret RESEND_API_KEY missing (email forms disabled until configured)"
+  fi
+}
+
+check_landing_container "landing-staging"
 check_frontend_container "webapp-staging"
 check_frontend_container "admin-staging"
 check_api_container "api-staging"
@@ -215,6 +245,7 @@ echo ""
 echo "Staging preflight passed with ${WARN_COUNT} warning(s)."
 echo "No deployment executed."
 echo "Next step when ready:"
+echo "  pnpm run scw:deploy:landing:staging"
 echo "  pnpm run scw:deploy:api:staging"
 echo "  pnpm run scw:deploy:webapp:staging"
 echo "  pnpm run scw:deploy:admin:staging"

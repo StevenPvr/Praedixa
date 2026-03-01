@@ -47,10 +47,10 @@ export default async function LandingPage({
   return (
     <>
       <HeroSection locale={locale} dict={dict} />
-      <ProblemSection dict={dict} />
+      <ProblemSection locale={locale} dict={dict} />
       <SolutionSection dict={dict} />
-      <HowItWorksSection dict={dict} />
-      <UseCasesSection dict={dict} />
+      <HowItWorksSection locale={locale} dict={dict} />
+      <UseCasesSection locale={locale} dict={dict} />
       <DeliverablesSection dict={dict} />
       <SecuritySection dict={dict} />
       <PilotSection locale={locale} dict={dict} />

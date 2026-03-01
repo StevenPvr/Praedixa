@@ -11,7 +11,7 @@ const config: NextConfig = {
   transpilePackages: ["@praedixa/ui", "@praedixa/shared-types"],
 
   experimental: {
-    optimizePackageImports: ["framer-motion", "three", "@react-three/drei"],
+    optimizePackageImports: ["three", "@react-three/drei"],
   },
 
   turbopack: {},

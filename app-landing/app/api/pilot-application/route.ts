@@ -10,6 +10,7 @@ import {
   hasTrustedFormOrigin,
   isCrossSiteRequest,
 } from "../../../lib/security/request-origin";
+import { logSecurityEvent, redactIpForLogs } from "../../../lib/security/audit-log";
 import { sendPilotEmails } from "../../../lib/api/pilot-application/email";
 
 let resend: Resend | null = null;
@@ -26,6 +27,8 @@ function getResend(): Resend {
 }
 
 export async function POST(request: Request) {
+  const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+
   try {
     const contentLength = request.headers.get("content-length");
     if (
@@ -40,13 +43,25 @@ export async function POST(request: Request) {
 
     const ip = getClientIp(request);
     if (isRateLimited(ip)) {
+      logSecurityEvent("pilot.rate_limited", {
+        requestId,
+        ip: redactIpForLogs(ip),
+      });
       return NextResponse.json(
         { error: "Trop de requêtes. Veuillez réessayer plus tard." },
         { status: 429 },
       );
     }
 
-    if (isCrossSiteRequest(request) || !hasTrustedFormOrigin(request)) {
+    if (
+      isCrossSiteRequest(request) ||
+      !hasTrustedFormOrigin(request, { requireSource: true })
+    ) {
+      logSecurityEvent("pilot.origin_rejected", {
+        requestId,
+        ip: redactIpForLogs(ip),
+        origin: request.headers.get("origin") ?? "",
+      });
       return NextResponse.json(
         { error: "Origine de requête non autorisée." },
         { status: 403 },
@@ -65,11 +80,19 @@ export async function POST(request: Request) {
     try {
       body = JSON.parse(rawText);
     } catch {
+      logSecurityEvent("pilot.invalid_json", {
+        requestId,
+        ip: redactIpForLogs(ip),
+      });
       return NextResponse.json({ error: "JSON invalide." }, { status: 400 });
     }
 
     const validation = validateRequestBody(body);
     if (!validation.valid) {
+      logSecurityEvent("pilot.validation_failed", {
+        requestId,
+        ip: redactIpForLogs(ip),
+      });
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
@@ -81,7 +104,11 @@ export async function POST(request: Request) {
     await sendPilotEmails(resendClient, validation.data, ip);
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    logSecurityEvent("pilot.unhandled_error", {
+      requestId,
+      error: error instanceof Error ? error.message : "unknown",
+    });
     return NextResponse.json(
       { error: "Erreur lors de l'envoi. Veuillez r\u00e9essayer." },
       { status: 500 },

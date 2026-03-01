@@ -3,6 +3,7 @@ import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
 import type { SerpResourceEntry } from "../../lib/content/serp-resources-fr";
 import { PRAEDIXA_BASE_URL } from "../../lib/seo/entity";
+import { serializeJsonForScriptTag } from "../../lib/security/json-script";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
 
@@ -74,12 +75,16 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
         <script
           id={`praedixa-breadcrumb-json-ld-${entry.slug}`}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: serializeJsonForScriptTag(breadcrumbJsonLd),
+          }}
         />
         <script
           id={`praedixa-article-json-ld-${entry.slug}`}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: serializeJsonForScriptTag(articleJsonLd),
+          }}
         />
 
         <nav className="mb-6 text-xs text-neutral-400" aria-label="Breadcrumb">

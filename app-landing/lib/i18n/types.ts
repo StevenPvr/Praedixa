@@ -10,6 +10,7 @@ export interface Dictionary {
   nav: {
     problem: string;
     method: string;
+    services: string;
     howItWorks: string;
     useCases: string;
     security: string;
@@ -77,6 +78,16 @@ export interface Dictionary {
     kicker: string;
     heading: string;
     subheading: string;
+    cta: string;
+    ctaHint: string;
+    states: {
+      loadingTitle: string;
+      loadingBody: string;
+      emptyTitle: string;
+      emptyBody: string;
+      errorTitle: string;
+      errorBody: string;
+    };
     pains: {
       title: string;
       description: string;
@@ -186,6 +197,16 @@ export interface Dictionary {
     kicker: string;
     heading: string;
     subheading: string;
+    signalLabel: string;
+    signalBody: string;
+    categoryHint: string;
+    liveLabel: string;
+    loadingLabel: string;
+    emptyTitle: string;
+    emptyBody: string;
+    errorTitle: string;
+    errorBody: string;
+    retryLabel: string;
     categories: string[];
     items: {
       question: string;
@@ -201,6 +222,49 @@ export interface Dictionary {
     trustItems: string[];
     ctaPrimary: string;
     ctaSecondary: string;
+  };
+
+  servicesPage: {
+    meta: {
+      title: string;
+      description: string;
+      ogTitle: string;
+      ogDescription: string;
+    };
+    kicker: string;
+    heading: string;
+    subheading: string;
+    fullPackage: {
+      badge: string;
+      title: string;
+      summary: string;
+      includesTitle: string;
+      includes: string[];
+      cta: string;
+    };
+    forecastsOnly: {
+      badge: string;
+      title: string;
+      summary: string;
+      includesTitle: string;
+      includes: string[];
+      limitsTitle: string;
+      limits: string[];
+      cta: string;
+    };
+    comparison: {
+      title: string;
+      columns: {
+        criterion: string;
+        fullPackage: string;
+        forecastsOnly: string;
+      }[];
+    };
+    decisionGuide: {
+      title: string;
+      items: string[];
+    };
+    bottomNote: string;
   };
 
   footer: {

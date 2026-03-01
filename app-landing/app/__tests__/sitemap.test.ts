@@ -35,6 +35,12 @@ describe("sitemap()", () => {
     expect(urls).toContain("https://www.praedixa.com/en/security");
   });
 
+  it("should include services page in both locales", () => {
+    const urls = result.map((entry) => entry.url);
+    expect(urls).toContain("https://www.praedixa.com/fr/services");
+    expect(urls).toContain("https://www.praedixa.com/en/services");
+  });
+
   it("should include quick-service restaurant sector pages in both locales", () => {
     const urls = result.map((entry) => entry.url);
     expect(urls).toContain(

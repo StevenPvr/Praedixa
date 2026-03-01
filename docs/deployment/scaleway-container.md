@@ -8,13 +8,13 @@ Ce document decrit le deploiement cible sur Scaleway Serverless Containers pour:
 - `app-api`
 - `auth` (Keycloak)
 
-La landing est prete sur Scaleway; le cutover public de `praedixa.com`/`www.praedixa.com` reste en attente tant que le transfert domaine/delegation n'est pas termine.
+La landing est prete sur Scaleway en `staging` et `prod`; le cutover public de `praedixa.com`/`www.praedixa.com` reste en attente tant que le transfert domaine/delegation n'est pas termine.
 
 ## Etat de reference (2026-02-19)
 
 - Region compute/data cible: `fr-par`.
 - Environnements prepares: `staging` et `production`.
-- Namespaces existants: `landing-prod`, `webapp-staging`, `webapp-prod`, `admin-staging`, `admin-prod`, `api-staging`, `api-prod`, `auth-prod`.
+- Namespaces existants: `landing-staging`, `landing-prod`, `webapp-staging`, `webapp-prod`, `admin-staging`, `admin-prod`, `api-staging`, `api-prod`, `auth-prod`.
 - `auth-prod` (Keycloak) est deployee et `ready`.
 - Containers `landing/webapp/admin/api` sont provisionnes mais restent en `error` tant qu'aucune image n'est deployee (normal).
 - Preflight staging: `pnpm run scw:preflight:staging` passe, avec warning attendu si delegation NS encore Cloudflare.
@@ -32,6 +32,7 @@ La landing est prete sur Scaleway; le cutover public de `praedixa.com`/`www.prae
 | --------------------------------------- | ------------------------------------------------------------- |
 | `pnpm run scw:bootstrap:frontends`      | Cree namespaces/containers frontends + buckets frontends      |
 | `pnpm run scw:bootstrap:api`            | Cree namespaces/containers API                                |
+| `pnpm run scw:configure:landing:staging` | Injecte env vars/secrets landing staging                     |
 | `pnpm run scw:configure:landing:prod`   | Injecte env vars/secrets landing prod                         |
 | `pnpm run scw:configure:webapp:staging` | Injecte env vars/secrets webapp staging                       |
 | `pnpm run scw:configure:webapp:prod`    | Injecte env vars/secrets webapp prod                          |
@@ -42,6 +43,7 @@ La landing est prete sur Scaleway; le cutover public de `praedixa.com`/`www.prae
 | `pnpm run scw:preflight:deploy`         | Controle readiness globale staging+prod+landing (sans deploy) |
 | `pnpm run scw:preflight:prod`           | Controle readiness prod+landing (sans deploy)                 |
 | `pnpm run scw:preflight:staging`        | Controle readiness infra + DNS staging (sans deploy)          |
+| `pnpm run scw:deploy:landing:staging`   | Build + deploy landing staging                                |
 | `pnpm run scw:deploy:landing:prod`      | Build + deploy landing prod                                   |
 | `pnpm run scw:deploy:webapp:staging`    | Build + deploy webapp staging                                 |
 | `pnpm run scw:deploy:webapp:prod`       | Build + deploy webapp prod                                    |
@@ -71,6 +73,7 @@ pnpm run scw:preflight:staging
 4. Deployer quand valide:
 
 ```bash
+pnpm run scw:deploy:landing:staging
 pnpm run scw:deploy:api:staging
 pnpm run scw:deploy:webapp:staging
 pnpm run scw:deploy:admin:staging

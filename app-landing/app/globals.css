@@ -105,6 +105,37 @@
 @layer utilities {
   .section-dark {
     background-color: var(--brass-900);
+    --dark-text-title: oklch(0.97 0.008 85);
+    --dark-text-body: oklch(0.9 0.015 85);
+    --dark-text-muted: oklch(0.82 0.014 85);
+    --dark-text-soft: oklch(0.74 0.014 85);
+    --dark-text-accent: oklch(0.9 0.04 82);
+  }
+
+  .section-dark .text-white,
+  .section-dark .text-neutral-50 {
+    color: var(--dark-text-title);
+  }
+
+  .section-dark .text-white\/95,
+  .section-dark .text-white\/90,
+  .section-dark .text-neutral-100,
+  .section-dark .text-neutral-200 {
+    color: var(--dark-text-body);
+  }
+
+  .section-dark .text-neutral-300,
+  .section-dark .text-neutral-400 {
+    color: var(--dark-text-muted);
+  }
+
+  .section-dark .text-brass-100,
+  .section-dark .text-brass-100\/90 {
+    color: var(--dark-text-accent);
+  }
+
+  .section-dark .text-neutral-500 {
+    color: var(--dark-text-soft);
   }
 
   .btn-primary-gradient {

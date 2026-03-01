@@ -58,6 +58,7 @@ Layout components:
 ## API routes
 
 - `GET /api/health`
+- `GET /api/contact/challenge`
 - `POST /api/pilot-application`
 - `POST /api/contact`
 

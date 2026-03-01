@@ -3,6 +3,9 @@ import Image from "next/image";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import { MagneticActionLink } from "./motion/MagneticActionLink";
+import { PulseDot } from "./motion/PulseDot";
+import { ShimmerTrack } from "./motion/ShimmerTrack";
 
 interface FooterProps {
   locale: Locale;
@@ -11,6 +14,7 @@ interface FooterProps {
 
 export function Footer({ locale, dict }: FooterProps) {
   const pilotHref = getLocalizedPath(locale, "pilot");
+  const servicesHref = getLocalizedPath(locale, "services");
   const contactHref = getLocalizedPath(locale, "contact");
   const legalHref = getLocalizedPath(locale, "legal");
   const privacyHref = getLocalizedPath(locale, "privacy");
@@ -21,6 +25,7 @@ export function Footer({ locale, dict }: FooterProps) {
   const navLinks = [
     { label: dict.nav.problem, href: `/${locale}#problem` },
     { label: dict.nav.method, href: `/${locale}#solution` },
+    { label: dict.nav.services, href: servicesHref },
     { label: dict.nav.howItWorks, href: `/${locale}#how-it-works` },
     { label: dict.nav.security, href: securityHref },
     { label: dict.nav.faq, href: `/${locale}#faq` },
@@ -40,96 +45,143 @@ export function Footer({ locale, dict }: FooterProps) {
     { label: locale === "fr" ? "À propos" : "About", href: aboutHref },
   ];
 
+  const badges = Array.isArray(dict.footer.badges) ? dict.footer.badges : null;
+  const hasNavLinks = navLinks.length > 0;
+  const hasLegalLinks = legalLinks.length > 0;
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="border-t border-border bg-white">
+    <footer className="border-t border-neutral-200/70 bg-[linear-gradient(180deg,#fcfcfb_0%,#f7f6f3_52%,#f2f0ec_100%)]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="border-b border-border-subtle py-12 md:py-16">
-          <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-brass">
+        <div className="py-14 md:py-16">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-[1.62fr_1fr] md:items-end md:gap-12">
+            <div className="space-y-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brass-700">
                 {dict.footer.ctaBanner.kicker}
               </p>
-              <p className="mt-1 max-w-lg text-lg font-semibold tracking-tight text-ink">
+              <p className="max-w-3xl text-3xl font-semibold tracking-[-0.03em] text-ink md:text-5xl md:leading-[1.03]">
                 {dict.footer.ctaBanner.heading}
               </p>
+              <p className="max-w-[62ch] text-sm leading-relaxed text-neutral-600 md:text-base">
+                {dict.footer.tagline}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {badges && badges.length > 0 ? (
+                  badges.map((badge, index) => (
+                    <span
+                      key={badge}
+                      className={`inline-flex items-center gap-2 rounded-full border border-neutral-300/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-neutral-600 ${
+                        index % 2 === 1 ? "translate-y-[1px]" : ""
+                      }`}
+                    >
+                      <PulseDot className="h-1.5 w-1.5 bg-brass-500" />
+                      {badge}
+                    </span>
+                  ))
+                ) : (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-neutral-300/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-neutral-500">
+                    <PulseDot className="h-1.5 w-1.5 bg-brass-500" />
+                    {locale === "fr"
+                      ? "Signal operatoire continu"
+                      : "Continuous operational signal"}
+                  </span>
+                )}
+              </div>
             </div>
-            <Link
+
+            <MagneticActionLink
               href={pilotHref}
-              className="btn-primary-gradient inline-flex shrink-0 items-center rounded-lg px-6 py-3.5 text-sm font-semibold text-white no-underline transition-all duration-150 active:scale-[0.98] active:-translate-y-[1px]"
-            >
-              {dict.footer.ctaBanner.cta}
-            </Link>
+              label={dict.footer.ctaBanner.cta}
+              wrapperClassName="w-full md:max-w-sm md:justify-self-end"
+              className="border-neutral-300/80 bg-white/90 text-ink hover:border-neutral-400 hover:bg-white"
+            />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 py-12 md:grid-cols-3 md:gap-16">
-          <div>
+        <div className="grid grid-cols-1 gap-10 border-y border-neutral-200/70 py-12 md:grid-cols-[1.35fr_1fr_0.95fr] md:gap-12">
+          <div className="space-y-5">
             <Link
               href={`/${locale}`}
-              className="inline-flex items-center gap-2 text-ink no-underline"
+              className="inline-flex items-center gap-2.5 rounded-full border border-neutral-300/70 bg-white/75 px-3.5 py-2 text-ink no-underline shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-neutral-400/80 active:-translate-y-[1px] active:scale-[0.99]"
               aria-label="Praedixa"
             >
               <Image src="/logo-black.svg" alt="Praedixa" width={24} height={24} />
-              <span className="text-base font-semibold tracking-tight">
+              <span className="text-sm font-semibold uppercase tracking-[0.09em]">
                 Praedixa
               </span>
             </Link>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-neutral-500">
-              {dict.footer.tagline}
+            <p className="max-w-[46ch] text-sm leading-relaxed text-neutral-600">
+              {locale === "fr"
+                ? "Decision intelligence orientee operations multi-sites, preuve economique mensuelle et gouvernance COO/CFO partagee."
+                : "Decision intelligence for multi-site operations, monthly economic proof, and shared COO/CFO governance."}
             </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {dict.footer.badges.map((badge) => (
-                <span
-                  key={badge}
-                  className="inline-flex rounded-full border border-border-subtle px-3 py-1 text-xs font-medium text-neutral-500"
-                >
-                  {badge}
-                </span>
-              ))}
-            </div>
+            <ShimmerTrack
+              className="max-w-[16rem] bg-neutral-200/70"
+              indicatorClassName="via-brass-300/55"
+            />
           </div>
 
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
+          <div className="space-y-3">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
               {dict.footer.navigation}
             </h3>
-            <ul className="mt-4 list-none space-y-2.5 p-0">
-              {navLinks.map((link) => (
-                <li key={link.href} className="m-0">
-                  <Link
-                    href={link.href}
-                    className="text-sm text-neutral-600 no-underline transition-colors hover:text-ink"
-                  >
-                    {link.label}
-                  </Link>
+            <ul className="list-none divide-y divide-neutral-200/80 rounded-2xl border border-neutral-200/80 bg-white/75 p-0">
+              {hasNavLinks ? (
+                navLinks.map((link) => (
+                  <li key={link.href} className="m-0">
+                    <Link
+                      href={link.href}
+                      className="inline-flex w-full items-center justify-between px-4 py-3 text-sm font-medium tracking-[-0.01em] text-neutral-700 no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:bg-white hover:text-ink active:-translate-y-[1px] active:scale-[0.99]"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <li className="m-0 px-4 py-3 text-sm text-neutral-500">
+                  {locale === "fr"
+                    ? "Navigation disponible prochainement."
+                    : "Navigation coming soon."}
                 </li>
-              ))}
+              )}
             </ul>
           </div>
 
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
+          <div className="space-y-3">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
               {dict.footer.legalContact}
             </h3>
-            <ul className="mt-4 list-none space-y-2.5 p-0">
-              {legalLinks.map((link) => (
-                <li key={link.href} className="m-0">
-                  <Link
-                    href={link.href}
-                    className="text-sm text-neutral-600 no-underline transition-colors hover:text-ink"
-                  >
-                    {link.label}
-                  </Link>
+            <ul className="list-none divide-y divide-neutral-200/80 rounded-2xl border border-neutral-200/80 bg-white/75 p-0">
+              {hasLegalLinks ? (
+                legalLinks.map((link) => (
+                  <li key={link.href} className="m-0">
+                    <Link
+                      href={link.href}
+                      className="inline-flex w-full items-center justify-between px-4 py-3 text-sm font-medium tracking-[-0.01em] text-neutral-700 no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:bg-white hover:text-ink active:-translate-y-[1px] active:scale-[0.99]"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <li className="m-0 px-4 py-3 text-sm text-neutral-500">
+                  {locale === "fr"
+                    ? "Informations legales indisponibles."
+                    : "Legal information unavailable."}
                 </li>
-              ))}
+              )}
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-border-subtle py-6">
-          <p className="text-center text-xs text-neutral-400">
-            {dict.footer.copyright} &middot; Praedixa{" "}
-            {new Date().getFullYear()}
+        <div className="flex flex-col gap-2.5 py-6 text-xs text-neutral-500 md:flex-row md:items-center md:justify-between">
+          <p>
+            {dict.footer.copyright} &middot; Praedixa {year}
+          </p>
+          <p className="text-neutral-400">
+            {locale === "fr"
+              ? "Disponible en francais et en anglais."
+              : "Available in French and English."}
           </p>
         </div>
       </div>

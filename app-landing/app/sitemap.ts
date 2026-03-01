@@ -83,6 +83,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entries.push(
       localizedEntry(
         locale,
+        `/fr/${localizedSlugs.services.fr}`,
+        `/en/${localizedSlugs.services.en}`,
+        0.8,
+        "weekly",
+      ),
+    );
+
+    entries.push(
+      localizedEntry(
+        locale,
         "/fr/pilot-protocol",
         "/en/pilot-protocol",
         0.5,

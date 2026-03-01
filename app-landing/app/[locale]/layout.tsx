@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { locales, isValidLocale } from "../../lib/i18n/config";
+import { locales, isValidLocale, localizedSlugs } from "../../lib/i18n/config";
 import { getDictionary } from "../../lib/i18n/get-dictionary";
 import { Header } from "../../components/shared/Header";
 import { Footer } from "../../components/shared/Footer";
@@ -37,6 +38,12 @@ export default async function LocaleLayout({
   if (!isValidLocale(locale)) notFound();
 
   const dict = await getDictionary(locale);
+  const requestHeaders = await headers();
+  const requestPathname = requestHeaders.get("x-request-pathname");
+  const servicesPath = `/${locale}/${localizedSlugs.services[locale]}`;
+  const contactPath = `/${locale}/${localizedSlugs.contact[locale]}`;
+  const shouldShowFooter =
+    requestPathname !== servicesPath && requestPathname !== contactPath;
 
   return (
     <>
@@ -46,7 +53,7 @@ export default async function LocaleLayout({
       <Header locale={locale} dict={dict} />
       <main id="main-content">{children}</main>
       <JsonLd locale={locale} dict={dict} />
-      <Footer locale={locale} dict={dict} />
+      {shouldShowFooter ? <Footer locale={locale} dict={dict} /> : null}
     </>
   );
 }

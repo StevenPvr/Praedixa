@@ -58,6 +58,7 @@ function makeRequest(
     headers: {
       "content-type": "application/json",
       "content-length": String(new TextEncoder().encode(json).length),
+      origin: "http://localhost:3000",
       ...headers,
     },
     body: json,
@@ -111,6 +112,7 @@ describe("POST /api/pilot-application", () => {
           "content-type": "application/json",
           // Deliberately understate content-length to bypass header check
           "content-length": "100",
+          origin: "http://localhost:3000",
         },
         body: json,
       });
@@ -206,6 +208,25 @@ describe("POST /api/pilot-application", () => {
       const res = await POST(req);
       expect(res.status).toBe(403);
     });
+
+    it("should return 403 when origin and referer are both missing", async () => {
+      const payload = JSON.stringify(validBody());
+      const reqWithoutOrigin = new Request(
+        "http://localhost:3000/api/pilot-application",
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "content-length": String(new TextEncoder().encode(payload).length),
+          },
+          body: payload,
+        },
+      );
+
+      const res = await POST(reqWithoutOrigin);
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({ error: "Origine de requête non autorisée." });
+    });
   });
 
   // =========================================================================
@@ -219,6 +240,7 @@ describe("POST /api/pilot-application", () => {
         headers: {
           "content-type": "application/json",
           "content-length": "10",
+          origin: "http://localhost:3000",
         },
         body: "not-json!!",
       });
@@ -240,6 +262,7 @@ describe("POST /api/pilot-application", () => {
         headers: {
           "content-type": "application/json",
           "content-length": "4",
+          origin: "http://localhost:3000",
         },
         body: "null",
       });

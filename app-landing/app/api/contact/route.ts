@@ -9,6 +9,8 @@ import {
   hasTrustedFormOrigin,
   isCrossSiteRequest,
 } from "../../../lib/security/request-origin";
+import { logSecurityEvent, redactIpForLogs } from "../../../lib/security/audit-log";
+import { verifyContactChallenge } from "../../../lib/security/contact-challenge";
 
 const MAX_REQUEST_BODY_LENGTH = 20_000;
 const MIN_MESSAGE_LENGTH = 30;
@@ -16,8 +18,6 @@ const MAX_MESSAGE_LENGTH = 800;
 const MAX_SUBJECT_LENGTH = 120;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[+]?[\d\s().-]{6,30}$/;
-const MIN_FORM_FILL_TIME_MS = 2_500;
-const MAX_FORM_AGE_MS = 1000 * 60 * 60 * 4;
 const DEFAULT_FROM_EMAIL = "Praedixa <noreply@praedixa.com>";
 const CONTACT_PERSIST_TIMEOUT_MS = 8_000;
 const CONTACT_API_PATH = "/api/v1/public/contact-requests";
@@ -96,10 +96,8 @@ type ContactPayload = {
   message: string;
   consent: true;
   website: string;
-  captchaA: number;
-  captchaB: number;
   captchaAnswer: number;
-  formStartedAt: number;
+  challengeToken: string;
 };
 
 function readString(
@@ -123,7 +121,9 @@ function readInt(input: Record<string, unknown>, key: string): number | null {
   const raw = input[key];
   if (typeof raw === "number" && Number.isInteger(raw)) return raw;
   if (typeof raw === "string") {
-    const parsed = Number.parseInt(raw, 10);
+    const trimmed = raw.trim();
+    if (!/^-?\d+$/.test(trimmed)) return null;
+    const parsed = Number.parseInt(trimmed, 10);
     return Number.isNaN(parsed) ? null : parsed;
   }
   return null;
@@ -206,28 +206,12 @@ function validateContactBody(
     };
   }
 
-  const captchaA = readInt(input, "captchaA");
-  const captchaB = readInt(input, "captchaB");
   const captchaAnswer = readInt(input, "captchaAnswer");
+  const challengeToken = readString(input, "challengeToken", 600, true);
   if (
-    captchaA === null ||
-    captchaB === null ||
     captchaAnswer === null ||
-    captchaA < 0 ||
-    captchaB < 0 ||
-    captchaA > 30 ||
-    captchaB > 30 ||
-    captchaAnswer !== captchaA + captchaB
+    challengeToken === null
   ) {
-    return { valid: false, error: "Test anti-spam invalide." };
-  }
-
-  const formStartedAt = readInt(input, "formStartedAt");
-  if (formStartedAt === null) {
-    return { valid: false, error: "Test anti-spam invalide." };
-  }
-  const elapsed = Date.now() - formStartedAt;
-  if (elapsed < MIN_FORM_FILL_TIME_MS || elapsed > MAX_FORM_AGE_MS) {
     return { valid: false, error: "Test anti-spam invalide." };
   }
 
@@ -246,10 +230,8 @@ function validateContactBody(
       message,
       consent: true,
       website,
-      captchaA,
-      captchaB,
       captchaAnswer,
-      formStartedAt,
+      challengeToken,
     },
   };
 }
@@ -386,7 +368,17 @@ function readContactApiConfig(): { baseUrl: string; token: string } {
     throw new Error("CONTACT_API_INGEST_TOKEN is not configured");
   }
 
-  return { baseUrl, token };
+  const parsedBaseUrl = new URL(baseUrl);
+  const isLocalHttp =
+    parsedBaseUrl.protocol === "http:" && parsedBaseUrl.hostname === "localhost";
+  if (parsedBaseUrl.protocol !== "https:" && !isLocalHttp) {
+    throw new Error("CONTACT_API_BASE_URL must use HTTPS in non-local environments");
+  }
+  if (parsedBaseUrl.username || parsedBaseUrl.password) {
+    throw new Error("CONTACT_API_BASE_URL must not include credentials");
+  }
+
+  return { baseUrl: parsedBaseUrl.toString(), token };
 }
 
 async function extractApiErrorMessage(response: Response): Promise<string> {
@@ -421,6 +413,7 @@ async function persistContactRequest(
   data: ContactPayload,
   request: Request,
   ip: string,
+  requestId: string,
 ): Promise<void> {
   const { baseUrl, token } = readContactApiConfig();
   const endpoint = new URL(CONTACT_API_PATH, baseUrl).toString();
@@ -437,8 +430,7 @@ async function persistContactRequest(
       headers: {
         "Content-Type": "application/json",
         "X-Contact-Ingest-Token": token,
-        "X-Request-ID":
-          request.headers.get("x-request-id") ?? crypto.randomUUID(),
+        "X-Request-ID": requestId,
       },
       body: JSON.stringify({
         locale: data.locale,
@@ -482,6 +474,8 @@ async function persistContactRequest(
 }
 
 export async function POST(request: Request) {
+  const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+
   try {
     const contentLength = request.headers.get("content-length");
     if (
@@ -496,13 +490,25 @@ export async function POST(request: Request) {
 
     const ip = getClientIp(request);
     if (isRateLimited(ip)) {
+      logSecurityEvent("contact.rate_limited", {
+        requestId,
+        ip: redactIpForLogs(ip),
+      });
       return NextResponse.json(
         { error: "Trop de requêtes. Veuillez réessayer plus tard." },
         { status: 429 },
       );
     }
 
-    if (isCrossSiteRequest(request) || !hasTrustedFormOrigin(request)) {
+    if (
+      isCrossSiteRequest(request) ||
+      !hasTrustedFormOrigin(request, { requireSource: true })
+    ) {
+      logSecurityEvent("contact.origin_rejected", {
+        requestId,
+        ip: redactIpForLogs(ip),
+        origin: request.headers.get("origin") ?? "",
+      });
       return NextResponse.json(
         { error: "Origine de requête non autorisée." },
         { status: 403 },
@@ -521,16 +527,44 @@ export async function POST(request: Request) {
     try {
       body = JSON.parse(rawText);
     } catch {
+      logSecurityEvent("contact.invalid_json", {
+        requestId,
+        ip: redactIpForLogs(ip),
+      });
       return NextResponse.json({ error: "JSON invalide." }, { status: 400 });
+    }
+
+    if (typeof body === "object" && body !== null && !Array.isArray(body)) {
+      const rawWebsite = (body as Record<string, unknown>).website;
+      if (typeof rawWebsite === "string" && rawWebsite.trim() !== "") {
+        return NextResponse.json({ success: true });
+      }
     }
 
     const validation = validateContactBody(body);
     if (!validation.valid) {
+      logSecurityEvent("contact.validation_failed", {
+        requestId,
+        ip: redactIpForLogs(ip),
+      });
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
     if (validation.data.website !== "") {
       return NextResponse.json({ success: true });
+    }
+
+    const challenge = verifyContactChallenge({
+      challengeToken: validation.data.challengeToken,
+      captchaAnswer: validation.data.captchaAnswer,
+    });
+    if (!challenge.valid) {
+      logSecurityEvent("contact.challenge_rejected", {
+        requestId,
+        ip: redactIpForLogs(ip),
+        reason: challenge.reason,
+      });
+      return NextResponse.json({ error: "Test anti-spam invalide." }, { status: 400 });
     }
 
     const resendClient = getResend();
@@ -575,13 +609,21 @@ export async function POST(request: Request) {
     }
 
     try {
-      await persistContactRequest(validation.data, request, ip);
-    } catch {
+      await persistContactRequest(validation.data, request, ip, requestId);
+    } catch (error) {
+      logSecurityEvent("contact.persistence_failed", {
+        requestId,
+        error: error instanceof Error ? error.message : "unknown",
+      });
       // Persistence is best-effort; email delivery is the primary SLA path.
     }
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    logSecurityEvent("contact.unhandled_error", {
+      requestId,
+      error: error instanceof Error ? error.message : "unknown",
+    });
     return NextResponse.json(
       { error: "Erreur lors de l'envoi. Veuillez réessayer." },
       { status: 500 },

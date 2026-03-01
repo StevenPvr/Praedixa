@@ -2,563 +2,695 @@ import type { Dictionary } from "../types";
 
 export const fr: Dictionary = {
   meta: {
-    title: "Praedixa | Workforce & ProofOps multi-sites (MVP restauration rapide)",
+    title:
+      "Praedixa | Intelligence de l'optimisation de la decision | ROI prouve",
     description:
-      "Workforce & ProofOps pour décisions de couverture multi-sites. MVP prioritaire: réseaux multi-franchisés de restauration rapide. Méthode transposable à la logistique, au retail, au transport, à l'industrie et aux services.",
-    ogTitle: "Praedixa | Pilote Workforce & ProofOps avec Decision Ledger",
+      "Service Signature Praedixa: previsions multi-KPI (Workforce, demande, stock, offre), optimisation des decisions sous contraintes, Decision Log et preuve ROI mensuelle. Option: previsions KPI uniquement.",
+    ogTitle:
+      "Praedixa | Intelligence de l'optimisation de la decision | Prouve le ROI",
     ogDescription:
-      "Pilote 3 mois pour rendre les arbitrages ops/finance défendables, tracer chaque décision et produire une preuve d'impact sourcée.",
+      "Praedixa optimise vos decisions operationnelles et prouve l'impact economique: BAU/0%, 100% recommande, reel avec overrides traces.",
   },
 
   nav: {
-    problem: "Problème",
-    method: "Solution",
-    howItWorks: "Comment ça marche",
-    useCases: "Cas d'usage",
-    security: "Sécurité",
+    problem: "Probleme",
+    method: "Methode",
+    services: "Service",
+    howItWorks: "Comment ca marche",
+    useCases: "Decisions couvertes",
+    security: "Integration & data",
     faq: "FAQ",
     contact: "Contact",
-    ctaPrimary: "Demander un pilote Workforce & ProofOps",
+    ctaPrimary: "Demander un pilote Signature Praedixa",
     backToSite: "Retour au site",
   },
 
   hero: {
-    kicker: "Pilote Workforce & ProofOps (multi-franchisé, multi-site)",
-    headline: "Décidez la couverture avant la rupture terrain",
-    headlineHighlight: "avec Workforce & ProofOps.",
+    kicker: "Service Signature Praedixa · Multi-sites",
+    headline: "Intelligence de l'optimisation de la decision",
+    headlineHighlight: " | Prouve le ROI.",
     subtitle:
-      "Praedixa lance un pilote de 3 mois pour structurer vos arbitrages de couverture dans des environnements multi-franchisés et multi-sites. Cadre directement réutilisable pour logistique, retail, transport, industrie, santé et services.",
+      "Praedixa est une couche decisionnelle au-dessus de vos outils WFM/planning/ERP/CRM. Les previsions multi-KPI servent d'inputs, puis nous comparons les options sous contraintes, tracons les overrides et prouvons l'impact economique.",
     bullets: [
       {
+        metric: "1 mois offert",
+        text: "audit historique: ce que vous auriez economise",
+      },
+      {
         metric: "3 mois",
-        text: "pour installer une boucle Decision Ledger exploitable",
+        text: "pour installer la boucle decision + preuve ROI",
       },
       {
-        metric: "Cible",
-        text: "organisations multi-franchisées et multi-sites",
-      },
-      {
-        metric: "ICP ouverts",
-        text: "méthode transposable aux autres réseaux multi-sites",
+        metric: "Lecture seule",
+        text: "exports/API, sans projet IT lourd",
       },
     ],
-    ctaPrimary: "Demander un pilote Workforce & ProofOps",
-    ctaSecondary: "Voir le protocole du pilote",
-    previewTitle: "Un aperçu de ce qui vous attend",
+    ctaPrimary: "Demander un pilote Signature Praedixa",
+    ctaSecondary: "Voir le protocole de preuve ROI",
+    previewTitle: "Un apercu de ce qui vous attend",
     ctaMeta:
-      "NDA possible dès le premier échange · Démarrage possible sur un périmètre restreint",
+      "COO/Ops et CFO/DAF alignes des le cadrage · Demarrage sur perimetre restreint",
     trustBadges: [
-      "Données agrégées uniquement",
-      "NDA possible dès le premier échange",
-      "Démarrage possible sur un périmètre restreint",
-      "Hébergement 100 % Scaleway, 100 % français",
-      "Conçu pour réseaux multi-franchisés et multi-sites",
-      "Cadre transposable logistique, retail, transport, industrie, services",
+      "Service Signature: decision optimale + Decision Log + preuve ROI",
+      "Mode alternatif: previsions KPI uniquement",
+      "Previsions KPI: Workforce, demande, stock, offre, autres sur demande",
+      "Lecture seule via exports/API",
+      "Multi-sites: comparabilite, gouvernance, standardisation",
+      "Hebergement 100 % Scaleway, 100 % francais",
     ],
   },
 
   preview: {
-    kicker: "Un avant-goût",
+    kicker: "Un avant-gout",
     heading: "L'interface Praedixa",
     subheading:
-      "Découvrez comment l'intelligence de couverture se matérialise pour vos opérations.",
-    overlayTitle: "Découvrir la web app",
+      "Decouvrez comment l'intelligence de decision se materialise pour vos operations.",
+    overlayTitle: "Decouvrir la web app",
     overlayBody:
-      "Ouvrez la vraie interface web app en mode aperçu public, avec une UI identique.",
-    overlayCta: "Découvrir la web app",
-    overlayBackCta: "Revenir à la vidéo",
-    loadingLabel: "Chargement de l'aperçu vidéo…",
-    liveBadge: "Aperçu public",
+      "Ouvrez la vraie interface web app en mode apercu public, avec une UI identique.",
+    overlayCta: "Decouvrir la web app",
+    overlayBackCta: "Revenir a la video",
+    loadingLabel: "Chargement de l'apercu video...",
+    liveBadge: "Apercu public",
   },
 
   demo: {
-    title: "Aperçu interactif Praedixa",
+    title: "Apercu interactif Praedixa",
     subtitle:
-      "Parcours produit en environnement d'aperçu, alimenté uniquement par des données fictives.",
+      "Parcours produit en environnement d'apercu, alimente uniquement par des donnees fictives.",
     mockBanner:
-      "Environnement d'aperçu — toutes les données sont fictives, aucune donnée client n'est utilisée.",
-    backToLanding: "Retour à la landing",
-    screenAriaLabel: "Aperçu interactif de l'interface Praedixa",
-    updatedAtLabel: "Dernière mise à jour de l'aperçu",
-    loading: "Chargement des données d'aperçu…",
-    empty: "Aucune donnée d'aperçu disponible pour cet écran.",
-    error: "Impossible de charger cet écran d'aperçu.",
-    retry: "Réessayer",
+      "Environnement d'apercu — toutes les donnees sont fictives, aucune donnee client n'est utilisee.",
+    backToLanding: "Retour a la landing",
+    screenAriaLabel: "Apercu interactif de l'interface Praedixa",
+    updatedAtLabel: "Derniere mise a jour de l'apercu",
+    loading: "Chargement des donnees d'apercu...",
+    empty: "Aucune donnee d'apercu disponible pour cet ecran.",
+    error: "Impossible de charger cet ecran d'apercu.",
+    retry: "Reessayer",
     openAction: "Ouvrir",
     nav: {
       dashboard: "Dashboard",
-      forecasts: "Prévisions",
+      forecasts: "Previsions",
       actions: "Actions",
-      datasets: "Données",
-      settings: "Paramètres",
+      datasets: "Donnees",
+      settings: "Parametres",
     },
     sections: {
-      kpis: "Indicateurs clés",
+      kpis: "Indicateurs cles",
       alerts: "Alertes prioritaires",
-      forecastWindow: "Fenêtre de prévision (7 jours)",
-      decisions: "Décisions recommandées",
-      datasetsHealth: "Santé des datasets",
+      forecastWindow: "Fenetre de prevision (7 jours)",
+      decisions: "Decisions recommandees",
+      datasetsHealth: "Sante des datasets",
       governance: "Cadre de gouvernance",
     },
   },
 
   problem: {
-    kicker: "Pourquoi maintenant",
-    heading: "Le coût de la sous-couverture n'est plus un sujet secondaire.",
+    kicker: "Probleme operationnel",
+    heading:
+      "Les decisions cout/service sont prises chaque jour, mais rarement prouvees.",
     subheading:
-      "Sans cadre d'anticipation, les arbitrages deviennent plus chers, plus défensifs et moins démontrables.",
+      "Sans protocole commun COO/CFO, les arbitrages restent defensifs, heterogenes entre sites et difficiles a justifier economiquement.",
+    cta: "Lancer un pilote decisionnel",
+    ctaHint:
+      "Audit historique offert, cadrage COO/Ops + CFO/DAF des la premiere semaine.",
+    states: {
+      loadingTitle: "Lecture des signaux en cours",
+      loadingBody:
+        "Nous structurons les points de friction avant arbitrage cout/service.",
+      emptyTitle: "Aucun signal remonte",
+      emptyBody:
+        "Ajoutez des cas operationnels a prioriser pour composer le journal d'arbitrage.",
+      errorTitle: "Section indisponible",
+      errorBody:
+        "Le cadrage de probleme ne peut pas etre affiche pour le moment.",
+    },
     pains: [
       {
-        title: "Décisions prises trop tard",
+        title: "Arbitrages trop tardifs",
         description:
-          "Les signaux de tension sont détectés quand les marges de manœuvre sont déjà réduites.",
-        consequence: "Surcoûts, dégradation de service, stress managérial",
-        cost: "Surcoût sensible en mode urgence",
+          "Les signaux utiles arrivent quand les marges de manoeuvre sont deja faibles.",
+        consequence:
+          "Recours d'urgence, surcharge des equipes, qualite de service instable",
+        cost: "Le cout de la reaction depasse le cout de l'anticipation",
       },
       {
-        title: "Arbitrages insuffisamment cadrés",
+        title: "Decision heterogene selon les sites",
         description:
-          "Sans scénario économique structuré, les décisions reposent sur l'urgence.",
-        consequence: "Budget opérationnel moins prévisible et moins défendable",
-        cost: "Cycle de décision ralenti en absence de cadre",
+          "Chaque site applique ses propres regles, sans referentiel commun.",
+        consequence:
+          "Comparaisons impossibles et gouvernance difficile a standardiser",
+        cost: "Budget operations peu pilotable au niveau reseau",
       },
       {
-        title: "Impact difficile à prouver",
+        title: "Impact economique non attribuable",
         description:
-          "Les actions sont rarement reliées à une preuve mesurable de leur effet.",
-        consequence: "Difficulté à sécuriser budgets et priorités en comité",
-        cost: "Budgets revus à la baisse faute de données",
+          "Les actions sont lancees, mais l'effet reel reste flou.",
+        consequence:
+          "Comites COO/DAF sans preuve claire de ce qui fonctionne",
+        cost: "Priorites et budgets contestes faute de preuve",
       },
     ],
     diagnostic: {
       title: "Vous reconnaissez-vous ?",
       signals: [
-        "Vos arbitrages de couverture reposent sur l'expérience, pas sur des données",
-        "Les coûts d'urgence (intérim, heures sup) sont difficiles à anticiper",
-        "Vous ne pouvez pas chiffrer le coût de l'inaction en comité",
-        "Chaque site gère sa couverture de manière isolée",
+        "Vous avez des previsions, mais pas de protocole de decision trace",
+        "Les overrides sont peu documentes ou non exploitables",
+        "Vous ne comparez pas clairement BAU/0%, 100% recommande et reel",
+        "Les revues multi-sites reposent sur des explications ad hoc",
       ],
     },
   },
 
   solution: {
-    kicker: "Méthode auditable",
-    heading: "Une approche sobre, exigeante, orientée décision.",
+    kicker: "Methode Praedixa",
+    heading: "Nous optimisons des decisions, pas des predictions.",
     subheading:
-      "Praedixa n'ajoute pas du bruit. La plateforme structure un cycle clair : lire, prioriser, arbitrer, prouver.",
+      "La prevision est un composant. La valeur centrale vient de l'optimisation sous contraintes, de la tracabilite et de la preuve ROI.",
     principles: [
       {
-        title: "Lecture anticipative",
-        subtitle: "Voir avant d'agir",
+        title: "Previsions multi-KPI comme input",
+        subtitle: "Lire la realite operationnelle",
         description:
-          "Signaux de sous-couverture détectés en amont, avec facteurs explicatifs et niveau de criticité.",
+          "Workforce, demande, stock, offre et autres KPI sur demande: des signaux utiles pour agir, pas une fin en soi.",
       },
       {
-        title: "Arbitrage économique",
-        subtitle: "Comparer pour décider",
+        title: "Options comparees sous contraintes",
+        subtitle: "Choisir en cout/service/regles",
         description:
-          "Chaque option chiffrée : coût d'intervention vs coût de non-action, avec hypothèses transparentes.",
+          "Chaque option est evaluee selon vos contraintes metier pour expliciter les arbitrages avant execution.",
       },
       {
-        title: "Preuve d'impact",
-        subtitle: "Documenter pour convaincre",
+        title: "Decision Log + proof pack ROI",
+        subtitle: "Tracer et prouver",
         description:
-          "Journal de décisions, mesure avant/après, preuves auditables pour gouvernance et comité.",
+          "Recommandation, override, raison, resultat puis comparaison BAU/0% vs 100% vs reel dans un cadre mensuel exploitable.",
       },
     ],
     differentiators: {
-      title: "Ce que Praedixa est / n'est pas",
+      title: "Ce que nous optimisons / ce que nous utilisons",
       description:
-        "Praedixa complète votre stack opérationnelle. Ce n'est ni un SIRH, ni un outil de paie, ni un dashboard BI de plus, ni un outil de planification terrain.",
+        "Un seul produit Praedixa, avec un Service Signature complet et un mode previsions KPI uniquement.",
       items: [
         {
-          is: "Outil de décision opérationnel",
-          isNot: "SIRH ou outil de paie",
+          is: "Service Signature Praedixa (full package)",
+          isNot: "Module de prevision isole sans couche decisionnelle",
         },
         {
-          is: "Cadre d'arbitrage économique",
-          isNot: "Dashboard BI supplémentaire",
+          is: "Couche decisionnelle au-dessus de votre stack",
+          isNot: "Remplacement WFM/planning/ERP",
         },
         {
-          is: "Early-warning couverture",
-          isNot: "Outil de planification terrain",
+          is: "Preuve ROI BAU/0% vs 100% vs reel",
+          isNot: "Reporting sans attribution decisionnelle",
         },
       ],
     },
   },
 
   howItWorks: {
-    kicker: "Protocole",
-    heading: "Pilote Workforce & ProofOps en 4 étapes.",
+    kicker: "Protocole pilote",
+    heading: "Pilote Signature Praedixa en 4 etapes.",
     subheading:
-      "Un déroulé sur 3 mois, avec initialisation sans intégration SI lourde et gouvernance explicite.",
+      "1 mois d'audit historique offert, jalon de preuve en S8, consolidation a 3 mois.",
     steps: [
       {
         number: "01",
-        title: "Cadrage",
-        subtitle: "Atelier de cadrage",
+        title: "Cadrage + audit offert",
+        subtitle: "Historique & baseline BAU/0%",
         description:
-          "Objectifs de prévision d'effectifs, périmètre, rôles et critères de validation co-définis.",
+          "Mois 1: audit sur vos donnees historiques pour estimer ce que vous auriez economise avec les recommandations Praedixa.",
       },
       {
         number: "02",
-        title: "Initialisation",
-        subtitle: "Exports existants",
+        title: "Initialisation lecture seule",
+        subtitle: "Exports/API existants",
         description:
-          "Mois 1 : exports CSV/Excel (capacité, charge, absences), lecture seule et données agrégées. Sans intégration SI pour l'initialisation.",
+          "Connexion en lecture seule via CSV/Excel/API. Mise en place des previsions KPI (Workforce, demande, stock, offre, autres sur demande).",
       },
       {
         number: "03",
-        title: "Construction",
-        subtitle: "Pipelines & calibration",
+        title: "Optimisation & Decision Log",
+        subtitle: "Options, overrides, raisons",
         description:
-          "Construction des pipelines de prévision et calibration progressive selon vos données disponibles, avec comptes-rendus hebdomadaires.",
+          "Comparaison d'options sous contraintes cout/service/regles metier. Chaque decision est tracee: recommandation, override, raison, resultat.",
       },
       {
         number: "04",
-        title: "Consolidation",
-        subtitle: "Gouvernance & suite",
+        title: "Preuve ROI & gouvernance",
+        subtitle: "S8 puis M3",
         description:
-          "Stabilisation du pilote, documentation des arbitrages et options d'extension vers un socle décisionnel complet.",
+          "Proof pack BAU/0% vs 100% vs reel, revues COO/Ops + CFO/DAF, standardisation multi-sites et plan de passage a l'echelle.",
       },
     ],
   },
 
   useCases: {
-    kicker: "Cas d'usage",
-    heading: "Des scénarios réels traités avec un cadre de décision structuré.",
+    kicker: "Decisions couvertes",
+    heading: "Un produit, plusieurs outcomes operationnels.",
     subheading:
-      "Chaque cas suit la même logique : visibilité anticipée, options comparables, décision défendable, impact mesurable.",
+      "Meme moteur de decision pour plusieurs verticales: restauration, retail, hotellerie, concessions/atelier, logistique, sante, industrie, centres d'appels.",
     labels: {
       context: "Contexte",
-      action: "Action",
-      impact: "Impact",
+      action: "Levier decisionnel",
+      impact: "Preuve attendue",
     },
     cases: [
       {
         id: "volatilite",
-        title: "Volatilité de charge",
+        title: "Pics de demande multi-sites",
         context:
-          "Pics ponctuels qui déséquilibrent les équipes et déclenchent des arbitrages en urgence.",
+          "Rush et variations de volumes qui destabilisent la capacite terrain.",
         action:
-          "Lecture hebdomadaire des tendances, alerte amont, options selon criticité.",
+          "Previsions demande + Workforce, options de renfort/reaffectation, arbitrage cout/service explicite.",
         result:
-          "Réduction des décisions de dernière minute et des surcoûts associés.",
+          "Moins de decisions de derniere minute et meilleure tenue du niveau de service.",
       },
       {
         id: "absenteisme",
-        title: "Absentéisme et dérive de couverture",
+        title: "Competences rares et absences",
         context:
-          "Fragilités structurelles masquées, plans de dernière minute coûteux.",
+          "Planning fragilise par absences, indisponibilites critiques et dependances atelier/soins/maintenance.",
         action:
-          "Analyse des motifs récurrents, hiérarchisation des zones exposées et lecture de court horizon.",
+          "Priorisation par criticite, recommandations de couverture alternatives, overrides traces.",
         result:
-          "Anticipation des dérives et réduction du recours à l'intérim de dernière minute.",
+          "Continuite operationnelle plus robuste et reduction du mode urgence.",
         callout:
-          "Aucune donnée individuelle — lecture au niveau équipe et site uniquement.",
+          "Aucune donnee individuelle — pilotage au niveau equipe/site uniquement.",
       },
       {
         id: "intersite",
-        title: "Arbitrages inter-sites",
+        title: "Arbitrages capacite inter-sites",
         context:
-          "Allocation de ressources entre sites sans cadre de comparaison économique.",
+          "Ressources limitees a distribuer entre sites ou ateliers en concurrence.",
         action:
-          "Comparaison d'options en coût, risque et impact. Cadre de décision partagé COO/DAF.",
-        result: "Arbitrages documentés et défendables en comité de direction.",
+          "Comparaison d'options entre sites avec contraintes locales et objectifs reseau.",
+        result:
+          "Decisions comparables, gouvernance standardisee, arbitrages defendables en comite.",
         callout:
-          "Praedixa ne décide pas — structure les options et clarifie les conséquences.",
+          "Praedixa structure la decision. L'entreprise garde toujours la decision finale.",
       },
       {
         id: "roi",
-        title: "Boucle ROI et gouvernance",
+        title: "Revue mensuelle COO/CFO",
         context:
-          "Absence de preuve économique sur les décisions opérationnelles passées.",
+          "Difficulte a relier decisions terrain et impact economique reel.",
         action:
-          "Journal de décisions, mesure avant/après, traçabilité pour audit.",
+          "Decision Log + protocole de comparaison BAU/0%, 100% recommande, reel.",
         result:
-          "Preuve d'impact utilisable pour sécuriser budgets et priorités.",
+          "Proof pack mensuel exploitable pour priorites, budgets et renouvellement.",
       },
     ],
   },
 
   deliverables: {
-    kicker: "Preuves terrain",
-    heading: "Decision-proof first: des preuves qui orientent les arbitrages.",
+    kicker: "Preuve ROI",
+    heading: "Le differenciant: Decision Log + protocole de preuve.",
     subheading:
-      "On ancre les décisions dans des ordres de grandeur publiés, puis on contextualise sur votre périmètre.",
+      "Pas de claim opaque: trois referentiels compares dans un cadre explicite et reproductible.",
     roiFrames: [
       {
-        label: "Sous-effectif retail: effet mesuré",
-        value: "6,15% ventes perdues évitées",
-        note: "Étude retail US: corriger le sous-effectif réduit les ventes perdues de 6,15% et augmente la profitabilité de 5,74%.",
-        sourceLabel: "Source: Kesavan et al. (UNC, 2022)",
-        sourceUrl: "https://cdr.lib.unc.edu/downloads/9880w142w?locale=en",
+        label: "BAU / 0% (baseline)",
+        value: "Reference historique de vos decisions habituelles",
+        note: "Ce scenario sert de point de comparaison stable: ce qui se serait passe sans recommandations Praedixa.",
+        sourceLabel: "Source: Protocole pilote Praedixa",
+        sourceUrl: "/fr/pilot-protocol",
       },
       {
-        label: "Stabilité planning: effet business",
-        value: "+7% ventes médianes",
-        note: "Étude pilote de planning stable: +7% ventes médianes et +5% productivité du travail.",
-        sourceLabel: "Source: WorkLife Law / Shift Project",
-        sourceUrl: "https://worklifelaw.org/publication/stable-scheduling-increases-productivity-and-sales/",
+        label: "Scenario 100% recommande",
+        value: "Impact theorique si les recommandations etaient suivies",
+        note: "Ce scenario mesure le potentiel de l'optimisation de decision sous vos contraintes metier.",
+        sourceLabel: "Source: Protocole pilote Praedixa",
+        sourceUrl: "/fr/pilot-protocol",
       },
       {
-        label: "Contexte France: pression absentéisme",
-        value: "8,0% taux d'absence (2024)",
-        note: "En France, l'absentéisme moyen atteint 8,0% en 2024: signal d'urgence pour les modèles de couverture.",
-        sourceLabel: "Source: WTW France (2025)",
-        sourceUrl: "https://www.wtwco.com/fr-fr/news/2025/09/hausse-del-absenteisme-en-2024-un-signal-dalerte-pour-les-entreprises",
+        label: "Scenario reel observe",
+        value: "Decisions appliquees + overrides et raisons traces",
+        note: "Le reel capte ce qui a vraiment ete fait sur le terrain pour prouver l'impact economique net.",
+        sourceLabel: "Source: Protocole pilote Praedixa",
+        sourceUrl: "/fr/pilot-protocol",
       },
     ],
     checklist: [
-      "Decision Ledger: contexte, options, décision, impact observé",
-      "Hypothèses économiques explicites avant arbitrage",
-      "Rituels hebdomadaires ops/finance alignés",
-      "Priorisation par criticité et niveau de service",
-      "Preuve avant/après exploitable en comité",
+      "Decision Log complet: recommandation, override, raison, resultat",
+      "KPI de preuve: cout operationnel, service level, recours d'urgence, stabilite planning",
+      "Comparaison BAU/0% vs 100% vs reel au niveau site et reseau",
+      "Rituel mensuel COO/Ops + CFO/DAF",
+      "Proof pack exploitable en comite de direction",
     ],
   },
 
   security: {
-    kicker: "Sécurité & IT",
-    heading: "Cadre sécurité et données pour la revue IT.",
+    kicker: "Integration & data",
+    heading: "Lecture seule, demarrage rapide, gouvernance claire.",
     subheading:
-      "Les éléments présentés ci-dessous décrivent le périmètre actuel de mise en service et les informations partagées en phase de qualification.",
+      "Praedixa s'installe au-dessus de l'existant sans projet IT lourd, puis standardise la lecture decisionnelle multi-sites.",
     tiles: [
       {
-        title: "Hébergement 100 % Scaleway — Paris (France)",
+        title: "Connexion lecture seule via exports/API",
         description:
-          "L'intégralité de la plateforme et des données est hébergée sur Scaleway, en France (Paris). Aucun sous-traitant hors souveraineté française.",
+          "Demarrage sur CSV/Excel/API existants. Pas de remplacement de vos outils WFM/planning/ERP/CRM.",
       },
       {
-        title: "Données agrégées uniquement",
+        title: "Previsions multi-KPI comme composant",
         description:
-          "Aucune prédiction individuelle, aucun traitement nominatif. Lecture au niveau équipe et site uniquement.",
+          "Workforce, demande, stock, offre et autres KPI sur demande selon vos priorites operationnelles.",
       },
       {
-        title: "Chiffrement & accès",
+        title: "Donnees agregees uniquement",
         description:
-          "Chiffrement en transit et au repos. Contrôle d'accès par rôle (RBAC). Logs d'activité.",
+          "Aucune prediction individuelle. Pilotage au niveau equipe/site pour limiter l'exposition et faciliter la gouvernance.",
       },
       {
-        title: "Sous-traitants data principaux",
+        title: "Chiffrement & controle d'acces",
         description:
-          "Scaleway — hébergement intégral de la plateforme et des données (serveurs Paris, France). 100 % français.",
+          "Chiffrement en transit et au repos. Acces par roles (RBAC). Journalisation des actions.",
       },
       {
-        title: "Initialisation sans intégration SI lourde",
+        title: "Multi-sites comparables",
         description:
-          "Démarrage sur exports en lecture seule. Automatisation d'exports planifiés possible ensuite selon votre contexte.",
+          "Referentiel commun pour comparer decisions et impacts entre sites, ateliers ou reseaux.",
       },
       {
-        title: "NDA & confidentialité",
+        title: "Hebergement 100 % Scaleway — France",
         description:
-          "NDA possible dès le premier échange. Politique de rétention en formalisation.",
+          "Plateforme et donnees hebergees en France (Paris), avec posture de transparence sur les pratiques de securite.",
       },
     ],
     compatibility: {
       title: "Compatible avec votre stack",
       description:
-        "Exports CSV/Excel depuis vos outils existants pour l'initialisation, puis automatisation légère possible des exports planifiés.",
-      tools: ["ERP", "SIRH", "Planning", "BI", "Excel"],
+        "Praedixa complete vos outils actuels et ajoute une couche Decision Intelligence & Optimization orientee COO/CFO.",
+      tools: ["WFM", "Planning", "ERP", "CRM", "BI", "Excel"],
     },
     honesty:
-      "Pratiques de sécurité documentées sur demande. Hébergement intégral sur Scaleway — infrastructure 100 % française, serveurs à Paris.",
+      "Le mode Previsions KPI uniquement est disponible, mais le differenciant Praedixa reste le Service Signature: optimisation de decision + preuve ROI + Decision Log.",
   },
 
   pilot: {
-    kicker: "Pilote Workforce & ProofOps",
-    heading: "Un pilote Workforce & ProofOps pour rendre vos décisions défendables.",
+    kicker: "Offre pilote",
+    heading:
+      "Pilote Signature Praedixa: 1 mois d'audit offert, puis preuve sur 3 mois.",
     subheading:
-      "Programme de 3 mois avec initialisation, calibration et gouvernance. MVP prioritaire: restauration rapide multi-franchisée. Cadre ouvert aux autres ICP multi-sites.",
-    statusLabels: ["Actif aujourd'hui", "En extension", "À venir"],
+      "Programme multi-verticales pour entreprises multi-sites: restauration, retail, hotellerie, concessions/atelier, logistique, sante, industrie, centres d'appels.",
+    statusLabels: ["Audit offert (M1)", "Jalon preuve (S8)", "Consolidation (M3)"],
     included: {
-      title: "Ce que couvre le pilote Workforce & ProofOps (3 mois)",
+      title: "Ce que vous recevez",
       items: [
-        "Mois 1 : initialisation et construction des pipelines sur vos exports",
-        "Mois 2 : calibration des lectures charge/capacité et des hypothèses",
-        "Mois 3 : stabilisation du pilote et recommandations opérationnelles",
-        "1 point hebdomadaire avec un référent opérationnel côté client",
-        "Plan de suite formalisé, avec extension optionnelle",
+        "Mois 1 offert: audit historique et estimation des gains potentiels",
+        "Previsions multi-KPI (Workforce, demande, stock, offre, autres sur demande)",
+        "Recommandations de decision sous contraintes cout/service/regles",
+        "Decision Log partage: recommandation, override, raison, resultat",
+        "Proof pack ROI: BAU/0% vs 100% recommande vs reel",
+        "Rituels de gouvernance COO/Ops + CFO/DAF",
       ],
     },
     excluded: {
       title: "Ce qu'il n'inclut pas",
       items: [
-        "Engagement de résultat chiffré prédéfini",
-        "Déploiement global multi-pays",
-        "Développement custom illimité",
-        "Déploiement full service imposé dès le démarrage",
+        "Remplacement de votre outil de planning/WFM",
+        "Engagement de resultat chiffre public predefini",
+        "Deploiement global multi-pays des le demarrage",
+        "Developpement specifique illimite",
       ],
     },
     kpis: {
-      title: "Objectifs de construction et de validation",
+      title: "Indicateurs suivis",
       items: [
-        "Fiabiliser la lecture charge/capacité à court horizon",
-        "Valider la qualité des pipelines selon les données disponibles",
-        "Stabiliser les rituels de décision et la traçabilité",
-        "Documenter les conditions d'extension vers un socle décisionnel complet",
+        "Qualite de couverture et tenue du service level",
+        "Cout operationnel (urgence, reaffectations, options de renfort)",
+        "Taux et motifs d'overrides dans le Decision Log",
+        "Ecart BAU/0% vs 100% vs reel par site et au niveau reseau",
       ],
     },
     governance: {
       title: "Gouvernance",
       items: [
-        "Point hebdomadaire de pilotage",
-        "Sponsor opérations identifié côté client",
-        "Référent opérationnel dédié côté client",
-        "Journal de décisions partagé",
+        "Point hebdomadaire operations",
+        "Revue mensuelle COO/Ops + CFO/DAF",
+        "Sponsor operations identifie cote client",
+        "Decision Log et proof pack partages",
       ],
     },
     selection: {
-      title: "Critères de sélection (pilotage ciblé)",
+      title: "Criteres d'eligibilite",
       items: [
-        "Organisation multi-sites (logistique, retail, restauration rapide, industrie, services), avec priorité aux réseaux multi-franchisés restauration rapide",
-        "Sponsor opérations engagé",
-        "Exports data exploitables (capacité, charge, absences)",
+        "Organisation multi-sites avec variabilite de demande et arbitrages quotidiens",
+        "Sponsor operations et sponsor finance disponibles",
+        "Exports exploitables (charge/demande, capacite/workforce, stock/offre, absences)",
       ],
     },
     upcoming: {
-      title: "Extension socle décision complet — optionnelle",
+      title: "Trajectoire apres pilote",
       description:
-        "Après le pilote d'entrée, extension possible vers des usages plus larges selon vos priorités.",
+        "Extension progressive a plus de sites, plus de decisions et plus de KPI sans casser votre stack existante.",
     },
     urgency:
-      "Candidatures examinées sous 48h ouvrées. Démarrage possible sur un périmètre restreint.",
-    ctaPrimary: "Demander un pilote Workforce & ProofOps",
+      "Candidatures examinees sous 48h ouvrees. Demarrage possible sur perimetre restreint.",
+    ctaPrimary: "Demander un pilote Signature Praedixa",
     ctaMeta:
-      "Tarif d'entrée MVP restauration rapide · Méthode transposable aux autres activités multi-sites",
+      "Audit historique 1 mois offert · Lecture seule via exports/API · Proof pack ROI mensuel",
   },
 
   faq: {
     kicker: "FAQ",
-    heading: "Questions fréquentes",
+    heading: "Questions frequentes",
     subheading:
-      "Réponses institutionnelles sur le pilote Workforce & ProofOps, ses modalités de démarrage et son extension.",
+      "Reponses claires pour COO/Ops, CFO/DAF et responsables multi-sites.",
+    signalLabel: "Cadence FAQ",
+    signalBody:
+      "Chaque reponse est formulee pour aider une decision rapide entre operations, finance et IT.",
+    categoryHint: "Choisir un angle puis ouvrir une question",
+    liveLabel: "Bloc FAQ dynamique",
+    loadingLabel: "Chargement des reponses...",
+    emptyTitle: "Aucune question sur cette categorie",
+    emptyBody:
+      "Selectionnez une autre categorie pour afficher des reponses exploitables.",
+    errorTitle: "La section FAQ ne peut pas etre affichee",
+    errorBody:
+      "La categorie active est invalide. Reinitialisez sur la premiere categorie.",
+    retryLabel: "Reinitialiser la categorie",
     categories: [
       "Comprendre Praedixa",
       "Pilote & tarification",
-      "Technique & données",
+      "Technique & donnees",
     ],
     items: [
       {
         question: "Praedixa, c'est quoi en une phrase ?",
         answer:
-          "Une couche Workforce & ProofOps: on anticipe les risques de sous-couverture par site et équipe, on compare les options, puis on trace chaque arbitrage dans un Decision Ledger pour produire une preuve économique auditable.",
-        category: "Comprendre Praedixa",
-      },
-      {
-        question: "À qui s'adresse Praedixa ?",
-        answer:
-          "Dir. d'exploitation, responsables Ops et DAF d'organisations multi-sites avec équipes terrain. MVP prioritaire: réseaux multi-franchisés de restauration rapide. ICP également adressés: logistique, retail/distribution, transport, industrie, santé et services. Point commun: charge fluctuante, capacité contrainte, coûts d'urgence en hausse.",
+          "Une couche Decision Intelligence & Optimization qui transforme des previsions multi-KPI en decisions optimisees et preuve ROI mensuelle.",
         category: "Comprendre Praedixa",
       },
       {
         question:
-          "Quelle différence avec un SIRH ou un outil de planification ?",
+          "Quelle difference entre Service Signature Praedixa et Previsions KPI uniquement ?",
         answer:
-          "On ne fait pas le planning. On se branche dessus. Un SIRH gère les processus RH. Un outil de planification gère les rotations. Praedixa prédit l'écart capacité vs charge, chiffre les scénarios et propose un playbook d'actions avec impact économique. C'est un outil de décision.",
+          "Le Service Signature inclut previsions + optimisation de decision + Decision Log + proof pack ROI. Le mode Previsions KPI uniquement fournit seulement la partie forecasting.",
         category: "Comprendre Praedixa",
       },
       {
-        question: "Praedixa donne-t-il des conseils ?",
+        question: "Quels KPI pouvez-vous prevoir ?",
         answer:
-          "Non. Praedixa présente des options avec leur impact économique chiffré. La décision appartient entièrement à l'entreprise. Chaque décision est tracée pour alimenter la preuve économique.",
+          "Workforce, demande, stock, offre, et autres KPI sur demande selon votre contexte metier.",
         category: "Comprendre Praedixa",
       },
       {
-        question: "Combien coûte Praedixa ?",
+        question: "Qui prend la decision finale ?",
         answer:
-          "Le pilote Workforce & ProofOps fait l'objet d'un cadrage commercial adapté au périmètre. Il peut démarrer sur un scope ciblé (MVP restauration rapide) avant extension.",
+          "Toujours votre entreprise. Praedixa propose des options comparees et trace les choix effectifs dans le Decision Log.",
+        category: "Comprendre Praedixa",
+      },
+      {
+        question: "Quelle difference avec un outil de planning/WFM ou un ERP ?",
+        answer:
+          "Praedixa ne remplace pas ces outils. La plateforme ajoute une couche decisionnelle et de preuve ROI au-dessus de l'existant.",
+        category: "Comprendre Praedixa",
+      },
+      {
+        question: "L'audit 1 mois offert couvre quoi ?",
+        answer:
+          "Un audit de vos historiques pour etablir le baseline BAU/0% et estimer ce que vous auriez pu economiser avec les recommandations Praedixa.",
         category: "Pilote & tarification",
       },
       {
-        question: "Comment se déroule le pilote ?",
+        question: "Comment se structure le pilote sur 3 mois ?",
         answer:
-          "Le pilote dure 3 mois. Mois 1: initialisation et construction des pipelines à partir de vos exports. Mois 2: calibration selon vos données disponibles. Mois 3: stabilisation des rituels de décision et documentation de gouvernance.",
+          "M1 audit offert + initialisation, S8 jalon de preuve intermediaire, M3 consolidation et proof pack complet.",
         category: "Pilote & tarification",
       },
       {
-        question: "Que mesurez-vous pendant le pilote ?",
+        question: "Comment prouvez-vous le ROI ?",
         answer:
-          "Le pilote mesure la qualité des signaux de prévision d'effectifs, la robustesse des options proposées et la traçabilité des décisions. Aucun résultat chiffré prédéfini n'est promis publiquement.",
+          "Par comparaison BAU/0%, 100% recommande et reel observe, avec overrides et raisons traces dans le Decision Log.",
         category: "Pilote & tarification",
       },
       {
-        question: "Quelles données pour démarrer ?",
+        question: "Quelles donnees faut-il pour demarrer ?",
         answer:
-          "Exports existants : capacité, charge/volumes et absences (CSV ou Excel). On s'adapte à vos outils et à votre maturité data. Objectif : diagnostic actionnable sans projet d'intégration.",
-        category: "Technique & données",
+          "Exports existants: charge/demande, capacite/workforce, stock/offre, absences, plus regles metier essentielles.",
+        category: "Technique & donnees",
       },
       {
-        question: "Faut-il une intégration IT ?",
+        question: "Faut-il une integration IT lourde ?",
         answer:
-          "Pas pour l'initialisation du pilote. Le démarrage se fait sur exports simples (CSV/Excel). Ensuite, une automatisation légère d'exports planifiés peut être mise en place selon votre contexte.",
-        category: "Technique & données",
+          "Non. Le demarrage se fait en lecture seule via exports/API, puis automatisation legere si necessaire.",
+        category: "Technique & donnees",
       },
       {
-        question: "RGPD : données individuelles ?",
+        question: "Traitez-vous des donnees individuelles ?",
         answer:
-          "Non. Privacy-by-design : niveau agrégé (équipe/site), données limitées au strict nécessaire. Aucune prédiction individuelle, aucun traitement nominatif. Hébergement 100 % Scaleway, en France.",
-        category: "Technique & données",
+          "Non. Praedixa fonctionne sur des donnees agregees equipe/site et n'effectue pas de prediction individuelle.",
+        category: "Technique & donnees",
       },
       {
-        question: "Quels éléments sécurité partagez-vous en qualification ?",
+        question: "Que se passe-t-il si nous restons en mode Previsions KPI uniquement ?",
         answer:
-          "Nous partageons le cadre sécurité applicable au périmètre du pilote (chiffrement, contrôles d'accès, journalisation, périmètre d'hébergement et sous-traitants). Hébergement intégral sur Scaleway — 100 % français.",
-        category: "Technique & données",
-      },
-      {
-        question: "Que se passe-t-il si le pilote ne donne pas de résultat ?",
-        answer:
-          "Le pilote inclut un cadre de validation et une documentation de fin de phase. Vous disposez d'un plan de suite formalisé et d'aucun engagement commercial post-pilote.",
+          "Vous gardez la partie forecasting. Vous pouvez ensuite activer le Service Signature pour ajouter optimisation de decision, Decision Log et preuve ROI.",
         category: "Pilote & tarification",
       },
     ],
   },
 
   contact: {
-    kicker: "Passer à l'action",
-    heading: "Demandez un pilote Workforce & ProofOps.",
+    kicker: "Passer a l'action",
+    heading: "Demandez un pilote Signature Praedixa.",
     subheading:
-      "Nous cadrons un démarrage MVP (restauration rapide multi-franchisée) puis un plan d'extension selon vos priorités sectorielles.",
+      "Nous cadrons votre perimetre multi-sites, lancons l'audit historique offert, puis deroulons la boucle decision + preuve ROI.",
     trustItems: [
-      "Réponse sous 48h ouvrées",
-      "NDA possible dès le premier échange",
-      "Données agrégées uniquement",
-      "Sans engagement commercial post-pilote",
+      "Reponse sous 48h ouvrees",
+      "1 mois d'audit historique offert",
+      "Lecture seule via exports/API",
+      "Aucun engagement post-pilote impose",
     ],
-    ctaPrimary: "Demander un pilote Workforce & ProofOps",
-    ctaSecondary: "Écrire à l'équipe",
+    ctaPrimary: "Demander un pilote Signature Praedixa",
+    ctaSecondary: "Parler des previsions KPI uniquement",
+  },
+
+  servicesPage: {
+    meta: {
+      title:
+        "Praedixa | Service Signature vs Previsions KPI uniquement",
+      description:
+        "Comparez clairement le Service Signature Praedixa (full package) et le mode Previsions KPI uniquement: Workforce, demande, stock, offre, autres sur demande.",
+      ogTitle:
+        "Praedixa | Service Signature et Previsions KPI uniquement",
+      ogDescription:
+        "Deux niveaux de service, un seul produit: Service Signature Praedixa (decision + ROI + Decision Log) ou previsions KPI uniquement.",
+    },
+    kicker: "Service",
+    heading:
+      "Service Signature Praedixa vs Previsions KPI uniquement.",
+    subheading:
+      "Un seul produit. Deux niveaux de service. Le Service Signature est l'offre complete. Le mode Previsions KPI uniquement sert de point d'entree.",
+    fullPackage: {
+      badge: "Service Signature Praedixa",
+      title: "Full package Decision Intelligence & Optimization",
+      summary:
+        "Le coeur de valeur Praedixa: optimiser les decisions operationnelles sous contraintes et prouver l'impact economique.",
+      includesTitle: "Ce qui est inclus",
+      includes: [
+        "Previsions multi-KPI: Workforce, demande, stock, offre, autres sur demande.",
+        "Options comparees sous contraintes cout/service/regles metier.",
+        "Decision optimale recommandee avec arbitrages explicites.",
+        "Decision Log: recommandation, override, raison, resultat.",
+        "Proof pack ROI: baseline BAU/0% vs 100% recommande vs reel.",
+        "Gouvernance multi-sites: comparabilite et standardisation.",
+      ],
+      cta: "Demander un pilote Signature Praedixa",
+    },
+    forecastsOnly: {
+      badge: "Previsions KPI uniquement",
+      title: "Mode forecasting cible",
+      summary:
+        "Un point d'entree pour structurer vos previsions KPI avant d'activer la couche decisionnelle complete.",
+      includesTitle: "Ce qui est inclus",
+      includes: [
+        "Previsions KPI: Workforce, demande, stock, offre, autres sur demande.",
+        "Livrables de prevision operationnels exploitables par vos equipes.",
+        "Demarrage lecture seule via exports/API.",
+      ],
+      limitsTitle: "Ce qui n'est pas inclus",
+      limits: [
+        "Pas d'optimisation complete des decisions sous contraintes.",
+        "Pas de Decision Log complet avec overrides et raisons.",
+        "Pas de proof pack ROI complet BAU/0% vs 100% vs reel.",
+      ],
+      cta: "Parler de mes besoins previsionnels",
+    },
+    comparison: {
+      title: "Comparatif rapide",
+      columns: [
+        {
+          criterion:
+            "Previsions KPI (Workforce, demande, stock, offre, autres sur demande)",
+          fullPackage: "Inclus",
+          forecastsOnly: "Inclus",
+        },
+        {
+          criterion: "Options comparees sous contraintes cout/service",
+          fullPackage: "Inclus",
+          forecastsOnly: "Non inclus",
+        },
+        {
+          criterion: "Decision optimale recommandee",
+          fullPackage: "Inclus",
+          forecastsOnly: "Non inclus",
+        },
+        {
+          criterion: "Decision Log (recommandation, override, raison, resultat)",
+          fullPackage: "Inclus",
+          forecastsOnly: "Non inclus",
+        },
+        {
+          criterion: "Proof pack ROI (BAU/0%, 100%, reel)",
+          fullPackage: "Inclus",
+          forecastsOnly: "Non inclus",
+        },
+      ],
+    },
+    decisionGuide: {
+      title: "Quand choisir chaque mode",
+      items: [
+        "Choisissez le Service Signature si votre priorite est la qualite de decision + preuve ROI mensuelle.",
+        "Choisissez Previsions KPI uniquement si vous devez d'abord fiabiliser votre base de forecasting.",
+        "Vous pouvez commencer en Previsions KPI uniquement puis activer le Service Signature sans changer de produit.",
+      ],
+    },
+    bottomNote:
+      "Praedixa reste un seul produit decisionnel. Le mode previsions-only est une etape, le Service Signature est le differenciant.",
   },
 
   footer: {
-    tagline: "Intelligence de couverture pour opérations multi-sites.",
-    badges: ["Gouvernance COO / DAF", "Privacy-by-design"],
+    tagline:
+      "Intelligence de l'optimisation de la decision pour operations multi-sites.",
+    badges: ["Decision Log natif", "Proof pack ROI mensuel"],
     navigation: "Navigation",
-    legalContact: "Légal & contact",
-    copyright: "Conçu et hébergé en France",
+    legalContact: "Legal & contact",
+    copyright: "Concu et heberge en France",
     ctaBanner: {
-      kicker: "Pilote d'entrée",
+      kicker: "Service Signature Praedixa",
       heading:
-        "Pilote Workforce & ProofOps — démarrage possible en périmètre ciblé.",
-      cta: "Demander un pilote Workforce & ProofOps",
+        "Pilote 3 mois avec audit historique 1 mois offert et preuve ROI mensuelle.",
+      cta: "Demander un pilote Signature Praedixa",
     },
   },
 
   stickyCta: {
-    text: "Demander un pilote Workforce & ProofOps",
+    text: "Demander un pilote Signature Praedixa",
   },
 
   form: {
-    pageTitle: "Demande de pilote Workforce & ProofOps",
+    pageTitle: "Demande de pilote Signature Praedixa",
     pageSubtitle:
-      "Cette demande permet de qualifier votre périmètre pilote Workforce & ProofOps sur 3 mois (MVP restauration rapide puis extension possible).",
-    pill: "Pilote Workforce & ProofOps (3 mois)",
+      "Cette demande qualifie votre pilote 3 mois Decision Intelligence & Optimization, avec audit historique 1 mois offert.",
+    pill: "Pilote Signature Praedixa (3 mois)",
     valuePoints: [
-      "Qualification orientée enjeux effectifs, Ops et finance",
-      "Réponse sous 48h ouvrées",
-      "Réponse de l'équipe produit",
+      "Audit historique 1 mois offert",
+      "Qualification orientee COO/Ops et CFO/DAF",
+      "Reponse sous 48h ouvrees",
     ],
-    estimatedTime: "Temps estimé",
+    estimatedTime: "Temps estime",
     estimatedTimeValue: "Quelques minutes",
     fieldsets: {
       organisation: "Organisation",
@@ -570,59 +702,59 @@ export const fr: Dictionary = {
       sector: { label: "Secteur" },
       employeeRange: { label: "Effectif" },
       siteCount: { label: "Nombre de sites" },
-      firstName: { label: "Prénom" },
+      firstName: { label: "Prenom" },
       lastName: { label: "Nom" },
       role: { label: "Fonction" },
       email: {
         label: "Email professionnel",
         placeholder: "vous@entreprise.com",
       },
-      phone: { label: "Téléphone", placeholder: "06 00 00 00 00" },
+      phone: { label: "Telephone", placeholder: "06 00 00 00 00" },
       timeline: { label: "Horizon projet" },
       currentStack: {
         label: "Stack actuelle (optionnel)",
-        placeholder: "Ex : ERP + planning interne",
+        placeholder: "Ex : WFM + ERP + CRM",
       },
       painPoint: {
-        label: "Principal enjeu de couverture",
+        label: "Principal arbitrage a optimiser",
         placeholder:
-          "Décrivez le problème opérationnel que vous voulez traiter en priorité.",
+          "Decrivez la decision cout/service la plus critique a traiter en priorite.",
       },
     },
-    select: "Sélectionner",
+    select: "Selectionner",
     consent: "J'accepte les {cgu} et la {privacy}.",
     cguLabel: "CGU",
-    privacyLabel: "politique de confidentialité",
+    privacyLabel: "politique de confidentialite",
     submit: "Envoyer ma candidature",
-    submitting: "Envoi en cours…",
+    submitting: "Envoi en cours...",
     success: {
       title: "Candidature transmise",
       description:
-        "Nous analysons votre dossier et revenons vers vous sous 48h ouvrées avec un cadrage adapté à votre contexte.",
+        "Nous revenons vers vous sous 48h ouvrees avec un cadrage adapte a votre contexte et un plan d'audit historique.",
       backToSite: "Retour au site",
       checkEmail: "Voir le protocole pilote",
     },
-    error: "Une erreur est survenue. Veuillez réessayer.",
+    error: "Une erreur est survenue. Veuillez reessayer.",
     sectors: [
-      "Logistique",
+      "Restauration / Retail / Hotellerie",
+      "Concessions auto / Atelier",
+      "Logistique / Entrepots",
+      "Sante / Cliniques",
+      "Industrie / Maintenance",
+      "Centres d'appels",
       "Transport",
-      "Restauration rapide",
-      "Santé",
-      "Industrie",
-      "Distribution",
-      "Agroalimentaire",
-      "BTP",
       "Services",
       "Autre",
     ],
     employeeRanges: ["50-100", "100-250", "250-500", "500-1 000", "1 000+"],
     siteCounts: ["1-3", "4-10", "11-30", "31+"],
     roles: [
-      "COO / Direction des opérations",
-      "Responsable des opérations",
-      "Direction de site",
-      "DAF / Direction financière",
-      "Direction générale",
+      "COO / Direction des operations",
+      "Responsable reseau multi-sites",
+      "Responsable planning / atelier",
+      "Supply / Inventory manager",
+      "DAF / Direction financiere",
+      "Direction generale",
       "Autre",
     ],
     timelines: ["0-3 mois", "3-6 mois", "6-12 mois", "Exploration"],

@@ -1,13 +1,21 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle, XCircle, Target, Users, ClockCountdown } from "@phosphor-icons/react";
+import {
+  CheckCircle,
+  ClockCountdown,
+  Target,
+  Users,
+  XCircle,
+} from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
+import { MagneticActionLink } from "../shared/motion/MagneticActionLink";
+import { PulseDot } from "../shared/motion/PulseDot";
+import { ShimmerTrack } from "../shared/motion/ShimmerTrack";
 
 interface PilotSectionProps {
   locale: Locale;
@@ -32,6 +40,75 @@ const listItem = {
 
 export function PilotSection({ locale, dict }: PilotSectionProps) {
   const pilotHref = getLocalizedPath(locale, "pilot");
+  const pilot = dict.pilot;
+  const statusLabels = Array.isArray(pilot.statusLabels) ? pilot.statusLabels : null;
+  const includedItems = Array.isArray(pilot.included.items)
+    ? pilot.included.items
+    : null;
+  const excludedItems = Array.isArray(pilot.excluded.items)
+    ? pilot.excluded.items
+    : null;
+  const kpiItems = Array.isArray(pilot.kpis.items) ? pilot.kpis.items : null;
+  const governanceItems = Array.isArray(pilot.governance.items)
+    ? pilot.governance.items
+    : null;
+  const selectionItems = Array.isArray(pilot.selection.items)
+    ? pilot.selection.items
+    : null;
+
+  if (
+    !statusLabels ||
+    !includedItems ||
+    !excludedItems ||
+    !kpiItems ||
+    !governanceItems ||
+    !selectionItems
+  ) {
+    return (
+      <SectionShell id="pilot" className="section-dark">
+        <div className="max-w-3xl">
+          <Kicker className="text-neutral-100">{pilot.kicker}</Kicker>
+          <h2
+            className="mt-3 text-4xl font-bold tracking-tighter text-white md:text-6xl"
+            style={{ lineHeight: 1.04 }}
+          >
+            {locale === "fr" ? "Chargement de l'offre pilote" : "Loading pilot offer"}
+          </h2>
+          <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
+            {locale === "fr"
+              ? "Assemblage des etapes de qualification en cours."
+              : "Preparing qualification milestones."}
+          </p>
+          <div className="mt-8 space-y-4">
+            <div className="h-16 animate-pulse rounded-2xl border border-white/10 bg-white/[0.06]" />
+            <div className="h-16 animate-pulse rounded-2xl border border-white/10 bg-white/[0.06]" />
+            <div className="h-16 animate-pulse rounded-2xl border border-white/10 bg-white/[0.06]" />
+          </div>
+        </div>
+      </SectionShell>
+    );
+  }
+
+  if (includedItems.length === 0 && excludedItems.length === 0) {
+    return (
+      <SectionShell id="pilot" className="section-dark">
+        <div className="max-w-3xl">
+          <Kicker className="text-neutral-100">{pilot.kicker}</Kicker>
+          <h2
+            className="mt-3 text-4xl font-bold tracking-tighter text-white md:text-6xl"
+            style={{ lineHeight: 1.04 }}
+          >
+            {locale === "fr" ? "Offre pilote vide" : "Empty pilot offer"}
+          </h2>
+          <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
+            {locale === "fr"
+              ? "Ajoutez les livrables du pilote pour activer cette section."
+              : "Add pilot deliverables to activate this section."}
+          </p>
+        </div>
+      </SectionShell>
+    );
+  }
 
   return (
     <SectionShell id="pilot" className="section-dark">
@@ -41,51 +118,51 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         viewport={VP}
         transition={SPRING}
       >
-        <Kicker className="text-neutral-100">{dict.pilot.kicker}</Kicker>
-        <h2 className="mt-3 max-w-2xl text-4xl font-bold tracking-tighter text-white md:text-5xl" style={{ lineHeight: 1.05 }}>
-          {dict.pilot.heading}
+        <Kicker className="text-neutral-100">{pilot.kicker}</Kicker>
+        <h2 className="mt-3 max-w-3xl text-4xl font-bold leading-none tracking-tighter text-white md:text-6xl">
+          {pilot.heading}
         </h2>
-        <p className="mt-4 max-w-xl text-base leading-relaxed text-neutral-200">
-          {dict.pilot.subheading}
+        <p className="mt-5 max-w-[65ch] text-base leading-relaxed text-neutral-200">
+          {pilot.subheading}
         </p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {dict.pilot.statusLabels.map((label, i) => (
+        <div className="mt-6 flex flex-wrap gap-2">
+          {statusLabels.map((label, i) => (
             <span
               key={label}
-              className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
                 i === 0
-                  ? "border border-brass-400/40 bg-brass-800 text-white"
-                  : "border border-white/10 bg-white/5 text-neutral-200"
+                  ? "border border-brass-300/60 bg-brass-800/70 text-white"
+                  : "border border-white/12 bg-white/5 text-neutral-200"
               }`}
             >
+              <PulseDot className="h-1.5 w-1.5 bg-brass-300" />
               {label}
             </span>
           ))}
         </div>
       </motion.div>
 
-      {/* Included / Excluded — split layout with border-t, no cards */}
-      <div className="mt-14 grid grid-cols-1 gap-12 md:grid-cols-[1.2fr_1fr]">
+      <div className="mt-14 grid grid-cols-1 gap-8 md:grid-cols-[1.24fr_0.76fr] md:gap-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={VP}
           transition={SPRING}
         >
-          <div className="border-t-2 border-brass-400/50 pt-5">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
+          <div className="rounded-[1.9rem] border border-white/10 bg-white/[0.045] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm md:p-7">
+            <h3 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-white">
               <CheckCircle size={18} weight="fill" className="text-brass-300" />
-              {dict.pilot.included.title}
+              {pilot.included.title}
             </h3>
             <motion.ul
               variants={staggerList}
               initial="hidden"
               whileInView="visible"
               viewport={VP}
-              className="mt-4 list-none space-y-2.5 p-0"
+              className="mt-5 list-none space-y-3 p-0"
             >
-              {dict.pilot.included.items.map((item) => (
+              {includedItems.map((item) => (
                 <motion.li
                   key={item}
                   variants={listItem}
@@ -100,6 +177,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
                 </motion.li>
               ))}
             </motion.ul>
+            <ShimmerTrack className="mt-6" />
           </div>
         </motion.div>
 
@@ -109,13 +187,13 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
           viewport={VP}
           transition={{ ...SPRING, delay: 0.1 }}
         >
-          <div className="border-t border-white/10 pt-5">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-200">
+          <div className="rounded-[1.7rem] border border-white/10 bg-white/[0.03] p-6 md:p-7">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-neutral-100">
               <XCircle size={18} weight="fill" className="text-neutral-200" />
-              {dict.pilot.excluded.title}
+              {pilot.excluded.title}
             </h3>
             <ul className="mt-4 list-none space-y-2.5 p-0">
-              {dict.pilot.excluded.items.map((item) => (
+              {excludedItems.map((item) => (
                 <li
                   key={item}
                   className="m-0 flex items-start gap-2 text-sm text-neutral-200"
@@ -133,20 +211,22 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         </motion.div>
       </div>
 
-      {/* KPIs / Governance / Selection — vertical divide-y, no 3-col cards */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={VP}
         transition={{ ...SPRING, delay: 0.1 }}
-        className="mt-12 divide-y divide-white/10"
+        className="mt-10 divide-y divide-white/10 border-y border-white/10"
       >
         {[
-          { icon: Target, data: dict.pilot.kpis },
-          { icon: Users, data: dict.pilot.governance },
-          { icon: ClockCountdown, data: dict.pilot.selection },
+          { icon: Target, data: pilot.kpis },
+          { icon: Users, data: pilot.governance },
+          { icon: ClockCountdown, data: pilot.selection },
         ].map(({ icon: Icon, data }) => (
-          <div key={data.title} className="grid grid-cols-1 gap-4 py-6 first:pt-0 md:grid-cols-[1fr_2fr]">
+          <div
+            key={data.title}
+            className="grid grid-cols-1 gap-4 py-6 md:grid-cols-[0.9fr_1.1fr]"
+          >
             <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
               <Icon size={18} weight="fill" className="text-brass-300" />
               {data.title}
@@ -162,19 +242,18 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         ))}
       </motion.div>
 
-      {/* Upcoming — border-l accent instead of card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={VP}
         transition={{ ...SPRING, delay: 0.1 }}
-        className="mt-8 border-l-2 border-brass-400/50 pl-6 py-4"
+        className="mt-8 border-l-2 border-brass-400/50 py-4 pl-6"
       >
         <h3 className="text-sm font-semibold text-neutral-100">
-          {dict.pilot.upcoming.title}
+          {pilot.upcoming.title}
         </h3>
         <p className="mt-1.5 max-w-lg text-sm leading-relaxed text-neutral-200">
-          {dict.pilot.upcoming.description}
+          {pilot.upcoming.description}
         </p>
       </motion.div>
 
@@ -183,16 +262,17 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={VP}
         transition={{ ...SPRING, delay: 0.15 }}
-        className="mt-10 flex flex-col items-start gap-3 sm:flex-row sm:items-center"
+        className="mt-10 flex flex-col items-start gap-3 sm:flex-row sm:items-end"
       >
-        <Link
+        <MagneticActionLink
           href={pilotHref}
-          className="btn-primary-gradient inline-flex items-center gap-2 rounded-lg px-6 py-3.5 text-sm font-semibold text-white no-underline transition-all duration-150 active:scale-[0.98] active:-translate-y-[1px]"
-        >
-          {dict.pilot.ctaPrimary}
-          <ArrowRight size={16} weight="bold" />
-        </Link>
-        <p className="text-xs text-white/95">{dict.pilot.ctaMeta}</p>
+          label={pilot.ctaPrimary}
+          wrapperClassName="sm:max-w-sm"
+          className="border-white/15 bg-white/[0.07] text-white hover:border-white/25 hover:bg-white/[0.12]"
+        />
+        <p className="max-w-[46ch] text-xs leading-relaxed text-white/90">
+          {pilot.ctaMeta}
+        </p>
       </motion.div>
 
       <motion.p
@@ -200,9 +280,9 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         whileInView={{ opacity: 1 }}
         viewport={VP}
         transition={{ ...SPRING, delay: 0.2 }}
-        className="mt-4 text-xs text-white/95"
+        className="mt-4 text-xs text-white/90"
       >
-        {dict.pilot.urgency}
+        {pilot.urgency}
       </motion.p>
     </SectionShell>
   );

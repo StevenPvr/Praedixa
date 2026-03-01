@@ -11,6 +11,11 @@ function normalizeHost(host: string): string {
   return host.trim().toLowerCase().replace(/\.$/, "");
 }
 
+interface ParsedSource {
+  host: string;
+  protocol: string;
+}
+
 function parseHost(value: string | null): string | null {
   if (!value) return null;
   try {
@@ -18,6 +23,33 @@ function parseHost(value: string | null): string | null {
   } catch {
     return null;
   }
+}
+
+function parseSource(value: string | null): ParsedSource | null {
+  if (!value) return null;
+  try {
+    const parsed = new URL(value);
+    return {
+      host: normalizeHost(parsed.host),
+      protocol: parsed.protocol.toLowerCase(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function isLocalHost(host: string): boolean {
+  return (
+    host.startsWith("localhost") ||
+    host.startsWith("127.0.0.1") ||
+    host === "::1" ||
+    host.startsWith("[::1]")
+  );
+}
+
+function hasAllowedProtocol(source: ParsedSource): boolean {
+  if (source.protocol === "https:") return true;
+  return source.protocol === "http:" && isLocalHost(source.host);
 }
 
 function collectAllowedHosts(): Set<string> {
@@ -55,23 +87,40 @@ export function isCrossSiteRequest(request: Request): boolean {
   return request.headers.get("sec-fetch-site") === "cross-site";
 }
 
-export function hasTrustedFormOrigin(request: Request): boolean {
+export function hasTrustedFormOrigin(
+  request: Request,
+  options: { requireSource?: boolean } = {},
+): boolean {
   const allowedHosts = collectAllowedHosts();
   const targetHost = requestHost(request);
   if (targetHost && !allowedHosts.has(targetHost)) {
     return false;
   }
 
-  const originHost = parseHost(request.headers.get("origin"));
-  if (originHost && !allowedHosts.has(originHost)) {
-    return false;
-  }
-
-  if (!originHost) {
-    const refererHost = parseHost(request.headers.get("referer"));
-    if (refererHost && !allowedHosts.has(refererHost)) {
+  const origin = parseSource(request.headers.get("origin"));
+  if (origin) {
+    if (!allowedHosts.has(origin.host)) {
       return false;
     }
+    if (!hasAllowedProtocol(origin)) {
+      return false;
+    }
+    return true;
+  }
+
+  const referer = parseSource(request.headers.get("referer"));
+  if (referer) {
+    if (!allowedHosts.has(referer.host)) {
+      return false;
+    }
+    if (!hasAllowedProtocol(referer)) {
+      return false;
+    }
+    return true;
+  }
+
+  if (options.requireSource) {
+    return false;
   }
 
   return true;

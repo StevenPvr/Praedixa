@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 <prod>" >&2
+  echo "Usage: $0 <staging|prod>" >&2
   exit 1
 fi
 
@@ -10,6 +10,11 @@ ENV="$1"
 REGION="fr-par"
 
 case "$ENV" in
+  staging)
+    NAMESPACE_NAME="landing-staging"
+    CONTAINER_NAME="landing-staging"
+    DOCKERFILE="app-landing/Dockerfile.scaleway"
+    ;;
   prod)
     NAMESPACE_NAME="landing-prod"
     CONTAINER_NAME="landing-web"
@@ -45,6 +50,8 @@ if [ ! -f "$DOCKERFILE" ]; then
   exit 1
 fi
 
+DOCKER_DEFAULT_PLATFORM="${DOCKER_DEFAULT_PLATFORM:-linux/amd64}"
+
 NS_ID=$(scw container namespace list region="$REGION" -o json | jq -r --arg n "$NAMESPACE_NAME" '.[] | select(.name==$n) | .id' | head -n1)
 if [ -z "$NS_ID" ]; then
   echo "Namespace not found: $NAMESPACE_NAME" >&2
@@ -52,7 +59,7 @@ if [ -z "$NS_ID" ]; then
 fi
 
 echo "Deploying landing:${ENV} to namespace ${NAMESPACE_NAME} (${NS_ID})"
-scw container deploy \
+DOCKER_DEFAULT_PLATFORM="$DOCKER_DEFAULT_PLATFORM" scw container deploy \
   name="$CONTAINER_NAME" \
   namespace-id="$NS_ID" \
   dockerfile="$DOCKERFILE" \

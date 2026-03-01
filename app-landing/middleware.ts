@@ -22,15 +22,27 @@ function normalizeHost(host: string): string {
 }
 
 function resolveRequestHost(request: NextRequest): string {
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  if (forwardedHost) {
-    return normalizeHost(forwardedHost.split(",")[0] ?? "");
-  }
   const host = request.headers.get("host");
   if (host) {
     return normalizeHost(host);
   }
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  if (forwardedHost) {
+    return normalizeHost(forwardedHost.split(",")[0] ?? "");
+  }
   return normalizeHost(request.nextUrl.host);
+}
+
+function resolveForwardedProto(request: NextRequest): "http" | "https" | null {
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  if (!forwardedProto) return null;
+
+  const normalized = forwardedProto.split(",")[0]?.trim().toLowerCase();
+  if (normalized === "http" || normalized === "https") {
+    return normalized;
+  }
+  return null;
 }
 
 function hasLocalePrefix(pathname: string): boolean {
@@ -50,11 +62,15 @@ function resolveCanonicalTarget(request: NextRequest): URL | null {
 
   const requestHost = resolveRequestHost(request);
   if (PRODUCTION_HOSTS.has(requestHost)) {
-    if (target.protocol !== "https:") {
+    const forwardedProto = resolveForwardedProto(request);
+    const shouldForceHttps =
+      requestHost === "praedixa.com" || forwardedProto === "http";
+    if (shouldForceHttps && target.protocol !== "https:") {
       target.protocol = "https:";
       shouldRedirect = true;
     }
-    if (target.hostname !== CANONICAL_HOST) {
+
+    if (requestHost === "praedixa.com") {
       target.hostname = CANONICAL_HOST;
       target.port = "";
       shouldRedirect = true;
@@ -94,6 +110,10 @@ function buildRequestHeaders(
   requestHeaders.set(
     "x-request-locale",
     resolveLocaleFromPathname(request.nextUrl.pathname),
+  );
+  requestHeaders.set(
+    "x-request-pathname",
+    normalizePathname(request.nextUrl.pathname),
   );
   return requestHeaders;
 }

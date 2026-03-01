@@ -7,6 +7,7 @@ import {
 import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Locale } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import { serializeJsonForScriptTag } from "../../lib/security/json-script";
 
 interface JsonLdProps {
   locale: Locale;
@@ -118,7 +119,9 @@ export function JsonLd({ locale, dict }: JsonLdProps) {
         <script
           key={i}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          dangerouslySetInnerHTML={{
+            __html: serializeJsonForScriptTag(schema),
+          }}
         />
       ))}
     </>

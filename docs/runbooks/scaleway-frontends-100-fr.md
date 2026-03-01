@@ -12,7 +12,7 @@ Mettre `landing`, `webapp`, `admin`, `api`, `auth` sur une infrastructure FR-onl
 
 Namespaces provisionnes:
 
-- `landing-prod`
+- `landing-staging`, `landing-prod`
 - `webapp-staging`, `webapp-prod`
 - `admin-staging`, `admin-prod`
 - `api-staging`, `api-prod`
@@ -20,6 +20,7 @@ Namespaces provisionnes:
 
 Containers:
 
+- `landing-staging`, `landing-web`
 - `webapp-staging`, `webapp-prod`
 - `admin-staging`, `admin-prod`
 - `api-staging`, `api-prod`
@@ -28,7 +29,7 @@ Containers:
 Notes:
 
 - `webapp/admin/api` sont provisionnes mais en `error` tant qu'aucune image applicative n'est deployee (etat attendu).
-- `landing-prod` est provisionne sur Scaleway; la bascule publique de `praedixa.com`/`www` reste en attente du transfert domaine.
+- `landing-staging` et `landing-prod` sont provisionnes sur Scaleway; la bascule publique de `praedixa.com`/`www` reste en attente du transfert domaine.
 
 ### 2. Data plane FR
 
@@ -108,6 +109,7 @@ pnpm run scw:bootstrap:api
 ### Configuration runtime
 
 ```bash
+pnpm run scw:configure:landing:staging
 pnpm run scw:configure:landing:prod
 pnpm run scw:configure:webapp:staging
 pnpm run scw:configure:webapp:prod
@@ -120,6 +122,7 @@ pnpm run scw:configure:api:prod
 ### Deploy (quand valide)
 
 ```bash
+pnpm run scw:deploy:landing:staging
 pnpm run scw:deploy:landing:prod
 pnpm run scw:deploy:api:staging
 pnpm run scw:deploy:webapp:staging
@@ -134,7 +137,7 @@ pnpm run scw:deploy:admin:staging
 
 ### Reste a faire
 
-1. Deployer les images staging (`api`, `webapp`, `admin`) apres validation fonctionnelle.
-2. Deployer `landing` sur Scaleway (container `landing-web`) puis basculer `@`/`www` au moment du transfert domaine.
+1. Deployer les images staging (`landing`, `api`, `webapp`, `admin`) apres validation fonctionnelle.
+2. Deployer `landing` en production sur Scaleway (container `landing-web`) puis basculer `@`/`www` au moment du transfert domaine.
 3. Finaliser le transfert de delegation NS vers Scaleway quand le lock registrar le permet.
 4. Une fois stable, retirer les bindings Workers historiques devenus inutiles.

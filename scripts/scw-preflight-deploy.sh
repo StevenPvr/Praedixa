@@ -352,45 +352,47 @@ if command -v dig >/dev/null 2>&1; then
   fi
 fi
 
-check_namespace "landing-prod"
 check_namespace "auth-prod"
 
 if is_target_enabled "staging"; then
+  check_namespace "landing-staging"
   check_namespace "webapp-staging"
   check_namespace "admin-staging"
   check_namespace "api-staging"
 fi
 
 if is_target_enabled "prod"; then
+  check_namespace "landing-prod"
   check_namespace "webapp-prod"
   check_namespace "admin-prod"
   check_namespace "api-prod"
 fi
 
-check_container_state "landing-web"
 check_container_state "auth-prod"
 
 if is_target_enabled "staging"; then
+  check_container_state "landing-staging"
   check_container_state "webapp-staging"
   check_container_state "admin-staging"
   check_container_state "api-staging"
 fi
 
 if is_target_enabled "prod"; then
+  check_container_state "landing-web"
   check_container_state "webapp-prod"
   check_container_state "admin-prod"
   check_container_state "api-prod"
 fi
 
-check_landing_container_env "landing-web"
-
 if is_target_enabled "staging"; then
+  check_landing_container_env "landing-staging"
   check_frontend_container_env "webapp-staging"
   check_frontend_container_env "admin-staging"
   check_api_container_env "api-staging"
 fi
 
 if is_target_enabled "prod"; then
+  check_landing_container_env "landing-web"
   check_frontend_container_env "webapp-prod"
   check_frontend_container_env "admin-prod"
   check_api_container_env "api-prod"
@@ -475,6 +477,7 @@ echo "Scaleway deploy preflight (${TARGET}) passed with ${WARN_COUNT} warning(s)
 echo "No deployment executed."
 echo "Next step when ready:"
 if is_target_enabled "staging"; then
+  echo "  pnpm run scw:deploy:landing:staging"
   echo "  pnpm run scw:deploy:api:staging"
   echo "  pnpm run scw:deploy:webapp:staging"
   echo "  pnpm run scw:deploy:admin:staging"
