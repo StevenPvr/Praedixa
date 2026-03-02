@@ -159,6 +159,11 @@ function parseFrontmatter(sourcePath: string, source: string): BlogPost {
     "readingTime",
     sourcePath,
   );
+  const rssVersion = resolveOptionalPositiveNumber(
+    frontmatter.rssVersion,
+    "rssVersion",
+    sourcePath,
+  );
 
   const computedReadingTime = Math.max(1, Math.round(readingTime(parsed.content).minutes));
 
@@ -169,6 +174,7 @@ function parseFrontmatter(sourcePath: string, source: string): BlogPost {
     description: resolveRawString(frontmatter.description, "description", sourcePath),
     date,
     dateIso: iso,
+    rssVersion: rssVersion ?? 1,
     tags: resolveStringArray(frontmatter.tags, "tags", sourcePath, { required: true }),
     draft: resolveBoolean(frontmatter.draft, "draft", sourcePath),
     canonical: resolveOptionalString(frontmatter.canonical, "canonical", sourcePath),

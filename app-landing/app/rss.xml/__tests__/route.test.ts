@@ -9,6 +9,6 @@ describe("rss.xml route", () => {
 
     const body = await response.text();
     expect(body).toContain("<rss");
-    expect(body).toContain("/fr/blog/sous-sureeffectif-multi-sites-methode-j3-j7-j14");
+    expect(body).toContain("/fr/blog/sous-sureeffectif-multi-sites-guide-j3-j7-j14");
   });
 });

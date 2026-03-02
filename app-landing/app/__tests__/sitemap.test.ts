@@ -50,7 +50,7 @@ describe("sitemap()", () => {
   it("should include published blog posts", () => {
     const urls = result.map((entry) => entry.url);
     expect(urls).toContain(
-      "https://www.praedixa.com/fr/blog/sous-sureeffectif-multi-sites-methode-j3-j7-j14",
+      "https://www.praedixa.com/fr/blog/sous-sureeffectif-multi-sites-guide-j3-j7-j14",
     );
   });
 

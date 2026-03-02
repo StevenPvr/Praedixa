@@ -5,11 +5,11 @@ export const en: Dictionary = {
     title:
       "Praedixa | Multi-site coverage decisions | Monthly ROI proof",
     description:
-      "Free historical audit, constrained decisions, Decision Log, and a monthly ROI proof pack. Praedixa connects read-only (exports/API) on top of your WFM/ERP/CRM stack.",
+      "One month of free historical audit to quantify potential gains. Praedixa helps you choose better coverage decisions (teams, schedules, reinforcements) and prove business impact every month. Simple, read-only integration (exports/APIs).",
     ogTitle:
       "Praedixa | Multi-site coverage decisions | ROI proof",
     ogDescription:
-      "Praedixa makes decisions defensible: BAU/0% vs recommended vs actual, traced trade-offs, and monthly business impact proof.",
+      "Praedixa makes decisions defensible: options compared, choices recorded (who decided what and why), and monthly business impact proof.",
   },
 
   nav: {
@@ -30,7 +30,7 @@ export const en: Dictionary = {
     headline: "Decide better on coverage.",
     headlineHighlight: "Prove ROI every month.",
     subtitle:
-      "Praedixa connects read-only on top of your stack (WFM/scheduling/ERP/CRM). We compare options under constraints, trace trade-offs (Decision Log), and produce a monthly ROI proof pack.",
+      "Praedixa connects read-only to what you already have (exports/APIs). We compare real-world scenarios (protect service, reduce emergencies, stabilize schedules), then document decisions and outcomes to align Ops, Finance, and IT.",
     bullets: [
       {
         metric: "1 month free",
@@ -51,9 +51,9 @@ export const en: Dictionary = {
     ctaMeta:
       "COO/Ops and CFO alignment from framing · Focused-scope kickoff possible",
     trustBadges: [
-      "Signature Service: decisions + Decision Log + ROI proof pack",
-      "Alternative mode: KPI forecasting only",
-      "Forecasting KPIs: Workforce, demand, inventory, supply, others on request",
+      "Decisions + decision journal + monthly ROI proof",
+      "Alternative mode: indicator forecasting only",
+      "Indicators: teams/capacity, demand, inventory/supply… (as needed)",
       "Read-only via exports/API",
       "Multi-site comparability, governance, and standardization",
       "100% Scaleway hosting, 100% French",
@@ -155,8 +155,8 @@ export const en: Dictionary = {
       title: "Does this sound familiar?",
       signals: [
         "You have forecasts but no traced decision protocol",
-        "Overrides are weakly documented or unusable",
-        "You do not clearly compare BAU/0%, 100% recommended, and actual",
+        "Manual adjustments are poorly documented or not reusable",
+        "You do not clearly compare before / recommended / actual",
         "Multi-site reviews rely on ad-hoc explanations",
       ],
     },
@@ -164,45 +164,45 @@ export const en: Dictionary = {
 
   solution: {
     kicker: "Praedixa method",
-    heading: "We optimize decisions, not predictions.",
+    heading: "We improve decisions, not just charts.",
     subheading:
-      "Forecasting is a component. Core value comes from constrained optimization, traceability, and ROI proof.",
+      "Forecasting helps, but value comes from consistent decisions you can trace and quantify. The goal: clearer cost/service trade-offs and a repeatable proof of impact.",
     principles: [
       {
-        title: "Multi-KPI forecasts as input",
-        subtitle: "Read operational reality",
+        title: "The right signals, at the right level",
+        subtitle: "Understand the situation",
         description:
-          "Workforce, demand, inventory, supply, and other KPIs on request: actionable signals, not the final value.",
+          "Teams/capacity, demand, inventory/supply… based on your priorities. We work at team/site level (not individual).",
       },
       {
-        title: "Options compared under constraints",
-        subtitle: "Choose on cost/service/rules",
+        title: "Concrete options to compare",
+        subtitle: "Choose with your rules",
         description:
-          "Every option is evaluated against your business constraints to make trade-offs explicit before execution.",
+          "We put real options on the table (reinforcement, reallocation, schedule adjustment, etc.) and make the trade-off explicit before acting.",
       },
       {
-        title: "Decision Log + ROI proof pack",
-        subtitle: "Trace and prove",
+        title: "Decision journal + ROI proof",
+        subtitle: "Trace, then prove",
         description:
-          "Recommendation, override, reason, outcome, then BAU/0% vs 100% vs actual comparison in a monthly governance frame.",
+          "Who decided what, why, and what changed. Then a monthly proof you can use in leadership reviews.",
       },
     ],
     differentiators: {
       title: "What we optimize / what we use",
       description:
-        "One Praedixa product with one Signature Service and one KPI forecasting-only mode.",
+        "One Praedixa product with a complete Signature Service and an “indicator forecasting only” mode if needed.",
       items: [
         {
           is: "Praedixa Signature Service (full package)",
-          isNot: "Isolated forecasting module without decision layer",
+          isNot: "Forecasting only, without decision support",
         },
         {
-          is: "Decision layer on top of your stack",
-          isNot: "WFM/scheduling/ERP replacement",
+          is: "A decision method on top of your tools",
+          isNot: "A WFM/scheduling/ERP replacement",
         },
         {
-          is: "ROI proof: BAU/0% vs 100% vs actual",
-          isNot: "Reporting with no decision attribution",
+          is: "Monthly ROI proof (before / recommended / actual)",
+          isNot: "Dashboards without a link to decisions",
         },
       ],
     },
@@ -217,30 +217,30 @@ export const en: Dictionary = {
       {
         number: "01",
         title: "Framing + free audit",
-        subtitle: "Historical baseline BAU/0%",
+        subtitle: "History & starting point",
         description:
-          "Month 1: audit your historical data to estimate what could have been saved with Praedixa recommendations.",
+          "Month 1: audit historical data to estimate potential gains and scope the priority decisions.",
       },
       {
         number: "02",
         title: "Read-only initialization",
         subtitle: "Existing exports/API",
         description:
-          "Read-only connection via CSV/Excel/API. Setup of KPI forecasts (Workforce, demand, inventory, supply, others on request).",
+          "Read-only connection via CSV/Excel/API. We set up the useful indicators (teams/capacity, demand, inventory/supply… as needed).",
       },
       {
         number: "03",
-        title: "Optimization & Decision Log",
-        subtitle: "Options, overrides, reasons",
+        title: "Guided decisions + journal",
+        subtitle: "Options, choices, reasons",
         description:
-          "Compare options under cost/service/business-rule constraints. Every decision is traced: recommendation, override, reason, outcome.",
+          "Compare options with your rules. Each decision is recorded: proposed option, final choice, reason, outcome.",
       },
       {
         number: "04",
         title: "ROI proof & governance",
         subtitle: "S8 then M3",
         description:
-          "Proof pack BAU/0% vs 100% vs actual, COO/Ops + CFO reviews, multi-site standardization, and scale-up plan.",
+          "Monthly ROI proof, COO/Ops + CFO reviews, multi-site standardization, and scale-up plan.",
       },
     ],
   },
@@ -272,7 +272,7 @@ export const en: Dictionary = {
         context:
           "Planning fragility from critical absences and workshop/clinical/maintenance dependencies.",
         action:
-          "Criticality-based prioritization, alternative coverage recommendations, traced overrides.",
+          "Criticality-based prioritization, alternative coverage options, recorded choices.",
         result:
           "More robust continuity and reduced emergency mode.",
         callout:
@@ -296,45 +296,45 @@ export const en: Dictionary = {
         context:
           "Hard to connect field decisions to real economic impact.",
         action:
-          "Decision Log + BAU/0%, 100% recommended, actual comparison protocol.",
+          "Decision journal + before / recommended / actual comparison protocol.",
         result:
-          "Monthly proof pack usable for priorities, budgets, and renewal.",
+          "Monthly proof usable for priorities, budgets, and renewal.",
       },
     ],
   },
 
   deliverables: {
     kicker: "ROI proof",
-    heading: "Differentiator: Decision Log + proof protocol.",
+    heading: "Differentiator: decision journal + proof.",
     subheading:
-      "No opaque claims: three references compared in an explicit, repeatable frame.",
+      "No vague promises: a simple, comparable, repeatable method.",
     roiFrames: [
       {
-        label: "BAU / 0% (baseline)",
-        value: "Historical reference of usual decisions",
+        label: "Before (reference)",
+        value: "What usually happens in your operations",
         note: "Stable comparison point: what would have happened without Praedixa recommendations.",
         sourceLabel: "Source: Praedixa pilot protocol",
         sourceUrl: "/en/pilot-protocol",
       },
       {
-        label: "100% recommended scenario",
-        value: "Theoretical impact if recommendations were followed",
+        label: "Recommended (potential)",
+        value: "Potential impact if recommendations are followed",
         note: "Measures potential value of constrained decision optimization under your business rules.",
         sourceLabel: "Source: Praedixa pilot protocol",
         sourceUrl: "/en/pilot-protocol",
       },
       {
-        label: "Actual observed scenario",
-        value: "Applied decisions + traced overrides and reasons",
+        label: "Actual (field)",
+        value: "What was actually done + why",
         note: "Captures what was really executed in the field to prove net business impact.",
         sourceLabel: "Source: Praedixa pilot protocol",
         sourceUrl: "/en/pilot-protocol",
       },
     ],
     checklist: [
-      "Full Decision Log: recommendation, override, reason, outcome",
+      "Decision journal: proposed option, final choice, reason, outcome",
       "Proof KPIs: operating cost, service level, emergency usage, planning stability",
-      "BAU/0% vs 100% vs actual comparison at site and network level",
+      "Before / recommended / actual comparison at site and network level",
       "Monthly COO/Ops + CFO cadence",
       "Proof pack ready for executive committee",
     ],
@@ -352,9 +352,9 @@ export const en: Dictionary = {
           "Kickoff with existing CSV/Excel/API flows. No replacement of WFM/scheduling/ERP/CRM tools.",
       },
       {
-        title: "Multi-KPI forecasting as a component",
+        title: "Useful indicators, not more",
         description:
-          "Workforce, demand, inventory, supply, and other KPIs on request based on operational priorities.",
+          "Teams/capacity, demand, inventory/supply… based on your priorities.",
       },
       {
         title: "Aggregated data only",
@@ -380,11 +380,11 @@ export const en: Dictionary = {
     compatibility: {
       title: "Compatible with your stack",
       description:
-        "Praedixa complements your tools and adds a COO/CFO-oriented Decision Intelligence & Optimization layer.",
+        "Praedixa complements your tools and adds a decision + proof method for Ops and Finance.",
       tools: ["WFM", "Scheduling", "ERP", "CRM", "BI", "Excel"],
     },
     honesty:
-      "KPI forecasting-only mode is available, but Praedixa's differentiator is the Signature Service: decision optimization + ROI proof + Decision Log.",
+      "An “indicator forecasting only” mode is available, but Praedixa’s differentiator is the Signature Service: guided decisions + ROI proof + decision journal.",
   },
 
   pilot: {
@@ -398,10 +398,10 @@ export const en: Dictionary = {
       title: "What you receive",
       items: [
         "Free month 1: historical audit and potential savings estimate",
-        "Multi-KPI forecasting (Workforce, demand, inventory, supply, others on request)",
-        "Decision recommendations under cost/service/rule constraints",
-        "Shared Decision Log: recommendation, override, reason, outcome",
-        "ROI proof pack: BAU/0% vs 100% recommended vs actual",
+        "Useful indicators/forecasts (teams/capacity, demand, inventory/supply… as needed)",
+        "Compared decision options (cost, service, business rules)",
+        "Shared decision journal: option, choice, reason, outcome",
+        "Monthly ROI proof: before / recommended / actual",
         "COO/Ops + CFO governance cadence",
       ],
     },
@@ -419,8 +419,8 @@ export const en: Dictionary = {
       items: [
         "Coverage quality and service-level performance",
         "Operating cost (emergency usage, reallocations, reinforcement options)",
-        "Override rate and reasons in the Decision Log",
-        "BAU/0% vs 100% vs actual gap by site and network",
+        "Rate and reasons for “not following the recommended option” in the journal",
+        "Before / recommended / actual gap by site and network",
       ],
     },
     governance: {
@@ -429,7 +429,7 @@ export const en: Dictionary = {
         "Weekly operations working session",
         "Monthly COO/Ops + CFO review",
         "Client-side operations sponsor",
-        "Shared Decision Log and proof pack",
+        "Shared decision journal and ROI proof",
       ],
     },
     selection: {
@@ -449,7 +449,7 @@ export const en: Dictionary = {
       "Applications reviewed within 48 business hours. Focused-scope kickoff possible.",
     ctaPrimary: "Request a Praedixa Signature pilot",
     ctaMeta:
-      "1 month free historical audit · Read-only exports/API · Monthly ROI proof pack",
+      "1 month free historical audit · Read-only exports/API · Monthly ROI proof",
   },
 
   faq: {
@@ -479,56 +479,56 @@ export const en: Dictionary = {
       {
         question: "What is Praedixa in one sentence?",
         answer:
-          "A Decision Intelligence & Optimization layer that turns multi-KPI forecasts into optimized decisions and monthly ROI proof.",
+          "A service that helps you make better coverage decisions (teams, schedules, reinforcements) and prove business impact every month.",
         category: "Understanding Praedixa",
       },
       {
         question:
           "What is the difference between Praedixa Signature Service and KPI forecasting only?",
         answer:
-          "Signature Service includes forecasting + decision optimization + Decision Log + ROI proof pack. KPI forecasting-only mode provides only forecasting.",
+          "Signature Service includes guided decisions, a decision journal, and monthly ROI proof. The “indicator forecasting only” mode covers forecasts/signals only.",
         category: "Understanding Praedixa",
       },
       {
         question: "Which KPIs can you forecast?",
         answer:
-          "Workforce, demand, inventory, supply, and other KPIs on request based on your operational context.",
+          "Teams/capacity, demand, inventory/supply… and other indicators based on your context and priorities.",
         category: "Understanding Praedixa",
       },
       {
         question: "Who makes the final decision?",
         answer:
-          "Always your company. Praedixa compares options and traces actual choices in the Decision Log.",
+          "Always your company. Praedixa compares options and helps you record the choice (and its impact).",
         category: "Understanding Praedixa",
       },
       {
         question: "How is this different from WFM/ERP/scheduling tools?",
         answer:
-          "Praedixa does not replace them. It adds a decision and ROI proof layer on top of your existing stack.",
+          "Praedixa does not replace them. It sits on top of what you already use to support decisions and prove impact.",
         category: "Understanding Praedixa",
       },
       {
         question: "What is included in the free 1-month audit?",
         answer:
-          "A historical audit to establish BAU/0% baseline and estimate what could have been saved with Praedixa recommendations.",
+          "A historical audit to estimate potential gains and scope the priority decisions to cover.",
         category: "Pilot & pricing",
       },
       {
         question: "How is the 3-month pilot structured?",
         answer:
-          "M1 free audit + initialization, S8 intermediate proof milestone, M3 full consolidation and proof pack.",
+          "M1: free audit + read-only kickoff. S8: first proof milestone. M3: consolidation and full ROI proof.",
         category: "Pilot & pricing",
       },
       {
         question: "How do you prove ROI?",
         answer:
-          "By comparing BAU/0%, 100% recommended, and actual observed outcomes, with traced overrides and reasons in the Decision Log.",
+          "By comparing three situations: before (reference), recommended (potential), and actual (field). With a clear decision journal for choices and reasons.",
         category: "Pilot & pricing",
       },
       {
         question: "What data do you need to start?",
         answer:
-          "Existing exports: demand/workload, capacity/workforce, inventory/supply, absences, and key business rules.",
+          "Your existing exports (CSV/Excel/API): demand/workload, teams/capacity, inventory/supply, absences, plus key business rules.",
         category: "Technical & data",
       },
       {
@@ -547,7 +547,7 @@ export const en: Dictionary = {
         question:
           "What happens if we stay in KPI forecasting-only mode?",
         answer:
-          "You keep forecasting deliverables. You can activate Signature Service later to add decision optimization, full Decision Log, and ROI proof.",
+          "You keep the forecasting deliverables. You can activate Signature Service later to add guided decisions, the decision journal, and ROI proof.",
         category: "Pilot & pricing",
       },
     ],
@@ -557,7 +557,7 @@ export const en: Dictionary = {
     kicker: "Take action",
     heading: "Get the free historical audit.",
     subheading:
-      "We frame your multi-site scope, run the historical audit, then install the decision + ROI proof loop.",
+      "We frame your multi-site scope, run the historical audit, then install the decision method and monthly ROI proof.",
     trustItems: [
       "Response within 48 business hours",
       "1 month free historical audit",
@@ -573,11 +573,11 @@ export const en: Dictionary = {
       title:
         "Praedixa | Signature Service vs KPI forecasting only",
       description:
-        "Clear comparison between Praedixa Signature Service (full package) and KPI forecasting-only mode: Workforce, demand, inventory, supply, others on request.",
+        "Clear comparison between Praedixa Signature Service (guided decisions + ROI proof) and “indicator forecasting only” mode (teams/capacity, demand, inventory/supply…).",
       ogTitle:
         "Praedixa | Signature Service and KPI forecasting only",
       ogDescription:
-        "Two service levels, one product: Praedixa Signature Service (decision + ROI + Decision Log) or KPI forecasting only.",
+        "Two service levels, one product: Signature Service (decisions + journal + ROI proof) or indicator forecasting only.",
     },
     kicker: "Services",
     heading: "Praedixa Signature Service vs KPI forecasting only.",
@@ -585,16 +585,16 @@ export const en: Dictionary = {
       "One product. Two service levels. Signature Service is the complete offer. KPI forecasting-only is an entry mode.",
     fullPackage: {
       badge: "Praedixa Signature Service",
-      title: "Full package Decision Intelligence & Optimization",
+      title: "Full package (decisions + proof)",
       summary:
-        "Praedixa core value: optimize operational decisions under constraints and prove business impact.",
+        "Praedixa core value: help teams decide better day-to-day and prove business impact.",
       includesTitle: "What is included",
       includes: [
-        "Multi-KPI forecasting: Workforce, demand, inventory, supply, others on request.",
+        "Useful indicators/forecasts: teams/capacity, demand, inventory/supply…",
         "Options compared under cost/service/business-rule constraints.",
         "Optimal decision recommendation with explicit trade-offs.",
-        "Decision Log: recommendation, override, reason, outcome.",
-        "ROI proof pack: BAU/0% baseline vs 100% recommended vs actual.",
+        "Decision journal: option, choice, reason, outcome.",
+        "ROI proof: before / recommended / actual.",
         "Multi-site governance: comparability and standardization.",
       ],
       cta: "Request a Praedixa Signature pilot",
@@ -603,18 +603,18 @@ export const en: Dictionary = {
       badge: "KPI forecasting only",
       title: "Focused forecasting mode",
       summary:
-        "An entry mode to structure KPI forecasting before activating the full decision layer.",
+        "An entry mode to structure indicator forecasting before activating the full decision + proof layer.",
       includesTitle: "What is included",
       includes: [
-        "KPI forecasts: Workforce, demand, inventory, supply, others on request.",
+        "Indicator forecasts: teams/capacity, demand, inventory/supply…",
         "Operational forecasting deliverables for your teams.",
         "Read-only kickoff via exports/API.",
       ],
       limitsTitle: "What is not included",
       limits: [
-        "No full constrained decision optimization.",
-        "No full Decision Log with overrides and reasons.",
-        "No full ROI proof pack BAU/0% vs 100% vs actual.",
+        "No guided decisions under constraints.",
+        "No full decision journal.",
+        "No full ROI proof (before / recommended / actual).",
       ],
       cta: "Discuss my forecasting needs",
     },
@@ -639,12 +639,12 @@ export const en: Dictionary = {
         },
         {
           criterion:
-            "Decision Log (recommendation, override, reason, outcome)",
+            "Decision journal (option, choice, reason, outcome)",
           fullPackage: "Included",
           forecastsOnly: "Not included",
         },
         {
-          criterion: "ROI proof pack (BAU/0%, 100%, actual)",
+          criterion: "ROI proof (before / recommended / actual)",
           fullPackage: "Included",
           forecastsOnly: "Not included",
         },
@@ -664,15 +664,15 @@ export const en: Dictionary = {
 
   footer: {
     tagline:
-      "Coverage decisions for multi-site operations, Decision Log, and a monthly ROI proof pack.",
-    badges: ["Native Decision Log", "Monthly ROI proof pack"],
+      "Coverage decisions for multi-site operations, a decision journal, and monthly ROI proof.",
+    badges: ["Decision journal", "Monthly ROI proof"],
     navigation: "Navigation",
     legalContact: "Legal & contact",
     copyright: "Designed and hosted in France",
     ctaBanner: {
       kicker: "Praedixa",
       heading:
-        "Free historical audit, then a decision loop with monthly ROI proof.",
+        "Free historical audit, then a decision method with monthly ROI proof.",
       cta: "Get the free historical audit",
     },
   },
@@ -684,7 +684,7 @@ export const en: Dictionary = {
   form: {
     pageTitle: "Praedixa Signature pilot request",
     pageSubtitle:
-      "This request qualifies your 3-month Decision Intelligence & Optimization pilot, including a free 1-month historical audit.",
+      "This request qualifies your 3-month pilot (decisions + proof), including a free 1-month historical audit.",
     pill: "Praedixa Signature pilot (3 months)",
     valuePoints: [
       "Free 1-month historical audit",

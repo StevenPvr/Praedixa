@@ -6,6 +6,7 @@ export interface BlogFrontmatter {
   date: string;
   tags: string[];
   draft: boolean;
+  rssVersion?: number;
   canonical?: string;
   image?: string;
   authors?: string[];
@@ -21,6 +22,7 @@ export interface BlogPost {
   description: string;
   date: Date;
   dateIso: string;
+  rssVersion: number;
   tags: string[];
   draft: boolean;
   canonical?: string;

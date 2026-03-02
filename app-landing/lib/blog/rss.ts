@@ -13,17 +13,30 @@ function escapeXml(value: string): string {
 
 export function buildBlogRssXml(posts: BlogPost[]): string {
   const feedUrl = absoluteUrl("/rss.xml");
-  const publicationDate = posts[0]?.date ?? new Date();
+  const items = posts.map((post) => {
+    const publicationDate = new Date(post.date);
+    publicationDate.setUTCSeconds(Math.max(0, post.rssVersion - 1), 0);
+    return { post, publicationDate };
+  });
 
-  const itemsXml = posts
-    .map((post) => {
+  const publicationDate =
+    items.reduce<Date | null>((latest, item) => {
+      if (!latest || item.publicationDate > latest) {
+        return item.publicationDate;
+      }
+      return latest;
+    }, null) ?? new Date();
+
+  const itemsXml = items
+    .map(({ post, publicationDate: itemPublicationDate }) => {
       const postUrl = absoluteUrl(buildBlogPostPath(post.locale, post.slug));
+      const guid = `${postUrl}#v${post.rssVersion}`;
       return [
         "<item>",
         `<title>${escapeXml(post.title)}</title>`,
         `<link>${escapeXml(postUrl)}</link>`,
-        `<guid>${escapeXml(postUrl)}</guid>`,
-        `<pubDate>${post.date.toUTCString()}</pubDate>`,
+        `<guid isPermaLink="false">${escapeXml(guid)}</guid>`,
+        `<pubDate>${itemPublicationDate.toUTCString()}</pubDate>`,
         `<description>${escapeXml(post.description)}</description>`,
         `<category>${escapeXml(post.locale)}</category>`,
         ...post.tags.map((tag) => `<category>${escapeXml(tag)}</category>`),

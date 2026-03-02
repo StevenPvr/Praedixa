@@ -24,7 +24,7 @@ describe("blog posts store", () => {
   });
 
   it("retrieves a post by locale and slug", () => {
-    const frPost = getBlogPostBySlug("fr", "sous-sureeffectif-multi-sites-methode-j3-j7-j14", {
+    const frPost = getBlogPostBySlug("fr", "sous-sureeffectif-multi-sites-guide-j3-j7-j14", {
       includeDrafts: false,
     });
     expect(frPost?.locale).toBe("fr");

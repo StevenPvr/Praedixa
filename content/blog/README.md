@@ -23,6 +23,7 @@ authors: ["Praedixa"] # optionnel
 readingTime: 6 # optionnel, calcule automatiquement sinon
 lang: "fr" # optionnel: fr | en (defaut: fr)
 disableAutoLinks: false # optionnel
+rssVersion: 1 # optionnel, incrementer pour forcer une republication RSS sans changer l'URL
 ---
 ```
 
