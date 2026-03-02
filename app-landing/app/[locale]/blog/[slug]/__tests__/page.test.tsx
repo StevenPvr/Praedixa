@@ -23,6 +23,8 @@ describe("blog post route", () => {
     expect(metadata.alternates?.canonical).toBe(
       "https://www.praedixa.com/fr/blog/sous-sureeffectif-multi-sites-methode-j3-j7-j14",
     );
-    expect(metadata.openGraph?.type).toBe("article");
+    expect(
+      (metadata.openGraph as Record<string, unknown> | undefined)?.type,
+    ).toBe("article");
   });
 });

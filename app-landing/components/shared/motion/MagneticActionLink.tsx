@@ -82,25 +82,12 @@ function MagneticActionLinkInner({
         )}
       >
         <span>{label}</span>
-        <motion.span
+        <span
           aria-hidden="true"
-          animate={
-            reducedMotion
-              ? undefined
-              : {
-                  x: [0, 2, 0],
-                  y: [0, -1, 0],
-                }
-          }
-          transition={{
-            duration: 2.2,
-            ease: "easeInOut",
-            repeat: Number.POSITIVE_INFINITY,
-            type: "tween",
-          }}
+          className="shrink-0 transition-transform duration-200 [transition-timing-function:var(--ease-snappy)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
         >
           <ArrowUpRight size={18} weight="bold" />
-        </motion.span>
+        </span>
       </Link>
     </motion.div>
   );

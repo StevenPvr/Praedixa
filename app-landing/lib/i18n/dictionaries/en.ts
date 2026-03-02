@@ -3,13 +3,13 @@ import type { Dictionary } from "../types";
 export const en: Dictionary = {
   meta: {
     title:
-      "Praedixa | Decision Optimization Intelligence | Proven ROI",
+      "Praedixa | Multi-site coverage decisions | Monthly ROI proof",
     description:
-      "Praedixa Signature Service: multi-KPI forecasting (Workforce, demand, inventory, supply), constrained decision optimization, Decision Log, and monthly ROI proof. Optional mode: KPI forecasting only.",
+      "Free historical audit, constrained decisions, Decision Log, and a monthly ROI proof pack. Praedixa connects read-only (exports/API) on top of your WFM/ERP/CRM stack.",
     ogTitle:
-      "Praedixa | Decision Optimization Intelligence | Prove ROI",
+      "Praedixa | Multi-site coverage decisions | ROI proof",
     ogDescription:
-      "Praedixa optimizes operational decisions and proves business impact with BAU/0%, 100% recommended, and actual results with traced overrides.",
+      "Praedixa makes decisions defensible: BAU/0% vs recommended vs actual, traced trade-offs, and monthly business impact proof.",
   },
 
   nav: {
@@ -21,16 +21,16 @@ export const en: Dictionary = {
     security: "Integration & data",
     faq: "FAQ",
     contact: "Contact",
-    ctaPrimary: "Request a Praedixa Signature pilot",
+    ctaPrimary: "Get the free historical audit",
     backToSite: "Back to site",
   },
 
   hero: {
     kicker: "Praedixa Signature Service · Multi-site",
-    headline: "Decision optimization intelligence",
-    headlineHighlight: " | Prove ROI.",
+    headline: "Decide better on coverage.",
+    headlineHighlight: "Prove ROI every month.",
     subtitle:
-      "Praedixa is a decision layer on top of your WFM/scheduling/ERP/CRM stack. Multi-KPI forecasts are inputs, then options are compared under constraints, overrides are traced, and economic impact is proven.",
+      "Praedixa connects read-only on top of your stack (WFM/scheduling/ERP/CRM). We compare options under constraints, trace trade-offs (Decision Log), and produce a monthly ROI proof pack.",
     bullets: [
       {
         metric: "1 month free",
@@ -45,13 +45,13 @@ export const en: Dictionary = {
         text: "exports/API, no heavy IT project",
       },
     ],
-    ctaPrimary: "Request a Praedixa Signature pilot",
-    ctaSecondary: "View ROI proof protocol",
+    ctaPrimary: "Get the free historical audit",
+    ctaSecondary: "View ROI protocol",
     previewTitle: "A preview of what awaits you",
     ctaMeta:
       "COO/Ops and CFO alignment from framing · Focused-scope kickoff possible",
     trustBadges: [
-      "Signature Service: optimal decision + Decision Log + ROI proof",
+      "Signature Service: decisions + Decision Log + ROI proof pack",
       "Alternative mode: KPI forecasting only",
       "Forecasting KPIs: Workforce, demand, inventory, supply, others on request",
       "Read-only via exports/API",
@@ -111,7 +111,7 @@ export const en: Dictionary = {
       "Cost/service decisions are made every day, but rarely proven.",
     subheading:
       "Without a shared COO/CFO protocol, trade-offs stay defensive, inconsistent across sites, and hard to defend economically.",
-    cta: "Start a decision pilot",
+    cta: "Get the free historical audit",
     ctaHint:
       "Free historical audit, COO/Ops + CFO framing from week one.",
     states: {
@@ -555,17 +555,17 @@ export const en: Dictionary = {
 
   contact: {
     kicker: "Take action",
-    heading: "Request a Praedixa Signature pilot.",
+    heading: "Get the free historical audit.",
     subheading:
-      "We frame your multi-site scope, launch the free historical audit, then run the decision + ROI proof loop.",
+      "We frame your multi-site scope, run the historical audit, then install the decision + ROI proof loop.",
     trustItems: [
       "Response within 48 business hours",
       "1 month free historical audit",
       "Read-only via exports/API",
       "No mandatory post-pilot commitment",
     ],
-    ctaPrimary: "Request a Praedixa Signature pilot",
-    ctaSecondary: "Discuss KPI forecasting-only mode",
+    ctaPrimary: "Get the free historical audit",
+    ctaSecondary: "View ROI protocol",
   },
 
   servicesPage: {
@@ -664,21 +664,21 @@ export const en: Dictionary = {
 
   footer: {
     tagline:
-      "Decision optimization intelligence for multi-site operations.",
+      "Coverage decisions for multi-site operations, Decision Log, and a monthly ROI proof pack.",
     badges: ["Native Decision Log", "Monthly ROI proof pack"],
     navigation: "Navigation",
     legalContact: "Legal & contact",
     copyright: "Designed and hosted in France",
     ctaBanner: {
-      kicker: "Praedixa Signature Service",
+      kicker: "Praedixa",
       heading:
-        "3-month pilot with 1 month free historical audit and monthly ROI proof.",
-      cta: "Request a Praedixa Signature pilot",
+        "Free historical audit, then a decision loop with monthly ROI proof.",
+      cta: "Get the free historical audit",
     },
   },
 
   stickyCta: {
-    text: "Request a Praedixa Signature pilot",
+    text: "Get the free historical audit",
   },
 
   form: {

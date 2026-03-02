@@ -7,6 +7,7 @@ import type { Locale } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
+import { SPRING, VP } from "../../lib/animations/variants";
 import { PulseDot } from "../shared/motion/PulseDot";
 import { ShimmerTrack } from "../shared/motion/ShimmerTrack";
 
@@ -14,9 +15,6 @@ interface UseCasesSectionProps {
   locale: Locale;
   dict: Dictionary;
 }
-
-const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
-const VP = { once: true, margin: "-60px" as const };
 
 type UseCase = Dictionary["useCases"]["cases"][number];
 
@@ -50,17 +48,17 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
   const copy =
     locale === "fr"
       ? {
-          loadingTitle: "Chargement des decisions couvertes",
+          loadingTitle: "Chargement des décisions couvertes",
           loadingBody:
-            "Le rail de priorites metier est en cours d'assemblage.",
-          emptyTitle: "Aucun cas metier disponible",
+            "Le rail de priorités métier est en cours d’assemblage.",
+          emptyTitle: "Aucun cas métier disponible",
           emptyBody:
-            "Ajoutez des decisions operationnelles pour alimenter cette section.",
-          errorTitle: "Selection de cas invalide",
-          errorBody: "Rechargez la page pour reinitialiser la priorisation.",
-          railLabel: "Rail decisionnel",
-          liveLabel: "Flux decisionnel actif",
-          panelLabel: "Focus actif",
+            "Ajoutez des décisions opérationnelles pour alimenter cette section.",
+          errorTitle: "Sélection de cas invalide",
+          errorBody: "Rechargez la page pour réinitialiser la priorisation.",
+          railLabel: "Rail décisionnel",
+          liveLabel: "Exemple de décision",
+          panelLabel: "Détail",
         }
       : {
           loadingTitle: "Loading covered decisions",
@@ -92,8 +90,7 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
         <div className="max-w-3xl">
           <Kicker>{useCases.kicker}</Kicker>
           <h2
-            className="mt-3 text-4xl font-bold tracking-tighter text-ink md:text-6xl"
-            style={{ lineHeight: 1.04 }}
+            className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl"
           >
             {copy.loadingTitle}
           </h2>
@@ -116,8 +113,7 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
         <div className="max-w-3xl">
           <Kicker>{useCases.kicker}</Kicker>
           <h2
-            className="mt-3 text-4xl font-bold tracking-tighter text-ink md:text-6xl"
-            style={{ lineHeight: 1.04 }}
+            className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl"
           >
             {copy.emptyTitle}
           </h2>
@@ -138,8 +134,7 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
         <div className="max-w-3xl">
           <Kicker>{useCases.kicker}</Kicker>
           <h2
-            className="mt-3 text-4xl font-bold tracking-tighter text-ink md:text-6xl"
-            style={{ lineHeight: 1.04 }}
+            className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl"
           >
             {copy.errorTitle}
           </h2>
@@ -182,7 +177,7 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
           </p>
 
           <div className="space-y-2">
-            {orderedCases.map((entry, visualIndex) => {
+            {orderedCases.map((entry) => {
               const isActive = entry.id === activeCase.id;
               const sourceIndex = cases.findIndex((item) => item.id === entry.id);
               return (
@@ -194,18 +189,18 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
                   onClick={() => setActiveId(entry.id)}
                   className={`relative w-full overflow-hidden rounded-2xl border px-4 py-4 text-left transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] active:-translate-y-[1px] active:scale-[0.99] ${
                     isActive
-                      ? "border-brass-300/80 bg-brass-50/75"
+                      ? "border-amber-300/80 bg-amber-50/75"
                       : "border-neutral-200/80 bg-white/90 hover:border-neutral-300"
-                  } ${visualIndex % 2 === 1 ? "md:translate-x-3" : ""}`}
+                  }`}
                 >
                   {isActive ? (
                     <motion.span
                       layoutId="covered-decision-active"
-                      className="absolute inset-0 rounded-2xl border border-brass-300/80"
+                      className="absolute inset-0 rounded-2xl border border-amber-300/80"
                     />
                   ) : null}
                   <span className="relative inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-brass-700">
-                    <PulseDot className="h-1.5 w-1.5 bg-brass-500" />
+                    <PulseDot className="h-1.5 w-1.5 bg-amber-500" />
                     {String(sourceIndex + 1).padStart(2, "0")}
                   </span>
                   <p className="relative mt-2 text-base font-semibold tracking-tight text-ink">
@@ -227,7 +222,7 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={SPRING}
-            className="rounded-[2.1rem] border border-neutral-200/80 bg-white/92 p-6 shadow-[0_28px_48px_-38px_rgba(15,23,42,0.35),inset_0_1px_0_rgba(255,255,255,0.8)] md:p-8"
+            className="rounded-3xl border border-neutral-200/80 bg-white/92 p-6 shadow-[0_28px_48px_-38px_rgba(15,23,42,0.35),inset_0_1px_0_rgba(255,255,255,0.8)] md:p-8"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -238,7 +233,7 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
                   {activeCase.title}
                 </h3>
               </div>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-brass-200 bg-brass-50 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-brass-700">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-amber-700">
                 <Lightbulb size={14} weight="fill" />
                 {copy.liveLabel}
               </span>
@@ -272,7 +267,7 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
                   {activeCase.result}
                 </p>
                 {activeCase.callout ? (
-                  <p className="mt-4 border-l-2 border-brass-300/70 pl-3 text-xs leading-relaxed text-brass-700">
+                  <p className="mt-4 border-l-2 border-amber-300/70 pl-3 text-xs leading-relaxed text-amber-700">
                     {activeCase.callout}
                   </p>
                 ) : null}
@@ -281,7 +276,7 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
 
             <ShimmerTrack
               className="mt-6 bg-neutral-100"
-              indicatorClassName="via-brass-300/55"
+              indicatorClassName="via-amber-300/55"
             />
           </motion.article>
         </AnimatePresence>

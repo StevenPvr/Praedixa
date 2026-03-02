@@ -33,7 +33,7 @@ export function BlogPostCard({ locale, post }: BlogPostCardProps) {
           <li key={tag} className="m-0">
             <Link
               href={`/${locale}/blog?tag=${encodeURIComponent(tag)}`}
-              className="inline-flex rounded-full border border-brass-200 bg-brass-50 px-2.5 py-1 text-xs font-medium text-brass-700 no-underline hover:bg-brass-100"
+              className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 no-underline hover:bg-amber-100"
             >
               {formatTagLabel(tag)}
             </Link>

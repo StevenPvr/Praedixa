@@ -8,7 +8,7 @@ export const siteConfig = {
   },
 
   brand: {
-    primaryEmailColor: "#2563eb",
+    primaryEmailColor: "#111111",
   },
 
   routes: {

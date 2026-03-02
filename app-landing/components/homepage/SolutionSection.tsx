@@ -1,32 +1,18 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { ArrowRight, Sparkle } from "@phosphor-icons/react";
+import { ArrowRight, Sparkle } from "@phosphor-icons/react/ssr";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
 import { PulseDot } from "../shared/motion/PulseDot";
 import { ShimmerTrack } from "../shared/motion/ShimmerTrack";
+import {
+  MotionReveal,
+  MotionStagger,
+  MotionStaggerItem,
+} from "../shared/motion/MotionReveal";
 
 interface SolutionSectionProps {
   dict: Dictionary;
 }
-
-const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
-const VP = { once: true, margin: "-60px" as const };
-
-const staggerPrinciples = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.1 },
-  },
-};
-
-const principleItem = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: SPRING },
-};
 
 export function SolutionSection({ dict }: SolutionSectionProps) {
   const solution = dict.solution;
@@ -42,14 +28,11 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
     return (
       <SectionShell
         id="solution"
-        className="bg-[linear-gradient(180deg,#fcfcfb_0%,#f7f6f2_100%)]"
+        className="bg-[linear-gradient(180deg,var(--warm-bg-muted)_0%,var(--warm-bg-panel)_100%)]"
       >
         <div className="max-w-3xl">
           <Kicker>{solution.kicker}</Kicker>
-          <h2
-            className="mt-3 text-4xl font-bold tracking-tighter text-ink md:text-6xl"
-            style={{ lineHeight: 1.04 }}
-          >
+          <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
             {isFrench ? "Chargement de la methode" : "Loading method"}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
@@ -71,14 +54,11 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
     return (
       <SectionShell
         id="solution"
-        className="bg-[linear-gradient(180deg,#fcfcfb_0%,#f7f6f2_100%)]"
+        className="bg-[linear-gradient(180deg,var(--warm-bg-muted)_0%,var(--warm-bg-panel)_100%)]"
       >
         <div className="max-w-3xl">
           <Kicker>{solution.kicker}</Kicker>
-          <h2
-            className="mt-3 text-4xl font-bold tracking-tighter text-ink md:text-6xl"
-            style={{ lineHeight: 1.04 }}
-          >
+          <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
             {isFrench ? "Methode en preparation" : "Method in preparation"}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
@@ -94,16 +74,11 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
   return (
     <SectionShell
       id="solution"
-      className="bg-[linear-gradient(180deg,#fcfcfb_0%,#f7f6f2_100%)]"
+      className="bg-[linear-gradient(180deg,var(--warm-bg-muted)_0%,var(--warm-bg-panel)_100%)]"
     >
       <div className="grid grid-cols-1 gap-12 md:grid-cols-[1.2fr_0.8fr] md:gap-14">
         <div className="min-w-0">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={VP}
-            transition={SPRING}
-          >
+          <MotionReveal>
             <Kicker>{solution.kicker}</Kicker>
             <h2 className="mt-3 max-w-3xl text-4xl font-bold leading-none tracking-tighter text-ink md:text-6xl">
               {solution.heading}
@@ -111,26 +86,17 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
             <p className="mt-5 max-w-[65ch] text-base leading-relaxed text-neutral-600">
               {solution.subheading}
             </p>
-          </motion.div>
+          </MotionReveal>
 
-          <motion.div
-            variants={staggerPrinciples}
-            initial="hidden"
-            whileInView="visible"
-            viewport={VP}
-            className="mt-12 space-y-4"
-          >
-            {principles.map((principle, i) => (
-              <motion.div
+          <MotionStagger className="mt-12 space-y-4" staggerDelay={0.15}>
+            {principles.map((principle) => (
+              <MotionStaggerItem
                 key={principle.title}
-                variants={principleItem}
-                className={`grid grid-cols-1 gap-3 rounded-2xl border border-neutral-200/70 bg-white/85 p-5 shadow-[0_16px_34px_-26px_rgba(24,24,27,0.45)] md:grid-cols-[10.5rem_1fr] md:p-6 ${
-                  i % 2 === 1 ? "md:translate-x-5" : ""
-                }`}
+                className="grid grid-cols-1 gap-3 rounded-2xl border border-neutral-200/70 bg-white/85 p-5 shadow-[0_16px_34px_-26px_rgba(24,24,27,0.45)] md:grid-cols-[10.5rem_1fr] md:p-6"
               >
                 <div className="space-y-1.5">
                   <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-brass-700">
-                    <PulseDot className="h-1.5 w-1.5 bg-brass-500" />
+                    <PulseDot className="h-1.5 w-1.5 bg-amber-500" />
                     {principle.subtitle}
                   </span>
                 </div>
@@ -142,19 +108,17 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
                     {principle.description}
                   </p>
                 </div>
-              </motion.div>
+              </MotionStaggerItem>
             ))}
-          </motion.div>
+          </MotionStagger>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, x: 24 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={VP}
-          transition={{ ...SPRING, delay: 0.2 }}
+        <MotionReveal
+          direction="right"
+          delay={0.2}
           className="md:sticky md:top-28 md:self-start"
         >
-          <div className="rounded-[1.9rem] border border-neutral-200/80 bg-white/85 p-6 shadow-[0_24px_40px_-30px_rgba(15,23,42,0.35),inset_0_1px_0_rgba(255,255,255,0.75)] md:p-7">
+          <div className="rounded-2xl border border-neutral-200/80 bg-white/85 p-6 shadow-[0_24px_40px_-30px_rgba(15,23,42,0.35),inset_0_1px_0_rgba(255,255,255,0.75)] md:p-7">
             <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-brass-700">
               <Sparkle size={14} weight="fill" />
               {isFrench ? "Differenciation" : "Differentiation"}
@@ -181,10 +145,10 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
             </div>
             <ShimmerTrack
               className="mt-5 bg-neutral-100"
-              indicatorClassName="via-brass-300/60"
+              indicatorClassName="via-amber-300/60"
             />
           </div>
-        </motion.div>
+        </MotionReveal>
       </div>
     </SectionShell>
   );

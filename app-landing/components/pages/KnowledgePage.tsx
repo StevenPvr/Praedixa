@@ -50,7 +50,7 @@ export function KnowledgePage({
                       key={bullet}
                       className="m-0 flex items-start gap-2 text-sm text-neutral-600"
                     >
-                      <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-brass-300" />
+                      <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300" />
                       {bullet}
                     </li>
                   ))}

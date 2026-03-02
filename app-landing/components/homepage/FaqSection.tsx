@@ -29,7 +29,7 @@ export function FaqSection({ dict }: FaqSectionProps) {
             <p className="mt-2 text-sm leading-relaxed text-neutral-600">
               {dict.faq.signalBody}
             </p>
-            <div className="mt-4 h-px w-full bg-gradient-to-r from-brass-200/80 via-brass-100/40 to-transparent" />
+            <div className="mt-4 h-px w-full bg-gradient-to-r from-amber-200/80 via-amber-100/40 to-transparent" />
             <p className="mt-4 text-2xs uppercase tracking-[0.12em] text-neutral-500">
               {dict.faq.categoryHint}
             </p>

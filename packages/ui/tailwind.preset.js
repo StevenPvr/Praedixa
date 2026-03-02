@@ -20,6 +20,7 @@ export default {
         /* ── Semantic surfaces (CSS var driven — auto dark mode) ── */
         page: "var(--page-bg)",
         card: "var(--card-bg)",
+        cream: "var(--page-bg)",
         surface: {
           DEFAULT: "var(--card-bg)",
           alt: "var(--card-bg-muted)",
@@ -43,6 +44,7 @@ export default {
           placeholder: "var(--ink-placeholder)",
           "on-color": "var(--ink-on-color)",
         },
+        charcoal: "var(--ink)",
 
         /* ── Brand ── */
         primary: {
@@ -60,15 +62,47 @@ export default {
           glow: "var(--glow-primary)",
         },
 
-        /* ── Accent ── */
+        /* ── Navy (Praedixa primary — direct primitive access) ── */
+        navy: {
+          50: "var(--navy-50)",
+          100: "var(--navy-100)",
+          200: "var(--navy-200)",
+          300: "var(--navy-300)",
+          400: "var(--navy-400)",
+          500: "var(--navy-500)",
+          DEFAULT: "var(--navy-500)",
+          600: "var(--navy-600)",
+          700: "var(--navy-700)",
+          800: "var(--navy-800)",
+          900: "var(--navy-900)",
+        },
+
+        /* ── Amber (Praedixa accent — maps to semantic accent vars) ── */
+        amber: {
+          50: "var(--accent-50)",
+          100: "var(--accent-100)",
+          200: "var(--accent-200)",
+          300: "var(--accent-300)",
+          400: "var(--accent-400)",
+          500: "var(--accent)",
+          DEFAULT: "var(--accent)",
+          600: "var(--accent-600)",
+          700: "var(--accent-700)",
+          800: "var(--accent-800)",
+        },
+
+        /* ── Accent (semantic alias) ── */
         accent: {
           50: "var(--accent-50)",
           100: "var(--accent-100)",
           200: "var(--accent-200)",
           300: "var(--accent-300)",
+          400: "var(--accent-400)",
           DEFAULT: "var(--accent)",
-          500: "var(--accent-500)",
+          500: "var(--accent)",
           600: "var(--accent-600)",
+          700: "var(--accent-700)",
+          800: "var(--accent-800)",
           strong: "var(--accent-strong)",
         },
 

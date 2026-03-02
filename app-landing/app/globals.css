@@ -8,35 +8,54 @@
   :root {
     color-scheme: light;
 
+    /* ── Surfaces (warm cream from brand-tokens — no override) ── */
     --page-bg: var(--warm-bg);
     --card-bg: var(--warm-bg-white);
     --card-bg-muted: var(--warm-bg-muted);
     --surface-elevated: var(--warm-bg-elevated);
     --surface-sunken: var(--warm-bg-muted);
 
+    /* ── Ink (charcoal from brand-tokens) ── */
     --ink: var(--warm-ink);
     --ink-secondary: var(--warm-ink-secondary);
     --ink-tertiary: var(--warm-ink-muted);
     --ink-placeholder: var(--warm-neutral-400);
     --ink-on-color: oklch(1 0 0);
 
-    --brand: var(--brass-500);
-    --brand-50: var(--brass-50);
-    --brand-100: var(--brass-100);
-    --brand-200: var(--brass-200);
-    --brand-300: var(--brass-300);
-    --brand-400: var(--brass-400);
-    --brand-600: var(--brass-600);
-    --brand-700: var(--brass-700);
-    --brand-800: var(--brass-800);
-    --brand-subtle: var(--brass-200);
-    --brand-strong: var(--brass-700);
+    /* ── Brand: Navy (structural — links, buttons, dark sections) ── */
+    --brand: var(--navy-500);
+    --brand-50: var(--navy-50);
+    --brand-100: var(--navy-100);
+    --brand-200: var(--navy-200);
+    --brand-300: var(--navy-300);
+    --brand-400: var(--navy-400);
+    --brand-600: var(--navy-600);
+    --brand-700: var(--navy-700);
+    --brand-800: var(--navy-800);
+    --brand-subtle: var(--navy-200);
+    --brand-strong: var(--navy-700);
 
+    /* ── Accent: Amber Brass (CTAs, signals, highlights) ── */
+    --accent: var(--brass-500);
+    --accent-50: var(--brass-50);
+    --accent-100: var(--brass-100);
+    --accent-200: var(--brass-200);
+    --accent-300: var(--brass-300);
+    --accent-400: var(--brass-400);
+    --accent-500: var(--brass-500);
+    --accent-600: var(--brass-600);
+    --accent-700: var(--brass-700);
+    --accent-800: var(--brass-800);
+    --accent-strong: var(--brass-700);
+
+    /* ── Borders ── */
     --border: var(--warm-border);
     --border-hover: var(--warm-border-strong);
     --border-subtle: var(--warm-border-subtle);
     --border-strong: var(--warm-border-strong);
+    --border-glow: oklch(0.50 0.105 246 / 0.22);
 
+    /* ── Radius ── */
     --radius-xs: 0.25rem;
     --radius-sm: 0.375rem;
     --radius-md: 0.5rem;
@@ -45,13 +64,19 @@
     --radius-2xl: 1.25rem;
     --radius-full: 9999px;
 
-    --shadow-flat: 0 1px 2px oklch(0.24 0.03 248 / 0.06);
-    --shadow-raised: 0 1px 3px oklch(0.24 0.03 248 / 0.08), 0 4px 8px -2px oklch(0.24 0.03 248 / 0.04);
-    --shadow-floating: 0 4px 12px oklch(0.24 0.03 248 / 0.08), 0 16px 32px -8px oklch(0.24 0.03 248 / 0.1);
-    --shadow-overlay: 0 8px 24px oklch(0.24 0.03 248 / 0.12), 0 24px 48px -12px oklch(0.24 0.03 248 / 0.14);
-    --shadow-modal: 0 16px 48px oklch(0.24 0.03 248 / 0.16), 0 32px 64px -16px oklch(0.24 0.03 248 / 0.18);
-    --shadow-card-hover: 0 4px 16px oklch(0.24 0.03 248 / 0.1), 0 12px 32px -8px oklch(0.24 0.03 248 / 0.12);
+    /* ── Shadows ── */
+    --shadow-flat: var(--shadow-warm-xs);
+    --shadow-raised: var(--shadow-warm-sm);
+    --shadow-floating: var(--shadow-warm-md);
+    --shadow-overlay: var(--shadow-warm-lg);
+    --shadow-modal: var(--shadow-warm-lg);
+    --shadow-card-hover: var(--shadow-warm-md);
 
+    /* ── Glows ── */
+    --glow-brand: oklch(0.50 0.105 246 / 0.22);
+    --glow-accent: oklch(0.66 0.14 78 / 0.18);
+
+    /* ── Timing ── */
     --duration-instant: 50ms;
     --duration-micro: 100ms;
     --duration-fast: 150ms;
@@ -63,6 +88,8 @@
     --ease-smooth: cubic-bezier(0.33, 1, 0.68, 1);
     --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
     --ease-dramatic: cubic-bezier(0.7, 0, 0.3, 1);
+
+    --header-h: 4.625rem;
   }
 
   *,
@@ -75,7 +102,39 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  :where(
+      a,
+      button,
+      input,
+      select,
+      textarea,
+      summary,
+      [role="button"]
+    ):focus-visible {
+    outline: 2px solid var(--navy-600);
+    outline-offset: 3px;
+  }
+
+  .section-dark
+    :where(
+      a,
+      button,
+      input,
+      select,
+      textarea,
+      summary,
+      [role="button"]
+    ):focus-visible {
+    outline-color: var(--brass-300);
+    outline-offset: 4px;
   }
 
   body {
@@ -88,8 +147,8 @@
   }
 
   ::selection {
-    background: var(--brass-200);
-    color: var(--brass-800);
+    background: var(--navy-200);
+    color: var(--navy-800);
   }
 }
 
@@ -130,11 +189,11 @@
   }
 
   .blog-prose blockquote {
-    @apply mt-6 border-l-4 border-brass-300 pl-4 text-neutral-600;
+    @apply mt-6 border-l-4 border-navy-300 pl-4 text-neutral-600;
   }
 
   .blog-prose a {
-    @apply font-medium text-brass-700 underline decoration-brass-300 underline-offset-2 transition-colors duration-150 hover:text-brass-800;
+    @apply font-medium text-navy-700 underline decoration-navy-300 underline-offset-2 transition-colors duration-150 hover:text-navy-800;
   }
 
   .blog-prose pre {
@@ -150,18 +209,18 @@
   }
 
   .blog-heading-anchor {
-    @apply ml-2 text-neutral-300 no-underline transition-colors duration-150 hover:text-brass-600;
+    @apply ml-2 text-neutral-300 no-underline transition-colors duration-150 hover:text-navy-600;
   }
 }
 
 @layer utilities {
   .section-dark {
-    background-color: var(--brass-900);
-    --dark-text-title: oklch(0.97 0.008 85);
-    --dark-text-body: oklch(0.9 0.015 85);
-    --dark-text-muted: oklch(0.82 0.014 85);
-    --dark-text-soft: oklch(0.74 0.014 85);
-    --dark-text-accent: oklch(0.9 0.04 82);
+    background-color: var(--navy-900);
+    --dark-text-title: rgba(255, 255, 255, 0.96);
+    --dark-text-body: rgba(255, 255, 255, 0.84);
+    --dark-text-muted: rgba(255, 255, 255, 0.70);
+    --dark-text-soft: rgba(255, 255, 255, 0.56);
+    --dark-text-accent: oklch(0.95 0.04 85);
   }
 
   .section-dark .text-white,
@@ -181,8 +240,8 @@
     color: var(--dark-text-muted);
   }
 
-  .section-dark .text-brass-100,
-  .section-dark .text-brass-100\/90 {
+  .section-dark .text-amber-100,
+  .section-dark .text-amber-100\/90 {
     color: var(--dark-text-accent);
   }
 
@@ -190,20 +249,24 @@
     color: var(--dark-text-soft);
   }
 
+  .focus-ring {
+    @apply outline-none;
+  }
+
   .btn-primary-gradient {
     background: linear-gradient(
       180deg,
-      var(--brass-400) 0%,
-      var(--brass-500) 40%,
-      var(--brass-600) 100%
+      var(--navy-600) 0%,
+      var(--navy-700) 45%,
+      var(--navy-900) 100%
     );
   }
   .btn-primary-gradient:hover {
     background: linear-gradient(
       180deg,
-      var(--brass-500) 0%,
-      var(--brass-600) 40%,
-      var(--brass-700) 100%
+      var(--navy-500) 0%,
+      var(--navy-600) 45%,
+      var(--navy-800) 100%
     );
   }
 

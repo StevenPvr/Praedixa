@@ -25,8 +25,8 @@ export async function generateMetadata({
         : "Praedixa | Workforce & ProofOps pilot request",
     description:
       locale === "fr"
-        ? "Cadrons un pilote Workforce & ProofOps (MVP restauration rapide) pour rendre vos décisions de couverture défendables et traçables."
-        : "Scope a QSR-first Workforce & ProofOps pilot to make coverage decisions defensible and traceable across multi-site operations.",
+        ? "Cadrons un pilote Workforce & ProofOps pour rendre vos décisions de couverture défendables et traçables (Decision Log + proof pack ROI)."
+        : "Scope a Workforce & ProofOps pilot to make coverage decisions defensible and traceable across multi-site operations (Decision Log + ROI proof pack).",
   });
 }
 

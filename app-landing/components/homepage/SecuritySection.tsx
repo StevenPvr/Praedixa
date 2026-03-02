@@ -1,32 +1,18 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { Database, Plugs, ShieldCheck } from "@phosphor-icons/react";
+import { Database, Plugs, ShieldCheck } from "@phosphor-icons/react/dist/ssr";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
 import { PulseDot } from "../shared/motion/PulseDot";
 import { ShimmerTrack } from "../shared/motion/ShimmerTrack";
+import {
+  MotionReveal,
+  MotionStagger,
+  MotionStaggerItem,
+} from "../shared/motion/MotionReveal";
 
 interface SecuritySectionProps {
   dict: Dictionary;
 }
-
-const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
-const VP = { once: true, margin: "-60px" as const };
-
-const staggerTiles = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
-  },
-};
-
-const tileItem = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: SPRING },
-};
 
 export function SecuritySection({ dict }: SecuritySectionProps) {
   const security = dict.security;
@@ -41,10 +27,7 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
       <SectionShell id="security">
         <div className="max-w-3xl">
           <Kicker>{security.kicker}</Kicker>
-          <h2
-            className="mt-3 text-4xl font-bold tracking-tighter text-ink md:text-6xl"
-            style={{ lineHeight: 1.04 }}
-          >
+          <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
             {isFrench
               ? "Chargement integration et data"
               : "Loading integration and data"}
@@ -69,10 +52,7 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
       <SectionShell id="security">
         <div className="max-w-3xl">
           <Kicker>{security.kicker}</Kicker>
-          <h2
-            className="mt-3 text-4xl font-bold tracking-tighter text-ink md:text-6xl"
-            style={{ lineHeight: 1.04 }}
-          >
+          <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
             {isFrench
               ? "Aucune brique d'integration"
               : "No integration blocks available"}
@@ -90,16 +70,11 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
   return (
     <SectionShell
       id="security"
-      className="bg-[linear-gradient(180deg,#fafaf8_0%,#f3f2ee_100%)]"
+      className="bg-[linear-gradient(180deg,var(--warm-bg-muted)_0%,var(--warm-bg-panel)_100%)]"
     >
       <div className="grid grid-cols-1 gap-12 md:grid-cols-[1.18fr_0.82fr] md:gap-14">
         <div className="min-w-0">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={VP}
-            transition={SPRING}
-          >
+          <MotionReveal>
             <Kicker>{security.kicker}</Kicker>
             <h2 className="mt-3 max-w-3xl text-4xl font-bold leading-none tracking-tighter text-ink md:text-6xl">
               {security.heading}
@@ -107,28 +82,19 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
             <p className="mt-5 max-w-[65ch] text-base leading-relaxed text-neutral-600">
               {security.subheading}
             </p>
-          </motion.div>
+          </MotionReveal>
 
-          <motion.div
-            variants={staggerTiles}
-            initial="hidden"
-            whileInView="visible"
-            viewport={VP}
-            className="mt-12 space-y-3"
-          >
-            {tiles.map((tile, index) => (
-              <motion.div
+          <MotionStagger className="mt-12 space-y-3" staggerDelay={0.1}>
+            {tiles.map((tile) => (
+              <MotionStaggerItem
                 key={tile.title}
-                variants={tileItem}
-                className={`rounded-2xl border border-neutral-200/80 bg-white/85 p-5 shadow-[0_20px_36px_-30px_rgba(15,23,42,0.3)] md:p-6 ${
-                  index % 2 === 1 ? "md:translate-x-4" : ""
-                }`}
+                className="rounded-2xl border border-neutral-200/80 bg-white/85 p-5 shadow-[0_20px_36px_-30px_rgba(15,23,42,0.3)] md:p-6"
               >
                 <div className="flex items-start gap-3">
                   <ShieldCheck
                     size={20}
                     weight="fill"
-                    className="mt-0.5 shrink-0 text-brass-600"
+                    className="mt-0.5 shrink-0 text-amber-600"
                   />
                   <div>
                     <h3 className="text-base font-semibold tracking-tight text-ink">
@@ -140,22 +106,20 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
                   </div>
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-500">
-                  <PulseDot className="h-1.5 w-1.5 bg-brass-500" />
+                  <PulseDot className="h-1.5 w-1.5 bg-amber-500" />
                   {isFrench ? "Controle actif" : "Active control"}
                 </div>
-              </motion.div>
+              </MotionStaggerItem>
             ))}
-          </motion.div>
+          </MotionStagger>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, x: 24 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={VP}
-          transition={{ ...SPRING, delay: 0.2 }}
+        <MotionReveal
+          direction="right"
+          delay={0.2}
           className="md:sticky md:top-28 md:self-start"
         >
-          <div className="rounded-[1.9rem] border border-neutral-200/80 bg-white/90 p-6 shadow-[0_24px_40px_-30px_rgba(15,23,42,0.28),inset_0_1px_0_rgba(255,255,255,0.75)] md:p-7">
+          <div className="rounded-2xl border border-neutral-200/80 bg-white/90 p-6 shadow-[0_24px_40px_-30px_rgba(15,23,42,0.28),inset_0_1px_0_rgba(255,255,255,0.75)] md:p-7">
             <div className="flex items-start gap-3">
               <Plugs size={20} weight="fill" className="mt-1 shrink-0 text-brass-700" />
               <div>
@@ -184,14 +148,14 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
 
             <ShimmerTrack
               className="mt-5 bg-neutral-100"
-              indicatorClassName="via-brass-300/55"
+              indicatorClassName="via-amber-300/55"
             />
 
-            <p className="mt-5 border-l-2 border-brass-300/70 pl-4 text-xs leading-relaxed text-neutral-600">
+            <p className="mt-5 border-l-2 border-amber-300/70 pl-4 text-xs leading-relaxed text-neutral-600">
               {security.honesty}
             </p>
           </div>
-        </motion.div>
+        </MotionReveal>
       </div>
     </SectionShell>
   );

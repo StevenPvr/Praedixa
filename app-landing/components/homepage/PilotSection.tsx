@@ -13,6 +13,7 @@ import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
+import { SPRING, VP } from "../../lib/animations/variants";
 import { MagneticActionLink } from "../shared/motion/MagneticActionLink";
 import { PulseDot } from "../shared/motion/PulseDot";
 import { ShimmerTrack } from "../shared/motion/ShimmerTrack";
@@ -21,9 +22,6 @@ interface PilotSectionProps {
   locale: Locale;
   dict: Dictionary;
 }
-
-const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
-const VP = { once: true, margin: "-60px" as const };
 
 const staggerList = {
   hidden: { opacity: 0 },
@@ -69,8 +67,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         <div className="max-w-3xl">
           <Kicker className="text-neutral-100">{pilot.kicker}</Kicker>
           <h2
-            className="mt-3 text-4xl font-bold tracking-tighter text-white md:text-6xl"
-            style={{ lineHeight: 1.04 }}
+            className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl"
           >
             {locale === "fr" ? "Chargement de l'offre pilote" : "Loading pilot offer"}
           </h2>
@@ -95,8 +92,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         <div className="max-w-3xl">
           <Kicker className="text-neutral-100">{pilot.kicker}</Kicker>
           <h2
-            className="mt-3 text-4xl font-bold tracking-tighter text-white md:text-6xl"
-            style={{ lineHeight: 1.04 }}
+            className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl"
           >
             {locale === "fr" ? "Offre pilote vide" : "Empty pilot offer"}
           </h2>
@@ -132,11 +128,11 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
               key={label}
               className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
                 i === 0
-                  ? "border border-brass-300/60 bg-brass-800/70 text-white"
+                  ? "border border-amber-300/60 bg-amber-800/70 text-white"
                   : "border border-white/12 bg-white/5 text-neutral-200"
               }`}
             >
-              <PulseDot className="h-1.5 w-1.5 bg-brass-300" />
+              <PulseDot className="h-1.5 w-1.5 bg-amber-300" />
               {label}
             </span>
           ))}
@@ -150,9 +146,9 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
           viewport={VP}
           transition={SPRING}
         >
-          <div className="rounded-[1.9rem] border border-white/10 bg-white/[0.045] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm md:p-7">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm md:p-7">
             <h3 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-white">
-              <CheckCircle size={18} weight="fill" className="text-brass-300" />
+              <CheckCircle size={18} weight="fill" className="text-amber-300" />
               {pilot.included.title}
             </h3>
             <motion.ul
@@ -171,7 +167,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
                   <CheckCircle
                     size={16}
                     weight="fill"
-                    className="mt-0.5 shrink-0 text-brass-400"
+                    className="mt-0.5 shrink-0 text-amber-400"
                   />
                   {item}
                 </motion.li>
@@ -187,7 +183,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
           viewport={VP}
           transition={{ ...SPRING, delay: 0.1 }}
         >
-          <div className="rounded-[1.7rem] border border-white/10 bg-white/[0.03] p-6 md:p-7">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7">
             <h3 className="flex items-center gap-2 text-base font-semibold text-neutral-100">
               <XCircle size={18} weight="fill" className="text-neutral-200" />
               {pilot.excluded.title}
@@ -228,7 +224,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
             className="grid grid-cols-1 gap-4 py-6 md:grid-cols-[0.9fr_1.1fr]"
           >
             <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
-              <Icon size={18} weight="fill" className="text-brass-300" />
+              <Icon size={18} weight="fill" className="text-amber-300" />
               {data.title}
             </h3>
             <ul className="list-none space-y-1.5 p-0">
@@ -247,7 +243,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={VP}
         transition={{ ...SPRING, delay: 0.1 }}
-        className="mt-8 border-l-2 border-brass-400/50 py-4 pl-6"
+        className="mt-8 border-l-2 border-amber-400/50 py-4 pl-6"
       >
         <h3 className="text-sm font-semibold text-neutral-100">
           {pilot.upcoming.title}

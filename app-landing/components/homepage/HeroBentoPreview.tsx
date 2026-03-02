@@ -1,102 +1,132 @@
-"use client";
+interface HeroBentoPreviewProps {
+  locale?: "fr" | "en";
+}
 
-import { motion } from "framer-motion";
-import { ShimmerBar } from "./bento/ShimmerBar";
-import { BreathingDot } from "./bento/BreathingDot";
-import { FloatingBars } from "./bento/FloatingBars";
-import { CounterTick } from "./bento/CounterTick";
+export function HeroBentoPreview({ locale = "fr" }: HeroBentoPreviewProps) {
+  const isFr = locale === "fr";
+  const t = isFr
+    ? {
+        kicker: "Extrait (format illustratif)",
+        decisionLog: "Decision Log",
+        proofPack: "Proof pack ROI (mensuel)",
+        constraints: "Contraintes",
+        rituals: "Rituels",
+        note: "Chiffres anonymisés — le livrable final est sur vos données.",
+      }
+    : {
+        kicker: "Excerpt (illustrative format)",
+        decisionLog: "Decision Log",
+        proofPack: "Monthly ROI proof pack",
+        constraints: "Constraints",
+        rituals: "Rituals",
+        note: "Anonymized format — final deliverable is built on your data.",
+      };
 
-const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
-
-/**
- * Card class — diffusion shadow + subtle border.
- * Inner 1px white refraction (inset shadow) for a premium "glass" feel.
- */
-const card =
-  "rounded-[1.5rem] border border-neutral-200/60 bg-white p-5 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05),inset_0_1px_0_rgba(255,255,255,0.8)]";
-
-export function HeroBentoPreview() {
   return (
-    <div className="relative w-full">
-      <div className="grid grid-cols-[2fr_1fr] grid-rows-[auto_auto] gap-3">
-        {/* Top-left: Forecast chart (large) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...SPRING, delay: 0.5 }}
-          className={`row-span-1 ${card}`}
-        >
-          <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
-              Forecast
-            </span>
-            <BreathingDot />
-          </div>
-          <div className="h-24">
-            <FloatingBars />
-          </div>
-        </motion.div>
+    <div className="w-full">
+      <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
+        {t.kicker}
+      </p>
 
-        {/* Top-right: Counter */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...SPRING, delay: 0.65 }}
-          className={`flex flex-col justify-between ${card}`}
-        >
-          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
-            Processed
-          </span>
-          <CounterTick />
-        </motion.div>
-
-        {/* Bottom-left: Coverage progress */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...SPRING, delay: 0.8 }}
-          className={card}
-        >
-          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
-            Coverage analysis
-          </span>
-          <div className="mt-3 space-y-2.5">
-            <ShimmerBar />
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-neutral-500">Processing 3 sites...</span>
-              <span className="font-mono font-medium text-brass">67%</span>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_18px_40px_-34px_rgba(32,24,4,0.25)]">
+          <p className="text-xs font-semibold tracking-[-0.01em] text-ink">
+            {t.decisionLog}
+          </p>
+          <div className="mt-3 divide-y divide-neutral-200/70 text-[12px] text-neutral-600">
+            <div className="flex items-start justify-between gap-3 py-2">
+              <span className="font-medium text-neutral-700">
+                {isFr ? "Override" : "Override"}
+              </span>
+              <span className="text-right">
+                {isFr ? "Renfort site B (S+1)" : "Reinforce site B (W+1)"}
+              </span>
+            </div>
+            <div className="flex items-start justify-between gap-3 py-2">
+              <span className="font-medium text-neutral-700">
+                {isFr ? "Justification" : "Rationale"}
+              </span>
+              <span className="text-right">
+                {isFr ? "Risque service + pénalités" : "Service risk + penalties"}
+              </span>
+            </div>
+            <div className="flex items-start justify-between gap-3 py-2">
+              <span className="font-medium text-neutral-700">
+                {isFr ? "Trace" : "Trace"}
+              </span>
+              <span className="text-right">
+                {isFr ? "COO/CFO validé" : "COO/CFO approved"}
+              </span>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Bottom-right: Pipeline status */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...SPRING, delay: 0.95 }}
-          className={card}
-        >
-          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-400">
-            Status
-          </span>
-          <div className="mt-3 space-y-2">
-            {["Ingestion", "Model", "Output"].map((label, i) => (
-              <div key={label} className="flex items-center gap-2">
-                <motion.span
-                  className="h-1.5 w-1.5 rounded-full bg-brass"
-                  animate={{ opacity: [0.4, 1, 0.4] }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: i * 0.5,
-                  }}
-                />
-                <span className="text-xs text-neutral-500">{label}</span>
+        <div className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_18px_40px_-34px_rgba(32,24,4,0.25)]">
+          <p className="text-xs font-semibold tracking-[-0.01em] text-ink">
+            {t.proofPack}
+          </p>
+          <div className="mt-3 overflow-hidden rounded-xl border border-neutral-200/70">
+            <div className="grid grid-cols-3 bg-neutral-50 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
+              <span>{isFr ? "Option" : "Option"}</span>
+              <span className="text-center">{isFr ? "Coût" : "Cost"}</span>
+              <span className="text-right">{isFr ? "Service" : "Service"}</span>
+            </div>
+            {[
+              { label: "BAU", tone: "text-neutral-700" },
+              { label: isFr ? "Recommandé" : "Recommended", tone: "text-brass-800" },
+              { label: isFr ? "Réel" : "Actual", tone: "text-neutral-700" },
+            ].map((row) => (
+              <div
+                key={row.label}
+                className="grid grid-cols-3 items-center px-3 py-2 text-[12px] text-neutral-600"
+              >
+                <span className={`font-medium ${row.tone}`}>{row.label}</span>
+                <span className="text-center font-mono text-neutral-500">—</span>
+                <span className="text-right font-mono text-neutral-500">—</span>
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
+
+        <div className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_18px_40px_-34px_rgba(32,24,4,0.25)]">
+          <p className="text-xs font-semibold tracking-[-0.01em] text-ink">
+            {t.constraints}
+          </p>
+          <ul className="mt-3 list-none space-y-2 p-0 text-[12px] text-neutral-600">
+            {[
+              isFr ? "Lecture seule (exports/API)" : "Read-only (exports/APIs)",
+              isFr ? "Multi-sites, contraintes terrain" : "Multi-site, field constraints",
+              isFr ? "Inputs WFM/ERP/CRM" : "WFM/ERP/CRM inputs",
+            ].map((item) => (
+              <li key={item} className="m-0 flex items-start gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_18px_40px_-34px_rgba(32,24,4,0.25)]">
+          <p className="text-xs font-semibold tracking-[-0.01em] text-ink">
+            {t.rituals}
+          </p>
+          <div className="mt-3 space-y-2 text-[12px] text-neutral-600">
+            <div className="rounded-xl border border-neutral-200/70 bg-white px-3 py-2">
+              {isFr ? "Cadrage 30 min (J+2)" : "30-min framing (D+2)"}
+            </div>
+            <div className="rounded-xl border border-neutral-200/70 bg-white px-3 py-2">
+              {isFr ? "Comité mensuel COO/CFO" : "Monthly COO/CFO review"}
+            </div>
+            <div className="rounded-xl border border-neutral-200/70 bg-white px-3 py-2">
+              {isFr ? "Preuve ROI et arbitrages" : "ROI proof and trade-offs"}
+            </div>
+          </div>
+        </div>
       </div>
+
+      <p className="px-2 pt-3 text-[11px] leading-relaxed text-neutral-500">
+        {t.note}
+      </p>
     </div>
   );
 }

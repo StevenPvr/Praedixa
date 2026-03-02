@@ -27,13 +27,13 @@ function ShimmerTrackInner({
     >
       <motion.span
         className={cn(
-          "absolute inset-y-0 left-0 w-2/5 bg-gradient-to-r from-transparent via-brass-300/80 to-transparent",
+          "absolute inset-y-0 left-0 w-2/5 bg-gradient-to-r from-transparent via-amber-300/80 to-transparent",
           indicatorClassName,
         )}
         animate={reducedMotion ? undefined : { x: ["-120%", "220%"] }}
         transition={{
           duration,
-          repeat: Number.POSITIVE_INFINITY,
+          repeat: 3,
           ease: "easeInOut",
           type: "tween",
         }}

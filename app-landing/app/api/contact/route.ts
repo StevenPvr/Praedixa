@@ -23,11 +23,11 @@ const CONTACT_PERSIST_TIMEOUT_MS = 8_000;
 const CONTACT_API_PATH = "/api/v1/public/contact-requests";
 const SUPPORTED_LOCALES = new Set(["fr", "en"]);
 const EMAIL_COLORS = {
-  border: "#d9e3f6",
-  title: "#162c5b",
-  body: "#2f3e5c",
-  muted: "#62708c",
-  subtle: "#7c879f",
+  border: "#e5e7eb",
+  title: "#111827",
+  body: "#1f2937",
+  muted: "#374151",
+  subtle: "#6b7280",
 } as const;
 
 const REQUEST_TYPE_LABELS = {
@@ -143,6 +143,27 @@ function normalizeRequestType(value: string | null): ContactRequestType | null {
   return normalized;
 }
 
+function defaultSubjectForRequest({
+  locale,
+  requestType,
+  companyName,
+}: {
+  locale: "fr" | "en";
+  requestType: ContactRequestType;
+  companyName: string;
+}): string {
+  const prefix =
+    requestType === "founding_pilot"
+      ? locale === "en"
+        ? "Free historical audit"
+        : "Audit historique (gratuit)"
+      : requestTypeLabel(requestType, locale);
+
+  const company = companyName.trim();
+  if (!company) return prefix;
+  return `${prefix} — ${company}`;
+}
+
 function validateContactBody(
   body: unknown,
 ): { valid: true; data: ContactPayload } | { valid: false; error: string } {
@@ -154,9 +175,13 @@ function validateContactBody(
   const locale = normalizeLocale(readString(input, "locale", 8, false));
   if (!locale) return { valid: false, error: "Locale invalide." };
 
-  const requestType = normalizeRequestType(
-    readString(input, "requestType", 40, true),
-  );
+  const requestTypeRaw = readString(input, "requestType", 40, false);
+  if (requestTypeRaw === null) {
+    return { valid: false, error: "Type de demande invalide." };
+  }
+  const requestType = requestTypeRaw
+    ? normalizeRequestType(requestTypeRaw)
+    : "founding_pilot";
   if (!requestType) {
     return { valid: false, error: "Type de demande invalide." };
   }
@@ -164,11 +189,11 @@ function validateContactBody(
   const companyName = readString(input, "companyName", 100, true);
   if (!companyName) return { valid: false, error: "Entreprise requise." };
 
-  const firstName = readString(input, "firstName", 80, true);
-  if (!firstName) return { valid: false, error: "Prénom requis." };
+  const firstName = readString(input, "firstName", 80, false);
+  if (firstName === null) return { valid: false, error: "Prénom invalide." };
 
-  const lastName = readString(input, "lastName", 80, true);
-  if (!lastName) return { valid: false, error: "Nom requis." };
+  const lastName = readString(input, "lastName", 80, false);
+  if (lastName === null) return { valid: false, error: "Nom invalide." };
 
   const role = readString(input, "role", 80, false);
   if (role === null) return { valid: false, error: "Fonction invalide." };
@@ -184,8 +209,12 @@ function validateContactBody(
     return { valid: false, error: "Téléphone invalide." };
   }
 
-  const subject = readString(input, "subject", MAX_SUBJECT_LENGTH, true);
-  if (!subject) return { valid: false, error: "Objet requis." };
+  const subjectRaw = readString(input, "subject", MAX_SUBJECT_LENGTH, false);
+  if (subjectRaw === null) return { valid: false, error: "Objet invalide." };
+  const subject =
+    subjectRaw.trim().length > 0
+      ? subjectRaw
+      : defaultSubjectForRequest({ locale, requestType, companyName });
 
   const message = readString(input, "message", MAX_MESSAGE_LENGTH, true);
   if (!message || message.length < MIN_MESSAGE_LENGTH) {
@@ -248,13 +277,18 @@ function requestTypeTag(type: ContactRequestType): string {
 }
 
 function buildAdminHtml(data: ContactPayload, ip: string): string {
+  const contactNameRaw = [data.firstName, data.lastName]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(" ");
+  const contactName = contactNameRaw || "Non renseigné";
+
   const safe = {
     companyName: escapeHtml(data.companyName),
     requestType: escapeHtml(requestTypeLabel(data.requestType, data.locale)),
     locale: escapeHtml(data.locale.toUpperCase()),
-    firstName: escapeHtml(data.firstName),
-    lastName: escapeHtml(data.lastName),
-    role: escapeHtml(data.role || "Non renseignée"),
+    contactName: escapeHtml(contactName),
+    role: escapeHtml(data.role || "Non renseigné"),
     email: escapeHtml(data.email),
     phone: escapeHtml(data.phone || "Non renseigné"),
     subject: escapeHtml(data.subject),
@@ -268,7 +302,7 @@ function buildAdminHtml(data: ContactPayload, ip: string): string {
       <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Type</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${safe.requestType}</td></tr>
       <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Locale</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${safe.locale}</td></tr>
       <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Entreprise</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${safe.companyName}</td></tr>
-      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Contact</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${safe.firstName} ${safe.lastName}</td></tr>
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Contact</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${safe.contactName}</td></tr>
       <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Fonction</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${safe.role}</td></tr>
       <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Email</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};"><a href="mailto:${safe.email}">${safe.email}</a></td></tr>
       <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Téléphone</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${safe.phone}</td></tr>
@@ -283,15 +317,21 @@ function buildConfirmHtml(data: ContactPayload): string {
   const isEnglish = data.locale === "en";
   const contactEmail = escapeHtml(siteConfig.contact.email);
   const brandEmailColor = siteConfig.brand?.primaryEmailColor ?? "#2563eb";
-  const safeFirstName = escapeHtml(data.firstName);
+  const safeName = escapeHtml(
+    [data.firstName, data.lastName]
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .join(" "),
+  );
   const safeSubjectText = escapeHtml(data.subject);
   const safeType = escapeHtml(requestTypeLabel(data.requestType, data.locale));
 
   if (isEnglish) {
+    const greeting = safeName ? `Hello ${safeName},` : "Hello,";
     return `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: ${EMAIL_COLORS.title};">Thanks, your message has been received.</h1>
-        <p style="color: ${EMAIL_COLORS.body}; font-size: 16px; line-height: 1.6;">Hello ${safeFirstName},</p>
+        <p style="color: ${EMAIL_COLORS.body}; font-size: 16px; line-height: 1.6;">${greeting}</p>
         <p style="color: ${EMAIL_COLORS.body}; font-size: 16px; line-height: 1.6;">
           We received your request (<strong>${safeType}</strong>) with subject <strong>${safeSubjectText}</strong>.
         </p>
@@ -307,10 +347,11 @@ function buildConfirmHtml(data: ContactPayload): string {
     `;
   }
 
+  const greeting = safeName ? `Bonjour ${safeName},` : "Bonjour,";
   return `
     <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
       <h1 style="color: ${EMAIL_COLORS.title};">Merci, votre message a bien été envoyé.</h1>
-      <p style="color: ${EMAIL_COLORS.body}; font-size: 16px; line-height: 1.6;">Bonjour ${safeFirstName},</p>
+      <p style="color: ${EMAIL_COLORS.body}; font-size: 16px; line-height: 1.6;">${greeting}</p>
       <p style="color: ${EMAIL_COLORS.body}; font-size: 16px; line-height: 1.6;">
         Nous avons bien reçu votre demande (<strong>${safeType}</strong>) avec l'objet <strong>${safeSubjectText}</strong>.
       </p>
@@ -329,10 +370,14 @@ function buildConfirmHtml(data: ContactPayload): string {
 function buildConfirmText(data: ContactPayload): string {
   const isEnglish = data.locale === "en";
   const typeLabel = requestTypeLabel(data.requestType, data.locale);
+  const name = [data.firstName, data.lastName]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(" ");
 
   if (isEnglish) {
     return [
-      `Hello ${data.firstName},`,
+      name ? `Hello ${name},` : "Hello,",
       "",
       "We received your message.",
       `Request type: ${typeLabel}`,
@@ -345,7 +390,7 @@ function buildConfirmText(data: ContactPayload): string {
   }
 
   return [
-    `Bonjour ${data.firstName},`,
+    name ? `Bonjour ${name},` : "Bonjour,",
     "",
     "Nous avons bien reçu votre message.",
     `Type de demande : ${typeLabel}`,

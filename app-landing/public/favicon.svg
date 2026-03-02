@@ -1,0 +1,33 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="64"
+  height="64"
+  viewBox="0 0 64 64"
+>
+  <rect width="64" height="64" rx="14" fill="#000000" />
+  <g transform="translate(10 9)" fill="none" stroke="#fff">
+    <rect
+      x="12"
+      y="1"
+      width="20"
+      height="44"
+      rx="0"
+      stroke="none"
+      fill="none"
+    />
+    <line
+      x1="12"
+      y1="8"
+      x2="12"
+      y2="36"
+      stroke-width="2.4"
+      stroke-linecap="square"
+    />
+    <path
+      d="M12 8H26C32 8 36 12 36 18C36 24 32 28 26 28H12"
+      stroke-width="2.4"
+      stroke-linecap="square"
+      stroke-linejoin="miter"
+    />
+  </g>
+</svg>

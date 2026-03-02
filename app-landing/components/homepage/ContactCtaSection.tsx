@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useMemo } from "react";
 import type { MouseEventHandler } from "react";
 import {
   AnimatePresence,
@@ -21,14 +21,12 @@ import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
+import { SPRING, VP } from "../../lib/animations/variants";
 
 interface ContactCtaSectionProps {
   locale: Locale;
   dict: Dictionary;
 }
-
-const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
-const VP = { once: true, margin: "-60px" as const };
 const EASE_SNAPPY = [0.16, 1, 0.3, 1] as const;
 
 const ctaGroup = {
@@ -101,7 +99,7 @@ const MagneticCtaLink = memo(function MagneticCtaLink({
     "group relative inline-flex w-full items-center justify-center gap-2.5 rounded-xl border px-6 py-3.5 text-sm font-semibold no-underline transition-[transform,background-color,border-color,color] duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] active:scale-[0.98] active:-translate-y-[1px] sm:w-auto";
   const variantClasses =
     variant === "primary"
-      ? "border-brass-300 bg-brass-400 text-brass-950 hover:border-brass-200 hover:bg-brass-300"
+      ? "border-white/70 bg-white text-ink hover:border-white hover:bg-neutral-100"
       : "border-white/20 bg-white/[0.04] text-white hover:border-white/45 hover:bg-white/[0.08]";
 
   return (
@@ -126,18 +124,18 @@ const MagneticCtaLink = memo(function MagneticCtaLink({
           }`}
           aria-hidden="true"
         />
-        <span className="relative z-[1]">{label}</span>
+        <span className="relative">{label}</span>
         {icon === "arrow" ? (
           <ArrowRight
             size={16}
             weight="bold"
-            className="relative z-[1] shrink-0"
+            className="relative shrink-0"
           />
         ) : (
           <EnvelopeSimple
             size={16}
             weight="bold"
-            className="relative z-[1] shrink-0"
+            className="relative shrink-0"
           />
         )}
       </Link>
@@ -149,13 +147,6 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
   locale,
   items,
 }: TrustSignalPanelProps) {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timerId = window.setTimeout(() => setIsLoading(false), 340);
-    return () => window.clearTimeout(timerId);
-  }, []);
-
   const cleanedItems = useMemo(
     () =>
       items.filter(
@@ -170,10 +161,10 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
   const isEmpty = cleanedItems.length === 0;
   const localeLabel = locale === "fr";
   const panelTitle = localeLabel
-    ? "Cadre de demarrage pilote"
+    ? "Cadre de démarrage pilote"
     : "Pilot kickoff frame";
   const panelSubtitle = localeLabel
-    ? "Equipe Praedixa disponible sous 48h ouvrées"
+    ? "Équipe Praedixa disponible sous 48h ouvrées"
     : "Praedixa team available within 48 business hours";
 
   return (
@@ -183,10 +174,10 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
       whileInView={{ opacity: 1, x: 0 }}
       viewport={VP}
       transition={{ ...SPRING, delay: 0.12 }}
-      className="relative rounded-[1.7rem] border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_22px_42px_-26px_rgba(0,0,0,0.62)] md:-mt-8 md:p-8"
+      className="relative rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_22px_42px_-26px_rgba(0,0,0,0.62)] md:-mt-8 md:p-8"
     >
       <div
-        className="absolute inset-0 rounded-[1.7rem] border border-white/10"
+        className="absolute inset-0 rounded-3xl border border-white/10"
         aria-hidden="true"
       />
       <div className="relative">
@@ -199,17 +190,17 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
                 repeat: Number.POSITIVE_INFINITY,
                 ease: "easeInOut",
               }}
-              className="h-2.5 w-2.5 rounded-full bg-brass-300"
+              className="h-2.5 w-2.5 rounded-full bg-amber-300"
               aria-hidden="true"
             />
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brass-100">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-100">
               {panelTitle}
             </p>
           </div>
           <ClockCountdown
             size={16}
             weight="bold"
-            className="shrink-0 text-brass-200"
+            className="shrink-0 text-amber-200"
             aria-hidden="true"
           />
         </div>
@@ -220,41 +211,7 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
 
         <div className="mt-7 border-t border-white/15 pt-5">
           <AnimatePresence mode="wait" initial={false}>
-            {isLoading ? (
-              <motion.ul
-                key="loading"
-                layout
-                layoutId="contact-trust-state"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.35, ease: EASE_SNAPPY }}
-                className="space-y-3"
-                aria-label={
-                  localeLabel
-                    ? "Chargement des garanties"
-                    : "Loading trust items"
-                }
-              >
-                {[0, 1, 2].map((slot) => (
-                  <li
-                    key={slot}
-                    className="relative h-5 overflow-hidden rounded bg-white/10"
-                  >
-                    <motion.span
-                      aria-hidden="true"
-                      className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/35 to-transparent"
-                      animate={{ x: ["-120%", "220%"] }}
-                      transition={{
-                        duration: 1.35,
-                        repeat: Number.POSITIVE_INFINITY,
-                        ease: "easeInOut",
-                      }}
-                    />
-                  </li>
-                ))}
-              </motion.ul>
-            ) : isEmpty ? (
+            {isEmpty ? (
               <motion.div
                 key="empty"
                 layout
@@ -263,11 +220,11 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.35, ease: EASE_SNAPPY }}
-                className="rounded-xl border border-white/15 bg-white/[0.03] p-4"
+                className="rounded-xl border border-white/15 bg-white/[0.04] p-4"
               >
                 <p className="text-sm font-medium text-white">
                   {localeLabel
-                    ? "Les garanties de demarrage seront confirmees lors de l'appel de cadrage."
+                    ? "Les garanties de démarrage seront confirmées lors de l’appel de cadrage."
                     : "Kickoff guarantees will be confirmed during the scoping call."}
                 </p>
               </motion.div>
@@ -291,7 +248,7 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
                     aria-hidden="true"
                   />
                   {localeLabel
-                    ? "Un element de confiance est invalide. Nous affichons la version verifiee."
+                    ? "Un élément de confiance est invalide. Nous affichons la version vérifiée."
                     : "One trust item is invalid. Showing verified entries only."}
                 </p>
                 <ul className="mt-3 space-y-2">
@@ -323,7 +280,7 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
                     <CheckCircle
                       size={16}
                       weight="fill"
-                      className="mt-0.5 shrink-0 text-brass-300"
+                      className="mt-0.5 shrink-0 text-amber-300"
                       aria-hidden="true"
                     />
                     <span>{item}</span>
@@ -339,7 +296,7 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
           aria-hidden="true"
         >
           <motion.span
-            className="block h-full w-1/3 bg-brass-300/70"
+            className="block h-full w-1/3 bg-amber-300/70"
             animate={{ x: ["-20%", "260%"] }}
             transition={{
               duration: 3.8,
@@ -354,22 +311,22 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
 });
 
 export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
-  const pilotHref = getLocalizedPath(locale, "pilot");
-  const contactHref = getLocalizedPath(locale, "contact");
+  const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=audit`;
+  const protocolHref = `/${locale}/pilot-protocol`;
 
   return (
     <SectionShell id="contact" className="section-dark overflow-hidden">
       <div className="relative">
         <div
-          className="pointer-events-none absolute -left-28 top-[-7rem] h-72 w-72 rounded-full bg-brass-400/14 blur-3xl"
+          className="pointer-events-none absolute -left-28 top-[-7rem] h-72 w-72 rounded-full bg-amber-400/14 blur-3xl"
           aria-hidden="true"
         />
         <div
-          className="pointer-events-none absolute -right-20 bottom-[-8rem] h-80 w-80 rounded-full bg-brass-300/10 blur-3xl"
+          className="pointer-events-none absolute -right-20 bottom-[-8rem] h-80 w-80 rounded-full bg-amber-300/10 blur-3xl"
           aria-hidden="true"
         />
 
-        <div className="relative grid grid-cols-1 gap-14 md:grid-cols-[1.68fr_minmax(290px,1fr)] md:items-start md:gap-10">
+        <div className="relative grid grid-cols-1 gap-14 lg:grid-cols-[1.68fr_minmax(290px,1fr)] lg:items-start lg:gap-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -378,12 +335,11 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
             className="md:pr-16 lg:pr-24"
           >
             <div className="flex items-center gap-3">
-              <Kicker className="text-brass-100">{dict.contact.kicker}</Kicker>
-              <span className="h-px w-16 bg-brass-200/50" aria-hidden="true" />
+              <Kicker className="text-amber-100">{dict.contact.kicker}</Kicker>
+              <span className="h-px w-16 bg-amber-200/50" aria-hidden="true" />
             </div>
             <h2
-              className="mt-4 max-w-3xl text-4xl font-semibold tracking-tighter text-white md:text-6xl"
-              style={{ lineHeight: 1.02 }}
+              className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] tracking-tighter text-white md:text-6xl"
             >
               {dict.contact.heading}
             </h2>
@@ -400,7 +356,7 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
             >
               <motion.div variants={ctaItem} layout>
                 <MagneticCtaLink
-                  href={pilotHref}
+                  href={primaryCtaHref}
                   label={dict.contact.ctaPrimary}
                   icon="arrow"
                   variant="primary"
@@ -408,9 +364,9 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
               </motion.div>
               <motion.div variants={ctaItem} layout>
                 <MagneticCtaLink
-                  href={contactHref}
+                  href={protocolHref}
                   label={dict.contact.ctaSecondary}
-                  icon="mail"
+                  icon="arrow"
                   variant="secondary"
                 />
               </motion.div>

@@ -11,71 +11,85 @@
      These are the resolved names after next/font loads. */
   --brand-font-sans: var(--font-sans, "Manrope"), ui-sans-serif, system-ui,
     -apple-system, sans-serif;
-  --brand-font-serif: var(--font-sans, "Manrope"), ui-sans-serif, system-ui,
-    -apple-system, sans-serif;
+  --brand-font-serif: var(--font-serif, "Georgia"), ui-serif, "Times New Roman",
+    serif;
 
-  /* ── Brand: Praedixa Deep Navy (light mode ramp)
-     50–200: cool pearl with minimal chroma.
-     300+: deep navy-indigo — premium business signature. ── */
-  --brass-50: oklch(0.975 0.003 260);
-  --brass-100: oklch(0.95 0.006 258);
-  --brass-200: oklch(0.90 0.012 256);
-  --brass-300: oklch(0.76 0.035 258);
-  --brass-400: oklch(0.56 0.075 262);
-  --brass-500: oklch(0.40 0.105 264);
-  --brass-600: oklch(0.33 0.095 264);
-  --brass-700: oklch(0.27 0.08 265);
-  --brass-800: oklch(0.22 0.065 266);
-  --brass-900: oklch(0.17 0.05 267);
+  /* ── Primary: Praedixa Navy (light mode ramp) ──
+     Hue 244-250 — sophisticated slate navy for structural elements */
+  --navy-50: oklch(0.975 0.006 250);
+  --navy-100: oklch(0.940 0.015 250);
+  --navy-200: oklch(0.880 0.032 250);
+  --navy-300: oklch(0.780 0.055 248);
+  --navy-400: oklch(0.640 0.085 248);
+  --navy-500: oklch(0.500 0.105 246);
+  --navy-600: oklch(0.400 0.098 246);
+  --navy-700: oklch(0.320 0.080 244);
+  --navy-800: oklch(0.250 0.060 244);
+  --navy-900: oklch(0.185 0.042 244);
 
-  /* ── Brand: Praedixa Blue (dark mode ramp) ── */
-  --brass-dark-50: oklch(0.18 0.045 247);
-  --brass-dark-100: oklch(0.24 0.065 247);
-  --brass-dark-200: oklch(0.33 0.09 247);
-  --brass-dark-300: oklch(0.45 0.12 247);
-  --brass-dark-400: oklch(0.58 0.14 247);
-  --brass-dark-500: oklch(0.70 0.15 247);
-  --brass-dark-600: oklch(0.78 0.13 247);
-  --brass-dark-700: oklch(0.85 0.11 248);
-  --brass-dark-800: oklch(0.90 0.085 248);
+  /* ── Primary: Praedixa Navy (dark mode ramp) ── */
+  --navy-dark-50: oklch(0.200 0.035 244);
+  --navy-dark-100: oklch(0.260 0.045 244);
+  --navy-dark-200: oklch(0.360 0.065 246);
+  --navy-dark-300: oklch(0.480 0.090 246);
+  --navy-dark-400: oklch(0.600 0.100 248);
+  --navy-dark-500: oklch(0.720 0.090 248);
+  --navy-dark-600: oklch(0.820 0.060 250);
+  --navy-dark-700: oklch(0.890 0.035 250);
+  --navy-dark-800: oklch(0.940 0.015 250);
 
-  /* ── Shared hero / atmosphere blues (landing + webapp) ── */
-  --praedixa-hero-blue-deep: oklch(0.14 0.025 247);
-  --praedixa-hero-blue-aurora-1: oklch(0.3 0.12 247 / 0.15);
-  --praedixa-hero-blue-aurora-2: oklch(0.25 0.1 255 / 0.12);
-  --praedixa-hero-blue-aurora-3: oklch(0.2 0.08 240 / 0.08);
-  --praedixa-hero-blue-mid: oklch(0.18 0.045 247);
-  --praedixa-hero-blue-low: oklch(0.12 0.022 247);
-  --praedixa-hero-blue-ultra: oklch(0.1 0.018 247);
+  /* ── Accent: Praedixa Amber Brass (light mode ramp) ──
+     Hue 68-85 — warm amber for signals, CTAs, highlights */
+  --brass-50: oklch(0.980 0.020 85);
+  --brass-100: oklch(0.950 0.040 85);
+  --brass-200: oklch(0.900 0.070 84);
+  --brass-300: oklch(0.830 0.100 82);
+  --brass-400: oklch(0.740 0.130 80);
+  --brass-500: oklch(0.660 0.140 78);
+  --brass-600: oklch(0.560 0.130 75);
+  --brass-700: oklch(0.460 0.100 72);
+  --brass-800: oklch(0.360 0.070 70);
+  --brass-900: oklch(0.280 0.050 68);
 
-  /* ── Premium Surfaces (neutral-pearl base) ── */
-  --warm-bg: oklch(0.975 0.004 260);
-  --warm-bg-muted: oklch(0.955 0.006 255);
-  --warm-bg-panel: oklch(0.985 0.003 260);
-  --warm-bg-elevated: oklch(0.995 0.002 260);
+  /* ── Accent: Praedixa Amber Brass (dark mode ramp) ── */
+  --brass-dark-50: oklch(0.220 0.030 70);
+  --brass-dark-100: oklch(0.280 0.050 72);
+  --brass-dark-200: oklch(0.380 0.080 75);
+  --brass-dark-300: oklch(0.500 0.110 78);
+  --brass-dark-400: oklch(0.620 0.130 80);
+  --brass-dark-500: oklch(0.740 0.140 82);
+  --brass-dark-600: oklch(0.820 0.120 84);
+  --brass-dark-700: oklch(0.880 0.090 86);
+  --brass-dark-800: oklch(0.930 0.060 88);
+
+  /* ── Premium Surfaces (cream base) ── */
+  --warm-bg: oklch(0.985 0.012 95);
+  --warm-bg-muted: oklch(0.97 0.014 95);
+  --warm-bg-panel: oklch(0.99 0.008 95);
+  --warm-bg-elevated: oklch(1 0 0);
   --warm-bg-white: oklch(1 0 0);
 
-  /* ── Ink (blue-neutral) ── */
-  --warm-ink: oklch(0.24 0.04 248);
-  --warm-ink-secondary: oklch(0.38 0.03 248);
-  --warm-ink-muted: oklch(0.53 0.02 248);
+  /* ── Ink (charcoal) ── */
+  --warm-ink: oklch(0.22 0.02 60);
+  --warm-ink-secondary: oklch(0.38 0.02 60);
+  --warm-ink-muted: oklch(0.54 0.02 60);
 
-  /* ── Neutral Scale (blue-neutral) ── */
-  --warm-neutral-50: oklch(0.99 0.005 246);
-  --warm-neutral-100: oklch(0.97 0.008 246);
-  --warm-neutral-200: oklch(0.93 0.012 247);
-  --warm-neutral-300: oklch(0.86 0.016 247);
-  --warm-neutral-400: oklch(0.72 0.02 248);
-  --warm-neutral-500: oklch(0.58 0.02 248);
-  --warm-neutral-600: oklch(0.46 0.022 248);
-  --warm-neutral-700: oklch(0.37 0.024 248);
-  --warm-neutral-800: oklch(0.30 0.026 248);
-  --warm-neutral-900: oklch(0.24 0.03 248);
+  /* ── Neutral Scale (warm) ── */
+  --warm-neutral-50: oklch(0.995 0.01 95);
+  --warm-neutral-100: oklch(0.985 0.012 95);
+  --warm-neutral-200: oklch(0.96 0.014 95);
+  --warm-neutral-300: oklch(0.90 0.016 90);
+  --warm-neutral-400: oklch(0.78 0.018 85);
+  --warm-neutral-500: oklch(0.64 0.018 75);
+  --warm-neutral-600: oklch(0.52 0.018 70);
+  --warm-neutral-700: oklch(0.42 0.018 65);
+  --warm-neutral-800: oklch(0.32 0.018 60);
+  --warm-neutral-900: oklch(0.24 0.018 60);
 
   /* ── Borders ── */
-  --warm-border: oklch(0.84 0.016 247);
-  --warm-border-subtle: oklch(0.90 0.012 247);
-  --warm-border-strong: oklch(0.66 0.03 247);
+  --warm-border: oklch(0.86 0.016 90);
+  --warm-border-subtle: oklch(0.92 0.012 90);
+  --warm-border-strong: oklch(0.72 0.02 80);
 
   /* ── Status Colors (distinct but calm) ── */
   --status-success: oklch(0.62 0.12 156);
@@ -84,15 +98,17 @@
   --status-info: oklch(0.62 0.11 226);
 
   /* ── Shadows (cool-neutral) ── */
-  --shadow-warm-xs: 0 1px 2px oklch(0.24 0.03 248 / 0.07);
-  --shadow-warm-sm: 0 1px 3px oklch(0.24 0.03 248 / 0.1),
-    0 4px 10px -3px oklch(0.24 0.03 248 / 0.06);
-  --shadow-warm-md: 0 2px 6px oklch(0.24 0.03 248 / 0.1),
-    0 10px 24px -6px oklch(0.24 0.03 248 / 0.12);
-  --shadow-warm-lg: 0 4px 12px oklch(0.24 0.03 248 / 0.1),
-    0 18px 40px -10px oklch(0.24 0.03 248 / 0.15);
-  --shadow-brass-glow: 0 0 16px -6px oklch(0.40 0.105 264 / 0.25),
-    0 0 36px -12px oklch(0.40 0.105 264 / 0.16);
+  --shadow-warm-xs: 0 1px 2px oklch(0.22 0.02 60 / 0.06);
+  --shadow-warm-sm: 0 1px 3px oklch(0.22 0.02 60 / 0.09),
+    0 4px 10px -3px oklch(0.22 0.02 60 / 0.05);
+  --shadow-warm-md: 0 2px 6px oklch(0.22 0.02 60 / 0.08),
+    0 10px 24px -6px oklch(0.22 0.02 60 / 0.10);
+  --shadow-warm-lg: 0 4px 12px oklch(0.22 0.02 60 / 0.08),
+    0 18px 40px -10px oklch(0.22 0.02 60 / 0.12);
+  --shadow-navy-glow: 0 0 16px -8px oklch(0.50 0.105 246 / 0.20),
+    0 0 28px -16px oklch(0.50 0.105 246 / 0.14);
+  --shadow-amber-glow: 0 0 16px -8px oklch(0.66 0.14 78 / 0.18),
+    0 0 28px -16px oklch(0.66 0.14 78 / 0.12);
 
   /* ── Transitions ── */
   --brand-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);

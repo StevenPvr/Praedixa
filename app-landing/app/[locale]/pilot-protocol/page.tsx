@@ -57,7 +57,7 @@ export default async function PilotProtocolPage({
           <ul className="mt-3 list-none space-y-2 p-0">
             {p.included.items.map((item: string) => (
               <li key={item} className="m-0 flex items-start gap-2 text-sm text-neutral-600">
-                <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-brass-300" />
+                <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300" />
                 {item}
               </li>
             ))}
@@ -106,9 +106,9 @@ export default async function PilotProtocolPage({
         </ul>
       </div>
 
-      <div className="mt-8 rounded-xl border border-brass-200 bg-brass-50/50 p-6">
-        <h2 className="text-sm font-semibold text-brass-700">{p.upcoming.title}</h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-brass-600">
+      <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50/50 p-6">
+        <h2 className="text-sm font-semibold text-amber-700">{p.upcoming.title}</h2>
+        <p className="mt-1.5 text-sm leading-relaxed text-amber-600">
           {p.upcoming.description}
         </p>
       </div>

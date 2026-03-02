@@ -20,7 +20,7 @@ function PulseDotInner({
   return (
     <motion.span
       aria-hidden="true"
-      className={cn("inline-flex h-2 w-2 rounded-full bg-brass-400", className)}
+      className={cn("inline-flex h-2 w-2 rounded-full bg-amber-400", className)}
       animate={
         reducedMotion
           ? undefined
@@ -31,7 +31,7 @@ function PulseDotInner({
       }
       transition={{
         duration,
-        repeat: Number.POSITIVE_INFINITY,
+        repeat: 3,
         ease: "easeInOut",
         type: "tween",
       }}

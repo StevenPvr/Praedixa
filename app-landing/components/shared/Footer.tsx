@@ -13,14 +13,13 @@ interface FooterProps {
 }
 
 export function Footer({ locale, dict }: FooterProps) {
-  const pilotHref = getLocalizedPath(locale, "pilot");
+  const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=audit`;
   const servicesHref = getLocalizedPath(locale, "services");
   const blogHref = `/${locale}/blog`;
   const contactHref = getLocalizedPath(locale, "contact");
   const legalHref = getLocalizedPath(locale, "legal");
   const privacyHref = getLocalizedPath(locale, "privacy");
   const termsHref = getLocalizedPath(locale, "terms");
-  const securityHref = getLocalizedPath(locale, "security");
   const aboutHref = getLocalizedPath(locale, "about");
 
   const navLinks = [
@@ -29,7 +28,7 @@ export function Footer({ locale, dict }: FooterProps) {
     { label: dict.nav.services, href: servicesHref },
     { label: "Blog", href: blogHref },
     { label: dict.nav.howItWorks, href: `/${locale}#how-it-works` },
-    { label: dict.nav.security, href: securityHref },
+    { label: dict.nav.security, href: `/${locale}#security` },
     { label: dict.nav.faq, href: `/${locale}#faq` },
   ];
 
@@ -53,7 +52,7 @@ export function Footer({ locale, dict }: FooterProps) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-neutral-200/70 bg-[linear-gradient(180deg,#fcfcfb_0%,#f7f6f3_52%,#f2f0ec_100%)]">
+    <footer className="border-t border-neutral-200/70 bg-[linear-gradient(180deg,var(--warm-bg-white)_0%,var(--warm-bg-muted)_52%,var(--warm-bg-panel)_100%)]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="py-14 md:py-16">
           <div className="grid grid-cols-1 gap-10 md:grid-cols-[1.62fr_1fr] md:items-end md:gap-12">
@@ -76,23 +75,23 @@ export function Footer({ locale, dict }: FooterProps) {
                         index % 2 === 1 ? "translate-y-[1px]" : ""
                       }`}
                     >
-                      <PulseDot className="h-1.5 w-1.5 bg-brass-500" />
+                      <PulseDot className="h-1.5 w-1.5 bg-amber-500" />
                       {badge}
                     </span>
                   ))
                 ) : (
                   <span className="inline-flex items-center gap-2 rounded-full border border-neutral-300/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-neutral-500">
-                    <PulseDot className="h-1.5 w-1.5 bg-brass-500" />
+                    <PulseDot className="h-1.5 w-1.5 bg-amber-500" />
                     {locale === "fr"
-                      ? "Signal operatoire continu"
+                      ? "Signal opératoire continu"
                       : "Continuous operational signal"}
                   </span>
                 )}
               </div>
             </div>
 
-            <MagneticActionLink
-              href={pilotHref}
+          <MagneticActionLink
+              href={primaryCtaHref}
               label={dict.footer.ctaBanner.cta}
               wrapperClassName="w-full md:max-w-sm md:justify-self-end"
               className="border-neutral-300/80 bg-white/90 text-ink hover:border-neutral-400 hover:bg-white"
@@ -100,7 +99,7 @@ export function Footer({ locale, dict }: FooterProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 border-y border-neutral-200/70 py-12 md:grid-cols-[1.35fr_1fr_0.95fr] md:gap-12">
+        <div className="grid grid-cols-1 gap-10 border-y border-neutral-200/70 py-12 md:grid-cols-[1.3fr_1fr_1fr] md:gap-10">
           <div className="space-y-5">
             <Link
               href={`/${locale}`}
@@ -114,12 +113,12 @@ export function Footer({ locale, dict }: FooterProps) {
             </Link>
             <p className="max-w-[46ch] text-sm leading-relaxed text-neutral-600">
               {locale === "fr"
-                ? "Decision intelligence orientee operations multi-sites, preuve economique mensuelle et gouvernance COO/CFO partagee."
+                ? "Decision intelligence orientée opérations multi-sites, preuve économique mensuelle et gouvernance COO/CFO partagée."
                 : "Decision intelligence for multi-site operations, monthly economic proof, and shared COO/CFO governance."}
             </p>
             <ShimmerTrack
               className="max-w-[16rem] bg-neutral-200/70"
-              indicatorClassName="via-brass-300/55"
+              indicatorClassName="via-amber-300/55"
             />
           </div>
 

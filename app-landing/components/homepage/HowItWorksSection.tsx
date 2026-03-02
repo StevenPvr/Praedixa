@@ -6,6 +6,7 @@ import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
+import { SPRING, VP } from "../../lib/animations/variants";
 import { MagneticPilotLink } from "./how-it-works/MagneticPilotLink";
 import { ProtocolPulsePill } from "./how-it-works/ProtocolPulsePill";
 
@@ -14,8 +15,6 @@ interface HowItWorksSectionProps {
   dict: Dictionary;
 }
 
-const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
-const VP = { once: true, margin: "-60px" as const };
 const LINEAR = { once: true, margin: "-30px" as const };
 
 const staggerSteps = {
@@ -33,24 +32,24 @@ const stepItem = {
 
 const sectionCopy = {
   fr: {
-    chipMilestone: "Jalon de preuve: S8",
-    chipConsolidation: "Consolidation: mois 3",
+    chipMilestone: "Jalon de preuve : S8",
+    chipConsolidation: "Consolidation : mois 3",
     railLabel: "Cadence pilote",
-    railTitle: "Execution defendable, semaine par semaine.",
+    railTitle: "Exécution défendable, semaine par semaine.",
     railSummary:
-      "Chaque jalon verrouille un niveau de decision avant passage a l'etape suivante.",
+      "Chaque jalon verrouille un niveau de décision avant passage à l'étape suivante.",
     rhythmLabel: "Revues hebdomadaires COO/Ops + CFO/DAF",
     phaseLabel: "Jalon",
-    ctaMeta: "Demarrage en lecture seule, sans projet SI lourd",
+    ctaMeta: "Démarrage en lecture seule, sans projet SI lourd",
     loadingTitle: "Chargement du protocole pilote",
     loadingBody:
-      "Assemblage des jalons d'execution et de preuve en cours.",
+      "Assemblage des jalons d’exécution et de preuve en cours.",
     emptyTitle: "Aucun protocole disponible",
     emptyBody:
-      "Ajoutez les etapes du pilote pour afficher la timeline d'execution.",
+      "Ajoutez les étapes du pilote pour afficher la timeline d’exécution.",
     errorTitle: "Protocole temporairement indisponible",
     errorBody:
-      "La section ne peut pas etre rendue pour le moment. Rechargez la page.",
+      "La section ne peut pas être rendue pour le moment. Rechargez la page.",
     statuses: [
       "Audit historique actif",
       "Initialisation data",
@@ -103,8 +102,7 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
             {protocol?.kicker ?? copy.loadingTitle}
           </Kicker>
           <h2
-            className="mt-3 max-w-2xl text-4xl font-bold tracking-tighter text-white md:text-6xl"
-            style={{ lineHeight: 1.04 }}
+            className="mt-3 max-w-2xl text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl"
           >
             {copy.loadingTitle}
           </h2>
@@ -113,11 +111,11 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
           </p>
         </div>
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-[0.9fr_1.1fr]">
-          <div className="h-[320px] animate-pulse rounded-[1.75rem] border border-white/10 bg-white/5" />
+          <div className="h-[320px] animate-pulse rounded-3xl border border-white/10 bg-white/5" />
           <div className="space-y-4">
-            <div className="h-28 animate-pulse rounded-[1.5rem] border border-white/10 bg-white/5" />
-            <div className="h-28 animate-pulse rounded-[1.5rem] border border-white/10 bg-white/5" />
-            <div className="h-28 animate-pulse rounded-[1.5rem] border border-white/10 bg-white/5" />
+            <div className="h-28 animate-pulse rounded-3xl border border-white/10 bg-white/5" />
+            <div className="h-28 animate-pulse rounded-3xl border border-white/10 bg-white/5" />
+            <div className="h-28 animate-pulse rounded-3xl border border-white/10 bg-white/5" />
           </div>
         </div>
       </SectionShell>
@@ -132,8 +130,7 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
             {protocol?.kicker ?? copy.errorTitle}
           </Kicker>
           <h2
-            className="mt-3 max-w-2xl text-4xl font-bold tracking-tighter text-white md:text-6xl"
-            style={{ lineHeight: 1.04 }}
+            className="mt-3 max-w-2xl text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl"
           >
             {copy.errorTitle}
           </h2>
@@ -155,8 +152,7 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
         <div className="max-w-3xl">
           <Kicker className="text-neutral-100">{protocol.kicker}</Kicker>
           <h2
-            className="mt-3 max-w-2xl text-4xl font-bold tracking-tighter text-white md:text-6xl"
-            style={{ lineHeight: 1.04 }}
+            className="mt-3 max-w-2xl text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl"
           >
             {copy.emptyTitle}
           </h2>
@@ -169,7 +165,7 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
   }
 
   const phaseChip = locale === "fr"
-    ? `${steps.length} jalons operationnels`
+    ? `${steps.length} jalons opérationnels`
     : `${steps.length} operational milestones`;
 
   return (
@@ -182,8 +178,7 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
       >
         <Kicker className="text-neutral-100">{protocol.kicker}</Kicker>
         <h2
-          className="mt-3 max-w-3xl text-4xl font-bold tracking-tighter text-white md:text-6xl"
-          style={{ lineHeight: 1.04 }}
+          className="mt-3 max-w-3xl text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl"
         >
           {protocol.heading}
         </h2>
@@ -210,9 +205,9 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
           transition={SPRING}
           className="md:sticky md:top-28 md:self-start"
         >
-          <div className="relative overflow-hidden rounded-[1.9rem] border border-white/10 bg-white/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm md:p-7">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-brass-400/12 to-transparent" />
-            <span className="relative text-xs font-semibold uppercase tracking-[0.08em] text-brass-200">
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm md:p-7">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-amber-400/12 to-transparent" />
+            <span className="relative text-xs font-semibold uppercase tracking-[0.08em] text-amber-200">
               {copy.railLabel}
             </span>
             <h3 className="relative mt-2 text-2xl font-semibold tracking-tight text-white">
@@ -234,9 +229,9 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
                   key={`rail-${step.number}`}
                   variants={stepItem}
                   layout
-                  className="grid grid-cols-[auto_1fr] items-start gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2.5"
+                  className="grid grid-cols-[auto_1fr] items-start gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5"
                 >
-                  <span className="inline-flex min-h-8 min-w-8 items-center justify-center rounded-full border border-brass-300/45 bg-brass-600/20 px-2 text-xs font-semibold text-brass-100">
+                  <span className="inline-flex min-h-8 min-w-8 items-center justify-center rounded-full border border-amber-300/45 bg-amber-600/20 px-2 text-xs font-semibold text-amber-100">
                     {step.number}
                   </span>
                   <div className="min-w-0">
@@ -282,13 +277,13 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
                 layout
                 layoutId={`pilot-step-${step.number}`}
                 variants={stepItem}
-                className="relative overflow-hidden rounded-[1.65rem] border border-white/10 bg-white/[0.04] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm md:p-6"
+                className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm md:p-6"
               >
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-brass-400/8 to-transparent" />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-amber-400/8 to-transparent" />
                 <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <span className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-full border border-brass-300/45 bg-brass-600/20 px-2 text-sm font-semibold text-brass-100">
+                      <span className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-full border border-amber-300/45 bg-amber-600/20 px-2 text-sm font-semibold text-amber-100">
                         {step.number}
                       </span>
                       <span className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-100">
@@ -309,7 +304,7 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
                 <div className="relative mt-5 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
                   <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                     <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-brass-300 via-brass-400 to-brass-500"
+                      className="h-full rounded-full bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500"
                       initial={{ scaleX: 0, originX: 0 }}
                       whileInView={{ scaleX: (i + 1) / steps.length }}
                       viewport={VP}

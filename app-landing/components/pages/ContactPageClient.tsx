@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -13,6 +14,7 @@ import {
 } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
+import { ScopingCallRequestPanel } from "../shared/ScopingCallRequestPanel";
 
 type RequestType =
   | "founding_pilot"
@@ -49,13 +51,22 @@ const REQUEST_TYPES: { value: RequestType; fr: string; en: string }[] = [
     fr: "Pilote Workforce & ProofOps",
     en: "Workforce & ProofOps pilot",
   },
-  { value: "product_demo", fr: "Demonstration produit", en: "Product demo" },
+  { value: "product_demo", fr: "Démonstration produit", en: "Product demo" },
   { value: "partnership", fr: "Partenariat", en: "Partnership" },
   { value: "press_other", fr: "Presse / Autre", en: "Press / Other" },
 ];
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_MESSAGE_LENGTH = 30;
+
+type FieldErrors = Partial<
+  Record<"companyName" | "email" | "message" | "captchaAnswer" | "consent", string>
+>;
+
 export function ContactPageClient({ locale }: { locale: Locale }) {
   const isFr = locale === "fr";
+  const searchParams = useSearchParams();
+  const isAuditIntent = searchParams.get("intent") === "audit";
   const [captcha, setCaptcha] = useState<ContactChallenge | null>(null);
   const [captchaLoading, setCaptchaLoading] = useState(true);
 
@@ -68,7 +79,11 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
     role: "",
     email: "",
     phone: "",
-    subject: "",
+    subject: isAuditIntent
+      ? isFr
+        ? "Audit historique (gratuit)"
+        : "Free historical audit"
+      : "",
     message: "",
     consent: false,
     website: "",
@@ -78,62 +93,79 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
 
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const update = useCallback((key: keyof ContactFormData, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+    setFieldErrors((prev) => {
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete (next as Record<string, string>)[key];
+      return next;
+    });
   }, []);
 
-  const copy =
-    locale === "fr"
+  const copy = useMemo(() => {
+    const base = isFr
       ? {
           kicker: "Contact",
-          heading: "Parlons de votre contexte operationnel.",
+          heading: "Parlons de votre contexte opérationnel.",
           intro:
-            "Decrivez vos arbitrages critiques. Nous revenons avec un cadrage actionnable et une proposition de prochain pas.",
+            "Décrivez vos arbitrages critiques. Nous revenons avec un cadrage actionnable et un prochain pas clair.",
           promiseTitle: "Ce que vous recevez",
           promiseItems: [
-            "Reponse qualifiee sous 48h ouvrees.",
-            "Orientation claire: pilote Signature ou mode forecasting-only.",
-            "Plan de demarrage adapte a vos contraintes terrain.",
+            "Réponse qualifiée sous 48h ouvrées.",
+            "Orientation claire : pilote Signature ou mode forecasting-only.",
+            "Plan de démarrage adapté à vos contraintes terrain.",
           ],
-          pilotHint: "Vous etes deja pret pour un pilote structure ?",
+          pilotHint: "Déjà prêt pour un pilote structuré ?",
           pilotCta: "Demander un pilote Workforce & ProofOps",
-          pilotMeta: "Demarrage en lecture seule via exports/API.",
+          pilotMeta: "Démarrage en lecture seule via exports/API.",
           formTitle: "Envoyer une demande",
           formSubtitle:
-            "Tous les champs marques d'un asterisque sont requis pour qualifier votre demande.",
+            "Champs requis : entreprise, email, message. Le reste est optionnel.",
           requestType: "Type de demande",
           company: "Entreprise",
           role: "Fonction",
-          firstName: "Prenom",
+          firstName: "Prénom",
           lastName: "Nom",
           email: "Email",
-          phone: "Telephone",
+          phone: "Téléphone",
           subject: "Objet",
           message: "Message",
-          messageHint: "Minimum 30 caracteres",
-          antiSpam: "Anti-spam",
+          messageHint: `Minimum ${MIN_MESSAGE_LENGTH} caractères`,
+          messagePlaceholder:
+            "Ex : nombre de sites, contraintes, outil WFM/ERP, horizon, arbitrages (coût/service/pénalités).",
+          optionalDetails: "Ajouter des détails (optionnel)",
+          antiSpam: "Vérification",
           consentPrefix: "J'accepte les ",
           termsLabel: "CGU",
           consentJoin: " et la ",
-          privacyLabel: "politique de confidentialite",
+          privacyLabel: "politique de confidentialité",
           send: "Envoyer",
-          sending: "Envoi en cours...",
-          successTitle: "Message envoye",
-          successBody: "Nous revenons vers vous sous 48h ouvrees.",
+          sending: "Envoi en cours…",
+          fixErrors: "Vérifiez les champs en erreur, puis réessayez.",
+          successTitle: "Message envoyé",
+          successBody: "Nous revenons vers vous sous 48h ouvrées.",
           successCta: "Retour au site",
           unknownError: "Erreur inconnue.",
-          networkError: "Erreur reseau. Veuillez reessayer.",
-          challengeLoading: "Chargement de la verification anti-spam...",
+          networkError: "Erreur réseau. Veuillez réessayer.",
+          challengeLoading: "Chargement de la vérification anti-spam…",
           challengeUnavailable:
-            "Verification anti-spam indisponible. Veuillez recharger le challenge.",
-          challengeRetry: "Recharger l'anti-spam",
+            "Vérification anti-spam indisponible. Veuillez recharger le challenge.",
+          challengeRetry: "Recharger la vérification",
+          requiredCompany: "Entreprise requise.",
+          requiredEmail: "Email requis.",
+          invalidEmail: "Adresse email invalide.",
+          requiredMessage: `Message requis (min ${MIN_MESSAGE_LENGTH} caractères).`,
+          requiredConsent: "Vous devez accepter les conditions.",
+          requiredCaptcha: "Veuillez répondre à la vérification.",
         }
       : {
           kicker: "Contact",
           heading: "Let us review your operational context.",
           intro:
-            "Share your critical trade-offs. We answer with an actionable framing and a concrete next step.",
+            "Share your critical trade-offs. We reply with an actionable framing and a clear next step.",
           promiseTitle: "What you get",
           promiseItems: [
             "Qualified response within 48 business hours.",
@@ -142,10 +174,10 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
           ],
           pilotHint: "Already ready for a structured pilot?",
           pilotCta: "Request a Workforce & ProofOps pilot",
-          pilotMeta: "Read-only kickoff via exports/API.",
+          pilotMeta: "Read-only kickoff via exports/APIs.",
           formTitle: "Send a request",
           formSubtitle:
-            "All fields marked with an asterisk are required to qualify your request.",
+            "Required fields: company, email, message. Everything else is optional.",
           requestType: "Request type",
           company: "Company",
           role: "Role",
@@ -155,24 +187,65 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
           phone: "Phone",
           subject: "Subject",
           message: "Message",
-          messageHint: "Minimum 30 characters",
-          antiSpam: "Anti-spam",
+          messageHint: `Minimum ${MIN_MESSAGE_LENGTH} characters`,
+          messagePlaceholder:
+            "Example: site count, constraints, WFM/ERP stack, horizon, trade-offs (cost/service/penalties).",
+          optionalDetails: "Add details (optional)",
+          antiSpam: "Verification",
           consentPrefix: "I accept the ",
           termsLabel: "Terms",
           consentJoin: " and the ",
           privacyLabel: "privacy policy",
           send: "Send",
-          sending: "Sending...",
+          sending: "Sending…",
+          fixErrors: "Please fix the highlighted fields and try again.",
           successTitle: "Message sent",
           successBody: "We will get back to you within 48 business hours.",
           successCta: "Back to site",
           unknownError: "Unknown error.",
           networkError: "Network error. Please try again.",
-          challengeLoading: "Loading anti-spam verification...",
+          challengeLoading: "Loading anti-spam verification…",
           challengeUnavailable:
             "Anti-spam verification is unavailable. Please reload the challenge.",
-          challengeRetry: "Reload anti-spam",
+          challengeRetry: "Reload verification",
+          requiredCompany: "Company is required.",
+          requiredEmail: "Email is required.",
+          invalidEmail: "Invalid email address.",
+          requiredMessage: `Message is required (min ${MIN_MESSAGE_LENGTH} characters).`,
+          requiredConsent: "You must accept the terms.",
+          requiredCaptcha: "Please answer the verification.",
         };
+
+    if (!isAuditIntent) return base;
+
+    return isFr
+      ? {
+          ...base,
+          kicker: "Audit historique",
+          heading: "Obtenir l’audit historique (gratuit).",
+          intro:
+            "Décrivez votre contexte. Nous revenons avec un audit historique (lecture seule) et un cadrage concret.",
+          promiseItems: [
+            "Audit historique (lecture seule) sur vos données.",
+            "Comparatif BAU vs recommandé (format proof pack).",
+            "Proposition de cadrage 30 min si pertinent.",
+          ],
+          formTitle: "Demander l’audit",
+        }
+      : {
+          ...base,
+          kicker: "Historical audit",
+          heading: "Get the free historical audit.",
+          intro:
+            "Share your context. We reply with a read-only historical audit and a concrete framing.",
+          promiseItems: [
+            "Read-only historical audit on your data.",
+            "BAU vs recommended comparison (proof pack format).",
+            "30-min framing proposal if relevant.",
+          ],
+          formTitle: "Request the audit",
+        };
+  }, [isAuditIntent, isFr]);
 
   const loadCaptchaChallenge = useCallback(async () => {
     setCaptchaLoading(true);
@@ -218,17 +291,84 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
     void loadCaptchaChallenge();
   }, [loadCaptchaChallenge]);
 
+  const validate = useCallback(
+    (next: ContactFormData): FieldErrors => {
+      const errors: FieldErrors = {};
+
+      if (!next.companyName.trim()) {
+        errors.companyName = copy.requiredCompany;
+      }
+
+      const email = next.email.trim();
+      if (!email) {
+        errors.email = copy.requiredEmail;
+      } else if (!EMAIL_REGEX.test(email)) {
+        errors.email = copy.invalidEmail;
+      }
+
+      if (next.message.trim().length < MIN_MESSAGE_LENGTH) {
+        errors.message = copy.requiredMessage;
+      }
+
+      if (!next.challengeToken || captchaLoading || !captcha) {
+        errors.captchaAnswer = copy.challengeUnavailable;
+      } else if (!next.captchaAnswer.trim()) {
+        errors.captchaAnswer = copy.requiredCaptcha;
+      }
+
+      if (!next.consent) {
+        errors.consent = copy.requiredConsent;
+      }
+
+      return errors;
+    },
+    [captcha, captchaLoading, copy],
+  );
+
+  const focusFirstError = useCallback((errors: FieldErrors) => {
+    const order: (keyof FieldErrors)[] = [
+      "companyName",
+      "email",
+      "message",
+      "captchaAnswer",
+      "consent",
+    ];
+
+    const idByKey: Record<string, string> = {
+      companyName: "contact-companyName",
+      email: "contact-email",
+      message: "contact-message",
+      captchaAnswer: "contact-captcha",
+      consent: "contact-consent",
+    };
+
+    for (const key of order) {
+      if (!errors[key]) continue;
+      const id = idByKey[key];
+      if (!id) return;
+      const node = document.getElementById(id);
+      if (node && "focus" in node) {
+        (node as HTMLElement).focus();
+      }
+      return;
+    }
+  }, []);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      setStatus("submitting");
-      setErrorMsg("");
 
-      if (!form.challengeToken) {
-        setErrorMsg(copy.challengeUnavailable);
+      const errors = validate(form);
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        setErrorMsg(copy.fixErrors);
         setStatus("error");
+        focusFirstError(errors);
         return;
       }
+
+      setStatus("submitting");
+      setErrorMsg("");
 
       try {
         const res = await fetch("/api/contact", {
@@ -258,11 +398,14 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
       }
     },
     [
+      copy.fixErrors,
       copy.challengeUnavailable,
       copy.networkError,
       copy.unknownError,
+      focusFirstError,
       form,
       loadCaptchaChallenge,
+      validate,
     ],
   );
 
@@ -271,28 +414,57 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
   const termsHref = getLocalizedPath(locale, "terms");
   const rootHref = `/${locale}`;
 
-  const fieldClass =
-    "w-full rounded-xl border border-neutral-300/90 bg-white/95 px-3 py-2.5 text-sm text-ink outline-none transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] placeholder:text-neutral-400 focus:border-brass focus:ring-1 focus:ring-brass";
+  const fieldBaseClass =
+    "w-full rounded-xl border bg-white/95 px-3 py-2.5 text-sm text-ink transition-all duration-200 [transition-timing-function:var(--ease-snappy)] placeholder:text-neutral-400 focus:border-brass focus:ring-1 focus:ring-brass";
+  const fieldClass = (hasError?: boolean) =>
+    `${fieldBaseClass} ${
+      hasError
+        ? "border-red-300 focus:border-red-400 focus:ring-red-200"
+        : "border-neutral-300/90"
+    }`;
   const labelClass = "mb-1.5 block text-sm font-medium text-ink";
+  const errorClass = "mt-1 text-xs text-red-700";
+  const isSubmitDisabled =
+    status === "submitting" ||
+    captchaLoading ||
+    !captcha ||
+    !form.challengeToken ||
+    !form.companyName.trim() ||
+    !form.email.trim() ||
+    form.message.trim().length < MIN_MESSAGE_LENGTH ||
+    !form.consent ||
+    !form.captchaAnswer.trim();
 
   if (status === "success") {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 md:py-24">
-        <div className="rounded-[2rem] border border-brass-200/80 bg-[linear-gradient(165deg,rgba(244,231,198,0.62)_0%,rgba(252,248,238,0.9)_72%,rgba(255,255,255,0.95)_100%)] p-8 text-center shadow-[0_22px_46px_-38px_rgba(32,24,4,0.45),inset_0_1px_0_rgba(255,255,255,0.82)]">
-          <CheckCircle size={54} weight="fill" className="mx-auto text-brass-700" />
-          <h1 className="mt-5 text-3xl font-bold tracking-tight text-ink md:text-4xl">
-            {copy.successTitle}
-          </h1>
-          <p className="mx-auto mt-3 max-w-[46ch] text-base leading-relaxed text-neutral-700">
-            {copy.successBody}
-          </p>
-          <Link
-            href={rootHref}
-            className="mt-7 inline-flex items-center gap-2 rounded-xl border border-brass-300 bg-white/80 px-4 py-2.5 text-sm font-semibold text-brass-800 no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-brass-400 hover:bg-white active:-translate-y-[1px] active:scale-[0.99]"
-          >
-            <ArrowLeft size={16} />
-            {copy.successCta}
-          </Link>
+        <div className="space-y-6">
+          <div className="rounded-[2rem] border border-amber-200/80 bg-[linear-gradient(165deg,rgba(244,231,198,0.62)_0%,rgba(252,248,238,0.9)_72%,rgba(255,255,255,0.95)_100%)] p-8 text-center shadow-[0_22px_46px_-38px_rgba(32,24,4,0.45),inset_0_1px_0_rgba(255,255,255,0.82)]">
+            <CheckCircle size={54} weight="fill" className="mx-auto text-amber-700" />
+            <h1 className="mt-5 text-3xl font-bold tracking-tight text-ink md:text-4xl">
+              {copy.successTitle}
+            </h1>
+            <p className="mx-auto mt-3 max-w-[54ch] text-base leading-relaxed text-neutral-700">
+              {copy.successBody}
+            </p>
+          </div>
+
+          <ScopingCallRequestPanel
+            locale={locale}
+            defaultCompanyName={form.companyName}
+            defaultEmail={form.email}
+            source="contact_success"
+          />
+
+          <div className="text-center">
+            <Link
+              href={rootHref}
+              className="inline-flex items-center gap-2 rounded-xl border border-brass-300 bg-white/80 px-4 py-2.5 text-sm font-semibold text-brass-800 no-underline transition-all duration-200 [transition-timing-function:var(--ease-snappy)] hover:border-brass-400 hover:bg-white active:-translate-y-[1px] active:scale-[0.99]"
+            >
+              <ArrowLeft size={16} />
+              {copy.successCta}
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -315,8 +487,8 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
             </p>
           </div>
 
-          <section className="rounded-[1.7rem] border border-brass-200/80 bg-brass-50/75 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-brass-800">
+          <section className="rounded-[1.7rem] border border-amber-200/80 bg-amber-50/75 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-amber-800">
               {copy.promiseTitle}
             </h2>
             <ul className="mt-4 list-none space-y-2.5 p-0">
@@ -325,7 +497,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                   <CheckCircle
                     size={16}
                     weight="fill"
-                    className="mt-0.5 shrink-0 text-brass-600"
+                    className="mt-0.5 shrink-0 text-amber-600"
                   />
                   {item}
                 </li>
@@ -369,82 +541,28 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
             />
 
             <div>
-              <label htmlFor="contact-requestType" className={labelClass}>
-                {copy.requestType}
+              <label htmlFor="contact-companyName" className={labelClass}>
+                {copy.company} *
               </label>
-              <select
-                id="contact-requestType"
-                value={form.requestType}
-                onChange={(e) => update("requestType", e.target.value)}
-                className={fieldClass}
-              >
-                {REQUEST_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {isFr ? t.fr : t.en}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="contact-companyName" className={labelClass}>
-                  {copy.company} *
-                </label>
-                <input
-                  id="contact-companyName"
-                  type="text"
-                  required
-                  maxLength={100}
-                  value={form.companyName}
-                  onChange={(e) => update("companyName", e.target.value)}
-                  className={fieldClass}
-                />
-              </div>
-              <div>
-                <label htmlFor="contact-role" className={labelClass}>
-                  {copy.role}
-                </label>
-                <input
-                  id="contact-role"
-                  type="text"
-                  maxLength={80}
-                  value={form.role}
-                  onChange={(e) => update("role", e.target.value)}
-                  className={fieldClass}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="contact-firstName" className={labelClass}>
-                  {copy.firstName} *
-                </label>
-                <input
-                  id="contact-firstName"
-                  type="text"
-                  required
-                  maxLength={80}
-                  value={form.firstName}
-                  onChange={(e) => update("firstName", e.target.value)}
-                  className={fieldClass}
-                />
-              </div>
-              <div>
-                <label htmlFor="contact-lastName" className={labelClass}>
-                  {copy.lastName} *
-                </label>
-                <input
-                  id="contact-lastName"
-                  type="text"
-                  required
-                  maxLength={80}
-                  value={form.lastName}
-                  onChange={(e) => update("lastName", e.target.value)}
-                  className={fieldClass}
-                />
-              </div>
+              <input
+                id="contact-companyName"
+                type="text"
+                required
+                maxLength={100}
+                value={form.companyName}
+                onChange={(e) => update("companyName", e.target.value)}
+                className={fieldClass(!!fieldErrors.companyName)}
+                autoComplete="organization"
+                aria-invalid={fieldErrors.companyName ? "true" : "false"}
+                aria-describedby={
+                  fieldErrors.companyName ? "contact-companyName-error" : undefined
+                }
+              />
+              {fieldErrors.companyName ? (
+                <p id="contact-companyName-error" className={errorClass}>
+                  {fieldErrors.companyName}
+                </p>
+              ) : null}
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -460,8 +578,16 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                   value={form.email}
                   onChange={(e) => update("email", e.target.value)}
                   placeholder={isFr ? "vous@entreprise.com" : "you@company.com"}
-                  className={fieldClass}
+                  className={fieldClass(!!fieldErrors.email)}
+                  autoComplete="email"
+                  aria-invalid={fieldErrors.email ? "true" : "false"}
+                  aria-describedby={fieldErrors.email ? "contact-email-error" : undefined}
                 />
+                {fieldErrors.email ? (
+                  <p id="contact-email-error" className={errorClass}>
+                    {fieldErrors.email}
+                  </p>
+                ) : null}
               </div>
               <div>
                 <label htmlFor="contact-phone" className={labelClass}>
@@ -473,29 +599,15 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                   maxLength={30}
                   value={form.phone}
                   onChange={(e) => update("phone", e.target.value)}
-                  className={fieldClass}
+                  className={fieldClass(false)}
+                  autoComplete="tel"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="contact-subject" className={labelClass}>
-                {copy.subject} *
-              </label>
-              <input
-                id="contact-subject"
-                type="text"
-                required
-                maxLength={120}
-                value={form.subject}
-                onChange={(e) => update("subject", e.target.value)}
-                className={fieldClass}
-              />
-            </div>
-
-            <div>
               <label htmlFor="contact-message" className={labelClass}>
-                {copy.message} {"*"}{" "}
+                {copy.message} *{" "}
                 <span className="font-normal text-neutral-500">({copy.messageHint})</span>
               </label>
               <textarea
@@ -505,9 +617,106 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                 maxLength={800}
                 value={form.message}
                 onChange={(e) => update("message", e.target.value)}
-                className={`${fieldClass} resize-y`}
+                placeholder={copy.messagePlaceholder}
+                className={`${fieldClass(!!fieldErrors.message)} resize-y`}
+                aria-invalid={fieldErrors.message ? "true" : "false"}
+                aria-describedby={
+                  fieldErrors.message ? "contact-message-error" : undefined
+                }
               />
+              {fieldErrors.message ? (
+                <p id="contact-message-error" className={errorClass}>
+                  {fieldErrors.message}
+                </p>
+              ) : null}
             </div>
+
+            <details className="rounded-2xl border border-neutral-200/80 bg-white/80 p-4">
+              <summary className="cursor-pointer select-none text-sm font-semibold text-ink">
+                {copy.optionalDetails}
+              </summary>
+
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label htmlFor="contact-requestType" className={labelClass}>
+                    {copy.requestType}
+                  </label>
+                  <select
+                    id="contact-requestType"
+                    value={form.requestType}
+                    onChange={(e) => update("requestType", e.target.value)}
+                    className={fieldClass(false)}
+                  >
+                    {REQUEST_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {isFr ? t.fr : t.en}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="contact-firstName" className={labelClass}>
+                      {copy.firstName}
+                    </label>
+                    <input
+                      id="contact-firstName"
+                      type="text"
+                      maxLength={80}
+                      value={form.firstName}
+                      onChange={(e) => update("firstName", e.target.value)}
+                      className={fieldClass(false)}
+                      autoComplete="given-name"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="contact-lastName" className={labelClass}>
+                      {copy.lastName}
+                    </label>
+                    <input
+                      id="contact-lastName"
+                      type="text"
+                      maxLength={80}
+                      value={form.lastName}
+                      onChange={(e) => update("lastName", e.target.value)}
+                      className={fieldClass(false)}
+                      autoComplete="family-name"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="contact-role" className={labelClass}>
+                      {copy.role}
+                    </label>
+                    <input
+                      id="contact-role"
+                      type="text"
+                      maxLength={80}
+                      value={form.role}
+                      onChange={(e) => update("role", e.target.value)}
+                      className={fieldClass(false)}
+                      autoComplete="organization-title"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="contact-subject" className={labelClass}>
+                      {copy.subject}
+                    </label>
+                    <input
+                      id="contact-subject"
+                      type="text"
+                      maxLength={120}
+                      value={form.subject}
+                      onChange={(e) => update("subject", e.target.value)}
+                      className={fieldClass(false)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </details>
 
             <div>
               <label htmlFor="contact-captcha" className={labelClass}>
@@ -523,7 +732,11 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                   required
                   value={form.captchaAnswer}
                   onChange={(e) => update("captchaAnswer", e.target.value)}
-                  className={`${fieldClass} w-28`}
+                  className={`${fieldClass(!!fieldErrors.captchaAnswer)} w-28`}
+                  aria-invalid={fieldErrors.captchaAnswer ? "true" : "false"}
+                  aria-describedby={
+                    fieldErrors.captchaAnswer ? "contact-captcha-error" : undefined
+                  }
                 />
               ) : (
                 <div className="flex flex-wrap items-center gap-3">
@@ -537,6 +750,11 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                   </button>
                 </div>
               )}
+              {fieldErrors.captchaAnswer ? (
+                <p id="contact-captcha-error" className={errorClass}>
+                  {fieldErrors.captchaAnswer}
+                </p>
+              ) : null}
             </div>
 
             <div className="flex items-start gap-2.5">
@@ -546,6 +764,8 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                 checked={form.consent}
                 onChange={(e) => update("consent", e.target.checked)}
                 className="mt-1 h-4 w-4 rounded border-neutral-300 text-brass accent-brass"
+                aria-invalid={fieldErrors.consent ? "true" : "false"}
+                aria-describedby={fieldErrors.consent ? "contact-consent-error" : undefined}
               />
               <label
                 htmlFor="contact-consent"
@@ -568,6 +788,11 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
                 .
               </label>
             </div>
+            {fieldErrors.consent ? (
+              <p id="contact-consent-error" className={errorClass}>
+                {fieldErrors.consent}
+              </p>
+            ) : null}
 
             {status === "error" && errorMsg ? (
               <div
@@ -581,9 +806,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
 
             <button
               type="submit"
-              disabled={
-                status === "submitting" || captchaLoading || !form.challengeToken
-              }
+              disabled={isSubmitDisabled}
               className="btn-primary-gradient inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] active:-translate-y-[1px] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {status === "submitting" ? (

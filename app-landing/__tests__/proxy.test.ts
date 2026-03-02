@@ -28,7 +28,7 @@ vi.mock("../lib/security/csp", () => ({
     `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
 }));
 
-import { proxy, config } from "../middleware";
+import { proxy, config } from "../proxy";
 import type { NextRequest } from "next/server";
 
 function makeRequest(

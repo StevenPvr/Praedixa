@@ -1,5 +1,11 @@
 import type { Variants } from "framer-motion";
 
+/** Shared spring config — use everywhere instead of inline object */
+export const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
+
+/** Standard viewport trigger — once, 60px before entering */
+export const VP = { once: true, margin: "-60px" as const };
+
 /** Smooth reveal with slight upward drift — the signature Praedixa entrance */
 export const sectionReveal: Variants = {
   hidden: { opacity: 0, y: 20 },

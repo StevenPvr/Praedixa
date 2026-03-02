@@ -79,7 +79,7 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-brass-200/80 bg-brass-50/65 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+          <div className="rounded-2xl border border-amber-200/80 bg-amber-50/65 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
             <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.11em] text-brass-700">
               <Sparkle size={14} weight="fill" />
               {localeCopy.serviceKicker}
@@ -91,7 +91,7 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
         </header>
 
         <section className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-[1.38fr_0.62fr]">
-          <section className="rounded-[2rem] border border-brass-200/80 bg-[linear-gradient(165deg,rgba(244,231,198,0.62)_0%,rgba(252,248,238,0.9)_68%,rgba(255,255,255,0.95)_100%)] p-7 shadow-[0_22px_45px_-40px_rgba(32,24,4,0.45),inset_0_1px_0_rgba(255,255,255,0.8)] md:p-10">
+          <section className="rounded-[2rem] border border-amber-200/80 bg-[linear-gradient(165deg,rgba(244,231,198,0.62)_0%,rgba(252,248,238,0.9)_68%,rgba(255,255,255,0.95)_100%)] p-7 shadow-[0_22px_45px_-40px_rgba(32,24,4,0.45),inset_0_1px_0_rgba(255,255,255,0.8)] md:p-10">
             <p className="text-[11px] font-semibold uppercase tracking-[0.11em] text-brass-700">
               {copy.fullPackage.badge}
             </p>
@@ -102,7 +102,7 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
               {copy.fullPackage.summary}
             </p>
 
-            <div className="mt-7 border-t border-brass-200/80 pt-6">
+            <div className="mt-7 border-t border-amber-200/80 pt-6">
               <h3 className="text-sm font-semibold text-ink">
                 {copy.fullPackage.includesTitle}
               </h3>
@@ -113,7 +113,7 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
                       <CheckCircle
                         size={18}
                         weight="fill"
-                        className="mt-0.5 shrink-0 text-brass-600"
+                        className="mt-0.5 shrink-0 text-amber-600"
                       />
                       {item}
                     </li>
@@ -211,7 +211,7 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
                 {decisionItems.length > 0 ? (
                   decisionItems.map((item, index) => (
                     <li key={item} className="m-0 flex items-start gap-2.5 text-sm text-neutral-700">
-                      <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-brass-300 bg-brass-100 text-[11px] font-semibold text-brass-700">
+                      <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-amber-300 bg-amber-100 text-[11px] font-semibold text-amber-700">
                         {index + 1}
                       </span>
                       {item}
@@ -260,7 +260,7 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
                     <p
                       className={`m-0 inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
                         isPositiveComparisonValue(row.fullPackage)
-                          ? "border border-brass-300 bg-brass-50 text-brass-700"
+                          ? "border border-amber-300 bg-amber-50 text-amber-700"
                           : "border border-neutral-300 bg-neutral-100 text-neutral-600"
                       }`}
                     >
@@ -269,7 +269,7 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
                     <p
                       className={`m-0 inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
                         isPositiveComparisonValue(row.forecastsOnly)
-                          ? "border border-brass-300 bg-brass-50 text-brass-700"
+                          ? "border border-amber-300 bg-amber-50 text-amber-700"
                           : "border border-neutral-300 bg-neutral-100 text-neutral-600"
                       }`}
                     >

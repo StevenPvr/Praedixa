@@ -17,6 +17,7 @@ import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
 import { PulseDot } from "../shared/motion/PulseDot";
 import { ShimmerTrack } from "../shared/motion/ShimmerTrack";
+import { ScopingCallRequestPanel } from "../shared/ScopingCallRequestPanel";
 
 interface PilotFormData {
   companyName: string;
@@ -85,12 +86,12 @@ export function PilotApplicationPageClient({
           optionFallback: "Option indisponible",
           missingTitle: "Configuration de formulaire indisponible",
           missingBody:
-            "Certaines options necessaires au formulaire sont manquantes. Reessayez dans quelques minutes.",
+            "Certaines options nécessaires au formulaire sont manquantes. Réessayez dans quelques minutes.",
           requiredHint: "Les champs marques d'un asterisque sont requis.",
           legalJoinA: "J'accepte les ",
           legalJoinB: " et la ",
           unknownError: "Erreur inconnue.",
-          networkError: "Erreur reseau. Veuillez reessayer.",
+          networkError: "Erreur réseau. Veuillez réessayer.",
         }
       : {
           backToSite: "Back to site",
@@ -186,25 +187,35 @@ export function PilotApplicationPageClient({
   if (status === "success") {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 md:py-24">
-        <div className="rounded-[2rem] border border-brass-200/80 bg-[linear-gradient(165deg,rgba(244,231,198,0.62)_0%,rgba(252,248,238,0.9)_72%,rgba(255,255,255,0.96)_100%)] p-8 text-center shadow-[0_22px_46px_-38px_rgba(32,24,4,0.45),inset_0_1px_0_rgba(255,255,255,0.82)] md:p-10">
-          <CheckCircle size={56} weight="fill" className="mx-auto text-brass-700" />
-          <h1 className="mt-5 text-3xl font-semibold tracking-tight text-ink md:text-4xl">
-            {f.success.title}
-          </h1>
-          <p className="mx-auto mt-3 max-w-[54ch] text-base leading-relaxed text-neutral-700">
-            {f.success.description}
-          </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+        <div className="space-y-6">
+          <div className="rounded-[2rem] border border-amber-200/80 bg-[linear-gradient(165deg,rgba(244,231,198,0.62)_0%,rgba(252,248,238,0.9)_72%,rgba(255,255,255,0.96)_100%)] p-8 text-center shadow-[0_22px_46px_-38px_rgba(32,24,4,0.45),inset_0_1px_0_rgba(255,255,255,0.82)] md:p-10">
+            <CheckCircle size={56} weight="fill" className="mx-auto text-amber-700" />
+            <h1 className="mt-5 text-3xl font-semibold tracking-tight text-ink md:text-4xl">
+              {f.success.title}
+            </h1>
+            <p className="mx-auto mt-3 max-w-[58ch] text-base leading-relaxed text-neutral-700">
+              {f.success.description}
+            </p>
+          </div>
+
+          <ScopingCallRequestPanel
+            locale={locale}
+            defaultCompanyName={form.companyName}
+            defaultEmail={form.email}
+            source="pilot_success"
+          />
+
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
               href={homeHref}
-              className="inline-flex items-center gap-2 rounded-xl border border-brass-300 bg-white/80 px-4 py-2.5 text-sm font-semibold text-brass-800 no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-brass-400 hover:bg-white active:-translate-y-[1px] active:scale-[0.99]"
+              className="inline-flex items-center gap-2 rounded-xl border border-brass-300 bg-white/80 px-4 py-2.5 text-sm font-semibold text-brass-800 no-underline transition-all duration-200 [transition-timing-function:var(--ease-snappy)] hover:border-brass-400 hover:bg-white active:-translate-y-[1px] active:scale-[0.99]"
             >
               <ArrowLeft size={16} />
               {f.success.backToSite}
             </Link>
             <Link
               href={protocolHref}
-              className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-neutral-400 hover:bg-neutral-50 active:-translate-y-[1px] active:scale-[0.99]"
+              className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-all duration-200 [transition-timing-function:var(--ease-snappy)] hover:border-neutral-400 hover:bg-neutral-50 active:-translate-y-[1px] active:scale-[0.99]"
             >
               {f.success.checkEmail}
               <ArrowRight size={14} />
@@ -239,8 +250,8 @@ export function PilotApplicationPageClient({
             </Link>
           </div>
 
-          <section className="rounded-[1.75rem] border border-brass-200/80 bg-brass-50/75 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] md:p-6">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.11em] text-brass-800">
+          <section className="rounded-[1.75rem] border border-amber-200/80 bg-amber-50/75 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] md:p-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.11em] text-amber-800">
               {f.pill}
             </p>
             <ul className="mt-4 list-none space-y-2.5 p-0">
@@ -249,19 +260,19 @@ export function PilotApplicationPageClient({
                   <CheckCircle
                     size={16}
                     weight="fill"
-                    className="mt-0.5 shrink-0 text-brass-600"
+                    className="mt-0.5 shrink-0 text-amber-600"
                   />
                   {point}
                 </li>
               ))}
             </ul>
             <div className="mt-5 flex items-center gap-2 text-xs text-neutral-600">
-              <Clock size={14} className="text-brass-700" />
+              <Clock size={14} className="text-amber-700" />
               <span>
                 {f.estimatedTime}: {f.estimatedTimeValue}
               </span>
             </div>
-            <ShimmerTrack className="mt-4 bg-brass-100/80" indicatorClassName="via-brass-500/60" />
+            <ShimmerTrack className="mt-4 bg-amber-100/80" indicatorClassName="via-amber-500/60" />
           </section>
 
           <section className="rounded-[1.75rem] border border-neutral-200/80 bg-white/95 p-5 md:p-6">
@@ -283,7 +294,7 @@ export function PilotApplicationPageClient({
         <section className="rounded-[2rem] border border-neutral-200/80 bg-white/95 p-6 shadow-[0_22px_46px_-40px_rgba(15,23,42,0.28),inset_0_1px_0_rgba(255,255,255,0.85)] md:p-8">
           <header className="border-b border-neutral-200/80 pb-5">
             <div className="flex flex-wrap items-center gap-2">
-              <PulseDot className="h-2 w-2 bg-brass-500" />
+              <PulseDot className="h-2 w-2 bg-amber-500" />
               <p className="text-xs font-semibold uppercase tracking-[0.1em] text-neutral-500">
                 {f.pageTitle}
               </p>

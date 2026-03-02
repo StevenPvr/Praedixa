@@ -95,11 +95,12 @@ export default {
       },
 
       boxShadow: {
-        xs: "0 1px 2px oklch(0.24 0.03 248 / 0.06)",
-        sm: "0 1px 3px oklch(0.24 0.03 248 / 0.08), 0 4px 8px -2px oklch(0.24 0.03 248 / 0.04)",
-        md: "0 2px 6px oklch(0.24 0.03 248 / 0.06), 0 8px 24px -4px oklch(0.24 0.03 248 / 0.08)",
-        lg: "0 4px 12px oklch(0.24 0.03 248 / 0.05), 0 16px 40px -8px oklch(0.24 0.03 248 / 0.1)",
-        "brass-glow": "var(--shadow-brass-glow)",
+        xs: "var(--shadow-warm-xs)",
+        sm: "var(--shadow-warm-sm)",
+        md: "var(--shadow-warm-md)",
+        lg: "var(--shadow-warm-lg)",
+        "navy-glow": "var(--shadow-navy-glow)",
+        "amber-glow": "var(--shadow-amber-glow)",
       },
 
       transitionTimingFunction: {

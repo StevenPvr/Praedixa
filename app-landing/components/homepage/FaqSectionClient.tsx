@@ -11,6 +11,7 @@ import {
 } from "framer-motion";
 import { ArrowClockwise, CaretDown } from "@phosphor-icons/react";
 import type { Dictionary } from "../../lib/i18n/types";
+import { SPRING } from "../../lib/animations/variants";
 
 interface FaqSectionClientProps {
   dict: Dictionary;
@@ -34,8 +35,6 @@ interface ErrorStateProps {
   retryLabel: string;
   onRetry: () => void;
 }
-
-const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
 const MAGNETIC_SPRING = { stiffness: 260, damping: 22, mass: 0.24 };
 
 const LIST_VARIANTS = {
@@ -60,12 +59,12 @@ const ITEM_VARIANTS = {
 
 const Beacon = memo(function Beacon({ reduced }: { reduced: boolean }) {
   if (reduced) {
-    return <span className="h-2.5 w-2.5 rounded-full bg-brass-600" />;
+    return <span className="h-2.5 w-2.5 rounded-full bg-amber-600" />;
   }
 
   return (
     <motion.span
-      className="h-2.5 w-2.5 rounded-full bg-brass-600"
+      className="h-2.5 w-2.5 rounded-full bg-amber-600"
       animate={{ opacity: [0.45, 1, 0.45], scale: [0.9, 1.08, 0.9] }}
       transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
     />
@@ -114,14 +113,14 @@ const MagneticCategoryPill = memo(function MagneticCategoryPill({
       transition={SPRING}
       className={`relative overflow-hidden rounded-2xl border px-4 py-3 text-left text-sm font-medium tracking-tight transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] active:-translate-y-[1px] active:scale-[0.98] ${
         active
-          ? "border-brass-300 text-brass-800"
+          ? "border-amber-300 text-amber-800"
           : "border-border-subtle bg-white/80 text-neutral-600 hover:border-border-hover hover:bg-white hover:text-ink"
       }`}
     >
       {active ? (
         <motion.span
           layoutId="faq-active-category-pill"
-          className="absolute inset-0 rounded-2xl border border-white/10 bg-brass-50/85 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]"
+          className="absolute inset-0 rounded-2xl border border-white/10 bg-amber-50/85 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]"
           transition={SPRING}
         />
       ) : null}
@@ -299,8 +298,10 @@ export function FaqSectionClient({ dict }: FaqSectionClientProps) {
             animate="show"
             className="divide-y divide-border-subtle"
           >
-            {filteredItems.map((item) => {
+            {filteredItems.map((item, idx) => {
               const isOpen = openQuestion === item.question;
+              const buttonId = `faq-btn-${idx}`;
+              const panelId = `faq-panel-${idx}`;
 
               return (
                 <motion.li
@@ -311,11 +312,13 @@ export function FaqSectionClient({ dict }: FaqSectionClientProps) {
                 >
                   <motion.button
                     layout
+                    id={buttonId}
                     type="button"
                     onClick={() =>
                       setOpenQuestion(isOpen ? null : item.question)
                     }
                     aria-expanded={isOpen}
+                    aria-controls={panelId}
                     className="group flex w-full items-start justify-between gap-4 rounded-2xl bg-transparent px-2 py-5 text-left transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50/70 hover:pl-3 active:-translate-y-[1px] active:scale-[0.99]"
                   >
                     <span className="max-w-[58ch] text-sm font-semibold leading-relaxed tracking-tight text-ink md:text-base">
@@ -325,6 +328,7 @@ export function FaqSectionClient({ dict }: FaqSectionClientProps) {
                       animate={{ rotate: isOpen ? 180 : 0, y: isOpen ? 1 : 0 }}
                       transition={SPRING}
                       className="mt-0.5 shrink-0 rounded-full border border-border-subtle bg-white p-1.5 text-neutral-500 transition-colors duration-300 group-hover:text-brass-700"
+                      aria-hidden="true"
                     >
                       <CaretDown size={16} weight="regular" />
                     </motion.span>
@@ -334,6 +338,9 @@ export function FaqSectionClient({ dict }: FaqSectionClientProps) {
                     {isOpen ? (
                       <motion.div
                         layout
+                        id={panelId}
+                        role="region"
+                        aria-labelledby={buttonId}
                         key={`answer-${item.question}`}
                         initial={{ opacity: 0, y: -6, scale: 0.985 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}

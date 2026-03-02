@@ -113,8 +113,8 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
           {entry.openingSnippet}
         </p>
 
-        <div className="mt-8 rounded-xl border border-brass-200 bg-brass-50/50 p-5">
-          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-brass-600">
+        <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50/50 p-5">
+          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-amber-600">
             {entry.asset.type}
           </span>
           <h2 className="mt-1 text-sm font-semibold text-ink">
@@ -152,7 +152,7 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
                       key={bullet}
                       className="m-0 flex items-start gap-2 text-sm text-neutral-600"
                     >
-                      <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-brass-300" />
+                      <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300" />
                       {bullet}
                     </li>
                   ))}
