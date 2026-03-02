@@ -59,7 +59,20 @@ Bonnes pratiques:
 - [ ] Tags pertinents et coherents
 - [ ] Pas de `draft: true` en production
 
-## 6) Vérifications locales
+## 6) Checklist GEO / AEO (moteurs de reponse IA)
+
+Objectif: etre **cite** (pas seulement "ranker").
+
+- [ ] Answer First: reponse complete des la 1ere phrase
+- [ ] Titres en questions (conversationnelles) + reponse immediate sous le H2/H3
+- [ ] FAQ en bas de page (Q/R reelles, pas marketing)
+- [ ] Preuves: donnees originales / mini-etude / template / citations d'experts (sans chiffres inventes)
+- [ ] Schema: `Article` + (optionnel) `FAQPage` si FAQ presente
+- [ ] Lisibilite: contenu cle rendu en HTML (SSR/SSG), pas cache derriere JS lourd
+- [ ] Robots: verifier que GPTBot / OAI-SearchBot / ClaudeBot ne sont pas bloques si vous voulez etre discoverable
+- [ ] Mesure: suivre la "Part de Voix IA" (citations vs concurrents) sur un set de requetes
+
+## 7) Vérifications locales
 
 Depuis la racine du repo:
 
