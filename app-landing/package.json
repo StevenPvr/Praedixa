@@ -15,8 +15,8 @@
     "cf:build": "opennextjs-cloudflare build",
     "preview": "pnpm cf:build && opennextjs-cloudflare preview",
     "deploy": "pnpm resend:check && pnpm cf:build && opennextjs-cloudflare deploy",
-    "deploy:scw:staging": "../scripts/scw-deploy-landing.sh staging",
-    "deploy:scw:prod": "../scripts/scw-deploy-landing.sh prod",
+    "deploy:scw:prod": "cd .. && ./scripts/scw-deploy-landing.sh prod",
+    "deploy:scw:staging": "cd .. && ./scripts/scw-deploy-landing.sh staging",
     "dev:webpack": "next dev",
     "blog:audit-links": "node ./scripts/audit-blog-links.mjs"
   },
