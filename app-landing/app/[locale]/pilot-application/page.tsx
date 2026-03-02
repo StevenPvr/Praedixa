@@ -21,12 +21,12 @@ export async function generateMetadata({
     paths: localePathMap(FR_PATH, EN_PATH),
     title:
       locale === "fr"
-        ? "Praedixa | Demande de pilote Workforce & ProofOps"
-        : "Praedixa | Workforce & ProofOps pilot request",
+        ? "Praedixa | Candidature pilote (boucle fermée)"
+        : "Praedixa | Pilot application (closed loop)",
     description:
       locale === "fr"
-        ? "Cadrons un pilote Workforce & ProofOps (MVP restauration rapide) pour rendre vos décisions de couverture défendables et traçables."
-        : "Scope a QSR-first Workforce & ProofOps pilot to make coverage decisions defensible and traceable across multi-site operations.",
+        ? "Cadrons un pilote pour fermer la boucle : prévision J+3/J+7/J+14, décision optimale chiffrée, 1re action assistée, Decision Log et preuve ROI mensuelle."
+        : "Scope a pilot to close the loop: short-horizon forecasting, quantified optimal decision, assisted first action, Decision Log, and monthly ROI proof.",
   });
 }
 

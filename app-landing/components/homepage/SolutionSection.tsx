@@ -22,7 +22,7 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
   const differentiators = Array.isArray(solution.differentiators.items)
     ? solution.differentiators.items
     : null;
-  const isFrench = solution.kicker.toLowerCase().includes("methode");
+  const isFrench = dict.nav.problem === "Problème";
 
   if (!principles || !differentiators) {
     return (
@@ -33,11 +33,11 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
         <div className="max-w-3xl">
           <Kicker>{solution.kicker}</Kicker>
           <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
-            {isFrench ? "Chargement de la methode" : "Loading method"}
+            {isFrench ? "Chargement de la méthode" : "Loading method"}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
             {isFrench
-              ? "Assemblage du cadre de decision en cours."
+              ? "Assemblage du cadre de décision en cours."
               : "Building the decision method framework."}
           </p>
           <div className="mt-8 space-y-4">
@@ -59,11 +59,11 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
         <div className="max-w-3xl">
           <Kicker>{solution.kicker}</Kicker>
           <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
-            {isFrench ? "Methode en preparation" : "Method in preparation"}
+            {isFrench ? "Méthode en préparation" : "Method in preparation"}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
             {isFrench
-              ? "Ajoutez des principes de decision pour afficher cette section."
+              ? "Ajoutez des principes de décision pour afficher cette section."
               : "Add decision principles to render this section."}
           </p>
         </div>
@@ -121,7 +121,7 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
           <div className="rounded-2xl border border-neutral-200/80 bg-white/85 p-6 shadow-[0_24px_40px_-30px_rgba(15,23,42,0.35),inset_0_1px_0_rgba(255,255,255,0.75)] md:p-7">
             <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-brass-700">
               <Sparkle size={14} weight="fill" />
-              {isFrench ? "Differenciation" : "Differentiation"}
+              {isFrench ? "Différenciation" : "Differentiation"}
             </span>
             <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
               {solution.differentiators.title}

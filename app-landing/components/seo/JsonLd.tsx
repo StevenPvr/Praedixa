@@ -44,17 +44,28 @@ function softwareApplicationSchema(locale: Locale, dict: Dictionary) {
   return {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: `${PRAEDIXA_BRAND_NAME} Workforce & ProofOps`,
+    name: PRAEDIXA_BRAND_NAME,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     inLanguage: locale,
     url: `${PRAEDIXA_BASE_URL}/${locale}`,
     description: dict.solution.subheading,
-    featureList: [
-      "Decision Ledger",
-      "Coverage risk anticipation",
-      "Ops/finance decision governance",
-    ],
+    featureList:
+      locale === "fr"
+        ? [
+            "Decision Log + preuve ROI mensuelle",
+            "Risque sous/sur-effectif à J+3/J+7/J+14",
+            "Arbitrages chiffrés : OT / intérim / réaffectation / ajustement service",
+            "1re action assistée (OT ou intérim), manager valide",
+            "Overlay en lecture seule (exports/API)",
+          ]
+        : [
+            "Decision Log + monthly ROI proof",
+            "Under/over-staffing risk at D+3/D+7/D+14",
+            "Quantified trade-offs: overtime / interim / reassignment / service adjustment",
+            "Assisted first action (overtime or interim), manager validates",
+            "Read-only overlay (exports/APIs)",
+          ],
   };
 }
 
@@ -65,11 +76,11 @@ function serviceSchema(locale: Locale) {
     "@type": "Service",
     name:
       locale === "fr"
-        ? "Pilote Praedixa Workforce & ProofOps (3 mois)"
-        : "Praedixa Workforce & ProofOps pilot (3 months)",
+        ? "Pilote Praedixa (boucle fermée) — 3 mois"
+        : "Praedixa pilot (closed loop) — 3 months",
     serviceType:
       locale === "fr"
-        ? "Pilote de gouvernance des decisions de couverture"
+        ? "Pilote de boucle fermée de la couverture"
         : "Coverage decision governance pilot",
     provider: {
       "@type": "Organization",

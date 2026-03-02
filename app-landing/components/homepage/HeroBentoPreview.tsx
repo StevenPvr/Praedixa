@@ -8,18 +8,18 @@ export function HeroBentoPreview({ locale = "fr" }: HeroBentoPreviewProps) {
     ? {
         kicker: "Extrait (format illustratif)",
         decisionLog: "Decision Log",
-        proofPack: "Proof pack ROI (mensuel)",
+        proofPack: "Dossier de preuve (mensuel)",
         constraints: "Contraintes",
-        rituals: "Rituels",
-        note: "Chiffres anonymisés — le livrable final est sur vos données.",
+        rituals: "Rituels de gouvernance",
+        note: "Format anonymisé — le livrable final est construit sur vos données.",
       }
     : {
         kicker: "Excerpt (illustrative format)",
-        decisionLog: "Decision Log",
-        proofPack: "Monthly ROI proof pack",
+        decisionLog: "Decision journal",
+        proofPack: "Monthly proof pack",
         constraints: "Constraints",
-        rituals: "Rituals",
-        note: "Anonymized format — final deliverable is built on your data.",
+        rituals: "Governance rituals",
+        note: "Anonymized format — final deliverables are built on your data.",
       };
 
   return (
@@ -36,10 +36,10 @@ export function HeroBentoPreview({ locale = "fr" }: HeroBentoPreviewProps) {
           <div className="mt-3 divide-y divide-neutral-200/70 text-[12px] text-neutral-600">
             <div className="flex items-start justify-between gap-3 py-2">
               <span className="font-medium text-neutral-700">
-                {isFr ? "Override" : "Override"}
+                {isFr ? "Décision" : "Decision"}
               </span>
               <span className="text-right">
-                {isFr ? "Renfort site B (S+1)" : "Reinforce site B (W+1)"}
+                {isFr ? "Renfort site B (J+7)" : "Reinforce site B (W+1)"}
               </span>
             </div>
             <div className="flex items-start justify-between gap-3 py-2">
@@ -52,10 +52,10 @@ export function HeroBentoPreview({ locale = "fr" }: HeroBentoPreviewProps) {
             </div>
             <div className="flex items-start justify-between gap-3 py-2">
               <span className="font-medium text-neutral-700">
-                {isFr ? "Trace" : "Trace"}
+                {isFr ? "Validation" : "Approval"}
               </span>
               <span className="text-right">
-                {isFr ? "COO/CFO validé" : "COO/CFO approved"}
+                {isFr ? "Manager validé" : "Manager approved"}
               </span>
             </div>
           </div>
@@ -72,7 +72,7 @@ export function HeroBentoPreview({ locale = "fr" }: HeroBentoPreviewProps) {
               <span className="text-right">{isFr ? "Service" : "Service"}</span>
             </div>
             {[
-              { label: "BAU", tone: "text-neutral-700" },
+              { label: isFr ? "Avant" : "Baseline", tone: "text-neutral-700" },
               { label: isFr ? "Recommandé" : "Recommended", tone: "text-brass-800" },
               { label: isFr ? "Réel" : "Actual", tone: "text-neutral-700" },
             ].map((row) => (
@@ -96,7 +96,7 @@ export function HeroBentoPreview({ locale = "fr" }: HeroBentoPreviewProps) {
             {[
               isFr ? "Lecture seule (exports/API)" : "Read-only (exports/APIs)",
               isFr ? "Multi-sites, contraintes terrain" : "Multi-site, field constraints",
-              isFr ? "Inputs WFM/ERP/CRM" : "WFM/ERP/CRM inputs",
+              isFr ? "Données WFM/ERP/CRM" : "WFM/ERP/CRM inputs",
             ].map((item) => (
               <li key={item} className="m-0 flex items-start gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
@@ -115,10 +115,10 @@ export function HeroBentoPreview({ locale = "fr" }: HeroBentoPreviewProps) {
               {isFr ? "Cadrage 30 min (J+2)" : "30-min framing (D+2)"}
             </div>
             <div className="rounded-xl border border-neutral-200/70 bg-white px-3 py-2">
-              {isFr ? "Comité mensuel COO/CFO" : "Monthly COO/CFO review"}
+              {isFr ? "Revue mensuelle Ops/Finance" : "Monthly Ops/Finance review"}
             </div>
             <div className="rounded-xl border border-neutral-200/70 bg-white px-3 py-2">
-              {isFr ? "Preuve ROI et arbitrages" : "ROI proof and trade-offs"}
+              {isFr ? "Preuve mensuelle & arbitrages" : "Monthly proof & trade-offs"}
             </div>
           </div>
         </div>

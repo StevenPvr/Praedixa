@@ -30,12 +30,12 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
         <div className="max-w-3xl">
           <Kicker className="text-neutral-100">{deliverables.kicker}</Kicker>
           <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl">
-            {isFrench ? "Chargement de la preuve ROI" : "Loading ROI proof"}
+            {isFrench ? "Chargement de la preuve" : "Loading proof"}
           </h2>
             <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
               {isFrench
-              ? "Préparation du cadre BAU/0% vs 100% vs réel."
-              : "Preparing BAU/0% vs 100% vs actual framework."}
+              ? "Préparation du comparatif (avant / recommandé / réel)."
+              : "Preparing the baseline / recommended / actual comparison."}
             </p>
           <div className="mt-8 space-y-4">
             <div className="h-16 animate-pulse rounded-2xl border border-white/10 bg-white/[0.06]" />
@@ -53,7 +53,7 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
         <div className="max-w-3xl">
           <Kicker className="text-neutral-100">{deliverables.kicker}</Kicker>
           <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl">
-            {isFrench ? "Aucun référentiel ROI" : "No ROI references yet"}
+            {isFrench ? "Aucun référentiel de preuve" : "No proof references yet"}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
             {isFrench
@@ -122,12 +122,12 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
         >
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm md:p-7">
             <h3 className="text-xl font-semibold tracking-tight text-white">
-              {isFrench ? "Checklist de preuve" : "Proof checklist"}
+              {isFrench ? "Checklist de preuve mensuelle" : "Monthly proof checklist"}
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-neutral-200">
               {isFrench
-                ? "Chaque point verrouille la defendabilite du ROI mensuel."
-                : "Each item locks monthly ROI defensibility."}
+                ? "Chaque point rend la preuve exploitable en comité."
+                : "Each item makes the proof usable in reviews."}
             </p>
             <MotionStagger className="mt-5 list-none space-y-3.5 p-0" staggerDelay={0.08}>
               {checklist.map((item) => (

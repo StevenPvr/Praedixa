@@ -47,7 +47,7 @@ export function ScopingCallRequestPanel({
             slotsHint: "Choisissez 3 créneaux différents (format local).",
             notes: "Notes (optionnel)",
             notesHint:
-              "Ex : contraintes d’agenda, participants (COO/CFO/IT), urgence, etc.",
+              "Ex : contraintes d’agenda, participants (Ops/Finance/IT), urgence, etc.",
             submit: "Proposer mes créneaux",
             submitting: "Envoi en cours…",
             successTitle: "Créneaux envoyés",
@@ -71,7 +71,7 @@ export function ScopingCallRequestPanel({
             slotsHint: "Pick 3 different time slots (local format).",
             notes: "Notes (optional)",
             notesHint:
-              "Example: calendar constraints, attendees (COO/CFO/IT), urgency, etc.",
+              "Example: calendar constraints, attendees (Ops/Finance/IT), urgency, etc.",
             submit: "Send my slots",
             submitting: "Sending…",
             successTitle: "Slots sent",

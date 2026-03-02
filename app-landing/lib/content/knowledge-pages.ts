@@ -75,7 +75,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   security: {
     key: "security",
@@ -115,7 +115,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Ressources opérationnelles", key: "resources" },
       { label: "Protocole pilote", key: "pillarImpact" },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   resources: {
     key: "resources",
@@ -159,7 +159,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Praedixa pour la distribution retail", key: "bofuRetail" },
       { label: "Praedixa pour la restauration rapide", key: "bofuQsr" },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   pillarCapacity: {
     key: "pillarCapacity",
@@ -199,7 +199,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Prévision charge/capacité", key: "clusterForecast" },
       { label: "Playbook options de renfort", key: "clusterPlaybook" },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   pillarLogistics: {
     key: "pillarLogistics",
@@ -240,7 +240,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         key: "clusterWarehousePlanning",
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   pillarAbsence: {
     key: "pillarAbsence",
@@ -263,7 +263,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   pillarPenalties: {
     key: "pillarPenalties",
@@ -287,7 +287,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   pillarImpact: {
     key: "pillarImpact",
@@ -310,7 +310,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   bofuLogistics: {
     key: "bofuLogistics",
@@ -339,7 +339,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   bofuTransport: {
     key: "bofuTransport",
@@ -362,7 +362,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   bofuRetail: {
     key: "bofuRetail",
@@ -385,7 +385,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   bofuQsr: {
     key: "bofuQsr",
@@ -414,7 +414,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   clusterCost: {
     key: "clusterCost",
@@ -437,7 +437,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   clusterForecast: {
     key: "clusterForecast",
@@ -460,7 +460,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   clusterPlaybook: {
     key: "clusterPlaybook",
@@ -483,7 +483,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   clusterRms: {
     key: "clusterRms",
@@ -506,7 +506,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   clusterWarehouseForecast: {
     key: "clusterWarehouseForecast",
@@ -529,7 +529,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
   clusterWarehousePlanning: {
     key: "clusterWarehousePlanning",
@@ -552,7 +552,7 @@ const frContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Demander un pilote Workforce & ProofOps",
+    ctaLabel: "Demander un pilote (boucle fermée)",
   },
 };
 
@@ -588,7 +588,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   security: {
     key: "security",
@@ -628,7 +628,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Operational resources", key: "resources" },
       { label: "Operational impact proof", key: "pillarImpact" },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   resources: {
     key: "resources",
@@ -672,7 +672,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         key: "bofuQsr",
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   pillarCapacity: {
     key: "pillarCapacity",
@@ -712,7 +712,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Workload and capacity forecasting", key: "clusterForecast" },
       { label: "Staffing options playbook", key: "clusterPlaybook" },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   pillarLogistics: {
     key: "pillarLogistics",
@@ -747,7 +747,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
       { label: "Forecast warehouse workload", key: "clusterWarehouseForecast" },
       { label: "Warehouse resource planning", key: "clusterWarehousePlanning" },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   pillarAbsence: {
     key: "pillarAbsence",
@@ -770,7 +770,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   pillarPenalties: {
     key: "pillarPenalties",
@@ -794,7 +794,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   pillarImpact: {
     key: "pillarImpact",
@@ -817,7 +817,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   bofuLogistics: {
     key: "bofuLogistics",
@@ -844,7 +844,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   bofuTransport: {
     key: "bofuTransport",
@@ -867,7 +867,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   bofuRetail: {
     key: "bofuRetail",
@@ -890,7 +890,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   bofuQsr: {
     key: "bofuQsr",
@@ -919,7 +919,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   clusterCost: {
     key: "clusterCost",
@@ -942,7 +942,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   clusterForecast: {
     key: "clusterForecast",
@@ -965,7 +965,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   clusterPlaybook: {
     key: "clusterPlaybook",
@@ -988,7 +988,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   clusterRms: {
     key: "clusterRms",
@@ -1011,7 +1011,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   clusterWarehouseForecast: {
     key: "clusterWarehouseForecast",
@@ -1034,7 +1034,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
   clusterWarehousePlanning: {
     key: "clusterWarehousePlanning",
@@ -1056,7 +1056,7 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
         ],
       },
     ],
-    ctaLabel: "Request a Workforce & ProofOps pilot",
+    ctaLabel: "Request a pilot (closed loop)",
   },
 };
 

@@ -139,9 +139,9 @@ export function ProblemSection({ locale, dict }: ProblemSectionProps) {
           delay={0.2}
           className="md:sticky md:top-28 md:self-start"
         >
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm md:p-7">
-            <span className="text-xs font-semibold uppercase tracking-[0.09em] text-amber-100">
-              {locale === "fr" ? "Salle des signaux" : "Signal room"}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm md:p-7">
+              <span className="text-xs font-semibold uppercase tracking-[0.09em] text-amber-100">
+              {locale === "fr" ? "Signaux à surveiller" : "Signals to watch"}
             </span>
             <h3 className="mt-2 text-2xl font-semibold tracking-tight text-white">
               {problem.diagnostic.title}

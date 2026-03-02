@@ -32,39 +32,39 @@ const stepItem = {
 
 const sectionCopy = {
   fr: {
-    chipMilestone: "Jalon de preuve : S8",
-    chipConsolidation: "Consolidation : mois 3",
-    railLabel: "Cadence pilote",
-    railTitle: "Exécution défendable, semaine par semaine.",
+    chipMilestone: "J+3 / J+7 / J+14",
+    chipConsolidation: "Decision Log + preuve ROI",
+    railLabel: "La boucle fermée",
+    railTitle: "4 étapes. Une exécution. Une preuve.",
     railSummary:
-      "Chaque jalon verrouille un niveau de décision avant passage à l'étape suivante.",
-    rhythmLabel: "Revues hebdomadaires COO/Ops + CFO/DAF",
-    phaseLabel: "Jalon",
-    ctaMeta: "Démarrage en lecture seule, sans projet SI lourd",
-    loadingTitle: "Chargement du protocole pilote",
+      "Prévoir → décider → déclencher → prouver. Toujours : coût, service, risque. Toujours : manager décisionnaire.",
+    rhythmLabel: "Preuve mensuelle",
+    phaseLabel: "Étape",
+    ctaMeta: "Lecture seule au démarrage (exports/API)",
+    loadingTitle: "Chargement de la boucle fermée",
     loadingBody:
-      "Assemblage des jalons d’exécution et de preuve en cours.",
-    emptyTitle: "Aucun protocole disponible",
+      "Assemblage des étapes (prévision, décision, action, preuve) en cours.",
+    emptyTitle: "Aucune étape disponible",
     emptyBody:
-      "Ajoutez les étapes du pilote pour afficher la timeline d’exécution.",
-    errorTitle: "Protocole temporairement indisponible",
+      "Ajoutez des étapes pour afficher la boucle.",
+    errorTitle: "Boucle temporairement indisponible",
     errorBody:
       "La section ne peut pas être rendue pour le moment. Rechargez la page.",
     statuses: [
-      "Audit historique actif",
-      "Initialisation data",
-      "Decision Log en cours",
-      "Proof pack ROI",
+      "Prévision",
+      "Décision",
+      "Action",
+      "Preuve",
     ],
   },
   en: {
-    chipMilestone: "Proof milestone: W8",
+    chipMilestone: "Proof milestone: week 8",
     chipConsolidation: "Consolidation: month 3",
     railLabel: "Pilot cadence",
     railTitle: "Defensible execution, week by week.",
     railSummary:
-      "Each milestone locks one decision layer before moving to the next stage.",
-    rhythmLabel: "Weekly COO/Ops + CFO reviews",
+      "Each milestone locks a layer (signals → options → decisions → proof) before moving on.",
+    rhythmLabel: "Rhythm: weekly check-in + monthly review",
     phaseLabel: "Milestone",
     ctaMeta: "Read-only start, no heavy IT project",
     loadingTitle: "Loading pilot protocol",
@@ -77,10 +77,10 @@ const sectionCopy = {
     errorBody:
       "This section cannot be rendered right now. Please refresh the page.",
     statuses: [
-      "Historical audit active",
-      "Data initialization",
-      "Decision Log running",
-      "ROI proof pack",
+      "Historical audit",
+      "Data ready",
+      "Decision journal",
+      "Monthly proof",
     ],
   },
 } as const;
@@ -164,9 +164,10 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
     );
   }
 
-  const phaseChip = locale === "fr"
-    ? `${steps.length} jalons opérationnels`
-    : `${steps.length} operational milestones`;
+  const phaseChip =
+    locale === "fr"
+      ? `${steps.length} étapes`
+      : `${steps.length} operational milestones`;
 
   return (
     <SectionShell id="how-it-works" className="section-dark">

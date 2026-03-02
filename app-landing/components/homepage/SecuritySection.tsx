@@ -20,7 +20,7 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
   const tools = Array.isArray(security.compatibility.tools)
     ? security.compatibility.tools
     : null;
-  const isFrench = security.kicker.toLowerCase().includes("integration");
+  const isFrench = dict.nav.problem === "Problème";
 
   if (!tiles || !tools) {
     return (
@@ -29,12 +29,12 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
           <Kicker>{security.kicker}</Kicker>
           <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
             {isFrench
-              ? "Chargement integration et data"
+              ? "Chargement de l’intégration & des données"
               : "Loading integration and data"}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
             {isFrench
-              ? "Connexion des blocs de gouvernance en cours."
+              ? "Connexion des briques de gouvernance en cours."
               : "Connecting governance layers."}
           </p>
           <div className="mt-8 space-y-4">
@@ -54,12 +54,12 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
           <Kicker>{security.kicker}</Kicker>
           <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
             {isFrench
-              ? "Aucune brique d'integration"
+              ? "Aucune brique d’intégration"
               : "No integration blocks available"}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
             {isFrench
-              ? "Ajoutez des capacites techniques pour afficher cette section."
+              ? "Ajoutez des capacités techniques pour afficher cette section."
               : "Add technical capabilities to render this section."}
           </p>
         </div>
@@ -107,7 +107,7 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-500">
                   <PulseDot className="h-1.5 w-1.5 bg-amber-500" />
-                  {isFrench ? "Controle actif" : "Active control"}
+                  {isFrench ? "Contrôle actif" : "Active controls"}
                 </div>
               </MotionStaggerItem>
             ))}

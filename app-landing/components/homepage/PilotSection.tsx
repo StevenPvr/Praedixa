@@ -73,7 +73,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
             {locale === "fr"
-              ? "Assemblage des etapes de qualification en cours."
+              ? "Assemblage des étapes de qualification en cours."
               : "Preparing qualification milestones."}
           </p>
           <div className="mt-8 space-y-4">

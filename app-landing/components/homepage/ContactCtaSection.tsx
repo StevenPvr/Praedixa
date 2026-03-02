@@ -161,11 +161,11 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
   const isEmpty = cleanedItems.length === 0;
   const localeLabel = locale === "fr";
   const panelTitle = localeLabel
-    ? "Cadre de démarrage pilote"
-    : "Pilot kickoff frame";
+    ? "Prochaines étapes"
+    : "Next steps";
   const panelSubtitle = localeLabel
-    ? "Équipe Praedixa disponible sous 48h ouvrées"
-    : "Praedixa team available within 48 business hours";
+    ? "Réponse sous 48h ouvrées"
+    : "Reply within 48 business hours";
 
   return (
     <motion.aside
@@ -224,8 +224,8 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
               >
                 <p className="text-sm font-medium text-white">
                   {localeLabel
-                    ? "Les garanties de démarrage seront confirmées lors de l’appel de cadrage."
-                    : "Kickoff guarantees will be confirmed during the scoping call."}
+                    ? "Les modalités de démarrage sont confirmées lors du cadrage."
+                    : "Kickoff details are confirmed during the scoping call."}
                 </p>
               </motion.div>
             ) : hasInvalidItem ? (

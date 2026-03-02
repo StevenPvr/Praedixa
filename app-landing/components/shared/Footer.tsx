@@ -113,8 +113,8 @@ export function Footer({ locale, dict }: FooterProps) {
             </Link>
             <p className="max-w-[46ch] text-sm leading-relaxed text-neutral-600">
               {locale === "fr"
-                ? "Decision intelligence orientée opérations multi-sites, preuve économique mensuelle et gouvernance COO/CFO partagée."
-                : "Decision intelligence for multi-site operations, monthly economic proof, and shared COO/CFO governance."}
+                ? "Prévoir J+3/J+7/J+14. Décider (coût/service/risque). Déclencher la 1re action (assistée). Prouver le ROI."
+                : "Forecast. Decide (cost/service/risk). Trigger the first assisted action. Prove impact."}
             </p>
             <ShimmerTrack
               className="max-w-[16rem] bg-neutral-200/70"
@@ -167,7 +167,7 @@ export function Footer({ locale, dict }: FooterProps) {
               ) : (
                 <li className="m-0 px-4 py-3 text-sm text-neutral-500">
                   {locale === "fr"
-                    ? "Informations legales indisponibles."
+                    ? "Informations légales indisponibles."
                     : "Legal information unavailable."}
                 </li>
               )}
@@ -181,7 +181,7 @@ export function Footer({ locale, dict }: FooterProps) {
           </p>
           <p className="text-neutral-400">
             {locale === "fr"
-              ? "Disponible en francais et en anglais."
+              ? "Disponible en français et en anglais."
               : "Available in French and English."}
           </p>
         </div>

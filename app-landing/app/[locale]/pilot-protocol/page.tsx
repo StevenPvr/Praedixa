@@ -15,11 +15,11 @@ export async function generateMetadata({
     locale,
     paths: localePathMap("/fr/pilot-protocol", "/en/pilot-protocol"),
     title: isFr
-      ? "Praedixa | Protocole pilote Workforce & ProofOps"
-      : "Praedixa | Workforce & ProofOps pilot protocol",
+      ? "Praedixa | Protocole pilote (boucle fermée)"
+      : "Praedixa | Pilot protocol (closed loop)",
     description: isFr
-      ? "Protocole du pilote Workforce & ProofOps : cadrage, Decision Ledger, livrables et gouvernance."
-      : "Workforce & ProofOps pilot protocol: framing, Decision Ledger, deliverables, and governance.",
+      ? "Protocole du pilote : audit historique, décision chiffrée, 1re action assistée, Decision Log, preuve ROI mensuelle."
+      : "Pilot protocol: historical audit, quantified decision, assisted first action, Decision Log, and monthly ROI proof.",
   });
 }
 
@@ -45,7 +45,7 @@ export default async function PilotProtocolPage({
         {p.kicker}
       </span>
       <h1 className="mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl md:text-4xl">
-        {isFr ? "Protocole pilote Workforce & ProofOps" : "Workforce & ProofOps pilot protocol"}
+        {isFr ? "Protocole pilote (boucle fermée)" : "Pilot protocol (closed loop)"}
       </h1>
       <p className="mt-4 max-w-[58ch] text-base leading-relaxed text-neutral-500">
         {p.subheading}

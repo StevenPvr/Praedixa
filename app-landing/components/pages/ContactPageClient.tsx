@@ -48,8 +48,8 @@ interface ContactChallenge {
 const REQUEST_TYPES: { value: RequestType; fr: string; en: string }[] = [
   {
     value: "founding_pilot",
-    fr: "Pilote Workforce & ProofOps",
-    en: "Workforce & ProofOps pilot",
+    fr: "Pilote Signature Praedixa",
+    en: "Praedixa Signature pilot",
   },
   { value: "product_demo", fr: "Démonstration produit", en: "Product demo" },
   { value: "partnership", fr: "Partenariat", en: "Partnership" },
@@ -115,11 +115,11 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
           promiseTitle: "Ce que vous recevez",
           promiseItems: [
             "Réponse qualifiée sous 48h ouvrées.",
-            "Orientation claire : pilote Signature ou mode forecasting-only.",
+            "Orientation claire : Service Signature ou Prévisions KPI uniquement.",
             "Plan de démarrage adapté à vos contraintes terrain.",
           ],
           pilotHint: "Déjà prêt pour un pilote structuré ?",
-          pilotCta: "Demander un pilote Workforce & ProofOps",
+          pilotCta: "Candidater au pilote Signature Praedixa",
           pilotMeta: "Démarrage en lecture seule via exports/API.",
           formTitle: "Envoyer une demande",
           formSubtitle:
@@ -169,11 +169,11 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
           promiseTitle: "What you get",
           promiseItems: [
             "Qualified response within 48 business hours.",
-            "Clear orientation: Signature pilot or forecasting-only mode.",
+            "Clear orientation: Signature Service or KPI forecasting-only mode.",
             "Start plan adapted to your field constraints.",
           ],
           pilotHint: "Already ready for a structured pilot?",
-          pilotCta: "Request a Workforce & ProofOps pilot",
+          pilotCta: "Apply for the Praedixa Signature pilot",
           pilotMeta: "Read-only kickoff via exports/APIs.",
           formTitle: "Send a request",
           formSubtitle:
@@ -227,20 +227,20 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
             "Décrivez votre contexte. Nous revenons avec un audit historique (lecture seule) et un cadrage concret.",
           promiseItems: [
             "Audit historique (lecture seule) sur vos données.",
-            "Comparatif BAU vs recommandé (format proof pack).",
+            "Comparatif avant / recommandé (format dossier de preuve).",
             "Proposition de cadrage 30 min si pertinent.",
           ],
-          formTitle: "Demander l’audit",
+          formTitle: "Obtenir l’audit",
         }
       : {
           ...base,
           kicker: "Historical audit",
-          heading: "Get the free historical audit.",
+          heading: "Request the free historical audit.",
           intro:
             "Share your context. We reply with a read-only historical audit and a concrete framing.",
           promiseItems: [
             "Read-only historical audit on your data.",
-            "BAU vs recommended comparison (proof pack format).",
+            "Baseline vs recommended comparison (proof format).",
             "30-min framing proposal if relevant.",
           ],
           formTitle: "Request the audit",

@@ -169,7 +169,7 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
           >
             {locale === "fr"
               ? "Calculer le cout de l'inaction"
-              : "Request a Workforce & ProofOps pilot"}
+              : "Request a pilot (closed loop)"}
           </Link>
         </div>
       </article>

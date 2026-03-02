@@ -21,8 +21,8 @@ export async function generateMetadata({
     title: locale === "fr" ? "Praedixa | Contact" : "Praedixa | Contact",
     description:
       locale === "fr"
-        ? "Contactez l'équipe Praedixa pour cadrer un échange autour de vos enjeux de couverture multi-sites."
-        : "Contact the Praedixa team to frame an exchange about your multi-site coverage challenges.",
+        ? "Demandez l’audit historique (gratuit) ou échangez sur vos arbitrages de couverture multi-sites."
+        : "Request the free historical audit or discuss your multi-site coverage trade-offs.",
   });
 }
 

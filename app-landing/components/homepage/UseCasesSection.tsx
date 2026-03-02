@@ -56,9 +56,9 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
             "Ajoutez des décisions opérationnelles pour alimenter cette section.",
           errorTitle: "Sélection de cas invalide",
           errorBody: "Rechargez la page pour réinitialiser la priorisation.",
-          railLabel: "Rail décisionnel",
-          liveLabel: "Exemple de décision",
-          panelLabel: "Détail",
+          railLabel: "Décisions couvertes",
+          liveLabel: "Exemple",
+          panelLabel: "Détail du cas",
         }
       : {
           loadingTitle: "Loading covered decisions",
@@ -67,9 +67,9 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
           emptyBody: "Add operational decisions to populate this section.",
           errorTitle: "Invalid case selection",
           errorBody: "Refresh the page to reset prioritization.",
-          railLabel: "Decision rail",
-          liveLabel: "Active decision flow",
-          panelLabel: "Current focus",
+          railLabel: "Decisions covered",
+          liveLabel: "Example",
+          panelLabel: "Details",
         };
 
   useEffect(() => {
