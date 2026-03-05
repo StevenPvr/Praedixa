@@ -684,7 +684,7 @@ export function HeroProofPanel({ locale, className }: HeroProofPanelProps) {
               }
             }}
           >
-            <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <AnimatePresence initial={false} custom={direction} mode="wait">
               <motion.div
                 key={activeCard.key}
                 custom={direction}
