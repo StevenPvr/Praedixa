@@ -19,6 +19,9 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ThemeProvider>
+          <a href="#main-content" className="skip-link">
+            Aller au contenu principal
+          </a>
           <ToastProvider>{children}</ToastProvider>
         </ThemeProvider>
       </body>

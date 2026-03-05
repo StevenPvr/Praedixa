@@ -1,11 +1,9 @@
 "use client";
 
 import { Suspense } from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, LockKeyhole } from "lucide-react";
+import { ArrowRight, LockKey } from "@phosphor-icons/react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { fadeScale } from "@/lib/animations/config";
 
 function toLoginErrorMessage(error: string | null): string | null {
   if (!error) return null;
@@ -15,7 +13,33 @@ function toLoginErrorMessage(error: string | null): string | null {
   if (error === "oidc_provider_untrusted") {
     return "Le fournisseur OIDC est non fiable ou mal configure (TLS/certificat/endpoints). Contactez l'administrateur.";
   }
-  return `La connexion a echoue (${error}). Veuillez reessayer.`;
+  if (error === "rate_limited") {
+    return "Trop de tentatives de connexion. Patientez quelques instants puis reessayez.";
+  }
+  return "La connexion a echoue. Veuillez reessayer.";
+}
+
+function sanitizeIncidentToken(
+  value: string | null,
+  maxLength: number,
+): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (trimmed.length === 0 || trimmed.length > maxLength) return null;
+  return /^[A-Za-z0-9._:-]+$/.test(trimmed) ? trimmed : null;
+}
+
+function toReauthMessage(
+  reason: string | null,
+  errorCode: string | null,
+): string {
+  if (reason === "api_unauthorized") {
+    if (errorCode === "UNAUTHORIZED") {
+      return "Votre session a bien ete ouverte, mais l'API a refuse ce token. Veuillez vous reconnecter.";
+    }
+    return "Votre session a ete invalidee par l'API. Veuillez vous reconnecter.";
+  }
+  return "Session expiree ou droits insuffisants. Veuillez vous reconnecter.";
 }
 
 function LoginForm() {
@@ -23,6 +47,13 @@ function LoginForm() {
   const isReauth = searchParams.get("reauth") === "1";
   const error = searchParams.get("error");
   const errorMessage = toLoginErrorMessage(error);
+  const reason = searchParams.get("reason");
+  const errorCode = sanitizeIncidentToken(searchParams.get("error_code"), 64);
+  const requestId = sanitizeIncidentToken(searchParams.get("request_id"), 128);
+  const reauthMessage = toReauthMessage(reason, errorCode);
+  const supportHint = [errorCode && `code ${errorCode}`, requestId && `incident ${requestId}`]
+    .filter(Boolean)
+    .join(" · ");
 
   const next = searchParams.get("next") ?? "/dashboard";
   const safeNext =
@@ -38,12 +69,7 @@ function LoginForm() {
   }
 
   return (
-    <motion.div
-      variants={fadeScale}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       <div className="space-y-2 text-center">
         <p className="text-overline text-ink-tertiary">Client access</p>
         <h2 className="font-sans font-bold text-display-sm text-ink">
@@ -57,7 +83,12 @@ function LoginForm() {
       <div className="mt-8 space-y-4">
         {isReauth && (
           <div className="rounded-lg border border-warning-light bg-warning-light/50 px-4 py-3 text-body-sm text-warning-text">
-            Session expiree ou droits insuffisants. Veuillez vous reconnecter.
+            <p>{reauthMessage}</p>
+            {supportHint && (
+              <p className="mt-2 text-xs">
+                Reference support: <span className="font-semibold">{supportHint}</span>
+              </p>
+            )}
           </div>
         )}
 
@@ -67,18 +98,13 @@ function LoginForm() {
           </div>
         )}
 
-        <Button
-          type="button"
-          onClick={handleLogin}
-          className="w-full"
-          size="lg"
-        >
-          <LockKeyhole className="mr-2 h-4 w-4" />
+        <Button type="button" onClick={handleLogin} className="w-full" size="lg">
+          <LockKey className="mr-2 h-4 w-4" />
           Continuer vers la connexion
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

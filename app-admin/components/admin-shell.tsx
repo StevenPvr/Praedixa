@@ -1,13 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useMediaQuery } from "@praedixa/ui";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { AdminTopbar } from "@/components/admin-topbar";
-import { useCurrentUser } from "@/lib/auth/client";
+import { CommandPalette, useCommandPalette } from "@/components/command-palette";
+import { RouteProgressBar } from "@/components/route-progress-bar";
+import { clearAuthSession, useCurrentUser } from "@/lib/auth/client";
 
-const PAGE_TITLES: Record<string, string> = {
+const ROOT_PAGE_TITLES: Record<string, string> = {
   "/": "Accueil",
   "/clients": "Clients",
   "/demandes-contact": "Demandes contact",
@@ -15,12 +17,34 @@ const PAGE_TITLES: Record<string, string> = {
   "/parametres": "Parametres",
 };
 
+const WORKSPACE_PAGE_TITLES: Record<string, string> = {
+  "dashboard": "Workspace client - Tableau de bord",
+  "vue-client": "Workspace client - Vue client",
+  "donnees": "Workspace client - Donnees",
+  "previsions": "Workspace client - Previsions",
+  "actions": "Workspace client - Actions",
+  "alertes": "Workspace client - Alertes",
+  "rapports": "Workspace client - Rapports",
+  "onboarding": "Workspace client - Onboarding",
+  "equipe": "Workspace client - Equipe",
+  "config": "Workspace client - Configuration",
+  "messages": "Workspace client - Messages",
+};
+
 function getPageTitle(pathname: string): string | undefined {
-  if (PAGE_TITLES[pathname]) {
-    return PAGE_TITLES[pathname];
+  if (ROOT_PAGE_TITLES[pathname]) {
+    return ROOT_PAGE_TITLES[pathname];
   }
 
-  for (const [prefix, title] of Object.entries(PAGE_TITLES)) {
+  if (pathname.startsWith("/clients/")) {
+    const [, , , section] = pathname.split("/");
+    if (section && WORKSPACE_PAGE_TITLES[section]) {
+      return WORKSPACE_PAGE_TITLES[section];
+    }
+    return "Workspace client";
+  }
+
+  for (const [prefix, title] of Object.entries(ROOT_PAGE_TITLES)) {
     if (prefix !== "/" && pathname.startsWith(`${prefix}/`)) {
       return title;
     }
@@ -31,9 +55,14 @@ function getPageTitle(pathname: string): string | undefined {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const currentUser = useCurrentUser();
+
   const [collapsed, setCollapsed] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [isSigningOut, setIsSigningOut] = React.useState(false);
+
+  const { open: commandOpen, setOpen: setCommandOpen } = useCommandPalette();
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   React.useEffect(() => {
@@ -46,15 +75,30 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     }
   }, [isDesktop]);
 
+  const handleLogout = React.useCallback(async () => {
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+    try {
+      await clearAuthSession();
+      router.replace("/login");
+    } finally {
+      setIsSigningOut(false);
+    }
+  }, [isSigningOut, router]);
+
   const title = getPageTitle(pathname);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-page">
+      <RouteProgressBar />
+
+      <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
+
       {mobileOpen && !isDesktop && (
-        <div
-          className="fixed inset-0 z-30 bg-charcoal/50 lg:hidden"
+        <button
+          aria-label="Fermer le menu"
+          className="fixed inset-0 z-30 bg-ink/50 backdrop-blur-lg lg:hidden"
           onClick={() => setMobileOpen(false)}
-          aria-hidden="true"
         />
       )}
 
@@ -80,7 +124,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <div
-        className="flex min-w-0 flex-1 flex-col transition-[margin] duration-200"
+        className="flex min-w-0 flex-1 flex-col transition-[margin] duration-normal ease-snappy"
         style={{
           marginLeft: isDesktop
             ? collapsed
@@ -93,9 +137,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           mobileOpen={mobileOpen}
           onToggleMobile={() => setMobileOpen((prev) => !prev)}
           title={title}
+          userEmail={currentUser?.email ?? undefined}
+          userRole={currentUser?.role ?? undefined}
+          onOpenCommandPalette={() => setCommandOpen(true)}
+          onLogout={handleLogout}
+          isSigningOut={isSigningOut}
         />
 
-        <main className="flex-1 bg-page p-4 sm:p-6">{children}</main>
+        <main id="main-content" tabIndex={-1} className="flex-1 p-4 sm:p-6">
+          <div className="mx-auto w-full">{children}</div>
+        </main>
       </div>
     </div>
   );

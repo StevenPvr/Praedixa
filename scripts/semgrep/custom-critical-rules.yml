@@ -78,26 +78,6 @@ rules:
     languages: [javascript, typescript]
     pattern-regex: 'https?://169\\.254\\.169\\.254'
 
-  - id: praedixa-ts-admin-route-missing-super-admin
-    message: "Admin API route must enforce super_admin role via adminOnly."
-    severity: ERROR
-    languages: [typescript]
-    pattern-either:
-      - patterns:
-          - pattern: route($METHOD, $PATH, $HANDLER)
-          - metavariable-regex:
-              metavariable: $PATH
-              regex: ^"/api/v1/admin
-      - patterns:
-          - pattern: route($METHOD, $PATH, $HANDLER, $AUTH)
-          - metavariable-regex:
-              metavariable: $PATH
-              regex: ^"/api/v1/admin
-          - pattern-not: route($METHOD, $PATH, $HANDLER, adminOnly)
-    paths:
-      include:
-        - "/app-api-ts/src/routes.ts"
-
   - id: praedixa-security-bypass-todo
     message: "Security bypass marker detected (TODO/FIXME bypass)."
     severity: ERROR

@@ -1,59 +1,59 @@
 import { test, expect } from "./fixtures/coverage";
 import { setupAuth } from "./fixtures/auth";
-import {
-  mockCoverageAlerts,
-  mockDecisionQueue,
-  mockDecisionWorkspace,
-  mockScenarios,
-  mockOperationalDecisions,
-} from "./fixtures/api-mocks";
+import { mockAllApis } from "./fixtures/api-mocks";
 
 test.describe("Actions decisions flow", () => {
   test.beforeEach(async ({ page }) => {
     await setupAuth(page);
-    await mockCoverageAlerts(page);
-    await mockDecisionQueue(page);
-    await mockDecisionWorkspace(page);
-    await mockScenarios(page);
-    await mockOperationalDecisions(page);
+    await mockAllApis(page);
   });
 
-  test("shows active alerts list and first alert details", async ({ page }) => {
+  test("shows treatment sections and alerts list", async ({ page }) => {
     await page.goto("/actions");
-    const selector = page.getByLabel("Selection de l'alerte");
-    await expect(selector).toBeVisible();
-    await expect(selector.getByText("Lyon-Sat").first()).toBeVisible();
-    await expect(selector.getByText("Paris-CDG").first()).toBeVisible();
+
+    await expect(
+      page.getByRole("heading", { name: "Centre Actions" }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Alertes" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Diagnostic" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Options recommandees" }),
+    ).toBeVisible();
+    await expect(page.getByText("Lyon-Sat").first()).toBeVisible();
   });
 
-  test("shows expected scenario option cards", async ({ page }) => {
-    await page.goto("/actions");
-    const section = page.getByLabel("Options d'optimisation");
-    await expect(section).toBeVisible();
-    await expect(section.getByText("Heures supplementaires")).toBeVisible();
-    await expect(section.getByText("Interim")).toBeVisible();
-    await expect(section.getByText("Reallocation intra-site")).toBeVisible();
-  });
-
-  test("shows recommendation and optimal badges", async ({ page }) => {
-    await page.goto("/actions");
-    const section = page.getByLabel("Options d'optimisation");
-    await expect(section.getByText("Recommande")).toBeVisible();
-    await expect(section.getByText("Pareto").first()).toBeVisible();
-  });
-
-  test("submitting with selected option keeps user on actions page", async ({
+  test("validate button is enabled only after choosing an option", async ({
     page,
   }) => {
     await page.goto("/actions");
-    await page.getByText("Interim").first().click();
-    await page.getByRole("button", { name: "Valider cette solution" }).click();
-    await expect(page).toHaveURL(/\/actions/);
+
+    const validateButton = page.getByRole("button", {
+      name: "Valider la decision",
+    });
+
+    await expect(validateButton).toBeDisabled();
+    await page.getByRole("button", { name: /interim/i }).first().click();
+    await expect(validateButton).toBeEnabled();
   });
 
-  test("shows empty state when no alerts are available", async ({ page }) => {
-    await page.route("**/api/v1/live/coverage-alerts*", (route) =>
-      route.fulfill({
+  test("history tab shows decision table", async ({ page }) => {
+    await page.goto("/actions");
+    await page.getByRole("button", { name: "Historique" }).click();
+
+    await expect(page.getByRole("columnheader", { name: "Decision" })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Statut" })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Confiance" })).toBeVisible();
+  });
+
+  test("empty alerts state is shown when API returns no active alerts", async ({
+    page,
+  }) => {
+    await page.route("**/api/v1/live/coverage-alerts*", (route) => {
+      const url = new URL(route.request().url());
+      if (url.searchParams.get("status") !== "open") {
+        return route.fallback();
+      }
+      return route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
@@ -61,22 +61,10 @@ test.describe("Actions decisions flow", () => {
           data: [],
           timestamp: "2026-02-07T12:00:00Z",
         }),
-      }),
-    );
-    await page.route("**/api/v1/**coverage-alerts/queue*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          success: true,
-          data: [],
-          timestamp: "2026-02-07T12:00:00Z",
-        }),
-      }),
-    );
+      });
+    });
 
     await page.goto("/actions");
-    await expect(page.getByText("Aucune alerte active")).toBeVisible();
-    await expect(page.getByText("Tous vos sites sont couverts")).toBeVisible();
+    await expect(page.getByText("Aucune alerte.")).toBeVisible();
   });
 });

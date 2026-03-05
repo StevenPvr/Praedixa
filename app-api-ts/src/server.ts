@@ -17,7 +17,20 @@ export const SECURITY_HEADERS = {
   "X-Frame-Options": "DENY",
   "Referrer-Policy": "no-referrer",
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
 } as const;
+const MAX_REQUEST_BODY_BYTES = 1024 * 1024;
+const BODY_METHODS: readonly HttpMethod[] = ["POST", "PATCH", "PUT", "DELETE"];
+type BodyReadErrorCode = "PAYLOAD_TOO_LARGE" | "INVALID_JSON";
+
+class BodyReadError extends Error {
+  readonly code: BodyReadErrorCode;
+
+  constructor(code: BodyReadErrorCode, message: string) {
+    super(message);
+    this.code = code;
+  }
+}
 
 export function normalizeOrigin(rawOrigin: string | undefined): string | null {
   if (rawOrigin == null || rawOrigin.trim() === "") {
@@ -84,34 +97,110 @@ function writeJson(
   response.end(body);
 }
 
+function hasRequestBody(request: IncomingMessage): boolean {
+  const transferEncoding = request.headers["transfer-encoding"];
+  if (typeof transferEncoding === "string" && transferEncoding.trim().length > 0) {
+    return true;
+  }
+
+  const contentLength = request.headers["content-length"];
+  if (contentLength == null) {
+    return false;
+  }
+  const raw = Array.isArray(contentLength) ? contentLength[0] : contentLength;
+  if (raw == null) {
+    return false;
+  }
+
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0) {
+    return false;
+  }
+
+  return value > 0;
+}
+
+export function isJsonContentType(contentType: string | string[] | undefined): boolean {
+  if (contentType == null) {
+    return false;
+  }
+  const raw = Array.isArray(contentType) ? contentType[0] : contentType;
+  if (raw == null) {
+    return false;
+  }
+  const mediaType = raw.split(";")[0]?.trim().toLowerCase();
+  return mediaType === "application/json";
+}
+
 async function readBody(request: IncomingMessage): Promise<unknown> {
-  return await new Promise<unknown>((resolve) => {
+  return await new Promise<unknown>((resolve, reject) => {
     const chunks: Buffer[] = [];
+    let size = 0;
+    let settled = false;
+
+    function safeReject(error: BodyReadError): void {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      reject(error);
+    }
+
+    function safeResolve(payload: unknown): void {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      resolve(payload);
+    }
 
     request.on("data", (chunk: Buffer | string) => {
       if (typeof chunk === "string") {
-        chunks.push(Buffer.from(chunk));
+        const data = Buffer.from(chunk);
+        size += data.length;
+        if (size > MAX_REQUEST_BODY_BYTES) {
+          request.destroy();
+          safeReject(
+            new BodyReadError(
+              "PAYLOAD_TOO_LARGE",
+              "Request body exceeds max allowed size",
+            ),
+          );
+          return;
+        }
+        chunks.push(data);
       } else {
+        size += chunk.length;
+        if (size > MAX_REQUEST_BODY_BYTES) {
+          request.destroy();
+          safeReject(
+            new BodyReadError(
+              "PAYLOAD_TOO_LARGE",
+              "Request body exceeds max allowed size",
+            ),
+          );
+          return;
+        }
         chunks.push(chunk);
       }
     });
 
     request.on("end", () => {
       if (chunks.length === 0) {
-        resolve(null);
+        safeResolve(null);
         return;
       }
 
       const text = Buffer.concat(chunks).toString("utf8");
       try {
-        resolve(JSON.parse(text));
+        safeResolve(JSON.parse(text));
       } catch {
-        resolve(text);
+        safeReject(new BodyReadError("INVALID_JSON", "Request body must be valid JSON"));
       }
     });
 
     request.on("error", () => {
-      resolve(null);
+      safeResolve(null);
     });
   });
 }
@@ -133,6 +222,39 @@ function normalizeMethod(rawMethod: string | undefined): HttpMethod | null {
   }
 
   return upper;
+}
+
+function normalizePermission(permission: string): string {
+  return permission.trim().toLowerCase();
+}
+
+function hasRequiredPermissions(
+  userPermissions: readonly string[],
+  requiredPermissions: readonly string[],
+  permissionMode: "all" | "any",
+): boolean {
+  const normalizedUserPermissions = new Set(
+    userPermissions
+      .map((permission) => normalizePermission(permission))
+      .filter((permission) => permission.length > 0),
+  );
+  const normalizedRequiredPermissions = requiredPermissions
+    .map((permission) => normalizePermission(permission))
+    .filter((permission) => permission.length > 0);
+
+  if (normalizedRequiredPermissions.length === 0) {
+    return true;
+  }
+
+  if (permissionMode === "any") {
+    return normalizedRequiredPermissions.some((permission) =>
+      normalizedUserPermissions.has(permission),
+    );
+  }
+
+  return normalizedRequiredPermissions.every((permission) =>
+    normalizedUserPermissions.has(permission),
+  );
 }
 
 export function createAppServer(config: AppConfig) {
@@ -195,6 +317,22 @@ export function createAppServer(config: AppConfig) {
       return;
     }
 
+    const incomingHasBody = hasRequestBody(request);
+    if (
+      BODY_METHODS.includes(method) &&
+      incomingHasBody &&
+      !isJsonContentType(request.headers["content-type"])
+    ) {
+      const result = failure(
+        "UNSUPPORTED_MEDIA_TYPE",
+        "Request body must use Content-Type application/json",
+        requestId,
+        415,
+      );
+      writeJson(response, result.statusCode, result.payload, corsHeaders);
+      return;
+    }
+
     let user = null;
     if (matched.route.authRequired) {
       const token = parseBearerToken(request.headers.authorization);
@@ -209,7 +347,7 @@ export function createAppServer(config: AppConfig) {
         return;
       }
 
-      user = decodeJwtPayload(token);
+      user = await decodeJwtPayload(token, config.jwt);
       if (user == null) {
         const result = failure(
           "UNAUTHORIZED",
@@ -233,9 +371,67 @@ export function createAppServer(config: AppConfig) {
         writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
+
+      const requiredPermissions = matched.route.requiredPermissions;
+      if (
+        requiredPermissions != null &&
+        !hasRequiredPermissions(
+          user.permissions,
+          requiredPermissions,
+          matched.route.permissionMode,
+        )
+      ) {
+        const result = failure(
+          "FORBIDDEN",
+          "Insufficient permissions",
+          requestId,
+          403,
+          {
+            role: user.role,
+            requiredPermissions,
+            permissionMode: matched.route.permissionMode,
+          },
+        );
+        writeJson(response, result.statusCode, result.payload, corsHeaders);
+        return;
+      }
     }
 
-    const body = method === "GET" ? null : await readBody(request);
+    let body: unknown = null;
+    if (BODY_METHODS.includes(method) && incomingHasBody) {
+      try {
+        body = await readBody(request);
+      } catch (error) {
+        if (error instanceof BodyReadError && error.code === "PAYLOAD_TOO_LARGE") {
+          const result = failure(
+            "PAYLOAD_TOO_LARGE",
+            "Request body exceeds max allowed size",
+            requestId,
+            413,
+          );
+          writeJson(response, result.statusCode, result.payload, corsHeaders);
+          return;
+        }
+        if (error instanceof BodyReadError && error.code === "INVALID_JSON") {
+          const result = failure(
+            "INVALID_JSON",
+            "Request body must be valid JSON",
+            requestId,
+            400,
+          );
+          writeJson(response, result.statusCode, result.payload, corsHeaders);
+          return;
+        }
+        const result = failure(
+          "INVALID_BODY",
+          "Unable to parse request body",
+          requestId,
+          400,
+        );
+        writeJson(response, result.statusCode, result.payload, corsHeaders);
+        return;
+      }
+    }
     const context: RouteContext = {
       method,
       path: requestUrl.pathname,

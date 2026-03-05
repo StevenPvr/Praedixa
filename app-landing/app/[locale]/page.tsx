@@ -4,15 +4,11 @@ import { isValidLocale } from "../../lib/i18n/config";
 import { getDictionary } from "../../lib/i18n/get-dictionary";
 import { buildLocaleMetadata, localePathMap } from "../../lib/seo/metadata";
 import { HeroSection } from "../../components/homepage/HeroSection";
-import { ProblemSection } from "../../components/homepage/ProblemSection";
-import { SolutionSection } from "../../components/homepage/SolutionSection";
-import { HowItWorksSection } from "../../components/homepage/HowItWorksSection";
-import { UseCasesSection } from "../../components/homepage/UseCasesSection";
-import { DeliverablesSection } from "../../components/homepage/DeliverablesSection";
-import { SecuritySection } from "../../components/homepage/SecuritySection";
-import { PilotSection } from "../../components/homepage/PilotSection";
-import { FaqSection } from "../../components/homepage/FaqSection";
-import { ContactCtaSection } from "../../components/homepage/ContactCtaSection";
+import { ClosedLoopTeaserSection } from "../../components/homepage/ClosedLoopTeaserSection";
+import { RoiProofTeaserSection } from "../../components/homepage/RoiProofTeaserSection";
+import { IntegrationTeaserSection } from "../../components/homepage/IntegrationTeaserSection";
+import { ServicesPilotTeaserSection } from "../../components/homepage/ServicesPilotTeaserSection";
+import { HomeFaqCtaSection } from "../../components/homepage/HomeFaqCtaSection";
 
 export async function generateMetadata({
   params,
@@ -47,15 +43,11 @@ export default async function LandingPage({
   return (
     <>
       <HeroSection locale={locale} dict={dict} />
-      <ProblemSection locale={locale} dict={dict} />
-      <SolutionSection dict={dict} />
-      <HowItWorksSection locale={locale} dict={dict} />
-      <UseCasesSection locale={locale} dict={dict} />
-      <DeliverablesSection dict={dict} />
-      <SecuritySection dict={dict} />
-      <PilotSection locale={locale} dict={dict} />
-      <FaqSection dict={dict} />
-      <ContactCtaSection locale={locale} dict={dict} />
+      <ClosedLoopTeaserSection locale={locale} />
+      <RoiProofTeaserSection locale={locale} />
+      <IntegrationTeaserSection locale={locale} />
+      <ServicesPilotTeaserSection locale={locale} />
+      <HomeFaqCtaSection locale={locale} />
     </>
   );
 }

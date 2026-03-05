@@ -34,10 +34,22 @@ vi.mock("@/lib/api/client", () => ({
   apiPatch: mockApiPatch,
   ApiError: class ApiError extends Error {
     status: number;
-    constructor(msg: string, status: number) {
+    code?: string;
+    details?: Record<string, unknown>;
+    requestId?: string;
+    constructor(
+      msg: string,
+      status: number,
+      code?: string,
+      details?: Record<string, unknown>,
+      requestId?: string,
+    ) {
       super(msg);
       this.name = "ApiError";
       this.status = status;
+      this.code = code;
+      this.details = details;
+      this.requestId = requestId;
     }
   },
 }));
@@ -190,7 +202,30 @@ describe("useApiGet", () => {
 
     await waitFor(() => {
       expect(mockClearAuthSession).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith("/login?reauth=1");
+      expect(mockReplace).toHaveBeenCalledWith(
+        "/login?reauth=1&reason=api_unauthorized",
+      );
+    });
+  });
+
+  it("should include error code and request id in reauth redirect when available", async () => {
+    mockApiGet.mockRejectedValue(
+      new ApiError(
+        "Unauthorized",
+        401,
+        "UNAUTHORIZED",
+        undefined,
+        "req-1234-abcd",
+      ),
+    );
+
+    renderHook(() => useApiGet<TestItem>("/api/v1/items"));
+
+    await waitFor(() => {
+      expect(mockClearAuthSession).toHaveBeenCalled();
+      expect(mockReplace).toHaveBeenCalledWith(
+        "/login?reauth=1&reason=api_unauthorized&error_code=UNAUTHORIZED&request_id=req-1234-abcd",
+      );
     });
   });
 
@@ -201,7 +236,9 @@ describe("useApiGet", () => {
 
     await waitFor(() => {
       expect(mockClearAuthSession).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith("/login?reauth=1");
+      expect(mockReplace).toHaveBeenCalledWith(
+        "/login?reauth=1&reason=api_unauthorized",
+      );
     });
 
     // Error should NOT be set — 401 triggers redirect, not error display
@@ -576,7 +613,9 @@ describe("useApiGetPaginated", () => {
 
     await waitFor(() => {
       expect(mockClearAuthSession).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith("/login?reauth=1");
+      expect(mockReplace).toHaveBeenCalledWith(
+        "/login?reauth=1&reason=api_unauthorized",
+      );
     });
   });
 
@@ -885,7 +924,9 @@ describe("useApiPost", () => {
     });
 
     expect(mockClearAuthSession).toHaveBeenCalled();
-    expect(mockReplace).toHaveBeenCalledWith("/login?reauth=1");
+    expect(mockReplace).toHaveBeenCalledWith(
+      "/login?reauth=1&reason=api_unauthorized",
+    );
   });
 
   it("should reset data, error, and loading", async () => {
@@ -1017,7 +1058,9 @@ describe("useApiPatch", () => {
     });
 
     expect(mockClearAuthSession).toHaveBeenCalled();
-    expect(mockReplace).toHaveBeenCalledWith("/login?reauth=1");
+    expect(mockReplace).toHaveBeenCalledWith(
+      "/login?reauth=1&reason=api_unauthorized",
+    );
   });
 
   it("should reset data, error, and loading", async () => {

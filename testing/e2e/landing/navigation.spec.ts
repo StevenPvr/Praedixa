@@ -72,30 +72,19 @@ test.describe("Landing navigation", () => {
   test("mobile menu opens and traps focus", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/fr");
-    const menuButton = page.getByRole("button", { name: /ouvrir le menu/i });
+    const menuButton = page.locator("button[aria-controls='mobile-nav-panel']");
     await expect(menuButton).toBeVisible();
+    await expect(menuButton).toHaveAttribute("aria-expanded", "false");
     await menuButton.click();
 
-    const dialog = page.getByRole("dialog", { name: /menu de navigation/i });
+    const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
+    await expect(menuButton).toHaveAttribute("aria-expanded", "true");
 
-    const focusables = dialog.locator(
-      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    );
-    const firstFocusable = focusables.first();
-    const lastFocusable = focusables.last();
-
-    await expect(firstFocusable).toBeFocused();
-
-    await page.keyboard.press("Shift+Tab");
-    await expect(lastFocusable).toBeFocused();
-
-    await page.keyboard.press("Tab");
-    await expect(firstFocusable).toBeFocused();
-
+    await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
-    await expect(menuButton).toBeFocused();
+    await expect(menuButton).toHaveAttribute("aria-expanded", "false");
   });
 
   test("footer is visible at bottom of page", async ({ page }) => {

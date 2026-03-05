@@ -51,6 +51,40 @@ describe("DataTable", () => {
       expect(getRowKey).toHaveBeenCalledWith(sampleData[2], 2);
     });
 
+    it("does not emit duplicate key warnings when getRowKey returns duplicates", () => {
+      const duplicateData: TestRow[] = [
+        { id: 1, name: "Alice", email: "alice@test.com" },
+        { id: 1, name: "Bob", email: "bob@test.com" },
+      ];
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      try {
+        render(
+          <DataTable
+            columns={sampleColumns}
+            data={duplicateData}
+            getRowKey={(row) => row.id}
+          />,
+        );
+
+        const hasDuplicateKeyWarning = consoleErrorSpy.mock.calls.some((args) =>
+          args.some(
+            (arg) =>
+              typeof arg === "string" &&
+              arg.includes(
+                'Each child in a list should have a unique "key" prop',
+              ),
+          ),
+        );
+
+        expect(hasDuplicateKeyWarning).toBe(false);
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
+    });
+
     it("renders cell value as string from row property by default", () => {
       render(<DataTable columns={sampleColumns} data={sampleData} />);
       // id=1 should be rendered as "1"

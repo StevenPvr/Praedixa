@@ -90,11 +90,20 @@ Variables shell requises:
 - `AUTH_OIDC_ISSUER_URL`
 - `AUTH_SESSION_SECRET`
 
+Variables shell requises pour `webapp` uniquement (rate limit distribue):
+
+- `AUTH_RATE_LIMIT_REDIS_URL` (ou `RATE_LIMIT_STORAGE_URI`)
+
 Variables optionnelles:
 
 - `AUTH_OIDC_CLIENT_ID` (defaut selon app)
 - `AUTH_OIDC_SCOPE` (defaut: `openid profile email offline_access`)
 - `AUTH_OIDC_CLIENT_SECRET`
+- `AUTH_TRUST_X_FORWARDED_FOR` (`0` ou `1`, defaut: `0`)
+- `AUTH_RATE_LIMIT_KEY_PREFIX` (defaut: `prx:auth:rl`)
+- `AUTH_RATE_LIMIT_KEY_SALT` (recommande)
+- `AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS` (defaut: `300`)
+- `AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS` (defaut: `300`)
 
 ### Landing (`scw-configure-landing-env.sh`)
 
@@ -156,6 +165,21 @@ DNS_DELEGATION_MODE=full ./scripts/scw-preflight-staging.sh
 - Realm: `praedixa`.
 - Clients: `praedixa-webapp`, `praedixa-admin`, `praedixa-api`.
 - Roles: `super_admin`, `org_admin`, `hr_manager`, `manager`, `employee`, `viewer`.
+
+### Provisionner le super admin Praedixa
+
+Script idempotent fourni:
+
+```bash
+KEYCLOAK_ADMIN_PASSWORD='<mot-de-passe-admin-keycloak>' \
+SUPER_ADMIN_PASSWORD='praedixa2026!' \
+SUPER_ADMIN_EMAIL='admin@praedixa.com' \
+./scripts/keycloak-ensure-super-admin.sh
+```
+
+Notes:
+- `KEYCLOAK_ADMIN_USERNAME` est `kcadmin` par defaut (surcharge possible en variable d'environnement).
+- Le script cree le compte s'il n'existe pas, force le mot de passe et garantit le role `super_admin`.
 
 ## Stockage et data plane FR
 

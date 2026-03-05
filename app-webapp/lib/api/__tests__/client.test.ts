@@ -51,14 +51,21 @@ const noToken = () => Promise.resolve(null);
 // ---------------------------------------------------------------------------
 
 describe("ApiError", () => {
-  it("should set message, status, code, and details", () => {
+  it("should set message, status, code, details, and requestId", () => {
     const details = { field: "email" };
-    const err = new ApiError("Something went wrong", 422, "VAL_001", details);
+    const err = new ApiError(
+      "Something went wrong",
+      422,
+      "VAL_001",
+      details,
+      "req-1234",
+    );
 
     expect(err.message).toBe("Something went wrong");
     expect(err.status).toBe(422);
     expect(err.code).toBe("VAL_001");
     expect(err.details).toEqual({ field: "email" });
+    expect(err.requestId).toBe("req-1234");
   });
 
   it('should have name "ApiError"', () => {
@@ -71,10 +78,11 @@ describe("ApiError", () => {
     expect(err).toBeInstanceOf(Error);
   });
 
-  it("should allow code and details to be undefined", () => {
+  it("should allow code, details, and requestId to be undefined", () => {
     const err = new ApiError("not found", 404);
     expect(err.code).toBeUndefined();
     expect(err.details).toBeUndefined();
+    expect(err.requestId).toBeUndefined();
   });
 });
 
@@ -163,6 +171,7 @@ describe("apiGet", () => {
         code: "RES_001",
         details: { resource: "item" },
       },
+      requestId: "req-404-1",
     };
     mockFetch.mockResolvedValueOnce(jsonResponse(errorBody, 404));
 
@@ -185,6 +194,7 @@ describe("apiGet", () => {
       expect(apiErr.status).toBe(404);
       expect(apiErr.code).toBe("RES_001");
       expect(apiErr.details).toEqual({ resource: "item" });
+      expect(apiErr.requestId).toBe("req-404-1");
     }
   });
 

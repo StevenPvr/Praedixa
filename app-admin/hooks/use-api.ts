@@ -20,6 +20,19 @@ function useAccessToken(): () => Promise<string | null> {
 
 type RouterLike = Pick<ReturnType<typeof useRouter>, "replace">;
 
+const UNEXPECTED_ERROR = "Une erreur inattendue est survenue";
+const AUTO_RETRY_DELAY_MS = 1500;
+
+function isRetryableError(err: unknown): boolean {
+  if (!(err instanceof ApiError)) {
+    return true;
+  }
+  if (err.status === 408 || err.status === 429) {
+    return true;
+  }
+  return err.status >= 500;
+}
+
 async function redirectToReauth(router: RouterLike): Promise<void> {
   await clearAuthSession();
   router.replace("/login?reauth=1");
@@ -34,7 +47,7 @@ interface UseApiGetResult<T> {
 
 export function useApiGet<T>(
   url: string | null,
-  options?: { pollInterval?: number },
+  options?: { pollInterval?: number; autoRetry?: boolean; retryDelayMs?: number },
 ): UseApiGetResult<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,16 +55,26 @@ export function useApiGet<T>(
   const router = useRouter();
   const getAccessToken = useAccessToken();
   const fetchIdRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoRetryEnabled = options?.autoRetry ?? true;
+  const retryDelayMs = options?.retryDelayMs ?? AUTO_RETRY_DELAY_MS;
 
   const fetchData = useCallback(
-    async (signal: AbortSignal, options?: { silent?: boolean }) => {
+    async (
+      signal: AbortSignal,
+      fetchOptions?: { silent?: boolean; fromRetry?: boolean },
+    ) => {
       if (!url) {
+        if (retryTimerRef.current) {
+          clearTimeout(retryTimerRef.current);
+          retryTimerRef.current = null;
+        }
         setLoading(false);
         return;
       }
 
       const id = ++fetchIdRef.current;
-      if (!options?.silent) {
+      if (!fetchOptions?.silent) {
         setLoading(true);
         setError(null);
       }
@@ -60,38 +83,75 @@ export function useApiGet<T>(
         const response = await apiGet<T>(url, getAccessToken, { signal });
         if (id === fetchIdRef.current) {
           setData(response.data);
+          setError(null);
+          if (retryTimerRef.current) {
+            clearTimeout(retryTimerRef.current);
+            retryTimerRef.current = null;
+          }
         }
       } catch (err) {
         if (signal.aborted) return;
-        /* v8 ignore next -- stale fetch race guard */
+        /* v8 ignore next -- stale fetch race guard; exercised in concurrent scenarios but non-deterministic under StrictMode */
         if (id !== fetchIdRef.current) return;
 
         if (err instanceof ApiError && err.status === 401) {
-          if (options?.silent) return;
+          if (retryTimerRef.current) {
+            clearTimeout(retryTimerRef.current);
+            retryTimerRef.current = null;
+          }
+          if (fetchOptions?.silent) return;
           await redirectToReauth(router);
           return;
         }
 
-        if (!options?.silent) {
-          setError(
-            err instanceof ApiError
-              ? err.message
-              : "Une erreur inattendue est survenue",
-          );
+        if (!fetchOptions?.silent) {
+          setError(err instanceof ApiError ? err.message : UNEXPECTED_ERROR);
+        }
+
+        if (
+          autoRetryEnabled &&
+          ((fetchOptions?.fromRetry ?? false) || !fetchOptions?.silent) &&
+          !options?.pollInterval &&
+          isRetryableError(err)
+        ) {
+          if (retryTimerRef.current) {
+            clearTimeout(retryTimerRef.current);
+          }
+          retryTimerRef.current = setTimeout(() => {
+            const controller = new AbortController();
+            void fetchData(controller.signal, { silent: true, fromRetry: true });
+          }, retryDelayMs);
         }
       } finally {
-        if (id === fetchIdRef.current && !signal.aborted && !options?.silent) {
+        if (
+          id === fetchIdRef.current &&
+          !signal.aborted &&
+          !fetchOptions?.silent
+        ) {
           setLoading(false);
         }
       }
     },
-    [url, getAccessToken, router],
+    [
+      autoRetryEnabled,
+      getAccessToken,
+      options?.pollInterval,
+      retryDelayMs,
+      router,
+      url,
+    ],
   );
 
   useEffect(() => {
     const controller = new AbortController();
     void fetchData(controller.signal);
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
+    };
   }, [fetchData]);
 
   // Polling: silently refetch at a regular interval (skip cycle on 401)
@@ -131,6 +191,7 @@ export function useApiGetPaginated<T>(
   url: string,
   page: number,
   limit: number,
+  options?: { pollInterval?: number; autoRetry?: boolean; retryDelayMs?: number },
 ): UseApiGetPaginatedResult<T> {
   const [data, setData] = useState<T[]>([]);
   const [total, setTotal] = useState(0);
@@ -140,15 +201,23 @@ export function useApiGetPaginated<T>(
   const router = useRouter();
   const getAccessToken = useAccessToken();
   const fetchIdRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoRetryEnabled = options?.autoRetry ?? true;
+  const retryDelayMs = options?.retryDelayMs ?? AUTO_RETRY_DELAY_MS;
 
   const separator = url.includes("?") ? "&" : "?";
   const fullUrl = `${url}${separator}page=${page}&page_size=${limit}`;
 
   const fetchData = useCallback(
-    async (signal: AbortSignal) => {
+    async (
+      signal: AbortSignal,
+      fetchOptions?: { silent?: boolean; fromRetry?: boolean },
+    ) => {
       const id = ++fetchIdRef.current;
-      setLoading(true);
-      setError(null);
+      if (!fetchOptions?.silent) {
+        setLoading(true);
+        setError(null);
+      }
 
       try {
         const response = await apiGetPaginated<T>(fullUrl, getAccessToken, {
@@ -158,36 +227,94 @@ export function useApiGetPaginated<T>(
           setData(response.data);
           setTotal(response.pagination.total);
           setPagination(response.pagination);
+          setError(null);
+          if (retryTimerRef.current) {
+            clearTimeout(retryTimerRef.current);
+            retryTimerRef.current = null;
+          }
         }
       } catch (err) {
         if (signal.aborted) return;
-        /* v8 ignore next -- stale fetch race guard */
+        /* v8 ignore next -- stale fetch race guard; exercised in concurrent scenarios but non-deterministic under StrictMode */
         if (id !== fetchIdRef.current) return;
 
         if (err instanceof ApiError && err.status === 401) {
+          if (retryTimerRef.current) {
+            clearTimeout(retryTimerRef.current);
+            retryTimerRef.current = null;
+          }
+          if (fetchOptions?.silent) return;
           await redirectToReauth(router);
           return;
         }
 
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Une erreur inattendue est survenue",
-        );
+        if (!fetchOptions?.silent) {
+          setError(err instanceof ApiError ? err.message : UNEXPECTED_ERROR);
+        }
+
+        if (
+          autoRetryEnabled &&
+          ((fetchOptions?.fromRetry ?? false) || !fetchOptions?.silent) &&
+          !options?.pollInterval &&
+          isRetryableError(err)
+        ) {
+          if (retryTimerRef.current) {
+            clearTimeout(retryTimerRef.current);
+          }
+          retryTimerRef.current = setTimeout(() => {
+            const controller = new AbortController();
+            void fetchData(controller.signal, {
+              silent: true,
+              fromRetry: true,
+            });
+          }, retryDelayMs);
+        }
       } finally {
-        if (id === fetchIdRef.current && !signal.aborted) {
+        if (
+          id === fetchIdRef.current &&
+          !signal.aborted &&
+          !fetchOptions?.silent
+        ) {
           setLoading(false);
         }
       }
     },
-    [fullUrl, getAccessToken, router],
+    [
+      autoRetryEnabled,
+      fullUrl,
+      getAccessToken,
+      options?.pollInterval,
+      retryDelayMs,
+      router,
+    ],
   );
 
   useEffect(() => {
     const controller = new AbortController();
     void fetchData(controller.signal);
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
+    };
   }, [fetchData]);
+
+  useEffect(() => {
+    const interval = options?.pollInterval;
+    if (!interval) return;
+    let pollController: AbortController | null = null;
+    const id = setInterval(() => {
+      pollController?.abort();
+      pollController = new AbortController();
+      void fetchData(pollController.signal, { silent: true });
+    }, interval);
+    return () => {
+      clearInterval(id);
+      pollController?.abort();
+    };
+  }, [options?.pollInterval, fetchData]);
 
   const refetch = useCallback(() => {
     const controller = new AbortController();

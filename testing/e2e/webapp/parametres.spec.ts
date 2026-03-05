@@ -1,19 +1,6 @@
-import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures/coverage";
 import { setupAuth } from "./fixtures/auth";
 import { mockAllApis } from "./fixtures/api-mocks";
-
-async function gotoSettingsPage(page: Page) {
-  await page.goto("/parametres");
-  if (page.url().includes("/login")) {
-    await setupAuth(page);
-    await page.goto("/parametres");
-  }
-  await expect(
-    page.getByRole("heading", { name: "Gouvernance et reglages", level: 1 }),
-  ).toBeVisible();
-  await expect(page.getByLabel("Baremes de couts")).toBeVisible();
-}
 
 test.describe("Parametres page", () => {
   test.beforeEach(async ({ page }) => {
@@ -22,124 +9,47 @@ test.describe("Parametres page", () => {
   });
 
   test("displays page title and subtitle", async ({ page }) => {
-    await gotoSettingsPage(page);
-    await expect(
-      page.getByRole("heading", { name: "Gouvernance et reglages", level: 1 }),
-    ).toBeVisible();
-    await expect(
-      page.getByText(
-        "Cadrez les couts, seuils et parametres operationnels de votre organisation.",
-      ),
-    ).toBeVisible();
-  });
+    await page.goto("/parametres");
 
-  test("displays tab bar with all settings tabs", async ({ page }) => {
-    await gotoSettingsPage(page);
     await expect(
-      page.getByRole("tab", { name: "Barèmes de coûts" }),
+      page.getByRole("heading", { name: "Parametres", level: 1 }),
     ).toBeVisible();
     await expect(
-      page.getByRole("tab", { name: "Horaires des postes" }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("tab", { name: "Seuils d'alerte" }),
-    ).toBeVisible();
-    await expect(page.getByRole("tab", { name: "Sites" })).toBeVisible();
-    await expect(
-      page.getByRole("tab", { name: "Exporter les données" }),
+      page.getByText("Gestion du compte et preferences utilisateur essentielles."),
     ).toBeVisible();
   });
 
-  test("cost tab is active by default and shows table", async ({ page }) => {
-    await gotoSettingsPage(page);
+  test("displays profile section", async ({ page }) => {
+    await page.goto("/parametres");
 
-    const section = page.getByLabel("Baremes de couts");
-    await expect(section).toBeVisible();
-    await expect(section.getByText("Baremes de couts par site")).toBeVisible();
-    await expect(
-      section.getByRole("columnheader", { name: "Site" }),
-    ).toBeVisible();
-    await expect(section.getByText("Valeur par défaut")).toBeVisible();
-    await expect(section.getByText("Lyon-Sat")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Profil" })).toBeVisible();
+    await expect(page.getByText("Email")).toBeVisible();
+    await expect(page.getByText("Role")).toBeVisible();
+    await expect(page.getByText("Organisation")).toBeVisible();
   });
 
-  test("shifts tab displays shift configuration", async ({ page }) => {
-    await gotoSettingsPage(page);
-    await page
-      .getByRole("tab", { name: "Horaires des postes" })
-      .click({ timeout: 15_000, force: true });
+  test("language switch is available", async ({ page }) => {
+    await page.goto("/parametres");
 
-    const section = page.getByLabel("Horaires des postes");
-    await expect(section).toBeVisible();
-    await expect(section.getByText("AM")).toBeVisible();
-    await expect(section.getByText("PM")).toBeVisible();
-    await expect(section.getByText("Matin")).toBeVisible();
-    await expect(section.getByText("Apres-midi")).toBeVisible();
+    const languageSelect = page.locator("select").filter({ hasText: "Francais" });
+    await expect(languageSelect).toBeVisible();
+    await languageSelect.selectOption("en");
+    await expect(languageSelect).toHaveValue("en");
   });
 
-  test("seuils tab displays alert thresholds", async ({ page }) => {
-    await gotoSettingsPage(page);
-    await page
-      .getByRole("tab", { name: "Seuils d'alerte" })
-      .click({ force: true });
+  test("notifications checkbox is persisted in localStorage", async ({ page }) => {
+    await page.goto("/parametres");
 
-    const section = page.getByLabel("Seuils d'alerte");
-    await expect(section).toBeVisible();
-    await expect(
-      section.getByText("Seuil de risque sous-effectif"),
-    ).toBeVisible();
-    await expect(section.getByText("20%")).toBeVisible();
-    await expect(section.getByText("8%")).toBeVisible();
-    await expect(section.getByText("3j")).toBeVisible();
-    await expect(section.getByText("85%")).toBeVisible();
-  });
+    const checkbox = page.getByLabel("Alertes critiques uniquement");
+    await expect(checkbox).toBeVisible();
+    await checkbox.uncheck();
 
-  test("sites tab displays sites table", async ({ page }) => {
-    await gotoSettingsPage(page);
-    await page.getByRole("tab", { name: "Sites" }).click({ force: true });
-
-    const section = page.getByLabel("Configuration des sites");
-    await expect(section).toBeVisible();
-    await expect(section.getByText("Paris CDG")).toBeVisible();
-    await expect(section.getByText("Lyon Saint-Exupery")).toBeVisible();
-  });
-
-  test("export tab displays export buttons", async ({ page }) => {
-    await gotoSettingsPage(page);
-    await page
-      .getByRole("tab", { name: "Exporter les données" })
-      .click({ timeout: 15_000, force: true });
-
-    const section = page.getByLabel("Exporter les donnees");
-    await expect(section).toBeVisible();
-    await expect(
-      section.getByText(
-        "Telechargez vos donnees au format tableur (CSV) ou document (PDF)",
-      ),
-    ).toBeVisible();
-    await expect(
-      section.getByRole("button", { name: "Telecharger CSV" }),
-    ).toBeVisible();
-    await expect(
-      section.getByRole("button", { name: "Telecharger PDF" }),
-    ).toBeVisible();
-  });
-
-  test("switching between tabs hides previous tab content", async ({
-    page,
-  }) => {
-    await gotoSettingsPage(page);
-
-    await page
-      .getByRole("tab", { name: "Horaires des postes" })
-      .click({ timeout: 15_000, force: true });
-    await expect(page.getByLabel("Horaires des postes")).toBeVisible();
-    await expect(page.getByLabel("Baremes de couts")).not.toBeVisible();
-
-    await page
-      .getByRole("tab", { name: "Exporter les données" })
-      .click({ timeout: 15_000, force: true });
-    await expect(page.getByLabel("Exporter les donnees")).toBeVisible();
-    await expect(page.getByLabel("Horaires des postes")).not.toBeVisible();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () => window.localStorage.getItem("praedixa_notifications_critical_only"),
+        ),
+      )
+      .toBe("0");
   });
 });

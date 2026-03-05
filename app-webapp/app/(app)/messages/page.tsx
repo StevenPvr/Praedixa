@@ -1,231 +1,226 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { MessageSquare } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
-import { DetailCard } from "@/components/ui/detail-card";
+import { useCallback, useMemo, useState } from "react";
 import { useApiGet, useApiPost } from "@/hooks/use-api";
-import { ErrorFallback } from "@/components/error-fallback";
-import { ConversationList } from "@/components/chat/conversation-list";
-import { MessageThread } from "@/components/chat/message-thread";
-import { MessageInput } from "@/components/chat/message-input";
-import { PageTransition } from "@/components/page-transition";
 import { useCurrentUser } from "@/lib/auth/client";
 import type { Conversation, ConversationMessage } from "@/lib/api/endpoints";
-import { CHAT_POLL_INTERVAL_MS } from "@/lib/chat-config";
+import { ConversationList } from "@/components/chat/conversation-list";
+import { MessageInput } from "@/components/chat/message-input";
+import { MessageThread } from "@/components/chat/message-thread";
+import { cn } from "@praedixa/ui";
 
 interface CreateConversationBody {
   subject: string;
 }
 
-interface SendMessageBody {
+interface SendConversationMessageBody {
   content: string;
 }
 
+const STATUS_LABELS: Record<Conversation["status"], string> = {
+  open: "Ouvert",
+  resolved: "Resolu",
+  archived: "Archive",
+};
+
+const STATUS_STYLES: Record<Conversation["status"], string> = {
+  open: "bg-success-light text-success-text",
+  resolved: "bg-border text-ink-secondary",
+  archived: "bg-border text-ink-secondary",
+};
+
 export default function MessagesPage() {
-  const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
-  const [showNewConvInput, setShowNewConvInput] = useState(false);
-  const [newSubject, setNewSubject] = useState("");
   const currentUser = useCurrentUser();
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newConversationSubject, setNewConversationSubject] = useState("");
 
   const {
-    data: conversations,
-    loading: convsLoading,
-    error: convsError,
-    refetch: refetchConvs,
+    data: conversationsData,
+    loading: conversationsLoading,
+    error: conversationsError,
+    refetch: refetchConversations,
   } = useApiGet<Conversation[]>("/api/v1/conversations", {
-    pollInterval: CHAT_POLL_INTERVAL_MS,
+    pollInterval: 5000,
   });
 
+  const conversations = useMemo(
+    () => (Array.isArray(conversationsData) ? conversationsData : []),
+    [conversationsData],
+  );
+
+  const selectedConversation = useMemo(
+    () => conversations.find((conversation) => conversation.id === selectedConversationId) ?? null,
+    [conversations, selectedConversationId],
+  );
+
+  const messagesUrl = selectedConversationId
+    ? `/api/v1/conversations/${encodeURIComponent(selectedConversationId)}/messages`
+    : null;
+
   const {
-    data: messages,
-    loading: msgsLoading,
-    error: msgsError,
+    data: messagesData,
+    loading: messagesLoading,
+    error: messagesError,
     refetch: refetchMessages,
-  } = useApiGet<ConversationMessage[]>(
-    selectedConvId
-      ? `/api/v1/conversations/${encodeURIComponent(selectedConvId)}/messages`
-      : null,
-    { pollInterval: CHAT_POLL_INTERVAL_MS },
+  } = useApiGet<ConversationMessage[]>(messagesUrl, {
+    pollInterval: 4000,
+  });
+
+  const orderedMessages = useMemo(
+    () => [...(messagesData ?? [])].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    [messagesData],
   );
 
-  const { mutate: createConv, loading: creating } = useApiPost<
-    CreateConversationBody,
-    Conversation
-  >("/api/v1/conversations");
+  const {
+    mutate: createConversation,
+    loading: creatingConversation,
+    error: createConversationError,
+  } = useApiPost<CreateConversationBody, Conversation>("/api/v1/conversations");
 
-  const { mutate: sendMsg, loading: sendingMsg } = useApiPost<
-    SendMessageBody,
-    ConversationMessage
-  >(
-    selectedConvId
-      ? `/api/v1/conversations/${encodeURIComponent(selectedConvId)}/messages`
-      : "/api/v1/conversations",
+  const {
+    mutate: sendMessage,
+    loading: sendingMessage,
+    error: sendMessageError,
+  } = useApiPost<SendConversationMessageBody, ConversationMessage>(
+    selectedConversationId
+      ? `/api/v1/conversations/${encodeURIComponent(selectedConversationId)}/messages`
+      : "/api/v1/conversations/__none__/messages",
   );
 
-  const selectedConv =
-    conversations?.find((c) => c.id === selectedConvId) ?? null;
+  const combinedError =
+    conversationsError ?? messagesError ?? createConversationError ?? sendMessageError;
 
-  const handleSelectConversation = useCallback((id: string) => {
-    setSelectedConvId(id);
-    setShowNewConvInput(false);
-  }, []);
+  const canSend = selectedConversation?.status === "open";
+  const trimmedSubject = newConversationSubject.trim();
 
-  const handleNewConversation = useCallback(() => {
-    setShowNewConvInput(true);
-    setSelectedConvId(null);
-  }, []);
+  const handleCreateConversation = useCallback(async (): Promise<void> => {
+    const subject = newConversationSubject.trim();
+    if (!subject) return;
+    const created = await createConversation({ subject });
+    if (!created) return;
 
-  const handleCreateConversation = useCallback(async () => {
-    const trimmed = newSubject.trim();
-    if (!trimmed || creating) return;
-    const result = await createConv({ subject: trimmed });
-    if (result) {
-      setNewSubject("");
-      setShowNewConvInput(false);
-      setSelectedConvId(result.id);
-      refetchConvs();
-    }
-  }, [newSubject, creating, createConv, refetchConvs]);
+    setSelectedConversationId(created.id);
+    setShowCreateForm(false);
+    setNewConversationSubject("");
+    refetchConversations();
+  }, [createConversation, newConversationSubject, refetchConversations]);
 
   const handleSendMessage = useCallback(
-    (content: string) => {
-      if (!selectedConvId) return;
-      void sendMsg({ content }).then((result) => {
-        if (result) {
-          refetchMessages();
-          refetchConvs();
-        }
-      });
+    async (content: string): Promise<void> => {
+      if (!selectedConversationId) return;
+      const sent = await sendMessage({ content });
+      if (!sent) return;
+
+      refetchMessages();
+      refetchConversations();
     },
-    [selectedConvId, sendMsg, refetchMessages, refetchConvs],
+    [refetchConversations, refetchMessages, selectedConversationId, sendMessage],
   );
 
-  const isConversationClosed =
-    selectedConv?.status === "resolved" || selectedConv?.status === "archived";
-
-  if (convsError) {
-    return (
-      <PageTransition>
-        <div className="space-y-12">
-          <PageHeader
-            eyebrow="Suivre"
-            title="Support strategique"
-            subtitle="Coordonnez vos decisions avec l'equipe Praedixa."
-          />
-          <ErrorFallback
-            variant="api"
-            message={convsError}
-            onRetry={refetchConvs}
-          />
-        </div>
-      </PageTransition>
-    );
-  }
-
   return (
-    <PageTransition>
-      <div className="min-h-full space-y-12">
-        <PageHeader
-          eyebrow="Suivre"
-          title="Support strategique"
-          subtitle="Coordonnez vos decisions avec l'equipe Praedixa."
-        />
+    <div className="min-h-full space-y-6">
+      <section className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-secondary">
+          Support
+        </p>
+        <h1 className="text-2xl font-semibold text-ink">Messagerie support</h1>
+        <p className="text-sm text-ink-secondary">
+          Un sujet par conversation. Posez votre question et suivez la reponse ici.
+        </p>
+      </section>
 
-        <DetailCard className="p-0">
-          <div className="flex h-[calc(100vh-220px)] min-h-[500px]">
-            <div className="w-80 shrink-0 border-r border-border bg-surface-sunken">
-              <ConversationList
-                conversations={conversations ?? []}
-                selectedId={selectedConvId}
-                onSelect={handleSelectConversation}
-                onNewConversation={handleNewConversation}
-                loading={convsLoading}
+      {combinedError && (
+        <div
+          data-testid="error-fallback"
+          className="rounded-xl border border-warning-light bg-warning-light/20 px-4 py-3 text-sm text-warning-text"
+        >
+          {combinedError}
+        </div>
+      )}
+
+      {showCreateForm && (
+        <section className="rounded-xl border border-border bg-card px-4 py-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <div className="flex-1 space-y-1">
+              <label htmlFor="new-conversation-subject" className="text-sm font-medium text-ink">
+                Sujet
+              </label>
+              <input
+                id="new-conversation-subject"
+                value={newConversationSubject}
+                onChange={(event) => setNewConversationSubject(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") return;
+                  event.preventDefault();
+                  void handleCreateConversation();
+                }}
+                placeholder="Resumez votre besoin en une phrase"
+                className="h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-ink outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
               />
             </div>
-
-            <div className="flex flex-1 flex-col">
-              {showNewConvInput && (
-                <div className="border-b border-border px-4 py-3">
-                  <label
-                    htmlFor="new-conv-subject"
-                    className="mb-1 block text-title-sm text-ink"
-                  >
-                    Sujet de la conversation
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      id="new-conv-subject"
-                      value={newSubject}
-                      onChange={(e) => setNewSubject(e.target.value)}
-                      placeholder="Ex: Question sur les previsions"
-                      className="flex-1 rounded-lg border border-border bg-surface-sunken px-3 py-2 text-body-sm text-ink outline-none transition-all duration-fast focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          void handleCreateConversation();
-                        }
-                      }}
-                    />
-                    <button
-                      onClick={() => void handleCreateConversation()}
-                      disabled={!newSubject.trim() || creating}
-                      className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-all duration-normal hover:bg-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
-                    >
-                      {creating ? "Creation..." : "Creer"}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {selectedConv && (
-                <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-                  <MessageSquare className="h-5 w-5 text-ink-tertiary" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-body font-medium text-ink">
-                      {selectedConv.subject}
-                    </p>
-                    <p className="text-caption text-ink-secondary">
-                      {selectedConv.status === "open"
-                        ? "En cours"
-                        : selectedConv.status === "resolved"
-                          ? "Resolu"
-                          : "Archive"}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {msgsError ? (
-                <div className="flex-1 p-4">
-                  <ErrorFallback
-                    variant="api"
-                    message={msgsError}
-                    onRetry={refetchMessages}
-                  />
-                </div>
-              ) : (
-                <MessageThread
-                  messages={messages ?? []}
-                  currentUserId={
-                    selectedConvId ? (currentUser?.id ?? null) : null
-                  }
-                  loading={msgsLoading}
-                  conversationStatus={selectedConv?.status}
-                />
-              )}
-
-              {selectedConvId && !showNewConvInput && (
-                <MessageInput
-                  onSend={handleSendMessage}
-                  disabled={isConversationClosed ?? false}
-                  sending={sendingMsg}
-                />
-              )}
-            </div>
+            <button
+              type="button"
+              disabled={trimmedSubject.length === 0 || creatingConversation}
+              onClick={() => {
+                void handleCreateConversation();
+              }}
+              className="h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {creatingConversation ? "Creation..." : "Creer le sujet"}
+            </button>
           </div>
-        </DetailCard>
-      </div>
-    </PageTransition>
+        </section>
+      )}
+
+      <section className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="min-h-[560px] overflow-hidden rounded-xl border border-border bg-card">
+          <ConversationList
+            conversations={conversations}
+            selectedId={selectedConversationId}
+            onSelect={setSelectedConversationId}
+            onNewConversation={() => setShowCreateForm(true)}
+            loading={conversationsLoading}
+          />
+        </div>
+
+        <div className="flex min-h-[560px] flex-col overflow-hidden rounded-xl border border-border bg-card">
+          {selectedConversation ? (
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <p className="truncate text-sm font-semibold text-ink">{selectedConversation.subject}</p>
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                  STATUS_STYLES[selectedConversation.status],
+                )}
+              >
+                {STATUS_LABELS[selectedConversation.status]}
+              </span>
+            </div>
+          ) : (
+            <div className="border-b border-border px-4 py-3 text-sm text-ink-secondary">
+              Selectionnez une conversation ou creez un nouveau sujet.
+            </div>
+          )}
+
+          <MessageThread
+            messages={orderedMessages}
+            currentUserId={selectedConversation ? (currentUser?.id ?? null) : null}
+            loading={messagesLoading}
+            conversationStatus={selectedConversation?.status}
+          />
+
+          {selectedConversation && (
+            <MessageInput
+              onSend={(content) => {
+                void handleSendMessage(content);
+              }}
+              disabled={!canSend || sendingMessage}
+              sending={sendingMessage}
+            />
+          )}
+        </div>
+      </section>
+    </div>
   );
 }

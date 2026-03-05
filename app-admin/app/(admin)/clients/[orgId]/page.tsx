@@ -8,5 +8,5 @@ export default async function ClientRedirectPage({
   params,
 }: ClientRedirectPageProps) {
   const { orgId } = await params;
-  redirect(`/clients/${encodeURIComponent(orgId)}/vue-client`);
+  redirect(`/clients/${encodeURIComponent(orgId)}/dashboard`);
 }

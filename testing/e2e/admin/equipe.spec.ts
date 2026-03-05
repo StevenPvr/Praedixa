@@ -34,9 +34,9 @@ test.describe("Equipe tab", () => {
   test("shows invite button", async ({ page }) => {
     await page.goto(`/clients/${TEST_ORG_ID}/equipe`);
 
-    await expect(page.getByRole("button", { name: /Inviter/ })).toBeVisible({
-      timeout: 10000,
-    });
+    await expect(
+      page.getByRole("button", { name: "Creer un compte" }),
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test("displays role badges in the table", async ({ page }) => {

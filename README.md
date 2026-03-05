@@ -1,6 +1,6 @@
 # Praedixa
 
-**Pilotage economique des absences pour PME/ETI** — forecast de capacite globale (humain + marchandise) pour sites logistiques.
+**Pilotage economique de la couverture multi-sites pour PME/ETI** — boucle fermee: prevision, decision optimale, 1re action assistee, preuve ROI mensuelle.
 
 ## Structure
 
@@ -152,6 +152,14 @@ scripts/kcadm create users -r praedixa \
   -s emailVerified=true
 scripts/kcadm set-password -r praedixa --username ops.admin@praedixa.com --new-password "praedixa2026!"
 scripts/kcadm add-roles -r praedixa --uusername ops.admin@praedixa.com --rolename super_admin
+
+# 8) Garantir l'audience API dans les access tokens frontend (idempotent)
+scripts/keycloak-ensure-api-audience-mapper.sh
+
+# 9) Verifier le mapper d'audience pour le client webapp
+WEBAPP_CLIENT_ID="$(scripts/kcadm get clients -r praedixa -q clientId=praedixa-webapp | jq -r '.[0].id')"
+scripts/kcadm get "clients/${WEBAPP_CLIENT_ID}/protocol-mappers/models" -r praedixa \
+  | jq '.[] | select(.name=="audience-praedixa-api") | {name, protocolMapper, config}'
 ```
 
 Notes:

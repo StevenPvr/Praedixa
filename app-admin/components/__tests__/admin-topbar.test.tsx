@@ -7,6 +7,14 @@ vi.mock("@praedixa/ui", () => globalThis.__mocks.createUiMocks());
 
 vi.mock("lucide-react", () => globalThis.__mocks.createLucideIconMocks());
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
+vi.mock("../theme-toggle", () => ({
+  ThemeToggle: () => <div data-testid="theme-toggle" />,
+}));
+
 describe("AdminTopbar", () => {
   it("renders the Admin breadcrumb prefix", () => {
     render(<AdminTopbar mobileOpen={false} onToggleMobile={vi.fn()} />);
@@ -53,9 +61,9 @@ describe("AdminTopbar", () => {
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
-  it("renders admin avatar placeholder", () => {
+  it("renders user avatar placeholder", () => {
     render(<AdminTopbar mobileOpen={false} onToggleMobile={vi.fn()} />);
-    expect(screen.getByText("A")).toBeInTheDocument();
+    expect(screen.getByText("U")).toBeInTheDocument();
   });
 
   it("renders as a header element", () => {

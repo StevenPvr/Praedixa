@@ -29,10 +29,10 @@ describe("Admin LoginPage", () => {
     });
   });
 
-  it("renders admin subtitle", () => {
+  it("renders admin login header", () => {
     render(<LoginPage />);
 
-    expect(screen.getByText("Espace administration")).toBeInTheDocument();
+    expect(screen.getByText("Connexion securisee")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Continuer vers la connexion" }),
     ).toBeInTheDocument();
@@ -51,9 +51,7 @@ describe("Admin LoginPage", () => {
     mockSearchParams = new URLSearchParams("error=auth_callback_failed");
     render(<LoginPage />);
 
-    expect(
-      screen.getByText(/La connexion a echoue \(auth_callback_failed\)/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/La connexion a echoue/)).toBeInTheDocument();
   });
 
   it("renders explicit missing OIDC config banner", () => {

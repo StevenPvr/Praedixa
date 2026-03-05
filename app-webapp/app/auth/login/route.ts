@@ -11,12 +11,49 @@ import {
   sanitizeNextPath,
   secureCookie,
 } from "@/lib/auth/oidc";
+import { consumeRateLimit } from "@/lib/auth/rate-limit";
+
+type RateLimitSnapshot = Awaited<ReturnType<typeof consumeRateLimit>>;
+
+function noStoreRedirect(url: string | URL): NextResponse {
+  const response = NextResponse.redirect(url.toString());
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Pragma", "no-cache");
+  return response;
+}
+
+function applyRateLimitHeaders(
+  response: NextResponse,
+  limit: number,
+  rate: RateLimitSnapshot,
+): void {
+  response.headers.set("X-RateLimit-Limit", String(limit));
+  response.headers.set("X-RateLimit-Remaining", String(rate.remaining));
+  response.headers.set("X-RateLimit-Reset", String(rate.resetAtEpochSeconds));
+  if (!rate.allowed) {
+    response.headers.set("Retry-After", String(rate.retryAfterSeconds));
+  }
+}
 
 export async function GET(request: NextRequest) {
   const next = sanitizeNextPath(
     request.nextUrl.searchParams.get("next"),
     "/dashboard",
   );
+  const maxAttempts = 20;
+  const rate = await consumeRateLimit(request, {
+    scope: "auth:login",
+    max: maxAttempts,
+    windowMs: 60_000,
+  });
+  if (!rate.allowed) {
+    const fallbackUrl = new URL("/login", request.nextUrl.origin);
+    fallbackUrl.searchParams.set("error", "rate_limited");
+    fallbackUrl.searchParams.set("next", next);
+    const response = noStoreRedirect(fallbackUrl.toString());
+    applyRateLimitHeaders(response, maxAttempts, rate);
+    return response;
+  }
 
   try {
     const { issuerUrl, clientId, scope } = getOidcEnv();
@@ -41,7 +78,7 @@ export async function GET(request: NextRequest) {
       authUrl.searchParams.set("prompt", "login");
     }
 
-    const response = NextResponse.redirect(authUrl.toString());
+    const response = noStoreRedirect(authUrl.toString());
     const secure = secureCookie(request);
 
     response.cookies.set(LOGIN_STATE_COOKIE, state, {
@@ -65,6 +102,7 @@ export async function GET(request: NextRequest) {
       path: "/",
       maxAge: 600,
     });
+    applyRateLimitHeaders(response, maxAttempts, rate);
 
     return response;
   } catch (error) {
@@ -76,6 +114,8 @@ export async function GET(request: NextRequest) {
         : "oidc_provider_untrusted",
     );
     fallbackUrl.searchParams.set("next", next);
-    return NextResponse.redirect(fallbackUrl.toString());
+    const response = noStoreRedirect(fallbackUrl.toString());
+    applyRateLimitHeaders(response, maxAttempts, rate);
+    return response;
   }
 }

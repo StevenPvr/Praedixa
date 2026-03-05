@@ -47,7 +47,7 @@ describe("AuthLayout", () => {
     );
     const root = container.firstElementChild;
     expect(root?.className).toContain("grid");
-    expect(root?.className).toContain("min-h-screen");
+    expect(root?.className).toContain("min-h-[100dvh]");
     expect(root?.className).toContain("lg:grid-cols-2");
   });
 });

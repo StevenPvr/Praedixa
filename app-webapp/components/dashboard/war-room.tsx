@@ -1,362 +1,185 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import {
-  AlertTriangle,
-  ArrowUpRight,
-  FileText,
-  ShieldAlert,
-  Siren,
-  Target,
-} from "lucide-react";
+import { useMemo } from "react";
 import type {
+  CanonicalQualityDashboard,
   CoverageAlert,
   DashboardSummary,
-  DecisionQueueItem,
 } from "@praedixa/shared-types";
-import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
-import { sortAlertsBySeverity } from "@/lib/scenario-utils";
-import { staggerContainer, staggerItem } from "@/lib/animations/config";
-import {
-  formatSeverity,
-  formatPercent,
-  getSeverityBadgeVariant,
-} from "@/lib/formatters";
 import { useApiGet } from "@/hooks/use-api";
 import { useSiteScope } from "@/lib/site-scope";
-import { cn } from "@praedixa/ui";
-import { PageHeader } from "@/components/ui/page-header";
-import { Button } from "@/components/ui/button";
-import { MetricCard } from "@/components/ui/metric-card";
-import { ProgressRing } from "@/components/ui/progress-ring";
-import { DetailCard } from "@/components/ui/detail-card";
-import { Badge } from "@/components/ui/badge";
-import { StatusBanner } from "@/components/status-banner";
-import { ErrorFallback } from "@/components/error-fallback";
-import { SkeletonCard } from "@/components/ui/skeleton";
-import { ForecastTimelineChart } from "@/components/dashboard/forecast-timeline-chart";
-import { ScenarioComparisonChart } from "@/components/dashboard/scenario-comparison-chart";
+
+function formatPercent(value: number | null | undefined): string {
+  if (typeof value !== "number" || Number.isNaN(value)) return "--";
+  const normalized = value <= 1 ? value * 100 : value;
+  return `${Math.round(normalized)}%`;
+}
+
+function formatCurrency(value: number | null | undefined): string {
+  if (typeof value !== "number" || Number.isNaN(value)) return "--";
+  return value.toLocaleString("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  });
+}
 
 export function WarRoomDashboard() {
   const { appendSiteParam } = useSiteScope();
+
   const summaryUrl = useMemo(
     () => appendSiteParam("/api/v1/live/dashboard/summary"),
     [appendSiteParam],
   );
   const alertsUrl = useMemo(
-    () =>
-      appendSiteParam("/api/v1/live/coverage-alerts?status=open&page_size=200"),
+    () => appendSiteParam("/api/v1/live/coverage-alerts?status=open&page_size=50"),
     [appendSiteParam],
   );
-  const queueUrl = useMemo(
-    () =>
-      appendSiteParam(
-        "/api/v1/live/coverage-alerts/queue?status=open&limit=50",
-      ),
+  const qualityUrl = useMemo(
+    () => appendSiteParam("/api/v1/live/canonical/quality"),
     [appendSiteParam],
   );
 
-  const summaryQuery = useApiGet<DashboardSummary>(summaryUrl, {
-    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
-  });
-  const alertsQuery = useApiGet<CoverageAlert[]>(alertsUrl, {
-    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
-  });
-  const queueQuery = useApiGet<DecisionQueueItem[]>(queueUrl, {
-    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
-  });
+  const summaryQuery = useApiGet<DashboardSummary>(summaryUrl);
+  const alertsQuery = useApiGet<CoverageAlert[]>(alertsUrl);
+  const qualityQuery = useApiGet<CanonicalQualityDashboard>(qualityUrl);
 
-  const summary = summaryQuery.data;
-  const alerts = useMemo(
-    () => sortAlertsBySeverity(alertsQuery.data ?? []),
-    [alertsQuery.data],
-  );
-  const queue = queueQuery.data ?? [];
-
-  const criticalCount = alerts.filter((a) => a.severity === "critical").length;
-  const highCount = alerts.filter((a) => a.severity === "high").length;
-  const exposedSites = new Set(alerts.map((a) => a.siteId)).size;
+  const alerts = alertsQuery.data ?? [];
+  const criticalCount = alerts.filter((item) => item.severity === "critical").length;
+  const highCount = alerts.filter((item) => item.severity === "high").length;
   const topAlerts = alerts.slice(0, 5);
 
-  const globalError =
-    summaryQuery.error || (alerts.length === 0 ? alertsQuery.error : null);
+  const hasError = summaryQuery.error || alertsQuery.error || qualityQuery.error;
 
   return (
-    <div className="space-y-12 pb-12">
-      <PageHeader
-        eyebrow="Centre decisionnel"
-        title="War room operationnelle"
-        subtitle="Identifiez les risques critiques, priorisez les arbitrages et declenchez les actions avant rupture."
-        size="large"
-        actions={
-          <>
-            <Button asChild variant="outline">
-              <Link href="/rapports">
-                <FileText className="mr-2 h-4 w-4" />
-                Rapport executif
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href="/actions">
-                <ArrowUpRight className="mr-2 h-4 w-4" />
-                Centre de traitement
-              </Link>
-            </Button>
-          </>
-        }
-      />
+    <div className="space-y-8 pb-8">
+      <section className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-secondary">
+          Pilotage quotidien
+        </p>
+        <h1 className="text-2xl font-semibold text-ink">Priorites du jour</h1>
+        <p className="text-sm text-ink-secondary">
+          Vue synthese des risques, de la qualite data et des prochaines actions.
+        </p>
+      </section>
 
-      {/* Status Banner */}
-      {globalError ? (
-        <ErrorFallback message={globalError} onRetry={summaryQuery.refetch} />
+      {hasError ? (
+        <div className="rounded-xl border border-danger-light bg-danger-light/20 px-4 py-3 text-sm text-danger-text">
+          {(summaryQuery.error ?? alertsQuery.error ?? qualityQuery.error) as string}
+        </div>
       ) : criticalCount > 0 ? (
-        <StatusBanner variant="danger" title="Risque critique detecte">
-          {criticalCount} alerte(s) critique(s) et {highCount} alerte(s)
-          elevee(s) necessitent une decision immediate.
-        </StatusBanner>
+        <div className="rounded-xl border border-danger-light bg-danger-light/20 px-4 py-3 text-sm text-danger-text">
+          {criticalCount} alerte(s) critique(s) et {highCount} alerte(s) elevee(s)
+          necessitent une decision immediate.
+        </div>
       ) : alerts.length > 0 ? (
-        <StatusBanner variant="warning" title="Zone sous surveillance">
-          {alerts.length} alerte(s) ouverte(s) sur {exposedSites} site(s). Aucun
-          niveau critique, mais traitement recommande aujourd&apos;hui.
-        </StatusBanner>
+        <div className="rounded-xl border border-warning-light bg-warning-light/20 px-4 py-3 text-sm text-warning-text">
+          {alerts.length} alerte(s) ouvertes. Passez par le centre Actions pour
+          prioriser les decisions.
+        </div>
       ) : (
-        <StatusBanner variant="success" title="Situation maitrisee">
-          Aucun signal de rupture actif. Les sites sont couverts sur
-          l&apos;horizon courant.
-        </StatusBanner>
+        <div className="rounded-xl border border-success-light bg-success-light/20 px-4 py-3 text-sm text-success-text">
+          Aucun risque critique actif sur la fenetre courante.
+        </div>
       )}
 
-      {/* KPI Grid */}
-      <motion.div
-        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.div variants={staggerItem}>
-          <MetricCard
-            label="Alertes ouvertes"
-            value={alertsQuery.loading ? "..." : alerts.length}
-            status={
-              criticalCount > 0
-                ? "danger"
-                : alerts.length > 0
-                  ? "warning"
-                  : "good"
-            }
-            trend={alerts.length > 0 ? -2.3 : undefined}
-            trendInverted
-            animate
-            icon={<Siren className="h-4 w-4" />}
-            className="px-5 py-4"
-          />
-        </motion.div>
-        <motion.div variants={staggerItem}>
-          <MetricCard
-            label="Sites exposes"
-            value={alertsQuery.loading ? "..." : exposedSites}
-            status={exposedSites > 0 ? "warning" : "good"}
-            trendInverted
-            animate
-            icon={<ShieldAlert className="h-4 w-4" />}
-            className="px-5 py-4"
-          />
-        </motion.div>
-        <motion.div variants={staggerItem}>
-          <MetricCard
-            label="Couverture humaine"
-            value={
-              summaryQuery.loading
-                ? "..."
-                : formatPercent(summary?.coverageHuman)
-            }
-            status={(summary?.coverageHuman ?? 0) >= 95 ? "good" : "warning"}
-            animate
-            icon={<Target className="h-4 w-4" />}
-            className="px-5 py-4"
-          />
-        </motion.div>
-        <motion.div variants={staggerItem}>
-          <MetricCard
-            label="Precision prevision"
-            value={
-              summaryQuery.loading
-                ? "..."
-                : formatPercent(summary?.forecastAccuracy)
-            }
-            status={(summary?.forecastAccuracy ?? 0) >= 90 ? "good" : "neutral"}
-            animate
-            className="px-5 py-4"
-          />
-        </motion.div>
-      </motion.div>
-
-      {/* Main content grid */}
-      <div className="grid gap-6 xl:grid-cols-12">
-        {/* Left column — 8 cols */}
-        <div className="space-y-6 xl:col-span-8">
-          {/* Projection chart */}
-          <DetailCard
-            title="Projection de charge"
-            action={
-              <Badge variant="outline" size="sm">
-                Live
-              </Badge>
-            }
-          >
-            <ForecastTimelineChart alerts={alerts} />
-          </DetailCard>
-
-          {/* Priority list */}
-          <DetailCard
-            title="Priorites a traiter"
-            action={
-              <Button asChild size="sm" variant="ghost">
-                <Link href="/actions">Voir la file complete</Link>
-              </Button>
-            }
-          >
-            {alertsQuery.loading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <SkeletonCard key={i} className="h-16" />
-                ))}
-              </div>
-            ) : topAlerts.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border bg-surface-sunken/30 px-6 py-10 text-center">
-                <p className="text-body-sm text-ink-secondary">
-                  Aucun sujet critique en file active. Continuez la surveillance
-                  depuis l&apos;onglet Anticipation.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {topAlerts.map((alert) => (
-                  <Link
-                    key={alert.id}
-                    href="/actions"
-                    className={cn(
-                      "group block rounded-lg border border-border bg-card px-4 py-3.5",
-                      "transition-all duration-fast",
-                      "hover:-translate-y-0.5 hover:border-border-hover hover:shadow-[var(--shadow-card-hover)]",
-                      alert.severity === "critical"
-                        ? "severity-border-danger"
-                        : "severity-border-warning",
-                    )}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center gap-4">
-                        <span
-                          className={cn(
-                            "inline-flex h-9 w-9 items-center justify-center rounded-lg",
-                            alert.severity === "critical"
-                              ? "bg-danger-light text-danger"
-                              : "bg-warning-light text-warning",
-                          )}
-                        >
-                          {alert.severity === "critical" ? (
-                            <Siren className="h-4 w-4" />
-                          ) : (
-                            <ShieldAlert className="h-4 w-4" />
-                          )}
-                        </span>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-title-sm text-ink transition-colors group-hover:text-primary">
-                              Site {alert.siteId}
-                            </p>
-                            <span className="h-1 w-1 rounded-full bg-ink-placeholder" />
-                            <p className="text-overline text-ink-secondary">
-                              {alert.shift}
-                            </p>
-                          </div>
-                          <p className="mt-0.5 text-caption text-ink-tertiary">
-                            {alert.alertDate} · Horizon{" "}
-                            {alert.horizon.toUpperCase()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Badge
-                          variant={getSeverityBadgeVariant(alert.severity)}
-                        >
-                          {formatSeverity(alert.severity)}
-                        </Badge>
-                        <div className="flex flex-col items-end">
-                          <span className="font-sans font-bold text-metric-xs tabular-nums text-ink">
-                            {alert.gapH.toFixed(1)} h
-                          </span>
-                          <span className="text-caption-compact text-ink-placeholder">
-                            Ecart
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-2 flex flex-wrap items-center gap-4 pl-12 text-caption-compact text-ink-tertiary">
-                      <span className="inline-flex items-center gap-1.5 transition-colors group-hover:text-ink-secondary">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        Risque rupture :{" "}
-                        <span className="font-medium">
-                          {(alert.pRupture * 100).toFixed(0)} %
-                        </span>
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 transition-colors group-hover:text-ink-secondary">
-                        <Target className="h-3.5 w-3.5" />
-                        Drivers :{" "}
-                        <span className="font-medium">
-                          {alert.driversJson.slice(0, 2).join(", ") || "n/a"}
-                        </span>
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </DetailCard>
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-xl border border-border bg-card px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.08em] text-ink-secondary">Alertes ouvertes</p>
+          <p className="mt-2 text-2xl font-semibold text-ink">
+            {alertsQuery.loading ? "..." : alerts.length}
+          </p>
         </div>
+        <div className="rounded-xl border border-border bg-card px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.08em] text-ink-secondary">Couverture humaine</p>
+          <p className="mt-2 text-2xl font-semibold text-ink">
+            {summaryQuery.loading
+              ? "..."
+              : formatPercent(summaryQuery.data?.coverageHuman ?? null)}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-card px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.08em] text-ink-secondary">Qualite data</p>
+          <p className="mt-2 text-2xl font-semibold text-ink">
+            {qualityQuery.loading
+              ? "..."
+              : formatPercent(qualityQuery.data?.coveragePct ?? null)}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-card px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.08em] text-ink-secondary">Precision prevision</p>
+          <p className="mt-2 text-2xl font-semibold text-ink">
+            {summaryQuery.loading
+              ? "..."
+              : formatPercent(summaryQuery.data?.forecastAccuracy ?? null)}
+          </p>
+        </div>
+      </section>
 
-        {/* Right column — 4 cols */}
-        <div className="space-y-6 xl:col-span-4">
-          {/* Scenario comparison */}
-          <DetailCard title="Scenarios">
-            <ScenarioComparisonChart queue={queue} />
-          </DetailCard>
-
-          {/* Health score */}
-          {!summaryQuery.loading && summary && (
-            <div className="surface-card p-6">
-              <div className="flex items-center gap-5">
-                <ProgressRing
-                  value={Math.round(summary.coverageHuman ?? 0)}
-                  max={100}
-                  size={72}
-                  strokeWidth={6}
-                  label="Score de couverture"
-                  showValue
-                  color={
-                    (summary.coverageHuman ?? 0) >= 95
-                      ? "success"
-                      : (summary.coverageHuman ?? 0) >= 80
-                        ? "warning"
-                        : "danger"
-                  }
-                />
-                <div className="flex flex-col gap-1">
-                  <span className="text-title text-ink">
-                    Score de couverture
-                  </span>
-                  <span className="text-body-sm text-ink-secondary">
-                    Capacite vs. besoin sur l&apos;horizon courant.
-                  </span>
-                </div>
-              </div>
-            </div>
+      <section className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
+        <div className="rounded-xl border border-border bg-card px-4 py-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold text-ink">Alertes prioritaires</h2>
+            <Link
+              href="/actions"
+              className="text-sm font-medium text-primary hover:text-primary-700"
+            >
+              Ouvrir Actions
+            </Link>
+          </div>
+          {alertsQuery.loading ? (
+            <p className="mt-4 text-sm text-ink-secondary">Chargement...</p>
+          ) : topAlerts.length === 0 ? (
+            <p className="mt-4 text-sm text-ink-secondary">Aucune alerte active.</p>
+          ) : (
+            <ul className="mt-4 space-y-2">
+              {topAlerts.map((alert) => (
+                <li
+                  key={alert.id}
+                  className="rounded-lg border border-border bg-surface-sunken px-3 py-2"
+                >
+                  <p className="text-sm font-medium text-ink">
+                    {alert.siteId} · {alert.alertDate} · {String(alert.shift).toUpperCase()}
+                  </p>
+                  <p className="mt-1 text-xs text-ink-secondary">
+                    Severite: {alert.severity} · Risque: {formatPercent(alert.pRupture)} ·
+                    Impact: {formatCurrency(alert.impactEur ?? null)}
+                  </p>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
-      </div>
+
+        <div className="rounded-xl border border-border bg-card px-4 py-4">
+          <h2 className="text-base font-semibold text-ink">Qualite des donnees</h2>
+          {qualityQuery.loading ? (
+            <p className="mt-4 text-sm text-ink-secondary">Chargement...</p>
+          ) : (
+            <dl className="mt-4 space-y-2 text-sm text-ink-secondary">
+              <div className="flex items-center justify-between">
+                <dt>Enregistrements</dt>
+                <dd className="font-medium text-ink">{qualityQuery.data?.totalRecords ?? "--"}</dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt>Sites couverts</dt>
+                <dd className="font-medium text-ink">{qualityQuery.data?.sites ?? "--"}</dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt>Taux de couverture</dt>
+                <dd className="font-medium text-ink">{formatPercent(qualityQuery.data?.coveragePct ?? null)}</dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt>Shifts manquants</dt>
+                <dd className="font-medium text-ink">
+                  {formatPercent(qualityQuery.data?.missingShiftsPct ?? null)}
+                </dd>
+              </div>
+            </dl>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

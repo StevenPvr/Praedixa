@@ -43,9 +43,7 @@ test.describe("Login page error handling", () => {
     await page.goto("/login?error=upstream_failure");
 
     await expect(
-      page.getByText(
-        "La connexion a echoue (upstream_failure). Veuillez reessayer.",
-      ),
+      page.getByText("La connexion a echoue. Veuillez reessayer."),
     ).toBeVisible();
   });
 

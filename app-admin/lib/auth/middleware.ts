@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { canAccessAdminConsole } from "@/lib/auth/permissions";
 import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
@@ -17,12 +18,6 @@ import {
 interface AuthState {
   session: Awaited<ReturnType<typeof verifySession>>;
   accessToken: string | null;
-}
-
-function canAccessAdminConsole(role: string | undefined): boolean {
-  if (role === "super_admin") return true;
-  // Local dev fallback to unblock teams using org_admin test accounts.
-  return process.env.NODE_ENV !== "production" && role === "org_admin";
 }
 
 async function tryRefresh(
@@ -69,7 +64,11 @@ async function tryRefresh(
 
     const user = userFromAccessToken(refreshed.access_token, clientId);
     const accessTokenExp = getTokenExp(refreshed.access_token);
-    if (!user || !accessTokenExp || !canAccessAdminConsole(user.role)) {
+    if (
+      !user ||
+      !accessTokenExp ||
+      !canAccessAdminConsole(user.role, user.permissions)
+    ) {
       clearAuthCookies(response);
       return { session: null, accessToken: null };
     }
@@ -78,6 +77,7 @@ async function tryRefresh(
       sub: user.id,
       email: user.email,
       role: user.role,
+      permissions: user.permissions,
       organizationId: user.organizationId,
       siteId: user.siteId,
       accessTokenExp,
@@ -134,7 +134,11 @@ export async function updateSession(request: NextRequest) {
     return redirectTo(request, "/login", true);
   }
 
-  if (authState.session && !isLoginRoute && !canAccessAdminConsole(userRole)) {
+  if (
+    authState.session &&
+    !isLoginRoute &&
+    !canAccessAdminConsole(userRole, authState.session.permissions)
+  ) {
     return redirectTo(request, "/unauthorized", true);
   }
 
@@ -145,7 +149,7 @@ export async function updateSession(request: NextRequest) {
     authState.session &&
     isLoginRoute &&
     !isForcedReauth &&
-    canAccessAdminConsole(userRole)
+    canAccessAdminConsole(userRole, authState.session.permissions)
   ) {
     return redirectTo(request, "/");
   }

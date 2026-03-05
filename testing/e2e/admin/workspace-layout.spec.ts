@@ -29,7 +29,7 @@ test.describe("Client workspace layout", () => {
     ).toBeVisible();
   });
 
-  test("displays 7 tab links in ClientTabsNav", async ({ page }) => {
+  test("displays client workspace tab links in ClientTabsNav", async ({ page }) => {
     await mockCatchAll(page);
     await mockVueClientApis(page);
     await page.goto(`/clients/${TEST_ORG_ID}/vue-client`);
@@ -38,10 +38,13 @@ test.describe("Client workspace layout", () => {
     await expect(nav).toBeVisible({ timeout: 10000 });
 
     const expectedTabs = [
-      "Vue client",
+      "Dashboard",
       "Donnees",
       "Previsions",
+      "Actions",
       "Alertes",
+      "Rapports",
+      "Onboarding",
       "Config",
       "Equipe",
       "Messages",

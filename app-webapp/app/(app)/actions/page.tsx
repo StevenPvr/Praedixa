@@ -1,44 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
-import { AlertTriangle, CheckCircle, Clock3, Euro, Gauge } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type {
   CoverageAlert,
-  DecisionQueueItem,
+  DecisionSummary,
   DecisionWorkspace,
   OperationalDecision,
-  ParetoFrontierResponse,
 } from "@praedixa/shared-types";
-import { Button, SkeletonCard, SkeletonChart } from "@praedixa/ui";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { DetailCard } from "@/components/ui/detail-card";
-import { Badge } from "@/components/ui/badge";
-import { MetricCard } from "@/components/ui/metric-card";
-import { ParetoChart, type ParetoPoint } from "@/components/ui/pareto-chart";
-import { useApiGet, useApiPost } from "@/hooks/use-api";
-import { useToast } from "@/hooks/use-toast";
-import { EmptyState } from "@/components/empty-state";
-import { ErrorFallback } from "@/components/error-fallback";
-import { StatusBanner } from "@/components/status-banner";
-import { OptimizationPanel } from "@/components/actions/optimization-panel";
-import { AnimatedSection } from "@/components/animated-section";
-import { PageTransition } from "@/components/page-transition";
-import {
-  getOptionLabel,
-  sortAlertsBySeverity,
-  SEVERITY_ORDER,
-} from "@/lib/scenario-utils";
-import {
-  formatSeverity,
-  formatCurrency,
-  getSeverityBadgeVariant,
-} from "@/lib/formatters";
-import { useI18n } from "@/lib/i18n/provider";
-import { trackProductEvent } from "@/lib/product-events";
-import { LIVE_DATA_POLL_INTERVAL_MS } from "@/lib/chat-config";
+import { DataTable, type DataTableColumn } from "@praedixa/ui";
+import { useApiGet, useApiGetPaginated, useApiPost } from "@/hooks/use-api";
 import { useSiteScope } from "@/lib/site-scope";
+
+const SEVERITY_FILTERS: Array<CoverageAlert["severity"] | "all"> = [
+  "all",
+  "critical",
+  "high",
+  "medium",
+  "low",
+];
 
 interface DecisionBody {
   coverageAlertId: string;
@@ -50,658 +30,357 @@ interface DecisionBody {
   gapH: number;
 }
 
-const FILTER_OPTIONS: Array<{
-  id: CoverageAlert["severity"] | "all";
-  label: string;
-}> = [
-  { id: "all", label: "Toutes" },
-  { id: "critical", label: "Critiques" },
-  { id: "high", label: "Hautes" },
-  { id: "medium", label: "Moyennes" },
-  { id: "low", label: "Basses" },
+function statusLabel(value: string): string {
+  switch (value) {
+    case "pending_review":
+      return "En revue";
+    case "approved":
+      return "Approuvee";
+    case "implemented":
+      return "Implantee";
+    case "rejected":
+      return "Rejetee";
+    case "expired":
+      return "Expiree";
+    default:
+      return value;
+  }
+}
+
+function formatPercent(value: number): string {
+  const normalized = value <= 1 ? value * 100 : value;
+  return `${Math.round(normalized)}%`;
+}
+
+function formatPeriod(row: DecisionSummary): string {
+  const start = row.targetPeriod?.startDate;
+  const end = row.targetPeriod?.endDate;
+  if (!start || !end) return "--";
+  return `${start} → ${end}`;
+}
+
+const HISTORY_COLUMNS: DataTableColumn<DecisionSummary>[] = [
+  { key: "title", label: "Decision" },
+  {
+    key: "status",
+    label: "Statut",
+    render: (row) => statusLabel(row.status),
+  },
+  {
+    key: "priority",
+    label: "Priorite",
+    render: (row) => row.priority,
+  },
+  {
+    key: "confidenceScore",
+    label: "Confiance",
+    align: "right",
+    render: (row) => `${Math.round(row.confidenceScore)}%`,
+  },
+  {
+    key: "targetPeriod",
+    label: "Periode",
+    render: (row) => formatPeriod(row),
+  },
 ];
-const MAX_VISIBLE_ALERTS = 50;
-
-function toCoverageAlert(item: DecisionQueueItem): CoverageAlert {
-  return {
-    id: item.id,
-    organizationId: "unknown",
-    siteId: item.siteId,
-    alertDate: item.alertDate,
-    shift: (item.shift as CoverageAlert["shift"]) ?? "am",
-    horizon: item.horizon ?? "j7",
-    pRupture: item.pRupture ?? 0,
-    gapH: item.gapH,
-    severity: item.severity,
-    status: "open",
-    driversJson: item.driversJson ?? [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-}
-
-function sortQueueItems(items: DecisionQueueItem[]): DecisionQueueItem[] {
-  return [...items].toSorted((a, b) => {
-    const priorityDelta = (b.priorityScore ?? 0) - (a.priorityScore ?? 0);
-    if (priorityDelta !== 0) return priorityDelta;
-
-    const severityDelta =
-      (SEVERITY_ORDER[a.severity] ?? 4) - (SEVERITY_ORDER[b.severity] ?? 4);
-    if (severityDelta !== 0) return severityDelta;
-
-    return (b.gapH ?? 0) - (a.gapH ?? 0);
-  });
-}
 
 export default function ActionsPage() {
-  const { t } = useI18n();
+  const searchParams = useSearchParams();
   const { appendSiteParam } = useSiteScope();
-  const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
-  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+
+  const initialSeverity = searchParams.get("severity");
+  const [activeTab, setActiveTab] = useState<"treatment" | "history">(
+    "treatment",
+  );
   const [severityFilter, setSeverityFilter] = useState<
     CoverageAlert["severity"] | "all"
-  >("all");
-
-  const { toast } = useToast();
-  const alertStartedAtRef = useRef<number | null>(null);
-  const hasTrackedQueueOpenRef = useRef(false);
-
-  const liveAlertsUrl = useMemo(
-    () =>
-      appendSiteParam("/api/v1/live/coverage-alerts?status=open&page_size=200"),
-    [appendSiteParam],
+  >(
+    initialSeverity &&
+      SEVERITY_FILTERS.includes(initialSeverity as CoverageAlert["severity"])
+      ? (initialSeverity as CoverageAlert["severity"])
+      : "all",
   );
-  const queueUrl = useMemo(
-    () =>
-      appendSiteParam(
-        "/api/v1/live/coverage-alerts/queue?status=open&limit=50",
-      ),
-    [appendSiteParam],
-  );
+  const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [historyPage, setHistoryPage] = useState(1);
+
+  const alertsUrl = useMemo(() => {
+    const base = "/api/v1/live/coverage-alerts?status=open&page_size=200";
+    if (severityFilter === "all") {
+      return appendSiteParam(base);
+    }
+    return appendSiteParam(`${base}&severity=${severityFilter}`);
+  }, [appendSiteParam, severityFilter]);
 
   const {
-    data: liveAlerts,
-    loading: liveLoading,
-    error: liveError,
-    refetch: refetchLiveAlerts,
-  } = useApiGet<CoverageAlert[]>(liveAlertsUrl, {
-    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
-  });
+    data: alerts,
+    loading: alertsLoading,
+    error: alertsError,
+    refetch: refetchAlerts,
+  } = useApiGet<CoverageAlert[]>(alertsUrl);
 
-  const {
-    data: queueData,
-    loading: queueLoading,
-    error: queueError,
-    refetch: refetchQueue,
-  } = useApiGet<DecisionQueueItem[]>(queueUrl, {
-    pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
-  });
+  const selectedAlert = useMemo(() => {
+    if (!alerts || alerts.length === 0) return null;
+    if (!selectedAlertId) return alerts[0];
+    return alerts.find((item) => item.id === selectedAlertId) ?? alerts[0];
+  }, [alerts, selectedAlertId]);
 
-  const queueMetaById = useMemo(() => {
-    const map = new Map<string, DecisionQueueItem>();
-    (queueData ?? []).forEach((item) => {
-      map.set(item.id, item);
-    });
-    return map;
-  }, [queueData]);
-
-  const alerts = useMemo(() => {
-    if (queueData) {
-      return sortQueueItems(queueData).map(toCoverageAlert);
-    }
-    if (queueError && liveAlerts && liveAlerts.length > 0) {
-      return sortAlertsBySeverity(liveAlerts);
-    }
-    return [];
-  }, [liveAlerts, queueData, queueError]);
-
-  const loading = liveLoading || queueLoading;
-  const hasAnyAlertData =
-    (liveAlerts?.length ?? 0) > 0 || (queueData?.length ?? 0) > 0;
-  const error = hasAnyAlertData ? null : (liveError ?? queueError);
-
-  const filteredAlerts = useMemo(() => {
-    const matching =
-      severityFilter === "all"
-        ? alerts
-        : alerts.filter((alert) => alert.severity === severityFilter);
-    return matching.slice(0, MAX_VISIBLE_ALERTS);
-  }, [alerts, severityFilter]);
-  const filteredAlertsTotal = useMemo(
-    () =>
-      severityFilter === "all"
-        ? alerts.length
-        : alerts.filter((alert) => alert.severity === severityFilter).length,
-    [alerts, severityFilter],
-  );
-
-  const effectiveAlertId =
-    selectedAlertId ??
-    (filteredAlerts.length > 0 ? filteredAlerts[0].id : null);
-  const selectedAlert =
-    filteredAlerts.find((alert) => alert.id === effectiveAlertId) ?? null;
-  const workspaceAlertId = useMemo(() => {
-    if (!selectedAlert) return null;
-    if (queueMetaById.has(selectedAlert.id)) return selectedAlert.id;
-    const fallback = (queueData ?? []).find(
-      (item) =>
-        item.siteId === selectedAlert.siteId &&
-        item.alertDate === selectedAlert.alertDate &&
-        String(item.shift).toLowerCase() ===
-          String(selectedAlert.shift).toLowerCase(),
-    );
-    return fallback?.id ?? null;
-  }, [selectedAlert, queueMetaById, queueData]);
+  const workspaceUrl = selectedAlert
+    ? `/api/v1/live/decision-workspace/${selectedAlert.id}`
+    : null;
 
   const {
     data: workspace,
     loading: workspaceLoading,
     error: workspaceError,
-  } = useApiGet<DecisionWorkspace>(
-    workspaceAlertId
-      ? `/api/v1/live/decision-workspace/${workspaceAlertId}`
-      : null,
-    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
-  );
+  } = useApiGet<DecisionWorkspace>(workspaceUrl);
+
+  const { mutate: submitDecision, loading: submitLoading, error: submitError } =
+    useApiPost<DecisionBody, OperationalDecision>("/api/v1/operational-decisions");
 
   const {
-    data: fallbackFrontier,
-    loading: fallbackLoading,
-    error: fallbackError,
-  } = useApiGet<ParetoFrontierResponse>(
-    workspaceAlertId && workspaceError
-      ? `/api/v1/live/scenarios/alert/${workspaceAlertId}`
-      : null,
-    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
+    data: historyRows,
+    total: historyTotal,
+    loading: historyLoading,
+    error: historyError,
+    refetch: refetchHistory,
+  } = useApiGetPaginated<DecisionSummary>(
+    "/api/v1/decisions?sort_by=created_at&sort_order=desc",
+    historyPage,
+    20,
   );
 
-  const options = workspace?.options ?? fallbackFrontier?.options ?? [];
-  const diagnostic = workspace?.diagnostic;
-
-  const {
-    mutate,
-    loading: submitting,
-    error: submitError,
-  } = useApiPost<DecisionBody, OperationalDecision>(
-    "/api/v1/operational-decisions",
-  );
-
-  const paretoPoints: ParetoPoint[] = useMemo(
-    () =>
-      options.map((option) => ({
-        id: option.id,
-        label: getOptionLabel(option.optionType),
-        cost: option.coutTotalEur,
-        service: option.serviceAttenduPct,
-        isParetoOptimal: option.isParetoOptimal,
-        isRecommended: option.isRecommended,
-      })),
-    [options],
-  );
-
-  useEffect(() => {
-    if (!effectiveAlertId) {
-      alertStartedAtRef.current = null;
-      return;
-    }
-    alertStartedAtRef.current = Date.now();
-  }, [effectiveAlertId]);
-
-  useEffect(() => {
-    if (hasTrackedQueueOpenRef.current || loading) return;
-    hasTrackedQueueOpenRef.current = true;
-    void trackProductEvent("decision_queue_opened", {
-      alertCount: alerts.length,
-    });
-  }, [loading, alerts.length]);
-
-  const handleSelectAlert = useCallback((id: string) => {
-    setSelectedAlertId(id);
-    setSelectedOptionId(null);
-  }, []);
-
-  const handleSelectOption = useCallback(
-    (id: string) => {
-      setSelectedOptionId(id);
-      void trackProductEvent("decision_option_selected", {
-        optionId: id,
-        alertId: effectiveAlertId,
-      });
-    },
-    [effectiveAlertId],
-  );
-
-  const handleValidate = useCallback(async () => {
+  async function handleValidateDecision(): Promise<void> {
     if (!selectedAlert || !selectedOptionId) return;
-
-    const body: DecisionBody = {
-      coverageAlertId: workspaceAlertId ?? selectedAlert.id,
+    const result = await submitDecision({
+      coverageAlertId: selectedAlert.id,
       chosenOptionId: selectedOptionId,
       siteId: selectedAlert.siteId,
       shift: selectedAlert.shift,
       decisionDate: selectedAlert.alertDate,
-      horizon: selectedAlert.horizon ?? "j7",
+      horizon: selectedAlert.horizon,
       gapH: selectedAlert.gapH,
-    };
-
-    const result = await mutate(body);
-    if (!result) return;
-
-    const elapsedMs =
-      alertStartedAtRef.current != null
-        ? Date.now() - alertStartedAtRef.current
-        : null;
-
-    void trackProductEvent("decision_validated", {
-      alertId: selectedAlert.id,
-      optionId: selectedOptionId,
-      elapsedMs,
     });
-
-    if (typeof elapsedMs === "number") {
-      void trackProductEvent("time_to_decision_ms", {
-        alertId: selectedAlert.id,
-        value: elapsedMs,
-      });
-    }
-
-    toast({
-      variant: "success",
-      title: t("actions.successTitle"),
-      description: t("actions.successDescription"),
-    });
-
-    const currentIndex = filteredAlerts.findIndex(
-      (a) => a.id === effectiveAlertId,
-    );
-    const nextAlert = filteredAlerts[currentIndex + 1];
-    if (nextAlert) {
-      setSelectedAlertId(nextAlert.id);
+    if (result) {
       setSelectedOptionId(null);
-      return;
+      refetchAlerts();
+      refetchHistory();
     }
+  }
 
-    setSelectedAlertId(null);
-    setSelectedOptionId(null);
-    refetchLiveAlerts();
-    refetchQueue();
-  }, [
-    workspaceAlertId,
-    selectedAlert,
-    selectedOptionId,
-    mutate,
-    toast,
-    t,
-    filteredAlerts,
-    effectiveAlertId,
-    refetchLiveAlerts,
-    refetchQueue,
-  ]);
-
-  const workspaceIsLoading = workspaceLoading || fallbackLoading;
-  const workspaceFailure =
-    workspaceError && !fallbackFrontier
-      ? (fallbackError ?? workspaceError)
-      : null;
-
-  const noAlerts = !loading && filteredAlertsTotal === 0;
-  const criticalCount = alerts.filter(
-    (alert) => alert.severity === "critical",
-  ).length;
-  const highCount = alerts.filter((alert) => alert.severity === "high").length;
-  const exposedSites = new Set(alerts.map((alert) => alert.siteId)).size;
-  const avgGap =
-    alerts.length > 0
-      ? alerts.reduce((sum, alert) => sum + alert.gapH, 0) / alerts.length
-      : 0;
+  const options = workspace?.options ?? [];
 
   return (
-    <PageTransition>
-      <div className="min-h-full space-y-12">
-        <PageHeader
-          eyebrow="Decider"
-          title={t("actions.title")}
-          subtitle={t("actions.subtitle")}
-        />
+    <div className="min-h-full space-y-8">
+      <section className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-secondary">
+          Traitement
+        </p>
+        <h1 className="text-2xl font-semibold text-ink">Centre Actions</h1>
+        <p className="text-sm text-ink-secondary">
+          Validez les decisions recommandees puis suivez leur historique.
+        </p>
+      </section>
 
-        {!error &&
-          (criticalCount > 0 ? (
-            <StatusBanner variant="danger" title="Action immediate recommandee">
-              {criticalCount} alerte(s) critique(s) et {highCount} alerte(s)
-              elevee(s) sont en file active.
-            </StatusBanner>
-          ) : alerts.length > 0 ? (
-            <StatusBanner variant="warning" title="File active sous controle">
-              {alerts.length} alerte(s) ouvertes sur {exposedSites} site(s).
-              Priorisez les dossiers avec rupture imminente.
-            </StatusBanner>
-          ) : (
-            <StatusBanner variant="success" title="Aucune alerte a traiter">
-              La file de decision est vide. Les operations restent sous controle
-              pour l'instant.
-            </StatusBanner>
-          ))}
+      <div className="inline-flex rounded-lg border border-border bg-card p-1">
+        <button
+          type="button"
+          onClick={() => setActiveTab("treatment")}
+          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+            activeTab === "treatment"
+              ? "bg-primary text-white"
+              : "text-ink-secondary hover:bg-surface-sunken"
+          }`}
+        >
+          A traiter
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("history")}
+          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+            activeTab === "history"
+              ? "bg-primary text-white"
+              : "text-ink-secondary hover:bg-surface-sunken"
+          }`}
+        >
+          Historique
+        </button>
+      </div>
 
-        {!error && (
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard
-              label="Alertes ouvertes"
-              value={loading ? "..." : alerts.length}
-              status={
-                criticalCount > 0
-                  ? "danger"
-                  : alerts.length > 0
-                    ? "warning"
-                    : "good"
-              }
-            />
-            <MetricCard
-              label="Sites exposes"
-              value={loading ? "..." : exposedSites}
-              status={exposedSites > 0 ? "warning" : "good"}
-            />
-            <MetricCard
-              label="Criticite haute"
-              value={loading ? "..." : criticalCount + highCount}
-              status={
-                criticalCount > 0
-                  ? "danger"
-                  : highCount > 0
-                    ? "warning"
-                    : "good"
-              }
-            />
-            <MetricCard
-              label="Ecart moyen"
-              value={loading ? "..." : `${avgGap.toFixed(1)} h`}
-              status={avgGap > 6 ? "warning" : "neutral"}
-            />
+      {activeTab === "treatment" ? (
+        <section className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {SEVERITY_FILTERS.map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => {
+                  setSeverityFilter(filter);
+                  setSelectedAlertId(null);
+                  setSelectedOptionId(null);
+                }}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+                  severityFilter === filter
+                    ? "border-primary bg-primary text-white"
+                    : "border-border bg-card text-ink-secondary"
+                }`}
+              >
+                {filter === "all" ? "Toutes" : filter}
+              </button>
+            ))}
           </div>
-        )}
 
-        {error ? (
-          <ErrorFallback
-            variant="api"
-            message={error}
-            onRetry={() => {
-              refetchLiveAlerts();
-              refetchQueue();
-            }}
-          />
-        ) : (
-          <AnimatedSection>
-            {noAlerts ? (
-              <EmptyState
-                icon={<CheckCircle className="h-6 w-6 text-success" />}
-                title={t("actions.queueEmptyTitle")}
-                description={t("actions.queueEmptyDescription")}
-              />
-            ) : (
-              <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_380px]">
-                <section
-                  aria-label="Selection de l'alerte"
-                  className="space-y-3"
-                >
-                  <DetailCard>
-                    <h2 className="font-sans text-base font-semibold text-ink">
-                      {t("actions.queueTitle")}
-                    </h2>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {FILTER_OPTIONS.map((option) => (
+          {alertsError && (
+            <div className="rounded-xl border border-warning-light bg-warning-light/20 px-4 py-3 text-sm text-warning-text">
+              {alertsError}
+            </div>
+          )}
+
+          <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+            <div className="rounded-xl border border-border bg-card p-3">
+              <h2 className="text-sm font-semibold text-ink">Alertes</h2>
+              {alertsLoading ? (
+                <p className="mt-3 text-sm text-ink-secondary">Chargement...</p>
+              ) : (alerts?.length ?? 0) === 0 ? (
+                <p className="mt-3 text-sm text-ink-secondary">Aucune alerte.</p>
+              ) : (
+                <ul className="mt-3 space-y-2">
+                  {(alerts ?? []).map((alert) => {
+                    const active = selectedAlert?.id === alert.id;
+                    return (
+                      <li key={alert.id}>
                         <button
-                          key={option.id}
                           type="button"
                           onClick={() => {
-                            setSeverityFilter(option.id);
-                            setSelectedAlertId(null);
+                            setSelectedAlertId(alert.id);
+                            setSelectedOptionId(null);
                           }}
-                          aria-pressed={severityFilter === option.id}
-                          className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-normal ${
-                            severityFilter === option.id
-                              ? "bg-primary text-white shadow-sm"
-                              : "bg-surface-alt text-ink-secondary hover:bg-surface-alt/80"
-                          } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
+                          className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
+                            active
+                              ? "border-primary bg-primary/10"
+                              : "border-border bg-surface-sunken hover:bg-surface"
+                          }`}
                         >
-                          {option.label}
+                          <p className="text-sm font-medium text-ink">
+                            {alert.siteId} · {alert.alertDate}
+                          </p>
+                          <p className="text-xs text-ink-secondary">
+                            {String(alert.shift).toUpperCase()} · {alert.severity} ·
+                            risque {formatPercent(alert.pRupture)}
+                          </p>
                         </button>
-                      ))}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-xl border border-border bg-card p-4">
+                <h2 className="text-sm font-semibold text-ink">Diagnostic</h2>
+                {!selectedAlert ? (
+                  <p className="mt-3 text-sm text-ink-secondary">
+                    Selectionnez une alerte.
+                  </p>
+                ) : (
+                  <dl className="mt-3 grid gap-2 text-sm text-ink-secondary sm:grid-cols-2">
+                    <div className="rounded-lg bg-surface-sunken px-3 py-2">
+                      <dt>Site</dt>
+                      <dd className="font-medium text-ink">{selectedAlert.siteId}</dd>
                     </div>
-                  </DetailCard>
-
-                  <div className="max-h-[65vh] space-y-2 overflow-y-auto pr-1">
-                    {!loading &&
-                      filteredAlertsTotal > filteredAlerts.length && (
-                        <p className="rounded-lg border border-border bg-surface-sunken px-3 py-2 text-caption text-ink-secondary">
-                          Affichage limite aux {MAX_VISIBLE_ALERTS} alertes les
-                          plus prioritaires.
-                        </p>
-                      )}
-                    {loading &&
-                      Array.from({ length: 5 }).map((_, index) => (
-                        <SkeletonCard key={index} />
-                      ))}
-
-                    {!loading &&
-                      filteredAlerts.map((alert) => {
-                        const meta = queueMetaById.get(alert.id);
-                        const isActive = alert.id === effectiveAlertId;
-                        return (
-                          <button
-                            key={alert.id}
-                            type="button"
-                            onClick={() => handleSelectAlert(alert.id)}
-                            aria-pressed={isActive}
-                            className={`w-full rounded-lg border bg-card p-3.5 text-left transition-all duration-fast ${
-                              isActive
-                                ? "border-primary/40 shadow-raised"
-                                : "border-border hover:-translate-y-0.5 hover:border-border-hover hover:shadow-floating"
-                            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <p className="text-title-sm text-ink">
-                                  {alert.siteId}
-                                </p>
-                                <p className="text-caption text-ink-secondary">
-                                  {alert.alertDate} — {alert.shift}
-                                </p>
-                              </div>
-                              <Badge
-                                variant={getSeverityBadgeVariant(
-                                  alert.severity,
-                                )}
-                              >
-                                {formatSeverity(alert.severity)}
-                              </Badge>
-                            </div>
-                            <div className="mt-3 grid grid-cols-2 gap-2 text-caption text-ink-secondary">
-                              <div className="rounded-md bg-surface-sunken p-2">
-                                {t("actions.risk")}:{" "}
-                                {`${Math.round((alert.pRupture ?? 0) * 100)}%`}
-                              </div>
-                              <div className="rounded-md bg-surface-sunken p-2">
-                                {t("actions.impact")}:{" "}
-                                {meta?.estimatedImpactEur
-                                  ? formatCurrency(meta.estimatedImpactEur)
-                                  : "--"}
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                  </div>
-                </section>
-
-                <section aria-label="Graphique Pareto" className="space-y-3">
-                  <DetailCard>
-                    <h2 className="text-heading-sm text-ink">
-                      {t("actions.diagnosticTitle")}
-                    </h2>
-                    {selectedAlert ? (
-                      (() => {
-                        const selectedMeta = queueMetaById.get(
-                          selectedAlert.id,
-                        );
-                        return (
-                          <div className="mt-3 space-y-3">
-                            <div className="flex flex-wrap items-center gap-2 text-body-sm text-ink-secondary">
-                              <span className="rounded-md bg-surface-sunken px-2 py-1">
-                                {selectedAlert.siteId}
-                              </span>
-                              <span className="rounded-md bg-surface-sunken px-2 py-1">
-                                {selectedAlert.shift}
-                              </span>
-                              <span className="rounded-md bg-surface-sunken px-2 py-1">
-                                {selectedAlert.alertDate}
-                              </span>
-                            </div>
-                            <div className="grid gap-2 sm:grid-cols-3">
-                              <div className="rounded-lg border border-border bg-surface-sunken p-3">
-                                <div className="flex items-center gap-2 text-caption text-ink-secondary">
-                                  <Gauge className="h-3.5 w-3.5" />
-                                  {t("actions.risk")}
-                                </div>
-                                <p className="mt-1 text-title-sm text-ink">
-                                  {Math.round(
-                                    (selectedAlert.pRupture ?? 0) * 100,
-                                  )}
-                                  %
-                                </p>
-                              </div>
-                              <div className="rounded-lg border border-border bg-surface-sunken p-3">
-                                <div className="flex items-center gap-2 text-caption text-ink-secondary">
-                                  <Euro className="h-3.5 w-3.5" />
-                                  {t("actions.impact")}
-                                </div>
-                                <p className="mt-1 text-title-sm text-ink">
-                                  {selectedMeta?.estimatedImpactEur
-                                    ? formatCurrency(
-                                        selectedMeta.estimatedImpactEur,
-                                      )
-                                    : "--"}
-                                </p>
-                              </div>
-                              <div className="rounded-lg border border-border bg-surface-sunken p-3">
-                                <div className="flex items-center gap-2 text-caption text-ink-secondary">
-                                  <Clock3 className="h-3.5 w-3.5" />
-                                  {t("actions.breach")}
-                                </div>
-                                <p className="mt-1 text-title-sm text-ink">
-                                  {selectedMeta?.timeToBreachHours != null
-                                    ? `${selectedMeta.timeToBreachHours}h`
-                                    : "--"}
-                                </p>
-                              </div>
-                            </div>
-
-                            {diagnostic?.topDrivers?.length ? (
-                              <div className="flex flex-wrap gap-2">
-                                {diagnostic.topDrivers.map((driver) => (
-                                  <span
-                                    key={driver}
-                                    className="rounded-full bg-primary/8 px-2.5 py-0.5 text-caption font-medium text-primary"
-                                  >
-                                    {driver}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-body-sm text-ink-secondary">
-                                {selectedAlert.driversJson.length > 0
-                                  ? selectedAlert.driversJson.join(", ")
-                                  : t("actions.noWorkspace")}
-                              </p>
-                            )}
-                          </div>
-                        );
-                      })()
-                    ) : (
-                      <p className="mt-3 text-body-sm text-ink-secondary">
-                        {t("actions.noWorkspace")}
-                      </p>
-                    )}
-                  </DetailCard>
-
-                  <DetailCard>
-                    <h3 className="text-heading-sm text-ink">
-                      {t("actions.paretoTitle")}
-                    </h3>
-                    <p className="mt-1 text-body-sm text-ink-secondary">
-                      {t("actions.paretoSubtitle")}
-                    </p>
-                    <div className="mt-3">
-                      {workspaceFailure ? (
-                        <ErrorFallback
-                          variant="api"
-                          message={workspaceFailure}
-                        />
-                      ) : workspaceIsLoading ? (
-                        <SkeletonChart />
-                      ) : paretoPoints.length > 0 ? (
-                        <ParetoChart
-                          points={paretoPoints}
-                          onPointClick={(point) => handleSelectOption(point.id)}
-                        />
-                      ) : (
-                        <div className="rounded-lg border border-dashed border-border bg-surface-sunken p-6 text-body-sm text-ink-secondary">
-                          Aucun scenario disponible pour cette alerte.
-                        </div>
-                      )}
+                    <div className="rounded-lg bg-surface-sunken px-3 py-2">
+                      <dt>Risque rupture</dt>
+                      <dd className="font-medium text-ink">{formatPercent(selectedAlert.pRupture)}</dd>
                     </div>
-                  </DetailCard>
-                </section>
-
-                <section
-                  aria-label="Options d'optimisation"
-                  className="space-y-3 lg:col-span-2 xl:col-span-1"
-                >
-                  <Card variant="premium" className="p-6">
-                    <h2 className="text-heading-sm text-ink">
-                      {t("actions.optionsTitle")}
-                    </h2>
-                    <div className="mt-3">
-                      <OptimizationPanel
-                        options={options}
-                        selectedOptionId={selectedOptionId}
-                        onSelectOption={handleSelectOption}
-                        loading={workspaceIsLoading}
-                      />
+                    <div className="rounded-lg bg-surface-sunken px-3 py-2">
+                      <dt>Ecart</dt>
+                      <dd className="font-medium text-ink">{selectedAlert.gapH.toFixed(1)}h</dd>
                     </div>
-
-                    <div className="mt-4 space-y-3">
-                      <Button
-                        onClick={handleValidate}
-                        disabled={!selectedOptionId || submitting}
-                        className="w-full"
-                      >
-                        {submitting
-                          ? t("actions.validating")
-                          : t("actions.validate")}
-                      </Button>
-                      {submitError && (
-                        <p className="text-body-sm text-danger-text">
-                          {submitError}
-                        </p>
-                      )}
-                      {effectiveAlertId && (
-                        <Link
-                          href={`/previsions?alert=${encodeURIComponent(
-                            effectiveAlertId,
-                          )}`}
-                          className="inline-flex items-center gap-2 text-caption font-semibold text-primary transition-colors duration-fast hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                        >
-                          <AlertTriangle className="h-3.5 w-3.5" />
-                          Ouvrir l&apos;analyse détaillée de cette alerte
-                        </Link>
-                      )}
+                    <div className="rounded-lg bg-surface-sunken px-3 py-2">
+                      <dt>Horizon</dt>
+                      <dd className="font-medium text-ink">{selectedAlert.horizon.toUpperCase()}</dd>
                     </div>
-                  </Card>
-                </section>
+                  </dl>
+                )}
+                {workspaceError && (
+                  <p className="mt-3 text-sm text-warning-text">{workspaceError}</p>
+                )}
               </div>
-            )}
-          </AnimatedSection>
-        )}
-      </div>
-    </PageTransition>
+
+              <div className="rounded-xl border border-border bg-card p-4">
+                <h2 className="text-sm font-semibold text-ink">Options recommandees</h2>
+                {workspaceLoading ? (
+                  <p className="mt-3 text-sm text-ink-secondary">Chargement...</p>
+                ) : options.length === 0 ? (
+                  <p className="mt-3 text-sm text-ink-secondary">Aucune option disponible.</p>
+                ) : (
+                  <ul className="mt-3 space-y-2">
+                    {options.map((option) => (
+                      <li key={option.id}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedOptionId(option.id)}
+                          className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
+                            selectedOptionId === option.id
+                              ? "border-primary bg-primary/10"
+                              : "border-border bg-surface-sunken hover:bg-surface"
+                          }`}
+                        >
+                          <p className="text-sm font-medium text-ink">{option.optionType}</p>
+                          <p className="text-xs text-ink-secondary">
+                            Cout: {Math.round(option.coutTotalEur).toLocaleString("fr-FR")}€ ·
+                            service: {Math.round(option.serviceAttenduPct)}%
+                          </p>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <div className="mt-4 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleValidateDecision();
+                    }}
+                    disabled={!selectedOptionId || submitLoading}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {submitLoading ? "Validation..." : "Valider la decision"}
+                  </button>
+                  {submitError && (
+                    <span className="text-sm text-danger-text">{submitError}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <section className="space-y-4">
+          {historyError && (
+            <div className="rounded-xl border border-warning-light bg-warning-light/20 px-4 py-3 text-sm text-warning-text">
+              {historyError}
+            </div>
+          )}
+
+          <div className="rounded-xl border border-border bg-card p-3">
+            <DataTable<DecisionSummary>
+              columns={HISTORY_COLUMNS}
+              data={historyRows}
+              getRowKey={(row) => row.id}
+              emptyMessage={historyLoading ? "Chargement..." : "Aucune decision"}
+              pagination={{
+                page: historyPage,
+                pageSize: 20,
+                total: historyTotal,
+                onPageChange: setHistoryPage,
+              }}
+            />
+          </div>
+        </section>
+      )}
+    </div>
   );
 }

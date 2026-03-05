@@ -25,14 +25,36 @@ vi.mock("next/navigation", () => ({
   usePathname: () => mockPathname(),
 }));
 
+const mockUseCurrentUser = vi.fn();
+vi.mock("@/lib/auth/client", () => ({
+  useCurrentUser: () => mockUseCurrentUser(),
+}));
+
+const FULL_PERMISSIONS = [
+  "admin:org:read",
+  "admin:org:write",
+  "admin:users:read",
+  "admin:users:write",
+  "admin:billing:read",
+  "admin:onboarding:read",
+  "admin:onboarding:write",
+  "admin:messages:read",
+];
+
 describe("ClientTabsNav", () => {
-  it("renders all 7 tabs", () => {
-    mockPathname.mockReturnValue("/clients/org-1/vue-client");
+  it("renders all workspace tabs", () => {
+    mockPathname.mockReturnValue("/clients/org-1/dashboard");
+    mockUseCurrentUser.mockReturnValue({
+      permissions: FULL_PERMISSIONS,
+    });
     render(<ClientTabsNav basePath="/clients/org-1" />);
-    expect(screen.getByText("Vue client")).toBeInTheDocument();
+    expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByText("Donnees")).toBeInTheDocument();
     expect(screen.getByText("Previsions")).toBeInTheDocument();
+    expect(screen.getByText("Actions")).toBeInTheDocument();
     expect(screen.getByText("Alertes")).toBeInTheDocument();
+    expect(screen.getByText("Rapports")).toBeInTheDocument();
+    expect(screen.getByText("Onboarding")).toBeInTheDocument();
     expect(screen.getByText("Config")).toBeInTheDocument();
     expect(screen.getByText("Equipe")).toBeInTheDocument();
     expect(screen.getByText("Messages")).toBeInTheDocument();
@@ -40,23 +62,47 @@ describe("ClientTabsNav", () => {
 
   it("highlights the active tab", () => {
     mockPathname.mockReturnValue("/clients/org-1/donnees");
+    mockUseCurrentUser.mockReturnValue({
+      permissions: FULL_PERMISSIONS,
+    });
     render(<ClientTabsNav basePath="/clients/org-1" />);
     const donneesLink = screen.getByText("Donnees").closest("a");
     expect(donneesLink?.className).toContain("text-primary");
   });
 
   it("renders correct hrefs", () => {
-    mockPathname.mockReturnValue("/clients/org-1/vue-client");
+    mockPathname.mockReturnValue("/clients/org-1/dashboard");
+    mockUseCurrentUser.mockReturnValue({
+      permissions: FULL_PERMISSIONS,
+    });
     render(<ClientTabsNav basePath="/clients/org-1" />);
     const links = screen.getAllByRole("link");
     const hrefs = links.map((l) => l.getAttribute("href"));
-    expect(hrefs).toContain("/clients/org-1/vue-client");
+    expect(hrefs).toContain("/clients/org-1/dashboard");
+    expect(hrefs).toContain("/clients/org-1/actions");
+    expect(hrefs).toContain("/clients/org-1/rapports");
     expect(hrefs).toContain("/clients/org-1/donnees");
     expect(hrefs).toContain("/clients/org-1/messages");
   });
 
+  it("hides tabs without permissions", () => {
+    mockPathname.mockReturnValue("/clients/org-1/dashboard");
+    mockUseCurrentUser.mockReturnValue({
+      permissions: ["admin:org:read"],
+    });
+    render(<ClientTabsNav basePath="/clients/org-1" />);
+
+    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Donnees")).toBeInTheDocument();
+    expect(screen.queryByText("Config")).not.toBeInTheDocument();
+    expect(screen.queryByText("Messages")).not.toBeInTheDocument();
+  });
+
   it("has aria-label for navigation", () => {
-    mockPathname.mockReturnValue("/clients/org-1/vue-client");
+    mockPathname.mockReturnValue("/clients/org-1/dashboard");
+    mockUseCurrentUser.mockReturnValue({
+      permissions: FULL_PERMISSIONS,
+    });
     render(<ClientTabsNav basePath="/clients/org-1" />);
     expect(screen.getByLabelText("Onglets client")).toBeInTheDocument();
   });

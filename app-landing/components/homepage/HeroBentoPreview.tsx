@@ -94,9 +94,9 @@ export function HeroBentoPreview({ locale = "fr" }: HeroBentoPreviewProps) {
           </p>
           <ul className="mt-3 list-none space-y-2 p-0 text-[12px] text-neutral-600">
             {[
-              isFr ? "Lecture seule (exports/API)" : "Read-only (exports/APIs)",
+              isFr ? "Démarrage en lecture seule" : "Read-only start",
               isFr ? "Multi-sites, contraintes terrain" : "Multi-site, field constraints",
-              isFr ? "Données WFM/ERP/CRM" : "WFM/ERP/CRM inputs",
+              isFr ? "Données ERP/CRM/BI" : "ERP/CRM/BI inputs",
             ].map((item) => (
               <li key={item} className="m-0 flex items-start gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
@@ -112,7 +112,7 @@ export function HeroBentoPreview({ locale = "fr" }: HeroBentoPreviewProps) {
           </p>
           <div className="mt-3 space-y-2 text-[12px] text-neutral-600">
             <div className="rounded-xl border border-neutral-200/70 bg-white px-3 py-2">
-              {isFr ? "Cadrage 30 min (J+2)" : "30-min framing (D+2)"}
+              {isFr ? "Cadrage 30 min" : "30-min framing"}
             </div>
             <div className="rounded-xl border border-neutral-200/70 bg-white px-3 py-2">
               {isFr ? "Revue mensuelle Ops/Finance" : "Monthly Ops/Finance review"}

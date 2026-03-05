@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { updateSession } from "@/lib/auth/middleware";
-import { generateNonce, buildCspHeader } from "@/lib/security/csp";
+import {
+  generateNonce,
+  buildCspHeader,
+  buildReportToHeader,
+} from "@/lib/security/csp";
 
 export async function proxy(request: NextRequest) {
   // Generate a per-request nonce for CSP
@@ -18,6 +22,10 @@ export async function proxy(request: NextRequest) {
 
   // Apply CSP to the response (auth middleware may return a redirect or next())
   response.headers.set("Content-Security-Policy", cspHeader);
+  const reportToHeader = buildReportToHeader();
+  if (reportToHeader) {
+    response.headers.set("Report-To", reportToHeader);
+  }
 
   return response;
 }

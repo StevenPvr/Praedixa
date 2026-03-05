@@ -16,6 +16,7 @@ export * from "./domain/dashboard";
 export * from "./domain/decision-workspace";
 export * from "./domain/user-preferences";
 export * from "./domain/product-event";
+export * from "./domain/integration";
 
 // API types
 export * from "./api/responses";

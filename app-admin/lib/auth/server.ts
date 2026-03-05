@@ -27,6 +27,7 @@ export async function getUser() {
     id: session.sub,
     email: session.email,
     role: session.role,
+    permissions: session.permissions,
     organization_id: session.organizationId,
     site_id: session.siteId,
   };

@@ -35,6 +35,7 @@ vi.mock("@/lib/auth/client", () => ({
     id: "admin-123",
     email: "admin@praedixa.com",
     role: "super_admin",
+    permissions: ["admin:console:access", "admin:audit:read"],
   }),
 }));
 
@@ -203,7 +204,7 @@ describe("restructured admin pages", () => {
     await user.click(screen.getByRole("button", { name: "Exporter" }));
     await user.click(screen.getByRole("button", { name: "Voir le client" }));
 
-    expect(mockPush).toHaveBeenCalledWith("/clients/id-1/vue-client");
+    expect(mockPush).toHaveBeenCalledWith("/clients/id-1/dashboard");
   });
 
   it("ClientsPage renders error fallback and clears selection", async () => {
@@ -279,7 +280,7 @@ describe("restructured admin pages", () => {
       .getAllByRole("button")
       .find((btn) => btn.className.includes("hover:text-charcoal"));
     if (rowAction) await user.click(rowAction);
-    expect(mockPush).toHaveBeenCalledWith("/clients/id-1/vue-client");
+    expect(mockPush).toHaveBeenCalledWith("/clients/id-1/dashboard");
   });
 
   it("ClientsPage shows singular label", () => {
@@ -404,6 +405,33 @@ describe("restructured admin pages", () => {
     expect(screen.getByText("custom_action")).toBeInTheDocument();
     expect(screen.getByText("-")).toBeInTheDocument();
     expect(screen.getByText("abcd...")).toBeInTheDocument();
+  });
+
+  it("JournalPage handles missing requestId without crashing", () => {
+    mockUseApiGetPaginated.mockReturnValue({
+      data: [
+        {
+          ...baseRow,
+          requestId: undefined,
+          resourceType: "organization",
+        },
+      ],
+      total: 1,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+      pagination: {
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      },
+    });
+
+    render(<JournalPage />);
+    expect(screen.getByText("-")).toBeInTheDocument();
   });
 
   it("JournalPage shows API error fallback in audit section", () => {

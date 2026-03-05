@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { ArrowRight, LockKeyhole } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 function toLoginErrorMessage(error: string | null): string | null {
@@ -11,7 +12,10 @@ function toLoginErrorMessage(error: string | null): string | null {
   if (error === "oidc_provider_untrusted") {
     return "Le fournisseur OIDC est non fiable ou mal configure (TLS/certificat/endpoints).";
   }
-  return `La connexion a echoue (${error}). Veuillez reessayer.`;
+  if (error === "rate_limited") {
+    return "Trop de tentatives de connexion. Patientez quelques instants puis reessayez.";
+  }
+  return "La connexion a echoue. Veuillez reessayer.";
 }
 
 function LoginForm() {
@@ -33,20 +37,26 @@ function LoginForm() {
   }
 
   return (
-    <>
-      <p className="mb-6 text-center text-sm text-ink-tertiary">
-        Espace administration
-      </p>
+    <div className="space-y-6">
+      <div className="space-y-2 text-center">
+        <p className="text-xs uppercase tracking-[0.16em] text-ink-tertiary">
+          Super admin access
+        </p>
+        <h2 className="text-xl font-semibold text-ink">Connexion securisee</h2>
+        <p className="text-sm text-ink-secondary">
+          Authentification OIDC avec verification stricte des permissions admin.
+        </p>
+      </div>
 
       <div className="space-y-4">
         {isReauth && (
-          <div className="rounded-md bg-primary-50 p-3 text-sm text-primary-700">
+          <div className="rounded-lg border border-warning-light bg-warning-light/50 px-4 py-3 text-sm text-warning-text">
             Session expiree ou droits insuffisants. Veuillez vous reconnecter.
           </div>
         )}
 
         {errorMessage && (
-          <div className="rounded-md bg-danger-50 p-3 text-sm text-danger-700">
+          <div className="rounded-lg border border-danger-light bg-danger-light/50 px-4 py-3 text-sm text-danger-text">
             {errorMessage}
           </div>
         )}
@@ -54,12 +64,14 @@ function LoginForm() {
         <button
           type="button"
           onClick={handleLogin}
-          className="min-h-[44px] w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-600"
+          className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600"
         >
+          <LockKeyhole className="h-4 w-4" />
           Continuer vers la connexion
+          <ArrowRight className="h-4 w-4" />
         </button>
       </div>
-    </>
+    </div>
   );
 }
 

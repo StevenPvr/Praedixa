@@ -89,6 +89,11 @@ Règles:
 3. Triage owner + reviewer sous 4h pour `Critical`, puis patch durable.
 4. Lier décision et preuve dans les logs de risque résiduel et incident.
 
+## Rotation des secrets
+
+- Procédure dédiée: `docs/runbooks/security-secret-rotation.md`.
+- À appliquer immédiatement si une fuite est suspectée par les contrôles secrets.
+
 ## Commandes opérationnelles
 
 ```bash

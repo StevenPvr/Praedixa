@@ -35,18 +35,23 @@
     --brand-subtle: var(--navy-200);
     --brand-strong: var(--navy-700);
 
-    /* ── Accent: Amber Brass (CTAs, signals, highlights) ── */
-    --accent: var(--brass-500);
-    --accent-50: var(--brass-50);
-    --accent-100: var(--brass-100);
-    --accent-200: var(--brass-200);
-    --accent-300: var(--brass-300);
-    --accent-400: var(--brass-400);
-    --accent-500: var(--brass-500);
-    --accent-600: var(--brass-600);
-    --accent-700: var(--brass-700);
-    --accent-800: var(--brass-800);
-    --accent-strong: var(--brass-700);
+    /* ── Accent: force Praedixa Blue (no green accent on landing) ── */
+    --accent: var(--navy-500);
+    --accent-50: var(--navy-50);
+    --accent-100: var(--navy-100);
+    --accent-200: var(--navy-200);
+    --accent-300: var(--navy-300);
+    --accent-400: var(--navy-400);
+    --accent-500: var(--navy-500);
+    --accent-600: var(--navy-600);
+    --accent-700: var(--navy-700);
+    --accent-800: var(--navy-800);
+    --accent-strong: var(--navy-700);
+
+    /* ── Semantic status: blue-forward to avoid green emphasis ── */
+    --success: var(--navy-500);
+    --success-light: var(--navy-100);
+    --success-text: var(--navy-700);
 
     /* ── Borders ── */
     --border: var(--warm-border);
@@ -74,7 +79,8 @@
 
     /* ── Glows ── */
     --glow-brand: oklch(0.50 0.105 246 / 0.22);
-    --glow-accent: oklch(0.66 0.14 78 / 0.18);
+    --glow-accent: oklch(0.50 0.105 246 / 0.18);
+    --glow-success: oklch(0.50 0.105 246 / 0.20);
 
     /* ── Timing ── */
     --duration-instant: 50ms;

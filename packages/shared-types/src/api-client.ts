@@ -59,6 +59,7 @@ export class ApiError extends Error {
     public status: number,
     public code?: string,
     public details?: Record<string, unknown>,
+    public requestId?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -111,6 +112,7 @@ async function request<T>(
       response.status,
       errorData?.error?.code,
       errorData?.error?.details,
+      errorData?.requestId,
     );
   }
 

@@ -1,20 +1,12 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { WarRoomDashboard } from "@/components/dashboard/war-room";
-import { PageTransition } from "@/components/page-transition";
 
 export const metadata: Metadata = {
   title: "Tableau de bord | Praedixa",
   description:
-    "Centre de pilotage operationnel: risques, couverture, priorites et arbitrages",
+    "Centre de pilotage operationnel: risques, couverture et priorites du jour.",
 };
 
 export default function DashboardPage() {
-  return (
-    <PageTransition>
-      <Suspense fallback={<div>Chargement du centre decisionnel...</div>}>
-        <WarRoomDashboard />
-      </Suspense>
-    </PageTransition>
-  );
+  return <WarRoomDashboard />;
 }

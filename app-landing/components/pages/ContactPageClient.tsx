@@ -135,7 +135,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
           message: "Message",
           messageHint: `Minimum ${MIN_MESSAGE_LENGTH} caractères`,
           messagePlaceholder:
-            "Ex : nombre de sites, contraintes, outil WFM/ERP, horizon, arbitrages (coût/service/pénalités).",
+            "Ex : nombre de sites, contraintes, outils en place (ERP/CRM/BI), horizon, arbitrages (coût/service/risque).",
           optionalDetails: "Ajouter des détails (optionnel)",
           antiSpam: "Vérification",
           consentPrefix: "J'accepte les ",
@@ -189,7 +189,7 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
           message: "Message",
           messageHint: `Minimum ${MIN_MESSAGE_LENGTH} characters`,
           messagePlaceholder:
-            "Example: site count, constraints, WFM/ERP stack, horizon, trade-offs (cost/service/penalties).",
+            "Example: site count, constraints, existing stack (ERP/CRM/BI), horizon, trade-offs (cost/service/risk).",
           optionalDetails: "Add details (optional)",
           antiSpam: "Verification",
           consentPrefix: "I accept the ",

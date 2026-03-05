@@ -34,6 +34,14 @@ pnpm dev:webapp   # http://localhost:3001
 | `AUTH_OIDC_CLIENT_SECRET` | Client secret OIDC (optionnel si client public) | `<secret>`                                  |
 | `AUTH_OIDC_SCOPE`         | Scope OIDC                                      | `openid profile email offline_access`       |
 | `AUTH_SESSION_SECRET`     | Secret de signature session                     | `<long random secret>`                      |
+| `AUTH_TRUST_X_FORWARDED_FOR` | Autorise `X-Forwarded-For` pour rate limit (desactive par defaut) | `1` |
+| `AUTH_RATE_LIMIT_REDIS_URL` | URL Redis/Valkey pour rate limit distribue (optionnel) | `rediss://user:pass@redis-fr.example:6380/0` |
+| `AUTH_RATE_LIMIT_KEY_PREFIX` | Prefix de cle Redis/Valkey (optionnel)       | `prx:auth:rl`                               |
+| `AUTH_RATE_LIMIT_KEY_SALT` | Sel pour pseudonymiser les cles rate limit (optionnel) | `<long random secret>`               |
+| `AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS` | Timeout connexion Redis (ms) | `300` |
+| `AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS` | Timeout commande Redis (ms) | `300` |
+| `CSP_REPORT_URI`          | Endpoint `report-uri` CSP (optionnel)           | `/api/security/csp-report`                  |
+| `CSP_REPORT_TO_URL`       | Endpoint `report-to` CSP (optionnel)            | `https://reports.praedixa.com/csp`          |
 
 ---
 
@@ -93,6 +101,7 @@ Regles de routage :
 - **`super_admin`** → redirection vers `/login` (doit utiliser `app-admin`)
 - **Authentifie sur `/login`** → redirection vers `/dashboard`
 - **`/login?reauth=1`** → accessible meme authentifie (recovery apres 401)
+- **`/login?reauth=1&reason=api_unauthorized&error_code=<code>&request_id=<id>`** → contexte de reauth explicite pour support/debug
 
 Regles de scope role/site :
 

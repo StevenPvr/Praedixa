@@ -1,4 +1,4 @@
-version: 2
+version: 3
 invariants:
   - id: INV-TS-TENANT-001
     statement: Un utilisateur ne lit/modifie jamais les ressources d'une autre organisation.
@@ -34,3 +34,20 @@ invariants:
       - scripts/check-prod-security-config.py
     required_tests:
       - app-api-ts/src/__tests__/server.test.ts
+
+  - id: INV-CONNECTORS-AUTH-005
+    statement: Le runtime connecteurs refuse toute route protegee sans token interne valide.
+    critical_paths:
+      - app-connectors/src/server.ts
+      - app-connectors/src/security.ts
+      - app-connectors/src/routes.ts
+    required_tests:
+      - app-connectors/src/__tests__/server.test.ts
+
+  - id: INV-CONNECTORS-PAYLOAD-006
+    statement: Les endpoints mutateurs des connecteurs acceptent uniquement du JSON valide et borne.
+    critical_paths:
+      - app-connectors/src/server.ts
+      - app-connectors/src/routes.ts
+    required_tests:
+      - app-connectors/src/__tests__/server.test.ts

@@ -16,11 +16,17 @@ const CONTENT_KEYS = [
   "about",
   "security",
   "resources",
+  "productMethod",
+  "howItWorksPage",
+  "decisionLogProof",
+  "integrationData",
   "pillarCapacity",
   "pillarLogistics",
   "pillarAbsence",
   "pillarPenalties",
   "pillarImpact",
+  "icpAutomotive",
+  "icpDealership",
   "bofuLogistics",
   "bofuTransport",
   "bofuRetail",
@@ -149,11 +155,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
           locale,
           `/fr/${localizedSlugs[key].fr}`,
           `/en/${localizedSlugs[key].en}`,
-          key === "resources" || key.startsWith("pillar") ? 0.8 : 0.6,
+          key === "resources" || key.startsWith("pillar") || key === "productMethod"
+            ? 0.8
+            : key.startsWith("bofu") || key.startsWith("icp")
+              ? 0.75
+              : 0.6,
           "weekly",
         ),
       );
     }
+
+    entries.push(
+      localizedEntry(
+        locale,
+        "/fr/praedixa-restauration-rapide",
+        "/en/praedixa-quick-service-restaurants",
+        0.75,
+        "weekly",
+      ),
+    );
 
     entries.push(
       localizedEntry(locale, "/fr/blog", "/en/blog", 0.8, "weekly"),

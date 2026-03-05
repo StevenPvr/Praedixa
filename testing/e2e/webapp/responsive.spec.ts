@@ -12,48 +12,32 @@ test.describe("Responsive behavior", () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/dashboard");
 
-    // On mobile, the sidebar is hidden and a hamburger button is visible
-    const menuButton = page.getByRole("button", {
-      name: "Ouvrir le menu",
-      exact: true,
-    });
-    await expect(menuButton).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Ouvrir la navigation", exact: true }),
+    ).toBeVisible();
   });
 
   test("mobile hamburger opens sidebar overlay", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/dashboard");
 
-    // Open menu
-    const menuButton = page.getByRole("button", {
-      name: "Ouvrir le menu",
-      exact: true,
-    });
-    await menuButton.click();
+    await page
+      .getByRole("button", { name: "Ouvrir la navigation", exact: true })
+      .click();
 
-    // Sidebar should now be visible with nav items
     const nav = page.getByLabel("Navigation principale");
     await expect(nav).toBeVisible();
-
-    // Should show navigation items
-    await expect(
-      nav.getByRole("link", { name: "Tableau de bord", exact: true }),
-    ).toBeVisible();
-    await expect(
-      nav.getByRole("link", { name: "Donnees operationnelles", exact: true }),
-    ).toBeVisible();
-    await expect(
-      nav.getByRole("link", { name: "Anticipation", exact: true }),
-    ).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Accueil" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Previsions" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Actions" })).toBeVisible();
   });
 
   test("mobile touch targets are at least 24px", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/dashboard");
 
-    // Hamburger button should have usable touch target (WCAG 2.5.5 recommends 44px; current design uses ~24px)
     const menuButton = page.getByRole("button", {
-      name: "Ouvrir le menu",
+      name: "Ouvrir la navigation",
       exact: true,
     });
     await expect(menuButton).toBeVisible();
@@ -65,45 +49,20 @@ test.describe("Responsive behavior", () => {
     }
   });
 
-  test("content is readable at mobile width", async ({ page }) => {
+  test("dashboard content remains readable at mobile width", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/dashboard");
 
-    // Page title should be visible
     await expect(
-      page.getByRole("heading", { name: "War room operationnelle" }),
+      page.getByRole("heading", { name: "Priorites du jour" }),
     ).toBeVisible();
-
-    // KPI section should be visible
     await expect(page.getByText("Alertes ouvertes").first()).toBeVisible();
+    await expect(page.getByText("Alertes prioritaires")).toBeVisible();
 
-    // Next action section should be visible
-    await expect(page.getByText("Priorites a traiter")).toBeVisible();
-
-    // Verify nothing overflows horizontally
-    const pageWidth = 375;
-    const mainContent = page.locator("main");
-    const mainBox = await mainContent.boundingBox();
+    const mainBox = await page.locator("main").boundingBox();
     expect(mainBox).not.toBeNull();
     if (mainBox) {
-      // Content should not exceed viewport width (with some tolerance for padding)
-      expect(mainBox.width).toBeLessThanOrEqual(pageWidth);
+      expect(mainBox.width).toBeLessThanOrEqual(375);
     }
-  });
-
-  test("forecast section is visible on mobile", async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto("/dashboard");
-
-    await expect(
-      page.getByText("Pression capacitaire a 14 jours"),
-    ).toBeVisible();
-  });
-
-  test("scenario comparison section is visible on mobile", async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto("/dashboard");
-
-    await expect(page.getByText("Indice d'exposition immediate")).toBeVisible();
   });
 });

@@ -1,7 +1,19 @@
+import { randomUUID } from "node:crypto";
+
+import {
+  IntegrationInputError,
+  createIntegrationConnection,
+  listIntegrationAuditEvents,
+  listIntegrationCatalog,
+  listIntegrationConnections,
+  listIntegrationSyncRuns,
+  testIntegrationConnection,
+  triggerIntegrationSync,
+} from "./admin-integrations.js";
 import { demo } from "./mock-data.js";
-import { paginated, success } from "./response.js";
+import { failure, paginated, success } from "./response.js";
 import { route } from "./router.js";
-import type { RouteContext, RouteDefinition } from "./types.js";
+import type { RouteContext, RouteDefinition, UserRole } from "./types.js";
 
 const ORGANIZATION_ID = "11111111-1111-1111-1111-111111111111";
 const NOW = new Date();
@@ -725,12 +737,38 @@ function paginateFrom<T>(items: T[], ctx: RouteContext) {
   return paginated(sliced, page, pageSize, items.length, ctx.requestId);
 }
 
+let conversations: Array<Record<string, unknown>> = [
+  ...((demo.conversations as Record<string, unknown>[]) ?? []),
+];
+let conversationMessages: Array<Record<string, unknown>> = [
+  ...((demo.messages as Record<string, unknown>[]) ?? []),
+];
+
+function getConversation(conversationId: string): Record<string, unknown> | null {
+  return (
+    conversations.find((entry) => String(entry.id ?? "") === conversationId) ??
+    null
+  );
+}
+
 function getConversationMessages(conversationId: string): Record<string, unknown>[] {
-  const messages = demo.messages as Record<string, unknown>[];
-  return messages.filter(
+  return conversationMessages.filter(
     (entry) => String(entry.conversationId ?? "") === conversationId,
   );
 }
+
+const SUPPORT_THREAD_ID = "support-thread-001";
+let supportThreadMessages: Array<Record<string, unknown>> = [
+  {
+    id: "support-msg-001",
+    threadId: SUPPORT_THREAD_ID,
+    authorType: "support",
+    authorId: "agent-01",
+    content: "Bonjour, nous suivons votre flux. N'hesitez pas a nous decrire le contexte.",
+    createdAt: isoDateTimeOffset(-1, 10),
+    updatedAt: isoDateTimeOffset(-1, 10),
+  },
+];
 
 function standardMeta(view: string): Record<string, unknown> {
   return {
@@ -942,11 +980,168 @@ function buildScenarioOptions(alertId: string) {
   return options;
 }
 
-const adminAllowedRoles =
-  process.env.NODE_ENV === "production"
-    ? (["super_admin"] as const)
-    : (["super_admin", "org_admin"] as const);
+const adminAllowedRoles = ["super_admin"] as const;
 const adminOnly = { allowedRoles: adminAllowedRoles };
+const adminConsoleAccess = {
+  ...adminOnly,
+  requiredPermissions: ["admin:console:access"] as const,
+};
+const adminMonitoringRead = {
+  ...adminOnly,
+  requiredPermissions: ["admin:monitoring:read"] as const,
+};
+const adminOrgRead = {
+  ...adminOnly,
+  requiredPermissions: ["admin:org:read"] as const,
+};
+const adminOrgWrite = {
+  ...adminOnly,
+  requiredPermissions: ["admin:org:write"] as const,
+};
+const adminUsersRead = {
+  ...adminOnly,
+  requiredPermissions: ["admin:users:read"] as const,
+};
+const adminUsersWrite = {
+  ...adminOnly,
+  requiredPermissions: ["admin:users:write"] as const,
+};
+const adminBillingRead = {
+  ...adminOnly,
+  requiredPermissions: ["admin:billing:read"] as const,
+};
+const adminBillingWrite = {
+  ...adminOnly,
+  requiredPermissions: ["admin:billing:write"] as const,
+};
+const adminAuditRead = {
+  ...adminOnly,
+  requiredPermissions: ["admin:audit:read"] as const,
+};
+const adminOnboardingRead = {
+  ...adminOnly,
+  requiredPermissions: ["admin:onboarding:read"] as const,
+};
+const adminOnboardingWrite = {
+  ...adminOnly,
+  requiredPermissions: ["admin:onboarding:write"] as const,
+};
+const adminMessagesRead = {
+  ...adminOnly,
+  requiredPermissions: ["admin:messages:read"] as const,
+};
+const adminMessagesWrite = {
+  ...adminOnly,
+  requiredPermissions: ["admin:messages:write"] as const,
+};
+const adminSupportRead = {
+  ...adminOnly,
+  requiredPermissions: ["admin:support:read"] as const,
+};
+const adminSupportWrite = {
+  ...adminOnly,
+  requiredPermissions: ["admin:support:write"] as const,
+};
+const adminIntegrationsRead = {
+  ...adminOnly,
+  requiredPermissions: ["admin:integrations:read"] as const,
+};
+const adminIntegrationsWrite = {
+  ...adminOnly,
+  requiredPermissions: ["admin:integrations:write"] as const,
+};
+
+const ADMIN_ASSIGNABLE_ROLES = [
+  "org_admin",
+  "hr_manager",
+  "manager",
+  "employee",
+  "viewer",
+] as const;
+
+type AdminAssignableRole = (typeof ADMIN_ASSIGNABLE_ROLES)[number];
+
+interface AdminUserRecord {
+  id: string;
+  organizationId: string;
+  fullName: string | null;
+  email: string;
+  role: AdminAssignableRole;
+  status: "pending_invite" | "active" | "deactivated";
+  siteName: string | null;
+  lastLoginAt: string | null;
+  invitedAt: string;
+  invitedBy: string | null;
+  updatedAt: string;
+}
+
+const ADMIN_ASSIGNABLE_ROLE_SET = new Set<string>(ADMIN_ASSIGNABLE_ROLES);
+const adminUsersByOrganization = new Map<string, AdminUserRecord[]>();
+
+function listOrgUsers(orgId: string): AdminUserRecord[] {
+  return adminUsersByOrganization.get(orgId) ?? [];
+}
+
+function getOrgUserCount(orgId: string): number {
+  return listOrgUsers(orgId).length;
+}
+
+function findOrgUser(orgId: string, userId: string): AdminUserRecord | null {
+  return listOrgUsers(orgId).find((user) => user.id === userId) ?? null;
+}
+
+function normalizeOptionalText(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeEmail(value: unknown): string | null {
+  const email = normalizeOptionalText(value)?.toLowerCase() ?? null;
+  if (!email) return null;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
+}
+
+function normalizeAdminRole(value: unknown): AdminAssignableRole | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  if (!ADMIN_ASSIGNABLE_ROLE_SET.has(normalized)) return null;
+  return normalized as AdminAssignableRole;
+}
+
+function parseJsonObject(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
+
+function buildDefaultFullName(email: string): string {
+  const prefix = email.split("@")[0] ?? "";
+  const cleaned = prefix.replace(/[._-]+/g, " ").trim();
+  if (cleaned.length === 0) {
+    return "Utilisateur";
+  }
+  return cleaned
+    .split(/\s+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function cloneAdminUser(user: AdminUserRecord): AdminUserRecord {
+  return { ...user };
+}
+
+function isUserRole(value: unknown): value is UserRole {
+  return (
+    value === "super_admin" ||
+    value === "org_admin" ||
+    value === "hr_manager" ||
+    value === "manager" ||
+    value === "employee" ||
+    value === "viewer"
+  );
+}
 
 export const routes: RouteDefinition[] = [
   route(
@@ -2086,67 +2281,145 @@ export const routes: RouteDefinition[] = [
   ),
 
   route("GET", "/api/v1/conversations", (ctx) =>
-    success(demo.conversations, ctx.requestId),
-  ),
-  route("POST", "/api/v1/conversations", (ctx) =>
     success(
-      {
-        id: "conv-new",
-        organizationId: ctx.user?.organizationId ?? demo.organization.id,
-        subject:
-          typeof (ctx.body as { subject?: unknown } | null)?.subject === "string"
-            ? ((ctx.body as { subject: string }).subject as string)
-            : "New conversation",
-        status: "open",
-        initiatedBy: "client",
-        lastMessageAt: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
+      [...conversations].sort((a, b) =>
+        String(b.updatedAt ?? "").localeCompare(String(a.updatedAt ?? "")),
+      ),
       ctx.requestId,
-      "Conversation created",
-      201,
     ),
   ),
-  route("GET", "/api/v1/conversations/:convId/messages", (ctx) =>
-    success(getConversationMessages(ctx.params.convId ?? ""), ctx.requestId),
-  ),
-  route("POST", "/api/v1/conversations/:convId/messages", (ctx) =>
-    success(
-      {
-        id: "msg-new",
-        conversationId: ctx.params.convId,
-        senderUserId: ctx.user?.userId ?? "unknown",
-        senderRole: ctx.user?.role ?? "viewer",
-        content:
-          typeof (ctx.body as { content?: unknown } | null)?.content === "string"
-            ? ((ctx.body as { content: string }).content as string)
-            : "",
-        isRead: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      ctx.requestId,
-      "Message sent",
-      201,
-    ),
-  ),
+  route("POST", "/api/v1/conversations", (ctx) => {
+    const subject =
+      typeof (ctx.body as { subject?: unknown } | null)?.subject === "string"
+        ? ((ctx.body as { subject: string }).subject as string).trim()
+        : "";
+    if (subject.length === 0) {
+      return failure(
+        "VALIDATION_ERROR",
+        "Subject is required",
+        ctx.requestId,
+        422,
+      );
+    }
+
+    const timestamp = new Date().toISOString();
+    const conversation = {
+      id: `conv-${String(conversations.length + 1).padStart(3, "0")}`,
+      organizationId: ctx.user?.organizationId ?? ORGANIZATION_ID,
+      subject,
+      status: "open",
+      initiatedBy: "client",
+      lastMessageAt: null,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    conversations = [conversation, ...conversations];
+    return success(conversation, ctx.requestId, "Conversation created", 201);
+  }),
+  route("GET", "/api/v1/conversations/:convId/messages", (ctx) => {
+    const conversationId = ctx.params.convId ?? "";
+    if (!getConversation(conversationId)) {
+      return failure(
+        "NOT_FOUND",
+        "Conversation not found",
+        ctx.requestId,
+        404,
+      );
+    }
+    return success(getConversationMessages(conversationId), ctx.requestId);
+  }),
+  route("POST", "/api/v1/conversations/:convId/messages", (ctx) => {
+    const conversationId = ctx.params.convId ?? "";
+    if (!getConversation(conversationId)) {
+      return failure(
+        "NOT_FOUND",
+        "Conversation not found",
+        ctx.requestId,
+        404,
+      );
+    }
+
+    const content =
+      typeof (ctx.body as { content?: unknown } | null)?.content === "string"
+        ? ((ctx.body as { content: string }).content as string).trim()
+        : "";
+    if (content.length === 0) {
+      return failure(
+        "VALIDATION_ERROR",
+        "Content is required",
+        ctx.requestId,
+        422,
+      );
+    }
+
+    const timestamp = new Date().toISOString();
+    const message = {
+      id: `msg-${String(conversationMessages.length + 1).padStart(3, "0")}`,
+      conversationId,
+      senderUserId: ctx.user?.userId ?? "unknown",
+      senderRole: ctx.user?.role ?? "org_admin",
+      content,
+      isRead: false,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    conversationMessages = [...conversationMessages, message];
+    conversations = conversations.map((entry) => {
+      if (String(entry.id ?? "") !== conversationId) {
+        return entry;
+      }
+      return {
+        ...entry,
+        lastMessageAt: timestamp,
+        updatedAt: timestamp,
+      };
+    });
+
+    return success(message, ctx.requestId, "Message sent", 201);
+  }),
   route("GET", "/api/v1/conversations/unread-count", (ctx) =>
     success(
       {
-        unreadCount: 1,
-        total: 1,
-        byOrg: [
-          {
-            orgId: demo.organization.id,
-            orgName: demo.organization.name,
-            count: 1,
-          },
-        ],
+        unreadCount: conversationMessages.filter((entry) => {
+          const isOwnMessage =
+            String(entry.senderUserId ?? "") === String(ctx.user?.userId ?? "");
+          const isRead = Boolean(entry.isRead);
+          return !isOwnMessage && !isRead;
+        }).length,
       },
       ctx.requestId,
     ),
   ),
+
+  route("GET", "/api/v1/support-thread", (ctx) =>
+    success(
+      {
+        id: SUPPORT_THREAD_ID,
+        status: "open",
+        messages: supportThreadMessages,
+      },
+      ctx.requestId,
+    ),
+  ),
+  route("POST", "/api/v1/support-thread/messages", (ctx) => {
+    const content =
+      typeof (ctx.body as { content?: unknown } | null)?.content === "string"
+        ? ((ctx.body as { content: string }).content as string).trim()
+        : "";
+    const message = {
+      id: `support-msg-${String(supportThreadMessages.length + 1).padStart(3, "0")}`,
+      threadId: SUPPORT_THREAD_ID,
+      authorType: "client",
+      authorId: ctx.user?.userId ?? "unknown",
+      content,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    if (message.content.length > 0) {
+      supportThreadMessages = [...supportThreadMessages, message];
+    }
+    return success(message, ctx.requestId, "Message sent", 201);
+  }),
 
   // Admin surface (super_admin)
   route(
@@ -2159,8 +2432,147 @@ export const routes: RouteDefinition[] = [
           modules: ["organizations", "users", "monitoring", "audit"],
         },
         ctx.requestId,
+    ),
+    adminConsoleAccess,
+  ),
+  route(
+    "GET",
+    "/api/v1/admin/integrations/catalog",
+    (ctx) => success(listIntegrationCatalog(), ctx.requestId),
+    adminIntegrationsRead,
+  ),
+  route(
+    "GET",
+    "/api/v1/admin/organizations/:orgId/integrations/connections",
+    (ctx) =>
+      success(
+        listIntegrationConnections(
+          ctx.params.orgId ?? "",
+          ctx.query.get("vendor"),
+        ),
+        ctx.requestId,
       ),
-    adminOnly,
+    adminIntegrationsRead,
+  ),
+  route(
+    "POST",
+    "/api/v1/admin/organizations/:orgId/integrations/connections",
+    (ctx) => {
+      try {
+        const created = createIntegrationConnection(
+          ctx.params.orgId ?? "",
+          ctx.body,
+          ctx.user?.userId ?? null,
+        );
+        return success(created, ctx.requestId, "Integration connection created", 201);
+      } catch (error) {
+        if (error instanceof IntegrationInputError) {
+          return failure(
+            "VALIDATION_ERROR",
+            error.message,
+            ctx.requestId,
+            422,
+            error.details,
+          );
+        }
+        return failure(
+          "INTEGRATION_CREATE_FAILED",
+          "Unable to create integration connection",
+          ctx.requestId,
+          400,
+        );
+      }
+    },
+    adminIntegrationsWrite,
+  ),
+  route(
+    "POST",
+    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/test",
+    (ctx) => {
+      try {
+        const result = testIntegrationConnection(
+          ctx.params.orgId ?? "",
+          ctx.params.connectionId ?? "",
+          ctx.user?.userId ?? null,
+        );
+        return success(result, ctx.requestId);
+      } catch (error) {
+        if (error instanceof IntegrationInputError) {
+          return failure(
+            "NOT_FOUND",
+            error.message,
+            ctx.requestId,
+            404,
+            error.details,
+          );
+        }
+        return failure(
+          "CONNECTION_TEST_FAILED",
+          "Unable to test integration connection",
+          ctx.requestId,
+          400,
+        );
+      }
+    },
+    adminIntegrationsWrite,
+  ),
+  route(
+    "POST",
+    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/sync",
+    (ctx) => {
+      try {
+        const run = triggerIntegrationSync(
+          ctx.params.orgId ?? "",
+          ctx.params.connectionId ?? "",
+          ctx.body,
+          ctx.user?.userId ?? null,
+        );
+        return success(run, ctx.requestId, "Integration sync run created", 202);
+      } catch (error) {
+        if (error instanceof IntegrationInputError) {
+          return failure(
+            "SYNC_TRIGGER_FAILED",
+            error.message,
+            ctx.requestId,
+            422,
+            error.details,
+          );
+        }
+        return failure(
+          "SYNC_TRIGGER_FAILED",
+          "Unable to trigger integration sync",
+          ctx.requestId,
+          400,
+        );
+      }
+    },
+    adminIntegrationsWrite,
+  ),
+  route(
+    "GET",
+    "/api/v1/admin/organizations/:orgId/integrations/sync-runs",
+    (ctx) =>
+      success(
+        listIntegrationSyncRuns(
+          ctx.params.orgId ?? "",
+          ctx.query.get("connectionId"),
+        ),
+        ctx.requestId,
+      ),
+    adminIntegrationsRead,
+  ),
+  route(
+    "GET",
+    "/api/v1/admin/organizations/:orgId/integrations/audit",
+    (ctx) =>
+      success(
+        listIntegrationAuditEvents(
+          ctx.params.orgId ?? "",
+          ctx.query.get("connectionId"),
+        ),
+        ctx.requestId,
+      ),
+    adminAuditRead,
   ),
   route(
     "GET",
@@ -2181,7 +2593,7 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
@@ -2196,13 +2608,13 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
     "/api/v1/admin/monitoring/errors",
     (ctx) => success({ count24h: 0, incidents: [] }, ctx.requestId),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
@@ -2216,7 +2628,7 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
@@ -2229,7 +2641,7 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminMonitoringRead,
   ),
 
   route(
@@ -2245,14 +2657,14 @@ export const routes: RouteDefinition[] = [
             status: demo.organization.status,
             plan: "professional",
             contactEmail: "ops.client@praedixa.com",
-            userCount: 42,
+            userCount: getOrgUserCount(demo.organization.id),
             siteCount: demo.sites.length,
             createdAt: demo.organization.createdAt,
           },
         ],
         ctx,
       ),
-    adminOnly,
+    adminOrgRead,
   ),
   route(
     "POST",
@@ -2268,7 +2680,7 @@ export const routes: RouteDefinition[] = [
         "Organization created",
         201,
       ),
-    adminOnly,
+    adminOrgWrite,
   ),
   route(
     "GET",
@@ -2284,7 +2696,7 @@ export const routes: RouteDefinition[] = [
           contactEmail: "ops.client@praedixa.com",
           sector: "Logistique",
           size: "200-500",
-          userCount: 42,
+          userCount: getOrgUserCount(ctx.params.orgId ?? ""),
           siteCount: demo.sites.length,
           createdAt: demo.organization.createdAt,
           sites: [
@@ -2304,7 +2716,82 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminOrgRead,
+  ),
+  route(
+    "GET",
+    "/api/v1/admin/organizations/:orgId/overview",
+    (ctx) =>
+      success(
+        {
+          organization: {
+            id: ctx.params.orgId,
+            name: demo.organization.name,
+            slug: "praedixa-demo-org",
+            status: demo.organization.status,
+            plan: "professional",
+            contactEmail: "ops.client@praedixa.com",
+            sector: "Logistique",
+            size: "200-500",
+            userCount: getOrgUserCount(ctx.params.orgId ?? ""),
+            siteCount: demo.sites.length,
+            createdAt: demo.organization.createdAt,
+          },
+          mirror: {
+            totalEmployees: 200,
+            totalSites: demo.sites.length,
+            activeAlerts: 3,
+            forecastAccuracy: 0.924,
+            avgAbsenteeism: 0.048,
+            coverageRate: 0.963,
+          },
+          billing: {
+            organizationId: ctx.params.orgId,
+            plan: "professional",
+            billingCycle: "monthly",
+            monthlyAmount: 7500,
+            currentUsage: 42,
+            usageLimit: 100,
+            nextBillingDate: "2026-03-01",
+          },
+          alerts: [
+            {
+              id: "alt-001",
+              date: "2026-02-24",
+              type: "coverage_risk",
+              severity: "high",
+              status: "open",
+              siteId: "site-lyon",
+              siteName: "Lyon",
+            },
+            {
+              id: "alt-002",
+              date: "2026-02-25",
+              type: "capacity_gap",
+              severity: "medium",
+              status: "open",
+              siteId: "site-orleans",
+              siteName: "Orleans",
+            },
+          ],
+          scenarios: [
+            {
+              id: "scn-001",
+              name: "Scenario renfort interim J+3",
+              status: "recommended",
+              createdAt: "2026-02-24T09:00:00.000Z",
+            },
+            {
+              id: "scn-002",
+              name: "Scenario reallocation intra-site",
+              status: "draft",
+              createdAt: "2026-02-23T17:30:00.000Z",
+            },
+          ],
+        },
+        ctx.requestId,
+      ),
+    adminOrgRead,
   ),
   route(
     "GET",
@@ -2318,100 +2805,216 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminOrgRead,
   ),
   route(
     "POST",
     "/api/v1/admin/organizations/:orgId/suspend",
     (ctx) =>
       success({ id: ctx.params.orgId, status: "suspended" }, ctx.requestId),
-    adminOnly,
+    adminOrgWrite,
   ),
   route(
     "POST",
     "/api/v1/admin/organizations/:orgId/reactivate",
     (ctx) => success({ id: ctx.params.orgId, status: "active" }, ctx.requestId),
-    adminOnly,
+    adminOrgWrite,
   ),
   route(
     "POST",
     "/api/v1/admin/organizations/:orgId/churn",
     (ctx) => success({ id: ctx.params.orgId, status: "churned" }, ctx.requestId),
-    adminOnly,
+    adminOrgWrite,
   ),
 
   route(
     "GET",
     "/api/v1/admin/organizations/:orgId/users",
-    (ctx) =>
-      success(
-        [
-          {
-            id: "user-001",
-            organizationId: ctx.params.orgId,
-            email: "ops.client@praedixa.com",
-            role: "org_admin",
-          },
-        ],
+    (ctx) => {
+      const orgId = ctx.params.orgId ?? "";
+      return success(
+        listOrgUsers(orgId).map((user) => cloneAdminUser(user)),
         ctx.requestId,
-      ),
-    adminOnly,
+      );
+    },
+    adminUsersRead,
   ),
   route(
     "GET",
     "/api/v1/admin/organizations/:orgId/users/:userId",
-    (ctx) =>
-      success(
-        {
-          id: ctx.params.userId,
-          organizationId: ctx.params.orgId,
-          role: "org_admin",
-        },
-        ctx.requestId,
-      ),
-    adminOnly,
+    (ctx) => {
+      const orgId = ctx.params.orgId ?? "";
+      const userId = ctx.params.userId ?? "";
+      const user = findOrgUser(orgId, userId);
+      if (!user) {
+        return failure(
+          "NOT_FOUND",
+          "User not found for this organization",
+          ctx.requestId,
+          404,
+          { organizationId: orgId, userId },
+        );
+      }
+      return success(cloneAdminUser(user), ctx.requestId);
+    },
+    adminUsersRead,
   ),
   route(
     "PATCH",
     "/api/v1/admin/organizations/:orgId/users/:userId/role",
-    (ctx) =>
-      success(
-        {
-          id: ctx.params.userId,
-          organizationId: ctx.params.orgId,
-          patch: ctx.body,
-        },
-        ctx.requestId,
-      ),
-    adminOnly,
+    (ctx) => {
+      const orgId = ctx.params.orgId ?? "";
+      const userId = ctx.params.userId ?? "";
+      const payload = parseJsonObject(ctx.body);
+      if (!payload) {
+        return failure(
+          "VALIDATION_ERROR",
+          "Body must be a JSON object",
+          ctx.requestId,
+          422,
+        );
+      }
+
+      const role = payload.role;
+      if (!isUserRole(role) || role === "super_admin") {
+        return failure(
+          "VALIDATION_ERROR",
+          "Role must be one of: org_admin, hr_manager, manager, employee, viewer",
+          ctx.requestId,
+          422,
+        );
+      }
+
+      const user = findOrgUser(orgId, userId);
+      if (!user) {
+        return failure(
+          "NOT_FOUND",
+          "User not found for this organization",
+          ctx.requestId,
+          404,
+          { organizationId: orgId, userId },
+        );
+      }
+
+      user.role = role;
+      user.updatedAt = new Date().toISOString();
+      return success(cloneAdminUser(user), ctx.requestId, "User role updated");
+    },
+    adminUsersWrite,
   ),
   route(
     "POST",
     "/api/v1/admin/organizations/:orgId/users/invite",
-    (ctx) =>
-      success(
-        {
-          organizationId: ctx.params.orgId,
-          invited: true,
-          input: ctx.body,
-        },
-        ctx.requestId,
-        "User invited",
-        201,
-      ),
-    adminOnly,
+    (ctx) => {
+      const orgId = ctx.params.orgId ?? "";
+      const payload = parseJsonObject(ctx.body);
+      if (!payload) {
+        return failure(
+          "VALIDATION_ERROR",
+          "Body must be a JSON object",
+          ctx.requestId,
+          422,
+        );
+      }
+
+      const email = normalizeEmail(payload.email);
+      if (!email) {
+        return failure(
+          "VALIDATION_ERROR",
+          "A valid email is required",
+          ctx.requestId,
+          422,
+        );
+      }
+
+      const role = normalizeAdminRole(payload.role);
+      if (!role) {
+        return failure(
+          "VALIDATION_ERROR",
+          "Role must be one of: org_admin, hr_manager, manager, employee, viewer",
+          ctx.requestId,
+          422,
+        );
+      }
+
+      const users = listOrgUsers(orgId);
+      const alreadyExists = users.some((entry) => entry.email === email);
+      if (alreadyExists) {
+        return failure(
+          "CONFLICT",
+          "A user with this email already exists in this organization",
+          ctx.requestId,
+          409,
+          { organizationId: orgId, email },
+        );
+      }
+
+      const nowIso = new Date().toISOString();
+      const created: AdminUserRecord = {
+        id: `usr_${randomUUID()}`,
+        organizationId: orgId,
+        fullName: normalizeOptionalText(payload.fullName) ?? buildDefaultFullName(email),
+        email,
+        role,
+        status: "pending_invite",
+        siteName: normalizeOptionalText(payload.siteName),
+        lastLoginAt: null,
+        invitedAt: nowIso,
+        invitedBy: ctx.user?.email ?? null,
+        updatedAt: nowIso,
+      };
+      users.push(created);
+      adminUsersByOrganization.set(orgId, users);
+
+      return success(cloneAdminUser(created), ctx.requestId, "User invited", 201);
+    },
+    adminUsersWrite,
   ),
   route(
     "POST",
     "/api/v1/admin/organizations/:orgId/users/:userId/deactivate",
-    (ctx) => success({ id: ctx.params.userId, status: "deactivated" }, ctx.requestId),
-    adminOnly,
+    (ctx) => {
+      const orgId = ctx.params.orgId ?? "";
+      const userId = ctx.params.userId ?? "";
+      const user = findOrgUser(orgId, userId);
+      if (!user) {
+        return failure(
+          "NOT_FOUND",
+          "User not found for this organization",
+          ctx.requestId,
+          404,
+          { organizationId: orgId, userId },
+        );
+      }
+
+      user.status = "deactivated";
+      user.updatedAt = new Date().toISOString();
+      return success(cloneAdminUser(user), ctx.requestId, "User deactivated");
+    },
+    adminUsersWrite,
   ),
   route(
     "POST",
     "/api/v1/admin/organizations/:orgId/users/:userId/reactivate",
-    (ctx) => success({ id: ctx.params.userId, status: "active" }, ctx.requestId),
-    adminOnly,
+    (ctx) => {
+      const orgId = ctx.params.orgId ?? "";
+      const userId = ctx.params.userId ?? "";
+      const user = findOrgUser(orgId, userId);
+      if (!user) {
+        return failure(
+          "NOT_FOUND",
+          "User not found for this organization",
+          ctx.requestId,
+          404,
+          { organizationId: orgId, userId },
+        );
+      }
+
+      user.status = "active";
+      user.updatedAt = new Date().toISOString();
+      return success(cloneAdminUser(user), ctx.requestId, "User reactivated");
+    },
+    adminUsersWrite,
   ),
 
   route(
@@ -2430,7 +3033,7 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminBillingRead,
   ),
   route(
     "POST",
@@ -2444,7 +3047,7 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminBillingWrite,
   ),
   route(
     "GET",
@@ -2461,7 +3064,7 @@ export const routes: RouteDefinition[] = [
         ],
         ctx.requestId,
       ),
-    adminOnly,
+    adminBillingRead,
   ),
 
   route(
@@ -2472,14 +3075,42 @@ export const routes: RouteDefinition[] = [
         [
           {
             id: "aud-001",
+            adminUserId: "admin-001",
+            targetOrgId: demo.organization.id,
             action: "decision.review",
-            actor: "super_admin",
+            resourceType: "operational_decision",
+            resourceId: "dec-001",
+            ipAddress: "10.24.8.17",
+            userAgent: "Praedixa Admin Console/2.0",
+            requestId: "req-aud-001",
+            metadataJson: {
+              previousState: "pending",
+              nextState: "approved",
+            },
+            severity: "info",
             createdAt: new Date().toISOString(),
+          },
+          {
+            id: "aud-002",
+            adminUserId: "admin-002",
+            targetOrgId: demo.organization.id,
+            action: "billing.plan_changed",
+            resourceType: "organization_billing",
+            resourceId: "org-billing-001",
+            ipAddress: "10.24.8.19",
+            userAgent: "Praedixa Admin Console/2.0",
+            requestId: "req-aud-002",
+            metadataJson: {
+              fromPlan: "starter",
+              toPlan: "professional",
+            },
+            severity: "warning",
+            createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
           },
         ],
         ctx,
       ),
-    adminOnly,
+    adminAuditRead,
   ),
 
   route(
@@ -2497,7 +3128,7 @@ export const routes: RouteDefinition[] = [
         ],
         ctx,
       ),
-    adminOnly,
+    adminOnboardingRead,
   ),
   route(
     "POST",
@@ -2513,7 +3144,7 @@ export const routes: RouteDefinition[] = [
         "Onboarding started",
         201,
       ),
-    adminOnly,
+    adminOnboardingWrite,
   ),
   route(
     "PATCH",
@@ -2526,14 +3157,14 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminOnboardingWrite,
   ),
 
   route(
     "GET",
     "/api/v1/admin/monitoring/alerts/summary",
     (ctx) => success({ totalAlerts: 12 }, ctx.requestId),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
@@ -2543,49 +3174,49 @@ export const routes: RouteDefinition[] = [
         [{ organizationId: demo.organization.id, alerts: 12 }],
         ctx.requestId,
       ),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
     "/api/v1/admin/monitoring/scenarios/summary",
     (ctx) => success({ scenariosGenerated: 31 }, ctx.requestId),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
     "/api/v1/admin/monitoring/decisions/summary",
     (ctx) => success({ totalDecisions: 48 }, ctx.requestId),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
     "/api/v1/admin/monitoring/decisions/overrides",
     (ctx) => success({ overrideRatePct: 21.4 }, ctx.requestId),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
     "/api/v1/admin/monitoring/decisions/adoption",
     (ctx) => success({ adoptionRatePct: 62.5 }, ctx.requestId),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
     "/api/v1/admin/monitoring/proof-packs/summary",
     (ctx) => success({ generatedMonthly: 1 }, ctx.requestId),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
     "/api/v1/admin/monitoring/canonical-coverage",
     (ctx) => success({ coveragePct: 98.7 }, ctx.requestId),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
     "/api/v1/admin/monitoring/cost-params/missing",
     (ctx) => success({ missingCount: 0, items: [] }, ctx.requestId),
-    adminOnly,
+    adminMonitoringRead,
   ),
   route(
     "GET",
@@ -2600,7 +3231,7 @@ export const routes: RouteDefinition[] = [
         ],
         ctx.requestId,
       ),
-    adminOnly,
+    adminMonitoringRead,
   ),
 
   route(
@@ -2611,14 +3242,32 @@ export const routes: RouteDefinition[] = [
         [
           {
             organizationId: ctx.params.orgId,
+            id: "can-001",
+            employeeId: "EMP-017",
+            absenceType: "maladie",
+            hours: 7,
+            siteName: "Lyon",
+            departmentName: "Production",
             siteId: "site-lyon",
             date: "2026-02-24",
             shift: "PM",
           },
+          {
+            organizationId: ctx.params.orgId,
+            id: "can-002",
+            employeeId: "EMP-102",
+            absenceType: "formation",
+            hours: 3.5,
+            siteName: "Orleans",
+            departmentName: "Logistique",
+            siteId: "site-orleans",
+            date: "2026-02-24",
+            shift: "AM",
+          },
         ],
         ctx.requestId,
       ),
-    adminOnly,
+    adminOrgRead,
   ),
   route(
     "GET",
@@ -2627,11 +3276,16 @@ export const routes: RouteDefinition[] = [
       success(
         {
           organizationId: ctx.params.orgId,
-          completenessPct: 98.7,
+          totalRecords: 1248,
+          validRecords: 1216,
+          duplicateRecords: 8,
+          missingFields: 24,
+          completenessRate: 0.981,
+          qualityScore: 0.965,
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminOrgRead,
   ),
   route(
     "GET",
@@ -2647,7 +3301,7 @@ export const routes: RouteDefinition[] = [
         ],
         ctx.requestId,
       ),
-    adminOnly,
+    adminOrgRead,
   ),
   route(
     "GET",
@@ -2663,7 +3317,7 @@ export const routes: RouteDefinition[] = [
         ],
         ctx.requestId,
       ),
-    adminOnly,
+    adminOrgRead,
   ),
   route(
     "GET",
@@ -2674,28 +3328,98 @@ export const routes: RouteDefinition[] = [
           {
             organizationId: ctx.params.orgId,
             id: "scn-001",
+            name: "Renfort interim PM",
+            type: "interim",
+            status: "completed",
+            createdAt: isoDateTimeOffset(-2, 9),
             recommended: true,
+          },
+          {
+            organizationId: ctx.params.orgId,
+            id: "scn-002",
+            name: "Heures supplementaires ciblees",
+            type: "overtime",
+            status: "running",
+            createdAt: isoDateTimeOffset(-1, 10),
+            recommended: false,
           },
         ],
         ctx.requestId,
       ),
-    adminOnly,
+    adminOrgRead,
+  ),
+  route(
+    "GET",
+    "/api/v1/admin/organizations/:orgId/ml-monitoring/summary",
+    (ctx) =>
+      success(
+        {
+          organizationId: ctx.params.orgId,
+          modelVersion: "ensemble-2026.02.25",
+          mape: 9.4,
+          mae: 4.2,
+          driftScore: 0.11,
+          status: "healthy",
+          lastTrainingAt: isoDateTimeOffset(-7, 8),
+        },
+        ctx.requestId,
+      ),
+    adminOrgRead,
+  ),
+  route(
+    "GET",
+    "/api/v1/admin/organizations/:orgId/ml-monitoring/drift",
+    (ctx) =>
+      success(
+        ML_MONITORING_DAILY.slice(-14).map((row, index) => ({
+          id: `drift-${index + 1}`,
+          organizationId: ctx.params.orgId,
+          feature: `feature_${(index % 6) + 1}`,
+          driftScore: row.dataDriftScore,
+          pValue: Number((0.02 + (index % 5) * 0.01).toFixed(4)),
+          detectedAt: `${row.date}T00:00:00Z`,
+        })),
+        ctx.requestId,
+      ),
+    adminOrgRead,
   ),
   route(
     "GET",
     "/api/v1/admin/organizations/:orgId/proof-packs",
     (ctx) =>
       success(
-        [
-          {
-            organizationId: ctx.params.orgId,
-            id: "pf-001",
-            month: "2026-02",
-          },
-        ],
+        LIVE_PROOF_PACKS.map((proof) => ({
+          organizationId: ctx.params.orgId,
+          id: proof.id,
+          name: `Proof ${proof.siteId} ${proof.month.slice(0, 7)}`,
+          status: "generated",
+          generatedAt: `${proof.month.slice(0, 10)}T08:00:00.000Z`,
+          downloadUrl: `/proof/${proof.id}.pdf`,
+          month: proof.month,
+          siteId: proof.siteId,
+        })),
         ctx.requestId,
       ),
-    adminOnly,
+    adminOrgRead,
+  ),
+  route(
+    "POST",
+    "/api/v1/admin/organizations/:orgId/proof-packs/:proofPackId/share-link",
+    (ctx) =>
+      success(
+        {
+          organizationId: ctx.params.orgId,
+          proofPackId: ctx.params.proofPackId,
+          url: `https://files.praedixa.local/share/${encodeURIComponent(
+            ctx.params.orgId ?? "org",
+          )}/${encodeURIComponent(ctx.params.proofPackId ?? "proof")}`,
+          expiresAt: isoDateTimeOffset(7, 12),
+        },
+        ctx.requestId,
+        "Share link generated",
+        201,
+      ),
+    adminOrgRead,
   ),
   route(
     "GET",
@@ -2706,12 +3430,25 @@ export const routes: RouteDefinition[] = [
           {
             organizationId: ctx.params.orgId,
             id: "ing-001",
-            status: "success",
+            fileName: "absences_2026_02.csv",
+            status: "completed",
+            rowsProcessed: 1842,
+            rowsRejected: 12,
+            createdAt: isoDateTimeOffset(-1, 6),
+          },
+          {
+            organizationId: ctx.params.orgId,
+            id: "ing-002",
+            fileName: "capacites_2026_02.csv",
+            status: "completed",
+            rowsProcessed: 930,
+            rowsRejected: 0,
+            createdAt: isoDateTimeOffset(-2, 7),
           },
         ],
         ctx.requestId,
       ),
-    adminOnly,
+    adminOrgRead,
   ),
   route(
     "GET",
@@ -2720,11 +3457,46 @@ export const routes: RouteDefinition[] = [
       success(
         {
           organizationId: ctx.params.orgId,
-          qualityScore: 98.2,
+          clientSlug: "client-demo",
+          goldRevision: "gold-2026.03.01-r2",
+          silverQuality: {
+            columns: {
+              demand_h: { missingRate: 0.01, imputedCount: 4 },
+              planned_h: { missingRate: 0.0, imputedCount: 0 },
+              abs_h: { missingRate: 0.02, imputedCount: 9 },
+            },
+          },
+          goldFeatureQuality: {
+            removed_from_gold_columns_count: 2,
+            removed_from_gold_columns: ["raw_comment", "debug_trace_id"],
+          },
+          lastRunSummary: {
+            run_at: isoDateTimeOffset(0, 3),
+            silver_rows: 1248,
+            gold_rows: 1248,
+          },
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminOrgRead,
+  ),
+  route(
+    "GET",
+    "/api/v1/admin/organizations/:orgId/datasets",
+    (ctx) =>
+      success(
+        (demo.datasets as Record<string, unknown>[]).map((dataset) => ({
+          id: String(dataset.id ?? "dataset"),
+          organizationId: ctx.params.orgId,
+          name: String(dataset.name ?? dataset.id ?? "dataset"),
+          status: String(dataset.status ?? "ready"),
+          rowCount:
+            typeof dataset.rowCount === "number" ? dataset.rowCount : 120,
+          updatedAt: new Date().toISOString(),
+        })),
+        ctx.requestId,
+      ),
+    adminOrgRead,
   ),
   route(
     "GET",
@@ -2734,11 +3506,28 @@ export const routes: RouteDefinition[] = [
         {
           organizationId: ctx.params.orgId,
           datasetId: ctx.params.datasetId,
-          rows: [{ id: "row-001" }],
+          rows: [
+            {
+              site_id: "site-lyon",
+              date: "2026-03-01",
+              demand_h: 318,
+              planned_h: 304,
+              optimal_h: 322,
+              risk_score: 0.42,
+            },
+            {
+              site_id: "site-orleans",
+              date: "2026-03-01",
+              demand_h: 252,
+              planned_h: 244,
+              optimal_h: 261,
+              risk_score: 0.31,
+            },
+          ],
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminOrgRead,
   ),
   route(
     "GET",
@@ -2748,18 +3537,23 @@ export const routes: RouteDefinition[] = [
         {
           organizationId: ctx.params.orgId,
           datasetId: ctx.params.datasetId,
-          features: ["lag_7", "rolling_mean_14"],
+          features: [
+            "lag_7",
+            "rolling_mean_14",
+            "seasonality_weekday",
+            "absence_rate_rolling_7",
+          ],
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminOrgRead,
   ),
 
   route(
     "GET",
     "/api/v1/admin/conversations",
     (ctx) => success(demo.conversations, ctx.requestId),
-    adminOnly,
+    adminMessagesRead,
   ),
   route(
     "GET",
@@ -2774,13 +3568,13 @@ export const routes: RouteDefinition[] = [
         ],
         ctx.requestId,
       ),
-    adminOnly,
+    adminMessagesRead,
   ),
   route(
     "GET",
     "/api/v1/admin/conversations/:convId/messages",
     (ctx) => success(getConversationMessages(ctx.params.convId ?? ""), ctx.requestId),
-    adminOnly,
+    adminMessagesRead,
   ),
   route(
     "GET",
@@ -2800,7 +3594,7 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminMessagesRead,
   ),
   route(
     "GET",
@@ -2813,7 +3607,7 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminMessagesRead,
   ),
   route(
     "POST",
@@ -2832,7 +3626,7 @@ export const routes: RouteDefinition[] = [
         "Message sent",
         201,
       ),
-    adminOnly,
+    adminMessagesWrite,
   ),
   route(
     "PATCH",
@@ -2845,7 +3639,7 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminMessagesWrite,
   ),
   route(
     "GET",
@@ -2861,7 +3655,7 @@ export const routes: RouteDefinition[] = [
         ],
         ctx,
       ),
-    adminOnly,
+    adminSupportRead,
   ),
   route(
     "PATCH",
@@ -2874,6 +3668,6 @@ export const routes: RouteDefinition[] = [
         },
         ctx.requestId,
       ),
-    adminOnly,
+    adminSupportWrite,
   ),
 ];

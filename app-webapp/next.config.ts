@@ -8,7 +8,7 @@ const config: NextConfig = {
   transpilePackages: ["@praedixa/ui", "@praedixa/shared-types"],
 
   experimental: {
-    optimizePackageImports: ["framer-motion", "lucide-react", "date-fns"],
+    optimizePackageImports: ["lucide-react", "date-fns"],
   },
 
   async headers() {

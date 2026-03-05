@@ -23,8 +23,8 @@ export function BlogIndexPage({ locale, search, result }: BlogIndexPageProps) {
   const title = locale === "fr" ? "Blog Praedixa" : "Praedixa Blog";
   const subtitle =
     locale === "fr"
-      ? "Analyses operationnelles, workforce planning et preuve d'impact economique."
-      : "Operational analysis, workforce planning, and economic impact proof.";
+      ? "Analyses opérationnelles, arbitrages Ops/Finance et preuve d'impact économique."
+      : "Operational analysis, Ops/Finance decision-making, and impact proof.";
 
   const selectedTag = result.selectedTag;
 

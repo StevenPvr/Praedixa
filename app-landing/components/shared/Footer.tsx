@@ -15,6 +15,11 @@ interface FooterProps {
 export function Footer({ locale, dict }: FooterProps) {
   const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=audit`;
   const servicesHref = getLocalizedPath(locale, "services");
+  const productHref = getLocalizedPath(locale, "productMethod");
+  const methodHref = getLocalizedPath(locale, "howItWorksPage");
+  const proofHref = getLocalizedPath(locale, "decisionLogProof");
+  const integrationHref = getLocalizedPath(locale, "integrationData");
+  const solutionsHref = getLocalizedPath(locale, "resources");
   const blogHref = `/${locale}/blog`;
   const contactHref = getLocalizedPath(locale, "contact");
   const legalHref = getLocalizedPath(locale, "legal");
@@ -23,13 +28,25 @@ export function Footer({ locale, dict }: FooterProps) {
   const aboutHref = getLocalizedPath(locale, "about");
 
   const navLinks = [
-    { label: dict.nav.problem, href: `/${locale}#problem` },
-    { label: dict.nav.method, href: `/${locale}#solution` },
+    {
+      label: locale === "fr" ? "Produit & méthode" : "Product and method",
+      href: productHref,
+    },
+    {
+      label: locale === "fr" ? "Comment ça marche" : "How it works",
+      href: methodHref,
+    },
+    {
+      label: locale === "fr" ? "Decision Log & preuve ROI" : "Decision Log and ROI proof",
+      href: proofHref,
+    },
+    {
+      label: locale === "fr" ? "Intégration & données" : "Integration and data",
+      href: integrationHref,
+    },
     { label: dict.nav.services, href: servicesHref },
+    { label: locale === "fr" ? "Solutions" : "Solutions", href: solutionsHref },
     { label: "Blog", href: blogHref },
-    { label: dict.nav.howItWorks, href: `/${locale}#how-it-works` },
-    { label: dict.nav.security, href: `/${locale}#security` },
-    { label: dict.nav.faq, href: `/${locale}#faq` },
   ];
 
   const legalLinks = [

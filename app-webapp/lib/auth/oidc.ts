@@ -146,24 +146,114 @@ function getNestedString(
     : null;
 }
 
+function normalizeRoleValue(rawRole: string): string {
+  const trimmed = rawRole.trim();
+  if (trimmed.length === 0) return "";
+
+  const withoutPath = trimmed.includes("/")
+    ? (trimmed.split("/").at(-1) ?? "")
+    : trimmed;
+
+  return withoutPath
+    .toLowerCase()
+    .replace(/^role[_:-]?/, "")
+    .replace(/[\s-]+/g, "_");
+}
+
+function mapToKnownRole(rawRole: string): KnownRole | null {
+  const normalized = normalizeRoleValue(rawRole);
+  if (normalized.length === 0) return null;
+
+  if (
+    normalized === "admin" ||
+    normalized === "orgadmin" ||
+    normalized === "organization_admin" ||
+    normalized === "org_administrator"
+  ) {
+    return "org_admin";
+  }
+
+  if (
+    normalized === "superadmin" ||
+    normalized === "super_administrator"
+  ) {
+    return "super_admin";
+  }
+
+  if (normalized === "hrmanager") {
+    return "hr_manager";
+  }
+
+  return ROLE_PRIORITY.includes(normalized as KnownRole)
+    ? (normalized as KnownRole)
+    : null;
+}
+
 function getRoleFromList(value: unknown): string | null {
   if (!Array.isArray(value)) return null;
   const roles = value.filter(
     (entry): entry is string => typeof entry === "string",
   );
+  if (roles.length === 0) return null;
+
+  const knownRoles = roles
+    .map((role) => mapToKnownRole(role))
+    .filter((role): role is KnownRole => role != null);
+
   for (const candidate of ROLE_PRIORITY) {
-    if (roles.includes(candidate)) {
+    if (knownRoles.includes(candidate)) {
       return candidate;
     }
   }
-  return roles.length > 0 ? roles[0] : null;
+
+  return null;
+}
+
+function getClientResourceRole(
+  payload: JwtPayload,
+  clientId: string,
+): string | null {
+  const resourceAccess = getOwnValue(payload, "resource_access");
+  if (
+    !resourceAccess ||
+    typeof resourceAccess !== "object" ||
+    Array.isArray(resourceAccess) ||
+    !isSafeObjectKey(clientId)
+  ) {
+    return null;
+  }
+
+  const clientAccess = getOwnValue(
+    resourceAccess as Record<string, unknown>,
+    clientId,
+  );
+  if (
+    !clientAccess ||
+    typeof clientAccess !== "object" ||
+    Array.isArray(clientAccess)
+  ) {
+    return null;
+  }
+
+  return getRoleFromList(
+    getOwnValue(clientAccess as Record<string, unknown>, "roles"),
+  );
 }
 
 function extractRole(payload: JwtPayload, clientId: string): string {
+  const clientResourceRole = getClientResourceRole(payload, clientId);
+  if (clientResourceRole) return clientResourceRole;
+
   const directRole =
     getString(payload, "role") ??
     getNestedString(payload, "app_metadata", "role");
   if (directRole) return directRole;
+
+  const topLevelRoles = getRoleFromList(getOwnValue(payload, "roles"));
+  if (topLevelRoles) return topLevelRoles;
+
+  const groupsRole = getRoleFromList(getOwnValue(payload, "groups"));
+  if (groupsRole) return groupsRole;
 
   const realmAccess = getOwnValue(payload, "realm_access");
   const realmRoles = getRoleFromList(
@@ -175,36 +265,11 @@ function extractRole(payload: JwtPayload, clientId: string): string {
   );
   if (realmRoles) return realmRoles;
 
-  const resourceAccess = getOwnValue(payload, "resource_access");
-  let resourceRoles: string | null = null;
-  if (
-    resourceAccess &&
-    typeof resourceAccess === "object" &&
-    !Array.isArray(resourceAccess) &&
-    isSafeObjectKey(clientId)
-  ) {
-    const clientAccess = getOwnValue(
-      resourceAccess as Record<string, unknown>,
-      clientId,
-    );
-    if (
-      clientAccess &&
-      typeof clientAccess === "object" &&
-      !Array.isArray(clientAccess)
-    ) {
-      resourceRoles = getRoleFromList(
-        getOwnValue(clientAccess as Record<string, unknown>, "roles"),
-      );
-    }
-  }
-
-  if (resourceRoles) return resourceRoles;
-
   return DEFAULT_ROLE;
 }
 
 function toKnownRole(role: string): string {
-  return ROLE_PRIORITY.includes(role as KnownRole) ? role : DEFAULT_ROLE;
+  return mapToKnownRole(role) ?? DEFAULT_ROLE;
 }
 
 export function decodeJwtPayload(token: string): JwtPayload | null {
@@ -574,6 +639,21 @@ export async function refreshTokens(input: {
 }
 
 export function secureCookie(request: NextRequest): boolean {
+  if (process.env.NODE_ENV === "production") {
+    return true;
+  }
+
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  if (forwardedProto) {
+    const firstProto = forwardedProto.split(",")[0]?.trim().toLowerCase();
+    if (firstProto === "https") {
+      return true;
+    }
+    if (firstProto === "http") {
+      return false;
+    }
+  }
+
   return request.nextUrl.protocol === "https:";
 }
 

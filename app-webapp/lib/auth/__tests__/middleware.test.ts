@@ -161,7 +161,7 @@ describe("updateSession (webapp)", () => {
     );
   });
 
-  it("redirects viewer from /parametres to /dashboard", async () => {
+  it("allows viewer on /parametres", async () => {
     mockVerifySession.mockResolvedValue(createSession("viewer"));
 
     const result = await updateSession(
@@ -171,9 +171,8 @@ describe("updateSession (webapp)", () => {
       }),
     );
 
-    expect((result as { redirectUrl: string }).redirectUrl).toBe(
-      "https://app.praedixa.com/dashboard",
-    );
+    expect(result.status).toBe(200);
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 
   it("allows org_admin on /parametres", async () => {

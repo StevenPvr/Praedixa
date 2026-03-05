@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { canAccessAdminConsole } from "@/lib/auth/permissions";
 import {
   LOGIN_NEXT_COOKIE,
   LOGIN_STATE_COOKIE,
@@ -13,11 +14,6 @@ import {
   signSession,
   userFromAccessToken,
 } from "@/lib/auth/oidc";
-
-function canAccessAdminConsole(role: string | undefined): boolean {
-  if (role === "super_admin") return true;
-  return process.env.NODE_ENV !== "production" && role === "org_admin";
-}
 
 function clearLoginFlowCookies(response: NextResponse): void {
   response.cookies.delete(LOGIN_STATE_COOKIE);
@@ -72,7 +68,7 @@ export async function GET(request: NextRequest) {
 
     const user = userFromAccessToken(tokenPayload.access_token, clientId);
     const exp = getTokenExp(tokenPayload.access_token);
-    if (!user || !exp || !canAccessAdminConsole(user.role)) {
+    if (!user || !exp || !canAccessAdminConsole(user.role, user.permissions)) {
       const redirect = NextResponse.redirect(
         `${appOrigin}/unauthorized`,
       );
@@ -86,6 +82,7 @@ export async function GET(request: NextRequest) {
         sub: user.id,
         email: user.email,
         role: user.role,
+        permissions: user.permissions,
         organizationId: user.organizationId,
         siteId: user.siteId,
         accessTokenExp: exp,

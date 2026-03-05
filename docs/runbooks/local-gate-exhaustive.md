@@ -106,3 +106,7 @@ Si un outil requis manque, le gate echoue par defaut.
 ## Limite explicite
 
 Les 0-day inconnues ne sont pas detectables automatiquement.
+
+## Runbook associe
+
+- Rotation secrets : `docs/runbooks/security-secret-rotation.md`

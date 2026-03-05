@@ -3,13 +3,13 @@ import type { Dictionary } from "../types";
 export const fr: Dictionary = {
   meta: {
     title:
-      "Praedixa | Boucle fermée de la couverture | Preuve ROI audit-ready",
+      "Praedixa | Copilote IA d’arbitrage opérationnel multi-sites",
     description:
-      "Prévision J+3/J+7/J+14 → décision optimale → 1re action assistée → preuve ROI mensuelle audit-ready. Mois 1 offert : audit historique (lecture seule). Branché sur vos exports/API. Aucun remplacement d’outil.",
+      "Copilote IA pour PME/ETI et réseaux multi-sites : anticiper les dérives KPI, standardiser les options, déclencher la 1re étape, puis prouver l’impact chaque mois. IA Act & RGPD by design. Mois 1 offert : audit historique (lecture seule).",
     ogTitle:
-      "Praedixa | Prévoir, décider, déclencher, prouver",
+      "Praedixa | Copilote IA d’arbitrage opérationnel",
     ogDescription:
-      "Risque de sous/sur-effectif à J+3/J+7/J+14. Arbitrages chiffrés. 1re action enclenchée, manager décisionnaire. Decision Log + preuve ROI mensuelle.",
+      "Des décisions comparables, déclenchées et prouvées : arbitrages coût/service/risque, 1re étape automatisée, validation humaine, preuve ROI mensuelle.",
   },
 
   nav: {
@@ -26,38 +26,39 @@ export const fr: Dictionary = {
   },
 
   hero: {
-    kicker: "Boucle fermée · Couverture multi-sites",
-    headline: "Prévoir. Décider. Déclencher.",
-    headlineHighlight: "Prouver le ROI. Prêt pour audit.",
+    kicker: "Copilote IA · Réseaux multi-sites",
+    headline: "Copilote IA d’arbitrage opérationnel.",
+    headlineHighlight: "Marge et service protégés.",
     subtitle:
-      "Risque de sous/sur-effectif à J+3/J+7/J+14. Arbitrages chiffrés : heures sup vs intérim vs réaffectation vs ajustement d’ouverture/service. Coût + impact service/risque. La 1re action est enclenchée automatiquement. Le manager valide. Preuve ROI mensuelle, audit-ready.",
+      "Anticipez les dérives KPI, standardisez les options, déclenchez la 1re étape, puis prouvez l’impact chaque mois. IA Act & RGPD by design. Validation humaine obligatoire.",
     bullets: [
       {
-        metric: "J+3/J+7/J+14",
-        text: "risque sous/sur-effectif",
+        metric: "Court horizon",
+        text: "dérives KPI et risques opérationnels",
       },
       {
         metric: "Coût/service/risque",
-        text: "heures sup vs intérim vs réaffectation",
+        text: "options standardisées et comparables",
       },
       {
-        metric: "1re action assistée",
-        text: "OT ou intérim, puis validation manager",
+        metric: "Preuve mensuelle",
+        text: "baseline / recommandé / réel + contrefactuel",
       },
     ],
     ctaPrimary: "Obtenir l’audit historique (gratuit)",
     ctaSecondary: "Voir un exemple de Decision Log",
     previewTitle: "Un aperçu de ce qui vous attend",
     ctaMeta:
-      "Overlay en lecture seule (exports/API) · Le manager reste décisionnaire · Pas un outil de planning",
+      "Complément de vos outils · Validation humaine · IA Act & RGPD by design",
     trustBadges: [
-      "Prévisions J+3/J+7/J+14 (sous/sur-effectif)",
+      "Anticipation des dérives KPI (court horizon)",
       "Décision optimale chiffrée (coût/service/risque)",
-      "1re action enclenchée (OT ou intérim), manager valide",
+      "1re étape déclenchée, manager valide",
       "Mois 1 offert : audit historique (lecture seule)",
       "Decision Log + preuve ROI mensuelle (méthodo + hypothèses)",
-      "Overlay sur l’existant (exports/API). Lecture seule pour démarrer",
-      "Pas un WFM de plus. Pas de remplacement planning/WFM",
+      "Lecture seule sur l’existant (exports). Démarrage léger",
+      "Complément de stack, sans remplacement d’outil",
+      "IA Act & RGPD by design",
       "Hébergé en France (Scaleway)",
     ],
   },
@@ -109,7 +110,7 @@ export const fr: Dictionary = {
 
   problem: {
     kicker: "Problème",
-    heading: "Sous-effectif et sur-effectif coûtent cher.",
+    heading: "Quand les KPI dérivent, la marge et le service dérapent.",
     subheading:
       "Sur le terrain, on arbitre trop tard. Côté finance, l’impact est difficile à attribuer. Résultat : urgence, coût, risque, et discussions sans preuve.",
     cta: "Obtenir l’audit historique (gratuit)",
@@ -132,13 +133,13 @@ export const fr: Dictionary = {
         description:
           "Le signal arrive quand il reste peu de marge de manœuvre.",
         consequence:
-          "Heures sup subies, intérim en urgence, service dégradé",
+          "Coûts d’urgence, renforts improvisés, service dégradé",
         cost: "L’urgence coûte",
       },
       {
         title: "Options non chiffrées",
         description:
-          "Heures sup, intérim, réaffectation, ajustement de service. Peu de chiffres.",
+          "Renfort, réaffectation, ajustement de service… Peu de chiffres.",
         consequence:
           "Décisions au feeling entre coût, service et risque",
         cost: "Coût et risque mal arbitrés",
@@ -155,8 +156,8 @@ export const fr: Dictionary = {
     diagnostic: {
       title: "Vous reconnaissez-vous ?",
       signals: [
-        "Vous avez un planning, mais pas de boucle fermée",
-        "Vous arbitrez OT vs intérim sans chiffrage stable coût/service/risque",
+        "Vous avez des chiffres, mais pas de protocole de décision",
+        "Les arbitrages coût/service/risque varient d’un site à l’autre",
         "La 1re action est manuelle, tardive, et peu tracée",
         "La preuve ROI (avant / recommandé / réel) n’est pas audit-ready",
       ],
@@ -165,21 +166,21 @@ export const fr: Dictionary = {
 
   solution: {
     kicker: "Positionnement",
-    heading: "Une boucle fermée, au-dessus de vos outils.",
+    heading: "Copilote IA d’arbitrage opérationnel, au-dessus de vos outils.",
     subheading:
-      "Prévoir. Calculer la décision optimale. Enclencher la 1re action (assistée). Prouver le ROI chaque mois. Sans remplacer votre planning/WFM.",
+      "Anticiper. Arbitrer. Déclencher la 1re étape. Prouver le ROI chaque mois. Sans remplacer vos outils.",
     principles: [
       {
-        title: "Prévision des risques",
-        subtitle: "J+3/J+7/J+14",
+        title: "Anticipation des dérives KPI",
+        subtitle: "Court horizon",
         description:
-          "Risque de sous/sur-effectif par équipe/site. Seuils et alertes. Pas de données individuelles.",
+          "Dérives KPI et risques opérationnels par site/équipe. Seuils et alertes. Pas de données individuelles.",
       },
       {
         title: "Décision optimale chiffrée",
         subtitle: "Coût/service/risque",
         description:
-          "Heures sup vs intérim vs réaffectation vs ajustement d’ouverture/service. Coût + impact service/risque. Sous vos règles.",
+          "Renfort, réaffectation, ajustement d’ouverture/service… Coût + impact service/risque. Sous vos règles.",
       },
       {
         title: "Action assistée + preuve ROI",
@@ -189,20 +190,20 @@ export const fr: Dictionary = {
       },
     ],
     differentiators: {
-      title: "On n’est pas un WFM de plus",
+      title: "Complément de votre stack (sans remplacement)",
       description:
-        "Overlay sur l’existant (exports/API). Décision, action, preuve. Rien à remplacer pour démarrer.",
+        "Démarrage en lecture seule (exports). Décision, action, preuve. Rien à remplacer pour démarrer.",
       items: [
         {
-          is: "Overlay en lecture seule (exports/API)",
-          isNot: "Remplacer un planning/WFM/ERP",
+          is: "Lecture seule sur l’existant (exports)",
+          isNot: "Projet de remplacement d’outil",
         },
         {
           is: "Décision optimale + déclenchement assisté",
           isNot: "Prévision sans exécution",
         },
         {
-          is: "Decision Log + preuve ROI mensuelle audit-ready",
+          is: "Decision Log + preuve ROI mensuelle",
           isNot: "Dashboard sans hypothèses ni avant/après",
         },
       ],
@@ -210,17 +211,17 @@ export const fr: Dictionary = {
   },
 
   howItWorks: {
-    kicker: "Boucle fermée",
-    heading: "Prévision → décision → action → preuve.",
+    kicker: "Boucle de décision",
+    heading: "Anticiper → décider → déclencher → prouver.",
     subheading:
       "Même cadence sur chaque site. Même méthode. Même preuve.",
     steps: [
       {
         number: "01",
-        title: "Prévision des risques",
-        subtitle: "J+3/J+7/J+14",
+        title: "Anticipation (court horizon)",
+        subtitle: "Dérives KPI",
         description:
-          "Risque de sous/sur-effectif par équipe/site. Seuils. Alertes. Horizon court : J+3, J+7, J+14.",
+          "On remonte les risques de dérive KPI par site/équipe, avec seuils et alertes.",
       },
       {
         number: "02",
@@ -232,9 +233,9 @@ export const fr: Dictionary = {
       {
         number: "03",
         title: "1re action assistée",
-        subtitle: "OT ou intérim",
+        subtitle: "Renfort / ajustement",
         description:
-          "OT : liste éligible (compétences, règles internes, repos, seuils) → appel à volontaires → réponses collectées → validation manager. Intérim : demande structurée → profils remontés → choix manager.",
+          "OT : liste éligible → appel à volontaires → réponses collectées → validation manager. Intérim : demande structurée → profils remontés → choix manager.",
       },
       {
         number: "04",
@@ -271,7 +272,7 @@ export const fr: Dictionary = {
         id: "absenteisme",
         title: "Compétences rares et absences",
         context:
-          "Planning fragilisé par absences, indisponibilités critiques et dépendances atelier/soins/maintenance.",
+          "Opérations fragilisées par absences, indisponibilités critiques et dépendances atelier/soins/maintenance.",
         action:
           "Options de couverture alternatives. OT ou intérim enclenchés. Choix validé et tracé.",
         result:
@@ -336,7 +337,7 @@ export const fr: Dictionary = {
       "Decision Log : recommandé, choix, raison, résultat",
       "Hypothèses explicites (coût, service, risque)",
       "Comparatif avant / recommandé / réel (site + réseau)",
-      "Indicateurs : coût, service, urgences, stabilité planning",
+      "Indicateurs : coût, service, urgences, stabilité opérationnelle",
       "Pack mensuel exploitable en comité de direction",
     ],
   },
@@ -348,14 +349,14 @@ export const fr: Dictionary = {
       "Démarrage léger sur exports existants (CSV/Excel/API). Puis garde-fous et preuve. Le manager reste décisionnaire.",
     tiles: [
       {
-        title: "Lecture seule via exports/API",
+        title: "Lecture seule via exports",
         description:
-          "Démarrage sur CSV/Excel/API existants. Aucun remplacement de planning/WFM/ERP/CRM.",
+          "Démarrage sur CSV/Excel/API existants. Aucun remplacement d’outil.",
       },
       {
-        title: "Horizon court : J+3/J+7/J+14",
+        title: "Court horizon",
         description:
-          "Focus sur le risque sous/sur-effectif et les arbitrages de couverture.",
+          "Focus sur les dérives KPI et les arbitrages coût/service/risque.",
       },
       {
         title: "Données agrégées (équipe/site)",
@@ -387,7 +388,7 @@ export const fr: Dictionary = {
       title: "Compatible avec votre stack",
       description:
         "Complète vos outils actuels. Ajoute décision + action assistée + preuve ROI.",
-      tools: ["WFM", "Planning", "ERP", "CRM", "BI", "Excel"],
+      tools: ["Planning", "ERP", "CRM", "BI", "Excel"],
     },
     honesty:
       "Le mode “prévisions d’indicateurs” uniquement existe. Le cœur de valeur reste la boucle fermée : décision + action assistée + preuve.",
@@ -404,8 +405,8 @@ export const fr: Dictionary = {
       title: "Ce que vous recevez",
       items: [
         "Mois 1 offert : audit historique (lecture seule) sur vos exports",
-        "Prévisions J+3/J+7/J+14 : risque sous/sur-effectif",
-        "Arbitrages chiffrés : OT vs intérim vs réaffectation vs ajustement service",
+        "Prévisions à court horizon (selon vos KPI prioritaires)",
+        "Arbitrages chiffrés : coût / service / risque (sous vos règles)",
         "1re action assistée : OT (appel à volontaires) ou intérim (demande structurée)",
         "Decision Log + preuve ROI mensuelle : avant / recommandé / réel + hypothèses",
         "Rituels Ops + DAF : décisions et preuve",
@@ -414,7 +415,7 @@ export const fr: Dictionary = {
     excluded: {
       title: "Ce qu'il n'inclut pas",
       items: [
-        "Remplacement de votre outil de planning/WFM",
+        "Remplacement de vos outils existants",
         "100% automatique sans validation humaine",
         "Engagement de résultat chiffré public prédéfini",
         "Déploiement global multi-pays dès le démarrage",
@@ -424,8 +425,8 @@ export const fr: Dictionary = {
     kpis: {
       title: "Indicateurs suivis",
       items: [
-        "Risque sous/sur-effectif à J+3/J+7/J+14",
-        "Coût opérationnel (OT, intérim, réaffectations, ajustements service)",
+        "Dérives KPI à court horizon (selon priorités)",
+        "Coût opérationnel (renforts, réaffectations, ajustements service)",
         "Niveau de service et exposition au risque",
         "Décisions prises vs recommandé (et raisons) dans le Decision Log",
         "Écart avant / recommandé / réel (site + réseau)",
@@ -500,7 +501,7 @@ export const fr: Dictionary = {
       {
         question: "Quels KPI pouvez-vous prévoir ?",
         answer:
-          "Risque sous/sur-effectif à J+3/J+7/J+14, capacité, demande, absences… puis d’autres indicateurs selon vos priorités.",
+          "Dérives KPI à court horizon : capacité, demande, absences, stocks/offre… puis d’autres indicateurs selon vos priorités.",
         category: "Comprendre Praedixa",
       },
       {
@@ -516,9 +517,9 @@ export const fr: Dictionary = {
         category: "Comprendre Praedixa",
       },
       {
-        question: "Quelle différence avec un outil de planning/WFM ou un ERP ?",
+        question: "Quelle différence avec un outil de planning ou un ERP ?",
         answer:
-          "Ce n’est pas un planning/WFM. C’est une couche au-dessus : décision optimale, 1re action assistée, et preuve ROI mensuelle. Aucun remplacement pour démarrer.",
+          "Ce n’est pas un planning. C’est une couche au-dessus : décision optimale, 1re action assistée, et preuve ROI mensuelle. Aucun remplacement pour démarrer.",
         category: "Comprendre Praedixa",
       },
       {
@@ -643,7 +644,7 @@ export const fr: Dictionary = {
       columns: [
         {
           criterion:
-            "Prévisions KPI (Workforce, demande, stock, offre, autres sur demande)",
+            "Prévisions KPI (capacité, demande, stock/offre, autres sur demande)",
           fullPackage: "Inclus",
           forecastsOnly: "Inclus",
         },
@@ -683,7 +684,7 @@ export const fr: Dictionary = {
 
   footer: {
     tagline:
-      "Boucle fermée de la couverture : prévision, décision, action assistée, preuve ROI mensuelle.",
+      "Boucle de décision : prévision, arbitrage, action assistée, preuve ROI mensuelle.",
     badges: ["Decision Log", "Preuve ROI mensuelle"],
     navigation: "Navigation",
     legalContact: "Légal & contact",
@@ -733,7 +734,7 @@ export const fr: Dictionary = {
       timeline: { label: "Horizon projet" },
       currentStack: {
         label: "Stack actuelle (optionnel)",
-        placeholder: "Ex : WFM + ERP + CRM",
+        placeholder: "Ex : ERP + CRM + BI",
       },
       painPoint: {
         label: "Principal arbitrage à optimiser",
@@ -771,7 +772,7 @@ export const fr: Dictionary = {
     roles: [
       "COO / Direction des opérations",
       "Responsable réseau multi-sites",
-      "Responsable planning / atelier",
+      "Responsable opérations / atelier",
       "Supply / Inventory manager",
       "DAF / Direction financière",
       "Direction générale",

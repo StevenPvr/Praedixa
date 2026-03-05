@@ -1,4 +1,6 @@
-import { ShieldCheck, Sparkles, Target } from "lucide-react";
+"use client";
+
+import { ShieldCheck, Sparkle, Target } from "@phosphor-icons/react";
 import { PraedixaLogo } from "../../components/praedixa-logo";
 
 export default function AuthLayout({
@@ -7,57 +9,53 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid min-h-screen bg-[var(--hero-blue-deep)] lg:grid-cols-2">
+    <div className="grid min-h-[100dvh] bg-page lg:grid-cols-2">
       {/* Left branding panel */}
-      <section className="relative hidden overflow-hidden border-r border-white/16 bg-[linear-gradient(165deg,color-mix(in_oklch,var(--hero-blue-deep)_90%,black),var(--hero-blue-deep))] p-12 text-white lg:block">
+      <section className="relative hidden overflow-hidden border-r border-border bg-[radial-gradient(120%_120%_at_0%_0%,oklch(0.97_0.03_160)_0%,transparent_55%),linear-gradient(165deg,var(--page-bg-strong),var(--page-bg))] p-14 text-ink lg:block">
         {/* Ambient glow effects */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_20%_10%,var(--hero-blue-aurora-1)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_80%_90%,var(--hero-blue-aurora-2)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_50%_50%,var(--hero-blue-aurora-3)_0%,transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_18%_12%,oklch(0.92_0.06_160_/_0.65)_0%,transparent_62%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_42%_at_80%_88%,oklch(0.90_0.03_245_/_0.45)_0%,transparent_65%)]" />
 
         <div className="relative z-10 flex h-full flex-col justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <PraedixaLogo size={34} className="text-white" color="white" />
-            <span className="font-sans font-bold text-2xl tracking-tight">
+            <PraedixaLogo size={34} className="text-accent" />
+            <span className="font-sans text-2xl font-bold tracking-tight">
               Praedixa
             </span>
           </div>
 
           {/* Hero content */}
-          <div className="max-w-xl space-y-8">
-            <p className="text-overline text-white/80">
-              Executive operations platform
-            </p>
-            <h1 className="font-sans font-bold text-display-lg text-balance leading-[1.02]">
-              Pilotez vos decisions critiques avant la rupture.
+          <div className="max-w-xl space-y-9">
+            <p className="text-overline text-ink-tertiary">Client workspace</p>
+            <h1 className="font-sans text-4xl font-bold leading-none tracking-tighter md:text-6xl">
+              Comprendre la situation en quelques secondes.
             </h1>
-            <p className="max-w-lg text-body leading-relaxed text-white/75">
-              Praedixa centralise le risque operationnel, les arbitrages de
-              capacite et les decisions terrain dans une war room unique, concue
-              pour les directions exigeantes.
+            <p className="max-w-[60ch] text-body leading-relaxed text-ink-secondary">
+              Une interface claire pour suivre les tensions, prioriser les
+              actions et décider rapidement, sans jargon ni surcharge.
             </p>
 
-            <div className="space-y-3.5">
+            <div className="space-y-4">
               {[
                 {
-                  icon: Sparkles,
-                  text: "Vision consolidee des risques a 3, 7 et 14 jours.",
+                  icon: Sparkle,
+                  text: "Vue claire des tensions sur 3, 7 et 14 jours.",
                 },
                 {
                   icon: Target,
-                  text: "Priorisation automatique des alertes selon impact metier.",
+                  text: "Priorisation nette des alertes par impact réel.",
                 },
                 {
                   icon: ShieldCheck,
-                  text: "Gouvernance des decisions et tracabilite board-ready.",
+                  text: "Tracabilite complete des decisions prises.",
                 },
               ].map(({ icon: Icon, text }) => (
                 <div
                   key={text}
-                  className="flex items-start gap-3 text-body-sm text-white/85"
+                  className="flex items-start gap-3 text-body-sm text-ink"
                 >
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/14">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border bg-surface-elevated">
                     <Icon className="h-3.5 w-3.5 text-accent" />
                   </div>
                   {text}
@@ -66,8 +64,8 @@ export default function AuthLayout({
             </div>
           </div>
 
-          <p className="text-caption text-white/50">
-            Reserved for authorized client teams only.
+          <p className="text-caption text-ink-tertiary">
+            Accès réservé aux équipes clientes autorisées.
           </p>
         </div>
       </section>
@@ -75,9 +73,9 @@ export default function AuthLayout({
       {/* Right form panel */}
       <section
         id="main-content"
-        className="relative flex min-h-screen items-center justify-center bg-[radial-gradient(ellipse_80%_60%_at_20%_10%,var(--hero-blue-aurora-1)_0%,transparent_60%),radial-gradient(ellipse_60%_50%_at_80%_90%,var(--hero-blue-aurora-2)_0%,transparent_60%),radial-gradient(ellipse_50%_40%_at_50%_50%,var(--hero-blue-aurora-3)_0%,transparent_60%),var(--hero-blue-deep)] p-6 sm:p-10"
+        className="relative flex min-h-[100dvh] items-center justify-center bg-[radial-gradient(ellipse_80%_58%_at_14%_10%,oklch(0.95_0.05_160_/_0.55)_0%,transparent_62%),radial-gradient(ellipse_54%_44%_at_88%_84%,oklch(0.93_0.03_250_/_0.34)_0%,transparent_68%),var(--page-bg)] p-6 sm:p-10"
       >
-        <div className="w-full max-w-md space-y-6 rounded-xl border border-white/18 bg-[oklch(0.985_0.016_252_/_0.92)] p-8 shadow-floating backdrop-blur-[24px]">
+        <div className="w-full max-w-md space-y-6 rounded-2xl border border-white/10 bg-glass p-8 shadow-floating backdrop-blur-[22px] [box-shadow:inset_0_1px_0_rgba(255,255,255,0.1)]">
           {/* Mobile logo */}
           <div className="flex flex-col items-center gap-3 lg:hidden">
             <PraedixaLogo size={44} />

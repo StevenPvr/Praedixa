@@ -37,6 +37,9 @@ function createRedirectResponse(url: string | URL) {
   return {
     status: 302,
     redirectUrl: typeof url === "string" ? url : url.toString(),
+    headers: {
+      set: vi.fn(),
+    },
     cookies: {
       set: vi.fn(),
     },
@@ -167,6 +170,21 @@ describe("GET /auth/login (webapp)", () => {
     expect(redirectUrl.searchParams.get("error")).toBe(
       "oidc_provider_untrusted",
     );
+    expect(redirectUrl.searchParams.get("next")).toBe("/dashboard");
+  });
+
+  it("redirects to /login with rate_limited when login attempts are throttled", async () => {
+    const request = createMockRequest({ next: "/dashboard" });
+    for (let i = 0; i < 20; i += 1) {
+      await GET(request);
+    }
+
+    const response = (await GET(request)) as { redirectUrl: string };
+    const redirectUrl = new URL(response.redirectUrl);
+    expect(redirectUrl.origin + redirectUrl.pathname).toBe(
+      "https://app.praedixa.com/login",
+    );
+    expect(redirectUrl.searchParams.get("error")).toBe("rate_limited");
     expect(redirectUrl.searchParams.get("next")).toBe("/dashboard");
   });
 });

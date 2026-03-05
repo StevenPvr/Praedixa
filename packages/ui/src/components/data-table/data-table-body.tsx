@@ -45,6 +45,29 @@ function DataTableBodyInner<T>({
 
   const virtualItems = virtualise ? rowVirtualizer.getVirtualItems() : [];
   const totalSize = virtualise ? rowVirtualizer.getTotalSize() : 0;
+  const rowKeys = React.useMemo(() => {
+    const selectionKeys = data.map((row, index) => {
+      const candidate = getRowKey ? getRowKey(row, index) : index;
+      return typeof candidate === "string" || typeof candidate === "number"
+        ? candidate
+        : index;
+    });
+
+    const keyOccurrences = new Map<string, number>();
+    for (const selectionKey of selectionKeys) {
+      const reactKey = String(selectionKey);
+      keyOccurrences.set(reactKey, (keyOccurrences.get(reactKey) ?? 0) + 1);
+    }
+
+    return selectionKeys.map((selectionKey, index) => {
+      const reactKeyBase = String(selectionKey);
+      const hasDuplicate = (keyOccurrences.get(reactKeyBase) ?? 0) > 1;
+      return {
+        selectionKey,
+        reactKey: hasDuplicate ? `${reactKeyBase}::${index}` : reactKeyBase,
+      };
+    });
+  }, [data, getRowKey]);
 
   if (data.length === 0) {
     return (
@@ -82,11 +105,15 @@ function DataTableBodyInner<T>({
         {virtualItems.map((virtualRow) => {
           const index = virtualRow.index;
           const row = data[index]!;
-          const rowKey = getRowKey ? getRowKey(row, index) : index;
+          const rowIdentity = rowKeys[index] ?? {
+            selectionKey: index,
+            reactKey: String(index),
+          };
+          const rowKey = rowIdentity.selectionKey;
           const isSelected = selection?.selectedKeys.has(rowKey);
           return (
             <tr
-              key={rowKey}
+              key={rowIdentity.reactKey}
               className={cn(
                 "border-b border-[var(--border-subtle)] last:border-0",
                 "transition-colors duration-[var(--duration-instant,60ms)]",
@@ -142,11 +169,15 @@ function DataTableBodyInner<T>({
   return (
     <tbody>
       {data.map((row, index) => {
-        const rowKey = getRowKey ? getRowKey(row, index) : index;
+        const rowIdentity = rowKeys[index] ?? {
+          selectionKey: index,
+          reactKey: String(index),
+        };
+        const rowKey = rowIdentity.selectionKey;
         const isSelected = selection?.selectedKeys.has(rowKey);
         return (
           <tr
-            key={rowKey}
+            key={rowIdentity.reactKey}
             className={cn(
               "border-b border-[var(--border-subtle)] last:border-0",
               "transition-colors duration-[var(--duration-instant,60ms)]",

@@ -22,14 +22,14 @@ function buildBlogIndexMetadata(locale: Locale, tag?: string, page = 1): Metadat
     locale === "fr"
       ? tag
         ? `Blog Praedixa | ${tag}`
-        : "Blog Praedixa | Workforce planning et operations"
+        : "Blog Praedixa | Décision opérationnelle et performance"
       : tag
         ? `Praedixa Blog | ${tag}`
-        : "Praedixa Blog | Workforce planning and operations";
+        : "Praedixa Blog | Operational decision-making";
   const description =
     locale === "fr"
-      ? "Articles sur la planification des effectifs, la preuve d'impact et la gouvernance des décisions opérationnelles."
-      : "Articles on workforce planning, impact proof, and operational decision governance.";
+      ? "Articles sur la décision opérationnelle multi-sites, la preuve d'impact et la gouvernance des arbitrages Ops/Finance."
+      : "Articles on multi-site operational decisions, impact proof, and Ops/Finance decision governance.";
 
   return {
     title,

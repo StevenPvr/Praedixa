@@ -54,17 +54,17 @@ function softwareApplicationSchema(locale: Locale, dict: Dictionary) {
       locale === "fr"
         ? [
             "Decision Log + preuve ROI mensuelle",
-            "Risque sous/sur-effectif à J+3/J+7/J+14",
-            "Arbitrages chiffrés : OT / intérim / réaffectation / ajustement service",
-            "1re action assistée (OT ou intérim), manager valide",
-            "Overlay en lecture seule (exports/API)",
+            "Dérives KPI à court horizon",
+            "Arbitrages chiffrés : renfort / réaffectation / ajustement service",
+            "1re étape assistée, validation manager",
+            "Lecture seule sur l’existant (exports)",
           ]
         : [
             "Decision Log + monthly ROI proof",
-            "Under/over-staffing risk at D+3/D+7/D+14",
-            "Quantified trade-offs: overtime / interim / reassignment / service adjustment",
-            "Assisted first action (overtime or interim), manager validates",
-            "Read-only overlay (exports/APIs)",
+            "Short-horizon KPI drift signals",
+            "Quantified trade-offs: reinforcement / reassignment / service adjustment",
+            "Assisted first step, manager approval",
+            "Read-only start on existing exports",
           ],
   };
 }
@@ -76,12 +76,12 @@ function serviceSchema(locale: Locale) {
     "@type": "Service",
     name:
       locale === "fr"
-        ? "Pilote Praedixa (boucle fermée) — 3 mois"
-        : "Praedixa pilot (closed loop) — 3 months",
+        ? "Pilote Praedixa (copilote IA) — 3 mois"
+        : "Praedixa pilot (AI decision copilot) — 3 months",
     serviceType:
       locale === "fr"
-        ? "Pilote de boucle fermée de la couverture"
-        : "Coverage decision governance pilot",
+        ? "Pilote de décision opérationnelle multi-sites"
+        : "Multi-site operational decision governance pilot",
     provider: {
       "@type": "Organization",
       name: PRAEDIXA_BRAND_NAME,

@@ -11,6 +11,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
+      },
       colors: {
         /* ── Premium blue surfaces ── */
         cream: "var(--warm-bg)",
@@ -76,6 +79,7 @@ export default {
         /* app-specific aliases */
         soft: "var(--shadow-raised)",
         card: "var(--shadow-raised)",
+        diffusion: "var(--shadow-diffusion)",
         elevated: "var(--shadow-floating)",
         sidebar: "1px 0 0 var(--sidebar-border)",
         command: "var(--shadow-modal)",

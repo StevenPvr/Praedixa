@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
+import { CheckCircle, ShieldCheck, Sparkle } from "@phosphor-icons/react";
 import type { ScenarioOption } from "@praedixa/shared-types";
 import { SkeletonCard } from "@praedixa/ui";
 import { Badge } from "@/components/ui/badge";
@@ -81,7 +81,7 @@ export function OptimizationPanel({
                     variant="warning"
                     className="inline-flex items-center gap-1"
                   >
-                    <Sparkles className="h-3.5 w-3.5" />
+                    <Sparkle className="h-3.5 w-3.5" />
                     Recommande
                   </Badge>
                 )}
@@ -90,7 +90,7 @@ export function OptimizationPanel({
                     variant="success"
                     className="inline-flex items-center gap-1"
                   >
-                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <CheckCircle className="h-3.5 w-3.5" />
                     Selectionne
                   </Badge>
                 )}

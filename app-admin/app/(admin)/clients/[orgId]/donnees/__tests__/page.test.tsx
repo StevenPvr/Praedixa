@@ -175,10 +175,8 @@ describe("DonneesPage", () => {
   });
 
   it("shows ingestion error fallback", () => {
-    let callIndex = 0;
-    mockUseApiGet.mockImplementation(() => {
-      const idx = callIndex++;
-      if (idx === 2) {
+    mockUseApiGet.mockImplementation((url: string | null) => {
+      if (url?.includes("/ingestion-log")) {
         return {
           data: null,
           loading: false,
@@ -186,12 +184,32 @@ describe("DonneesPage", () => {
           refetch: vi.fn(),
         };
       }
-      return {
-        data: idx === 0 ? mockCanonical : mockQuality,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      };
+      if (url?.includes("/canonical/quality")) {
+        return { data: mockQuality, loading: false, error: null, refetch: vi.fn() };
+      }
+      if (url?.includes("/canonical")) {
+        return { data: mockCanonical, loading: false, error: null, refetch: vi.fn() };
+      }
+      if (url?.includes("/datasets") && !url?.includes("/data") && !url?.includes("/features")) {
+        return { data: [], loading: false, error: null, refetch: vi.fn() };
+      }
+      if (url?.includes("/datasets/") && url?.endsWith("/data")) {
+        return {
+          data: { datasetId: "dataset-1", rows: [] },
+          loading: false,
+          error: null,
+          refetch: vi.fn(),
+        };
+      }
+      if (url?.includes("/datasets/") && url?.endsWith("/features")) {
+        return {
+          data: { datasetId: "dataset-1", features: [] },
+          loading: false,
+          error: null,
+          refetch: vi.fn(),
+        };
+      }
+      return { data: null, loading: false, error: null, refetch: vi.fn() };
     });
     render(<DonneesPage />);
     expect(screen.getByText("Ingestion error")).toBeInTheDocument();

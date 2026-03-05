@@ -9,6 +9,8 @@ import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import { ErrorFallback } from "@/components/error-fallback";
 import { SeverityBadge } from "@/components/severity-badge";
 import { ACTION_LABELS } from "@/lib/inbox-helpers";
+import { useCurrentUser } from "@/lib/auth/client";
+import { hasAnyPermission } from "@/lib/auth/permissions";
 
 /* ────────────────────────────────────────────── */
 /*  Audit Log types                               */
@@ -23,7 +25,7 @@ interface AuditLogEntry {
   resourceId: string | null;
   ipAddress: string;
   userAgent: string | null;
-  requestId: string;
+  requestId?: string | null;
   metadataJson: Record<string, unknown>;
   severity: string;
   createdAt: string;
@@ -89,6 +91,7 @@ type Section = "audit" | "rgpd";
 /* ────────────────────────────────────────────── */
 
 export default function JournalPage() {
+  const currentUser = useCurrentUser();
   const [section, setSection] = useState<Section>("audit");
   const [page, setPage] = useState(1);
   const [selectedKeys, setSelectedKeys] = useState<Set<string | number>>(
@@ -100,6 +103,14 @@ export default function JournalPage() {
   if (actionFilter) params.set("action", actionFilter);
   const queryString = params.toString();
   const baseUrl = `${ADMIN_ENDPOINTS.auditLog}${queryString ? `?${queryString}` : ""}`;
+  const canReadAudit = hasAnyPermission(currentUser?.permissions, [
+    "admin:audit:read",
+  ]);
+  const canManageRgpd = hasAnyPermission(currentUser?.permissions, [
+    "admin:org:write",
+    "admin:billing:write",
+    "admin:support:write",
+  ]);
 
   const { data, total, error, refetch } = useApiGetPaginated<AuditLogEntry>(
     baseUrl,
@@ -165,7 +176,7 @@ export default function JournalPage() {
       label: "Request ID",
       render: (row) => (
         <span className="font-mono text-xs text-ink-placeholder">
-          {row.requestId.substring(0, 8)}...
+          {row.requestId ? `${row.requestId.substring(0, 8)}...` : "-"}
         </span>
       ),
     },
@@ -215,6 +226,11 @@ export default function JournalPage() {
       {/* Audit section */}
       {section === "audit" && (
         <div className="space-y-4">
+          {!canReadAudit ? (
+            <div className="rounded-lg border border-border-subtle bg-card px-4 py-3 text-sm text-ink-tertiary">
+              Permission requise: admin:audit:read
+            </div>
+          ) : null}
           <div className="flex items-center gap-3">
             <select
               value={actionFilter}
@@ -235,7 +251,7 @@ export default function JournalPage() {
 
           {error ? (
             <ErrorFallback message={error} onRetry={refetch} />
-          ) : (
+          ) : !canReadAudit ? null : (
             <DataTable
               columns={columns}
               data={data}
@@ -291,14 +307,22 @@ export default function JournalPage() {
                   {action.description}
                 </p>
                 <button
+                  disabled={!canManageRgpd}
                   className={`inline-flex min-h-[44px] items-center rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
-                    action.variant === "danger"
-                      ? "border border-danger text-danger-text hover:bg-danger-light"
-                      : "border border-border text-charcoal hover:bg-surface-sunken"
+                    !canManageRgpd
+                      ? "cursor-not-allowed border border-border-subtle text-ink-placeholder"
+                      : action.variant === "danger"
+                        ? "border border-danger text-danger-text hover:bg-danger-light"
+                        : "border border-border text-charcoal hover:bg-surface-sunken"
                   }`}
                 >
                   {action.buttonLabel}
                 </button>
+                {!canManageRgpd ? (
+                  <p className="mt-2 text-xs text-ink-placeholder">
+                    Permission requise pour cette action.
+                  </p>
+                ) : null}
               </div>
             );
           })}

@@ -141,7 +141,7 @@ describe("Auth middleware security", () => {
     );
   });
 
-  it("blocks viewer access to /parametres", async () => {
+  it("allows viewer access to /parametres", async () => {
     mockVerifySession.mockResolvedValue(createSession("viewer"));
 
     const result = await updateSession(
@@ -151,9 +151,8 @@ describe("Auth middleware security", () => {
       }),
     );
 
-    expect((result as { redirectUrl: string }).redirectUrl).toBe(
-      "https://app.praedixa.com/dashboard",
-    );
+    expect(result.status).toBe(200);
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 
   it("allows org_admin access to /parametres", async () => {
@@ -178,13 +177,14 @@ describe("Auth middleware security", () => {
     expect(mockRedirect).not.toHaveBeenCalled();
   });
 
-  it("treats /login-admin as login route due startsWith('/login')", async () => {
+  it("does not treat /login-admin as the login route", async () => {
     const result = await updateSession(
       createMockRequest("/login-admin", "https://app.praedixa.com"),
     );
 
-    expect(result.status).toBe(200);
-    expect(mockRedirect).not.toHaveBeenCalled();
+    expect((result as { redirectUrl: string }).redirectUrl).toBe(
+      "https://app.praedixa.com/login",
+    );
   });
 
   it("treats refresh errors as unauthenticated", async () => {

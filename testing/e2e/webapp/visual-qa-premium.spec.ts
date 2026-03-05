@@ -53,37 +53,27 @@ const AUTH_ROUTES: RouteAuditConfig[] = [
   {
     path: "/dashboard",
     slug: "dashboard",
-    heading: "War room operationnelle",
+    heading: "Priorites du jour",
   },
   {
     path: "/actions",
     slug: "actions",
-    heading: /Centre de traitement|Treatment center/i,
+    heading: "Centre Actions",
   },
   {
     path: "/previsions",
     slug: "previsions",
-    heading: "Anticipation des tensions",
-  },
-  {
-    path: "/donnees",
-    slug: "donnees",
-    heading: "Référentiel opérationnel",
-  },
-  {
-    path: "/rapports",
-    slug: "rapports",
-    heading: "Rapports board-ready",
+    heading: "Previsions 7 jours",
   },
   {
     path: "/messages",
     slug: "messages",
-    heading: "Support strategique",
+    heading: "Messagerie support",
   },
   {
     path: "/parametres",
     slug: "parametres",
-    heading: "Gouvernance et reglages",
+    heading: "Parametres",
   },
 ];
 

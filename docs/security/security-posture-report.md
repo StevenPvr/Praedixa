@@ -1,7 +1,7 @@
 # Rapport de Posture Securite -- Praedixa
 
-**Date**: 2026-02-08
-**Version**: 2.1 (mise a jour gouvernance gate local signe)
+**Date**: 2026-03-04
+**Version**: 2.2 (passe securite massive OWASP + hardening API/connectors)
 **Equipe d'audit**: counsel (RGPD/Compliance), sentinel (Backend), watchtower (DevOps/Infra), bastion (Frontend/CSP)
 **Scope**: Full-stack audit -- backend, frontend, infrastructure, compliance RGPD
 
@@ -23,6 +23,15 @@ Suivre mensuellement les indicateurs ci-dessous pour reduire le risque residuel:
 | Taux faux negatifs detectes  | tendance baissiere QoQ  |
 | Backlog `Critical/High`      | 0 hors fenetre SLA      |
 | Abuse-cases couverts/release | 100% features sensibles |
+
+## Addendum hardening massif (2026-03-04)
+
+- Passe complete OWASP executee sur monorepo, rapport detaille: `docs/security/audits/praedixa-full-security-audit-2026-03-04.md`.
+- RBAC admin API TS durci: `super_admin` requis sur toute la surface `/api/v1/admin`.
+- Frontiere HTTP durcie sur API TS et connecteurs: `Content-Type` JSON obligatoire pour payloads, taille body bornee, erreurs explicites `413/415/400`.
+- Auth interne connecteurs durcie avec comparaison de secret en temps constant.
+- Durcissement Docker auth (`HEALTHCHECK`, `USER` explicite) et regle Semgrep admin ajustee pour reduire les faux positifs sans baisser le niveau de controle.
+- Nouveau runbook de rotation: `docs/runbooks/security-secret-rotation.md`.
 
 ---
 

@@ -8,17 +8,35 @@ import {
   CardContent,
   DataTable,
   SkeletonCard,
+  StatCard,
   type DataTableColumn,
 } from "@praedixa/ui";
 import { ErrorFallback } from "@/components/error-fallback";
+import { Activity, Gauge, Radar, Timer } from "lucide-react";
 
 interface ScenarioItem {
   id: string;
   name: string;
   type: string;
   status: string;
-  parameters?: Record<string, unknown>;
   createdAt: string;
+}
+
+interface MlMonitoringSummary {
+  modelVersion: string;
+  mape: number;
+  mae: number;
+  driftScore: number;
+  status: "healthy" | "watch" | "degraded";
+  lastTrainingAt: string;
+}
+
+interface MlDriftPoint {
+  id: string;
+  feature: string;
+  driftScore: number;
+  pValue: number;
+  detectedAt: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -27,6 +45,27 @@ const STATUS_COLORS: Record<string, string> = {
   pending: "text-ink-tertiary",
   failed: "text-danger",
 };
+
+const DRIFT_COLUMNS: DataTableColumn<MlDriftPoint>[] = [
+  { key: "feature", label: "Feature" },
+  {
+    key: "driftScore",
+    label: "Drift",
+    align: "right",
+    render: (row) => `${(row.driftScore * 100).toFixed(1)}%`,
+  },
+  {
+    key: "pValue",
+    label: "p-value",
+    align: "right",
+    render: (row) => row.pValue.toFixed(4),
+  },
+  {
+    key: "detectedAt",
+    label: "Detecte le",
+    render: (row) => new Date(row.detectedAt).toLocaleDateString("fr-FR"),
+  },
+];
 
 export default function PrevisionsPage() {
   const { orgId } = useClientContext();
@@ -37,6 +76,22 @@ export default function PrevisionsPage() {
     error: scenariosError,
     refetch: scenariosRefetch,
   } = useApiGet<ScenarioItem[]>(ADMIN_ENDPOINTS.orgScenarios(orgId));
+
+  const {
+    data: summary,
+    loading: summaryLoading,
+    error: summaryError,
+    refetch: summaryRefetch,
+  } = useApiGet<MlMonitoringSummary>(
+    ADMIN_ENDPOINTS.orgMlMonitoringSummary(orgId),
+  );
+
+  const {
+    data: drift,
+    loading: driftLoading,
+    error: driftError,
+    refetch: driftRefetch,
+  } = useApiGet<MlDriftPoint[]>(ADMIN_ENDPOINTS.orgMlMonitoringDrift(orgId));
 
   const scenarioColumns: DataTableColumn<ScenarioItem>[] = [
     {
@@ -55,15 +110,6 @@ export default function PrevisionsPage() {
       ),
     },
     {
-      key: "parameters",
-      label: "Parametres",
-      render: (row) => (
-        <span className="text-xs text-ink-tertiary">
-          {row.parameters ? Object.keys(row.parameters).length : 0} param.
-        </span>
-      ),
-    },
-    {
       key: "createdAt",
       label: "Cree le",
       render: (row) => (
@@ -74,15 +120,92 @@ export default function PrevisionsPage() {
     },
   ];
 
+  if (summaryError && driftError && scenariosError) {
+    return (
+      <ErrorFallback
+        message="Impossible de charger la supervision previsionnelle"
+        onRetry={() => {
+          summaryRefetch();
+          driftRefetch();
+          scenariosRefetch();
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h2 className="font-serif text-lg font-semibold text-ink">Previsions</h2>
 
-      {/* Scenarios */}
+      {summaryLoading ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Version modele"
+            value={summary?.modelVersion ?? "--"}
+            icon={<Activity className="h-4 w-4" />}
+          />
+          <StatCard
+            label="MAPE"
+            value={
+              typeof summary?.mape === "number"
+                ? `${summary.mape.toFixed(1)}%`
+                : "--"
+            }
+            icon={<Gauge className="h-4 w-4" />}
+          />
+          <StatCard
+            label="Drift global"
+            value={
+              typeof summary?.driftScore === "number"
+                ? `${(summary.driftScore * 100).toFixed(1)}%`
+                : "--"
+            }
+            icon={<Radar className="h-4 w-4" />}
+            variant={summary?.status === "degraded" ? "warning" : undefined}
+          />
+          <StatCard
+            label="Dernier entrainement"
+            value={
+              summary?.lastTrainingAt
+                ? new Date(summary.lastTrainingAt).toLocaleDateString("fr-FR")
+                : "--"
+            }
+            icon={<Timer className="h-4 w-4" />}
+          />
+        </div>
+      )}
+
       <div>
         <h3 className="mb-3 text-sm font-medium text-ink-secondary">
-          Scenarios
+          Derive recente (drift)
         </h3>
+        {driftLoading ? (
+          <SkeletonCard />
+        ) : driftError ? (
+          <ErrorFallback message={driftError} onRetry={driftRefetch} />
+        ) : (
+          <Card className="rounded-2xl shadow-soft">
+            <CardContent className="p-0">
+              <DataTable
+                columns={DRIFT_COLUMNS}
+                data={drift ?? []}
+                getRowKey={(row) => row.id}
+                emptyMessage="Aucune derive significative"
+              />
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <div>
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">Scenarios</h3>
         {scenariosLoading ? (
           <SkeletonCard />
         ) : scenariosError ? (

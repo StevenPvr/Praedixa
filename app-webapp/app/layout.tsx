@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ThemeProvider } from "@/components/theme-provider";
+import { RuntimeErrorShield } from "@/components/runtime-error-shield";
 import "@praedixa/ui/brand-tokens.css";
 import "./globals.css";
 
@@ -18,12 +18,11 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <ThemeProvider>
-          <a href="#main-content" className="skip-link">
-            Aller au contenu principal
-          </a>
-          {children}
-        </ThemeProvider>
+        <RuntimeErrorShield />
+        <a href="#main-content" className="skip-link">
+          Aller au contenu principal
+        </a>
+        {children}
       </body>
     </html>
   );

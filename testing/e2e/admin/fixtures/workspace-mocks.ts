@@ -240,11 +240,45 @@ export const MOCK_SCENARIOS = [
   },
 ];
 
+export const MOCK_ML_MONITORING_SUMMARY = {
+  modelVersion: "sarimax-v12",
+  mape: 8.7,
+  mae: 4.1,
+  driftScore: 0.12,
+  status: "healthy" as const,
+  lastTrainingAt: TS,
+};
+
+export const MOCK_ML_MONITORING_DRIFT = [
+  {
+    id: "drift-001",
+    feature: "abs_h",
+    driftScore: 0.14,
+    pValue: 0.0123,
+    detectedAt: TS,
+  },
+  {
+    id: "drift-002",
+    feature: "realise_h",
+    driftScore: 0.08,
+    pValue: 0.1042,
+    detectedAt: TS,
+  },
+];
+
 export async function mockPrevisionsApis(page: Page): Promise<void> {
   await mockOrgDetail(page);
   await page.route(
     `**/api/v1/admin/organizations/${TEST_ORG_ID}/scenarios*`,
     (route) => fulfill(route, apiResponse(MOCK_SCENARIOS)),
+  );
+  await page.route(
+    `**/api/v1/admin/organizations/${TEST_ORG_ID}/ml-monitoring/summary*`,
+    (route) => fulfill(route, apiResponse(MOCK_ML_MONITORING_SUMMARY)),
+  );
+  await page.route(
+    `**/api/v1/admin/organizations/${TEST_ORG_ID}/ml-monitoring/drift*`,
+    (route) => fulfill(route, apiResponse(MOCK_ML_MONITORING_DRIFT)),
   );
 }
 

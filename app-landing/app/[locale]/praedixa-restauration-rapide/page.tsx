@@ -23,7 +23,7 @@ export default async function KnowledgeRoute({
   params: Promise<{ locale: string }>;
 }) {
   const locale = await resolveLocale(params);
-  const expectedSlug = localizedSlugs[PAGE_KEY][locale];
+  const expectedSlug = localizedSlugs[PAGE_KEY][locale] as string;
 
   if (expectedSlug !== CURRENT_SLUG) {
     permanentRedirect(`/${locale}/${expectedSlug}`);

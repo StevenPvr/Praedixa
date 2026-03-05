@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { canAccessAdminConsole } from "@/lib/auth/permissions";
 import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
@@ -14,18 +15,15 @@ import {
   verifySession,
 } from "@/lib/auth/oidc";
 
-function canAccessAdminConsole(role: string | undefined): boolean {
-  if (role === "super_admin") return true;
-  return process.env.NODE_ENV !== "production" && role === "org_admin";
-}
-
-function unauthorized(_request: NextRequest): NextResponse {
+function unauthorized(clearCookies = true): NextResponse {
   const response = NextResponse.json(
     { error: "unauthorized" },
     { status: 401 },
   );
   response.headers.set("Cache-Control", "no-store");
-  clearAuthCookies(response);
+  if (clearCookies) {
+    clearAuthCookies(response);
+  }
   return response;
 }
 
@@ -40,14 +38,14 @@ export async function GET(request: NextRequest) {
   const refreshTokenCookie = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
 
   if (!signed) {
-    return unauthorized(request);
+    return unauthorized();
   }
 
   try {
     const { issuerUrl, clientId, clientSecret, sessionSecret } = getOidcEnv();
     let session = await verifySession(signed, sessionSecret);
     if (!session) {
-      return unauthorized(request);
+      return unauthorized();
     }
 
     let accessToken = accessTokenCookie ?? "";
@@ -57,7 +55,7 @@ export async function GET(request: NextRequest) {
       !accessToken || isTokenExpired(accessToken, minTtlSeconds);
     if (needsRefresh) {
       if (!refreshToken) {
-        return unauthorized(request);
+        return unauthorized();
       }
 
       const refreshed = await refreshTokens({
@@ -68,13 +66,14 @@ export async function GET(request: NextRequest) {
       });
 
       if (!refreshed?.access_token) {
-        return unauthorized(request);
+        // Avoid clearing cookies on transient refresh races/errors.
+        return unauthorized(false);
       }
 
       const user = userFromAccessToken(refreshed.access_token, clientId);
       const exp = getTokenExp(refreshed.access_token);
-      if (!user || !exp || !canAccessAdminConsole(user.role)) {
-        return unauthorized(request);
+      if (!user || !exp || !canAccessAdminConsole(user.role, user.permissions)) {
+        return unauthorized();
       }
 
       accessToken = refreshed.access_token;
@@ -83,6 +82,7 @@ export async function GET(request: NextRequest) {
         sub: user.id,
         email: user.email,
         role: user.role,
+        permissions: user.permissions,
         organizationId: user.organizationId,
         siteId: user.siteId,
         accessTokenExp: exp,
@@ -97,6 +97,7 @@ export async function GET(request: NextRequest) {
             id: session.sub,
             email: session.email,
             role: session.role,
+            permissions: session.permissions,
             organizationId: session.organizationId,
             siteId: session.siteId,
           },
@@ -114,8 +115,8 @@ export async function GET(request: NextRequest) {
       return response;
     }
 
-    if (!canAccessAdminConsole(session.role)) {
-      return unauthorized(request);
+    if (!canAccessAdminConsole(session.role, session.permissions)) {
+      return unauthorized();
     }
 
     const response = NextResponse.json(
@@ -125,6 +126,7 @@ export async function GET(request: NextRequest) {
           id: session.sub,
           email: session.email,
           role: session.role,
+          permissions: session.permissions,
           organizationId: session.organizationId,
           siteId: session.siteId,
         },
@@ -134,6 +136,7 @@ export async function GET(request: NextRequest) {
     response.headers.set("Cache-Control", "no-store");
     return response;
   } catch {
-    return unauthorized(request);
+    // Unexpected failures on /auth/session should not forcibly clear cookies.
+    return unauthorized(false);
   }
 }

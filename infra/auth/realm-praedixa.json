@@ -1,0 +1,120 @@
+{
+  "realm": "praedixa",
+  "enabled": true,
+  "displayName": "Praedixa",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": false,
+  "rememberMe": true,
+  "verifyEmail": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "super_admin"
+      },
+      {
+        "name": "org_admin"
+      },
+      {
+        "name": "hr_manager"
+      },
+      {
+        "name": "manager"
+      },
+      {
+        "name": "employee"
+      },
+      {
+        "name": "viewer"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "praedixa-webapp",
+      "name": "Praedixa Webapp",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3001/auth/callback",
+        "https://staging-app.praedixa.com/auth/callback",
+        "https://app.praedixa.com/auth/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:3001",
+        "https://staging-app.praedixa.com",
+        "https://app.praedixa.com"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-praedixa-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "praedixa-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "praedixa-admin",
+      "name": "Praedixa Admin",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3002/auth/callback",
+        "https://staging-admin.praedixa.com/auth/callback",
+        "https://admin.praedixa.com/auth/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:3002",
+        "https://staging-admin.praedixa.com",
+        "https://admin.praedixa.com"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-praedixa-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "praedixa-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "praedixa-api",
+      "name": "Praedixa API",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "bearerOnly": true
+    }
+  ]
+}

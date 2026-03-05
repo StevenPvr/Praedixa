@@ -2,6 +2,16 @@
 
 Marketing site for `praedixa.com`, built with Next.js App Router (v15), React 19, Tailwind CSS, and Framer Motion.
 
+## Canonical Message
+
+Landing positioning must stay aligned with production copy:
+
+- Closed loop: forecast (D+3/D+7/D+14) -> optimal decision -> assisted first action -> monthly ROI proof.
+- Overlay on existing tools (exports/APIs), read-only start.
+- Manager remains decision-maker (human in the loop).
+- Not a planning/WFM replacement.
+- Month 1 offered: historical audit (read-only).
+
 ## Runbook
 
 From repository root:
@@ -85,10 +95,10 @@ Both form endpoints implement:
 
 ## Deployment
 
-Current:
-
-- Cloudflare Workers via OpenNext (`pnpm cf:build`, `pnpm deploy`)
-
-Prepared target:
+Production target:
 
 - Scaleway Serverless Containers (`app-landing/Dockerfile.scaleway`, `fr-par`)
+
+Optional alternative:
+
+- Cloudflare Workers via OpenNext (`pnpm cf:build`, `pnpm deploy`)

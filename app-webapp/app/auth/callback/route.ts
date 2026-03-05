@@ -12,6 +12,16 @@ import {
   signSession,
   userFromAccessToken,
 } from "@/lib/auth/oidc";
+import { consumeRateLimit } from "@/lib/auth/rate-limit";
+
+type RateLimitSnapshot = Awaited<ReturnType<typeof consumeRateLimit>>;
+
+function noStoreRedirect(url: string | URL): NextResponse {
+  const response = NextResponse.redirect(url.toString());
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Pragma", "no-cache");
+  return response;
+}
 
 function clearLoginFlowCookies(response: NextResponse): void {
   response.cookies.delete(LOGIN_STATE_COOKIE);
@@ -19,7 +29,36 @@ function clearLoginFlowCookies(response: NextResponse): void {
   response.cookies.delete(LOGIN_NEXT_COOKIE);
 }
 
+function applyRateLimitHeaders(
+  response: NextResponse,
+  limit: number,
+  rate: RateLimitSnapshot,
+): void {
+  response.headers.set("X-RateLimit-Limit", String(limit));
+  response.headers.set("X-RateLimit-Remaining", String(rate.remaining));
+  response.headers.set("X-RateLimit-Reset", String(rate.resetAtEpochSeconds));
+  if (!rate.allowed) {
+    response.headers.set("Retry-After", String(rate.retryAfterSeconds));
+  }
+}
+
 export async function GET(request: NextRequest) {
+  const maxAttempts = 30;
+  const rate = await consumeRateLimit(request, {
+    scope: "auth:callback",
+    max: maxAttempts,
+    windowMs: 60_000,
+  });
+  if (!rate.allowed) {
+    const redirect = noStoreRedirect(
+      `${request.nextUrl.origin}/login?error=rate_limited`,
+    );
+    applyRateLimitHeaders(redirect, maxAttempts, rate);
+    clearAuthCookies(redirect);
+    clearLoginFlowCookies(redirect);
+    return redirect;
+  }
+
   const code = request.nextUrl.searchParams.get("code");
   const returnedState = request.nextUrl.searchParams.get("state");
 
@@ -36,9 +75,10 @@ export async function GET(request: NextRequest) {
     returnedState !== expectedState ||
     !verifier
   ) {
-    const redirect = NextResponse.redirect(
+    const redirect = noStoreRedirect(
       `${request.nextUrl.origin}/login?error=auth_callback_failed`,
     );
+    applyRateLimitHeaders(redirect, maxAttempts, rate);
     clearAuthCookies(redirect);
     clearLoginFlowCookies(redirect);
     return redirect;
@@ -56,9 +96,10 @@ export async function GET(request: NextRequest) {
     });
 
     if (!tokenPayload?.access_token) {
-      const redirect = NextResponse.redirect(
+      const redirect = noStoreRedirect(
         `${request.nextUrl.origin}/login?error=auth_callback_failed`,
       );
+      applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);
       clearLoginFlowCookies(redirect);
       return redirect;
@@ -67,9 +108,10 @@ export async function GET(request: NextRequest) {
     const user = userFromAccessToken(tokenPayload.access_token, clientId);
     const exp = getTokenExp(tokenPayload.access_token);
     if (!user || !exp) {
-      const redirect = NextResponse.redirect(
+      const redirect = noStoreRedirect(
         `${request.nextUrl.origin}/login?error=auth_claims_invalid`,
       );
+      applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);
       clearLoginFlowCookies(redirect);
       return redirect;
@@ -77,9 +119,10 @@ export async function GET(request: NextRequest) {
 
     // super_admin users must stay on admin app, not webapp.
     if (user.role === "super_admin") {
-      const redirect = NextResponse.redirect(
+      const redirect = noStoreRedirect(
         `${request.nextUrl.origin}/login?error=wrong_role`,
       );
+      applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);
       clearLoginFlowCookies(redirect);
       return redirect;
@@ -98,7 +141,7 @@ export async function GET(request: NextRequest) {
       sessionSecret,
     );
 
-    const redirect = NextResponse.redirect(
+    const redirect = noStoreRedirect(
       `${request.nextUrl.origin}${safeNext}`,
     );
     setAuthCookies(redirect, request, {
@@ -109,12 +152,14 @@ export async function GET(request: NextRequest) {
       refreshTokenMaxAge: tokenPayload.refresh_expires_in ?? 60 * 60 * 24 * 14,
     });
     clearLoginFlowCookies(redirect);
+    applyRateLimitHeaders(redirect, maxAttempts, rate);
 
     return redirect;
   } catch {
-    const redirect = NextResponse.redirect(
+    const redirect = noStoreRedirect(
       `${request.nextUrl.origin}/login?error=auth_callback_failed`,
     );
+    applyRateLimitHeaders(redirect, maxAttempts, rate);
     clearAuthCookies(redirect);
     clearLoginFlowCookies(redirect);
     return redirect;

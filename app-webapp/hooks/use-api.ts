@@ -33,9 +33,29 @@ function isRetryableError(err: unknown): boolean {
   return err.status >= 500;
 }
 
-async function redirectToReauth(router: RouterLike): Promise<void> {
+function buildReauthUrl(error?: ApiError): string {
+  const params = new URLSearchParams({ reauth: "1" });
+  params.set("reason", "api_unauthorized");
+
+  const errorCode = error?.code?.trim();
+  if (errorCode) {
+    params.set("error_code", errorCode);
+  }
+
+  const requestId = error?.requestId?.trim();
+  if (requestId) {
+    params.set("request_id", requestId);
+  }
+
+  return `/login?${params.toString()}`;
+}
+
+async function redirectToReauth(
+  router: RouterLike,
+  error?: ApiError,
+): Promise<void> {
   await clearAuthSession();
-  router.replace("/login?reauth=1");
+  router.replace(buildReauthUrl(error));
 }
 
 interface UseApiGetResult<T> {
@@ -100,7 +120,7 @@ export function useApiGet<T>(
             retryTimerRef.current = null;
           }
           if (fetchOptions?.silent) return;
-          await redirectToReauth(router);
+          await redirectToReauth(router, err);
           return;
         }
 
@@ -244,7 +264,7 @@ export function useApiGetPaginated<T>(
             retryTimerRef.current = null;
           }
           if (fetchOptions?.silent) return;
-          await redirectToReauth(router);
+          await redirectToReauth(router, err);
           return;
         }
 
@@ -372,7 +392,7 @@ function useApiMutation<TReq, TRes>(
         if (controller.signal.aborted) return null;
 
         if (err instanceof ApiError && err.status === 401) {
-          await redirectToReauth(router);
+          await redirectToReauth(router, err);
           return null;
         }
 

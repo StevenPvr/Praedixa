@@ -24,6 +24,7 @@ describe("admin OIDC role parsing", () => {
       id: "u-1",
       email: "admin@praedixa.com",
       role: "super_admin",
+      permissions: expect.arrayContaining(["admin:console:access"]),
     });
   });
 
@@ -38,6 +39,7 @@ describe("admin OIDC role parsing", () => {
       id: "u-2",
       email: "admin@praedixa.com",
       role: "super_admin",
+      permissions: expect.arrayContaining(["admin:console:access"]),
     });
   });
 
@@ -52,6 +54,22 @@ describe("admin OIDC role parsing", () => {
       id: "u-3",
       email: "admin@praedixa.com",
       role: "super_admin",
+      permissions: expect.arrayContaining(["admin:console:access"]),
+    });
+  });
+
+  it("falls back to profile permissions when explicit permissions are absent", () => {
+    const token = makeToken({
+      sub: "u-4",
+      email: "compliance@praedixa.com",
+      role: "viewer",
+      profile: "admin_compliance",
+    });
+
+    expect(userFromAccessToken(token, "admin-client")).toMatchObject({
+      id: "u-4",
+      role: "viewer",
+      permissions: expect.arrayContaining(["admin:audit:read"]),
     });
   });
 });

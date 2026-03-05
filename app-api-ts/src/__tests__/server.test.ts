@@ -5,6 +5,7 @@ import { compileRoutes, matchRoute } from "../router.js";
 import {
   CORS_ALLOWED_HEADERS,
   CORS_ALLOWED_METHODS,
+  isJsonContentType,
   normalizeOrigin,
   resolveCorsHeaders,
   SECURITY_HEADERS,
@@ -17,6 +18,7 @@ describe("api transport and authorization guards", () => {
       "X-Frame-Options": "DENY",
       "Referrer-Policy": "no-referrer",
       "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+      "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
     });
   });
 
@@ -28,6 +30,9 @@ describe("api transport and authorization guards", () => {
     expect(adminRoutes.length).toBeGreaterThan(0);
     for (const route of adminRoutes) {
       expect(route.allowedRoles).toContain("super_admin");
+      expect(route.allowedRoles).not.toContain("org_admin");
+      expect(route.requiredPermissions).not.toBeNull();
+      expect((route.requiredPermissions ?? []).length).toBeGreaterThan(0);
     }
   });
 
@@ -110,5 +115,13 @@ describe("api transport and authorization guards", () => {
     expect(
       resolveCorsHeaders("http://10.188.106.147:3002", [], "production"),
     ).toEqual({});
+  });
+
+  it("accepts only JSON media types for request bodies", () => {
+    expect(isJsonContentType("application/json")).toBe(true);
+    expect(isJsonContentType("application/json; charset=utf-8")).toBe(true);
+    expect(isJsonContentType(["application/json"])).toBe(true);
+    expect(isJsonContentType("text/plain")).toBe(false);
+    expect(isJsonContentType(undefined)).toBe(false);
   });
 });

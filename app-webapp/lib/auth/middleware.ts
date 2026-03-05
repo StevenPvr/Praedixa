@@ -13,7 +13,7 @@ import {
   userFromAccessToken,
   verifySession,
 } from "@/lib/auth/oidc";
-import { canAccessSettings, isSuperAdmin } from "@/lib/auth/roles";
+import { isSuperAdmin } from "@/lib/auth/roles";
 
 interface AuthState {
   session: Awaited<ReturnType<typeof verifySession>>;
@@ -114,8 +114,8 @@ export async function updateSession(request: NextRequest) {
   const response = NextResponse.next({ request });
   const pathname = request.nextUrl.pathname;
 
-  const isLoginRoute = pathname.startsWith("/login");
-  const isAuthRoute = pathname.startsWith("/auth");
+  const isLoginRoute = pathname === "/login";
+  const isAuthRoute = pathname === "/auth" || pathname.startsWith("/auth/");
 
   if (isAuthRoute) {
     return response;
@@ -131,16 +131,6 @@ export async function updateSession(request: NextRequest) {
   if (authState.session && !isLoginRoute) {
     if (isSuperAdmin(userRole)) {
       return redirectTo(request, "/login", true);
-    }
-
-    const isSettingsRoute = pathname.startsWith("/parametres");
-    if (isSettingsRoute && !canAccessSettings(userRole)) {
-      return redirectTo(request, "/dashboard");
-    }
-
-    const isDatasetsRoute = pathname.startsWith("/donnees/datasets");
-    if (isDatasetsRoute && !canAccessSettings(userRole)) {
-      return redirectTo(request, "/donnees");
     }
   }
 

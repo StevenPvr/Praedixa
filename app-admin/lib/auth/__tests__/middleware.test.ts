@@ -62,6 +62,7 @@ function createSession(role: string) {
     sub: "u1",
     email: "user@praedixa.com",
     role,
+    permissions: role === "super_admin" ? ["admin:console:access"] : [],
     organizationId: "org-1",
     siteId: "site-1",
     accessTokenExp: Math.floor(Date.now() / 1000) + 1800,
@@ -128,6 +129,38 @@ describe("updateSession (admin)", () => {
     );
   });
 
+  it("redirects org_admin users to /unauthorized even outside production", async () => {
+    mockVerifySession.mockResolvedValue(createSession("org_admin"));
+
+    const result = await updateSession(
+      createMockRequest("/dashboard", {
+        prx_admin_at: "access-token",
+        prx_admin_sess: "session-cookie",
+      }),
+    );
+
+    expect((result as { redirectUrl: string }).redirectUrl).toBe(
+      "https://admin.praedixa.com/unauthorized",
+    );
+  });
+
+  it("allows delegated admin access with console permission", async () => {
+    mockVerifySession.mockResolvedValue({
+      ...createSession("viewer"),
+      permissions: ["admin:console:access"],
+    });
+
+    const result = await updateSession(
+      createMockRequest("/dashboard", {
+        prx_admin_at: "access-token",
+        prx_admin_sess: "session-cookie",
+      }),
+    );
+
+    expect(result.status).toBe(200);
+    expect(mockRedirect).not.toHaveBeenCalled();
+  });
+
   it("allows super_admin on protected routes", async () => {
     mockVerifySession.mockResolvedValue(createSession("super_admin"));
 
@@ -183,6 +216,7 @@ describe("updateSession (admin)", () => {
       id: "u1",
       email: "admin@praedixa.com",
       role: "super_admin",
+      permissions: ["admin:console:access"],
       organizationId: "org-1",
       siteId: "site-1",
     });

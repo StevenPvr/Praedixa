@@ -115,6 +115,12 @@ container_has_env() {
   printf '%s' "$container_json" | jq -e --arg k "$key" '(.environment_variables // {}) | has($k)' >/dev/null
 }
 
+container_env_value() {
+  local container_json="$1"
+  local key="$2"
+  printf '%s' "$container_json" | jq -r --arg k "$key" '(.environment_variables // {})[$k] // ""'
+}
+
 container_has_secret() {
   local container_json="$1"
   local key="$2"
@@ -142,6 +148,69 @@ check_frontend_container_env() {
     ok "${container_name}: secret AUTH_SESSION_SECRET configured"
   else
     fail "${container_name}: secret AUTH_SESSION_SECRET missing"
+  fi
+
+  if [[ "$container_name" == webapp-* ]]; then
+    for key in AUTH_TRUST_X_FORWARDED_FOR AUTH_RATE_LIMIT_KEY_PREFIX AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS; do
+      if container_has_env "$container_json" "$key"; then
+        ok "${container_name}: env ${key} configured"
+      else
+        fail "${container_name}: env ${key} missing"
+      fi
+    done
+
+    local trust_xff
+    trust_xff="$(container_env_value "$container_json" "AUTH_TRUST_X_FORWARDED_FOR")"
+    if [ "$trust_xff" = "0" ] || [ "$trust_xff" = "1" ]; then
+      ok "${container_name}: AUTH_TRUST_X_FORWARDED_FOR=${trust_xff}"
+    else
+      fail "${container_name}: AUTH_TRUST_X_FORWARDED_FOR must be 0 or 1 (current: ${trust_xff:-missing})"
+    fi
+
+    if container_has_secret "$container_json" "AUTH_RATE_LIMIT_REDIS_URL"; then
+      ok "${container_name}: secret AUTH_RATE_LIMIT_REDIS_URL configured"
+    else
+      fail "${container_name}: secret AUTH_RATE_LIMIT_REDIS_URL missing"
+    fi
+
+    if container_has_secret "$container_json" "AUTH_RATE_LIMIT_KEY_SALT"; then
+      ok "${container_name}: secret AUTH_RATE_LIMIT_KEY_SALT configured"
+    else
+      warn "${container_name}: secret AUTH_RATE_LIMIT_KEY_SALT missing (fallback uses AUTH_SESSION_SECRET)"
+    fi
+  fi
+}
+
+check_distinct_frontend_client_ids() {
+  local webapp_container="$1"
+  local admin_container="$2"
+  local env_label="$3"
+  local webapp_json admin_json webapp_client_id admin_client_id
+
+  webapp_json="$(get_container_json "$webapp_container")"
+  admin_json="$(get_container_json "$admin_container")"
+
+  if [ -z "$webapp_json" ] || [ -z "$admin_json" ]; then
+    fail "${env_label}: cannot validate frontend OIDC client IDs (missing container metadata)"
+    return
+  fi
+
+  webapp_client_id="$(container_env_value "$webapp_json" "AUTH_OIDC_CLIENT_ID")"
+  admin_client_id="$(container_env_value "$admin_json" "AUTH_OIDC_CLIENT_ID")"
+
+  if [ -z "$webapp_client_id" ]; then
+    fail "${webapp_container}: AUTH_OIDC_CLIENT_ID is empty"
+    return
+  fi
+  if [ -z "$admin_client_id" ]; then
+    fail "${admin_container}: AUTH_OIDC_CLIENT_ID is empty"
+    return
+  fi
+
+  if [ "$webapp_client_id" = "$admin_client_id" ]; then
+    fail "${env_label}: webapp/admin share AUTH_OIDC_CLIENT_ID (${webapp_client_id}); use distinct OIDC clients to prevent cross-app session invalidation"
+  else
+    ok "${env_label}: distinct frontend OIDC client IDs (${webapp_client_id} vs ${admin_client_id})"
   fi
 }
 
@@ -388,6 +457,7 @@ if is_target_enabled "staging"; then
   check_landing_container_env "landing-staging"
   check_frontend_container_env "webapp-staging"
   check_frontend_container_env "admin-staging"
+  check_distinct_frontend_client_ids "webapp-staging" "admin-staging" "staging"
   check_api_container_env "api-staging"
 fi
 
@@ -395,6 +465,7 @@ if is_target_enabled "prod"; then
   check_landing_container_env "landing-web"
   check_frontend_container_env "webapp-prod"
   check_frontend_container_env "admin-prod"
+  check_distinct_frontend_client_ids "webapp-prod" "admin-prod" "prod"
   check_api_container_env "api-prod"
 fi
 

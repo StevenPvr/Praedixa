@@ -1,6 +1,7 @@
+import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod";
 
-import type { JWTPayload, UserRole } from "./types.js";
+import type { AppConfig, JWTPayload, UserRole } from "./types.js";
 
 const DEFAULT_ORGANIZATION_ID = "11111111-1111-1111-1111-111111111111";
 
@@ -31,6 +32,8 @@ const claimSchema = z.object({
   site_ids: z.array(z.string()).optional(),
   siteIds: z.array(z.string()).optional(),
   permissions: z.array(z.string()).optional(),
+  profile: z.string().optional(),
+  profiles: z.array(z.string()).optional(),
   realm_access: z
     .object({
       roles: z.array(z.string()).optional(),
@@ -53,17 +56,78 @@ const claimSchema = z.object({
       site_id: z.string().optional(),
       site_ids: z.array(z.string()).optional(),
       permissions: z.array(z.string()).optional(),
+      profile: z.string().optional(),
+      profiles: z.array(z.string()).optional(),
     })
     .optional(),
 });
 
-function decodeBase64Url(value: string): string | null {
-  try {
-    const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-    return Buffer.from(normalized, "base64").toString("utf8");
-  } catch {
-    return null;
+const ROLE_PERMISSION_FALLBACK: Record<UserRole, readonly string[]> = {
+  super_admin: [
+    "admin:console:access",
+    "admin:monitoring:read",
+    "admin:org:read",
+    "admin:org:write",
+    "admin:users:read",
+    "admin:users:write",
+    "admin:billing:read",
+    "admin:billing:write",
+    "admin:audit:read",
+    "admin:onboarding:read",
+    "admin:onboarding:write",
+    "admin:messages:read",
+    "admin:messages:write",
+    "admin:integrations:read",
+    "admin:integrations:write",
+    "admin:support:read",
+    "admin:support:write",
+  ],
+  org_admin: [
+  ],
+  hr_manager: [
+  ],
+  manager: [
+  ],
+  employee: [],
+  viewer: [],
+} as const;
+
+const PROFILE_PERMISSION_FALLBACK: Record<string, readonly string[]> = {
+  admin_ops: [
+    "admin:console:access",
+    "admin:monitoring:read",
+    "admin:org:read",
+    "admin:messages:read",
+    "admin:messages:write",
+    "admin:integrations:read",
+    "admin:support:read",
+  ],
+  admin_compliance: [
+    "admin:console:access",
+    "admin:audit:read",
+    "admin:billing:read",
+    "admin:org:read",
+    "admin:onboarding:read",
+    "admin:integrations:read",
+  ],
+} as const;
+
+type JwtConfig = AppConfig["jwt"];
+const jwksResolverCache = new Map<string, ReturnType<typeof createRemoteJWKSet>>();
+
+function getJwksResolver(jwksUrl: string): ReturnType<typeof createRemoteJWKSet> {
+  const cached = jwksResolverCache.get(jwksUrl);
+  if (cached) {
+    return cached;
   }
+
+  const resolver = createRemoteJWKSet(new URL(jwksUrl), {
+    timeoutDuration: 5000,
+    cooldownDuration: 60_000,
+    cacheMaxAge: 5 * 60_000,
+  });
+  jwksResolverCache.set(jwksUrl, resolver);
+  return resolver;
 }
 
 function pickKnownRoleFromList(candidates: readonly string[]): UserRole | null {
@@ -180,14 +244,59 @@ function getSiteIds(raw: z.infer<typeof claimSchema>): string[] {
   return singleSite == null ? [] : [singleSite];
 }
 
-function getPermissions(raw: z.infer<typeof claimSchema>): string[] {
-  if (raw.permissions != null) {
-    return raw.permissions;
+function normalizePermission(permission: string): string {
+  return permission.trim().toLowerCase();
+}
+
+function normalizePermissions(permissions: readonly string[]): string[] {
+  return Array.from(
+    new Set(
+      permissions
+        .map((permission) => normalizePermission(permission))
+        .filter((permission) => permission.length > 0),
+    ),
+  );
+}
+
+function getProfiles(raw: z.infer<typeof claimSchema>): string[] {
+  const profiles = [
+    raw.profile,
+    ...(raw.profiles ?? []),
+    raw.app_metadata?.profile,
+    ...(raw.app_metadata?.profiles ?? []),
+  ].filter((value): value is string => typeof value === "string");
+
+  return Array.from(
+    new Set(
+      profiles
+        .map((profile) =>
+          profile
+            .trim()
+            .toLowerCase()
+            .replace(/[\s-]+/g, "_"),
+        )
+        .filter((profile) => profile.length > 0),
+    ),
+  );
+}
+
+function getPermissions(raw: z.infer<typeof claimSchema>, role: UserRole): string[] {
+  const explicitPermissions = normalizePermissions([
+    ...(raw.permissions ?? []),
+    ...(raw.app_metadata?.permissions ?? []),
+  ]);
+  if (explicitPermissions.length > 0) {
+    return explicitPermissions;
   }
-  if (raw.app_metadata?.permissions != null) {
-    return raw.app_metadata.permissions;
-  }
-  return [];
+
+  const profilePermissions = getProfiles(raw).flatMap(
+    (profile) => PROFILE_PERMISSION_FALLBACK[profile] ?? [],
+  );
+
+  return normalizePermissions([
+    ...profilePermissions,
+    ...(ROLE_PERMISSION_FALLBACK[role] ?? []),
+  ]);
 }
 
 export function parseBearerToken(authorization: string | undefined): string | null {
@@ -195,37 +304,20 @@ export function parseBearerToken(authorization: string | undefined): string | nu
     return null;
   }
 
-  const [scheme, token] = authorization.split(" ");
-  if (scheme !== "Bearer" || token == null || token.length === 0) {
+  const [scheme, ...rest] = authorization.trim().split(/\s+/);
+  if (scheme !== "Bearer" || rest.length !== 1) {
+    return null;
+  }
+
+  const token = rest[0];
+  if (token == null || token.length === 0) {
     return null;
   }
 
   return token;
 }
 
-export function decodeJwtPayload(token: string): JWTPayload | null {
-  const chunks = token.split(".");
-  if (chunks.length !== 3) {
-    return null;
-  }
-
-  const payloadChunk = chunks[1];
-  if (payloadChunk == null) {
-    return null;
-  }
-
-  const rawPayload = decodeBase64Url(payloadChunk);
-  if (rawPayload == null) {
-    return null;
-  }
-
-  let unknownPayload: unknown;
-  try {
-    unknownPayload = JSON.parse(rawPayload);
-  } catch {
-    return null;
-  }
-
+export function normalizeJwtClaims(unknownPayload: unknown): JWTPayload | null {
   const parsed = claimSchema.safeParse(unknownPayload);
   if (!parsed.success) {
     return null;
@@ -247,6 +339,23 @@ export function decodeJwtPayload(token: string): JWTPayload | null {
     role,
     organizationId,
     siteIds: getSiteIds(payload),
-    permissions: getPermissions(payload),
+    permissions: getPermissions(payload, role),
   };
+}
+
+export async function decodeJwtPayload(
+  token: string,
+  jwtConfig: JwtConfig,
+): Promise<JWTPayload | null> {
+  try {
+    const { payload } = await jwtVerify(token, getJwksResolver(jwtConfig.jwksUrl), {
+      issuer: jwtConfig.issuerUrl,
+      audience: jwtConfig.audience,
+      algorithms: [...jwtConfig.algorithms],
+      clockTolerance: 5,
+    });
+    return normalizeJwtClaims(payload);
+  } catch {
+    return null;
+  }
 }

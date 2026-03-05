@@ -8,84 +8,76 @@ test.describe("Authenticated navigation", () => {
     await mockAllApis(page);
   });
 
-  test("sidebar navigation links work between pages", async ({ page }) => {
+  test("sidebar navigation links work between existing pages", async ({ page }) => {
     await page.goto("/dashboard");
-
     await expect(
-      page.getByRole("heading", { name: "War room operationnelle" }),
-    ).toBeVisible();
-
-    await page.goto("/donnees");
-    await expect(
-      page.getByRole("heading", { name: "Référentiel opérationnel", level: 1 }),
-    ).toBeVisible();
-
-    await page.goto("/previsions");
-    await expect(
-      page.getByRole("heading", {
-        name: "Anticipation des tensions",
-        level: 1,
-      }),
-    ).toBeVisible();
-
-    await page.goto("/actions");
-    await expect(
-      page.getByRole("heading", { name: "Centre de traitement", level: 1 }),
+      page.getByRole("heading", { name: "Priorites du jour" }),
     ).toBeVisible();
 
     const nav = page.getByLabel("Navigation principale");
-    await nav.getByRole("link", { name: /Tableau de bord/ }).click();
-    await expect(page).toHaveURL(/\/dashboard/);
+
+    await nav.getByRole("link", { name: /Previsions/ }).click();
+    await expect(page).toHaveURL(/\/previsions$/);
     await expect(
-      page.getByRole("heading", { name: "War room operationnelle" }),
+      page.getByRole("heading", { name: "Previsions 7 jours" }),
+    ).toBeVisible();
+
+    await nav.getByRole("link", { name: /Actions/ }).click();
+    await expect(page).toHaveURL(/\/actions$/);
+    await expect(
+      page.getByRole("heading", { name: "Centre Actions" }),
+    ).toBeVisible();
+
+    await nav.getByRole("link", { name: /Support/ }).click();
+    await expect(page).toHaveURL(/\/messages$/);
+    await expect(
+      page.getByRole("heading", { name: "Messagerie support" }),
     ).toBeVisible();
   });
 
-  test("active page has aria-current indicator in sidebar", async ({
-    page,
-  }) => {
+  test("active page has aria-current indicator in sidebar", async ({ page }) => {
     await page.goto("/dashboard");
 
     const nav = page.getByLabel("Navigation principale");
-    await expect(nav).toBeVisible();
+    await expect(nav.getByRole("link", { name: /Accueil/ })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
 
-    const dashboardLink = nav.getByRole("link", { name: /Tableau de bord/ });
-    await expect(dashboardLink).toHaveAttribute("aria-current", "page");
-
-    await page.goto("/rapports");
-    const rapportsLink = nav.getByRole("link", { name: /Rapports/ });
-    await expect(rapportsLink).toHaveAttribute("aria-current", "page");
-
-    const dashLink = nav.getByRole("link", { name: /Tableau de bord/ });
-    await expect(dashLink).not.toHaveAttribute("aria-current", "page");
+    await page.goto("/parametres");
+    await expect(nav.getByRole("link", { name: /Reglages/ })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(nav.getByRole("link", { name: /Accueil/ })).not.toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 
   test("invalid route shows 404 not-found page", async ({ page }) => {
     await page.goto("/this-page-does-not-exist");
 
-    // The not-found page should show 404
     await expect(page.getByText("404")).toBeVisible();
     await expect(page.getByText("Page introuvable")).toBeVisible();
-
-    // Should have a link back to dashboard
     await expect(
       page.getByRole("link", { name: "Retour au tableau de bord" }),
     ).toBeVisible();
   });
 
-  test("page titles are correct for each section", async ({ page }) => {
-    const pageTitles: Array<{ url: string; title: string }> = [
-      { url: "/dashboard", title: "War room operationnelle" },
-      { url: "/donnees", title: "Référentiel opérationnel" },
-      { url: "/previsions", title: "Anticipation des tensions" },
-      { url: "/actions", title: "Centre de traitement" },
-      { url: "/rapports", title: "Rapports board-ready" },
+  test("page headings are correct for active sections", async ({ page }) => {
+    const sections: Array<{ url: string; heading: string }> = [
+      { url: "/dashboard", heading: "Priorites du jour" },
+      { url: "/previsions", heading: "Previsions 7 jours" },
+      { url: "/actions", heading: "Centre Actions" },
+      { url: "/messages", heading: "Messagerie support" },
+      { url: "/parametres", heading: "Parametres" },
     ];
 
-    for (const { url, title } of pageTitles) {
-      await page.goto(url);
+    for (const section of sections) {
+      await page.goto(section.url);
       await expect(
-        page.getByRole("heading", { name: title, level: 1 }),
+        page.getByRole("heading", { name: section.heading, level: 1 }),
       ).toBeVisible();
     }
   });

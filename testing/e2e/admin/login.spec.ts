@@ -4,7 +4,7 @@ test.describe("Login page", () => {
   test("displays OIDC access page", async ({ page }) => {
     await page.goto("/login");
 
-    await expect(page.getByText("Espace administration")).toBeVisible();
+    await expect(page.getByText("Console Admin Praedixa")).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Continuer vers la connexion" }),
     ).toBeVisible();
@@ -47,9 +47,7 @@ test.describe("Login page", () => {
   test("shows generic login error for unknown code", async ({ page }) => {
     await page.goto("/login?error=auth_callback_failed");
 
-    await expect(
-      page.getByText(/La connexion a echoue \(auth_callback_failed\)/i),
-    ).toBeVisible();
+    await expect(page.getByText(/La connexion a echoue\. Veuillez reessayer\./i)).toBeVisible();
   });
 
   test("login CTA preserves safe next path", async ({ page }) => {

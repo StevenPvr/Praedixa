@@ -3,13 +3,13 @@ import type { Dictionary } from "../types";
 export const en: Dictionary = {
   meta: {
     title:
-      "Praedixa | Multi-site coverage decisions | Impact measured monthly",
+      "Praedixa | AI decision copilot for multi-site networks",
     description:
-      "A free historical audit to estimate potential gains. Praedixa helps Ops and Finance compare coverage scenarios (teams, schedules, reinforcements), record decisions, and measure impact every month. Simple read-only integration (exports/APIs).",
+      "AI decision copilot for SMB and mid-market multi-site networks: anticipate KPI drifts, standardize options, trigger the first step, then prove impact every month. EU AI Act & GDPR by design. Month 1: free historical audit (read-only).",
     ogTitle:
-      "Praedixa | Multi-site coverage decisions | Impact proof",
+      "Praedixa | AI decision copilot | Impact proof",
     ogDescription:
-      "Praedixa makes trade-offs defensible: options compared, decisions recorded (what, why), and monthly impact proof.",
+      "Defensible trade-offs with proof: cost/service/risk options, assisted first step, and monthly impact proof for Ops/Finance reviews.",
   },
 
   nav: {
@@ -26,11 +26,11 @@ export const en: Dictionary = {
   },
 
   hero: {
-    kicker: "Praedixa Signature Service · Multi-site networks",
-    headline: "Coverage decisions, comparable across sites.",
-    headlineHighlight: "Impact measured monthly.",
+    kicker: "AI decision copilot · Multi-site networks",
+    headline: "AI decision copilot for multi-site networks.",
+    headlineHighlight: "Protect margin and service levels.",
     subtitle:
-      "Praedixa connects read-only to your existing exports/APIs. We compare concrete coverage scenarios (capacity, schedules, reinforcements), record the rationale, and deliver a monthly proof you can use in reviews — to align Ops, Finance, and IT.",
+      "Anticipate KPI drifts, standardize options, trigger the first step, then prove impact every month. EU AI Act & GDPR by design. Human validation required.",
     bullets: [
       {
         metric: "Free audit",
@@ -41,20 +41,20 @@ export const en: Dictionary = {
         text: "method + monthly proof",
       },
       {
-        metric: "Read-only",
-        text: "exports/API, no heavy IT project",
+        metric: "Read-only start",
+        text: "exports, no tool replacement project",
       },
     ],
     ctaPrimary: "Request the free historical audit",
     ctaSecondary: "See the proof protocol",
     previewTitle: "A preview of what awaits you",
     ctaMeta:
-      "Ops & Finance aligned from day one · Start on a focused scope",
+      "Ops & Finance aligned · Human validation · EU AI Act & GDPR by design",
     trustBadges: [
       "Guided decisions + decision journal + monthly proof",
       "Option: KPI forecasting only",
       "Indicators: capacity, demand, inventory/supply… (as needed)",
-      "Read-only integration (exports/APIs)",
+      "Read-only kickoff (exports)",
       "Multi-site comparability, governance, and standardization",
       "Hosted in France (Scaleway)",
     ],
@@ -131,7 +131,7 @@ export const en: Dictionary = {
         description:
           "Useful signals arrive when room for maneuver is already limited.",
         consequence:
-          "Emergency staffing, team overload, unstable service quality",
+          "Emergency measures, overload, unstable service quality",
         cost: "Reacting often costs more than anticipating",
       },
       {
@@ -198,7 +198,7 @@ export const en: Dictionary = {
         },
         {
           is: "Adds on top of your tools (read-only)",
-          isNot: "A WFM/scheduling/ERP replacement",
+          isNot: "A replacement for your ERP/scheduling/BI tools",
         },
         {
           is: "Monthly proof (baseline / recommended / actual)",
@@ -224,9 +224,9 @@ export const en: Dictionary = {
       {
         number: "02",
         title: "Read-only connection",
-        subtitle: "Existing exports/APIs",
+        subtitle: "Your existing exports",
         description:
-          "Read-only connection via CSV/Excel/APIs. We set up the indicators you need (capacity, demand, inventory/supply… as needed).",
+          "Read-only connection via CSV/Excel/APIs. We set up the indicators you need based on your priorities.",
       },
       {
         number: "03",
@@ -262,17 +262,17 @@ export const en: Dictionary = {
         context:
           "Rush periods and volume swings destabilize field capacity.",
         action:
-          "Forecasts + capacity, reinforcement/reallocation options, documented cost/service trade-off.",
+          "Forecasts, standardized options, documented cost/service/risk trade-offs.",
         result:
-          "Less last-minute urgency and more stable service levels and schedules.",
+          "Less last-minute urgency and more stable service levels.",
       },
       {
         id: "absenteeism",
         title: "Rare skills and absences",
         context:
-          "Planning fragility from critical absences and workshop/clinical/maintenance dependencies.",
+          "Operational fragility from critical absences and workshop/clinical/maintenance dependencies.",
         action:
-          "Criticality-based prioritization, alternative coverage options, recorded choices.",
+          "Criticality-based prioritization, alternative action options, recorded choices.",
         result:
           "More robust continuity and reduced emergency mode.",
         callout:
@@ -347,9 +347,9 @@ export const en: Dictionary = {
       "Praedixa sits on top of your existing systems: read-only connection first, then standardized decisions and impact measurement across sites.",
     tiles: [
       {
-        title: "Read-only via exports/APIs",
+        title: "Read-only via exports",
         description:
-          "Kickoff with existing CSV/Excel/APIs. Praedixa does not replace your WFM/scheduling/ERP/CRM tools.",
+          "Kickoff with existing CSV/Excel/APIs. Praedixa does not replace your existing tools.",
       },
       {
         title: "Only the indicators you need",
@@ -381,7 +381,7 @@ export const en: Dictionary = {
       title: "Compatible with your stack",
       description:
         "Praedixa complements your tools and adds a decision + proof protocol for Ops and Finance.",
-      tools: ["WFM", "Scheduling", "ERP", "CRM", "BI", "Excel"],
+      tools: ["Scheduling", "ERP", "CRM", "BI", "Excel"],
     },
     honesty:
       "A KPI forecasting-only mode is available, but our core value is Signature Service: guided decisions + decision journal + monthly proof.",
@@ -408,7 +408,7 @@ export const en: Dictionary = {
     excluded: {
       title: "What it does not include",
       items: [
-        "Replacement of your WFM/scheduling tool",
+        "A tool replacement project (ERP/scheduling)",
         "Public predefined quantified outcome guarantee",
         "Immediate global multi-country deployment",
         "Unlimited custom development",
@@ -437,7 +437,7 @@ export const en: Dictionary = {
       items: [
         "Multi-site organization with demand variability and daily trade-offs",
         "Available operations and finance sponsors",
-        "Usable exports (demand/workload, capacity/workforce, inventory/supply, absences)",
+        "Usable exports (demand/workload, capacity, inventory/supply, absences)",
       ],
     },
     upcoming: {
@@ -479,7 +479,7 @@ export const en: Dictionary = {
       {
         question: "What is Praedixa in one sentence?",
         answer:
-          "A service that helps you arbitrate coverage (teams, schedules, reinforcements) and deliver a monthly impact proof.",
+          "An AI decision copilot that helps you arbitrate cost/service/risk trade-offs and deliver monthly impact proof.",
         category: "Understanding Praedixa",
       },
       {
@@ -502,7 +502,7 @@ export const en: Dictionary = {
         category: "Understanding Praedixa",
       },
       {
-        question: "How is this different from WFM/ERP/scheduling tools?",
+        question: "How is this different from ERP/scheduling/BI tools?",
         answer:
           "Praedixa does not replace them. It sits on top of what you already use to support decisions and measure impact.",
         category: "Understanding Praedixa",
@@ -623,7 +623,7 @@ export const en: Dictionary = {
       columns: [
         {
           criterion:
-            "KPI forecasting (Workforce, demand, inventory, supply, others on request)",
+            "KPI forecasting (capacity, demand, inventory, supply, others on request)",
           fullPackage: "Included",
           forecastsOnly: "Included",
         },
@@ -664,7 +664,7 @@ export const en: Dictionary = {
 
   footer: {
     tagline:
-      "Multi-site coverage decisions, a decision journal, and monthly impact proof.",
+      "Multi-site decisions, a decision journal, and monthly impact proof.",
     badges: ["Decision journal", "Monthly proof"],
     navigation: "Navigation",
     legalContact: "Legal & contact",
@@ -711,7 +711,7 @@ export const en: Dictionary = {
       timeline: { label: "Project horizon" },
       currentStack: {
         label: "Current stack (optional)",
-        placeholder: "E.g.: WFM + ERP + CRM",
+        placeholder: "E.g.: ERP + CRM + BI",
       },
       painPoint: {
         label: "Main decision to optimize",
@@ -749,7 +749,7 @@ export const en: Dictionary = {
     roles: [
       "COO / Operations Director",
       "Multi-site Network Manager",
-      "Planning / Workshop Manager",
+      "Operations / Workshop Manager",
       "Supply / Inventory Manager",
       "CFO / Finance Director",
       "General Manager",

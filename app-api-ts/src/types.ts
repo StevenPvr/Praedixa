@@ -1,4 +1,5 @@
 export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+export type RoutePermissionMode = "all" | "any";
 
 export type UserRole =
   | "super_admin"
@@ -73,6 +74,8 @@ export interface RouteDefinition {
   template: string;
   authRequired: boolean;
   allowedRoles: readonly UserRole[] | null;
+  requiredPermissions: readonly string[] | null;
+  permissionMode: RoutePermissionMode;
   handler: RouteHandler;
 }
 
@@ -81,6 +84,8 @@ export interface CompiledRoute {
   template: string;
   authRequired: boolean;
   allowedRoles: readonly UserRole[] | null;
+  requiredPermissions: readonly string[] | null;
+  permissionMode: RoutePermissionMode;
   paramNames: string[];
   regex: RegExp;
   handler: RouteHandler;
@@ -90,4 +95,10 @@ export interface AppConfig {
   port: number;
   nodeEnv: "development" | "staging" | "production";
   corsOrigins: readonly string[];
+  jwt: {
+    issuerUrl: string;
+    audience: string;
+    jwksUrl: string;
+    algorithms: readonly string[];
+  };
 }

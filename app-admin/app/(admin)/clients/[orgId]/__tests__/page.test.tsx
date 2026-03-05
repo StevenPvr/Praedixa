@@ -9,15 +9,15 @@ vi.mock("next/navigation", () => ({
 import ClientRedirectPage from "../page";
 
 describe("ClientRedirectPage", () => {
-  it("redirects to vue-client route for plain params", async () => {
+  it("redirects to dashboard route for plain params", async () => {
     await ClientRedirectPage({ params: { orgId: "org-1" } });
-    expect(mockRedirect).toHaveBeenCalledWith("/clients/org-1/vue-client");
+    expect(mockRedirect).toHaveBeenCalledWith("/clients/org-1/dashboard");
   });
 
   it("redirects with encoded orgId for promise params", async () => {
     await ClientRedirectPage({ params: Promise.resolve({ orgId: "org / 1" }) });
     expect(mockRedirect).toHaveBeenCalledWith(
-      "/clients/org%20%2F%201/vue-client",
+      "/clients/org%20%2F%201/dashboard",
     );
   });
 });

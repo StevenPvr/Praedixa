@@ -38,6 +38,9 @@ function createRedirectResponse(url: string | URL) {
   return {
     status: 302,
     redirectUrl: typeof url === "string" ? url : url.toString(),
+    headers: {
+      set: vi.fn(),
+    },
     cookies: {
       delete: vi.fn(),
       set: vi.fn(),
@@ -200,5 +203,25 @@ describe("GET /auth/callback (webapp)", () => {
     )) as { redirectUrl: string };
 
     expect(response.redirectUrl).toBe("https://app.praedixa.com/dashboard");
+  });
+
+  it("redirects to /login with rate_limited when callback attempts are throttled", async () => {
+    const request = createMockRequest(
+      { code: "valid-code", state: "state-123" },
+      {
+        prx_web_state: "state-123",
+        prx_web_verifier: "verifier-123",
+        prx_web_next: "/dashboard",
+      },
+    );
+
+    for (let i = 0; i < 30; i += 1) {
+      await GET(request);
+    }
+
+    const response = (await GET(request)) as { redirectUrl: string };
+    expect(response.redirectUrl).toBe(
+      "https://app.praedixa.com/login?error=rate_limited",
+    );
   });
 });

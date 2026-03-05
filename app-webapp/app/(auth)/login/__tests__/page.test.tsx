@@ -48,13 +48,25 @@ describe("LoginPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("renders API reauth context and support reference", () => {
+    mockSearchParams = new URLSearchParams(
+      "reauth=1&reason=api_unauthorized&error_code=UNAUTHORIZED&request_id=req-1234",
+    );
+    render(<LoginPage />);
+
+    expect(
+      screen.getByText(/l'API a refuse ce token\. Veuillez vous reconnecter\./),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/code UNAUTHORIZED · incident req-1234/),
+    ).toBeInTheDocument();
+  });
+
   it("renders auth error banner", () => {
     mockSearchParams = new URLSearchParams("error=wrong_role");
     render(<LoginPage />);
 
-    expect(
-      screen.getByText(/La connexion a echoue \(wrong_role\)/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/La connexion a echoue\./)).toBeInTheDocument();
   });
 
   it("renders explicit missing OIDC config banner", () => {

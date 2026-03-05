@@ -240,10 +240,12 @@ describe("MessagesPage", () => {
   it("renders the page header", () => {
     render(<MessagesPage />);
     expect(
-      screen.getByRole("heading", { name: "Support strategique" }),
+      screen.getByRole("heading", { name: "Messagerie support" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Coordonnez vos decisions avec l'equipe Praedixa."),
+      screen.getByText(
+        "Un sujet par conversation. Posez votre question et suivez la reponse ici.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -283,7 +285,7 @@ describe("MessagesPage", () => {
     // Subject appears in both conversation list and header
     const subjects = screen.getAllByText("Question previsions");
     expect(subjects.length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText("En cours")).toBeInTheDocument();
+    expect(screen.getByText("Ouvert")).toBeInTheDocument();
   });
 
   it("disables input for resolved conversations", () => {
@@ -298,17 +300,15 @@ describe("MessagesPage", () => {
   it("shows subject input when new conversation button is clicked", () => {
     render(<MessagesPage />);
     fireEvent.click(screen.getByTestId("new-conv-btn"));
-    expect(
-      screen.getByLabelText("Sujet de la conversation"),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Sujet")).toBeInTheDocument();
   });
 
   it("creates conversation on submit", async () => {
     render(<MessagesPage />);
     fireEvent.click(screen.getByTestId("new-conv-btn"));
-    const input = screen.getByLabelText("Sujet de la conversation");
+    const input = screen.getByLabelText("Sujet");
     fireEvent.change(input, { target: { value: "Nouveau sujet" } });
-    fireEvent.click(screen.getByText("Creer"));
+    fireEvent.click(screen.getByText("Creer le sujet"));
 
     await waitFor(() => {
       expect(mockMutate).toHaveBeenCalledWith({ subject: "Nouveau sujet" });
@@ -318,7 +318,7 @@ describe("MessagesPage", () => {
   it("creates conversation on Enter key", async () => {
     render(<MessagesPage />);
     fireEvent.click(screen.getByTestId("new-conv-btn"));
-    const input = screen.getByLabelText("Sujet de la conversation");
+    const input = screen.getByLabelText("Sujet");
     fireEvent.change(input, { target: { value: "Enter sujet" } });
     fireEvent.keyDown(input, { key: "Enter" });
 
@@ -330,9 +330,9 @@ describe("MessagesPage", () => {
   it("refetches conversations after creating", async () => {
     render(<MessagesPage />);
     fireEvent.click(screen.getByTestId("new-conv-btn"));
-    const input = screen.getByLabelText("Sujet de la conversation");
+    const input = screen.getByLabelText("Sujet");
     fireEvent.change(input, { target: { value: "Test" } });
-    fireEvent.click(screen.getByText("Creer"));
+    fireEvent.click(screen.getByText("Creer le sujet"));
 
     await waitFor(() => {
       expect(mockRefetchConvs).toHaveBeenCalled();
@@ -406,7 +406,7 @@ describe("MessagesPage", () => {
   it("disables create button when subject is empty", () => {
     render(<MessagesPage />);
     fireEvent.click(screen.getByTestId("new-conv-btn"));
-    const createBtn = screen.getByText("Creer");
+    const createBtn = screen.getByText("Creer le sujet");
     expect(createBtn).toBeDisabled();
   });
 });

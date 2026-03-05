@@ -21,6 +21,8 @@ export const ADMIN_ENDPOINTS = {
   organizations: `${V1}/organizations`,
   organization: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}`,
+  orgOverview: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/overview`,
   orgHierarchy: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/hierarchy`,
   orgSuspend: (orgId: string) =>
@@ -83,12 +85,20 @@ export const ADMIN_ENDPOINTS = {
     `${V1}/organizations/${encodeURIComponent(orgId)}/alerts`,
   orgScenarios: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/scenarios`,
+  orgMlMonitoringSummary: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/ml-monitoring/summary`,
+  orgMlMonitoringDrift: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/ml-monitoring/drift`,
   orgProofPacks: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/proof-packs`,
+  orgProofPackShareLink: (orgId: string, proofPackId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/proof-packs/${encodeURIComponent(proofPackId)}/share-link`,
   orgIngestionLog: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/ingestion-log`,
   orgMedallionQualityReport: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/medallion-quality-report`,
+  orgDatasets: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/datasets`,
   orgDatasetData: (orgId: string, datasetId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/datasets/${encodeURIComponent(datasetId)}/data`,
   orgDatasetFeatures: (orgId: string, datasetId: string) =>

@@ -22,6 +22,7 @@ vi.mock("@/lib/security/csp", () => ({
   generateNonce: () => "dGVzdC1ub25jZQ==",
   buildCspHeader: (nonce: string) =>
     `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+  buildReportToHeader: () => null,
 }));
 
 import { proxy, config } from "../proxy";

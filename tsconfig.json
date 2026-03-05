@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/shared-types" },
     { "path": "app-api-ts" },
+    { "path": "app-connectors" },
     { "path": "packages/ui" },
     { "path": "app-landing/tsconfig.build.json" },
     { "path": "app-webapp/tsconfig.build.json" },

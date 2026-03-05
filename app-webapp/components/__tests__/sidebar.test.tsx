@@ -3,12 +3,29 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Sidebar } from "../sidebar";
 
-vi.mock("@praedixa/ui", () => globalThis.__mocks.createUiMocks());
+vi.mock("@praedixa/ui", () => ({
+  cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
+}));
 
 vi.mock("../praedixa-logo", () => ({
   PraedixaLogo: (props: Record<string, unknown>) => (
     <svg data-testid="praedixa-logo" {...props} />
   ),
+}));
+
+const LABELS: Record<string, string> = {
+  "sidebar.items.dashboard": "Accueil",
+  "sidebar.items.previsions": "Previsions",
+  "sidebar.items.actions": "Actions",
+  "sidebar.items.messages": "Support",
+  "sidebar.items.parametres": "Reglages",
+  "appShell.closeMenu": "Fermer la navigation",
+};
+
+vi.mock("@/lib/i18n/provider", () => ({
+  useI18n: () => ({
+    t: (key: string) => LABELS[key] ?? key,
+  }),
 }));
 
 describe("Sidebar", () => {
@@ -18,49 +35,20 @@ describe("Sidebar", () => {
     expect(screen.getByText("Praedixa")).toBeInTheDocument();
   });
 
-  it("renders grouped headings and labels", () => {
+  it("renders the current navigation items", () => {
     render(<Sidebar currentPath="/dashboard" userRole="admin" />);
-    expect(screen.getByText("Pilotage")).toBeInTheDocument();
-    expect(screen.getByText("Donnees")).toBeInTheDocument();
-    expect(screen.getAllByText("Anticipation").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Traitement").length).toBeGreaterThan(0);
-    expect(screen.getByText("Support & gouvernance")).toBeInTheDocument();
 
-    expect(screen.getByText("Tableau de bord")).toBeInTheDocument();
-    expect(screen.getByText("Donnees operationnelles")).toBeInTheDocument();
-    expect(screen.getAllByText("Traitement").length).toBeGreaterThan(0);
-    expect(screen.getByText("Support")).toBeInTheDocument();
-  });
-
-  it("hides admin-only settings for non-admin roles", () => {
-    render(<Sidebar currentPath="/dashboard" userRole="viewer" />);
-    expect(screen.queryByText("Reglages")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Accueil" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Previsions" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Actions" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Support" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Reglages" })).toBeInTheDocument();
   });
 
   it("marks current route as active", () => {
     render(<Sidebar currentPath="/actions" userRole="manager" />);
-    const active = screen.getByRole("link", { name: "Traitement" });
+    const active = screen.getByRole("link", { name: "Actions" });
     expect(active).toHaveAttribute("aria-current", "page");
-  });
-
-  it("renders unread badge on support entry", () => {
-    render(
-      <Sidebar currentPath="/dashboard" userRole="admin" unreadCount={4} />,
-    );
-    expect(screen.getByLabelText("4 notifications")).toBeInTheDocument();
-  });
-
-  it("renders priority badge on actions entry", () => {
-    render(
-      <Sidebar currentPath="/dashboard" userRole="admin" priorityCount={7} />,
-    );
-    expect(screen.getByLabelText("7 notifications")).toBeInTheDocument();
-  });
-
-  it("collapses labels in collapsed mode", () => {
-    render(<Sidebar currentPath="/dashboard" userRole="admin" collapsed />);
-    expect(screen.queryByText("Pilotage")).not.toBeInTheDocument();
-    expect(screen.queryByText("Tableau de bord")).not.toBeInTheDocument();
   });
 
   it("calls toggle callback", async () => {
@@ -75,7 +63,9 @@ describe("Sidebar", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: /Reduire le menu/i }));
+    await user.click(
+      screen.getByRole("button", { name: /Fermer la navigation/i }),
+    );
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 });

@@ -92,9 +92,7 @@ def _run_full_invariant_tests(
 
 def _check_staged_coverage(invariants: list[dict[str, Any]], staged: list[str]) -> list[str]:
     staged_tests = [
-        path
-        for path in staged
-        if path.startswith("app-api-ts/") and ("test" in path or "__tests__" in path)
+        path for path in staged if ("__tests__/" in path or path.endswith(".test.ts") or path.endswith(".test.tsx"))
     ]
     errors: list[str] = []
 

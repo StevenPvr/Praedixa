@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus } from "@phosphor-icons/react";
 import { cn, formatRelativeTime, SkeletonCard } from "@praedixa/ui";
 import type { Conversation } from "@/lib/api/endpoints";
 

@@ -145,7 +145,7 @@ export default function ClientsPage() {
     const firstSelected = Array.from(selectedKeys)[0];
     if (!firstSelected) return;
     router.push(
-      `/clients/${encodeURIComponent(String(firstSelected))}/vue-client`,
+      `/clients/${encodeURIComponent(String(firstSelected))}/dashboard`,
     );
   }
 
@@ -158,7 +158,7 @@ export default function ClientsPage() {
       render: (row: OrgListItem) => (
         <button
           onClick={() =>
-            router.push(`/clients/${encodeURIComponent(row.id)}/vue-client`)
+            router.push(`/clients/${encodeURIComponent(row.id)}/dashboard`)
           }
           className="inline-flex items-center text-ink-placeholder transition-colors hover:text-charcoal"
         >

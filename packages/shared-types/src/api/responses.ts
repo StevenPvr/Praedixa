@@ -163,6 +163,12 @@ import type {
   DatasetDataRow,
   IngestionLogEntry,
 } from "../domain/dataset";
+import type {
+  IntegrationAuditEvent,
+  IntegrationCatalogItem,
+  IntegrationConnection,
+  IntegrationSyncRun,
+} from "../domain/integration";
 
 /** Dataset detail response data */
 export interface DatasetDetailResponse {
@@ -190,4 +196,29 @@ export interface DatasetDataPreviewResponse {
 export interface IngestionHistoryResponse {
   entries: IngestionLogEntry[];
   total: number;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Integration Responses
+// ─────────────────────────────────────────────────────────────
+
+/** Connector catalog payload */
+export interface IntegrationCatalogResponse {
+  connectors: IntegrationCatalogItem[];
+}
+
+/** Connection test response payload */
+export interface IntegrationConnectionTestResponse {
+  ok: boolean;
+  latencyMs: number;
+  checkedScopes: string[];
+  warnings: string[];
+}
+
+/** Integration dashboard payload */
+export interface IntegrationOverviewResponse {
+  organizationId: string;
+  connectors: IntegrationConnection[];
+  recentRuns: IntegrationSyncRun[];
+  auditTrail: IntegrationAuditEvent[];
 }

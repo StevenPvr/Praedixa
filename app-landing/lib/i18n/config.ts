@@ -12,6 +12,13 @@ export const localizedSlugs = {
   pilot: { fr: "devenir-pilote", en: "pilot-application" },
   contact: { fr: "contact", en: "contact" },
   services: { fr: "services", en: "services" },
+  productMethod: { fr: "produit-methode", en: "product-method" },
+  howItWorksPage: { fr: "comment-ca-marche", en: "how-it-works" },
+  decisionLogProof: {
+    fr: "decision-log-preuve-roi",
+    en: "decision-log-roi-proof",
+  },
+  integrationData: { fr: "integration-donnees", en: "integration-data" },
   legal: { fr: "mentions-legales", en: "legal-notice" },
   privacy: { fr: "confidentialite", en: "privacy-policy" },
   terms: { fr: "cgu", en: "terms" },
@@ -41,13 +48,15 @@ export const localizedSlugs = {
   },
   bofuLogistics: { fr: "praedixa-logistique", en: "praedixa-logistics" },
   bofuTransport: { fr: "praedixa-transport", en: "praedixa-transport" },
-  bofuRetail: {
-    fr: "praedixa-distribution-retail",
-    en: "praedixa-retail-distribution",
-  },
+  bofuRetail: { fr: "praedixa-retail", en: "praedixa-retail" },
   bofuQsr: {
-    fr: "praedixa-restauration-rapide",
-    en: "praedixa-quick-service-restaurants",
+    fr: "praedixa-multi-franchises",
+    en: "praedixa-multi-franchise-networks",
+  },
+  icpAutomotive: { fr: "praedixa-automobile", en: "praedixa-automotive" },
+  icpDealership: {
+    fr: "praedixa-concessions-ateliers",
+    en: "praedixa-auto-dealerships-workshops",
   },
   clusterCost: {
     fr: "calculer-cout-sous-couverture",

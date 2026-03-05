@@ -23,6 +23,7 @@ function sessionFixture() {
     sub: "admin-1",
     email: "admin@praedixa.com",
     role: "super_admin",
+    permissions: ["admin:console:access"],
     organizationId: "org-1",
     siteId: "site-1",
     accessTokenExp: 2000000000,
@@ -85,6 +86,7 @@ describe("auth server helpers (admin)", () => {
       id: "admin-1",
       email: "admin@praedixa.com",
       role: "super_admin",
+      permissions: ["admin:console:access"],
       organization_id: "org-1",
       site_id: "site-1",
     });

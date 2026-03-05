@@ -21,6 +21,11 @@ vi.mock("@/components/theme-provider", () => ({
   ),
 }));
 
+vi.mock("next/font/google", () => ({
+  Geist: () => ({ variable: "--font-sans" }),
+  Geist_Mono: () => ({ variable: "--font-mono" }),
+}));
+
 import RootLayout, { metadata } from "../layout";
 
 describe("Webapp RootLayout", () => {

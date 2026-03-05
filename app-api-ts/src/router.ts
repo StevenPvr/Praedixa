@@ -1,6 +1,7 @@
 import type {
   CompiledRoute,
   HttpMethod,
+  RoutePermissionMode,
   RouteDefinition,
   RouteHandler,
   UserRole,
@@ -33,6 +34,8 @@ export function route(
   options?: {
     authRequired?: boolean;
     allowedRoles?: readonly UserRole[];
+    requiredPermissions?: readonly string[];
+    permissionMode?: RoutePermissionMode;
   },
 ): RouteDefinition {
   return {
@@ -40,6 +43,8 @@ export function route(
     template,
     authRequired: options?.authRequired ?? true,
     allowedRoles: options?.allowedRoles ?? null,
+    requiredPermissions: options?.requiredPermissions ?? null,
+    permissionMode: options?.permissionMode ?? "all",
     handler,
   };
 }
@@ -52,6 +57,8 @@ export function compileRoutes(routes: RouteDefinition[]): CompiledRoute[] {
       template: entry.template,
       authRequired: entry.authRequired,
       allowedRoles: entry.allowedRoles,
+      requiredPermissions: entry.requiredPermissions,
+      permissionMode: entry.permissionMode,
       handler: entry.handler,
       regex: compiled.regex,
       paramNames: compiled.paramNames,

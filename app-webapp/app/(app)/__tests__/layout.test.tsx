@@ -123,7 +123,7 @@ describe("AppLayout", () => {
         <div>Content</div>
       </AppLayout>,
     );
-    expect(screen.getByText("Tableau de bord")).toBeInTheDocument();
+    expect(screen.getByText("Accueil")).toBeInTheDocument();
   });
 
   it("renders the user avatar with initial from email", () => {
@@ -142,7 +142,7 @@ describe("AppLayout", () => {
       </AppLayout>,
     );
     expect(
-      screen.getByRole("button", { name: /^ouvrir le menu$/i }),
+      screen.getByRole("button", { name: /^ouvrir la navigation$/i }),
     ).toBeInTheDocument();
   });
 
@@ -153,13 +153,13 @@ describe("AppLayout", () => {
       </AppLayout>,
     );
     const menuButton = screen.getByRole("button", {
-      name: /^ouvrir le menu$/i,
+      name: /^ouvrir la navigation$/i,
     });
     // Click to open mobile sidebar
     fireEvent.click(menuButton);
-    // Now the button label should change to "Fermer le menu"
+    // Now the button label should change to "Fermer la navigation"
     expect(
-      screen.getByRole("button", { name: /fermer le menu/i }),
+      screen.getByRole("button", { name: /fermer la navigation/i }),
     ).toBeInTheDocument();
   });
 
@@ -202,7 +202,7 @@ describe("AppLayout", () => {
       </AppLayout>,
     );
     const menuButton = screen.getByRole("button", {
-      name: /^ouvrir le menu$/i,
+      name: /^ouvrir la navigation$/i,
     });
     fireEvent.click(menuButton);
     // Overlay backdrop should be present
@@ -228,7 +228,7 @@ describe("AppLayout", () => {
     );
 
     fireEvent.click(
-      screen.getByRole("button", { name: /ouvrir le menu profil/i }),
+      screen.getByRole("button", { name: /ouvrir le compte/i }),
     );
 
     fireEvent.click(screen.getByRole("menuitem", { name: /reglages/i }));
@@ -243,7 +243,7 @@ describe("AppLayout", () => {
     );
 
     fireEvent.click(
-      screen.getByRole("button", { name: /ouvrir le menu profil/i }),
+      screen.getByRole("button", { name: /ouvrir le compte/i }),
     );
     fireEvent.click(screen.getByRole("menuitem", { name: /se deconnecter/i }));
 

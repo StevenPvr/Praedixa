@@ -106,6 +106,7 @@ describe("GET /auth/callback (admin)", () => {
       id: "admin-1",
       email: "admin@praedixa.com",
       role: "super_admin",
+      permissions: ["admin:console:access"],
       organizationId: "org-1",
       siteId: "site-1",
     });
@@ -185,6 +186,7 @@ describe("GET /auth/callback (admin)", () => {
       id: "u1",
       email: "viewer@praedixa.com",
       role: "viewer",
+      permissions: [],
       organizationId: "org-1",
       siteId: "site-1",
     });
@@ -203,5 +205,29 @@ describe("GET /auth/callback (admin)", () => {
     expect(response.redirectUrl).toBe(
       "https://admin.praedixa.com/unauthorized",
     );
+  });
+
+  it("accepts delegated admin permission without super_admin role", async () => {
+    mockUserFromAccessToken.mockReturnValueOnce({
+      id: "u2",
+      email: "delegate@praedixa.com",
+      role: "viewer",
+      permissions: ["admin:console:access"],
+      organizationId: "org-1",
+      siteId: "site-1",
+    });
+
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-123" },
+        {
+          prx_admin_state: "state-123",
+          prx_admin_verifier: "verifier-123",
+          prx_admin_next: "/clients",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe("https://admin.praedixa.com/clients");
   });
 });

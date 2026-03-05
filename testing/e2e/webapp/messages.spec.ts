@@ -18,29 +18,26 @@ test.describe("Messages page", () => {
     await mockConversationMessages(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
+
     await expect(
-      page.getByRole("heading", { name: "Support strategique" }),
+      page.getByRole("heading", { name: "Messagerie support" }),
     ).toBeVisible();
     await expect(
-      page.getByText("Coordonnez vos decisions avec l'equipe Praedixa."),
+      page.getByText(
+        "Un sujet par conversation. Posez votre question et suivez la reponse ici.",
+      ),
     ).toBeVisible();
   });
 
-  test("displays conversation list", async ({ page }) => {
+  test("displays conversation list and status badges", async ({ page }) => {
     await mockConversations(page);
     await mockConversationMessages(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
+
     await expect(page.getByText("Conversations")).toBeVisible();
     await expect(page.getByText("Question sur les previsions")).toBeVisible();
     await expect(page.getByText("Probleme import donnees")).toBeVisible();
-  });
-
-  test("displays conversation status badges", async ({ page }) => {
-    await mockConversations(page);
-    await mockConversationMessages(page);
-    await mockUnreadCount(page);
-    await page.goto("/messages");
     await expect(page.getByText("Ouvert")).toBeVisible();
     await expect(page.getByText("Resolu")).toBeVisible();
   });
@@ -50,7 +47,10 @@ test.describe("Messages page", () => {
     await mockConversationMessages(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
-    await expect(page.getByText("Selectionnez une conversation")).toBeVisible();
+
+    await expect(
+      page.getByText("Selectionnez une conversation", { exact: true }),
+    ).toBeVisible();
   });
 
   test("shows messages when conversation selected", async ({ page }) => {
@@ -58,16 +58,13 @@ test.describe("Messages page", () => {
     await mockConversationMessages(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
-    // Click first conversation
+
     await page.getByText("Question sur les previsions").click();
-    // Should show conversation header
-    await expect(page.getByText("En cours")).toBeVisible();
-    // Should show messages
+    await expect(page.getByText("Ouvert").first()).toBeVisible();
     await expect(page.getByText("Bonjour, quand les previsions")).toBeVisible();
     await expect(
       page.getByText("les previsions seront disponibles demain"),
     ).toBeVisible();
-    // Role label for non-own message
     await expect(page.getByText("Support Praedixa")).toBeVisible();
   });
 
@@ -76,10 +73,9 @@ test.describe("Messages page", () => {
     await mockConversationMessages(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
+
     await page.getByText("Question sur les previsions").click();
-    await expect(
-      page.getByPlaceholder("Ecrivez votre message..."),
-    ).toBeVisible();
+    await expect(page.getByPlaceholder("Ecrivez votre message...")).toBeVisible();
     await expect(page.getByLabel("Envoyer")).toBeVisible();
   });
 
@@ -88,55 +84,39 @@ test.describe("Messages page", () => {
     await mockConversationMessages(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
+
     await page.getByText("Probleme import donnees").click();
-    // The textarea should show "Conversation fermee" placeholder
     await expect(page.getByPlaceholder("Conversation fermee")).toBeVisible();
   });
 
-  test("shows new conversation button", async ({ page }) => {
+  test("shows new conversation form", async ({ page }) => {
     await mockConversations(page);
     await mockConversationMessages(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
-    await expect(page.getByLabel("Nouvelle conversation")).toBeVisible();
-  });
 
-  test("shows new conversation input on button click", async ({ page }) => {
-    await mockConversations(page);
-    await mockConversationMessages(page);
-    await mockUnreadCount(page);
-    await page.goto("/messages");
     await page.getByLabel("Nouvelle conversation").click();
-    await expect(page.getByText("Sujet de la conversation")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Creer" })).toBeVisible();
+    await expect(page.getByLabel("Sujet", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Creer le sujet" })).toBeDisabled();
   });
 
-  test("Creer button disabled when subject empty", async ({ page }) => {
-    await mockConversations(page);
-    await mockConversationMessages(page);
-    await mockUnreadCount(page);
-    await page.goto("/messages");
-    await page.getByLabel("Nouvelle conversation").click();
-    await expect(page.getByRole("button", { name: "Creer" })).toBeDisabled();
-  });
-
-  test("shows error fallback when conversations API fails", async ({
-    page,
-  }) => {
+  test("shows fallback when conversations API fails", async ({ page }) => {
     await mockConversationsError(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
-    await expect(page.getByText("Erreur de chargement")).toBeVisible();
+
+    await expect(page.getByTestId("error-fallback")).toBeVisible();
     await expect(page.getByText("Erreur serveur conversations")).toBeVisible();
   });
 
-  test("shows error fallback when messages API fails", async ({ page }) => {
+  test("shows fallback when messages API fails", async ({ page }) => {
     await mockConversations(page);
     await mockConversationMessagesError(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
+
     await page.getByText("Question sur les previsions").click();
-    await expect(page.getByText("Erreur de chargement")).toBeVisible();
+    await expect(page.getByTestId("error-fallback")).toBeVisible();
     await expect(page.getByText("Erreur serveur messages")).toBeVisible();
   });
 
@@ -145,6 +125,7 @@ test.describe("Messages page", () => {
     await mockConversationMessages(page);
     await mockUnreadCount(page);
     await page.goto("/messages");
+
     await page.getByText("Probleme import donnees").first().click();
     await expect(page.getByText("Resolu").first()).toBeVisible();
     await expect(page.getByPlaceholder("Conversation fermee")).toBeVisible();

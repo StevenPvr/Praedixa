@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { MessageSquare } from "lucide-react";
+import { ChatCircle } from "@phosphor-icons/react";
 import { cn } from "@praedixa/ui";
 import type { ConversationMessage } from "@/lib/api/endpoints";
 
@@ -51,7 +51,7 @@ export function MessageThread({
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-border">
-          <MessageSquare className="h-6 w-6 text-ink-secondary" />
+          <ChatCircle className="h-6 w-6 text-ink-secondary" />
         </div>
         <p className="mt-4 text-sm font-medium text-ink-secondary">
           Aucun message
@@ -68,7 +68,7 @@ export function MessageThread({
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-border">
-          <MessageSquare className="h-6 w-6 text-ink-secondary" />
+          <ChatCircle className="h-6 w-6 text-ink-secondary" />
         </div>
         <p className="mt-4 text-sm font-medium text-ink-secondary">
           Selectionnez une conversation

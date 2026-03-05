@@ -1,32 +1,43 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { List, X } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "framer-motion";
+import { CaretDown, List, X } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
-import type { Dictionary } from "../../lib/i18n/types";
-import { navAnchors, anchorIds, resolveNavLabel } from "../../lib/nav-config";
+import { getNavGroups } from "../../lib/nav-config";
 
 interface MobileNavProps {
   locale: Locale;
-  dict: Dictionary;
   primaryCtaHref: string;
+  primaryCtaLabel: string;
+  secondaryCtaHref: string;
+  secondaryCtaLabel: string;
 }
 
-export function MobileNav({ locale, dict, primaryCtaHref }: MobileNavProps) {
+export function MobileNav({
+  locale,
+  primaryCtaHref,
+  primaryCtaLabel,
+  secondaryCtaHref,
+  secondaryCtaLabel,
+}: MobileNavProps) {
   const [open, setOpen] = useState(false);
-  const toggleRef = useRef<HTMLButtonElement | null>(null);
-  const dialogRef = useRef<HTMLElement | null>(null);
-
-  const close = useCallback(() => setOpen(false), []);
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const navGroups = useMemo(() => getNavGroups(locale), [locale]);
+  const otherLocale = locale === "fr" ? "en" : "fr";
+  const localeLabel = otherLocale.toUpperCase();
+  const localeSwitchLabel =
+    locale === "fr" ? "Switch to English" : "Passer en français";
 
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
+    if (!open) {
       document.body.style.overflow = "";
+      setExpandedKey(null);
+      return;
     }
+
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
     };
@@ -35,149 +46,190 @@ export function MobileNav({ locale, dict, primaryCtaHref }: MobileNavProps) {
   useEffect(() => {
     if (!open) return;
 
-    const dialog = dialogRef.current;
-    if (dialog) {
-      const focusable = dialog.querySelector<HTMLElement>(
-        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      );
-      focusable?.focus();
-    }
-
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        event.preventDefault();
-        close();
-        return;
-      }
-
-      if (event.key !== "Tab") return;
-
-      const container = dialogRef.current;
-      if (!container) return;
-
-      const focusable = Array.from(
-        container.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        ),
-      ).filter((el) => !el.hasAttribute("disabled") && el.tabIndex !== -1);
-
-      if (focusable.length === 0) return;
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!first || !last) return;
-      const active = document.activeElement as HTMLElement | null;
-
-      if (!container.contains(active)) {
-        event.preventDefault();
-        (event.shiftKey ? last : first).focus();
-        return;
-      }
-
-      if (event.shiftKey) {
-        if (active === first) {
-          event.preventDefault();
-          last.focus();
-        }
-      } else if (active === last) {
-        event.preventDefault();
-        first.focus();
+        setOpen(false);
       }
     };
 
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      toggleRef.current?.focus();
     };
-  }, [close, open]);
-
-  const menuLabel =
-    locale === "fr"
-      ? open
-        ? "Fermer le menu"
-        : "Ouvrir le menu"
-      : open
-        ? "Close menu"
-        : "Open menu";
+  }, [open]);
 
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        ref={toggleRef}
-        className="relative z-50 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200/90 bg-white text-ink shadow-[0_10px_20px_-16px_rgba(2,6,23,0.8)] transition-all duration-200 hover:border-neutral-300 hover:bg-neutral-50 lg:hidden"
-        aria-label={menuLabel}
+        className="relative z-50 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white text-ink shadow-[0_10px_20px_-16px_rgba(2,6,23,0.8)] transition-all duration-200 hover:border-neutral-300 hover:bg-neutral-50 lg:hidden"
+        aria-label={
+          locale === "fr"
+            ? open
+              ? "Fermer le menu"
+              : "Ouvrir le menu"
+            : open
+              ? "Close menu"
+              : "Open menu"
+        }
         aria-expanded={open}
-        aria-controls="mobile-nav-dialog"
+        aria-controls="mobile-nav-panel"
       >
         {open ? <X size={22} weight="bold" /> : <List size={22} weight="bold" />}
       </button>
 
       <AnimatePresence>
-        {open && (
+        {open ? (
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-40 bg-neutral-950/25 backdrop-blur-sm lg:hidden"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-neutral-900 lg:hidden"
+            style={{ paddingTop: "calc(var(--header-h) + 0.75rem)" }}
             onClick={(event) => {
               if (event.target === event.currentTarget) {
-                close();
+                setOpen(false);
               }
             }}
           >
             <motion.nav
-              id="mobile-nav-dialog"
+              id="mobile-nav-panel"
               role="dialog"
               aria-modal="true"
-              aria-labelledby="mobile-nav-title"
-              initial={{ y: -16, scale: 0.98 }}
+              initial={{ y: -12, scale: 0.98 }}
               animate={{ y: 0, scale: 1 }}
-              exit={{ y: -10, scale: 0.98 }}
-              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              ref={(node) => {
-                dialogRef.current = node;
-              }}
-              className="mx-4 mt-20 flex max-h-[calc(100dvh-6.5rem)] flex-col overflow-y-auto rounded-[1.75rem] border border-white/70 bg-white/96 p-5 shadow-[0_26px_60px_-34px_rgba(2,6,23,0.95)]"
+              exit={{ y: -8, scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              className="mx-4 max-h-[calc(100dvh-var(--header-h)-1.75rem)] overflow-y-auto rounded-[1.75rem] border border-neutral-200 bg-white p-5 shadow-[0_26px_60px_-34px_rgba(2,6,23,0.95)]"
             >
-              <h2 id="mobile-nav-title" className="sr-only">
-                {locale === "fr" ? "Menu de navigation" : "Navigation menu"}
-              </h2>
-              <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400">
-                Navigation
-              </p>
-              {navAnchors.map((key) => (
+              <div className="flex items-center justify-between gap-3 px-1 pb-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-400">
+                  {locale === "fr" ? "Navigation" : "Navigation"}
+                </p>
                 <Link
-                  key={key}
-                  href={`/${locale}#${anchorIds[key]}`}
-                  onClick={close}
-                  className="w-full rounded-xl px-3 py-3 text-base font-medium text-ink no-underline transition-colors duration-200 hover:bg-neutral-100"
+                  href={`/${otherLocale}`}
+                  onClick={() => setOpen(false)}
+                  className="inline-flex h-9 items-center justify-center rounded-lg border border-neutral-200 bg-white px-3 text-xs font-semibold uppercase tracking-[0.12em] text-neutral-600 transition-colors duration-200 hover:bg-neutral-50 hover:text-ink"
+                  aria-label={localeSwitchLabel}
                 >
-                  {resolveNavLabel(locale, key, dict.nav[key])}
+                  {localeLabel}
                 </Link>
-              ))}
-              <Link
-                href={`/${locale}/contact`}
-                onClick={close}
-                className="w-full rounded-xl px-3 py-3 text-base font-medium text-ink no-underline transition-colors duration-200 hover:bg-neutral-100"
-              >
-                {dict.nav.contact}
-              </Link>
-              <div className="mt-3 w-full border-t border-neutral-200 pt-4">
+              </div>
+
+              <div className="space-y-2">
+                {navGroups.map((group) => {
+                  const menuItems = group.items ?? [];
+                  const hasChildren = menuItems.length > 0;
+                  const isExpanded = expandedKey === group.key;
+                  const menuMeta = group.menu;
+
+                  if (!hasChildren) {
+                    return (
+                      <Link
+                        key={group.key}
+                        href={group.href ?? `/${locale}`}
+                        onClick={() => setOpen(false)}
+                        className="flex items-center justify-between rounded-xl border border-transparent px-3 py-3 text-base font-medium text-ink no-underline transition-colors duration-200 hover:border-neutral-200 hover:bg-neutral-50"
+                      >
+                        {group.label}
+                      </Link>
+                    );
+                  }
+
+                  return (
+                    <section key={group.key} className="rounded-xl border border-neutral-200 bg-white">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedKey((prev) => (prev === group.key ? null : group.key))
+                        }
+                        className="flex w-full items-center justify-between px-3 py-3 text-left text-base font-medium text-ink"
+                        aria-expanded={isExpanded}
+                        aria-controls={`mobile-group-${group.key}`}
+                      >
+                        {group.label}
+                        <CaretDown
+                          size={16}
+                          weight="bold"
+                          className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {isExpanded ? (
+                          <motion.div
+                            id={`mobile-group-${group.key}`}
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden border-t border-neutral-200"
+                          >
+                            <div className="space-y-3 p-3">
+                              {menuMeta ? (
+                                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5">
+                                  <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-neutral-400">
+                                    {menuMeta.kicker}
+                                  </p>
+                                  <p className="mt-1 text-sm font-semibold tracking-[-0.01em] text-ink">
+                                    {menuMeta.title}
+                                  </p>
+                                  <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+                                    {menuMeta.description}
+                                  </p>
+                                </div>
+                              ) : null}
+                              <ul className="list-none space-y-1">
+                                {menuItems.map((item) => (
+                                  <li key={item.href} className="m-0">
+                                    <Link
+                                      href={item.href}
+                                      onClick={() => setOpen(false)}
+                                      className={`block rounded-lg border px-3 py-2 text-sm no-underline transition-colors duration-200 ${
+                                        item.primary
+                                          ? "border-navy-200 bg-navy-50 text-ink"
+                                          : "border-transparent text-neutral-700 hover:border-neutral-200 hover:bg-neutral-50"
+                                      }`}
+                                    >
+                                      <span className="block font-medium">{item.label}</span>
+                                      {item.description ? (
+                                        <span className="mt-0.5 block text-xs leading-relaxed text-neutral-500">
+                                          {item.description}
+                                        </span>
+                                      ) : null}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </motion.div>
+                        ) : null}
+                      </AnimatePresence>
+                    </section>
+                  );
+                })}
+              </div>
+
+              <div className="mt-4 space-y-2 border-t border-neutral-200 pt-4">
                 <Link
                   href={primaryCtaHref}
-                  onClick={close}
+                  onClick={() => setOpen(false)}
                   className="btn-primary-gradient flex w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-white transition-transform duration-200 active:translate-y-[1px] active:scale-[0.98]"
                 >
-                  {dict.nav.ctaPrimary}
+                  {primaryCtaLabel}
+                </Link>
+                <Link
+                  href={secondaryCtaHref}
+                  onClick={() => setOpen(false)}
+                  className="flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors duration-200 hover:bg-neutral-50"
+                >
+                  {secondaryCtaLabel}
                 </Link>
               </div>
             </motion.nav>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </>
   );

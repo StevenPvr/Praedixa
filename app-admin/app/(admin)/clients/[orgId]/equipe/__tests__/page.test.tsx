@@ -105,14 +105,14 @@ describe("EquipePage", () => {
   it("renders invite button and toggles form", async () => {
     const user = userEvent.setup();
     render(<EquipePage />);
-    const inviteBtn = screen.getByRole("button", { name: /Inviter/i });
+    const inviteBtn = screen.getByRole("button", { name: /Creer un compte/i });
     expect(inviteBtn).toBeInTheDocument();
 
     await user.click(inviteBtn);
     expect(
       screen.getByPlaceholderText("nom@entreprise.com"),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Envoyer" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Creer" })).toBeInTheDocument();
   });
 
   it("sends invite and shows success toast", async () => {
@@ -127,15 +127,15 @@ describe("EquipePage", () => {
     });
 
     render(<EquipePage />);
-    await user.click(screen.getByRole("button", { name: /Inviter/i }));
+    await user.click(screen.getByRole("button", { name: /Creer un compte/i }));
     await user.type(
       screen.getByPlaceholderText("nom@entreprise.com"),
       "new@acme.com",
     );
-    await user.click(screen.getByRole("button", { name: "Envoyer" }));
+    await user.click(screen.getByRole("button", { name: "Creer" }));
 
     await waitFor(() => expect(mutate).toHaveBeenCalled());
-    expect(mockToastSuccess).toHaveBeenCalledWith("Invitation envoyee");
+    expect(mockToastSuccess).toHaveBeenCalledWith("Compte cree");
   });
 
   it("shows error toast when invite fails", async () => {
@@ -150,16 +150,16 @@ describe("EquipePage", () => {
     });
 
     render(<EquipePage />);
-    await user.click(screen.getByRole("button", { name: /Inviter/i }));
+    await user.click(screen.getByRole("button", { name: /Creer un compte/i }));
     await user.type(
       screen.getByPlaceholderText("nom@entreprise.com"),
       "fail@acme.com",
     );
-    await user.click(screen.getByRole("button", { name: "Envoyer" }));
+    await user.click(screen.getByRole("button", { name: "Creer" }));
 
     await waitFor(() =>
       expect(mockToastError).toHaveBeenCalledWith(
-        "Impossible d'envoyer l'invitation",
+        "Impossible de creer le compte",
       ),
     );
   });
@@ -220,8 +220,8 @@ describe("EquipePage", () => {
     });
 
     render(<EquipePage />);
-    await user.click(screen.getByRole("button", { name: /Inviter/i }));
-    const sendBtn = screen.getByRole("button", { name: "Envoyer" });
+    await user.click(screen.getByRole("button", { name: /Creer un compte/i }));
+    const sendBtn = screen.getByRole("button", { name: "Creer" });
     expect(sendBtn).toBeDisabled();
   });
 

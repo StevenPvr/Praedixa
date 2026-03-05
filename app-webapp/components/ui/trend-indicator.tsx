@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@praedixa/ui";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendUp, TrendDown, Minus } from "@phosphor-icons/react";
 
 interface TrendIndicatorProps {
   value: number;
@@ -43,9 +43,9 @@ export function TrendIndicator({
       {isNeutral ? (
         <Minus className="h-3 w-3" />
       ) : isPositive ? (
-        <TrendingUp className="h-3 w-3" />
+        <TrendUp className="h-3 w-3" />
       ) : (
-        <TrendingDown className="h-3 w-3" />
+        <TrendDown className="h-3 w-3" />
       )}
       {formatted}
       {label && <span className="text-ink-tertiary">{label}</span>}

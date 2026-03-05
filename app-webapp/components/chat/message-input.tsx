@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, type KeyboardEvent } from "react";
-import { Send } from "lucide-react";
+import { PaperPlaneRight } from "@phosphor-icons/react";
 import { cn } from "@praedixa/ui";
 
 interface MessageInputProps {
@@ -82,7 +82,7 @@ export function MessageInput({ onSend, disabled, sending }: MessageInputProps) {
           )}
           aria-label="Envoyer"
         >
-          <Send className="h-4 w-4" />
+          <PaperPlaneRight className="h-4 w-4" />
         </button>
       </div>
       {content.length > MAX_CHARS && (

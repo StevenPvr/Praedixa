@@ -8,14 +8,14 @@
     --font-serif: "DM Serif Display", Georgia, serif;
 
     /* Surfaces */
-    --page-bg: var(--warm-bg);
+    --page-bg: var(--warm-bg-white);
     --card-bg: var(--warm-bg-elevated);
-    --card-bg-muted: var(--warm-bg-panel);
+    --card-bg-muted: var(--navy-50);
     --surface-elevated: var(--warm-bg-elevated);
-    --surface-sunken: var(--warm-bg-muted);
-    --surface-interactive: var(--warm-bg);
+    --surface-sunken: var(--navy-50);
+    --surface-interactive: var(--warm-bg-white);
     --surface-overlay: oklch(0.985 0.01 246 / 0.92);
-    --surface-alt: var(--warm-bg-panel);
+    --surface-alt: var(--navy-50);
 
     /* Glass */
     --glass-bg: oklch(0.975 0.016 246 / 0.78);
@@ -59,9 +59,9 @@
     --accent-strong: var(--brass-700);
 
     /* Status */
-    --success: oklch(0.62 0.12 156);
-    --success-light: oklch(0.97 0.025 156);
-    --success-text: oklch(0.34 0.095 156);
+    --success: var(--navy-500);
+    --success-light: var(--navy-100);
+    --success-text: var(--navy-700);
     --warning: oklch(0.72 0.12 88);
     --warning-light: oklch(0.98 0.03 90);
     --warning-text: oklch(0.42 0.09 84);
@@ -83,12 +83,12 @@
     --ring-offset: var(--warm-bg-elevated);
     --glow-brand: oklch(0.50 0.105 246 / 0.26);
     --glow-accent: oklch(0.66 0.14 78 / 0.22);
-    --glow-success: oklch(0.62 0.12 156 / 0.22);
+    --glow-success: oklch(0.50 0.105 246 / 0.22);
     --glow-warning: oklch(0.72 0.12 88 / 0.22);
     --glow-danger: oklch(0.62 0.16 26 / 0.22);
 
     /* Sidebar */
-    --topbar-bg: color-mix(in oklch, var(--warm-bg) 92%, var(--navy-50) 8%);
+    --topbar-bg: color-mix(in oklch, var(--warm-bg-white) 92%, var(--navy-50) 8%);
     --sidebar-bg: var(--navy-900);
     --sidebar-hover: var(--navy-800);
     --sidebar-active: oklch(0.36 0.07 246);
@@ -128,9 +128,9 @@
     /* Charts — harmonized 6-color palette */
     --chart-1: var(--navy-500);
     --chart-2: oklch(0.700 0.140 82);
-    --chart-3: oklch(0.580 0.110 175);
+    --chart-3: oklch(0.580 0.110 246);
     --chart-4: oklch(0.580 0.130 340);
-    --chart-5: oklch(0.620 0.100 135);
+    --chart-5: oklch(0.620 0.100 236);
     --chart-6: oklch(0.540 0.090 290);
     --chart-grid: oklch(0.24 0.02 248 / 0.08);
     --chart-axis: oklch(0.55 0.02 248);
@@ -150,10 +150,10 @@
     /* Tremor chart color tokens (hex fallbacks for recharts SVG) */
     --tremor-chart-navy: #3459a8;
     --tremor-chart-amber: #b88a2f;
-    --tremor-chart-success: #2ea56e;
+    --tremor-chart-success: #4f79c9;
     --tremor-chart-warning: #b8861f;
     --tremor-chart-danger: #cb4f3f;
-    --tremor-chart-teal: #2a917e;
+    --tremor-chart-teal: #5a7fd1;
     --tremor-chart-gray: #6b7280;
 
     --toast-z: 9999;
@@ -218,7 +218,7 @@
     --ring-offset: oklch(0.2 0.014 247);
     --glow-brand: oklch(0.60 0.10 246 / 0.3);
     --glow-accent: oklch(0.70 0.12 78 / 0.26);
-    --glow-success: oklch(0.68 0.12 156 / 0.24);
+    --glow-success: oklch(0.60 0.10 246 / 0.24);
     --glow-warning: oklch(0.75 0.11 88 / 0.24);
     --glow-danger: oklch(0.68 0.16 26 / 0.24);
 
@@ -229,9 +229,9 @@
     --ink-tertiary: oklch(0.67 0.01 246);
     --ink-placeholder: oklch(0.57 0.01 246);
 
-    --success: oklch(0.68 0.12 156);
-    --success-light: oklch(0.2 0.03 156);
-    --success-text: oklch(0.8 0.1 156);
+    --success: var(--navy-dark-500);
+    --success-light: var(--navy-dark-50);
+    --success-text: var(--navy-dark-700);
     --warning: oklch(0.75 0.11 88);
     --warning-light: oklch(0.24 0.05 88);
     --warning-text: oklch(0.86 0.09 86);
@@ -279,6 +279,29 @@
 
   [data-sidebar] ::-webkit-scrollbar-track {
     background: transparent;
+  }
+
+  .skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 1000;
+    transform: translateY(-200%);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface-elevated);
+    color: var(--ink);
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: transform var(--duration-fast) var(--ease-snappy);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--ring);
   }
 
   [data-tremor-default] {

@@ -1,4 +1,5 @@
 import type { NextRequest, NextResponse } from "next/server";
+import { resolveAdminPermissions } from "@/lib/auth/permissions";
 
 const ROLE_PRIORITY = [
   "super_admin",
@@ -26,6 +27,7 @@ export interface AuthSessionData {
   sub: string;
   email: string;
   role: string;
+  permissions: string[];
   organizationId: string | null;
   siteId: string | null;
   accessTokenExp: number;
@@ -36,6 +38,7 @@ export interface OidcUser {
   id: string;
   email: string;
   role: string;
+  permissions: string[];
   organizationId: string | null;
   siteId: string | null;
 }
@@ -145,6 +148,46 @@ function getNestedString(
   return typeof childValue === "string" && childValue.length > 0
     ? childValue
     : null;
+}
+
+function getStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (entry): entry is string =>
+      typeof entry === "string" && entry.trim().length > 0,
+  );
+}
+
+function extractProfiles(payload: JwtPayload): string[] {
+  const topLevelProfiles = getStringList(getOwnValue(payload, "profiles"));
+  const topLevelProfile = getString(payload, "profile");
+
+  const appMetadata = getOwnValue(payload, "app_metadata");
+  const appMetadataProfile =
+    appMetadata &&
+    typeof appMetadata === "object" &&
+    !Array.isArray(appMetadata)
+      ? getOwnValue(appMetadata as Record<string, unknown>, "profile")
+      : undefined;
+  const appMetadataProfiles =
+    appMetadata &&
+    typeof appMetadata === "object" &&
+    !Array.isArray(appMetadata)
+      ? getStringList(
+          getOwnValue(appMetadata as Record<string, unknown>, "profiles"),
+        )
+      : [];
+
+  const profiles = [
+    ...(topLevelProfile ? [topLevelProfile] : []),
+    ...topLevelProfiles,
+    ...(typeof appMetadataProfile === "string" && appMetadataProfile.length > 0
+      ? [appMetadataProfile]
+      : []),
+    ...appMetadataProfiles,
+  ];
+
+  return Array.from(new Set(profiles));
 }
 
 function normalizeRoleValue(rawRole: string): string {
@@ -304,10 +347,31 @@ export function userFromAccessToken(
     getString(payload, "site_id") ??
     getNestedString(payload, "app_metadata", "site_id");
 
+  const role = toKnownRole(extractRole(payload, clientId));
+  const appMetadataRaw = getOwnValue(payload, "app_metadata");
+  const appMetadata =
+    appMetadataRaw &&
+    typeof appMetadataRaw === "object" &&
+    !Array.isArray(appMetadataRaw)
+      ? (appMetadataRaw as Record<string, unknown>)
+      : null;
+  const explicitPermissions = [
+    ...getStringList(getOwnValue(payload, "permissions")),
+    ...getStringList(
+      appMetadata ? getOwnValue(appMetadata, "permissions") : undefined,
+    ),
+  ];
+  const profiles = extractProfiles(payload);
+
   return {
     id: sub,
     email,
-    role: toKnownRole(extractRole(payload, clientId)),
+    role,
+    permissions: resolveAdminPermissions({
+      role,
+      explicitPermissions,
+      profiles,
+    }),
     organizationId,
     siteId,
   };
@@ -580,6 +644,7 @@ export async function verifySession(
   const sub = getString(parsed, "sub");
   const email = getString(parsed, "email");
   const role = getString(parsed, "role") ?? DEFAULT_ROLE;
+  const permissions = getStringList(getOwnValue(parsed, "permissions"));
   const accessTokenExp = parsed.accessTokenExp;
   const issuedAt = parsed.issuedAt;
 
@@ -592,10 +657,16 @@ export async function verifySession(
     return null;
   }
 
+  const normalizedRole = toKnownRole(role);
   return {
     sub,
     email,
-    role: toKnownRole(role),
+    role: normalizedRole,
+    permissions: resolveAdminPermissions({
+      role: normalizedRole,
+      explicitPermissions: permissions,
+      profiles: null,
+    }),
     organizationId: getString(parsed, "organizationId"),
     siteId: getString(parsed, "siteId"),
     accessTokenExp,

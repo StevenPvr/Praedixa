@@ -17,6 +17,10 @@
 const isProd = process.env.NODE_ENV === "production";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const oidcIssuerUrl = process.env.AUTH_OIDC_ISSUER_URL ?? "";
+const cspReportUri = process.env.CSP_REPORT_URI?.trim() ?? "";
+const cspReportToUrl = process.env.CSP_REPORT_TO_URL?.trim() ?? "";
+
+export const CSP_REPORT_TO_GROUP = "csp-endpoint";
 
 function getOriginOrEmpty(value: string): string {
   try {
@@ -29,6 +33,54 @@ function getOriginOrEmpty(value: string): string {
 export function generateNonce(): string {
   return Buffer.from(crypto.randomUUID()).toString("base64");
 }
+
+function normalizeReportUri(value: string): string | null {
+  if (!value) return null;
+  if (value.startsWith("/")) return value;
+
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol === "https:") {
+      return parsed.toString();
+    }
+    if (
+      !isProd &&
+      parsed.protocol === "http:" &&
+      (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1")
+    ) {
+      return parsed.toString();
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function normalizeReportToUrl(value: string): string | null {
+  if (!value) return null;
+
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol === "https:") {
+      return parsed.toString();
+    }
+    if (
+      !isProd &&
+      parsed.protocol === "http:" &&
+      (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1")
+    ) {
+      return parsed.toString();
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+const normalizedReportUri = normalizeReportUri(cspReportUri);
+const normalizedReportToUrl = normalizeReportToUrl(cspReportToUrl);
 
 export function buildCspHeader(nonce: string): string {
   const authOrigin = getOriginOrEmpty(oidcIssuerUrl);
@@ -53,8 +105,22 @@ export function buildCspHeader(nonce: string): string {
     "base-uri 'self'",
     "form-action 'self'",
     "object-src 'none'",
+    ...(normalizedReportUri ? [`report-uri ${normalizedReportUri}`] : []),
+    ...(normalizedReportToUrl ? [`report-to ${CSP_REPORT_TO_GROUP}`] : []),
     ...(isProd ? ["upgrade-insecure-requests"] : []),
   ];
 
   return directives.join("; ");
+}
+
+export function buildReportToHeader(): string | null {
+  if (!normalizedReportToUrl) {
+    return null;
+  }
+
+  return JSON.stringify({
+    group: CSP_REPORT_TO_GROUP,
+    max_age: 60 * 60 * 24 * 30,
+    endpoints: [{ url: normalizedReportToUrl }],
+  });
 }

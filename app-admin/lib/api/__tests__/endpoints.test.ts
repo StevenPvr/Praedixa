@@ -25,6 +25,9 @@ describe("ADMIN_ENDPOINTS", () => {
     expect(ADMIN_ENDPOINTS.orgMetrics(orgId)).toContain("org%2Fa%20b");
     expect(ADMIN_ENDPOINTS.orgMirror(orgId)).toContain("org%2Fa%20b");
     expect(ADMIN_ENDPOINTS.organization(orgId)).toContain("org%2Fa%20b");
+    expect(ADMIN_ENDPOINTS.orgOverview(orgId)).toContain(
+      "organizations/org%2Fa%20b/overview",
+    );
     expect(ADMIN_ENDPOINTS.orgHierarchy(orgId)).toContain("org%2Fa%20b");
     expect(ADMIN_ENDPOINTS.orgSuspend(orgId)).toContain("org%2Fa%20b");
     expect(ADMIN_ENDPOINTS.orgReactivate(orgId)).toContain("org%2Fa%20b");

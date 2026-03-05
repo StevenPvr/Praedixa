@@ -67,12 +67,12 @@ export default function EquipePage() {
     if (!inviteEmail) return;
     const result = await invite({ email: inviteEmail, role: inviteRole });
     if (result) {
-      toast.success("Invitation envoyee");
+      toast.success("Compte cree");
       setInviteEmail("");
       setShowInviteForm(false);
       refetch();
     } else {
-      toast.error("Impossible d'envoyer l'invitation");
+      toast.error("Impossible de creer le compte");
     }
   }
 
@@ -147,7 +147,7 @@ export default function EquipePage() {
           onClick={() => setShowInviteForm(!showInviteForm)}
         >
           <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-          Inviter
+          Creer un compte
         </Button>
       </div>
 
@@ -188,7 +188,7 @@ export default function EquipePage() {
               onClick={handleInvite}
               disabled={inviteLoading || !inviteEmail}
             >
-              Envoyer
+              Creer
             </Button>
           </CardContent>
         </Card>

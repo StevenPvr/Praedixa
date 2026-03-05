@@ -9,6 +9,11 @@ import type {
   DecisionPriority,
 } from "../domain/decision";
 import type { DatasetStatus } from "../domain/dataset";
+import type {
+  IntegrationAuthMode,
+  IntegrationSyncTriggerType,
+  IntegrationVendor,
+} from "../domain/integration";
 
 /** Base filter params */
 export interface BaseFilterParams extends PaginationParams {
@@ -118,4 +123,30 @@ export interface ListDatasetsRequest extends BaseFilterParams {
 export interface GetDatasetDataRequest extends PaginationParams {
   /** Limit columns returned */
   columns?: string[];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Integration Requests
+// ─────────────────────────────────────────────────────────────
+
+/** List integration connections request */
+export interface ListIntegrationConnectionsRequest extends BaseFilterParams {
+  vendor?: IntegrationVendor;
+}
+
+/** Create integration connection request */
+export interface CreateIntegrationConnectionRequest {
+  vendor: IntegrationVendor;
+  displayName: string;
+  authMode: IntegrationAuthMode;
+  secretRef?: string | null;
+  config?: Record<string, unknown>;
+}
+
+/** Trigger integration sync request */
+export interface TriggerIntegrationSyncRequest {
+  triggerType?: IntegrationSyncTriggerType;
+  forceFullSync?: boolean;
+  sourceWindowStart?: ISODateString;
+  sourceWindowEnd?: ISODateString;
 }

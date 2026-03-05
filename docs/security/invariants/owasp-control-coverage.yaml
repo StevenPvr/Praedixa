@@ -1,4 +1,4 @@
-version: 1
+version: 2
 owasp_control_coverage:
   - id: OWASP-A01
     category: Broken Access Control
@@ -24,6 +24,18 @@ owasp_control_coverage:
       - scripts/gate.config.yaml
     owner: Backend Lead
 
+  - id: OWASP-A02
+    category: Cryptographic Failures
+    controls:
+      - "Token interne connecteurs compare en temps constant"
+      - "Validation stricte des algorithmes JWT autorises"
+      - "Politique de rotation secrets et preuves d'execution"
+    evidence:
+      - app-connectors/src/security.ts
+      - app-api-ts/src/config.ts
+      - docs/runbooks/security-secret-rotation.md
+    owner: Security Lead
+
   - id: OWASP-A05
     category: Security Misconfiguration
     controls:
@@ -35,6 +47,18 @@ owasp_control_coverage:
       - docs/runbooks/security-gate-hardening.md
       - scripts/validate-security-exceptions.py
     owner: DevOps Lead
+
+  - id: OWASP-A07
+    category: Identification and Authentication Failures
+    controls:
+      - "RBAC admin stricte super_admin sur toute la surface /api/v1/admin"
+      - "Protection des routes connecteurs par token interne obligatoire"
+      - "Tests unitaires bloquants sur roles et headers de transport"
+    evidence:
+      - app-api-ts/src/routes.ts
+      - app-api-ts/src/__tests__/server.test.ts
+      - app-connectors/src/__tests__/server.test.ts
+    owner: Backend Lead
 
   - id: OWASP-A06
     category: Vulnerable and Outdated Components

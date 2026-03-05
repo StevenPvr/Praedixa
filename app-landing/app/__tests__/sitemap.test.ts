@@ -47,11 +47,13 @@ describe("sitemap()", () => {
     expect(urls).toContain("https://www.praedixa.com/en/blog");
   });
 
-  it("should include published blog posts", () => {
+  it("should not include blog article pages when blog is empty", () => {
     const urls = result.map((entry) => entry.url);
-    expect(urls).toContain(
-      "https://www.praedixa.com/fr/blog/sous-sureeffectif-multi-sites-guide-j3-j7-j14",
+    const blogArticleUrls = urls.filter((url) =>
+      /^https:\/\/www\.praedixa\.com\/(?:fr|en)\/blog\/[^/?#]+$/.test(url),
     );
+
+    expect(blogArticleUrls).toEqual([]);
   });
 
   it("should include quick-service restaurant sector pages in both locales", () => {

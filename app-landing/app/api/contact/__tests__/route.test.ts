@@ -112,7 +112,8 @@ describe("POST /api/contact", () => {
   });
 
   it("returns 400 when captcha answer is invalid", async () => {
-    const request = makeRequest(validBody({ captchaAnswer: 8 }), {
+    const body = validBody();
+    const request = makeRequest({ ...body, captchaAnswer: body.captchaAnswer + 1 }, {
       origin: "http://localhost:3000",
     });
 
