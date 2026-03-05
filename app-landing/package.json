@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",
-    "@opennextjs/cloudflare": "^1.16.0",
+    "@opennextjs/cloudflare": "^1.17.1",
     "@phosphor-icons/react": "^2.1.10",
     "@praedixa/shared-types": "workspace:*",
     "@praedixa/ui": "workspace:*",
@@ -36,7 +36,7 @@
     "react-dom": "19.1.0",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
-    "resend": "^6.9.1",
+    "resend": "^6.9.3",
     "tailwind-merge": "^2.2.0",
     "unist-util-visit": "^5.0.0"
   },
