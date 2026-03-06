@@ -25,7 +25,7 @@
     "remotion": "4.0.259"
   },
   "devDependencies": {
-    "@remotion/renderer": "4.0.259",
+    "@remotion/renderer": "4.0.434",
     "@types/react": "^19.1.0",
     "typescript": "^5.8.3"
   }
