@@ -10,6 +10,7 @@ import { ClosedLoopTeaserSection } from "../../components/homepage/ClosedLoopTea
 import { IntegrationTeaserSection } from "../../components/homepage/IntegrationTeaserSection";
 import { ServicesPilotTeaserSection } from "../../components/homepage/ServicesPilotTeaserSection";
 import { HomeFaqCtaSection } from "../../components/homepage/HomeFaqCtaSection";
+import { JsonLd } from "../../components/seo/JsonLd";
 
 export async function generateMetadata({
   params,
@@ -50,6 +51,11 @@ export default async function LandingPage({
       <IntegrationTeaserSection locale={locale} />
       <ServicesPilotTeaserSection locale={locale} />
       <HomeFaqCtaSection locale={locale} />
+      <JsonLd
+        locale={locale}
+        dict={dict}
+        types={["softwareApplication", "service", "faq"]}
+      />
     </>
   );
 }

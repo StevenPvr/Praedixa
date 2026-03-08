@@ -20,6 +20,24 @@ praedixa/
 └── docs/                # Architecture docs, security reports
 ```
 
+## Documentation distribuée
+
+Le repo n'utilise pas seulement une documentation centrale. Les dossiers importants embarquent aussi leur propre `README.md` local pour expliquer :
+
+- leur rôle ;
+- les fichiers clés ;
+- les flux ou commandes associés ;
+- leur intégration avec le reste du monorepo.
+
+Points d'entrée utiles :
+
+- `docs/README.md` pour la documentation longue durée ;
+- `scripts/README.md` pour l'automatisation ;
+- `testing/README.md` pour les tests partagés ;
+- `infra/README.md` pour les artefacts d'infrastructure ;
+- `contracts/README.md` pour les contrats techniques ;
+- les `README.md` présents dans chaque app, package et sous-dossier versionné.
+
 ## Prerequis
 
 - Node.js 22+

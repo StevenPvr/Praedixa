@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { BlogPostPage } from "../../../../components/blog/BlogPostPage";
 import { isProductionEnvironment } from "../../../../lib/blog/config";
 import { getCompiledBlogMdx } from "../../../../lib/blog/mdx";
+import type { BlogPost } from "../../../../lib/blog/types";
 import {
   buildBlogPostPath,
   getBlogPostAlternateLocales,
@@ -32,10 +33,10 @@ function toAbsoluteCanonicalUrl(canonical: string): string {
 
 function resolveAlternateLanguageUrls(
   locale: Locale,
-  slug: string,
+  post: BlogPost,
   includeDrafts: boolean,
 ): Record<string, string> {
-  const alternates = getBlogPostAlternateLocales(slug, { includeDrafts });
+  const alternates = getBlogPostAlternateLocales(post, { includeDrafts });
   const languageUrls: Record<string, string> = {};
 
   if (alternates.fr) {
@@ -48,7 +49,7 @@ function resolveAlternateLanguageUrls(
   }
 
   if (!languageUrls["x-default"]) {
-    languageUrls["x-default"] = absoluteUrl(buildBlogPostPath(locale, slug));
+    languageUrls["x-default"] = absoluteUrl(buildBlogPostPath(locale, post.slug));
   }
 
   return languageUrls;
@@ -79,7 +80,7 @@ export async function generateMetadata({
   const canonicalUrl = post.canonical
     ? toAbsoluteCanonicalUrl(post.canonical)
     : fallbackCanonicalUrl;
-  const languageAlternates = resolveAlternateLanguageUrls(locale, slug, includeDrafts);
+  const languageAlternates = resolveAlternateLanguageUrls(locale, post, includeDrafts);
   const isDraft = post.draft;
   const robots = isDraft
     ? {

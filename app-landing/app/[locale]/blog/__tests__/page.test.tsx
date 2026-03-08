@@ -23,5 +23,7 @@ describe("blog index route metadata", () => {
     expect(metadata.alternates?.canonical).toBe(
       "https://www.praedixa.com/en/blog?tag=ops&page=2",
     );
+    expect(metadata.alternates?.languages).toBeUndefined();
+    expect(metadata.robots).toEqual({ index: false, follow: true });
   });
 });

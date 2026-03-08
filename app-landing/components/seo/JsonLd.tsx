@@ -12,7 +12,15 @@ import { serializeJsonForScriptTag } from "../../lib/security/json-script";
 interface JsonLdProps {
   locale: Locale;
   dict: Dictionary;
+  types?: readonly JsonLdType[];
 }
+
+type JsonLdType =
+  | "organization"
+  | "website"
+  | "softwareApplication"
+  | "service"
+  | "faq";
 
 function organizationSchema() {
   return {
@@ -115,14 +123,20 @@ function faqSchema(locale: Locale, dict: Dictionary) {
   };
 }
 
-export function JsonLd({ locale, dict }: JsonLdProps) {
-  const schemas = [
-    organizationSchema(),
-    webSiteSchema(locale),
-    softwareApplicationSchema(locale, dict),
-    serviceSchema(locale),
-    faqSchema(locale, dict),
-  ];
+export function JsonLd({
+  locale,
+  dict,
+  types = ["organization", "website"],
+}: JsonLdProps) {
+  const schemaBuilders: Record<JsonLdType, () => Record<string, unknown>> = {
+    organization: () => organizationSchema(),
+    website: () => webSiteSchema(locale),
+    softwareApplication: () => softwareApplicationSchema(locale, dict),
+    service: () => serviceSchema(locale),
+    faq: () => faqSchema(locale, dict),
+  };
+
+  const schemas = types.map((type) => schemaBuilders[type]());
 
   return (
     <>

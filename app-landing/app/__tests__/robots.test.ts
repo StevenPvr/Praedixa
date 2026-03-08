@@ -32,6 +32,34 @@ describe("robots()", () => {
     expect(result.host).toBe("https://www.praedixa.com");
   });
 
+  it("should explicitly allow major AI crawlers while keeping private paths blocked", () => {
+    const targetedBots = [
+      "OAI-SearchBot",
+      "GPTBot",
+      "ChatGPT-User",
+      "ClaudeBot",
+      "Claude-SearchBot",
+      "Claude-User",
+      "PerplexityBot",
+      "Perplexity-User",
+    ];
+
+    for (const bot of targetedBots) {
+      const rule = (
+        result.rules as Array<{
+          userAgent: string;
+          allow?: string;
+          disallow?: string[];
+        }>
+      ).find((entry) => entry.userAgent === bot);
+
+      expect(rule).toBeDefined();
+      expect(rule?.allow).toBe("/");
+      expect(rule?.disallow).toContain("/api/");
+      expect(rule?.disallow).toContain("/fr/logo-preview");
+    }
+  });
+
   it("should include a rule for AdsBot-Google", () => {
     const rule = (result.rules as Array<{ userAgent: string }>).find(
       (r) => r.userAgent === "AdsBot-Google",

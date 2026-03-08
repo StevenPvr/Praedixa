@@ -28,7 +28,7 @@ Chaque champ est classe selon trois niveaux :
 | ------------------ | ----------- | --------------- | -------------------- | -------- | -------------------------- |
 | `id`               | UUID PK     | PII Indirecte   | Non                  | Non      | Duree du compte            |
 | `organization_id`  | UUID FK     | Operationnelle  | Non                  | Non      | Duree du compte            |
-| `supabase_user_id` | String(255) | PII Indirecte   | Non                  | Non      | Duree du compte            |
+| `auth_user_id`     | String(255) | PII Indirecte   | Non                  | Non      | Duree du compte            |
 | `email`            | String(320) | **PII Directe** | Non (index unique)   | Non      | **GAP** : pas de retention |
 | `email_verified`   | Boolean     | Operationnelle  | Non                  | Non      | Duree du compte            |
 | `role`             | Enum        | Operationnelle  | Non                  | Non      | Duree du compte            |

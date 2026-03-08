@@ -18,6 +18,7 @@ interface BlogIndexRouteProps {
 function buildBlogIndexMetadata(locale: Locale, tag?: string, page = 1): Metadata {
   const path = buildBlogIndexPath(locale, { page, tag });
   const canonical = absoluteUrl(path);
+  const isFilteredVariant = Boolean(tag) || page > 1;
   const title =
     locale === "fr"
       ? tag
@@ -36,14 +37,18 @@ function buildBlogIndexMetadata(locale: Locale, tag?: string, page = 1): Metadat
     description,
     alternates: {
       canonical,
-      languages: {
-        "fr-FR": absoluteUrl("/fr/blog"),
-        en: absoluteUrl("/en/blog"),
-        "x-default": absoluteUrl("/fr/blog"),
-      },
+      ...(isFilteredVariant
+        ? {}
+        : {
+            languages: {
+              "fr-FR": absoluteUrl("/fr/blog"),
+              en: absoluteUrl("/en/blog"),
+              "x-default": absoluteUrl("/fr/blog"),
+            },
+          }),
     },
     robots: {
-      index: true,
+      index: !isFilteredVariant,
       follow: true,
     },
     openGraph: {

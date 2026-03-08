@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { createRehypeInternalLinksPlugin } from "../internal-links";
+import { createRehypeInternalLinksPlugin, getInternalLinkRules } from "../internal-links";
 import type { InternalLinkRule } from "../types";
+import { legacyRedirectMap } from "../../i18n/config";
 
 interface HastNode {
   type: string;
@@ -105,5 +106,13 @@ describe("rehype internal links", () => {
     const anchors = collectAnchors(tree);
     expect(anchors).toHaveLength(1);
     expect(anchors[0]?.properties?.href).toBe("/en/pilot-application");
+  });
+
+  it("never targets retired or redirecting internal URLs", () => {
+    const rules = getInternalLinkRules();
+
+    for (const rule of rules) {
+      expect(legacyRedirectMap[rule.url]).toBeUndefined();
+    }
   });
 });

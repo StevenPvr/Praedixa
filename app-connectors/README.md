@@ -1,38 +1,63 @@
 # app-connectors
 
-Service runtime dedie aux connecteurs data Praedixa.
+Runtime TypeScript dedie au control plane des integrations Praedixa.
 
-## Scope
+## Objectif
 
-- Catalogue central des connecteurs (CRM/WFM/POS/DMS/TMS)
-- Gestion des connexions par organisation
-- Parcours d'onboarding securise (`create` -> `authorize/start` -> `authorize/complete` -> `test` -> `sync`)
-- Coffre-fort secret chiffre en memoire (AES-256-GCM)
-- Audit trail des actions de connexion et de sync
-- Surface HTTP securisee par tokens de service scopes par organisation
+- Exposer un catalogue de connecteurs et gerer les connexions par organisation.
+- Gerer l'onboarding OAuth/API key/service account des fournisseurs.
+- Delivrer des credentials d'ingestion push et stocker les evenements bruts.
+- Servir de pont securise entre `app-api-ts` (surface admin) et `app-api` (ingestion/traitement Python).
 
-## Run local
+## Architecture rapide
 
-```bash
-pnpm --dir app-connectors dev
-```
+- `src/index.ts` : bootstrap process.
+- `src/server.ts` : serveur HTTP, CORS, auth service-token, IP et JSON handling.
+- `src/routes.ts` : validation Zod et handlers HTTP.
+- `src/service.ts` : logique metier principale du control plane connecteurs.
+- `src/store.ts` : store memoire.
+- `src/persistent-store.ts` : extension Postgres du store.
+- `src/payload-store.ts` : stockage local des payloads bruts.
+- `src/security.ts` : sealing de secrets, HMAC, PKCE, redaction.
+- `src/oauth.ts` : helpers OAuth.
 
-Variables:
+## Sous-docs
 
-- `PORT` (default `8100`)
-- `HOST` (default `127.0.0.1` en `development`, `0.0.0.0` sinon)
-- `NODE_ENV` (`development|staging|production`)
-- `DATABASE_URL` (optionnel, active la persistance Postgres du runtime connecteurs)
-- `CONNECTORS_SERVICE_TOKENS` (JSON requis, ex. `[{"name":"webapp","token":"...","allowedOrgs":["org-1"]}]`)
-- `CONNECTORS_INTERNAL_TOKEN` + `CONNECTORS_ALLOWED_ORGS` (mode legacy transitoire uniquement)
-- `CONNECTORS_SECRET_SEALING_KEY` (32+ chars, requis pour stocker les credentials)
-- `CONNECTORS_PUBLIC_BASE_URL` (URL publique remise au client pour les endpoints d'ingestion push)
-- `CORS_ORIGINS` (CSV d'origines)
+- [src/README.md](./src/README.md)
+- [src/__tests__/README.md](./src/__tests__/README.md)
 
-Les appels `POST /sync` doivent fournir `Idempotency-Key`.
-Les appels admin peuvent fournir `X-Actor-User-ID` pour enrichir l'audit trail.
+## Surface HTTP
 
-Exemple `CONNECTORS_SERVICE_TOKENS` :
+Catalogue et connexions:
+
+- `GET /v1/connectors/catalog`
+- `GET /v1/organizations/:orgId/connections`
+- `GET /v1/organizations/:orgId/connections/:connectionId`
+- `POST /v1/organizations/:orgId/connections`
+- `PATCH /v1/organizations/:orgId/connections/:connectionId`
+
+Sync, audit, runs:
+
+- `GET /v1/organizations/:orgId/sync-runs`
+- `GET /v1/organizations/:orgId/sync-runs/:runId`
+- `GET /v1/organizations/:orgId/audit-events`
+
+Le reste de la surface d'onboarding/integration vit aussi dans `src/routes.ts`: authorization start/complete, test, sync, ingest credentials, endpoints d'ingestion push et worker APIs.
+
+## Configuration runtime
+
+Variables importantes:
+
+- `PORT`, `HOST`, `NODE_ENV`
+- `DATABASE_URL`
+- `CONNECTORS_PUBLIC_BASE_URL`
+- `CONNECTORS_OBJECT_STORE_ROOT`
+- `CONNECTORS_SERVICE_TOKENS`
+- `CONNECTORS_INTERNAL_TOKEN` + `CONNECTORS_ALLOWED_ORGS` pour le mode legacy transitoire
+- `CONNECTORS_SECRET_SEALING_KEY`
+- `CORS_ORIGINS`
+
+Exemple `CONNECTORS_SERVICE_TOKENS`:
 
 ```json
 [
@@ -40,31 +65,40 @@ Exemple `CONNECTORS_SERVICE_TOKENS` :
     "name": "webapp",
     "token": "replace-with-32-char-min-token",
     "allowedOrgs": ["org-1", "org-2"]
-  },
-  {
-    "name": "control-plane",
-    "token": "replace-with-32-char-min-token-admin",
-    "allowedOrgs": ["org-3", "org-4"]
   }
 ]
 ```
 
-En developpement, le service bind par defaut sur `127.0.0.1` et CORS reste strictement limite aux origines autorisees.
+## Persistence
 
-Quand `DATABASE_URL` est configure, le runtime recharge son snapshot de control plane au demarrage et persiste les mutations dans Postgres. Sans `DATABASE_URL`, il reste en mode memoire pour le dev/test local.
+- Sans `DATABASE_URL`, le service reste en mode memoire avec store local.
+- Avec `DATABASE_URL`, `PostgresBackedConnectorStore` recharge un snapshot et persiste les mutations.
+- Les payloads bruts sont stockes a part via `payload-store.ts`.
 
-Flux OAuth interactif:
+## Flows importants
 
-1. `POST /v1/organizations/:orgId/connections`
-2. `POST /v1/organizations/:orgId/connections/:connectionId/authorize/start`
-3. Le client autorise Praedixa chez le fournisseur
-4. `POST /v1/organizations/:orgId/connections/:connectionId/authorize/complete`
-5. `POST /v1/organizations/:orgId/connections/:connectionId/test`
-6. `POST /v1/organizations/:orgId/connections/:connectionId/sync`
+OAuth interactif:
 
-Flux push API client:
+1. creer la connexion
+2. `authorize/start`
+3. redirection fournisseur
+4. `authorize/complete`
+5. `test`
+6. `sync`
 
-1. `POST /v1/organizations/:orgId/connections/:connectionId/ingest-credentials`
-2. Transmettre au client l'`ingestUrl`, l'`apiKey` et, si requis, le `signingSecret`
-3. Le client pousse ses événements sur `POST /v1/ingest/:orgId/:connectionId/events`
-4. Praedixa stocke les événements bruts, journalise l'audit et expose l'état via `raw-events`
+Push API client:
+
+1. emission de credentials d'ingestion
+2. remise de `ingestUrl` + `apiKey` + eventuel `signingSecret`
+3. push sur l'endpoint d'ingestion
+4. lecture ulterieure des raw events par le worker Python
+
+## Commandes
+
+```bash
+pnpm --dir app-connectors dev
+pnpm --dir app-connectors test
+pnpm --dir app-connectors lint
+pnpm --dir app-connectors typecheck
+pnpm --dir app-connectors build
+```

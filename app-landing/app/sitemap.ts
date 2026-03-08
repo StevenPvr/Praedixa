@@ -3,8 +3,10 @@ import { locales, localizedSlugs } from "../lib/i18n/config";
 import { getSerpResourceSlugs } from "../lib/content/serp-resources-fr";
 import {
   buildBlogPostPath,
+  getBlogPostAlternateLocales,
   getPublishedBlogPosts,
 } from "../lib/blog/posts";
+import type { BlogPost } from "../lib/blog/types";
 
 const BASE_URL = "https://www.praedixa.com";
 const DEFAULT_LAST_MODIFIED = new Date().toISOString();
@@ -51,14 +53,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const serpSlugs = getSerpResourceSlugs();
   const publishedBlogPosts = getPublishedBlogPosts();
 
-  function buildBlogAlternates(
-    slug: string,
-    fallbackLocale: (typeof locales)[number],
-  ): Record<string, string> {
-    const sameSlugPosts = publishedBlogPosts.filter((post) => post.slug === slug);
-    const frPost = sameSlugPosts.find((post) => post.locale === "fr");
-    const enPost = sameSlugPosts.find((post) => post.locale === "en");
-    const fallbackPath = `${BASE_URL}${buildBlogPostPath(fallbackLocale, slug)}`;
+  function buildBlogAlternates(post: BlogPost): Record<string, string> {
+    const alternates = getBlogPostAlternateLocales(post);
+    const frPost = alternates.fr;
+    const enPost = alternates.en;
+    const fallbackPath = `${BASE_URL}${buildBlogPostPath(post.locale, post.slug)}`;
 
     const languages: Record<string, string> = {
       "x-default": frPost
@@ -176,7 +175,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.7,
       alternates: {
-        languages: buildBlogAlternates(post.slug, post.locale),
+        languages: buildBlogAlternates(post),
       },
     });
   }

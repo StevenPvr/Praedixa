@@ -3,10 +3,17 @@
     "id": "fr-workforce-planning",
     "patterns": [
       "planification des effectifs",
-      "planification workforce",
+      "planification workforce"
+    ],
+    "url": "/fr/ressources/workforce-planning-multi-sites",
+    "maxPerDoc": 1
+  },
+  {
+    "id": "fr-wfm",
+    "patterns": [
       "WFM"
     ],
-    "url": "/fr/capacite-sous-couverture",
+    "url": "/fr/ressources/wfm-logistique",
     "maxPerDoc": 1
   },
   {
@@ -36,7 +43,7 @@
       "coverage gap",
       "WFM"
     ],
-    "url": "/en/capacity-coverage-gap",
+    "url": "/en/resources",
     "maxPerDoc": 1
   },
   {

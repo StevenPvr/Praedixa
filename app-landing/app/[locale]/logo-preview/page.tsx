@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Praedixa | Logo preview",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 export default function LogoPreviewPage() {
   const colors = ["Ink", "Amber", "Blue", "Emerald", "Violet", "White"] as const;
 

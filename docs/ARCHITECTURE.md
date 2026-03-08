@@ -250,7 +250,7 @@ Contient les **composants React partages** entre les 3 apps :
 
 | Cible   | Plateforme cible                         | Etat DNS/traffic                                              | Configuration / scripts                                          |
 | ------- | ---------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Landing | Scaleway Serverless Container (`fr-par`) | Transition en cours (prod publique encore Cloudflare Workers) | `app-landing/Dockerfile.scaleway`                                |
+| Landing | Scaleway Serverless Container (`fr-par`) | Exposition publique pilotée via la couche DNS/edge courante | `app-landing/Dockerfile.scaleway`                                |
 | Webapp  | Scaleway Serverless Container (`fr-par`) | CNAME public vers Scaleway                                    | `app-webapp/Dockerfile.scaleway`, `pnpm run scw:deploy:webapp:*` |
 | Admin   | Scaleway Serverless Container (`fr-par`) | CNAME public vers Scaleway                                    | `app-admin/Dockerfile.scaleway`, `pnpm run scw:deploy:admin:*`   |
 | API     | Scaleway Serverless Container (`fr-par`) | CNAME public vers Scaleway                                    | `app-api/Dockerfile`, `pnpm run scw:deploy:api:*`                |

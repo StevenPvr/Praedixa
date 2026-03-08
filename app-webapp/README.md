@@ -8,6 +8,26 @@ Application de pilotage de capacite pour les responsables de sites logistiques. 
 
 ---
 
+## Documentation locale
+
+Pour onboarder plus vite dans le sous-arbre, lire ensuite les README locaux. Sur l'etat courant des dossiers, ces README distribues font foi quand ils divergent d'un inventaire plus ancien plus bas dans ce fichier.
+
+| Zone | README |
+| --- | --- |
+| App Router | `app/README.md` |
+| Pages authentifiees | `app/(app)/README.md` |
+| Pages publiques | `app/(auth)/README.md` |
+| Route handlers auth | `app/auth/README.md` |
+| BFF/API routes | `app/api/README.md` |
+| Composants | `components/README.md` |
+| Hooks | `hooks/README.md` |
+| Librairies | `lib/README.md` |
+| Client API | `lib/api/README.md` |
+| Auth | `lib/auth/README.md` |
+| Securite | `lib/security/README.md` |
+
+---
+
 ## Demarrage rapide
 
 ```bash

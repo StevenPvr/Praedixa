@@ -1,106 +1,75 @@
 # Landing (`@praedixa/landing`)
 
-Marketing site for `praedixa.com`, built with Next.js App Router (v15), React 19, Tailwind CSS, and Framer Motion.
+Site marketing de `praedixa.com`, construit avec Next.js App Router, React 19, Tailwind CSS, Framer Motion et quelques briques maison pour la securite des formulaires, l'i18n et le SEO.
 
-## Canonical Message
+## Message canonique
 
-Landing positioning must stay aligned with production copy:
+Le positioning de production doit rester coherent avec ces points:
 
-- Closed loop: forecast (D+3/D+7/D+14) -> optimal decision -> assisted first action -> monthly ROI proof.
-- Overlay on existing tools (exports/APIs), read-only start.
-- Manager remains decision-maker (human in the loop).
-- Not a planning/WFM replacement.
-- Month 1 offered: historical audit (read-only).
+- Boucle fermee: forecast D+3 / D+7 / D+14 -> decision optimale -> premiere action assistee -> preuve ROI mensuelle.
+- Superposition sur l'existant (exports/API), demarrage en lecture seule.
+- Le manager reste decisionnaire.
+- Le produit ne remplace pas un WFM / planning.
+- Le premier mois est un audit historique en lecture seule.
 
-## Runbook
+## Commandes utiles
 
-From repository root:
+Depuis la racine:
 
 ```bash
 pnpm dev:landing
+pnpm test -- app-landing
+pnpm test:e2e:landing
 ```
 
-Landing workspace only:
+Depuis le workspace:
 
 ```bash
 pnpm --filter @praedixa/landing lint
 pnpm --filter @praedixa/landing typecheck
 pnpm --filter @praedixa/landing build
+pnpm --filter @praedixa/landing dev:fresh
 ```
 
-Landing unit/integration tests (Vitest from root):
+## Carte rapide
 
-```bash
-pnpm test -- app-landing
-```
+- `app/`: routes App Router, metadata, APIs locales, flux RSS/robots/sitemap
+- `components/`: sections homepage, composants de pages, shell partage
+- `lib/`: contenu, i18n, SEO, securite, helpers API serveur
+- `public/`: logos, favicons, videos hero, assets partenaires
+- `__tests__/`: tests du proxy
+- `docs/`: copy et support editorial
+- `scripts/`: utilitaires workspace (`resend`, audit blog)
 
-Landing E2E (Playwright from root):
+## Documentation distribuee
 
-```bash
-pnpm test:e2e:landing
-```
+- `app/README.md`
+- `app/[locale]/README.md`
+- `app/api/README.md`
+- `components/README.md`
+- `components/blog/README.md`
+- `components/homepage/README.md`
+- `components/pages/README.md`
+- `components/shared/README.md`
+- `lib/README.md`
+- `lib/api/README.md`
+- `lib/blog/README.md`
+- `lib/content/README.md`
+- `lib/i18n/README.md`
+- `lib/media/README.md`
+- `lib/security/README.md`
+- `lib/seo/README.md`
+- `public/README.md`
 
-## Architecture
+## Conventions transverses
 
-Core entrypoints:
+- Les routes publiques vivent sous `app/[locale]` avec slug FR/EN derives de `lib/i18n/config.ts`.
+- Les formulaires publics passent toujours par `app/api/*` et reutilisent `lib/api/form-route.ts`.
+- Les pages de contenu doivent tirer leur metadata via `lib/seo/metadata.ts` et leur copy via dictionnaire ou modules `lib/content/*`.
+- Le proxy `proxy.ts` gere canonical host, redirections legacy, nonce CSP et headers de requete.
+- Les tests unitaires sont proches des zones sensibles: routes API, SEO, blog, i18n, media, securite.
 
-- `app/layout.tsx`: root metadata and global skip-link
-- `app/[locale]/layout.tsx`: locale-level shell (`fr` / `en`)
-- `app/[locale]/page.tsx`: main landing composition
+## Deploiement
 
-Main landing sections:
-
-- `HeroSection`
-- `ProblemSection`
-- `MethodSection`
-- `UseCasesSection`
-- `SecuritySection`
-- `PilotSection`
-- `FaqSection`
-- `ContactSection`
-
-Layout components:
-
-- `components/layout/Navbar.tsx`
-- `components/layout/Footer.tsx`
-- `components/layout/StickyMobileCTA.tsx`
-
-## API routes
-
-- `GET /api/health`
-- `GET /api/contact/challenge`
-- `POST /api/pilot-application`
-- `POST /api/contact`
-
-Both form endpoints implement:
-
-- request size guard
-- distributed rate limiting via Redis in staging/prod
-- origin enforcement (`origin` / `referer` / `sec-fetch-site`)
-- anti-automation protections (honeypot + timing checks; contact also includes captcha)
-- single-use anti-replay on signed contact challenges
-
-## SEO and i18n
-
-- Localized routes under `app/[locale]`
-- Canonicals/hreflang/Open Graph generated through `lib/seo/metadata.ts`
-- `robots.txt` from `app/robots.ts`
-- sitemap from `app/sitemap.ts`
-- JSON-LD from `components/seo/JsonLd.tsx`
-
-## Security headers
-
-- CSP generated in `lib/security/csp.ts`
-- proxy applies CSP per request (`proxy.ts`)
-- additional headers configured through `lib/security/headers.ts` and `next.config.ts`
-
-## Deployment
-
-Production target:
-
-- Scaleway Serverless Containers (`app-landing/Dockerfile.scaleway`, `fr-par`)
-- immutable runner flow only (`scripts/scw-release-build.sh`, signed manifest, `scripts/scw-release-deploy.sh`)
-
-Optional alternative:
-
-- Cloudflare Workers via OpenNext (`pnpm cf:build`, `pnpm deploy`) for preview/dev only
+- Prod principale: Scaleway Serverless Containers via `Dockerfile.scaleway` et scripts racine.
+- Build alternatif: OpenNext Cloudflare (`cf:build`, `preview`, `deploy`) surtout pour preview/dev.

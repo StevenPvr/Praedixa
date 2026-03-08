@@ -5,6 +5,11 @@
 - `/llms.txt`: short canonical index for model crawlers.
 - `/llms-full.txt`: expanded content inventory by locale.
 
+Canonical naming choice:
+
+- publish only `/llms.txt`;
+- do not maintain a parallel `/llm.txt` artifact unless a specific third-party integration proves it cannot follow the canonical path.
+
 ## Why this exists
 
 It helps AI retrieval systems find the canonical, high-signal pages first, with the exact current positioning used on the landing.
@@ -32,4 +37,4 @@ Validation after update:
 
 - check `/llms.txt` and `/llms-full.txt` return `text/plain`,
 - confirm links resolve in both `/fr` and `/en`,
-- confirm wording matches `app-landing/lib/i18n/dictionaries/fr.ts` and `app-landing/lib/i18n/dictionaries/en.ts`.
+- confirm wording stays aligned with the current positioning source in `app-landing/lib/seo/llms.ts` and the landing dictionaries.

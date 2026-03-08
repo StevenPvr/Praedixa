@@ -81,7 +81,7 @@ erDiagram
 | `Organization` | `organizations` | `TimestampMixin` | id, name, slug, status, plan, sector, size, contact_email, settings (JSONB)                                       |
 | `Site`         | `sites`         | `TenantMixin`    | id, organization_id, name, code, address (JSONB), timezone, headcount                                             |
 | `Department`   | `departments`   | `TenantMixin`    | id, organization_id, site_id, parent_id, name, cost_center, min_staffing_level                                    |
-| `User`         | `users`         | `TenantMixin`    | id, organization_id, supabase_user_id, email, role, status, site_id, mfa_enabled                                  |
+| `User`         | `users`         | `TenantMixin`    | id, organization_id, auth_user_id, email, role, status, site_id, mfa_enabled                                      |
 | `Employee`     | `employees`     | `TenantMixin`    | id, organization_id, department_id, site_id, employee_number, employment_type, contract_type, fte, skills (ARRAY) |
 
 #### Data Catalog

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { locales } from "../i18n/config";
 import type { Locale } from "../i18n/config";
-import type { SeoPageContract } from "./types";
 
 const BASE_URL = "https://www.praedixa.com";
 
@@ -52,23 +51,15 @@ export function buildLocaleMetadata({
     ? { index: false, follow: false }
     : { index: true, follow: true };
 
-  const seoContract: SeoPageContract = {
-    locale,
-    canonicalPath: currentPath,
-    alternates,
-    robots,
-    structuredDataTypes: ["Organization", "WebSite", "SoftwareApplication"],
-  };
-
   return {
     title,
     description,
-    alternates: seoContract.alternates,
-    robots: seoContract.robots,
+    alternates,
+    robots,
     openGraph: {
       title: ogTitle ?? title,
       description: ogDescription ?? description,
-      url: absoluteUrl(seoContract.canonicalPath),
+      url: absoluteUrl(currentPath),
       siteName: "Praedixa",
       locale: locale === "fr" ? "fr_FR" : "en_US",
       alternateLocale: altLocale === "fr" ? "fr_FR" : "en_US",

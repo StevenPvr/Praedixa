@@ -219,7 +219,6 @@ pnpm test:coverage                  # Avec couverture
 | `render.tsx`                     | Wrapper `@testing-library/react` avec `screen`, `fireEvent`, `userEvent` |
 | `mocks/next-navigation.ts`       | Mock useRouter, usePathname, useSearchParams                             |
 | `mocks/next-headers.ts`          | Mock cookies() et headers()                                              |
-| `mocks/supabase.ts`              | Mock complet du client Supabase SSR                                      |
 | `mocks/framer-motion.ts`         | Proxy motion -> elements HTML natifs                                     |
 | `mocks/intersection-observer.ts` | IntersectionObserver controllable                                        |
 | `mocks/resend.ts`                | Mock SDK Resend                                                          |
@@ -271,7 +270,7 @@ Les parcours authentifies reposent sur des cookies OIDC signes (pas de login UI 
 2. **Fixture webapp** (`testing/e2e/webapp/fixtures/auth.ts`) : `setupAuth(page, { role, organizationId, siteId })` pour les scenarios client (`org_admin`, `manager`, etc.).
 3. **Fixture admin** (`testing/e2e/admin/fixtures/auth.ts`) : `setupAdminAuth(page)` pour les scenarios `super_admin`.
 
-Le fichier legacy `testing/e2e/webapp/fixtures/mock-supabase-server.mjs` n'est plus lance par Playwright par defaut.
+Les scénarios E2E authentifiés reposent désormais sur les helpers OIDC de `testing/e2e/fixtures/oidc-auth.ts` et `testing/e2e/fixtures/oidc-config.ts`.
 
 ### Couverture V8
 

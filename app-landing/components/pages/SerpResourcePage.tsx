@@ -1,7 +1,12 @@
 import Link from "next/link";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
-import type { SerpResourceEntry } from "../../lib/content/serp-resources-fr";
+import {
+  getRelatedSerpResources,
+  getSerpResourcePrimaryCta,
+  getSerpResourceSchemaType,
+  type SerpResourceEntry,
+} from "../../lib/content/serp-resources-fr";
 import { PRAEDIXA_BASE_URL } from "../../lib/seo/entity";
 import { serializeJsonForScriptTag } from "../../lib/security/json-script";
 import { SectionShell } from "../shared/SectionShell";
@@ -21,6 +26,12 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
   const assetHref = `/${locale}/ressources/${entry.slug}/asset`;
   const canonicalPath = `/${locale}/ressources/${entry.slug}`;
   const canonicalUrl = `${PRAEDIXA_BASE_URL}${canonicalPath}`;
+  const relatedResources = getRelatedSerpResources(entry.slug, 3);
+  const schemaType = getSerpResourceSchemaType(entry.slug);
+  const primaryCtaLabel =
+    locale === "fr"
+      ? getSerpResourcePrimaryCta(entry.slug)
+      : "Request a pilot (closed loop)";
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -49,7 +60,7 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
 
   const articleJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": schemaType,
     headline: entry.title,
     description: entry.description,
     inLanguage: locale,
@@ -162,14 +173,39 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
           ))}
         </div>
 
+        {relatedResources.length > 0 ? (
+          <section className="mt-12 border-t border-border-subtle pt-8">
+            <h2 className="text-lg font-semibold tracking-tight text-ink">
+              {locale === "fr"
+                ? "Ressources associées"
+                : "Related resources"}
+            </h2>
+            <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-neutral-500">
+              {locale === "fr"
+                ? "Poursuivre avec les contenus les plus proches pour cadrer le signal, comparer les options et documenter la décision."
+                : "Continue with the closest resources to frame the signal, compare options, and document the decision."}
+            </p>
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
+              {relatedResources.map((resource) => (
+                <Link
+                  key={resource.slug}
+                  href={`/fr/ressources/${resource.slug}`}
+                  className="rounded-xl border border-border bg-white p-4 text-sm no-underline transition-colors hover:border-amber-300 hover:bg-amber-50/30"
+                >
+                  <p className="font-semibold text-ink">{resource.title}</p>
+                  <p className="mt-2 text-neutral-500">{resource.description}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         <div className="mt-12 border-t border-border-subtle pt-8">
           <Link
             href={trackedPilotHref}
             className="btn-primary-gradient inline-flex items-center rounded-lg px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-150 active:scale-[0.98]"
           >
-            {locale === "fr"
-              ? "Calculer le cout de l'inaction"
-              : "Request a pilot (closed loop)"}
+            {primaryCtaLabel}
           </Link>
         </div>
       </article>

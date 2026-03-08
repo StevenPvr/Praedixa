@@ -1,6 +1,24 @@
 # Content (Praedixa)
 
-Ce dossier contient le contenu "source of truth" (MDX + règles d’auto-liens) utilisé par la landing.
+Ce dossier contient le contenu "source of truth" utilise par la landing: articles MDX, maillage interne automatise et conventions editoriales.
+
+## Role dans le repo
+
+- Source de contenu pour `app-landing`.
+- Point d'entree pour les workflows SEO, GEO/AEO et blog.
+- Zone strictement editoriale: ne pas y deplacer de logique applicative.
+
+## Workflow courant
+
+Depuis la racine:
+
+```bash
+pnpm --filter @praedixa/landing lint
+pnpm --filter @praedixa/landing build
+pnpm --filter @praedixa/landing blog:audit-links
+```
+
+Verifier aussi les pages impactees avec les specs Playwright landing quand un article, un lien interne ou un template change.
 
 ## Structure
 

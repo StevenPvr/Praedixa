@@ -1,19 +1,37 @@
 import type { MetadataRoute } from "next";
 
+const PUBLIC_PATHS_ONLY = [
+  "/api/",
+  "/app/",
+  "/admin/",
+  "/fr/logo-preview",
+  "/en/logo-preview",
+] as const;
+
+const AI_CRAWLERS = [
+  "OAI-SearchBot",
+  "GPTBot",
+  "ChatGPT-User",
+  "ClaudeBot",
+  "Claude-SearchBot",
+  "Claude-User",
+  "PerplexityBot",
+  "Perplexity-User",
+] as const;
+
+function allowPublicSite(userAgent: string) {
+  return {
+    userAgent,
+    allow: "/",
+    disallow: [...PUBLIC_PATHS_ONLY],
+  };
+}
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      {
-        userAgent: "*",
-        allow: "/",
-        disallow: [
-          "/api/",
-          "/app/",
-          "/admin/",
-          "/fr/logo-preview",
-          "/en/logo-preview",
-        ],
-      },
+      allowPublicSite("*"),
+      ...AI_CRAWLERS.map((userAgent) => allowPublicSite(userAgent)),
       {
         userAgent: "AdsBot-Google",
         allow: "/",

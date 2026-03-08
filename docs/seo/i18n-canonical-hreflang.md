@@ -13,6 +13,11 @@ Every localized page pair must expose:
 - `en` -> EN URL
 - `x-default` -> `/fr/...` URL (French canonical variant)
 
+For blog posts:
+
+- if FR and EN share the same slug, pairing can rely on that slug;
+- if slugs differ, both files must share the same `translationKey` frontmatter so alternates and sitemap stay complete.
+
 ## Routing rules
 
 - `/` redirects to `/fr`.

@@ -22,6 +22,7 @@ Use TypeScript/ESM for frontend and Node services, Python 3.12 for `app-api`. Pr
 ## Development Guardrails
 Keep modules small and easy to review. As a default rule, avoid source files over 500 lines and functions over 50 lines; split logic into helpers or services before crossing those limits. Strict typing is mandatory: no silent `any`, no loose payload shapes, and no bypassing TypeScript, Pyright, or MyPy errors without a documented reason. Write code that follows KISS, DRY, and SOLID: prefer simple flows, extract duplicated business logic, and keep components or services focused on one responsibility. Put reusable domain logic in `packages/shared-types` or service modules, not page components.
 Each time a development mistake causes a bug, add one short prevention rule to this `AGENTS.md` so the same error is less likely to happen again.
+After every code change, update the documentation in the affected directories and files within the same change so the distributed doc stays current with the codebase.
 After deleting or renaming Next.js routes or pages in `app-landing`, clear `.next` before restarting Turbopack so the dev cache cannot crash on stale task data.
 Before adding non-standard React DOM props, verify they are supported by typed HTML attributes or pass them explicitly as intentional lowercase custom attributes.
 For Safari/WebKit media bugs, validate real playback state in WebKit before assuming DOM autoplay attributes are sufficient.

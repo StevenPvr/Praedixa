@@ -175,6 +175,11 @@ function parseFrontmatter(sourcePath: string, source: string): BlogPost {
     date,
     dateIso: iso,
     rssVersion: rssVersion ?? 1,
+    translationKey: resolveOptionalString(
+      frontmatter.translationKey,
+      "translationKey",
+      sourcePath,
+    ),
     tags: resolveStringArray(frontmatter.tags, "tags", sourcePath, { required: true }),
     draft: resolveBoolean(frontmatter.draft, "draft", sourcePath),
     canonical: resolveOptionalString(frontmatter.canonical, "canonical", sourcePath),
@@ -403,15 +408,17 @@ export function getBlogSiblingPosts(
 }
 
 export function getBlogPostAlternateLocales(
-  slug: string,
+  post: BlogPost,
   options?: { includeDrafts?: boolean },
 ): Partial<Record<Locale, BlogPost>> {
   const alternates: Partial<Record<Locale, BlogPost>> = {};
+  const visiblePosts = filterVisibility(getAllPostsFromStore(), options?.includeDrafts);
+  const pairedPosts = post.translationKey
+    ? visiblePosts.filter((candidate) => candidate.translationKey === post.translationKey)
+    : visiblePosts.filter((candidate) => candidate.slug === post.slug);
 
   for (const locale of locales) {
-    const candidate = getBlogPostBySlug(locale, slug, {
-      includeDrafts: options?.includeDrafts,
-    });
+    const candidate = pairedPosts.find((entry) => entry.locale === locale);
     if (candidate) {
       alternates[locale] = candidate;
     }

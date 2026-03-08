@@ -38,6 +38,30 @@ export function BlogPostPage({
       : post.image
         ? `${PRAEDIXA_BASE_URL}${post.image.startsWith("/") ? post.image : `/${post.image}`}`
         : `${PRAEDIXA_BASE_URL}/og-image.png`;
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Praedixa",
+        item: `${PRAEDIXA_BASE_URL}/${locale}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Blog",
+        item: `${PRAEDIXA_BASE_URL}${blogIndexPath}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: post.title,
+        item: canonicalUrl,
+      },
+    ],
+  };
 
   const blogPostingJsonLd = {
     "@context": "https://schema.org",
@@ -67,6 +91,13 @@ export function BlogPostPage({
   return (
     <SectionShell className="py-16 md:py-24">
       <article className="mx-auto max-w-3xl">
+        <script
+          id={`praedixa-blog-breadcrumb-${post.slug}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: serializeJsonForScriptTag(breadcrumbJsonLd),
+          }}
+        />
         <script
           id={`praedixa-blogposting-${post.slug}`}
           type="application/ld+json"

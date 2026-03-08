@@ -2,11 +2,32 @@
 
 Ce dossier contient les articles MDX publiés sur `/{locale}/blog`.
 
+## Role dans le repo
+
+- Les fichiers ici alimentent le blog de `app-landing`.
+- Le slug provient du nom de fichier.
+- Les liens internes automatiques s'appuient sur `content/internal-links.json`.
+
+## Workflow de contribution
+
+1. Creer ou modifier un fichier `.mdx` dans ce dossier.
+2. Verifier le frontmatter et les liens internes.
+3. Relancer les checks landing depuis la racine:
+
+```bash
+pnpm --filter @praedixa/landing lint
+pnpm --filter @praedixa/landing build
+pnpm --filter @praedixa/landing blog:audit-links
+```
+
+4. Si le rendu ou la navigation changent, verifier aussi `pnpm test:e2e:landing`.
+
 ## 1) Convention de fichier
 
 - Format: `kebab-case.mdx`
 - Exemple: `planification-effectifs-retail.mdx`
 - Le nom du fichier devient le `slug` d'URL.
+- Si un article existe en FR et EN avec des slugs differents, definir le meme `translationKey` dans les deux fichiers pour conserver les `hreflang` et alternates.
 
 ## 2) Frontmatter obligatoire
 
@@ -24,6 +45,7 @@ readingTime: 6 # optionnel, calcule automatiquement sinon
 lang: "fr" # optionnel: fr | en (defaut: fr)
 disableAutoLinks: false # optionnel
 rssVersion: 1 # optionnel, incrementer pour forcer une republication RSS sans changer l'URL
+translationKey: "retail-workforce-planning-guide" # optionnel mais requis si FR/EN n'utilisent pas le meme slug
 ---
 ```
 

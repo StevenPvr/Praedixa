@@ -9,6 +9,27 @@ Interface d'administration reservee a l'equipe Praedixa. Gestion multi-tenant de
 
 ---
 
+## Documentation locale
+
+Pour comprendre rapidement le sous-arbre, lire aussi les README locaux. Sur l'etat courant des dossiers, ces README distribues font foi quand ils divergent d'un inventaire plus ancien plus bas dans ce fichier.
+
+| Zone | README |
+| --- | --- |
+| App Router | `app/README.md` |
+| Console admin | `app/(admin)/README.md` |
+| Workspace client | `app/(admin)/clients/README.md` |
+| Pages publiques | `app/(auth)/README.md` |
+| Route handlers auth | `app/auth/README.md` |
+| BFF/API routes | `app/api/README.md` |
+| Composants | `components/README.md` |
+| Hooks | `hooks/README.md` |
+| Librairies | `lib/README.md` |
+| Client API admin | `lib/api/README.md` |
+| Auth / permissions | `lib/auth/README.md` |
+| Securite | `lib/security/README.md` |
+
+---
+
 ## Demarrage rapide
 
 ```bash
