@@ -21,8 +21,8 @@ export async function generateMetadata({
     title: locale === "fr" ? "Praedixa | Contact" : "Praedixa | Contact",
     description:
       locale === "fr"
-        ? "Demandez l’audit historique (gratuit) ou échangez sur vos arbitrages de couverture multi-sites."
-        : "Request the free historical audit or discuss your multi-site coverage trade-offs.",
+        ? "Demandez un diagnostic ROI gratuit ou échangez sur la façon de réunir vos données RH, finance, opérations et supply chain."
+        : "Request the free ROI diagnostic or discuss how to bring your HR, finance, operations, and supply chain data together.",
   });
 }
 

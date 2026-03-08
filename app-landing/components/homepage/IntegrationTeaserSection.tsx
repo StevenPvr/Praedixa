@@ -13,10 +13,12 @@ export function IntegrationTeaserSection({ locale }: IntegrationTeaserSectionPro
   const isFr = locale === "fr";
   const points = isFr
     ? [
-        "Lecture seule via exports/API pour démarrer",
-        "Données agrégées au niveau équipe/site",
-        "RBAC et chiffrement en transit/au repos",
-        "Overlay au-dessus des outils existants",
+        "Connexion légère via exports et API existants",
+        "Lecture seule pour démarrer",
+        "RH, finance, opérations et supply chain dans une même base",
+        "Accès contrôlés, chiffrement et journalisation",
+        "Entreprise française, incubée à Euratechnologies",
+        "Données hébergées en France sur Scaleway",
       ]
     : [
         "Read-only start through exports/APIs",
@@ -26,14 +28,16 @@ export function IntegrationTeaserSection({ locale }: IntegrationTeaserSectionPro
       ];
 
   return (
-    <SectionShell id="integration-data" className="bg-[linear-gradient(180deg,var(--warm-bg-muted)_0%,var(--warm-bg-panel)_100%)] py-16 md:py-20">
+    <SectionShell id="integration-data" className="bg-[linear-gradient(180deg,var(--warm-bg-muted)_0%,var(--warm-bg-panel)_100%)]">
       <Kicker>{isFr ? "Intégration & données" : "Integration and data"}</Kicker>
       <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-ink md:text-5xl">
-        {isFr ? "Pas de remplacement outil pour démarrer" : "No tool replacement required to start"}
+        {isFr
+          ? "Réunir vos données sans remplacer vos outils."
+          : "Your data is already there. Praedixa brings it together."}
       </h2>
       <p className="mt-4 max-w-[66ch] text-sm leading-relaxed text-neutral-600 md:text-base">
         {isFr
-          ? "Praedixa s'intègre en lecture seule, avec des garde-fous explicites dès le cadrage."
+          ? "Praedixa part de l'existant, en lecture seule, pour créer une base commune entre RH, finance, opérations et supply chain. Les données restent hébergées en France sur Scaleway, avec un ancrage français assumé."
           : "Praedixa integrates in read-only mode with explicit guardrails from day one."}
       </p>
 
@@ -52,7 +56,7 @@ export function IntegrationTeaserSection({ locale }: IntegrationTeaserSectionPro
         href={getLocalizedPath(locale, "integrationData")}
         className="mt-6 inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-colors duration-200 hover:bg-neutral-50"
       >
-        {isFr ? "Voir les détails d'intégration" : "View integration details"}
+        {isFr ? "Voir les sources de données compatibles" : "View integration details"}
         <ArrowRight size={14} weight="bold" />
       </Link>
     </SectionShell>

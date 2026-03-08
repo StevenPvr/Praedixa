@@ -183,15 +183,14 @@ async def initiate_erasure(
     db: AsyncSession,
 ) -> ErasureRequest:
     """Create an erasure request for an organization."""
-    cleaned_slug = org_slug.strip()
-    if not cleaned_slug or len(cleaned_slug) > _MAX_SLUG_LENGTH:
-        raise ConflictError("Invalid organization slug")
+    del org_slug
+    canonical_slug = await _get_canonical_org_slug(db, org_id)
 
     await _ensure_no_active_request(db, org_id)
 
     request_row = RgpdErasureRequest(
         organization_id=org_id,
-        org_slug=cleaned_slug,
+        org_slug=canonical_slug,
         initiated_by=initiated_by,
         status=ErasureStatus.PENDING_APPROVAL,
     )
@@ -558,6 +557,25 @@ async def _ensure_no_active_request(db: AsyncSession, org_id: uuid.UUID) -> None
     if (result.scalar_one() or 0) > 0:
         msg = "An erasure request is already in progress"
         raise ConflictError(msg)
+
+
+async def _get_canonical_org_slug(
+    db: AsyncSession,
+    org_id: uuid.UUID,
+) -> str:
+    """Load the canonical slug from Organizations for destructive RGPD steps."""
+    result = await db.execute(
+        select(Organization.slug).where(Organization.id == org_id)
+    )
+    slug = result.scalar_one_or_none()
+    if slug is None:
+        raise NotFoundError("Organization", str(org_id))
+
+    cleaned_slug = slug.strip()
+    if not cleaned_slug or len(cleaned_slug) > _MAX_SLUG_LENGTH:
+        raise ConflictError("Invalid organization slug")
+
+    return cleaned_slug
 
 
 async def _load_request_row(

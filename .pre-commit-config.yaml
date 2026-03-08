@@ -21,7 +21,7 @@ repos:
         stages: [pre-commit]
       - id: check-added-large-files
         args: ["--maxkb=500"]
-        exclude: "^app-landing/public/dashboard-preview(-(?:1280|1920))?\\.(mp4|webm)$|^app-landing/public/dashboard-poster\\.jpg$"
+        exclude: "^app-landing/public/dashboard-preview(-(?:1280|1920))?\\.(mp4|webm)$|^app-landing/public/dashboard-poster\\.jpg$|^app-landing/public/hero-video/hero-[a-z0-9-]+\\.(mp4|webm|jpg)$"
         stages: [pre-commit]
 
   - repo: local

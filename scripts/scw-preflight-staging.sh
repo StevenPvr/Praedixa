@@ -218,19 +218,38 @@ check_landing_container() {
   if printf '%s' "$env_json" | jq -e '.environment_variables | has("CONTACT_API_BASE_URL")' >/dev/null; then
     ok "${name}: env CONTACT_API_BASE_URL configured"
   else
-    warn "${name}: env CONTACT_API_BASE_URL missing (contact form persistence disabled until configured)"
+    fail "${name}: env CONTACT_API_BASE_URL missing"
   fi
 
   if printf '%s' "$env_json" | jq -e '.secret_environment_variables[]? | select(.key == "CONTACT_API_INGEST_TOKEN")' >/dev/null; then
     ok "${name}: secret CONTACT_API_INGEST_TOKEN configured"
   else
-    warn "${name}: secret CONTACT_API_INGEST_TOKEN missing (contact form persistence disabled until configured)"
+    fail "${name}: secret CONTACT_API_INGEST_TOKEN missing"
   fi
 
   if printf '%s' "$env_json" | jq -e '.secret_environment_variables[]? | select(.key == "RESEND_API_KEY")' >/dev/null; then
     ok "${name}: secret RESEND_API_KEY configured"
   else
-    warn "${name}: secret RESEND_API_KEY missing (email forms disabled until configured)"
+    fail "${name}: secret RESEND_API_KEY missing"
+  fi
+
+  if printf '%s' "$env_json" | jq -e '.secret_environment_variables[]? | select(.key == "RATE_LIMIT_STORAGE_URI")' >/dev/null; then
+    ok "${name}: secret RATE_LIMIT_STORAGE_URI configured"
+  else
+    fail "${name}: secret RATE_LIMIT_STORAGE_URI missing"
+  fi
+
+  if printf '%s' "$env_json" | jq -e '.secret_environment_variables[]? | select(.key == "CONTACT_FORM_CHALLENGE_SECRET")' >/dev/null; then
+    ok "${name}: secret CONTACT_FORM_CHALLENGE_SECRET configured"
+  else
+    fail "${name}: secret CONTACT_FORM_CHALLENGE_SECRET missing"
+  fi
+
+  trust_proxy="$(printf '%s' "$env_json" | jq -r '.environment_variables.LANDING_TRUST_PROXY_IP_HEADERS // ""')"
+  if [ "$trust_proxy" = "0" ] || [ "$trust_proxy" = "1" ]; then
+    ok "${name}: LANDING_TRUST_PROXY_IP_HEADERS=${trust_proxy}"
+  else
+    fail "${name}: LANDING_TRUST_PROXY_IP_HEADERS must be 0 or 1 (current: ${trust_proxy:-missing})"
   fi
 }
 
@@ -310,7 +329,9 @@ echo ""
 echo "Staging preflight passed with ${WARN_COUNT} warning(s)."
 echo "No deployment executed."
 echo "Next step when ready:"
-echo "  pnpm run scw:deploy:landing:staging"
+echo "  pnpm release:build -- --service landing --ref <git-ref> --tag <tag> --registry-prefix <registry>"
+echo "  pnpm release:manifest:create -- --ref <git-ref> --output <manifest> --image \"landing=<registry-image@sha256>\""
+echo "  pnpm release:deploy -- --manifest <manifest> --env staging"
 echo "  pnpm run scw:deploy:api:staging"
 echo "  pnpm run scw:deploy:webapp:staging"
 echo "  pnpm run scw:deploy:admin:staging"

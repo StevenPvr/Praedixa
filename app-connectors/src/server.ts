@@ -3,17 +3,24 @@ import { randomUUID } from "node:crypto";
 
 import { loadConfig } from "./config.js";
 import { failure } from "./response.js";
-import { compileRoutes, matchRoute } from "./router.js";
+import { RouteMatchError, compileRoutes, matchRoute } from "./router.js";
 import { routes } from "./routes.js";
 import { redactSensitive, safeEqualSecret } from "./security.js";
-import type { AppConfig, HttpMethod, RouteContext } from "./types.js";
+import type {
+  AppConfig,
+  AuthenticatedServicePrincipal,
+  HttpMethod,
+  RouteContext,
+  ServiceTokenConfig,
+} from "./types.js";
 
 const compiledRoutes = compileRoutes(routes);
 export const CORS_ALLOWED_METHODS = "GET,POST,PATCH,PUT,DELETE,OPTIONS";
 export const CORS_ALLOWED_HEADERS =
-  "Authorization,Content-Type,X-Request-ID,Accept,Accept-Language";
+  "Authorization,Content-Type,Idempotency-Key,X-Actor-User-ID,X-Request-ID,Accept,Accept-Language,X-Praedixa-Key-Id,X-Praedixa-Timestamp,X-Praedixa-Signature";
 
 export const SECURITY_HEADERS = {
+  "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
   "Referrer-Policy": "no-referrer",
@@ -58,17 +65,12 @@ function isHttpOrigin(origin: string): boolean {
 export function resolveCorsHeaders(
   requestOrigin: string | null,
   allowedOrigins: readonly string[],
-  nodeEnv: AppConfig["nodeEnv"] = "production",
 ): Record<string, string> {
   if (requestOrigin == null) {
     return {};
   }
 
-  const allowlisted = allowedOrigins.includes(requestOrigin);
-  const allowDevOrigin =
-    nodeEnv === "development" && isHttpOrigin(requestOrigin);
-
-  if (!allowlisted && !allowDevOrigin) {
+  if (!allowedOrigins.includes(requestOrigin) || !isHttpOrigin(requestOrigin)) {
     return {};
   }
 
@@ -141,8 +143,24 @@ function logSecurityEvent(
   process.stderr.write(`[connectors][security] ${JSON.stringify(envelope)}\n`);
 }
 
-async function readBody(request: IncomingMessage): Promise<unknown> {
-  return await new Promise<unknown>((resolve, reject) => {
+function getClientIp(request: IncomingMessage): string | null {
+  const cfConnectingIp = request.headers["cf-connecting-ip"];
+  if (typeof cfConnectingIp === "string" && cfConnectingIp.trim().length > 0) {
+    return cfConnectingIp.trim();
+  }
+
+  const forwardedFor = request.headers["x-forwarded-for"];
+  if (typeof forwardedFor === "string" && forwardedFor.trim().length > 0) {
+    return forwardedFor.split(",")[0]?.trim() ?? null;
+  }
+
+  return request.socket.remoteAddress ?? null;
+}
+
+async function readBody(
+  request: IncomingMessage,
+): Promise<{ parsed: unknown; rawBody: string | null }> {
+  return await new Promise<{ parsed: unknown; rawBody: string | null }>((resolve, reject) => {
     const chunks: Buffer[] = [];
     let size = 0;
     let settled = false;
@@ -155,7 +173,7 @@ async function readBody(request: IncomingMessage): Promise<unknown> {
       reject(error);
     }
 
-    function safeResolve(payload: unknown): void {
+    function safeResolve(payload: { parsed: unknown; rawBody: string | null }): void {
       if (settled) {
         return;
       }
@@ -180,17 +198,17 @@ async function readBody(request: IncomingMessage): Promise<unknown> {
     });
     request.on("end", () => {
       if (chunks.length === 0) {
-        safeResolve(null);
+        safeResolve({ parsed: null, rawBody: null });
         return;
       }
       const text = Buffer.concat(chunks).toString("utf8");
       try {
-        safeResolve(JSON.parse(text));
+        safeResolve({ parsed: JSON.parse(text), rawBody: text });
       } catch {
         safeReject(new BodyReadError("INVALID_JSON", "Request body must be valid JSON"));
       }
     });
-    request.on("error", () => safeResolve(null));
+    request.on("error", () => safeResolve({ parsed: null, rawBody: null }));
   });
 }
 
@@ -217,21 +235,51 @@ function parseBearerToken(authorization: string | undefined): string | null {
     return null;
   }
   const [scheme, ...rest] = authorization.trim().split(/\s+/);
-  if (scheme !== "Bearer" || rest.length !== 1) {
+  if (scheme?.toLowerCase() !== "bearer" || rest.length !== 1) {
     return null;
   }
   return rest[0] ?? null;
+}
+
+export function authenticateServiceToken(
+  serviceTokens: readonly ServiceTokenConfig[],
+  authorization: string | undefined,
+): AuthenticatedServicePrincipal | null {
+  const token = parseBearerToken(authorization);
+  let matchedPrincipal: AuthenticatedServicePrincipal | null = null;
+
+  for (const serviceToken of serviceTokens) {
+    if (safeEqualSecret(serviceToken.token, token)) {
+      matchedPrincipal = {
+        name: serviceToken.name,
+        allowedOrgs: serviceToken.allowedOrgs,
+      };
+    }
+  }
+
+  return matchedPrincipal;
+}
+
+export function canAccessOrganization(
+  principal: AuthenticatedServicePrincipal,
+  organizationId: string | undefined,
+): boolean {
+  if (organizationId == null || organizationId.length === 0) {
+    return true;
+  }
+
+  return principal.allowedOrgs.includes(organizationId);
 }
 
 export function createAppServer(config: AppConfig) {
   return createServer(async (request, response) => {
     const requestId =
       (request.headers["x-request-id"] as string | undefined) ?? randomUUID();
+    const clientIp = getClientIp(request);
     const requestOrigin = normalizeOrigin(request.headers.origin);
     const corsHeaders = resolveCorsHeaders(
       requestOrigin,
       config.corsOrigins,
-      config.nodeEnv,
     );
 
     if (request.method?.toUpperCase() === "OPTIONS") {
@@ -257,7 +305,36 @@ export function createAppServer(config: AppConfig) {
     }
 
     const requestUrl = new URL(request.url ?? "/", "http://localhost");
-    const matched = matchRoute(compiledRoutes, method, requestUrl.pathname);
+    let matched: ReturnType<typeof matchRoute>;
+    try {
+      matched = matchRoute(compiledRoutes, method, requestUrl.pathname);
+    } catch (error) {
+      if (error instanceof RouteMatchError) {
+        const result = failure(
+          "INVALID_PATH",
+          error.message,
+          requestId,
+          400,
+        );
+        writeJson(response, result.statusCode, result.payload, corsHeaders);
+        return;
+      }
+
+      logSecurityEvent("connectors.route.match_error", requestId, {
+        path: requestUrl.pathname,
+        method,
+        clientIp,
+      });
+      const result = failure(
+        "INTERNAL_ERROR",
+        "Unexpected connector runtime error",
+        requestId,
+        500,
+      );
+      writeJson(response, result.statusCode, result.payload, corsHeaders);
+      return;
+    }
+
     if (matched == null) {
       const result = failure(
         "NOT_FOUND",
@@ -286,13 +363,18 @@ export function createAppServer(config: AppConfig) {
       return;
     }
 
+    let principal: AuthenticatedServicePrincipal | null = null;
     if (matched.route.authRequired) {
-      const token = parseBearerToken(request.headers.authorization);
-      if (!safeEqualSecret(config.internalToken, token)) {
+      principal = authenticateServiceToken(
+        config.serviceTokens,
+        request.headers.authorization,
+      );
+      if (principal == null) {
         logSecurityEvent("connectors.auth.failed", requestId, {
           path: requestUrl.pathname,
           method,
           origin: requestOrigin,
+          clientIp,
         });
         const result = failure(
           "UNAUTHORIZED",
@@ -303,12 +385,35 @@ export function createAppServer(config: AppConfig) {
         writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
+
+      const organizationId = matched.params.orgId;
+      if (!canAccessOrganization(principal, organizationId)) {
+        logSecurityEvent("connectors.authz.failed", requestId, {
+          path: requestUrl.pathname,
+          method,
+          origin: requestOrigin,
+          clientIp,
+          organizationId,
+          principal: principal.name,
+        });
+        const result = failure(
+          "FORBIDDEN",
+          "Service token is not allowed to access this organization",
+          requestId,
+          403,
+        );
+        writeJson(response, result.statusCode, result.payload, corsHeaders);
+        return;
+      }
     }
 
     let body: unknown = null;
+    let rawBody: string | null = null;
     if (BODY_METHODS.includes(method) && incomingHasBody) {
       try {
-        body = await readBody(request);
+        const parsedBody = await readBody(request);
+        body = parsedBody.parsed;
+        rawBody = parsedBody.rawBody;
       } catch (error) {
         if (error instanceof BodyReadError && error.code === "PAYLOAD_TOO_LARGE") {
           const result = failure(
@@ -348,6 +453,10 @@ export function createAppServer(config: AppConfig) {
       requestId,
       params: matched.params,
       body,
+      rawBody,
+      clientIp,
+      headers: request.headers,
+      principal,
     };
 
     try {
@@ -357,6 +466,8 @@ export function createAppServer(config: AppConfig) {
       logSecurityEvent("connectors.route.error", requestId, {
         path: requestUrl.pathname,
         method,
+        clientIp,
+        principal: principal?.name ?? null,
       });
       const result = failure(
         "INTERNAL_ERROR",
@@ -371,10 +482,10 @@ export function createAppServer(config: AppConfig) {
 
 export function startServer(config = loadConfig(process.env)) {
   const server = createAppServer(config);
-  server.listen(config.port, () => {
+  server.listen(config.port, config.host, () => {
     // eslint-disable-next-line no-console
     console.log(
-      `[connectors] listening on :${config.port} (${config.nodeEnv})`,
+      `[connectors] listening on ${config.host}:${config.port} (${config.nodeEnv})`,
     );
   });
   return server;

@@ -11,5 +11,6 @@
   "allow_reprocess": false,
   "force_rebuild_on_start": false,
   "alert_webhook_url": null,
+  "alert_webhook_allowed_hosts": [],
   "alert_timeout_seconds": 10
 }

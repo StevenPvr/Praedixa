@@ -5,6 +5,15 @@ import type {
 } from "./api/responses";
 
 const TEST_BASE_URL = "http://localhost:8000";
+const isProduction = process.env.NODE_ENV === "production";
+
+function isLoopbackHostname(hostname: string): boolean {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]"
+  );
+}
 
 function resolveApiBaseUrl(): string {
   const configuredBaseUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -32,6 +41,20 @@ function resolveApiBaseUrl(): string {
     throw new Error(
       `NEXT_PUBLIC_API_URL must use http or https, received "${parsedUrl.protocol}".`,
     );
+  }
+
+  if (parsedUrl.protocol === "http:") {
+    if (isProduction) {
+      throw new Error(
+        `NEXT_PUBLIC_API_URL must use https in production, received "${configuredBaseUrl}".`,
+      );
+    }
+
+    if (!isLoopbackHostname(parsedUrl.hostname)) {
+      throw new Error(
+        `NEXT_PUBLIC_API_URL must use https or a loopback http URL in development, received "${configuredBaseUrl}".`,
+      );
+    }
   }
 
   return configuredBaseUrl.replace(/\/+$/, "");

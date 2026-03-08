@@ -77,6 +77,34 @@ describe("auth rate limiting", () => {
     expect(second.allowed).toBe(false);
   });
 
+  it("ignores x-real-ip by default when proxy trust is disabled", async () => {
+    const first = await consumeRateLimit(
+      createRequest({
+        "x-real-ip": "203.0.113.10",
+        "user-agent": "agent-b",
+      }),
+      {
+        scope: "auth:login",
+        max: 1,
+        windowMs: 60_000,
+      },
+    );
+    const second = await consumeRateLimit(
+      createRequest({
+        "x-real-ip": "203.0.113.11",
+        "user-agent": "agent-b",
+      }),
+      {
+        scope: "auth:login",
+        max: 1,
+        windowMs: 60_000,
+      },
+    );
+
+    expect(first.allowed).toBe(true);
+    expect(second.allowed).toBe(false);
+  });
+
   it("trusts x-forwarded-for when explicitly enabled", async () => {
     vi.stubEnv("AUTH_TRUST_X_FORWARDED_FOR", "1");
 
@@ -90,6 +118,30 @@ describe("auth rate limiting", () => {
     );
     const second = await consumeRateLimit(
       createRequest({ "x-forwarded-for": "203.0.113.11" }),
+      {
+        scope: "auth:login",
+        max: 1,
+        windowMs: 60_000,
+      },
+    );
+
+    expect(first.allowed).toBe(true);
+    expect(second.allowed).toBe(true);
+  });
+
+  it("trusts x-real-ip when explicitly enabled", async () => {
+    vi.stubEnv("AUTH_TRUST_X_FORWARDED_FOR", "1");
+
+    const first = await consumeRateLimit(
+      createRequest({ "x-real-ip": "203.0.113.10" }),
+      {
+        scope: "auth:login",
+        max: 1,
+        windowMs: 60_000,
+      },
+    );
+    const second = await consumeRateLimit(
+      createRequest({ "x-real-ip": "203.0.113.11" }),
       {
         scope: "auth:login",
         max: 1,
@@ -128,5 +180,37 @@ describe("auth rate limiting", () => {
     expect(sessionAFirst.allowed).toBe(true);
     expect(sessionBFirst.allowed).toBe(true);
     expect(sessionASecond.allowed).toBe(false);
+  });
+
+  it("uses a richer fallback fingerprint than user-agent alone when proxy trust is disabled", async () => {
+    const first = await consumeRateLimit(
+      createRequest({
+        "user-agent": "same-agent",
+        "accept-language": "fr-FR,fr;q=0.9",
+        accept: "application/json",
+        "sec-ch-ua": '"Chromium";v="122"',
+      }),
+      {
+        scope: "auth:login",
+        max: 1,
+        windowMs: 60_000,
+      },
+    );
+    const second = await consumeRateLimit(
+      createRequest({
+        "user-agent": "same-agent",
+        "accept-language": "en-US,en;q=0.9",
+        accept: "application/json",
+        "sec-ch-ua": '"Chromium";v="122"',
+      }),
+      {
+        scope: "auth:login",
+        max: 1,
+        windowMs: 60_000,
+      },
+    );
+
+    expect(first.allowed).toBe(true);
+    expect(second.allowed).toBe(true);
   });
 });

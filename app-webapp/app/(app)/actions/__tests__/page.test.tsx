@@ -5,6 +5,7 @@ import ActionsPage from "../page";
 const mockUseApiGet = vi.fn();
 const mockUseApiGetPaginated = vi.fn();
 const mockMutate = vi.fn();
+const mockUseDecisionConfig = vi.fn();
 
 vi.mock("next/navigation", () =>
   globalThis.__mocks.createNextNavigationMocks({ pathname: "/actions" }),
@@ -20,6 +21,10 @@ vi.mock("@/hooks/use-api", () => ({
     data: null,
     reset: vi.fn(),
   }),
+}));
+
+vi.mock("@/hooks/use-decision-config", () => ({
+  useDecisionConfig: (...args: unknown[]) => mockUseDecisionConfig(...args),
 }));
 
 vi.mock("@praedixa/ui", () => globalThis.__mocks.createUiMocks());
@@ -133,6 +138,26 @@ function setupHooks(options?: {
     refetch: historyRefetch,
   });
 
+  mockUseDecisionConfig.mockReturnValue({
+    config: {
+      payload: {
+        horizons: [
+          {
+            id: "j7",
+            label: "J+7",
+            days: 7,
+            rank: 1,
+            active: true,
+            isDefault: true,
+          },
+        ],
+      },
+    },
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+  });
+
   return { alertsRefetch, historyRefetch };
 }
 
@@ -163,15 +188,12 @@ describe("ActionsPage", () => {
     expect(screen.getByText("Aucune alerte.")).toBeInTheDocument();
   });
 
-  it("keeps validate button disabled until an option is selected", () => {
+  it("preselects recommended option and enables validation", () => {
     render(<ActionsPage />);
 
     const validateButton = screen.getByRole("button", {
       name: "Valider la decision",
     });
-    expect(validateButton).toBeDisabled();
-
-    fireEvent.click(screen.getByRole("button", { name: /hs/i }));
     expect(validateButton).not.toBeDisabled();
   });
 
@@ -224,6 +246,7 @@ describe("ActionsPage", () => {
       "/api/v1/live/coverage-alerts?status=open&page_size=200",
     );
     expect(useApiGetUrls).toContain("/api/v1/live/decision-workspace/a1");
+    expect(mockUseDecisionConfig).toHaveBeenCalledWith(null);
 
     expect(mockUseApiGetPaginated).toHaveBeenCalledWith(
       "/api/v1/decisions?sort_by=created_at&sort_order=desc",

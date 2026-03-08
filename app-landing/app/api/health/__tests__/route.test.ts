@@ -1,61 +1,47 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/server", () => ({
   NextResponse: {
-    json: (body: unknown, init?: { status?: number }) => ({
+    json: (
+      body: unknown,
+      init?: { status?: number; headers?: Record<string, string> },
+    ) => ({
       status: init?.status ?? 200,
       body,
+      headers: init?.headers,
       json: () => Promise.resolve(body),
     }),
   },
 }));
 
 describe("GET /api/health", () => {
-  const originalEnv = process.env.RESEND_API_KEY;
-
   beforeEach(() => {
     vi.resetModules();
   });
 
-  afterEach(() => {
-    if (originalEnv !== undefined) {
-      process.env.RESEND_API_KEY = originalEnv;
-    } else {
-      delete process.env.RESEND_API_KEY;
-    }
-  });
-
-  it("should return 200 with status 'healthy' when RESEND_API_KEY is set", async () => {
-    process.env.RESEND_API_KEY = "re_test_key";
-    const { GET } = await import("../route");
-    const res = (await GET()) as unknown as {
-      status: number;
-      body: { status: string; timestamp: string };
-    };
-    expect(res.status).toBe(200);
-    expect(res.body.status).toBe("healthy");
-    expect(res.body.timestamp).toBeDefined();
-  });
-
-  it("should return 503 with status 'degraded' when RESEND_API_KEY is unset", async () => {
-    delete process.env.RESEND_API_KEY;
-    const { GET } = await import("../route");
-    const res = (await GET()) as unknown as {
-      status: number;
-      body: { status: string; timestamp: string };
-    };
-    expect(res.status).toBe(503);
-    expect(res.body.status).toBe("degraded");
-  });
-
   it("should include a valid ISO timestamp", async () => {
-    process.env.RESEND_API_KEY = "re_test_key";
     const { GET } = await import("../route");
     const res = (await GET()) as unknown as {
       status: number;
       body: { status: string; timestamp: string };
     };
     const date = new Date(res.body.timestamp);
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe("ok");
     expect(date.toISOString()).toBe(res.body.timestamp);
+  });
+
+  it("returns non-cacheable, non-indexable headers", async () => {
+    const { GET } = await import("../route");
+    const res = (await GET()) as unknown as {
+      status: number;
+      headers?: Record<string, string>;
+    };
+
+    expect(res.status).toBe(200);
+    expect(res.headers).toEqual({
+      "Cache-Control": "no-store",
+      "X-Robots-Tag": "noindex, nofollow",
+    });
   });
 });

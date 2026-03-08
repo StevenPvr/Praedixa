@@ -79,6 +79,14 @@ describe("useLatestForecasts", () => {
     );
   });
 
+  it("adds horizon_id when provided", () => {
+    renderHook(() => useLatestForecasts("human", "site_a", "j14"));
+    expect(mockUseApiGet).toHaveBeenCalledWith(
+      "/api/v1/live/forecasts/latest/daily?dimension=human&site_id=site_a&horizon_id=j14",
+      { pollInterval: 10000 },
+    );
+  });
+
   it("exposes both refetchRuns and refetchDaily aliases", () => {
     const { result } = renderHook(() => useLatestForecasts("human"));
     result.current.refetchRuns();

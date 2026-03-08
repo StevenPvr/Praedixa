@@ -25,6 +25,8 @@ export interface Dictionary {
     headline: string;
     headlineHighlight: string;
     subtitle: string;
+    manifestoLabel: string;
+    manifestoQuote: string;
     bullets: { metric: string; text: string }[];
     ctaPrimary: string;
     ctaSecondary: string;
@@ -43,35 +45,6 @@ export interface Dictionary {
     overlayBackCta: string;
     loadingLabel: string;
     liveBadge: string;
-  };
-
-  demo: {
-    title: string;
-    subtitle: string;
-    mockBanner: string;
-    backToLanding: string;
-    screenAriaLabel: string;
-    updatedAtLabel: string;
-    loading: string;
-    empty: string;
-    error: string;
-    retry: string;
-    openAction: string;
-    nav: {
-      dashboard: string;
-      forecasts: string;
-      actions: string;
-      datasets: string;
-      settings: string;
-    };
-    sections: {
-      kpis: string;
-      alerts: string;
-      forecastWindow: string;
-      decisions: string;
-      datasetsHealth: string;
-      governance: string;
-    };
   };
 
   problem: {

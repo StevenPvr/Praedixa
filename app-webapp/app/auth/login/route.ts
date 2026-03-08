@@ -7,10 +7,12 @@ import {
   createRandomToken,
   getOidcEnv,
   getTrustedOidcEndpoints,
+  isInsecureOidcEnvError,
   isMissingOidcEnvError,
   sanitizeNextPath,
   secureCookie,
 } from "@/lib/auth/oidc";
+import { resolveAuthAppOrigin } from "@/lib/auth/origin";
 import { consumeRateLimit } from "@/lib/auth/rate-limit";
 
 type RateLimitSnapshot = Awaited<ReturnType<typeof consumeRateLimit>>;
@@ -40,6 +42,13 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get("next"),
     "/dashboard",
   );
+  const fallbackOrigin = (() => {
+    try {
+      return resolveAuthAppOrigin(request);
+    } catch {
+      return request.nextUrl.origin;
+    }
+  })();
   const maxAttempts = 20;
   const rate = await consumeRateLimit(request, {
     scope: "auth:login",
@@ -47,7 +56,7 @@ export async function GET(request: NextRequest) {
     windowMs: 60_000,
   });
   if (!rate.allowed) {
-    const fallbackUrl = new URL("/login", request.nextUrl.origin);
+    const fallbackUrl = new URL("/login", fallbackOrigin);
     fallbackUrl.searchParams.set("error", "rate_limited");
     fallbackUrl.searchParams.set("next", next);
     const response = noStoreRedirect(fallbackUrl.toString());
@@ -56,6 +65,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const appOrigin = resolveAuthAppOrigin(request);
     const { issuerUrl, clientId, scope } = getOidcEnv();
     const { authorizationEndpoint } = await getTrustedOidcEndpoints(issuerUrl);
     const state = createRandomToken(32);
@@ -68,7 +78,7 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set("scope", scope);
     authUrl.searchParams.set(
       "redirect_uri",
-      `${request.nextUrl.origin}/auth/callback`,
+      `${appOrigin}/auth/callback`,
     );
     authUrl.searchParams.set("state", state);
     authUrl.searchParams.set("code_challenge", challenge);
@@ -106,12 +116,14 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    const fallbackUrl = new URL("/login", request.nextUrl.origin);
+    const fallbackUrl = new URL("/login", fallbackOrigin);
     fallbackUrl.searchParams.set(
       "error",
       isMissingOidcEnvError(error)
         ? "oidc_config_missing"
-        : "oidc_provider_untrusted",
+        : isInsecureOidcEnvError(error)
+          ? "oidc_config_insecure"
+          : "oidc_provider_untrusted",
     );
     fallbackUrl.searchParams.set("next", next);
     const response = noStoreRedirect(fallbackUrl.toString());

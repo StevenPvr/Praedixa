@@ -29,6 +29,11 @@ from app.core.ddl_validation import (
     validate_schema_name,
 )
 from app.core.exceptions import NotFoundError, PraedixaError
+from app.core.pagination import normalize_limit_offset
+from app.core.pipeline_config import (
+    sanitize_feature_pipeline_config,
+    sanitize_feature_rules_override,
+)
 from app.core.validation import sanitize_text
 
 if TYPE_CHECKING:
@@ -89,6 +94,7 @@ async def list_datasets(
 
     count_result = await session.execute(count_query)
     total = count_result.scalar_one() or 0
+    limit, offset = normalize_limit_offset(limit, offset)
 
     # Correlated subqueries for computed fields
     col_count_sq = (
@@ -222,6 +228,16 @@ async def create_dataset(
         msg = f"Maximum {settings.MAX_COLUMNS_PER_TABLE} columns per table exceeded"
         raise DDLValidationError(msg, field="columns")
 
+    validated_table_name = validate_identifier(table_name, field="table_name")
+    validated_temporal_index = validate_identifier(
+        temporal_index,
+        field="temporal_index",
+    )
+    validated_group_by = [
+        validate_identifier(value, field="group_by") for value in group_by
+    ]
+    validated_pipeline_config = sanitize_feature_pipeline_config(pipeline_config)
+
     # Resolve canonical org slug from DB (never trust request body values)
     org_slug = await get_canonical_org_slug(tenant, session)
 
@@ -234,10 +250,10 @@ async def create_dataset(
         organization_id=org_id,
         name=sanitized_name,
         schema_data=data_schema,
-        table_name=table_name,
-        temporal_index=temporal_index,
-        group_by=group_by,
-        pipeline_config=pipeline_config,
+        table_name=validated_table_name,
+        temporal_index=validated_temporal_index,
+        group_by=validated_group_by,
+        pipeline_config=validated_pipeline_config,
         status=DatasetStatus.PENDING,
     )
     session.add(dataset)
@@ -252,7 +268,9 @@ async def create_dataset(
             dtype=col_def["dtype"],
             role=col_def["role"],
             nullable=col_def.get("nullable", True),
-            rules_override=col_def.get("rules_override"),
+            rules_override=sanitize_feature_rules_override(
+                col_def.get("rules_override")
+            ),
             ordinal_position=col_def.get("ordinal_position", i),
         )
         session.add(col)
@@ -339,6 +357,7 @@ async def update_dataset_config(
 ) -> ClientDataset:
     """Update dataset pipeline config and record change history."""
     dataset = await get_dataset(dataset_id, tenant, session)
+    validated_pipeline_config = sanitize_feature_pipeline_config(pipeline_config)
 
     # Load current columns for snapshot
     columns = await get_dataset_columns(dataset_id, tenant, session)
@@ -359,7 +378,7 @@ async def update_dataset_config(
     session.add(history)
 
     # Update config
-    dataset.pipeline_config = pipeline_config
+    dataset.pipeline_config = validated_pipeline_config
     await session.flush()
 
     return dataset
@@ -408,6 +427,12 @@ async def get_dataset_data(
     data_schema = validate_schema_name(dataset.schema_data)
     table_name = validate_identifier(dataset.table_name, field="table_name")
     temporal_index = validate_identifier(dataset.temporal_index, field="temporal_index")
+    limit, offset = normalize_limit_offset(
+        limit,
+        offset,
+        default_limit=100,
+        max_limit=500,
+    )
 
     def _sync_query() -> tuple[list[dict[str, Any]], int, list[str]]:
         try:
@@ -482,6 +507,12 @@ async def get_features_data(
     raw_table_name = validate_identifier(dataset.table_name, field="table_name")
     table_name = get_transformed_table_name(raw_table_name)
     temporal_index = validate_identifier(dataset.temporal_index, field="temporal_index")
+    limit, offset = normalize_limit_offset(
+        limit,
+        offset,
+        default_limit=100,
+        max_limit=500,
+    )
 
     def _sync_query() -> tuple[list[dict[str, Any]], int, list[str]]:
         try:
@@ -551,6 +582,7 @@ async def get_ingestion_log(
         select(func.count(IngestionLog.id)).where(IngestionLog.dataset_id == dataset_id)
     )
     total = count_result.scalar_one() or 0
+    limit, offset = normalize_limit_offset(limit, offset)
 
     result = await session.execute(
         select(IngestionLog)
@@ -582,6 +614,7 @@ async def get_config_history(
         )
     )
     total = count_result.scalar_one() or 0
+    limit, offset = normalize_limit_offset(limit, offset)
 
     result = await session.execute(
         select(PipelineConfigHistory)
@@ -642,6 +675,7 @@ async def get_quality_reports(
         )
     )
     total = count_result.scalar_one() or 0
+    limit, offset = normalize_limit_offset(limit, offset)
 
     result = await session.execute(
         select(QualityReport)

@@ -33,6 +33,10 @@ from app.core.ddl_validation import (
     validate_schema_name,
     validate_table_name,
 )
+from app.core.pipeline_config import (
+    sanitize_feature_pipeline_config,
+    sanitize_feature_rules_override,
+)
 from app.models.data_catalog import ColumnRole
 from app.services.dataset_table_names import get_transformed_table_name
 
@@ -240,13 +244,14 @@ def resolve_transformed_columns(
     Returns list of (column_name, pg_type) tuples.
     """
     feature_cols: list[tuple[str, str]] = []
+    validated_config = sanitize_feature_pipeline_config(pipeline_config)
 
     # Extract pipeline defaults
-    lags = pipeline_config.get("lags", [1, 7, 30])
-    rolling_windows = pipeline_config.get("rolling_windows", [7])
-    normalize = pipeline_config.get("normalize", False)
-    standardize = pipeline_config.get("standardize", False)
-    minmax = pipeline_config.get("minmax", False)
+    lags = validated_config.get("lags", [1, 7, 30])
+    rolling_windows = validated_config.get("rolling_windows", [7])
+    normalize = validated_config.get("normalize", False)
+    standardize = validated_config.get("standardize", False)
+    minmax = validated_config.get("minmax", False)
 
     for col in columns:
         if col.role not in (ColumnRole.TARGET, ColumnRole.FEATURE):
@@ -254,7 +259,7 @@ def resolve_transformed_columns(
 
         col_name = col.name
         # Per-column overrides from rules_override
-        overrides = col.rules_override or {}
+        overrides = sanitize_feature_rules_override(col.rules_override) or {}
         col_lags = overrides.get("lags", lags)
         col_rolling = overrides.get("rolling_windows", rolling_windows)
         col_normalize = overrides.get("normalize", normalize)

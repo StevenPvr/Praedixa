@@ -12,12 +12,43 @@ import {
   sanitizeNextPath,
   secureCookie,
 } from "@/lib/auth/oidc";
+import {
+  consumeRateLimit,
+} from "@/lib/security/rate-limit";
+
+const LOGIN_RATE_LIMIT_MAX_ATTEMPTS = 8;
+const LOGIN_RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
+
+function resolveFallbackOrigin(request: NextRequest): string {
+  try {
+    return resolveAuthAppOrigin(request);
+  } catch {
+    return request.nextUrl.origin;
+  }
+}
 
 export async function GET(request: NextRequest) {
   const next = sanitizeNextPath(request.nextUrl.searchParams.get("next"), "/");
-  const appOrigin = resolveAuthAppOrigin(request);
+  const fallbackUrl = new URL("/login", resolveFallbackOrigin(request));
+  const rateLimit = await consumeRateLimit(request, {
+    scope: "auth-login",
+    max: LOGIN_RATE_LIMIT_MAX_ATTEMPTS,
+    windowMs: LOGIN_RATE_LIMIT_WINDOW_MS,
+  });
+
+  if (!rateLimit.allowed) {
+    fallbackUrl.searchParams.set("error", "rate_limited");
+    fallbackUrl.searchParams.set("next", next);
+    process.emitWarning(
+      `admin auth login rate limited (${rateLimit.retryAfterSeconds}s)`,
+    );
+    const response = NextResponse.redirect(fallbackUrl.toString());
+    response.headers.set("Retry-After", String(rateLimit.retryAfterSeconds));
+    return response;
+  }
 
   try {
+    const appOrigin = resolveAuthAppOrigin(request);
     const { issuerUrl, clientId, scope } = getOidcEnv();
     const { authorizationEndpoint } = await getTrustedOidcEndpoints(issuerUrl);
     const state = createRandomToken(32);
@@ -67,7 +98,6 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    const fallbackUrl = new URL("/login", appOrigin);
     fallbackUrl.searchParams.set(
       "error",
       isMissingOidcEnvError(error)

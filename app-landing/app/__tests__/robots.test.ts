@@ -21,6 +21,8 @@ describe("robots()", () => {
       result.rules as Array<{ userAgent: string; disallow: string[] }>
     ).find((r) => r.userAgent === "*");
     expect(wildcardRule!.disallow).toContain("/api/");
+    expect(wildcardRule!.disallow).toContain("/app/");
+    expect(wildcardRule!.disallow).toContain("/admin/");
     expect(wildcardRule!.disallow).not.toContain("/_next/");
     expect(wildcardRule!.disallow).toContain("/fr/logo-preview");
     expect(wildcardRule!.disallow).toContain("/en/logo-preview");

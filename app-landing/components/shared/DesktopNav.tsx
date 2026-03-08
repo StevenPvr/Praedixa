@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowUpRight, CaretDown } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
 import { getNavGroups } from "../../lib/nav-config";
@@ -11,6 +12,7 @@ interface DesktopNavProps {
 }
 
 export function DesktopNav({ locale }: DesktopNavProps) {
+  const pathname = usePathname();
   const navGroups = useMemo(() => getNavGroups(locale), [locale]);
   const [openKey, setOpenKey] = useState<string | null>(null);
   const rootRef = useRef<HTMLElement | null>(null);
@@ -29,6 +31,10 @@ export function DesktopNav({ locale }: DesktopNavProps) {
       setOpenKey(null);
     }, 90);
   };
+
+  useEffect(() => {
+    setOpenKey(null);
+  }, [pathname]);
 
   useEffect(() => {
     const onDocumentClick = (event: MouseEvent) => {
@@ -114,7 +120,10 @@ export function DesktopNav({ locale }: DesktopNavProps) {
                     clearCloseTimer();
                     setOpenKey(group.key);
                   }}
-                  onClick={() => setOpenKey((prev) => (prev === group.key ? null : group.key))}
+                  onClick={() => {
+                    clearCloseTimer();
+                    setOpenKey(isOpen ? null : group.key);
+                  }}
                 >
                   {group.label}
                   <CaretDown
@@ -154,7 +163,6 @@ export function DesktopNav({ locale }: DesktopNavProps) {
                         {menuMeta.ctaLabel && menuMeta.ctaHref ? (
                           <Link
                             href={menuMeta.ctaHref}
-                            onClick={() => setOpenKey(null)}
                             className="mt-4 inline-flex w-fit items-center gap-1 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold text-ink no-underline transition-all duration-200 [transition-timing-function:var(--ease-snappy)] hover:border-neutral-400 hover:bg-neutral-100 active:translate-y-[1px] active:scale-[0.98]"
                           >
                             {menuMeta.ctaLabel}
@@ -169,7 +177,6 @@ export function DesktopNav({ locale }: DesktopNavProps) {
                         <li key={item.href} className="m-0 h-full">
                           <Link
                             href={item.href}
-                            onClick={() => setOpenKey(null)}
                             className={`group flex h-full flex-col justify-between rounded-xl border px-3 py-3 no-underline transition-all duration-200 [transition-timing-function:var(--ease-snappy)] ${
                               item.primary
                                 ? "border-navy-200 bg-navy-50 text-ink hover:border-navy-300 hover:bg-navy-100"

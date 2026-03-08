@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockCookies = vi.fn();
 const mockVerifySession = vi.fn();
 const mockGetOidcEnv = vi.fn();
+const mockIsSessionExpired = vi.fn();
 
 let cookieValue: string | undefined;
 
@@ -12,6 +13,7 @@ vi.mock("next/headers", () => ({
 
 vi.mock("@/lib/auth/oidc", () => ({
   SESSION_COOKIE: "prx_web_sess",
+  isSessionExpired: (...args: unknown[]) => mockIsSessionExpired(...args),
   verifySession: (...args: unknown[]) => mockVerifySession(...args),
   getOidcEnv: (...args: unknown[]) => mockGetOidcEnv(...args),
 }));
@@ -27,6 +29,9 @@ function sessionFixture(role = "org_admin") {
     siteId: "site-1",
     accessTokenExp: 2000000000,
     issuedAt: 1900000000,
+    sessionExpiresAt: 2000003600,
+    accessTokenHash: "access-hash",
+    refreshTokenHash: "refresh-hash",
   };
 }
 
@@ -45,6 +50,7 @@ describe("auth server helpers (webapp)", () => {
     mockGetOidcEnv.mockReturnValue({
       sessionSecret: "test-session-secret",
     });
+    mockIsSessionExpired.mockReturnValue(false);
     mockVerifySession.mockResolvedValue(sessionFixture());
   });
 
@@ -70,6 +76,15 @@ describe("auth server helpers (webapp)", () => {
   it("returns null when verification throws", async () => {
     cookieValue = "signed-session";
     mockVerifySession.mockRejectedValueOnce(new Error("invalid signature"));
+
+    const session = await getSession();
+
+    expect(session).toBeNull();
+  });
+
+  it("returns null when the verified session is expired", async () => {
+    cookieValue = "signed-session";
+    mockIsSessionExpired.mockReturnValueOnce(true);
 
     const session = await getSession();
 

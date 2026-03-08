@@ -1,7 +1,8 @@
-import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomInt, timingSafeEqual } from "node:crypto";
+import { getClientIp } from "../api/pilot-application/rate-limit";
 
 export const DEFAULT_MIN_SOLVE_MS = 2_500;
-export const DEFAULT_MAX_AGE_MS = 1000 * 60 * 60 * 4;
+export const DEFAULT_MAX_AGE_MS = 1000 * 60 * 15;
 const CHALLENGE_VERSION = 1;
 const MAX_OPERAND = 12;
 
@@ -10,6 +11,7 @@ interface ChallengePayload {
   a: number;
   b: number;
   iat: number;
+  ctx?: string;
 }
 
 export interface ContactChallenge {
@@ -26,6 +28,7 @@ export type VerifyContactChallengeResult =
         | "unavailable"
         | "malformed"
         | "invalid-signature"
+        | "invalid-context"
         | "incorrect-answer"
         | "too-fast"
         | "expired";
@@ -34,12 +37,6 @@ export type VerifyContactChallengeResult =
 function resolveChallengeSecret(): string | null {
   const explicit = process.env.CONTACT_FORM_CHALLENGE_SECRET?.trim();
   if (explicit) return explicit;
-
-  const resendKey = process.env.RESEND_API_KEY?.trim();
-  if (resendKey) return `resend:${resendKey}`;
-
-  const ingestToken = process.env.CONTACT_API_INGEST_TOKEN?.trim();
-  if (ingestToken) return `ingest:${ingestToken}`;
 
   if (process.env.NODE_ENV !== "production") {
     return "praedixa-local-contact-challenge-secret";
@@ -108,7 +105,9 @@ function parsePayload(tokenPayload: string): ChallengePayload | null {
     payload.a < 0 ||
     payload.b < 0 ||
     payload.a > MAX_OPERAND ||
-    payload.b > MAX_OPERAND
+    payload.b > MAX_OPERAND ||
+    (payload.ctx !== undefined &&
+      (typeof payload.ctx !== "string" || payload.ctx.length === 0 || payload.ctx.length > 64))
   ) {
     return null;
   }
@@ -116,7 +115,20 @@ function parsePayload(tokenPayload: string): ChallengePayload | null {
   return payload;
 }
 
-export function createContactChallenge(nowMs = Date.now()): ContactChallenge | null {
+export function buildChallengeClientContext(request: Request): string {
+  const ip = getClientIp(request);
+  const userAgent = request.headers.get("user-agent")?.trim().slice(0, 200) ?? "";
+
+  return createHash("sha256")
+    .update(`${ip}|${userAgent}`, "utf8")
+    .digest("base64url")
+    .slice(0, 32);
+}
+
+export function createContactChallenge(
+  nowMs = Date.now(),
+  clientContext?: string | null,
+): ContactChallenge | null {
   const secret = resolveChallengeSecret();
   if (!secret) return null;
 
@@ -125,6 +137,7 @@ export function createContactChallenge(nowMs = Date.now()): ContactChallenge | n
     a: randomInt(0, MAX_OPERAND + 1),
     b: randomInt(0, MAX_OPERAND + 1),
     iat: nowMs,
+    ...(clientContext ? { ctx: clientContext } : {}),
   };
   const payloadPart = encodeBase64Url(JSON.stringify(payload));
   const signature = signPayload(payloadPart, secret);
@@ -139,12 +152,14 @@ export function createContactChallenge(nowMs = Date.now()): ContactChallenge | n
 export function verifyContactChallenge({
   challengeToken,
   captchaAnswer,
+  clientContext,
   nowMs = Date.now(),
   minSolveMs = DEFAULT_MIN_SOLVE_MS,
   maxAgeMs = DEFAULT_MAX_AGE_MS,
 }: {
   challengeToken: string;
   captchaAnswer: number;
+  clientContext?: string | null;
   nowMs?: number;
   minSolveMs?: number;
   maxAgeMs?: number;
@@ -164,6 +179,13 @@ export function verifyContactChallenge({
 
   const payload = parsePayload(payloadPart);
   if (!payload) return { valid: false, reason: "malformed" };
+
+  if (
+    payload.ctx &&
+    (!clientContext || payload.ctx !== clientContext)
+  ) {
+    return { valid: false, reason: "invalid-context" };
+  }
 
   if (captchaAnswer !== payload.a + payload.b) {
     return { valid: false, reason: "incorrect-answer" };

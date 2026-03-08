@@ -1,19 +1,29 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { routes } from "../routes.js";
 import { compileRoutes, matchRoute } from "../router.js";
 import {
   CORS_ALLOWED_HEADERS,
   CORS_ALLOWED_METHODS,
+  clearRateLimitBuckets,
+  consumeRateLimit,
   isJsonContentType,
   normalizeOrigin,
+  resolveClientIp,
+  resolveRateLimitPolicy,
   resolveCorsHeaders,
   SECURITY_HEADERS,
 } from "../server.js";
 
 describe("api transport and authorization guards", () => {
+  afterEach(() => {
+    clearRateLimitBuckets();
+  });
+
   it("keeps mandatory transport security headers enabled", () => {
     expect(SECURITY_HEADERS).toEqual({
+      "Content-Security-Policy":
+        "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
       "Referrer-Policy": "no-referrer",
@@ -87,6 +97,15 @@ describe("api transport and authorization guards", () => {
     expect(resolveCorsHeaders(null, ["http://localhost:3001"])).toEqual({});
   });
 
+  it("trusts forwarded client IPs only when proxy trust is explicit", () => {
+    expect(
+      resolveClientIp("203.0.113.10, 10.0.0.4", "10.0.0.4", false),
+    ).toBe("10.0.0.4");
+    expect(
+      resolveClientIp("203.0.113.10, 10.0.0.4", "10.0.0.4", true),
+    ).toBe("203.0.113.10");
+  });
+
   it("allows private LAN origins during development", () => {
     expect(
       resolveCorsHeaders("http://10.188.106.147:3002", [], "development"),
@@ -123,5 +142,81 @@ describe("api transport and authorization guards", () => {
     expect(isJsonContentType(["application/json"])).toBe(true);
     expect(isJsonContentType("text/plain")).toBe(false);
     expect(isJsonContentType(undefined)).toBe(false);
+  });
+
+  it("assigns stricter rate limits to public contact and admin mutations", () => {
+    const contactRoute = routes.find(
+      (entry) => entry.template === "/api/v1/public/contact-requests",
+    );
+    const unreadCountRoute = routes.find(
+      (entry) => entry.template === "/api/v1/conversations/unread-count",
+    );
+    const adminSuspendRoute = routes.find(
+      (entry) => entry.template === "/api/v1/admin/organizations/:orgId/suspend",
+    );
+    const healthRoute = routes.find((entry) => entry.template === "/api/v1/health");
+
+    expect(contactRoute).toBeDefined();
+    expect(unreadCountRoute).toBeDefined();
+    expect(adminSuspendRoute).toBeDefined();
+    expect(healthRoute).toBeDefined();
+
+    expect(
+      resolveRateLimitPolicy(contactRoute!),
+    ).toEqual({
+      maxRequests: 5,
+      scope: "ip",
+      windowMs: 600000,
+    });
+
+    expect(
+      resolveRateLimitPolicy(unreadCountRoute!),
+    ).toEqual({
+      maxRequests: 120,
+      scope: "principal",
+      windowMs: 60000,
+    });
+
+    expect(
+      resolveRateLimitPolicy(adminSuspendRoute!),
+    ).toEqual({
+      maxRequests: 30,
+      scope: "principal",
+      windowMs: 60000,
+    });
+
+    expect(
+      resolveRateLimitPolicy(
+        routes.find((entry) => entry.template === "/api/v1/admin/monitoring/platform")!,
+      ),
+    ).toEqual({
+      maxRequests: 120,
+      scope: "principal",
+      windowMs: 60000,
+    });
+
+    expect(resolveRateLimitPolicy(healthRoute!)).toBeNull();
+  });
+
+  it("blocks requests once a rate-limit bucket is exhausted", () => {
+    const policy = {
+      maxRequests: 2,
+      scope: "ip",
+      windowMs: 1000,
+    } as const;
+
+    expect(consumeRateLimit("contact:127.0.0.1", policy, 1000)).toMatchObject({
+      allowed: true,
+      remaining: 1,
+    });
+    expect(consumeRateLimit("contact:127.0.0.1", policy, 1500)).toMatchObject({
+      allowed: true,
+      remaining: 0,
+    });
+    expect(consumeRateLimit("contact:127.0.0.1", policy, 1800)).toMatchObject({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 1,
+    });
   });
 });

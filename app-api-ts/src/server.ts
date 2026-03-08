@@ -1,11 +1,18 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
 
-import { decodeJwtPayload, parseBearerToken } from "./auth.js";
+import { decodeJwtPayloadDetailed, parseBearerToken } from "./auth.js";
 import { failure } from "./response.js";
 import { compileRoutes, matchRoute } from "./router.js";
 import { routes } from "./routes.js";
-import type { AppConfig, HttpMethod, RouteContext } from "./types.js";
+import type {
+  AppConfig,
+  CompiledRoute,
+  HttpMethod,
+  RouteContext,
+  RouteRateLimit,
+  RouteResult,
+} from "./types.js";
 
 const compiledRoutes = compileRoutes(routes);
 export const CORS_ALLOWED_METHODS = "GET,POST,PATCH,PUT,DELETE,OPTIONS";
@@ -13,6 +20,8 @@ export const CORS_ALLOWED_HEADERS =
   "Authorization,Content-Type,X-Request-ID,Accept,Accept-Language";
 
 export const SECURITY_HEADERS = {
+  "Content-Security-Policy":
+    "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
   "Referrer-Policy": "no-referrer",
@@ -21,6 +30,22 @@ export const SECURITY_HEADERS = {
 } as const;
 const MAX_REQUEST_BODY_BYTES = 1024 * 1024;
 const BODY_METHODS: readonly HttpMethod[] = ["POST", "PATCH", "PUT", "DELETE"];
+const DEFAULT_MUTATION_RATE_LIMIT: RouteRateLimit = {
+  maxRequests: 90,
+  scope: "principal",
+  windowMs: 60_000,
+};
+const DEFAULT_ADMIN_MUTATION_RATE_LIMIT: RouteRateLimit = {
+  maxRequests: 30,
+  scope: "principal",
+  windowMs: 60_000,
+};
+const DEFAULT_ADMIN_READ_RATE_LIMIT: RouteRateLimit = {
+  maxRequests: 120,
+  scope: "principal",
+  windowMs: 60_000,
+};
+const RATE_LIMIT_BUCKETS = new Map<string, number[]>();
 type BodyReadErrorCode = "PAYLOAD_TOO_LARGE" | "INVALID_JSON";
 
 class BodyReadError extends Error {
@@ -86,6 +111,7 @@ function writeJson(
   statusCode: number,
   payload: unknown,
   corsHeaders: Record<string, string>,
+  extraHeaders?: Record<string, string>,
 ): void {
   const body = JSON.stringify(payload);
   response.writeHead(statusCode, {
@@ -93,8 +119,18 @@ function writeJson(
     "cache-control": "no-store",
     ...SECURITY_HEADERS,
     ...corsHeaders,
+    ...extraHeaders,
   });
   response.end(body);
+}
+
+function sendResult(
+  response: ServerResponse,
+  result: RouteResult,
+  corsHeaders: Record<string, string>,
+  extraHeaders?: Record<string, string>,
+): void {
+  writeJson(response, result.statusCode, result.payload, corsHeaders, extraHeaders);
 }
 
 function hasRequestBody(request: IncomingMessage): boolean {
@@ -132,6 +168,24 @@ export function isJsonContentType(contentType: string | string[] | undefined): b
   return mediaType === "application/json";
 }
 
+function appendBodyChunk(
+  chunks: Buffer[],
+  chunk: Buffer | string,
+  size: number,
+): number {
+  const buffer = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
+  const nextSize = size + buffer.length;
+  if (nextSize > MAX_REQUEST_BODY_BYTES) {
+    throw new BodyReadError(
+      "PAYLOAD_TOO_LARGE",
+      "Request body exceeds max allowed size",
+    );
+  }
+
+  chunks.push(buffer);
+  return nextSize;
+}
+
 async function readBody(request: IncomingMessage): Promise<unknown> {
   return await new Promise<unknown>((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -155,33 +209,18 @@ async function readBody(request: IncomingMessage): Promise<unknown> {
     }
 
     request.on("data", (chunk: Buffer | string) => {
-      if (typeof chunk === "string") {
-        const data = Buffer.from(chunk);
-        size += data.length;
-        if (size > MAX_REQUEST_BODY_BYTES) {
-          request.destroy();
-          safeReject(
-            new BodyReadError(
-              "PAYLOAD_TOO_LARGE",
-              "Request body exceeds max allowed size",
-            ),
-          );
-          return;
-        }
-        chunks.push(data);
-      } else {
-        size += chunk.length;
-        if (size > MAX_REQUEST_BODY_BYTES) {
-          request.destroy();
-          safeReject(
-            new BodyReadError(
-              "PAYLOAD_TOO_LARGE",
-              "Request body exceeds max allowed size",
-            ),
-          );
-          return;
-        }
-        chunks.push(chunk);
+      try {
+        size = appendBodyChunk(chunks, chunk, size);
+      } catch (error) {
+        request.destroy();
+        safeReject(
+          error instanceof BodyReadError
+            ? error
+            : new BodyReadError(
+                "PAYLOAD_TOO_LARGE",
+                "Request body exceeds max allowed size",
+              ),
+        );
       }
     });
 
@@ -203,6 +242,10 @@ async function readBody(request: IncomingMessage): Promise<unknown> {
       safeResolve(null);
     });
   });
+}
+
+function isBodyMethod(method: HttpMethod): boolean {
+  return BODY_METHODS.includes(method);
 }
 
 function normalizeMethod(rawMethod: string | undefined): HttpMethod | null {
@@ -257,10 +300,134 @@ function hasRequiredPermissions(
   );
 }
 
+export function resolveClientIp(
+  forwardedFor: string | string[] | undefined,
+  remoteAddress: string | null | undefined,
+  trustProxy = false,
+): string | null {
+  if (trustProxy) {
+    const forwardedValue = Array.isArray(forwardedFor)
+      ? forwardedFor[0]
+      : forwardedFor;
+    if (typeof forwardedValue === "string" && forwardedValue.trim().length > 0) {
+      return (
+        forwardedValue
+          .split(",")
+          .map((value) => value.trim())
+          .find((value) => value.length > 0) ?? null
+      );
+    }
+  }
+
+  return remoteAddress ?? null;
+}
+
+function getClientIp(request: IncomingMessage, trustProxy: boolean): string | null {
+  return resolveClientIp(
+    request.headers["x-forwarded-for"],
+    request.socket.remoteAddress ?? null,
+    trustProxy,
+  );
+}
+
+function logStructuredEvent(
+  level: "warn" | "error",
+  event: string,
+  details: Record<string, unknown>,
+): void {
+  if (process.env.NODE_ENV === "test") {
+    return;
+  }
+
+  const payload = JSON.stringify({
+    timestamp: new Date().toISOString(),
+    level,
+    event,
+    ...details,
+  });
+
+  if (level === "error") {
+    process.stderr.write(`${payload}\n`);
+    return;
+  }
+
+  process.stdout.write(`${payload}\n`);
+}
+
+export function resolveRateLimitPolicy(
+  route: Pick<CompiledRoute, "authRequired" | "method" | "rateLimit" | "template">,
+): RouteRateLimit | null {
+  if (route.rateLimit != null) {
+    return route.rateLimit;
+  }
+
+  if (route.template.startsWith("/api/v1/admin/")) {
+    return route.method === "GET"
+      ? DEFAULT_ADMIN_READ_RATE_LIMIT
+      : DEFAULT_ADMIN_MUTATION_RATE_LIMIT;
+  }
+
+  if (!isBodyMethod(route.method)) {
+    return null;
+  }
+
+  return route.authRequired ? DEFAULT_MUTATION_RATE_LIMIT : null;
+}
+
+export function consumeRateLimit(
+  key: string,
+  policy: RouteRateLimit,
+  nowMs = Date.now(),
+  store: Map<string, number[]> = RATE_LIMIT_BUCKETS,
+): { allowed: boolean; remaining: number; retryAfterSeconds: number } {
+  const windowStart = nowMs - policy.windowMs;
+  const timestamps = (store.get(key) ?? []).filter((timestamp) => timestamp > windowStart);
+
+  if (timestamps.length >= policy.maxRequests) {
+    store.set(key, timestamps);
+    const oldestTimestamp = timestamps[0] ?? nowMs;
+    return {
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: Math.max(
+        1,
+        Math.ceil((oldestTimestamp + policy.windowMs - nowMs) / 1000),
+      ),
+    };
+  }
+
+  timestamps.push(nowMs);
+  store.set(key, timestamps);
+  return {
+    allowed: true,
+    remaining: Math.max(0, policy.maxRequests - timestamps.length),
+    retryAfterSeconds: 0,
+  };
+}
+
+export function clearRateLimitBuckets(): void {
+  RATE_LIMIT_BUCKETS.clear();
+}
+
+function buildRateLimitKey(
+  routeTemplate: string,
+  policy: RouteRateLimit,
+  clientIp: string | null,
+  userId: string | null,
+): string {
+  const actorKey =
+    policy.scope === "principal"
+      ? userId ?? clientIp ?? "anonymous"
+      : clientIp ?? "anonymous";
+
+  return `${routeTemplate}:${policy.scope}:${actorKey}`;
+}
+
 export function createAppServer(config: AppConfig) {
   return createServer(async (request, response) => {
     const requestId =
       (request.headers["x-request-id"] as string | undefined) ?? randomUUID();
+    const clientIp = getClientIp(request, config.trustProxy);
     const requestOrigin = normalizeOrigin(request.headers.origin);
     const corsHeaders = resolveCorsHeaders(
       requestOrigin,
@@ -270,14 +437,24 @@ export function createAppServer(config: AppConfig) {
 
     if (request.method?.toUpperCase() === "OPTIONS") {
       if (requestOrigin != null && corsHeaders["Access-Control-Allow-Origin"] == null) {
-        const result = failure(
-          "FORBIDDEN",
-          "Origin is not allowed by CORS policy",
+        logStructuredEvent("warn", "http.origin_forbidden", {
           requestId,
-          403,
-          { origin: requestOrigin },
+          method: "OPTIONS",
+          path: request.url ?? "/",
+          origin: requestOrigin,
+          ip: clientIp,
+        });
+        sendResult(
+          response,
+          failure(
+            "FORBIDDEN",
+            "Origin is not allowed by CORS policy",
+            requestId,
+            403,
+            { origin: requestOrigin },
+          ),
+          corsHeaders,
         );
-        writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
 
@@ -292,44 +469,82 @@ export function createAppServer(config: AppConfig) {
 
     const method = normalizeMethod(request.method);
     if (method == null) {
-      const result = failure(
-        "METHOD_NOT_ALLOWED",
-        "Unsupported HTTP method",
-        requestId,
-        405,
+      sendResult(
+        response,
+        failure(
+          "METHOD_NOT_ALLOWED",
+          "Unsupported HTTP method",
+          requestId,
+          405,
+        ),
+        corsHeaders,
       );
-      writeJson(response, result.statusCode, result.payload, corsHeaders);
       return;
     }
 
     const requestUrl = new URL(request.url ?? "/", "http://localhost");
     const matched = matchRoute(compiledRoutes, method, requestUrl.pathname);
+    const isMutationRequest = isBodyMethod(method);
 
     if (matched == null) {
-      const result = failure(
-        "NOT_FOUND",
-        "Route not found",
-        requestId,
-        404,
-        { path: requestUrl.pathname, method },
+      sendResult(
+        response,
+        failure(
+          "NOT_FOUND",
+          "Route not found",
+          requestId,
+          404,
+          { path: requestUrl.pathname, method },
+        ),
+        corsHeaders,
       );
-      writeJson(response, result.statusCode, result.payload, corsHeaders);
+      return;
+    }
+
+    const rateLimitPolicy = resolveRateLimitPolicy(matched.route);
+
+    if (
+      isMutationRequest &&
+      requestOrigin != null &&
+      corsHeaders["Access-Control-Allow-Origin"] == null
+    ) {
+      logStructuredEvent("warn", "http.origin_forbidden", {
+        requestId,
+        method,
+        path: requestUrl.pathname,
+        origin: requestOrigin,
+        ip: clientIp,
+      });
+      sendResult(
+        response,
+        failure(
+          "FORBIDDEN",
+          "Origin is not allowed for state-changing requests",
+          requestId,
+          403,
+          { origin: requestOrigin },
+        ),
+        corsHeaders,
+      );
       return;
     }
 
     const incomingHasBody = hasRequestBody(request);
     if (
-      BODY_METHODS.includes(method) &&
+      isMutationRequest &&
       incomingHasBody &&
       !isJsonContentType(request.headers["content-type"])
     ) {
-      const result = failure(
-        "UNSUPPORTED_MEDIA_TYPE",
-        "Request body must use Content-Type application/json",
-        requestId,
-        415,
+      sendResult(
+        response,
+        failure(
+          "UNSUPPORTED_MEDIA_TYPE",
+          "Request body must use Content-Type application/json",
+          requestId,
+          415,
+        ),
+        corsHeaders,
       );
-      writeJson(response, result.statusCode, result.payload, corsHeaders);
       return;
     }
 
@@ -337,38 +552,75 @@ export function createAppServer(config: AppConfig) {
     if (matched.route.authRequired) {
       const token = parseBearerToken(request.headers.authorization);
       if (token == null) {
-        const result = failure(
-          "UNAUTHORIZED",
-          "Missing bearer token",
+        logStructuredEvent("warn", "auth.missing_bearer_token", {
           requestId,
-          401,
+          method,
+          path: requestUrl.pathname,
+          ip: clientIp,
+          origin: requestOrigin,
+        });
+        sendResult(
+          response,
+          failure(
+            "UNAUTHORIZED",
+            "Missing bearer token",
+            requestId,
+            401,
+          ),
+          corsHeaders,
         );
-        writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
 
-      user = await decodeJwtPayload(token, config.jwt);
+      const decoded = await decodeJwtPayloadDetailed(token, config.jwt);
+      user = decoded.user;
       if (user == null) {
-        const result = failure(
-          "UNAUTHORIZED",
-          "Invalid JWT claims",
+        logStructuredEvent("warn", "auth.jwt_rejected", {
           requestId,
-          401,
+          method,
+          path: requestUrl.pathname,
+          ip: clientIp,
+          origin: requestOrigin,
+          rejectionStage: decoded.failure?.stage ?? "unknown",
+          rejectionReason: decoded.failure?.reason ?? "JWT rejected",
+          tokenSummary: decoded.failure?.tokenSummary ?? null,
+        });
+        sendResult(
+          response,
+          failure(
+            "UNAUTHORIZED",
+            "Invalid JWT claims",
+            requestId,
+            401,
+          ),
+          corsHeaders,
         );
-        writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
 
       const allowedRoles = matched.route.allowedRoles;
       if (allowedRoles != null && !allowedRoles.includes(user.role)) {
-        const result = failure(
-          "FORBIDDEN",
-          "Insufficient permissions",
+        logStructuredEvent("warn", "auth.role_forbidden", {
           requestId,
-          403,
-          { role: user.role, allowedRoles },
+          method,
+          path: requestUrl.pathname,
+          ip: clientIp,
+          origin: requestOrigin,
+          userId: user.userId,
+          role: user.role,
+          allowedRoles,
+        });
+        sendResult(
+          response,
+          failure(
+            "FORBIDDEN",
+            "Insufficient permissions",
+            requestId,
+            403,
+            { role: user.role, allowedRoles },
+          ),
+          corsHeaders,
         );
-        writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
 
@@ -381,54 +633,118 @@ export function createAppServer(config: AppConfig) {
           matched.route.permissionMode,
         )
       ) {
-        const result = failure(
-          "FORBIDDEN",
-          "Insufficient permissions",
+        logStructuredEvent("warn", "auth.permission_forbidden", {
           requestId,
-          403,
+          method,
+          path: requestUrl.pathname,
+          ip: clientIp,
+          origin: requestOrigin,
+          userId: user.userId,
+          role: user.role,
+          requiredPermissions,
+          permissionMode: matched.route.permissionMode,
+        });
+        sendResult(
+          response,
+          failure(
+            "FORBIDDEN",
+            "Insufficient permissions",
+            requestId,
+            403,
+            {
+              role: user.role,
+              requiredPermissions,
+              permissionMode: matched.route.permissionMode,
+            },
+          ),
+          corsHeaders,
+        );
+        return;
+      }
+    }
+
+    if (rateLimitPolicy != null) {
+      const rateLimitResult = consumeRateLimit(
+        buildRateLimitKey(
+          matched.route.template,
+          rateLimitPolicy,
+          clientIp,
+          user?.userId ?? null,
+        ),
+        rateLimitPolicy,
+      );
+
+      if (!rateLimitResult.allowed) {
+        logStructuredEvent("warn", "http.rate_limited", {
+          requestId,
+          method,
+          path: requestUrl.pathname,
+          routeTemplate: matched.route.template,
+          ip: clientIp,
+          origin: requestOrigin,
+          userId: user?.userId ?? null,
+        });
+        sendResult(
+          response,
+          failure(
+            "TOO_MANY_REQUESTS",
+            "Rate limit exceeded",
+            requestId,
+            429,
+            {
+              retryAfterSeconds: rateLimitResult.retryAfterSeconds,
+            },
+          ),
+          corsHeaders,
           {
-            role: user.role,
-            requiredPermissions,
-            permissionMode: matched.route.permissionMode,
+            "retry-after": String(rateLimitResult.retryAfterSeconds),
           },
         );
-        writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
     }
 
     let body: unknown = null;
-    if (BODY_METHODS.includes(method) && incomingHasBody) {
+    if (isMutationRequest && incomingHasBody) {
       try {
         body = await readBody(request);
       } catch (error) {
         if (error instanceof BodyReadError && error.code === "PAYLOAD_TOO_LARGE") {
-          const result = failure(
-            "PAYLOAD_TOO_LARGE",
-            "Request body exceeds max allowed size",
-            requestId,
-            413,
+          sendResult(
+            response,
+            failure(
+              "PAYLOAD_TOO_LARGE",
+              "Request body exceeds max allowed size",
+              requestId,
+              413,
+            ),
+            corsHeaders,
           );
-          writeJson(response, result.statusCode, result.payload, corsHeaders);
           return;
         }
         if (error instanceof BodyReadError && error.code === "INVALID_JSON") {
-          const result = failure(
-            "INVALID_JSON",
-            "Request body must be valid JSON",
-            requestId,
-            400,
+          sendResult(
+            response,
+            failure(
+              "INVALID_JSON",
+              "Request body must be valid JSON",
+              requestId,
+              400,
+            ),
+            corsHeaders,
           );
-          writeJson(response, result.statusCode, result.payload, corsHeaders);
           return;
         }
-        const result = failure(
-          "INVALID_BODY",
-          "Unable to parse request body",
-          requestId,
-          400,
+        sendResult(
+          response,
+          failure(
+            "INVALID_BODY",
+            "Unable to parse request body",
+            requestId,
+            400,
+          ),
+          corsHeaders,
         );
-        writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
     }
@@ -437,22 +753,43 @@ export function createAppServer(config: AppConfig) {
       path: requestUrl.pathname,
       query: requestUrl.searchParams,
       requestId,
+      clientIp,
+      userAgent:
+        typeof request.headers["user-agent"] === "string"
+          ? request.headers["user-agent"]
+          : Array.isArray(request.headers["user-agent"])
+            ? request.headers["user-agent"][0] ?? null
+            : null,
       params: matched.params,
       body,
       user,
     };
 
     try {
-      const result = await matched.route.handler(context);
-      writeJson(response, result.statusCode, result.payload, corsHeaders);
-    } catch {
-      const result = failure(
-        "INTERNAL_ERROR",
-        "Unexpected server error",
+      sendResult(response, await matched.route.handler(context), corsHeaders);
+    } catch (error) {
+      logStructuredEvent("error", "http.unhandled_error", {
         requestId,
-        500,
+        method,
+        path: requestUrl.pathname,
+        ip: clientIp,
+        origin: requestOrigin,
+        userId: user?.userId ?? null,
+        role: user?.role ?? null,
+        errorName: error instanceof Error ? error.name : "UnknownError",
+        errorMessage:
+          error instanceof Error ? error.message : "Unexpected non-error thrown",
+      });
+      sendResult(
+        response,
+        failure(
+          "INTERNAL_ERROR",
+          "Unexpected server error",
+          requestId,
+          500,
+        ),
+        corsHeaders,
       );
-      writeJson(response, result.statusCode, result.payload, corsHeaders);
     }
   }).listen(config.port);
 }

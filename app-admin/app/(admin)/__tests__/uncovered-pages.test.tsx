@@ -35,7 +35,14 @@ vi.mock("@/lib/auth/client", () => ({
     id: "admin-123",
     email: "admin@praedixa.com",
     role: "super_admin",
-    permissions: ["admin:console:access", "admin:audit:read"],
+    permissions: [
+      "admin:console:access",
+      "admin:audit:read",
+      "admin:onboarding:read",
+      "admin:onboarding:write",
+      "admin:org:write",
+      "admin:support:write",
+    ],
   }),
 }));
 

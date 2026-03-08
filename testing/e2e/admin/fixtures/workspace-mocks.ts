@@ -346,6 +346,53 @@ export const MOCK_ORG_PROOF_PACKS = [
   { id: "pp-002", name: "Pack CDG Jan", status: "pending", generatedAt: null },
 ];
 
+export const MOCK_ORG_DECISION_CONFIG_RESOLVED = {
+  organizationId: TEST_ORG_ID,
+  siteId: null,
+  versionId: "cfg-001",
+  effectiveAt: TS,
+  resolvedAt: TS,
+  payload: {
+    horizons: [
+      {
+        id: "j7",
+        label: "J+7",
+        days: 7,
+        rank: 1,
+        active: true,
+        isDefault: true,
+      },
+      {
+        id: "j14",
+        label: "J+14",
+        days: 14,
+        rank: 2,
+        active: true,
+        isDefault: false,
+      },
+    ],
+    optionCatalog: [],
+    policiesByHorizon: [],
+  },
+  nextVersion: null,
+};
+
+export const MOCK_ORG_DECISION_CONFIG_VERSIONS = [
+  {
+    id: "cfg-001",
+    organizationId: TEST_ORG_ID,
+    siteId: null,
+    status: "active",
+    effectiveAt: TS,
+    activatedAt: TS,
+    payload: MOCK_ORG_DECISION_CONFIG_RESOLVED.payload,
+    rollbackFromVersionId: null,
+    createdBy: "usr-001",
+    createdAt: TS,
+    updatedAt: TS,
+  },
+];
+
 export async function mockConfigApis(page: Page): Promise<void> {
   await mockOrgDetail(page);
   await page.route(
@@ -355,6 +402,14 @@ export async function mockConfigApis(page: Page): Promise<void> {
   await page.route(
     `**/api/v1/admin/organizations/${TEST_ORG_ID}/proof-packs*`,
     (route) => fulfill(route, apiResponse(MOCK_ORG_PROOF_PACKS)),
+  );
+  await page.route(
+    `**/api/v1/admin/organizations/${TEST_ORG_ID}/decision-config/resolved*`,
+    (route) => fulfill(route, apiResponse(MOCK_ORG_DECISION_CONFIG_RESOLVED)),
+  );
+  await page.route(
+    `**/api/v1/admin/organizations/${TEST_ORG_ID}/decision-config/versions*`,
+    (route) => fulfill(route, apiResponse(MOCK_ORG_DECISION_CONFIG_VERSIONS)),
   );
 }
 

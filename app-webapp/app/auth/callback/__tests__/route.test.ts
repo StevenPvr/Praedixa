@@ -3,13 +3,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockRedirect = vi.fn();
 
 const mockClearAuthCookies = vi.fn();
+const mockBuildSessionData = vi.fn();
 const mockExchangeCodeForTokens = vi.fn();
+const mockGetApiAccessTokenCompatibilityReason = vi.fn();
 const mockGetOidcEnv = vi.fn();
 const mockGetTokenExp = vi.fn();
 const mockSanitizeNextPath = vi.fn();
 const mockSetAuthCookies = vi.fn();
 const mockSignSession = vi.fn();
+const mockTimingSafeEqual = vi.fn();
 const mockUserFromAccessToken = vi.fn();
+const mockResolveAuthAppOrigin = vi.fn();
 
 vi.mock("next/server", () => ({
   NextResponse: {
@@ -21,15 +25,24 @@ vi.mock("@/lib/auth/oidc", () => ({
   LOGIN_NEXT_COOKIE: "prx_web_next",
   LOGIN_STATE_COOKIE: "prx_web_state",
   LOGIN_VERIFIER_COOKIE: "prx_web_verifier",
+  buildSessionData: (...args: unknown[]) => mockBuildSessionData(...args),
   clearAuthCookies: (...args: unknown[]) => mockClearAuthCookies(...args),
   exchangeCodeForTokens: (...args: unknown[]) =>
     mockExchangeCodeForTokens(...args),
+  getApiAccessTokenCompatibilityReason: (...args: unknown[]) =>
+    mockGetApiAccessTokenCompatibilityReason(...args),
   getOidcEnv: (...args: unknown[]) => mockGetOidcEnv(...args),
   getTokenExp: (...args: unknown[]) => mockGetTokenExp(...args),
   sanitizeNextPath: (...args: unknown[]) => mockSanitizeNextPath(...args),
   setAuthCookies: (...args: unknown[]) => mockSetAuthCookies(...args),
   signSession: (...args: unknown[]) => mockSignSession(...args),
+  timingSafeEqual: (...args: unknown[]) => mockTimingSafeEqual(...args),
   userFromAccessToken: (...args: unknown[]) => mockUserFromAccessToken(...args),
+}));
+
+vi.mock("@/lib/auth/origin", () => ({
+  resolveAuthAppOrigin: (...args: unknown[]) =>
+    mockResolveAuthAppOrigin(...args),
 }));
 
 import { GET } from "../route";
@@ -85,6 +98,7 @@ describe("GET /auth/callback (webapp)", () => {
       clientSecret: "secret",
       sessionSecret: "session-secret",
     });
+    mockResolveAuthAppOrigin.mockReturnValue("https://app.praedixa.com");
 
     mockSanitizeNextPath.mockImplementation(
       (next: string | null | undefined, fallback: string) => {
@@ -93,6 +107,9 @@ describe("GET /auth/callback (webapp)", () => {
         }
         return next;
       },
+    );
+    mockTimingSafeEqual.mockImplementation(
+      (left: string, right: string) => left === right,
     );
 
     mockExchangeCodeForTokens.mockResolvedValue({
@@ -108,7 +125,20 @@ describe("GET /auth/callback (webapp)", () => {
       organizationId: "org-1",
       siteId: "site-1",
     });
+    mockGetApiAccessTokenCompatibilityReason.mockReturnValue(null);
     mockGetTokenExp.mockReturnValue(2000000000);
+    mockBuildSessionData.mockResolvedValue({
+      sub: "user-1",
+      email: "ops@praedixa.com",
+      role: "org_admin",
+      organizationId: "org-1",
+      siteId: "site-1",
+      accessTokenExp: 2000000000,
+      issuedAt: 1700000000,
+      sessionExpiresAt: 1700007200,
+      accessTokenHash: "hash-access",
+      refreshTokenHash: "hash-refresh",
+    });
     mockSignSession.mockResolvedValue("signed-session");
   });
 
@@ -129,6 +159,36 @@ describe("GET /auth/callback (webapp)", () => {
     expect(mockSetAuthCookies).toHaveBeenCalled();
   });
 
+  it("uses the configured public auth origin for token exchange and redirects", async () => {
+    mockResolveAuthAppOrigin.mockReturnValueOnce("https://app.praedixa.com");
+
+    await GET(
+      {
+        nextUrl: {
+          origin: "http://internal-webapp:3001",
+          searchParams: new URLSearchParams("code=valid-code&state=state-123"),
+        },
+        cookies: {
+          get: (name: string) => {
+            const values: Record<string, string> = {
+              prx_web_state: "state-123",
+              prx_web_verifier: "verifier-123",
+              prx_web_next: "/dashboard",
+            };
+            const value = values[name];
+            return value ? { name, value } : undefined;
+          },
+        },
+      } as Parameters<typeof GET>[0],
+    );
+
+    expect(mockExchangeCodeForTokens).toHaveBeenCalledWith(
+      expect.objectContaining({
+        redirectUri: "https://app.praedixa.com/auth/callback",
+      }),
+    );
+  });
+
   it("redirects to /login with callback error when params are invalid", async () => {
     const response = (await GET(
       createMockRequest(
@@ -144,6 +204,25 @@ describe("GET /auth/callback (webapp)", () => {
       "https://app.praedixa.com/login?error=auth_callback_failed",
     );
     expect(mockClearAuthCookies).toHaveBeenCalled();
+  });
+
+  it("rejects callback when state token does not match", async () => {
+    mockTimingSafeEqual.mockReturnValueOnce(false);
+
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "unexpected-state" },
+        {
+          prx_web_state: "state-123",
+          prx_web_verifier: "verifier-123",
+          prx_web_next: "/dashboard",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe(
+      "https://app.praedixa.com/login?error=auth_callback_failed",
+    );
   });
 
   it("rejects super_admin with wrong_role", async () => {
@@ -187,6 +266,27 @@ describe("GET /auth/callback (webapp)", () => {
 
     expect(response.redirectUrl).toBe(
       "https://app.praedixa.com/login?error=auth_claims_invalid",
+    );
+  });
+
+  it("returns auth_token_incompatible when the access token cannot be used against the API", async () => {
+    mockGetApiAccessTokenCompatibilityReason.mockReturnValueOnce(
+      "missing_api_audience",
+    );
+
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-123" },
+        {
+          prx_web_state: "state-123",
+          prx_web_verifier: "verifier-123",
+          prx_web_next: "/dashboard",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe(
+      "https://app.praedixa.com/login?error=auth_token_incompatible&token_reason=missing_api_audience",
     );
   });
 

@@ -113,6 +113,10 @@ echo "[prepush-deep] Type + lint checks for API TS..."
 pnpm --filter @praedixa/api-ts typecheck
 pnpm --filter @praedixa/api-ts lint
 
+echo "[prepush-deep] Build shared workspace packages..."
+pnpm --filter @praedixa/shared-types build
+pnpm --filter @praedixa/ui build
+
 echo "[prepush-deep] Targeted frontend security tests..."
 pnpm vitest run \
   app-webapp/lib/security/__tests__/csp.test.ts \

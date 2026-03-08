@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import func, select
 
 from app.core.exceptions import NotFoundError, PraedixaError
+from app.core.pagination import normalize_page_window
 from app.core.validation import sanitize_text
 from app.models.operational import (
     CoverageAlert,
@@ -104,7 +105,7 @@ async def list_operational_decisions(
 
     total = (await session.execute(count_q)).scalar_one() or 0
 
-    offset = (page - 1) * page_size
+    _, page_size, offset = normalize_page_window(page, page_size)
     query = (
         base.order_by(OperationalDecision.decision_date.desc())
         .offset(offset)

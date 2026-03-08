@@ -6,9 +6,14 @@ import { render, screen, within } from "@testing-library/react";
 /* ────────────────────────────────────────────── */
 
 const mockUseApiGet = vi.fn();
+const mockUseCurrentUser = vi.fn();
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
+}));
+
+vi.mock("@/lib/auth/client", () => ({
+  useCurrentUser: () => mockUseCurrentUser(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -192,13 +197,17 @@ type MockApiGetResult = {
 function setupMockApiGet(
   overrides: Record<string, Partial<MockApiGetResult>> = {},
 ) {
-  mockUseApiGet.mockImplementation((url: string) => {
+  mockUseApiGet.mockImplementation((url: string | null) => {
     const base: MockApiGetResult = {
       data: null,
       loading: false,
       error: null,
       refetch: vi.fn(),
     };
+
+    if (!url) {
+      return base;
+    }
 
     if (url.includes("/monitoring/platform")) {
       return { ...base, data: MOCK_KPIS, ...overrides["kpis"] };
@@ -229,6 +238,14 @@ function setupMockApiGet(
 describe("AccueilPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseCurrentUser.mockReturnValue({
+      permissions: [
+        "admin:monitoring:read",
+        "admin:org:read",
+        "admin:audit:read",
+        "admin:messages:read",
+      ],
+    });
   });
 
   it("shows skeleton while KPIs are loading", () => {
@@ -416,6 +433,19 @@ describe("AccueilPage", () => {
     setupMockApiGet({ audit: { data: [] } });
     render(<AccueilPage />);
     expect(screen.getByText("Aucune activite recente")).toBeInTheDocument();
+  });
+
+  it("skips audit and unread fetches when permissions are missing", () => {
+    mockUseCurrentUser.mockReturnValue({
+      permissions: ["admin:monitoring:read", "admin:org:read"],
+    });
+    setupMockApiGet();
+
+    render(<AccueilPage />);
+
+    expect(mockUseApiGet).toHaveBeenCalledWith(null);
+    expect(screen.queryByText("Activite recente")).not.toBeInTheDocument();
+    expect(screen.queryByText("Messages non lus")).not.toBeInTheDocument();
   });
 
   it("shows empty unread messages state", () => {

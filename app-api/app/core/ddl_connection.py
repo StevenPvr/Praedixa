@@ -72,6 +72,8 @@ def ddl_connection() -> (  # pragma: no cover
                 cur.execute("SET ROLE praedixa_owner")
             except psycopg.errors.InsufficientPrivilege:
                 conn.rollback()
+                if settings.ENVIRONMENT != "development":
+                    raise
                 # In dev mode without role architecture, proceed as current user
         yield conn
         conn.commit()

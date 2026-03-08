@@ -1,5 +1,6 @@
 export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 export type RoutePermissionMode = "all" | "any";
+export type RateLimitScope = "ip" | "principal";
 
 export type UserRole =
   | "super_admin"
@@ -57,6 +58,8 @@ export interface RouteContext {
   path: string;
   query: URLSearchParams;
   requestId: string;
+  clientIp: string | null;
+  userAgent: string | null;
   params: Record<string, string>;
   body: unknown;
   user: JWTPayload | null;
@@ -69,6 +72,12 @@ export interface RouteResult {
 
 export type RouteHandler = (ctx: RouteContext) => RouteResult | Promise<RouteResult>;
 
+export interface RouteRateLimit {
+  maxRequests: number;
+  scope: RateLimitScope;
+  windowMs: number;
+}
+
 export interface RouteDefinition {
   method: HttpMethod;
   template: string;
@@ -76,6 +85,7 @@ export interface RouteDefinition {
   allowedRoles: readonly UserRole[] | null;
   requiredPermissions: readonly string[] | null;
   permissionMode: RoutePermissionMode;
+  rateLimit: RouteRateLimit | null;
   handler: RouteHandler;
 }
 
@@ -86,6 +96,7 @@ export interface CompiledRoute {
   allowedRoles: readonly UserRole[] | null;
   requiredPermissions: readonly string[] | null;
   permissionMode: RoutePermissionMode;
+  rateLimit: RouteRateLimit | null;
   paramNames: string[];
   regex: RegExp;
   handler: RouteHandler;
@@ -94,7 +105,13 @@ export interface CompiledRoute {
 export interface AppConfig {
   port: number;
   nodeEnv: "development" | "staging" | "production";
+  trustProxy: boolean;
   corsOrigins: readonly string[];
+  databaseUrl: string | null;
+  connectors: {
+    runtimeUrl: string;
+    runtimeToken: string | null;
+  };
   jwt: {
     issuerUrl: string;
     audience: string;

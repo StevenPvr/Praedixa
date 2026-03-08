@@ -3,7 +3,11 @@ import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
   SESSION_COOKIE,
+  buildSessionData,
   clearAuthCookies,
+  doesSessionMatchAccessToken,
+  doesSessionMatchRefreshToken,
+  getApiAccessTokenCompatibilityReason,
   getOidcEnv,
   getTokenExp,
   isTokenExpired,
@@ -38,9 +42,30 @@ async function tryRefresh(
     session = null;
   }
 
+  if (!session) {
+    if (accessToken || refreshToken || signedSession) {
+      clearAuthCookies(response);
+    }
+    return { session: null, accessToken: null };
+  }
+
+  if (accessToken && !(await doesSessionMatchAccessToken(session, accessToken))) {
+    clearAuthCookies(response);
+    return { session: null, accessToken: null };
+  }
+
+  if (refreshToken && !(await doesSessionMatchRefreshToken(session, refreshToken))) {
+    clearAuthCookies(response);
+    return { session: null, accessToken: null };
+  }
+
   const hasUsableAccessToken =
-    !!accessToken && !isTokenExpired(accessToken, 60) && !!session;
+    !!accessToken && !isTokenExpired(accessToken, 60);
   if (hasUsableAccessToken) {
+    if (getApiAccessTokenCompatibilityReason(accessToken, getOidcEnv().clientId)) {
+      clearAuthCookies(response);
+      return { session: null, accessToken: null };
+    }
     return { session, accessToken };
   }
 
@@ -64,20 +89,22 @@ async function tryRefresh(
 
     const user = userFromAccessToken(refreshed.access_token, clientId);
     const accessTokenExp = getTokenExp(refreshed.access_token);
-    if (!user || !accessTokenExp) {
+    const tokenCompatibilityReason = getApiAccessTokenCompatibilityReason(
+      refreshed.access_token,
+      clientId,
+    );
+    if (!user || !accessTokenExp || tokenCompatibilityReason) {
       clearAuthCookies(response);
       return { session: null, accessToken: null };
     }
 
-    const nextSession = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-      organizationId: user.organizationId,
-      siteId: user.siteId,
+    const nextSession = await buildSessionData(
+      user,
       accessTokenExp,
-      issuedAt: Math.floor(Date.now() / 1000),
-    };
+      refreshed.access_token,
+      refreshed.refresh_token ?? refreshToken,
+      refreshed.refresh_expires_in,
+    );
 
     const sessionToken = await signSession(nextSession, sessionSecret);
     setAuthCookies(response, request, {
@@ -110,14 +137,20 @@ function redirectTo(
   return response;
 }
 
-export async function updateSession(request: NextRequest) {
-  const response = NextResponse.next({ request });
+export async function updateSession(
+  request: NextRequest,
+  requestHeaders?: Headers,
+) {
+  const response = NextResponse.next(
+    requestHeaders ? { request: { headers: requestHeaders } } : { request },
+  );
   const pathname = request.nextUrl.pathname;
 
   const isLoginRoute = pathname === "/login";
   const isAuthRoute = pathname === "/auth" || pathname.startsWith("/auth/");
+  const isApiRoute = pathname === "/api" || pathname.startsWith("/api/");
 
-  if (isAuthRoute) {
+  if (isAuthRoute || isApiRoute) {
     return response;
   }
 

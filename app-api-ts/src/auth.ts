@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import type { AppConfig, JWTPayload, UserRole } from "./types.js";
 
-const DEFAULT_ORGANIZATION_ID = "11111111-1111-1111-1111-111111111111";
+const GLOBAL_SUPER_ADMIN_ORGANIZATION_ID = "global-super-admin";
 
 const roles: readonly UserRole[] = [
   "super_admin",
@@ -32,6 +32,8 @@ const claimSchema = z.object({
   site_ids: z.array(z.string()).optional(),
   siteIds: z.array(z.string()).optional(),
   permissions: z.array(z.string()).optional(),
+  exp: z.number().finite().positive().optional(),
+  iat: z.number().finite().positive().optional(),
   profile: z.string().optional(),
   profiles: z.array(z.string()).optional(),
   realm_access: z
@@ -61,6 +63,7 @@ const claimSchema = z.object({
     })
     .optional(),
 });
+type JwtClaims = z.infer<typeof claimSchema>;
 
 const ROLE_PERMISSION_FALLBACK: Record<UserRole, readonly string[]> = {
   super_admin: [
@@ -115,6 +118,17 @@ const PROFILE_PERMISSION_FALLBACK: Record<string, readonly string[]> = {
 type JwtConfig = AppConfig["jwt"];
 const jwksResolverCache = new Map<string, ReturnType<typeof createRemoteJWKSet>>();
 
+export interface JwtDecodeFailure {
+  stage: "verify" | "claims";
+  reason: string;
+  tokenSummary: Record<string, unknown>;
+}
+
+export interface JwtDecodeResult {
+  user: JWTPayload | null;
+  failure: JwtDecodeFailure | null;
+}
+
 function getJwksResolver(jwksUrl: string): ReturnType<typeof createRemoteJWKSet> {
   const cached = jwksResolverCache.get(jwksUrl);
   if (cached) {
@@ -130,13 +144,41 @@ function getJwksResolver(jwksUrl: string): ReturnType<typeof createRemoteJWKSet>
   return resolver;
 }
 
+function normalizeDistinctStrings(
+  values: readonly string[],
+  normalize: (value: string) => string = (value) => value.trim(),
+): string[] {
+  return Array.from(
+    new Set(values.map((value) => normalize(value)).filter((value) => value.length > 0)),
+  );
+}
+
 function pickKnownRoleFromList(candidates: readonly string[]): UserRole | null {
-  const known = candidates
-    .map((candidate) => normalizeRole(candidate))
-    .filter((role): role is UserRole => role != null);
+  const known = new Set(
+    candidates
+      .map((candidate) => normalizeRole(candidate))
+      .filter((role): role is UserRole => role != null),
+  );
 
   for (const role of roles) {
-    if (known.includes(role)) {
+    if (known.has(role)) {
+      return role;
+    }
+  }
+
+  return null;
+}
+
+function pickKnownRoleFromSources(
+  ...candidateGroups: Array<readonly string[] | undefined>
+): UserRole | null {
+  for (const candidateGroup of candidateGroups) {
+    if (candidateGroup == null) {
+      continue;
+    }
+
+    const role = pickKnownRoleFromList(candidateGroup);
+    if (role != null) {
       return role;
     }
   }
@@ -181,7 +223,39 @@ function normalizeRole(rawRole: string): UserRole | null {
   return roleSet.has(normalized as UserRole) ? (normalized as UserRole) : null;
 }
 
-function getRole(raw: z.infer<typeof claimSchema>): UserRole {
+function normalizeClientIdentifier(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function resolveAcceptedResourceClients(
+  acceptedResourceClients: readonly string[] | undefined,
+): Set<string> {
+  return new Set(
+    (acceptedResourceClients ?? ["praedixa-api"])
+      .map((value) => normalizeClientIdentifier(value))
+      .filter((value) => value.length > 0),
+  );
+}
+
+function getScopedResourceRoles(
+  raw: JwtClaims,
+  acceptedResourceClients: Set<string>,
+): string[] {
+  if (acceptedResourceClients.size === 0) {
+    return [];
+  }
+
+  return Object.entries(raw.resource_access ?? {}).flatMap(([clientId, resource]) =>
+    acceptedResourceClients.has(normalizeClientIdentifier(clientId))
+      ? (resource.roles ?? [])
+      : [],
+  );
+}
+
+function getRole(
+  raw: JwtClaims,
+  acceptedResourceClients?: readonly string[],
+): UserRole {
   const directCandidate = raw.role ?? raw.app_metadata?.role;
   if (directCandidate != null) {
     const normalizedDirect = normalizeRole(directCandidate);
@@ -190,33 +264,22 @@ function getRole(raw: z.infer<typeof claimSchema>): UserRole {
     }
   }
 
-  const topLevelRole = pickKnownRoleFromList(raw.roles ?? []);
-  if (topLevelRole != null) {
-    return topLevelRole;
-  }
-
-  const groupsRole = pickKnownRoleFromList(raw.groups ?? []);
-  if (groupsRole != null) {
-    return groupsRole;
-  }
-
-  const appMetadataRoles = pickKnownRoleFromList(raw.app_metadata?.roles ?? []);
-  if (appMetadataRoles != null) {
-    return appMetadataRoles;
-  }
-
-  const realmRole = pickKnownRoleFromList(raw.realm_access?.roles ?? []);
-  if (realmRole != null) {
-    return realmRole;
-  }
-
-  const resourceRoles = Object.values(raw.resource_access ?? {}).flatMap(
-    (resource) => resource.roles ?? [],
+  const resourceRoles = getScopedResourceRoles(
+    raw,
+    resolveAcceptedResourceClients(acceptedResourceClients),
   );
-  return pickKnownRoleFromList(resourceRoles) ?? "viewer";
+  return (
+    pickKnownRoleFromSources(
+      raw.roles,
+      raw.groups,
+      raw.app_metadata?.roles,
+      raw.realm_access?.roles,
+      resourceRoles,
+    ) ?? "viewer"
+  );
 }
 
-function getOrganizationId(raw: z.infer<typeof claimSchema>): string | null {
+function getOrganizationId(raw: JwtClaims): string | null {
   return (
     raw.org_id ??
     raw.organization_id ??
@@ -227,21 +290,17 @@ function getOrganizationId(raw: z.infer<typeof claimSchema>): string | null {
   );
 }
 
-function getSiteIds(raw: z.infer<typeof claimSchema>): string[] {
-  if (raw.siteIds != null && raw.siteIds.length > 0) {
-    return raw.siteIds;
-  }
-
-  if (raw.site_ids != null && raw.site_ids.length > 0) {
-    return raw.site_ids;
-  }
-
-  if (raw.app_metadata?.site_ids != null && raw.app_metadata.site_ids.length > 0) {
-    return raw.app_metadata.site_ids;
+function getSiteIds(raw: JwtClaims): string[] {
+  const siteIds = raw.siteIds ?? raw.site_ids ?? raw.app_metadata?.site_ids;
+  if (siteIds != null && siteIds.length > 0) {
+    return normalizeDistinctStrings(siteIds);
   }
 
   const singleSite = raw.site_id ?? raw.siteId ?? raw.app_metadata?.site_id;
-  return singleSite == null ? [] : [singleSite];
+  if (singleSite != null) {
+    return normalizeDistinctStrings([singleSite]);
+  }
+  return [];
 }
 
 function normalizePermission(permission: string): string {
@@ -249,38 +308,115 @@ function normalizePermission(permission: string): string {
 }
 
 function normalizePermissions(permissions: readonly string[]): string[] {
-  return Array.from(
-    new Set(
-      permissions
-        .map((permission) => normalizePermission(permission))
-        .filter((permission) => permission.length > 0),
-    ),
+  return normalizeDistinctStrings(permissions, normalizePermission);
+}
+
+function summarizeUnknownToken(token: string): Record<string, unknown> {
+  const [, payloadSegment] = token.split(".");
+  if (!payloadSegment) {
+    return { parseable: false };
+  }
+
+  try {
+    const payload = JSON.parse(
+      Buffer.from(payloadSegment, "base64url").toString("utf8"),
+    ) as Record<string, unknown>;
+
+    const aud = payload.aud;
+    return {
+      parseable: true,
+      iss: typeof payload.iss === "string" ? payload.iss : null,
+      azp: typeof payload.azp === "string" ? payload.azp : null,
+      aud:
+        typeof aud === "string"
+          ? [aud]
+          : Array.isArray(aud)
+            ? aud.filter((value): value is string => typeof value === "string")
+            : [],
+      hasSub: typeof payload.sub === "string" && payload.sub.length > 0,
+      hasEmail: typeof payload.email === "string" && payload.email.length > 0,
+      hasPreferredUsername:
+        typeof payload.preferred_username === "string" &&
+        payload.preferred_username.length > 0,
+      hasOrganizationId:
+        typeof payload.organization_id === "string" ||
+        typeof payload.organizationId === "string" ||
+        typeof payload.org_id === "string",
+      hasIat: typeof payload.iat === "number",
+      hasExp: typeof payload.exp === "number",
+    };
+  } catch {
+    return { parseable: false };
+  }
+}
+
+function explainInvalidClaims(
+  unknownPayload: unknown,
+  acceptedResourceClients?: readonly string[],
+): JwtDecodeFailure {
+  const parsed = claimSchema.safeParse(unknownPayload);
+  if (!parsed.success) {
+    return {
+      stage: "claims",
+      reason: "JWT payload shape is invalid",
+      tokenSummary: { parseableClaims: false },
+    };
+  }
+
+  const payload = parsed.data;
+  const role = getRole(payload, acceptedResourceClients);
+  const organizationId = getOrganizationId(payload);
+  const userId = payload.sub ?? payload.user_id;
+  const email = payload.email ?? payload.preferred_username;
+  const siteIds = getSiteIds(payload);
+
+  let reason = "JWT claims are incompatible with the API contract";
+  if (userId == null) {
+    reason = "JWT is missing subject claims";
+  } else if (email == null) {
+    reason = "JWT is missing email or preferred_username";
+  } else if (!hasValidJwtLifetime(payload)) {
+    reason = "JWT is missing a valid exp/iat lifetime";
+  } else if (organizationId == null && role !== "super_admin") {
+    reason = "JWT is missing organization_id for a non-super-admin user";
+  }
+
+  return {
+    stage: "claims",
+    reason,
+    tokenSummary: {
+      parseableClaims: true,
+      derivedRole: role,
+      hasUserId: userId != null,
+      hasEmail: email != null,
+      hasOrganizationId: organizationId != null,
+      hasIat: payload.iat != null,
+      hasExp: payload.exp != null,
+      siteIdCount: siteIds.length,
+    },
+  };
+}
+
+function normalizeProfile(profile: string): string {
+  return profile
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+}
+
+function getProfiles(raw: JwtClaims): string[] {
+  return normalizeDistinctStrings(
+    [
+      raw.profile,
+      ...(raw.profiles ?? []),
+      raw.app_metadata?.profile,
+      ...(raw.app_metadata?.profiles ?? []),
+    ].filter((value): value is string => typeof value === "string"),
+    normalizeProfile,
   );
 }
 
-function getProfiles(raw: z.infer<typeof claimSchema>): string[] {
-  const profiles = [
-    raw.profile,
-    ...(raw.profiles ?? []),
-    raw.app_metadata?.profile,
-    ...(raw.app_metadata?.profiles ?? []),
-  ].filter((value): value is string => typeof value === "string");
-
-  return Array.from(
-    new Set(
-      profiles
-        .map((profile) =>
-          profile
-            .trim()
-            .toLowerCase()
-            .replace(/[\s-]+/g, "_"),
-        )
-        .filter((profile) => profile.length > 0),
-    ),
-  );
-}
-
-function getPermissions(raw: z.infer<typeof claimSchema>, role: UserRole): string[] {
+function getPermissions(raw: JwtClaims, role: UserRole): string[] {
   const explicitPermissions = normalizePermissions([
     ...(raw.permissions ?? []),
     ...(raw.app_metadata?.permissions ?? []),
@@ -297,6 +433,14 @@ function getPermissions(raw: z.infer<typeof claimSchema>, role: UserRole): strin
     ...profilePermissions,
     ...(ROLE_PERMISSION_FALLBACK[role] ?? []),
   ]);
+}
+
+function hasValidJwtLifetime(payload: JwtClaims): boolean {
+  return (
+    payload.exp != null &&
+    payload.iat != null &&
+    payload.exp > payload.iat
+  );
 }
 
 export function parseBearerToken(authorization: string | undefined): string | null {
@@ -318,18 +462,30 @@ export function parseBearerToken(authorization: string | undefined): string | nu
 }
 
 export function normalizeJwtClaims(unknownPayload: unknown): JWTPayload | null {
+  return normalizeJwtClaimsWithAudience(unknownPayload);
+}
+
+function normalizeJwtClaimsWithAudience(
+  unknownPayload: unknown,
+  acceptedResourceClients?: readonly string[],
+): JWTPayload | null {
   const parsed = claimSchema.safeParse(unknownPayload);
   if (!parsed.success) {
     return null;
   }
 
   const payload = parsed.data;
-  const role = getRole(payload);
-  const organizationId = getOrganizationId(payload) ?? DEFAULT_ORGANIZATION_ID;
+  const role = getRole(payload, acceptedResourceClients);
+  const organizationId = getOrganizationId(payload);
   const userId = payload.sub ?? payload.user_id;
   const email = payload.email ?? payload.preferred_username;
+  const siteIds = getSiteIds(payload);
 
-  if (userId == null || email == null) {
+  if (userId == null || email == null || !hasValidJwtLifetime(payload)) {
+    return null;
+  }
+
+  if (organizationId == null && role !== "super_admin") {
     return null;
   }
 
@@ -337,8 +493,8 @@ export function normalizeJwtClaims(unknownPayload: unknown): JWTPayload | null {
     userId,
     email,
     role,
-    organizationId,
-    siteIds: getSiteIds(payload),
+    organizationId: organizationId ?? GLOBAL_SUPER_ADMIN_ORGANIZATION_ID,
+    siteIds,
     permissions: getPermissions(payload, role),
   };
 }
@@ -347,6 +503,17 @@ export async function decodeJwtPayload(
   token: string,
   jwtConfig: JwtConfig,
 ): Promise<JWTPayload | null> {
+  const result = await decodeJwtPayloadDetailed(token, jwtConfig);
+  return result.user;
+}
+
+export async function decodeJwtPayloadDetailed(
+  token: string,
+  jwtConfig: JwtConfig,
+): Promise<JwtDecodeResult> {
+  const unknownTokenSummary = summarizeUnknownToken(token);
+  const acceptedResourceClients = [jwtConfig.audience];
+
   try {
     const { payload } = await jwtVerify(token, getJwksResolver(jwtConfig.jwksUrl), {
       issuer: jwtConfig.issuerUrl,
@@ -354,8 +521,28 @@ export async function decodeJwtPayload(
       algorithms: [...jwtConfig.algorithms],
       clockTolerance: 5,
     });
-    return normalizeJwtClaims(payload);
-  } catch {
-    return null;
+
+    const normalized = normalizeJwtClaimsWithAudience(
+      payload,
+      acceptedResourceClients,
+    );
+    if (normalized == null) {
+      return {
+        user: null,
+        failure: explainInvalidClaims(payload, acceptedResourceClients),
+      };
+    }
+
+    return { user: normalized, failure: null };
+  } catch (error) {
+    return {
+      user: null,
+      failure: {
+        stage: "verify",
+        reason:
+          error instanceof Error ? error.message : "JWT verification failed",
+        tokenSummary: unknownTokenSummary,
+      },
+    };
   }
 }

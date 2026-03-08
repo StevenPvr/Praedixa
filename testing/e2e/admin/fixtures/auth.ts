@@ -1,10 +1,10 @@
 import type { Page } from "@playwright/test";
+import { E2E_AUTH_SESSION_SECRET } from "../../fixtures/oidc-config";
 import { applyOidcAuthCookies } from "../../fixtures/oidc-auth";
 
 const ADMIN_BASE_URL = "http://localhost:3002";
 const ADMIN_CLIENT_ID = "praedixa-admin";
-const ADMIN_SESSION_SECRET =
-  process.env.AUTH_SESSION_SECRET ?? "e2e-oidc-session-secret";
+const ADMIN_SESSION_SECRET = E2E_AUTH_SESSION_SECRET;
 
 export const MOCK_ADMIN_USER = {
   id: "sa-00000000-0000-0000-0000-000000000001",

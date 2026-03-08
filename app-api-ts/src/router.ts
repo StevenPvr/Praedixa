@@ -4,6 +4,7 @@ import type {
   RoutePermissionMode,
   RouteDefinition,
   RouteHandler,
+  RouteRateLimit,
   UserRole,
 } from "./types.js";
 
@@ -36,6 +37,7 @@ export function route(
     allowedRoles?: readonly UserRole[];
     requiredPermissions?: readonly string[];
     permissionMode?: RoutePermissionMode;
+    rateLimit?: RouteRateLimit;
   },
 ): RouteDefinition {
   return {
@@ -45,6 +47,7 @@ export function route(
     allowedRoles: options?.allowedRoles ?? null,
     requiredPermissions: options?.requiredPermissions ?? null,
     permissionMode: options?.permissionMode ?? "all",
+    rateLimit: options?.rateLimit ?? null,
     handler,
   };
 }
@@ -59,6 +62,7 @@ export function compileRoutes(routes: RouteDefinition[]): CompiledRoute[] {
       allowedRoles: entry.allowedRoles,
       requiredPermissions: entry.requiredPermissions,
       permissionMode: entry.permissionMode,
+      rateLimit: entry.rateLimit,
       handler: entry.handler,
       regex: compiled.regex,
       paramNames: compiled.paramNames,

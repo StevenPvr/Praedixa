@@ -19,9 +19,7 @@ test.describe("Login page error handling", () => {
     await page.goto("/login?error=oidc_config_missing");
 
     await expect(
-      page.getByText(
-        "Configuration OIDC manquante en local. Renseignez AUTH_OIDC_ISSUER_URL, AUTH_OIDC_CLIENT_ID et AUTH_SESSION_SECRET dans app-webapp/.env.local.",
-      ),
+      page.getByText(/Configuration OIDC invalide\./),
     ).toBeVisible();
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FileText, Shield, Download, Trash2, Eye, Clock } from "lucide-react";
 import { DataTable, Button, type DataTableColumn } from "@praedixa/ui";
 import { DataTableToolbar } from "@/components/ui/data-table-toolbar";
@@ -92,7 +92,17 @@ type Section = "audit" | "rgpd";
 
 export default function JournalPage() {
   const currentUser = useCurrentUser();
-  const [section, setSection] = useState<Section>("audit");
+  const canReadAudit = hasAnyPermission(currentUser?.permissions, [
+    "admin:audit:read",
+  ]);
+  const canManageRgpd = hasAnyPermission(currentUser?.permissions, [
+    "admin:org:write",
+    "admin:billing:write",
+    "admin:support:write",
+  ]);
+  const [section, setSection] = useState<Section>(
+    canReadAudit ? "audit" : "rgpd",
+  );
   const [page, setPage] = useState(1);
   const [selectedKeys, setSelectedKeys] = useState<Set<string | number>>(
     new Set(),
@@ -103,17 +113,14 @@ export default function JournalPage() {
   if (actionFilter) params.set("action", actionFilter);
   const queryString = params.toString();
   const baseUrl = `${ADMIN_ENDPOINTS.auditLog}${queryString ? `?${queryString}` : ""}`;
-  const canReadAudit = hasAnyPermission(currentUser?.permissions, [
-    "admin:audit:read",
-  ]);
-  const canManageRgpd = hasAnyPermission(currentUser?.permissions, [
-    "admin:org:write",
-    "admin:billing:write",
-    "admin:support:write",
-  ]);
+  useEffect(() => {
+    if (!canReadAudit && canManageRgpd) {
+      setSection("rgpd");
+    }
+  }, [canManageRgpd, canReadAudit]);
 
   const { data, total, error, refetch } = useApiGetPaginated<AuditLogEntry>(
-    baseUrl,
+    canReadAudit ? baseUrl : null,
     page,
     AUDIT_PAGE_SIZE,
   );

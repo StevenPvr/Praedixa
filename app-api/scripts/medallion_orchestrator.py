@@ -13,10 +13,12 @@ from __future__ import annotations
 import argparse
 import contextlib
 import fcntl
+import ipaddress
 import json
 import os
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
@@ -50,6 +52,7 @@ class OrchestratorConfig:
     allow_reprocess: bool = False
     force_rebuild_on_start: bool = False
     alert_webhook_url: str | None = None
+    alert_webhook_allowed_hosts: tuple[str, ...] = ()
     alert_timeout_seconds: int = 10
 
 
@@ -107,20 +110,78 @@ def load_orchestrator_config(path: Path) -> OrchestratorConfig:
     if "alert_webhook_url" in payload:
         raw = payload["alert_webhook_url"]
         updates["alert_webhook_url"] = raw if isinstance(raw, str) and raw else None
+    if "alert_webhook_allowed_hosts" in payload and isinstance(
+        payload["alert_webhook_allowed_hosts"], list
+    ):
+        updates["alert_webhook_allowed_hosts"] = tuple(
+            str(value).strip().lower()
+            for value in payload["alert_webhook_allowed_hosts"]
+            if str(value).strip()
+        )
 
     cfg = replace(base, **updates)
     return _normalize_config(cfg)
 
 
 def _normalize_config(config: OrchestratorConfig) -> OrchestratorConfig:
+    webhook_url = config.alert_webhook_url
+    if webhook_url:
+        webhook_url = _validate_alert_webhook_url(
+            webhook_url,
+            allowed_hosts=config.alert_webhook_allowed_hosts,
+        )
+
     return replace(
         config,
         poll_seconds=max(5, config.poll_seconds),
         max_retries=max(0, config.max_retries),
         retry_base_seconds=max(1, config.retry_base_seconds),
         retry_max_seconds=max(1, config.retry_max_seconds),
+        alert_webhook_url=webhook_url,
         alert_timeout_seconds=max(1, config.alert_timeout_seconds),
     )
+
+
+def _validate_alert_webhook_url(
+    url: str,
+    *,
+    allowed_hosts: tuple[str, ...],
+) -> str:
+    if not allowed_hosts:
+        raise ValueError(
+            "alert_webhook_allowed_hosts must be configured when alerts are enabled"
+        )
+
+    parsed = urllib.parse.urlparse(url.strip())
+    if parsed.scheme != "https":
+        raise ValueError("alert_webhook_url must use https")
+    if parsed.username or parsed.password:
+        raise ValueError("alert_webhook_url must not embed credentials")
+
+    host = (parsed.hostname or "").strip().lower()
+    if not host or host == "localhost" or host.endswith(".localhost"):
+        raise ValueError("alert_webhook_url host is invalid")
+
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        ip = None
+    if ip is not None and (
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_multicast
+        or ip.is_reserved
+        or ip.is_unspecified
+    ):
+        raise ValueError("alert_webhook_url must not target a private host")
+
+    if allowed_hosts and not any(
+        host == allowed or host.endswith(f".{allowed}") for allowed in allowed_hosts
+    ):
+        raise ValueError("alert_webhook_url host is not on the allowlist")
+
+    return url.strip()
 
 
 def compute_retry_delay(
@@ -171,8 +232,9 @@ def send_webhook_alert(
         method="POST",
         headers={"Content-Type": "application/json"},
     )
+    opener = urllib.request.build_opener(_NoRedirectHandler())
     try:
-        with urllib.request.urlopen(req, timeout=timeout_seconds) as response:  # noqa: S310  # nosec B310
+        with opener.open(req, timeout=timeout_seconds) as response:  # nosec B310
             return HTTP_STATUS_OK_MIN <= response.status < HTTP_STATUS_REDIRECT_MIN
     except (urllib.error.URLError, TimeoutError, ValueError):
         return False
@@ -192,7 +254,7 @@ def maybe_alert_failure(
         "event": "medallion_pipeline_failure",
         "mode": mode,
         "attempts": attempts,
-        "error_message": error_message,
+        "error_message": _sanitize_alert_text(error_message),
         "timestamp": now_utc(),
     }
     send_webhook_alert(
@@ -200,6 +262,15 @@ def maybe_alert_failure(
         payload,
         timeout_seconds=config.alert_timeout_seconds,
     )
+
+
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args: Any, **kwargs: Any) -> None:
+        return None
+
+
+def _sanitize_alert_text(message: str) -> str:
+    return " ".join(str(message).split())[:300]
 
 
 def run_pipeline_with_retries(

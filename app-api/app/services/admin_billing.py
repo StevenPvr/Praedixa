@@ -14,6 +14,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ConflictError, NotFoundError
+from app.core.pagination import normalize_page_window
 from app.core.validation import sanitize_text
 from app.models.admin import PlanChangeHistory
 from app.models.data_catalog import ClientDataset
@@ -169,7 +170,7 @@ async def get_plan_history(
     count_result = await session.execute(count_query)
     total = count_result.scalar_one() or 0
 
-    offset = (page - 1) * page_size
+    _, page_size, offset = normalize_page_window(page, page_size)
     query = (
         base_query.order_by(PlanChangeHistory.created_at.desc())
         .offset(offset)

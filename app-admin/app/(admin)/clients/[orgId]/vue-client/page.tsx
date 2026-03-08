@@ -3,6 +3,8 @@
 import { useClientContext } from "../client-context";
 import { useApiGet, useApiPost } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
+import { useCurrentUser } from "@/lib/auth/client";
+import { hasAnyPermission } from "@/lib/auth/permissions";
 import {
   Card,
   CardContent,
@@ -59,7 +61,11 @@ interface BillingData {
 
 export default function VueClientPage() {
   const { orgId } = useClientContext();
+  const currentUser = useCurrentUser();
   const toast = useToast();
+  const canManageLifecycle = hasAnyPermission(currentUser?.permissions, [
+    "admin:org:write",
+  ]);
 
   const {
     data: org,
@@ -91,6 +97,10 @@ export default function VueClientPage() {
   >(ADMIN_ENDPOINTS.orgReactivate(orgId));
 
   async function handleSuspend() {
+    if (!canManageLifecycle) {
+      toast.error("Permission requise: admin:org:write");
+      return;
+    }
     const result = await suspend({});
     if (result) {
       toast.success("Client suspendu");
@@ -101,6 +111,10 @@ export default function VueClientPage() {
   }
 
   async function handleReactivate() {
+    if (!canManageLifecycle) {
+      toast.error("Permission requise: admin:org:write");
+      return;
+    }
     const result = await reactivate({});
     if (result) {
       toast.success("Client reactive");
@@ -304,7 +318,7 @@ export default function VueClientPage() {
               variant="outline"
               size="sm"
               onClick={handleSuspend}
-              disabled={suspendLoading}
+              disabled={!canManageLifecycle || suspendLoading}
             >
               <Pause className="mr-1.5 h-3.5 w-3.5" />
               Suspendre
@@ -315,13 +329,20 @@ export default function VueClientPage() {
               variant="outline"
               size="sm"
               onClick={handleReactivate}
-              disabled={reactivateLoading}
+              disabled={!canManageLifecycle || reactivateLoading}
             >
               <Play className="mr-1.5 h-3.5 w-3.5" />
               Reactiver
             </Button>
           )}
         </div>
+        {!canManageLifecycle ? (
+          <p className="text-xs text-ink-placeholder">
+            Permission requise pour suspendre ou reactiver un client:
+            {" "}
+            <span className="font-medium text-ink">admin:org:write</span>
+          </p>
+        ) : null}
       </div>
     </div>
   );

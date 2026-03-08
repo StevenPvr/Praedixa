@@ -270,6 +270,11 @@ class LocalKeyProvider(KeyProvider):
         is_production = False
         if settings is not None:
             is_production = settings.is_production
+        else:
+            normalized_env = (
+                os.environ.get("ENVIRONMENT", "development").strip().lower()
+            )
+            is_production = normalized_env in {"staging", "production"}
 
         if is_production:
             msg = (
@@ -642,6 +647,7 @@ class ScalewaySecretsKeyProvider(KeyProvider):  # pragma: no cover
         Idempotent: if secrets are already disabled or do not exist,
         the operation succeeds silently.
         """
+        errors: list[str] = []
         for key_type in _VALID_KEY_TYPES:
             try:
                 secret_id, status = await self._find_secret_id(
@@ -663,6 +669,7 @@ class ScalewaySecretsKeyProvider(KeyProvider):  # pragma: no cover
                     key_type=key_type,
                     org_id=str(org_id),
                 )
+                errors.append(f"{key_type}: lookup_failed")
                 continue
 
             # Already disabled -- idempotent
@@ -693,6 +700,13 @@ class ScalewaySecretsKeyProvider(KeyProvider):  # pragma: no cover
                     key_type=key_type,
                     org_id=str(org_id),
                 )
+                errors.append(
+                    f"{key_type}: disable_failed_http_{disable_resp.status_code}"
+                )
+
+        if errors:
+            msg = "Failed to disable one or more secrets during crypto-shredding"
+            raise KeyManagementError(f"{msg}: {', '.join(errors)}")
 
     async def rotate_dek(self, org_id: uuid.UUID) -> int:
         """Create a new DEK version in Scaleway Secrets Manager.

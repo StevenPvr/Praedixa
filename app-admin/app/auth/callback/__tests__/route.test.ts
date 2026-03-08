@@ -3,13 +3,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockRedirect = vi.fn();
 
 const mockClearAuthCookies = vi.fn();
+const mockBuildSessionData = vi.fn();
 const mockExchangeCodeForTokens = vi.fn();
 const mockGetOidcEnv = vi.fn();
+const mockIsAccessTokenCompatible = vi.fn();
 const mockGetTokenExp = vi.fn();
 const mockResolveAuthAppOrigin = vi.fn();
 const mockSanitizeNextPath = vi.fn();
 const mockSetAuthCookies = vi.fn();
 const mockSignSession = vi.fn();
+const mockTimingSafeEqual = vi.fn();
 const mockUserFromAccessToken = vi.fn();
 
 vi.mock("next/server", () => ({
@@ -22,16 +25,20 @@ vi.mock("@/lib/auth/oidc", () => ({
   LOGIN_NEXT_COOKIE: "prx_admin_next",
   LOGIN_STATE_COOKIE: "prx_admin_state",
   LOGIN_VERIFIER_COOKIE: "prx_admin_verifier",
+  buildSessionData: (...args: unknown[]) => mockBuildSessionData(...args),
   clearAuthCookies: (...args: unknown[]) => mockClearAuthCookies(...args),
   exchangeCodeForTokens: (...args: unknown[]) =>
     mockExchangeCodeForTokens(...args),
   getOidcEnv: (...args: unknown[]) => mockGetOidcEnv(...args),
+  isAccessTokenCompatible: (...args: unknown[]) =>
+    mockIsAccessTokenCompatible(...args),
   getTokenExp: (...args: unknown[]) => mockGetTokenExp(...args),
   resolveAuthAppOrigin: (...args: unknown[]) =>
     mockResolveAuthAppOrigin(...args),
   sanitizeNextPath: (...args: unknown[]) => mockSanitizeNextPath(...args),
   setAuthCookies: (...args: unknown[]) => mockSetAuthCookies(...args),
   signSession: (...args: unknown[]) => mockSignSession(...args),
+  timingSafeEqual: (...args: unknown[]) => mockTimingSafeEqual(...args),
   userFromAccessToken: (...args: unknown[]) => mockUserFromAccessToken(...args),
 }));
 
@@ -102,6 +109,20 @@ describe("GET /auth/callback (admin)", () => {
       expires_in: 900,
       refresh_expires_in: 7200,
     });
+    mockIsAccessTokenCompatible.mockReturnValue(true);
+    mockBuildSessionData.mockResolvedValue({
+      sub: "admin-1",
+      email: "admin@praedixa.com",
+      role: "super_admin",
+      permissions: ["admin:console:access"],
+      organizationId: "org-1",
+      siteId: "site-1",
+      accessTokenExp: 2000000000,
+      issuedAt: Math.floor(Date.now() / 1000),
+      sessionExpiresAt: Math.floor(Date.now() / 1000) + 7200,
+      accessTokenHash: "hash-access",
+      refreshTokenHash: "hash-refresh",
+    });
     mockUserFromAccessToken.mockReturnValue({
       id: "admin-1",
       email: "admin@praedixa.com",
@@ -112,6 +133,7 @@ describe("GET /auth/callback (admin)", () => {
     });
     mockGetTokenExp.mockReturnValue(2000000000);
     mockSignSession.mockResolvedValue("signed-session");
+    mockTimingSafeEqual.mockImplementation((a: string, b: string) => a === b);
   });
 
   it("redirects to sanitized next path after successful callback", async () => {
@@ -207,6 +229,26 @@ describe("GET /auth/callback (admin)", () => {
     );
   });
 
+  it("rejects access tokens that do not match the expected OIDC contract", async () => {
+    mockIsAccessTokenCompatible.mockReturnValueOnce(false);
+
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-123" },
+        {
+          prx_admin_state: "state-123",
+          prx_admin_verifier: "verifier-123",
+          prx_admin_next: "/clients",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe(
+      "https://admin.praedixa.com/login?error=auth_callback_failed",
+    );
+    expect(mockSetAuthCookies).not.toHaveBeenCalled();
+  });
+
   it("accepts delegated admin permission without super_admin role", async () => {
     mockUserFromAccessToken.mockReturnValueOnce({
       id: "u2",
@@ -229,5 +271,27 @@ describe("GET /auth/callback (admin)", () => {
     )) as { redirectUrl: string };
 
     expect(response.redirectUrl).toBe("https://admin.praedixa.com/clients");
+  });
+
+  it("redirects to login with oidc_config_missing when the public auth origin cannot be resolved", async () => {
+    mockResolveAuthAppOrigin.mockImplementationOnce(() => {
+      throw new Error("Missing AUTH_APP_ORIGIN");
+    });
+
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-123" },
+        {
+          prx_admin_state: "state-123",
+          prx_admin_verifier: "verifier-123",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe(
+      "https://admin.praedixa.com/login?error=oidc_config_missing",
+    );
+    expect(mockExchangeCodeForTokens).not.toHaveBeenCalled();
+    expect(mockClearAuthCookies).toHaveBeenCalled();
   });
 });

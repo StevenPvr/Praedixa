@@ -21,6 +21,7 @@ interface ProblemSectionProps {
 export function ProblemSection({ locale, dict }: ProblemSectionProps) {
   const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=audit`;
   const problem = dict.problem;
+  const hasKicker = problem.kicker.trim().length > 0;
   const pains = Array.isArray(problem.pains) ? problem.pains : null;
   const signals = Array.isArray(problem.diagnostic.signals)
     ? problem.diagnostic.signals
@@ -30,8 +31,12 @@ export function ProblemSection({ locale, dict }: ProblemSectionProps) {
     return (
       <SectionShell id="problem" className="section-dark">
         <div className="max-w-3xl">
-          <Kicker className="text-neutral-100">{problem.kicker}</Kicker>
-          <h2 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl">
+          {hasKicker ? (
+            <Kicker className="text-neutral-100">{problem.kicker}</Kicker>
+          ) : null}
+          <h2
+            className={`${hasKicker ? "mt-3" : "mt-0"} max-w-2xl text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl`}
+          >
             {problem.states.loadingTitle}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
@@ -51,8 +56,12 @@ export function ProblemSection({ locale, dict }: ProblemSectionProps) {
     return (
       <SectionShell id="problem" className="section-dark">
         <div className="max-w-3xl">
-          <Kicker className="text-neutral-100">{problem.kicker}</Kicker>
-          <h2 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl">
+          {hasKicker ? (
+            <Kicker className="text-neutral-100">{problem.kicker}</Kicker>
+          ) : null}
+          <h2
+            className={`${hasKicker ? "mt-3" : "mt-0"} max-w-2xl text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl`}
+          >
             {problem.states.emptyTitle}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
@@ -67,8 +76,12 @@ export function ProblemSection({ locale, dict }: ProblemSectionProps) {
     return (
       <SectionShell id="problem" className="section-dark">
         <div className="max-w-3xl">
-          <Kicker className="text-neutral-100">{problem.kicker}</Kicker>
-          <h2 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl">
+          {hasKicker ? (
+            <Kicker className="text-neutral-100">{problem.kicker}</Kicker>
+          ) : null}
+          <h2
+            className={`${hasKicker ? "mt-3" : "mt-0"} max-w-2xl text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl`}
+          >
             {problem.states.errorTitle}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
@@ -84,8 +97,12 @@ export function ProblemSection({ locale, dict }: ProblemSectionProps) {
       <div className="grid grid-cols-1 gap-12 md:grid-cols-[1.2fr_0.8fr] md:gap-14">
         <div className="min-w-0">
           <MotionReveal>
-            <Kicker className="text-neutral-100">{problem.kicker}</Kicker>
-            <h2 className="mt-3 max-w-3xl text-4xl font-bold leading-none tracking-tighter text-white md:text-6xl">
+            {hasKicker ? (
+              <Kicker className="text-neutral-100">{problem.kicker}</Kicker>
+            ) : null}
+            <h2
+              className={`${hasKicker ? "mt-3" : "mt-0"} max-w-3xl text-4xl font-bold leading-none tracking-tighter text-white md:text-6xl`}
+            >
               {problem.heading}
             </h2>
             <p className="mt-5 max-w-[65ch] text-base leading-relaxed text-neutral-200">
@@ -122,12 +139,6 @@ export function ProblemSection({ locale, dict }: ProblemSectionProps) {
                   <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-neutral-200">
                     {pain.description}
                   </p>
-                  <p className="mt-3 text-sm font-medium text-amber-100">
-                    {pain.consequence}
-                  </p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.08em] text-neutral-300">
-                    {pain.cost}
-                  </p>
                 </div>
               </MotionStaggerItem>
             ))}
@@ -146,10 +157,7 @@ export function ProblemSection({ locale, dict }: ProblemSectionProps) {
             <h3 className="mt-2 text-2xl font-semibold tracking-tight text-white">
               {problem.diagnostic.title}
             </h3>
-            <p className="mt-3 text-sm leading-relaxed text-neutral-200">
-              {problem.subheading}
-            </p>
-            <ul className="mt-6 list-none space-y-3.5 p-0">
+            <ul className="mt-5 list-none space-y-3.5 p-0">
               {signals.map((signal) => (
                 <li
                   key={signal}

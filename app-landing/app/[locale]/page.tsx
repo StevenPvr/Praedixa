@@ -4,8 +4,9 @@ import { isValidLocale } from "../../lib/i18n/config";
 import { getDictionary } from "../../lib/i18n/get-dictionary";
 import { buildLocaleMetadata, localePathMap } from "../../lib/seo/metadata";
 import { HeroSection } from "../../components/homepage/HeroSection";
+import { ProblemSection } from "../../components/homepage/ProblemSection";
+import { SolutionSection } from "../../components/homepage/SolutionSection";
 import { ClosedLoopTeaserSection } from "../../components/homepage/ClosedLoopTeaserSection";
-import { RoiProofTeaserSection } from "../../components/homepage/RoiProofTeaserSection";
 import { IntegrationTeaserSection } from "../../components/homepage/IntegrationTeaserSection";
 import { ServicesPilotTeaserSection } from "../../components/homepage/ServicesPilotTeaserSection";
 import { HomeFaqCtaSection } from "../../components/homepage/HomeFaqCtaSection";
@@ -43,8 +44,9 @@ export default async function LandingPage({
   return (
     <>
       <HeroSection locale={locale} dict={dict} />
+      <ProblemSection locale={locale} dict={dict} />
+      <SolutionSection dict={dict} />
       <ClosedLoopTeaserSection locale={locale} />
-      <RoiProofTeaserSection locale={locale} />
       <IntegrationTeaserSection locale={locale} />
       <ServicesPilotTeaserSection locale={locale} />
       <HomeFaqCtaSection locale={locale} />

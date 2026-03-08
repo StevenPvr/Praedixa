@@ -15,16 +15,32 @@
  */
 
 const isProd = process.env.NODE_ENV === "production";
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() ?? "";
 const oidcIssuerUrl = process.env.AUTH_OIDC_ISSUER_URL ?? "";
 const cspReportUri = process.env.CSP_REPORT_URI?.trim() ?? "";
 const cspReportToUrl = process.env.CSP_REPORT_TO_URL?.trim() ?? "";
 
 export const CSP_REPORT_TO_GROUP = "csp-endpoint";
 
-function getOriginOrEmpty(value: string): string {
+function isLoopbackHostname(hostname: string): boolean {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]"
+  );
+}
+
+function getTrustedOriginOrEmpty(value: string): string {
   try {
-    return value ? new URL(value).origin : "";
+    if (!value) return "";
+    const parsed = new URL(value);
+    if (parsed.protocol === "https:") {
+      return parsed.origin;
+    }
+    if (!isProd && parsed.protocol === "http:" && isLoopbackHostname(parsed.hostname)) {
+      return parsed.origin;
+    }
+    return "";
   } catch {
     return "";
   }
@@ -36,7 +52,7 @@ export function generateNonce(): string {
 
 function normalizeReportUri(value: string): string | null {
   if (!value) return null;
-  if (value.startsWith("/")) return value;
+  if (value.startsWith("/") && !value.startsWith("//")) return value;
 
   try {
     const parsed = new URL(value);
@@ -83,13 +99,21 @@ const normalizedReportUri = normalizeReportUri(cspReportUri);
 const normalizedReportToUrl = normalizeReportToUrl(cspReportToUrl);
 
 export function buildCspHeader(nonce: string): string {
-  const authOrigin = getOriginOrEmpty(oidcIssuerUrl);
-  const optionalAuthSource = authOrigin ? ` ${authOrigin}` : "";
-
-  // Build connect-src dynamically based on apiUrl
-  const connectSrc = isProd
-    ? `'self' ${apiUrl}${optionalAuthSource}`
-    : `'self' ${apiUrl}${optionalAuthSource} ws://localhost:3001 ws://127.0.0.1:3001`;
+  const authOrigin = getTrustedOriginOrEmpty(oidcIssuerUrl);
+  const apiOrigin =
+    getTrustedOriginOrEmpty(apiUrl) ||
+    (!isProd ? "http://localhost:8000" : "");
+  const connectSources = ["'self'"];
+  if (apiOrigin) {
+    connectSources.push(apiOrigin);
+  }
+  if (authOrigin && authOrigin !== apiOrigin) {
+    connectSources.push(authOrigin);
+  }
+  if (!isProd) {
+    connectSources.push("ws://localhost:3001", "ws://127.0.0.1:3001");
+  }
+  const connectSrc = connectSources.join(" ");
 
   const directives = [
     "default-src 'self'",

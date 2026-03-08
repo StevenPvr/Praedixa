@@ -30,7 +30,7 @@ export default function AlertesPage() {
   const { orgId, selectedSiteId } = useClientContext();
 
   const alertsUrl = selectedSiteId
-    ? `${ADMIN_ENDPOINTS.orgAlerts(orgId)}?site_id=${selectedSiteId}`
+    ? `${ADMIN_ENDPOINTS.orgAlerts(orgId)}?site_id=${encodeURIComponent(selectedSiteId)}`
     : ADMIN_ENDPOINTS.orgAlerts(orgId);
 
   const {

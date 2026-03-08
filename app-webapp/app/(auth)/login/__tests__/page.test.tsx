@@ -74,7 +74,7 @@ describe("LoginPage", () => {
     render(<LoginPage />);
 
     expect(
-      screen.getByText(/Configuration OIDC manquante en local/),
+      screen.getByText(/Configuration OIDC invalide\./),
     ).toBeInTheDocument();
   });
 
@@ -84,6 +84,15 @@ describe("LoginPage", () => {
 
     expect(
       screen.getByText(/Le fournisseur OIDC est non fiable ou mal configure/),
+    ).toBeInTheDocument();
+  });
+
+  it("renders explicit insecure OIDC session secret banner", () => {
+    mockSearchParams = new URLSearchParams("error=oidc_config_insecure");
+    render(<LoginPage />);
+
+    expect(
+      screen.getByText(/Le secret de session OIDC est trop faible/),
     ).toBeInTheDocument();
   });
 

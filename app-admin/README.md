@@ -15,7 +15,7 @@ Interface d'administration reservee a l'equipe Praedixa. Gestion multi-tenant de
 # 1. Variables d'environnement
 cp app-admin/.env.local.example app-admin/.env.local
 # Remplir NEXT_PUBLIC_API_URL, AUTH_OIDC_ISSUER_URL, AUTH_OIDC_CLIENT_ID, AUTH_SESSION_SECRET
-# Optionnel: AUTH_APP_ORIGIN=http://localhost:3002 pour stabiliser redirect_uri en local
+# Recommande en local, obligatoire en production: AUTH_APP_ORIGIN=http://localhost:3002
 
 # 2. Installer les dependances (depuis la racine du monorepo)
 pnpm install
@@ -31,7 +31,7 @@ pnpm dev:admin   # http://localhost:3002
 | Variable               | Description                 | Exemple                                     |
 | ---------------------- | --------------------------- | ------------------------------------------- |
 | `NEXT_PUBLIC_API_URL`  | URL de l'API backend        | `http://localhost:8000`                     |
-| `AUTH_APP_ORIGIN`      | Origin publique pour OIDC   | `http://localhost:3002`                     |
+| `AUTH_APP_ORIGIN`      | Origin publique pour OIDC (obligatoire en prod) | `http://localhost:3002`                     |
 | `AUTH_OIDC_ISSUER_URL` | URL realm OIDC (Keycloak)   | `https://auth.praedixa.com/realms/praedixa` |
 | `AUTH_OIDC_CLIENT_ID`  | Client ID OIDC admin        | `praedixa-admin`                            |
 | `AUTH_SESSION_SECRET`  | Secret de signature session | `<long random secret>`                      |

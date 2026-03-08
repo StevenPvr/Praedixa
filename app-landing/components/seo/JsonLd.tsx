@@ -53,11 +53,11 @@ function softwareApplicationSchema(locale: Locale, dict: Dictionary) {
     featureList:
       locale === "fr"
         ? [
-            "Decision Log + preuve ROI mensuelle",
-            "Dérives KPI à court horizon",
-            "Arbitrages chiffrés : renfort / réaffectation / ajustement service",
-            "1re étape assistée, validation manager",
-            "Lecture seule sur l’existant (exports)",
+            "Lecture business commune RH, finance et operations",
+            "Donnees dispersées réunies sans projet lourd",
+            "Priorités business classées par impact",
+            "Suivi du ROI simple a relire",
+            "Lecture seule sur l'existant (exports)",
           ]
         : [
             "Decision Log + monthly ROI proof",
@@ -76,11 +76,11 @@ function serviceSchema(locale: Locale) {
     "@type": "Service",
     name:
       locale === "fr"
-        ? "Pilote Praedixa (copilote IA) — 3 mois"
+        ? "Pilote ROI Praedixa — 3 mois"
         : "Praedixa pilot (AI decision copilot) — 3 months",
     serviceType:
       locale === "fr"
-        ? "Pilote de décision opérationnelle multi-sites"
+        ? "Pilote de lecture business et ROI multi-sites"
         : "Multi-site operational decision governance pilot",
     provider: {
       "@type": "Organization",

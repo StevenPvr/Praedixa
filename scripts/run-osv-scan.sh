@@ -9,29 +9,6 @@ if ! command -v osv-scanner >/dev/null 2>&1; then
   exit 1
 fi
 
-EXCLUDE_PATTERNS=(
-  "g:**/.git/**"
-  "g:**/.tools/**"
-  "g:**/.venv/**"
-  "g:**/app-api/.venv/**"
-  "g:**/node_modules/**"
-  "g:**/.next/**"
-  "g:**/coverage/**"
-  "g:**/test-results/**"
-  "g:**/playwright-report/**"
-  "g:**/.claude/**"
-  "g:**/.codex/**"
-  "g:**/sbom.cdx.json"
-)
-
-build_exclude_args() {
-  local -a args=()
-  for pattern in "${EXCLUDE_PATTERNS[@]}"; do
-    args+=("--experimental-exclude" "$pattern")
-  done
-  printf '%q ' "${args[@]}"
-}
-
 is_transient_backend_failure() {
   local output_file="$1"
   grep -Eqi \
@@ -60,14 +37,21 @@ run_osv() {
   return "$rc"
 }
 
-EXCLUDE_ARGS="$(build_exclude_args)"
+mapfile -t LOCKFILES < <(git ls-files 'pnpm-lock.yaml' 'uv.lock' 'app-api/uv.lock')
 
-# Support both legacy and v2 syntax variants.
+if [[ "${#LOCKFILES[@]}" -eq 0 ]]; then
+  echo "[osv] No tracked lockfiles to scan."
+  exit 0
+fi
+
+LOCKFILE_ARGS=()
+for lockfile in "${LOCKFILES[@]}"; do
+  LOCKFILE_ARGS+=("--lockfile" "$lockfile")
+done
+
 declare -a CANDIDATE_CMDS=(
-  "osv-scanner scan source --config osv-scanner.toml --recursive . ${EXCLUDE_ARGS}"
-  "osv-scanner scan source --recursive . ${EXCLUDE_ARGS}"
-  "osv-scanner --recursive ."
-  "osv-scanner -r ."
+  "osv-scanner scan source --config osv-scanner.toml ${LOCKFILE_ARGS[*]@Q}"
+  "osv-scanner scan source ${LOCKFILE_ARGS[*]@Q}"
 )
 
 for cmd in "${CANDIDATE_CMDS[@]}"; do
@@ -77,7 +61,6 @@ for cmd in "${CANDIDATE_CMDS[@]}"; do
 
   rc=$?
   if [[ $rc -eq 1 ]]; then
-    # Vulnerabilities found (or scanner-level findings). Surface failure directly.
     exit 1
   fi
 done

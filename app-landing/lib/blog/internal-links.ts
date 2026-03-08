@@ -7,6 +7,7 @@ import {
   isProductionEnvironment,
   resolveInternalLinksConfigPath,
 } from "./config";
+import type { HastElement, HastNode, HastRoot, HastText } from "./internal-links-hast";
 import type { InternalLinkRule } from "./types";
 
 const SKIPPED_TAGS = new Set([
@@ -25,53 +26,23 @@ const SKIPPED_TAGS = new Set([
   "footer",
 ]);
 
-interface HastNodeBase {
-  type: string;
-}
-
-interface HastText extends HastNodeBase {
-  type: "text";
-  value: string;
-}
-
-interface HastElement extends HastNodeBase {
-  type: "element";
-  tagName: string;
-  properties?: Record<string, unknown>;
-  children: HastNode[];
-}
-
-interface HastRoot extends HastNodeBase {
-  type: "root";
-  children: HastNode[];
-}
-
-interface HastUnknownNode extends HastNodeBase {
-  [key: string]: unknown;
-}
-
-type HastNode = HastText | HastElement | HastRoot | HastUnknownNode;
-
 interface CompiledRule {
   url: string;
   maxPerDoc: number;
   patterns: RegExp[];
 }
-
 interface LinkMatch {
   ruleUrl: string;
   start: number;
   end: number;
   text: string;
 }
-
 interface InternalLinksPluginOptions {
   rules: InternalLinkRule[];
   disabled?: boolean;
   generatedUrls?: Set<string>;
   excludeUrls?: string[];
 }
-
 let cachedRules: InternalLinkRule[] | null = null;
 
 function shouldUseCache(): boolean {
@@ -87,13 +58,10 @@ function createPatternRegex(pattern: string): RegExp {
   const escapedPattern = escapeRegex(trimmed);
   const firstCharacter = trimmed[0] ?? "";
   const lastCharacter = trimmed[trimmed.length - 1] ?? "";
-
   const startsWithWordCharacter = /[\p{L}\p{N}]/u.test(firstCharacter);
   const endsWithWordCharacter = /[\p{L}\p{N}]/u.test(lastCharacter);
-
   const leftBoundary = startsWithWordCharacter ? "(?<![\\p{L}\\p{N}])" : "";
   const rightBoundary = endsWithWordCharacter ? "(?![\\p{L}\\p{N}])" : "";
-
   return new RegExp(`${leftBoundary}(${escapedPattern})${rightBoundary}`, "iu");
 }
 
@@ -142,7 +110,6 @@ function parseRule(input: unknown, index: number): InternalLinkRule {
   const patternsRaw = input.patterns;
   const urlRaw = input.url;
   const maxPerDocRaw = input.maxPerDoc;
-
   if (typeof idRaw !== "string" || idRaw.trim().length === 0) {
     throw new Error(`Internal link rule at index ${index} must define a non-empty string 'id'.`);
   }

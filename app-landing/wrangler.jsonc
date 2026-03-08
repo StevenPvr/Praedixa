@@ -9,6 +9,15 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS",
   },
+  // Shared security state for anti-replay + distributed rate limiting.
+  // Create a D1 database and bind it as `LANDING_SECURITY_D1` before production deploys.
+  // "d1_databases": [
+  //   {
+  //     "binding": "LANDING_SECURITY_D1",
+  //     "database_name": "praedixa-landing-security",
+  //     "database_id": "<YOUR_D1_DATABASE_ID>"
+  //   }
+  // ],
   "routes": [
     { "pattern": "praedixa.com", "custom_domain": true },
     { "pattern": "www.praedixa.com", "custom_domain": true },

@@ -20,8 +20,6 @@ vi.spyOn(crypto, "randomUUID").mockReturnValue(
   "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" as `${string}-${string}-${string}-${string}-${string}`,
 );
 
-const BASE_URL = "http://localhost:8000";
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -99,8 +97,20 @@ describe("apiGet", () => {
 
     expect(mockFetch).toHaveBeenCalledOnce();
     const [url, opts] = mockFetch.mock.calls[0];
-    expect(url).toBe(`${BASE_URL}/api/v1/items`);
+    expect(url).toBe("/api/v1/items");
     expect(opts.method).toBe("GET");
+    expect(opts.credentials).toBe("include");
+  });
+
+  it("should not include Authorization header for same-origin proxy calls", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ success: true, data: null, timestamp: "t" }),
+    );
+
+    await apiGet("/api/v1/items", withToken);
+
+    const headers = mockFetch.mock.calls[0][1].headers;
+    expect(headers.Authorization).toBeUndefined();
   });
 
   it("should include Authorization header when token is present", async () => {
@@ -111,7 +121,7 @@ describe("apiGet", () => {
     await apiGet("/test", withToken);
 
     const headers = mockFetch.mock.calls[0][1].headers;
-    expect(headers["Authorization"]).toBe(`Bearer ${TOKEN}`);
+    expect(headers["Authorization"]).toBeUndefined();
   });
 
   it("should NOT include Authorization header when token is null", async () => {
@@ -289,7 +299,7 @@ describe("apiGetPaginated", () => {
     await apiGetPaginated("/items", withToken);
 
     const headers = mockFetch.mock.calls[0][1].headers;
-    expect(headers["Authorization"]).toBe(`Bearer ${TOKEN}`);
+    expect(headers["Authorization"]).toBeUndefined();
   });
 });
 
@@ -327,9 +337,7 @@ describe("apiPost", () => {
     const result = await apiPost<{ created: boolean }>("/items", {}, withToken);
 
     expect(result.data.created).toBe(true);
-    expect(mockFetch.mock.calls[0][1].headers["Authorization"]).toBe(
-      `Bearer ${TOKEN}`,
-    );
+    expect(mockFetch.mock.calls[0][1].headers["Authorization"]).toBeUndefined();
   });
 });
 

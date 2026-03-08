@@ -100,6 +100,11 @@ export const ACTION_LABELS: Record<string, string> = {
   view_audit: "Consultation audit",
   start_onboarding: "Demarrage onboarding",
   complete_step: "Etape completee",
+  decision_config_bootstrapped: "Bootstrap decision-config",
+  decision_config_version_created: "Version decision-config creee",
+  decision_config_version_activated: "Version decision-config activee",
+  decision_config_version_cancelled: "Version decision-config annulee",
+  decision_config_rollback: "Rollback decision-config",
 };
 
 export function buildInboxItems(
@@ -112,6 +117,7 @@ export function buildInboxItems(
 
   if (alerts?.organizations) {
     for (const org of alerts.organizations) {
+      const encodedOrgId = encodeURIComponent(org.orgId);
       if (org.critical > 0) {
         items.push({
           id: `alert-critical-${org.orgId}`,
@@ -119,7 +125,7 @@ export function buildInboxItems(
           title: `${org.critical} alerte(s) critique(s)`,
           description: `${org.orgName} — ${org.total} alertes au total`,
           source: "Alertes",
-          href: `/clients/${org.orgId}/alertes`,
+          href: `/clients/${encodedOrgId}/alertes`,
         });
       }
       if (org.high > 0 && org.critical === 0) {
@@ -129,7 +135,7 @@ export function buildInboxItems(
           title: `${org.high} alerte(s) elevee(s)`,
           description: `${org.orgName} — necessite une attention`,
           source: "Alertes",
-          href: `/clients/${org.orgId}/alertes`,
+          href: `/clients/${encodedOrgId}/alertes`,
         });
       }
     }
@@ -137,6 +143,7 @@ export function buildInboxItems(
 
   if (unread?.byOrg) {
     for (const org of unread.byOrg) {
+      const encodedOrgId = encodeURIComponent(org.orgId);
       if (org.count > 5) {
         items.push({
           id: `unread-urgent-${org.orgId}`,
@@ -144,7 +151,7 @@ export function buildInboxItems(
           title: `${org.count} messages non lus`,
           description: `${org.orgName} — reponse en attente`,
           source: "Messages",
-          href: `/clients/${org.orgId}/messages`,
+          href: `/clients/${encodedOrgId}/messages`,
         });
       } else if (org.count > 0) {
         items.push({
@@ -153,7 +160,7 @@ export function buildInboxItems(
           title: `${org.count} message(s) non lu(s)`,
           description: org.orgName,
           source: "Messages",
-          href: `/clients/${org.orgId}/messages`,
+          href: `/clients/${encodedOrgId}/messages`,
         });
       }
     }
@@ -161,6 +168,7 @@ export function buildInboxItems(
 
   if (costParams?.organizations) {
     for (const org of costParams.organizations) {
+      const encodedOrgId = encodeURIComponent(org.orgId);
       if (org.missingSites > 0) {
         items.push({
           id: `cost-missing-${org.orgId}`,
@@ -168,7 +176,7 @@ export function buildInboxItems(
           title: `Parametres de cout manquants`,
           description: `${org.orgName} — ${org.missingSites}/${org.totalSites} sites non configures`,
           source: "Configuration",
-          href: `/clients/${org.orgId}/config`,
+          href: `/clients/${encodedOrgId}/config`,
         });
       }
     }
@@ -176,6 +184,7 @@ export function buildInboxItems(
 
   if (adoption?.organizations) {
     for (const org of adoption.organizations) {
+      const encodedOrgId = encodeURIComponent(org.orgId);
       if (org.adoptionRate < 50 && org.totalDecisions > 0) {
         items.push({
           id: `adoption-low-${org.orgId}`,
@@ -183,7 +192,7 @@ export function buildInboxItems(
           title: `Adoption faible (${Math.round(org.adoptionRate)}%)`,
           description: `${org.orgName} — ${org.totalDecisions} decisions au total`,
           source: "Adoption",
-          href: `/clients/${org.orgId}/vue-client`,
+          href: `/clients/${encodedOrgId}/vue-client`,
         });
       }
     }

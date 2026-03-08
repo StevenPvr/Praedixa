@@ -178,4 +178,18 @@ describe("AdminSidebar", () => {
     expect(hrefs).toContain("/journal");
     expect(hrefs).toContain("/parametres");
   });
+
+  it("filters navigation items when permissions are restricted", () => {
+    render(
+      <AdminSidebar
+        {...defaultProps}
+        permissions={["admin:monitoring:read", "admin:org:read"]}
+      />,
+    );
+
+    expect(screen.getByText("Accueil")).toBeInTheDocument();
+    expect(screen.getByText("Clients")).toBeInTheDocument();
+    expect(screen.queryByText("Journal")).not.toBeInTheDocument();
+    expect(screen.queryByText("Demandes contact")).not.toBeInTheDocument();
+  });
 });

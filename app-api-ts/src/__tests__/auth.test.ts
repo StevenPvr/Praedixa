@@ -8,7 +8,12 @@ vi.mock("jose", () => ({
   jwtVerify: (...args: unknown[]) => mockJwtVerify(...args),
 }));
 
-import { decodeJwtPayload, normalizeJwtClaims, parseBearerToken } from "../auth.js";
+import {
+  decodeJwtPayload,
+  decodeJwtPayloadDetailed,
+  normalizeJwtClaims,
+  parseBearerToken,
+} from "../auth.js";
 
 const JWT_CONFIG = {
   issuerUrl: "https://auth.praedixa.com/realms/praedixa",
@@ -16,6 +21,15 @@ const JWT_CONFIG = {
   jwksUrl: "https://auth.praedixa.com/realms/praedixa/protocol/openid-connect/certs",
   algorithms: ["RS256"],
 } as const;
+const NOW_NUMERIC_DATE = 1_700_000_000;
+
+function withRequiredJwtClaims(payload: Record<string, unknown>) {
+  return {
+    iat: NOW_NUMERIC_DATE,
+    exp: NOW_NUMERIC_DATE + 3600,
+    ...payload,
+  };
+}
 
 describe("parseBearerToken", () => {
   it("returns null for malformed header", () => {
@@ -30,14 +44,14 @@ describe("parseBearerToken", () => {
 describe("normalizeJwtClaims", () => {
   it("maps claims to normalized payload", () => {
     expect(
-      normalizeJwtClaims({
+      normalizeJwtClaims(withRequiredJwtClaims({
         sub: "user-1",
         email: "ops@praedixa.com",
         org_id: "org-1",
         role: "org_admin",
         site_ids: ["site-1"],
         permissions: ["read:alerts"],
-      }),
+      })),
     ).toEqual({
       userId: "user-1",
       email: "ops@praedixa.com",
@@ -49,12 +63,12 @@ describe("normalizeJwtClaims", () => {
   });
 
   it("returns null when required claims are missing", () => {
-    expect(normalizeJwtClaims({ sub: "user-1" })).toBeNull();
+    expect(normalizeJwtClaims(withRequiredJwtClaims({ sub: "user-1" }))).toBeNull();
   });
 
   it("accepts OIDC fallback claims from realm_access and preferred_username", () => {
     expect(
-      normalizeJwtClaims({
+      normalizeJwtClaims(withRequiredJwtClaims({
         sub: "user-2",
         preferred_username: "ops.client@praedixa.com",
         organizationId: "org-1",
@@ -62,7 +76,7 @@ describe("normalizeJwtClaims", () => {
           roles: ["org_admin"],
         },
         siteId: "site-lyon",
-      }),
+      })),
     ).toEqual({
       userId: "user-2",
       email: "ops.client@praedixa.com",
@@ -73,19 +87,19 @@ describe("normalizeJwtClaims", () => {
     });
   });
 
-  it("accepts organization and role fallbacks from app_metadata and resource_access", () => {
+  it("accepts organization and API-scoped role fallbacks from app_metadata and resource_access", () => {
     expect(
-      normalizeJwtClaims({
+      normalizeJwtClaims(withRequiredJwtClaims({
         sub: "user-3",
         email: "manager@praedixa.com",
         app_metadata: {
           org_id: "org-3",
         },
         resource_access: {
-          webapp: { roles: ["viewer", "manager"] },
+          "praedixa-api": { roles: ["viewer", "manager"] },
         },
         siteIds: ["site-1", "site-2"],
-      }),
+      })),
     ).toEqual({
       userId: "user-3",
       email: "manager@praedixa.com",
@@ -96,15 +110,35 @@ describe("normalizeJwtClaims", () => {
     });
   });
 
+  it("ignores roles from unrelated resource_access clients", () => {
+    expect(
+      normalizeJwtClaims(withRequiredJwtClaims({
+        sub: "user-3b",
+        email: "viewer@praedixa.com",
+        organization_id: "org-3",
+        resource_access: {
+          "other-client": { roles: ["super_admin"] },
+        },
+      })),
+    ).toEqual({
+      userId: "user-3b",
+      email: "viewer@praedixa.com",
+      organizationId: "org-3",
+      role: "viewer",
+      siteIds: [],
+      permissions: [],
+    });
+  });
+
   it("falls back to viewer when role is unknown", () => {
     expect(
-      normalizeJwtClaims({
+      normalizeJwtClaims(withRequiredJwtClaims({
         sub: "user-4",
         email: "ops.client@praedixa.com",
         organization_id: "org-4",
         role: "ops_client",
         site_id: "site-lyon",
-      }),
+      })),
     ).toEqual({
       userId: "user-4",
       email: "ops.client@praedixa.com",
@@ -117,12 +151,12 @@ describe("normalizeJwtClaims", () => {
 
   it("accepts role aliases and top-level roles/groups claims", () => {
     expect(
-      normalizeJwtClaims({
+      normalizeJwtClaims(withRequiredJwtClaims({
         sub: "user-5",
         email: "admin.alias@praedixa.com",
         org_id: "org-5",
         role: "super-admin",
-      }),
+      })),
     ).toEqual({
       userId: "user-5",
       email: "admin.alias@praedixa.com",
@@ -137,12 +171,12 @@ describe("normalizeJwtClaims", () => {
     });
 
     expect(
-      normalizeJwtClaims({
+      normalizeJwtClaims(withRequiredJwtClaims({
         sub: "user-6",
         email: "admin.roles@praedixa.com",
         org_id: "org-6",
         roles: ["ROLE_SUPER_ADMIN"],
-      }),
+      })),
     ).toEqual({
       userId: "user-6",
       email: "admin.roles@praedixa.com",
@@ -156,12 +190,12 @@ describe("normalizeJwtClaims", () => {
     });
 
     expect(
-      normalizeJwtClaims({
+      normalizeJwtClaims(withRequiredJwtClaims({
         sub: "user-7",
         email: "admin.groups@praedixa.com",
         org_id: "org-7",
         groups: ["/super_admin"],
-      }),
+      })),
     ).toEqual({
       userId: "user-7",
       email: "admin.groups@praedixa.com",
@@ -177,13 +211,13 @@ describe("normalizeJwtClaims", () => {
 
   it("derives delegated permissions from profile fallback when explicit permissions are missing", () => {
     expect(
-      normalizeJwtClaims({
+      normalizeJwtClaims(withRequiredJwtClaims({
         sub: "user-7b",
         email: "ops.delegate@praedixa.com",
         org_id: "org-7",
         role: "viewer",
         profile: "admin_ops",
-      }),
+      })),
     ).toEqual({
       userId: "user-7b",
       email: "ops.delegate@praedixa.com",
@@ -194,21 +228,58 @@ describe("normalizeJwtClaims", () => {
     });
   });
 
-  it("falls back to default organization when org claims are missing", () => {
+  it("rejects non-admin JWTs when organization claims are missing", () => {
+    expect(
+      normalizeJwtClaims(
+        withRequiredJwtClaims({
+          sub: "user-8",
+          email: "no-org@praedixa.com",
+          role: "org_admin",
+        }),
+      ),
+    ).toBeNull();
+  });
+
+  it("rejects org admin JWTs when tenant claims are missing", () => {
+    expect(
+      normalizeJwtClaims(
+        withRequiredJwtClaims({
+          sub: "user-dev",
+          email: "dev@praedixa.com",
+          role: "org_admin",
+        }),
+      ),
+    ).toBeNull();
+  });
+
+  it("accepts super admin JWTs without organization claim", () => {
+    expect(
+      normalizeJwtClaims(
+        withRequiredJwtClaims({
+          sub: "user-9",
+          email: "super-admin@praedixa.com",
+          role: "super_admin",
+        }),
+      ),
+    ).toEqual({
+      userId: "user-9",
+      email: "super-admin@praedixa.com",
+      organizationId: "global-super-admin",
+      role: "super_admin",
+      siteIds: [],
+      permissions: expect.arrayContaining(["admin:console:access"]),
+    });
+  });
+
+  it("rejects JWTs without exp and iat claims", () => {
     expect(
       normalizeJwtClaims({
-        sub: "user-8",
-        email: "no-org@praedixa.com",
-        role: "org_admin",
+        sub: "user-10",
+        email: "missing-time@praedixa.com",
+        org_id: "org-10",
+        role: "viewer",
       }),
-    ).toEqual({
-      userId: "user-8",
-      email: "no-org@praedixa.com",
-      organizationId: "11111111-1111-1111-1111-111111111111",
-      role: "org_admin",
-      siteIds: [],
-      permissions: [],
-    });
+    ).toBeNull();
   });
 });
 
@@ -220,12 +291,12 @@ describe("decodeJwtPayload", () => {
 
   it("returns normalized claims when JWT verification succeeds", async () => {
     mockJwtVerify.mockResolvedValue({
-      payload: {
+      payload: withRequiredJwtClaims({
         sub: "user-9",
         email: "verified@praedixa.com",
         org_id: "org-9",
         role: "org_admin",
-      },
+      }),
     });
 
     await expect(decodeJwtPayload("signed.jwt.token", JWT_CONFIG)).resolves.toEqual(
@@ -257,10 +328,43 @@ describe("decodeJwtPayload", () => {
   });
 
   it("returns null when verified payload has invalid claims", async () => {
-    mockJwtVerify.mockResolvedValue({ payload: { sub: "user-only" } });
+    mockJwtVerify.mockResolvedValue({ payload: withRequiredJwtClaims({ sub: "user-only" }) });
 
     await expect(
       decodeJwtPayload("verified-but-invalid-claims", JWT_CONFIG),
     ).resolves.toBeNull();
+  });
+
+  it("returns detailed claim failure information for verified but invalid payloads", async () => {
+    mockJwtVerify.mockResolvedValue({ payload: withRequiredJwtClaims({ sub: "user-only" }) });
+
+    await expect(
+      decodeJwtPayloadDetailed("verified-but-invalid-claims", JWT_CONFIG),
+    ).resolves.toMatchObject({
+      user: null,
+      failure: {
+        stage: "claims",
+        reason: "JWT is missing email or preferred_username",
+      },
+    });
+  });
+
+  it("returns detailed verification failure information", async () => {
+    mockJwtVerify.mockRejectedValue(new Error("unexpected \"aud\" claim value"));
+
+    await expect(
+      decodeJwtPayloadDetailed("aaa.eyJhdWQiOlsiYWNjb3VudCJdLCJhenAiOiJwcmFlZGl4YS13ZWJhcHAifQ.sig", JWT_CONFIG),
+    ).resolves.toMatchObject({
+      user: null,
+      failure: {
+        stage: "verify",
+        reason: "unexpected \"aud\" claim value",
+        tokenSummary: expect.objectContaining({
+          parseable: true,
+          aud: ["account"],
+          azp: "praedixa-webapp",
+        }),
+      },
+    });
   });
 });

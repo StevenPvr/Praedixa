@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 
+import { loadConfig } from "./config.js";
+
 export type IntegrationVendor =
   | "salesforce"
   | "ukg"
@@ -21,17 +23,46 @@ export type IntegrationConnectionStatus =
   | "active"
   | "disabled"
   | "needs_attention";
+export type IntegrationAuthorizationState =
+  | "not_started"
+  | "awaiting_authorization"
+  | "authorized";
 export type IntegrationSyncStatus = "queued" | "running" | "success" | "failed" | "canceled";
 export type IntegrationSyncTrigger = "manual" | "schedule" | "backfill" | "replay" | "webhook";
+
+type RuntimeSuccess<T> = {
+  success: true;
+  data: T;
+  message?: string;
+  timestamp: string;
+  requestId?: string;
+};
+
+type RuntimeError = {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: Record<string, unknown>;
+  };
+  timestamp: string;
+  requestId?: string;
+};
+
+type RuntimeResponse<T> = RuntimeSuccess<T> | RuntimeError;
+const CONNECTORS_RUNTIME_TIMEOUT_MS = 8_000;
+const PATH_SEGMENT_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
 
 export type IntegrationCatalogItem = {
   vendor: IntegrationVendor;
   label: string;
-  verticals: string[];
+  domain: string;
   authModes: IntegrationAuthMode[];
   sourceObjects: string[];
   recommendedSyncMinutes: number;
-  medallionPath: Array<"bronze" | "silver" | "gold">;
+  medallionTargets: Array<"bronze" | "silver" | "gold">;
+  onboardingModes?: string[];
+  requiredConfigFields?: string[];
 };
 
 export type IntegrationConnection = {
@@ -41,10 +72,20 @@ export type IntegrationConnection = {
   displayName: string;
   authMode: IntegrationAuthMode;
   status: IntegrationConnectionStatus;
+  authorizationState?: IntegrationAuthorizationState;
   secretRef: string | null;
+  secretVersion?: number | null;
   config: Record<string, unknown>;
+  sourceObjects?: string[];
+  syncIntervalMinutes?: number;
+  webhookEnabled?: boolean;
+  baseUrl?: string | null;
+  externalAccountId?: string | null;
+  oauthScopes?: string[] | null;
+  lastTestedAt?: string | null;
   lastSuccessfulSyncAt: string | null;
   nextScheduledSyncAt: string | null;
+  disabledReason?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -70,406 +111,447 @@ export type IntegrationAuditEvent = {
   connectionId: string | null;
   action: string;
   actorUserId: string | null;
+  actorService?: string | null;
+  requestId?: string | null;
   metadata: Record<string, unknown>;
   createdAt: string;
+};
+
+export type IntegrationAuthorizationStartResult = {
+  authorizationUrl: string;
+  expiresAt: string;
+  state: string;
+};
+
+export type IntegrationAuthorizationCompleteResult = {
+  authorized: boolean;
+  secretRef: string;
+  secretVersion: number;
+  expiresAt: string | null;
+  scopes: string[];
+};
+
+export type IntegrationIngestCredential = {
+  id: string;
+  organizationId: string;
+  connectionId: string;
+  label: string;
+  keyId: string;
+  authMode: "bearer" | "bearer_hmac";
+  secretRef: string;
+  secretVersion: number;
+  tokenPreview: string;
+  allowedSourceObjects: string[] | null;
+  allowedIpAddresses: string[] | null;
+  expiresAt: string | null;
+  lastUsedAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type IntegrationIssueIngestCredentialResult = {
+  credential: IntegrationIngestCredential;
+  apiKey: string;
+  signingSecret: string | null;
+  ingestUrl: string;
+  authScheme: "Bearer";
+  signature: null | {
+    algorithm: "hmac-sha256";
+    keyIdHeader: "X-Praedixa-Key-Id";
+    timestampHeader: "X-Praedixa-Timestamp";
+    signatureHeader: "X-Praedixa-Signature";
+  };
+};
+
+export type IntegrationRawEvent = {
+  id: string;
+  organizationId: string;
+  connectionId: string;
+  credentialId: string;
+  eventId: string;
+  sourceObject: string;
+  sourceRecordId: string;
+  sourceUpdatedAt: string | null;
+  schemaVersion: string;
+  contentType: string;
+  payloadSha256: string;
+  payloadPreview: Record<string, unknown>;
+  objectStoreKey: string;
+  sizeBytes: number;
+  idempotencyKey: string;
+  processingStatus: "pending" | "processing" | "processed" | "failed";
+  claimedAt: string | null;
+  claimedBy: string | null;
+  processedAt: string | null;
+  errorMessage: string | null;
+  receivedAt: string;
 };
 
 export class IntegrationInputError extends Error {
   constructor(
     message: string,
     public readonly details?: Record<string, unknown>,
+    public readonly statusCode = 400,
   ) {
     super(message);
     this.name = "IntegrationInputError";
   }
 }
 
-export const INTEGRATION_CATALOG: IntegrationCatalogItem[] = [
-  {
-    vendor: "salesforce",
-    label: "Salesforce CRM",
-    verticals: ["logistique", "transport", "concessionnaire", "franchise_fast_food"],
-    authModes: ["oauth2", "service_account"],
-    sourceObjects: ["Account", "Opportunity", "Case", "Task"],
-    recommendedSyncMinutes: 30,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-  {
-    vendor: "ukg",
-    label: "UKG Workforce",
-    verticals: ["logistique", "transport", "franchise_fast_food"],
-    authModes: ["oauth2", "api_key"],
-    sourceObjects: ["Employees", "Schedules", "Timesheets", "Absences"],
-    recommendedSyncMinutes: 30,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-  {
-    vendor: "toast",
-    label: "Toast POS",
-    verticals: ["franchise_fast_food"],
-    authModes: ["oauth2", "api_key"],
-    sourceObjects: ["Orders", "Menus", "Labor", "Inventory"],
-    recommendedSyncMinutes: 15,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-  {
-    vendor: "olo",
-    label: "Olo Ordering",
-    verticals: ["franchise_fast_food"],
-    authModes: ["api_key"],
-    sourceObjects: ["Orders", "Stores", "Products", "Promotions"],
-    recommendedSyncMinutes: 15,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-  {
-    vendor: "cdk",
-    label: "CDK Global DMS",
-    verticals: ["concessionnaire"],
-    authModes: ["service_account", "sftp"],
-    sourceObjects: ["ServiceOrders", "RepairOrders", "Vehicles", "Parts"],
-    recommendedSyncMinutes: 60,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-  {
-    vendor: "reynolds",
-    label: "Reynolds & Reynolds DMS",
-    verticals: ["concessionnaire"],
-    authModes: ["service_account", "sftp"],
-    sourceObjects: ["RepairOrder", "Customer", "Vehicle", "Technician"],
-    recommendedSyncMinutes: 60,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-  {
-    vendor: "geotab",
-    label: "Geotab Telematics",
-    verticals: ["logistique", "transport"],
-    authModes: ["api_key", "oauth2"],
-    sourceObjects: ["Trip", "Device", "FaultData", "StatusData"],
-    recommendedSyncMinutes: 10,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-  {
-    vendor: "fourth",
-    label: "Fourth WFM",
-    verticals: ["franchise_fast_food"],
-    authModes: ["api_key", "sftp"],
-    sourceObjects: ["Employees", "Roster", "Timeclock", "LaborForecast"],
-    recommendedSyncMinutes: 30,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-  {
-    vendor: "oracle_tm",
-    label: "Oracle Transportation Management",
-    verticals: ["logistique", "transport"],
-    authModes: ["oauth2", "service_account"],
-    sourceObjects: ["Shipment", "OrderRelease", "Route", "Stop"],
-    recommendedSyncMinutes: 30,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-  {
-    vendor: "sap_tm",
-    label: "SAP Transportation Management",
-    verticals: ["logistique", "transport"],
-    authModes: ["oauth2", "service_account"],
-    sourceObjects: ["FreightOrder", "FreightUnit", "Resource", "Stop"],
-    recommendedSyncMinutes: 30,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-  {
-    vendor: "blue_yonder",
-    label: "Blue Yonder",
-    verticals: ["logistique", "transport", "franchise_fast_food"],
-    authModes: ["api_key", "service_account"],
-    sourceObjects: ["DemandPlan", "LaborPlan", "Store", "SKU"],
-    recommendedSyncMinutes: 60,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-  {
-    vendor: "manhattan",
-    label: "Manhattan Associates",
-    verticals: ["logistique", "transport"],
-    authModes: ["api_key", "service_account"],
-    sourceObjects: ["Wave", "Task", "Inventory", "Shipment"],
-    recommendedSyncMinutes: 30,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-  {
-    vendor: "ncr_aloha",
-    label: "NCR Aloha",
-    verticals: ["franchise_fast_food"],
-    authModes: ["api_key", "sftp"],
-    sourceObjects: ["Check", "Item", "Labor", "Inventory"],
-    recommendedSyncMinutes: 15,
-    medallionPath: ["bronze", "silver", "gold"],
-  },
-];
+function getRuntimeConfig(): { baseUrl: string; token: string } {
+  const runtimeEnv =
+    process.env.NODE_ENV === "test"
+      ? { ...process.env, NODE_ENV: "development" }
+      : process.env;
+  const config = loadConfig(runtimeEnv);
+  const baseUrl = config.connectors.runtimeUrl;
+  const token = config.connectors.runtimeToken ?? "";
 
-const ALLOWED_VENDOR_SET = new Set<IntegrationVendor>(
-  INTEGRATION_CATALOG.map((entry) => entry.vendor),
-);
+  if (token.length < 32) {
+    throw new IntegrationInputError(
+      "connectors runtime token is not configured",
+      undefined,
+      500,
+    );
+  }
 
-const CONNECTIONS: IntegrationConnection[] = [
-  {
-    id: "int-conn-001",
-    organizationId: "org-1",
-    vendor: "salesforce",
-    displayName: "Salesforce Ops",
-    authMode: "oauth2",
-    status: "active",
-    secretRef: "scw://secrets/org-1/salesforce",
-    config: { instanceUrl: "https://example.my.salesforce.com" },
-    lastSuccessfulSyncAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
-    nextScheduledSyncAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
-const SYNC_RUNS: IntegrationSyncRun[] = [];
-const AUDIT_EVENTS: IntegrationAuditEvent[] = [];
-
-export function listIntegrationCatalog(): IntegrationCatalogItem[] {
-  return INTEGRATION_CATALOG;
+  return { baseUrl: baseUrl.replace(/\/$/, ""), token };
 }
 
-export function listIntegrationConnections(
+function encodePathSegment(label: string, value: string): string {
+  const trimmed = value.trim();
+  if (!PATH_SEGMENT_PATTERN.test(trimmed)) {
+    throw new IntegrationInputError(`${label} contains unsupported characters`, {
+      label,
+    });
+  }
+
+  return encodeURIComponent(trimmed);
+}
+
+function buildOrganizationPath(organizationId: string): string {
+  return `/v1/organizations/${encodePathSegment("organizationId", organizationId)}`;
+}
+
+function buildConnectionPath(
+  organizationId: string,
+  connectionId: string,
+): string {
+  return `${buildOrganizationPath(organizationId)}/connections/${encodePathSegment(
+    "connectionId",
+    connectionId,
+  )}`;
+}
+
+async function callConnectorsRuntime<T>(
+  path: string,
+  options?: {
+    actorUserId?: string | null;
+    body?: unknown;
+    idempotencyKey?: string | null;
+    method?: "GET" | "POST" | "PATCH";
+    query?: URLSearchParams;
+  },
+): Promise<T> {
+  const { baseUrl, token } = getRuntimeConfig();
+  const url = new URL(`${baseUrl}${path}`);
+  if (options?.query != null) {
+    for (const [key, value] of options.query.entries()) {
+      url.searchParams.append(key, value);
+    }
+  }
+
+  const headers: Record<string, string> = {
+    authorization: `Bearer ${token}`,
+    accept: "application/json",
+  };
+  if (options?.body !== undefined) {
+    headers["content-type"] = "application/json";
+  }
+  if (options?.actorUserId != null) {
+    headers["x-actor-user-id"] = options.actorUserId;
+  }
+  if (options?.idempotencyKey != null) {
+    headers["idempotency-key"] = options.idempotencyKey;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, CONNECTORS_RUNTIME_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: options?.method ?? "GET",
+      headers,
+      redirect: "error",
+      signal: controller.signal,
+      ...(options?.body !== undefined ? { body: JSON.stringify(options.body) } : {}),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new IntegrationInputError(
+        "connectors runtime request timed out",
+        { path },
+        504,
+      );
+    }
+
+    throw new IntegrationInputError(
+      "connectors runtime is unavailable",
+      { path },
+      502,
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  const payload = (await response.json().catch(() => null)) as RuntimeResponse<T> | null;
+  if (payload == null) {
+    throw new IntegrationInputError(
+      "connectors runtime returned an invalid response",
+      { path },
+      502,
+    );
+  }
+
+  if (!response.ok || !payload.success) {
+    const errorPayload = payload.success
+      ? { message: "connectors runtime request failed", details: undefined }
+      : payload.error;
+    throw new IntegrationInputError(
+      errorPayload.message,
+      errorPayload.details,
+      response.status,
+    );
+  }
+
+  return payload.data;
+}
+
+export async function listIntegrationCatalog(): Promise<IntegrationCatalogItem[]> {
+  return await callConnectorsRuntime<IntegrationCatalogItem[]>("/v1/connectors/catalog");
+}
+
+export async function listIntegrationConnections(
   organizationId: string,
   vendorFilter: string | null,
-): IntegrationConnection[] {
-  return CONNECTIONS.filter((row) => {
-    if (row.organizationId !== organizationId) {
-      return false;
-    }
-    if (vendorFilter == null || vendorFilter.length === 0) {
-      return true;
-    }
-    return row.vendor === vendorFilter;
-  }).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+): Promise<IntegrationConnection[]> {
+  const query = new URLSearchParams();
+  if (vendorFilter != null && vendorFilter.length > 0) {
+    query.set("vendor", vendorFilter);
+  }
+  return await callConnectorsRuntime<IntegrationConnection[]>(
+    `${buildOrganizationPath(organizationId)}/connections`,
+    {
+      query,
+    },
+  );
 }
 
-function validateVendor(value: unknown): IntegrationVendor {
-  if (typeof value !== "string") {
-    throw new IntegrationInputError("vendor must be a string");
-  }
-  if (!ALLOWED_VENDOR_SET.has(value as IntegrationVendor)) {
-    throw new IntegrationInputError("unsupported connector vendor", {
-      vendor: value,
-    });
-  }
-  return value as IntegrationVendor;
+export async function getIntegrationConnection(
+  organizationId: string,
+  connectionId: string,
+): Promise<IntegrationConnection> {
+  return await callConnectorsRuntime<IntegrationConnection>(
+    buildConnectionPath(organizationId, connectionId),
+  );
 }
 
-function validateAuthMode(vendor: IntegrationVendor, value: unknown): IntegrationAuthMode {
-  if (typeof value !== "string") {
-    throw new IntegrationInputError("authMode must be a string");
-  }
-  const allowedAuthModes = INTEGRATION_CATALOG.find(
-    (entry) => entry.vendor === vendor,
-  )?.authModes;
-  if (allowedAuthModes == null || !allowedAuthModes.includes(value as IntegrationAuthMode)) {
-    throw new IntegrationInputError("authMode is not allowed for this vendor", {
-      vendor,
-      authMode: value,
-      allowedAuthModes,
-    });
-  }
-  return value as IntegrationAuthMode;
-}
-
-export function createIntegrationConnection(
+export async function createIntegrationConnection(
   organizationId: string,
   payload: unknown,
   actorUserId: string | null,
-): IntegrationConnection {
-  const parsed = (payload ?? {}) as Record<string, unknown>;
-  const vendor = validateVendor(parsed.vendor);
-  const authMode = validateAuthMode(vendor, parsed.authMode);
-  const displayName = String(parsed.displayName ?? "").trim();
-  if (displayName.length < 3) {
-    throw new IntegrationInputError("displayName must be at least 3 characters");
-  }
-
-  const connection: IntegrationConnection = {
-    id: randomUUID(),
-    organizationId,
-    vendor,
-    displayName,
-    authMode,
-    status: "pending",
-    secretRef:
-      typeof parsed.secretRef === "string" && parsed.secretRef.trim().length > 0
-        ? parsed.secretRef.trim()
-        : null,
-    config: isRecord(parsed.config) ? parsed.config : {},
-    lastSuccessfulSyncAt: null,
-    nextScheduledSyncAt: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  CONNECTIONS.push(connection);
-  AUDIT_EVENTS.push({
-    id: randomUUID(),
-    organizationId,
-    connectionId: connection.id,
-    action: "integration.connection.created",
-    actorUserId,
-    metadata: {
-      vendor: connection.vendor,
-      authMode: connection.authMode,
-      hasSecretRef: connection.secretRef != null,
+): Promise<IntegrationConnection> {
+  return await callConnectorsRuntime<IntegrationConnection>(
+    `${buildOrganizationPath(organizationId)}/connections`,
+    {
+      method: "POST",
+      body: payload,
+      actorUserId,
     },
-    createdAt: new Date().toISOString(),
-  });
-  return connection;
-}
-
-function findConnection(organizationId: string, connectionId: string): IntegrationConnection {
-  const connection = CONNECTIONS.find(
-    (row) => row.id === connectionId && row.organizationId === organizationId,
   );
-  if (connection == null) {
-    throw new IntegrationInputError("integration connection not found", {
-      connectionId,
-      organizationId,
-    });
-  }
-  return connection;
 }
 
-export function testIntegrationConnection(
+export async function updateIntegrationConnection(
+  organizationId: string,
+  connectionId: string,
+  payload: unknown,
+  actorUserId: string | null,
+): Promise<IntegrationConnection> {
+  return await callConnectorsRuntime<IntegrationConnection>(
+    buildConnectionPath(organizationId, connectionId),
+    {
+      method: "PATCH",
+      body: payload,
+      actorUserId,
+    },
+  );
+}
+
+export async function startIntegrationAuthorization(
+  organizationId: string,
+  connectionId: string,
+  payload: unknown,
+  actorUserId: string | null,
+): Promise<IntegrationAuthorizationStartResult> {
+  return await callConnectorsRuntime<IntegrationAuthorizationStartResult>(
+    `${buildConnectionPath(organizationId, connectionId)}/authorize/start`,
+    {
+      method: "POST",
+      body: payload,
+      actorUserId,
+    },
+  );
+}
+
+export async function completeIntegrationAuthorization(
+  organizationId: string,
+  connectionId: string,
+  payload: unknown,
+  actorUserId: string | null,
+): Promise<IntegrationAuthorizationCompleteResult> {
+  return await callConnectorsRuntime<IntegrationAuthorizationCompleteResult>(
+    `${buildConnectionPath(organizationId, connectionId)}/authorize/complete`,
+    {
+      method: "POST",
+      body: payload,
+      actorUserId,
+    },
+  );
+}
+
+export async function testIntegrationConnection(
   organizationId: string,
   connectionId: string,
   actorUserId: string | null,
 ) {
-  const connection = findConnection(organizationId, connectionId);
-  const warnings: string[] = [];
-
-  if (connection.secretRef == null) {
-    warnings.push("No secretRef configured; this run uses non-production credentials.");
-  }
-  if (Object.keys(connection.config).length === 0) {
-    warnings.push("Config is empty; object scoping defaults will be used.");
-  }
-
-  const now = new Date().toISOString();
-  connection.status = "active";
-  connection.updatedAt = now;
-  connection.nextScheduledSyncAt = new Date(
-    Date.now() + 30 * 60 * 1000,
-  ).toISOString();
-
-  AUDIT_EVENTS.push({
-    id: randomUUID(),
-    organizationId,
-    connectionId,
-    action: "integration.connection.tested",
-    actorUserId,
-    metadata: { warningsCount: warnings.length },
-    createdAt: now,
-  });
-
-  return {
-    ok: true,
-    latencyMs: 120,
-    checkedScopes: ["read", "metadata"],
-    warnings,
-  };
+  return await callConnectorsRuntime<{
+    ok: boolean;
+    latencyMs: number;
+    checkedScopes: string[];
+    warnings: string[];
+  }>(
+    `${buildConnectionPath(organizationId, connectionId)}/test`,
+    {
+      method: "POST",
+      actorUserId,
+    },
+  );
 }
 
-function parseTriggerType(value: unknown): IntegrationSyncTrigger {
-  if (value == null) {
-    return "manual";
-  }
-  if (value === "manual" || value === "schedule" || value === "backfill" || value === "replay" || value === "webhook") {
-    return value;
-  }
-  throw new IntegrationInputError("triggerType is invalid", { triggerType: value });
-}
-
-export function triggerIntegrationSync(
+export async function triggerIntegrationSync(
   organizationId: string,
   connectionId: string,
   payload: unknown,
   actorUserId: string | null,
-): IntegrationSyncRun {
-  const connection = findConnection(organizationId, connectionId);
-  if (connection.status === "disabled") {
-    throw new IntegrationInputError("connection is disabled");
-  }
-
-  const parsed = (payload ?? {}) as Record<string, unknown>;
-  const triggerType = parseTriggerType(parsed.triggerType);
-  const now = new Date().toISOString();
-  const run: IntegrationSyncRun = {
-    id: randomUUID(),
-    organizationId,
-    connectionId,
-    triggerType,
-    status: "success",
-    recordsFetched: 180,
-    recordsWritten: 176,
-    errorClass: null,
-    errorMessage: null,
-    startedAt: now,
-    endedAt: new Date(Date.now() + 800).toISOString(),
-    createdAt: now,
-  };
-
-  SYNC_RUNS.push(run);
-  connection.lastSuccessfulSyncAt = run.endedAt;
-  connection.updatedAt = run.endedAt ?? now;
-  connection.nextScheduledSyncAt = new Date(
-    Date.now() + 30 * 60 * 1000,
-  ).toISOString();
-
-  AUDIT_EVENTS.push({
-    id: randomUUID(),
-    organizationId,
-    connectionId,
-    action: "integration.sync.triggered",
-    actorUserId,
-    metadata: {
-      triggerType,
-      runId: run.id,
-      recordsFetched: run.recordsFetched,
-      recordsWritten: run.recordsWritten,
+): Promise<IntegrationSyncRun> {
+  return await callConnectorsRuntime<IntegrationSyncRun>(
+    `${buildConnectionPath(organizationId, connectionId)}/sync`,
+    {
+      method: "POST",
+      body: payload,
+      actorUserId,
+      idempotencyKey: randomUUID(),
     },
-    createdAt: now,
-  });
-  return run;
+  );
 }
 
-export function listIntegrationSyncRuns(
+export async function listIntegrationSyncRuns(
   organizationId: string,
   connectionId: string | null,
-): IntegrationSyncRun[] {
-  return SYNC_RUNS.filter((run) => {
-    if (run.organizationId !== organizationId) {
-      return false;
-    }
-    if (connectionId == null || connectionId.length === 0) {
-      return true;
-    }
-    return run.connectionId === connectionId;
-  }).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+): Promise<IntegrationSyncRun[]> {
+  const query = new URLSearchParams();
+  if (connectionId != null && connectionId.length > 0) {
+    query.set("connectionId", connectionId);
+  }
+  return await callConnectorsRuntime<IntegrationSyncRun[]>(
+    `${buildOrganizationPath(organizationId)}/sync-runs`,
+    {
+      query,
+    },
+  );
 }
 
-export function listIntegrationAuditEvents(
+export async function listIntegrationAuditEvents(
   organizationId: string,
   connectionId: string | null,
-): IntegrationAuditEvent[] {
-  return AUDIT_EVENTS.filter((event) => {
-    if (event.organizationId !== organizationId) {
-      return false;
-    }
-    if (connectionId == null || connectionId.length === 0) {
-      return true;
-    }
-    return event.connectionId === connectionId;
-  }).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+): Promise<IntegrationAuditEvent[]> {
+  const query = new URLSearchParams();
+  if (connectionId != null && connectionId.length > 0) {
+    query.set("connectionId", connectionId);
+  }
+  return await callConnectorsRuntime<IntegrationAuditEvent[]>(
+    `${buildOrganizationPath(organizationId)}/audit-events`,
+    {
+      query,
+    },
+  );
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value != null && !Array.isArray(value);
+export async function listIntegrationIngestCredentials(
+  organizationId: string,
+  connectionId: string,
+): Promise<IntegrationIngestCredential[]> {
+  return await callConnectorsRuntime<IntegrationIngestCredential[]>(
+    `${buildConnectionPath(organizationId, connectionId)}/ingest-credentials`,
+  );
+}
+
+export async function issueIntegrationIngestCredential(
+  organizationId: string,
+  connectionId: string,
+  payload: unknown,
+  actorUserId: string | null,
+): Promise<IntegrationIssueIngestCredentialResult> {
+  return await callConnectorsRuntime<IntegrationIssueIngestCredentialResult>(
+    `${buildConnectionPath(organizationId, connectionId)}/ingest-credentials`,
+    {
+      method: "POST",
+      body: payload,
+      actorUserId,
+    },
+  );
+}
+
+export async function revokeIntegrationIngestCredential(
+  organizationId: string,
+  connectionId: string,
+  credentialId: string,
+  actorUserId: string | null,
+): Promise<IntegrationIngestCredential> {
+  return await callConnectorsRuntime<IntegrationIngestCredential>(
+    `${buildConnectionPath(
+      organizationId,
+      connectionId,
+    )}/ingest-credentials/${encodePathSegment("credentialId", credentialId)}/revoke`,
+    {
+      method: "POST",
+      actorUserId,
+    },
+  );
+}
+
+export async function listIntegrationRawEvents(
+  organizationId: string,
+  connectionId: string,
+): Promise<IntegrationRawEvent[]> {
+  return await callConnectorsRuntime<IntegrationRawEvent[]>(
+    `${buildConnectionPath(organizationId, connectionId)}/raw-events`,
+  );
+}
+
+export async function getIntegrationRawEventPayload(
+  organizationId: string,
+  connectionId: string,
+  eventId: string,
+): Promise<Record<string, unknown>> {
+  return await callConnectorsRuntime<Record<string, unknown>>(
+    `${buildConnectionPath(
+      organizationId,
+      connectionId,
+    )}/raw-events/${encodePathSegment("eventId", eventId)}/payload`,
+  );
 }

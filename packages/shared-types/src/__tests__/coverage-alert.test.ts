@@ -9,10 +9,14 @@ import type { TenantEntity, ISODateTimeString } from "../utils/common";
 import type { ShiftType } from "../domain/canonical";
 
 describe("AlertHorizon", () => {
-  it("accepts valid horizon values", () => {
+  it("accepts legacy horizon values", () => {
     assertType<AlertHorizon>("j3");
     assertType<AlertHorizon>("j7");
     assertType<AlertHorizon>("j14");
+  });
+
+  it("accepts custom admin-defined horizon identifiers", () => {
+    assertType<AlertHorizon>("h_custom_j21");
   });
 
   it("is a string subtype", () => {

@@ -73,6 +73,13 @@ DEFAULT_STATE = {
     "last_run": None,
 }
 
+_VALID_SCHOOL_ZONES: dict[str, str] = {
+    "a": "A",
+    "b": "B",
+    "c": "C",
+    "corse": "Corse",
+}
+
 
 @dataclass(frozen=True)
 class SourceFile:
@@ -257,6 +264,22 @@ def load_json(path: Path, default: Any) -> Any:
         return json.load(handle)
 
 
+def _resolve_trusted_source_path(path: Path, *, root: Path) -> Path | None:
+    try:
+        resolved_root = root.resolve(strict=True)
+        resolved_path = path.resolve(strict=True)
+    except OSError:
+        return None
+
+    if path.is_symlink():
+        return None
+    if not resolved_path.is_file():
+        return None
+    if not resolved_path.is_relative_to(resolved_root):
+        return None
+    return resolved_path
+
+
 def write_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(f"{path.suffix}.tmp")
@@ -267,6 +290,11 @@ def write_json(path: Path, payload: Any) -> None:
 
 def discover_source_files(data_root: Path) -> list[SourceFile]:
     files: list[SourceFile] = []
+    try:
+        resolved_root = data_root.resolve(strict=True)
+    except OSError:
+        return files
+
     for client_dir in sorted(data_root.iterdir()):
         if not client_dir.is_dir():
             continue
@@ -282,9 +310,13 @@ def discover_source_files(data_root: Path) -> list[SourceFile]:
                     client_slug=client_slug,
                     domain=domain_dir.name,
                     dataset=file_path.stem,
-                    path=file_path,
+                    path=trusted_path,
                 )
                 for file_path in sorted(domain_dir.glob("*.csv"))
+                for trusted_path in [
+                    _resolve_trusted_source_path(file_path, root=resolved_root)
+                ]
+                if trusted_path is not None
             )
     return files
 
@@ -1112,6 +1144,10 @@ def fetch_school_holiday_intervals(
     years: set[int],
     cache_file: Path,
 ) -> list[tuple[date, date, str]]:
+    normalized_zone = normalize_school_zone(zone)
+    if normalized_zone is None:
+        return []
+
     if cache_file.exists():
         cached = load_json(cache_file, [])
         out: list[tuple[date, date, str]] = []
@@ -1133,7 +1169,7 @@ def fetch_school_holiday_intervals(
 
     for year in sorted(years):
         where = (
-            f'zones like "%{zone}%" and '
+            f'zones like "%{normalized_zone}%" and '
             f'start_date < date"{year + 1}-01-01" and '
             f'end_date >= date"{year}-01-01"'
         )
@@ -1249,7 +1285,7 @@ def add_external_features(
             continue
         key = (str(row.get("client_slug") or ""), str(row.get("site_code") or ""))
         metadata = site_locations.get(key, {})
-        zone = str(metadata.get("school_zone") or "").strip()
+        zone = normalize_school_zone(metadata.get("school_zone"))
         if zone:
             zone_years[zone].add(d.year)
 
@@ -1286,7 +1322,7 @@ def add_external_features(
             row.update(weather)
 
         metadata = site_locations.get(key, {})
-        zone = str(metadata.get("school_zone") or "").strip()
+        zone = normalize_school_zone(metadata.get("school_zone"))
         row["school_zone"] = zone or None
         row["is_school_holiday"] = False
         row["school_holiday_label"] = None
@@ -1297,6 +1333,15 @@ def add_external_features(
                     row["is_school_holiday"] = True
                     row["school_holiday_label"] = label
                     break
+
+
+def normalize_school_zone(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip().lower()
+    if not normalized:
+        return None
+    return _VALID_SCHOOL_ZONES.get(normalized)
 
 
 def add_lag_rolling_features(

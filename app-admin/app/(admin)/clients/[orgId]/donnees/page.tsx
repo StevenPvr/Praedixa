@@ -156,7 +156,7 @@ export default function DonneesPage() {
   const { orgId, selectedSiteId } = useClientContext();
 
   const canonicalUrl = selectedSiteId
-    ? `${ADMIN_ENDPOINTS.orgCanonical(orgId)}?site_id=${selectedSiteId}`
+    ? `${ADMIN_ENDPOINTS.orgCanonical(orgId)}?site_id=${encodeURIComponent(selectedSiteId)}`
     : ADMIN_ENDPOINTS.orgCanonical(orgId);
 
   const {

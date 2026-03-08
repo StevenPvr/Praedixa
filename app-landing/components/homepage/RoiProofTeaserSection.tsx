@@ -13,9 +13,9 @@ export function RoiProofTeaserSection({ locale }: RoiProofTeaserSectionProps) {
   const isFr = locale === "fr";
   const frames = isFr
     ? [
-        { label: "Baseline", note: "Référence stable" },
-        { label: "Recommandé", note: "Option proposée" },
-        { label: "Réel", note: "Décision exécutée" },
+        { label: "Aujourd'hui", note: "Ce que vous subissez" },
+        { label: "Priorité", note: "Ce qu'il faut lancer" },
+        { label: "Résultat", note: "Ce que vous avez gagné" },
       ]
     : [
         { label: "Baseline", note: "Stable reference" },
@@ -24,17 +24,17 @@ export function RoiProofTeaserSection({ locale }: RoiProofTeaserSectionProps) {
       ];
 
   return (
-    <SectionShell id="roi-proof" className="py-16 md:py-20">
-      <Kicker>{isFr ? "Decision Log & preuve ROI" : "Decision Log and ROI proof"}</Kicker>
+    <SectionShell id="roi-proof">
+      <Kicker>{isFr ? "Dossier ROI" : "ROI pack"}</Kicker>
       <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-ink md:text-5xl">
         {isFr
-          ? "Une preuve mensuelle exploitable en comité"
-          : "Monthly proof ready for committee reviews"}
+          ? "Un dossier simple pour comités et directions"
+          : "A simple ROI pack for leadership reviews"}
       </h2>
       <p className="mt-4 max-w-[66ch] text-sm leading-relaxed text-neutral-600 md:text-base">
         {isFr
-          ? "Chaque arbitrage est tracé. La lecture baseline/recommandé/réel est consolidée avec hypothèses explicites."
-          : "Each trade-off is logged. Baseline/recommended/actual views are consolidated with explicit assumptions."}
+          ? "Praedixa met noir sur blanc la situation actuelle, les priorités retenues et les gains observés dans un format facile à relire."
+          : "Praedixa turns scattered data into a simple readout of current state, priorities, and realized gains."}
       </p>
 
       <div className="mt-7 grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -55,7 +55,7 @@ export function RoiProofTeaserSection({ locale }: RoiProofTeaserSectionProps) {
         href={getLocalizedPath(locale, "decisionLogProof")}
         className="mt-6 inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-colors duration-200 hover:bg-neutral-50"
       >
-        {isFr ? "Voir la méthode de preuve" : "See the proof method"}
+        {isFr ? "Voir un exemple de dossier ROI" : "See an ROI pack example"}
         <ArrowRight size={14} weight="bold" />
       </Link>
     </SectionShell>

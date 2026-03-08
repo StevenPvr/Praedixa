@@ -19,23 +19,17 @@ export function KnowledgePage({
   const pilotHref = getLocalizedPath(locale, "pilot");
   const auditHref = `${getLocalizedPath(locale, "contact")}?intent=audit`;
   const auditFirstPages = new Set<KnowledgePageKey>([
+    "about",
     "productMethod",
     "howItWorksPage",
     "decisionLogProof",
     "integrationData",
-    "icpAutomotive",
-    "icpDealership",
-    "bofuLogistics",
-    "bofuRetail",
-    "bofuQsr",
+    "resources",
   ]);
   const stickySubnavPages = new Set<KnowledgePageKey>([
     "productMethod",
-    "icpAutomotive",
-    "icpDealership",
-    "bofuLogistics",
-    "bofuRetail",
-    "bofuQsr",
+    "resources",
+    "integrationData",
   ]);
   const useAuditPrimary = auditFirstPages.has(pageKey);
   const sectionAnchors = page.sections.map((section) => {
@@ -159,7 +153,7 @@ export function KnowledgePage({
                 href={pilotHref}
                 className="inline-flex items-center rounded-lg border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors duration-150 hover:bg-neutral-50"
               >
-                {locale === "fr" ? "Candidater au pilote" : "Apply for the pilot"}
+                {locale === "fr" ? "Demander un pilote ROI" : "Apply for the pilot"}
               </Link>
             ) : null}
           </div>

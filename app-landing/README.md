@@ -75,9 +75,10 @@ Layout components:
 Both form endpoints implement:
 
 - request size guard
-- per-IP rate limiting
+- distributed rate limiting via Redis in staging/prod
 - origin enforcement (`origin` / `referer` / `sec-fetch-site`)
 - anti-automation protections (honeypot + timing checks; contact also includes captcha)
+- single-use anti-replay on signed contact challenges
 
 ## SEO and i18n
 
@@ -98,7 +99,8 @@ Both form endpoints implement:
 Production target:
 
 - Scaleway Serverless Containers (`app-landing/Dockerfile.scaleway`, `fr-par`)
+- immutable runner flow only (`scripts/scw-release-build.sh`, signed manifest, `scripts/scw-release-deploy.sh`)
 
 Optional alternative:
 
-- Cloudflare Workers via OpenNext (`pnpm cf:build`, `pnpm deploy`)
+- Cloudflare Workers via OpenNext (`pnpm cf:build`, `pnpm deploy`) for preview/dev only

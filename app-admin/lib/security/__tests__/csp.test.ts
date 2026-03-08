@@ -2,7 +2,8 @@
  * Admin CSP — tests local configuration only.
  *
  * Core CSP logic is tested in packages/ui/src/__tests__/csp.test.ts.
- * This file verifies that the admin thin wrapper correctly passes apiUrl.
+ * This file verifies that the admin thin wrapper correctly switches between
+ * same-origin proxy mode and legacy direct mode.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -25,21 +26,21 @@ describe("Admin CSP wrapper", () => {
     expect(nonce.length).toBeGreaterThan(0);
   });
 
-  it("should include NEXT_PUBLIC_API_URL in connect-src", async () => {
+  it("should default to same-origin connect-src in proxy mode", async () => {
     const { buildCspHeader } = await import("../csp");
     const csp = buildCspHeader("dGVzdA==");
 
-    expect(csp).toContain("connect-src 'self' https://api.praedixa.com");
+    expect(csp).toContain("connect-src 'self'");
+    expect(csp).not.toContain("https://api.praedixa.com");
   });
 
-  it("should fallback to localhost API URL when env is not set", async () => {
-    vi.unstubAllEnvs();
-    vi.stubEnv("NODE_ENV", "production");
+  it("should include NEXT_PUBLIC_API_URL in direct mode", async () => {
+    vi.stubEnv("NEXT_PUBLIC_ADMIN_API_MODE", "direct");
     vi.resetModules();
 
     const { buildCspHeader } = await import("../csp");
     const csp = buildCspHeader("dGVzdA==");
 
-    expect(csp).toContain("connect-src 'self' http://localhost:8000");
+    expect(csp).toContain("connect-src 'self' https://api.praedixa.com");
   });
 });

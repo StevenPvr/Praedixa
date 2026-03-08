@@ -152,4 +152,20 @@ describe("POST /api/contact", () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({ error: "Test anti-spam invalide." });
   });
+
+  it("returns 415 when content-type is not application/json", async () => {
+    const request = new Request("http://localhost:3000/api/contact", {
+      method: "POST",
+      headers: {
+        "content-type": "text/plain",
+        origin: "http://localhost:3000",
+      },
+      body: JSON.stringify(validBody()),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(415);
+    expect(response.body).toEqual({ error: "Content-Type non supporte." });
+  });
 });

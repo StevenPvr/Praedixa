@@ -31,7 +31,7 @@ export function UnreadMessagesCard({ unread }: { unread: UnreadCount }) {
           {byOrg.map((org) => (
             <a
               key={org.orgId}
-              href={`/clients/${org.orgId}/messages`}
+              href={`/clients/${encodeURIComponent(org.orgId)}/messages`}
               className="flex items-center justify-between rounded-lg px-2 py-2 transition-colors hover:bg-surface-sunken"
             >
               <span className="text-sm text-charcoal">{org.orgName}</span>

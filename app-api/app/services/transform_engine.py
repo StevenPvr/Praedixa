@@ -35,6 +35,7 @@ from sqlalchemy import select, update
 from app.core.config import settings
 from app.core.ddl_connection import ddl_connection
 from app.core.ddl_validation import validate_identifier, validate_schema_name
+from app.core.pipeline_config import sanitize_feature_pipeline_config
 from app.models.data_catalog import (
     ClientDataset,
     DatasetColumn,
@@ -132,7 +133,7 @@ async def run_incremental(
         cutoff = await _get_last_successful_cutoff(dataset_id, session)
 
         # Compute lookback size from pipeline config
-        pipeline_config = dataset.pipeline_config
+        pipeline_config = sanitize_feature_pipeline_config(dataset.pipeline_config)
         max_lag = max(pipeline_config.get("lags", [1, 7, 30]), default=30)
         max_rolling = max(pipeline_config.get("rolling_windows", [7]), default=7)
         lookback_days = max_lag + max_rolling

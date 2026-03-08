@@ -8,8 +8,10 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { ErrorFallback } from "@/components/error-fallback";
 import { useApiGetPaginated } from "@/hooks/use-api";
 import { ApiError, apiPatch } from "@/lib/api/client";
-import { getValidAccessToken } from "@/lib/auth/client";
+import { getValidAccessToken, useCurrentUser } from "@/lib/auth/client";
+import { hasAnyPermission } from "@/lib/auth/permissions";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
+import { buildMailtoHref } from "@/lib/security/navigation";
 
 type ContactRequestStatus = "new" | "in_progress" | "closed";
 type ContactRequestType =
@@ -79,6 +81,10 @@ function statusVariant(
 }
 
 export default function ContactRequestsPage() {
+  const currentUser = useCurrentUser();
+  const canManageSupport = hasAnyPermission(currentUser?.permissions, [
+    "admin:support:write",
+  ]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | ContactRequestStatus>(
@@ -105,6 +111,10 @@ export default function ContactRequestsPage() {
     requestId: string,
     status: ContactRequestStatus,
   ) {
+    if (!canManageSupport) {
+      setUpdateError("Permission requise: admin:support:write");
+      return;
+    }
     setUpdateError(null);
     setUpdatingId(requestId);
 
@@ -222,17 +232,24 @@ export default function ContactRequestsPage() {
     {
       key: "email",
       label: "Contact",
-      render: (row) => (
-        <div>
-          <a
-            href={`mailto:${row.email}`}
-            className="text-sm font-medium text-primary hover:underline"
-          >
-            {row.email}
-          </a>
-          <p className="text-xs text-ink-placeholder">{row.phone || "-"}</p>
-        </div>
-      ),
+      render: (row) => {
+        const mailtoHref = buildMailtoHref(row.email);
+        return (
+          <div>
+            {mailtoHref ? (
+              <a
+                href={mailtoHref}
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                {row.email}
+              </a>
+            ) : (
+              <span className="text-sm font-medium text-primary">{row.email}</span>
+            )}
+            <p className="text-xs text-ink-placeholder">{row.phone || "-"}</p>
+          </div>
+        );
+      },
     },
     {
       key: "status",
@@ -251,7 +268,7 @@ export default function ContactRequestsPage() {
       render: (row) => (
         <select
           value={row.status}
-          disabled={updatingId === row.id}
+          disabled={!canManageSupport || updatingId === row.id}
           onChange={(event) => {
             const next = event.target.value as ContactRequestStatus;
             if (next !== row.status) {
@@ -324,6 +341,14 @@ export default function ContactRequestsPage() {
           ))}
         </select>
       </div>
+
+      {!canManageSupport ? (
+        <div className="rounded-xl border border-border-subtle bg-card px-4 py-3 text-sm text-ink-tertiary">
+          Mode lecture seule. Permission requise pour modifier le statut:
+          {" "}
+          <span className="font-medium text-ink">admin:support:write</span>
+        </div>
+      ) : null}
 
       {updateError && (
         <div className="rounded-xl border border-danger bg-danger-light px-4 py-3 text-sm text-danger-text">

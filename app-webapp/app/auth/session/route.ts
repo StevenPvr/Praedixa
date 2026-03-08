@@ -1,19 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 import {
-  ACCESS_TOKEN_COOKIE,
-  REFRESH_TOKEN_COOKIE,
   SESSION_COOKIE,
   clearAuthCookies,
-  getOidcEnv,
-  getTokenExp,
-  isTokenExpired,
-  refreshTokens,
   setAuthCookies,
-  signSession,
-  userFromAccessToken,
-  verifySession,
 } from "@/lib/auth/oidc";
+import { resolveRequestSession } from "@/lib/auth/request-session";
 import { consumeRateLimit } from "@/lib/auth/rate-limit";
+import { isSameOriginBrowserRequest } from "@/lib/security/same-origin";
 
 type RateLimitSnapshot = Awaited<ReturnType<typeof consumeRateLimit>>;
 
@@ -23,9 +16,17 @@ function unauthorized(clearCookies = true): NextResponse {
     { status: 401 },
   );
   response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Pragma", "no-cache");
   if (clearCookies) {
     clearAuthCookies(response);
   }
+  return response;
+}
+
+function forbidden(): NextResponse {
+  const response = NextResponse.json({ error: "forbidden" }, { status: 403 });
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Pragma", "no-cache");
   return response;
 }
 
@@ -43,6 +44,10 @@ function applyRateLimitHeaders(
 }
 
 export async function GET(request: NextRequest) {
+  if (!isSameOriginBrowserRequest(request)) {
+    return forbidden();
+  }
+
   const signed = request.cookies.get(SESSION_COOKIE)?.value;
   const maxAttempts = 600;
   const rate = await consumeRateLimit(request, {
@@ -57,6 +62,7 @@ export async function GET(request: NextRequest) {
       { status: 429 },
     );
     response.headers.set("Cache-Control", "no-store");
+    response.headers.set("Pragma", "no-cache");
     applyRateLimitHeaders(response, maxAttempts, rate);
     return response;
   }
@@ -66,108 +72,34 @@ export async function GET(request: NextRequest) {
     ? Math.max(0, Math.min(3600, Number(minTtlRaw)))
     : 60;
 
-  const accessTokenCookie = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
-  const refreshTokenCookie = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
+  const resolved = await resolveRequestSession(request, {
+    minTtlSeconds,
+    preserveCookiesOnRefreshFailure: true,
+  });
 
-  if (!signed) {
-    return unauthorized();
+  if (!resolved.ok) {
+    return unauthorized(resolved.clearCookies);
   }
 
-  try {
-    const { issuerUrl, clientId, clientSecret, sessionSecret } = getOidcEnv();
-    let session = await verifySession(signed, sessionSecret);
-    if (!session) {
-      return unauthorized();
-    }
-
-    let accessToken = accessTokenCookie ?? "";
-    let refreshToken = refreshTokenCookie ?? null;
-
-    const needsRefresh =
-      !accessToken || isTokenExpired(accessToken, minTtlSeconds);
-    if (needsRefresh) {
-      if (!refreshToken) {
-        return unauthorized();
-      }
-
-      const refreshed = await refreshTokens({
-        issuerUrl,
-        clientId,
-        clientSecret,
-        refreshToken,
-      });
-
-      if (!refreshed?.access_token) {
-        // Avoid clearing cookies on transient refresh races/errors.
-        return unauthorized(false);
-      }
-
-      const user = userFromAccessToken(refreshed.access_token, clientId);
-      const exp = getTokenExp(refreshed.access_token);
-      if (!user || !exp || user.role === "super_admin") {
-        return unauthorized();
-      }
-
-      accessToken = refreshed.access_token;
-      refreshToken = refreshed.refresh_token ?? refreshToken;
-      session = {
-        sub: user.id,
-        email: user.email,
-        role: user.role,
-        organizationId: user.organizationId,
-        siteId: user.siteId,
-        accessTokenExp: exp,
-        issuedAt: Math.floor(Date.now() / 1000),
-      };
-
-      const sessionToken = await signSession(session, sessionSecret);
-      const response = NextResponse.json(
-        {
-          accessToken,
-          user: {
-            id: session.sub,
-            email: session.email,
-            role: session.role,
-            organizationId: session.organizationId,
-            siteId: session.siteId,
-          },
-        },
-        { status: 200 },
-      );
-      response.headers.set("Cache-Control", "no-store");
-      applyRateLimitHeaders(response, maxAttempts, rate);
-      setAuthCookies(response, request, {
-        accessToken,
-        refreshToken,
-        sessionToken,
-        accessTokenMaxAge: refreshed.expires_in ?? 900,
-        refreshTokenMaxAge: refreshed.refresh_expires_in ?? 60 * 60 * 24 * 14,
-      });
-      return response;
-    }
-
-    if (session.role === "super_admin") {
-      return unauthorized();
-    }
-
-    const response = NextResponse.json(
-      {
-        accessToken,
-        user: {
-          id: session.sub,
-          email: session.email,
-          role: session.role,
-          organizationId: session.organizationId,
-          siteId: session.siteId,
-        },
+  const response = NextResponse.json(
+    {
+      user: {
+        id: resolved.session.sub,
+        email: resolved.session.email,
+        role: resolved.session.role,
+        organizationId: resolved.session.organizationId,
+        siteId: resolved.session.siteId,
       },
-      { status: 200 },
-    );
-    response.headers.set("Cache-Control", "no-store");
-    applyRateLimitHeaders(response, maxAttempts, rate);
-    return response;
-  } catch {
-    // Unexpected failures on /auth/session should not forcibly clear cookies.
-    return unauthorized(false);
+    },
+    { status: 200 },
+  );
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Pragma", "no-cache");
+  applyRateLimitHeaders(response, maxAttempts, rate);
+
+  if (resolved.cookieUpdate) {
+    setAuthCookies(response, request, resolved.cookieUpdate);
   }
+
+  return response;
 }

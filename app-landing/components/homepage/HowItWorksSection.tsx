@@ -32,20 +32,20 @@ const stepItemVariant = {
 
 const sectionCopy = {
   fr: {
-    loopLabel: "La boucle fermée",
-    rhythmLabel: "Mensuel · manager décisionnaire",
-    ctaMeta: "Lecture seule au démarrage (exports/API)",
-    loadingTitle: "Chargement de la boucle fermée",
+    loopLabel: "Methode simple",
+    rhythmLabel: "Lecture commune · priorites claires",
+    ctaMeta: "Lecture seule au demarrage (exports/API)",
+    loadingTitle: "Chargement de la méthode",
     loadingBody: "Assemblage des étapes en cours.",
     emptyTitle: "Aucune étape disponible",
     emptyBody: "Ajoutez des étapes pour afficher la boucle.",
     errorTitle: "Boucle temporairement indisponible",
     errorBody: "Rechargez la page.",
-    statuses: ["Prévision", "Décision", "Action", "Preuve"],
+    statuses: ["Données", "Lecture", "Priorités", "ROI"],
   },
   en: {
-    loopLabel: "Closed loop",
-    rhythmLabel: "Monthly · human decision-maker",
+    loopLabel: "Simple method",
+    rhythmLabel: "Shared view · clear priorities",
     ctaMeta: "Read-only start, no heavy IT project",
     loadingTitle: "Loading pilot protocol",
     loadingBody: "Building the execution timeline.",
@@ -53,7 +53,7 @@ const sectionCopy = {
     emptyBody: "Add pilot steps to display the timeline.",
     errorTitle: "Protocol temporarily unavailable",
     errorBody: "Please refresh the page.",
-    statuses: ["Forecast", "Decision", "Action", "Proof"],
+    statuses: ["Data", "View", "Priorities", "ROI"],
   },
 } as const;
 

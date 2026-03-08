@@ -11,13 +11,12 @@ import {
 } from "react";
 import type { UserUxPreferences } from "@praedixa/shared-types";
 import { apiGet, apiPatch } from "@/lib/api/client";
-import { getValidAccessToken } from "@/lib/auth/client";
 import { AppLocale, FALLBACK_LOCALE, translate } from "@/lib/i18n/messages";
 
 const LOCALE_STORAGE_KEY = "praedixa_locale";
 
 async function getToken() {
-  return getValidAccessToken();
+  return null;
 }
 
 interface I18nContextValue {

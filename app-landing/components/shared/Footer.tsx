@@ -37,7 +37,7 @@ export function Footer({ locale, dict }: FooterProps) {
       href: methodHref,
     },
     {
-      label: locale === "fr" ? "Decision Log & preuve ROI" : "Decision Log and ROI proof",
+      label: locale === "fr" ? "Dossier ROI" : "Decision Log and ROI proof",
       href: proofHref,
     },
     {
@@ -69,18 +69,18 @@ export function Footer({ locale, dict }: FooterProps) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-neutral-200/70 bg-[linear-gradient(180deg,var(--warm-bg-white)_0%,var(--warm-bg-muted)_52%,var(--warm-bg-panel)_100%)]">
+    <footer className="border-t border-white/[0.08] bg-navy-900">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="py-14 md:py-16">
           <div className="grid grid-cols-1 gap-10 md:grid-cols-[1.62fr_1fr] md:items-end md:gap-12">
             <div className="space-y-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brass-700">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-300/80">
                 {dict.footer.ctaBanner.kicker}
               </p>
-              <p className="max-w-3xl text-3xl font-semibold tracking-[-0.03em] text-ink md:text-5xl md:leading-[1.03]">
+              <p className="max-w-3xl text-3xl font-semibold tracking-[-0.03em] text-white md:text-5xl md:leading-[1.03]">
                 {dict.footer.ctaBanner.heading}
               </p>
-              <p className="max-w-[62ch] text-sm leading-relaxed text-neutral-600 md:text-base">
+              <p className="max-w-[62ch] text-sm leading-relaxed text-neutral-300 md:text-base">
                 {dict.footer.tagline}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -88,17 +88,17 @@ export function Footer({ locale, dict }: FooterProps) {
                   badges.map((badge, index) => (
                     <span
                       key={badge}
-                      className={`inline-flex items-center gap-2 rounded-full border border-neutral-300/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-neutral-600 ${
+                      className={`inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-neutral-300 ${
                         index % 2 === 1 ? "translate-y-[1px]" : ""
                       }`}
                     >
-                      <PulseDot className="h-1.5 w-1.5 bg-amber-500" />
+                      <PulseDot className="h-1.5 w-1.5 bg-amber-400" />
                       {badge}
                     </span>
                   ))
                 ) : (
-                  <span className="inline-flex items-center gap-2 rounded-full border border-neutral-300/70 bg-white/70 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-neutral-500">
-                    <PulseDot className="h-1.5 w-1.5 bg-amber-500" />
+                  <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-neutral-400">
+                    <PulseDot className="h-1.5 w-1.5 bg-amber-400" />
                     {locale === "fr"
                       ? "Signal opératoire continu"
                       : "Continuous operational signal"}
@@ -111,52 +111,52 @@ export function Footer({ locale, dict }: FooterProps) {
               href={primaryCtaHref}
               label={dict.footer.ctaBanner.cta}
               wrapperClassName="w-full md:max-w-sm md:justify-self-end"
-              className="border-neutral-300/80 bg-white/90 text-ink hover:border-neutral-400 hover:bg-white"
+              className="border-white/15 bg-white/[0.06] text-white hover:border-white/25 hover:bg-white/[0.1]"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 border-y border-neutral-200/70 py-12 md:grid-cols-[1.3fr_1fr_1fr] md:gap-10">
+        <div className="grid grid-cols-1 gap-10 border-y border-white/10 py-12 md:grid-cols-[1.3fr_1fr_1fr] md:gap-10">
           <div className="space-y-5">
             <Link
               href={`/${locale}`}
-              className="inline-flex items-center gap-2.5 rounded-full border border-neutral-300/70 bg-white/75 px-3.5 py-2 text-ink no-underline shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-neutral-400/80 active:-translate-y-[1px] active:scale-[0.99]"
+              className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 py-2 text-white no-underline shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-white/25 hover:bg-white/[0.1] active:-translate-y-[1px] active:scale-[0.99]"
               aria-label="Praedixa"
             >
-              <Image src="/logo-black.svg" alt="Praedixa" width={24} height={24} />
+              <Image src="/logo-white.svg" alt="Praedixa" width={24} height={24} />
               <span className="text-sm font-semibold uppercase tracking-[0.09em]">
                 Praedixa
               </span>
             </Link>
-            <p className="max-w-[46ch] text-sm leading-relaxed text-neutral-600">
+            <p className="max-w-[46ch] text-sm leading-relaxed text-neutral-400">
               {locale === "fr"
-                ? "Prévoir J+3/J+7/J+14. Décider (coût/service/risque). Déclencher la 1re action (assistée). Prouver le ROI."
+                ? "Praedixa réunit les données RH, finance, opérations et supply chain dans une même base pour clarifier les arbitrages et suivre le ROI."
                 : "Forecast. Decide (cost/service/risk). Trigger the first assisted action. Prove impact."}
             </p>
             <ShimmerTrack
-              className="max-w-[16rem] bg-neutral-200/70"
-              indicatorClassName="via-amber-300/55"
+              className="max-w-[16rem] bg-white/10"
+              indicatorClassName="via-amber-400/45"
             />
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">
               {dict.footer.navigation}
             </h3>
-            <ul className="list-none divide-y divide-neutral-200/80 rounded-2xl border border-neutral-200/80 bg-white/75 p-0">
+            <ul className="list-none divide-y divide-white/[0.08] rounded-2xl border border-white/10 bg-white/[0.04] p-0">
               {hasNavLinks ? (
                 navLinks.map((link) => (
                   <li key={link.href} className="m-0">
                     <Link
                       href={link.href}
-                      className="inline-flex w-full items-center justify-between px-4 py-3 text-sm font-medium tracking-[-0.01em] text-neutral-700 no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:bg-white hover:text-ink active:-translate-y-[1px] active:scale-[0.99]"
+                      className="inline-flex w-full items-center justify-between px-4 py-3 text-sm font-medium tracking-[-0.01em] text-neutral-300 no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:bg-white/[0.06] hover:text-white active:-translate-y-[1px] active:scale-[0.99]"
                     >
                       {link.label}
                     </Link>
                   </li>
                 ))
               ) : (
-                <li className="m-0 px-4 py-3 text-sm text-neutral-500">
+                <li className="m-0 px-4 py-3 text-sm text-white/30">
                   {locale === "fr"
                     ? "Navigation disponible prochainement."
                     : "Navigation coming soon."}
@@ -166,23 +166,23 @@ export function Footer({ locale, dict }: FooterProps) {
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">
               {dict.footer.legalContact}
             </h3>
-            <ul className="list-none divide-y divide-neutral-200/80 rounded-2xl border border-neutral-200/80 bg-white/75 p-0">
+            <ul className="list-none divide-y divide-white/[0.08] rounded-2xl border border-white/10 bg-white/[0.04] p-0">
               {hasLegalLinks ? (
                 legalLinks.map((link) => (
                   <li key={link.href} className="m-0">
                     <Link
                       href={link.href}
-                      className="inline-flex w-full items-center justify-between px-4 py-3 text-sm font-medium tracking-[-0.01em] text-neutral-700 no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:bg-white hover:text-ink active:-translate-y-[1px] active:scale-[0.99]"
+                      className="inline-flex w-full items-center justify-between px-4 py-3 text-sm font-medium tracking-[-0.01em] text-neutral-300 no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:bg-white/[0.06] hover:text-white active:-translate-y-[1px] active:scale-[0.99]"
                     >
                       {link.label}
                     </Link>
                   </li>
                 ))
               ) : (
-                <li className="m-0 px-4 py-3 text-sm text-neutral-500">
+                <li className="m-0 px-4 py-3 text-sm text-white/30">
                   {locale === "fr"
                     ? "Informations légales indisponibles."
                     : "Legal information unavailable."}
@@ -192,11 +192,11 @@ export function Footer({ locale, dict }: FooterProps) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2.5 py-6 text-xs text-neutral-500 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-2.5 py-6 text-xs text-white/30 md:flex-row md:items-center md:justify-between">
           <p>
             {dict.footer.copyright} &middot; Praedixa {year}
           </p>
-          <p className="text-neutral-400">
+          <p className="text-white/20">
             {locale === "fr"
               ? "Disponible en français et en anglais."
               : "Available in French and English."}

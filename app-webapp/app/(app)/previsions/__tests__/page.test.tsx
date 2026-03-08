@@ -4,6 +4,7 @@ import PrevisionsPage from "../page";
 
 const mockUseApiGet = vi.fn();
 const mockUseLatestForecasts = vi.fn();
+const mockUseDecisionConfig = vi.fn();
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
@@ -11,6 +12,10 @@ vi.mock("@/hooks/use-api", () => ({
 
 vi.mock("@/hooks/use-latest-forecasts", () => ({
   useLatestForecasts: (...args: unknown[]) => mockUseLatestForecasts(...args),
+}));
+
+vi.mock("@/hooks/use-decision-config", () => ({
+  useDecisionConfig: (...args: unknown[]) => mockUseDecisionConfig(...args),
 }));
 
 const sampleDaily = {
@@ -33,7 +38,7 @@ const sampleAlert = {
   siteId: "Lyon",
   alertDate: "2026-02-12",
   shift: "am",
-  horizon: "j3",
+  horizon: "j7",
   pRupture: 0.72,
   gapH: 6,
   severity: "critical",
@@ -43,6 +48,24 @@ const sampleAlert = {
   updatedAt: "2026-02-12T00:00:00Z",
 };
 
+const sampleDecisionConfig = {
+  organizationId: "org-1",
+  siteId: null,
+  versionId: "ver-1",
+  effectiveAt: "2026-02-12T00:00:00Z",
+  resolvedAt: "2026-02-12T00:00:01Z",
+  nextVersion: null,
+  selectedHorizon: { id: "j7", label: "J+7", days: 7 },
+  payload: {
+    horizons: [
+      { id: "j3", label: "J+3", days: 3, rank: 1, active: true, isDefault: false },
+      { id: "j7", label: "J+7", days: 7, rank: 2, active: true, isDefault: true },
+    ],
+    optionCatalog: [],
+    policiesByHorizon: [],
+  },
+};
+
 function setupMocks(options?: {
   dailyData?: unknown[] | null;
   forecastLoading?: boolean;
@@ -50,9 +73,20 @@ function setupMocks(options?: {
   alerts?: unknown[] | null;
   alertsLoading?: boolean;
   alertsError?: string | null;
+  config?: unknown | null;
+  configLoading?: boolean;
+  configError?: string | null;
 }) {
   const refetchDaily = vi.fn();
   const refetchAlerts = vi.fn();
+  const refetchConfig = vi.fn();
+
+  mockUseDecisionConfig.mockReturnValue({
+    config: options?.config ?? sampleDecisionConfig,
+    loading: options?.configLoading ?? false,
+    error: options?.configError ?? null,
+    refetch: refetchConfig,
+  });
 
   mockUseLatestForecasts.mockReturnValue({
     dailyData: options?.dailyData ?? [sampleDaily],
@@ -69,7 +103,7 @@ function setupMocks(options?: {
     refetch: refetchAlerts,
   });
 
-  return { refetchDaily, refetchAlerts };
+  return { refetchDaily, refetchAlerts, refetchConfig };
 }
 
 describe("PrevisionsPage", () => {
@@ -120,8 +154,8 @@ describe("PrevisionsPage", () => {
     expect(screen.getByText("Aucune alerte active.")).toBeInTheDocument();
   });
 
-  it("retries both forecast and alerts when error banner retry is clicked", () => {
-    const { refetchDaily, refetchAlerts } = setupMocks({
+  it("retries config, forecast and alerts when retry is clicked", () => {
+    const { refetchDaily, refetchAlerts, refetchConfig } = setupMocks({
       forecastError: "Runs failed",
     });
 
@@ -130,6 +164,7 @@ describe("PrevisionsPage", () => {
     expect(screen.getByText("Runs failed")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Reessayer" }));
 
+    expect(refetchConfig).toHaveBeenCalledTimes(1);
     expect(refetchDaily).toHaveBeenCalledTimes(1);
     expect(refetchAlerts).toHaveBeenCalledTimes(1);
   });
@@ -142,12 +177,15 @@ describe("PrevisionsPage", () => {
     expect(screen.getByText("Chargement...")).toBeInTheDocument();
   });
 
-  it("calls live alerts endpoint", () => {
+  it("calls hooks with expected arguments", () => {
     render(<PrevisionsPage />);
 
+    const latestCall = mockUseLatestForecasts.mock.calls.at(-1);
+    expect(latestCall?.[0]).toBe("human");
+    expect(latestCall?.[1]).toBe(null);
+    expect(mockUseDecisionConfig).toHaveBeenCalledWith(null);
     expect(mockUseApiGet).toHaveBeenCalledWith(
-      "/api/v1/live/coverage-alerts?status=open&page_size=200",
+      expect.stringContaining("/api/v1/live/coverage-alerts?status=open&page_size=200"),
     );
-    expect(mockUseLatestForecasts).toHaveBeenCalledWith("human", null);
   });
 });

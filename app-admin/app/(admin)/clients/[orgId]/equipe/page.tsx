@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useClientContext } from "../client-context";
 import { useApiGet, useApiPost } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
+import { useCurrentUser } from "@/lib/auth/client";
+import { hasAnyPermission } from "@/lib/auth/permissions";
 import {
   Card,
   CardContent,
@@ -46,10 +48,14 @@ const ROLE_LABELS: Record<string, string> = {
 
 export default function EquipePage() {
   const { orgId } = useClientContext();
+  const currentUser = useCurrentUser();
   const toast = useToast();
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("viewer");
+  const canManageUsers = hasAnyPermission(currentUser?.permissions, [
+    "admin:users:write",
+  ]);
 
   const {
     data: users,
@@ -64,6 +70,10 @@ export default function EquipePage() {
   >(ADMIN_ENDPOINTS.orgUserInvite(orgId));
 
   async function handleInvite() {
+    if (!canManageUsers) {
+      toast.error("Permission requise: admin:users:write");
+      return;
+    }
     if (!inviteEmail) return;
     const result = await invite({ email: inviteEmail, role: inviteRole });
     if (result) {
@@ -144,12 +154,21 @@ export default function EquipePage() {
         <Button
           variant="outline"
           size="sm"
+          disabled={!canManageUsers}
           onClick={() => setShowInviteForm(!showInviteForm)}
         >
           <UserPlus className="mr-1.5 h-3.5 w-3.5" />
           Creer un compte
         </Button>
       </div>
+
+      {!canManageUsers ? (
+        <p className="text-sm text-ink-tertiary">
+          Mode lecture seule. Permission requise pour inviter un utilisateur:
+          {" "}
+          <span className="font-medium text-ink">admin:users:write</span>
+        </p>
+      ) : null}
 
       {/* Invite form */}
       {showInviteForm && (
@@ -186,7 +205,7 @@ export default function EquipePage() {
             <Button
               size="sm"
               onClick={handleInvite}
-              disabled={inviteLoading || !inviteEmail}
+              disabled={!canManageUsers || inviteLoading || !inviteEmail}
             >
               Creer
             </Button>

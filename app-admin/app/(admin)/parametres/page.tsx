@@ -18,7 +18,8 @@ import { useApiGet, useApiGetPaginated, useApiPost } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import { ErrorFallback } from "@/components/error-fallback";
 import { ApiError, apiPatch } from "@/lib/api/client";
-import { getValidAccessToken } from "@/lib/auth/client";
+import { getValidAccessToken, useCurrentUser } from "@/lib/auth/client";
+import { hasAnyPermission } from "@/lib/auth/permissions";
 import { useToast } from "@/hooks/use-toast";
 import {
   OnboardingStatusBadge,
@@ -79,8 +80,18 @@ type Section = "onboarding" | "config";
 /* ────────────────────────────────────────────── */
 
 export default function ParametresPage() {
+  const currentUser = useCurrentUser();
   const toast = useToast();
-  const [section, setSection] = useState<Section>("onboarding");
+  const canReadOnboarding = hasAnyPermission(currentUser?.permissions, [
+    "admin:onboarding:read",
+    "admin:onboarding:write",
+  ]);
+  const canManageOnboarding = hasAnyPermission(currentUser?.permissions, [
+    "admin:onboarding:write",
+  ]);
+  const [section, setSection] = useState<Section>(
+    canReadOnboarding ? "onboarding" : "config",
+  );
 
   // Onboarding state
   const [obPage, setObPage] = useState(1);
@@ -96,7 +107,7 @@ export default function ParametresPage() {
     error: obError,
     refetch: obRefetch,
   } = useApiGetPaginated<OnboardingListItem>(
-    ADMIN_ENDPOINTS.onboardingList,
+    canReadOnboarding ? ADMIN_ENDPOINTS.onboardingList : null,
     obPage,
     20,
   );
@@ -114,6 +125,10 @@ export default function ParametresPage() {
   } = useApiGet<MissingCostParams>(ADMIN_ENDPOINTS.monitoringCostParamsMissing);
 
   async function handleStartOnboarding() {
+    if (!canManageOnboarding) {
+      toast.error("Permission requise: admin:onboarding:write");
+      return;
+    }
     if (!orgName || !orgSlug || !contactEmail) return;
     const created = await startOnboardingMutation.mutate({
       orgName,
@@ -135,6 +150,10 @@ export default function ParametresPage() {
   }
 
   async function handleNextStep(row: OnboardingListItem) {
+    if (!canManageOnboarding) {
+      toast.error("Permission requise: admin:onboarding:write");
+      return;
+    }
     if (row.currentStep >= TOTAL_STEPS || row.status === "completed") return;
     const nextStep = Math.min(row.currentStep + 1, TOTAL_STEPS);
     setActionLoadingId(row.id);
@@ -217,6 +236,7 @@ export default function ParametresPage() {
         <button
           onClick={() => void handleNextStep(row)}
           disabled={
+            !canManageOnboarding ||
             row.currentStep >= TOTAL_STEPS ||
             row.status === "completed" ||
             actionLoadingId === row.id
@@ -256,6 +276,7 @@ export default function ParametresPage() {
       <div className="flex gap-1 border-b border-border-subtle">
         <button
           onClick={() => setSection("onboarding")}
+          disabled={!canReadOnboarding}
           className={`relative px-4 py-2.5 text-sm transition-colors ${
             section === "onboarding"
               ? "font-medium text-primary"
@@ -287,6 +308,13 @@ export default function ParametresPage() {
       {/* Onboarding section */}
       {section === "onboarding" && (
         <div className="space-y-4">
+          {!canReadOnboarding ? (
+            <div className="rounded-xl border border-border-subtle bg-card px-4 py-3 text-sm text-ink-tertiary">
+              Permission requise pour consulter cette section:
+              {" "}
+              <span className="font-medium text-ink">admin:onboarding:read</span>
+            </div>
+          ) : null}
           <div className="rounded-2xl border border-border-subtle bg-card p-5 shadow-soft">
             <h2 className="mb-3 text-sm font-medium text-ink-tertiary">
               Demarrer un onboarding
@@ -296,12 +324,14 @@ export default function ParametresPage() {
                 value={orgName}
                 onChange={(event) => setOrgName(event.target.value)}
                 placeholder="Nom organisation"
+                disabled={!canManageOnboarding}
                 className="min-h-[44px] rounded-lg border border-border px-3 py-2 text-sm text-charcoal placeholder:text-ink-placeholder focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
               <input
                 value={orgSlug}
                 onChange={(event) => setOrgSlug(event.target.value)}
                 placeholder="slug"
+                disabled={!canManageOnboarding}
                 className="min-h-[44px] rounded-lg border border-border px-3 py-2 text-sm text-charcoal placeholder:text-ink-placeholder focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
               <input
@@ -309,12 +339,14 @@ export default function ParametresPage() {
                 value={contactEmail}
                 onChange={(event) => setContactEmail(event.target.value)}
                 placeholder="email contact"
+                disabled={!canManageOnboarding}
                 className="min-h-[44px] rounded-lg border border-border px-3 py-2 text-sm text-charcoal placeholder:text-ink-placeholder focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
               <div className="flex gap-2">
                 <select
                   value={plan}
                   onChange={(event) => setPlan(event.target.value)}
+                  disabled={!canManageOnboarding}
                   className="min-h-[44px] flex-1 rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   <option value="free">free</option>
@@ -325,6 +357,7 @@ export default function ParametresPage() {
                 <button
                   onClick={() => void handleStartOnboarding()}
                   disabled={
+                    !canManageOnboarding ||
                     startOnboardingMutation.loading ||
                     !orgName ||
                     !orgSlug ||

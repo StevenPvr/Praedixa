@@ -20,23 +20,6 @@ const CONTENT_KEYS = [
   "howItWorksPage",
   "decisionLogProof",
   "integrationData",
-  "pillarCapacity",
-  "pillarLogistics",
-  "pillarAbsence",
-  "pillarPenalties",
-  "pillarImpact",
-  "icpAutomotive",
-  "icpDealership",
-  "bofuLogistics",
-  "bofuTransport",
-  "bofuRetail",
-  "bofuQsr",
-  "clusterCost",
-  "clusterForecast",
-  "clusterPlaybook",
-  "clusterRms",
-  "clusterWarehouseForecast",
-  "clusterWarehousePlanning",
 ] as const;
 
 function localizedEntry(
@@ -164,17 +147,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
         ),
       );
     }
-
-    entries.push(
-      localizedEntry(
-        locale,
-        "/fr/praedixa-restauration-rapide",
-        "/en/praedixa-quick-service-restaurants",
-        0.75,
-        "weekly",
-      ),
-    );
-
     entries.push(
       localizedEntry(locale, "/fr/blog", "/en/blog", 0.8, "weekly"),
     );

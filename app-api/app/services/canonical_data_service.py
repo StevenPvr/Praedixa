@@ -17,6 +17,7 @@ from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.core.exceptions import NotFoundError
+from app.core.pagination import normalize_page_window
 from app.models.operational import CanonicalRecord, ShiftType
 
 if TYPE_CHECKING:
@@ -67,7 +68,7 @@ async def list_canonical_records(
 
     total = (await session.execute(count_q)).scalar_one() or 0
 
-    offset = (page - 1) * page_size
+    _, page_size, offset = normalize_page_window(page, page_size)
     query = (
         base.order_by(CanonicalRecord.date.desc(), CanonicalRecord.shift)
         .offset(offset)

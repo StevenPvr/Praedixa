@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import { buildSecurityHeaders } from "./lib/security/headers";
+
+void initOpenNextCloudflareForDev();
+
+const allowedDevOrigins = ["127.0.0.1", "localhost"];
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
@@ -8,6 +13,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 const config: NextConfig = {
   output: "standalone",
+  allowedDevOrigins,
   transpilePackages: ["@praedixa/ui", "@praedixa/shared-types"],
 
   experimental: {

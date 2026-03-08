@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { CaretDown, List, X } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
@@ -22,6 +23,7 @@ export function MobileNav({
   secondaryCtaHref,
   secondaryCtaLabel,
 }: MobileNavProps) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const navGroups = useMemo(() => getNavGroups(locale), [locale]);
@@ -29,6 +31,11 @@ export function MobileNav({
   const localeLabel = otherLocale.toUpperCase();
   const localeSwitchLabel =
     locale === "fr" ? "Switch to English" : "Passer en français";
+
+  useEffect(() => {
+    setOpen(false);
+    setExpandedKey(null);
+  }, [pathname]);
 
   useEffect(() => {
     if (!open) {
@@ -110,7 +117,6 @@ export function MobileNav({
                 </p>
                 <Link
                   href={`/${otherLocale}`}
-                  onClick={() => setOpen(false)}
                   className="inline-flex h-9 items-center justify-center rounded-lg border border-neutral-200 bg-white px-3 text-xs font-semibold uppercase tracking-[0.12em] text-neutral-600 transition-colors duration-200 hover:bg-neutral-50 hover:text-ink"
                   aria-label={localeSwitchLabel}
                 >
@@ -130,7 +136,6 @@ export function MobileNav({
                       <Link
                         key={group.key}
                         href={group.href ?? `/${locale}`}
-                        onClick={() => setOpen(false)}
                         className="flex items-center justify-between rounded-xl border border-transparent px-3 py-3 text-base font-medium text-ink no-underline transition-colors duration-200 hover:border-neutral-200 hover:bg-neutral-50"
                       >
                         {group.label}
@@ -185,7 +190,6 @@ export function MobileNav({
                                   <li key={item.href} className="m-0">
                                     <Link
                                       href={item.href}
-                                      onClick={() => setOpen(false)}
                                       className={`block rounded-lg border px-3 py-2 text-sm no-underline transition-colors duration-200 ${
                                         item.primary
                                           ? "border-navy-200 bg-navy-50 text-ink"
@@ -214,14 +218,12 @@ export function MobileNav({
               <div className="mt-4 space-y-2 border-t border-neutral-200 pt-4">
                 <Link
                   href={primaryCtaHref}
-                  onClick={() => setOpen(false)}
                   className="btn-primary-gradient flex w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-white transition-transform duration-200 active:translate-y-[1px] active:scale-[0.98]"
                 >
                   {primaryCtaLabel}
                 </Link>
                 <Link
                   href={secondaryCtaHref}
-                  onClick={() => setOpen(false)}
                   className="flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors duration-200 hover:bg-neutral-50"
                 >
                   {secondaryCtaLabel}

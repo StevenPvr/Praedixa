@@ -107,8 +107,12 @@ describe("formatters", () => {
       expect(formatHorizon("j14")).toBe("A 14 jours");
     });
 
-    it("returns the original value for unknown horizons", () => {
-      expect(formatHorizon("j30")).toBe("j30");
+    it("formats dynamic j+horizon values when possible", () => {
+      expect(formatHorizon("j30")).toBe("A 30 jours");
+    });
+
+    it("returns the original value for unsupported horizons", () => {
+      expect(formatHorizon("h+5")).toBe("h+5");
       expect(formatHorizon("")).toBe("");
     });
   });

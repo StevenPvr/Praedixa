@@ -13,6 +13,7 @@ import {
   type DataTableColumn,
 } from "@praedixa/ui";
 import { ErrorFallback } from "@/components/error-fallback";
+import { sanitizeHttpHref } from "@/lib/security/navigation";
 import { Archive, FileCheck2, Share2, ShieldCheck, TrendingUp } from "lucide-react";
 
 interface ProofPack {
@@ -59,10 +60,11 @@ const PROOF_COLUMNS: DataTableColumn<ProofPack>[] = [
   {
     key: "downloadUrl",
     label: "Export",
-    render: (row) =>
-      row.downloadUrl ? (
+    render: (row) => {
+      const safeHref = sanitizeHttpHref(row.downloadUrl);
+      return safeHref ? (
         <a
-          href={row.downloadUrl}
+          href={safeHref}
           target="_blank"
           rel="noreferrer"
           className="text-sm text-primary hover:text-primary-700"
@@ -71,7 +73,8 @@ const PROOF_COLUMNS: DataTableColumn<ProofPack>[] = [
         </a>
       ) : (
         <span className="text-xs text-ink-tertiary">Indisponible</span>
-      ),
+      );
+    },
   },
 ];
 
@@ -79,7 +82,7 @@ export default function RapportsPage() {
   const { orgId, selectedSiteId } = useClientContext();
 
   const alertsUrl = selectedSiteId
-    ? `${ADMIN_ENDPOINTS.orgAlerts(orgId)}?site_id=${selectedSiteId}`
+    ? `${ADMIN_ENDPOINTS.orgAlerts(orgId)}?site_id=${encodeURIComponent(selectedSiteId)}`
     : ADMIN_ENDPOINTS.orgAlerts(orgId);
 
   const {

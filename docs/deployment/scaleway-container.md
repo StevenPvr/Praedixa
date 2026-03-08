@@ -43,8 +43,9 @@ La landing est prete sur Scaleway en `staging` et `prod`; le cutover public de `
 | `pnpm run scw:preflight:deploy`         | Controle readiness globale staging+prod+landing (sans deploy) |
 | `pnpm run scw:preflight:prod`           | Controle readiness prod+landing (sans deploy)                 |
 | `pnpm run scw:preflight:staging`        | Controle readiness infra + DNS staging (sans deploy)          |
-| `pnpm run scw:deploy:landing:staging`   | Build + deploy landing staging                                |
-| `pnpm run scw:deploy:landing:prod`      | Build + deploy landing prod                                   |
+| `pnpm release:build -- --service landing ...` | Build/push image landing immuable par digest           |
+| `pnpm release:manifest:create -- ...`   | Cree un manifest signe pour la release landing                |
+| `pnpm release:deploy -- --manifest ... --env <staging|prod>` | Deploie landing par digest depuis un manifest signe |
 | `pnpm run scw:deploy:webapp:staging`    | Build + deploy webapp staging                                 |
 | `pnpm run scw:deploy:webapp:prod`       | Build + deploy webapp prod                                    |
 | `pnpm run scw:deploy:admin:staging`     | Build + deploy admin staging                                  |
@@ -70,14 +71,16 @@ pnpm run scw:preflight:deploy
 pnpm run scw:preflight:staging
 ```
 
-4. Deployer quand valide:
+4. Deployer quand valide via runner immuable:
 
 ```bash
-pnpm run scw:deploy:landing:staging
+pnpm release:build -- --service landing --ref <git-ref> --tag <tag> --registry-prefix <registry>
+pnpm release:manifest:create -- --ref <git-ref> --output /tmp/landing-manifest.json --image "landing=<registry-image@sha256>"
+pnpm release:deploy -- --manifest /tmp/landing-manifest.json --env staging
 pnpm run scw:deploy:api:staging
 pnpm run scw:deploy:webapp:staging
 pnpm run scw:deploy:admin:staging
-pnpm run scw:deploy:landing:prod
+pnpm release:deploy -- --manifest /tmp/landing-manifest.json --env prod
 ```
 
 ## Variables requises (configuration containers)
@@ -112,6 +115,8 @@ Variables shell requises:
 - `CONTACT_API_BASE_URL`
 - `CONTACT_API_INGEST_TOKEN`
 - `RESEND_API_KEY`
+- `RATE_LIMIT_STORAGE_URI`
+- `CONTACT_FORM_CHALLENGE_SECRET`
 
 Variables optionnelles:
 
@@ -119,6 +124,10 @@ Variables optionnelles:
 - `RESEND_REPLY_TO_EMAIL`
 - `ALLOWED_FORM_ORIGINS`
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID`
+- `LANDING_TRUST_PROXY_IP_HEADERS` (`0` ou `1`, defaut: `1`)
+- `LANDING_SECURITY_KEY_PREFIX` (defaut: `prx:landing:sec`)
+- `LANDING_SECURITY_REDIS_CONNECT_TIMEOUT_MS` (defaut: `300`)
+- `LANDING_SECURITY_REDIS_COMMAND_TIMEOUT_MS` (defaut: `300`)
 
 ### API (`scw-configure-api-env.sh`)
 
@@ -181,6 +190,60 @@ Notes:
 - `KEYCLOAK_ADMIN_USERNAME` est `kcadmin` par defaut (surcharge possible en variable d'environnement).
 - Le script cree le compte s'il n'existe pas, force le mot de passe et garantit le role `super_admin`.
 
+### Mot de passe admin Keycloak: source de verite et rotation
+
+Le vrai mot de passe admin Keycloak ne doit jamais etre committe dans le repo.
+La source de verite canonique est le secret Scaleway:
+
+- chemin: `/praedixa/prod/auth-prod/runtime`
+- nom: `KC_BOOTSTRAP_ADMIN_PASSWORD`
+- utilisateur admin par defaut: `kcadmin`
+
+Pour reinitialiser proprement le mot de passe admin et resynchroniser le secret canonique:
+
+```bash
+NEW_KEYCLOAK_ADMIN_PASSWORD='<nouveau-mot-de-passe-fort>' \
+pnpm auth:keycloak:reset-admin-password
+```
+
+Comportement:
+
+- le script lit le mot de passe actuel depuis Scaleway Secret Manager si `CURRENT_KEYCLOAK_ADMIN_PASSWORD` n'est pas fourni
+- il change le mot de passe du compte admin Keycloak via `kcadm`
+- il met a jour la version active du secret `KC_BOOTSTRAP_ADMIN_PASSWORD`
+
+Regles:
+
+- ne jamais ecrire le vrai mot de passe dans `docs/`, `README.md`, `.env.example` ou un script versionne
+- si vous devez partager l'acces, partagez le chemin du secret, jamais sa valeur
+- apres rotation, utilisez toujours la valeur du Secret Manager comme reference unique
+
+### Garantir le contrat de claims pour `webapp` / `admin`
+
+Pour que l'API accepte les tokens OIDC, les clients `praedixa-webapp` et `praedixa-admin`
+doivent emettre:
+
+- l'audience `praedixa-api`
+- le claim `organization_id`
+- le claim `site_id` pour les roles scopes par site
+
+Script idempotent fourni:
+
+```bash
+KEYCLOAK_ADMIN_PASSWORD='<mot-de-passe-admin-keycloak>' \
+TARGET_USER_EMAIL='ops.client@praedixa.com' \
+TARGET_ORGANIZATION_ID='<uuid-org>' \
+TARGET_SITE_ID='site-lyon' \
+pnpm auth:keycloak:ensure-api-contract
+```
+
+Notes:
+
+- `TARGET_SITE_ID` peut etre omis pour `org_admin` et `super_admin`.
+- Le script configure les protocol mappers sur `praedixa-webapp` et `praedixa-admin`.
+- Si un utilisateur cible est fourni, il met aussi a jour ses attributs Keycloak `organization_id` et `site_id`.
+- Un simple redeploiement du container auth n'importe pas automatiquement le realm existant; pour un realm deja cree, appliquez explicitement ce script ou un import Keycloak admin equivalent.
+
 ## Stockage et data plane FR
 
 Buckets object storage prives prepares:
@@ -202,6 +265,8 @@ Buckets object storage prives prepares:
 ```bash
 SCW_DEPLOY_ALLOW_DIRTY=1 pnpm run scw:deploy:api:staging
 ```
+
+Pour la landing, aucun override local n'est accepte en staging/prod: le chemin supporte est uniquement le release runner avec images par digest.
 
 ## Runbook associe
 

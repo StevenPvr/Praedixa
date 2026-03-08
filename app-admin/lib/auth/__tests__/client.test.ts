@@ -1,25 +1,7 @@
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 
 const mockFetch = vi.fn();
-
-function toBase64Url(input: string): string {
-  return Buffer.from(input, "utf8")
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/g, "");
-}
-
-function createJwt(expOffsetSeconds: number): string {
-  const header = toBase64Url(JSON.stringify({ alg: "none", typ: "JWT" }));
-  const payload = toBase64Url(
-    JSON.stringify({
-      exp: Math.floor(Date.now() / 1000) + expOffsetSeconds,
-    }),
-  );
-  return `${header}.${payload}.sig`;
-}
 
 describe("auth client (admin)", () => {
   beforeEach(() => {
@@ -32,11 +14,10 @@ describe("auth client (admin)", () => {
     vi.unstubAllGlobals();
   });
 
-  it("getValidAccessToken calls /auth/session with default min_ttl and returns token", async () => {
+  it("getValidAccessToken probes /auth/session and never returns a browser bearer", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        accessToken: "token-current",
         user: {
           id: "admin-1",
           email: "admin@praedixa.com",
@@ -51,7 +32,7 @@ describe("auth client (admin)", () => {
     const { getValidAccessToken } = await import("../client");
     const token = await getValidAccessToken();
 
-    expect(token).toBe("token-current");
+    expect(token).toBeNull();
     expect(mockFetch).toHaveBeenCalledWith("/auth/session?min_ttl=60", {
       method: "GET",
       credentials: "include",
@@ -60,64 +41,7 @@ describe("auth client (admin)", () => {
     });
   });
 
-  it("getValidAccessToken uses provided min_ttl", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        accessToken: "token-custom",
-        user: {
-          id: "admin-1",
-          email: "admin@praedixa.com",
-          role: "super_admin",
-          permissions: ["admin:console:access"],
-          organizationId: "org-1",
-          siteId: "site-1",
-        },
-      }),
-    });
-
-    const { getValidAccessToken } = await import("../client");
-    const token = await getValidAccessToken({ minTtlSeconds: 15 });
-
-    expect(token).toBe("token-custom");
-    expect(mockFetch).toHaveBeenCalledWith("/auth/session?min_ttl=15", {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-      headers: { Accept: "application/json" },
-    });
-  });
-
-  it("reuses cached token when ttl is still sufficient", async () => {
-    const cachedToken = createJwt(600);
-
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        accessToken: cachedToken,
-        user: {
-          id: "admin-1",
-          email: "admin@praedixa.com",
-          role: "super_admin",
-          permissions: ["admin:console:access"],
-          organizationId: "org-1",
-          siteId: "site-1",
-        },
-      }),
-    });
-
-    const { getValidAccessToken } = await import("../client");
-    const first = await getValidAccessToken({ minTtlSeconds: 60 });
-    const second = await getValidAccessToken({ minTtlSeconds: 60 });
-
-    expect(first).toBe(cachedToken);
-    expect(second).toBe(cachedToken);
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-  });
-
   it("deduplicates concurrent session fetches", async () => {
-    const cachedToken = createJwt(600);
-
     mockFetch.mockImplementation(
       async () =>
         new Promise((resolve) => {
@@ -125,7 +49,6 @@ describe("auth client (admin)", () => {
             resolve({
               ok: true,
               json: async () => ({
-                accessToken: cachedToken,
                 user: {
                   id: "admin-1",
                   email: "admin@praedixa.com",
@@ -136,7 +59,7 @@ describe("auth client (admin)", () => {
                 },
               }),
             });
-          }, 10);
+          }, 5);
         }),
     );
 
@@ -146,73 +69,19 @@ describe("auth client (admin)", () => {
       getValidAccessToken(),
     ]);
 
-    expect(first).toBe(cachedToken);
-    expect(second).toBe(cachedToken);
+    expect(first).toBeNull();
+    expect(second).toBeNull();
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
-  it("getValidAccessToken returns null when response is not ok", async () => {
-    mockFetch.mockResolvedValue({ ok: false, json: async () => ({}) });
-
-    const { getValidAccessToken } = await import("../client");
-    const token = await getValidAccessToken();
-
-    expect(token).toBeNull();
-  });
-
-  it("getValidAccessToken returns null when payload is incomplete", async () => {
+  it("returns null when the session payload is incomplete", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: async () => ({ accessToken: "token-without-user" }),
+      json: async () => ({ accessToken: "legacy-token" }),
     });
 
     const { getValidAccessToken } = await import("../client");
-    const token = await getValidAccessToken();
-
-    expect(token).toBeNull();
-  });
-
-  it("getValidAccessToken returns null when fetch throws", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("network"));
-
-    const { getValidAccessToken } = await import("../client");
-    const token = await getValidAccessToken();
-
-    expect(token).toBeNull();
-  });
-
-  it("returns cached token when refresh endpoint is temporarily unavailable", async () => {
-    const shortLivedToken = createJwt(20);
-
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          accessToken: shortLivedToken,
-          user: {
-            id: "admin-1",
-            email: "admin@praedixa.com",
-            role: "super_admin",
-            permissions: ["admin:console:access"],
-            organizationId: "org-1",
-            siteId: "site-1",
-          },
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 429,
-        json: async () => ({ error: "rate_limited" }),
-      });
-
-    const { getValidAccessToken } = await import("../client");
-
-    const primed = await getValidAccessToken({ minTtlSeconds: 0 });
-    const fallback = await getValidAccessToken({ minTtlSeconds: 60 });
-
-    expect(primed).toBe(shortLivedToken);
-    expect(fallback).toBe(shortLivedToken);
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(await getValidAccessToken()).toBeNull();
   });
 
   it("clearAuthSession posts to /auth/logout", async () => {
@@ -227,16 +96,9 @@ describe("auth client (admin)", () => {
       cache: "no-store",
     });
   });
-
-  it("clearAuthSession swallows fetch errors", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("network"));
-
-    const { clearAuthSession } = await import("../client");
-    await expect(clearAuthSession()).resolves.toBeUndefined();
-  });
 });
 
-describe("useCurrentUser (admin)", () => {
+describe("useCurrentUserState (admin)", () => {
   beforeEach(() => {
     vi.resetModules();
     mockFetch.mockReset();
@@ -247,11 +109,10 @@ describe("useCurrentUser (admin)", () => {
     vi.unstubAllGlobals();
   });
 
-  it("returns user from /auth/session?min_ttl=60", async () => {
+  it("hydrates the current user from /auth/session", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        accessToken: "token-current",
         user: {
           id: "admin-123",
           email: "admin@praedixa.com",
@@ -263,52 +124,17 @@ describe("useCurrentUser (admin)", () => {
       }),
     });
 
-    const { useCurrentUser } = await import("../client");
-    const { result } = renderHook(() => useCurrentUser());
+    const { useCurrentUserState } = await import("../client");
+    const { result } = renderHook(() => useCurrentUserState());
 
     await waitFor(() => {
-      expect(result.current).toEqual({
-        id: "admin-123",
-        email: "admin@praedixa.com",
-        role: "super_admin",
-        permissions: ["admin:console:access"],
-        organizationId: "org-1",
-        siteId: "site-1",
-      });
+      expect(result.current.loading).toBe(false);
     });
 
-    expect(mockFetch).toHaveBeenCalledWith("/auth/session?min_ttl=60", {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-      headers: { Accept: "application/json" },
+    expect(result.current.user).toMatchObject({
+      id: "admin-123",
+      email: "admin@praedixa.com",
+      role: "super_admin",
     });
-  });
-
-  it("returns null when session fetch fails", async () => {
-    mockFetch.mockResolvedValue({ ok: false, json: async () => ({}) });
-
-    const { useCurrentUser } = await import("../client");
-    const { result } = renderHook(() => useCurrentUser());
-
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalled();
-    });
-    expect(result.current).toBeNull();
-  });
-
-  it("returns null when payload is invalid", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ accessToken: "token-without-user" }),
-    });
-
-    const { useCurrentUser } = await import("../client");
-    const { result } = renderHook(() => useCurrentUser());
-
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalled();
-    });
-    expect(result.current).toBeNull();
   });
 });

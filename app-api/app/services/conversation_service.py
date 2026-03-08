@@ -19,6 +19,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError
+from app.core.pagination import normalize_page_window
 from app.core.security import TenantFilter
 from app.models.conversation import (
     Conversation,
@@ -67,7 +68,7 @@ async def list_conversations(
 
     total = (await session.execute(count_q)).scalar_one() or 0
 
-    offset = (page - 1) * page_size
+    _, page_size, offset = normalize_page_window(page, page_size)
     query = (
         base.order_by(Conversation.last_message_at.desc().nullslast())
         .offset(offset)
@@ -105,7 +106,7 @@ async def list_conversations_admin(
 
     total = (await session.execute(count_q)).scalar_one() or 0
 
-    offset = (page - 1) * page_size
+    _, page_size, offset = normalize_page_window(page, page_size)
     query = (
         base.order_by(Conversation.last_message_at.desc().nullslast())
         .offset(offset)
@@ -223,7 +224,7 @@ async def list_messages(
     count_q = select(func.count(Message.id)).where(Message.conversation_id == conv_id)
     total = (await session.execute(count_q)).scalar_one() or 0
 
-    offset = (page - 1) * page_size
+    _, page_size, offset = normalize_page_window(page, page_size)
     query = (
         select(Message)
         .where(Message.conversation_id == conv_id)
@@ -253,7 +254,7 @@ async def list_messages_admin(
     count_q = select(func.count(Message.id)).where(Message.conversation_id == conv_id)
     total = (await session.execute(count_q)).scalar_one() or 0
 
-    offset = (page - 1) * page_size
+    _, page_size, offset = normalize_page_window(page, page_size)
     query = (
         select(Message)
         .where(Message.conversation_id == conv_id)

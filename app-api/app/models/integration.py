@@ -241,7 +241,9 @@ class IntegrationSyncRun(TenantMixin, Base):
     idempotency_key: Mapped[str] = mapped_column(String(120), nullable=False)
     locked_by: Mapped[str | None] = mapped_column(String(120))
     lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    source_window_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    source_window_start: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
     source_window_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

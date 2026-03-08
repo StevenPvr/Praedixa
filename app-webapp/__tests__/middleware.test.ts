@@ -10,12 +10,13 @@ const mockResponse = {
   },
 };
 
-const mockUpdateSession = vi.fn((_request?: NextRequest) =>
+const mockUpdateSession = vi.fn((_request?: NextRequest, _headers?: Headers) =>
   Promise.resolve(mockResponse),
 );
 
 vi.mock("@/lib/auth/middleware", () => ({
-  updateSession: (request: NextRequest) => mockUpdateSession(request),
+  updateSession: (request: NextRequest, headers?: Headers) =>
+    mockUpdateSession(request, headers),
 }));
 
 vi.mock("@/lib/security/csp", () => ({
@@ -52,7 +53,10 @@ describe("proxy (root)", () => {
     const result = await mw(mockRequest);
 
     expect(result.status).toBe(200);
-    expect(mockUpdateSession).toHaveBeenCalledWith(mockRequest);
+    expect(mockUpdateSession).toHaveBeenCalledWith(
+      mockRequest,
+      expect.any(Headers),
+    );
   });
 
   it("should call updateSession and set CSP header on response", async () => {
@@ -64,12 +68,19 @@ describe("proxy (root)", () => {
 
     const result = await proxy(mockRequest);
 
-    expect(mockUpdateSession).toHaveBeenCalledWith(mockRequest);
+    expect(mockUpdateSession).toHaveBeenCalledWith(
+      mockRequest,
+      expect.any(Headers),
+    );
     expect(result.status).toBe(200);
     expect(result.headers.set).toHaveBeenCalledWith(
       "Content-Security-Policy",
       expect.stringContaining("nonce-dGVzdC1ub25jZQ=="),
     );
+    const forwardedHeaders = mockUpdateSession.mock.calls.at(-1)?.[1] as
+      | Headers
+      | undefined;
+    expect(forwardedHeaders?.get("x-nonce")).toBe("dGVzdC1ub25jZQ==");
   });
 
   it("should export a matcher config that excludes static assets", () => {

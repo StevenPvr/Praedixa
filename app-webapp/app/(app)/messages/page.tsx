@@ -1,21 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { useApiGet, useApiPost } from "@/hooks/use-api";
-import { useCurrentUser } from "@/lib/auth/client";
-import type { Conversation, ConversationMessage } from "@/lib/api/endpoints";
+import type { Conversation } from "@/lib/api/endpoints";
 import { ConversationList } from "@/components/chat/conversation-list";
 import { MessageInput } from "@/components/chat/message-input";
 import { MessageThread } from "@/components/chat/message-thread";
+import { useMessagesPageModel } from "./use-messages-page-model";
 import { cn } from "@praedixa/ui";
-
-interface CreateConversationBody {
-  subject: string;
-}
-
-interface SendConversationMessageBody {
-  content: string;
-}
 
 const STATUS_LABELS: Record<Conversation["status"], string> = {
   open: "Ouvert",
@@ -30,93 +20,27 @@ const STATUS_STYLES: Record<Conversation["status"], string> = {
 };
 
 export default function MessagesPage() {
-  const currentUser = useCurrentUser();
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newConversationSubject, setNewConversationSubject] = useState("");
-
   const {
-    data: conversationsData,
-    loading: conversationsLoading,
-    error: conversationsError,
-    refetch: refetchConversations,
-  } = useApiGet<Conversation[]>("/api/v1/conversations", {
-    pollInterval: 5000,
-  });
-
-  const conversations = useMemo(
-    () => (Array.isArray(conversationsData) ? conversationsData : []),
-    [conversationsData],
-  );
-
-  const selectedConversation = useMemo(
-    () => conversations.find((conversation) => conversation.id === selectedConversationId) ?? null,
-    [conversations, selectedConversationId],
-  );
-
-  const messagesUrl = selectedConversationId
-    ? `/api/v1/conversations/${encodeURIComponent(selectedConversationId)}/messages`
-    : null;
-
-  const {
-    data: messagesData,
-    loading: messagesLoading,
-    error: messagesError,
-    refetch: refetchMessages,
-  } = useApiGet<ConversationMessage[]>(messagesUrl, {
-    pollInterval: 4000,
-  });
-
-  const orderedMessages = useMemo(
-    () => [...(messagesData ?? [])].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
-    [messagesData],
-  );
-
-  const {
-    mutate: createConversation,
-    loading: creatingConversation,
-    error: createConversationError,
-  } = useApiPost<CreateConversationBody, Conversation>("/api/v1/conversations");
-
-  const {
-    mutate: sendMessage,
-    loading: sendingMessage,
-    error: sendMessageError,
-  } = useApiPost<SendConversationMessageBody, ConversationMessage>(
-    selectedConversationId
-      ? `/api/v1/conversations/${encodeURIComponent(selectedConversationId)}/messages`
-      : "/api/v1/conversations/__none__/messages",
-  );
-
-  const combinedError =
-    conversationsError ?? messagesError ?? createConversationError ?? sendMessageError;
-
-  const canSend = selectedConversation?.status === "open";
-  const trimmedSubject = newConversationSubject.trim();
-
-  const handleCreateConversation = useCallback(async (): Promise<void> => {
-    const subject = newConversationSubject.trim();
-    if (!subject) return;
-    const created = await createConversation({ subject });
-    if (!created) return;
-
-    setSelectedConversationId(created.id);
-    setShowCreateForm(false);
-    setNewConversationSubject("");
-    refetchConversations();
-  }, [createConversation, newConversationSubject, refetchConversations]);
-
-  const handleSendMessage = useCallback(
-    async (content: string): Promise<void> => {
-      if (!selectedConversationId) return;
-      const sent = await sendMessage({ content });
-      if (!sent) return;
-
-      refetchMessages();
-      refetchConversations();
-    },
-    [refetchConversations, refetchMessages, selectedConversationId, sendMessage],
-  );
+    canSend,
+    combinedError,
+    conversations,
+    conversationsLoading,
+    creatingConversation,
+    currentUserId,
+    handleCreateConversation,
+    handleSendMessage,
+    messagesLoading,
+    newConversationSubject,
+    openCreateForm,
+    orderedMessages,
+    selectedConversation,
+    selectedConversationId,
+    selectConversation,
+    sendingMessage,
+    setNewConversationSubject,
+    showCreateForm,
+    trimmedSubject,
+  } = useMessagesPageModel();
 
   return (
     <div className="min-h-full space-y-6">
@@ -178,8 +102,8 @@ export default function MessagesPage() {
           <ConversationList
             conversations={conversations}
             selectedId={selectedConversationId}
-            onSelect={setSelectedConversationId}
-            onNewConversation={() => setShowCreateForm(true)}
+            onSelect={selectConversation}
+            onNewConversation={openCreateForm}
             loading={conversationsLoading}
           />
         </div>
@@ -205,7 +129,7 @@ export default function MessagesPage() {
 
           <MessageThread
             messages={orderedMessages}
-            currentUserId={selectedConversation ? (currentUser?.id ?? null) : null}
+            currentUserId={selectedConversation ? currentUserId : null}
             loading={messagesLoading}
             conversationStatus={selectedConversation?.status}
           />

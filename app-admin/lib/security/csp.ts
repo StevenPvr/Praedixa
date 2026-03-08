@@ -15,8 +15,12 @@
  */
 
 const isProd = process.env.NODE_ENV === "production";
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const oidcIssuerUrl = process.env.AUTH_OIDC_ISSUER_URL ?? "";
+const adminApiMode = process.env.NEXT_PUBLIC_ADMIN_API_MODE ?? "proxy";
+const apiUrl =
+  adminApiMode === "direct"
+    ? (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000")
+    : "";
 
 function getOriginOrEmpty(value: string): string {
   try {
@@ -34,8 +38,9 @@ export function buildCspHeader(nonce: string): string {
   const authOrigin = getOriginOrEmpty(oidcIssuerUrl);
   const optionalAuthSource = authOrigin ? ` ${authOrigin}` : "";
 
-  // Build connect-src dynamically based on apiUrl
-  const connectSrc = `'self' ${apiUrl}${optionalAuthSource}`;
+  const optionalApiSource =
+    apiUrl.length > 0 ? ` ${getOriginOrEmpty(apiUrl)}` : "";
+  const connectSrc = `'self'${optionalApiSource}${optionalAuthSource}`;
 
   const directives = [
     "default-src 'self'",

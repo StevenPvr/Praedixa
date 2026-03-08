@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@praedixa/ui";
 import { PraedixaLogo } from "./praedixa-logo";
+import { canAccessPath } from "@/lib/auth/route-access";
 
 interface NavItem {
   id: string;
@@ -30,6 +31,7 @@ interface AdminSidebarProps {
   onToggleCollapse?: () => void;
   userEmail?: string;
   onLogout?: () => void;
+  permissions?: readonly string[] | null;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -88,7 +90,16 @@ export function AdminSidebar({
   onToggleCollapse,
   userEmail,
   onLogout,
+  permissions,
 }: AdminSidebarProps) {
+  const visibleNavItems = React.useMemo(
+    () =>
+      permissions == null
+        ? NAV_ITEMS
+        : NAV_ITEMS.filter((item) => canAccessPath(item.href, permissions)),
+    [permissions],
+  );
+
   const isActive = React.useCallback(
     (href: string) =>
       href === "/"
@@ -138,7 +149,7 @@ export function AdminSidebar({
         aria-label="Navigation admin"
       >
         {GROUP_ORDER.map((group) => {
-          const items = NAV_ITEMS.filter((item) => item.group === group);
+          const items = visibleNavItems.filter((item) => item.group === group);
           if (items.length === 0) return null;
 
           return (

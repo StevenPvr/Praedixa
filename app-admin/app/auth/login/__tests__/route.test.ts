@@ -10,6 +10,7 @@ const mockIsMissingOidcEnvError = vi.fn();
 const mockResolveAuthAppOrigin = vi.fn();
 const mockSanitizeNextPath = vi.fn();
 const mockSecureCookie = vi.fn();
+const mockConsumeRateLimit = vi.fn();
 
 vi.mock("next/server", () => ({
   NextResponse: {
@@ -34,12 +35,19 @@ vi.mock("@/lib/auth/oidc", () => ({
   secureCookie: (...args: unknown[]) => mockSecureCookie(...args),
 }));
 
+vi.mock("@/lib/security/rate-limit", () => ({
+  consumeRateLimit: (...args: unknown[]) => mockConsumeRateLimit(...args),
+}));
+
 import { GET } from "../route";
 
 function createRedirectResponse(url: string | URL) {
   return {
     status: 302,
     redirectUrl: typeof url === "string" ? url : url.toString(),
+    headers: {
+      set: vi.fn(),
+    },
     cookies: {
       set: vi.fn(),
     },
@@ -92,6 +100,12 @@ describe("GET /auth/login (admin)", () => {
       },
     );
     mockSecureCookie.mockReturnValue(true);
+    mockConsumeRateLimit.mockResolvedValue({
+      allowed: true,
+      remaining: 7,
+      retryAfterSeconds: 300,
+      resetAtEpochSeconds: 1_900_000_000,
+    });
   });
 
   it("redirects to OIDC authorization endpoint and sets login cookies", async () => {
@@ -172,5 +186,29 @@ describe("GET /auth/login (admin)", () => {
       "oidc_provider_untrusted",
     );
     expect(redirectUrl.searchParams.get("next")).toBe("/");
+  });
+
+  it("redirects to /login with rate_limited when the client exceeds the login budget", async () => {
+    mockConsumeRateLimit.mockResolvedValueOnce({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 120,
+      resetAtEpochSeconds: 1_900_000_000,
+    });
+
+    const response = (await GET(createMockRequest({ next: "/clients" }))) as {
+      redirectUrl: string;
+    };
+
+    const redirectUrl = new URL(response.redirectUrl);
+    expect(redirectUrl.origin + redirectUrl.pathname).toBe(
+      "https://admin.praedixa.com/login",
+    );
+    expect(redirectUrl.searchParams.get("error")).toBe("rate_limited");
+    expect(redirectUrl.searchParams.get("next")).toBe("/clients");
+    expect(mockGetTrustedOidcEndpoints).not.toHaveBeenCalled();
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Retry-After", "120");
   });
 });

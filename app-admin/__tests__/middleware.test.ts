@@ -34,7 +34,15 @@ describe("proxy (root)", () => {
 
     const result = await proxy(mockRequest);
 
-    expect(mockUpdateSession).toHaveBeenCalledWith(mockRequest);
+    expect(mockUpdateSession).toHaveBeenCalledWith(
+      mockRequest,
+      expect.any(Headers),
+    );
+    const forwardedHeaders = mockUpdateSession.mock.calls[0]?.[1] as Headers;
+    expect(forwardedHeaders.get("x-nonce")).toBe("dGVzdC1ub25jZQ==");
+    expect(forwardedHeaders.get("Content-Security-Policy")).toContain(
+      "nonce-dGVzdC1ub25jZQ==",
+    );
     expect(result.status).toBe(200);
     expect(result.headers.set).toHaveBeenCalledWith(
       "Content-Security-Policy",

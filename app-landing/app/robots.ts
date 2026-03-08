@@ -6,7 +6,13 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/fr/logo-preview", "/en/logo-preview"],
+        disallow: [
+          "/api/",
+          "/app/",
+          "/admin/",
+          "/fr/logo-preview",
+          "/en/logo-preview",
+        ],
       },
       {
         userAgent: "AdsBot-Google",

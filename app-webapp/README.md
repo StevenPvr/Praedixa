@@ -13,7 +13,7 @@ Application de pilotage de capacite pour les responsables de sites logistiques. 
 ```bash
 # 1. Variables d'environnement
 cp app-webapp/.env.local.example app-webapp/.env.local
-# Remplir NEXT_PUBLIC_API_URL + AUTH_OIDC_* + AUTH_SESSION_SECRET
+# Remplir NEXT_PUBLIC_API_URL + AUTH_APP_ORIGIN + AUTH_OIDC_* + AUTH_SESSION_SECRET
 
 # 2. Installer les dependances (depuis la racine du monorepo)
 pnpm install
@@ -28,18 +28,20 @@ pnpm dev:webapp   # http://localhost:3001
 
 | Variable                  | Description                                     | Exemple                                     |
 | ------------------------- | ----------------------------------------------- | ------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`     | URL de l'API backend                            | `http://localhost:8000`                     |
+| `NEXT_PUBLIC_API_URL`     | URL de l'API backend (`https://` requis en production) | `http://localhost:8000`               |
+| `AUTH_APP_ORIGIN`         | Origin publique du webapp pour les redirects OIDC et les controles same-origin (`https://` requis en production) | `http://localhost:3001` |
 | `AUTH_OIDC_ISSUER_URL`    | URL realm OIDC (Keycloak)                       | `https://auth.praedixa.com/realms/praedixa` |
 | `AUTH_OIDC_CLIENT_ID`     | Client ID OIDC webapp                           | `praedixa-webapp`                           |
 | `AUTH_OIDC_CLIENT_SECRET` | Client secret OIDC (optionnel si client public) | `<secret>`                                  |
 | `AUTH_OIDC_SCOPE`         | Scope OIDC                                      | `openid profile email offline_access`       |
-| `AUTH_SESSION_SECRET`     | Secret de signature session                     | `<long random secret>`                      |
-| `AUTH_TRUST_X_FORWARDED_FOR` | Autorise `X-Forwarded-For` pour rate limit (desactive par defaut) | `1` |
+| `AUTH_SESSION_SECRET`     | Secret de signature session, unique et aleatoire (32+ caracteres minimum) | `<48+ random chars>` |
+| `AUTH_TRUST_X_FORWARDED_FOR` | Autorise les en-tetes proxy IP (`CF-Connecting-IP`, `X-Real-IP`, `X-Forwarded-For`) pour le rate limit; laisser desactive hors proxy de confiance | `1` |
 | `AUTH_RATE_LIMIT_REDIS_URL` | URL Redis/Valkey pour rate limit distribue (optionnel) | `rediss://user:pass@redis-fr.example:6380/0` |
 | `AUTH_RATE_LIMIT_KEY_PREFIX` | Prefix de cle Redis/Valkey (optionnel)       | `prx:auth:rl`                               |
 | `AUTH_RATE_LIMIT_KEY_SALT` | Sel pour pseudonymiser les cles rate limit (optionnel) | `<long random secret>`               |
 | `AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS` | Timeout connexion Redis (ms) | `300` |
 | `AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS` | Timeout commande Redis (ms) | `300` |
+| `API_PROXY_MAX_BODY_BYTES` | Taille max acceptee par le proxy BFF pour les corps de requete authentifies | `1048576` |
 | `CSP_REPORT_URI`          | Endpoint `report-uri` CSP (optionnel)           | `/api/security/csp-report`                  |
 | `CSP_REPORT_TO_URL`       | Endpoint `report-to` CSP (optionnel)            | `https://reports.praedixa.com/csp`          |
 
@@ -73,7 +75,7 @@ pnpm dev:webapp   # http://localhost:3001
 | `/login`         | Connexion via OIDC (Keycloak)         |
 | `/auth/callback` | Callback OAuth apres authentification |
 | `/auth/login`    | Route handler qui initie le flow OIDC |
-| `/auth/logout`   | Route handler de deconnexion          |
+| `/auth/logout`   | Route handler de deconnexion avec revocation OIDC best-effort |
 | `/auth/session`  | Refresh de token et lecture session   |
 
 ---
@@ -86,14 +88,14 @@ L'authentification repose sur **OIDC Authorization Code + PKCE**. Trois fichiers
 | ------------------------ | ------------------------------------------------- |
 | `lib/auth/middleware.ts` | Validation serveur de la session a chaque requete |
 | `lib/auth/server.ts`     | Lecture/verification de session cote serveur      |
-| `lib/auth/client.ts`     | Recuperation de token via `/auth/session`         |
+| `lib/auth/client.ts`     | Lecture de session client sans exposition du bearer |
 
 ### Flux proxy
 
 Le proxy (`proxy.ts`) execute deux operations sur chaque requete :
 
 1. **CSP nonce** -- genere un nonce unique par requete et l'injecte dans le header `Content-Security-Policy`.
-2. **Session auth** -- appelle `updateSession()` qui valide le token via `getUser()` (validation serveur, pas `getSession()`).
+2. **Session auth** -- appelle `updateSession()` qui valide la session signee cote serveur, verifie la correspondance avec les cookies d'acces/refresh et renouvelle les tokens si necessaire.
 
 Regles de routage :
 
@@ -109,26 +111,28 @@ Regles de scope role/site :
 - **`org_admin`** : acces a tous les sites de son organisation
 - **`manager` / `hr_manager`** : scope limite au site du claim `site_id` (absence de `site_id` => `403`)
 
-### Token refresh cote client
+### Session client
 
 ```typescript
 // lib/auth/client.ts -- extrait
-export async function getValidAccessToken(
-  options: { minTtlSeconds?: number } = {},
-): Promise<string | null> {
-  const { minTtlSeconds = 60 } = options;
-  const response = await fetch(`/auth/session?min_ttl=${minTtlSeconds}`, {
-    method: "GET",
-    credentials: "include",
-    cache: "no-store",
-  });
-  if (!response.ok) return null;
-  const payload = (await response.json()) as { accessToken?: string };
-  return payload.accessToken ?? null;
+export function useCurrentUser(): CurrentUser | null {
+  const [user, setUser] = useState<CurrentUser | null>(null);
+
+  useEffect(() => {
+    fetch("/auth/session?min_ttl=60", {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => setUser(payload?.user ?? null));
+  }, []);
+
+  return user;
 }
 ```
 
-Le refresh est proactif : si le token expire dans moins de 60 secondes, il est renouvele avant l'appel API.
+Le refresh reste proactif cote serveur: si le token expire bientot, il est renouvele avant de proxifier l'appel backend. Le navigateur ne recoit jamais le bearer token.
 
 ---
 
@@ -139,11 +143,12 @@ Toute communication avec le backend passe par le client type dans `lib/api/`.
 ### Architecture
 
 ```
-lib/api/client.ts     -- fonctions generiques : apiGet, apiGetPaginated, apiPost, apiPatch, apiDelete
+app/api/v1/[...path]  -- BFF / proxy serveur Next.js vers l'API backend
+lib/api/client.ts     -- client browser-aware, proxy same-origin cote navigateur
 lib/api/endpoints.ts  -- wrappers types par domaine (forecasts, decisions, alerts, etc.)
 ```
 
-Chaque fonction accepte un callback `GetAccessToken` qui est injecte par les hooks. Cela permet aux Server Components et aux Client Components d'utiliser la meme couche API avec des strategies d'authentification differentes.
+Dans le navigateur, `lib/api/client.ts` passe toujours par le proxy same-origin `/api/v1/*`, qui injecte le bearer cote serveur depuis les cookies de session. Aucun composant client n'accede directement au token.
 
 ### Endpoints Gold (explorer)
 
@@ -157,11 +162,10 @@ La page `/donnees/gold` consomme directement les endpoints live suivants :
 Le endpoint `/api/v1/live/gold/provenance` expose notamment `strictDataPolicyOk`, `forecastMockColumns` et `nonForecastMockColumns` pour verifier la politique "pas de mock hors forecasting".
 
 ```typescript
-// Exemple d'utilisation dans un composant
-import { getDashboardSummary } from "@/lib/api/endpoints";
-import { getValidAccessToken } from "@/lib/auth/client";
+// Exemple d'utilisation dans un composant client
+import { useApiGet } from "@/hooks/use-api";
 
-const summary = await getDashboardSummary(() => getValidAccessToken());
+const { data } = useApiGet("/api/v1/live/dashboard/summary");
 ```
 
 ### Domaines couverts par `endpoints.ts`
@@ -342,6 +346,8 @@ Les headers de securite sont configures dans `next.config.ts` :
 - **HSTS** : active en production (2 ans, preload)
 - **X-Frame-Options** : `DENY`
 - **Permissions-Policy** : geolocation, microphone, camera, payment desactives
+- **API base URL** : HTTP autorise uniquement en local loopback, HTTPS obligatoire en production
+- **Logout OIDC** : reveille la revocation upstream des tokens avant purge locale des cookies
 - **COOP / CORP** : `same-origin` (mitigation Spectre)
 
 ---

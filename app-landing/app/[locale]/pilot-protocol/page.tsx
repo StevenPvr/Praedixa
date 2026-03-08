@@ -15,11 +15,11 @@ export async function generateMetadata({
     locale,
     paths: localePathMap("/fr/pilot-protocol", "/en/pilot-protocol"),
     title: isFr
-      ? "Praedixa | Protocole pilote (boucle fermée)"
-      : "Praedixa | Pilot protocol (closed loop)",
+      ? "Praedixa | Protocole pilote ROI"
+      : "Praedixa | ROI pilot protocol",
     description: isFr
-      ? "Protocole du pilote : audit historique, décision chiffrée, 1re action assistée, Decision Log, preuve ROI mensuelle."
-      : "Pilot protocol: historical audit, quantified decision, assisted first action, Decision Log, and monthly ROI proof.",
+      ? "Protocole du pilote: diagnostic ROI, base commune, priorités d'action et suivi des gains."
+      : "Pilot protocol: ROI diagnostic, shared foundation, action priorities, and gain tracking.",
   });
 }
 
@@ -45,7 +45,7 @@ export default async function PilotProtocolPage({
         {p.kicker}
       </span>
       <h1 className="mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl md:text-4xl">
-        {isFr ? "Protocole pilote (boucle fermée)" : "Pilot protocol (closed loop)"}
+        {isFr ? "Protocole pilote ROI" : "ROI pilot protocol"}
       </h1>
       <p className="mt-4 max-w-[58ch] text-base leading-relaxed text-neutral-500">
         {p.subheading}

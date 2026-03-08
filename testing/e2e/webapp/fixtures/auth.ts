@@ -1,10 +1,10 @@
 import type { Page } from "@playwright/test";
+import { E2E_AUTH_SESSION_SECRET } from "../../fixtures/oidc-config";
 import { applyOidcAuthCookies } from "../../fixtures/oidc-auth";
 
 const WEBAPP_BASE_URL = "http://localhost:3001";
 const WEBAPP_CLIENT_ID = "praedixa-webapp";
-const WEBAPP_SESSION_SECRET =
-  process.env.AUTH_SESSION_SECRET ?? "e2e-oidc-session-secret";
+const WEBAPP_SESSION_SECRET = E2E_AUTH_SESSION_SECRET;
 
 export const MOCK_USER = {
   id: "usr-00000000-0000-0000-0000-000000000001",

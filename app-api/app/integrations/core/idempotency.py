@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from threading import Lock
@@ -54,18 +55,41 @@ def build_idempotency_key(
 class InMemoryIdempotencyStore:
     """Thread-safe in-memory idempotency guard for local/dev execution."""
 
-    def __init__(self) -> None:
-        self._seen: set[str] = set()
+    def __init__(
+        self,
+        *,
+        ttl_seconds: float = 24 * 60 * 60,
+        max_entries: int = 10_000,
+    ) -> None:
+        if ttl_seconds <= 0:
+            raise ValueError("ttl_seconds must be > 0")
+        if max_entries <= 0:
+            raise ValueError("max_entries must be > 0")
+        self._ttl_seconds = ttl_seconds
+        self._max_entries = max_entries
+        self._seen: dict[str, float] = {}
         self._lock = Lock()
 
     def register(self, key: str) -> bool:
         """Register a key; True when key is new, False when already present."""
         with self._lock:
+            now = time.monotonic()
+            self._prune(now)
             if key in self._seen:
                 return False
-            self._seen.add(key)
+            if len(self._seen) >= self._max_entries:
+                oldest_key = min(self._seen, key=self._seen.get)
+                self._seen.pop(oldest_key, None)
+            self._seen[key] = now + self._ttl_seconds
             return True
 
     def contains(self, key: str) -> bool:
         with self._lock:
+            now = time.monotonic()
+            self._prune(now)
             return key in self._seen
+
+    def _prune(self, now: float) -> None:
+        expired = [key for key, deadline in self._seen.items() if deadline <= now]
+        for key in expired:
+            self._seen.pop(key, None)

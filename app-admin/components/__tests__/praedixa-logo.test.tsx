@@ -29,18 +29,16 @@ describe("PraedixaLogo", () => {
     expect(svg).toHaveAttribute("height", "48");
   });
 
-  it("applies custom color to strokes and fills", () => {
+  it("applies custom color to logo strokes", () => {
     const { container } = render(<PraedixaLogo color="#ff0000" />);
-    const rect = container.querySelector("rect");
-    expect(rect).toHaveAttribute("stroke", "#ff0000");
-    const circle = container.querySelector("circle");
-    expect(circle).toHaveAttribute("fill", "#ff0000");
+    const group = container.querySelector("g");
+    expect(group).toHaveAttribute("stroke", "#ff0000");
   });
 
   it("uses tokenized default color", () => {
     const { container } = render(<PraedixaLogo />);
-    const rect = container.querySelector("rect");
-    expect(rect).toHaveAttribute("stroke", "var(--warm-ink)");
+    const group = container.querySelector("g");
+    expect(group).toHaveAttribute("stroke", "var(--warm-ink)");
   });
 
   it("applies className to SVG", () => {
@@ -49,15 +47,17 @@ describe("PraedixaLogo", () => {
     expect(svg).toHaveClass("custom-class");
   });
 
-  it("renders the P letter structure (4 lines)", () => {
+  it("renders the monogram structure", () => {
     const { container } = render(<PraedixaLogo />);
     const lines = container.querySelectorAll("line");
-    expect(lines).toHaveLength(4);
+    expect(lines).toHaveLength(1);
+    const paths = container.querySelectorAll("path");
+    expect(paths).toHaveLength(1);
   });
 
-  it("renders the decorative dot (circle)", () => {
+  it("does not render the legacy decorative dot", () => {
     const { container } = render(<PraedixaLogo />);
     const circles = container.querySelectorAll("circle");
-    expect(circles).toHaveLength(1);
+    expect(circles).toHaveLength(0);
   });
 });

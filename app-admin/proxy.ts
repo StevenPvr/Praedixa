@@ -13,8 +13,8 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", cspHeader);
 
-  // Run auth middleware
-  const response = await updateSession(request);
+  // Run auth middleware and forward the nonce upstream to Server Components.
+  const response = await updateSession(request, requestHeaders);
 
   // Apply CSP to the response (auth middleware may return a redirect or next())
   response.headers.set("Content-Security-Policy", cspHeader);

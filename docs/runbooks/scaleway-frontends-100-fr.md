@@ -122,8 +122,10 @@ pnpm run scw:configure:api:prod
 ### Deploy (quand valide)
 
 ```bash
-pnpm run scw:deploy:landing:staging
-pnpm run scw:deploy:landing:prod
+pnpm release:build -- --service landing --ref <git-ref> --tag <tag> --registry-prefix <registry>
+pnpm release:manifest:create -- --ref <git-ref> --output /tmp/landing-manifest.json --image "landing=<registry-image@sha256>"
+pnpm release:deploy -- --manifest /tmp/landing-manifest.json --env staging
+pnpm release:deploy -- --manifest /tmp/landing-manifest.json --env prod
 pnpm run scw:deploy:api:staging
 pnpm run scw:deploy:webapp:staging
 pnpm run scw:deploy:admin:staging
@@ -134,10 +136,11 @@ pnpm run scw:deploy:admin:staging
 - Les scripts `scw:deploy:*` refusent un workspace git non propre par defaut.
 - Pour forcer (non recommande): `SCW_DEPLOY_ALLOW_DIRTY=1`.
 - Aucun deploy staging/prod n'est lance tant que non demande explicitement.
+- La landing n'a plus de chemin de deploy local supporte en staging/prod; elle passe uniquement par le release runner immuable.
 
 ### Reste a faire
 
-1. Deployer les images staging (`landing`, `api`, `webapp`, `admin`) apres validation fonctionnelle.
+1. Deployer l'image landing via le runner immuable, staging puis prod, avant tout cutover DNS.
 2. Deployer `landing` en production sur Scaleway (container `landing-web`) puis basculer `@`/`www` au moment du transfert domaine.
 3. Finaliser le transfert de delegation NS vers Scaleway quand le lock registrar le permet.
 4. Une fois stable, retirer les bindings Workers historiques devenus inutiles.

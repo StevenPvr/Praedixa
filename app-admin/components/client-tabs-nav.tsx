@@ -5,53 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@praedixa/ui";
 import { useCurrentUser } from "@/lib/auth/client";
 import { hasAnyPermission } from "@/lib/auth/permissions";
-
-interface Tab {
-  label: string;
-  href: string;
-  requiredPermissions: string[];
-}
-
-const TABS: Tab[] = [
-  {
-    label: "Dashboard",
-    href: "dashboard",
-    requiredPermissions: ["admin:org:read", "admin:monitoring:read"],
-  },
-  { label: "Donnees", href: "donnees", requiredPermissions: ["admin:org:read"] },
-  {
-    label: "Previsions",
-    href: "previsions",
-    requiredPermissions: ["admin:org:read"],
-  },
-  { label: "Actions", href: "actions", requiredPermissions: ["admin:org:read"] },
-  { label: "Alertes", href: "alertes", requiredPermissions: ["admin:org:read"] },
-  {
-    label: "Rapports",
-    href: "rapports",
-    requiredPermissions: ["admin:org:read"],
-  },
-  {
-    label: "Onboarding",
-    href: "onboarding",
-    requiredPermissions: ["admin:onboarding:read", "admin:onboarding:write"],
-  },
-  {
-    label: "Config",
-    href: "config",
-    requiredPermissions: ["admin:org:write", "admin:billing:read"],
-  },
-  {
-    label: "Equipe",
-    href: "equipe",
-    requiredPermissions: ["admin:users:read", "admin:users:write"],
-  },
-  {
-    label: "Messages",
-    href: "messages",
-    requiredPermissions: ["admin:messages:read", "admin:messages:write"],
-  },
-];
+import { CLIENT_WORKSPACE_TABS } from "@/lib/auth/route-access";
 
 interface ClientTabsNavProps {
   basePath: string;
@@ -60,10 +14,10 @@ interface ClientTabsNavProps {
 export function ClientTabsNav({ basePath }: ClientTabsNavProps) {
   const pathname = usePathname();
   const currentUser = useCurrentUser();
-  const visibleTabs = TABS.filter((tab) =>
+  const visibleTabs = CLIENT_WORKSPACE_TABS.filter((tab) =>
     hasAnyPermission(currentUser?.permissions, tab.requiredPermissions),
   );
-  const tabs = visibleTabs.length > 0 ? visibleTabs : [TABS[0]];
+  const tabs = visibleTabs.length > 0 ? visibleTabs : [CLIENT_WORKSPACE_TABS[0]];
 
   return (
     <nav

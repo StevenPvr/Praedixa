@@ -30,8 +30,17 @@ echo "[precommit-tests] Python test suite (includes unit tests)..."
 echo "[precommit-tests] API TS unit tests..."
 pnpm --filter @praedixa/api-ts test
 
-echo "[precommit-tests] Next.js unit tests..."
-pnpm vitest run --project default --project admin
+echo "[precommit-tests] Build shared workspace packages..."
+pnpm --filter @praedixa/shared-types build
+pnpm --filter @praedixa/ui build
+
+echo "[precommit-tests] Workspace unit tests..."
+pnpm --filter @praedixa/connectors test
+pnpm --filter @praedixa/shared-types test
+pnpm --filter @praedixa/ui test
+pnpm --filter @praedixa/landing test
+pnpm --filter @praedixa/webapp test
+pnpm --filter @praedixa/admin test
 
 echo "[precommit-tests] Playwright Chromium check..."
 ./scripts/check-playwright-chromium.sh

@@ -21,12 +21,12 @@ export async function generateMetadata({
     paths: localePathMap(FR_PATH, EN_PATH),
     title:
       locale === "fr"
-        ? "Praedixa | Candidature pilote (boucle fermée)"
-        : "Praedixa | Pilot application (closed loop)",
+        ? "Praedixa | Demande de pilote ROI"
+        : "Praedixa | ROI pilot application",
     description:
       locale === "fr"
-        ? "Cadrons un pilote pour fermer la boucle : prévision J+3/J+7/J+14, décision optimale chiffrée, 1re action assistée, Decision Log et preuve ROI mensuelle."
-        : "Scope a pilot to close the loop: short-horizon forecasting, quantified optimal decision, assisted first action, Decision Log, and monthly ROI proof.",
+        ? "Cadrons un pilote ROI pour réunir vos données RH, finance, opérations et supply chain, prioriser les bonnes actions et suivre les gains."
+        : "Scope an ROI pilot to bring your HR, finance, operations, and supply chain data together, prioritize the right actions, and track gains.",
   });
 }
 

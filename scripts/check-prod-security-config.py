@@ -41,7 +41,11 @@ REQUIRED_PATTERNS: dict[str, tuple[str, ...]] = {
         "Strict-Transport-Security",
         "Permissions-Policy",
     ),
-    "app-webapp/lib/auth/oidc.ts": ("httpOnly: true", 'sameSite: "lax"', "secure,"),
+    "app-webapp/lib/auth/oidc/cookies.ts": (
+        "httpOnly: true",
+        'sameSite: "lax"',
+        "secure,",
+    ),
     "app-admin/lib/auth/oidc.ts": ("httpOnly: true", 'sameSite: "lax"', "secure,"),
     "app-webapp/app/auth/login/route.ts": (
         "httpOnly: true",

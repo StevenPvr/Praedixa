@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import func, select, update
 
 from app.core.exceptions import NotFoundError
+from app.core.pagination import normalize_page_window
 from app.models.operational import CostParameter
 
 if TYPE_CHECKING:
@@ -48,7 +49,7 @@ async def list_cost_parameters(
 
     total = (await session.execute(count_q)).scalar_one() or 0
 
-    offset = (page - 1) * page_size
+    _, page_size, offset = normalize_page_window(page, page_size)
     query = (
         base.order_by(CostParameter.effective_from.desc())
         .offset(offset)

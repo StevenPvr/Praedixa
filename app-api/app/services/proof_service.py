@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
+from app.core.pagination import normalize_page_window
 from app.models.operational import (
     CoverageAlert,
     OperationalDecision,
@@ -307,7 +308,7 @@ async def list_proof_records(
 
     total = (await session.execute(count_q)).scalar_one() or 0
 
-    offset = (page - 1) * page_size
+    _, page_size, offset = normalize_page_window(page, page_size)
     query = base.order_by(ProofRecord.month.desc()).offset(offset).limit(page_size)
     result = await session.execute(query)
     items = list(result.scalars().all())

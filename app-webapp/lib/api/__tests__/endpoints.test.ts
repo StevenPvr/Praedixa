@@ -57,7 +57,6 @@ import {
   listProofPacks,
   getProofSummary,
   generateProof,
-  triggerMockForecast,
 } from "../endpoints";
 
 // ---------------------------------------------------------------------------
@@ -997,28 +996,6 @@ describe("generateProof", () => {
     expect(mockApiPost).toHaveBeenCalledWith(
       "/api/v1/proof/generate",
       body,
-      mockToken,
-    );
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Mock Forecast
-// ---------------------------------------------------------------------------
-
-describe("triggerMockForecast", () => {
-  it("should call apiPost with correct path and empty body", async () => {
-    mockApiPost.mockResolvedValueOnce({
-      success: true,
-      data: { alertsGenerated: 5, message: "ok" },
-      timestamp: "t",
-    });
-
-    await triggerMockForecast(mockToken);
-
-    expect(mockApiPost).toHaveBeenCalledWith(
-      "/api/v1/mock-forecast",
-      {},
       mockToken,
     );
   });

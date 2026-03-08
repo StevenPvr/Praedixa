@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import os from "node:os";
+import { E2E_AUTH_SESSION_SECRET } from "./testing/e2e/fixtures/oidc-config";
 
 const COVERAGE_ENABLED = process.env.COVERAGE === "1";
 const CPU_COUNT =
@@ -93,7 +94,7 @@ export default defineConfig({
         NEXT_PUBLIC_API_URL: "http://localhost:8000",
         AUTH_OIDC_ISSUER_URL: "https://sso.e2e.local/realms/praedixa",
         AUTH_OIDC_CLIENT_ID: "praedixa-webapp",
-        AUTH_SESSION_SECRET: "e2e-oidc-session-secret",
+        AUTH_SESSION_SECRET: E2E_AUTH_SESSION_SECRET,
       },
     },
     {
@@ -107,7 +108,7 @@ export default defineConfig({
         NEXT_PUBLIC_API_URL: "http://localhost:8000",
         AUTH_OIDC_ISSUER_URL: "https://sso.e2e.local/realms/praedixa",
         AUTH_OIDC_CLIENT_ID: "praedixa-admin",
-        AUTH_SESSION_SECRET: "e2e-oidc-session-secret",
+        AUTH_SESSION_SECRET: E2E_AUTH_SESSION_SECRET,
       },
     },
   ],

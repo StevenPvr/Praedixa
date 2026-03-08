@@ -55,7 +55,6 @@ vi.mock("@/lib/api/client", () => ({
 }));
 
 vi.mock("@/lib/auth/client", () => ({
-  getValidAccessToken: () => Promise.resolve("test-token"),
   clearAuthSession: () => mockClearAuthSession(),
 }));
 
@@ -140,7 +139,7 @@ describe("useApiGet", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("should pass URL and getAccessToken to apiGet", async () => {
+  it("should pass URL and AbortSignal to apiGet without browser token provider", async () => {
     mockApiGet.mockResolvedValue(successResponse({ id: 1 }));
 
     renderHook(() => useApiGet<TestItem>("/api/v1/items"));
@@ -151,7 +150,7 @@ describe("useApiGet", () => {
 
     const [url, getToken, opts] = mockApiGet.mock.calls[0];
     expect(url).toBe("/api/v1/items");
-    expect(typeof getToken).toBe("function");
+    expect(getToken).toBeUndefined();
     expect(opts).toHaveProperty("signal");
     expect(opts.signal).toBeInstanceOf(AbortSignal);
   });
@@ -966,7 +965,7 @@ describe("useApiPost", () => {
     expect(mockApiPost).toHaveBeenCalledWith(
       "/api/v1/items",
       { name: "test" },
-      expect.any(Function),
+      undefined,
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });
@@ -1099,7 +1098,7 @@ describe("useApiPatch", () => {
     expect(mockApiPatch).toHaveBeenCalledWith(
       "/api/v1/items/1",
       { name: "test" },
-      expect.any(Function),
+      undefined,
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });

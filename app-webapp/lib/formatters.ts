@@ -42,7 +42,15 @@ export function formatSeverity(severity: string): string {
 }
 
 export function formatHorizon(horizon: string): string {
-  return HORIZON_LABELS[horizon] ?? horizon;
+  const trimmed = horizon.trim();
+  if (trimmed.length === 0) return horizon;
+  const fallback = HORIZON_LABELS[trimmed];
+  if (fallback) return fallback;
+  const dynamicMatch = /^j(\d+)$/i.exec(trimmed);
+  if (dynamicMatch) {
+    return `A ${Number(dynamicMatch[1])} jours`;
+  }
+  return horizon;
 }
 
 export function formatAlertStatus(status: string): string {

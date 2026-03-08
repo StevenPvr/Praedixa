@@ -176,5 +176,4 @@ export function ConversationList({
   );
 }
 
-export { formatRelativeTime } from "@praedixa/ui";
 export type { Conversation, ConversationStatus, FilterTab };

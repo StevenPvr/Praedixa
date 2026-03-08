@@ -131,23 +131,47 @@ def upgrade() -> None:
             postgresql.ENUM(name="integrationauthmode", create_type=False),
             nullable=False,
         ),
-        sa.Column("config_json", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default="{}"),
+        sa.Column(
+            "config_json",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default="{}",
+        ),
         sa.Column("secret_ref", sa.String(length=255), nullable=True),
         sa.Column("secret_version", sa.Integer(), nullable=True),
         sa.Column("oauth_scopes", sa.Text(), nullable=True),
         sa.Column("base_url", sa.Text(), nullable=True),
         sa.Column("external_account_id", sa.String(length=255), nullable=True),
-        sa.Column("sync_interval_minutes", sa.Integer(), nullable=False, server_default="30"),
-        sa.Column("webhook_enabled", sa.Boolean(), nullable=False, server_default=sa.text("false")),
+        sa.Column(
+            "sync_interval_minutes", sa.Integer(), nullable=False, server_default="30"
+        ),
+        sa.Column(
+            "webhook_enabled",
+            sa.Boolean(),
+            nullable=False,
+            server_default=sa.text("false"),
+        ),
         sa.Column("next_scheduled_sync_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("last_successful_sync_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("last_tested_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("disabled_reason", sa.Text(), nullable=True),
         sa.Column("created_by", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("updated_by", postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.ForeignKeyConstraint(
+            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+        ),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="SET NULL"),
         sa.ForeignKeyConstraint(["updated_by"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
@@ -182,7 +206,12 @@ def upgrade() -> None:
             server_default="queued",
         ),
         sa.Column("priority", sa.SmallInteger(), nullable=False, server_default="50"),
-        sa.Column("available_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
+        sa.Column(
+            "available_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
         sa.Column("attempts", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("max_attempts", sa.Integer(), nullable=False, server_default="8"),
         sa.Column("idempotency_key", sa.String(length=120), nullable=False),
@@ -202,12 +231,31 @@ def upgrade() -> None:
         sa.Column("error_code", sa.String(length=80), nullable=True),
         sa.Column("error_message_redacted", sa.String(length=400), nullable=True),
         sa.Column("request_id", sa.String(length=64), nullable=True),
-        sa.Column("scope_json", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default="{}"),
+        sa.Column(
+            "scope_json",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default="{}",
+        ),
         sa.Column("created_by", postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["connection_id"], ["integration_connections.id"], ondelete="CASCADE"),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.ForeignKeyConstraint(
+            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+        ),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
@@ -237,14 +285,35 @@ def upgrade() -> None:
         sa.Column("source_object", sa.String(length=120), nullable=False),
         sa.Column("watermark_text", sa.String(length=255), nullable=True),
         sa.Column("watermark_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("cursor_json", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default="{}"),
+        sa.Column(
+            "cursor_json",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default="{}",
+        ),
         sa.Column("last_run_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("updated_by_worker", sa.String(length=80), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["connection_id"], ["integration_connections.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["last_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.ForeignKeyConstraint(
+            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["last_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
             "connection_id",
@@ -267,13 +336,36 @@ def upgrade() -> None:
         sa.Column("object_store_key", sa.Text(), nullable=False),
         sa.Column("content_type", sa.String(length=100), nullable=True),
         sa.Column("size_bytes", sa.Integer(), nullable=True),
-        sa.Column("received_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("replayed", sa.Boolean(), nullable=False, server_default=sa.text("false")),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["connection_id"], ["integration_connections.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["sync_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"),
+        sa.Column(
+            "received_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "replayed", sa.Boolean(), nullable=False, server_default=sa.text("false")
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.ForeignKeyConstraint(
+            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["sync_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
             "connection_id",
@@ -295,15 +387,36 @@ def upgrade() -> None:
         sa.Column("connection_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("source_object", sa.String(length=120), nullable=False),
         sa.Column("mapping_version", sa.Integer(), nullable=False, server_default="1"),
-        sa.Column("active", sa.Boolean(), nullable=False, server_default=sa.text("true")),
-        sa.Column("fields_json", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default="{}"),
+        sa.Column(
+            "active", sa.Boolean(), nullable=False, server_default=sa.text("true")
+        ),
+        sa.Column(
+            "fields_json",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default="{}",
+        ),
         sa.Column("activated_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("deactivated_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_by", postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["connection_id"], ["integration_connections.id"], ondelete="CASCADE"),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.ForeignKeyConstraint(
+            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+        ),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
@@ -327,16 +440,44 @@ def upgrade() -> None:
         ),
         sa.Column("error_code", sa.String(length=80), nullable=True),
         sa.Column("message_redacted", sa.Text(), nullable=False),
-        sa.Column("details_json", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default="{}"),
-        sa.Column("occurred_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("resolved", sa.Boolean(), nullable=False, server_default=sa.text("false")),
+        sa.Column(
+            "details_json",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default="{}",
+        ),
+        sa.Column(
+            "occurred_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "resolved", sa.Boolean(), nullable=False, server_default=sa.text("false")
+        ),
         sa.Column("resolved_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("resolved_by", postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["connection_id"], ["integration_connections.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["sync_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.ForeignKeyConstraint(
+            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["sync_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"
+        ),
         sa.ForeignKeyConstraint(["resolved_by"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -356,7 +497,12 @@ def upgrade() -> None:
         sa.Column("event_id", sa.String(length=128), nullable=True),
         sa.Column("reason_code", sa.String(length=80), nullable=False),
         sa.Column("payload_ref", sa.Text(), nullable=True),
-        sa.Column("snapshot_json", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default="{}"),
+        sa.Column(
+            "snapshot_json",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default="{}",
+        ),
         sa.Column(
             "status",
             postgresql.ENUM(name="deadletterstatus", create_type=False),
@@ -365,11 +511,27 @@ def upgrade() -> None:
         ),
         sa.Column("requeue_count", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("next_retry_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["connection_id"], ["integration_connections.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["sync_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.ForeignKeyConstraint(
+            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["sync_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -390,17 +552,45 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("signature_id", sa.String(length=255), nullable=False),
-        sa.Column("signature_valid", sa.Boolean(), nullable=False, server_default=sa.text("false")),
+        sa.Column(
+            "signature_valid",
+            sa.Boolean(),
+            nullable=False,
+            server_default=sa.text("false"),
+        ),
         sa.Column("payload_sha256", sa.String(length=64), nullable=False),
         sa.Column("response_code", sa.Integer(), nullable=False),
-        sa.Column("processed", sa.Boolean(), nullable=False, server_default=sa.text("false")),
+        sa.Column(
+            "processed", sa.Boolean(), nullable=False, server_default=sa.text("false")
+        ),
         sa.Column("sync_run_id", postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column("received_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["connection_id"], ["integration_connections.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["sync_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"),
+        sa.Column(
+            "received_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.ForeignKeyConstraint(
+            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["connection_id"], ["integration_connections.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["sync_run_id"], ["integration_sync_runs.id"], ondelete="SET NULL"
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
             "connection_id",
@@ -420,11 +610,30 @@ def upgrade() -> None:
         sa.Column("request_id", sa.String(length=64), nullable=True),
         sa.Column("ip_address", sa.String(length=45), nullable=True),
         sa.Column("user_agent", sa.String(length=200), nullable=True),
-        sa.Column("metadata_json", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default="{}"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
-        sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["connection_id"], ["integration_connections.id"], ondelete="SET NULL"),
+        sa.Column(
+            "metadata_json",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default="{}",
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
+        sa.ForeignKeyConstraint(
+            ["organization_id"], ["organizations.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["connection_id"], ["integration_connections.id"], ondelete="SET NULL"
+        ),
         sa.ForeignKeyConstraint(["actor_user_id"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -444,7 +653,9 @@ def downgrade() -> None:
         _drop_rls_policies(table)
         op.execute(f"ALTER TABLE {table} DISABLE ROW LEVEL SECURITY")
 
-    op.drop_index("ix_integration_audit_conn_created", table_name="integration_audit_events")
+    op.drop_index(
+        "ix_integration_audit_conn_created", table_name="integration_audit_events"
+    )
     op.drop_table("integration_audit_events")
 
     op.drop_table("integration_webhook_receipts")

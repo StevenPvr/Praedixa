@@ -12,7 +12,7 @@ import {
   ChatCircle,
   SignOut,
 } from "@phosphor-icons/react";
-import { SidebarWithUnread } from "@/components/sidebar-with-unread";
+import { Sidebar } from "@/components/sidebar";
 import { clearAuthSession, useCurrentUser } from "@/lib/auth/client";
 import { toSidebarRole } from "@/lib/auth/roles";
 import { I18nProvider, useI18n } from "@/lib/i18n/provider";
@@ -25,6 +25,16 @@ import { cn } from "@praedixa/ui";
 interface BreadcrumbItem {
   label: string;
 }
+
+const HEADER_ICON_BUTTON_CLASS = cn(
+  "relative flex h-9 w-9 items-center justify-center rounded-lg",
+  "text-ink-tertiary transition-[background-color,color,transform] duration-fast",
+  "hover:bg-surface-sunken hover:text-ink",
+  "active:translate-y-px",
+);
+
+const PROFILE_MENU_ITEM_CLASS =
+  "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-body-sm transition-[background-color,color,transform] duration-fast active:translate-y-px";
 
 function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
   const map: Record<string, BreadcrumbItem[]> = {
@@ -49,6 +59,100 @@ function formatHeaderDate(locale: "fr" | "en"): string {
   }).format(new Date());
 }
 
+function useLockedSiteScope(
+  currentUser: ReturnType<typeof useCurrentUser>,
+): SiteScopeContextValue {
+  const isManagerRole =
+    currentUser?.role === "manager" || currentUser?.role === "hr_manager";
+  const selectedSiteId = isManagerRole ? (currentUser?.siteId ?? null) : null;
+
+  const appendSiteParam = React.useCallback(
+    (url: string) => {
+      const [path, query = ""] = url.split("?");
+      const params = new URLSearchParams(query);
+      if (isManagerRole && selectedSiteId) {
+        params.set("site_id", selectedSiteId);
+      }
+      const search = params.toString();
+      return search ? `${path}?${search}` : path;
+    },
+    [isManagerRole, selectedSiteId],
+  );
+
+  return React.useMemo(
+    () => ({
+      selectedSiteId,
+      isSiteLocked: isManagerRole,
+      canSelectAllSites: false,
+      sites: [],
+      setSelectedSiteId: () => undefined,
+      appendSiteParam,
+    }),
+    [appendSiteParam, isManagerRole, selectedSiteId],
+  );
+}
+
+function useDismissibleProfileMenu(
+  isOpen: boolean,
+  onClose: () => void,
+  menuRef: React.RefObject<HTMLDivElement | null>,
+  buttonRef: React.RefObject<HTMLButtonElement | null>,
+): void {
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const handleMouseDown = (event: MouseEvent) => {
+      if (
+        menuRef.current &&
+        event.target instanceof Node &&
+        !menuRef.current.contains(event.target)
+      ) {
+        onClose();
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      onClose();
+      buttonRef.current?.focus();
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [buttonRef, isOpen, menuRef, onClose]);
+}
+
+function ProfileMenuItem({
+  icon,
+  danger = false,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  icon: React.ReactNode;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      className={cn(
+        PROFILE_MENU_ITEM_CLASS,
+        danger
+          ? "text-danger-text hover:bg-danger-light/35 disabled:cursor-not-allowed disabled:opacity-60"
+          : "text-ink hover:bg-surface-interactive",
+      )}
+      {...props}
+    >
+      {icon}
+      {props.children}
+    </button>
+  );
+}
+
 function AppShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -64,70 +168,18 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
   const breadcrumbs = getBreadcrumbs(pathname);
   const currentDate = formatHeaderDate(locale);
   const userInitial = currentUser?.email?.charAt(0).toUpperCase() ?? "U";
-  const isManagerRole =
-    currentUser?.role === "manager" || currentUser?.role === "hr_manager";
-
-  const selectedSiteId = isManagerRole
-    ? (currentUser?.siteId ?? null)
-    : null;
-
-  const appendSiteParam = React.useCallback(
-    (url: string) => {
-      const [path, query = ""] = url.split("?");
-      const params = new URLSearchParams(query);
-      if (isManagerRole && selectedSiteId) {
-        params.set("site_id", selectedSiteId);
-      }
-      const qs = params.toString();
-      return qs ? `${path}?${qs}` : path;
-    },
-    [isManagerRole, selectedSiteId],
-  );
-
-  const siteScopeValue = React.useMemo<SiteScopeContextValue>(
-    () => ({
-      selectedSiteId,
-      isSiteLocked: isManagerRole,
-      canSelectAllSites: false,
-      sites: [],
-      setSelectedSiteId: () => undefined,
-      appendSiteParam: (url: string) => appendSiteParam(url),
-    }),
-    [appendSiteParam, isManagerRole, selectedSiteId],
-  );
+  const siteScopeValue = useLockedSiteScope(currentUser);
 
   React.useEffect(() => {
     setMobileOpen(false);
     setProfileMenuOpen(false);
   }, [pathname]);
-
-  React.useEffect(() => {
-    if (!profileMenuOpen) return;
-
-    const handleMouseDown = (event: MouseEvent) => {
-      if (
-        profileMenuRef.current &&
-        event.target instanceof Node &&
-        !profileMenuRef.current.contains(event.target)
-      ) {
-        setProfileMenuOpen(false);
-      }
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      setProfileMenuOpen(false);
-      profileMenuButtonRef.current?.focus();
-    };
-
-    document.addEventListener("mousedown", handleMouseDown);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("mousedown", handleMouseDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [profileMenuOpen]);
+  useDismissibleProfileMenu(
+    profileMenuOpen,
+    () => setProfileMenuOpen(false),
+    profileMenuRef,
+    profileMenuButtonRef,
+  );
 
   const handleProfileNavigate = React.useCallback(
     (href: string) => {
@@ -167,7 +219,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             "relative lg:block",
           )}
         >
-          <SidebarWithUnread
+          <Sidebar
             currentPath={pathname}
             userRole={toSidebarRole(currentUser?.role)}
             collapsed={false}
@@ -229,12 +281,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-1.5 sm:gap-2">
               <Link
                 href="/actions?severity=critical"
-                className={cn(
-                  "relative flex h-9 w-9 items-center justify-center rounded-lg",
-                  "text-ink-tertiary transition-[background-color,color,transform] duration-fast",
-                  "hover:bg-surface-sunken hover:text-ink",
-                  "active:translate-y-px",
-                )}
+                className={HEADER_ICON_BUTTON_CLASS}
                 aria-label="Notifications critiques"
               >
                 <Bell className="h-4 w-4" weight="regular" />
@@ -305,50 +352,39 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                     </div>
 
                     <div className="p-1.5">
-                      <button
-                        type="button"
-                        role="menuitem"
+                      <ProfileMenuItem
+                        icon={<SquaresFour className="h-4 w-4 text-ink-secondary" weight="regular" />}
                         onClick={() => handleProfileNavigate('/dashboard')}
-                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-body-sm text-ink transition-[background-color,color,transform] duration-fast hover:bg-surface-interactive active:translate-y-px"
                       >
-                        <SquaresFour className="h-4 w-4 text-ink-secondary" weight="regular" />
                         {t("appShell.profileMenu.dashboard")}
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
+                      </ProfileMenuItem>
+                      <ProfileMenuItem
+                        icon={<Gear className="h-4 w-4 text-ink-secondary" weight="regular" />}
                         onClick={() => handleProfileNavigate('/parametres')}
-                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-body-sm text-ink transition-[background-color,color,transform] duration-fast hover:bg-surface-interactive active:translate-y-px"
                       >
-                        <Gear className="h-4 w-4 text-ink-secondary" weight="regular" />
                         {t("appShell.profileMenu.settings")}
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
+                      </ProfileMenuItem>
+                      <ProfileMenuItem
+                        icon={<ChatCircle className="h-4 w-4 text-ink-secondary" weight="regular" />}
                         onClick={() => handleProfileNavigate('/messages')}
-                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-body-sm text-ink transition-[background-color,color,transform] duration-fast hover:bg-surface-interactive active:translate-y-px"
                       >
-                        <ChatCircle className="h-4 w-4 text-ink-secondary" weight="regular" />
                         {t("appShell.profileMenu.support")}
-                      </button>
+                      </ProfileMenuItem>
                     </div>
 
                     <div className="border-t border-border p-1.5">
-                      <button
-                        type="button"
-                        role="menuitem"
+                      <ProfileMenuItem
+                        icon={<SignOut className="h-4 w-4" weight="regular" />}
+                        danger
                         disabled={isSigningOut}
                         onClick={() => {
                           void handleSignOut();
                         }}
-                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-body-sm text-danger-text transition-[background-color,color,transform] duration-fast hover:bg-danger-light/35 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        <SignOut className="h-4 w-4" weight="regular" />
                         {isSigningOut
                           ? t("appShell.profileMenu.loggingOut")
                           : t("appShell.profileMenu.logout")}
-                      </button>
+                      </ProfileMenuItem>
                     </div>
                   </div>
                 )}

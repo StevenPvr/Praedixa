@@ -15,9 +15,9 @@ interface HeaderProps {
 export function Header({ locale, dict }: HeaderProps) {
   const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=audit`;
   const primaryCtaLabel = dict.nav.ctaPrimary;
-  const primaryCtaLabelShort = locale === "fr" ? "Audit gratuit" : "Free audit";
+  const primaryCtaLabelShort = locale === "fr" ? "Diagnostic ROI" : "Free audit";
   const pilotCtaHref = getLocalizedPath(locale, "pilot");
-  const pilotCtaLabel = locale === "fr" ? "Candidater au pilote" : "Apply for the pilot";
+  const pilotCtaLabel = locale === "fr" ? "Demander un pilote ROI" : "Apply for the pilot";
 
   return (
     <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white">

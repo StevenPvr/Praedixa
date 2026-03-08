@@ -8,13 +8,19 @@ import { Button } from "@/components/ui/button";
 function toLoginErrorMessage(error: string | null): string | null {
   if (!error) return null;
   if (error === "oidc_config_missing") {
-    return "Configuration OIDC manquante en local. Renseignez AUTH_OIDC_ISSUER_URL, AUTH_OIDC_CLIENT_ID et AUTH_SESSION_SECRET dans app-webapp/.env.local.";
+    return "Configuration OIDC invalide. Renseignez AUTH_OIDC_ISSUER_URL, AUTH_OIDC_CLIENT_ID, AUTH_APP_ORIGIN et un AUTH_SESSION_SECRET fort (32+ caracteres aleatoires) dans app-webapp/.env.local ou l’environnement de deploiement.";
   }
   if (error === "oidc_provider_untrusted") {
     return "Le fournisseur OIDC est non fiable ou mal configure (TLS/certificat/endpoints). Contactez l'administrateur.";
   }
+  if (error === "oidc_config_insecure") {
+    return "Le secret de session OIDC est trop faible ou laisse en valeur d'exemple. Remplacez AUTH_SESSION_SECRET par un secret aleatoire unique d'au moins 32 caracteres.";
+  }
   if (error === "rate_limited") {
     return "Trop de tentatives de connexion. Patientez quelques instants puis reessayez.";
+  }
+  if (error === "auth_token_incompatible") {
+    return "Le fournisseur d'identite a bien authentifie la session, mais le token d'acces ne contient pas les claims requis par l'API Praedixa. Verifiez l'audience `praedixa-api` ainsi que les claims `organization_id` et `site_id` selon le role utilisateur.";
   }
   return "La connexion a echoue. Veuillez reessayer.";
 }
@@ -46,6 +52,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const isReauth = searchParams.get("reauth") === "1";
   const error = searchParams.get("error");
+  const tokenReason = sanitizeIncidentToken(searchParams.get("token_reason"), 64);
   const errorMessage = toLoginErrorMessage(error);
   const reason = searchParams.get("reason");
   const errorCode = sanitizeIncidentToken(searchParams.get("error_code"), 64);
@@ -94,7 +101,12 @@ function LoginForm() {
 
         {errorMessage && (
           <div className="rounded-lg border border-danger-light bg-danger-light/50 px-4 py-3 text-body-sm text-danger-text">
-            {errorMessage}
+            <p>{errorMessage}</p>
+            {error === "auth_token_incompatible" && tokenReason && (
+              <p className="mt-2 text-xs">
+                Detail technique: <span className="font-semibold">{tokenReason}</span>
+              </p>
+            )}
           </div>
         )}
 

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CoverageAlert } from "@praedixa/shared-types";
 import { useApiGet } from "@/hooks/use-api";
+import { useDecisionConfig } from "@/hooks/use-decision-config";
 import { useLatestForecasts } from "@/hooks/use-latest-forecasts";
 import { useSiteScope } from "@/lib/site-scope";
 
@@ -14,17 +15,68 @@ function formatPercent(value: number): string {
 
 export default function PrevisionsPage() {
   const { selectedSiteId, appendSiteParam } = useSiteScope();
+  const {
+    config: decisionConfig,
+    loading: configLoading,
+    error: configError,
+    refetch: refetchDecisionConfig,
+  } = useDecisionConfig(selectedSiteId);
+
+  const availableHorizons = useMemo(
+    () =>
+      [...(decisionConfig?.payload?.horizons ?? [])]
+        .filter((horizon) => horizon.active)
+        .sort((left, right) => left.rank - right.rank),
+    [decisionConfig],
+  );
+
+  const defaultHorizonId = useMemo(() => {
+    if (decisionConfig?.selectedHorizon?.id) {
+      return decisionConfig.selectedHorizon.id;
+    }
+    return (
+      availableHorizons.find((horizon) => horizon.isDefault)?.id ??
+      availableHorizons[0]?.id ??
+      null
+    );
+  }, [availableHorizons, decisionConfig]);
+
+  const [selectedHorizonId, setSelectedHorizonId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!defaultHorizonId) return;
+    setSelectedHorizonId((current) => {
+      if (current && availableHorizons.some((horizon) => horizon.id === current)) {
+        return current;
+      }
+      return defaultHorizonId;
+    });
+  }, [availableHorizons, defaultHorizonId]);
+
+  const selectedHorizon = useMemo(
+    () =>
+      availableHorizons.find((horizon) => horizon.id === selectedHorizonId) ??
+      null,
+    [availableHorizons, selectedHorizonId],
+  );
 
   const {
     dailyData,
     loading: forecastLoading,
     error: forecastError,
     refetchDaily,
-  } = useLatestForecasts("human", selectedSiteId);
+  } = useLatestForecasts("human", selectedSiteId, selectedHorizonId);
 
   const alertsUrl = useMemo(
-    () => appendSiteParam("/api/v1/live/coverage-alerts?status=open&page_size=200"),
-    [appendSiteParam],
+    () =>
+      appendSiteParam(
+        selectedHorizonId
+          ? `/api/v1/live/coverage-alerts?status=open&page_size=200&horizon_id=${encodeURIComponent(
+              selectedHorizonId,
+            )}`
+          : "/api/v1/live/coverage-alerts?status=open&page_size=200",
+      ),
+    [appendSiteParam, selectedHorizonId],
   );
 
   const {
@@ -38,12 +90,14 @@ export default function PrevisionsPage() {
     () =>
       [...(dailyData ?? [])]
         .sort((a, b) => a.forecastDate.localeCompare(b.forecastDate))
-        .slice(0, 7),
-    [dailyData],
+        .slice(0, selectedHorizon?.days ?? (dailyData ?? []).length),
+    [dailyData, selectedHorizon?.days],
   );
 
   const topAlerts = (alerts ?? []).slice(0, 5);
-  const criticalCount = (alerts ?? []).filter((item) => item.severity === "critical").length;
+  const criticalCount = (alerts ?? []).filter(
+    (item) => item.severity === "critical",
+  ).length;
 
   return (
     <div className="min-h-full space-y-8">
@@ -51,18 +105,21 @@ export default function PrevisionsPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-secondary">
           Anticiper
         </p>
-        <h1 className="text-2xl font-semibold text-ink">Previsions 7 jours</h1>
+        <h1 className="text-2xl font-semibold text-ink">
+          Previsions {selectedHorizon ? `${selectedHorizon.days} jours` : "horizon actif"}
+        </h1>
         <p className="text-sm text-ink-secondary">
           Projection de risque et capacite previsionnelle pour orienter les actions.
         </p>
       </section>
 
-      {(forecastError || alertsError) && (
+      {(forecastError || alertsError || configError) && (
         <div className="rounded-xl border border-warning-light bg-warning-light/20 px-4 py-3 text-sm text-warning-text">
-          {forecastError ?? alertsError}
+          {forecastError ?? alertsError ?? configError}
           <button
             type="button"
             onClick={() => {
+              refetchDecisionConfig();
               refetchDaily();
               refetchAlerts();
             }}
@@ -73,18 +130,60 @@ export default function PrevisionsPage() {
         </div>
       )}
 
+      <section className="rounded-xl border border-border bg-card px-4 py-3">
+        <p className="text-xs uppercase tracking-[0.08em] text-ink-secondary">
+          Horizon de prevision
+        </p>
+        {configLoading ? (
+          <p className="mt-2 text-sm text-ink-secondary">Chargement...</p>
+        ) : availableHorizons.length === 0 ? (
+          <p className="mt-2 text-sm text-ink-secondary">
+            Aucun horizon actif configure.
+          </p>
+        ) : (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {availableHorizons.map((horizon) => (
+              <button
+                key={horizon.id}
+                type="button"
+                onClick={() => setSelectedHorizonId(horizon.id)}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+                  selectedHorizonId === horizon.id
+                    ? "border-primary bg-primary text-white"
+                    : "border-border bg-card text-ink-secondary"
+                }`}
+              >
+                {horizon.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+
       <section className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-border bg-card px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.08em] text-ink-secondary">Alertes ouvertes</p>
-          <p className="mt-2 text-2xl font-semibold text-ink">{alertsLoading ? "..." : (alerts?.length ?? 0)}</p>
+          <p className="text-xs uppercase tracking-[0.08em] text-ink-secondary">
+            Alertes ouvertes
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-ink">
+            {alertsLoading ? "..." : (alerts?.length ?? 0)}
+          </p>
         </div>
         <div className="rounded-xl border border-border bg-card px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.08em] text-ink-secondary">Alertes critiques</p>
-          <p className="mt-2 text-2xl font-semibold text-ink">{alertsLoading ? "..." : criticalCount}</p>
+          <p className="text-xs uppercase tracking-[0.08em] text-ink-secondary">
+            Alertes critiques
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-ink">
+            {alertsLoading ? "..." : criticalCount}
+          </p>
         </div>
         <div className="rounded-xl border border-border bg-card px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.08em] text-ink-secondary">Horizon couvert</p>
-          <p className="mt-2 text-2xl font-semibold text-ink">7 jours</p>
+          <p className="text-xs uppercase tracking-[0.08em] text-ink-secondary">
+            Horizon couvert
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-ink">
+            {selectedHorizon ? `${selectedHorizon.days} jours` : "--"}
+          </p>
         </div>
       </section>
 
@@ -119,9 +218,15 @@ export default function PrevisionsPage() {
                 {orderedForecast.map((row) => (
                   <tr key={row.forecastDate} className="border-b border-border/70">
                     <td className="py-2 pr-4 text-ink">{row.forecastDate}</td>
-                    <td className="py-2 pr-4 text-ink">{row.predictedDemand.toFixed(1)}</td>
-                    <td className="py-2 pr-4 text-ink">{row.capacityPlannedPredicted.toFixed(1)}</td>
-                    <td className="py-2 pr-4 text-ink">{row.capacityOptimalPredicted.toFixed(1)}</td>
+                    <td className="py-2 pr-4 text-ink">
+                      {row.predictedDemand.toFixed(1)}
+                    </td>
+                    <td className="py-2 pr-4 text-ink">
+                      {row.capacityPlannedPredicted.toFixed(1)}
+                    </td>
+                    <td className="py-2 pr-4 text-ink">
+                      {row.capacityOptimalPredicted.toFixed(1)}
+                    </td>
                     <td className="py-2 pr-0 text-ink">{formatPercent(row.riskScore)}</td>
                   </tr>
                 ))}
@@ -140,12 +245,16 @@ export default function PrevisionsPage() {
         ) : (
           <ul className="mt-3 space-y-2">
             {topAlerts.map((alert) => (
-              <li key={alert.id} className="rounded-lg border border-border bg-surface-sunken px-3 py-2 text-sm">
+              <li
+                key={alert.id}
+                className="rounded-lg border border-border bg-surface-sunken px-3 py-2 text-sm"
+              >
                 <p className="font-medium text-ink">
                   {alert.siteId} · {alert.alertDate} · {String(alert.shift).toUpperCase()}
                 </p>
                 <p className="mt-1 text-xs text-ink-secondary">
-                  Severite: {alert.severity} · Risque: {formatPercent(alert.pRupture)} · Ecart: {alert.gapH.toFixed(1)}h
+                  Severite: {alert.severity} · Risque: {formatPercent(alert.pRupture)} · Ecart:{" "}
+                  {alert.gapH.toFixed(1)}h
                 </p>
               </li>
             ))}

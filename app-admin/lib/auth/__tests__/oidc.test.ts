@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { resolveAuthAppOrigin, userFromAccessToken } from "../oidc";
+import {
+  isAccessTokenCompatible,
+  isTokenExpired,
+  resolveAuthAppOrigin,
+  secureCookie,
+  userFromAccessToken,
+} from "../oidc";
 
 function makeToken(payload: Record<string, unknown>): string {
   const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" }))
@@ -72,6 +78,65 @@ describe("admin OIDC role parsing", () => {
       permissions: expect.arrayContaining(["admin:audit:read"]),
     });
   });
+
+  it("treats malformed JWT payloads as expired instead of throwing", () => {
+    expect(isTokenExpired("header.%not-base64%.sig")).toBe(true);
+  });
+
+  it("rejects tokens from a different issuer", () => {
+    const token = makeToken({
+      sub: "u-5",
+      email: "admin@praedixa.com",
+      iss: "https://evil.example/realms/praedixa",
+      azp: "admin-client",
+      exp: Math.floor(Date.now() / 1000) + 600,
+    });
+
+    expect(
+      isAccessTokenCompatible(token, {
+        issuerUrl: "https://auth.praedixa.com/realms/praedixa",
+        clientId: "admin-client",
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects tokens that are not bound to the admin client", () => {
+    const token = makeToken({
+      sub: "u-6",
+      email: "admin@praedixa.com",
+      iss: "https://auth.praedixa.com/realms/praedixa",
+      azp: "other-client",
+      exp: Math.floor(Date.now() / 1000) + 600,
+    });
+
+    expect(
+      isAccessTokenCompatible(token, {
+        issuerUrl: "https://auth.praedixa.com/realms/praedixa",
+        clientId: "admin-client",
+      }),
+    ).toBe(false);
+  });
+
+  it("accepts tokens bound through resource_access when azp is absent", () => {
+    const token = makeToken({
+      sub: "u-7",
+      email: "admin@praedixa.com",
+      iss: "https://auth.praedixa.com/realms/praedixa",
+      exp: Math.floor(Date.now() / 1000) + 600,
+      resource_access: {
+        "admin-client": {
+          roles: ["admin"],
+        },
+      },
+    });
+
+    expect(
+      isAccessTokenCompatible(token, {
+        issuerUrl: "https://auth.praedixa.com/realms/praedixa",
+        clientId: "admin-client",
+      }),
+    ).toBe(true);
+  });
 });
 
 describe("admin OIDC app origin resolution", () => {
@@ -102,8 +167,9 @@ describe("admin OIDC app origin resolution", () => {
     origin: string,
     headers: Record<string, string | undefined> = {},
   ): Parameters<typeof resolveAuthAppOrigin>[0] {
+    const parsed = new URL(origin);
     return {
-      nextUrl: { origin },
+      nextUrl: { origin: parsed.origin, protocol: parsed.protocol },
       headers: {
         get: (name: string) => headers[name.toLowerCase()] ?? null,
       },
@@ -119,17 +185,25 @@ describe("admin OIDC app origin resolution", () => {
     ).toBe("https://admin.praedixa.com");
   });
 
-  it("uses forwarded host/proto when present", () => {
+  it("uses request origin when the production request is already https", () => {
     process.env.NODE_ENV = "production";
 
     expect(
       resolveAuthAppOrigin(
-        makeRequest("http://internal-admin:3002", {
-          "x-forwarded-host": "admin.praedixa.com",
+        makeRequest("https://admin.praedixa.com", {
+          "x-forwarded-host": "evil.example",
           "x-forwarded-proto": "https",
         }),
       ),
     ).toBe("https://admin.praedixa.com");
+  });
+
+  it("throws in production when no public auth origin is configured behind internal http", () => {
+    process.env.NODE_ENV = "production";
+
+    expect(() =>
+      resolveAuthAppOrigin(makeRequest("http://internal-admin:3002")),
+    ).toThrow(/Missing AUTH_APP_ORIGIN/);
   });
 
   it("defaults to localhost origin in development", () => {
@@ -151,5 +225,24 @@ describe("admin OIDC app origin resolution", () => {
         }),
       ),
     ).toBe("http://localhost:3002");
+  });
+
+  it("marks auth cookies as secure when x-forwarded-proto is https", () => {
+    process.env.NODE_ENV = "production";
+
+    expect(
+      secureCookie(
+        makeRequest("http://internal-admin:3002", {
+          "x-forwarded-proto": "https",
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks auth cookies as secure when AUTH_APP_ORIGIN is https", () => {
+    process.env.NODE_ENV = "production";
+    process.env.AUTH_APP_ORIGIN = "https://admin.praedixa.com";
+
+    expect(secureCookie(makeRequest("http://internal-admin:3002"))).toBe(true);
   });
 });

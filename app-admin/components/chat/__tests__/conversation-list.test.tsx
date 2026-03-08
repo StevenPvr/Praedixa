@@ -62,7 +62,8 @@ vi.mock("lucide-react", () => ({
   ),
 }));
 
-import { ConversationList, formatRelativeTime } from "../conversation-list";
+import { formatRelativeTime } from "@praedixa/ui";
+import { ConversationList } from "../conversation-list";
 
 /* ────────────────────────────────────────────── */
 /*  Fixtures                                      */

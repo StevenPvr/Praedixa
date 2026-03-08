@@ -4,14 +4,17 @@ import {
   LOGIN_NEXT_COOKIE,
   LOGIN_STATE_COOKIE,
   LOGIN_VERIFIER_COOKIE,
+  buildSessionData,
   clearAuthCookies,
   exchangeCodeForTokens,
   getOidcEnv,
+  isAccessTokenCompatible,
   getTokenExp,
   resolveAuthAppOrigin,
   sanitizeNextPath,
   setAuthCookies,
   signSession,
+  timingSafeEqual,
   userFromAccessToken,
 } from "@/lib/auth/oidc";
 
@@ -22,7 +25,17 @@ function clearLoginFlowCookies(response: NextResponse): void {
 }
 
 export async function GET(request: NextRequest) {
-  const appOrigin = resolveAuthAppOrigin(request);
+  let appOrigin: string;
+  try {
+    appOrigin = resolveAuthAppOrigin(request);
+  } catch {
+    const redirect = NextResponse.redirect(
+      `${request.nextUrl.origin}/login?error=oidc_config_missing`,
+    );
+    clearAuthCookies(redirect);
+    clearLoginFlowCookies(redirect);
+    return redirect;
+  }
   const code = request.nextUrl.searchParams.get("code");
   const returnedState = request.nextUrl.searchParams.get("state");
 
@@ -35,7 +48,7 @@ export async function GET(request: NextRequest) {
     !code ||
     !returnedState ||
     !expectedState ||
-    returnedState !== expectedState ||
+    !timingSafeEqual(returnedState, expectedState) ||
     !verifier
   ) {
     const redirect = NextResponse.redirect(
@@ -66,8 +79,18 @@ export async function GET(request: NextRequest) {
       return redirect;
     }
 
-    const user = userFromAccessToken(tokenPayload.access_token, clientId);
-    const exp = getTokenExp(tokenPayload.access_token);
+    const accessToken = tokenPayload.access_token;
+    if (!isAccessTokenCompatible(accessToken, { issuerUrl, clientId })) {
+      const redirect = NextResponse.redirect(
+        `${appOrigin}/login?error=auth_callback_failed`,
+      );
+      clearAuthCookies(redirect);
+      clearLoginFlowCookies(redirect);
+      return redirect;
+    }
+
+    const user = userFromAccessToken(accessToken, clientId);
+    const exp = getTokenExp(accessToken);
     if (!user || !exp || !canAccessAdminConsole(user.role, user.permissions)) {
       const redirect = NextResponse.redirect(
         `${appOrigin}/unauthorized`,
@@ -78,22 +101,19 @@ export async function GET(request: NextRequest) {
     }
 
     const sessionToken = await signSession(
-      {
-        sub: user.id,
-        email: user.email,
-        role: user.role,
-        permissions: user.permissions,
-        organizationId: user.organizationId,
-        siteId: user.siteId,
-        accessTokenExp: exp,
-        issuedAt: Math.floor(Date.now() / 1000),
-      },
+      await buildSessionData(
+        user,
+        exp,
+        accessToken,
+        tokenPayload.refresh_token ?? null,
+        tokenPayload.refresh_expires_in,
+      ),
       sessionSecret,
     );
 
     const redirect = NextResponse.redirect(`${appOrigin}${safeNext}`);
     setAuthCookies(redirect, request, {
-      accessToken: tokenPayload.access_token,
+      accessToken,
       refreshToken: tokenPayload.refresh_token ?? null,
       sessionToken,
       accessTokenMaxAge: tokenPayload.expires_in ?? 900,

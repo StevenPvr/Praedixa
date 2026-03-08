@@ -22,7 +22,7 @@ test.describe("Actions decisions flow", () => {
     await expect(page.getByText("Lyon-Sat").first()).toBeVisible();
   });
 
-  test("validate button is enabled only after choosing an option", async ({
+  test("recommended option is preselected before validation", async ({
     page,
   }) => {
     await page.goto("/actions");
@@ -31,8 +31,6 @@ test.describe("Actions decisions flow", () => {
       name: "Valider la decision",
     });
 
-    await expect(validateButton).toBeDisabled();
-    await page.getByRole("button", { name: /interim/i }).first().click();
     await expect(validateButton).toBeEnabled();
   });
 

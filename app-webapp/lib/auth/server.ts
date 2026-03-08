@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import {
   SESSION_COOKIE,
   type AuthSessionData,
+  isSessionExpired,
   verifySession,
   getOidcEnv,
 } from "@/lib/auth/oidc";
@@ -13,7 +14,8 @@ export async function getSession(): Promise<AuthSessionData | null> {
 
   try {
     const { sessionSecret } = getOidcEnv();
-    return await verifySession(signed, sessionSecret);
+    const session = await verifySession(signed, sessionSecret);
+    return session && !isSessionExpired(session) ? session : null;
   } catch {
     return null;
   }

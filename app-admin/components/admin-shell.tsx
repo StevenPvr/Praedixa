@@ -7,7 +7,11 @@ import { AdminSidebar } from "@/components/admin-sidebar";
 import { AdminTopbar } from "@/components/admin-topbar";
 import { CommandPalette, useCommandPalette } from "@/components/command-palette";
 import { RouteProgressBar } from "@/components/route-progress-bar";
-import { clearAuthSession, useCurrentUser } from "@/lib/auth/client";
+import { clearAuthSession, useCurrentUserState } from "@/lib/auth/client";
+import {
+  canAccessPath,
+  getRequiredPermissionsForPath,
+} from "@/lib/auth/route-access";
 
 const ROOT_PAGE_TITLES: Record<string, string> = {
   "/": "Accueil",
@@ -56,7 +60,8 @@ function getPageTitle(pathname: string): string | undefined {
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const currentUser = useCurrentUser();
+  const currentUserState = useCurrentUserState();
+  const currentUser = currentUserState.user;
 
   const [collapsed, setCollapsed] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -87,12 +92,23 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }, [isSigningOut, router]);
 
   const title = getPageTitle(pathname);
+  const currentPermissions = currentUserState.loading
+    ? []
+    : (currentUser?.permissions ?? []);
+  const canRenderCurrentPath =
+    currentUserState.loading || canAccessPath(pathname, currentPermissions);
+  const requiredPermissions = getRequiredPermissionsForPath(pathname);
+  const permissionHint = requiredPermissions.join(" ou ");
 
   return (
     <div className="flex min-h-screen bg-page">
       <RouteProgressBar />
 
-      <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
+      <CommandPalette
+        open={commandOpen}
+        onClose={() => setCommandOpen(false)}
+        permissions={currentPermissions}
+      />
 
       {mobileOpen && !isDesktop && (
         <button
@@ -120,6 +136,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               : () => setMobileOpen(false)
           }
           userEmail={currentUser?.email ?? ""}
+          permissions={currentPermissions}
         />
       </div>
 
@@ -145,7 +162,24 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         />
 
         <main id="main-content" tabIndex={-1} className="flex-1 p-4 sm:p-6">
-          <div className="mx-auto w-full">{children}</div>
+          <div className="mx-auto w-full">
+            {currentUserState.loading ? (
+              <div className="rounded-2xl border border-border-subtle bg-card p-6 text-sm text-ink-tertiary shadow-soft">
+                Verification des permissions en cours...
+              </div>
+            ) : canRenderCurrentPath ? (
+              children
+            ) : (
+              <div className="rounded-2xl border border-border-subtle bg-card p-6 shadow-soft">
+                <h2 className="font-serif text-lg font-semibold text-ink">
+                  Acces restreint
+                </h2>
+                <p className="mt-2 text-sm text-ink-tertiary">
+                  Permission requise: {permissionHint || "admin:console:access"}
+                </p>
+              </div>
+            )}
+          </div>
         </main>
       </div>
     </div>

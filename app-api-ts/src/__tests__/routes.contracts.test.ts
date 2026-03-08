@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { routes } from "../routes.js";
 import type { RouteContext, RouteDefinition } from "../types.js";
@@ -23,6 +23,8 @@ function makeContext(
     path,
     query: new URLSearchParams(query),
     requestId: "req-test",
+    clientIp: "127.0.0.1",
+    userAgent: "vitest",
     params: {},
     body: null,
     user: {
@@ -54,6 +56,28 @@ function makeAdminContext(
   };
 }
 
+const originalDemoMode = process.env.DEMO_MODE;
+const originalDatabaseUrl = process.env.DATABASE_URL;
+
+beforeEach(() => {
+  process.env.DEMO_MODE = "true";
+  delete process.env.DATABASE_URL;
+});
+
+afterEach(() => {
+  if (originalDemoMode == null) {
+    delete process.env.DEMO_MODE;
+  } else {
+    process.env.DEMO_MODE = originalDemoMode;
+  }
+
+  if (originalDatabaseUrl == null) {
+    delete process.env.DATABASE_URL;
+    return;
+  }
+  process.env.DATABASE_URL = originalDatabaseUrl;
+});
+
 describe("live route contracts", () => {
   it("returns platform KPI fields expected by admin app", async () => {
     const route = findRoute("GET", "/api/v1/admin/monitoring/platform");
@@ -75,6 +99,64 @@ describe("live route contracts", () => {
       totalDecisions: expect.any(Number),
       ingestionSuccessRate: expect.any(Number),
       apiErrorRate: expect.any(Number),
+    });
+  });
+
+  it("returns alert monitoring payload expected by admin inbox", async () => {
+    const route = findRoute("GET", "/api/v1/admin/monitoring/alerts/by-org");
+    const result = await route.handler(
+      makeAdminContext("GET", "/api/v1/admin/monitoring/alerts/by-org"),
+    );
+
+    expect(result.statusCode).toBe(200);
+    expect(result.payload.success).toBe(true);
+    if (!result.payload.success) {
+      throw new Error("expected success payload");
+    }
+    expect(result.payload.data).toMatchObject({
+      organizations: expect.any(Array),
+      totalAlerts: expect.any(Number),
+    });
+  });
+
+  it("returns missing cost parameter payload expected by admin settings", async () => {
+    const route = findRoute("GET", "/api/v1/admin/monitoring/cost-params/missing");
+    const result = await route.handler(
+      makeAdminContext("GET", "/api/v1/admin/monitoring/cost-params/missing"),
+    );
+
+    expect(result.statusCode).toBe(200);
+    expect(result.payload.success).toBe(true);
+    if (!result.payload.success) {
+      throw new Error("expected success payload");
+    }
+    expect(result.payload.data).toMatchObject({
+      totalOrgsWithMissing: expect.any(Number),
+      totalMissingParams: expect.any(Number),
+      organizations: expect.any(Array),
+      orgs: expect.any(Array),
+    });
+  });
+
+  it("returns organization mirror metrics expected by admin client pages", async () => {
+    const route = findRoute("GET", "/api/v1/admin/monitoring/organizations/:orgId/mirror");
+    const context = makeAdminContext(
+      "GET",
+      "/api/v1/admin/monitoring/organizations/org-1/mirror",
+    );
+    context.params = { orgId: "org-1" };
+    const result = await route.handler(context);
+
+    expect(result.statusCode).toBe(200);
+    expect(result.payload.success).toBe(true);
+    if (!result.payload.success) {
+      throw new Error("expected success payload");
+    }
+    expect(result.payload.data).toMatchObject({
+      orgId: "org-1",
+      totalEmployees: expect.any(Number),
+      totalSites: expect.any(Number),
+      activeAlerts: expect.any(Number),
     });
   });
 
@@ -135,6 +217,174 @@ describe("live route contracts", () => {
       throw new Error("expected success payload");
     }
     expect(result.payload).toHaveProperty("pagination");
+  });
+
+  it("rejects gold fixture fallback when demo mode is disabled", async () => {
+    process.env.DEMO_MODE = "false";
+
+    const route = findRoute("GET", "/api/v1/live/gold/rows");
+    const result = await route.handler(
+      makeContext("GET", "/api/v1/live/gold/rows", "page=1&page_size=2"),
+    );
+
+    expect(result.statusCode).toBe(400);
+    expect(result.payload.success).toBe(false);
+    if (result.payload.success) {
+      throw new Error("expected error payload");
+    }
+    expect(result.payload.error.code).toBe("INVALID_ORGANIZATION_ID");
+  });
+
+  it("rejects organization fixture fallback when demo mode is disabled", async () => {
+    process.env.DEMO_MODE = "false";
+
+    const route = findRoute("GET", "/api/v1/organizations/me");
+    const context = makeContext("GET", "/api/v1/organizations/me");
+    context.user = {
+      ...context.user!,
+      organizationId: "11111111-1111-1111-1111-111111111111",
+    };
+
+    const result = await route.handler(context);
+
+    expect(result.statusCode).toBe(503);
+    expect(result.payload.success).toBe(false);
+    if (result.payload.success) {
+      throw new Error("expected error payload");
+    }
+    expect(result.payload.error.code).toBe("PERSISTENCE_UNAVAILABLE");
+  });
+
+  it("rejects conversation mutation fallback when demo mode is disabled", async () => {
+    process.env.DEMO_MODE = "false";
+
+    const route = findRoute("POST", "/api/v1/conversations");
+    const context = makeContext("POST", "/api/v1/conversations");
+    context.user = {
+      ...context.user!,
+      organizationId: "11111111-1111-1111-1111-111111111111",
+    };
+    context.body = { subject: "Should fail closed" };
+
+    const result = await route.handler(context);
+
+    expect(result.statusCode).toBe(503);
+    expect(result.payload.success).toBe(false);
+    if (result.payload.success) {
+      throw new Error("expected error payload");
+    }
+    expect(result.payload.error.code).toBe("PERSISTENCE_UNAVAILABLE");
+  });
+
+  it("rejects dashboard fixture fallback when demo mode is disabled", async () => {
+    process.env.DEMO_MODE = "false";
+
+    const route = findRoute("GET", "/api/v1/live/dashboard/summary");
+    const result = await route.handler(
+      makeContext("GET", "/api/v1/live/dashboard/summary"),
+    );
+
+    expect(result.statusCode).toBe(400);
+    expect(result.payload.success).toBe(false);
+    if (result.payload.success) {
+      throw new Error("expected error payload");
+    }
+    expect(result.payload.error.code).toBe("INVALID_ORGANIZATION_ID");
+  });
+
+  it("returns not found for unknown decision workspace alerts", async () => {
+    const route = findRoute("GET", "/api/v1/live/decision-workspace/:alertId");
+    const context = makeContext(
+      "GET",
+      "/api/v1/live/decision-workspace/alt-does-not-exist",
+    );
+    context.params = { alertId: "alt-does-not-exist" };
+
+    const result = await route.handler(context);
+
+    expect(result.statusCode).toBe(404);
+    expect(result.payload.success).toBe(false);
+    if (result.payload.success) {
+      throw new Error("expected error payload");
+    }
+    expect(result.payload.error.code).toBe("NOT_FOUND");
+  });
+
+  it("rejects unsupported proof pack identifiers before building the download URL", async () => {
+    const route = findRoute("GET", "/api/v1/proof/pdf");
+    const result = await route.handler(
+      makeContext("GET", "/api/v1/proof/pdf", "proof_pack_id=../tenant-secrets"),
+    );
+
+    expect(result.statusCode).toBe(400);
+    expect(result.payload.success).toBe(false);
+    if (result.payload.success) {
+      throw new Error("expected error payload");
+    }
+    expect(result.payload.error.code).toBe("INVALID_PROOF_PACK_ID");
+  });
+
+  it("validates public contact requests before accepting them", async () => {
+    const route = findRoute("POST", "/api/v1/public/contact-requests");
+
+    const invalidResult = await route.handler({
+      ...makeContext("POST", "/api/v1/public/contact-requests"),
+      user: null,
+      body: {
+        companyName: "Acme Logistics",
+        email: "invalid-email",
+        message: "trop court",
+        consent: false,
+      },
+    });
+    expect(invalidResult.statusCode).toBe(422);
+
+    const validResult = await route.handler({
+      ...makeContext("POST", "/api/v1/public/contact-requests"),
+      user: null,
+      body: {
+        companyName: "Acme Logistics",
+        firstName: "Alice",
+        lastName: "Martin",
+        role: "Operations Director",
+        email: "ops@acme.test",
+        message:
+          "Nous souhaitons organiser un audit historique du staffing sur deux sites pilotes pour valider le ROI.",
+        consent: true,
+      },
+    });
+    expect(validResult.statusCode).toBe(201);
+    expect(validResult.payload.success).toBe(true);
+  });
+
+  it("scopes live data to the authenticated user's siteIds", async () => {
+    const alertsRoute = findRoute("GET", "/api/v1/live/coverage-alerts");
+    const alertsResult = await alertsRoute.handler(
+      makeContext("GET", "/api/v1/live/coverage-alerts"),
+    );
+    expect(alertsResult.statusCode).toBe(200);
+    expect(alertsResult.payload.success).toBe(true);
+    if (!alertsResult.payload.success) {
+      throw new Error("expected success payload");
+    }
+
+    const alerts = alertsResult.payload.data as Array<Record<string, unknown>>;
+    expect(alerts.length).toBeGreaterThan(0);
+    expect(alerts.every((alert) => alert.siteId === "site-lyon")).toBe(true);
+
+    const goldRowsRoute = findRoute("GET", "/api/v1/live/gold/rows");
+    const goldRowsResult = await goldRowsRoute.handler(
+      makeContext("GET", "/api/v1/live/gold/rows"),
+    );
+    expect(goldRowsResult.statusCode).toBe(200);
+    expect(goldRowsResult.payload.success).toBe(true);
+    if (!goldRowsResult.payload.success) {
+      throw new Error("expected success payload");
+    }
+
+    const goldRows = goldRowsResult.payload.data as Array<Record<string, unknown>>;
+    expect(goldRows.length).toBeGreaterThan(0);
+    expect(goldRows.every((row) => row.site_id === "site-lyon")).toBe(true);
   });
 
   it("returns canonical quality dashboard fields", async () => {
@@ -245,6 +495,22 @@ describe("live route contracts", () => {
     });
   });
 
+  it("rejects stubbed admin monitoring when demo mode is disabled", async () => {
+    process.env.DEMO_MODE = "false";
+
+    const route = findRoute("GET", "/api/v1/admin/monitoring/platform");
+    const result = await route.handler(
+      makeAdminContext("GET", "/api/v1/admin/monitoring/platform"),
+    );
+
+    expect(result.statusCode).toBe(503);
+    expect(result.payload.success).toBe(false);
+    if (result.payload.success) {
+      throw new Error("expected error payload");
+    }
+    expect(result.payload.error.code).toBe("PERSISTENCE_UNAVAILABLE");
+  });
+
   it("returns audit log fields expected by admin journal page", async () => {
     const route = findRoute("GET", "/api/v1/admin/audit-log");
     const result = await route.handler(
@@ -296,7 +562,315 @@ describe("live route contracts", () => {
     });
   });
 
+  it("prevents cross-tenant access to conversations", async () => {
+    const createRoute = findRoute("POST", "/api/v1/conversations");
+    const createResult = await createRoute.handler(
+      {
+        ...makeContext("POST", "/api/v1/conversations"),
+        body: { subject: "Conversation scope test" },
+      },
+    );
+    expect(createResult.statusCode).toBe(201);
+    expect(createResult.payload.success).toBe(true);
+    if (!createResult.payload.success) {
+      throw new Error("expected success payload");
+    }
+
+    const conversation = createResult.payload.data as Record<string, unknown>;
+    const conversationId = String(conversation.id ?? "");
+    expect(conversationId.length).toBeGreaterThan(0);
+
+    const otherTenantContext: RouteContext = {
+      ...makeContext("GET", `/api/v1/conversations/${conversationId}/messages`),
+      path: `/api/v1/conversations/${conversationId}/messages`,
+      params: { convId: conversationId },
+      user: {
+        userId: "user-other-tenant",
+        email: "other@praedixa.com",
+        organizationId: "org-2",
+        role: "viewer",
+        siteIds: ["site-orleans"],
+        permissions: [],
+      },
+    };
+
+    const messagesRoute = findRoute("GET", "/api/v1/conversations/:convId/messages");
+    const messagesResult = await messagesRoute.handler(otherTenantContext);
+    expect(messagesResult.statusCode).toBe(404);
+
+    const listRoute = findRoute("GET", "/api/v1/conversations");
+    const listResult = await listRoute.handler({
+      ...otherTenantContext,
+      method: "GET",
+      path: "/api/v1/conversations",
+      params: {},
+    });
+    expect(listResult.statusCode).toBe(200);
+    expect(listResult.payload.success).toBe(true);
+    if (!listResult.payload.success) {
+      throw new Error("expected success payload");
+    }
+    expect(
+      (listResult.payload.data as Array<Record<string, unknown>>).some(
+        (entry) => String(entry.id ?? "") === conversationId,
+      ),
+    ).toBe(false);
+  });
+
   it("returns integration catalog and supports full admin connection flow", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const previousRuntimeUrl = process.env.CONNECTORS_RUNTIME_URL;
+    const previousRuntimeToken = process.env.CONNECTORS_RUNTIME_TOKEN;
+    process.env.CONNECTORS_RUNTIME_URL = "http://127.0.0.1:8100";
+    process.env.CONNECTORS_RUNTIME_TOKEN = "t".repeat(32);
+
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              vendor: "salesforce",
+              label: "Salesforce CRM",
+              domain: "crm",
+              authModes: ["oauth2"],
+              sourceObjects: ["Account"],
+              recommendedSyncMinutes: 30,
+              medallionTargets: ["bronze", "silver", "gold"],
+            },
+            {
+              vendor: "ukg",
+              label: "UKG Workforce",
+              domain: "wfm",
+              authModes: ["oauth2"],
+              sourceObjects: ["Employees"],
+              recommendedSyncMinutes: 30,
+              medallionTargets: ["bronze", "silver", "gold"],
+            },
+            {
+              vendor: "toast",
+              label: "Toast POS",
+              domain: "pos",
+              authModes: ["oauth2"],
+              sourceObjects: ["Orders"],
+              recommendedSyncMinutes: 15,
+              medallionTargets: ["bronze", "silver", "gold"],
+            },
+            {
+              vendor: "olo",
+              label: "Olo Ordering",
+              domain: "pos",
+              authModes: ["api_key"],
+              sourceObjects: ["Orders"],
+              recommendedSyncMinutes: 15,
+              medallionTargets: ["bronze", "silver", "gold"],
+            },
+            {
+              vendor: "geotab",
+              label: "Geotab Telematics",
+              domain: "telematics",
+              authModes: ["api_key"],
+              sourceObjects: ["Trip"],
+              recommendedSyncMinutes: 10,
+              medallionTargets: ["bronze", "silver", "gold"],
+            },
+            {
+              vendor: "ncr_aloha",
+              label: "NCR Aloha",
+              domain: "pos",
+              authModes: ["api_key"],
+              sourceObjects: ["Check"],
+              recommendedSyncMinutes: 15,
+              medallionTargets: ["bronze", "silver", "gold"],
+            },
+          ],
+          timestamp: new Date().toISOString(),
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({
+          success: true,
+          data: {
+            id: "conn-1",
+            organizationId: "org-integration-test",
+            vendor: "salesforce",
+            displayName: "Salesforce Pilot",
+            authMode: "oauth2",
+            status: "pending",
+            authorizationState: "not_started",
+            secretRef: "memory://connectors/org-integration-test/conn-1/oauth2_client/v1",
+            config: {
+              authorizationEndpoint: "https://login.example.test/authorize",
+              tokenEndpoint: "https://login.example.test/token",
+            },
+            lastSuccessfulSyncAt: null,
+            nextScheduledSyncAt: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          data: {
+            authorizationUrl: "https://login.example.test/authorize?state=abc",
+            expiresAt: new Date(Date.now() + 600000).toISOString(),
+            state: "state-1234567890123456",
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          data: {
+            authorized: true,
+            secretRef: "memory://connectors/org-integration-test/conn-1/oauth2_token/v2",
+            secretVersion: 2,
+            expiresAt: new Date(Date.now() + 3600000).toISOString(),
+            scopes: ["api", "refresh_token"],
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          data: {
+            ok: true,
+            latencyMs: 120,
+            checkedScopes: ["api", "refresh_token"],
+            warnings: [],
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 202,
+        json: async () => ({
+          success: true,
+          data: {
+            id: "run-1",
+            organizationId: "org-integration-test",
+            connectionId: "conn-1",
+            triggerType: "manual",
+            status: "queued",
+            recordsFetched: 0,
+            recordsWritten: 0,
+            errorClass: null,
+            errorMessage: null,
+            startedAt: null,
+            endedAt: null,
+            createdAt: new Date().toISOString(),
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              id: "run-1",
+              organizationId: "org-integration-test",
+              connectionId: "conn-1",
+              triggerType: "manual",
+              status: "queued",
+              recordsFetched: 0,
+              recordsWritten: 0,
+              errorClass: null,
+              errorMessage: null,
+              startedAt: null,
+              endedAt: null,
+              createdAt: new Date().toISOString(),
+            },
+          ],
+          timestamp: new Date().toISOString(),
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({
+          success: true,
+          data: {
+            credential: {
+              id: "cred-1",
+              organizationId: "org-integration-test",
+              connectionId: "conn-1",
+              label: "CRM outbound",
+              keyId: "key-1",
+              authMode: "bearer_hmac",
+              secretRef: "memory://secret",
+              secretVersion: 1,
+              tokenPreview: "prdx_live_",
+              allowedSourceObjects: ["Account"],
+              allowedIpAddresses: null,
+              expiresAt: null,
+              lastUsedAt: null,
+              revokedAt: null,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            apiKey: "prdx_live_secret",
+            signingSecret: "prdx_sig_secret",
+            ingestUrl: "https://connectors.praedixa.test/v1/ingest/org-integration-test/conn-1/events",
+            authScheme: "Bearer",
+            signature: {
+              algorithm: "hmac-sha256",
+              keyIdHeader: "X-Praedixa-Key-Id",
+              timestampHeader: "X-Praedixa-Timestamp",
+              signatureHeader: "X-Praedixa-Signature",
+            },
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              id: "evt-1",
+              organizationId: "org-integration-test",
+              connectionId: "conn-1",
+              credentialId: "cred-1",
+              eventId: "evt-1",
+              sourceObject: "Account",
+              sourceRecordId: "001",
+              sourceUpdatedAt: "2026-03-06T10:00:00.000Z",
+              schemaVersion: "crm.account.v1",
+              contentType: "application/json",
+              payloadSha256: "abc123",
+              payloadPreview: { name: "Acme" },
+              sizeBytes: 128,
+              idempotencyKey: "ingest-key-1",
+              receivedAt: new Date().toISOString(),
+            },
+          ],
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+    try {
     const catalogRoute = findRoute("GET", "/api/v1/admin/integrations/catalog");
     const catalogResult = await catalogRoute.handler(
       makeAdminContext("GET", "/api/v1/admin/integrations/catalog"),
@@ -324,8 +898,14 @@ describe("live route contracts", () => {
       vendor: "salesforce",
       displayName: "Salesforce Pilot",
       authMode: "oauth2",
-      secretRef: "scw://secrets/org-integration-test/salesforce",
-      config: { instanceUrl: "https://example.my.salesforce.com" },
+      credentials: {
+        clientId: "salesforce-client-id",
+        clientSecret: "salesforce-client-secret-123",
+      },
+      config: {
+        authorizationEndpoint: "https://login.example.test/authorize",
+        tokenEndpoint: "https://login.example.test/token",
+      },
     };
     const createResult = await createRoute.handler(createCtx);
     expect(createResult.statusCode).toBe(201);
@@ -337,6 +917,39 @@ describe("live route contracts", () => {
     const connection = createResult.payload.data as Record<string, unknown>;
     const connectionId = connection.id as string;
     expect(connectionId).toEqual(expect.any(String));
+
+    const authStartRoute = findRoute(
+      "POST",
+      "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/authorize/start",
+    );
+    const authStartCtx = makeAdminContext(
+      "POST",
+      `/api/v1/admin/organizations/${orgId}/integrations/connections/${connectionId}/authorize/start`,
+    );
+    authStartCtx.params = { orgId, connectionId };
+    authStartCtx.body = {
+      redirectUri: "https://praedixa.test/oauth/callback",
+    };
+    const authStartResult = await authStartRoute.handler(authStartCtx);
+    expect(authStartResult.statusCode).toBe(200);
+    expect(authStartResult.payload.success).toBe(true);
+
+    const authCompleteRoute = findRoute(
+      "POST",
+      "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/authorize/complete",
+    );
+    const authCompleteCtx = makeAdminContext(
+      "POST",
+      `/api/v1/admin/organizations/${orgId}/integrations/connections/${connectionId}/authorize/complete`,
+    );
+    authCompleteCtx.params = { orgId, connectionId };
+    authCompleteCtx.body = {
+      state: "state-1234567890123456",
+      code: "authorization-code-123",
+    };
+    const authCompleteResult = await authCompleteRoute.handler(authCompleteCtx);
+    expect(authCompleteResult.statusCode).toBe(200);
+    expect(authCompleteResult.payload.success).toBe(true);
 
     const testRoute = findRoute(
       "POST",
@@ -381,6 +994,45 @@ describe("live route contracts", () => {
       throw new Error("expected success payload");
     }
     expect((runsResult.payload.data as unknown[]).length).toBeGreaterThan(0);
+
+    const issueCredentialRoute = findRoute(
+      "POST",
+      "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/ingest-credentials",
+    );
+    const issueCredentialCtx = makeAdminContext(
+      "POST",
+      `/api/v1/admin/organizations/${orgId}/integrations/connections/${connectionId}/ingest-credentials`,
+    );
+    issueCredentialCtx.params = { orgId, connectionId };
+    issueCredentialCtx.body = {
+      label: "CRM outbound",
+      requireSignature: true,
+    };
+    const issueCredentialResult = await issueCredentialRoute.handler(issueCredentialCtx);
+    expect(issueCredentialResult.statusCode).toBe(201);
+    expect(issueCredentialResult.payload.success).toBe(true);
+
+    const rawEventsRoute = findRoute(
+      "GET",
+      "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/raw-events",
+    );
+    const rawEventsCtx = makeAdminContext(
+      "GET",
+      `/api/v1/admin/organizations/${orgId}/integrations/connections/${connectionId}/raw-events`,
+    );
+    rawEventsCtx.params = { orgId, connectionId };
+    const rawEventsResult = await rawEventsRoute.handler(rawEventsCtx);
+    expect(rawEventsResult.statusCode).toBe(200);
+    expect(rawEventsResult.payload.success).toBe(true);
+    if (!rawEventsResult.payload.success) {
+      throw new Error("expected success payload");
+    }
+    expect((rawEventsResult.payload.data as unknown[]).length).toBe(1);
+    } finally {
+      vi.unstubAllGlobals();
+      process.env.CONNECTORS_RUNTIME_URL = previousRuntimeUrl;
+      process.env.CONNECTORS_RUNTIME_TOKEN = previousRuntimeToken;
+    }
   });
 
   it("manages admin user lifecycle from invite to activation", async () => {

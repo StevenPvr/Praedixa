@@ -48,7 +48,6 @@ export {
 export {
   PraedixaLogo,
   LOGO_COLORS,
-  type LogoVariant,
 } from "./components/praedixa-logo";
 
 // Hooks

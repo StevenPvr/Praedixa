@@ -423,7 +423,10 @@ export async function mockForecasts(page: Page): Promise<void> {
         ? forecastDailyMerchandise
         : forecastDailyHuman;
 
-    if (pathname === "/api/v1/live/forecasts/latest/daily") {
+    if (
+      pathname === "/api/v1/live/forecasts/latest/daily" ||
+      pathname === "/api/v1/forecasts/latest/daily"
+    ) {
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -486,6 +489,72 @@ export async function mockForecasts(page: Page): Promise<void> {
     }
 
     return route.fallback();
+  });
+}
+
+const decisionConfig = {
+  organizationId: IDS.org,
+  siteId: null,
+  versionId: "cfg-00000000-0000-0000-0000-000000000001",
+  effectiveAt: NOW,
+  resolvedAt: NOW,
+  payload: {
+    horizons: [
+      {
+        id: "j3",
+        label: "J+3",
+        days: 3,
+        rank: 1,
+        active: true,
+        isDefault: false,
+      },
+      {
+        id: "j7",
+        label: "J+7",
+        days: 7,
+        rank: 2,
+        active: true,
+        isDefault: true,
+      },
+      {
+        id: "j14",
+        label: "J+14",
+        days: 14,
+        rank: 3,
+        active: true,
+        isDefault: false,
+      },
+    ],
+    optionCatalog: [],
+    policiesByHorizon: [],
+  },
+  nextVersion: null,
+  selectedHorizon: {
+    id: "j7",
+    label: "J+7",
+    days: 7,
+  },
+};
+
+export async function mockDecisionConfig(page: Page): Promise<void> {
+  await page.route("**/api/v1/**decision-config*", (route) => {
+    const url = new URL(route.request().url());
+    if (
+      url.pathname !== "/api/v1/live/decision-config" &&
+      url.pathname !== "/api/v1/decision-config"
+    ) {
+      return route.fallback();
+    }
+
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: decisionConfig,
+        timestamp: NOW,
+      }),
+    });
   });
 }
 
@@ -1307,13 +1376,18 @@ export async function mockUnreadCount(page: Page): Promise<void> {
 export async function mockAllApis(page: Page): Promise<void> {
   // Fallback safety net for endpoints not explicitly mocked below.
   // Specific route mocks are registered after this and take precedence.
+  // Unmocked endpoints must fail loudly so E2E does not silently consume
+  // the wrong payload shape.
   await page.route("**/api/v1/**", (route) =>
     route.fulfill({
-      status: 200,
+      status: 501,
       contentType: "application/json",
       body: JSON.stringify({
-        success: true,
-        data: [],
+        success: false,
+        error: {
+          code: "UNMOCKED_E2E_ENDPOINT",
+          message: `No E2E mock registered for ${new URL(route.request().url()).pathname}`,
+        },
         timestamp: NOW,
       }),
     }),
@@ -1326,6 +1400,7 @@ export async function mockAllApis(page: Page): Promise<void> {
   await mockCanonicalRecords(page);
   await mockSites(page);
   await mockDepartments(page);
+  await mockDecisionConfig(page);
   await mockForecasts(page);
   await mockDecisionWorkspace(page);
   await mockScenarios(page);

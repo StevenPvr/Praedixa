@@ -12,6 +12,10 @@ const mockGetOidcEnv = vi.fn();
 const mockSignSession = vi.fn();
 const mockSetAuthCookies = vi.fn();
 const mockClearAuthCookies = vi.fn();
+const mockBuildSessionData = vi.fn();
+const mockDoesSessionMatchAccessToken = vi.fn();
+const mockDoesSessionMatchRefreshToken = vi.fn();
+const mockGetApiAccessTokenCompatibilityReason = vi.fn();
 
 vi.mock("next/server", () => ({
   NextResponse: {
@@ -24,8 +28,15 @@ vi.mock("@/lib/auth/oidc", () => ({
   ACCESS_TOKEN_COOKIE: "prx_web_at",
   REFRESH_TOKEN_COOKIE: "prx_web_rt",
   SESSION_COOKIE: "prx_web_sess",
+  buildSessionData: (...args: unknown[]) => mockBuildSessionData(...args),
   clearAuthCookies: (...args: unknown[]) => mockClearAuthCookies(...args),
+  doesSessionMatchAccessToken: (...args: unknown[]) =>
+    mockDoesSessionMatchAccessToken(...args),
+  doesSessionMatchRefreshToken: (...args: unknown[]) =>
+    mockDoesSessionMatchRefreshToken(...args),
   getOidcEnv: (...args: unknown[]) => mockGetOidcEnv(...args),
+  getApiAccessTokenCompatibilityReason: (...args: unknown[]) =>
+    mockGetApiAccessTokenCompatibilityReason(...args),
   getTokenExp: (...args: unknown[]) => mockGetTokenExp(...args),
   isTokenExpired: (...args: unknown[]) => mockIsTokenExpired(...args),
   refreshTokens: (...args: unknown[]) => mockRefreshTokens(...args),
@@ -64,6 +75,9 @@ function createSession(role: string) {
     siteId: "site-1",
     accessTokenExp: Math.floor(Date.now() / 1000) + 1800,
     issuedAt: Math.floor(Date.now() / 1000),
+    sessionExpiresAt: Math.floor(Date.now() / 1000) + 3600,
+    accessTokenHash: "access-hash",
+    refreshTokenHash: "refresh-hash",
   };
 }
 
@@ -86,6 +100,10 @@ describe("updateSession (webapp)", () => {
     mockRefreshTokens.mockResolvedValue(null);
     mockUserFromAccessToken.mockReturnValue(null);
     mockGetTokenExp.mockReturnValue(Math.floor(Date.now() / 1000) + 1800);
+    mockBuildSessionData.mockImplementation((session) => session);
+    mockDoesSessionMatchAccessToken.mockResolvedValue(true);
+    mockDoesSessionMatchRefreshToken.mockResolvedValue(true);
+    mockGetApiAccessTokenCompatibilityReason.mockReturnValue(null);
     mockGetOidcEnv.mockReturnValue({
       issuerUrl: "https://sso.praedixa.com",
       clientId: "web-client",
@@ -97,6 +115,13 @@ describe("updateSession (webapp)", () => {
 
   it("allows /auth routes without auth checks", async () => {
     const result = await updateSession(createMockRequest("/auth/callback"));
+
+    expect(result.status).toBe(200);
+    expect(mockRedirect).not.toHaveBeenCalled();
+  });
+
+  it("allows /api routes without login redirects", async () => {
+    const result = await updateSession(createMockRequest("/api/v1/conversations"));
 
     expect(result.status).toBe(200);
     expect(mockRedirect).not.toHaveBeenCalled();
@@ -216,6 +241,24 @@ describe("updateSession (webapp)", () => {
 
     expect(result.status).toBe(200);
     expect(mockRefreshTokens).toHaveBeenCalled();
+    expect(mockBuildSessionData).toHaveBeenCalled();
     expect(mockSetAuthCookies).toHaveBeenCalled();
+  });
+
+  it("clears cookies when access token does not match the signed session", async () => {
+    mockVerifySession.mockResolvedValue(createSession("org_admin"));
+    mockDoesSessionMatchAccessToken.mockResolvedValue(false);
+
+    const result = await updateSession(
+      createMockRequest("/dashboard", {
+        prx_web_at: "tampered-access",
+        prx_web_sess: "session-cookie",
+      }),
+    );
+
+    expect((result as { redirectUrl: string }).redirectUrl).toBe(
+      "https://app.praedixa.com/login",
+    );
+    expect(mockClearAuthCookies).toHaveBeenCalled();
   });
 });

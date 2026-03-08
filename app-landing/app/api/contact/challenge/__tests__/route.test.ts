@@ -22,7 +22,14 @@ describe("GET /api/contact/challenge", () => {
 
   it("returns a signed captcha challenge", async () => {
     const { GET } = await import("../route");
-    const response = (await GET()) as unknown as {
+    const response = (await GET(
+      new Request("http://localhost:3000/api/contact/challenge", {
+        headers: {
+          "cf-connecting-ip": "127.0.0.1",
+          "user-agent": "Vitest",
+        },
+      }),
+    )) as unknown as {
       status: number;
       json: () => Promise<{
         captchaA: number;
@@ -38,16 +45,24 @@ describe("GET /api/contact/challenge", () => {
     expect(typeof body.captchaB).toBe("number");
     expect(typeof body.challengeToken).toBe("string");
     expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(response.headers.get("X-Robots-Tag")).toBe("noindex, nofollow");
   });
 
-  it("returns 503 when no challenge secret is available in production", async () => {
+  it("returns 503 when no dedicated challenge secret is available in production", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("CONTACT_FORM_CHALLENGE_SECRET", "");
-    vi.stubEnv("RESEND_API_KEY", "");
-    vi.stubEnv("CONTACT_API_INGEST_TOKEN", "");
+    vi.stubEnv("RESEND_API_KEY", "re_live_should_not_be_reused");
+    vi.stubEnv("CONTACT_API_INGEST_TOKEN", "ingest_token_should_not_be_reused");
 
     const { GET } = await import("../route");
-    const response = (await GET()) as unknown as {
+    const response = (await GET(
+      new Request("https://www.praedixa.com/api/contact/challenge", {
+        headers: {
+          "cf-connecting-ip": "203.0.113.5",
+          "user-agent": "Vitest",
+        },
+      }),
+    )) as unknown as {
       status: number;
       json: () => Promise<{ error: string }>;
     };

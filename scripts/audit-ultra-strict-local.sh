@@ -113,6 +113,13 @@ scan_dirs=(
   test-results
 )
 
+while IFS= read -r git_dir; do
+  repo_root="${git_dir%/.git}"
+  normalized_root="${repo_root#./}"
+  [[ -z "$normalized_root" ]] && continue
+  scan_dirs+=("$normalized_root")
+done < <(find . -mindepth 2 -type d -name .git -prune -print)
+
 skip_dir_args=()
 for d in "${scan_dirs[@]}"; do
   skip_dir_args+=(--skip-dirs "$d")

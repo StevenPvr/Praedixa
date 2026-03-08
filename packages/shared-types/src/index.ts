@@ -14,6 +14,7 @@ export * from "./domain/cost-parameter";
 export * from "./domain/report";
 export * from "./domain/dashboard";
 export * from "./domain/decision-workspace";
+export * from "./domain/decision-config";
 export * from "./domain/user-preferences";
 export * from "./domain/product-event";
 export * from "./domain/integration";

@@ -624,7 +624,11 @@ async def _load_external_dataset_seeds(org_slug: str) -> list[ExternalDatasetSee
         msg = f"Missing client data directory: {client_root}"
         raise RuntimeError(msg)
 
-    csv_paths = sorted(client_root.rglob("*.csv"))
+    csv_paths = sorted(
+        path
+        for path in client_root.rglob("*.csv")
+        if _resolve_trusted_csv_path(path, root=client_root) is not None
+    )
     if not csv_paths:
         msg = f"No CSV datasets found under: {client_root}"
         raise RuntimeError(msg)
@@ -654,6 +658,23 @@ async def _load_external_dataset_seeds(org_slug: str) -> list[ExternalDatasetSee
         count=len(seeds),
     )
     return seeds
+
+
+def _resolve_trusted_csv_path(path: Path, *, root: Path) -> Path | None:
+    try:
+        resolved_root = root.resolve(strict=True)
+        resolved_path = path.resolve(strict=True)
+    except OSError:
+        return None
+
+    if path.is_symlink():
+        return None
+    if not resolved_path.is_file():
+        return None
+    if not resolved_path.is_relative_to(resolved_root):
+        return None
+
+    return resolved_path
 
 
 def _inject_missing(

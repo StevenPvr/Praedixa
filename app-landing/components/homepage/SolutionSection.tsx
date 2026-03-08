@@ -100,13 +100,10 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
                     {principle.subtitle}
                   </span>
                 </div>
-                <div className="space-y-2">
+                <div>
                   <h3 className="text-lg font-semibold tracking-tight text-ink">
                     {principle.title}
                   </h3>
-                  <p className="max-w-[65ch] text-sm leading-relaxed text-neutral-600">
-                    {principle.description}
-                  </p>
                 </div>
               </MotionStaggerItem>
             ))}

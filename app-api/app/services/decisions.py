@@ -21,6 +21,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PraedixaError
+from app.core.pagination import normalize_limit_offset
 from app.core.security import TenantFilter
 from app.core.validation import sanitize_text
 from app.models.decision import Decision, DecisionPriority, DecisionStatus, DecisionType
@@ -111,6 +112,7 @@ async def list_decisions(
     total = count_result.scalar_one() or 0
 
     # Fetch page
+    limit, offset = normalize_limit_offset(limit, offset)
     query = base_query.order_by(Decision.created_at.desc()).offset(offset).limit(limit)
     result = await session.execute(query)
     items = list(result.scalars().all())

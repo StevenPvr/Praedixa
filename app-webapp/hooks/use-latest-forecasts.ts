@@ -28,12 +28,16 @@ interface UseLatestForecastsResult {
 export function useLatestForecasts(
   dimension: string,
   siteId: string | null = null,
+  horizonId: string | null = null,
 ): UseLatestForecastsResult {
   const params = new URLSearchParams({
     dimension,
   });
   if (siteId) {
     params.set("site_id", siteId);
+  }
+  if (horizonId) {
+    params.set("horizon_id", horizonId);
   }
   const {
     data: dailyData,

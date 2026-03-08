@@ -1,0 +1,22 @@
+{
+  "attributes": [
+    {
+      "name": "organization_id",
+      "displayName": "organization_id",
+      "permissions": {
+        "view": ["admin"],
+        "edit": ["admin"]
+      },
+      "multivalued": false
+    },
+    {
+      "name": "site_id",
+      "displayName": "site_id",
+      "permissions": {
+        "view": ["admin"],
+        "edit": ["admin"]
+      },
+      "multivalued": false
+    }
+  ]
+}

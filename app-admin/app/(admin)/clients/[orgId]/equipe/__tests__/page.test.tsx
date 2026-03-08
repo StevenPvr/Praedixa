@@ -24,6 +24,9 @@ vi.mock("@/hooks/use-toast", () => ({
 vi.mock("@/lib/auth/client", () => ({
   getValidAccessToken: vi.fn(() => Promise.resolve("token")),
   clearAuthSession: vi.fn(),
+  useCurrentUser: () => ({
+    permissions: ["admin:users:read", "admin:users:write"],
+  }),
 }));
 
 vi.mock("../../client-context", () => ({

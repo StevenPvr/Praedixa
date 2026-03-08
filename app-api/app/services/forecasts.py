@@ -13,6 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError
+from app.core.pagination import normalize_limit_offset
 from app.core.security import TenantFilter
 from app.models.daily_forecast import DailyForecast, ForecastDimension
 from app.models.forecast_run import ForecastRun, ForecastStatus
@@ -43,6 +44,7 @@ async def list_forecasts(
     total = (await session.execute(count_query)).scalar_one()
 
     # Paginated results — completed_at DESC, nulls last
+    limit, offset = normalize_limit_offset(limit, offset)
     items_query = (
         base_query.order_by(ForecastRun.completed_at.desc().nulls_last())
         .limit(limit)

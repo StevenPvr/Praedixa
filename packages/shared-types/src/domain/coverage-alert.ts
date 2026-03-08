@@ -7,8 +7,12 @@ import type {
 } from "../utils/common";
 import type { ShiftType } from "./canonical";
 
-/** Forecast horizon window */
-export type AlertHorizon = "j3" | "j7" | "j14";
+/**
+ * Forecast horizon identifier.
+ * Legacy values like "j3"/"j7"/"j14" remain supported, but admin-configured
+ * horizon ids are now dynamic.
+ */
+export type AlertHorizon = string;
 
 /** Alert severity level */
 export type CoverageAlertSeverity = "low" | "medium" | "high" | "critical";

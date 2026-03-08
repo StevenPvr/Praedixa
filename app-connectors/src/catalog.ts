@@ -1,5 +1,15 @@
 import type { ConnectorCatalogItem } from "./types.js";
 
+const OAUTH_CLIENT_HINTS = ["clientId", "clientSecret"] as const;
+const API_KEY_HINTS = ["apiKey"] as const;
+const SERVICE_ACCOUNT_HINTS = [
+  "clientId",
+  "clientSecret",
+  "clientEmail",
+  "privateKey",
+] as const;
+const SFTP_HINTS = ["host", "username", "password|privateKey"] as const;
+
 export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
   {
     vendor: "salesforce",
@@ -9,6 +19,18 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["Account", "Opportunity", "Case", "Task"],
     recommendedSyncMinutes: 30,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["interactive_oauth", "managed_service_account", "push_api"],
+    requiredConfigFields: ["baseUrl"],
+    credentialFieldHints: {
+      oauth2: OAUTH_CLIENT_HINTS,
+      service_account: SERVICE_ACCOUNT_HINTS,
+    },
+    oauthDefaults: {
+      authorizationEndpoint: "https://login.salesforce.com/services/oauth2/authorize",
+      tokenEndpoint: "https://login.salesforce.com/services/oauth2/token",
+      defaultScopes: ["api", "refresh_token"],
+      pkceRequired: true,
+    },
   },
   {
     vendor: "ukg",
@@ -18,6 +40,12 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["Employees", "Schedules", "Timesheets", "Absences"],
     recommendedSyncMinutes: 30,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["credential_submission", "push_api"],
+    requiredConfigFields: ["tokenEndpoint", "baseUrl"],
+    credentialFieldHints: {
+      oauth2: OAUTH_CLIENT_HINTS,
+      api_key: API_KEY_HINTS,
+    },
   },
   {
     vendor: "toast",
@@ -27,6 +55,12 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["Orders", "Menus", "Labor", "Inventory"],
     recommendedSyncMinutes: 15,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["credential_submission", "push_api"],
+    requiredConfigFields: ["tokenEndpoint", "baseUrl"],
+    credentialFieldHints: {
+      oauth2: OAUTH_CLIENT_HINTS,
+      api_key: API_KEY_HINTS,
+    },
   },
   {
     vendor: "olo",
@@ -36,6 +70,11 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["Orders", "Stores", "Products", "Promotions"],
     recommendedSyncMinutes: 15,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["credential_submission", "push_api"],
+    requiredConfigFields: ["baseUrl"],
+    credentialFieldHints: {
+      api_key: API_KEY_HINTS,
+    },
   },
   {
     vendor: "cdk",
@@ -45,6 +84,12 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["ServiceOrders", "ROLines", "Vehicle", "Technician"],
     recommendedSyncMinutes: 60,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["managed_service_account", "credential_submission", "push_api"],
+    requiredConfigFields: ["baseUrl"],
+    credentialFieldHints: {
+      service_account: SERVICE_ACCOUNT_HINTS,
+      sftp: SFTP_HINTS,
+    },
   },
   {
     vendor: "reynolds",
@@ -54,6 +99,12 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["RepairOrder", "Customer", "Vehicle", "Parts"],
     recommendedSyncMinutes: 60,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["managed_service_account", "credential_submission", "push_api"],
+    requiredConfigFields: ["baseUrl"],
+    credentialFieldHints: {
+      service_account: SERVICE_ACCOUNT_HINTS,
+      sftp: SFTP_HINTS,
+    },
   },
   {
     vendor: "geotab",
@@ -63,6 +114,12 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["Trip", "Device", "FaultData", "StatusData"],
     recommendedSyncMinutes: 10,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["credential_submission", "push_api"],
+    requiredConfigFields: ["baseUrl"],
+    credentialFieldHints: {
+      oauth2: OAUTH_CLIENT_HINTS,
+      api_key: API_KEY_HINTS,
+    },
   },
   {
     vendor: "fourth",
@@ -72,6 +129,12 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["Employees", "Roster", "Timeclock", "LaborForecast"],
     recommendedSyncMinutes: 30,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["credential_submission", "push_api"],
+    requiredConfigFields: ["baseUrl"],
+    credentialFieldHints: {
+      api_key: API_KEY_HINTS,
+      sftp: SFTP_HINTS,
+    },
   },
   {
     vendor: "oracle_tm",
@@ -81,6 +144,12 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["Shipment", "OrderRelease", "Route", "Stop"],
     recommendedSyncMinutes: 30,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["credential_submission", "managed_service_account", "push_api"],
+    requiredConfigFields: ["tokenEndpoint", "baseUrl"],
+    credentialFieldHints: {
+      oauth2: OAUTH_CLIENT_HINTS,
+      service_account: SERVICE_ACCOUNT_HINTS,
+    },
   },
   {
     vendor: "sap_tm",
@@ -90,6 +159,12 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["FreightOrder", "FreightUnit", "Resource", "Stop"],
     recommendedSyncMinutes: 30,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["credential_submission", "managed_service_account", "push_api"],
+    requiredConfigFields: ["tokenEndpoint", "baseUrl"],
+    credentialFieldHints: {
+      oauth2: OAUTH_CLIENT_HINTS,
+      service_account: SERVICE_ACCOUNT_HINTS,
+    },
   },
   {
     vendor: "blue_yonder",
@@ -99,6 +174,12 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["DemandPlan", "LaborPlan", "Store", "SKU"],
     recommendedSyncMinutes: 60,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["credential_submission", "managed_service_account", "push_api"],
+    requiredConfigFields: ["baseUrl"],
+    credentialFieldHints: {
+      api_key: API_KEY_HINTS,
+      service_account: SERVICE_ACCOUNT_HINTS,
+    },
   },
   {
     vendor: "manhattan",
@@ -108,6 +189,12 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["Wave", "Task", "Inventory", "Shipment"],
     recommendedSyncMinutes: 30,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["credential_submission", "managed_service_account", "push_api"],
+    requiredConfigFields: ["baseUrl"],
+    credentialFieldHints: {
+      api_key: API_KEY_HINTS,
+      service_account: SERVICE_ACCOUNT_HINTS,
+    },
   },
   {
     vendor: "ncr_aloha",
@@ -117,5 +204,11 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["Check", "Item", "Labor", "Inventory"],
     recommendedSyncMinutes: 15,
     medallionTargets: ["bronze", "silver", "gold"],
+    onboardingModes: ["credential_submission", "push_api"],
+    requiredConfigFields: ["baseUrl"],
+    credentialFieldHints: {
+      api_key: API_KEY_HINTS,
+      sftp: SFTP_HINTS,
+    },
   },
 ];

@@ -92,6 +92,9 @@ describe("apiGet", () => {
   });
 
   it("should call fetch with GET method and correct URL", async () => {
+    const originalWindow = globalThis.window;
+    Reflect.deleteProperty(globalThis, "window");
+
     const body = { success: true, data: { id: 1 }, timestamp: "t" };
     mockFetch.mockResolvedValueOnce(jsonResponse(body));
 
@@ -101,6 +104,62 @@ describe("apiGet", () => {
     const [url, opts] = mockFetch.mock.calls[0];
     expect(url).toBe(`${BASE_URL}/api/v1/items`);
     expect(opts.method).toBe("GET");
+
+    if (originalWindow !== undefined) {
+      vi.stubGlobal("window", originalWindow);
+    }
+  });
+
+  it("should use the same-origin proxy in the browser without calling getAccessToken", async () => {
+    const originalWindow = globalThis.window;
+    vi.stubGlobal(
+      "window",
+      { location: { origin: "https://app.praedixa.com" } } as unknown as Window,
+    );
+
+    const browserToken = vi.fn(() => Promise.resolve("browser-token"));
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ success: true, data: { id: 1 }, timestamp: "t" }),
+    );
+
+    await apiGet("/api/v1/items", browserToken);
+
+    expect(browserToken).not.toHaveBeenCalled();
+    const [url, opts] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/v1/items");
+    expect(opts.credentials).toBe("same-origin");
+    expect(opts.headers.Authorization).toBeUndefined();
+
+    if (originalWindow === undefined) {
+      Reflect.deleteProperty(globalThis, "window");
+    } else {
+      vi.stubGlobal("window", originalWindow);
+    }
+  });
+
+  it("should allow omitting getAccessToken for same-origin browser requests", async () => {
+    const originalWindow = globalThis.window;
+    vi.stubGlobal(
+      "window",
+      { location: { origin: "https://app.praedixa.com" } } as unknown as Window,
+    );
+
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ success: true, data: { id: 1 }, timestamp: "t" }),
+    );
+
+    await apiGet("/api/v1/items");
+
+    const [url, opts] = mockFetch.mock.calls[0];
+    expect(url).toBe("/api/v1/items");
+    expect(opts.credentials).toBe("same-origin");
+    expect(opts.headers.Authorization).toBeUndefined();
+
+    if (originalWindow === undefined) {
+      Reflect.deleteProperty(globalThis, "window");
+    } else {
+      vi.stubGlobal("window", originalWindow);
+    }
   });
 
   it("should include Authorization header when token is present", async () => {

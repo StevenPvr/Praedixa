@@ -1,5 +1,12 @@
 import type { CompiledRoute, HttpMethod, RouteDefinition, RouteHandler } from "./types.js";
 
+export class RouteMatchError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RouteMatchError";
+  }
+}
+
 function compileTemplate(template: string): { regex: RegExp; paramNames: string[] } {
   const chunks = template.split("/").filter((chunk) => chunk.length > 0);
   const paramNames: string[] = [];
@@ -68,7 +75,11 @@ export function matchRoute(
       const name = candidate.paramNames[i];
       const value = matched[i + 1];
       if (name != null && value != null) {
-        params[name] = decodeURIComponent(value);
+        try {
+          params[name] = decodeURIComponent(value);
+        } catch {
+          throw new RouteMatchError(`Invalid encoding for route parameter "${name}"`);
+        }
       }
     }
 

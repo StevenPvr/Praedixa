@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "clean:dev-cache": "rm -rf .next .turbo",
+    "dev:fresh": "pnpm clean:dev-cache && next dev --turbopack",
+    "dev:webpack:fresh": "pnpm clean:dev-cache && next dev --webpack",
     "dev:turbopack": "next dev --turbopack",
     "resend:check": "node ./scripts/check-resend-readiness.mjs",
     "build": "next build --webpack",
@@ -18,7 +21,8 @@
     "deploy:scw:prod": "cd .. && ./scripts/scw-deploy-landing.sh prod",
     "deploy:scw:staging": "cd .. && ./scripts/scw-deploy-landing.sh staging",
     "dev:webpack": "next dev",
-    "blog:audit-links": "node ./scripts/audit-blog-links.mjs"
+    "blog:audit-links": "node ./scripts/audit-blog-links.mjs",
+    "test": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",

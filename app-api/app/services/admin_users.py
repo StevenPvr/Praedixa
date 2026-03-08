@@ -16,8 +16,10 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ConflictError, ForbiddenError, NotFoundError
+from app.core.pagination import normalize_page_window
 from app.models.organization import Organization
 from app.models.user import User, UserRole, UserStatus
+from app.services.site_scope import validate_site_belongs_to_org
 
 
 async def list_org_users(
@@ -37,7 +39,7 @@ async def list_org_users(
     count_result = await session.execute(count_query)
     total = count_result.scalar_one() or 0
 
-    offset = (page - 1) * page_size
+    _, page_size, offset = normalize_page_window(page, page_size)
     query = base_query.order_by(User.created_at.desc()).offset(offset).limit(page_size)
     result = await session.execute(query)
     items = list(result.scalars().all())
@@ -77,6 +79,14 @@ async def invite_user(
     if existing.scalar_one_or_none() is not None:
         raise ConflictError("User with email already exists")
 
+    validated_site_id: uuid.UUID | None = None
+    if site_id is not None:
+        validated_site_id = await validate_site_belongs_to_org(
+            session,
+            org_id,
+            str(site_id),
+        )
+
     user = User(
         organization_id=org_id,
         email=email.lower(),
@@ -84,7 +94,7 @@ async def invite_user(
         status=UserStatus.PENDING,
         # auth_user_id will be replaced at first successful IdP sign-in.
         auth_user_id=f"pending-{uuid.uuid4()}",
-        site_id=site_id,
+        site_id=validated_site_id,
     )
     session.add(user)
     await session.flush()

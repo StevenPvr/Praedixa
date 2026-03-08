@@ -94,7 +94,7 @@ class ConnectorAuthContext:
         return {
             "organization_id": str(self.organization_id),
             "connection_id": str(self.connection_id) if self.connection_id else None,
-            "secret_ref": self.secret_ref,
+            "secret_ref": mask_secret(self.secret_ref, keep_prefix=4, keep_suffix=0),
             "access_token": mask_secret(self.access_token),
             "refresh_token": mask_secret(self.refresh_token),
             "api_key": mask_secret(self.api_key),

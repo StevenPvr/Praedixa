@@ -60,6 +60,17 @@ SYFT_EXCLUDES=(
   "./app-api/uv.lock"
 )
 
+append_nested_repo_excludes() {
+  while IFS= read -r git_dir; do
+    local repo_root="${git_dir%/.git}"
+    local normalized_root="${repo_root#./}"
+    [[ -z "$normalized_root" ]] && continue
+    SYFT_EXCLUDES+=("./${normalized_root}/**")
+  done < <(find . -mindepth 2 -type d -name .git -prune -print)
+}
+
+append_nested_repo_excludes
+
 # Generate a CycloneDX SBOM for traceability and incident response.
 echo "[supply-chain] Generating SBOM..."
 syft_args=(dir:. -o "cyclonedx-json=${SBOM_PATH}")

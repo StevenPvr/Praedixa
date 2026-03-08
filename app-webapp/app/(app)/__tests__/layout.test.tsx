@@ -60,9 +60,8 @@ vi.mock("@/hooks/use-api", () => ({
   }),
 }));
 
-// Mock SidebarWithUnread — renders as Sidebar mock
-vi.mock("@/components/sidebar-with-unread", () => ({
-  SidebarWithUnread: ({
+vi.mock("@/components/sidebar", () => ({
+  Sidebar: ({
     currentPath,
     collapsed,
     onToggleCollapse,

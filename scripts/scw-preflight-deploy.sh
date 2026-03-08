@@ -19,6 +19,7 @@ REGION="fr-par"
 ZONE="fr-par-1"
 DNS_ZONE="praedixa.com"
 DNS_DELEGATION_MODE="${DNS_DELEGATION_MODE:-transitional}"
+AUTH_RDB_NAME="${AUTH_RDB_NAME:-praedixa-auth-prod}"
 
 FAIL_COUNT=0
 WARN_COUNT=0
@@ -150,34 +151,32 @@ check_frontend_container_env() {
     fail "${container_name}: secret AUTH_SESSION_SECRET missing"
   fi
 
-  if [[ "$container_name" == webapp-* ]]; then
-    for key in AUTH_TRUST_X_FORWARDED_FOR AUTH_RATE_LIMIT_KEY_PREFIX AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS; do
-      if container_has_env "$container_json" "$key"; then
-        ok "${container_name}: env ${key} configured"
-      else
-        fail "${container_name}: env ${key} missing"
-      fi
-    done
-
-    local trust_xff
-    trust_xff="$(container_env_value "$container_json" "AUTH_TRUST_X_FORWARDED_FOR")"
-    if [ "$trust_xff" = "0" ] || [ "$trust_xff" = "1" ]; then
-      ok "${container_name}: AUTH_TRUST_X_FORWARDED_FOR=${trust_xff}"
+  for key in AUTH_TRUST_X_FORWARDED_FOR AUTH_RATE_LIMIT_KEY_PREFIX AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS; do
+    if container_has_env "$container_json" "$key"; then
+      ok "${container_name}: env ${key} configured"
     else
-      fail "${container_name}: AUTH_TRUST_X_FORWARDED_FOR must be 0 or 1 (current: ${trust_xff:-missing})"
+      fail "${container_name}: env ${key} missing"
     fi
+  done
 
-    if container_has_secret "$container_json" "AUTH_RATE_LIMIT_REDIS_URL"; then
-      ok "${container_name}: secret AUTH_RATE_LIMIT_REDIS_URL configured"
-    else
-      fail "${container_name}: secret AUTH_RATE_LIMIT_REDIS_URL missing"
-    fi
+  local trust_xff
+  trust_xff="$(container_env_value "$container_json" "AUTH_TRUST_X_FORWARDED_FOR")"
+  if [ "$trust_xff" = "0" ] || [ "$trust_xff" = "1" ]; then
+    ok "${container_name}: AUTH_TRUST_X_FORWARDED_FOR=${trust_xff}"
+  else
+    fail "${container_name}: AUTH_TRUST_X_FORWARDED_FOR must be 0 or 1 (current: ${trust_xff:-missing})"
+  fi
 
-    if container_has_secret "$container_json" "AUTH_RATE_LIMIT_KEY_SALT"; then
-      ok "${container_name}: secret AUTH_RATE_LIMIT_KEY_SALT configured"
-    else
-      warn "${container_name}: secret AUTH_RATE_LIMIT_KEY_SALT missing (fallback uses AUTH_SESSION_SECRET)"
-    fi
+  if container_has_secret "$container_json" "AUTH_RATE_LIMIT_REDIS_URL"; then
+    ok "${container_name}: secret AUTH_RATE_LIMIT_REDIS_URL configured"
+  else
+    fail "${container_name}: secret AUTH_RATE_LIMIT_REDIS_URL missing"
+  fi
+
+  if container_has_secret "$container_json" "AUTH_RATE_LIMIT_KEY_SALT"; then
+    ok "${container_name}: secret AUTH_RATE_LIMIT_KEY_SALT configured"
+  else
+    warn "${container_name}: secret AUTH_RATE_LIMIT_KEY_SALT missing (fallback uses AUTH_SESSION_SECRET)"
   fi
 }
 
@@ -254,6 +253,53 @@ check_api_container_env() {
   fi
 }
 
+check_auth_container_env() {
+  local container_name="$1"
+  local container_json sandbox private_network_id kc_db
+  container_json="$(get_container_json "$container_name")"
+  if [ -z "$container_json" ]; then
+    fail "Container ${container_name} is missing"
+    return
+  fi
+
+  for key in KC_DB KC_DB_URL_HOST KC_DB_URL_PORT KC_DB_URL_DATABASE KC_DB_USERNAME KC_HEALTH_ENABLED KC_METRICS_ENABLED KC_LOG_LEVEL KC_PROXY_HEADERS KC_HTTP_ENABLED KC_HOSTNAME KC_BOOTSTRAP_ADMIN_USERNAME; do
+    if container_has_env "$container_json" "$key"; then
+      ok "${container_name}: env ${key} configured"
+    else
+      fail "${container_name}: env ${key} missing"
+    fi
+  done
+
+  kc_db="$(container_env_value "$container_json" "KC_DB")"
+  if [ "$kc_db" = "postgres" ]; then
+    ok "${container_name}: KC_DB=postgres"
+  else
+    fail "${container_name}: KC_DB must be postgres (current: ${kc_db:-missing})"
+  fi
+
+  for skey in KC_DB_PASSWORD KC_BOOTSTRAP_ADMIN_PASSWORD; do
+    if container_has_secret "$container_json" "$skey"; then
+      ok "${container_name}: secret ${skey} configured"
+    else
+      fail "${container_name}: secret ${skey} missing"
+    fi
+  done
+
+  sandbox="$(printf '%s' "$container_json" | jq -r '.sandbox // ""')"
+  private_network_id="$(printf '%s' "$container_json" | jq -r '.private_network_id // ""')"
+
+  if [ "$sandbox" = "v2" ]; then
+    ok "${container_name}: sandbox v2"
+  else
+    fail "${container_name}: sandbox is ${sandbox:-missing}, expected v2"
+  fi
+  if [ -n "$private_network_id" ]; then
+    ok "${container_name}: private network attached (${private_network_id})"
+  else
+    fail "${container_name}: private network is not attached"
+  fi
+}
+
 check_landing_container_env() {
   local container_name="$1"
   local container_json
@@ -266,19 +312,38 @@ check_landing_container_env() {
   if container_has_env "$container_json" "CONTACT_API_BASE_URL"; then
     ok "${container_name}: env CONTACT_API_BASE_URL configured"
   else
-    warn "${container_name}: env CONTACT_API_BASE_URL missing (contact form persistence disabled until configured)"
+    fail "${container_name}: env CONTACT_API_BASE_URL missing"
   fi
 
   if container_has_secret "$container_json" "CONTACT_API_INGEST_TOKEN"; then
     ok "${container_name}: secret CONTACT_API_INGEST_TOKEN configured"
   else
-    warn "${container_name}: secret CONTACT_API_INGEST_TOKEN missing (contact form persistence disabled until configured)"
+    fail "${container_name}: secret CONTACT_API_INGEST_TOKEN missing"
   fi
 
   if container_has_secret "$container_json" "RESEND_API_KEY"; then
     ok "${container_name}: secret RESEND_API_KEY configured"
   else
-    warn "${container_name}: secret RESEND_API_KEY missing (email forms disabled until configured)"
+    fail "${container_name}: secret RESEND_API_KEY missing"
+  fi
+
+  if container_has_secret "$container_json" "RATE_LIMIT_STORAGE_URI"; then
+    ok "${container_name}: secret RATE_LIMIT_STORAGE_URI configured"
+  else
+    fail "${container_name}: secret RATE_LIMIT_STORAGE_URI missing"
+  fi
+
+  if container_has_secret "$container_json" "CONTACT_FORM_CHALLENGE_SECRET"; then
+    ok "${container_name}: secret CONTACT_FORM_CHALLENGE_SECRET configured"
+  else
+    fail "${container_name}: secret CONTACT_FORM_CHALLENGE_SECRET missing"
+  fi
+
+  trust_proxy="$(container_env_value "$container_json" "LANDING_TRUST_PROXY_IP_HEADERS")"
+  if [ "$trust_proxy" = "0" ] || [ "$trust_proxy" = "1" ]; then
+    ok "${container_name}: LANDING_TRUST_PROXY_IP_HEADERS=${trust_proxy}"
+  else
+    fail "${container_name}: LANDING_TRUST_PROXY_IP_HEADERS must be 0 or 1 (current: ${trust_proxy:-missing})"
   fi
 }
 
@@ -380,22 +445,56 @@ check_public_host() {
 require_cmd scw
 require_cmd jq
 
+read_scw_json() {
+  local fallback_json="$1"
+  shift
+
+  local output
+  if output="$("$@" -o json 2>/dev/null)"; then
+    printf '%s' "$output"
+    return 0
+  fi
+
+  printf '%s' "$fallback_json"
+  return 1
+}
+
 check_file_exists "app-landing/Dockerfile.scaleway"
 check_file_exists "app-webapp/Dockerfile.scaleway"
 check_file_exists "app-admin/Dockerfile.scaleway"
 check_file_exists "app-api-ts/Dockerfile"
+check_file_exists "infra/auth/Dockerfile.scaleway"
 check_file_exists "scripts/scw-deploy-landing.sh"
 check_file_exists "scripts/scw-deploy-frontend.sh"
 check_file_exists "scripts/scw-deploy-api.sh"
+check_file_exists "scripts/scw-configure-auth-env.sh"
+check_file_exists "scripts/scw-configure-api-env.sh"
+check_file_exists "scripts/scw-configure-frontend-env.sh"
 
-ZONES_JSON="$(scw dns zone list -o json)"
-DNS_RECORDS_JSON="$(scw dns record list dns-zone="$DNS_ZONE" -o json)"
-NAMESPACES_JSON="$(scw container namespace list region="$REGION" -o json)"
-CONTAINERS_JSON="$(scw container container list region="$REGION" -o json)"
-DOMAINS_JSON="$(scw container domain list region="$REGION" -o json)"
-RDB_JSON="$(scw rdb instance list region="$REGION" -o json)"
-REDIS_JSON="$(scw redis cluster list zone="$ZONE" -o json)"
-BUCKETS_JSON="$(scw object bucket list region="$REGION" -o json)"
+if ! ZONES_JSON="$(read_scw_json '[]' scw dns zone list)"; then
+  fail "Unable to list Scaleway DNS zones"
+fi
+if ! DNS_RECORDS_JSON="$(read_scw_json '[]' scw dns record list dns-zone="$DNS_ZONE")"; then
+  fail "Unable to list Scaleway DNS records for zone ${DNS_ZONE}"
+fi
+if ! NAMESPACES_JSON="$(read_scw_json '[]' scw container namespace list region="$REGION")"; then
+  fail "Unable to list Scaleway container namespaces"
+fi
+if ! CONTAINERS_JSON="$(read_scw_json '[]' scw container container list region="$REGION")"; then
+  fail "Unable to list Scaleway containers"
+fi
+if ! DOMAINS_JSON="$(read_scw_json '[]' scw container domain list region="$REGION")"; then
+  fail "Unable to list Scaleway container domains"
+fi
+if ! RDB_JSON="$(read_scw_json '[]' scw rdb instance list region="$REGION")"; then
+  fail "Unable to list Scaleway RDB instances"
+fi
+if ! REDIS_JSON="$(read_scw_json '[]' scw redis cluster list zone="$ZONE")"; then
+  fail "Unable to list Scaleway Redis clusters"
+fi
+if ! BUCKETS_JSON="$(read_scw_json '[]' scw object bucket list region="$REGION")"; then
+  fail "Unable to list Scaleway object buckets"
+fi
 
 zone_status="$(printf '%s' "$ZONES_JSON" | jq -r --arg d "$DNS_ZONE" '.[] | select(.domain == $d and .subdomain == "") | .status' | head -n1)"
 if [ "$zone_status" = "active" ]; then
@@ -438,6 +537,7 @@ if is_target_enabled "prod"; then
 fi
 
 check_container_state "auth-prod"
+check_auth_container_env "auth-prod"
 
 if is_target_enabled "staging"; then
   check_container_state "landing-staging"
@@ -469,6 +569,7 @@ if is_target_enabled "prod"; then
   check_api_container_env "api-prod"
 fi
 
+check_rdb "$AUTH_RDB_NAME"
 check_rdb "praedixa-api-staging"
 check_rdb "praedixa-api-prod"
 
@@ -548,13 +649,15 @@ echo "Scaleway deploy preflight (${TARGET}) passed with ${WARN_COUNT} warning(s)
 echo "No deployment executed."
 echo "Next step when ready:"
 if is_target_enabled "staging"; then
-  echo "  pnpm run scw:deploy:landing:staging"
+  echo "  pnpm release:build -- --service landing --ref <git-ref> --tag <tag> --registry-prefix <registry>"
+  echo "  pnpm release:manifest:create -- --ref <git-ref> --output <manifest> --image \"landing=<registry-image@sha256>\""
+  echo "  pnpm release:deploy -- --manifest <manifest> --env staging"
   echo "  pnpm run scw:deploy:api:staging"
   echo "  pnpm run scw:deploy:webapp:staging"
   echo "  pnpm run scw:deploy:admin:staging"
 fi
 if is_target_enabled "prod"; then
-  echo "  pnpm run scw:deploy:landing:prod"
+  echo "  pnpm release:deploy -- --manifest <manifest> --env prod"
   echo "  pnpm run scw:deploy:api:prod"
   echo "  pnpm run scw:deploy:webapp:prod"
   echo "  pnpm run scw:deploy:admin:prod"

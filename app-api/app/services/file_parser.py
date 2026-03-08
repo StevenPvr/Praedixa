@@ -21,6 +21,7 @@ import datetime
 import io
 import logging
 import re
+import zipfile
 from dataclasses import dataclass, field
 from typing import Any, Final
 
@@ -49,6 +50,8 @@ _ENCODING_NORMALIZATION: Final[dict[str, str]] = {
 
 # XLSX magic bytes: PK ZIP signature (50 4B 03 04).
 _XLSX_MAGIC: Final[bytes] = b"PK"
+_MAX_XLSX_ARCHIVE_MEMBERS: Final[int] = 200
+_MAX_XLSX_UNCOMPRESSED_BYTES: Final[int] = 100 * 1024 * 1024
 
 # Delimiter detection priority order (French CSV convention: semicolon first).
 _DELIMITER_CANDIDATES: Final[tuple[str, ...]] = (";", ",", "\t")
@@ -182,12 +185,18 @@ def parse_file(
 
     if not content:
         raise FileParseError("File is empty", code="EMPTY_FILE")
+    if len(content) > settings.MAX_UPLOAD_SIZE_BYTES:
+        raise FileParseError(
+            "File exceeds maximum allowed size",
+            code="FILE_TOO_LARGE",
+        )
 
     ext = _extract_extension(filename)
     warnings: list[str] = []
 
     if ext == "xlsx" or format_hint == "xlsx":
         _validate_xlsx_magic(content)
+        _validate_xlsx_archive(content)
         rows, columns = _parse_xlsx(content, sheet_name=sheet_name, max_rows=max_rows)
         encoding = "utf-8"
     elif ext == "csv" or format_hint in ("csv", "lucca", "payfit") or ext == "":
@@ -249,6 +258,39 @@ def _validate_xlsx_magic(content: bytes) -> None:
         raise FileParseError(
             "File does not have valid XLSX signature (expected PK/ZIP header)",
             code="INVALID_XLSX_SIGNATURE",
+        )
+
+
+def _validate_xlsx_archive(content: bytes) -> None:
+    try:
+        with zipfile.ZipFile(io.BytesIO(content)) as archive:
+            infos = archive.infolist()
+            if len(infos) > _MAX_XLSX_ARCHIVE_MEMBERS:
+                raise FileParseError(
+                    "XLSX archive contains too many members",
+                    code="XLSX_ARCHIVE_TOO_COMPLEX",
+                )
+            total_uncompressed = sum(info.file_size for info in infos)
+            if total_uncompressed > _MAX_XLSX_UNCOMPRESSED_BYTES:
+                raise FileParseError(
+                    "XLSX archive is too large when decompressed",
+                    code="XLSX_ARCHIVE_TOO_LARGE",
+                )
+    except zipfile.BadZipFile as exc:
+        raise FileParseError(
+            "File does not contain a valid XLSX archive",
+            code="INVALID_XLSX_SIGNATURE",
+        ) from exc
+
+
+def _enforce_column_limit(columns: list[str]) -> None:
+    if len(columns) > settings.MAX_COLUMNS_PER_TABLE:
+        raise FileParseError(
+            (
+                "File exceeds maximum allowed column count "
+                f"({settings.MAX_COLUMNS_PER_TABLE})"
+            ),
+            code="TOO_MANY_COLUMNS",
         )
 
 
@@ -363,6 +405,7 @@ def _parse_csv(
     columns = [h.strip().strip("\ufeff") for h in raw_headers]
 
     _check_duplicate_columns(columns)
+    _enforce_column_limit(columns)
 
     # Parse rows up to max_rows
     rows: list[dict[str, Any]] = []
@@ -443,6 +486,7 @@ def _read_xlsx_headers(ws: Any) -> list[str]:
     ]
 
     _check_duplicate_columns(columns)
+    _enforce_column_limit(columns)
     return columns
 
 
@@ -493,15 +537,20 @@ def _sanitize_cell_value(value: str) -> str:
     stripped = value
     while stripped and stripped[0] in ("=", "+", "@"):
         stripped = stripped[1:]
-    # Strip leading '-' only if it's not a negative number.
-    # A negative number starts with '-' followed by a digit.
-    while stripped and stripped[0] == "-":
-        rest = stripped[1:]
-        if rest and rest[0].isdigit():
-            # Looks like a negative number — preserve it
-            break
-        stripped = rest
+    while stripped.startswith("-") and not _looks_like_numeric_literal(stripped):
+        stripped = stripped[1:]
     return stripped
+
+
+def _looks_like_numeric_literal(value: str) -> bool:
+    candidate = value.replace(" ", "").replace("\u00a0", "").replace(",", ".")
+    if not candidate:
+        return False
+    try:
+        float(candidate)
+    except ValueError:
+        return False
+    return True
 
 
 def _detect_format(

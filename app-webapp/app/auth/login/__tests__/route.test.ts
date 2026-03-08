@@ -6,7 +6,9 @@ const mockCreatePkceChallenge = vi.fn();
 const mockCreateRandomToken = vi.fn();
 const mockGetOidcEnv = vi.fn();
 const mockGetTrustedOidcEndpoints = vi.fn();
+const mockIsInsecureOidcEnvError = vi.fn();
 const mockIsMissingOidcEnvError = vi.fn();
+const mockResolveAuthAppOrigin = vi.fn();
 const mockSanitizeNextPath = vi.fn();
 const mockSecureCookie = vi.fn();
 
@@ -25,10 +27,17 @@ vi.mock("@/lib/auth/oidc", () => ({
   getOidcEnv: (...args: unknown[]) => mockGetOidcEnv(...args),
   getTrustedOidcEndpoints: (...args: unknown[]) =>
     mockGetTrustedOidcEndpoints(...args),
+  isInsecureOidcEnvError: (...args: unknown[]) =>
+    mockIsInsecureOidcEnvError(...args),
   isMissingOidcEnvError: (...args: unknown[]) =>
     mockIsMissingOidcEnvError(...args),
   sanitizeNextPath: (...args: unknown[]) => mockSanitizeNextPath(...args),
   secureCookie: (...args: unknown[]) => mockSecureCookie(...args),
+}));
+
+vi.mock("@/lib/auth/origin", () => ({
+  resolveAuthAppOrigin: (...args: unknown[]) =>
+    mockResolveAuthAppOrigin(...args),
 }));
 
 import { GET } from "../route";
@@ -77,7 +86,9 @@ describe("GET /auth/login (webapp)", () => {
         "https://sso.praedixa.com/protocol/openid-connect/auth",
       tokenEndpoint: "https://sso.praedixa.com/protocol/openid-connect/token",
     });
+    mockIsInsecureOidcEnvError.mockReturnValue(false);
     mockIsMissingOidcEnvError.mockReturnValue(false);
+    mockResolveAuthAppOrigin.mockReturnValue("https://app.praedixa.com");
     mockCreateRandomToken
       .mockReturnValueOnce("state-token")
       .mockReturnValueOnce("verifier-token");
@@ -153,6 +164,24 @@ describe("GET /auth/login (webapp)", () => {
     expect(redirectUrl.searchParams.get("next")).toBe("/dashboard");
   });
 
+  it("uses the configured public auth origin for redirect_uri generation", async () => {
+    mockResolveAuthAppOrigin.mockReturnValueOnce("https://app.praedixa.com");
+
+    const response = (await GET(
+      {
+        nextUrl: {
+          origin: "http://internal-webapp:3001",
+          searchParams: new URLSearchParams("next=/dashboard"),
+        },
+      } as Parameters<typeof GET>[0],
+    )) as { redirectUrl: string };
+
+    const redirectUrl = new URL(response.redirectUrl);
+    expect(redirectUrl.searchParams.get("redirect_uri")).toBe(
+      "https://app.praedixa.com/auth/callback",
+    );
+  });
+
   it("redirects to /login with oidc_provider_untrusted when discovery is invalid", async () => {
     mockGetTrustedOidcEndpoints.mockRejectedValueOnce(
       new Error("OIDC discovery request failed"),
@@ -170,6 +199,27 @@ describe("GET /auth/login (webapp)", () => {
     expect(redirectUrl.searchParams.get("error")).toBe(
       "oidc_provider_untrusted",
     );
+    expect(redirectUrl.searchParams.get("next")).toBe("/dashboard");
+  });
+
+  it("redirects to /login with oidc_config_insecure when session secret is weak", async () => {
+    mockGetOidcEnv.mockImplementationOnce(() => {
+      throw new Error(
+        "Invalid AUTH_SESSION_SECRET: replace the placeholder with a unique random secret",
+      );
+    });
+    mockIsMissingOidcEnvError.mockReturnValueOnce(false);
+    mockIsInsecureOidcEnvError.mockReturnValueOnce(true);
+
+    const response = (await GET(createMockRequest({ next: "/dashboard" }))) as {
+      redirectUrl: string;
+    };
+
+    const redirectUrl = new URL(response.redirectUrl);
+    expect(redirectUrl.origin + redirectUrl.pathname).toBe(
+      "https://app.praedixa.com/login",
+    );
+    expect(redirectUrl.searchParams.get("error")).toBe("oidc_config_insecure");
     expect(redirectUrl.searchParams.get("next")).toBe("/dashboard");
   });
 

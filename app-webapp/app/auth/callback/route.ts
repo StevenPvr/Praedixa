@@ -3,15 +3,19 @@ import {
   LOGIN_NEXT_COOKIE,
   LOGIN_STATE_COOKIE,
   LOGIN_VERIFIER_COOKIE,
+  buildSessionData,
   clearAuthCookies,
   exchangeCodeForTokens,
+  getApiAccessTokenCompatibilityReason,
   getOidcEnv,
   getTokenExp,
   sanitizeNextPath,
   setAuthCookies,
   signSession,
+  timingSafeEqual,
   userFromAccessToken,
 } from "@/lib/auth/oidc";
+import { resolveAuthAppOrigin } from "@/lib/auth/origin";
 import { consumeRateLimit } from "@/lib/auth/rate-limit";
 
 type RateLimitSnapshot = Awaited<ReturnType<typeof consumeRateLimit>>;
@@ -43,6 +47,18 @@ function applyRateLimitHeaders(
 }
 
 export async function GET(request: NextRequest) {
+  let appOrigin: string;
+  try {
+    appOrigin = resolveAuthAppOrigin(request);
+  } catch {
+    const redirect = noStoreRedirect(
+      `${request.nextUrl.origin}/login?error=oidc_config_missing`,
+    );
+    clearAuthCookies(redirect);
+    clearLoginFlowCookies(redirect);
+    return redirect;
+  }
+
   const maxAttempts = 30;
   const rate = await consumeRateLimit(request, {
     scope: "auth:callback",
@@ -50,9 +66,7 @@ export async function GET(request: NextRequest) {
     windowMs: 60_000,
   });
   if (!rate.allowed) {
-    const redirect = noStoreRedirect(
-      `${request.nextUrl.origin}/login?error=rate_limited`,
-    );
+    const redirect = noStoreRedirect(`${appOrigin}/login?error=rate_limited`);
     applyRateLimitHeaders(redirect, maxAttempts, rate);
     clearAuthCookies(redirect);
     clearLoginFlowCookies(redirect);
@@ -72,12 +86,10 @@ export async function GET(request: NextRequest) {
     !code ||
     !returnedState ||
     !expectedState ||
-    returnedState !== expectedState ||
+    !timingSafeEqual(returnedState, expectedState) ||
     !verifier
   ) {
-    const redirect = noStoreRedirect(
-      `${request.nextUrl.origin}/login?error=auth_callback_failed`,
-    );
+    const redirect = noStoreRedirect(`${appOrigin}/login?error=auth_callback_failed`);
     applyRateLimitHeaders(redirect, maxAttempts, rate);
     clearAuthCookies(redirect);
     clearLoginFlowCookies(redirect);
@@ -91,14 +103,12 @@ export async function GET(request: NextRequest) {
       clientId,
       clientSecret,
       code,
-      redirectUri: `${request.nextUrl.origin}/auth/callback`,
+      redirectUri: `${appOrigin}/auth/callback`,
       codeVerifier: verifier,
     });
 
     if (!tokenPayload?.access_token) {
-      const redirect = noStoreRedirect(
-        `${request.nextUrl.origin}/login?error=auth_callback_failed`,
-      );
+      const redirect = noStoreRedirect(`${appOrigin}/login?error=auth_callback_failed`);
       applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);
       clearLoginFlowCookies(redirect);
@@ -108,8 +118,20 @@ export async function GET(request: NextRequest) {
     const user = userFromAccessToken(tokenPayload.access_token, clientId);
     const exp = getTokenExp(tokenPayload.access_token);
     if (!user || !exp) {
+      const redirect = noStoreRedirect(`${appOrigin}/login?error=auth_claims_invalid`);
+      applyRateLimitHeaders(redirect, maxAttempts, rate);
+      clearAuthCookies(redirect);
+      clearLoginFlowCookies(redirect);
+      return redirect;
+    }
+
+    const tokenCompatibilityReason = getApiAccessTokenCompatibilityReason(
+      tokenPayload.access_token,
+      clientId,
+    );
+    if (tokenCompatibilityReason) {
       const redirect = noStoreRedirect(
-        `${request.nextUrl.origin}/login?error=auth_claims_invalid`,
+        `${appOrigin}/login?error=auth_token_incompatible&token_reason=${encodeURIComponent(tokenCompatibilityReason)}`,
       );
       applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);
@@ -119,9 +141,7 @@ export async function GET(request: NextRequest) {
 
     // super_admin users must stay on admin app, not webapp.
     if (user.role === "super_admin") {
-      const redirect = noStoreRedirect(
-        `${request.nextUrl.origin}/login?error=wrong_role`,
-      );
+      const redirect = noStoreRedirect(`${appOrigin}/login?error=wrong_role`);
       applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);
       clearLoginFlowCookies(redirect);
@@ -129,21 +149,17 @@ export async function GET(request: NextRequest) {
     }
 
     const sessionToken = await signSession(
-      {
-        sub: user.id,
-        email: user.email,
-        role: user.role,
-        organizationId: user.organizationId,
-        siteId: user.siteId,
-        accessTokenExp: exp,
-        issuedAt: Math.floor(Date.now() / 1000),
-      },
+      await buildSessionData(
+        user,
+        exp,
+        tokenPayload.access_token,
+        tokenPayload.refresh_token ?? null,
+        tokenPayload.refresh_expires_in,
+      ),
       sessionSecret,
     );
 
-    const redirect = noStoreRedirect(
-      `${request.nextUrl.origin}${safeNext}`,
-    );
+    const redirect = noStoreRedirect(`${appOrigin}${safeNext}`);
     setAuthCookies(redirect, request, {
       accessToken: tokenPayload.access_token,
       refreshToken: tokenPayload.refresh_token ?? null,
@@ -156,9 +172,7 @@ export async function GET(request: NextRequest) {
 
     return redirect;
   } catch {
-    const redirect = noStoreRedirect(
-      `${request.nextUrl.origin}/login?error=auth_callback_failed`,
-    );
+    const redirect = noStoreRedirect(`${appOrigin}/login?error=auth_callback_failed`);
     applyRateLimitHeaders(redirect, maxAttempts, rate);
     clearAuthCookies(redirect);
     clearLoginFlowCookies(redirect);

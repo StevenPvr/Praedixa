@@ -7,6 +7,7 @@
     "dev": "next dev --turbopack --port 3002",
     "build": "next build --webpack",
     "start": "next start",
+    "test": "vitest run --config vitest.config.ts",
     "lint": "eslint app/ components/ lib/",
     "typecheck": "tsc --noEmit",
     "deploy:scw:staging": "../scripts/scw-deploy-frontend.sh admin staging",

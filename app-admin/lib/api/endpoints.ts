@@ -81,6 +81,16 @@ export const ADMIN_ENDPOINTS = {
     `${V1}/organizations/${encodeURIComponent(orgId)}/canonical/quality`,
   orgCostParams: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/cost-params`,
+  orgDecisionConfigResolved: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/decision-config/resolved`,
+  orgDecisionConfigVersions: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/decision-config/versions`,
+  orgDecisionConfigVersionCancel: (orgId: string, versionId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/decision-config/versions/${encodeURIComponent(versionId)}/cancel`,
+  orgDecisionConfigVersionRollback: (orgId: string, versionId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/decision-config/versions/${encodeURIComponent(versionId)}/rollback`,
+  orgAlertScenarioRecompute: (orgId: string, alertId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/alerts/${encodeURIComponent(alertId)}/scenarios/recompute`,
   orgAlerts: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/alerts`,
   orgScenarios: (orgId: string) =>
@@ -103,6 +113,26 @@ export const ADMIN_ENDPOINTS = {
     `${V1}/organizations/${encodeURIComponent(orgId)}/datasets/${encodeURIComponent(datasetId)}/data`,
   orgDatasetFeatures: (orgId: string, datasetId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/datasets/${encodeURIComponent(datasetId)}/features`,
+  orgIntegrationConnections: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections`,
+  orgIntegrationConnection: (orgId: string, connectionId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}`,
+  orgIntegrationIngestCredentials: (orgId: string, connectionId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}/ingest-credentials`,
+  orgIntegrationIngestCredentialRevoke: (
+    orgId: string,
+    connectionId: string,
+    credentialId: string,
+  ) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}/ingest-credentials/${encodeURIComponent(credentialId)}/revoke`,
+  orgIntegrationRawEvents: (orgId: string, connectionId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}/raw-events`,
+  orgIntegrationRawEventPayload: (
+    orgId: string,
+    connectionId: string,
+    eventId: string,
+  ) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}/raw-events/${encodeURIComponent(eventId)}/payload`,
 
   // Conversations (admin)
   conversations: `${V1}/conversations`,

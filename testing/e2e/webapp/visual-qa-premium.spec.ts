@@ -63,7 +63,7 @@ const AUTH_ROUTES: RouteAuditConfig[] = [
   {
     path: "/previsions",
     slug: "previsions",
-    heading: "Previsions 7 jours",
+    heading: /^Previsions/,
   },
   {
     path: "/messages",

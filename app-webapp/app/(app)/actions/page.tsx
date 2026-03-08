@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type {
   CoverageAlert,
@@ -10,6 +10,7 @@ import type {
 } from "@praedixa/shared-types";
 import { DataTable, type DataTableColumn } from "@praedixa/ui";
 import { useApiGet, useApiGetPaginated, useApiPost } from "@/hooks/use-api";
+import { useDecisionConfig } from "@/hooks/use-decision-config";
 import { useSiteScope } from "@/lib/site-scope";
 
 const SEVERITY_FILTERS: Array<CoverageAlert["severity"] | "all"> = [
@@ -86,7 +87,7 @@ const HISTORY_COLUMNS: DataTableColumn<DecisionSummary>[] = [
 
 export default function ActionsPage() {
   const searchParams = useSearchParams();
-  const { appendSiteParam } = useSiteScope();
+  const { selectedSiteId, appendSiteParam } = useSiteScope();
 
   const initialSeverity = searchParams.get("severity");
   const [activeTab, setActiveTab] = useState<"treatment" | "history">(
@@ -103,6 +104,18 @@ export default function ActionsPage() {
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
+  const { config: decisionConfig } = useDecisionConfig(selectedSiteId);
+
+  const horizonLabels = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const horizon of decisionConfig?.payload?.horizons ?? []) {
+      map.set(horizon.id, horizon.label);
+    }
+    return map;
+  }, [decisionConfig]);
+
+  const formatHorizonLabel = (horizonId: string): string =>
+    horizonLabels.get(horizonId) ?? horizonId.toUpperCase();
 
   const alertsUrl = useMemo(() => {
     const base = "/api/v1/live/coverage-alerts?status=open&page_size=200";
@@ -134,6 +147,11 @@ export default function ActionsPage() {
     loading: workspaceLoading,
     error: workspaceError,
   } = useApiGet<DecisionWorkspace>(workspaceUrl);
+
+  useEffect(() => {
+    if (!workspace) return;
+    setSelectedOptionId(workspace.recommendedOptionId ?? null);
+  }, [workspace?.alert?.id, workspace?.recommendedOptionId]);
 
   const { mutate: submitDecision, loading: submitLoading, error: submitError } =
     useApiPost<DecisionBody, OperationalDecision>("/api/v1/operational-decisions");
@@ -266,7 +284,8 @@ export default function ActionsPage() {
                           </p>
                           <p className="text-xs text-ink-secondary">
                             {String(alert.shift).toUpperCase()} · {alert.severity} ·
-                            risque {formatPercent(alert.pRupture)}
+                            {formatHorizonLabel(alert.horizon)} · risque{" "}
+                            {formatPercent(alert.pRupture)}
                           </p>
                         </button>
                       </li>
@@ -299,7 +318,9 @@ export default function ActionsPage() {
                     </div>
                     <div className="rounded-lg bg-surface-sunken px-3 py-2">
                       <dt>Horizon</dt>
-                      <dd className="font-medium text-ink">{selectedAlert.horizon.toUpperCase()}</dd>
+                      <dd className="font-medium text-ink">
+                        {formatHorizonLabel(selectedAlert.horizon)}
+                      </dd>
                     </div>
                   </dl>
                 )}
@@ -327,7 +348,12 @@ export default function ActionsPage() {
                               : "border-border bg-surface-sunken hover:bg-surface"
                           }`}
                         >
-                          <p className="text-sm font-medium text-ink">{option.optionType}</p>
+                          <p className="text-sm font-medium text-ink">
+                            {option.optionType}
+                            {workspace?.recommendedOptionId === option.id
+                              ? " · recommandee"
+                              : ""}
+                          </p>
                           <p className="text-xs text-ink-secondary">
                             Cout: {Math.round(option.coutTotalEur).toLocaleString("fr-FR")}€ ·
                             service: {Math.round(option.serviceAttenduPct)}%

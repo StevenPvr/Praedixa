@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@praedixa/ui";
+import { canAccessPath } from "@/lib/auth/route-access";
 
 interface CommandItem {
   id: string;
@@ -162,24 +163,36 @@ export function useCommandPalette() {
 interface CommandPaletteProps {
   open: boolean;
   onClose: () => void;
+  permissions?: readonly string[] | null;
 }
 
-export function CommandPalette({ open, onClose }: CommandPaletteProps) {
+export function CommandPalette({
+  open,
+  onClose,
+  permissions,
+}: CommandPaletteProps) {
   const router = useRouter();
   const [query, setQuery] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement>(null);
+  const availableItems = React.useMemo(
+    () =>
+      permissions == null
+        ? COMMAND_ITEMS
+        : COMMAND_ITEMS.filter((item) => canAccessPath(item.href, permissions)),
+    [permissions],
+  );
 
   const filtered = React.useMemo(() => {
-    if (!query.trim()) return COMMAND_ITEMS;
+    if (!query.trim()) return availableItems;
     const normalized = query.trim().toLowerCase();
-    return COMMAND_ITEMS.filter(
+    return availableItems.filter(
       (item) =>
         item.label.toLowerCase().includes(normalized) ||
         item.keywords.some((keyword) => keyword.includes(normalized)),
     );
-  }, [query]);
+  }, [availableItems, query]);
 
   React.useEffect(() => {
     if (!open) return;

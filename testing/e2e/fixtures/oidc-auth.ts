@@ -38,16 +38,6 @@ interface OidcCookieAuthOptions {
   refreshTokenValue?: string;
 }
 
-interface SignedSession {
-  sub: string;
-  email: string;
-  role: string;
-  organizationId: string | null;
-  siteId: string | null;
-  accessTokenExp: number;
-  issuedAt: number;
-}
-
 function toBase64Url(input: string | Buffer): string {
   return Buffer.from(input)
     .toString("base64")
@@ -60,25 +50,6 @@ function createUnsignedJwt(payload: Record<string, unknown>): string {
   const header = toBase64Url(JSON.stringify({ alg: "none", typ: "JWT" }));
   const encodedPayload = toBase64Url(JSON.stringify(payload));
   return `${header}.${encodedPayload}.sig`;
-}
-
-function signSessionPayload(payload: string, secret: string): string {
-  return crypto
-    .createHmac("sha256", secret)
-    .update(payload)
-    .digest("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/g, "");
-}
-
-function createSignedSessionToken(
-  session: SignedSession,
-  secret: string,
-): string {
-  const payload = toBase64Url(JSON.stringify(session));
-  const signature = signSessionPayload(payload, secret);
-  return `${payload}.${signature}`;
 }
 
 export async function applyOidcAuthCookies(
@@ -110,23 +81,30 @@ export async function applyOidcAuthCookies(
     exp,
     iat: now,
     iss: "https://sso.e2e.local/realms/praedixa",
-    aud: clientId,
+    aud: [clientId, "praedixa-api"],
     organization_id: organizationId,
     site_id: siteId,
   });
 
-  const sessionToken = createSignedSessionToken(
+  const { buildSessionData, signSession } =
+    app === "webapp"
+      ? await import("../../../app-webapp/lib/auth/oidc")
+      : await import("../../../app-admin/lib/auth/oidc");
+
+  const sessionData = await buildSessionData(
     {
-      sub: userId,
+      id: userId,
       email,
       role,
       organizationId,
       siteId,
-      accessTokenExp: exp,
-      issuedAt: now,
     },
-    sessionSecret,
+    exp,
+    accessToken,
+    refreshTokenValue,
   );
+
+  const sessionToken = await signSession(sessionData, sessionSecret);
 
   await page.context().addCookies([
     {

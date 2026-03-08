@@ -56,12 +56,14 @@ describe("sitemap()", () => {
     expect(blogArticleUrls).toEqual([]);
   });
 
-  it("should include quick-service restaurant sector pages in both locales", () => {
+  it("should keep the sitemap focused on the reduced core IA", () => {
     const urls = result.map((entry) => entry.url);
-    expect(urls).toContain(
+    expect(urls).toContain("https://www.praedixa.com/fr/ressources");
+    expect(urls).toContain("https://www.praedixa.com/en/resources");
+    expect(urls).not.toContain(
       "https://www.praedixa.com/fr/praedixa-restauration-rapide",
     );
-    expect(urls).toContain(
+    expect(urls).not.toContain(
       "https://www.praedixa.com/en/praedixa-quick-service-restaurants",
     );
   });

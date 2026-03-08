@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  buildChallengeClientContext,
   createContactChallenge,
   verifyContactChallenge,
 } from "../contact-challenge";
@@ -13,6 +14,10 @@ function parseCaptchaSum(challengeToken: string): number {
 }
 
 describe("contact challenge", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("creates and verifies a valid challenge", () => {
     const challenge = createContactChallenge(Date.now() - 5_000);
     expect(challenge).toBeTruthy();
@@ -81,5 +86,36 @@ describe("contact challenge", () => {
     });
 
     expect(verification).toEqual({ valid: false, reason: "expired" });
+  });
+
+  it("binds the challenge to the originating client context when provided", () => {
+    const request = new Request("https://www.praedixa.com/api/contact/challenge", {
+      headers: {
+        "cf-connecting-ip": "203.0.113.10",
+        "user-agent": "Vitest Browser",
+      },
+    });
+    const clientContext = buildChallengeClientContext(request);
+    const challenge = createContactChallenge(Date.now() - 5_000, clientContext);
+    expect(challenge).toBeTruthy();
+    if (!challenge) return;
+
+    const captchaAnswer = parseCaptchaSum(challenge.challengeToken);
+    const verification = verifyContactChallenge({
+      challengeToken: challenge.challengeToken,
+      captchaAnswer,
+      clientContext: "mismatched-client-context",
+    });
+
+    expect(verification).toEqual({ valid: false, reason: "invalid-context" });
+  });
+
+  it("requires a dedicated secret in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("CONTACT_FORM_CHALLENGE_SECRET", "");
+    vi.stubEnv("RESEND_API_KEY", "re_live_should_not_be_reused");
+    vi.stubEnv("CONTACT_API_INGEST_TOKEN", "ingest_should_not_be_reused");
+
+    expect(createContactChallenge()).toBeNull();
   });
 });

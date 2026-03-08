@@ -4,6 +4,7 @@ import ParametresPage from "../page";
 
 const mockUseCurrentUser = vi.fn();
 const mockUseI18n = vi.fn();
+const mockUseDecisionConfig = vi.fn();
 
 vi.mock("@/lib/auth/client", () => ({
   useCurrentUser: () => mockUseCurrentUser(),
@@ -11,6 +12,10 @@ vi.mock("@/lib/auth/client", () => ({
 
 vi.mock("@/lib/i18n/provider", () => ({
   useI18n: () => mockUseI18n(),
+}));
+
+vi.mock("@/hooks/use-decision-config", () => ({
+  useDecisionConfig: (...args: unknown[]) => mockUseDecisionConfig(...args),
 }));
 
 const STORAGE_KEY = "praedixa_notifications_critical_only";
@@ -48,6 +53,28 @@ describe("ParametresPage", () => {
       setLocale: vi.fn(),
       t: (key: string) => key,
     });
+
+    mockUseDecisionConfig.mockReturnValue({
+      config: {
+        versionId: "version-123",
+        nextVersion: null,
+        payload: {
+          horizons: [
+            {
+              id: "j7",
+              label: "J+7",
+              days: 7,
+              rank: 1,
+              active: true,
+              isDefault: true,
+            },
+          ],
+        },
+      },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
   });
 
   it("renders heading and profile information", () => {
@@ -59,6 +86,7 @@ describe("ParametresPage", () => {
     expect(screen.getByText("user@praedixa.com")).toBeInTheDocument();
     expect(screen.getByText("manager")).toBeInTheDocument();
     expect(screen.getByText("org-1")).toBeInTheDocument();
+    expect(screen.getByText("Configuration active")).toBeInTheDocument();
   });
 
   it("renders fallback values when user is unavailable", () => {

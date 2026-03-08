@@ -32,7 +32,7 @@ describe("Webapp CSP wrapper", () => {
     expect(csp).toContain("connect-src 'self' https://api.praedixa.com");
   });
 
-  it("should fallback to localhost API URL when env is not set", async () => {
+  it("should not allow insecure fallback API origins in production", async () => {
     vi.unstubAllEnvs();
     vi.stubEnv("NODE_ENV", "production");
     vi.resetModules();
@@ -40,7 +40,8 @@ describe("Webapp CSP wrapper", () => {
     const { buildCspHeader } = await import("../csp");
     const csp = buildCspHeader("dGVzdA==");
 
-    expect(csp).toContain("connect-src 'self' http://localhost:8000");
+    expect(csp).toContain("connect-src 'self'");
+    expect(csp).not.toContain("http://localhost:8000");
   });
 
   it("should include CSP reporting directives when configured", async () => {
@@ -76,5 +77,15 @@ describe("Webapp CSP wrapper", () => {
     expect(csp).not.toContain("report-uri");
     expect(csp).not.toContain("report-to");
     expect(buildReportToHeader()).toBeNull();
+  });
+
+  it("should reject protocol-relative report-uri values", async () => {
+    vi.stubEnv("CSP_REPORT_URI", "//evil.example/csp");
+    vi.resetModules();
+
+    const { buildCspHeader } = await import("../csp");
+    const csp = buildCspHeader("dGVzdA==");
+
+    expect(csp).not.toContain("report-uri");
   });
 });

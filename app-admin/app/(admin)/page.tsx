@@ -19,12 +19,23 @@ import {
   type DecisionsAdoption,
   type UnreadCount,
 } from "@/lib/inbox-helpers";
+import { useCurrentUser } from "@/lib/auth/client";
+import { hasAnyPermission } from "@/lib/auth/permissions";
 
 /* ────────────────────────────────────────────── */
 /*  Main Page                                     */
 /* ────────────────────────────────────────────── */
 
 export default function AccueilPage() {
+  const currentUser = useCurrentUser();
+  const canReadAudit = hasAnyPermission(currentUser?.permissions, [
+    "admin:audit:read",
+  ]);
+  const canReadMessages = hasAnyPermission(currentUser?.permissions, [
+    "admin:messages:read",
+    "admin:messages:write",
+  ]);
+
   const {
     data: kpis,
     loading: kpisLoading,
@@ -45,11 +56,11 @@ export default function AccueilPage() {
   );
 
   const { data: auditEntries } = useApiGet<AuditLogEntry[]>(
-    `${ADMIN_ENDPOINTS.auditLog}?page=1&pageSize=10`,
+    canReadAudit ? `${ADMIN_ENDPOINTS.auditLog}?page=1&pageSize=10` : null,
   );
 
   const { data: unreadCount } = useApiGet<UnreadCount>(
-    ADMIN_ENDPOINTS.conversationsUnread,
+    canReadMessages ? ADMIN_ENDPOINTS.conversationsUnread : null,
   );
 
   const inboxItems = useMemo(
@@ -138,12 +149,14 @@ export default function AccueilPage() {
         {/* Sidebar cards — 1/3 width */}
         <div className="space-y-6">
           {kpis && <SystemHealthBar kpis={kpis} />}
-          {unreadCount && <UnreadMessagesCard unread={unreadCount} />}
+          {canReadMessages && unreadCount ? (
+            <UnreadMessagesCard unread={unreadCount} />
+          ) : null}
         </div>
       </div>
 
       {/* Activity feed */}
-      {auditEntries && <ActivityFeed entries={auditEntries} />}
+      {canReadAudit && auditEntries ? <ActivityFeed entries={auditEntries} /> : null}
     </div>
   );
 }

@@ -1,6 +1,11 @@
+import { notFound } from "next/navigation";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 
 export default function CoverageHarnessPage() {
+  if (process.env.NODE_ENV === "production") {
+    notFound();
+  }
+
   const endpointCount = Object.keys(ADMIN_ENDPOINTS).length;
 
   return (
