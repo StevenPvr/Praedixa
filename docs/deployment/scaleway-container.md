@@ -83,6 +83,10 @@ pnpm run scw:deploy:admin:staging
 pnpm release:deploy -- --manifest /tmp/landing-manifest.json --env prod
 ```
 
+Note de build frontend:
+
+- pour les images Next.js ciblees en `linux/amd64`, preferer une base glibc (`node:*bookworm-slim` ou equivalent) si un build Docker Alpine casse sur des binaires natifs pendant `next build`.
+
 ## Variables requises (configuration containers)
 
 ### Frontends (`scw-configure-frontend-env.sh`)

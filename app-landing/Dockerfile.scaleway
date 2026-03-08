@@ -1,7 +1,10 @@
-FROM --platform=linux/amd64 node:22-alpine AS base
+FROM node:22-bookworm-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates wget \
+ && rm -rf /var/lib/apt/lists/* \
+ && corepack enable
 WORKDIR /app
 
 FROM base AS deps
@@ -25,7 +28,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=8080
-RUN addgroup -S praedixa && adduser -S -G praedixa -u 10001 praedixa
+RUN groupadd --system --gid 10001 praedixa \
+ && useradd --system --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin praedixa
 WORKDIR /app
 COPY --from=builder --chown=praedixa:praedixa /app/app-landing/.next/standalone ./
 COPY --from=builder --chown=praedixa:praedixa /app/app-landing/.next/static ./app-landing/.next/static
