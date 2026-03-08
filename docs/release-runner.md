@@ -86,6 +86,7 @@ Ce repo contient maintenant un squelette de release immuable orienté runner Sca
 ## Notes
 
 - Le manifest contient les digests; staging et prod doivent consommer exactement les mêmes images.
+- Le deploy Scaleway Container consomme une reference taggee; le script de deploy derive cette reference a partir de l'image signee du manifest en retirant le suffixe `@sha256:...`.
 - La clé HMAC par défaut vit hors repo: `${HOME}/.praedixa/release-manifest.key`.
 - Pour `landing`, ce flow remplace définitivement le legacy `scw-deploy-landing.sh`.
 - Le mapping `service -> container_name` est actuellement embarqué dans le manifest create/deploy. Si vous industrialisez le runner, déplacez ce mapping dans un inventaire d’environnement versionné.
