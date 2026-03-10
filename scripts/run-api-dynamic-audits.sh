@@ -27,7 +27,7 @@ wait_for_url() {
   local url="$1"
   local timeout_seconds="${2:-90}"
   local elapsed=0
-  while ! curl -fsS "$url" >/dev/null 2>&1; do
+  while ! curl --connect-timeout 2 --max-time 5 -fsS "$url" >/dev/null 2>&1; do
     sleep 1
     elapsed=$((elapsed + 1))
     if ((elapsed >= timeout_seconds)); then
@@ -35,6 +35,30 @@ wait_for_url() {
       return 1
     fi
   done
+}
+
+run_with_timeout() {
+  local timeout_seconds="$1"
+  shift
+
+  python3 - "$timeout_seconds" "$@" <<'PY'
+import subprocess
+import sys
+
+timeout = int(sys.argv[1])
+command = sys.argv[2:]
+
+try:
+    result = subprocess.run(command, timeout=timeout, check=False)
+except subprocess.TimeoutExpired:
+    print(
+        f"[api-dynamic] Timeout after {timeout}s: {' '.join(command)}",
+        file=sys.stderr,
+    )
+    raise SystemExit(124)
+
+raise SystemExit(result.returncode)
+PY
 }
 
 find_free_port() {
@@ -59,15 +83,22 @@ API_PID="$!"
 wait_for_url "${API_BASE_URL}/api/v1/health" 120
 
 echo "[api-dynamic] Schemathesis scan..."
+SCHEMATHESIS_CMD=(
+  --max-examples 50
+  --checks not_a_server_error
+  --suppress-health-check=filter_too_much
+  contracts/openapi/public.yaml
+  --url "${API_BASE_URL}"
+)
 if command -v st >/dev/null 2>&1; then
-  st run --max-examples 50 --checks not_a_server_error --suppress-health-check=filter_too_much contracts/openapi/public.yaml --url "${API_BASE_URL}"
+  run_with_timeout 300 st run "${SCHEMATHESIS_CMD[@]}"
 elif command -v schemathesis >/dev/null 2>&1; then
-  schemathesis run --max-examples 50 --checks not_a_server_error --suppress-health-check=filter_too_much contracts/openapi/public.yaml --url "${API_BASE_URL}"
+  run_with_timeout 300 schemathesis run "${SCHEMATHESIS_CMD[@]}"
 else
-  uv tool run --from schemathesis st run --max-examples 50 --checks not_a_server_error --suppress-health-check=filter_too_much contracts/openapi/public.yaml --url "${API_BASE_URL}"
+  run_with_timeout 300 uv tool run --from schemathesis st run "${SCHEMATHESIS_CMD[@]}"
 fi
 
 echo "[api-dynamic] k6 smoke..."
-BASE_URL="${API_BASE_URL}" k6 run testing/performance/k6-smoke.js
+run_with_timeout 120 env BASE_URL="${API_BASE_URL}" k6 run testing/performance/k6-smoke.js
 
 echo "[api-dynamic] OK"
