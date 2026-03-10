@@ -797,7 +797,8 @@ def build_proof_records(
         month_start = d.replace(day=1)
         key = (site_code, month_start)
         current = per_site_month.get(key)
-        if current is None or _to_date(current.get("date")) < d:
+        current_date = _to_date(current.get("date")) if current is not None else None
+        if current is None or current_date is None or current_date < d:
             per_site_month[key] = row
 
     out: list[dict[str, Any]] = []

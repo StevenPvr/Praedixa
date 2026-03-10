@@ -23,11 +23,14 @@ Appliquer un gate sécurité/qualité bloquant avec preuve locale signée.
 
 - `pre-commit` execute:
   - `./scripts/gate-precommit-blocking.sh`
+  - `prettier --write` sur les fichiers stages compatibles
     - `./scripts/gate-precommit-delta.sh` (garde-fous securite)
     - `./scripts/gate-precommit-tests.sh` (pytest complet incluant unit + vitest Next.js + Playwright e2e)
+- `commit-msg` execute:
+  - `./scripts/check-commit-message.sh`
 - `pre-push` execute:
   - `./scripts/gate-prepush-deep.sh`
-  - puis `./scripts/verify-gate-report.sh --mode pre-push --run-if-missing --max-age-seconds 21600`
+  - puis `./scripts/verify-gate-report.sh --mode manual --run-if-missing --max-age-seconds 21600`
 
 Installation hooks:
 
@@ -100,6 +103,10 @@ Securite/qualite/perf:
 - `syft`
 - `grype`
 - `terraform` + `tflint` (si fichiers `.tf`)
+
+Le `pre-push` profond execute aussi `./scripts/gate-quality-static.sh` avec lint ESLint sans warnings, puis la verification des invariants declares (`python3 scripts/check-security-invariants.py --mode full`) avant la verification du rapport signe.
+Le gate exhaustif lance CodeQL `security-extended` sur un snapshot source epure des artefacts generes (`.next`, `.open-next`, `coverage`, `playwright-report`) et des depots imbriques hors scope. Les controles de qualite restent portes par ESLint, TypeScript, Ruff, MyPy, Knip, dependency-cruiser, deptry et les builds/tests.
+Pour la dette Python historique, le gate exhaustif bloque toute nouvelle violation Xenon ou toute aggravation via `scripts/check-python-complexity-baseline.py`, avec baseline versionnee dans `scripts/python-complexity-baseline.json`.
 
 Si un outil requis manque, le gate echoue par defaut.
 

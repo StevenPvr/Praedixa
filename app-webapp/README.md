@@ -12,19 +12,19 @@ Application de pilotage de capacite pour les responsables de sites logistiques. 
 
 Pour onboarder plus vite dans le sous-arbre, lire ensuite les README locaux. Sur l'etat courant des dossiers, ces README distribues font foi quand ils divergent d'un inventaire plus ancien plus bas dans ce fichier.
 
-| Zone | README |
-| --- | --- |
-| App Router | `app/README.md` |
-| Pages authentifiees | `app/(app)/README.md` |
-| Pages publiques | `app/(auth)/README.md` |
-| Route handlers auth | `app/auth/README.md` |
-| BFF/API routes | `app/api/README.md` |
-| Composants | `components/README.md` |
-| Hooks | `hooks/README.md` |
-| Librairies | `lib/README.md` |
-| Client API | `lib/api/README.md` |
-| Auth | `lib/auth/README.md` |
-| Securite | `lib/security/README.md` |
+| Zone                | README                   |
+| ------------------- | ------------------------ |
+| App Router          | `app/README.md`          |
+| Pages authentifiees | `app/(app)/README.md`    |
+| Pages publiques     | `app/(auth)/README.md`   |
+| Route handlers auth | `app/auth/README.md`     |
+| BFF/API routes      | `app/api/README.md`      |
+| Composants          | `components/README.md`   |
+| Hooks               | `hooks/README.md`        |
+| Librairies          | `lib/README.md`          |
+| Client API          | `lib/api/README.md`      |
+| Auth                | `lib/auth/README.md`     |
+| Securite            | `lib/security/README.md` |
 
 ---
 
@@ -46,24 +46,24 @@ pnpm dev:webapp   # http://localhost:3001
 
 ### Variables d'environnement
 
-| Variable                  | Description                                     | Exemple                                     |
-| ------------------------- | ----------------------------------------------- | ------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`     | URL de l'API backend (`https://` requis en production) | `http://localhost:8000`               |
-| `AUTH_APP_ORIGIN`         | Origin publique du webapp pour les redirects OIDC et les controles same-origin (`https://` requis en production) | `http://localhost:3001` |
-| `AUTH_OIDC_ISSUER_URL`    | URL realm OIDC (Keycloak)                       | `https://auth.praedixa.com/realms/praedixa` |
-| `AUTH_OIDC_CLIENT_ID`     | Client ID OIDC webapp                           | `praedixa-webapp`                           |
-| `AUTH_OIDC_CLIENT_SECRET` | Client secret OIDC (optionnel si client public) | `<secret>`                                  |
-| `AUTH_OIDC_SCOPE`         | Scope OIDC                                      | `openid profile email offline_access`       |
-| `AUTH_SESSION_SECRET`     | Secret de signature session, unique et aleatoire (32+ caracteres minimum) | `<48+ random chars>` |
-| `AUTH_TRUST_X_FORWARDED_FOR` | Autorise les en-tetes proxy IP (`CF-Connecting-IP`, `X-Real-IP`, `X-Forwarded-For`) pour le rate limit; laisser desactive hors proxy de confiance | `1` |
-| `AUTH_RATE_LIMIT_REDIS_URL` | URL Redis/Valkey pour rate limit distribue (optionnel) | `rediss://user:pass@redis-fr.example:6380/0` |
-| `AUTH_RATE_LIMIT_KEY_PREFIX` | Prefix de cle Redis/Valkey (optionnel)       | `prx:auth:rl`                               |
-| `AUTH_RATE_LIMIT_KEY_SALT` | Sel pour pseudonymiser les cles rate limit (optionnel) | `<long random secret>`               |
-| `AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS` | Timeout connexion Redis (ms) | `300` |
-| `AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS` | Timeout commande Redis (ms) | `300` |
-| `API_PROXY_MAX_BODY_BYTES` | Taille max acceptee par le proxy BFF pour les corps de requete authentifies | `1048576` |
-| `CSP_REPORT_URI`          | Endpoint `report-uri` CSP (optionnel)           | `/api/security/csp-report`                  |
-| `CSP_REPORT_TO_URL`       | Endpoint `report-to` CSP (optionnel)            | `https://reports.praedixa.com/csp`          |
+| Variable                                   | Description                                                                                                                                       | Exemple                                      |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`                      | URL de l'API backend (`https://` requis en production)                                                                                            | `http://localhost:8000`                      |
+| `AUTH_APP_ORIGIN`                          | Origin publique du webapp pour les redirects OIDC et les controles same-origin (`https://` requis en production)                                  | `http://localhost:3001`                      |
+| `AUTH_OIDC_ISSUER_URL`                     | URL realm OIDC (Keycloak)                                                                                                                         | `https://auth.praedixa.com/realms/praedixa`  |
+| `AUTH_OIDC_CLIENT_ID`                      | Client ID OIDC webapp                                                                                                                             | `praedixa-webapp`                            |
+| `AUTH_OIDC_CLIENT_SECRET`                  | Client secret OIDC (optionnel si client public)                                                                                                   | `<secret>`                                   |
+| `AUTH_OIDC_SCOPE`                          | Scope OIDC                                                                                                                                        | `openid profile email offline_access`        |
+| `AUTH_SESSION_SECRET`                      | Secret de signature session, unique et aleatoire (32+ caracteres minimum)                                                                         | `<48+ random chars>`                         |
+| `AUTH_TRUST_X_FORWARDED_FOR`               | Autorise les en-tetes proxy IP (`CF-Connecting-IP`, `X-Real-IP`, `X-Forwarded-For`) pour le rate limit; laisser desactive hors proxy de confiance | `1`                                          |
+| `AUTH_RATE_LIMIT_REDIS_URL`                | URL Redis/Valkey pour rate limit distribue (optionnel)                                                                                            | `rediss://user:pass@redis-fr.example:6380/0` |
+| `AUTH_RATE_LIMIT_KEY_PREFIX`               | Prefix de cle Redis/Valkey (optionnel)                                                                                                            | `prx:auth:rl`                                |
+| `AUTH_RATE_LIMIT_KEY_SALT`                 | Sel pour pseudonymiser les cles rate limit (optionnel)                                                                                            | `<long random secret>`                       |
+| `AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS` | Timeout connexion Redis (ms)                                                                                                                      | `300`                                        |
+| `AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS` | Timeout commande Redis (ms)                                                                                                                       | `300`                                        |
+| `API_PROXY_MAX_BODY_BYTES`                 | Taille max acceptee par le proxy BFF pour les corps de requete authentifies                                                                       | `1048576`                                    |
+| `CSP_REPORT_URI`                           | Endpoint `report-uri` CSP (optionnel)                                                                                                             | `/api/security/csp-report`                   |
+| `CSP_REPORT_TO_URL`                        | Endpoint `report-to` CSP (optionnel)                                                                                                              | `https://reports.praedixa.com/csp`           |
 
 ---
 
@@ -90,13 +90,13 @@ pnpm dev:webapp   # http://localhost:3001
 
 ### Route group `(auth)` -- pages et route handlers publics
 
-| Route            | Description                           |
-| ---------------- | ------------------------------------- |
-| `/login`         | Connexion via OIDC (Keycloak)         |
-| `/auth/callback` | Callback OAuth apres authentification |
-| `/auth/login`    | Route handler qui initie le flow OIDC |
+| Route            | Description                                                   |
+| ---------------- | ------------------------------------------------------------- |
+| `/login`         | Connexion via OIDC (Keycloak)                                 |
+| `/auth/callback` | Callback OAuth apres authentification                         |
+| `/auth/login`    | Route handler qui initie le flow OIDC                         |
 | `/auth/logout`   | Route handler de deconnexion avec revocation OIDC best-effort |
-| `/auth/session`  | Refresh de token et lecture session   |
+| `/auth/session`  | Refresh de token et lecture session                           |
 
 ---
 
@@ -104,10 +104,10 @@ pnpm dev:webapp   # http://localhost:3001
 
 L'authentification repose sur **OIDC Authorization Code + PKCE**. Trois fichiers cles composent le systeme :
 
-| Fichier                  | Role                                              |
-| ------------------------ | ------------------------------------------------- |
-| `lib/auth/middleware.ts` | Validation serveur de la session a chaque requete |
-| `lib/auth/server.ts`     | Lecture/verification de session cote serveur      |
+| Fichier                  | Role                                                |
+| ------------------------ | --------------------------------------------------- |
+| `lib/auth/middleware.ts` | Validation serveur de la session a chaque requete   |
+| `lib/auth/server.ts`     | Lecture/verification de session cote serveur        |
 | `lib/auth/client.ts`     | Lecture de session client sans exposition du bearer |
 
 ### Flux proxy
@@ -233,13 +233,12 @@ La sidebar (`components/sidebar.tsx`) est **collapsible** sur desktop et s'ouvre
 
 ### Composants locaux
 
-| Dossier                  | Contenu                                                                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `components/dashboard/`  | `ForecastTimelineChart`, `NextActionCard`, `ScenarioComparisonChart`, `ForecastChart`                        |
-| `components/previsions/` | `DecompositionPanel`, `FeatureImportanceBar`                                                                 |
-| `components/actions/`    | `AlertSelector`, `OptimizationPanel`                                                                         |
-| `components/chat/`       | `ConversationList`, `MessageThread`, `MessageInput`                                                          |
-| `components/` (racine)   | `Sidebar`, `AnimatedSection`, `StatusBanner`, `EmptyState`, `ErrorFallback`, `PraedixaLogo`, `ToastProvider` |
+| Dossier                 | Contenu                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `components/dashboard/` | `ForecastTimelineChart`, `NextActionCard`, `ScenarioComparisonChart`, `ForecastChart`                        |
+| `components/actions/`   | `AlertSelector`, `OptimizationPanel`                                                                         |
+| `components/chat/`      | `ConversationList`, `MessageThread`, `MessageInput`                                                          |
+| `components/` (racine)  | `Sidebar`, `AnimatedSection`, `StatusBanner`, `EmptyState`, `ErrorFallback`, `PraedixaLogo`, `ToastProvider` |
 
 ### Composants partages (`@praedixa/ui`)
 

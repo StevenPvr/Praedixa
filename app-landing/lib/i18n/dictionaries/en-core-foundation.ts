@@ -2,14 +2,12 @@ import type { Dictionary } from "../types";
 
 export const enCoreFoundation: Partial<Dictionary> = {
   meta: {
-    title:
-      "Praedixa | AI decision copilot for multi-site networks",
+    title: "Praedixa | French DecisionOps platform",
     description:
-      "AI decision copilot for SMB and mid-market multi-site networks: anticipate KPI drifts, standardize options, trigger the first step, then prove impact every month. EU AI Act & GDPR by design. Month 1: free historical audit (read-only).",
-    ogTitle:
-      "Praedixa | AI decision copilot | Impact proof",
+      "Praedixa is the French DecisionOps platform: it connects to your existing systems, governs critical trade-offs, triggers the first validated action, and proves ROI decision by decision.",
+    ogTitle: "Praedixa | DecisionOps for operations",
     ogDescription:
-      "Defensible trade-offs with proof: cost/service/risk options, assisted first step, and monthly impact proof for Ops/Finance reviews.",
+      "Praedixa connects the systems that matter to a decision, calculates cost / service / risk options, and proves ROI decision by decision.",
   },
 
   nav: {
@@ -26,39 +24,40 @@ export const enCoreFoundation: Partial<Dictionary> = {
   },
 
   hero: {
-    kicker: "AI decision copilot · Multi-site networks",
-    headline: "AI decision copilot for multi-site networks.",
-    headlineHighlight: "Protect margin and service levels.",
+    kicker: "French DecisionOps platform",
+    headline: "DecisionOps for operations.",
+    headlineHighlight: "Decide earlier. Prove ROI.",
     subtitle:
-      "Anticipate KPI drifts, standardize options, trigger the first step, then prove impact every month. EU AI Act & GDPR by design. Human validation required.",
+      "Praedixa connects to your existing systems, federates the critical data on France-hosted infrastructure, turns recurring operational trade-offs into governed, auditable decisions, then proves ROI decision by decision for Ops / Finance reviews. Human validation required.",
     manifestoLabel: "Our purpose",
     manifestoQuote:
       "Supporting company growth by revealing the potential of their data.",
     bullets: [
       {
-        metric: "Free audit",
-        text: "historical: potential & priorities",
+        metric: "DecisionOps",
+        text: "on top of your stack",
       },
       {
-        metric: "3 months",
-        text: "method + monthly proof",
+        metric: "Validated action",
+        text: "inside existing tools",
       },
       {
-        metric: "Read-only start",
-        text: "exports, no tool replacement project",
+        metric: "ROI proof",
+        text: "decision by decision",
       },
     ],
     ctaPrimary: "Request the free historical audit",
     ctaSecondary: "See the proof protocol",
     previewTitle: "A preview of what awaits you",
     ctaMeta:
-      "Ops & Finance aligned · Human validation · EU AI Act & GDPR by design",
+      "Ops & Finance aligned · Human validation · France-hosted infrastructure",
     trustBadges: [
-      "Guided decisions + decision journal + monthly proof",
-      "Option: KPI forecasting only",
-      "Indicators: capacity, demand, inventory/supply… (as needed)",
-      "Read-only kickoff (exports)",
-      "Multi-site comparability, governance, and standardization",
+      "DecisionOps on top of the existing stack",
+      "Read-only federation of critical systems",
+      "Governed cost / service / risk trade-offs",
+      "First validated action triggered in existing tools",
+      "Human validation required",
+      "Decision-by-decision ROI proof",
       "Hosted in France (Scaleway)",
     ],
   },
@@ -66,11 +65,9 @@ export const enCoreFoundation: Partial<Dictionary> = {
   preview: {
     kicker: "A preview",
     heading: "The Praedixa interface",
-    subheading:
-      "See how the decision protocol takes shape in the interface.",
+    subheading: "See how the decision protocol takes shape in the interface.",
     overlayTitle: "Discover the web app",
-    overlayBody:
-      "Open a public preview (same UI, fictitious data).",
+    overlayBody: "Open a public preview (same UI, fictitious data).",
     overlayCta: "Discover the web app",
     overlayBackCta: "Back to video",
     loadingLabel: "Loading preview video...",
@@ -79,8 +76,7 @@ export const enCoreFoundation: Partial<Dictionary> = {
 
   problem: {
     kicker: "Operational problem",
-    heading:
-      "Cost/service trade-offs happen daily — rarely with proof.",
+    heading: "Cost/service trade-offs happen daily — rarely with proof.",
     subheading:
       "Without a shared Ops/Finance protocol, decisions stay defensive, vary by site, and are hard to defend economically.",
     cta: "Request the free historical audit",
@@ -102,24 +98,19 @@ export const enCoreFoundation: Partial<Dictionary> = {
         title: "Late trade-offs",
         description:
           "Useful signals arrive when room for maneuver is already limited.",
-        consequence:
-          "Emergency measures, overload, unstable service quality",
+        consequence: "Emergency measures, overload, unstable service quality",
         cost: "Reacting often costs more than anticipating",
       },
       {
         title: "Different rules across sites",
-        description:
-          "Each site applies local logic with no shared reference.",
-        consequence:
-          "Harder comparisons and fragile network governance",
+        description: "Each site applies local logic with no shared reference.",
+        consequence: "Harder comparisons and fragile network governance",
         cost: "Less controlled operations budget at network level",
       },
       {
         title: "Economic impact is hard to attribute",
-        description:
-          "Actions are launched, but real impact stays unclear.",
-        consequence:
-          "Reviews lack clear evidence of what works",
+        description: "Actions are launched, but real impact stays unclear.",
+        consequence: "Reviews lack clear evidence of what works",
         cost: "Budgets and priorities are challenged without proof",
       },
     ],
@@ -135,46 +126,46 @@ export const enCoreFoundation: Partial<Dictionary> = {
   },
 
   solution: {
-    kicker: "Praedixa method",
-    heading: "We improve decisions, not just forecasts.",
+    kicker: "DecisionOps",
+    heading: "DecisionOps above your existing tools.",
     subheading:
-      "Forecasting helps. Value comes from decisions you can compare, record, and quantify. The goal: clearer cost/service trade-offs and repeatable impact proof.",
+      "The market already offers forecasting, scheduling automation, labor costing, and scenario simulation. Praedixa adds something else: a governed federation of the useful data on top of your stack, executable trade-offs, and finance-grade ROI proof.",
     principles: [
       {
-        title: "The right signals, at the right level",
-        subtitle: "Understand the situation",
+        title: "Federate the systems that matter to a decision",
+        subtitle: "Read-only · France-hosted",
         description:
-          "Capacity, demand, inventory/supply… based on your priorities. Team/site level only (not individual).",
+          "Exports, APIs, ERP, scheduling, BI, and spreadsheets are connected into one governed frame without asking teams to replace their core tools.",
       },
       {
-        title: "Concrete options to compare",
-        subtitle: "Choose with your rules",
+        title: "Turn trade-offs into governed decisions",
+        subtitle: "Cost / service / risk",
         description:
-          "We put real options on the table (reinforcement, reallocation, schedule adjustment, etc.) and make the trade-off explicit before acting.",
+          "Praedixa puts real options on the table, makes the trade-off explicit, keeps business guardrails visible, and prepares the next move instead of stopping at the signal.",
       },
       {
-        title: "Decision journal + monthly proof",
-        subtitle: "Record, then measure",
+        title: "Trigger and prove",
+        subtitle: "Validated action · finance-grade proof",
         description:
-          "What was chosen, why, and what changed. Then a monthly proof you can use in reviews.",
+          "The validated first step is pushed into existing tools, then the decision is reviewed with baseline / recommended / actual and explicit assumptions.",
       },
     ],
     differentiators: {
-      title: "What Praedixa does (and doesn't)",
+      title: "The difference is in the DecisionOps combination",
       description:
-        "One product: the complete Signature Service. Optionally, KPI forecasting only if you need it.",
+        "No single brick is unique on its own. What stands out is the product combination packaged as the operating core.",
       items: [
         {
-          is: "Signature Service (decisions + journal + proof)",
-          isNot: "Forecasting only, no decision protocol",
+          is: "Governed federation on top of the stack",
+          isNot: "Data project or tool replacement",
         },
         {
-          is: "Adds on top of your tools (read-only)",
-          isNot: "A replacement for your ERP/scheduling/BI tools",
+          is: "Decision Journal + first action in the tools",
+          isNot: "Signals or dashboards with no execution path",
         },
         {
-          is: "Monthly proof (baseline / recommended / actual)",
-          isNot: "Dashboards disconnected from decisions",
+          is: "Decision-by-decision monthly proof",
+          isNot: "Generic ROI claims disconnected from decisions",
         },
       ],
     },

@@ -10,7 +10,7 @@ Security notes:
 
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import cast
+from typing import TypedDict, cast
 
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,6 +31,12 @@ from app.services.dashboard import DashboardSummary, get_dashboard_summary
 
 # Allowed period values for date_trunc (SQL injection prevention)
 _ALLOWED_PERIODS = frozenset({"day", "week", "month"})
+
+
+class ProofSummary(TypedDict):
+    proof_records: int
+    total_gain_net_eur: float
+    avg_proof_adoption_pct: float | None
 
 
 async def get_platform_kpis(session: AsyncSession) -> dict[str, object]:
@@ -281,7 +287,7 @@ async def get_roi_by_org(session: AsyncSession) -> list[dict[str, object]]:
     ingestion_result = await session.execute(ingestion_q)
     ingestion_rows = ingestion_result.all()
 
-    proof_by_org: dict[uuid.UUID, dict[str, object]] = {}
+    proof_by_org: dict[uuid.UUID, ProofSummary] = {}
     for row in proof_rows:
         avg_adoption_raw = row[3]
         proof_by_org[row[0]] = {
@@ -293,6 +299,11 @@ async def get_roi_by_org(session: AsyncSession) -> list[dict[str, object]]:
                 else None
             ),
         }
+    empty_proof: ProofSummary = {
+        "proof_records": 0,
+        "total_gain_net_eur": 0.0,
+        "avg_proof_adoption_pct": None,
+    }
 
     decisions_by_org: dict[uuid.UUID, tuple[int, int]] = {
         row[0]: (int(row[1] or 0), int(row[2] or 0)) for row in decisions_rows
@@ -306,7 +317,7 @@ async def get_roi_by_org(session: AsyncSession) -> list[dict[str, object]]:
 
     rows: list[dict[str, object]] = []
     for org_id, org_name in orgs_rows:
-        proof = proof_by_org.get(org_id, {})
+        proof = proof_by_org.get(org_id, empty_proof)
         total_decisions, overridden_count = decisions_by_org.get(org_id, (0, 0))
         adopted_count = max(total_decisions - overridden_count, 0)
         decision_adoption_pct = (
@@ -320,9 +331,9 @@ async def get_roi_by_org(session: AsyncSession) -> list[dict[str, object]]:
             {
                 "organization_id": org_id,
                 "organization_name": org_name,
-                "proof_records": int(proof.get("proof_records", 0)),
-                "total_gain_net_eur": float(proof.get("total_gain_net_eur", 0.0)),
-                "avg_proof_adoption_pct": proof.get("avg_proof_adoption_pct"),
+                "proof_records": proof["proof_records"],
+                "total_gain_net_eur": proof["total_gain_net_eur"],
+                "avg_proof_adoption_pct": proof["avg_proof_adoption_pct"],
                 "total_decisions": total_decisions,
                 "adopted_count": adopted_count,
                 "overridden_count": overridden_count,

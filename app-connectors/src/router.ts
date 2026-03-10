@@ -1,4 +1,10 @@
-import type { CompiledRoute, HttpMethod, RouteDefinition, RouteHandler } from "./types.js";
+import type {
+  CompiledRoute,
+  HttpMethod,
+  RouteDefinition,
+  RouteHandler,
+  ServiceTokenCapability,
+} from "./types.js";
 
 export class RouteMatchError extends Error {
   constructor(message: string) {
@@ -7,7 +13,10 @@ export class RouteMatchError extends Error {
   }
 }
 
-function compileTemplate(template: string): { regex: RegExp; paramNames: string[] } {
+function compileTemplate(template: string): {
+  regex: RegExp;
+  paramNames: string[];
+} {
   const chunks = template.split("/").filter((chunk) => chunk.length > 0);
   const paramNames: string[] = [];
   const patternParts = chunks.map((chunk) => {
@@ -31,12 +40,16 @@ export function route(
   method: HttpMethod,
   template: string,
   handler: RouteHandler,
-  options?: { authRequired?: boolean },
+  options?: {
+    authRequired?: boolean;
+    requiredCapabilities?: readonly ServiceTokenCapability[];
+  },
 ): RouteDefinition {
   return {
     method,
     template,
     authRequired: options?.authRequired ?? true,
+    requiredCapabilities: options?.requiredCapabilities ?? [],
     handler,
   };
 }
@@ -48,6 +61,7 @@ export function compileRoutes(routes: RouteDefinition[]): CompiledRoute[] {
       method: entry.method,
       template: entry.template,
       authRequired: entry.authRequired,
+      requiredCapabilities: entry.requiredCapabilities,
       handler: entry.handler,
       regex: compiled.regex,
       paramNames: compiled.paramNames,
@@ -78,7 +92,9 @@ export function matchRoute(
         try {
           params[name] = decodeURIComponent(value);
         } catch {
-          throw new RouteMatchError(`Invalid encoding for route parameter "${name}"`);
+          throw new RouteMatchError(
+            `Invalid encoding for route parameter "${name}"`,
+          );
         }
       }
     }

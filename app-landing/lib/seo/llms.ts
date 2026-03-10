@@ -3,6 +3,7 @@ import {
   getKnowledgePage,
   type KnowledgePageKey,
 } from "../content/knowledge-pages";
+import { listSectorPages, getSectorPagePath } from "../content/sector-pages";
 import { serpResourceTargetsFr } from "../content/serp-resources-fr";
 import { localizedSlugs } from "../i18n/config";
 
@@ -112,6 +113,20 @@ function buildCoreKnowledgeLinks() {
       `/en/${localizedSlugs.security.en}`,
       "English security and governance summary for buyers and operators.",
     ),
+    ...listSectorPages("fr").map((entry) =>
+      link(
+        `Sector FR: ${entry.title}`,
+        getSectorPagePath("fr", entry.id),
+        entry.metaDescription,
+      ),
+    ),
+    ...listSectorPages("en").map((entry) =>
+      link(
+        `Industry EN: ${entry.title}`,
+        getSectorPagePath("en", entry.id),
+        entry.metaDescription,
+      ),
+    ),
   ];
 }
 
@@ -175,26 +190,22 @@ export function buildLlmsTxt(): string {
   return [
     "# Praedixa",
     "",
-    "> Praedixa is an AI decision copilot for multi-site operations: detect short-horizon KPI drift, compare cost/service/risk trade-offs, trigger the first assisted step, and prove ROI every month.",
+    "> Praedixa is a French DecisionOps platform for multi-site operations: connect the systems that matter to a decision, compare cost/service/risk options, trigger the validated first action, and prove ROI decision by decision.",
     "",
     "Canonical domain: https://www.praedixa.com",
     "Primary market language: French, with English parity on core product pages.",
     "",
     section("Canonical Positioning", [
-      "- Closed-loop workflow: forecast, decision, assisted first action, monthly ROI proof.",
+      "- DecisionOps workflow: federate the useful systems, calculate options, trigger the validated action, and prove ROI decision by decision.",
       "- Read-only overlay on existing exports and APIs before any deeper integration.",
       "- Human in the loop: managers remain decision-makers.",
-      "- Not a scheduling, WFM, ERP, or BI replacement project.",
+      "- Not a scheduling, WFM, ERP, BI, or generic data-platform replacement project.",
       "- Best fit: multi-site networks that need auditable operational trade-offs.",
     ]),
     section("Primary Entry Points", buildPrimaryLinks()),
     section("Core Knowledge", buildCoreKnowledgeLinks()),
     section("Optional", [
-      link(
-        "Sitemap",
-        "/sitemap.xml",
-        "XML index of canonical public URLs.",
-      ),
+      link("Sitemap", "/sitemap.xml", "XML index of canonical public URLs."),
       link(
         "RSS feed",
         "/rss.xml",
@@ -215,6 +226,22 @@ export function buildLlmsFullTxt(): string {
     section("Primary Pages", buildPrimaryLinks()),
     section("Core FR", buildKnowledgeLinks("fr")),
     section("Core EN", buildKnowledgeLinks("en")),
+    section("Sector Pages", [
+      ...listSectorPages("fr").map((entry) =>
+        link(
+          `Sector FR: ${entry.title}`,
+          getSectorPagePath("fr", entry.id),
+          entry.metaDescription,
+        ),
+      ),
+      ...listSectorPages("en").map((entry) =>
+        link(
+          `Industry EN: ${entry.title}`,
+          getSectorPagePath("en", entry.id),
+          entry.metaDescription,
+        ),
+      ),
+    ]),
     section("French SERP Resource Library", buildFrenchResourceLinks()),
     section("Blog and Editorial Surfaces", buildBlogLinks()),
     section("Legal and Trust", [

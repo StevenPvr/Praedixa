@@ -2,7 +2,7 @@ import { z } from "zod";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import type { AppConfig } from "./types.js";
+import type { AppConfig, ServiceTokenCapability } from "./types.js";
 
 const DEV_CORS_ORIGINS = [
   "http://localhost:3000",
@@ -12,11 +12,26 @@ const DEV_CORS_ORIGINS = [
 ] as const;
 const HOST_PATTERN = /^[a-zA-Z0-9.:-]{1,255}$/;
 const ORG_SCOPE_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9:_-]{0,127}$/;
+const SERVICE_TOKEN_CAPABILITIES = [
+  "catalog:read",
+  "connections:read",
+  "connections:write",
+  "ingest_credentials:read",
+  "ingest_credentials:write",
+  "raw_events:read",
+  "raw_events:write",
+  "oauth:write",
+  "connections:test",
+  "sync:read",
+  "sync:write",
+  "audit:read",
+] as const satisfies readonly ServiceTokenCapability[];
 
 const serviceTokenSchema = z.object({
   name: z.string().trim().min(1).max(80),
   token: z.string().trim().min(32).max(512),
   allowedOrgs: z.array(z.string().trim().min(1)).min(1),
+  capabilities: z.array(z.enum(SERVICE_TOKEN_CAPABILITIES)).min(1),
 });
 
 function normalizeAllowedOrg(value: string): string {
@@ -61,7 +76,9 @@ function parseCorsOrigins(
         }
         const parsed = new URL(origin);
         if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-          throw new Error(`CORS_ORIGINS must use http(s), received "${parsed.protocol}"`);
+          throw new Error(
+            `CORS_ORIGINS must use http(s), received "${parsed.protocol}"`,
+          );
         }
         return parsed.origin;
       }),
@@ -76,7 +93,11 @@ function parseCorsOrigins(
       }
 
       const hostname = parsed.hostname.toLowerCase();
-      if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
+      if (
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname === "::1"
+      ) {
         throw new Error(
           "CORS_ORIGINS localhost addresses are forbidden outside development",
         );
@@ -91,6 +112,50 @@ function parseAllowedOrgs(rawAllowedOrgs: string | undefined): string[] {
   return dedupeAllowedOrgs((rawAllowedOrgs ?? "").split(","));
 }
 
+function parseList(rawValue: string | undefined): string[] {
+  const value = rawValue?.trim() ?? "";
+  if (!value) {
+    return [];
+  }
+  return Array.from(
+    new Set(
+      value
+        .split(",")
+        .map((entry) => entry.trim())
+        .filter((entry) => entry.length > 0),
+    ),
+  );
+}
+
+function normalizeCapability(value: string): ServiceTokenCapability {
+  if ((SERVICE_TOKEN_CAPABILITIES as readonly string[]).includes(value)) {
+    return value as ServiceTokenCapability;
+  }
+  throw new Error(`Unsupported service token capability "${value}"`);
+}
+
+function parseAllowedCapabilities(
+  rawCapabilities: string | undefined,
+): ServiceTokenCapability[] {
+  return parseList(rawCapabilities).map((entry) => normalizeCapability(entry));
+}
+
+function parseAllowedOutboundHosts(rawHosts: string | undefined): string[] {
+  return parseList(rawHosts).map((entry) => {
+    const normalized = entry.toLowerCase();
+    if (
+      !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/.test(
+        normalized,
+      )
+    ) {
+      throw new Error(
+        `CONNECTORS_ALLOWED_OUTBOUND_HOSTS contains invalid host "${entry}"`,
+      );
+    }
+    return normalized;
+  });
+}
+
 function parsePublicBaseUrl(
   rawValue: string | undefined,
   nodeEnv: AppConfig["nodeEnv"],
@@ -100,7 +165,9 @@ function parsePublicBaseUrl(
     (nodeEnv === "development" ? "http://127.0.0.1:8100" : "");
 
   if (candidate.length === 0) {
-    throw new Error("CONNECTORS_PUBLIC_BASE_URL is required outside development");
+    throw new Error(
+      "CONNECTORS_PUBLIC_BASE_URL is required outside development",
+    );
   }
 
   const parsed = new URL(candidate);
@@ -108,7 +175,9 @@ function parsePublicBaseUrl(
     throw new Error("CONNECTORS_PUBLIC_BASE_URL must use http(s)");
   }
   if (nodeEnv !== "development" && parsed.protocol !== "https:") {
-    throw new Error("CONNECTORS_PUBLIC_BASE_URL must use https outside development");
+    throw new Error(
+      "CONNECTORS_PUBLIC_BASE_URL must use https outside development",
+    );
   }
 
   return parsed.toString().replace(/\/$/, "");
@@ -127,6 +196,24 @@ function parseDatabaseUrl(rawValue: string | undefined): string | null {
   return value;
 }
 
+function parseBooleanEnv(
+  rawValue: string | undefined,
+  label: string,
+  defaultValue = false,
+): boolean {
+  const value = rawValue?.trim().toLowerCase();
+  if (!value) {
+    return defaultValue;
+  }
+  if (value === "true") {
+    return true;
+  }
+  if (value === "false") {
+    return false;
+  }
+  throw new Error(`${label} must be either "true" or "false"`);
+}
+
 function parseObjectStoreRoot(rawValue: string | undefined): string {
   const candidate =
     rawValue?.trim() || path.join(tmpdir(), "praedixa-connectors-object-store");
@@ -140,6 +227,7 @@ function parseServiceTokens(
   rawTokens: string | undefined,
   legacyToken: string | undefined,
   legacyAllowedOrgs: string[],
+  legacyAllowedCapabilities: readonly ServiceTokenCapability[],
 ): AppConfig["serviceTokens"] {
   if (rawTokens != null && rawTokens.trim().length > 0) {
     let parsed: unknown;
@@ -149,10 +237,15 @@ function parseServiceTokens(
       throw new Error("CONNECTORS_SERVICE_TOKENS must be valid JSON");
     }
 
-    return serviceTokenSchema.array().min(1).parse(parsed).map((entry) => ({
-      ...entry,
-      allowedOrgs: dedupeAllowedOrgs(entry.allowedOrgs),
-    }));
+    return serviceTokenSchema
+      .array()
+      .min(1)
+      .parse(parsed)
+      .map((entry) => ({
+        ...entry,
+        allowedOrgs: dedupeAllowedOrgs(entry.allowedOrgs),
+        capabilities: Array.from(new Set(entry.capabilities)),
+      }));
   }
 
   if (legacyToken != null && legacyToken.trim().length > 0) {
@@ -161,12 +254,18 @@ function parseServiceTokens(
         "CONNECTORS_ALLOWED_ORGS is required when using CONNECTORS_INTERNAL_TOKEN",
       );
     }
+    if (legacyAllowedCapabilities.length === 0) {
+      throw new Error(
+        "CONNECTORS_ALLOWED_CAPABILITIES is required when using CONNECTORS_INTERNAL_TOKEN",
+      );
+    }
 
     return [
       serviceTokenSchema.parse({
         name: "legacy-internal-token",
         token: legacyToken.trim(),
         allowedOrgs: legacyAllowedOrgs,
+        capabilities: legacyAllowedCapabilities,
       }),
     ];
   }
@@ -194,7 +293,10 @@ const envSchema = z.object({
   CONNECTORS_SERVICE_TOKENS: z.string().optional(),
   CONNECTORS_INTERNAL_TOKEN: z.string().optional(),
   CONNECTORS_ALLOWED_ORGS: z.string().optional(),
+  CONNECTORS_ALLOWED_CAPABILITIES: z.string().optional(),
+  CONNECTORS_ALLOWED_OUTBOUND_HOSTS: z.string().optional(),
   CONNECTORS_SECRET_SEALING_KEY: z.string().trim().min(32).optional(),
+  TRUST_PROXY: z.string().optional(),
 });
 
 export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
@@ -211,22 +313,36 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
   }
 
   const allowedOrgs = parseAllowedOrgs(parsed.CONNECTORS_ALLOWED_ORGS);
+  const allowedCapabilities = parseAllowedCapabilities(
+    parsed.CONNECTORS_ALLOWED_CAPABILITIES,
+  );
   const serviceTokens = parseServiceTokens(
     parsed.CONNECTORS_SERVICE_TOKENS,
     parsed.CONNECTORS_INTERNAL_TOKEN,
     allowedOrgs,
+    allowedCapabilities,
   );
+  const allowedOutboundHosts = parseAllowedOutboundHosts(
+    parsed.CONNECTORS_ALLOWED_OUTBOUND_HOSTS,
+  );
+  if (parsed.NODE_ENV !== "development" && allowedOutboundHosts.length === 0) {
+    throw new Error(
+      "CONNECTORS_ALLOWED_OUTBOUND_HOSTS is required outside development",
+    );
+  }
 
   return {
     port: parsed.PORT,
     host,
     nodeEnv: parsed.NODE_ENV,
+    trustProxy: parseBooleanEnv(parsed.TRUST_PROXY, "TRUST_PROXY", false),
     publicBaseUrl: parsePublicBaseUrl(
       parsed.CONNECTORS_PUBLIC_BASE_URL,
       parsed.NODE_ENV,
     ),
     databaseUrl: parseDatabaseUrl(parsed.DATABASE_URL),
     objectStoreRoot: parseObjectStoreRoot(parsed.CONNECTORS_OBJECT_STORE_ROOT),
+    allowedOutboundHosts,
     corsOrigins: parseCorsOrigins(parsed.CORS_ORIGINS, parsed.NODE_ENV),
     serviceTokens,
     secretSealingKey: parsed.CONNECTORS_SECRET_SEALING_KEY ?? null,

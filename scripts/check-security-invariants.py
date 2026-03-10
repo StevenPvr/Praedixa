@@ -67,27 +67,52 @@ def _validate_schema(
 def _run_full_invariant_tests(
     invariants: list[dict[str, Any]], abuse_scenarios: list[dict[str, Any]]
 ) -> int:
-    required_tests: set[str] = set()
+    grouped_tests: dict[str, set[str]] = {
+        "@praedixa/api-ts": set(),
+        "@praedixa/connectors": set(),
+    }
 
     for inv in invariants:
         for test_path in inv.get("required_tests", []):
-            if isinstance(test_path, str) and test_path.startswith("app-api-ts/"):
-                required_tests.add(test_path)
+            if not isinstance(test_path, str):
+                continue
+            if test_path.startswith("app-api-ts/"):
+                grouped_tests["@praedixa/api-ts"].add(test_path.removeprefix("app-api-ts/"))
+            elif test_path.startswith("app-connectors/"):
+                grouped_tests["@praedixa/connectors"].add(
+                    test_path.removeprefix("app-connectors/")
+                )
 
     for abuse in abuse_scenarios:
         for test_path in abuse.get("required_tests", []):
-            if isinstance(test_path, str) and test_path.startswith("app-api-ts/"):
-                required_tests.add(test_path)
+            if not isinstance(test_path, str):
+                continue
+            if test_path.startswith("app-api-ts/"):
+                grouped_tests["@praedixa/api-ts"].add(test_path.removeprefix("app-api-ts/"))
+            elif test_path.startswith("app-connectors/"):
+                grouped_tests["@praedixa/connectors"].add(
+                    test_path.removeprefix("app-connectors/")
+                )
 
-    if not required_tests:
-        print("[invariants] No executable API TS tests declared")
+    total_tests = sum(len(paths) for paths in grouped_tests.values())
+    if total_tests == 0:
+        print("[invariants] No executable invariant tests declared")
         return 0
 
-    tests = sorted(required_tests)
-    cmd = ["pnpm", "--filter", "@praedixa/api-ts", "test"]
-    print(f"[invariants] Running API TS invariant tests ({len(tests)} file(s) declared)")
-    proc = subprocess.run(cmd, cwd=ROOT)
-    return proc.returncode
+    for workspace, tests in grouped_tests.items():
+        if not tests:
+            continue
+        ordered_tests = sorted(tests)
+        print(
+            "[invariants] Running declared invariant tests "
+            f"for {workspace} ({len(ordered_tests)} file(s))"
+        )
+        cmd = ["pnpm", "--filter", workspace, "test", "--", "--run", *ordered_tests]
+        proc = subprocess.run(cmd, cwd=ROOT)
+        if proc.returncode != 0:
+            return proc.returncode
+
+    return 0
 
 
 def _check_staged_coverage(invariants: list[dict[str, Any]], staged: list[str]) -> list[str]:

@@ -4,8 +4,8 @@ Ce groupe contient l'interface publique de connexion de l'admin. Comme pour le w
 
 ## Contenu
 
-| Fichier | Role |
-| --- | --- |
-| `layout.tsx` | Layout simple pour la page de login |
-| `login/page.tsx` | Ecran `/login` reserve a l'entree super-admin |
-| `login/__tests__/page.test.tsx` | Validation du rendu et des messages |
+| Fichier                         | Role                                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------------------ |
+| `layout.tsx`                    | Layout simple pour la page de login, avec la cible SSR `#main-content` du skip-link global |
+| `login/page.tsx`                | Ecran `/login` reserve a l'entree super-admin                                              |
+| `login/__tests__/page.test.tsx` | Validation du rendu et des messages                                                        |

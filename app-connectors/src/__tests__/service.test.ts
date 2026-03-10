@@ -16,7 +16,9 @@ describe("connector service control plane", () => {
   beforeEach(async () => {
     vi.stubGlobal("fetch", mockFetch);
     mockFetch.mockReset();
-    payloadRoot = await mkdtemp(path.join(tmpdir(), "praedixa-connectors-test-"));
+    payloadRoot = await mkdtemp(
+      path.join(tmpdir(), "praedixa-connectors-test-"),
+    );
   });
 
   afterEach(async () => {
@@ -25,7 +27,10 @@ describe("connector service control plane", () => {
   });
 
   it("exposes a catalog covering planned priority connectors", () => {
-    const service = new ConnectorService(new InMemoryConnectorStore(), "s".repeat(32));
+    const service = new ConnectorService(
+      new InMemoryConnectorStore(),
+      "s".repeat(32),
+    );
     const catalog = service.listCatalog();
 
     expect(catalog.length).toBeGreaterThanOrEqual(13);
@@ -35,7 +40,10 @@ describe("connector service control plane", () => {
   });
 
   it("rejects secrets embedded inside config", () => {
-    const service = new ConnectorService(new InMemoryConnectorStore(), "s".repeat(32));
+    const service = new ConnectorService(
+      new InMemoryConnectorStore(),
+      "s".repeat(32),
+    );
 
     expect(() =>
       service.createConnection(
@@ -57,8 +65,89 @@ describe("connector service control plane", () => {
     ).toThrow("Secrets must be sent via credentials");
   });
 
+  it("rejects private or non-allowlisted outbound hosts outside development", () => {
+    const service = new ConnectorService(
+      new InMemoryConnectorStore(),
+      "s".repeat(32),
+      "https://connectors.praedixa.com",
+      null,
+      "production",
+      ["salesforce.com"],
+    );
+
+    expect(() =>
+      service.createConnection(
+        "org-1",
+        {
+          vendor: "salesforce",
+          displayName: "Unsafe Config",
+          authMode: "oauth2",
+          baseUrl: "https://169.254.169.254/latest",
+          config: {
+            tokenEndpoint: "https://evil.example/token",
+          },
+        },
+        {
+          actorService: "admin-api",
+          actorUserId: "user-1",
+          requestId: "req-unsafe-1",
+        },
+      ),
+    ).toThrow(/host is not allowed|allowlist/i);
+  });
+
+  it("rejects OAuth endpoint overrides that are not on the outbound allowlist", () => {
+    const service = new ConnectorService(
+      new InMemoryConnectorStore(),
+      "s".repeat(32),
+      "https://connectors.praedixa.com",
+      null,
+      "production",
+      ["salesforce.com", "praedixa.com"],
+    );
+
+    const created = service.createConnection(
+      "org-1",
+      {
+        vendor: "salesforce",
+        displayName: "Salesforce Production",
+        authMode: "oauth2",
+        baseUrl: "https://acme.salesforce.com",
+        credentials: {
+          clientId: "salesforce-client-id",
+          clientSecret: "salesforce-client-secret-123",
+        },
+      },
+      {
+        actorService: "admin-api",
+        actorUserId: "user-1",
+        requestId: "req-safe-1",
+      },
+    );
+
+    expect(() =>
+      service.startAuthorization(
+        "org-1",
+        created.id,
+        {
+          redirectUri: "https://app.praedixa.com/oauth/callback",
+          tokenEndpoint: "https://evil.example/token",
+          authorizationEndpoint: "https://evil.example/authorize",
+        },
+        {
+          actorService: "admin-api",
+          actorUserId: "user-1",
+          requestId: "req-safe-2",
+        },
+      ),
+    ).toThrow(/allowlist/i);
+  });
+
   it("supports interactive oauth onboarding, test and queued sync", async () => {
-    const service = new ConnectorService(new InMemoryConnectorStore(), "s".repeat(32));
+    const service = new ConnectorService(
+      new InMemoryConnectorStore(),
+      "s".repeat(32),
+    );
 
     const created = service.createConnection(
       "org-1",
@@ -101,7 +190,9 @@ describe("connector service control plane", () => {
     );
 
     expect(authStart.authorizationUrl).toContain("response_type=code");
-    expect(authStart.authorizationUrl).toContain("client_id=salesforce-client-id");
+    expect(authStart.authorizationUrl).toContain(
+      "client_id=salesforce-client-id",
+    );
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -137,15 +228,11 @@ describe("connector service control plane", () => {
       json: async () => ({ ok: true }),
     });
 
-    const tested = await service.testConnection(
-      "org-1",
-      created.id,
-      {
-        actorService: "admin-api",
-        actorUserId: "user-1",
-        requestId: "req-4",
-      },
-    );
+    const tested = await service.testConnection("org-1", created.id, {
+      actorService: "admin-api",
+      actorUserId: "user-1",
+      requestId: "req-4",
+    });
 
     expect(tested.ok).toBe(true);
     expect(tested.checkedScopes).toEqual(["api", "refresh_token"]);
@@ -192,15 +279,28 @@ describe("connector service control plane", () => {
     expect(replayDispatch.run.id).toBe(firstDispatch.run.id);
 
     const audits = service.listAuditEvents("org-1", created.id);
-    expect(audits.map((event) => event.action)).toContain("connectors.connection.created");
-    expect(audits.map((event) => event.action)).toContain("connectors.authorization.started");
-    expect(audits.map((event) => event.action)).toContain("connectors.authorization.completed");
-    expect(audits.map((event) => event.action)).toContain("connectors.connection.tested");
-    expect(audits.map((event) => event.action)).toContain("connectors.sync.queued");
+    expect(audits.map((event) => event.action)).toContain(
+      "connectors.connection.created",
+    );
+    expect(audits.map((event) => event.action)).toContain(
+      "connectors.authorization.started",
+    );
+    expect(audits.map((event) => event.action)).toContain(
+      "connectors.authorization.completed",
+    );
+    expect(audits.map((event) => event.action)).toContain(
+      "connectors.connection.tested",
+    );
+    expect(audits.map((event) => event.action)).toContain(
+      "connectors.sync.queued",
+    );
   });
 
   it("supports api key onboarding without manual secretRef handling", async () => {
-    const service = new ConnectorService(new InMemoryConnectorStore(), "s".repeat(32));
+    const service = new ConnectorService(
+      new InMemoryConnectorStore(),
+      "s".repeat(32),
+    );
 
     const created = service.createConnection(
       "org-2",
@@ -232,15 +332,11 @@ describe("connector service control plane", () => {
       json: async () => ({ ok: true }),
     });
 
-    const tested = await service.testConnection(
-      "org-2",
-      created.id,
-      {
-        actorService: "admin-api",
-        actorUserId: "user-2",
-        requestId: "req-8",
-      },
-    );
+    const tested = await service.testConnection("org-2", created.id, {
+      actorService: "admin-api",
+      actorUserId: "user-2",
+      requestId: "req-8",
+    });
 
     expect(tested.ok).toBe(true);
     expect(tested.checkedScopes).toEqual(["api_key"]);
@@ -285,7 +381,9 @@ describe("connector service control plane", () => {
       },
     );
 
-    expect(issued.ingestUrl).toContain(`/v1/ingest/org-3/${connection.id}/events`);
+    expect(issued.ingestUrl).toContain(
+      `/v1/ingest/org-3/${connection.id}/events`,
+    );
     expect(issued.apiKey).toContain("prdx_live_");
     expect(issued.signature?.algorithm).toBe("hmac-sha256");
 
@@ -370,7 +468,9 @@ describe("connector service control plane", () => {
     expect(audits.map((event) => event.action)).toContain(
       "connectors.ingest_credential.issued",
     );
-    expect(audits.map((event) => event.action)).toContain("connectors.ingest.accepted");
+    expect(audits.map((event) => event.action)).toContain(
+      "connectors.ingest.accepted",
+    );
   });
 
   it("rejects inbound ingestion when the credential is revoked or the signature is invalid", async () => {

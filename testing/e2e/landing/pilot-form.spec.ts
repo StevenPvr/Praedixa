@@ -53,7 +53,7 @@ test.describe("Pilot application form (/devenir-pilote)", () => {
     await page.getByLabel(/Entreprise/).fill("Atlas Logistics");
     await page
       .getByLabel(/Secteur/)
-      .selectOption({ label: "Logistique / Entrepôts" });
+      .selectOption({ label: "Logistique / Transport / Retail" });
     await page.getByLabel(/Effectif/).selectOption("250-500");
     await page.getByLabel(/Nombre de sites/).selectOption("4-10");
 

@@ -15,6 +15,7 @@ Point d'entree App Router du site public.
 - `layout.tsx`: shell HTML global, fonts, styles globaux
 - `[locale]/layout.tsx`: shell localise, `Header`, `Footer`, `JsonLd`
 - `[locale]/page.tsx`: homepage FR/EN
+- `[locale]/secteurs/[slug]/page.tsx` et `[locale]/industries/[slug]/page.tsx`: pages sectorielles dédiées
 - `robots.ts`: politique crawl
 - `sitemap.ts`: sitemap genere depuis routes fixes, blog et ressources SEO
 - `rss.xml/route.ts`: flux RSS blog
@@ -25,6 +26,7 @@ Point d'entree App Router du site public.
 - Une nouvelle page marketing doit presque toujours vivre sous `app/[locale]/...`.
 - Une route non localisee n'est justifiee que pour metadata, assets speciaux ou endpoints techniques.
 - Toute suppression/renommage de route dans `app-landing` doit s'accompagner d'un nettoyage `.next` avant redemarrage Turbopack.
+- `layout.tsx` doit garder le chargement de police critique minimal pour la landing; ne pas ajouter une fonte secondaire globale si elle ne porte pas le hero ou le premier viewport.
 
 ## Tests associes
 

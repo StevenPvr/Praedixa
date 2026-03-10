@@ -25,17 +25,29 @@ describe("llms routes", () => {
     const body = await (await getLlms()).text();
 
     expect(body).toContain("# Praedixa");
-    expect(body).toContain("> Praedixa is an AI decision copilot");
-    expect(body).toContain("[llms-full.txt](https://www.praedixa.com/llms-full.txt)");
+    expect(body).toContain("> Praedixa is a French DecisionOps platform");
+    expect(body).toContain(
+      "[llms-full.txt](https://www.praedixa.com/llms-full.txt)",
+    );
     expect(body).toContain("[Homepage FR](https://www.praedixa.com/fr)");
     expect(body).toContain("[Homepage EN](https://www.praedixa.com/en)");
-    expect(body).toContain("[Pilot Protocol EN](https://www.praedixa.com/en/pilot-protocol)");
+    expect(body).toContain(
+      "[Pilot Protocol EN](https://www.praedixa.com/en/pilot-protocol)",
+    );
     expect(body).toContain(
       "[Pilot Application EN](https://www.praedixa.com/en/pilot-application)",
     );
     expect(body).toContain("[Contact EN](https://www.praedixa.com/en/contact)");
     expect(body).toContain("[About FR](https://www.praedixa.com/fr/a-propos)");
-    expect(body).toContain("[Security FR](https://www.praedixa.com/fr/securite)");
+    expect(body).toContain(
+      "[Security FR](https://www.praedixa.com/fr/securite)",
+    );
+    expect(body).toContain(
+      "[Sector FR: HCR](https://www.praedixa.com/fr/secteurs/hcr)",
+    );
+    expect(body).toContain(
+      "[Industry EN: Higher education](https://www.praedixa.com/en/industries/higher-education)",
+    );
 
     for (const retiredUrl of retiredKnowledgeUrls) {
       expect(body).not.toContain(retiredUrl);
@@ -53,6 +65,10 @@ describe("llms routes", () => {
     expect(body).toContain("https://www.praedixa.com/fr/ressources");
     expect(body).toContain("https://www.praedixa.com/en/resources");
     expect(body).toContain("https://www.praedixa.com/fr/ressources/");
+    expect(body).toContain("https://www.praedixa.com/fr/secteurs/hcr");
+    expect(body).toContain(
+      "https://www.praedixa.com/en/industries/logistics-transport-retail",
+    );
 
     for (const retiredUrl of retiredKnowledgeUrls) {
       expect(body).not.toContain(retiredUrl);

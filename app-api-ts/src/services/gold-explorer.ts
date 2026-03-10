@@ -117,6 +117,9 @@ function buildSiteScopeClause(
 ): string {
   const requestedSiteId = scope.requestedSiteId?.trim();
   if (requestedSiteId) {
+    if (!scope.orgWide && !scope.accessibleSiteIds.includes(requestedSiteId)) {
+      return " AND FALSE ";
+    }
     values.push(requestedSiteId);
     return ` AND ${columnName} = $${values.length} `;
   }
@@ -382,8 +385,10 @@ export async function getPersistentGoldCoverage(input: {
 
   return {
     totalColumns: columns.length,
-    explorerExposedColumns: columns.filter((item) => item.exposedInExplorer).length,
-    businessMappedColumns: columns.filter((item) => item.usedInBusinessViews).length,
+    explorerExposedColumns: columns.filter((item) => item.exposedInExplorer)
+      .length,
+    businessMappedColumns: columns.filter((item) => item.usedInBusinessViews)
+      .length,
     totalRows: rows.length,
     columns,
   };

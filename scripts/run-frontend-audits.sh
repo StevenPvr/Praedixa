@@ -44,6 +44,10 @@ if ! setup_pnpm; then
   exit 1
 fi
 
+PLAYWRIGHT_CHROMIUM_PATH="$(
+  pnpm exec node -e "const { chromium } = require('@playwright/test'); console.log(chromium.executablePath())"
+)"
+
 echo "[frontend-audits] Freeing ports..."
 bash ./scripts/e2e-free-ports.sh || true
 
@@ -64,7 +68,9 @@ pnpm dlx @lhci/cli@0.15.1 collect --config=.lighthouserc.json
 pnpm dlx @lhci/cli@0.15.1 assert --config=.lighthouserc.json
 
 echo "[frontend-audits] Accessibility (pa11y-ci)..."
-pnpm dlx pa11y-ci@3.1.0 --config .pa11yci.json
+PUPPETEER_EXECUTABLE_PATH="${PLAYWRIGHT_CHROMIUM_PATH}" \
+  PUPPETEER_SKIP_DOWNLOAD=1 \
+  pnpm dlx pa11y-ci@3.1.0 --config .pa11yci.json
 
 echo "[frontend-audits] Schema markup..."
 ./scripts/check-schema-markup.sh

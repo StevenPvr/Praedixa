@@ -7,11 +7,19 @@ Ce dossier matérialise un segment de route Next.js. Les fichiers `route.ts` dé
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `route.ts`
 
 ## Intégration
 
 Ce dossier est consommé par l'application `app-landing` et s'insère dans son flux runtime, build ou test.
+
+## Sécurité
+
+- verification d'origine et `Sec-Fetch-Site`
+- limite de taille et parsing JSON borné
+- `Cache-Control: no-store` sur toutes les réponses de la route

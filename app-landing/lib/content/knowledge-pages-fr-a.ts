@@ -1,4 +1,7 @@
-import type { KnowledgePageContent, KnowledgePageKey } from "./knowledge-pages-shared";
+import type {
+  KnowledgePageContent,
+  KnowledgePageKey,
+} from "./knowledge-pages-shared";
 
 export const frContentA: Record<
   Extract<
@@ -18,8 +21,8 @@ export const frContentA: Record<
     kicker: "Praedixa",
     title: "À propos",
     description:
-      "Mission, ancrage et positionnement de Praedixa pour réunir les données utiles et améliorer les décisions multi-sites.",
-    lead: "Praedixa réunit les données RH, finance, opérations et supply chain au bon endroit pour aider les entreprises multi-sites à anticiper les besoins, optimiser les décisions et suivre le ROI.",
+      "Mission, ancrage et positionnement de Praedixa comme plateforme francaise de DecisionOps pour les entreprises multi-sites.",
+    lead: "Praedixa est la plateforme francaise de DecisionOps: elle relie les systemes qui comptent pour une decision, gouverne les arbitrages critiques et prouve le ROI decision par decision.",
     sections: [
       {
         title: "Mission",
@@ -31,8 +34,8 @@ export const frContentA: Record<
       {
         title: "Positionnement",
         paragraphs: [
-          "Praedixa n'est pas un ERP, un outil de planning ou un dashboard de plus.",
-          "La plateforme se place entre les données existantes et les décisions business à prendre plus tôt, avec une lecture claire pour les équipes et les comités.",
+          "Praedixa n'est pas une data platform generique, un ERP, un outil de planning ou un dashboard de plus.",
+          "La plateforme se place entre les systemes existants et les arbitrages business a prendre plus tot, avec une execution controlee et une preuve relisible pour les equipes et les comites.",
         ],
       },
       {
@@ -94,8 +97,8 @@ export const frContentA: Record<
     kicker: "Ressources",
     title: "Ressources essentielles",
     description:
-      "Le point d'entrée unique pour comprendre les contextes couverts, les sujets business traités et les contenus utiles.",
-    lead: "Cette page remplace les micro-pages trop dispersées. Elle rassemble dans un même endroit les contextes couverts, les cas d'usage prioritaires et les contenus utiles pour comprendre Praedixa.",
+      "Le point d'entrée pour comprendre les sujets business traités, naviguer vers les pages sectorielles exactes et trouver les contenus utiles.",
+    lead: "Cette page concentre les repères utiles sans recréer une forêt de micro-pages. Les pages sectorielles dédiées portent désormais le discours métier exact, et les ressources gardent le reste du contexte.",
     sections: [
       {
         title: "À lire en priorité",
@@ -108,7 +111,7 @@ export const frContentA: Record<
         title: "Contextes couverts",
         paragraphs: [
           "Praedixa s'adresse aux organisations multi-sites qui doivent arbitrer entre RH, finance, opérations et supply chain.",
-          "Automobile, concessions et ateliers, logistique, transport, retail et réseaux HCR sont couverts dans une même méthode au lieu d'être dispersés dans des pages séparées.",
+          "Les pages sectorielles dédiées couvrent maintenant HCR, enseignement supérieur, logistique / transport / retail et automobile / concessions / ateliers avec une proposition de valeur et des preuves adaptées à chaque contexte.",
         ],
         bullets: [
           "Variations de charge et de staffing",
@@ -120,7 +123,7 @@ export const frContentA: Record<
       {
         title: "Quand aller plus loin",
         paragraphs: [
-          "Les contenus détaillés vivent désormais dans le blog, les ressources SEO et les échanges commerciaux, pas dans une forêt de pages annexes.",
+          "Les détails métier vivent désormais dans les pages sectorielles, le blog, les ressources SEO et les échanges commerciaux, pas dans une forêt de pages annexes.",
           "Le site garde seulement les pages qui aident vraiment à comprendre l'offre et à passer à l'action.",
         ],
       },
@@ -139,14 +142,14 @@ export const frContentA: Record<
     kicker: "Produit",
     title: "Produit & méthode",
     description:
-      "Comment Praedixa réunit les données et les transforme en priorités business lisibles.",
-    lead: "Praedixa réunit vos données RH, finance, opérations et supply chain dans une même base, sans remplacer vos outils, pour transformer des signaux dispersés en priorités business utiles.",
+      "Comment Praedixa relie les systemes utiles et transforme des arbitrages recurrents en decisions gouvernees.",
+    lead: "Praedixa relie vos systemes RH, finance, operations et supply chain sans remplacer vos outils pour transformer des signaux disperses en decisions gouvernees, executables et auditables.",
     sections: [
       {
         title: "Réunir",
         paragraphs: [
-          "La plateforme part des outils en place et remet les données utiles dans un même langage.",
-          "L'objectif n'est pas d'avoir plus de chiffres, mais une base commune compréhensible par toutes les équipes.",
+          "La plateforme part des outils en place et relie les donnees utiles dans un meme langage de decision.",
+          "L'objectif n'est pas d'avoir plus de chiffres, mais un cadre commun comprehensible par toutes les equipes.",
         ],
       },
       {
@@ -159,8 +162,8 @@ export const frContentA: Record<
       {
         title: "Optimiser",
         paragraphs: [
-          "Les décisions sont priorisées selon l'impact business attendu, pas selon le bruit du moment.",
-          "Chaque action garde une logique claire pour les équipes et la direction.",
+          "Les decisions sont priorisees selon l'impact business attendu, pas selon le bruit du moment.",
+          "Chaque action garde une logique claire pour les equipes, la direction et la finance.",
         ],
       },
     ],
@@ -178,13 +181,13 @@ export const frContentA: Record<
     kicker: "Méthode",
     title: "Comment ça marche",
     description:
-      "Le parcours Praedixa pour réunir les données, rendre les besoins visibles, prioriser les actions et suivre le ROI.",
-    lead: "Praedixa commence par réunir les données utiles, puis aide à rendre les besoins visibles plus tôt, à prioriser les actions et à suivre le ROI.",
+      "Le parcours Praedixa pour federer les donnees utiles, calculer les options, declencher l'action validee et suivre le ROI.",
+    lead: "Praedixa commence par federer les donnees utiles, puis aide a rendre les besoins visibles plus tot, a calculer les options, a declencher l'action validee et a suivre le ROI.",
     sections: [
       {
         title: "1. Réunir les données utiles",
         paragraphs: [
-          "Praedixa part des exports, API et outils déjà en place pour constituer une base commune.",
+          "Praedixa part des exports, API et outils deja en place pour constituer une federation gouvernee sur l'existant.",
         ],
       },
       {
@@ -196,7 +199,7 @@ export const frContentA: Record<
       {
         title: "3. Prioriser les actions",
         paragraphs: [
-          "Les équipes voient ce qu'il faut lancer en premier et ce qui peut rapporter le plus.",
+          "Les equipes voient ce qu'il faut lancer en premier, qui doit valider et quel arbitrage peut rapporter le plus.",
         ],
       },
       {
@@ -219,8 +222,8 @@ export const frContentA: Record<
     kicker: "Preuve",
     title: "Dossier ROI",
     description:
-      "Le format simple pour relier priorités, actions et gains observés dans le temps.",
-    lead: "Le dossier ROI Praedixa relie chaque arbitrage opérationnel à une lecture simple, structurée et relisible par la direction, la finance et les opérations.",
+      "Le format simple pour relier options, actions et gains observes dans le temps.",
+    lead: "Le dossier ROI Praedixa relie chaque arbitrage operationnel a une lecture simple, structuree et relisible par la direction, la finance et les operations.",
     sections: [
       {
         title: "Ce qu'il contient",
@@ -258,7 +261,7 @@ export const frContentA: Record<
     title: "Intégration & données",
     description:
       "Comment Praedixa se branche sur l'existant sans créer un nouveau projet lourd.",
-    lead: "Praedixa se branche sur vos exports/API pour réunir vos données dans une même base, sans imposer de remplacement SI pour démarrer.",
+    lead: "Praedixa se branche sur vos exports/API pour federer les systemes qui comptent pour une decision, sans imposer de remplacement SI pour demarrer.",
     sections: [
       {
         title: "Démarrage léger",
@@ -267,9 +270,9 @@ export const frContentA: Record<
         ],
       },
       {
-        title: "Base commune",
+        title: "Federation gouvernee",
         paragraphs: [
-          "Les données RH, finance, opérations et supply chain sont remises dans un même cadre pour accélérer la décision.",
+          "Les donnees RH, finance, operations et supply chain sont remises dans un meme cadre pour accelerer la decision sans ecraser votre stack.",
         ],
       },
       {

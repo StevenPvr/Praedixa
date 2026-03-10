@@ -25,3 +25,4 @@ Shell partage du site et primitives visuelles reutilisables.
 - tout composant de shell global doit rester ici plutot que dans `homepage/`
 - les primitives visuelles doivent etre agnostiques du contenu metier
 - les comportements d'animation repetables vont dans `motion/` pour eviter la duplication
+- dans `Header.tsx`, garder un nom accessible explicite pour les CTA responsives et verifier le contraste reel des variantes desktop/mobile au lieu de supposer que les spans caches restent neutres pour l'audit a11y

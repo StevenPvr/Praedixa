@@ -125,6 +125,31 @@ describe("operational data persistence helpers", () => {
     });
   });
 
+  it("fails closed when the requested site is outside the caller scope", async () => {
+    mockedQueryRows.mockResolvedValueOnce([] as never);
+
+    await listPersistentLatestDailyForecasts({
+      organizationId: ORGANIZATION_ID,
+      scope: {
+        orgWide: false,
+        accessibleSiteIds: ["site-lyon"],
+        requestedSiteId: "site-paris",
+      },
+      dimension: "human",
+      dateFrom: "2026-03-07",
+      dateTo: "2026-03-14",
+    });
+
+    const [sql, values] = mockedQueryRows.mock.calls[0] ?? [];
+    expect(sql).toContain("AND FALSE");
+    expect(values).toEqual([
+      ORGANIZATION_ID,
+      "human",
+      "2026-03-07",
+      "2026-03-14",
+    ]);
+  });
+
   it("summarizes proof packs deterministically", () => {
     const summary = summarizePersistentProofRecords([
       {

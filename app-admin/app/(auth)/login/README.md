@@ -7,11 +7,14 @@ Ce dossier matérialise un segment de route Next.js. Les fichiers `page.tsx` dé
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - `__tests__`
 
 Fichiers :
+
 - `page.tsx`
 
 ## Intégration
 
 Ce dossier est consommé par l'application `app-admin` et s'insère dans son flux runtime, build ou test.
+Le point d'ancrage `#main-content` du skip-link global est porte par `../layout.tsx`, pour rester present des le SSR meme si `page.tsx` bascule en rendu client.

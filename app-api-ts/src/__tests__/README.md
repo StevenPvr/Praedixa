@@ -25,5 +25,7 @@ pnpm --filter @praedixa/api-ts test
 ## Conseils de lecture
 
 - Commencer par `config.test.ts` et `auth.test.ts` pour comprendre les invariants.
+- `config.test.ts` couvre aussi le durcissement SSRF du runtime `app-connectors` (`CONNECTORS_RUNTIME_ALLOWED_HOSTS`).
 - Lire ensuite `routes.contracts.test.ts` pour la surface HTTP.
 - Finir par les tests de services pour la persistance.
+- `operational-data.test.ts` et `gold-explorer.test.ts` verrouillent aussi le fail-closed quand un `site_id` demande sort du scope accessible.

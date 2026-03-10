@@ -12,50 +12,54 @@ interface ClosedLoopTeaserSectionProps {
 const copy = {
   fr: {
     kicker: "Comment ça marche",
-    heading: "Une base commune, puis des décisions plus claires.",
-    sub: "Praedixa relie d'abord les données utiles. Ensuite, les besoins, les écarts et les priorités deviennent plus faciles à lire site par site.",
+    heading: "DecisionOps: transformer l'arbitrage en action gouvernée.",
+    sub: "Praedixa fédère les données utiles sur l'existant, compare les options coût / service / risque, fait valider l'action utile et referme la boucle avec une preuve mensuelle du ROI.",
     ctaLabel: "Voir comment Praedixa fonctionne",
     stepBadge: "Étape",
     finalBadge: "ROI",
     footer:
-      "Vous partez d'une base commune, puis vous voyez où agir, quoi prioriser et comment suivre ce qui rapporte.",
+      "Le but n'est pas d'avoir un signal de plus. Le but est d'industrialiser la qualité de décision avec une exécution contrôlée et une preuve lisible.",
     steps: [
       {
         number: "01",
-        label: "Réunir",
-        sub: "Toutes les données utiles",
+        label: "Fédérer",
+        sub: "Les systemes critiques sur l'existant",
       },
       {
         number: "02",
-        label: "Anticiper",
-        sub: "Besoins et écarts visibles plus tôt",
+        label: "Calculer",
+        sub: "Les arbitrages cout / service / risque",
       },
       {
         number: "03",
-        label: "Optimiser",
-        sub: "Priorités et arbitrages plus clairs",
+        label: "Déclencher",
+        sub: "La premiere action validee",
       },
       {
         number: "04",
-        label: "Suivre",
-        sub: "ROI et impact dans le temps",
+        label: "Prouver",
+        sub: "Le ROI decision par decision",
       },
     ],
   },
   en: {
     kicker: "How it works",
-    heading: "A four-step closed loop.",
-    sub: "The same cadence across all sites. One clear path from signal to proof.",
+    heading: "DecisionOps: turn trade-offs into governed action.",
+    sub: "Praedixa federates the useful data on top of your existing stack, compares cost / service / risk options, gets the right action validated, and closes the loop with monthly ROI proof.",
     ctaLabel: "View the four steps in detail",
     stepBadge: "Step",
     finalBadge: "ROI",
     footer:
-      "Each step sets up the next one: gather the data, read the drift, prioritize the action, then prove the impact.",
+      "The point is not just seeing the issue. The point is industrializing decision quality with controlled execution and proof.",
     steps: [
-      { number: "01", label: "Anticipate", sub: "KPI drifts · short horizon" },
-      { number: "02", label: "Decide", sub: "Cost / service / risk" },
-      { number: "03", label: "Trigger", sub: "First step · manager validates" },
-      { number: "04", label: "Prove", sub: "Monthly proof · counterfactual" },
+      { number: "01", label: "Federate", sub: "Critical systems on the stack" },
+      {
+        number: "02",
+        label: "Calculate",
+        sub: "Cost / service / risk options",
+      },
+      { number: "03", label: "Trigger", sub: "Validated first action" },
+      { number: "04", label: "Prove", sub: "ROI decision by decision" },
     ],
   },
 } as const;
@@ -67,7 +71,10 @@ export function ClosedLoopTeaserSection({
   const howItWorksHref = getLocalizedPath(locale, "howItWorksPage");
 
   return (
-    <SectionShell id="closed-loop" className="section-dark relative overflow-x-clip">
+    <SectionShell
+      id="closed-loop"
+      className="section-dark relative overflow-x-clip"
+    >
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(1200px_420px_at_12%_4%,rgba(250,204,21,0.08),transparent_55%),radial-gradient(900px_420px_at_88%_10%,rgba(255,255,255,0.05),transparent_58%)]"

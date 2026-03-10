@@ -1,4 +1,7 @@
-import type { KnowledgePageContent, KnowledgePageKey } from "./knowledge-pages-shared";
+import type {
+  KnowledgePageContent,
+  KnowledgePageKey,
+} from "./knowledge-pages-shared";
 
 export const enContentA: Record<
   Extract<
@@ -18,8 +21,8 @@ export const enContentA: Record<
     kicker: "Praedixa",
     title: "About",
     description:
-      "Mission, positioning, and operating footprint of Praedixa for multi-site decision-making.",
-    lead: "Praedixa brings HR, finance, operations, and supply chain data together to help multi-site companies anticipate needs, optimize decisions, and track ROI.",
+      "Mission, positioning, and operating footprint of Praedixa as a French DecisionOps platform.",
+    lead: "Praedixa is the French DecisionOps platform: it links the systems that matter to a decision, governs critical trade-offs, and proves ROI decision by decision.",
     sections: [
       {
         title: "Mission",
@@ -31,8 +34,8 @@ export const enContentA: Record<
       {
         title: "Positioning",
         paragraphs: [
-          "Praedixa is not an ERP, a planning tool, or just another dashboard.",
-          "It sits between existing data and business decisions that need to happen earlier, with a simpler reading for teams and committees.",
+          "Praedixa is not a generic data platform, an ERP, a planning tool, or just another dashboard.",
+          "It sits between existing systems and the business trade-offs that need to happen earlier, with controlled execution and proof teams can reread later.",
         ],
       },
       {
@@ -94,8 +97,8 @@ export const enContentA: Record<
     kicker: "Resources",
     title: "Essential resources",
     description:
-      "A single entry point for covered contexts, core business use cases, and useful reading.",
-    lead: "This page replaces the old sprawl of annex pages. It keeps the useful part in one place: covered contexts, priority business questions, and the short list of pages worth reading.",
+      "A single entry point for core business topics, exact industry pages, and the useful reading that supports them.",
+    lead: "This page keeps the navigation clear without recreating a sprawl of annex pages. Dedicated industry pages now carry the exact vertical story, while resources keep the supporting context in one place.",
     sections: [
       {
         title: "Start here",
@@ -108,7 +111,7 @@ export const enContentA: Record<
         title: "Covered contexts",
         paragraphs: [
           "Praedixa is built for multi-site companies that need to align HR, finance, operations, and supply chain decisions.",
-          "Automotive, dealerships and workshops, logistics, transport, retail, and hospitality networks are now covered in one clear framework instead of separate annex pages.",
+          "Dedicated industry pages now cover hospitality, higher education, logistics / transport / retail, and automotive / dealerships / workshops with proof points and value propositions tailored to each context.",
         ],
         bullets: [
           "Workload and staffing variability",
@@ -120,7 +123,7 @@ export const enContentA: Record<
       {
         title: "Where deeper detail now lives",
         paragraphs: [
-          "Detailed long-tail content now belongs in the blog, SEO resources, and live sales conversations, not in a forest of near-duplicate pages.",
+          "Detailed vertical content now lives in the dedicated industry pages, the blog, SEO resources, and live sales conversations, not in a forest of near-duplicate pages.",
           "The site keeps only the pages that genuinely help visitors understand the offer and move forward.",
         ],
       },
@@ -139,14 +142,14 @@ export const enContentA: Record<
     kicker: "Product",
     title: "Product and method",
     description:
-      "How Praedixa brings data together and turns it into clearer business priorities.",
-    lead: "Praedixa brings HR, finance, operations, and supply chain data into one shared foundation, without replacing your tools, so teams can turn scattered signals into useful business priorities.",
+      "How Praedixa links the useful systems and turns recurring trade-offs into governed decisions.",
+    lead: "Praedixa links HR, finance, operations, and supply chain systems without replacing your tools, so teams can turn scattered signals into governed, executable, auditable decisions.",
     sections: [
       {
         title: "Bring the data together",
         paragraphs: [
-          "Praedixa starts from the systems already in place and rewrites useful data into one shared language.",
-          "The goal is not more reporting. It is a shared foundation teams can actually act on.",
+          "Praedixa starts from the systems already in place and rewrites useful data into one shared decision language.",
+          "The goal is not more reporting. It is a governed frame teams can actually act on.",
         ],
       },
       {
@@ -159,7 +162,7 @@ export const enContentA: Record<
         title: "Optimize decisions",
         paragraphs: [
           "Actions are prioritized by expected business impact, not by noise or urgency alone.",
-          "Each decision keeps a business rationale that teams and leadership can reread later.",
+          "Each decision keeps a business rationale leadership, finance, and teams can reread later.",
         ],
       },
     ],
@@ -177,13 +180,13 @@ export const enContentA: Record<
     kicker: "Method",
     title: "How it works",
     description:
-      "The Praedixa path to bring the data together, surface needs earlier, prioritize actions, and track ROI.",
-    lead: "Praedixa starts by helping teams bring the data together, then surface needs earlier, prioritize actions, and track ROI.",
+      "The Praedixa path to federate the useful data, calculate options, trigger the validated action, and track ROI.",
+    lead: "Praedixa starts by helping teams federate the useful data, then surface needs earlier, calculate options, trigger the validated action, and track ROI.",
     sections: [
       {
         title: "1. Bring the useful data together",
         paragraphs: [
-          "Praedixa starts from exports, APIs, and existing tools to build a shared foundation.",
+          "Praedixa starts from exports, APIs, and existing tools to build a governed federation on top of the existing stack.",
         ],
       },
       {
@@ -195,7 +198,7 @@ export const enContentA: Record<
       {
         title: "3. Prioritize the actions",
         paragraphs: [
-          "Teams see what to launch first and where the strongest gain potential sits.",
+          "Teams see what to launch first, who should validate it, and where the strongest gain potential sits.",
         ],
       },
       {
@@ -257,7 +260,7 @@ export const enContentA: Record<
     title: "Integration and data",
     description:
       "How Praedixa connects to the existing stack without creating a heavy new project.",
-    lead: "Praedixa connects to your exports/APIs to bring everything into one shared foundation, without requiring a planning or WFM replacement to start.",
+    lead: "Praedixa connects to your exports/APIs to federate the systems that matter to a decision, without requiring a planning or WFM replacement to start.",
     sections: [
       {
         title: "Light setup",
@@ -266,9 +269,9 @@ export const enContentA: Record<
         ],
       },
       {
-        title: "Shared foundation",
+        title: "Governed federation",
         paragraphs: [
-          "HR, finance, operations, and supply chain data are brought into the same frame to accelerate decision-making.",
+          "HR, finance, operations, and supply chain data are brought into the same frame to accelerate decision-making without replacing your stack.",
         ],
       },
       {

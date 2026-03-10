@@ -8,7 +8,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "test": "vitest run --config vitest.config.ts",
-    "lint": "eslint app/ components/ lib/",
+    "lint": "eslint --max-warnings=0 app/ components/ lib/",
     "typecheck": "tsc --noEmit",
     "deploy:scw:staging": "../scripts/scw-deploy-frontend.sh admin staging",
     "deploy:scw:prod": "../scripts/scw-deploy-frontend.sh admin prod"
@@ -16,7 +16,6 @@
   "dependencies": {
     "@praedixa/shared-types": "workspace:*",
     "@praedixa/ui": "workspace:*",
-    "@tremor/react": "^3.18.0",
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.0.0",

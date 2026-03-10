@@ -11,6 +11,7 @@ Code source du service HTTP connecteurs.
 - `server.ts` : serveur, auth service tokens, CORS, routing et traitement requetes.
 - `routes.ts` : schemas Zod et routes HTTP.
 - `router.ts` : moteur de matching de routes.
+- `outbound-url.ts` : validation centralisee des URLs sortantes et des allowlists d'hotes.
 - `response.ts` : enveloppes de succes/erreur.
 - `catalog.ts` : catalogue des connecteurs connus.
 - `service.ts` : orchestration metier du cycle de vie des connexions.
@@ -34,3 +35,6 @@ Code source du service HTTP connecteurs.
 - persistance interchangeable memoire/Postgres
 - secrets jamais en clair dans la config: sealing obligatoire
 - operations de sync protegees par `Idempotency-Key`
+- chaque route protegee declare des `requiredCapabilities`; les service tokens sont scopes par organisation et par action
+- toutes les URLs sortantes sensibles (`baseUrl`, `testEndpoint`, endpoints OAuth) passent par `outbound-url.ts`
+- les IP clientes ne doivent utiliser `cf-connecting-ip` / `x-forwarded-for` que si `TRUST_PROXY=true`

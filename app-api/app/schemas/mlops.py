@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -27,5 +28,5 @@ class ModelRegisterRequest(BaseModel):
     artifact_uri: str
     sha256: str
     onnx_opset: int | None = None
-    features_schema_json: dict = Field(default_factory=dict)
-    metrics_json: dict = Field(default_factory=dict)
+    features_schema_json: dict[str, Any] = Field(default_factory=dict)
+    metrics_json: dict[str, Any] = Field(default_factory=dict)

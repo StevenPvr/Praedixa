@@ -25,8 +25,8 @@ export async function generateMetadata({
         : "Praedixa | ROI pilot application",
     description:
       locale === "fr"
-        ? "Cadrons un pilote ROI pour réunir vos données RH, finance, opérations et supply chain, prioriser les bonnes actions et suivre les gains."
-        : "Scope an ROI pilot to bring your HR, finance, operations, and supply chain data together, prioritize the right actions, and track gains.",
+        ? "Cadrons un pilote ROI pour federer les systemes qui comptent, prioriser les bons arbitrages et suivre les gains."
+        : "Scope an ROI pilot to federate the systems that matter, prioritize the right trade-offs, and track gains.",
   });
 }
 

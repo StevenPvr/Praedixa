@@ -4,11 +4,13 @@ import { fr } from "../../../lib/i18n/dictionaries/fr";
 import { HeroSection } from "../HeroSection";
 
 vi.mock("next/image", () => ({
-  default: (rawProps: React.ImgHTMLAttributes<HTMLImageElement> & {
-    fill?: boolean;
-    priority?: boolean;
-    unoptimized?: boolean;
-  }) => {
+  default: (
+    rawProps: React.ImgHTMLAttributes<HTMLImageElement> & {
+      fill?: boolean;
+      priority?: boolean;
+      unoptimized?: boolean;
+    },
+  ) => {
     const { alt, ...props } = rawProps;
     delete props.fill;
     delete props.priority;
@@ -28,11 +30,9 @@ vi.mock("next/link", () => ({
   ),
 }));
 vi.mock("../HeroBackgroundVideo", () => ({
-  HeroBackgroundVideo: ({
-    mp4Src,
-  }: {
-    mp4Src: string;
-  }) => <div data-mp4-src={mp4Src} data-testid="hero-background-video" />,
+  HeroBackgroundVideo: ({ mp4Src }: { mp4Src: string }) => (
+    <div data-mp4-src={mp4Src} data-testid="hero-background-video" />
+  ),
 }));
 
 describe("HeroSection", () => {
@@ -42,14 +42,15 @@ describe("HeroSection", () => {
     expect(screen.getByText("RH")).toBeInTheDocument();
     expect(screen.getByText("FINANCE")).toBeInTheDocument();
     expect(screen.getByText("OPÉRATIONS")).toBeInTheDocument();
-    expect(screen.getByText("Restaurant")).toBeInTheDocument();
-    expect(screen.getByText("Hôtel")).toBeInTheDocument();
-    expect(screen.getByText("Fast-food")).toBeInTheDocument();
-    expect(screen.getByText("Retail")).toBeInTheDocument();
-    expect(screen.getByText("Transport")).toBeInTheDocument();
-    expect(screen.getByText("Logistique")).toBeInTheDocument();
-    expect(screen.getByText("Automobile")).toBeInTheDocument();
+    expect(screen.getByText("HCR")).toBeInTheDocument();
     expect(screen.getByText("Enseignement supérieur")).toBeInTheDocument();
+    expect(
+      screen.getByText("Logistique / Transport / Retail"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Automobile / concessions / ateliers"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Restaurant")).not.toBeInTheDocument();
     expect(screen.getByTestId("hero-background-video")).toHaveAttribute(
       "data-mp4-src",
       "/hero-video/hero-industries-montage.mp4",
@@ -72,30 +73,23 @@ describe("HeroSection", () => {
 
     const supplyChainText = screen.getByText("SUPPLY CHAIN");
     expect(supplyChainText).toBeInTheDocument();
-    expect(supplyChainText.className).toContain(
-      "text-[var(--brass-dark-700)]",
-    );
+    expect(supplyChainText.className).toContain("text-[var(--brass-dark-700)]");
     expect(
       screen.getByLabelText("RH · FINANCE · OPÉRATIONS · SUPPLY CHAIN"),
     ).toBeInTheDocument();
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("Réunissez toutes vos données.");
-    expect(heading).toHaveTextContent(
-      "Anticipez vos besoins. Optimisez vos décisions.",
-    );
-    expect(within(heading).getByText("données").className).toContain(
+    expect(heading).toHaveTextContent("DecisionOps pour les opérations.");
+    expect(heading).toHaveTextContent("Décidez plus tôt. Prouvez le ROI.");
+    expect(within(heading).getByText("Décidez").className).toContain(
       "text-[var(--brass-dark-700)]",
     );
-    expect(within(heading).getByText("Anticipez").className).toContain(
-      "text-[var(--brass-dark-700)]",
-    );
-    expect(within(heading).getByText("Optimisez").className).toContain(
+    expect(within(heading).getByText("Prouvez").className).toContain(
       "text-[var(--brass-dark-700)]",
     );
     expect(
       screen.getByText(
-        "Praedixa réunit vos données RH, finance, opérations et supply chain au même endroit. Vous obtenez une base claire pour anticiper les besoins, optimiser les décisions et suivre ce qui rapporte vraiment, sans remplacer vos outils. Infrastructure et hébergement des données en France, sur Scaleway.",
+        "Praedixa se branche sur vos systèmes existants, fédère les données critiques sur une infrastructure hébergée en France, transforme vos arbitrages récurrents en décisions calculées, exécutées et auditables, puis prouve le ROI décision par décision en comité Ops / Finance.",
       ),
     ).toBeInTheDocument();
     expect(
@@ -116,8 +110,13 @@ describe("HeroSection", () => {
     const proofRail = screen.getByLabelText("Preuves d'ancrage français");
     expect(proofRail.className).toContain("grid");
     expect(proofRail.className).toContain("grid-cols-3");
-    expect(
-      proofRail,
-    ).toBeInTheDocument();
+    expect(proofRail).toBeInTheDocument();
+
+    expect(screen.getByRole("link", { name: "HCR" })).toHaveAttribute(
+      "href",
+      "/fr/secteurs/hcr",
+    );
+    expect(screen.getByText("Action validée")).toBeInTheDocument();
+    expect(screen.getByText("ROI prouvé")).toBeInTheDocument();
   });
 });

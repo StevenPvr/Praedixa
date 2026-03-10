@@ -78,7 +78,7 @@ class InMemoryIdempotencyStore:
             if key in self._seen:
                 return False
             if len(self._seen) >= self._max_entries:
-                oldest_key = min(self._seen, key=self._seen.get)
+                oldest_key = min(self._seen, key=lambda seen_key: self._seen[seen_key])
                 self._seen.pop(oldest_key, None)
             self._seen[key] = now + self._ttl_seconds
             return True

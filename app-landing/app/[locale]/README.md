@@ -16,6 +16,7 @@ Ce sous-arbre porte les pages visibles par les visiteurs. Le layout localise val
 
 - `page.tsx`: homepage
 - `services/page.tsx`: offre signature et variante "forecasts only"
+- `secteurs/[slug]/page.tsx` et `industries/[slug]/page.tsx`: pages verticales FR/EN pour HCR, enseignement supérieur, logistique/transport/retail et automobile
 - `contact/page.tsx`: page contact + formulaire
 - `devenir-pilote/page.tsx` et `pilot-application/page.tsx`: candidature pilote
 - `pilot-protocol/page.tsx`: protocole pilote commun
@@ -33,6 +34,7 @@ Ce sous-arbre porte les pages visibles par les visiteurs. Le layout localise val
 
 - dictionnaires `lib/i18n/dictionaries/*`
 - contenus de ressources `lib/content/*`
+- pages sectorielles resolues depuis `lib/content/sector-pages.ts`
 - posts blog lus depuis disque via `lib/blog/posts.ts`
 - metadata SEO via `lib/seo/metadata.ts`
 

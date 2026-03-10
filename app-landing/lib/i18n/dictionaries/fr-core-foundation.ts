@@ -2,12 +2,12 @@ import type { Dictionary } from "../types";
 
 export const frCoreFoundation: Partial<Dictionary> = {
   meta: {
-    title: "Praedixa | Réunissez toutes vos données pour mieux décider",
+    title: "Praedixa | Plateforme française de DecisionOps",
     description:
-      "Praedixa réunit vos données RH, finance, opérations et supply chain au même endroit pour anticiper vos besoins, optimiser vos décisions et suivre le ROI sans remplacer vos outils.",
-    ogTitle: "Praedixa | Toutes vos données au bon endroit",
+      "Praedixa est la plateforme française de DecisionOps: elle se branche sur vos systèmes existants, gouverne les arbitrages critiques et prouve le ROI décision par décision.",
+    ogTitle: "Praedixa | DecisionOps pour les opérations",
     ogDescription:
-      "Praedixa regroupe vos données RH, finance, opérations et supply chain pour anticiper vos besoins, optimiser vos décisions et prouver ce qui rapporte.",
+      "Praedixa fédère les systèmes qui comptent pour une décision, calcule les options coût / service / risque et prouve le ROI décision par décision.",
   },
 
   nav: {
@@ -24,26 +24,26 @@ export const frCoreFoundation: Partial<Dictionary> = {
   },
 
   hero: {
-    kicker: "RH · Finance · Opérations · Supply Chain",
-    headline: "Réunissez toutes vos données.",
-    headlineHighlight: "Anticipez vos besoins. Optimisez vos décisions.",
+    kicker: "DecisionOps · RH · Finance · Opérations · Supply Chain",
+    headline: "DecisionOps pour les opérations.",
+    headlineHighlight: "Décidez plus tôt. Prouvez le ROI.",
     subtitle:
-      "Praedixa réunit vos données RH, finance, opérations et supply chain au même endroit. Vous obtenez une base claire pour anticiper les besoins, optimiser les décisions et suivre ce qui rapporte vraiment, sans remplacer vos outils. Infrastructure et hébergement des données en France, sur Scaleway.",
+      "Praedixa se branche sur vos systèmes existants, fédère les données critiques sur une infrastructure hébergée en France, transforme vos arbitrages récurrents en décisions calculées, exécutées et auditables, puis prouve le ROI décision par décision en comité Ops / Finance.",
     manifestoLabel: "",
     manifestoQuote:
       "Accompagner la croissance des entreprises en révélant le potentiel de leurs données.",
     bullets: [
       {
-        metric: "Toutes vos données",
-        text: "au même endroit",
+        metric: "DecisionOps",
+        text: "sur l'existant",
       },
       {
-        metric: "Besoins visibles",
-        text: "plus tôt",
+        metric: "Action validée",
+        text: "dans vos outils",
       },
       {
-        metric: "Décisions optimisées",
-        text: "et ROI suivi",
+        metric: "ROI prouvé",
+        text: "décision par décision",
       },
     ],
     ctaPrimary: "Obtenir le diagnostic ROI gratuit",
@@ -51,12 +51,13 @@ export const frCoreFoundation: Partial<Dictionary> = {
     previewTitle: "Un aperçu de votre lecture business",
     ctaMeta: "",
     trustBadges: [
-      "Une seule lecture RH, finance et opérations",
-      "Les pertes et les gains potentiels remontent vite",
-      "Des priorités business simples a relire",
+      "DecisionOps au-dessus de l'existant",
+      "Fédération légère des systèmes critiques",
+      "Arbitrages coût / service / risque gouvernés",
+      "Première action déclenchée dans vos outils",
+      "Validation humaine requise",
+      "Preuve mensuelle décision par décision",
       "Diagnostic ROI gratuit sur vos donnees existantes",
-      "Suivi du ROI simple, lisible, exploitable en comite",
-      "Lecture seule sur l'existant. Demarrage leger",
       "Complement de stack, sans remplacement d'outil",
       "Gouvernance et securite integrees",
       "Hébergé en France (Scaleway)",
@@ -134,46 +135,46 @@ export const frCoreFoundation: Partial<Dictionary> = {
   },
 
   solution: {
-    kicker: "Ce que fait Praedixa",
-    heading: "Une seule lecture business pour réunir RH, finance et opérations.",
+    kicker: "DecisionOps",
+    heading: "DecisionOps au-dessus de vos outils existants.",
     subheading:
-      "Praedixa récupère vos données dispersées, les remet dans le même langage et montre où agir en premier pour gagner de l'argent. Pas de jargon. Pas un dashboard de plus.",
+      "Le marché sait déjà prévoir, planifier et simuler. Praedixa apporte autre chose: une fédération des données utiles sur l'existant, des arbitrages gouvernés, une première action déclenchée dans vos outils et une preuve finance-grade du ROI.",
     principles: [
       {
-        title: "Réunir les données dispersées",
-        subtitle: "RH · Finance · Ops",
+        title: "Fédérer les systèmes qui comptent pour une décision",
+        subtitle: "Lecture seule · hébergé en France",
         description:
-          "Fichiers, exports et outils existants sont rassemblés dans une vue commune, simple a relire.",
+          "Exports, API, ERP, planning, BI ou Excel sont reliés sans projet de remplacement pour donner un cerveau commun aux arbitrages.",
       },
       {
-        title: "Faire ressortir ce qui coûte cher",
-        subtitle: "Pertes et écarts",
+        title: "Transformer l'arbitrage en décision gouvernée",
+        subtitle: "Coût · Service · Risque",
         description:
-          "Praedixa met en évidence les sites, équipes ou sujets où l'argent fuit et où le potentiel de gain est le plus concret.",
+          "Praedixa compare les options autorisées, rend le choix explicite, garde les garde-fous métier et prépare l'action au lieu de laisser un simple signal.",
       },
       {
-        title: "Prioriser les actions à plus fort ROI",
-        subtitle: "Quoi faire d'abord",
+        title: "Déclencher et prouver",
+        subtitle: "Action validée · ROI finance-grade",
         description:
-          "Vous savez quoi lancer en premier, combien cela peut rapporter et comment l'expliquer simplement aux équipes.",
+          "La première étape validée part dans les outils existants, puis la décision est relue avec baseline / recommandé / réel et hypothèses explicites.",
       },
     ],
     differentiators: {
-      title: "Pas un outil de plus à nourrir",
+      title: "La différence est dans la combinaison DecisionOps",
       description:
-        "Praedixa ne rajoute pas de complexité. La plateforme aligne vos équipes autour d'une même lecture business et d'un plan d'action rentable.",
+        "Praedixa ne gagne pas sur une brique isolée. Le différenciateur est la combinaison produit empaquetée comme coeur d'exécution.",
       items: [
         {
-          is: "Une lecture commune RH / Finance / Opérations",
-          isNot: "Des chiffres dispersés dans plusieurs outils",
+          is: "Fédération gouvernée sur l'existant",
+          isNot: "Projet data ou remplacement d'outils",
         },
         {
-          is: "Des priorités business avec impact estimé",
-          isNot: "Des analyses trop techniques à décoder",
+          is: "Decision Journal + premiere action dans les outils",
+          isNot: "Signal ou dashboard sans execution",
         },
         {
-          is: "Des décisions comparables et orientées ROI",
-          isNot: "Des arbitrages au feeling",
+          is: "Preuve mensuelle decision par decision",
+          isNot: "ROI marketing generique sans tracabilite",
         },
       ],
     },

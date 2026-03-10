@@ -21,7 +21,7 @@ Backend applicatif TypeScript expose aux frontends `app-webapp` et `app-admin`.
 
 - [src/README.md](./src/README.md) : architecture du runtime et grandes familles de routes.
 - [src/services/README.md](./src/services/README.md) : services, persistance et dependances.
-- [src/__tests__/README.md](./src/__tests__/README.md) : couverture Vitest.
+- [src/**tests**/README.md](./src/__tests__/README.md) : couverture Vitest.
 - [migrations/README.md](./migrations/README.md) : migration SQL versionnee.
 
 ## Routes principales
@@ -58,10 +58,11 @@ Variables importantes chargees par `src/config.ts`:
 - `AUTH_ISSUER_URL`, `AUTH_AUDIENCE`, `AUTH_JWKS_URL`, `AUTH_JWT_ALGORITHMS`
 - `DATABASE_URL`
 - `DEMO_MODE`
-- `CONNECTORS_RUNTIME_URL`, `CONNECTORS_RUNTIME_TOKEN`
+- `CONNECTORS_RUNTIME_URL`, `CONNECTORS_RUNTIME_ALLOWED_HOSTS`, `CONNECTORS_RUNTIME_TOKEN`
 - `CONNECTORS_INTERNAL_TOKEN` pour le mode legacy transitoire
 
 La config refuse les URLs non absolues, les wildcards CORS et les schemas non `http(s)`/`postgres`.
+Hors developpement, `CONNECTORS_RUNTIME_URL` doit aussi etre en `https`, sans credentials/query/fragment, et son host doit appartenir a `CONNECTORS_RUNTIME_ALLOWED_HOSTS`.
 
 ## Workflows utiles
 

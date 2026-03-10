@@ -11,6 +11,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 import LoginPage from "../page";
+import AuthLayout from "../../layout";
 
 describe("Admin LoginPage", () => {
   beforeEach(() => {
@@ -30,8 +31,13 @@ describe("Admin LoginPage", () => {
   });
 
   it("renders admin login header", () => {
-    render(<LoginPage />);
+    render(
+      <AuthLayout>
+        <LoginPage />
+      </AuthLayout>,
+    );
 
+    expect(screen.getByRole("main")).toHaveAttribute("id", "main-content");
     expect(screen.getByText("Connexion securisee")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Continuer vers la connexion" }),

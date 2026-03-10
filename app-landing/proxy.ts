@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { generateNonce, buildCspHeader } from "./lib/security/csp";
-import { locales, legacyRedirectMap } from "./lib/i18n/config";
+import { legacyRedirectMap } from "./lib/i18n/config";
 import { resolveLocaleFromPathname } from "./lib/i18n/request-locale";
 
 const CANONICAL_HOST = "www.praedixa.com";
@@ -43,12 +43,6 @@ function resolveForwardedProto(request: NextRequest): "http" | "https" | null {
     return normalized;
   }
   return null;
-}
-
-function hasLocalePrefix(pathname: string): boolean {
-  return locales.some(
-    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
-  );
 }
 
 function normalizePathname(pathname: string): string {
@@ -140,16 +134,6 @@ export async function proxy(request: NextRequest) {
   const canonicalTarget = resolveCanonicalTarget(request);
   if (canonicalTarget) {
     return addCsp(request, NextResponse.redirect(canonicalTarget, 301));
-  }
-
-  const { pathname } = request.nextUrl;
-
-  if (isApiOrStatic(pathname)) {
-    return addCsp(request);
-  }
-
-  if (!hasLocalePrefix(pathname)) {
-    return addCsp(request);
   }
 
   return addCsp(request);

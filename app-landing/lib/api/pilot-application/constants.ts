@@ -27,7 +27,15 @@ export const ALLOWED_EMPLOYEE_RANGES = new Set([
   "500-1000",
   "1000+",
 ]);
-export const ALLOWED_SECTORS = new Set(SECTORS);
+export const ALLOWED_SECTORS = new Set([
+  ...SECTORS,
+  "Hospitality / Food service",
+  "Higher education",
+  "Logistics / Transport / Retail",
+  "Automotive / dealerships / workshops",
+  "Construction",
+  "Other",
+]);
 export const ALLOWED_ROLES = new Set(ROLES);
 export const ALLOWED_SITE_COUNTS = new Set(SITE_COUNTS);
 export const ALLOWED_TIMELINES = new Set(TIMELINES);

@@ -13,7 +13,22 @@ SENSITIVE_PATH_PATTERNS = (
     "app-api-ts/src/server.ts",
     "app-api-ts/src/routes.ts",
     "app-api-ts/src/config.ts",
+    "app-api-ts/src/services/operational-data.ts",
+    "app-api-ts/src/services/gold-explorer.ts",
+    "app-connectors/src/config.ts",
+    "app-connectors/src/server.ts",
+    "app-connectors/src/routes.ts",
+    "app-connectors/src/service.ts",
+    "app-connectors/src/router.ts",
+    "app-connectors/src/security.ts",
+    "app-connectors/src/types.ts",
+    "app-connectors/src/outbound-url.ts",
     "contracts/openapi/public.yaml",
+    "app-landing/lib/api/form-route.ts",
+    "app-landing/app/api/contact/route.ts",
+    "app-landing/app/api/contact/challenge/route.ts",
+    "app-landing/app/api/pilot-application/route.ts",
+    "app-landing/app/api/scoping-call/route.ts",
     "app-webapp/lib/auth/**",
     "app-admin/lib/auth/**",
     "app-landing/lib/security/**",
@@ -26,6 +41,8 @@ SENSITIVE_PATH_PATTERNS = (
 SECURITY_TEST_PATTERNS = (
     "app-api-ts/**/*.test.ts",
     "app-api-ts/**/*.test.tsx",
+    "app-connectors/**/*.test.ts",
+    "app-connectors/**/*.test.tsx",
     "app-webapp/**/__tests__/*.test.ts",
     "app-webapp/**/__tests__/*.test.tsx",
     "app-admin/**/__tests__/*.test.ts",
@@ -75,6 +92,63 @@ ABUSE_REQUIREMENTS = (
         ),
         "required_tests": (
             "app-api-ts/src/__tests__/server.test.ts",
+        ),
+    },
+    {
+        "name": "site-scope-enforcement",
+        "critical_paths": (
+            "app-api-ts/src/routes.ts",
+            "app-api-ts/src/services/operational-data.ts",
+            "app-api-ts/src/services/gold-explorer.ts",
+        ),
+        "required_tests": (
+            "app-api-ts/src/__tests__/operational-data.test.ts",
+            "app-api-ts/src/__tests__/gold-explorer.test.ts",
+        ),
+    },
+    {
+        "name": "connectors-service-token-authz",
+        "critical_paths": (
+            "app-connectors/src/config.ts",
+            "app-connectors/src/router.ts",
+            "app-connectors/src/routes.ts",
+            "app-connectors/src/server.ts",
+            "app-connectors/src/types.ts",
+        ),
+        "required_tests": (
+            "app-connectors/src/__tests__/config.test.ts",
+            "app-connectors/src/__tests__/server.test.ts",
+        ),
+    },
+    {
+        "name": "connectors-outbound-runtime-hardening",
+        "critical_paths": (
+            "app-connectors/src/config.ts",
+            "app-connectors/src/routes.ts",
+            "app-connectors/src/service.ts",
+            "app-connectors/src/outbound-url.ts",
+            "app-connectors/src/oauth.ts",
+        ),
+        "required_tests": (
+            "app-connectors/src/__tests__/config.test.ts",
+            "app-connectors/src/__tests__/service.test.ts",
+        ),
+    },
+    {
+        "name": "landing-public-form-security",
+        "critical_paths": (
+            "app-landing/lib/api/form-route.ts",
+            "app-landing/lib/security/**",
+            "app-landing/app/api/contact/route.ts",
+            "app-landing/app/api/contact/challenge/route.ts",
+            "app-landing/app/api/pilot-application/route.ts",
+            "app-landing/app/api/scoping-call/route.ts",
+        ),
+        "required_tests": (
+            "app-landing/app/api/contact/__tests__/route.test.ts",
+            "app-landing/app/api/contact/challenge/__tests__/route.test.ts",
+            "app-landing/app/api/pilot-application/__tests__/route-security.test.ts",
+            "app-landing/app/api/scoping-call/__tests__/route.test.ts",
         ),
     },
 )
@@ -136,7 +210,7 @@ def main() -> int:
     for requirement in ABUSE_REQUIREMENTS:
         if not any(
             _matches_any(path, tuple(requirement["critical_paths"]))
-            for path in sensitive_changed
+            for path in staged_files
         ):
             continue
 

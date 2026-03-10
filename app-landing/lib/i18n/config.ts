@@ -1,3 +1,5 @@
+import { getSectorLegacyRedirects } from "../content/sector-pages";
+
 export const locales = ["fr", "en"] as const;
 export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = "fr";
@@ -53,28 +55,10 @@ const retiredKnowledgeRedirects = {
   "/fr/preuve-impact-operations": "/fr/ressources",
   "/operational-impact-proof": "/en/resources",
   "/en/operational-impact-proof": "/en/resources",
-  "/praedixa-logistique": "/fr/ressources",
-  "/fr/praedixa-logistique": "/fr/ressources",
-  "/praedixa-logistics": "/en/resources",
-  "/en/praedixa-logistics": "/en/resources",
-  "/praedixa-transport": "/fr/ressources",
-  "/fr/praedixa-transport": "/fr/ressources",
-  "/en/praedixa-transport": "/en/resources",
-  "/praedixa-retail": "/fr/ressources",
-  "/fr/praedixa-retail": "/fr/ressources",
-  "/en/praedixa-retail": "/en/resources",
   "/praedixa-multi-franchises": "/fr/ressources",
   "/fr/praedixa-multi-franchises": "/fr/ressources",
   "/praedixa-multi-franchise-networks": "/en/resources",
   "/en/praedixa-multi-franchise-networks": "/en/resources",
-  "/praedixa-automobile": "/fr/ressources",
-  "/fr/praedixa-automobile": "/fr/ressources",
-  "/praedixa-automotive": "/en/resources",
-  "/en/praedixa-automotive": "/en/resources",
-  "/praedixa-concessions-ateliers": "/fr/ressources",
-  "/fr/praedixa-concessions-ateliers": "/fr/ressources",
-  "/praedixa-auto-dealerships-workshops": "/en/resources",
-  "/en/praedixa-auto-dealerships-workshops": "/en/resources",
   "/calculer-cout-sous-couverture": "/fr/ressources",
   "/fr/calculer-cout-sous-couverture": "/fr/ressources",
   "/calculate-coverage-gap-cost": "/en/resources",
@@ -98,14 +82,6 @@ const retiredKnowledgeRedirects = {
   "/fr/planification-ressources-entrepot": "/fr/ressources",
   "/warehouse-resource-planning": "/en/resources",
   "/en/warehouse-resource-planning": "/en/resources",
-  "/praedixa-restauration-rapide": "/fr/ressources",
-  "/fr/praedixa-restauration-rapide": "/fr/ressources",
-  "/praedixa-quick-service-restaurants": "/en/resources",
-  "/en/praedixa-quick-service-restaurants": "/en/resources",
-  "/praedixa-distribution-retail": "/fr/ressources",
-  "/fr/praedixa-distribution-retail": "/fr/ressources",
-  "/praedixa-retail-distribution": "/en/resources",
-  "/en/praedixa-retail-distribution": "/en/resources",
 } as const;
 
 export const legacyRedirectMap: Readonly<Record<string, string>> =
@@ -118,7 +94,11 @@ export const legacyRedirectMap: Readonly<Record<string, string>> =
         }
         return acc;
       },
-      { ...explicitLegacyRedirects, ...retiredKnowledgeRedirects },
+      {
+        ...explicitLegacyRedirects,
+        ...retiredKnowledgeRedirects,
+        ...getSectorLegacyRedirects(),
+      },
     ),
   );
 

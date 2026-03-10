@@ -24,10 +24,6 @@ vi.mock("@praedixa/ui", () => ({
   },
 }));
 
-vi.mock("lucide-react", () => ({
-  Plus: () => <svg data-testid="icon-plus" />,
-}));
-
 const mockConversations = [
   {
     id: "c1",

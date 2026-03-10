@@ -7,12 +7,15 @@ Ce dossier regroupe les tests associés au dossier parent `app-landing/component
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `HeroBackgroundVideo.test.tsx`
 - `HeroSection.test.tsx`
 - `HomepageMessaging.test.tsx`
+- `SectorPagesTeaserSection.test.tsx`
 
 ## Intégration
 

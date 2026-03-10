@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import {
   MAX_REQUESTS_PER_WINDOW,
   RATE_LIMIT_WINDOW_MS,
@@ -9,7 +8,10 @@ import {
   DEFAULT_MAX_AGE_MS,
   verifyContactChallenge,
 } from "../../../lib/security/contact-challenge";
-import { logSecurityEvent, redactIpForLogs } from "../../../lib/security/audit-log";
+import {
+  logSecurityEvent,
+  redactIpForLogs,
+} from "../../../lib/security/audit-log";
 import {
   claimSingleUseToken,
   SecurityStoreUnavailableError,
@@ -17,6 +19,7 @@ import {
 import {
   enforceFormRateLimit,
   hasFilledHoneypot,
+  jsonNoStore,
   readJsonBody,
   rejectIfBodyTooLarge,
   rejectIfUntrustedOrigin,
@@ -68,7 +71,7 @@ export async function POST(request: Request) {
     }
 
     if (!hasJsonContentType(request)) {
-      return NextResponse.json(
+      return jsonNoStore(
         { error: "Content-Type non supporte." },
         { status: 415 },
       );
@@ -86,7 +89,7 @@ export async function POST(request: Request) {
       return parsedBody.response;
     }
     if (hasFilledHoneypot(parsedBody.body)) {
-      return NextResponse.json({ success: true });
+      return jsonNoStore({ success: true });
     }
 
     const validation = validateContactBody(parsedBody.body);
@@ -95,10 +98,10 @@ export async function POST(request: Request) {
         requestId,
         ip: redactIpForLogs(ip),
       });
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return jsonNoStore({ error: validation.error }, { status: 400 });
     }
     if (validation.data.website !== "") {
-      return NextResponse.json({ success: true });
+      return jsonNoStore({ success: true });
     }
 
     const challenge = verifyContactChallenge({
@@ -112,10 +115,17 @@ export async function POST(request: Request) {
         ip: redactIpForLogs(ip),
         reason: challenge.reason,
       });
-      return NextResponse.json({ error: "Test anti-spam invalide." }, { status: 400 });
+      return jsonNoStore(
+        { error: "Test anti-spam invalide." },
+        { status: 400 },
+      );
     }
 
-    const claimResponse = await claimChallengeToken(validation.data.challengeToken, requestId, ip);
+    const claimResponse = await claimChallengeToken(
+      validation.data.challengeToken,
+      requestId,
+      ip,
+    );
     if (claimResponse) {
       return claimResponse;
     }
@@ -131,13 +141,13 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({ success: true });
+    return jsonNoStore({ success: true });
   } catch (error) {
     logSecurityEvent("contact.unhandled_error", {
       requestId,
       error: error instanceof Error ? error.message : "unknown",
     });
-    return NextResponse.json(
+    return jsonNoStore(
       { error: "Erreur lors de l'envoi. Veuillez réessayer." },
       { status: 500 },
     );
@@ -164,7 +174,7 @@ async function claimChallengeToken(
       requestId,
       ip: redactIpForLogs(ip),
     });
-    return NextResponse.json({ error: "Test anti-spam invalide." }, { status: 400 });
+    return jsonNoStore({ error: "Test anti-spam invalide." }, { status: 400 });
   } catch (error) {
     if (!(error instanceof SecurityStoreUnavailableError)) {
       throw error;
@@ -174,7 +184,7 @@ async function claimChallengeToken(
       requestId,
       ip: redactIpForLogs(ip),
     });
-    return NextResponse.json(
+    return jsonNoStore(
       { error: "Service temporairement indisponible." },
       { status: 503 },
     );

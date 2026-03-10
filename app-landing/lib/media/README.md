@@ -4,12 +4,12 @@ Helpers media du hero.
 
 ## Role
 
-Choisir les bons assets hero selon le contexte et les contraintes navigateur.
+Servir les assets hero effectivement utilises par la homepage et gerer les contraintes navigateur.
 
 ## Fichiers
 
 - `hero-video.ts`: choix MP4/WebM avec garde-fou Safari/WebKit
-- `hero-industries.ts`: mapping d'industries et des assets associes
+- `hero-industries.ts`: definition de l'asset montage unique utilise par le hero
 
 ## Tests
 

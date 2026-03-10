@@ -1,4 +1,8 @@
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import {
+  createServer,
+  type IncomingMessage,
+  type ServerResponse,
+} from "node:http";
 import { randomUUID } from "node:crypto";
 
 import { loadConfig } from "./config.js";
@@ -12,6 +16,7 @@ import type {
   HttpMethod,
   RouteContext,
   ServiceTokenConfig,
+  ServiceTokenCapability,
 } from "./types.js";
 
 const compiledRoutes = compileRoutes(routes);
@@ -20,7 +25,8 @@ export const CORS_ALLOWED_HEADERS =
   "Authorization,Content-Type,Idempotency-Key,X-Actor-User-ID,X-Request-ID,Accept,Accept-Language,X-Praedixa-Key-Id,X-Praedixa-Timestamp,X-Praedixa-Signature";
 
 export const SECURITY_HEADERS = {
-  "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
+  "Content-Security-Policy":
+    "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
   "Referrer-Policy": "no-referrer",
@@ -101,7 +107,10 @@ function writeJson(
 
 function hasRequestBody(request: IncomingMessage): boolean {
   const transferEncoding = request.headers["transfer-encoding"];
-  if (typeof transferEncoding === "string" && transferEncoding.trim().length > 0) {
+  if (
+    typeof transferEncoding === "string" &&
+    transferEncoding.trim().length > 0
+  ) {
     return true;
   }
 
@@ -122,7 +131,9 @@ function hasRequestBody(request: IncomingMessage): boolean {
   return value > 0;
 }
 
-export function isJsonContentType(contentType: string | string[] | undefined): boolean {
+export function isJsonContentType(
+  contentType: string | string[] | undefined,
+): boolean {
   if (contentType == null) {
     return false;
   }
@@ -143,73 +154,114 @@ function logSecurityEvent(
   process.stderr.write(`[connectors][security] ${JSON.stringify(envelope)}\n`);
 }
 
-function getClientIp(request: IncomingMessage): string | null {
-  const cfConnectingIp = request.headers["cf-connecting-ip"];
-  if (typeof cfConnectingIp === "string" && cfConnectingIp.trim().length > 0) {
-    return cfConnectingIp.trim();
+export function resolveClientIp(
+  headers: Readonly<Record<string, string | string[] | undefined>>,
+  remoteAddress: string | null | undefined,
+  trustProxy = false,
+): string | null {
+  if (trustProxy) {
+    const cfConnectingIp = headers["cf-connecting-ip"];
+    if (
+      typeof cfConnectingIp === "string" &&
+      cfConnectingIp.trim().length > 0
+    ) {
+      return cfConnectingIp.trim();
+    }
+
+    const forwardedFor = headers["x-forwarded-for"];
+    const forwardedValue = Array.isArray(forwardedFor)
+      ? forwardedFor[0]
+      : forwardedFor;
+    if (
+      typeof forwardedValue === "string" &&
+      forwardedValue.trim().length > 0
+    ) {
+      return (
+        forwardedValue
+          .split(",")
+          .map((value) => value.trim())
+          .find((value) => value.length > 0) ?? null
+      );
+    }
   }
 
-  const forwardedFor = request.headers["x-forwarded-for"];
-  if (typeof forwardedFor === "string" && forwardedFor.trim().length > 0) {
-    return forwardedFor.split(",")[0]?.trim() ?? null;
-  }
+  return remoteAddress ?? null;
+}
 
-  return request.socket.remoteAddress ?? null;
+function getClientIp(
+  request: IncomingMessage,
+  trustProxy: boolean,
+): string | null {
+  return resolveClientIp(
+    request.headers,
+    request.socket.remoteAddress ?? null,
+    trustProxy,
+  );
 }
 
 async function readBody(
   request: IncomingMessage,
 ): Promise<{ parsed: unknown; rawBody: string | null }> {
-  return await new Promise<{ parsed: unknown; rawBody: string | null }>((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    let size = 0;
-    let settled = false;
+  return await new Promise<{ parsed: unknown; rawBody: string | null }>(
+    (resolve, reject) => {
+      const chunks: Buffer[] = [];
+      let size = 0;
+      let settled = false;
 
-    function safeReject(error: BodyReadError): void {
-      if (settled) {
-        return;
+      function safeReject(error: BodyReadError): void {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        reject(error);
       }
-      settled = true;
-      reject(error);
-    }
 
-    function safeResolve(payload: { parsed: unknown; rawBody: string | null }): void {
-      if (settled) {
-        return;
+      function safeResolve(payload: {
+        parsed: unknown;
+        rawBody: string | null;
+      }): void {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        resolve(payload);
       }
-      settled = true;
-      resolve(payload);
-    }
 
-    request.on("data", (chunk: Buffer | string) => {
-      const data = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
-      size += data.length;
-      if (size > MAX_REQUEST_BODY_BYTES) {
-        request.destroy();
-        safeReject(
-          new BodyReadError(
-            "PAYLOAD_TOO_LARGE",
-            "Request body exceeds max allowed size",
-          ),
-        );
-        return;
-      }
-      chunks.push(data);
-    });
-    request.on("end", () => {
-      if (chunks.length === 0) {
-        safeResolve({ parsed: null, rawBody: null });
-        return;
-      }
-      const text = Buffer.concat(chunks).toString("utf8");
-      try {
-        safeResolve({ parsed: JSON.parse(text), rawBody: text });
-      } catch {
-        safeReject(new BodyReadError("INVALID_JSON", "Request body must be valid JSON"));
-      }
-    });
-    request.on("error", () => safeResolve({ parsed: null, rawBody: null }));
-  });
+      request.on("data", (chunk: Buffer | string) => {
+        const data = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
+        size += data.length;
+        if (size > MAX_REQUEST_BODY_BYTES) {
+          request.destroy();
+          safeReject(
+            new BodyReadError(
+              "PAYLOAD_TOO_LARGE",
+              "Request body exceeds max allowed size",
+            ),
+          );
+          return;
+        }
+        chunks.push(data);
+      });
+      request.on("end", () => {
+        if (chunks.length === 0) {
+          safeResolve({ parsed: null, rawBody: null });
+          return;
+        }
+        const text = Buffer.concat(chunks).toString("utf8");
+        try {
+          safeResolve({ parsed: JSON.parse(text), rawBody: text });
+        } catch {
+          safeReject(
+            new BodyReadError(
+              "INVALID_JSON",
+              "Request body must be valid JSON",
+            ),
+          );
+        }
+      });
+      request.on("error", () => safeResolve({ parsed: null, rawBody: null }));
+    },
+  );
 }
 
 function normalizeMethod(rawMethod: string | undefined): HttpMethod | null {
@@ -253,6 +305,7 @@ export function authenticateServiceToken(
       matchedPrincipal = {
         name: serviceToken.name,
         allowedOrgs: serviceToken.allowedOrgs,
+        capabilities: serviceToken.capabilities,
       };
     }
   }
@@ -271,16 +324,26 @@ export function canAccessOrganization(
   return principal.allowedOrgs.includes(organizationId);
 }
 
+export function hasRequiredCapabilities(
+  principal: AuthenticatedServicePrincipal,
+  requiredCapabilities: readonly ServiceTokenCapability[],
+): boolean {
+  if (requiredCapabilities.length === 0) {
+    return true;
+  }
+
+  return requiredCapabilities.every((capability) =>
+    principal.capabilities.includes(capability),
+  );
+}
+
 export function createAppServer(config: AppConfig) {
   return createServer(async (request, response) => {
     const requestId =
       (request.headers["x-request-id"] as string | undefined) ?? randomUUID();
-    const clientIp = getClientIp(request);
+    const clientIp = getClientIp(request, config.trustProxy);
     const requestOrigin = normalizeOrigin(request.headers.origin);
-    const corsHeaders = resolveCorsHeaders(
-      requestOrigin,
-      config.corsOrigins,
-    );
+    const corsHeaders = resolveCorsHeaders(requestOrigin, config.corsOrigins);
 
     if (request.method?.toUpperCase() === "OPTIONS") {
       response.writeHead(200, {
@@ -310,12 +373,7 @@ export function createAppServer(config: AppConfig) {
       matched = matchRoute(compiledRoutes, method, requestUrl.pathname);
     } catch (error) {
       if (error instanceof RouteMatchError) {
-        const result = failure(
-          "INVALID_PATH",
-          error.message,
-          requestId,
-          400,
-        );
+        const result = failure("INVALID_PATH", error.message, requestId, 400);
         writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
@@ -336,13 +394,10 @@ export function createAppServer(config: AppConfig) {
     }
 
     if (matched == null) {
-      const result = failure(
-        "NOT_FOUND",
-        "Route not found",
-        requestId,
-        404,
-        { path: requestUrl.pathname, method },
-      );
+      const result = failure("NOT_FOUND", "Route not found", requestId, 404, {
+        path: requestUrl.pathname,
+        method,
+      });
       writeJson(response, result.statusCode, result.payload, corsHeaders);
       return;
     }
@@ -405,6 +460,27 @@ export function createAppServer(config: AppConfig) {
         writeJson(response, result.statusCode, result.payload, corsHeaders);
         return;
       }
+      if (
+        !hasRequiredCapabilities(principal, matched.route.requiredCapabilities)
+      ) {
+        logSecurityEvent("connectors.authz.capability_failed", requestId, {
+          path: requestUrl.pathname,
+          method,
+          origin: requestOrigin,
+          clientIp,
+          organizationId,
+          principal: principal.name,
+          requiredCapabilities: matched.route.requiredCapabilities,
+        });
+        const result = failure(
+          "FORBIDDEN",
+          "Service token lacks the required capability for this route",
+          requestId,
+          403,
+        );
+        writeJson(response, result.statusCode, result.payload, corsHeaders);
+        return;
+      }
     }
 
     let body: unknown = null;
@@ -415,7 +491,10 @@ export function createAppServer(config: AppConfig) {
         body = parsedBody.parsed;
         rawBody = parsedBody.rawBody;
       } catch (error) {
-        if (error instanceof BodyReadError && error.code === "PAYLOAD_TOO_LARGE") {
+        if (
+          error instanceof BodyReadError &&
+          error.code === "PAYLOAD_TOO_LARGE"
+        ) {
           const result = failure(
             "PAYLOAD_TOO_LARGE",
             "Request body exceeds max allowed size",

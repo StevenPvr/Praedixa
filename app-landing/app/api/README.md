@@ -43,4 +43,5 @@ Presque toutes les routes formulaire appliquent, dans cet ordre:
 - `contact/challenge/__tests__/route.test.ts`
 - `health/__tests__/route.test.ts`
 - `pilot-application/__tests__/route-*.test.ts`
+- `scoping-call/__tests__/route.test.ts`
 - `v1/public/contact-requests/__tests__/route.test.ts`

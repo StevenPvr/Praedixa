@@ -30,7 +30,9 @@ describe("POST /api/pilot-application validation", () => {
     });
 
     it("rejects a companyName longer than 200 characters", async () => {
-      const res = await POST(makeRequest(validBody({ companyName: "A".repeat(201) })));
+      const res = await POST(
+        makeRequest(validBody({ companyName: "A".repeat(201) })),
+      );
       expect(res.status).toBe(400);
       expect(res.body).toEqual({
         error: "Nom d'entreprise trop long (max 200 caractères).",
@@ -95,7 +97,8 @@ describe("POST /api/pilot-application validation", () => {
       const res = await POST(makeRequest(validBody({ phone: "+33 6 abc" })));
       expect(res.status).toBe(400);
       expect(res.body).toEqual({
-        error: "Numéro de téléphone invalide (chiffres, +, -, espaces uniquement).",
+        error:
+          "Numéro de téléphone invalide (chiffres, +, -, espaces uniquement).",
       });
     });
 
@@ -128,11 +131,21 @@ describe("POST /api/pilot-application validation", () => {
     });
 
     it("accepts every valid employeeRange", async () => {
-      const validRanges = ["50-100", "100-250", "250-500", "500-1 000", "1 000+", "500-1000", "1000+"];
+      const validRanges = [
+        "50-100",
+        "100-250",
+        "250-500",
+        "500-1 000",
+        "1 000+",
+        "500-1000",
+        "1000+",
+      ];
 
       for (const range of validRanges) {
         const route = await loadPostRoute();
-        const res = await route(makeRequest(validBody({ employeeRange: range })));
+        const res = await route(
+          makeRequest(validBody({ employeeRange: range })),
+        );
         expect(res.status).toBe(200);
       }
     });
@@ -155,14 +168,18 @@ describe("POST /api/pilot-application validation", () => {
 
     it("accepts every valid sector", async () => {
       const validSectors = [
-        "Logistique",
-        "Transport",
-        "Santé",
-        "Industrie",
-        "Distribution",
-        "Agroalimentaire",
+        "HCR",
+        "Enseignement supérieur",
+        "Logistique / Transport / Retail",
+        "Automobile / concessions / ateliers",
         "BTP",
+        "Services",
         "Autre",
+        "Hospitality / Food service",
+        "Higher education",
+        "Automotive / dealerships / workshops",
+        "Construction",
+        "Other",
       ];
 
       for (const sector of validSectors) {
@@ -186,7 +203,8 @@ describe("POST /api/pilot-application validation", () => {
       const res = await POST(makeRequest(validBody({ consent: false })));
       expect(res.status).toBe(400);
       expect(res.body).toEqual({
-        error: "Vous devez accepter les conditions pour envoyer votre candidature.",
+        error:
+          "Vous devez accepter les conditions pour envoyer votre candidature.",
       });
     });
 

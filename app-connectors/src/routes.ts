@@ -27,11 +27,15 @@ async function getService() {
 
 const vendors = CONNECTOR_CATALOG.map((entry) => entry.vendor);
 const authModes = Array.from(
-  new Set(
-    CONNECTOR_CATALOG.flatMap((entry) => entry.authModes),
-  ),
+  new Set(CONNECTOR_CATALOG.flatMap((entry) => entry.authModes)),
 );
-const syncTriggers: SyncTriggerType[] = ["manual", "schedule", "backfill", "replay", "webhook"];
+const syncTriggers: SyncTriggerType[] = [
+  "manual",
+  "schedule",
+  "backfill",
+  "replay",
+  "webhook",
+];
 const IDEMPOTENCY_KEY_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9:_-]{7,127}$/;
 
 const createConnectionSchema = z.object({
@@ -46,7 +50,11 @@ const createConnectionSchema = z.object({
   webhookEnabled: z.boolean().optional(),
   baseUrl: z.string().url().max(2048).optional().nullable(),
   externalAccountId: z.string().min(1).max(255).optional().nullable(),
-  oauthScopes: z.array(z.string().min(1).max(120)).max(20).optional().nullable(),
+  oauthScopes: z
+    .array(z.string().min(1).max(120))
+    .max(20)
+    .optional()
+    .nullable(),
 });
 
 const updateConnectionSchema = z.object({
@@ -57,7 +65,11 @@ const updateConnectionSchema = z.object({
   webhookEnabled: z.boolean().optional(),
   baseUrl: z.string().url().max(2048).optional().nullable(),
   externalAccountId: z.string().min(1).max(255).optional().nullable(),
-  oauthScopes: z.array(z.string().min(1).max(120)).max(20).optional().nullable(),
+  oauthScopes: z
+    .array(z.string().min(1).max(120))
+    .max(20)
+    .optional()
+    .nullable(),
   status: z.enum(["pending", "active", "disabled"]).optional(),
   disabledReason: z.string().min(3).max(400).optional().nullable(),
 });
@@ -89,24 +101,35 @@ const triggerSyncSchema = z.object({
 const issueIngestCredentialSchema = z.object({
   label: z.string().min(3).max(120),
   expiresAt: z.string().datetime().optional().nullable(),
-  allowedSourceObjects: z.array(z.string().min(1).max(120)).max(32).optional().nullable(),
-  allowedIpAddresses: z.array(z.string().min(3).max(120)).max(32).optional().nullable(),
+  allowedSourceObjects: z
+    .array(z.string().min(1).max(120))
+    .max(32)
+    .optional()
+    .nullable(),
+  allowedIpAddresses: z
+    .array(z.string().min(3).max(120))
+    .max(32)
+    .optional()
+    .nullable(),
   requireSignature: z.boolean().optional().default(false),
 });
 
 const ingestEventsSchema = z.object({
   schemaVersion: z.string().min(1).max(64),
   sentAt: z.string().datetime().optional().nullable(),
-  events: z.array(
-    z.object({
-      eventId: z.string().min(1).max(255).optional().nullable(),
-      sourceObject: z.string().min(1).max(120),
-      sourceRecordId: z.string().min(1).max(255),
-      sourceUpdatedAt: z.string().datetime().optional().nullable(),
-      contentType: z.string().min(1).max(120).optional().nullable(),
-      payload: z.record(z.unknown()),
-    }),
-  ).min(1).max(500),
+  events: z
+    .array(
+      z.object({
+        eventId: z.string().min(1).max(255).optional().nullable(),
+        sourceObject: z.string().min(1).max(120),
+        sourceRecordId: z.string().min(1).max(255),
+        sourceUpdatedAt: z.string().datetime().optional().nullable(),
+        contentType: z.string().min(1).max(120).optional().nullable(),
+        payload: z.record(z.unknown()),
+      }),
+    )
+    .min(1)
+    .max(500),
 });
 
 const claimRawEventsSchema = z.object({
@@ -161,7 +184,11 @@ export function parseIdempotencyKeyHeader(
   rawHeader: string | string[] | undefined,
 ):
   | { ok: true; value: string }
-  | { ok: false; code: "IDEMPOTENCY_KEY_REQUIRED" | "INVALID_IDEMPOTENCY_KEY"; message: string } {
+  | {
+      ok: false;
+      code: "IDEMPOTENCY_KEY_REQUIRED" | "INVALID_IDEMPOTENCY_KEY";
+      message: string;
+    } {
   if (rawHeader == null) {
     return {
       ok: false,
@@ -221,7 +248,10 @@ type ServiceActionOptions = {
 
 function failureFromError(
   ctx: RouteContext,
-  options: Pick<ServiceActionOptions, "errorCode" | "errorMessage" | "errorStatusCode">,
+  options: Pick<
+    ServiceActionOptions,
+    "errorCode" | "errorMessage" | "errorStatusCode"
+  >,
   error: unknown,
 ) {
   return failure(
@@ -276,26 +306,41 @@ export const routes: RouteDefinition[] = [
       ),
     { authRequired: false },
   ),
-  route("GET", "/v1/connectors/catalog", async (ctx) =>
-    success((await getService()).listCatalog(), ctx.requestId),
+  route(
+    "GET",
+    "/v1/connectors/catalog",
+    async (ctx) => success((await getService()).listCatalog(), ctx.requestId),
+    { requiredCapabilities: ["catalog:read"] },
   ),
-  route("GET", "/v1/organizations/:orgId/connections", async (ctx) =>
-    success(
-      (await getService()).listConnections(ctx.params.orgId ?? "", ctx.query.get("vendor")),
-      ctx.requestId,
-    ),
+  route(
+    "GET",
+    "/v1/organizations/:orgId/connections",
+    async (ctx) =>
+      success(
+        (await getService()).listConnections(
+          ctx.params.orgId ?? "",
+          ctx.query.get("vendor"),
+        ),
+        ctx.requestId,
+      ),
+    { requiredCapabilities: ["connections:read"] },
   ),
-  route("GET", "/v1/organizations/:orgId/connections/:connectionId", async (ctx) => {
-    const service = await getService();
-    const connection = service.getConnection(
-      ctx.params.orgId ?? "",
-      ctx.params.connectionId ?? "",
-    );
-    if (connection == null) {
-      return failure("NOT_FOUND", "Connection not found", ctx.requestId, 404);
-    }
-    return success(connection, ctx.requestId);
-  }),
+  route(
+    "GET",
+    "/v1/organizations/:orgId/connections/:connectionId",
+    async (ctx) => {
+      const service = await getService();
+      const connection = service.getConnection(
+        ctx.params.orgId ?? "",
+        ctx.params.connectionId ?? "",
+      );
+      if (connection == null) {
+        return failure("NOT_FOUND", "Connection not found", ctx.requestId, 404);
+      }
+      return success(connection, ctx.requestId);
+    },
+    { requiredCapabilities: ["connections:read"] },
+  ),
   route(
     "GET",
     "/v1/organizations/:orgId/connections/:connectionId/ingest-credentials",
@@ -307,6 +352,7 @@ export const routes: RouteDefinition[] = [
         ),
         ctx.requestId,
       ),
+    { requiredCapabilities: ["ingest_credentials:read"] },
   ),
   route(
     "POST",
@@ -336,6 +382,7 @@ export const routes: RouteDefinition[] = [
           ),
       );
     },
+    { requiredCapabilities: ["ingest_credentials:write"] },
   ),
   route(
     "POST",
@@ -356,6 +403,7 @@ export const routes: RouteDefinition[] = [
             buildAuditContext(ctx),
           ),
       ),
+    { requiredCapabilities: ["ingest_credentials:write"] },
   ),
   route(
     "GET",
@@ -368,6 +416,7 @@ export const routes: RouteDefinition[] = [
         ),
         ctx.requestId,
       ),
+    { requiredCapabilities: ["raw_events:read"] },
   ),
   route(
     "GET",
@@ -387,6 +436,7 @@ export const routes: RouteDefinition[] = [
             ctx.params.eventId ?? "",
           ),
       ),
+    { requiredCapabilities: ["raw_events:read"] },
   ),
   route(
     "POST",
@@ -416,6 +466,7 @@ export const routes: RouteDefinition[] = [
           ),
       );
     },
+    { requiredCapabilities: ["raw_events:write"] },
   ),
   route(
     "POST",
@@ -445,13 +496,17 @@ export const routes: RouteDefinition[] = [
           ),
       );
     },
+    { requiredCapabilities: ["raw_events:write"] },
   ),
   route(
     "POST",
     "/v1/organizations/:orgId/connections/:connectionId/raw-events/:rawEventId/failed",
     async (ctx) => {
       const parsed = parseBody<{ workerId: string; errorMessage: string }>(
-        rawEventFailureSchema as z.ZodType<{ workerId: string; errorMessage: string }>,
+        rawEventFailureSchema as z.ZodType<{
+          workerId: string;
+          errorMessage: string;
+        }>,
         ctx,
       );
       if (!parsed.ok) {
@@ -475,55 +530,66 @@ export const routes: RouteDefinition[] = [
           ),
       );
     },
+    { requiredCapabilities: ["raw_events:write"] },
   ),
-  route("POST", "/v1/organizations/:orgId/connections", async (ctx) => {
-    const parsed = parseBody<CreateConnectionInput>(
-      createConnectionSchema as z.ZodType<CreateConnectionInput>,
-      ctx,
-    );
-    if (!parsed.ok) {
-      return parsed.response;
-    }
-    return await runServiceAction(
-      ctx,
-      {
-        errorCode: "CONNECTION_CREATE_FAILED",
-        errorMessage: "Unable to create connection",
-        successMessage: "Connection created",
-        successStatusCode: 201,
-      },
-      (service) =>
-        service.createConnection(
-          ctx.params.orgId ?? "",
-          parsed.data,
-          buildAuditContext(ctx),
-        ),
-    );
-  }),
-  route("PATCH", "/v1/organizations/:orgId/connections/:connectionId", async (ctx) => {
-    const parsed = parseBody<UpdateConnectionInput>(
-      updateConnectionSchema as z.ZodType<UpdateConnectionInput>,
-      ctx,
-    );
-    if (!parsed.ok) {
-      return parsed.response;
-    }
-    return await runServiceAction(
-      ctx,
-      {
-        errorCode: "CONNECTION_UPDATE_FAILED",
-        errorMessage: "Unable to update connection",
-        successMessage: "Connection updated",
-      },
-      (service) =>
-        service.updateConnection(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-          parsed.data,
-          buildAuditContext(ctx),
-        ),
-    );
-  }),
+  route(
+    "POST",
+    "/v1/organizations/:orgId/connections",
+    async (ctx) => {
+      const parsed = parseBody<CreateConnectionInput>(
+        createConnectionSchema as z.ZodType<CreateConnectionInput>,
+        ctx,
+      );
+      if (!parsed.ok) {
+        return parsed.response;
+      }
+      return await runServiceAction(
+        ctx,
+        {
+          errorCode: "CONNECTION_CREATE_FAILED",
+          errorMessage: "Unable to create connection",
+          successMessage: "Connection created",
+          successStatusCode: 201,
+        },
+        (service) =>
+          service.createConnection(
+            ctx.params.orgId ?? "",
+            parsed.data,
+            buildAuditContext(ctx),
+          ),
+      );
+    },
+    { requiredCapabilities: ["connections:write"] },
+  ),
+  route(
+    "PATCH",
+    "/v1/organizations/:orgId/connections/:connectionId",
+    async (ctx) => {
+      const parsed = parseBody<UpdateConnectionInput>(
+        updateConnectionSchema as z.ZodType<UpdateConnectionInput>,
+        ctx,
+      );
+      if (!parsed.ok) {
+        return parsed.response;
+      }
+      return await runServiceAction(
+        ctx,
+        {
+          errorCode: "CONNECTION_UPDATE_FAILED",
+          errorMessage: "Unable to update connection",
+          successMessage: "Connection updated",
+        },
+        (service) =>
+          service.updateConnection(
+            ctx.params.orgId ?? "",
+            ctx.params.connectionId ?? "",
+            parsed.data,
+            buildAuditContext(ctx),
+          ),
+      );
+    },
+    { requiredCapabilities: ["connections:write"] },
+  ),
   route(
     "POST",
     "/v1/organizations/:orgId/connections/:connectionId/authorize/start",
@@ -551,6 +617,7 @@ export const routes: RouteDefinition[] = [
           ),
       );
     },
+    { requiredCapabilities: ["oauth:write"] },
   ),
   route(
     "POST",
@@ -579,6 +646,7 @@ export const routes: RouteDefinition[] = [
           ),
       );
     },
+    { requiredCapabilities: ["oauth:write"] },
   ),
   route(
     "POST",
@@ -597,12 +665,15 @@ export const routes: RouteDefinition[] = [
             buildAuditContext(ctx),
           ),
       ),
+    { requiredCapabilities: ["connections:test"] },
   ),
   route(
     "POST",
     "/v1/organizations/:orgId/connections/:connectionId/sync",
     async (ctx) => {
-      const idempotencyKey = parseIdempotencyKeyHeader(ctx.headers["idempotency-key"]);
+      const idempotencyKey = parseIdempotencyKeyHeader(
+        ctx.headers["idempotency-key"],
+      );
       if (!idempotencyKey.ok) {
         return failure(
           idempotencyKey.code,
@@ -621,7 +692,9 @@ export const routes: RouteDefinition[] = [
       }
 
       try {
-        const run = await (await getService()).triggerSync(
+        const run = await (
+          await getService()
+        ).triggerSync(
           ctx.params.orgId ?? "",
           ctx.params.connectionId ?? "",
           parsed.data,
@@ -645,31 +718,56 @@ export const routes: RouteDefinition[] = [
         );
       }
     },
+    { requiredCapabilities: ["sync:write"] },
   ),
-  route("GET", "/v1/organizations/:orgId/sync-runs", async (ctx) =>
-    success(
-      (await getService()).listSyncRuns(ctx.params.orgId ?? "", ctx.query.get("connectionId")),
-      ctx.requestId,
-    ),
+  route(
+    "GET",
+    "/v1/organizations/:orgId/sync-runs",
+    async (ctx) =>
+      success(
+        (await getService()).listSyncRuns(
+          ctx.params.orgId ?? "",
+          ctx.query.get("connectionId"),
+        ),
+        ctx.requestId,
+      ),
+    { requiredCapabilities: ["sync:read"] },
   ),
-  route("GET", "/v1/organizations/:orgId/sync-runs/:runId", async (ctx) => {
-    const run = (await getService()).getSyncRun(ctx.params.orgId ?? "", ctx.params.runId ?? "");
-    if (run == null) {
-      return failure("NOT_FOUND", "Sync run not found", ctx.requestId, 404);
-    }
-    return success(run, ctx.requestId);
-  }),
-  route("GET", "/v1/organizations/:orgId/audit-events", async (ctx) =>
-    success(
-      (await getService()).listAuditEvents(ctx.params.orgId ?? "", ctx.query.get("connectionId")),
-      ctx.requestId,
-    ),
+  route(
+    "GET",
+    "/v1/organizations/:orgId/sync-runs/:runId",
+    async (ctx) => {
+      const run = (await getService()).getSyncRun(
+        ctx.params.orgId ?? "",
+        ctx.params.runId ?? "",
+      );
+      if (run == null) {
+        return failure("NOT_FOUND", "Sync run not found", ctx.requestId, 404);
+      }
+      return success(run, ctx.requestId);
+    },
+    { requiredCapabilities: ["sync:read"] },
+  ),
+  route(
+    "GET",
+    "/v1/organizations/:orgId/audit-events",
+    async (ctx) =>
+      success(
+        (await getService()).listAuditEvents(
+          ctx.params.orgId ?? "",
+          ctx.query.get("connectionId"),
+        ),
+        ctx.requestId,
+      ),
+    { requiredCapabilities: ["audit:read"] },
   ),
   route(
     "POST",
     "/v1/ingest/:orgId/:connectionId/events",
     async (ctx) => {
-      const idempotencyKey = parseIdempotencyKeyHeader(ctx.headers["idempotency-key"]);
+      const idempotencyKey = parseIdempotencyKeyHeader(
+        ctx.headers["idempotency-key"],
+      );
       if (!idempotencyKey.ok) {
         return failure(
           idempotencyKey.code,

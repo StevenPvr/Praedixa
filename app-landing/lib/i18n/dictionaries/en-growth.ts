@@ -1,11 +1,21 @@
 import type { Dictionary } from "../types";
 
-export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact' | 'servicesPage' | 'footer' | 'stickyCta' | 'form'> = {
+export const enGrowth: Pick<
+  Dictionary,
+  | "security"
+  | "pilot"
+  | "faq"
+  | "contact"
+  | "servicesPage"
+  | "footer"
+  | "stickyCta"
+  | "form"
+> = {
   security: {
     kicker: "Integration & data",
-    heading: "Bring your data together without replacing your tools.",
+    heading: "Federate the critical systems without replacing your tools.",
     subheading:
-      "Praedixa starts from your existing setup, in read-only mode, to create one shared foundation across HR, finance, operations, and supply chain.",
+      "Praedixa connects in read-only mode to the systems that matter to a decision and links them inside France-hosted infrastructure.",
     tiles: [
       {
         title: "Light connection",
@@ -13,9 +23,9 @@ export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
           "Start from existing CSV, Excel, and APIs. Praedixa does not replace your current tools.",
       },
       {
-        title: "Shared foundation",
+        title: "Governed decision frame",
         description:
-          "HR, finance, operations, and supply chain data are brought into the same frame.",
+          "HR, finance, operations, and supply chain data are linked inside the same decision frame.",
       },
       {
         title: "Aggregated data (team/site)",
@@ -36,28 +46,30 @@ export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
     compatibility: {
       title: "Compatible with your existing tools",
       description:
-        "Praedixa complements what you already use and brings your numbers into one shared foundation.",
+        "Praedixa complements what you already use and federates the critical systems behind your trade-offs.",
       tools: ["Scheduling", "ERP", "CRM", "BI", "Excel"],
     },
     honesty:
-      "The real challenge is not having more data. It is connecting the data you already have to decisions that create value.",
+      "The real challenge is not having more data. It is turning critical trade-offs into calculated, executable, auditable decisions.",
   },
-
 
   pilot: {
     kicker: "Pilot offer",
-    heading:
-      "Praedixa ROI pilot: free diagnostic, proof in 3 months.",
+    heading: "A short pilot to put DecisionOps into production.",
     subheading:
-      "Multi-vertical program for multi-site companies: restaurants, retail, hospitality, dealerships/workshops, logistics, healthcare, industry, call centers.",
-    statusLabels: ["Free diagnostic (M1)", "Proof milestone (S8)", "Consolidation (M3)"],
+      "In a few weeks, Praedixa connects the critical systems, scopes the priority trade-offs, triggers the first actions, and installs ROI proof in an Ops / Finance cadence.",
+    statusLabels: [
+      "Free diagnostic (M1)",
+      "Proof milestone (S8)",
+      "Consolidation (M3)",
+    ],
     included: {
       title: "What you receive",
       items: [
         "Free ROI diagnostic and potential estimate",
-        "Useful indicators across HR, finance, operations, and supply chain",
+        "A governed federation across HR, finance, operations, and supply chain",
         "Compared decision options (cost, service, business rules)",
-        "Shared ROI pack: priority, action, result",
+        "Decision Journal: priority, action, result",
         "Monthly proof: baseline / recommended / actual",
         "Ops + Finance governance cadence",
       ],
@@ -105,10 +117,8 @@ export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
     urgency:
       "Applications reviewed within 48 business hours. Focused-scope kickoff possible.",
     ctaPrimary: "Apply for the Praedixa ROI pilot",
-    ctaMeta:
-      "Free ROI diagnostic · Read-only exports/APIs · Monthly proof",
+    ctaMeta: "Free ROI diagnostic · Read-only exports/APIs · Monthly proof",
   },
-
 
   faq: {
     kicker: "FAQ",
@@ -122,11 +132,9 @@ export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
     liveLabel: "Dynamic FAQ block",
     loadingLabel: "Loading answers...",
     emptyTitle: "No questions in this category",
-    emptyBody:
-      "Select another category to display actionable answers.",
+    emptyBody: "Select another category to display actionable answers.",
     errorTitle: "The FAQ section cannot be rendered",
-    errorBody:
-      "The active category is invalid. Reset to the first category.",
+    errorBody: "The active category is invalid. Reset to the first category.",
     retryLabel: "Reset category",
     categories: [
       "Understanding Praedixa",
@@ -137,14 +145,14 @@ export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
       {
         question: "What is Praedixa in one sentence?",
         answer:
-          "Praedixa brings your HR, finance, operations, and supply chain data together to anticipate needs, optimize decisions, and track ROI.",
+          "Praedixa is the French DecisionOps platform: it connects your existing systems to turn critical trade-offs into calculated, executable, auditable decisions.",
         category: "Understanding Praedixa",
       },
       {
         question:
           "What is the difference between the Praedixa offer and the ROI diagnostic?",
         answer:
-          "The full Praedixa offer includes the shared data foundation, prioritized actions, and ROI tracking over time. The ROI diagnostic is the fast starting point.",
+          "The full Praedixa offer includes the governed decision layer, triggered actions, and ROI proof over time. The ROI diagnostic is the fast starting point.",
         category: "Understanding Praedixa",
       },
       {
@@ -162,7 +170,7 @@ export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
       {
         question: "How is this different from ERP/scheduling/BI tools?",
         answer:
-          "Praedixa does not replace them. It sits on top of what you already use to support decisions and measure impact.",
+          "Praedixa does not replace them. It governs the trade-offs that cut across those tools, logs the choice, and measures the impact.",
         category: "Understanding Praedixa",
       },
       {
@@ -202,8 +210,7 @@ export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
         category: "Technical & data",
       },
       {
-        question:
-          "Can we start small?",
+        question: "Can we start small?",
         answer:
           "Yes. Many teams start with the ROI diagnostic and then extend into the full Praedixa offer once the first priorities are clear.",
         category: "Pilot & pricing",
@@ -211,12 +218,11 @@ export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
     ],
   },
 
-
   contact: {
     kicker: "Contact",
     heading: "Get the free ROI diagnostic.",
     subheading:
-      "Share your context. We come back with a clear first reading of your data, your priorities, and the most useful next step.",
+      "Share your context. We come back with a DecisionOps framing: priority trade-offs, systems to federate, and the first ROI proof loop.",
     trustItems: [
       "Response within 48 business hours",
       "Free ROI diagnostic",
@@ -227,34 +233,31 @@ export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
     ctaSecondary: "See the pilot protocol",
   },
 
-
   servicesPage: {
     meta: {
-      title:
-        "Praedixa | Praedixa offer vs ROI diagnostic",
+      title: "Praedixa | DecisionOps platform vs ROI diagnostic",
       description:
-        "Compare the full Praedixa offer and the ROI diagnostic to choose your best starting point.",
-      ogTitle:
-        "Praedixa | Praedixa offer or ROI diagnostic",
+        "Compare the full Praedixa DecisionOps platform and the ROI diagnostic to choose your best starting point.",
+      ogTitle: "Praedixa | DecisionOps or ROI diagnostic",
       ogDescription:
-        "Two ways to start: a fast ROI diagnostic or the full offer to bring data together, prioritize actions, and track gains.",
+        "Two ways to start: a fast ROI diagnostic or the full DecisionOps platform to federate, decide, trigger, and prove.",
     },
     kicker: "Offer",
-    heading: "Praedixa offer vs ROI diagnostic.",
+    heading: "Praedixa DecisionOps vs ROI diagnostic.",
     subheading:
-      "You can start with an ROI diagnostic on your data, then activate the full offer to prioritize actions and track ROI over time.",
+      "You can start with an ROI diagnostic on your trade-offs, then activate the full DecisionOps platform to govern execution and proof over time.",
     fullPackage: {
       badge: "Praedixa full offer",
-      title: "Bring data together, prioritize, track ROI",
+      title: "Federate, decide, trigger, prove",
       summary:
-        "Praedixa core value: one shared foundation, clearer priorities, and a profitable action plan.",
+        "Praedixa core value: a sovereignty-minded DecisionOps protocol on top of the existing stack.",
       includesTitle: "What is included",
       includes: [
-        "HR, finance, operations, and supply chain data brought together",
-        "Business priorities ranked by impact",
-        "Site-by-site action plan",
+        "HR, finance, operations, and supply chain systems federated",
+        "Business trade-offs ranked by impact",
+        "First action prepared inside existing tools",
         "ROI tracked over time",
-        "Shared foundation for committees and teams",
+        "Decision Journal for committees and teams",
         "Multi-site comparison and standardization",
       ],
       cta: "Apply for a Praedixa ROI pilot",
@@ -282,8 +285,7 @@ export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
       title: "Quick comparison",
       columns: [
         {
-          criterion:
-            "Reading HR, finance, operations, and supply chain data",
+          criterion: "Reading HR, finance, operations, and supply chain data",
           fullPackage: "Included",
           forecastsOnly: "Included",
         },
@@ -318,35 +320,32 @@ export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
       ],
     },
     bottomNote:
-      "The ROI diagnostic is a starting point. The real value is in the shared foundation, prioritization, and ROI tracking over time.",
+      "The ROI diagnostic is a starting point. The real value is in federation on top of the existing stack, governed decisions, execution, and proof over time.",
   },
-
 
   footer: {
     tagline:
-      "One shared foundation to anticipate needs, optimize decisions, and track ROI site by site.",
-    badges: ["Shared foundation", "ROI tracked"],
+      "Praedixa turns critical trade-offs into calculated, executable, auditable decisions.",
+    badges: ["DecisionOps", "ROI proof"],
     navigation: "Navigation",
     legalContact: "Legal & contact",
     copyright: "Designed and hosted in France",
     ctaBanner: {
       kicker: "Praedixa",
       heading:
-        "All your data in one place. Clearer decisions.",
+        "Companies do not need another data hub. They need a decision engine.",
       cta: "Get the free ROI diagnostic",
     },
   },
-
 
   stickyCta: {
     text: "Get the free ROI diagnostic",
   },
 
-
   form: {
     pageTitle: "Praedixa ROI pilot request",
     pageSubtitle:
-      "This request qualifies your 3-month ROI pilot, including a free ROI diagnostic.",
+      "This request qualifies your short pilot around critical trade-offs, systems to federate, and ROI proof.",
     pill: "Praedixa ROI pilot (3 months)",
     valuePoints: [
       "Free ROI diagnostic",
@@ -396,13 +395,11 @@ export const enGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
     },
     error: "Something went wrong. Please try again.",
     sectors: [
-      "Restaurants / Retail / Hospitality",
-      "Auto dealerships / Workshops",
-      "Logistics / Warehouses",
-      "Healthcare / Clinics",
-      "Industry / Maintenance",
-      "Call centers",
-      "Transport",
+      "Hospitality / Food service",
+      "Higher education",
+      "Logistics / Transport / Retail",
+      "Automotive / dealerships / workshops",
+      "Construction",
       "Services",
       "Other",
     ],

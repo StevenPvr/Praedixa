@@ -10,7 +10,7 @@ const config: NextConfig = {
   transpilePackages: ["@praedixa/ui", "@praedixa/shared-types"],
 
   experimental: {
-    optimizePackageImports: ["lucide-react", "date-fns"],
+    optimizePackageImports: ["date-fns"],
   },
 
   async headers() {

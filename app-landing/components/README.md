@@ -16,6 +16,7 @@ Composants UI du site marketing.
 - `components/homepage/*` peut s'appuyer sur `components/shared/*`
 - `components/pages/*` orchestre souvent `lib/content/*`, `lib/i18n/*` et les routes `app/api/*`
 - `components/shared/*` est le socle visuel partage
+- `components/pages/SectorPage.tsx` porte les pages verticales et `components/homepage/SectorPagesTeaserSection.tsx` relie la homepage a ces pages
 
 ## Conventions
 

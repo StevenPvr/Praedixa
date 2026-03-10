@@ -22,6 +22,8 @@ Infrastructure de localisation du landing.
 
 - tout nouveau slug traduit doit etre ajoute dans `config.ts`
 - les routes legacy a rediriger passent aussi par `legacyRedirectMap`
+- les anciennes URLs sectorielles sont derivees depuis `lib/content/sector-pages.ts` pour garder une seule source de verite
+- les anciennes pages sectorielles ou variantes SEO retirees doivent rediriger vers la page verticale dediee la plus proche, pas vers une page generique
 - les composants prennent de preference le `dict` deja charge plutot que de recharger eux-memes des modules
 
 ## Tests

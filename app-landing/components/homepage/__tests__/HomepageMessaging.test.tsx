@@ -30,36 +30,36 @@ describe("Homepage FR messaging", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Une base commune, puis des décisions plus claires.",
+        name: "DecisionOps: transformer l'arbitrage en action gouvernée.",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Praedixa relie d'abord les données utiles. Ensuite, les besoins, les écarts et les priorités deviennent plus faciles à lire site par site.",
+        "Praedixa fédère les données utiles sur l'existant, compare les options coût / service / risque, fait valider l'action utile et referme la boucle avec une preuve mensuelle du ROI.",
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Réunir vos données sans remplacer vos outils.",
+        name: "Federer les systemes qui comptent pour une decision.",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Praedixa part de l'existant, en lecture seule, pour créer une base commune entre RH, finance, opérations et supply chain. Les données restent hébergées en France sur Scaleway, avec un ancrage français assumé.",
+        "Praedixa se branche sur l'existant, en lecture seule, pour relier RH, finance, operations et supply chain dans une infrastructure hebergee en France. L'objectif n'est pas de rapatrier toute la donnee: c'est de relier celle qui compte pour arbitrer.",
       ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Connexion légère via exports et API existants"),
+      screen.getByText("Federation legere via exports et API existants"),
     ).toBeInTheDocument();
     expect(
       screen.getByText("Entreprise française, incubée à Euratechnologies"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Données hébergées en France sur Scaleway"),
+      screen.getByText("Infrastructure hebergee en France sur Scaleway"),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Une fois les données réunies, Praedixa aide à agir.",
+        name: "La vraie valeur commence quand la decision devient gouvernee.",
       }),
     ).toBeInTheDocument();
     expect(
@@ -69,7 +69,7 @@ describe("Homepage FR messaging", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Praedixa relie les données RH, finance, opérations et supply chain pour rendre les besoins visibles plus tôt, prioriser les actions et suivre le ROI.",
+        "Praedixa est la plateforme française de DecisionOps. Elle se branche sur vos outils existants pour transformer des arbitrages récurrents en décisions calculées, exécutées et auditables.",
       ),
     ).toBeInTheDocument();
   });

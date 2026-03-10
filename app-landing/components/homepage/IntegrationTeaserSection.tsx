@@ -9,16 +9,18 @@ interface IntegrationTeaserSectionProps {
   locale: Locale;
 }
 
-export function IntegrationTeaserSection({ locale }: IntegrationTeaserSectionProps) {
+export function IntegrationTeaserSection({
+  locale,
+}: IntegrationTeaserSectionProps) {
   const isFr = locale === "fr";
   const points = isFr
     ? [
-        "Connexion légère via exports et API existants",
+        "Federation legere via exports et API existants",
         "Lecture seule pour démarrer",
-        "RH, finance, opérations et supply chain dans une même base",
-        "Accès contrôlés, chiffrement et journalisation",
+        "RH, finance, operations et supply chain relies pour une meme decision",
+        "Acces controles, chiffrement et journalisation",
         "Entreprise française, incubée à Euratechnologies",
-        "Données hébergées en France sur Scaleway",
+        "Infrastructure hebergee en France sur Scaleway",
       ]
     : [
         "Read-only start through exports/APIs",
@@ -28,17 +30,20 @@ export function IntegrationTeaserSection({ locale }: IntegrationTeaserSectionPro
       ];
 
   return (
-    <SectionShell id="integration-data" className="bg-[linear-gradient(180deg,var(--warm-bg-muted)_0%,var(--warm-bg-panel)_100%)]">
+    <SectionShell
+      id="integration-data"
+      className="bg-[linear-gradient(180deg,var(--warm-bg-muted)_0%,var(--warm-bg-panel)_100%)]"
+    >
       <Kicker>{isFr ? "Intégration & données" : "Integration and data"}</Kicker>
       <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-ink md:text-5xl">
         {isFr
-          ? "Réunir vos données sans remplacer vos outils."
-          : "Your data is already there. Praedixa brings it together."}
+          ? "Federer les systemes qui comptent pour une decision."
+          : "Federate the systems that matter to a decision."}
       </h2>
       <p className="mt-4 max-w-[66ch] text-sm leading-relaxed text-neutral-600 md:text-base">
         {isFr
-          ? "Praedixa part de l'existant, en lecture seule, pour créer une base commune entre RH, finance, opérations et supply chain. Les données restent hébergées en France sur Scaleway, avec un ancrage français assumé."
-          : "Praedixa integrates in read-only mode with explicit guardrails from day one."}
+          ? "Praedixa se branche sur l'existant, en lecture seule, pour relier RH, finance, operations et supply chain dans une infrastructure hebergee en France. L'objectif n'est pas de rapatrier toute la donnee: c'est de relier celle qui compte pour arbitrer."
+          : "Praedixa connects in read-only mode to the systems that matter for a decision, with clear guardrails from day one."}
       </p>
 
       <ul className="mt-7 grid list-none gap-3 p-0 md:grid-cols-2">
@@ -56,7 +61,9 @@ export function IntegrationTeaserSection({ locale }: IntegrationTeaserSectionPro
         href={getLocalizedPath(locale, "integrationData")}
         className="mt-6 inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-colors duration-200 hover:bg-neutral-50"
       >
-        {isFr ? "Voir les sources de données compatibles" : "View integration details"}
+        {isFr
+          ? "Voir les integrations compatibles"
+          : "View integration details"}
         <ArrowRight size={14} weight="bold" />
       </Link>
     </SectionShell>

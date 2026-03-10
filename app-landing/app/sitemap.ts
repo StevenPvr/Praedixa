@@ -1,5 +1,9 @@
 import type { MetadataRoute } from "next";
 import { locales, localizedSlugs } from "../lib/i18n/config";
+import {
+  listSectorPages,
+  getSectorPagePath,
+} from "../lib/content/sector-pages";
 import { getSerpResourceSlugs } from "../lib/content/serp-resources-fr";
 import {
   buildBlogPostPath,
@@ -137,7 +141,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
           locale,
           `/fr/${localizedSlugs[key].fr}`,
           `/en/${localizedSlugs[key].en}`,
-          key === "resources" || key.startsWith("pillar") || key === "productMethod"
+          key === "resources" ||
+            key.startsWith("pillar") ||
+            key === "productMethod"
             ? 0.8
             : key.startsWith("bofu") || key.startsWith("icp")
               ? 0.75
@@ -146,9 +152,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
         ),
       );
     }
-    entries.push(
-      localizedEntry(locale, "/fr/blog", "/en/blog", 0.8, "weekly"),
-    );
+    entries.push(localizedEntry(locale, "/fr/blog", "/en/blog", 0.8, "weekly"));
+
+    for (const sector of listSectorPages(locale)) {
+      entries.push(
+        localizedEntry(
+          locale,
+          getSectorPagePath("fr", sector.id),
+          getSectorPagePath("en", sector.id),
+          0.78,
+          "weekly",
+        ),
+      );
+    }
   }
 
   for (const slug of serpSlugs) {

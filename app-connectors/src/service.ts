@@ -1,8 +1,10 @@
 import { randomUUID } from "node:crypto";
 
 import { CONNECTOR_CATALOG } from "./catalog.js";
+import { loadConfig } from "./config.js";
 import { LocalFilePayloadStore, type PayloadStore } from "./payload-store.js";
 import { PostgresBackedConnectorStore } from "./persistent-store.js";
+import { validateOutboundUrl } from "./outbound-url.js";
 import {
   buildAuthorizationUrl,
   exchangeAuthorizationCode,
@@ -103,9 +105,7 @@ function parseIsoDate(value: string | null): string | null {
   return new Date(time).toISOString();
 }
 
-function normalizeStringArray(
-  value: unknown,
-): string[] | null {
+function normalizeStringArray(value: unknown): string[] | null {
   if (!Array.isArray(value)) {
     return null;
   }
@@ -130,11 +130,22 @@ function isExpired(expiresAt: string | null, skewSeconds = 60): boolean {
 
 function assertNoSecretsInConfig(config: Record<string, unknown>): void {
   if (containsSensitiveKeys(config)) {
-    throw new Error("Secrets must be sent via credentials, never inside config");
+    throw new Error(
+      "Secrets must be sent via credentials, never inside config",
+    );
   }
 }
 
-function normalizeApiKeyCredentials(credentials: CredentialInput): CredentialInput {
+function getConfigUrl(
+  config: Record<string, unknown>,
+  key: string,
+): string | null {
+  return asTrimmedString(config[key]);
+}
+
+function normalizeApiKeyCredentials(
+  credentials: CredentialInput,
+): CredentialInput {
   const apiKey = asTrimmedString(credentials.apiKey);
   if (apiKey == null || apiKey.length < 8) {
     throw new Error("apiKey is required");
@@ -142,7 +153,9 @@ function normalizeApiKeyCredentials(credentials: CredentialInput): CredentialInp
   return { apiKey };
 }
 
-function normalizeServiceAccountCredentials(credentials: CredentialInput): CredentialInput {
+function normalizeServiceAccountCredentials(
+  credentials: CredentialInput,
+): CredentialInput {
   const clientId = asTrimmedString(credentials.clientId);
   const clientSecret = asTrimmedString(credentials.clientSecret);
   const clientEmail = asTrimmedString(credentials.clientEmail);
@@ -165,7 +178,9 @@ function normalizeServiceAccountCredentials(credentials: CredentialInput): Crede
   );
 }
 
-function normalizeSftpCredentials(credentials: CredentialInput): CredentialInput {
+function normalizeSftpCredentials(
+  credentials: CredentialInput,
+): CredentialInput {
   const host = asTrimmedString(credentials.host);
   const username = asTrimmedString(credentials.username);
   const password = asTrimmedString(credentials.password);
@@ -178,7 +193,9 @@ function normalizeSftpCredentials(credentials: CredentialInput): CredentialInput
         : 22;
 
   if (host == null || username == null || (!password && !privateKey)) {
-    throw new Error("sftp credentials require host, username and password or privateKey");
+    throw new Error(
+      "sftp credentials require host, username and password or privateKey",
+    );
   }
   if (!Number.isInteger(port) || port <= 0 || port > 65535) {
     throw new Error("sftp port must be a valid TCP port");
@@ -247,21 +264,35 @@ export class ConnectorService {
     private readonly secretSealingKey: string | null = null,
     private readonly publicBaseUrl: string | null = null,
     private readonly payloadStore: PayloadStore | null = null,
+    private readonly nodeEnv:
+      | "development"
+      | "staging"
+      | "production" = "development",
+    private readonly allowedOutboundHosts: readonly string[] = [],
   ) {}
 
   listCatalog() {
     return this.store.listCatalog();
   }
 
-  listConnections(organizationId: string, vendor?: string | null): ConnectorConnection[] {
+  listConnections(
+    organizationId: string,
+    vendor?: string | null,
+  ): ConnectorConnection[] {
     return this.store.listConnections(organizationId, vendor);
   }
 
-  getConnection(organizationId: string, connectionId: string): ConnectorConnection | null {
+  getConnection(
+    organizationId: string,
+    connectionId: string,
+  ): ConnectorConnection | null {
     return this.store.getConnection(organizationId, connectionId);
   }
 
-  listAuditEvents(organizationId: string, connectionId?: string | null): ConnectorAuditEvent[] {
+  listAuditEvents(
+    organizationId: string,
+    connectionId?: string | null,
+  ): ConnectorAuditEvent[] {
     return this.store.listAuditEvents(organizationId, connectionId);
   }
 
@@ -272,7 +303,10 @@ export class ConnectorService {
     return this.store.listIngestCredentials(organizationId, connectionId);
   }
 
-  listRawEvents(organizationId: string, connectionId?: string | null): IngestRawEvent[] {
+  listRawEvents(
+    organizationId: string,
+    connectionId?: string | null,
+  ): IngestRawEvent[] {
     return this.store.listRawEvents(organizationId, connectionId);
   }
 
@@ -315,12 +349,17 @@ export class ConnectorService {
     context: AuditContext,
   ): IngestRawEvent {
     const normalizedWorkerId = workerId.trim();
-    const event = this.store.updateRawEvent(organizationId, connectionId, rawEventId, {
-      processingStatus: "processed",
-      claimedBy: normalizedWorkerId,
-      processedAt: new Date().toISOString(),
-      errorMessage: null,
-    });
+    const event = this.store.updateRawEvent(
+      organizationId,
+      connectionId,
+      rawEventId,
+      {
+        processingStatus: "processed",
+        claimedBy: normalizedWorkerId,
+        processedAt: new Date().toISOString(),
+        errorMessage: null,
+      },
+    );
     if (event == null) {
       throw new Error("Raw event not found");
     }
@@ -352,12 +391,17 @@ export class ConnectorService {
       throw new Error("errorMessage must be at least 3 characters");
     }
     const normalizedWorkerId = workerId.trim();
-    const event = this.store.updateRawEvent(organizationId, connectionId, rawEventId, {
-      processingStatus: "failed",
-      claimedBy: normalizedWorkerId,
-      processedAt: new Date().toISOString(),
-      errorMessage: normalizedError.slice(0, 400),
-    });
+    const event = this.store.updateRawEvent(
+      organizationId,
+      connectionId,
+      rawEventId,
+      {
+        processingStatus: "failed",
+        claimedBy: normalizedWorkerId,
+        processedAt: new Date().toISOString(),
+        errorMessage: normalizedError.slice(0, 400),
+      },
+    );
     if (event == null) {
       throw new Error("Raw event not found");
     }
@@ -421,7 +465,9 @@ export class ConnectorService {
   }
 
   private getCatalogItem(vendor: ConnectorVendor): ConnectorCatalogItem {
-    const catalogItem = CONNECTOR_CATALOG.find((item) => item.vendor === vendor);
+    const catalogItem = CONNECTOR_CATALOG.find(
+      (item) => item.vendor === vendor,
+    );
     if (catalogItem == null) {
       throw new Error(`Unsupported connector vendor: ${vendor}`);
     }
@@ -450,7 +496,9 @@ export class ConnectorService {
     const allowlist = new Set(catalogItem.sourceObjects);
     const normalized = Array.from(
       new Set(
-        sourceObjects.map((entry) => entry.trim()).filter((entry) => entry.length > 0),
+        sourceObjects
+          .map((entry) => entry.trim())
+          .filter((entry) => entry.length > 0),
       ),
     );
     if (normalized.length === 0) {
@@ -458,7 +506,9 @@ export class ConnectorService {
     }
     for (const sourceObject of normalized) {
       if (!allowlist.has(sourceObject)) {
-        throw new Error(`Unsupported source object "${sourceObject}" for ${catalogItem.vendor}`);
+        throw new Error(
+          `Unsupported source object "${sourceObject}" for ${catalogItem.vendor}`,
+        );
       }
     }
     return normalized;
@@ -466,7 +516,9 @@ export class ConnectorService {
 
   private ensureSealingKey(): string {
     if (this.secretSealingKey == null || this.secretSealingKey.length < 32) {
-      throw new Error("CONNECTORS_SECRET_SEALING_KEY is required to store credentials");
+      throw new Error(
+        "CONNECTORS_SECRET_SEALING_KEY is required to store credentials",
+      );
     }
     return this.secretSealingKey;
   }
@@ -479,9 +531,17 @@ export class ConnectorService {
     nextAuthorizationState: ConnectorConnection["authorizationState"] = "authorized",
   ): { secretRef: string; version: number } {
     const sealingKey = this.ensureSealingKey();
-    const previous = this.store.getLatestSecret(connection.organizationId, connection.id);
+    const previous = this.store.getLatestSecret(
+      connection.organizationId,
+      connection.id,
+    );
     const version = (previous?.version ?? 0) + 1;
-    const secretRef = createSecretRef(connection.organizationId, connection.id, kind, version);
+    const secretRef = createSecretRef(
+      connection.organizationId,
+      connection.id,
+      kind,
+      version,
+    );
     const record: StoredSecretRecord = {
       secretRef,
       organizationId: connection.organizationId,
@@ -510,7 +570,12 @@ export class ConnectorService {
   ): { secretRef: string; version: number } {
     const sealingKey = this.ensureSealingKey();
     const version = Date.now();
-    const secretRef = createSecretRef(connection.organizationId, connection.id, kind, version);
+    const secretRef = createSecretRef(
+      connection.organizationId,
+      connection.id,
+      kind,
+      version,
+    );
     const record: StoredSecretRecord = {
       secretRef,
       organizationId: connection.organizationId,
@@ -529,7 +594,10 @@ export class ConnectorService {
   private getLatestSecretPayload<T extends Record<string, unknown>>(
     connection: ConnectorConnection,
   ): { record: StoredSecretRecord; payload: T } {
-    const secret = this.store.getLatestSecret(connection.organizationId, connection.id);
+    const secret = this.store.getLatestSecret(
+      connection.organizationId,
+      connection.id,
+    );
     if (secret == null) {
       throw new Error("Connection credentials are missing");
     }
@@ -558,7 +626,10 @@ export class ConnectorService {
     organizationId: string,
     connectionId: string,
   ): string {
-    const baseUrl = (this.publicBaseUrl ?? "http://127.0.0.1:8100").replace(/\/$/, "");
+    const baseUrl = (this.publicBaseUrl ?? "http://127.0.0.1:8100").replace(
+      /\/$/,
+      "",
+    );
     return `${baseUrl}/v1/ingest/${encodeURIComponent(organizationId)}/${encodeURIComponent(
       connectionId,
     )}/events`;
@@ -573,6 +644,46 @@ export class ConnectorService {
     return fromConfig ?? fallback ?? null;
   }
 
+  private validateOutboundUrl(rawUrl: string, label: string): string {
+    return validateOutboundUrl(rawUrl, {
+      label,
+      nodeEnv: this.nodeEnv,
+      allowedHosts: this.allowedOutboundHosts,
+    });
+  }
+
+  private validateConnectionUrls(
+    vendor: ConnectorVendor,
+    baseUrl: string | null | undefined,
+    config: Record<string, unknown>,
+  ): void {
+    if (baseUrl != null) {
+      this.validateOutboundUrl(baseUrl, "baseUrl");
+    }
+
+    const testEndpoint = getConfigUrl(config, "testEndpoint");
+    if (testEndpoint != null) {
+      this.validateOutboundUrl(testEndpoint, "config.testEndpoint");
+    }
+
+    const catalogItem = this.getCatalogItem(vendor);
+    const authorizationEndpoint =
+      getConfigUrl(config, "authorizationEndpoint") ??
+      catalogItem.oauthDefaults?.authorizationEndpoint ??
+      null;
+    if (authorizationEndpoint != null) {
+      this.validateOutboundUrl(authorizationEndpoint, "authorizationEndpoint");
+    }
+
+    const tokenEndpoint =
+      getConfigUrl(config, "tokenEndpoint") ??
+      catalogItem.oauthDefaults?.tokenEndpoint ??
+      null;
+    if (tokenEndpoint != null) {
+      this.validateOutboundUrl(tokenEndpoint, "tokenEndpoint");
+    }
+  }
+
   private async ensureOAuthAccessToken(
     connection: ConnectorConnection,
   ): Promise<{
@@ -580,7 +691,8 @@ export class ConnectorService {
     expiresAt: string | null;
     scopes: string[];
   }> {
-    const { record, payload } = this.getLatestSecretPayload<Record<string, unknown>>(connection);
+    const { record, payload } =
+      this.getLatestSecretPayload<Record<string, unknown>>(connection);
     const tokenEndpoint = this.getOptionalUrl(
       connection,
       "tokenEndpoint",
@@ -589,11 +701,21 @@ export class ConnectorService {
     if (tokenEndpoint == null) {
       throw new Error("OAuth tokenEndpoint is missing from config");
     }
+    const validatedTokenEndpoint = this.validateOutboundUrl(
+      tokenEndpoint,
+      "tokenEndpoint",
+    );
 
     if (record.kind === "oauth2_token") {
       const oauthPayload = payload as OAuthTokenSecretPayload;
-      const effectiveTokenEndpoint = tokenEndpoint ?? oauthPayload.tokenEndpoint;
-      if (!isExpired(oauthPayload.expiresAt) && oauthPayload.accessToken.length > 0) {
+      const effectiveTokenEndpoint = this.validateOutboundUrl(
+        oauthPayload.tokenEndpoint || validatedTokenEndpoint,
+        "tokenEndpoint",
+      );
+      if (
+        !isExpired(oauthPayload.expiresAt) &&
+        oauthPayload.accessToken.length > 0
+      ) {
         return {
           accessToken: oauthPayload.accessToken,
           expiresAt: oauthPayload.expiresAt,
@@ -602,7 +724,9 @@ export class ConnectorService {
       }
 
       if (oauthPayload.refreshToken == null) {
-        throw new Error("OAuth access token expired and no refresh_token is available");
+        throw new Error(
+          "OAuth access token expired and no refresh_token is available",
+        );
       }
 
       const refreshed = await refreshAccessToken(
@@ -613,19 +737,24 @@ export class ConnectorService {
         },
         oauthPayload.refreshToken,
       );
-      this.storeSecret(connection, "oauth2_token", {
-        clientId: oauthPayload.clientId,
-        clientSecret: oauthPayload.clientSecret,
-        accessToken: refreshed.accessToken,
-        refreshToken: refreshed.refreshToken,
-        tokenEndpoint: effectiveTokenEndpoint,
-        expiresAt: refreshed.expiresAt,
-        tokenType: refreshed.tokenType,
-        scope: refreshed.scope,
-      }, {
-        vendor: connection.vendor,
-        refreshed: true,
-      });
+      this.storeSecret(
+        connection,
+        "oauth2_token",
+        {
+          clientId: oauthPayload.clientId,
+          clientSecret: oauthPayload.clientSecret,
+          accessToken: refreshed.accessToken,
+          refreshToken: refreshed.refreshToken,
+          tokenEndpoint: effectiveTokenEndpoint,
+          expiresAt: refreshed.expiresAt,
+          tokenType: refreshed.tokenType,
+          scope: refreshed.scope,
+        },
+        {
+          vendor: connection.vendor,
+          refreshed: true,
+        },
+      );
       return {
         accessToken: refreshed.accessToken,
         expiresAt: refreshed.expiresAt,
@@ -639,20 +768,29 @@ export class ConnectorService {
 
     const client = payload as OAuthClientSecretPayload;
     const scopes = connection.oauthScopes ?? [];
-    const token = await exchangeClientCredentials(tokenEndpoint, client, scopes);
-    this.storeSecret(connection, "oauth2_token", {
-      clientId: client.clientId,
-      clientSecret: client.clientSecret,
-      accessToken: token.accessToken,
-      refreshToken: token.refreshToken,
-      tokenEndpoint,
-      expiresAt: token.expiresAt,
-      tokenType: token.tokenType,
-      scope: token.scope,
-    }, {
-      vendor: connection.vendor,
-      grantType: "client_credentials",
-    });
+    const token = await exchangeClientCredentials(
+      validatedTokenEndpoint,
+      client,
+      scopes,
+    );
+    this.storeSecret(
+      connection,
+      "oauth2_token",
+      {
+        clientId: client.clientId,
+        clientSecret: client.clientSecret,
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+        tokenEndpoint,
+        expiresAt: token.expiresAt,
+        tokenType: token.tokenType,
+        scope: token.scope,
+      },
+      {
+        vendor: connection.vendor,
+        grantType: "client_credentials",
+      },
+    );
     return {
       accessToken: token.accessToken,
       expiresAt: token.expiresAt,
@@ -660,11 +798,15 @@ export class ConnectorService {
     };
   }
 
-  private async probeConnection(
-    connection: ConnectorConnection,
-  ): Promise<{ checkedScopes: string[]; warnings: string[]; latencyMs: number }> {
+  private async probeConnection(connection: ConnectorConnection): Promise<{
+    checkedScopes: string[];
+    warnings: string[];
+    latencyMs: number;
+  }> {
     const warnings: string[] = [];
-    const probeUrl = asTrimmedString(connection.config.testEndpoint ?? connection.baseUrl);
+    const probeUrl = asTrimmedString(
+      connection.config.testEndpoint ?? connection.baseUrl,
+    );
     const started = Date.now();
 
     const headers: Record<string, string> = {
@@ -684,7 +826,10 @@ export class ConnectorService {
         };
       }
       headers.authorization = `Bearer ${token.accessToken}`;
-      const response = await fetch(probeUrl, { headers });
+      const response = await fetch(
+        this.validateOutboundUrl(probeUrl, "probeUrl"),
+        { headers },
+      );
       if (!response.ok) {
         throw new Error(`Probe endpoint returned HTTP ${response.status}`);
       }
@@ -696,7 +841,9 @@ export class ConnectorService {
     }
 
     if (connection.authMode === "api_key") {
-      const { payload } = this.getLatestSecretPayload<{ apiKey: string }>(connection);
+      const { payload } = this.getLatestSecretPayload<{ apiKey: string }>(
+        connection,
+      );
       if (probeUrl == null) {
         warnings.push(
           "API key presence was validated, but no testEndpoint is configured for a live probe.",
@@ -711,8 +858,13 @@ export class ConnectorService {
         asTrimmedString(connection.config.authHeaderName) ?? "x-api-key";
       const headerPrefix = asTrimmedString(connection.config.authHeaderPrefix);
       headers[headerName] =
-        headerPrefix != null ? `${headerPrefix} ${payload.apiKey}` : payload.apiKey;
-      const response = await fetch(probeUrl, { headers });
+        headerPrefix != null
+          ? `${headerPrefix} ${payload.apiKey}`
+          : payload.apiKey;
+      const response = await fetch(
+        this.validateOutboundUrl(probeUrl, "probeUrl"),
+        { headers },
+      );
       if (!response.ok) {
         throw new Error(`Probe endpoint returned HTTP ${response.status}`);
       }
@@ -756,7 +908,9 @@ export class ConnectorService {
 
     for (const sourceObject of normalized) {
       if (!allowlist.has(sourceObject)) {
-        throw new Error(`Unsupported source object "${sourceObject}" for inbound ingestion`);
+        throw new Error(
+          `Unsupported source object "${sourceObject}" for inbound ingestion`,
+        );
       }
     }
 
@@ -770,16 +924,26 @@ export class ConnectorService {
   ): { credential: IngestCredential; secret: IngestClientSecretPayload } {
     const authorizationValue = auth.authorizationHeader?.trim() ?? "";
     const [scheme, token] = authorizationValue.split(/\s+/, 2);
-    if (scheme?.toLowerCase() !== "bearer" || token == null || token.length < 16) {
+    if (
+      scheme?.toLowerCase() !== "bearer" ||
+      token == null ||
+      token.length < 16
+    ) {
       throw new Error("A valid Bearer ingestion API key is required");
     }
 
-    const credentials = this.store.listIngestCredentials(organizationId, connectionId);
+    const credentials = this.store.listIngestCredentials(
+      organizationId,
+      connectionId,
+    );
     for (const credential of credentials) {
       if (credential.revokedAt != null) {
         continue;
       }
-      if (credential.expiresAt != null && Date.parse(credential.expiresAt) <= Date.now()) {
+      if (
+        credential.expiresAt != null &&
+        Date.parse(credential.expiresAt) <= Date.now()
+      ) {
         continue;
       }
       const { payload } = this.getSecretPayloadByRef<IngestClientSecretPayload>(
@@ -792,9 +956,12 @@ export class ConnectorService {
       if (
         credential.allowedIpAddresses != null &&
         credential.allowedIpAddresses.length > 0 &&
-        (auth.clientIp == null || !credential.allowedIpAddresses.includes(auth.clientIp))
+        (auth.clientIp == null ||
+          !credential.allowedIpAddresses.includes(auth.clientIp))
       ) {
-        throw new Error("The ingestion credential is not allowed from this client IP");
+        throw new Error(
+          "The ingestion credential is not allowed from this client IP",
+        );
       }
 
       if (credential.authMode === "bearer_hmac") {
@@ -802,14 +969,27 @@ export class ConnectorService {
           throw new Error("Missing or invalid X-Praedixa-Key-Id header");
         }
         if (!isFreshUnixTimestamp(auth.timestampHeader, 300)) {
-          throw new Error("X-Praedixa-Timestamp is missing or outside the allowed time window");
+          throw new Error(
+            "X-Praedixa-Timestamp is missing or outside the allowed time window",
+          );
         }
-        if (payload.signingSecret == null || payload.signingSecret.length < 16) {
-          throw new Error("Signing secret is unavailable for this ingestion credential");
+        if (
+          payload.signingSecret == null ||
+          payload.signingSecret.length < 16
+        ) {
+          throw new Error(
+            "Signing secret is unavailable for this ingestion credential",
+          );
         }
         const rawBody = auth.rawBody ?? "";
         const signedPayload = `${auth.timestampHeader}.${rawBody}`;
-        if (!verifyHmacSha256(signedPayload, auth.signatureHeader, payload.signingSecret)) {
+        if (
+          !verifyHmacSha256(
+            signedPayload,
+            auth.signatureHeader,
+            payload.signingSecret,
+          )
+        ) {
           throw new Error("Invalid X-Praedixa-Signature header");
         }
       }
@@ -843,7 +1023,9 @@ export class ConnectorService {
 
     const keyId = randomUUID();
     const apiKey = createOpaqueApiKey();
-    const signingSecret = input.requireSignature ? createOpaqueApiKey("prdx_sig") : null;
+    const signingSecret = input.requireSignature
+      ? createOpaqueApiKey("prdx_sig")
+      : null;
     const authMode: IngestCredentialAuthMode =
       input.requireSignature === true ? "bearer_hmac" : "bearer";
     const stored = this.storeDetachedSecret(
@@ -861,20 +1043,25 @@ export class ConnectorService {
       },
     );
 
-    const credential = this.store.createIngestCredential(organizationId, connectionId, {
-      label,
-      keyId,
-      authMode,
-      secretRef: stored.secretRef,
-      secretVersion: stored.version,
-      tokenPreview: apiKey.slice(0, 10),
-      allowedSourceObjects: this.normalizeIngestAllowedSourceObjects(
-        connection,
-        input.allowedSourceObjects ?? null,
-      ),
-      allowedIpAddresses: normalizeStringArray(input.allowedIpAddresses) ?? null,
-      expiresAt,
-    });
+    const credential = this.store.createIngestCredential(
+      organizationId,
+      connectionId,
+      {
+        label,
+        keyId,
+        authMode,
+        secretRef: stored.secretRef,
+        secretVersion: stored.version,
+        tokenPreview: apiKey.slice(0, 10),
+        allowedSourceObjects: this.normalizeIngestAllowedSourceObjects(
+          connection,
+          input.allowedSourceObjects ?? null,
+        ),
+        allowedIpAddresses:
+          normalizeStringArray(input.allowedIpAddresses) ?? null,
+        expiresAt,
+      },
+    );
 
     this.recordAuditEvent(
       organizationId,
@@ -978,7 +1165,10 @@ export class ConnectorService {
     if (!dispatch.created) {
       return {
         accepted: dispatch.run.recordsWritten,
-        duplicates: Math.max(0, dispatch.run.recordsFetched - dispatch.run.recordsWritten),
+        duplicates: Math.max(
+          0,
+          dispatch.run.recordsFetched - dispatch.run.recordsWritten,
+        ),
         runId: dispatch.run.id,
         receivedAt: dispatch.run.endedAt ?? dispatch.run.createdAt,
         events: [],
@@ -995,7 +1185,9 @@ export class ConnectorService {
 
     for (const event of input.events) {
       if (!allowedSourceObjects.has(event.sourceObject)) {
-        throw new Error(`Source object "${event.sourceObject}" is not allowed for this credential`);
+        throw new Error(
+          `Source object "${event.sourceObject}" is not allowed for this credential`,
+        );
       }
 
       const preview = redactSensitive(event.payload);
@@ -1023,7 +1215,8 @@ export class ConnectorService {
         sourceRecordId: event.sourceRecordId,
         sourceUpdatedAt: parseIsoDate(event.sourceUpdatedAt ?? null),
         schemaVersion: input.schemaVersion,
-        contentType: asTrimmedString(event.contentType) ?? payloadObject.contentType,
+        contentType:
+          asTrimmedString(event.contentType) ?? payloadObject.contentType,
         payloadSha256: payloadHash,
         payloadPreview: preview,
         objectStoreKey: payloadObject.key,
@@ -1045,9 +1238,14 @@ export class ConnectorService {
       acceptedEvents.push(stored.event);
     }
 
-    this.store.updateIngestCredential(organizationId, connectionId, credential.id, {
-      lastUsedAt: receivedAt,
-    });
+    this.store.updateIngestCredential(
+      organizationId,
+      connectionId,
+      credential.id,
+      {
+        lastUsedAt: receivedAt,
+      },
+    );
     this.store.updateConnection(organizationId, connectionId, {
       status: "active",
       lastSuccessfulSyncAt: receivedAt,
@@ -1100,7 +1298,11 @@ export class ConnectorService {
 
     const config = isRecord(input.config) ? input.config : {};
     assertNoSecretsInConfig(config);
-    const sourceObjects = this.normalizeSourceObjects(catalogItem, input.sourceObjects);
+    this.validateConnectionUrls(input.vendor, input.baseUrl ?? null, config);
+    const sourceObjects = this.normalizeSourceObjects(
+      catalogItem,
+      input.sourceObjects,
+    );
 
     const connection = this.store.createConnection(organizationId, {
       ...input,
@@ -1118,7 +1320,10 @@ export class ConnectorService {
     });
 
     if (input.credentials != null) {
-      const normalized = normalizeCredentialPayload(input.authMode, input.credentials);
+      const normalized = normalizeCredentialPayload(
+        input.authMode,
+        input.credentials,
+      );
       this.storeSecret(
         connection,
         normalized.kind,
@@ -1144,7 +1349,9 @@ export class ConnectorService {
       context,
     );
 
-    return this.store.getConnection(organizationId, connection.id) ?? connection;
+    return (
+      this.store.getConnection(organizationId, connection.id) ?? connection
+    );
   }
 
   updateConnection(
@@ -1155,8 +1362,15 @@ export class ConnectorService {
   ): ConnectorConnection {
     const connection = this.getConnectionOrThrow(organizationId, connectionId);
     const catalogItem = this.getCatalogItem(connection.vendor);
-    const nextConfig = isRecord(input.config) ? input.config : connection.config;
+    const nextConfig = isRecord(input.config)
+      ? input.config
+      : connection.config;
     assertNoSecretsInConfig(nextConfig);
+    this.validateConnectionUrls(
+      connection.vendor,
+      input.baseUrl ?? connection.baseUrl,
+      nextConfig,
+    );
     const nextSourceObjects = this.normalizeSourceObjects(
       catalogItem,
       input.sourceObjects ?? connection.sourceObjects,
@@ -1164,8 +1378,8 @@ export class ConnectorService {
     const nextStatus = input.status ?? connection.status;
     const disabledReason =
       nextStatus === "disabled"
-        ? asTrimmedString(input.disabledReason ?? connection.disabledReason) ??
-          "Disabled by operator"
+        ? (asTrimmedString(input.disabledReason ?? connection.disabledReason) ??
+          "Disabled by operator")
         : null;
 
     const updated = this.store.updateConnection(organizationId, connectionId, {
@@ -1176,7 +1390,8 @@ export class ConnectorService {
         input.syncIntervalMinutes ?? connection.syncIntervalMinutes,
       webhookEnabled: input.webhookEnabled ?? connection.webhookEnabled,
       baseUrl: input.baseUrl ?? connection.baseUrl,
-      externalAccountId: input.externalAccountId ?? connection.externalAccountId,
+      externalAccountId:
+        input.externalAccountId ?? connection.externalAccountId,
       oauthScopes: input.oauthScopes ?? connection.oauthScopes,
       status: nextStatus,
       disabledReason,
@@ -1208,7 +1423,9 @@ export class ConnectorService {
   ): AuthorizationStartResult {
     const connection = this.getConnectionOrThrow(organizationId, connectionId);
     if (connection.authMode !== "oauth2") {
-      throw new Error("Authorization start is only supported for oauth2 connections");
+      throw new Error(
+        "Authorization start is only supported for oauth2 connections",
+      );
     }
 
     const catalogItem = this.getCatalogItem(connection.vendor);
@@ -1227,11 +1444,24 @@ export class ConnectorService {
         catalogItem.oauthDefaults?.tokenEndpoint,
       );
     if (authorizationEndpoint == null || tokenEndpoint == null) {
-      throw new Error("OAuth authorizationEndpoint and tokenEndpoint are required");
+      throw new Error(
+        "OAuth authorizationEndpoint and tokenEndpoint are required",
+      );
     }
+    const validatedAuthorizationEndpoint = this.validateOutboundUrl(
+      authorizationEndpoint,
+      "authorizationEndpoint",
+    );
+    const validatedTokenEndpoint = this.validateOutboundUrl(
+      tokenEndpoint,
+      "tokenEndpoint",
+    );
 
     if (input.clientCredentials != null) {
-      const normalized = normalizeCredentialPayload("oauth2", input.clientCredentials);
+      const normalized = normalizeCredentialPayload(
+        "oauth2",
+        input.clientCredentials,
+      );
       this.storeSecret(
         connection,
         normalized.kind,
@@ -1244,19 +1474,22 @@ export class ConnectorService {
       );
     }
 
-    const { payload } = this.getLatestSecretPayload<OAuthClientSecretPayload>(connection);
+    const { payload } =
+      this.getLatestSecretPayload<OAuthClientSecretPayload>(connection);
     const scopes =
       input.scopes?.length != null && input.scopes.length > 0
         ? [...input.scopes]
-        : connection.oauthScopes ?? catalogItem.oauthDefaults?.defaultScopes ?? [];
+        : (connection.oauthScopes ??
+          catalogItem.oauthDefaults?.defaultScopes ??
+          []);
     const session: AuthorizationSession = {
       id: randomUUID(),
       organizationId,
       connectionId,
       vendor: connection.vendor,
       redirectUri: input.redirectUri,
-      authorizationEndpoint,
-      tokenEndpoint,
+      authorizationEndpoint: validatedAuthorizationEndpoint,
+      tokenEndpoint: validatedTokenEndpoint,
       state: createOpaqueStateToken(),
       codeVerifier: createPkceVerifier(),
       scopes,
@@ -1270,8 +1503,8 @@ export class ConnectorService {
       oauthScopes: scopes,
       config: redactSensitive({
         ...connection.config,
-        authorizationEndpoint,
-        tokenEndpoint,
+        authorizationEndpoint: validatedAuthorizationEndpoint,
+        tokenEndpoint: validatedTokenEndpoint,
       }),
     });
 
@@ -1315,11 +1548,19 @@ export class ConnectorService {
     credentials: CredentialInput,
     context: AuditContext,
   ): AuthorizationCompleteResult {
-    const normalized = normalizeCredentialPayload(connection.authMode, credentials);
-    const stored = this.storeSecret(connection, normalized.kind, normalized.payload, {
-      vendor: connection.vendor,
-      authMode: connection.authMode,
-    });
+    const normalized = normalizeCredentialPayload(
+      connection.authMode,
+      credentials,
+    );
+    const stored = this.storeSecret(
+      connection,
+      normalized.kind,
+      normalized.payload,
+      {
+        vendor: connection.vendor,
+        authMode: connection.authMode,
+      },
+    );
     this.recordAuditEvent(
       connection.organizationId,
       connection.id,
@@ -1349,8 +1590,13 @@ export class ConnectorService {
       throw new Error("OAuth state mismatch");
     }
 
-    const { payload } = this.getLatestSecretPayload<OAuthClientSecretPayload>(connection);
-    const token = await exchangeAuthorizationCode(session, payload, input.code ?? "");
+    const { payload } =
+      this.getLatestSecretPayload<OAuthClientSecretPayload>(connection);
+    const token = await exchangeAuthorizationCode(
+      session,
+      payload,
+      input.code ?? "",
+    );
     const stored = this.storeSecret(
       connection,
       "oauth2_token",
@@ -1372,7 +1618,8 @@ export class ConnectorService {
     this.store.deleteAuthorizationSession(connection.id);
     this.store.updateConnection(connection.organizationId, connection.id, {
       authorizationState: "authorized",
-      oauthScopes: token.scope.length > 0 ? token.scope : connection.oauthScopes,
+      oauthScopes:
+        token.scope.length > 0 ? token.scope : connection.oauthScopes,
     });
     this.recordAuditEvent(
       connection.organizationId,
@@ -1400,10 +1647,15 @@ export class ConnectorService {
     context: AuditContext,
   ): AuthorizationCompleteResult {
     const normalized = normalizeCredentialPayload("oauth2", credentials);
-    const stored = this.storeSecret(connection, normalized.kind, normalized.payload, {
-      vendor: connection.vendor,
-      grantType: "client_credentials",
-    });
+    const stored = this.storeSecret(
+      connection,
+      normalized.kind,
+      normalized.payload,
+      {
+        vendor: connection.vendor,
+        grantType: "client_credentials",
+      },
+    );
     this.store.updateConnection(connection.organizationId, connection.id, {
       authorizationState: "authorized",
     });
@@ -1438,17 +1690,29 @@ export class ConnectorService {
       if (input.credentials == null) {
         throw new Error("credentials are required to complete authorization");
       }
-      return this.completeNonOAuthAuthorization(connection, input.credentials, context);
+      return this.completeNonOAuthAuthorization(
+        connection,
+        input.credentials,
+        context,
+      );
     }
 
     if (input.code != null) {
-      return await this.completeOAuthCodeAuthorization(connection, input, context);
+      return await this.completeOAuthCodeAuthorization(
+        connection,
+        input,
+        context,
+      );
     }
 
     if (input.credentials == null) {
       throw new Error("Either code/state or credentials are required");
     }
-    return this.completeOAuthCredentialAuthorization(connection, input.credentials, context);
+    return this.completeOAuthCredentialAuthorization(
+      connection,
+      input.credentials,
+      context,
+    );
   }
 
   async testConnection(
@@ -1458,9 +1722,14 @@ export class ConnectorService {
   ): Promise<TestConnectionResult> {
     const connection = this.getConnectionOrThrow(organizationId, connectionId);
     if (connection.secretRef == null || connection.secretRef.length === 0) {
-      throw new Error("Connection credentials must be completed before testing");
+      throw new Error(
+        "Connection credentials must be completed before testing",
+      );
     }
-    if (Object.keys(connection.config).length === 0 && connection.baseUrl == null) {
+    if (
+      Object.keys(connection.config).length === 0 &&
+      connection.baseUrl == null
+    ) {
       throw new Error("Connector config or baseUrl is required before testing");
     }
 
@@ -1504,8 +1773,13 @@ export class ConnectorService {
     if (connection.status === "disabled") {
       throw new Error("Connection is disabled");
     }
-    if (connection.status !== "active" || connection.authorizationState !== "authorized") {
-      throw new Error("Connection must be authorized and tested before syncing");
+    if (
+      connection.status !== "active" ||
+      connection.authorizationState !== "authorized"
+    ) {
+      throw new Error(
+        "Connection must be authorized and tested before syncing",
+      );
     }
 
     const sourceWindowStart = parseIsoDate(input.sourceWindowStart);
@@ -1546,7 +1820,10 @@ export class ConnectorService {
     return dispatch;
   }
 
-  listSyncRuns(organizationId: string, connectionId?: string | null): SyncRun[] {
+  listSyncRuns(
+    organizationId: string,
+    connectionId?: string | null,
+  ): SyncRun[] {
     return this.store.listSyncRuns(organizationId, connectionId);
   }
 
@@ -1556,7 +1833,29 @@ export class ConnectorService {
 }
 
 export async function createDefaultConnectorService(): Promise<ConnectorService> {
-  const databaseUrl = process.env.DATABASE_URL?.trim() || null;
+  const runtimeEnv =
+    process.env.NODE_ENV === "test"
+      ? {
+          ...process.env,
+          NODE_ENV: "development",
+          DATABASE_URL: "",
+          CORS_ORIGINS: "",
+          CONNECTORS_PUBLIC_BASE_URL:
+            process.env.CONNECTORS_PUBLIC_BASE_URL ?? "http://127.0.0.1:8100",
+          CONNECTORS_SERVICE_TOKENS:
+            process.env.CONNECTORS_SERVICE_TOKENS ??
+            JSON.stringify([
+              {
+                name: "test-runtime",
+                token: "t".repeat(32),
+                allowedOrgs: ["test-org"],
+                capabilities: ["catalog:read"],
+              },
+            ]),
+        }
+      : process.env;
+  const config = loadConfig(runtimeEnv);
+  const databaseUrl = config.databaseUrl;
   const store = databaseUrl
     ? new PostgresBackedConnectorStore(databaseUrl)
     : new InMemoryConnectorStore();
@@ -1566,10 +1865,10 @@ export async function createDefaultConnectorService(): Promise<ConnectorService>
 
   return new ConnectorService(
     store,
-    process.env.CONNECTORS_SECRET_SEALING_KEY ?? null,
-    process.env.CONNECTORS_PUBLIC_BASE_URL ?? null,
-    new LocalFilePayloadStore(
-      process.env.CONNECTORS_OBJECT_STORE_ROOT ?? "/tmp/praedixa-connectors-object-store",
-    ),
+    config.secretSealingKey,
+    config.publicBaseUrl,
+    new LocalFilePayloadStore(config.objectStoreRoot),
+    config.nodeEnv,
+    config.allowedOutboundHosts,
   );
 }

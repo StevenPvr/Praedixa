@@ -21,6 +21,7 @@
     "date-fns",
     "@opennextjs/cloudflare",
     "@praedixa/shared-types",
+    "@praedixa/ui",
     "clsx",
     "tailwind-merge",
     "@remotion/cli",

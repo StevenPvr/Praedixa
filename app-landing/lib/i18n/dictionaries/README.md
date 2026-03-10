@@ -7,9 +7,11 @@ Ce dossier fait partie du périmètre `app-landing` et regroupe des fichiers li�
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `en-app.ts`
 - `en-core-conversion.ts`
 - `en-core-foundation.ts`
@@ -28,3 +30,7 @@ Fichiers :
 ## Intégration
 
 Ce dossier est consommé par l'application `app-landing` et s'insère dans son flux runtime, build ou test.
+
+## Regle editoriale
+
+La copy canonique doit rester alignee sur le positionnement `DecisionOps` de Praedixa: federation de l'existant, arbitrages gouvernes, execution controlee et preuve ROI decision par decision. Eviter de retomber dans un discours generique de `data platform`, `copilote IA` ou `dashboard` sans nuance.

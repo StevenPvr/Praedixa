@@ -1,21 +1,31 @@
 import type { Dictionary } from "../types";
 
-export const frGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact' | 'servicesPage' | 'footer' | 'stickyCta' | 'form'> = {
+export const frGrowth: Pick<
+  Dictionary,
+  | "security"
+  | "pilot"
+  | "faq"
+  | "contact"
+  | "servicesPage"
+  | "footer"
+  | "stickyCta"
+  | "form"
+> = {
   security: {
     kicker: "Overlay & données",
-    heading: "Vos données sont déjà là. Praedixa les réunit sans projet lourd.",
+    heading: "Federer les systemes critiques sans remplacer vos outils.",
     subheading:
-      "CSV, Excel, API, ERP, outils RH ou finance: Praedixa part de l'existant, en lecture seule, pour créer une base commune simple à relire.",
+      "CSV, Excel, API, ERP, outils RH ou finance: Praedixa se branche en lecture seule sur les systemes qui comptent pour une decision et les relie dans une infrastructure hebergee en France.",
     tiles: [
       {
-        title: "Connexion légère",
+        title: "Federation legere",
         description:
-          "Praedixa démarre sur vos exports et API existants. Pas besoin de remplacer vos outils.",
+          "Praedixa demarre sur vos exports et API existants. Pas besoin de remplacer vos outils.",
       },
       {
-        title: "Lecture commune",
+        title: "Cadre de decision commun",
         description:
-          "Les données RH, finance, opérations et supply chain sont regroupées dans un même cadre.",
+          "Les donnees RH, finance, operations et supply chain sont reliees dans un meme cadre de decision.",
       },
       {
         title: "Données utiles",
@@ -23,14 +33,14 @@ export const frGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
           "On travaille au niveau site, équipe, activité ou réseau pour garder une lecture claire.",
       },
       {
-        title: "Priorités partagées",
+        title: "Garde-fous metier",
         description:
-          "Chaque équipe retrouve les mêmes chiffres, le même langage et les mêmes priorités.",
+          "Chaque arbitrage reste gouverne par vos regles internes, vos seuils et votre validation humaine.",
       },
       {
-        title: "Sécurité",
+        title: "Securite",
         description:
-          "Chiffrement, contrôle d'accès et journalisation des actions pour garder un cadre propre.",
+          "Chiffrement, controle d'acces et journalisation des actions pour garder un cadre propre.",
       },
       {
         title: "Comparaison multi-sites",
@@ -46,30 +56,28 @@ export const frGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
     compatibility: {
       title: "Compatible avec vos outils en place",
       description:
-        "Praedixa complète l'existant et remet tous vos chiffres dans une même base commune.",
+        "Praedixa complete l'existant et fédère les systemes critiques pour gouverner les arbitrages.",
       tools: ["Planning", "ERP", "CRM", "BI", "Excel"],
     },
     honesty:
-      "Le vrai sujet n'est pas d'avoir plus de données. C'est de relier les données déjà là à des décisions qui rapportent.",
+      "Le vrai sujet n'est pas d'avoir plus de donnees. C'est de transformer les arbitrages critiques en decisions calculees, executees et auditables.",
   },
-
 
   pilot: {
     kicker: "Pilote ROI",
-    heading:
-      "Un pilote court pour prouver vite que vos données peuvent rapporter plus.",
+    heading: "Un pilote court pour mettre DecisionOps en production.",
     subheading:
-      "En quelques semaines, Praedixa réunit vos données, sort les priorités et met le ROI au centre des décisions.",
+      "En quelques semaines, Praedixa relie vos systemes critiques, cadre les arbitrages prioritaires, declenche les premieres actions et installe la preuve ROI en cadence Ops / Finance.",
     statusLabels: ["Cadrage", "Premiers gains", "Preuve consolidée"],
     included: {
       title: "Ce que vous obtenez",
       items: [
         "Diagnostic ROI offert sur vos données existantes",
-        "Une base commune RH, finance, opérations et supply chain",
-        "Les sites, équipes ou sujets à plus fort potentiel de gain",
-        "Un plan d'action priorisé avec impact attendu",
+        "Une federation RH, finance, operations et supply chain sur l'existant",
+        "Les arbitrages ou sujets a plus fort potentiel de gain",
+        "Un plan d'action priorise avec impact attendu",
         "Un suivi du ROI simple a relire en comite",
-        "Un rythme commun Ops + Finance pour décider plus vite",
+        "Un Decision Journal et un rythme commun Ops + Finance pour decider plus vite",
       ],
     },
     excluded: {
@@ -117,10 +125,8 @@ export const frGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
     urgency:
       "Candidatures examinées sous 48h ouvrées. Objectif du pilote: une preuve simple, lisible et orientée ROI x3.",
     ctaPrimary: "Demander un pilote ROI",
-    ctaMeta:
-      "Diagnostic offert · lecture seule · objectif ROI x3",
+    ctaMeta: "Diagnostic offert · lecture seule · objectif ROI x3",
   },
-
 
   faq: {
     kicker: "FAQ",
@@ -149,7 +155,7 @@ export const frGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
       {
         question: "Praedixa, c'est quoi en une phrase ?",
         answer:
-          "Praedixa relie vos données RH, finance, opérations et supply chain pour rendre les besoins visibles plus tôt, prioriser les actions et suivre le ROI.",
+          "Praedixa est la plateforme francaise de DecisionOps: elle relie vos systemes existants pour transformer les arbitrages critiques en decisions calculees, executees et auditables.",
         category: "Comprendre Praedixa",
       },
       {
@@ -168,7 +174,7 @@ export const frGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
       {
         question: "Que voit-on concrètement dans Praedixa ?",
         answer:
-          "Une base commune entre RH, finance, opérations et supply chain: où l'argent fuit, quels sites ou sujets prioriser, quel gain attendre et ce qui a vraiment rapporté.",
+          "Des arbitrages gouvernes: quelles options comparer, quel choix valider, quelle premiere action lancer et ce qui a vraiment rapporte ensuite.",
         category: "Comprendre Praedixa",
       },
       {
@@ -180,7 +186,7 @@ export const frGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
       {
         question: "Quelle différence avec un outil de planning ou un ERP ?",
         answer:
-          "Praedixa ne remplace pas vos outils. La plateforme s'appuie dessus pour créer une base commune et un suivi du ROI.",
+          "Praedixa ne remplace pas vos outils. La plateforme gouverne les arbitrages qui traversent vos outils, les journalise et les relie a une preuve ROI.",
         category: "Comprendre Praedixa",
       },
       {
@@ -192,7 +198,7 @@ export const frGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
       {
         question: "Comment se structure le pilote sur 3 mois ?",
         answer:
-          "On démarre sur l'existant, on aligne les données, on sort les premières priorités, puis on consolide la preuve de valeur site par site et au niveau réseau.",
+          "On demarre sur l'existant, on relie les systemes critiques, on sort les premieres priorites, puis on consolide la preuve de valeur site par site et au niveau reseau.",
         category: "Pilote & tarification",
       },
       {
@@ -234,12 +240,11 @@ export const frGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
     ],
   },
 
-
   contact: {
     kicker: "Contact",
     heading: "Obtenir le diagnostic ROI gratuit.",
     subheading:
-      "Envoyez vos données ou vos exports. On revient avec une lecture simple: où vous perdez de l'argent, quoi prioriser et comment cadrer le pilote.",
+      "Partagez votre contexte. On revient avec un cadrage DecisionOps: arbitrages prioritaires, systemes a federer et premiere boucle de preuve ROI.",
     trustItems: [
       "Réponse sous 48h ouvrées",
       "Diagnostic ROI offert",
@@ -250,35 +255,31 @@ export const frGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
     ctaSecondary: "Voir le protocole pilote",
   },
 
-
   servicesPage: {
     meta: {
-      title:
-        "Praedixa | Offre Praedixa vs diagnostic ROI",
+      title: "Praedixa | Plateforme DecisionOps vs diagnostic ROI",
       description:
-        "Comparez l'offre Praedixa complète et le diagnostic ROI pour choisir votre meilleur point d'entrée.",
-      ogTitle:
-        "Praedixa | Offre Praedixa ou diagnostic ROI",
+        "Comparez la plateforme Praedixa DecisionOps et le diagnostic ROI pour choisir votre meilleur point d'entree.",
+      ogTitle: "Praedixa | DecisionOps ou diagnostic ROI",
       ogDescription:
-        "Deux façons de démarrer: un diagnostic ROI rapide ou l'offre complète pour réunir les données, prioriser et suivre les gains.",
+        "Deux facons de demarrer: un diagnostic ROI rapide ou la plateforme DecisionOps pour federer, decider, declencher et prouver.",
     },
     kicker: "Offre",
-    heading:
-      "Offre Praedixa vs diagnostic ROI.",
+    heading: "Praedixa DecisionOps vs diagnostic ROI.",
     subheading:
-      "Vous pouvez démarrer par un diagnostic ROI sur vos données, puis passer à l'offre complète pour prioriser les actions et suivre le ROI dans le temps.",
+      "Vous pouvez demarrer par un diagnostic ROI sur vos arbitrages, puis passer a la plateforme DecisionOps complete pour gouverner l'execution et la preuve dans le temps.",
     fullPackage: {
       badge: "Praedixa complet",
-      title: "Réunir les données, prioriser, suivre le ROI",
+      title: "Federer, decider, declencher, prouver",
       summary:
-        "Le cœur de valeur Praedixa: une base commune, des priorités claires et un plan d'action rentable.",
+        "Le coeur de valeur Praedixa: un protocole DecisionOps souverain au-dessus de l'existant.",
       includesTitle: "Ce qui est inclus",
       includes: [
-        "Données RH, finance, opérations et supply chain réunies",
-        "Priorités business classées par impact",
-        "Plan d'action site par site",
+        "Systemes RH, finance, operations et supply chain federes",
+        "Arbitrages business classes par impact",
+        "Premiere action preparee dans les outils existants",
         "Suivi du ROI dans le temps",
-        "Base commune pour comités et équipes",
+        "Decision Journal pour comites et equipes",
         "Comparaison multi-sites et standardisation",
       ],
       cta: "Demander un pilote ROI Praedixa",
@@ -342,35 +343,32 @@ export const frGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
       ],
     },
     bottomNote:
-      "Le diagnostic ROI est un point de départ. La vraie valeur est dans la base commune, la priorisation et le suivi des gains dans le temps.",
+      "Le diagnostic ROI est un point de depart. La vraie valeur est dans la federation sur l'existant, la decision gouvernee, l'execution et la preuve dans le temps.",
   },
-
 
   footer: {
     tagline:
-      "Une base commune pour anticiper les besoins, optimiser les décisions et suivre le ROI site par site.",
-    badges: ["Base commune", "ROI suivi"],
+      "Praedixa transforme les arbitrages critiques en decisions calculees, executees et auditables.",
+    badges: ["DecisionOps", "ROI prouve"],
     navigation: "Navigation",
     legalContact: "Légal & contact",
     copyright: "Conçu et hébergé en France",
     ctaBanner: {
       kicker: "Praedixa",
       heading:
-        "Toutes vos données au bon endroit. Des décisions plus claires.",
+        "Les entreprises n'ont pas besoin d'un data hub de plus. Elles ont besoin d'un moteur de decisions.",
       cta: "Obtenir le diagnostic ROI gratuit",
     },
   },
-
 
   stickyCta: {
     text: "Obtenir le diagnostic ROI gratuit",
   },
 
-
   form: {
     pageTitle: "Demande de pilote ROI Praedixa",
     pageSubtitle:
-      "Cette demande permet de cadrer un pilote court, centré sur vos données, vos priorités et votre ROI.",
+      "Cette demande permet de cadrer un pilote court centre sur vos arbitrages critiques, les systemes a federer et votre preuve ROI.",
     pill: "Pilote ROI Praedixa",
     valuePoints: [
       "Diagnostic ROI offert",
@@ -423,13 +421,11 @@ export const frGrowth: Pick<Dictionary, 'security' | 'pilot' | 'faq' | 'contact'
     },
     error: "Une erreur est survenue. Veuillez réessayer.",
     sectors: [
-      "Restauration / Retail / Hôtellerie",
-      "Concessions auto / Atelier",
-      "Logistique / Entrepôts",
-      "Santé / Cliniques",
-      "Industrie / Maintenance",
-      "Centres d’appels",
-      "Transport",
+      "HCR",
+      "Enseignement supérieur",
+      "Logistique / Transport / Retail",
+      "Automobile / concessions / ateliers",
+      "BTP",
       "Services",
       "Autre",
     ],

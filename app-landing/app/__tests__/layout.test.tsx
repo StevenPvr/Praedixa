@@ -28,10 +28,6 @@ vi.mock("geist/font/sans", () => ({
   GeistSans: { variable: "geist-sans-mock" },
 }));
 
-vi.mock("geist/font/mono", () => ({
-  GeistMono: { variable: "geist-mono-mock" },
-}));
-
 vi.mock("../../components/seo/JsonLd", () => ({
   JsonLd: () => <script type="application/ld+json" />,
 }));

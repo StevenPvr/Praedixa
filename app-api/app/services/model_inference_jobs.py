@@ -7,7 +7,7 @@ import hashlib
 import json
 import uuid
 from datetime import UTC, date, datetime
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,6 +24,7 @@ from app.models.mlops import (
     DataLineageEvent,
     InferenceJobStatus,
     ModelInferenceJob,
+    ModelRegistry,
 )
 from app.schemas.mlops import InferenceJobCreateRequest
 from app.services.gold_live_data import (
@@ -152,7 +153,10 @@ async def get_inference_job(
         select(ModelInferenceJob).where(ModelInferenceJob.id == job_id),
         ModelInferenceJob,
     )
-    job = (await session.execute(query)).scalar_one_or_none()
+    job = cast(
+        "ModelInferenceJob | None",
+        (await session.execute(query)).scalar_one_or_none(),
+    )
     if job is None:
         raise NotFoundError("ModelInferenceJob", str(job_id))
     return job
@@ -185,6 +189,7 @@ async def run_inference_job(
     try:
         org_id = uuid.UUID(tenant.organization_id)
 
+        model: ModelRegistry
         if job.model_registry_id is not None:
             model = await get_model_by_id(
                 session,
@@ -193,17 +198,18 @@ async def run_inference_job(
             )
         else:
             model_family = job.scope_json.get("model_family")
-            model = await get_active_model(
+            active_model = await get_active_model(
                 session,
                 tenant,
                 model_family=model_family if isinstance(model_family, str) else None,
             )
-            if model is None:
+            if active_model is None:
                 raise PraedixaError(
                     message="No active model found for this organization",
                     code="ACTIVE_MODEL_NOT_FOUND",
                     status_code=409,
                 )
+            model = active_model
             job.model_registry_id = model.id
 
         is_valid = await verify_model_integrity(model)
@@ -229,21 +235,21 @@ async def run_inference_job(
         available_client_slugs: set[str] = set()
         client_site_codes: dict[str, set[str]] = {}
         for row in snapshot.rows:
-            client_slug = str(row.get("client_slug") or "").strip()
-            if not client_slug:
+            row_client_slug = str(row.get("client_slug") or "").strip()
+            if not row_client_slug:
                 continue
-            available_client_slugs.add(client_slug)
-            site_code = str(row.get("site_code") or "").strip().upper()
-            if site_code:
-                client_site_codes.setdefault(client_slug, set()).add(site_code)
+            available_client_slugs.add(row_client_slug)
+            row_site_code = str(row.get("site_code") or "").strip().upper()
+            if row_site_code:
+                client_site_codes.setdefault(row_client_slug, set()).add(row_site_code)
 
-        client_slug = await resolve_client_slug_for_org(
+        resolved_client_slug = await resolve_client_slug_for_org(
             session,
             org_id,
             available_client_slugs,
             client_site_codes,
         )
-        if client_slug is None:
+        if resolved_client_slug is None:
             raise PraedixaError(
                 message="No Gold dataset scope found for this organization",
                 code="GOLD_SCOPE_NOT_FOUND",
@@ -251,13 +257,15 @@ async def run_inference_job(
             )
 
         scope_site = job.scope_json.get("site_code")
-        site_code = scope_site if isinstance(scope_site, str) and scope_site else None
+        site_code: str | None = (
+            scope_site if isinstance(scope_site, str) and scope_site else None
+        )
         date_from = _from_iso_date(job.scope_json.get("date_from"))
         date_to = _from_iso_date(job.scope_json.get("date_to"))
 
         rows = filter_rows(
             snapshot.rows,
-            client_slug=client_slug,
+            client_slug=resolved_client_slug,
             site_code=site_code,
             date_from=date_from,
             date_to=date_to,
@@ -296,7 +304,7 @@ async def run_inference_job(
             config={
                 "source": "gold_dataset",
                 "model_registry_id": str(model.id),
-                "client_slug": client_slug,
+                "client_slug": resolved_client_slug,
                 "gold_revision": snapshot.revision,
             },
         )

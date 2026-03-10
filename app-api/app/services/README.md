@@ -60,3 +60,5 @@ Les services ici encapsulent la logique metier Python: transformations, bootstra
 - Tout ce qui touche aux integrations et aux payloads bruts est sensible.
 - `org_provisioning.py` est branche au bootstrap d'organisation.
 - Certains services restent des ponts de compatibilite avec des contrats historiques encore lus par `app-api-ts`.
+- `file_parser.py`, `proof_pack_pdf_service.py` et `integration_runtime_worker.py` doivent rester compatibles `mypy` strict: ces services sont executes dans les hooks qualite et servent de frontieres de confiance.
+- `model_registry.py` et `model_inference_jobs.py` doivent aussi rester compatibles `mypy` strict: ils portent les controles d'integrite MLOps et les jobs batch verifies par les gates locaux.

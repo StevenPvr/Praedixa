@@ -12,3 +12,7 @@ Ce dossier documente l'installation et les déploiements d'infrastructure applic
 - avant de préparer un nouvel environnement ;
 - avant un déploiement prod/staging ;
 - quand on modifie les scripts `scw-*` dans `scripts/`.
+
+## Règle de sécurité
+
+- Les exemples de credentials dans ce dossier doivent rester des placeholders non réutilisables et pointer vers le secret manager comme source de vérité.

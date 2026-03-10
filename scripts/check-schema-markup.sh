@@ -12,12 +12,13 @@ fi
 
 required_tokens=(
   "\"@context\": \"https://schema.org\""
-  "\"@graph\""
   "\"@type\": \"Organization\""
   "\"@type\": \"SoftwareApplication\""
   "\"@type\": \"WebSite\""
+  "\"@type\": \"Service\""
   "\"@type\": \"FAQPage\""
   "type=\"application/ld+json\""
+  "schemas.map"
 )
 
 for token in "${required_tokens[@]}"; do

@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from typing import TypeVar
 
 T = TypeVar("T")
+_DEFAULT_RNG = random.Random()  # noqa: S311 - retry jitter is not security-sensitive
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,24 +62,29 @@ def compute_backoff_seconds(
     if attempt < 1:
         raise ValueError("attempt must be >= 1")
 
-    deterministic_backoff = min(
-        policy.max_delay_seconds,
-        policy.base_delay_seconds * (2 ** (attempt - 1)),
-    )
-    chosen_delay = deterministic_backoff
-    if retry_after_seconds is not None and retry_after_seconds > 0:
-        chosen_delay = min(
+    deterministic_backoff: float = float(
+        min(
             policy.max_delay_seconds,
-            max(chosen_delay, retry_after_seconds),
+            policy.base_delay_seconds * (2 ** (attempt - 1)),
+        )
+    )
+    chosen_delay: float = deterministic_backoff
+    if retry_after_seconds is not None and retry_after_seconds > 0:
+        chosen_delay = float(
+            min(policy.max_delay_seconds, max(chosen_delay, retry_after_seconds))
         )
 
     if policy.jitter_ratio == 0:
-        return chosen_delay
+        return float(chosen_delay)
 
-    random_source = rng if rng is not None else random
-    spread = chosen_delay * policy.jitter_ratio
-    jittered = chosen_delay + random_source.uniform(-spread, spread)
-    return max(0.0, min(policy.max_delay_seconds, jittered))
+    random_source = rng if rng is not None else _DEFAULT_RNG
+    spread: float = chosen_delay * policy.jitter_ratio
+    jittered: float = chosen_delay + float(random_source.uniform(-spread, spread))
+    if jittered < 0.0:
+        return 0.0
+    if jittered > policy.max_delay_seconds:
+        return float(policy.max_delay_seconds)
+    return float(jittered)
 
 
 def should_retry(

@@ -147,10 +147,6 @@ vi.mock("@/components/chat/message-input", () => ({
   ),
 }));
 
-vi.mock("lucide-react", () => ({
-  MessageSquare: () => <svg data-testid="icon-msg" />,
-}));
-
 vi.mock("@/lib/auth/client", () => ({
   useCurrentUser: () => ({
     id: "user-abc",

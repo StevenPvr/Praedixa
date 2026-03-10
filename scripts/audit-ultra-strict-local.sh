@@ -76,25 +76,38 @@ run_semgrep() {
 
 run_checkov() {
   if has_cmd checkov; then
-    checkov "$@"
+    LOG_LEVEL="${CHECKOV_LOG_LEVEL:-ERROR}" checkov "$@"
     return
   fi
   if has_cmd uv; then
-    uv tool run --from checkov checkov "$@"
+    LOG_LEVEL="${CHECKOV_LOG_LEVEL:-ERROR}" uv tool run --from checkov checkov "$@"
     return
   fi
   fail "Checkov is not available (install checkov or uv)."
 }
 
 detect_terraform() {
-  if find . -type f -name "*.tf" \
-    -not -path "*/.terraform/*" \
-    -not -path "./.claude/*" \
-    -not -path "./.codex/*" | grep -q .; then
+  if collect_tf_dirs | grep -q .; then
     HAS_TERRAFORM="true"
   else
     HAS_TERRAFORM="false"
   fi
+}
+
+collect_tf_dirs() {
+  python3 - <<'PY'
+from pathlib import Path
+
+ignored_parts = {".git", ".terraform", ".claude", ".codex"}
+dirs = set()
+for path in Path(".").rglob("*.tf"):
+    if any(part in ignored_parts for part in path.parts):
+        continue
+    dirs.add(str(path.parent))
+
+for directory in sorted(dirs):
+    print(directory)
+PY
 }
 
 scan_dirs=(
@@ -103,9 +116,17 @@ scan_dirs=(
   .tools
   node_modules
   .next
+  .open-next
   dist
   build
   .venv
+  app-api/.venv
+  app-landing/.next
+  app-webapp/.next
+  app-admin/.next
+  app-landing/.open-next
+  app-webapp/.open-next
+  app-admin/.open-next
   __pycache__
   .terraform
   coverage
@@ -141,6 +162,7 @@ run_semgrep --error --config scripts/semgrep/custom-critical-rules.yml .
 echo "[audit-ultra-strict] Trivy secrets..."
 trivy fs "${skip_dir_args[@]}" \
   --scanners secret \
+  --skip-version-check \
   --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
   --exit-code 1 \
   --ignorefile .trivyignore \
@@ -149,6 +171,7 @@ trivy fs "${skip_dir_args[@]}" \
 echo "[audit-ultra-strict] Trivy vulnerabilities..."
 trivy fs "${skip_dir_args[@]}" \
   --scanners vuln \
+  --skip-version-check \
   --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
   --exit-code 1 \
   --ignorefile .trivyignore \
@@ -163,20 +186,20 @@ run_checkov \
 
 echo "[audit-ultra-strict] Trivy misconfig..."
 trivy config "${skip_dir_args[@]}" \
+  --skip-version-check \
   --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
   --exit-code 1 \
   .
 
 if [[ "$HAS_TERRAFORM" == "true" ]]; then
   echo "[audit-ultra-strict] Terraform fmt..."
-  terraform fmt -check -recursive
+  mapfile -t tf_dirs < <(collect_tf_dirs)
+  for d in "${tf_dirs[@]}"; do
+    echo "  - fmt $d"
+    terraform fmt -check "$d"
+  done
 
   echo "[audit-ultra-strict] Terraform validate..."
-  mapfile -t tf_dirs < <(find . -type f -name "*.tf" \
-    -not -path "*/.terraform/*" \
-    -not -path "./.claude/*" \
-    -not -path "./.codex/*" \
-    -print0 | xargs -0 -n1 dirname | sort -u)
   for d in "${tf_dirs[@]}"; do
     echo "  - validate $d"
     (
@@ -188,7 +211,10 @@ if [[ "$HAS_TERRAFORM" == "true" ]]; then
 
   echo "[audit-ultra-strict] TFLint..."
   tflint --init
-  tflint --recursive -f compact
+  for d in "${tf_dirs[@]}"; do
+    echo "  - tflint $d"
+    tflint --chdir "$d" -f compact
+  done
 fi
 
 echo "[audit-ultra-strict] OK"

@@ -24,6 +24,7 @@ Une route `app/api/*` devrait:
 - garder les messages d'erreur utilisateur ici quand ils sont specifiques au transport
 - les verifications d'origine et de stockage de securite passent toujours par `lib/security/*`
 - la persistence optionnelle doit echouer de facon tolerante si le parcours principal est l'email
+- utiliser `maxBodyLength` comme nom unique pour les limites de corps JSON dans `form-route.ts`
 
 ## Tests associes
 

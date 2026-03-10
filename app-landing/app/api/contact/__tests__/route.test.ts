@@ -3,9 +3,13 @@ import { createContactChallenge } from "../../../../lib/security/contact-challen
 
 vi.mock("next/server", () => ({
   NextResponse: {
-    json: (body: unknown, init?: { status?: number }) => ({
+    json: (
+      body: unknown,
+      init?: { status?: number; headers?: HeadersInit },
+    ) => ({
       status: init?.status ?? 200,
       body,
+      headers: new Headers(init?.headers),
       json: () => Promise.resolve(body),
     }),
   },
@@ -54,7 +58,9 @@ function makeRequest(
 }
 
 describe("POST /api/contact", () => {
-  let POST: (request: Request) => Promise<{ status: number; body: unknown }>;
+  let POST: (
+    request: Request,
+  ) => Promise<{ status: number; body: unknown; headers: Headers }>;
 
   beforeEach(async () => {
     vi.resetModules();
@@ -73,6 +79,7 @@ describe("POST /api/contact", () => {
     expect(response.body).toEqual({
       error: "Origine de requête non autorisée.",
     });
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
   });
 
   it("returns 403 when sec-fetch-site is cross-site", async () => {
@@ -86,6 +93,7 @@ describe("POST /api/contact", () => {
     expect(response.body).toEqual({
       error: "Origine de requête non autorisée.",
     });
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
   });
 
   it("returns 403 when source headers are missing", async () => {
@@ -97,6 +105,7 @@ describe("POST /api/contact", () => {
     expect(response.body).toEqual({
       error: "Origine de requête non autorisée.",
     });
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
   });
 
   it("returns 200 silently when honeypot field is filled", async () => {
@@ -109,13 +118,17 @@ describe("POST /api/contact", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ success: true });
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
   });
 
   it("returns 400 when captcha answer is invalid", async () => {
     const body = validBody();
-    const request = makeRequest({ ...body, captchaAnswer: body.captchaAnswer + 1 }, {
-      origin: "http://localhost:3000",
-    });
+    const request = makeRequest(
+      { ...body, captchaAnswer: body.captchaAnswer + 1 },
+      {
+        origin: "http://localhost:3000",
+      },
+    );
 
     const response = await POST(request);
 
@@ -127,10 +140,13 @@ describe("POST /api/contact", () => {
     const challenge = createContactChallenge(Date.now() - 100);
     if (!challenge) throw new Error("Unable to create fast challenge");
 
-    const request = makeRequest(validBody({
-      challengeToken: challenge.challengeToken,
-      captchaAnswer: challenge.captchaA + challenge.captchaB,
-    }), { origin: "http://localhost:3000" });
+    const request = makeRequest(
+      validBody({
+        challengeToken: challenge.challengeToken,
+        captchaAnswer: challenge.captchaA + challenge.captchaB,
+      }),
+      { origin: "http://localhost:3000" },
+    );
 
     const response = await POST(request);
 
@@ -142,10 +158,13 @@ describe("POST /api/contact", () => {
     const challenge = createContactChallenge(Date.now() - 1000 * 60 * 60 * 5);
     if (!challenge) throw new Error("Unable to create expired challenge");
 
-    const request = makeRequest(validBody({
-      challengeToken: challenge.challengeToken,
-      captchaAnswer: challenge.captchaA + challenge.captchaB,
-    }), { origin: "http://localhost:3000" });
+    const request = makeRequest(
+      validBody({
+        challengeToken: challenge.challengeToken,
+        captchaAnswer: challenge.captchaA + challenge.captchaB,
+      }),
+      { origin: "http://localhost:3000" },
+    );
 
     const response = await POST(request);
 
@@ -167,5 +186,6 @@ describe("POST /api/contact", () => {
 
     expect(response.status).toBe(415);
     expect(response.body).toEqual({ error: "Content-Type non supporte." });
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
   });
 });

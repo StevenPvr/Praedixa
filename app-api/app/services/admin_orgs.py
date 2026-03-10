@@ -14,6 +14,7 @@ from typing import Any
 
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.core.exceptions import ConflictError, NotFoundError
 from app.core.pagination import normalize_page_window
@@ -56,9 +57,9 @@ def _build_org_filters(
     status_filter: OrganizationStatus | None,
     plan_filter: SubscriptionPlan | None,
     sector_filter: IndustrySector | None,
-) -> list:
+) -> list[ColumnElement[bool]]:
     """Build SQLAlchemy WHERE clauses for organization listing."""
-    filters = []
+    filters: list[ColumnElement[bool]] = []
     if search:
         pattern = f"%{search}%"
         filters.append(

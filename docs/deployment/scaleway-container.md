@@ -28,30 +28,30 @@ La landing est prete sur Scaleway en `staging` et `prod`; le cutover public de `
 
 ## Scripts de reference
 
-| Commande                                | Role                                                          |
-| --------------------------------------- | ------------------------------------------------------------- |
-| `pnpm run scw:bootstrap:frontends`      | Cree namespaces/containers frontends + buckets frontends      |
-| `pnpm run scw:bootstrap:api`            | Cree namespaces/containers API                                |
-| `pnpm run scw:configure:landing:staging` | Injecte env vars/secrets landing staging                     |
-| `pnpm run scw:configure:landing:prod`   | Injecte env vars/secrets landing prod                         |
-| `pnpm run scw:configure:webapp:staging` | Injecte env vars/secrets webapp staging                       |
-| `pnpm run scw:configure:webapp:prod`    | Injecte env vars/secrets webapp prod                          |
-| `pnpm run scw:configure:admin:staging`  | Injecte env vars/secrets admin staging                        |
-| `pnpm run scw:configure:admin:prod`     | Injecte env vars/secrets admin prod                           |
-| `pnpm run scw:configure:api:staging`    | Injecte env vars/secrets API staging                          |
-| `pnpm run scw:configure:api:prod`       | Injecte env vars/secrets API prod                             |
-| `pnpm run scw:preflight:deploy`         | Controle readiness globale staging+prod+landing (sans deploy) |
-| `pnpm run scw:preflight:prod`           | Controle readiness prod+landing (sans deploy)                 |
-| `pnpm run scw:preflight:staging`        | Controle readiness infra + DNS staging (sans deploy)          |
-| `pnpm release:build -- --service landing ...` | Build/push image landing immuable par digest           |
-| `pnpm release:manifest:create -- ...`   | Cree un manifest signe pour la release landing                |
-| `pnpm release:deploy -- --manifest ... --env <staging|prod>` | Deploie landing par digest depuis un manifest signe |
-| `pnpm run scw:deploy:webapp:staging`    | Build + deploy webapp staging                                 |
-| `pnpm run scw:deploy:webapp:prod`       | Build + deploy webapp prod                                    |
-| `pnpm run scw:deploy:admin:staging`     | Build + deploy admin staging                                  |
-| `pnpm run scw:deploy:admin:prod`        | Build + deploy admin prod                                     |
-| `pnpm run scw:deploy:api:staging`       | Build + deploy API staging                                    |
-| `pnpm run scw:deploy:api:prod`          | Build + deploy API prod                                       |
+| Commande                                              | Role                                                          |
+| ----------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------- |
+| `pnpm run scw:bootstrap:frontends`                    | Cree namespaces/containers frontends + buckets frontends      |
+| `pnpm run scw:bootstrap:api`                          | Cree namespaces/containers API                                |
+| `pnpm run scw:configure:landing:staging`              | Injecte env vars/secrets landing staging                      |
+| `pnpm run scw:configure:landing:prod`                 | Injecte env vars/secrets landing prod                         |
+| `pnpm run scw:configure:webapp:staging`               | Injecte env vars/secrets webapp staging                       |
+| `pnpm run scw:configure:webapp:prod`                  | Injecte env vars/secrets webapp prod                          |
+| `pnpm run scw:configure:admin:staging`                | Injecte env vars/secrets admin staging                        |
+| `pnpm run scw:configure:admin:prod`                   | Injecte env vars/secrets admin prod                           |
+| `pnpm run scw:configure:api:staging`                  | Injecte env vars/secrets API staging                          |
+| `pnpm run scw:configure:api:prod`                     | Injecte env vars/secrets API prod                             |
+| `pnpm run scw:preflight:deploy`                       | Controle readiness globale staging+prod+landing (sans deploy) |
+| `pnpm run scw:preflight:prod`                         | Controle readiness prod+landing (sans deploy)                 |
+| `pnpm run scw:preflight:staging`                      | Controle readiness infra + DNS staging (sans deploy)          |
+| `pnpm release:build -- --service landing ...`         | Build/push image landing immuable par digest                  |
+| `pnpm release:manifest:create -- ...`                 | Cree un manifest signe pour la release landing                |
+| `pnpm release:deploy -- --manifest ... --env <staging | prod>`                                                        | Deploie landing par digest depuis un manifest signe |
+| `pnpm run scw:deploy:webapp:staging`                  | Build + deploy webapp staging                                 |
+| `pnpm run scw:deploy:webapp:prod`                     | Build + deploy webapp prod                                    |
+| `pnpm run scw:deploy:admin:staging`                   | Build + deploy admin staging                                  |
+| `pnpm run scw:deploy:admin:prod`                      | Build + deploy admin prod                                     |
+| `pnpm run scw:deploy:api:staging`                     | Build + deploy API staging                                    |
+| `pnpm run scw:deploy:api:prod`                        | Build + deploy API prod                                       |
 
 ## Sequence recommandee (sans surprise)
 
@@ -185,14 +185,16 @@ Script idempotent fourni:
 
 ```bash
 KEYCLOAK_ADMIN_PASSWORD='<mot-de-passe-admin-keycloak>' \
-SUPER_ADMIN_PASSWORD='praedixa2026!' \
+SUPER_ADMIN_PASSWORD='<mot-de-passe-super-admin-a-recuperer-depuis-le-gestionnaire-de-secrets>' \
 SUPER_ADMIN_EMAIL='admin@praedixa.com' \
 ./scripts/keycloak-ensure-super-admin.sh
 ```
 
 Notes:
+
 - `KEYCLOAK_ADMIN_USERNAME` est `kcadmin` par defaut (surcharge possible en variable d'environnement).
 - Le script cree le compte s'il n'existe pas, force le mot de passe et garantit le role `super_admin`.
+- Le mot de passe du super admin doit provenir d'un secret hors repo; ne documentez jamais une valeur realiste dans `docs/`.
 
 ### Mot de passe admin Keycloak: source de verite et rotation
 

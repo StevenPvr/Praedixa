@@ -9,35 +9,40 @@ interface ServicesPilotTeaserSectionProps {
   locale: Locale;
 }
 
-export function ServicesPilotTeaserSection({ locale }: ServicesPilotTeaserSectionProps) {
+export function ServicesPilotTeaserSection({
+  locale,
+}: ServicesPilotTeaserSectionProps) {
   const isFr = locale === "fr";
   const pilotSteps = isFr
-    ? ["Besoins visibles", "Décisions priorisées", "ROI suivi"]
+    ? ["Federation legere", "Decision Journal", "Preuve mensuelle"]
     : ["Historical audit (M1)", "Proof milestone (W8)", "Consolidation (M3)"];
 
   return (
     <SectionShell id="services-pilot" className="section-dark">
       <Kicker className="text-neutral-100">
-        {isFr ? "Après la base commune" : "Services and pilot"}
+        {isFr ? "DecisionOps en action" : "Services and pilot"}
       </Kicker>
       <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-white md:text-5xl">
         {isFr
-          ? "Une fois les données réunies, Praedixa aide à agir."
+          ? "La vraie valeur commence quand la decision devient gouvernee."
           : "Two service levels, one clear protocol"}
       </h2>
       <p className="mt-4 max-w-[68ch] text-sm leading-relaxed text-neutral-200 md:text-base">
         {isFr
-          ? "Praedixa aide ensuite à anticiper les besoins, prioriser les actions et suivre le ROI, sans alourdir vos équipes."
+          ? "Praedixa ne s'arrete pas au signal: arbitrages compares, decision journalisee, premiere action enclenchee dans vos outils et preuve mensuelle du ROI en cadence Ops / Finance."
           : "Signature Service (decisions + log + proof) or KPI Forecast mode. Same guardrails: read-only, aggregated data, manager decision authority."}
       </p>
 
       <div className="mt-7 rounded-2xl border border-white/15 bg-white/[0.05] p-4 md:p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.09em] text-amber-100">
-          {isFr ? "Parcours type" : "Three-month pilot cadence"}
+          {isFr ? "Couches de valeur DecisionOps" : "Three-month pilot cadence"}
         </p>
         <ul className="mt-3 grid list-none gap-2 p-0 md:grid-cols-3">
           {pilotSteps.map((step) => (
-            <li key={step} className="m-0 rounded-xl border border-white/12 bg-white/[0.05] px-3 py-2 text-sm text-neutral-100">
+            <li
+              key={step}
+              className="m-0 rounded-xl border border-white/12 bg-white/[0.05] px-3 py-2 text-sm text-neutral-100"
+            >
               {step}
             </li>
           ))}

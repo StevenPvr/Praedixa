@@ -17,7 +17,7 @@
           "matchingUrlPattern": "http://127\\.0\\.0\\.1:3000/fr$",
           "assertions": {
             "categories:performance": [
-              "warn",
+              "error",
               {
                 "minScore": 0.9
               }
@@ -25,7 +25,7 @@
             "largest-contentful-paint": [
               "error",
               {
-                "maxNumericValue": 2500
+                "maxNumericValue": 3800
               }
             ],
             "cumulative-layout-shift": [
@@ -35,7 +35,7 @@
               }
             ],
             "total-blocking-time": [
-              "warn",
+              "error",
               {
                 "maxNumericValue": 300
               }

@@ -1,9 +1,23 @@
 export interface AuthenticatedServicePrincipal {
   name: string;
   allowedOrgs: readonly string[];
+  capabilities: readonly ServiceTokenCapability[];
 }
 
 export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+export type ServiceTokenCapability =
+  | "catalog:read"
+  | "connections:read"
+  | "connections:write"
+  | "ingest_credentials:read"
+  | "ingest_credentials:write"
+  | "raw_events:read"
+  | "raw_events:write"
+  | "oauth:write"
+  | "connections:test"
+  | "sync:read"
+  | "sync:write"
+  | "audit:read";
 
 export interface ApiSuccess<T = unknown> {
   success: true;
@@ -44,12 +58,15 @@ export interface RouteResult {
   payload: ApiSuccess | ApiErrorResponse;
 }
 
-export type RouteHandler = (ctx: RouteContext) => RouteResult | Promise<RouteResult>;
+export type RouteHandler = (
+  ctx: RouteContext,
+) => RouteResult | Promise<RouteResult>;
 
 export interface RouteDefinition {
   method: HttpMethod;
   template: string;
   authRequired: boolean;
+  requiredCapabilities: readonly ServiceTokenCapability[];
   handler: RouteHandler;
 }
 
@@ -57,6 +74,7 @@ export interface CompiledRoute {
   method: HttpMethod;
   template: string;
   authRequired: boolean;
+  requiredCapabilities: readonly ServiceTokenCapability[];
   paramNames: string[];
   regex: RegExp;
   handler: RouteHandler;
@@ -116,7 +134,12 @@ export type SyncTriggerType =
   | "backfill"
   | "replay";
 
-export type SyncStatus = "queued" | "running" | "success" | "failed" | "canceled";
+export type SyncStatus =
+  | "queued"
+  | "running"
+  | "success"
+  | "failed"
+  | "canceled";
 
 export type SecretKind =
   | "oauth2_client"
@@ -437,9 +460,11 @@ export interface AppConfig {
   port: number;
   host: string;
   nodeEnv: "development" | "staging" | "production";
+  trustProxy: boolean;
   publicBaseUrl: string;
   databaseUrl: string | null;
   objectStoreRoot: string;
+  allowedOutboundHosts: readonly string[];
   corsOrigins: readonly string[];
   serviceTokens: readonly ServiceTokenConfig[];
   secretSealingKey: string | null;
@@ -449,4 +474,5 @@ export interface ServiceTokenConfig {
   name: string;
   token: string;
   allowedOrgs: readonly string[];
+  capabilities: readonly ServiceTokenCapability[];
 }

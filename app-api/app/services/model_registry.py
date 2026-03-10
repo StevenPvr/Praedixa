@@ -8,6 +8,7 @@ import hmac
 import json
 import uuid
 from datetime import UTC, datetime
+from typing import Any, cast
 from urllib.parse import urlparse
 
 from sqlalchemy import select, update
@@ -41,8 +42,8 @@ def _canonical_payload(
     artifact_uri: str,
     sha256: str,
     onnx_opset: int | None,
-    features_schema_json: dict,
-    metrics_json: dict,
+    features_schema_json: dict[str, Any],
+    metrics_json: dict[str, Any],
 ) -> bytes:
     payload = {
         "artifact_uri": artifact_uri,
@@ -157,7 +158,7 @@ async def create_artifact_access_log(
     action: str,
     request_id: str | None,
     ip_hash: str | None,
-    metadata: dict | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> None:
     session.add(
         ModelArtifactAccessLog(
@@ -183,7 +184,10 @@ async def get_model_by_id(
         select(ModelRegistry).where(ModelRegistry.id == model_id),
         ModelRegistry,
     )
-    model = (await session.execute(query)).scalar_one_or_none()
+    model = cast(
+        "ModelRegistry | None",
+        (await session.execute(query)).scalar_one_or_none(),
+    )
     if model is None:
         raise NotFoundError("ModelRegistry", str(model_id))
     return model
@@ -324,16 +328,14 @@ async def activate_model(
         )
 
     await session.execute(
-        tenant.apply(
-            update(ModelRegistry)
-            .where(
-                ModelRegistry.model_family == model.model_family,
-                ModelRegistry.id != model.id,
-                ModelRegistry.status == ModelRegistryStatus.ACTIVE.value,
-            )
-            .values(status=ModelRegistryStatus.ARCHIVED.value, activated_at=None),
-            ModelRegistry,
+        update(ModelRegistry)
+        .where(
+            ModelRegistry.organization_id == tenant.organization_id,
+            ModelRegistry.model_family == model.model_family,
+            ModelRegistry.id != model.id,
+            ModelRegistry.status == ModelRegistryStatus.ACTIVE.value,
         )
+        .values(status=ModelRegistryStatus.ARCHIVED.value, activated_at=None)
     )
 
     model.status = ModelRegistryStatus.ACTIVE.value
@@ -372,4 +374,7 @@ async def get_active_model(
     if model_family:
         query = query.where(ModelRegistry.model_family == model_family.strip().lower())
 
-    return (await session.execute(query)).scalar_one_or_none()
+    return cast(
+        "ModelRegistry | None",
+        (await session.execute(query)).scalar_one_or_none(),
+    )

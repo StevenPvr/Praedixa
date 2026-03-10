@@ -7,11 +7,14 @@ Ce sous-dossier contient une famille spécialisée de composants rattachée à `
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `JsonLd.tsx`
 
 ## Intégration
 
 Ce dossier est consommé par l'application `app-landing` et s'insère dans son flux runtime, build ou test.
+`JsonLd.tsx` publie des scripts JSON-LD contextuels separes par type de page; la source de verite n'est plus un `@graph` global unique.

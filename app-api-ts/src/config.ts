@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import { z } from "zod";
 
 import type { AppConfig } from "./types.js";
@@ -22,6 +23,8 @@ const JWT_ALGORITHM_ALLOWLIST = new Set([
   "ES384",
   "ES512",
 ]);
+const CONNECTORS_RUNTIME_HOST_PATTERN =
+  /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/;
 
 function parseAbsoluteUrl(
   value: string,
@@ -46,6 +49,57 @@ function parseAbsoluteUrl(
   return parsed.toString().replace(/\/$/, "");
 }
 
+function isLoopbackHostname(hostname: string): boolean {
+  return hostname === "localhost" || hostname.endsWith(".localhost");
+}
+
+function isLoopbackHost(hostname: string): boolean {
+  if (isLoopbackHostname(hostname)) {
+    return true;
+  }
+
+  const ipVersion = isIP(hostname);
+  if (ipVersion === 4) {
+    return hostname.startsWith("127.");
+  }
+  if (ipVersion === 6) {
+    return hostname === "::1";
+  }
+  return false;
+}
+
+function normalizeAllowedHost(host: string): string {
+  const normalized = host.trim().toLowerCase();
+  if (!normalized) {
+    throw new Error(
+      "CONNECTORS_RUNTIME_ALLOWED_HOSTS must not contain empty entries",
+    );
+  }
+  if (
+    normalized.includes("/") ||
+    normalized.includes("?") ||
+    normalized.includes("#")
+  ) {
+    throw new Error(
+      "CONNECTORS_RUNTIME_ALLOWED_HOSTS entries must be bare hostnames without paths",
+    );
+  }
+  if (normalized.includes(":")) {
+    throw new Error(
+      "CONNECTORS_RUNTIME_ALLOWED_HOSTS entries must not include ports or credentials",
+    );
+  }
+  if (isIP(normalized) !== 0) {
+    return normalized;
+  }
+  if (!CONNECTORS_RUNTIME_HOST_PATTERN.test(normalized)) {
+    throw new Error(
+      `CONNECTORS_RUNTIME_ALLOWED_HOSTS contains an invalid hostname: "${host}"`,
+    );
+  }
+  return normalized;
+}
+
 function normalizeListValues(
   raw: string | undefined,
   label: string,
@@ -67,7 +121,10 @@ function normalizeListValues(
           );
         }
 
-        if (!Array.isArray(parsed) || parsed.some((item) => typeof item !== "string")) {
+        if (
+          !Array.isArray(parsed) ||
+          parsed.some((item) => typeof item !== "string")
+        ) {
           throw new Error(`${label} JSON array entries must all be strings`);
         }
 
@@ -118,10 +175,7 @@ function normalizeCorsOrigin(origin: string): string {
     throw new Error(`CORS_ORIGINS contains an invalid URL origin: "${origin}"`);
   }
 
-  if (
-    parsedOrigin.protocol !== "http:" &&
-    parsedOrigin.protocol !== "https:"
-  ) {
+  if (parsedOrigin.protocol !== "http:" && parsedOrigin.protocol !== "https:") {
     throw new Error(
       `CORS_ORIGINS must use http(s), received "${parsedOrigin.protocol}"`,
     );
@@ -174,6 +228,89 @@ function parseCorsOrigins(
   return normalizedOrigins;
 }
 
+function parseConnectorsRuntimeAllowedHosts(
+  rawHosts: string | undefined,
+): string[] {
+  return normalizeListValues(
+    rawHosts,
+    "CONNECTORS_RUNTIME_ALLOWED_HOSTS",
+    normalizeAllowedHost,
+  );
+}
+
+function isAllowedRuntimeHost(
+  hostname: string,
+  allowedHosts: readonly string[],
+): boolean {
+  return allowedHosts.some(
+    (allowedHost) =>
+      hostname === allowedHost || hostname.endsWith(`.${allowedHost}`),
+  );
+}
+
+function parseConnectorsRuntimeUrl(
+  rawValue: string | undefined,
+  nodeEnv: AppConfig["nodeEnv"],
+  allowedHosts: readonly string[],
+): string {
+  const candidate = rawValue?.trim() || "http://127.0.0.1:8100";
+
+  let parsed: URL;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    throw new Error("CONNECTORS_RUNTIME_URL must be an absolute URL");
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("CONNECTORS_RUNTIME_URL must use http(s)");
+  }
+  if (parsed.username || parsed.password) {
+    throw new Error("CONNECTORS_RUNTIME_URL must not embed credentials");
+  }
+  if (parsed.search || parsed.hash) {
+    throw new Error(
+      "CONNECTORS_RUNTIME_URL must not include query or fragment",
+    );
+  }
+
+  const hostname = parsed.hostname.trim().toLowerCase();
+  if (!hostname) {
+    throw new Error("CONNECTORS_RUNTIME_URL must include a hostname");
+  }
+
+  const isLocalHost = isLoopbackHost(hostname);
+  if (nodeEnv === "development") {
+    if (parsed.protocol === "http:" && !isLocalHost) {
+      throw new Error(
+        "CONNECTORS_RUNTIME_URL may use http only for localhost in development",
+      );
+    }
+    return parsed.toString().replace(/\/$/, "");
+  }
+
+  if (parsed.protocol !== "https:") {
+    throw new Error(
+      "CONNECTORS_RUNTIME_URL must use https outside development",
+    );
+  }
+  if (isLocalHost) {
+    throw new Error(
+      "CONNECTORS_RUNTIME_URL must not target localhost outside development",
+    );
+  }
+  if (allowedHosts.length === 0) {
+    throw new Error(
+      "CONNECTORS_RUNTIME_ALLOWED_HOSTS must be configured outside development",
+    );
+  }
+  if (!isAllowedRuntimeHost(hostname, allowedHosts)) {
+    throw new Error("CONNECTORS_RUNTIME_URL host is not on the allowlist");
+  }
+
+  return parsed.toString().replace(/\/$/, "");
+}
+
 const envSchema = z.object({
   PORT: z
     .string()
@@ -193,6 +330,7 @@ const envSchema = z.object({
   TRUST_PROXY: z.string().optional(),
   DATABASE_URL: z.string().optional(),
   CONNECTORS_RUNTIME_URL: z.string().optional(),
+  CONNECTORS_RUNTIME_ALLOWED_HOSTS: z.string().optional(),
   CONNECTORS_RUNTIME_TOKEN: z.string().optional(),
   CONNECTORS_INTERNAL_TOKEN: z.string().optional(),
 });
@@ -269,6 +407,9 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
   const demoMode = parseBooleanEnv(parsed.DEMO_MODE, "DEMO_MODE", false);
   const trustProxy = parseBooleanEnv(parsed.TRUST_PROXY, "TRUST_PROXY", false);
   const databaseUrl = parseDatabaseUrl(parsed.DATABASE_URL);
+  const connectorsRuntimeAllowedHosts = parseConnectorsRuntimeAllowedHosts(
+    parsed.CONNECTORS_RUNTIME_ALLOWED_HOSTS,
+  );
   const issuerRaw =
     parsed.AUTH_ISSUER_URL?.trim() ||
     (parsed.NODE_ENV === "development"
@@ -300,10 +441,10 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
     parsed.AUTH_JWKS_URL,
     parsed.NODE_ENV,
   );
-  const connectorsRuntimeUrl = parseAbsoluteUrl(
-    parsed.CONNECTORS_RUNTIME_URL?.trim() || "http://127.0.0.1:8100",
-    "CONNECTORS_RUNTIME_URL",
+  const connectorsRuntimeUrl = parseConnectorsRuntimeUrl(
+    parsed.CONNECTORS_RUNTIME_URL,
     parsed.NODE_ENV,
+    connectorsRuntimeAllowedHosts,
   );
 
   return {
@@ -314,6 +455,7 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
     databaseUrl,
     connectors: {
       runtimeUrl: connectorsRuntimeUrl,
+      runtimeAllowedHosts: connectorsRuntimeAllowedHosts,
       runtimeToken:
         parsed.CONNECTORS_RUNTIME_TOKEN?.trim() ||
         parsed.CONNECTORS_INTERNAL_TOKEN?.trim() ||

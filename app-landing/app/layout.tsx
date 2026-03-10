@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
 import { headers } from "next/headers";
 import "./globals.css";
 import { defaultLocale, isValidLocale } from "../lib/i18n/config";
@@ -50,7 +49,7 @@ export default async function RootLayout({
   return (
     <html
       lang={htmlLang}
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      className={GeistSans.variable}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >

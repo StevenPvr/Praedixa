@@ -6,6 +6,7 @@ import { buildLocaleMetadata, localePathMap } from "../../lib/seo/metadata";
 import { HeroSection } from "../../components/homepage/HeroSection";
 import { ProblemSection } from "../../components/homepage/ProblemSection";
 import { SolutionSection } from "../../components/homepage/SolutionSection";
+import { SectorPagesTeaserSection } from "../../components/homepage/SectorPagesTeaserSection";
 import { ClosedLoopTeaserSection } from "../../components/homepage/ClosedLoopTeaserSection";
 import { IntegrationTeaserSection } from "../../components/homepage/IntegrationTeaserSection";
 import { ServicesPilotTeaserSection } from "../../components/homepage/ServicesPilotTeaserSection";
@@ -47,6 +48,7 @@ export default async function LandingPage({
       <HeroSection locale={locale} dict={dict} />
       <ProblemSection locale={locale} dict={dict} />
       <SolutionSection dict={dict} />
+      <SectorPagesTeaserSection locale={locale} />
       <ClosedLoopTeaserSection locale={locale} />
       <IntegrationTeaserSection locale={locale} />
       <ServicesPilotTeaserSection locale={locale} />

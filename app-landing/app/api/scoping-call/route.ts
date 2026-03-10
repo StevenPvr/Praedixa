@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import {
   MAX_REQUESTS_PER_WINDOW,
   RATE_LIMIT_WINDOW_MS,
@@ -7,6 +6,7 @@ import { getClientIp } from "../../../lib/api/pilot-application/rate-limit";
 import {
   consumeFormRateLimit,
   hasFilledHoneypot,
+  jsonNoStore,
   readJsonBody,
   rejectOversizedContentLength,
   rejectUnsupportedJsonContentType,
@@ -18,13 +18,19 @@ import {
   MAX_REQUEST_BODY_LENGTH,
   validateScopingCallBody,
 } from "../../../lib/api/scoping-call/validation";
-import { logSecurityEvent, redactIpForLogs } from "../../../lib/security/audit-log";
+import {
+  logSecurityEvent,
+  redactIpForLogs,
+} from "../../../lib/security/audit-log";
 
 export async function POST(request: Request) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
 
   try {
-    const sizeError = rejectOversizedContentLength(request, MAX_REQUEST_BODY_LENGTH);
+    const sizeError = rejectOversizedContentLength(
+      request,
+      MAX_REQUEST_BODY_LENGTH,
+    );
     if (sizeError) {
       return sizeError;
     }
@@ -59,7 +65,7 @@ export async function POST(request: Request) {
     const parsedBody = await readJsonBody(request, {
       eventPrefix: "scoping_call",
       ip,
-      maxLength: MAX_REQUEST_BODY_LENGTH,
+      maxBodyLength: MAX_REQUEST_BODY_LENGTH,
       requestId,
     });
     if (!parsedBody.ok) {
@@ -67,7 +73,7 @@ export async function POST(request: Request) {
     }
 
     if (hasFilledHoneypot(parsedBody.body)) {
-      return NextResponse.json({ success: true });
+      return jsonNoStore({ success: true });
     }
 
     const validation = validateScopingCallBody(parsedBody.body);
@@ -76,21 +82,21 @@ export async function POST(request: Request) {
         requestId,
         ip: redactIpForLogs(ip),
       });
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return jsonNoStore({ error: validation.error }, { status: 400 });
     }
 
     if (validation.data.website !== "") {
-      return NextResponse.json({ success: true });
+      return jsonNoStore({ success: true });
     }
 
     await sendScopingCallEmails(getResendClient(), validation.data, ip);
-    return NextResponse.json({ success: true });
+    return jsonNoStore({ success: true });
   } catch (error) {
     logSecurityEvent("scoping_call.unhandled_error", {
       requestId,
       error: error instanceof Error ? error.message : "unknown",
     });
-    return NextResponse.json(
+    return jsonNoStore(
       { error: "Erreur lors de l'envoi. Veuillez réessayer." },
       { status: 500 },
     );

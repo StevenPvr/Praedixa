@@ -1,0 +1,622 @@
+{
+  "schema_version": 1,
+  "tool": "xenon",
+  "threshold": "A",
+  "entries": [
+    {
+      "type": "block",
+      "target": "app-api/app/core/ddl_validation.py:170 validate_identifier",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/core/ddl_validation.py:205 validate_client_slug",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/core/ddl_validation.py:240 validate_schema_name",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/core/key_management.py:262 __init__",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/core/key_management.py:458 __init__",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/core/key_management.py:555 _get_secret_version",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/core/key_management.py:640 destroy_all_keys",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/core/pipeline_config.py:191 _sanitize_data_quality_config",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/core/pipeline_config.py:72 _sanitize_window_list",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/core/yaml_validation.py:181 _validate_windows",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/auth.py:37 mask_secret",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/auth.py:59 _redact_value",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/pagination.py:23 sanitize_limit",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/pagination.py:65 decode_cursor",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/pagination.py:92 _validate_cursor_payload",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/retry.py:116 run_with_retry",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/retry.py:16 RetryPolicy",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/retry.py:28 __post_init__",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/retry.py:54 compute_backoff_seconds",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/retry.py:90 should_retry",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/webhooks.py:18 _extract_signature_token",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/webhooks.py:59 verify_timestamped_signature",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/admin_billing.py:56 get_billing_info",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/admin_monitoring.py:181 get_error_metrics",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/admin_monitoring.py:231 get_roi_by_org",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/admin_monitoring.py:42 get_platform_kpis",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/admin_onboarding.py:145 complete_step",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/admin_orgs.py:202 update_organization",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/arbitrage.py:147 _compute_deficit",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/arbitrage.py:329 get_arbitrage_options",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/canonical_data_service.py:146 bulk_import_canonical",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/canonical_data_service.py:216 get_quality_dashboard",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/canonical_data_service.py:34 list_canonical_records",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/column_mapper.py:155 map_columns",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/column_mapper.py:230 _normalize",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/column_mapper.py:254 _match_column",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/cost_parameter_service.py:64 get_effective_cost_parameter",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/dashboard.py:52 get_dashboard_summary",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/datasets.py:196 create_dataset",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/datasets.py:72 list_datasets",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/decision_log_service.py:143 create_operational_decision",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/decision_log_service.py:259 update_operational_decision",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/decision_log_service.py:302 get_override_statistics",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/decision_log_service.py:64 list_operational_decisions",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/decisions.py:220 review_decision",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/decisions.py:58 list_decisions",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py:160 parse_file",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py:342 _detect_delimiter",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py:386 _parse_csv",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py:493 _parse_xlsx",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py:556 _detect_format",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py:666 _coerce_value",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:1025 build_gold_coverage",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:1055 build_gold_provenance",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:1123 build_ml_monitoring_summary",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:1191 build_ml_monitoring_trend",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:121 _to_float",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:1248 build_client_onboarding_status",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:182 get_gold_snapshot",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:211 resolve_client_slug_for_org",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:269 resolve_site_code_for_filter",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:355 filter_rows",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:381 build_dashboard_summary",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:452 build_daily_forecasts",
+      "rank": "D"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:586 build_canonical_records",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:640 build_canonical_quality",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:688 build_coverage_alerts",
+      "rank": "D"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:786 build_proof_records",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:865 build_forecast_runs",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:90 _parse_scalar",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:963 _infer_gold_dtype",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:996 build_gold_schema",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/integration_event_ingestor.py:139 _parse_group_by",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/integration_event_ingestor.py:186 parse_dataset_plan",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/integration_event_ingestor.py:82 _resolve_path",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/integration_runtime_worker.py:199 _validate_runtime_base_url",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/integration_runtime_worker.py:310 drain_connector_connection",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/medical_masking.py:42 mask_medical_reasons",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/mock_forecast_service.py:131 generate_mock_forecasts",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/mock_forecast_service.py:95 _compute_gap_stats",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/model_inference_jobs.py:100 create_inference_job",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/model_inference_jobs.py:165 run_inference_job",
+      "rank": "E"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/model_inference_jobs.py:62 _map_model_type",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/model_inference_jobs.py:75 _estimate_accuracy",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/model_registry.py:77 _validate_artifact_uri",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/proof_service.py:319 get_proof_summary",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/proof_service.py:46 _compute_historical_bau_proxy",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/proof_service.py:92 generate_proof_record",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/__init__.py:111 _coerce_float_value",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/__init__.py:136 _normalize_numeric_column_types",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/__init__.py:160 run_quality_checks",
+      "rank": "D"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/__init__.py:88 _coerce_integer_value",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/deduplication.py:16 deduplicate",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/missing_imputation.py:138 impute_mcar_temporal",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/missing_imputation.py:199 impute_mar_grouped",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/missing_imputation.py:315 impute_forward_fill",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/missing_imputation.py:50 is_mar_temporal",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/missing_imputation.py:74 is_mar_group",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/missing_imputation.py:97 impute_column",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/outlier_detection.py:69 clamp_values",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/types.py:179 collect_past_values",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/types.py:204 collect_past_group_values",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/types.py:235 ratio_exceeds_threshold",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/raw_inserter.py:258 insert_raw_rows_in_session",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/rgpd_erasure.py:482 _delete_org_data",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/scenario_engine_service.py:130 select_recommendation",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/scenario_engine_service.py:185 generate_scenarios",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/scenario_engine_service.py:283 _compute_all_options",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/scenario_engine_service.py:98 compute_pareto_frontier",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/schema_manager.py:230 resolve_transformed_columns",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/schema_manager.py:378 _create_transformed_table",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/transform_engine.py:551 _insert_transformed_rows",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/transform_engine.py:712 _is_after_cutoff",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/core/retry.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/services/admin_monitoring.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/services/column_mapper.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/services/decisions.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/services/gold_live_data.py",
+      "rank": "C"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/services/model_inference_jobs.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/services/proof_service.py",
+      "rank": "C"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/services/quality/__init__.py",
+      "rank": "C"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/services/quality/deduplication.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/services/quality/missing_imputation.py",
+      "rank": "B"
+    }
+  ]
+}

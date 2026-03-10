@@ -109,13 +109,14 @@ echo "[prepush-deep] IaC/config baseline audits..."
 echo "[prepush-deep] Production config guard (full)..."
 python3 scripts/check-prod-security-config.py --mode full
 
-echo "[prepush-deep] Type + lint checks for API TS..."
-pnpm --filter @praedixa/api-ts typecheck
-pnpm --filter @praedixa/api-ts lint
+echo "[prepush-deep] Workspace static quality gates..."
+./scripts/gate-quality-static.sh
 
-echo "[prepush-deep] Build shared workspace packages..."
-pnpm --filter @praedixa/shared-types build
-pnpm --filter @praedixa/ui build
+echo "[prepush-deep] Targeted API + connectors security tests..."
+./scripts/gate-sensitive-security-tests.sh
+
+echo "[prepush-deep] Versioned security invariants..."
+python3 scripts/check-security-invariants.py --mode full
 
 echo "[prepush-deep] Targeted frontend security tests..."
 pnpm vitest run \

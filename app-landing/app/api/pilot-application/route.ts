@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import {
   MAX_REQUESTS_PER_WINDOW,
   MAX_REQUEST_BODY_LENGTH,
@@ -10,13 +9,17 @@ import { validateRequestBody } from "../../../lib/api/pilot-application/validati
 import {
   enforceFormRateLimit,
   hasFilledHoneypot,
+  jsonNoStore,
   readJsonBody,
   rejectIfBodyTooLarge,
   rejectIfUntrustedOrigin,
 } from "../../../lib/api/form-route";
 import { getResendClient } from "../../../lib/api/resend-client";
 import { hasJsonContentType } from "../../../lib/security/json-request";
-import { logSecurityEvent, redactIpForLogs } from "../../../lib/security/audit-log";
+import {
+  logSecurityEvent,
+  redactIpForLogs,
+} from "../../../lib/security/audit-log";
 
 export async function POST(request: Request) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
@@ -57,7 +60,7 @@ export async function POST(request: Request) {
     }
 
     if (!hasJsonContentType(request)) {
-      return NextResponse.json(
+      return jsonNoStore(
         { error: "Content-Type non supporte." },
         { status: 415 },
       );
@@ -76,7 +79,7 @@ export async function POST(request: Request) {
     }
 
     if (hasFilledHoneypot(parsedBody.body)) {
-      return NextResponse.json({ success: true });
+      return jsonNoStore({ success: true });
     }
 
     const validation = validateRequestBody(parsedBody.body);
@@ -85,21 +88,21 @@ export async function POST(request: Request) {
         requestId,
         ip: redactIpForLogs(ip),
       });
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return jsonNoStore({ error: validation.error }, { status: 400 });
     }
 
     if (validation.data.website !== "") {
-      return NextResponse.json({ success: true });
+      return jsonNoStore({ success: true });
     }
 
     await sendPilotEmails(getResendClient(), validation.data, ip);
-    return NextResponse.json({ success: true });
+    return jsonNoStore({ success: true });
   } catch (error) {
     logSecurityEvent("pilot.unhandled_error", {
       requestId,
       error: error instanceof Error ? error.message : "unknown",
     });
-    return NextResponse.json(
+    return jsonNoStore(
       { error: "Erreur lors de l'envoi. Veuillez réessayer." },
       { status: 500 },
     );

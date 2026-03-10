@@ -99,4 +99,23 @@ describe("gold explorer persistence helpers", () => {
       },
     });
   });
+
+  it("fails closed when a requested site falls outside the accessible scope", async () => {
+    mockedQueryRows.mockResolvedValueOnce([] as never);
+
+    await listPersistentGoldRows({
+      organizationId: ORGANIZATION_ID,
+      scope: {
+        orgWide: false,
+        accessibleSiteIds: ["site-lyon"],
+        requestedSiteId: "site-paris",
+      },
+      dateFrom: "2026-03-01",
+      dateTo: "2026-03-31",
+    });
+
+    const [sql, values] = mockedQueryRows.mock.calls[0] ?? [];
+    expect(sql).toContain("AND FALSE");
+    expect(values).toEqual([ORGANIZATION_ID, "2026-03-01", "2026-03-31"]);
+  });
 });

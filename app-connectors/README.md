@@ -24,7 +24,7 @@ Runtime TypeScript dedie au control plane des integrations Praedixa.
 ## Sous-docs
 
 - [src/README.md](./src/README.md)
-- [src/__tests__/README.md](./src/__tests__/README.md)
+- [src/**tests**/README.md](./src/__tests__/README.md)
 
 ## Surface HTTP
 
@@ -52,10 +52,13 @@ Variables importantes:
 - `DATABASE_URL`
 - `CONNECTORS_PUBLIC_BASE_URL`
 - `CONNECTORS_OBJECT_STORE_ROOT`
+- `CONNECTORS_ALLOWED_OUTBOUND_HOSTS`
 - `CONNECTORS_SERVICE_TOKENS`
+- `CONNECTORS_ALLOWED_CAPABILITIES` pour le mode legacy transitoire
 - `CONNECTORS_INTERNAL_TOKEN` + `CONNECTORS_ALLOWED_ORGS` pour le mode legacy transitoire
 - `CONNECTORS_SECRET_SEALING_KEY`
 - `CORS_ORIGINS`
+- `TRUST_PROXY`
 
 Exemple `CONNECTORS_SERVICE_TOKENS`:
 
@@ -64,10 +67,18 @@ Exemple `CONNECTORS_SERVICE_TOKENS`:
   {
     "name": "webapp",
     "token": "replace-with-32-char-min-token",
-    "allowedOrgs": ["org-1", "org-2"]
+    "allowedOrgs": ["org-1", "org-2"],
+    "capabilities": ["connections:read", "connections:write", "oauth:write"]
   }
 ]
 ```
+
+Notes de securite:
+
+- `CONNECTORS_ALLOWED_OUTBOUND_HOSTS` doit contenir les hosts approuves pour tous les appels sortants du runtime (OAuth, probes de connexion, APIs partenaires).
+- les `CONNECTORS_SERVICE_TOKENS` doivent porter des `capabilities` explicites par token; un token scopes par organisation ne doit pas recevoir automatiquement tous les droits.
+- laissez `TRUST_PROXY=false` par defaut tant qu'un reverse proxy de confiance n'est pas explicitement devant le service.
+- quand `TRUST_PROXY=true`, `cf-connecting-ip` puis `x-forwarded-for` sont utilises pour l'IP cliente; sinon seul `remoteAddress` est accepte.
 
 ## Persistence
 

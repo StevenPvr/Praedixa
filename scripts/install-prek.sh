@@ -22,4 +22,4 @@ if ! command -v prek >/dev/null 2>&1; then
   exit 0
 fi
 
-prek install --install-hooks -t pre-commit -t pre-push
+prek install --install-hooks -t pre-commit -t pre-push -t commit-msg

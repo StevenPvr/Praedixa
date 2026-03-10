@@ -27,9 +27,13 @@ export default function AuthLayout({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-8 shadow-floating">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="rounded-2xl border border-border bg-card p-8 shadow-floating"
+        >
           {children}
-        </div>
+        </main>
       </div>
     </div>
   );

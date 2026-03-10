@@ -7,6 +7,7 @@ Composants orientes pages ou parcours metier.
 - pages legal/corporate: `LegalStaticPage.tsx`
 - pages resources/knowledge: `KnowledgePage.tsx`, `SerpResourcePage.tsx`
 - page services: `ServicesPage.tsx`
+- page verticale: `SectorPage.tsx`
 - parcours contact: `ContactPageClient.tsx`, `ContactPageForm.tsx`, `ContactPageAside.tsx`, `ContactPageSuccessState.tsx`
 - parcours pilote: `PilotApplicationPageClient.tsx`, `PilotApplicationForm.tsx`, `PilotApplicationAside.tsx`, `PilotApplicationStates.tsx`
 - helpers/types de formulaire: `contact-page.*`, `pilot-application.*`
@@ -30,3 +31,7 @@ Composants orientes pages ou parcours metier.
 - laisser les validations serveur dans `lib/api/*`; garder ici seulement la logique d'UI
 - ne pas dupliquer les listes d'options si elles existent deja dans `lib/content`
 - les pages knowledge doivent lire le contenu depuis `lib/content/knowledge-pages*.ts`
+- les pages sectorielles lisent leur contenu, leurs sources et leurs cartes partagees depuis `lib/content/sector-pages.ts`
+- pour l'affichage, les sources sectorielles sont dedupliquees par URL avant rendu pour eviter les collisions React et la redondance visuelle
+- dans les pages sectorielles, preferer des cartes larges et lisibles plutot que des cartes etroites en colonnes quand le texte devient dense
+- ne pas recoder de copy sectorielle ou de copy partagee dans `SectorPage.tsx`; la page ne doit faire que du rendu

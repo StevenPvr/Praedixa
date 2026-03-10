@@ -3,37 +3,38 @@ import type { Dictionary } from "../types";
 export const frCoreOperations: Partial<Dictionary> = {
   howItWorks: {
     kicker: "Comment ça marche",
-    heading: "Réunir les chiffres, aligner les équipes, agir là où ça rapporte.",
+    heading:
+      "Federer les signaux, gouverner les arbitrages, agir la ou ca rapporte.",
     subheading:
-      "Quatre étapes simples pour transformer des données dispersées en décisions utiles et en ROI lisible.",
+      "Quatre etapes simples pour transformer des donnees dispersees en decisions gouvernees, executables et relisibles.",
     steps: [
       {
         number: "01",
-        title: "Connexion aux données utiles",
+        title: "Connexion aux systemes utiles",
         subtitle: "RH · Finance · Ops",
         description:
-          "Praedixa reprend vos exports et vos outils existants pour construire une base commune, sans projet lourd.",
+          "Praedixa reprend vos exports et vos outils existants pour construire une federation gouvernee sur l'existant, sans projet lourd.",
       },
       {
         number: "02",
-        title: "Lecture business commune",
-        subtitle: "Une seule vérité",
+        title: "Lecture d'arbitrage commune",
+        subtitle: "Une meme grammaire de decision",
         description:
-          "Les données sont remises dans un langage simple: où l'argent se perd, quels sites dérapent et quelles priorités remontent.",
+          "Les donnees sont remises dans un langage simple: ou l'argent se perd, quels sites derapent, quelles options comparer et quels garde-fous respecter.",
       },
       {
         number: "03",
-        title: "Plan d'action priorisé",
-        subtitle: "Là où agir d'abord",
+        title: "Premiere action priorisee",
+        subtitle: "La ou agir d'abord",
         description:
-          "Vous voyez les actions à plus fort impact, site par site, avec un gain attendu compréhensible par les équipes et la direction.",
+          "Vous voyez les actions a plus fort impact, site par site, avec un gain attendu compréhensible par les equipes et la direction.",
       },
       {
         number: "04",
-        title: "Suivi du ROI",
+        title: "Preuve du ROI",
         subtitle: "Ce qui rapporte vraiment",
         description:
-          "Vous mesurez ce qui a été lancé, ce que cela a rapporté et ce qu'il faut corriger ensuite.",
+          "Vous mesurez ce qui a ete lance, ce que cela a rapporte et ce qu'il faut corriger ensuite.",
       },
     ],
   },
@@ -66,8 +67,7 @@ export const frCoreOperations: Partial<Dictionary> = {
           "Des trous de couverture qui dégradent la qualité de service et renchérissent le coût opérationnel.",
         action:
           "Praedixa identifie les sites ou équipes les plus exposés et chiffre l'impact business des options possibles.",
-        result:
-          "Des arbitrages plus rapides, plus clairs et mieux défendus.",
+        result: "Des arbitrages plus rapides, plus clairs et mieux défendus.",
         callout:
           "Aucune usine a gaz: vous gardez une lecture simple et exploitable.",
       },
@@ -80,8 +80,7 @@ export const frCoreOperations: Partial<Dictionary> = {
           "Praedixa met les sites sur une même base de lecture pour comparer, prioriser et standardiser les actions.",
         result:
           "Une gouvernance réseau plus simple et des décisions comparables.",
-        callout:
-          "Le manager garde toujours la décision finale.",
+        callout: "Le manager garde toujours la décision finale.",
       },
       {
         id: "roi",
@@ -98,7 +97,8 @@ export const frCoreOperations: Partial<Dictionary> = {
 
   deliverables: {
     kicker: "Dossier ROI",
-    heading: "Un dossier simple pour voir où vous perdez, où vous gagnez et quoi faire ensuite.",
+    heading:
+      "Un dossier simple pour voir où vous perdez, où vous gagnez et quoi faire ensuite.",
     subheading:
       "Même lecture pour RH, finance et opérations. Des chiffres utiles, pas du jargon.",
     roiFrames: [
@@ -178,19 +178,18 @@ export const frCoreOperations: Partial<Dictionary> = {
     compatibility: {
       title: "Compatible avec votre stack",
       description:
-        "Praedixa complète l'existant et remet tous vos chiffres dans une seule lecture business.",
+        "Praedixa complete l'existant et relie les systemes critiques dans une seule lecture business.",
       tools: ["Planning", "ERP", "CRM", "BI", "Excel"],
     },
     honesty:
-      "Le vrai sujet n'est pas d'avoir plus de données. C'est de relier les données déjà là à des décisions qui rapportent.",
+      "Le vrai sujet n'est pas d'avoir plus de donnees. C'est de transformer les arbitrages critiques en decisions calculees, executees et auditables.",
   },
 
   pilot: {
     kicker: "Pilote ROI",
-    heading:
-      "Un pilote court pour prouver vite que vos données peuvent rapporter plus.",
+    heading: "Un pilote court pour mettre DecisionOps en production.",
     subheading:
-      "En quelques semaines, Praedixa réunit vos données, sort les priorités et met le ROI au centre des décisions.",
+      "En quelques semaines, Praedixa relie vos systemes critiques, sort les priorites et met le ROI au centre des decisions.",
     statusLabels: ["Cadrage", "Premiers gains", "Preuve consolidée"],
     included: {
       title: "Ce que vous obtenez",
@@ -248,7 +247,6 @@ export const frCoreOperations: Partial<Dictionary> = {
     urgency:
       "Candidatures examinées sous 48h ouvrées. Objectif du pilote: une preuve simple, lisible et orientée ROI x3.",
     ctaPrimary: "Demander un pilote ROI",
-    ctaMeta:
-      "Diagnostic offert · lecture seule · objectif ROI x3",
+    ctaMeta: "Diagnostic offert · lecture seule · objectif ROI x3",
   },
 };

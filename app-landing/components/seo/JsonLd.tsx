@@ -61,18 +61,18 @@ function softwareApplicationSchema(locale: Locale, dict: Dictionary) {
     featureList:
       locale === "fr"
         ? [
-            "Lecture business commune RH, finance et operations",
-            "Donnees dispersées réunies sans projet lourd",
-            "Priorités business classées par impact",
-            "Suivi du ROI simple a relire",
-            "Lecture seule sur l'existant (exports)",
+            "DecisionOps sur l'existant pour RH, finance et operations",
+            "Systemes critiques federes sans projet lourd",
+            "Arbitrages classes par impact business",
+            "Premiere action validee dans les outils",
+            "Preuve ROI decision par decision",
           ]
         : [
-            "Decision Log + monthly ROI proof",
-            "Short-horizon KPI drift signals",
-            "Quantified trade-offs: reinforcement / reassignment / service adjustment",
-            "Assisted first step, manager approval",
-            "Read-only start on existing exports",
+            "DecisionOps layer on top of the existing stack",
+            "Read-only federation of critical systems",
+            "Quantified cost / service / risk trade-offs",
+            "Validated first action triggered in existing tools",
+            "Decision-by-decision ROI proof",
           ],
   };
 }
@@ -85,7 +85,7 @@ function serviceSchema(locale: Locale) {
     name:
       locale === "fr"
         ? "Pilote ROI Praedixa — 3 mois"
-        : "Praedixa pilot (AI decision copilot) — 3 months",
+        : "Praedixa pilot (DecisionOps platform) — 3 months",
     serviceType:
       locale === "fr"
         ? "Pilote de lecture business et ROI multi-sites"

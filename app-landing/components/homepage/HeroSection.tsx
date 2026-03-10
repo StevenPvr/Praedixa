@@ -1,15 +1,13 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/ssr";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
 import {
-  heroIndustryDefinitions,
-  heroIndustryMontageMedia,
-  type HeroIndustryId,
-} from "../../lib/media/hero-industries";
+  getSectorPageHref,
+  listSectorPages,
+} from "../../lib/content/sector-pages";
+import { heroIndustryMontageMedia } from "../../lib/media/hero-industries";
 import type { Dictionary } from "../../lib/i18n/types";
 import { HeroBackgroundVideo } from "./HeroBackgroundVideo";
 
@@ -64,32 +62,6 @@ function renderHeadlineWithAccents(text: string, keywords: readonly string[]) {
   );
 }
 
-function getIndustryLabel(industryId: HeroIndustryId, isFr: boolean): string {
-  if (!isFr) {
-    return {
-      restaurant: "Restaurant",
-      hotel: "Hotel",
-      "fast-food": "Fast food",
-      retail: "Retail",
-      transport: "Transport",
-      logistics: "Logistics",
-      automotive: "Automotive",
-      "higher-education": "Higher education",
-    }[industryId];
-  }
-
-  return {
-    restaurant: "Restaurant",
-    hotel: "Hôtel",
-    "fast-food": "Fast-food",
-    retail: "Retail",
-    transport: "Transport",
-    logistics: "Logistique",
-    automotive: "Automobile",
-    "higher-education": "Enseignement supérieur",
-  }[industryId];
-}
-
 export function HeroSection({ locale, dict }: HeroSectionProps) {
   const isFr = locale === "fr";
   const hero = dict.hero;
@@ -113,15 +85,13 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
     ? getLocalizedPath(locale, "howItWorksPage")
     : getLocalizedPath(locale, "pilot");
   const hasManifestoLabel = copy.manifestoLabel.trim().length > 0;
-  const heroKickerLabel = isFr
-    ? heroKickerSegments.join(" · ")
-    : copy.kicker;
+  const heroKickerLabel = isFr ? heroKickerSegments.join(" · ") : copy.kicker;
   const showFrenchProofRail = isFr;
   const hasMicrocopy = copy.microcopy.trim().length > 0;
-  const industries = heroIndustryDefinitions.map((industry) => ({
-    ...industry,
-    href: `${getLocalizedPath(locale, "resources")}#contextes-couverts`,
-    label: getIndustryLabel(industry.id, isFr),
+  const industries = listSectorPages(locale).map((sector) => ({
+    href: getSectorPageHref(locale, sector.id),
+    label: sector.shortLabel,
+    icon: sector.icon,
   }));
 
   return (
@@ -133,6 +103,7 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
             alt=""
             fill
             priority
+            unoptimized
             sizes="100vw"
             className="object-cover"
           />
@@ -189,8 +160,8 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
               <span className="mt-2 block text-white/76">
                 {isFr
                   ? renderHeadlineWithAccents(copy.headingHighlight, [
-                      "Anticipez",
-                      "Optimisez",
+                      "Décidez",
+                      "Prouvez",
                     ])
                   : copy.headingHighlight}
               </span>

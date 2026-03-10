@@ -7,6 +7,7 @@ Logique non-UI du site marketing.
 - `api/`: services serveur pour les routes `app/api/*`
 - `blog/`: lecture MDX, RSS, typage et internal linking
 - `content/`: copy structuree, knowledge pages, ressources SEO, textes legaux
+- `content/sector-pages.ts`: verticales marche avec preuves chiffrées et proposition de valeur par secteur
 - `i18n/`: locales, slugs, dictionnaires, resolution de langue
 - `media/`: selection de media hero
 - `security/`: CSP, origine, rate limit, challenge anti-spam, audit

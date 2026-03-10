@@ -28,7 +28,7 @@ export const frCoreConversion: Partial<Dictionary> = {
       {
         question: "Praedixa, c'est quoi en une phrase ?",
         answer:
-          "Praedixa réunit vos données RH, finance et opérations pour montrer où vous perdez de l'argent, quoi prioriser et comment suivre le ROI.",
+          "Praedixa est la plateforme francaise de DecisionOps: elle relie vos systemes existants pour transformer les arbitrages critiques en decisions calculees, executees et auditables.",
         category: "Comprendre Praedixa",
       },
       {
@@ -59,7 +59,7 @@ export const frCoreConversion: Partial<Dictionary> = {
       {
         question: "Quelle différence avec un outil de planning ou un ERP ?",
         answer:
-          "Praedixa ne remplace pas vos outils. La plateforme s'appuie dessus pour créer une lecture business commune et un suivi du ROI.",
+          "Praedixa ne remplace pas vos outils. La plateforme gouverne les arbitrages qui traversent vos outils, les journalise et les relie a une preuve ROI.",
         category: "Comprendre Praedixa",
       },
       {
@@ -130,18 +130,15 @@ export const frCoreConversion: Partial<Dictionary> = {
 
   servicesPage: {
     meta: {
-      title:
-        "Praedixa | Plateforme ROI complète vs diagnostic ROI initial",
+      title: "Praedixa | Plateforme ROI complète vs diagnostic ROI initial",
       description:
         "Comparez la plateforme Praedixa complète et le diagnostic ROI initial pour choisir votre meilleur point d'entrée.",
-      ogTitle:
-        "Praedixa | Praedixa complet ou diagnostic ROI",
+      ogTitle: "Praedixa | Praedixa complet ou diagnostic ROI",
       ogDescription:
         "Deux façons de démarrer: un diagnostic ROI rapide ou la plateforme complète pour réunir les données, prioriser et suivre les gains.",
     },
     kicker: "Service",
-    heading:
-      "Praedixa complet vs diagnostic ROI initial.",
+    heading: "Praedixa complet vs diagnostic ROI initial.",
     subheading:
       "Vous pouvez démarrer par un diagnostic ROI sur vos données, puis activer la couche complète de priorisation et de suivi.",
     fullPackage: {
@@ -183,8 +180,7 @@ export const frCoreConversion: Partial<Dictionary> = {
       title: "Comparatif rapide",
       columns: [
         {
-          criterion:
-            "Lecture des données RH, finance et opérations",
+          criterion: "Lecture des données RH, finance et opérations",
           fullPackage: "Inclus",
           forecastsOnly: "Inclus",
         },
@@ -297,13 +293,11 @@ export const frCoreConversion: Partial<Dictionary> = {
     },
     error: "Une erreur est survenue. Veuillez réessayer.",
     sectors: [
-      "Restauration / Retail / Hôtellerie",
-      "Concessions auto / Atelier",
-      "Logistique / Entrepôts",
-      "Santé / Cliniques",
-      "Industrie / Maintenance",
-      "Centres d’appels",
-      "Transport",
+      "HCR",
+      "Enseignement supérieur",
+      "Logistique / Transport / Retail",
+      "Automobile / concessions / ateliers",
+      "BTP",
       "Services",
       "Autre",
     ],

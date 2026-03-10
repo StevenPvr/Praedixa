@@ -13,9 +13,13 @@ vi.mock("resend", () => ({
 
 vi.mock("next/server", () => ({
   NextResponse: {
-    json: (body: unknown, init?: { status?: number }) => ({
+    json: (
+      body: unknown,
+      init?: { status?: number; headers?: HeadersInit },
+    ) => ({
       status: init?.status ?? 200,
       body,
+      headers: new Headers(init?.headers),
       json: () => Promise.resolve(body),
     }),
   },
@@ -33,14 +37,17 @@ export function validBody(overrides: Record<string, unknown> = {}) {
     email: "jean@acme.fr",
     phone: "+33 6 12 34 56 78",
     employeeRange: "100-250",
-    sector: "Logistique",
+    sector: "Logistique / Transport / Retail",
     website: "",
     consent: true,
     ...overrides,
   };
 }
 
-export function makeRequest(body: unknown, headers: Record<string, string> = {}): Request {
+export function makeRequest(
+  body: unknown,
+  headers: Record<string, string> = {},
+): Request {
   const json = typeof body === "string" ? body : JSON.stringify(body);
 
   return new Request("http://localhost:3000/api/pilot-application", {
@@ -62,7 +69,9 @@ export async function loadPostRoute() {
   mockEmailsSend.mockResolvedValue({ data: { id: "mock-id" }, error: null });
   process.env.RESEND_API_KEY = "re_test_key";
   const mod = await import("../route");
-  return mod.POST as (request: Request) => Promise<{ status: number; body: unknown }>;
+  return mod.POST as (
+    request: Request,
+  ) => Promise<{ status: number; body: unknown; headers: Headers }>;
 }
 
 afterEach(() => {

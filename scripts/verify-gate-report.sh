@@ -99,6 +99,9 @@ fi
 
 REPORT_STATUS="$(jq -r '.summary.status // empty' "$REPORT_PATH")"
 if [[ "$REPORT_STATUS" != "pass" ]]; then
+  if [[ "$RUN_IF_MISSING" == "1" ]]; then
+    rerun_gate_and_reverify
+  fi
   echo "[gate-verify] Report status is not pass: ${REPORT_STATUS:-<empty>}" >&2
   exit 1
 fi
@@ -109,6 +112,9 @@ if [[ -z "$BLOCKING_FAILED" ]]; then
   exit 1
 fi
 if [[ "$BLOCKING_FAILED" != "0" ]]; then
+  if [[ "$RUN_IF_MISSING" == "1" ]]; then
+    rerun_gate_and_reverify
+  fi
   echo "[gate-verify] Blocking checks are non-zero: ${BLOCKING_FAILED}" >&2
   exit 1
 fi

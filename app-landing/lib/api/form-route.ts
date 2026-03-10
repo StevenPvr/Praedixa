@@ -14,6 +14,21 @@ import {
   SecurityStoreUnavailableError,
 } from "../security/security-store";
 
+export function jsonNoStore(
+  body: unknown,
+  init?: { status?: number; headers?: HeadersInit },
+): Response {
+  const headers = new Headers(init?.headers);
+  if (!headers.has("Cache-Control")) {
+    headers.set("Cache-Control", "no-store");
+  }
+
+  return NextResponse.json(body, {
+    ...init,
+    headers,
+  });
+}
+
 export function rejectIfBodyTooLarge(
   request: Request,
   maxBodyLength: number,
@@ -21,21 +36,24 @@ export function rejectIfBodyTooLarge(
 ): Response | null {
   const contentLength = request.headers.get("content-length");
   if (contentLength && Number.parseInt(contentLength, 10) > maxBodyLength) {
-    return NextResponse.json({ error: message }, { status: 413 });
+    return jsonNoStore({ error: message }, { status: 413 });
   }
   return null;
 }
 
-export async function enforceFormRateLimit(request: Request, options: {
-  eventPrefix: string;
-  ip: string;
-  max: number;
-  requestId: string;
-  scope: string;
-  serviceUnavailableMessage: string;
-  tooManyRequestsMessage: string;
-  windowMs: number;
-}): Promise<Response | null> {
+export async function enforceFormRateLimit(
+  request: Request,
+  options: {
+    eventPrefix: string;
+    ip: string;
+    max: number;
+    requestId: string;
+    scope: string;
+    serviceUnavailableMessage: string;
+    tooManyRequestsMessage: string;
+    windowMs: number;
+  },
+): Promise<Response | null> {
   let rateLimit;
 
   try {
@@ -54,7 +72,7 @@ export async function enforceFormRateLimit(request: Request, options: {
       ip: redactIpForLogs(options.ip),
     });
 
-    return NextResponse.json(
+    return jsonNoStore(
       { error: options.serviceUnavailableMessage },
       { status: 503 },
     );
@@ -69,7 +87,7 @@ export async function enforceFormRateLimit(request: Request, options: {
     ip: redactIpForLogs(options.ip),
   });
 
-  return NextResponse.json(
+  return jsonNoStore(
     { error: options.tooManyRequestsMessage },
     {
       status: 429,
@@ -78,12 +96,15 @@ export async function enforceFormRateLimit(request: Request, options: {
   );
 }
 
-export function rejectIfUntrustedOrigin(request: Request, options: {
-  eventPrefix: string;
-  ip: string;
-  requestId: string;
-  message: string;
-}): Response | null {
+export function rejectIfUntrustedOrigin(
+  request: Request,
+  options: {
+    eventPrefix: string;
+    ip: string;
+    requestId: string;
+    message: string;
+  },
+): Response | null {
   if (
     !isCrossSiteRequest(request) &&
     hasTrustedFormOrigin(request, { requireSource: true })
@@ -97,7 +118,7 @@ export function rejectIfUntrustedOrigin(request: Request, options: {
     origin: request.headers.get("origin") ?? "",
   });
 
-  return NextResponse.json({ error: options.message }, { status: 403 });
+  return jsonNoStore({ error: options.message }, { status: 403 });
 }
 
 export async function readJsonBody(
@@ -108,7 +129,6 @@ export async function readJsonBody(
     requestId: string;
     invalidJsonMessage?: string;
     maxBodyLength?: number;
-    maxLength?: number;
     tooLargeMessage?: string;
   },
 ): Promise<
@@ -116,9 +136,10 @@ export async function readJsonBody(
   | { ok: false; body: null; response: Response }
 > {
   let rawText: string;
-  const maxBodyLength = options.maxBodyLength ?? options.maxLength ?? 0;
+  const maxBodyLength = options.maxBodyLength ?? 0;
   const invalidJsonMessage = options.invalidJsonMessage ?? "JSON invalide.";
-  const tooLargeMessage = options.tooLargeMessage ?? "Corps de requête trop volumineux.";
+  const tooLargeMessage =
+    options.tooLargeMessage ?? "Corps de requête trop volumineux.";
 
   try {
     rawText = await readTextBodyWithLimit(request, maxBodyLength);
@@ -127,10 +148,7 @@ export async function readJsonBody(
       return {
         ok: false,
         body: null,
-        response: NextResponse.json(
-          { error: tooLargeMessage },
-          { status: 413 },
-        ),
+        response: jsonNoStore({ error: tooLargeMessage }, { status: 413 }),
       };
     }
     throw error;
@@ -140,10 +158,7 @@ export async function readJsonBody(
     return {
       ok: false,
       body: null,
-      response: NextResponse.json(
-        { error: tooLargeMessage },
-        { status: 413 },
-      ),
+      response: jsonNoStore({ error: tooLargeMessage }, { status: 413 }),
     };
   }
 
@@ -157,10 +172,7 @@ export async function readJsonBody(
     return {
       ok: false,
       body: null,
-      response: NextResponse.json(
-        { error: invalidJsonMessage },
-        { status: 400 },
-      ),
+      response: jsonNoStore({ error: invalidJsonMessage }, { status: 400 }),
     };
   }
 }
@@ -185,14 +197,17 @@ export function rejectOversizedContentLength(
   );
 }
 
-export async function consumeFormRateLimit(request: Request, options: {
-  eventPrefix: string;
-  ip: string;
-  max: number;
-  requestId: string;
-  scope: string;
-  windowMs: number;
-}): Promise<Response | null> {
+export async function consumeFormRateLimit(
+  request: Request,
+  options: {
+    eventPrefix: string;
+    ip: string;
+    max: number;
+    requestId: string;
+    scope: string;
+    windowMs: number;
+  },
+): Promise<Response | null> {
   return enforceFormRateLimit(request, {
     ...options,
     serviceUnavailableMessage: "Service temporairement indisponible.",
@@ -200,24 +215,26 @@ export async function consumeFormRateLimit(request: Request, options: {
   });
 }
 
-export function rejectUntrustedFormOrigin(request: Request, options: {
-  eventPrefix: string;
-  ip: string;
-  requestId: string;
-}): Response | null {
+export function rejectUntrustedFormOrigin(
+  request: Request,
+  options: {
+    eventPrefix: string;
+    ip: string;
+    requestId: string;
+  },
+): Response | null {
   return rejectIfUntrustedOrigin(request, {
     ...options,
     message: "Origine de requête non autorisée.",
   });
 }
 
-export function rejectUnsupportedJsonContentType(request: Request): Response | null {
+export function rejectUnsupportedJsonContentType(
+  request: Request,
+): Response | null {
   if (hasJsonContentType(request)) {
     return null;
   }
 
-  return NextResponse.json(
-    { error: "Content-Type non supporte." },
-    { status: 415 },
-  );
+  return jsonNoStore({ error: "Content-Type non supporte." }, { status: 415 });
 }

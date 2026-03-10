@@ -70,7 +70,9 @@ export interface RouteResult {
   payload: ApiSuccess | PaginatedSuccess | ApiErrorResponse;
 }
 
-export type RouteHandler = (ctx: RouteContext) => RouteResult | Promise<RouteResult>;
+export type RouteHandler = (
+  ctx: RouteContext,
+) => RouteResult | Promise<RouteResult>;
 
 export interface RouteRateLimit {
   maxRequests: number;
@@ -110,6 +112,7 @@ export interface AppConfig {
   databaseUrl: string | null;
   connectors: {
     runtimeUrl: string;
+    runtimeAllowedHosts: readonly string[];
     runtimeToken: string | null;
   };
   jwt: {

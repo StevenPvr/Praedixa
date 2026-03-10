@@ -21,6 +21,9 @@ has_cmd() {
 setup_pnpm || fail "Missing pnpm (tried PATH, PNPM_HOME, local pnpm tools, corepack, npx)."
 has_cmd uv || fail "Missing required command 'uv'."
 
+echo "[precommit-tests] Security-focused regression tests..."
+./scripts/gate-sensitive-security-tests.sh
+
 echo "[precommit-tests] Python test suite (includes unit tests)..."
 (
   cd app-api

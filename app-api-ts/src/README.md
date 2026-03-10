@@ -40,6 +40,13 @@ Routes admin:
 - Rattachement org/site et roles propagés au `RouteContext`.
 - Guards admin appliques sur la surface `/api/v1/admin/*`.
 - Les appels sensibles restent couples a la persistance PostgreSQL quand disponible.
+- Un `site_id` demande par query ne doit jamais elargir le scope: la persistance doit le refuser s'il n'appartient pas a `accessibleSiteIds`.
+
+## Appels internes sensibles
+
+- `admin-integrations.ts` envoie un bearer token vers `app-connectors`.
+- `config.ts` bloque donc les `CONNECTORS_RUNTIME_URL` avec credentials, query ou fragment.
+- Hors developpement, le runtime connecteurs doit etre en `https` et son host doit appartenir a `CONNECTORS_RUNTIME_ALLOWED_HOSTS`.
 
 ## Persistance et fallback
 

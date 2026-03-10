@@ -15,13 +15,14 @@ describe("loadConfig", () => {
         CORS_ORIGINS: "https://app.praedixa.com,https://admin.praedixa.com",
         DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
         CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
+        CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
       }),
     ).toMatchObject({
       nodeEnv: "production",
-      corsOrigins: [
-        "https://app.praedixa.com",
-        "https://admin.praedixa.com",
-      ],
+      corsOrigins: ["https://app.praedixa.com", "https://admin.praedixa.com"],
+      connectors: {
+        runtimeAllowedHosts: ["praedixa.internal"],
+      },
     });
   });
 
@@ -85,6 +86,7 @@ describe("loadConfig", () => {
         CORS_ORIGINS: "*",
         DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
         CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
+        CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
       }),
     ).toThrow(/wildcard/i);
   });
@@ -111,6 +113,7 @@ describe("loadConfig", () => {
         CORS_ORIGINS: "https://app.praedixa.com,https://localhost:3000",
         DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
         CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
+        CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
       }),
     ).toThrow(/localhost/i);
   });
@@ -123,6 +126,7 @@ describe("loadConfig", () => {
         AUTH_AUDIENCE: "praedixa-api",
         CORS_ORIGINS: "https://app.praedixa.com",
         CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
+        CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
       }),
     ).toThrow(/DATABASE_URL is required/i);
   });
@@ -135,11 +139,88 @@ describe("loadConfig", () => {
         AUTH_AUDIENCE: "praedixa-api",
         CORS_ORIGINS: "https://app.praedixa.com",
         CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
+        CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
         DEMO_MODE: "true",
       }),
     ).toMatchObject({
       nodeEnv: "staging",
       databaseUrl: null,
+    });
+  });
+
+  it("rejects connectors runtime URLs with credentials", () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: "production",
+        AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
+        AUTH_AUDIENCE: "praedixa-api",
+        CORS_ORIGINS: "https://app.praedixa.com",
+        DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
+        CONNECTORS_RUNTIME_URL:
+          "https://user:pass@connectors.praedixa.internal",
+        CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+      }),
+    ).toThrow(/must not embed credentials/i);
+  });
+
+  it("rejects connectors runtime URLs with queries or fragments", () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: "production",
+        AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
+        AUTH_AUDIENCE: "praedixa-api",
+        CORS_ORIGINS: "https://app.praedixa.com",
+        DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
+        CONNECTORS_RUNTIME_URL:
+          "https://connectors.praedixa.internal/runtime?debug=1#fragment",
+        CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+      }),
+    ).toThrow(/must not include query or fragment/i);
+  });
+
+  it("requires connectors runtime host allowlists outside development", () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: "production",
+        AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
+        AUTH_AUDIENCE: "praedixa-api",
+        CORS_ORIGINS: "https://app.praedixa.com",
+        DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
+        CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
+      }),
+    ).toThrow(/CONNECTORS_RUNTIME_ALLOWED_HOSTS/i);
+  });
+
+  it("rejects connectors runtime hosts that are not on the allowlist", () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: "production",
+        AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
+        AUTH_AUDIENCE: "praedixa-api",
+        CORS_ORIGINS: "https://app.praedixa.com",
+        DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
+        CONNECTORS_RUNTIME_URL: "https://runtime.evil.example",
+        CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+      }),
+    ).toThrow(/allowlist/i);
+  });
+
+  it("accepts connectors runtime subdomains that match the allowlist", () => {
+    expect(
+      loadConfig({
+        NODE_ENV: "production",
+        AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
+        AUTH_AUDIENCE: "praedixa-api",
+        CORS_ORIGINS: "https://app.praedixa.com",
+        DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
+        CONNECTORS_RUNTIME_URL: "https://connectors.eu-west.praedixa.internal",
+        CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+      }),
+    ).toMatchObject({
+      connectors: {
+        runtimeUrl: "https://connectors.eu-west.praedixa.internal",
+        runtimeAllowedHosts: ["praedixa.internal"],
+      },
     });
   });
 });

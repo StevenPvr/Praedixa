@@ -21,6 +21,10 @@ Construire des metadata Next cohérentes, les entites SEO et quelques schemas de
 - `app/sitemap.ts`
 - `components/seo/JsonLd.tsx`
 
+## Convention
+
+- `JsonLd.tsx` emet plusieurs scripts JSON-LD specialises (organisation, website, softwareApplication, service, faq) plutot qu'un `@graph` global monolithique.
+
 ## Tests
 
 - `__tests__/metadata.test.ts`

@@ -7,10 +7,6 @@ vi.mock("@praedixa/ui", () => ({
   cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
 }));
 
-vi.mock("lucide-react", () => ({
-  Send: () => <svg data-testid="icon-send" />,
-}));
-
 describe("MessageInput", () => {
   const defaultProps = {
     onSend: vi.fn(),

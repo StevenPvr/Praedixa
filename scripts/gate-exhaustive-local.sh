@@ -249,13 +249,12 @@ run_manual_exhaustive_layer() {
 
   run_check "layer-b:prepush-deep" "security" "high" "./scripts/gate-prepush-deep.sh"
 
-  run_check "format:prettier-check" "quality" "low" "pnpm format:check"
-  run_check "lint:eslint" "quality" "low" "pnpm lint"
-  run_check "types:typescript" "quality" "low" "pnpm typecheck"
+  run_check "quality:static-monorepo" "quality" "low" "./scripts/gate-quality-static.sh"
   run_check "tests:vitest-coverage" "quality" "low" "pnpm test:coverage"
   run_check "tests:api-ts" "quality" "low" "pnpm --filter @praedixa/api-ts test"
   run_check "tests:pytest-data" "quality" "low" "cd app-api && uv run pytest tests/"
   run_check "build:next-monorepo" "quality" "low" "pnpm build"
+  run_check "security:invariants-full" "security" "medium" "python3 scripts/check-security-invariants.py --mode full"
 
   run_check "security:codeql" "security" "medium" "./scripts/run-codeql-local.sh"
   run_check "security:dynamic-api-audits" "security" "medium" "./scripts/run-api-dynamic-audits.sh"
@@ -264,8 +263,8 @@ run_manual_exhaustive_layer() {
   run_check "architecture:knip" "architecture" "low" "pnpm dlx knip@5.62.0 --config knip.json --strict --dependencies --no-config-hints"
   run_check "architecture:import-linter" "architecture" "low" "cd app-api && uv tool run --from import-linter lint-imports --config .importlinter"
   run_check "quality:deptry" "quality" "low" "cd app-api && uv tool run --from deptry deptry . --config pyproject.toml"
-  run_check "quality:radon-complexity" "quality" "low" "uv tool run --from radon radon cc app-api/app -s -n B"
-  run_check "quality:radon-maintainability" "quality" "low" "uv tool run --from radon radon mi app-api/app -s -n B"
+  run_check "quality:python-complexity-baseline" "quality" "low" "python3 scripts/check-python-complexity-baseline.py"
+  run_check "quality:radon-maintainability" "quality" "low" "uv tool run --from radon radon mi app-api/app -s -n A"
 
   run_check "e2e:playwright-chromium-ready" "quality" "low" "./scripts/check-playwright-chromium.sh"
   run_check "e2e:api-edge-webapp" "quality" "low" "pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/webapp/api-edge-cases.spec.ts --project=webapp --workers=1 --retries=0"

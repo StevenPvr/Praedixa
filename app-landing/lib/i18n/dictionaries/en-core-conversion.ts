@@ -13,11 +13,9 @@ export const enCoreConversion: Partial<Dictionary> = {
     liveLabel: "Dynamic FAQ block",
     loadingLabel: "Loading answers...",
     emptyTitle: "No questions in this category",
-    emptyBody:
-      "Select another category to display actionable answers.",
+    emptyBody: "Select another category to display actionable answers.",
     errorTitle: "The FAQ section cannot be rendered",
-    errorBody:
-      "The active category is invalid. Reset to the first category.",
+    errorBody: "The active category is invalid. Reset to the first category.",
     retryLabel: "Reset category",
     categories: [
       "Understanding Praedixa",
@@ -28,7 +26,7 @@ export const enCoreConversion: Partial<Dictionary> = {
       {
         question: "What is Praedixa in one sentence?",
         answer:
-          "An AI decision copilot that helps you arbitrate cost/service/risk trade-offs and deliver monthly impact proof.",
+          "The French DecisionOps platform that turns critical trade-offs into calculated, executable, auditable decisions.",
         category: "Understanding Praedixa",
       },
       {
@@ -53,7 +51,7 @@ export const enCoreConversion: Partial<Dictionary> = {
       {
         question: "How is this different from ERP/scheduling/BI tools?",
         answer:
-          "Praedixa does not replace them. It sits on top of what you already use to support decisions and measure impact.",
+          "Praedixa does not replace them. It governs the trade-offs that cut across those tools, logs the choice, and measures the impact.",
         category: "Understanding Praedixa",
       },
       {
@@ -93,8 +91,7 @@ export const enCoreConversion: Partial<Dictionary> = {
         category: "Technical & data",
       },
       {
-        question:
-          "What happens if we stay in KPI forecasting-only mode?",
+        question: "What happens if we stay in KPI forecasting-only mode?",
         answer:
           "You keep the forecasting deliverables. You can activate Signature Service later to add guided decisions, the decision journal, and monthly proof.",
         category: "Pilot & pricing",
@@ -119,12 +116,10 @@ export const enCoreConversion: Partial<Dictionary> = {
 
   servicesPage: {
     meta: {
-      title:
-        "Praedixa | Signature Service vs KPI forecasting only",
+      title: "Praedixa | Signature Service vs KPI forecasting only",
       description:
         "Clear comparison between Praedixa Signature Service (guided decisions + monthly proof) and KPI forecasting-only mode (capacity, demand, inventory/supply…).",
-      ogTitle:
-        "Praedixa | Signature Service and KPI forecasting only",
+      ogTitle: "Praedixa | Signature Service and KPI forecasting only",
       ogDescription:
         "Two service levels, one product: Signature Service (decisions + journal + monthly proof) or KPI forecasting only.",
     },
@@ -187,8 +182,7 @@ export const enCoreConversion: Partial<Dictionary> = {
           forecastsOnly: "Not included",
         },
         {
-          criterion:
-            "Decision journal (option, choice, reason, outcome)",
+          criterion: "Decision journal (option, choice, reason, outcome)",
           fullPackage: "Included",
           forecastsOnly: "Not included",
         },
@@ -283,13 +277,11 @@ export const enCoreConversion: Partial<Dictionary> = {
     },
     error: "Something went wrong. Please try again.",
     sectors: [
-      "Restaurants / Retail / Hospitality",
-      "Auto dealerships / Workshops",
-      "Logistics / Warehouses",
-      "Healthcare / Clinics",
-      "Industry / Maintenance",
-      "Call centers",
-      "Transport",
+      "Hospitality / Food service",
+      "Higher education",
+      "Logistics / Transport / Retail",
+      "Automotive / dealerships / workshops",
+      "Construction",
       "Services",
       "Other",
     ],

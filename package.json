@@ -92,7 +92,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "gate:exhaustive": "./scripts/gate-exhaustive-local.sh --mode manual",
     "gate:verify": "./scripts/verify-gate-report.sh",
-    "gate:prepush": "./scripts/verify-gate-report.sh --mode pre-push --run-if-missing --max-age-seconds 21600",
+    "gate:prepush": "./scripts/gate-prepush-deep.sh && ./scripts/verify-gate-report.sh --mode manual --run-if-missing --max-age-seconds 21600",
     "release:build": "./scripts/scw-release-build.sh",
     "release:manifest:create": "./scripts/scw-release-manifest-create.sh",
     "release:manifest:verify": "./scripts/release-manifest-verify.sh",

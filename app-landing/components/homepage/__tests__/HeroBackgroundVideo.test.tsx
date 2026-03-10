@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { HeroBackgroundVideo } from "../HeroBackgroundVideo";
@@ -14,7 +14,7 @@ describe("HeroBackgroundVideo", () => {
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
   });
 
-  it("renders native source tags and inline autoplay attributes immediately", () => {
+  it("keeps the hero poster-only until the first interaction, then mounts the video", () => {
     const { container } = render(
       <HeroBackgroundVideo
         poster="/hero-video/poster.jpg"
@@ -22,6 +22,10 @@ describe("HeroBackgroundVideo", () => {
         mp4Src="/hero-video/background.mp4"
       />,
     );
+
+    expect(container.querySelector("video")).toBeNull();
+
+    fireEvent.pointerDown(window);
 
     const video = container.querySelector("video");
     const sources = container.querySelectorAll("source");
@@ -34,6 +38,7 @@ describe("HeroBackgroundVideo", () => {
     expect(video).toHaveAttribute("loop");
     expect(video).toHaveAttribute("playsinline");
     expect(video).toHaveAttribute("webkit-playsinline");
+    expect(video).toHaveAttribute("preload", "metadata");
   });
 
   it("retries playback after an unexpected pause", () => {
@@ -49,6 +54,8 @@ describe("HeroBackgroundVideo", () => {
         mp4Src="/hero-video/background.mp4"
       />,
     );
+
+    fireEvent.pointerDown(window);
 
     const video = container.querySelector("video");
     expect(video).not.toBeNull();

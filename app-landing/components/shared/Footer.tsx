@@ -107,7 +107,7 @@ export function Footer({ locale, dict }: FooterProps) {
               </div>
             </div>
 
-          <MagneticActionLink
+            <MagneticActionLink
               href={primaryCtaHref}
               label={dict.footer.ctaBanner.cta}
               wrapperClassName="w-full md:max-w-sm md:justify-self-end"
@@ -123,15 +123,20 @@ export function Footer({ locale, dict }: FooterProps) {
               className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 py-2 text-white no-underline shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-white/25 hover:bg-white/[0.1] active:-translate-y-[1px] active:scale-[0.99]"
               aria-label="Praedixa"
             >
-              <Image src="/logo-white.svg" alt="Praedixa" width={24} height={24} />
+              <Image
+                src="/logo-white.svg"
+                alt="Praedixa"
+                width={24}
+                height={24}
+              />
               <span className="text-sm font-semibold uppercase tracking-[0.09em]">
                 Praedixa
               </span>
             </Link>
             <p className="max-w-[46ch] text-sm leading-relaxed text-neutral-400">
               {locale === "fr"
-                ? "Praedixa réunit les données RH, finance, opérations et supply chain dans une même base pour clarifier les arbitrages et suivre le ROI."
-                : "Forecast. Decide (cost/service/risk). Trigger the first assisted action. Prove impact."}
+                ? "Praedixa transforme les arbitrages critiques en decisions calculees, executees et auditables, sans remplacer vos outils."
+                : "Praedixa turns critical trade-offs into calculated, executable, auditable decisions."}
             </p>
             <ShimmerTrack
               className="max-w-[16rem] bg-white/10"

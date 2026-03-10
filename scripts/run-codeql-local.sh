@@ -20,6 +20,7 @@ JS_OUT="${ARTIFACT_DIR}/codeql-javascript.sarif"
 PY_OUT="${ARTIFACT_DIR}/codeql-python.sarif"
 
 QUERY_REPO_DIR="${ROOT_DIR}/.tools/codeql-queries"
+JS_SOURCE_ROOT="${WORK_DIR}/js-source-root"
 
 ensure_local_query_repo() {
   if [[ -d "${QUERY_REPO_DIR}/.git" ]]; then
@@ -74,14 +75,59 @@ run_analyze() {
   fi
 }
 
+prepare_js_source_root() {
+  rm -rf "$JS_SOURCE_ROOT"
+  mkdir -p "$JS_SOURCE_ROOT"
+
+  if ! command -v rsync >/dev/null 2>&1; then
+    echo "[codeql] rsync unavailable, falling back to repo root source scan..." >&2
+    printf '%s' "$ROOT_DIR"
+    return 0
+  fi
+
+  local -a excludes=(
+    ".git/"
+    ".turbo/"
+    ".next/"
+    ".open-next/"
+    ".lighthouseci/"
+    "node_modules/"
+    "coverage/"
+    "playwright-report/"
+    "htmlcov/"
+    "centaurus/"
+    "app-api/.venv/"
+    "app-landing/.next/"
+    "app-landing/.open-next/"
+    "app-webapp/.next/"
+    "app-webapp/.open-next/"
+    "app-admin/.next/"
+    "app-admin/.open-next/"
+    "dist/"
+    "build/"
+    "*.tsbuildinfo"
+  )
+
+  local -a rsync_args=(-a --delete --prune-empty-dirs)
+  local pattern
+  for pattern in "${excludes[@]}"; do
+    rsync_args+=(--exclude "$pattern")
+  done
+
+  echo "[codeql] Preparing curated source snapshot..." >&2
+  rsync "${rsync_args[@]}" "${ROOT_DIR}/" "${JS_SOURCE_ROOT}/"
+  printf '%s' "$JS_SOURCE_ROOT"
+}
+
 echo "[codeql] Creating JavaScript/TypeScript database..."
+CURATED_JS_SOURCE_ROOT="$(prepare_js_source_root)"
 codeql database create "$JS_DB" \
   --language=javascript-typescript \
-  --source-root "$ROOT_DIR"
+  --source-root "$CURATED_JS_SOURCE_ROOT"
 
 JS_SUITE="$(resolve_query_suite \
-  "codeql/javascript-queries:codeql-suites/javascript-security-and-quality.qls" \
-  "${QUERY_REPO_DIR}/javascript/ql/src/codeql-suites/javascript-security-and-quality.qls")"
+  "codeql/javascript-queries:codeql-suites/javascript-security-extended.qls" \
+  "${QUERY_REPO_DIR}/javascript/ql/src/codeql-suites/javascript-security-extended.qls")"
 
 echo "[codeql] Analyzing JavaScript/TypeScript..."
 run_analyze "$JS_DB" "$JS_SUITE" "$JS_OUT"
@@ -92,8 +138,8 @@ codeql database create "$PY_DB" \
   --source-root "${ROOT_DIR}/app-api"
 
 PY_SUITE="$(resolve_query_suite \
-  "codeql/python-queries:codeql-suites/python-security-and-quality.qls" \
-  "${QUERY_REPO_DIR}/python/ql/src/codeql-suites/python-security-and-quality.qls")"
+  "codeql/python-queries:codeql-suites/python-security-extended.qls" \
+  "${QUERY_REPO_DIR}/python/ql/src/codeql-suites/python-security-extended.qls")"
 
 echo "[codeql] Analyzing Python..."
 run_analyze "$PY_DB" "$PY_SUITE" "$PY_OUT"

@@ -18,8 +18,8 @@ export async function generateMetadata({
       ? "Praedixa | Protocole pilote ROI"
       : "Praedixa | ROI pilot protocol",
     description: isFr
-      ? "Protocole du pilote: diagnostic ROI, base commune, priorités d'action et suivi des gains."
-      : "Pilot protocol: ROI diagnostic, shared foundation, action priorities, and gain tracking.",
+      ? "Protocole du pilote: cadrage DecisionOps, arbitrages prioritaires, actions declenchees et suivi des gains."
+      : "Pilot protocol: DecisionOps framing, priority trade-offs, triggered actions, and gain tracking.",
   });
 }
 
@@ -56,7 +56,10 @@ export default async function PilotProtocolPage({
           <h2 className="text-sm font-semibold text-ink">{p.included.title}</h2>
           <ul className="mt-3 list-none space-y-2 p-0">
             {p.included.items.map((item: string) => (
-              <li key={item} className="m-0 flex items-start gap-2 text-sm text-neutral-600">
+              <li
+                key={item}
+                className="m-0 flex items-start gap-2 text-sm text-neutral-600"
+              >
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300" />
                 {item}
               </li>
@@ -68,7 +71,10 @@ export default async function PilotProtocolPage({
           <h2 className="text-sm font-semibold text-ink">{p.excluded.title}</h2>
           <ul className="mt-3 list-none space-y-2 p-0">
             {p.excluded.items.map((item: string) => (
-              <li key={item} className="m-0 flex items-start gap-2 text-sm text-neutral-400 line-through">
+              <li
+                key={item}
+                className="m-0 flex items-start gap-2 text-sm text-neutral-400 line-through"
+              >
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-300" />
                 {item}
               </li>
@@ -82,16 +88,22 @@ export default async function PilotProtocolPage({
           <h2 className="text-sm font-semibold text-ink">{p.kpis.title}</h2>
           <ul className="mt-3 list-none space-y-2 p-0">
             {p.kpis.items.map((item: string) => (
-              <li key={item} className="m-0 text-sm text-neutral-600">{item}</li>
+              <li key={item} className="m-0 text-sm text-neutral-600">
+                {item}
+              </li>
             ))}
           </ul>
         </div>
 
         <div className="rounded-xl border border-border-subtle bg-white p-6">
-          <h2 className="text-sm font-semibold text-ink">{p.governance.title}</h2>
+          <h2 className="text-sm font-semibold text-ink">
+            {p.governance.title}
+          </h2>
           <ul className="mt-3 list-none space-y-2 p-0">
             {p.governance.items.map((item: string) => (
-              <li key={item} className="m-0 text-sm text-neutral-600">{item}</li>
+              <li key={item} className="m-0 text-sm text-neutral-600">
+                {item}
+              </li>
             ))}
           </ul>
         </div>
@@ -101,13 +113,17 @@ export default async function PilotProtocolPage({
         <h2 className="text-sm font-semibold text-ink">{p.selection.title}</h2>
         <ul className="mt-3 list-none space-y-2 p-0">
           {p.selection.items.map((item: string) => (
-            <li key={item} className="m-0 text-sm text-neutral-600">{item}</li>
+            <li key={item} className="m-0 text-sm text-neutral-600">
+              {item}
+            </li>
           ))}
         </ul>
       </div>
 
       <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50/50 p-6">
-        <h2 className="text-sm font-semibold text-amber-700">{p.upcoming.title}</h2>
+        <h2 className="text-sm font-semibold text-amber-700">
+          {p.upcoming.title}
+        </h2>
         <p className="mt-1.5 text-sm leading-relaxed text-amber-600">
           {p.upcoming.description}
         </p>

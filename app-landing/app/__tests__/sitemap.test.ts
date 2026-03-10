@@ -41,6 +41,26 @@ describe("sitemap()", () => {
     expect(urls).toContain("https://www.praedixa.com/en/services");
   });
 
+  it("should include sector pages in both locales", () => {
+    const urls = result.map((entry) => entry.url);
+    expect(urls).toContain("https://www.praedixa.com/fr/secteurs/hcr");
+    expect(urls).toContain(
+      "https://www.praedixa.com/fr/secteurs/enseignement-superieur",
+    );
+    expect(urls).toContain(
+      "https://www.praedixa.com/fr/secteurs/logistique-transport-retail",
+    );
+    expect(urls).toContain(
+      "https://www.praedixa.com/fr/secteurs/automobile-concessions-ateliers",
+    );
+    expect(urls).toContain(
+      "https://www.praedixa.com/en/industries/hospitality-food-service",
+    );
+    expect(urls).toContain(
+      "https://www.praedixa.com/en/industries/higher-education",
+    );
+  });
+
   it("should include blog index in both locales", () => {
     const urls = result.map((entry) => entry.url);
     expect(urls).toContain("https://www.praedixa.com/fr/blog");

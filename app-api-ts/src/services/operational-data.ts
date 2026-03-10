@@ -288,6 +288,9 @@ function buildSiteScopeClause(
 ): string {
   const requestedSiteId = scope.requestedSiteId?.trim();
   if (requestedSiteId) {
+    if (!scope.orgWide && !scope.accessibleSiteIds.includes(requestedSiteId)) {
+      return " AND FALSE ";
+    }
     values.push(requestedSiteId);
     return ` AND ${columnName} = $${values.length} `;
   }
@@ -311,6 +314,9 @@ function buildForecastRunScopeClause(
 ): string {
   const requestedSiteId = scope.requestedSiteId?.trim();
   if (requestedSiteId) {
+    if (!scope.orgWide && !scope.accessibleSiteIds.includes(requestedSiteId)) {
+      return " AND FALSE ";
+    }
     values.push(requestedSiteId);
     const siteParam = `$${values.length}`;
     return `
@@ -369,7 +375,9 @@ function buildForecastRunScopeClause(
   `;
 }
 
-function mapCoverageAlert(row: DbCoverageAlertRow): PersistentCoverageAlertRecord {
+function mapCoverageAlert(
+  row: DbCoverageAlertRow,
+): PersistentCoverageAlertRecord {
   return {
     id: row.id,
     organizationId: row.organization_id,
@@ -380,21 +388,33 @@ function mapCoverageAlert(row: DbCoverageAlertRow): PersistentCoverageAlertRecor
     pRupture: toNumber(row.p_rupture) ?? 0,
     gapH: toNumber(row.gap_h) ?? 0,
     ...(toNumber(row.prediction_interval_low) != null
-      ? { predictionIntervalLow: toNumber(row.prediction_interval_low) ?? undefined }
+      ? {
+          predictionIntervalLow:
+            toNumber(row.prediction_interval_low) ?? undefined,
+        }
       : {}),
     ...(toNumber(row.prediction_interval_high) != null
-      ? { predictionIntervalHigh: toNumber(row.prediction_interval_high) ?? undefined }
+      ? {
+          predictionIntervalHigh:
+            toNumber(row.prediction_interval_high) ?? undefined,
+        }
       : {}),
     ...(row.model_version ? { modelVersion: row.model_version } : {}),
-    ...(row.calibration_bucket ? { calibrationBucket: row.calibration_bucket } : {}),
+    ...(row.calibration_bucket
+      ? { calibrationBucket: row.calibration_bucket }
+      : {}),
     ...(toNumber(row.impact_eur) != null
       ? { impactEur: toNumber(row.impact_eur) ?? undefined }
       : {}),
     severity: row.severity as PersistentCoverageAlertRecord["severity"],
     status: row.status as PersistentCoverageAlertRecord["status"],
     driversJson: Array.isArray(row.drivers_json) ? row.drivers_json : [],
-    ...(toIsoDateTime(row.acknowledged_at) ? { acknowledgedAt: toIsoDateTime(row.acknowledged_at)! } : {}),
-    ...(toIsoDateTime(row.resolved_at) ? { resolvedAt: toIsoDateTime(row.resolved_at)! } : {}),
+    ...(toIsoDateTime(row.acknowledged_at)
+      ? { acknowledgedAt: toIsoDateTime(row.acknowledged_at)! }
+      : {}),
+    ...(toIsoDateTime(row.resolved_at)
+      ? { resolvedAt: toIsoDateTime(row.resolved_at)! }
+      : {}),
     createdAt: toIsoDateTime(row.created_at) ?? new Date().toISOString(),
     updatedAt: toIsoDateTime(row.updated_at) ?? new Date().toISOString(),
     siteName: row.site_name,
@@ -438,8 +458,7 @@ function mapForecastRunRow(row: DbForecastRunRow): PersistentForecastRunRecord {
 function mapDailyForecastRow(
   row: DbDailyForecastRow,
 ): PersistentDailyForecastRecord {
-  const dimension =
-    row.dimension === "merchandise" ? "merchandise" : "human";
+  const dimension = row.dimension === "merchandise" ? "merchandise" : "human";
 
   return {
     id: row.id,
@@ -478,7 +497,9 @@ function mapProofRecordRow(row: DbProofRecordRow): PersistentProofPackRecord {
     ...(toNumber(row.capture_rate) != null
       ? { captureRate: toNumber(row.capture_rate) ?? undefined }
       : {}),
-    ...(row.bau_method_version ? { bauMethodVersion: row.bau_method_version } : {}),
+    ...(row.bau_method_version
+      ? { bauMethodVersion: row.bau_method_version }
+      : {}),
     ...(toNumber(row.attribution_confidence) != null
       ? {
           attributionConfidence:
@@ -508,14 +529,19 @@ function mapOnboardingRow(
     organizationId: row.organization_id,
     status,
     currentStep: Number(row.current_step),
-    stepsCompleted: Array.isArray(row.steps_completed) ? row.steps_completed : [],
+    stepsCompleted: Array.isArray(row.steps_completed)
+      ? row.steps_completed
+      : [],
     initiatedBy: row.initiated_by,
     createdAt: toIsoDateTime(row.created_at) ?? new Date().toISOString(),
     completedAt: toIsoDateTime(row.completed_at),
   };
 }
 
-async function queryCount(text: string, values: readonly unknown[]): Promise<number> {
+async function queryCount(
+  text: string,
+  values: readonly unknown[],
+): Promise<number> {
   const rows = await queryRows<DbCountRow>(text, values);
   return rows[0] ? Number(rows[0].count) : 0;
 }
@@ -606,7 +632,11 @@ async function mutateCoverageAlertStatus(input: {
     );
   }
 
-  const scopedValues: unknown[] = [input.organizationId, input.alertId, input.status];
+  const scopedValues: unknown[] = [
+    input.organizationId,
+    input.alertId,
+    input.status,
+  ];
   let siteClause = buildSiteScopeClause(input.scope, scopedValues, "site_id");
 
   const query = `
@@ -771,9 +801,13 @@ export async function getPersistentCanonicalQuality(input: {
   const validRecords = row ? Number(row.valid_records) : 0;
   const missingRows = Math.max(0, totalRecords - validRecords);
   const coveragePct =
-    totalRecords === 0 ? 0 : Number(((validRecords / totalRecords) * 100).toFixed(2));
+    totalRecords === 0
+      ? 0
+      : Number(((validRecords / totalRecords) * 100).toFixed(2));
   const missingShiftsPct =
-    totalRecords === 0 ? 0 : Number(((missingRows / totalRecords) * 100).toFixed(2));
+    totalRecords === 0
+      ? 0
+      : Number(((missingRows / totalRecords) * 100).toFixed(2));
   const minDate = row?.min_date ? toIsoDateOnly(row.min_date) : "1970-01-01";
   const maxDate = row?.max_date ? toIsoDateOnly(row.max_date) : "1970-01-01";
 
@@ -805,11 +839,14 @@ export async function getPersistentLiveDashboardSummary(input: {
     status: "open",
   });
   const horizonFilter = new Set(
-    (input.horizonIds ?? []).map((value) => value.trim()).filter((value) => value.length > 0),
+    (input.horizonIds ?? [])
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0),
   );
-  const activeAlerts = horizonFilter.size === 0
-    ? alerts
-    : alerts.filter((alert) => horizonFilter.has(alert.horizon));
+  const activeAlerts =
+    horizonFilter.size === 0
+      ? alerts
+      : alerts.filter((alert) => horizonFilter.has(alert.horizon));
 
   const coverageHuman =
     canonical.totalRecords === 0
@@ -821,7 +858,8 @@ export async function getPersistentLiveDashboardSummary(input: {
     coverageMerchandise: Number((coverageHuman + 1.8).toFixed(1)),
     activeAlertsCount: activeAlerts.length,
     forecastAccuracy: 92.4,
-    lastForecastDate: canonical.dateRange[1] === "1970-01-01" ? null : canonical.dateRange[1],
+    lastForecastDate:
+      canonical.dateRange[1] === "1970-01-01" ? null : canonical.dateRange[1],
   };
 }
 
@@ -881,7 +919,10 @@ export async function listPersistentLatestDailyForecasts(input: {
   assertOrgId(input.organizationId);
 
   const normalizedDimension = input.dimension.trim().toLowerCase();
-  if (normalizedDimension !== "human" && normalizedDimension !== "merchandise") {
+  if (
+    normalizedDimension !== "human" &&
+    normalizedDimension !== "merchandise"
+  ) {
     throw new PersistenceError(
       "Forecast dimension must be either human or merchandise.",
       400,
@@ -1104,19 +1145,24 @@ export async function getPersistentLiveOnboardingStatus(input: {
     "fr",
   );
 
-  const [canonicalCount, forecastCount, decisionCount, proofCount, monitoringCount] =
-    await Promise.all([
-      queryCount(
-        `
+  const [
+    canonicalCount,
+    forecastCount,
+    decisionCount,
+    proofCount,
+    monitoringCount,
+  ] = await Promise.all([
+    queryCount(
+      `
           SELECT COUNT(*)::bigint AS count
           FROM canonical_records cr
           WHERE cr.organization_id = $1::uuid
           ${canonicalSiteClause}
         `,
-        canonicalValues,
-      ),
-      queryCount(
-        `
+      canonicalValues,
+    ),
+    queryCount(
+      `
           SELECT COUNT(*)::bigint AS count
           FROM daily_forecasts df
           LEFT JOIN departments d
@@ -1125,28 +1171,28 @@ export async function getPersistentLiveOnboardingStatus(input: {
           WHERE df.organization_id = $1::uuid
           ${forecastSiteClause}
         `,
-        forecastValues,
-      ),
-      queryCount(
-        `
+      forecastValues,
+    ),
+    queryCount(
+      `
           SELECT COUNT(*)::bigint AS count
           FROM coverage_alerts ca
           WHERE ca.organization_id = $1::uuid
           ${decisionSiteClause}
         `,
-        decisionValues,
-      ),
-      queryCount(
-        `
+      decisionValues,
+    ),
+    queryCount(
+      `
           SELECT COUNT(*)::bigint AS count
           FROM proof_records pr
           WHERE pr.organization_id = $1::uuid
           ${proofSiteClause}
         `,
-        proofValues,
-      ),
-      queryCount(
-        `
+      proofValues,
+    ),
+    queryCount(
+      `
           SELECT COUNT(*)::bigint AS count
           FROM forecast_runs fr
           WHERE fr.organization_id = $1::uuid
@@ -1154,9 +1200,9 @@ export async function getPersistentLiveOnboardingStatus(input: {
             AND fr.accuracy_score IS NOT NULL
             ${monitoringScopeClause}
         `,
-        monitoringValues,
-      ),
-    ]);
+      monitoringValues,
+    ),
+  ]);
 
   const steps = [
     {
@@ -1336,7 +1382,9 @@ export function mapAdminCanonicalQuality(quality: PersistentCanonicalQuality): {
   completenessRate: number;
   qualityScore: number;
 } {
-  const validRecords = Math.round((quality.coveragePct / 100) * quality.totalRecords);
+  const validRecords = Math.round(
+    (quality.coveragePct / 100) * quality.totalRecords,
+  );
   const missingFields = Math.max(0, quality.totalRecords - validRecords);
   const completenessRate = Number((quality.coveragePct / 100).toFixed(3));
   return {

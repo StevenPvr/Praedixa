@@ -6,10 +6,6 @@ vi.mock("@praedixa/ui", () => ({
   cn: (...inputs: unknown[]) => inputs.filter(Boolean).join(" "),
 }));
 
-vi.mock("lucide-react", () => ({
-  MessageSquare: () => <svg data-testid="icon-message-square" />,
-}));
-
 const mockMessages = [
   {
     id: "m1",

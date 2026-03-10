@@ -135,13 +135,12 @@ def parse_page_window(
     max_limit: int = 1000,
 ) -> PageWindow:
     """Build a normalized page-window object from untrusted query parameters."""
+    raw_cursor = query.get("cursor")
     return PageWindow(
         limit=sanitize_limit(
             query.get("limit"),
             default_limit=default_limit,
             max_limit=max_limit,
         ),
-        cursor=decode_cursor(
-            query.get("cursor") if isinstance(query.get("cursor"), str) else None
-        ),
+        cursor=decode_cursor(raw_cursor if isinstance(raw_cursor, str) else None),
     )

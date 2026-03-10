@@ -380,6 +380,12 @@ Pour verification pre-push:
 pnpm gate:prepush
 ```
 
+Tests de regression securite cibles utilises aussi par les hooks:
+
+```bash
+./scripts/gate-sensitive-security-tests.sh
+```
+
 Ce gate impose:
 
 - checks qualite + securite exhaustifs

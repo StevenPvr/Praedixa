@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "../../lib/utils";
 
 interface HeroBackgroundVideoProps {
@@ -48,8 +48,39 @@ export function HeroBackgroundVideo({
   mp4Src,
 }: HeroBackgroundVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isActivated, setIsActivated] = useState(false);
 
   useEffect(() => {
+    if (isActivated) {
+      return;
+    }
+
+    const activateVideo = () => {
+      setIsActivated(true);
+    };
+
+    window.addEventListener("pointerdown", activateVideo, {
+      once: true,
+      passive: true,
+    });
+    window.addEventListener("touchstart", activateVideo, {
+      once: true,
+      passive: true,
+    });
+    document.addEventListener("keydown", activateVideo, { once: true });
+
+    return () => {
+      window.removeEventListener("pointerdown", activateVideo);
+      window.removeEventListener("touchstart", activateVideo);
+      document.removeEventListener("keydown", activateVideo);
+    };
+  }, [isActivated]);
+
+  useEffect(() => {
+    if (!isActivated) {
+      return;
+    }
+
     const video = videoRef.current;
     if (!video) return;
     const ensurePlayback = () => resumePlayback(videoRef.current);
@@ -72,28 +103,21 @@ export function HeroBackgroundVideo({
     window.addEventListener("focus", ensurePlayback);
     window.addEventListener("pageshow", ensurePlayback);
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    document.addEventListener("pointerdown", ensurePlayback, {
-      once: true,
-      passive: true,
-    });
-    document.addEventListener("touchstart", ensurePlayback, {
-      once: true,
-      passive: true,
-    });
-    document.addEventListener("keydown", ensurePlayback, { once: true });
 
     configureInlinePlayback(video);
+    void video.play().catch(() => undefined);
 
     return () => {
       video.removeEventListener("pause", handlePause);
       window.removeEventListener("focus", ensurePlayback);
       window.removeEventListener("pageshow", ensurePlayback);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      document.removeEventListener("pointerdown", ensurePlayback);
-      document.removeEventListener("touchstart", ensurePlayback);
-      document.removeEventListener("keydown", ensurePlayback);
     };
-  }, [mp4Src, webmSrc]);
+  }, [isActivated, mp4Src, webmSrc]);
+
+  if (!isActivated) {
+    return null;
+  }
 
   return (
     <video
@@ -103,7 +127,7 @@ export function HeroBackgroundVideo({
       loop
       muted
       playsInline
-      preload="auto"
+      preload="metadata"
       poster={poster}
       aria-hidden="true"
       disablePictureInPicture

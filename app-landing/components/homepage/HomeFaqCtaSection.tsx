@@ -29,19 +29,19 @@ const faqs: Record<"fr" | "en", FaqItem[]> = {
     {
       question: "Qu'est-ce que Praedixa fait concrètement ?",
       answer:
-        "Praedixa relie les données RH, finance, opérations et supply chain pour rendre les besoins visibles plus tôt, prioriser les actions et suivre le ROI.",
+        "Praedixa est la plateforme française de DecisionOps. Elle se branche sur vos outils existants pour transformer des arbitrages récurrents en décisions calculées, exécutées et auditables.",
     },
     {
       question: "Quand voit-on les premiers résultats ?",
       answer:
-        "Une première lecture utile arrive rapidement. Ensuite, Praedixa aide à prioriser les premières actions et à suivre le ROI dans le temps.",
+        "Une première lecture utile arrive rapidement. Ensuite, Praedixa aide à prioriser les premières actions, à les déclencher proprement et à suivre le ROI dans le temps.",
     },
   ],
   en: [
     {
       question: "Does Praedixa replace our existing tools?",
       answer:
-        "No. It's a decision layer on top of your existing stack (ERP, scheduling, BI, Excel). No replacement, no heavy IT project to get started.",
+        "No. It is a DecisionOps layer on top of your existing stack (ERP, scheduling, BI, Excel). No replacement, no heavy IT project to get started.",
     },
     {
       question: "Who keeps final decision authority?",
@@ -51,7 +51,7 @@ const faqs: Record<"fr" | "en", FaqItem[]> = {
     {
       question: "How is ROI proven?",
       answer:
-        "Monthly Decision Journal with a baseline / recommended / actual comparison and explicit assumptions. Audit-ready for steering or Finance reviews.",
+        "Through a monthly Decision Journal with baseline / recommended / actual comparison and explicit assumptions. Audit-ready for steering or Finance reviews.",
     },
     {
       question: "When do we see the first results?",
@@ -114,7 +114,9 @@ export function HomeFaqCtaSection({ locale }: HomeFaqCtaSectionProps) {
           href={auditHref}
           className="btn-primary-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-200 active:scale-[0.98]"
         >
-          {isFr ? "Obtenir le diagnostic ROI gratuit" : "Get the free historical audit"}
+          {isFr
+            ? "Obtenir le diagnostic ROI gratuit"
+            : "Get the free historical audit"}
           <ArrowRight size={14} weight="bold" />
         </Link>
         <Link

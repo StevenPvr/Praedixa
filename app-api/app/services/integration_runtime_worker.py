@@ -28,6 +28,7 @@ _RUNTIME_ERROR_INVALID_INPUT = "invalid_mapping_or_payload"
 _RUNTIME_ERROR_HTTP = "connectors_runtime_http_error"
 _RUNTIME_ERROR_UNREACHABLE = "connectors_runtime_unreachable"
 _RUNTIME_ERROR_GENERIC = "connector_ingestion_failed"
+IPAddress = ipaddress.IPv4Address | ipaddress.IPv6Address
 
 
 @dataclass(frozen=True)
@@ -183,7 +184,7 @@ def _is_success_payload(payload: Any) -> bool:
     return isinstance(payload, dict) and payload.get("success") is True
 
 
-def _is_local_runtime_host(host: str, host_ip: ipaddress._BaseAddress | None) -> bool:
+def _is_local_runtime_host(host: str, host_ip: IPAddress | None) -> bool:
     return host == "localhost" or host.endswith(".localhost") or (
         host_ip is not None and host_ip.is_loopback
     )
