@@ -74,6 +74,8 @@ Before running `pa11y-ci` from a transient `pnpm dlx` install, point it to the r
 Before trusting a versioned manual gate report in `pre-push`, allow the verifier to regenerate a same-SHA report when the existing one is stale or failed, or the hook can stay falsely red after fixes.
 After replacing the homepage sector navigation, update the matching landing E2E spec in the same diff so hooks do not keep asserting removed links or counts.
 Before adding a blocking dynamic audit to Git hooks, enforce explicit network and process timeouts so a degraded local service cannot hang `pre-push` indefinitely.
+Before relying on a background server inside a blocking hook script, force-stop it after a short grace period during cleanup so `wait` cannot hang the whole Git hook.
+Before spawning `pnpm`-managed background servers in hook scripts, stop the full child process tree, not just the top-level wrapper PID, or the hook can leak `tsx/node` children and stay stuck.
 
 ## Testing Guidelines
 
