@@ -30,8 +30,8 @@ vi.mock("next/link", () => ({
   ),
 }));
 vi.mock("../HeroBackgroundVideo", () => ({
-  HeroBackgroundVideo: ({ mp4Src }: { mp4Src: string }) => (
-    <div data-mp4-src={mp4Src} data-testid="hero-background-video" />
+  HeroBackgroundVideo: ({ src }: { src: string }) => (
+    <div data-src={src} data-testid="hero-background-video" />
   ),
 }));
 
@@ -44,7 +44,7 @@ describe("HeroSection", () => {
     expect(screen.getByText("OPÉRATIONS")).toBeInTheDocument();
     expect(screen.queryByText("Restaurant")).not.toBeInTheDocument();
     expect(screen.getByTestId("hero-background-video")).toHaveAttribute(
-      "data-mp4-src",
+      "data-src",
       "/hero-video/hero-industries-montage.mp4",
     );
     expect(screen.getByText("RH").className).toContain(

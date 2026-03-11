@@ -1,20 +1,19 @@
 # `lib/media/`
 
-Helpers media du hero.
+Assets media du hero.
 
 ## Role
 
-Servir les assets hero effectivement utilises par la homepage et gerer les contraintes navigateur.
+Servir les assets hero effectivement utilises par la homepage sans empiler de selection navigateur morte.
 
 ## Fichiers
 
-- `hero-video.ts`: choix MP4/WebM avec garde-fou Safari/WebKit
 - `hero-industries.ts`: definition de l'asset montage unique utilise par le hero
 
 ## Tests
 
-- `__tests__/hero-video.test.ts`
+- pas de helper de selection versionne tant qu'un seul asset video hero est effectivement livre
 
 ## Convention
 
-Avant de modifier la logique media, verifier le comportement reel WebKit/Safari et ne pas supposer que les attributs autoplay suffisent.
+Avant de modifier les medias du hero, verifier le comportement reel WebKit/Safari et garder le poster comme rendu critique. Si un seul asset video est effectivement livre en production, ne pas conserver une couche de selection MP4/WebM purement theorique.

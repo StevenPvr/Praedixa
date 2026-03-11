@@ -9,7 +9,7 @@ Construire une homepage modulaire ou chaque section est lisible seule, reordonna
 ## Sections principales
 
 - `HeroSection.tsx`: hero principal
-- `HeroBackgroundVideo.tsx`: selection et rendu video/image hero
+- `HeroBackgroundVideo.tsx`: upgrade video hero au-dessus du poster critique
 - `HeroProofCard.tsx`: carte de preuve ROI dans le hero
 - `ProblemSection.tsx`, `SolutionSection.tsx`: problème et réponse produit
 - `SectorPagesTeaserSection.tsx`: renvoi homepage vers les pages sectorielles dediees
@@ -48,8 +48,9 @@ Dans `ClosedLoopTeaserSection.tsx`, garder la boucle produit complète: `Fédér
 Dans `ClosedLoopTeaserSection.tsx`, eviter les grilles de 5 cartes identiques: preferer une composition asymetrique avec une colonne d'intention et des etapes de tailles variees.
 Dans `ClosedLoopTeaserSection.tsx`, ne pas utiliser de `translate-y` decoratif sur les etapes si cela fragilise la lecture ou le contraste; privilegier un rail vertical compact et stable.
 Dans le rail d'etapes horizontal de `ClosedLoopTeaserSection.tsx`, garder toutes les cartes a hauteur identique et eviter tout contenu additionnel reserve a une seule carte.
-Le hero video doit laisser le poster `next/image` porter le rendu initial: garder un `preload="metadata"` sur `HeroBackgroundVideo.tsx` pour ne pas degrader inutilement le LCP de la homepage.
+Le hero video doit laisser le poster `next/image` porter le rendu initial: garder un `preload="metadata"` sur `HeroBackgroundVideo.tsx` et monter la vidéo apres l'hydratation plutot que dans le chemin critique du LCP.
 `HeroSection.tsx` doit rester un composant serveur tant qu'il ne porte pas d'etat ou d'effet; isoler le strict minimum client dans `HeroBackgroundVideo.tsx` pour limiter le JS du chemin critique.
-La vidéo hero est une amélioration progressive: le poster image porte le first paint, puis `HeroBackgroundVideo.tsx` ne charge la vidéo qu'après une vraie interaction utilisateur pour ne pas repousser le LCP de la homepage.
+La vidéo hero est une amélioration progressive: le poster image porte le first paint, puis `HeroBackgroundVideo.tsx` monte automatiquement la vidéo apres l'hydratation seulement si le contexte le permet (`prefers-reduced-motion` et `saveData` respectés), sans exiger d'interaction utilisateur.
+Dans `HeroBackgroundVideo.tsx`, preferer un seul flux MP4 robuste avec reprise `focus/pageshow/visibilitychange` plutot qu'une orchestration multi-format non utilisee en production.
 Le poster hero critique doit rester servi directement avec `next/image` en `priority` + `unoptimized` quand l'asset local est deja suffisamment compact, pour eviter une latence inutile du proxy `_next/image` sur le LCP.
 Pour l'iconographie marketing, preferer le set SVG `components/shared/icons/` aux glyphes `sparkle`, `lightbulb` ou styles `duotone`, surtout sur les labels de positionnement et les cartes sectorielles.

@@ -18,3 +18,4 @@ Fichiers :
 ## Intégration
 
 Ce dossier est consommé par l'application `app-landing` pour le hero de la homepage.
+Le poster JPG reste le rendu critique de first paint; la video MP4 ne doit venir qu'en upgrade progressive, pas comme dependance bloquante du hero.

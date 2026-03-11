@@ -116,7 +116,7 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
           <HeroBackgroundVideo
             key={heroIndustryMontageMedia.mp4Src}
             poster={heroIndustryMontageMedia.poster}
-            mp4Src={heroIndustryMontageMedia.mp4Src}
+            src={heroIndustryMontageMedia.mp4Src}
           />
           <div className="absolute inset-0 bg-[linear-gradient(102deg,rgba(2,6,23,0.92)_6%,rgba(2,6,23,0.74)_32%,rgba(2,6,23,0.34)_58%,rgba(2,6,23,0.72)_100%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_74%_18%,rgba(38,92,201,0.18),transparent_24%),radial-gradient(circle_at_22%_84%,rgba(244,231,198,0.11),transparent_28%)]" />

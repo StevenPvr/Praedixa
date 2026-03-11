@@ -10,7 +10,7 @@ Sous-dossiers :
 - Aucun élément versionné direct.
 
 Fichiers :
-- `hero-video.test.ts`
+- Aucun fichier de test versionné direct.
 
 ## Intégration
 

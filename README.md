@@ -38,6 +38,10 @@ Points d'entrée utiles :
 - `contracts/README.md` pour les contrats techniques ;
 - les `README.md` présents dans chaque app, package et sous-dossier versionné.
 
+## Artefacts business
+
+- `pitch-deck-v2.html` : pitch investisseur HTML autonome, réécrit en langage simple avec une mise en page calibrée sur le contenu, répartie sur la hauteur de chaque slide et uniformisée carte par carte à l’échelle de la slide. La cover met explicitement en avant l’anticipation des besoins opérationnels, l’optimisation des décisions, l’appui sur l’état de l’art du machine learning et l’incubation du projet à EuraTechnologies dans la verticale IA / Data, avec des exemples concrets de charge, demande, saisonnalité, pics et creux. Le volet bootstrap précise aussi une discipline commerciale fondée sur des apporteurs d’affaires payés au succès, sur client signé et non sur simple prospect. La slide DeepTech expose désormais une vraie feuille de route R&D autour du decision-focused learning, de l’optimisation discrète, de l’endogénéité, du board scientifique, des dossiers BPI de juin 2026, d’un doctorat CIFRE visé pour septembre 2026 et de l’accompagnement Euratechnologies. La slide finale précise aussi la composition cible de l’équipe, les recrutements actifs CTO / Head of Research et le socle d’écosystème vérifié autour d’EuraTechnologies et d’Inria à Lille. Le header du deck réutilise maintenant le monogramme actuel de Praedixa, aligné sur `@praedixa/ui`.
+
 ## Prerequis
 
 - Node.js 22+

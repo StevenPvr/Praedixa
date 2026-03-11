@@ -36,6 +36,7 @@ For Safari/WebKit media bugs, validate real playback state in WebKit before assu
 When mocking `next/image` in tests, strip Next-only props like `fill` and `priority` before rendering a native `img`.
 For third-party wordmark logos, use a visually verified official asset at the actual display size instead of assuming the SVG variant will stay legible in the UI.
 If a brand asset has already been visually approved, do not swap it for a recolored or reconstructed variant without rechecking the exact rendered wordmark.
+Before updating a static Praedixa business asset, reuse the current shared logo mark from `@praedixa/ui` instead of keeping a copied legacy inline SVG.
 Do not remove or rewrite user-approved brand or mission copy unless the user explicitly asks for that exact change.
 After changing hero claim layouts, verify the real desktop browser rendering before considering the task done.
 When updating landing hero positioning copy, verify the combined headline length (`headline` + `headlineHighlight`) stays short enough before trying to solve the issue with layout tweaks.
@@ -71,6 +72,8 @@ Before running recursive security scans on a monorepo, exclude nested build arti
 Before starting a local dynamic API audit or smoke server, bind it to a freshly allocated free port instead of assuming `8000` is available.
 Before adding a global skip-link in a Next.js app shell, verify that every route branch, including auth pages outside the main shell, exposes the target anchor.
 Before shipping a decorative hero video on the landing page, let a static poster carry the initial paint and defer video loading so Lighthouse LCP stays tied to the real content, not the media upgrade.
+Before calling a decorative hero video "progressive", verify it can still mount automatically without a user gesture, or the homepage can look broken on first visit.
+Before simplifying landing hero media to a single shipped video asset, keep an explicit poster fallback so a failed video load does not leave a blank or frozen hero.
 Before adding a global webfont to the landing layout, verify it is needed above the fold; every extra high-priority font on `/fr` must justify its LCP cost.
 Before rebaselining a Lighthouse budget, first remove avoidable bottlenecks on a fresh production build and only then version the new threshold as an explicit measured baseline.
 Before reusing a text accent token inside the landing hero, verify it stays readable on the actual dark media background; tokens tuned for light surfaces should not be reused blindly above the fold.
@@ -79,6 +82,7 @@ Before repositioning a persistent hero rail or proof strip, anchor it with the s
 Before declaring a landing hero block removed, verify the exact JSX branch is gone and recheck the real desktop rendering instead of assuming adjacent cards were the only remaining element.
 Before trimming a landing explanation of the DecisionOps loop, verify the full product sequence still appears explicitly: federate, predict, calculate, trigger, prove.
 Before offsetting landing content blocks with decorative `translate-y` or staggered heights, verify the real desktop rendering and contrast so the composition does not create clipped or low-visibility copy.
+Before relaxing fixed-height constraints in a static slide deck, recheck that peer cards on the same slide still keep a uniform visual height.
 Before running `pa11y-ci` from a transient `pnpm dlx` install, point it to the repo's Playwright Chromium instead of relying on a Puppeteer postinstall download.
 Before trusting a versioned manual gate report in `pre-push`, allow the verifier to regenerate a same-SHA report when the existing one is stale or failed, or the hook can stay falsely red after fixes.
 After replacing the homepage sector navigation, update the matching landing E2E spec in the same diff so hooks do not keep asserting removed links or counts.
