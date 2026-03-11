@@ -23,14 +23,16 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("framer-motion", () => ({
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   motion: {
     div: ({
       children,
       ...props
-    }: React.HTMLAttributes<HTMLDivElement> & { children: React.ReactNode }) => (
-      <div {...props}>{children}</div>
-    ),
+    }: React.HTMLAttributes<HTMLDivElement> & {
+      children: React.ReactNode;
+    }) => <div {...props}>{children}</div>,
     nav: ({
       children,
       ...props
@@ -56,6 +58,13 @@ describe("navigation menus", () => {
     });
 
     expect(resourcesLink).toHaveAttribute("href", "/fr/ressources");
+    expect(screen.getByRole("link", { name: /HCR/i })).toHaveAttribute(
+      "href",
+      "/fr/secteurs/hcr",
+    );
+    expect(
+      screen.getByRole("link", { name: /Enseignement supérieur/i }),
+    ).toHaveAttribute("href", "/fr/secteurs/enseignement-superieur");
 
     mockPathname = "/fr/ressources";
     rerender(<DesktopNav locale="fr" />);
@@ -83,6 +92,13 @@ describe("navigation menus", () => {
     expect(
       screen.getByRole("link", { name: /Ressources essentielles/i }),
     ).toHaveAttribute("href", "/fr/ressources");
+    expect(screen.getByRole("link", { name: /HCR/i })).toHaveAttribute(
+      "href",
+      "/fr/secteurs/hcr",
+    );
+    expect(
+      screen.getByRole("link", { name: /Enseignement supérieur/i }),
+    ).toHaveAttribute("href", "/fr/secteurs/enseignement-superieur");
 
     mockPathname = "/fr/ressources";
     rerender(

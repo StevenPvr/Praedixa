@@ -110,7 +110,7 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
               <div className="px-6 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
                 <Kicker>{entry.heroKicker}</Kicker>
                 <div className="mt-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-200 bg-white/82 text-brass shadow-[0_16px_35px_-25px_rgba(120,87,18,0.45)]">
-                  <Icon size={28} weight="duotone" />
+                  <Icon size={28} />
                 </div>
                 <h1 className="mt-6 max-w-[14ch] text-4xl font-semibold leading-[0.96] tracking-[-0.05em] text-ink sm:text-5xl lg:text-[4.2rem]">
                   {entry.heroTitle}
@@ -281,7 +281,7 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
       </SectionShell>
 
       <SectionShell className="py-10 md:py-14">
-        <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="grid gap-6 lg:grid-cols-2">
           <section className="rounded-[2rem] border border-neutral-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(250,246,236,0.9)_100%)] p-6 md:p-8">
             <Kicker>{entry.kpiKicker}</Kicker>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-ink">
@@ -300,56 +300,78 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
             </ul>
           </section>
 
-          <section className="rounded-[2rem] border border-neutral-200/80 bg-neutral-950 px-6 py-8 text-white shadow-[0_34px_80px_-60px_rgba(15,23,42,0.95)] md:px-8">
+          <section className="rounded-[2rem] border border-neutral-200/80 bg-white p-6 shadow-[0_20px_40px_-34px_rgba(15,23,42,0.18)] md:p-8">
+            <Kicker>{entry.decisionKicker}</Kicker>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-ink">
+              {entry.decisionTitle}
+            </h2>
+            <ul className="mt-6 list-none space-y-3 p-0">
+              {entry.decisions.map((decision) => (
+                <li
+                  key={decision}
+                  className="m-0 flex items-start gap-3 rounded-[1.2rem] border border-neutral-200/80 bg-neutral-50/75 px-4 py-3 text-sm text-neutral-700"
+                >
+                  <span className="mt-1 block h-2 w-2 shrink-0 rounded-full bg-brass" />
+                  {decision}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="rounded-[2rem] border border-neutral-200/80 bg-neutral-950 px-6 py-8 text-white shadow-[0_34px_80px_-60px_rgba(15,23,42,0.95)] md:px-8 lg:col-span-2">
             <Kicker className="text-amber-200">
-              {locale === "fr" ? "Passer à l'action" : "Take the next step"}
+              {locale === "fr"
+                ? "Passer de l'exemple à vos données"
+                : "Move from examples to your own data"}
             </Kicker>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white">
               {entry.ctaTitle}
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-neutral-300">
+            <p className="mt-4 max-w-[68ch] text-base leading-relaxed text-neutral-300">
               {entry.ctaBody}
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href={pilotHref}
-                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-neutral-950 no-underline transition-colors hover:bg-amber-50"
-              >
-                {locale === "fr"
-                  ? "Demander un pilote ROI"
-                  : "Request an ROI pilot"}
-                <ArrowRight size={16} weight="bold" />
-              </Link>
-              <Link
-                href={protocolHref}
-                className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white no-underline transition-colors hover:bg-white/[0.1]"
-              >
-                {locale === "fr"
-                  ? "Voir le protocole pilote"
-                  : "View the pilot protocol"}
-              </Link>
-            </div>
+            <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,0.76fr)_minmax(0,1.24fr)] lg:items-start">
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href={pilotHref}
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-neutral-950 no-underline transition-colors hover:bg-amber-50"
+                >
+                  {locale === "fr"
+                    ? "Demander un pilote ROI"
+                    : "Request an ROI pilot"}
+                  <ArrowRight size={16} weight="bold" />
+                </Link>
+                <Link
+                  href={protocolHref}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white no-underline transition-colors hover:bg-white/[0.1]"
+                >
+                  {locale === "fr"
+                    ? "Voir le protocole pilote"
+                    : "View the pilot protocol"}
+                </Link>
+              </div>
 
-            <div className="mt-8 border-t border-white/10 pt-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/52">
-                {locale === "fr" ? "Sources" : "Sources"}
-              </p>
-              <ul className="mt-3 list-none space-y-2 p-0">
-                {displaySourceLinks.map((source) => (
-                  <li key={source.url} className="m-0">
-                    <a
-                      href={source.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm text-neutral-300 no-underline hover:text-white"
-                    >
-                      {source.label}
-                      <ArrowUpRight size={14} weight="bold" />
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              <div className="border-t border-white/10 pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/52">
+                  {locale === "fr" ? "Sources" : "Sources"}
+                </p>
+                <ul className="mt-3 list-none space-y-2 p-0">
+                  {displaySourceLinks.map((source) => (
+                    <li key={source.url} className="m-0">
+                      <a
+                        href={source.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm text-neutral-300 no-underline hover:text-white"
+                      >
+                        {source.label}
+                        <ArrowUpRight size={14} weight="bold" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </section>
         </div>

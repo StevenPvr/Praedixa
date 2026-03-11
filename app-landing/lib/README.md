@@ -23,3 +23,4 @@ Logique non-UI du site marketing.
 - `lib/` ne doit pas rendre de JSX sauf cas de moteur contenu clairement identifies (`blog/mdx.tsx`)
 - les modules ici doivent etre reutilisables par plusieurs routes/composants
 - la securite HTTP et les validations de payload vivent ici, pas dans les composants
+- `nav-config.ts` doit exposer les pages verticales importantes quand elles deviennent des chemins d'acquisition prioritaires, pas seulement les pages methodes generiques

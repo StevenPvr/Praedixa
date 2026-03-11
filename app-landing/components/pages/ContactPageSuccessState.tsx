@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, CheckCircle } from "@phosphor-icons/react";
+import { ArrowLeft } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
+import { CheckBadgeIcon } from "../shared/icons/MarketingIcons";
 import { ScopingCallRequestPanel } from "../shared/ScopingCallRequestPanel";
 import type { ContactPageCopy } from "./contact-page.types";
 
@@ -21,7 +22,7 @@ export function ContactPageSuccessState({
     <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 md:py-24">
       <div className="space-y-6">
         <div className="rounded-[2rem] border border-amber-200/80 bg-[linear-gradient(165deg,rgba(244,231,198,0.62)_0%,rgba(252,248,238,0.9)_72%,rgba(255,255,255,0.95)_100%)] p-8 text-center shadow-[0_22px_46px_-38px_rgba(32,24,4,0.45),inset_0_1px_0_rgba(255,255,255,0.82)]">
-          <CheckCircle size={54} weight="fill" className="mx-auto text-amber-700" />
+          <CheckBadgeIcon size={54} className="mx-auto text-amber-700" />
           <h1 className="mt-5 text-3xl font-bold tracking-tight text-ink md:text-4xl">
             {copy.successTitle}
           </h1>

@@ -25,8 +25,8 @@ export const enCoreFoundation: Partial<Dictionary> = {
 
   hero: {
     kicker: "French DecisionOps platform",
-    headline: "DecisionOps for operations.",
-    headlineHighlight: "Decide earlier. Prove ROI.",
+    headline: "DecisionOps",
+    headlineHighlight: "Anticipate needs. Decide earlier. Prove ROI.",
     subtitle:
       "Praedixa connects to your existing systems, federates the critical data on France-hosted infrastructure, turns recurring operational trade-offs into governed, auditable decisions, then proves ROI decision by decision for Ops / Finance reviews. Human validation required.",
     manifestoLabel: "Our purpose",

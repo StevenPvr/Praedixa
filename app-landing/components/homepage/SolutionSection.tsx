@@ -1,7 +1,8 @@
-import { ArrowRight, Sparkle } from "@phosphor-icons/react/ssr";
+import { ArrowRight } from "@phosphor-icons/react/ssr";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
+import { DecisionGraphIcon } from "../shared/icons/MarketingIcons";
 import { PulseDot } from "../shared/motion/PulseDot";
 import { ShimmerTrack } from "../shared/motion/ShimmerTrack";
 import {
@@ -117,7 +118,7 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
         >
           <div className="rounded-2xl border border-neutral-200/80 bg-white/85 p-6 shadow-[0_24px_40px_-30px_rgba(15,23,42,0.35),inset_0_1px_0_rgba(255,255,255,0.75)] md:p-7">
             <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-brass-700">
-              <Sparkle size={14} weight="fill" />
+              <DecisionGraphIcon size={14} />
               {isFrench ? "Différenciation" : "Differentiation"}
             </span>
             <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
@@ -133,7 +134,10 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
                   className="grid grid-cols-1 gap-1.5 py-3 text-sm md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:gap-3"
                 >
                   <span className="font-medium text-brass-700">{item.is}</span>
-                  <ArrowRight size={14} className="hidden shrink-0 text-neutral-300 md:block" />
+                  <ArrowRight
+                    size={14}
+                    className="hidden shrink-0 text-neutral-300 md:block"
+                  />
                   <span className="text-neutral-500 line-through">
                     {item.isNot}
                   </span>

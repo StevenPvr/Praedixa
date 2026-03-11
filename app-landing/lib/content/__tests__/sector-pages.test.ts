@@ -50,16 +50,27 @@ describe("sector pages content", () => {
   });
 
   it("deduplicates repeated source URLs in rendered source lists", () => {
-    const logisticsFr = getSectorPageById("fr", "logistics-transport-retail");
-    const renderedSources = getSectorDisplaySourceLinks(logisticsFr);
+    const hospitalityFr = getSectorPageById("fr", "hcr");
+    const renderedSources = getSectorDisplaySourceLinks(hospitalityFr);
     const franceTravailSources = renderedSources.filter((source) =>
-      source.url.includes(
-        "statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
-      ),
+      source.url.includes("statistiques.francetravail.org/bmo/bmo?fg=IZ"),
     );
 
     expect(franceTravailSources).toHaveLength(1);
-    expect(renderedSources.length).toBeLessThan(logisticsFr.sourceLinks.length);
+    expect(renderedSources.length).toBeLessThan(
+      hospitalityFr.proofs.length + hospitalityFr.sourceLinks.length,
+    );
+  });
+
+  it("ships predicted KPIs and optimized decisions for every sector page", () => {
+    for (const locale of ["fr", "en"] as const) {
+      for (const entry of listSectorPages(locale)) {
+        expect(entry.kpis.length).toBeGreaterThanOrEqual(6);
+        expect(entry.decisions.length).toBeGreaterThanOrEqual(6);
+        expect(entry.kpiTitle.length).toBeGreaterThan(20);
+        expect(entry.decisionTitle.length).toBeGreaterThan(20);
+      }
+    }
   });
 
   it("keeps shared differentiation cards in localized content modules", () => {

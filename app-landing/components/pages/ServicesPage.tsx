@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  CheckCircle,
-  MinusCircle,
-  Sparkle,
-} from "@phosphor-icons/react";
+import { ArrowUpRight } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import {
+  CheckBadgeIcon,
+  DecisionGraphIcon,
+  MinusBadgeIcon,
+} from "../shared/icons/MarketingIcons";
 import { Kicker } from "../shared/Kicker";
 import { SectionShell } from "../shared/SectionShell";
 
@@ -81,7 +81,7 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
 
           <div className="rounded-2xl border border-amber-200/80 bg-amber-50/65 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
             <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.11em] text-brass-700">
-              <Sparkle size={14} weight="fill" />
+              <DecisionGraphIcon size={14} />
               {localeCopy.serviceKicker}
             </p>
             <p className="mt-3 text-sm leading-relaxed text-neutral-700">
@@ -109,10 +109,12 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
               <ul className="mt-4 list-none space-y-2.5 p-0">
                 {fullPackageIncludes.length > 0 ? (
                   fullPackageIncludes.map((item) => (
-                    <li key={item} className="m-0 flex items-start gap-2.5 text-sm text-neutral-700">
-                      <CheckCircle
+                    <li
+                      key={item}
+                      className="m-0 flex items-start gap-2.5 text-sm text-neutral-700"
+                    >
+                      <CheckBadgeIcon
                         size={18}
-                        weight="fill"
                         className="mt-0.5 shrink-0 text-amber-600"
                       />
                       {item}
@@ -153,10 +155,12 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
               <ul className="mt-3 list-none space-y-2 p-0">
                 {forecastsIncludes.length > 0 ? (
                   forecastsIncludes.map((item) => (
-                    <li key={item} className="m-0 flex items-start gap-2 text-sm text-neutral-600">
-                      <CheckCircle
+                    <li
+                      key={item}
+                      className="m-0 flex items-start gap-2 text-sm text-neutral-600"
+                    >
+                      <CheckBadgeIcon
                         size={16}
-                        weight="fill"
                         className="mt-0.5 shrink-0 text-neutral-500"
                       />
                       {item}
@@ -175,10 +179,12 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
               <ul className="mt-3 list-none space-y-2 p-0">
                 {forecastsLimits.length > 0 ? (
                   forecastsLimits.map((item) => (
-                    <li key={item} className="m-0 flex items-start gap-2 text-sm text-neutral-600">
-                      <MinusCircle
+                    <li
+                      key={item}
+                      className="m-0 flex items-start gap-2 text-sm text-neutral-600"
+                    >
+                      <MinusBadgeIcon
                         size={16}
-                        weight="fill"
                         className="mt-0.5 shrink-0 text-neutral-500"
                       />
                       {item}
@@ -210,7 +216,10 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
               <ul className="mt-4 list-none space-y-2.5 p-0">
                 {decisionItems.length > 0 ? (
                   decisionItems.map((item, index) => (
-                    <li key={item} className="m-0 flex items-start gap-2.5 text-sm text-neutral-700">
+                    <li
+                      key={item}
+                      className="m-0 flex items-start gap-2.5 text-sm text-neutral-700"
+                    >
                       <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-amber-300 bg-amber-100 text-[11px] font-semibold text-amber-700">
                         {index + 1}
                       </span>
@@ -256,7 +265,9 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
                     key={row.criterion}
                     className="grid grid-cols-1 gap-2 py-4 md:grid-cols-[1.25fr_0.78fr_0.78fr] md:gap-4"
                   >
-                    <p className="m-0 text-sm leading-relaxed text-neutral-700">{row.criterion}</p>
+                    <p className="m-0 text-sm leading-relaxed text-neutral-700">
+                      {row.criterion}
+                    </p>
                     <p
                       className={`m-0 inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
                         isPositiveComparisonValue(row.fullPackage)
@@ -280,7 +291,9 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
               </ul>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-neutral-500">{localeCopy.comparisonFallback}</p>
+            <p className="mt-4 text-sm text-neutral-500">
+              {localeCopy.comparisonFallback}
+            </p>
           )}
         </section>
       </article>

@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CheckCircle, WarningCircle } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import {
+  AlertDiamondIcon,
+  CheckBadgeIcon,
+} from "../shared/icons/MarketingIcons";
 import { ScopingCallRequestPanel } from "../shared/ScopingCallRequestPanel";
 import type { PilotPageUi } from "./pilot-application.types";
 
@@ -17,7 +21,7 @@ export function PilotApplicationMissingState({
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 md:py-24">
       <div className="rounded-[2rem] border border-neutral-200/80 bg-white/95 p-8 text-center shadow-[0_22px_46px_-40px_rgba(15,23,42,0.28),inset_0_1px_0_rgba(255,255,255,0.85)]">
-        <WarningCircle size={44} weight="fill" className="mx-auto text-neutral-500" />
+        <AlertDiamondIcon size={44} className="mx-auto text-neutral-500" />
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-ink">
           {ui.missingTitle}
         </h1>
@@ -55,7 +59,7 @@ export function PilotApplicationSuccessState({
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 md:py-24">
       <div className="space-y-6">
         <div className="rounded-[2rem] border border-amber-200/80 bg-[linear-gradient(165deg,rgba(244,231,198,0.62)_0%,rgba(252,248,238,0.9)_72%,rgba(255,255,255,0.96)_100%)] p-8 text-center shadow-[0_22px_46px_-38px_rgba(32,24,4,0.45),inset_0_1px_0_rgba(255,255,255,0.82)] md:p-10">
-          <CheckCircle size={56} weight="fill" className="mx-auto text-amber-700" />
+          <CheckBadgeIcon size={56} className="mx-auto text-amber-700" />
           <h1 className="mt-5 text-3xl font-semibold tracking-tight text-ink md:text-4xl">
             {dict.form.success.title}
           </h1>

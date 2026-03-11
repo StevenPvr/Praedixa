@@ -57,7 +57,7 @@ export function SectorPagesTeaserSection({
                 className="group rounded-[1.7rem] border border-neutral-200/80 bg-white/94 p-5 shadow-[0_22px_50px_-42px_rgba(15,23,42,0.28)] transition-all duration-200 hover:-translate-y-1 hover:border-amber-300/70 hover:shadow-[0_30px_65px_-45px_rgba(15,23,42,0.35)]"
               >
                 <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-200 bg-amber-50 text-brass">
-                  <Icon size={22} weight="duotone" />
+                  <Icon size={22} />
                 </div>
                 <h3 className="mt-5 text-xl font-semibold tracking-tight text-ink">
                   {sector.title}

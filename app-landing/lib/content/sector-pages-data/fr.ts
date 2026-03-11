@@ -1,17 +1,17 @@
-import {
-  GraduationCap,
-  Storefront,
-  Truck,
-  Wrench,
-} from "@phosphor-icons/react/ssr";
 import type { SectorPageEntry } from "./types";
+import {
+  CampusLineIcon,
+  CarServiceIcon,
+  FlowNetworkIcon,
+  StorefrontLineIcon,
+} from "../../../components/shared/icons/MarketingIcons";
 import { praedixaMethodSources } from "./shared";
 import { sectorRoutes } from "./routes";
 
 export const sectorPagesFr: readonly SectorPageEntry[] = [
   {
     id: "hcr",
-    icon: Storefront,
+    icon: StorefrontLineIcon,
     groupLabel: "HCR",
     slug: sectorRoutes.fr.slugs.hcr,
     shortLabel: "HCR",
@@ -107,15 +107,30 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         body: "Praedixa suit la masse salariale, la couverture, les temps d'attente et la marge protégée dans un journal de décision relisible.",
       },
     ],
-    kpiKicker: "KPIs à défendre",
-    kpiTitle: "Les indicateurs qui comptent quand le staffing se tend en HCR",
+    kpiKicker: "KPIs prédictibles",
+    kpiTitle:
+      "Les signaux HCR que Praedixa peut projeter avant que le service se tende",
     kpis: [
-      "Coût de main-d'œuvre par site ou point de vente",
-      "Heures supplémentaires",
-      "Recours extras / intérim",
-      "Taux de couverture par service",
-      "Temps d'attente et niveau de service",
-      "Marge protégée",
+      "Nuitées, couverts, taux d'occupation et ticket moyen par site, jour et service",
+      "Heures de travail requises par role, shift et plage horaire critique",
+      "Taux de couverture des shifts critiques en salle, cuisine, reception et housekeeping",
+      "Risque d'absentéisme, de no-show ou de sous-couverture par equipe et type de contrat",
+      "Volume d'heures supplémentaires, extras et intérim à court horizon",
+      "Temps d'attente, niveau de service et revenu par heure travaillée",
+      "Marge protégée ou exposée selon le niveau de couverture retenu",
+      "Part de charge saisonnière vs permanente par site",
+    ],
+    decisionKicker: "Décisions optimisables",
+    decisionTitle:
+      "Les arbitrages HCR que Praedixa peut aider à trancher plus tôt",
+    decisions: [
+      "Combien de serveurs, cuisiniers, receptionnistes ou agents housekeeping planifier par shift",
+      "Quand lancer les recrutements saisonniers et sur quels métiers prioritaires",
+      "Quand ouvrir, fermer ou réduire une salle, un etage, un service ou une amplitude horaire",
+      "Quand recourir aux extras ou à l'intérim vs mobiliser la polyvalence interne",
+      "Quels sites prioriser pour formation croisée, retention ou renfort ponctuel",
+      "Quand ajuster la promesse de service ou la pression commerciale pour proteger la marge",
+      "Quels etablissements ont besoin d'un arbitrage logement, transport ou fidelisation pour tenir la saison",
     ],
     ctaTitle:
       "Voir ce que Praedixa ferait sur vos services les plus sensibles.",
@@ -133,11 +148,19 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         label: "France Travail — BMO 2025 hébergement-restauration",
         url: "https://statistiques.francetravail.org/bmo/bmo?fg=IZ&pp=2025&ss=1",
       },
+      {
+        label: "Insee — emploi salarié HCR T1 2025",
+        url: "https://www.bnsp.insee.fr/ark%3A/12148/bc6p09p7qj4.pdf",
+      },
+      {
+        label: "Insee Focus 363 — fréquentation touristique été 2025",
+        url: "https://www.insee.fr/fr/statistiques/8645986",
+      },
     ],
   },
   {
     id: "higher-education",
-    icon: GraduationCap,
+    icon: CampusLineIcon,
     groupLabel: "Enseignement supérieur",
     slug: sectorRoutes.fr.slugs["higher-education"],
     shortLabel: "Enseignement supérieur",
@@ -233,16 +256,31 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         body: "Praedixa suit coût de couverture, délai de traitement, continuité de service et stabilité opérationnelle sur les périodes critiques.",
       },
     ],
-    kpiKicker: "KPIs à défendre",
+    kpiKicker: "KPIs prédictibles",
     kpiTitle:
-      "Les indicateurs qui font gagner du temps et évitent la dérive de couverture",
+      "Les indicateurs campus que Praedixa peut projeter avant les pics de charge",
     kpis: [
-      "Coût des vacations et heures complémentaires",
-      "Délai de traitement admissions / scolarité",
-      "Taux de couverture examens et surveillances",
-      "Modifications de dernière minute",
-      "Continuité de service sur les pics de rentrée",
-      "Charge absorbée par équipe support",
+      "Candidatures par place et pression d'admission par formation ou campus",
+      "Taux de yield admis vers inscrits et prevision d'inscrits par programme",
+      "Taux de remplissage des groupes, amphis, TD, TP et capacites critiques",
+      "Heures d'enseignement requises vs heures affectées par discipline",
+      "Part de couverture assurée par titulaires, contractuels et vacataires",
+      "Risque de sous-effectif enseignant ou support sur les periodes de rentrée et d'examens",
+      "Délai de traitement admissions, scolarité et services étudiants à court horizon",
+      "Coût de couverture via vacations, heures complémentaires et réaffectations",
+    ],
+    decisionKicker: "Décisions optimisables",
+    decisionTitle:
+      "Les arbitrages d'enseignement supérieur que Praedixa peut rendre plus défendables",
+    decisions: [
+      "Ouvrir, fermer ou redimensionner des groupes, sections, parcours ou créneaux",
+      "Ajuster les capacités d'accueil et la profondeur des listes d'attente",
+      "Allouer les charges d'enseignement entre départements, statuts et campus",
+      "Déclencher plus tôt des recrutements contractuels ou des remplacements ciblés",
+      "Prioriser les disciplines à sécuriser avant les vagues de départs en retraite",
+      "Répartir salles, laboratoires et créneaux selon la charge réellement projetée",
+      "Arbitrer budget entre recrutement, vacations, mutualisation et hybridation",
+      "Réallouer les équipes support étudiantes pendant les pics d'inscription et d'examens",
     ],
     ctaTitle:
       "Cadrer vos prochains pics campus sur une base de décision commune.",
@@ -268,11 +306,19 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         label: "Ministère ESR — enseignants contractuels 2024",
         url: "https://www.enseignementsup-recherche.gouv.fr/fr/les-enseignants-contractuels-affectes-dans-l-enseignement-superieur-annee-2024-100753",
       },
+      {
+        label: "Ministère ESR — départs en retraite 2024-2035",
+        url: "https://www.enseignementsup-recherche.gouv.fr/fr/les-departs-en-retraite-des-enseignants-chercheurs-et-des-professeurs-du-second-degre-affectes-dans-100652",
+      },
+      {
+        label: "Ministère ESR — bilan recrutement 2025 enseignants-chercheurs",
+        url: "https://www.enseignementsup-recherche.gouv.fr/fr/bilan-provisoire-de-recrutement-des-enseignants-chercheurs-et-des-enseignants-du-second-degre-100656",
+      },
     ],
   },
   {
     id: "logistics-transport-retail",
-    icon: Truck,
+    icon: FlowNetworkIcon,
     groupLabel: "Logistique / Transport / Retail",
     slug: sectorRoutes.fr.slugs["logistics-transport-retail"],
     shortLabel: "Logistique / Transport / Retail",
@@ -306,7 +352,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         detail: "37,4 % sont jugés difficiles et 33,4 % saisonniers.",
         sourceLabel: "France Travail — BMO 2025 commerce de détail",
         sourceUrl:
-          "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+          "https://statistiques.francetravail.org/bmo/bmo?fg=GC&le=0&pp=2025&ss=1",
       },
       {
         value: "90 380",
@@ -314,7 +360,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         detail: "47,5 % sont jugés difficiles à couvrir.",
         sourceLabel: "France Travail — BMO 2025 transport et entreposage",
         sourceUrl:
-          "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+          "https://statistiques.francetravail.org/bmo/bmo?fg=HZ&le=0&pp=2025&ss=1",
       },
     ],
     challengeKicker: "La vraie question d'effectif",
@@ -367,16 +413,30 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         body: "Praedixa suit le coût, la couverture, la productivité, le respect SLA/OTIF et la marge protégée site par site, réseau par réseau.",
       },
     ],
-    kpiKicker: "KPIs à défendre",
+    kpiKicker: "KPIs prédictibles",
     kpiTitle:
-      "Les indicateurs qui rendent la décision de couverture défendable",
+      "Les indicateurs réseau que Praedixa peut projeter avant la casse opérationnelle",
     kpis: [
-      "Taux de sous / sur-effectif",
-      "Coût opérationnel et heures supplémentaires",
-      "Recours intérim",
-      "Productivité préparation / exploitation",
-      "Respect OTIF / SLA / niveau de service",
-      "Pénalités ou ventes perdues évitées",
+      "Charge par site, jour, heure et activité: commandes, lignes, palettes, tournées ou passages caisse",
+      "Heures de travail requises par activité, shift et site critique",
+      "Taux de sous-effectif ou de sur-effectif par site et par créneau",
+      "Risque de retard OTIF, SLA, délai de livraison ou rupture de promesse client",
+      "Volume d'heures supplémentaires, intérim, absentéisme et no-show à court horizon",
+      "Productivité préparation, exploitation, mise en rayon ou tournée selon la couverture retenue",
+      "Backlog, congestion locale et pénalités ou ventes perdues évitées",
+      "Coût opérationnel et marge protégée site par site",
+    ],
+    decisionKicker: "Décisions optimisables",
+    decisionTitle:
+      "Les arbitrages logistique / transport / retail que Praedixa peut optimiser",
+    decisions: [
+      "Réallouer charge, équipes ou volume entre sites, entrepôts, magasins ou tournées",
+      "Choisir entre heures supplémentaires, intérim, sous-traitance ou report de charge",
+      "Ouvrir un shift additionnel, réduire une amplitude ou ajuster un cut-off opérationnel",
+      "Prioriser commandes, tournées, magasins ou promotions quand la capacité se tend",
+      "Ajuster le niveau de service promis selon la couverture réellement disponible",
+      "Décider quels sites proteger en priorité pendant un pic promo ou un aléa réseau",
+      "Déclencher un renfort transport, un arbitrage inter-sites ou un plan de délestage",
     ],
     ctaTitle:
       "Voir comment Praedixa arbitre un réseau multi-sites sous variabilité.",
@@ -396,17 +456,21 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
       },
       {
         label: "France Travail — BMO 2025 commerce de détail",
-        url: "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+        url: "https://statistiques.francetravail.org/bmo/bmo?fg=GC&le=0&pp=2025&ss=1",
       },
       {
         label: "France Travail — BMO 2025 transport et entreposage",
-        url: "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+        url: "https://statistiques.francetravail.org/bmo/bmo?fg=HZ&le=0&pp=2025&ss=1",
+      },
+      {
+        label: "Praedixa — WFM logistique",
+        url: "https://www.praedixa.com/fr/ressources/wfm-logistique",
       },
     ],
   },
   {
     id: "automotive",
-    icon: Wrench,
+    icon: CarServiceIcon,
     groupLabel: "Automobile / concessions / ateliers",
     slug: sectorRoutes.fr.slugs.automotive,
     shortLabel: "Automobile / concessions / ateliers",
@@ -432,7 +496,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         detail: "69,7 % sont jugés difficiles à pourvoir.",
         sourceLabel: "France Travail — BMO 2025 commerce-réparation automobile",
         sourceUrl:
-          "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+          "https://statistiques.francetravail.org/bmo/bmo?fg=GA&le=0&pp=2025&ss=1",
       },
       {
         value: "12 420",
@@ -440,7 +504,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         detail: "77,0 % de difficultés sur ce métier cœur d'atelier.",
         sourceLabel: "France Travail — BMO 2025 mécaniciens véhicules",
         sourceUrl:
-          "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+          "https://statistiques.francetravail.org/bmo/bmo?fg=GA&le=0&pp=2025&ss=1",
       },
       {
         value: "17 820",
@@ -502,16 +566,28 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         body: "Praedixa suit délai atelier, charge couverte, taux d'absorption, heures supplémentaires et chiffre d'affaires protégé.",
       },
     ],
-    kpiKicker: "KPIs à défendre",
+    kpiKicker: "KPIs prédictibles",
     kpiTitle:
-      "Les indicateurs qui transforment la charge atelier en décision économique",
+      "Les indicateurs atelier que Praedixa peut projeter avant l'allongement des délais",
     kpis: [
-      "Délai de prise de rendez-vous",
-      "Backlog atelier",
-      "Heures vendues vs heures produites",
-      "Taux d'absorption",
-      "Heures supplémentaires",
-      "Chiffre d'affaires atelier sécurisé",
+      "Délai de prise de rendez-vous et charge atelier ouverte par jour ou baie",
+      "Backlog atelier et heures nécessaires par type d'intervention",
+      "Besoin d'heures par atelier, créneau et cluster de compétences critiques",
+      "Heures vendues vs heures produites, efficience et taux d'absorption",
+      "Risque de décalage lié aux pièces, au no-show ou à l'indisponibilité d'une compétence",
+      "Volume d'heures supplémentaires, recours externe et replanifications",
+      "Chiffre d'affaires atelier protégé ou exposé selon la couverture retenue",
+    ],
+    decisionKicker: "Décisions optimisables",
+    decisionTitle: "Les arbitrages atelier que Praedixa peut aider à optimiser",
+    decisions: [
+      "Allouer les techniciens par baie, créneau et spécialité critique",
+      "Ouvrir des créneaux supplémentaires ou replanifier les rendez-vous les moins urgents",
+      "Choisir entre heures supplémentaires, réaffectation, renfort externe ou sous-traitance",
+      "Déplacer la charge entre ateliers ou concessions quand une équipe sature",
+      "Prioriser les interventions à forte valeur ou à forte urgence client",
+      "Déclencher plus tôt les approvisionnements ou arbitrages pièces sur les goulets prévus",
+      "Décider quand former, polyvalentiser ou sanctuariser certaines compétences rares",
     ],
     ctaTitle: "Voir comment Praedixa aiderait vos ateliers les plus tendus.",
     ctaBody:
@@ -526,7 +602,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
       ...praedixaMethodSources.fr,
       {
         label: "France Travail — BMO 2025 commerce-réparation automobile",
-        url: "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+        url: "https://statistiques.francetravail.org/bmo/bmo?fg=GA&le=0&pp=2025&ss=1",
       },
       {
         label: "ANFA — record de recrutements en 2024",

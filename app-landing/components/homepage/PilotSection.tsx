@@ -1,18 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  CheckCircle,
-  ClockCountdown,
-  Target,
-  Users,
-  XCircle,
-} from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
+import {
+  CheckBadgeIcon,
+  ClockPulseIcon,
+  CloseBadgeIcon,
+  TargetRingIcon,
+  TeamGridIcon,
+} from "../shared/icons/MarketingIcons";
 import { SPRING, VP } from "../../lib/animations/variants";
 import { MagneticActionLink } from "../shared/motion/MagneticActionLink";
 import { PulseDot } from "../shared/motion/PulseDot";
@@ -39,7 +39,9 @@ const listItem = {
 export function PilotSection({ locale, dict }: PilotSectionProps) {
   const pilotHref = getLocalizedPath(locale, "pilot");
   const pilot = dict.pilot;
-  const statusLabels = Array.isArray(pilot.statusLabels) ? pilot.statusLabels : null;
+  const statusLabels = Array.isArray(pilot.statusLabels)
+    ? pilot.statusLabels
+    : null;
   const includedItems = Array.isArray(pilot.included.items)
     ? pilot.included.items
     : null;
@@ -66,10 +68,10 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
       <SectionShell id="pilot" className="section-dark">
         <div className="max-w-3xl">
           <Kicker className="text-neutral-100">{pilot.kicker}</Kicker>
-          <h2
-            className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl"
-          >
-            {locale === "fr" ? "Chargement de l'offre pilote" : "Loading pilot offer"}
+          <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl">
+            {locale === "fr"
+              ? "Chargement de l'offre pilote"
+              : "Loading pilot offer"}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
             {locale === "fr"
@@ -91,9 +93,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
       <SectionShell id="pilot" className="section-dark">
         <div className="max-w-3xl">
           <Kicker className="text-neutral-100">{pilot.kicker}</Kicker>
-          <h2
-            className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl"
-          >
+          <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl">
             {locale === "fr" ? "Offre pilote vide" : "Empty pilot offer"}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
@@ -148,7 +148,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         >
           <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm md:p-7">
             <h3 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-white">
-              <CheckCircle size={18} weight="fill" className="text-amber-300" />
+              <CheckBadgeIcon size={18} className="text-amber-300" />
               {pilot.included.title}
             </h3>
             <motion.ul
@@ -164,9 +164,8 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
                   variants={listItem}
                   className="m-0 flex items-start gap-2 text-sm text-neutral-200"
                 >
-                  <CheckCircle
+                  <CheckBadgeIcon
                     size={16}
-                    weight="fill"
                     className="mt-0.5 shrink-0 text-amber-400"
                   />
                   {item}
@@ -185,7 +184,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         >
           <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7">
             <h3 className="flex items-center gap-2 text-base font-semibold text-neutral-100">
-              <XCircle size={18} weight="fill" className="text-neutral-200" />
+              <CloseBadgeIcon size={18} className="text-neutral-200" />
               {pilot.excluded.title}
             </h3>
             <ul className="mt-4 list-none space-y-2.5 p-0">
@@ -194,9 +193,8 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
                   key={item}
                   className="m-0 flex items-start gap-2 text-sm text-neutral-200"
                 >
-                  <XCircle
+                  <CloseBadgeIcon
                     size={16}
-                    weight="fill"
                     className="mt-0.5 shrink-0 text-neutral-200"
                   />
                   <span className="line-through">{item}</span>
@@ -215,16 +213,16 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         className="mt-10 divide-y divide-white/10 border-y border-white/10"
       >
         {[
-          { icon: Target, data: pilot.kpis },
-          { icon: Users, data: pilot.governance },
-          { icon: ClockCountdown, data: pilot.selection },
+          { icon: TargetRingIcon, data: pilot.kpis },
+          { icon: TeamGridIcon, data: pilot.governance },
+          { icon: ClockPulseIcon, data: pilot.selection },
         ].map(({ icon: Icon, data }) => (
           <div
             key={data.title}
             className="grid grid-cols-1 gap-4 py-6 md:grid-cols-[0.9fr_1.1fr]"
           >
             <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
-              <Icon size={18} weight="fill" className="text-amber-300" />
+              <Icon size={18} className="text-amber-300" />
               {data.title}
             </h3>
             <ul className="list-none space-y-1.5 p-0">

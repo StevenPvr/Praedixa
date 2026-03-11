@@ -1,34 +1,26 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Hero industry links", () => {
-  test("renders the current sector navigation without legacy carousel roles", async ({
+  test("renders the current sector teaser without legacy carousel roles", async ({
     page,
   }) => {
     await page.goto("/fr");
 
-    const industryNav = page.getByRole("navigation", {
-      name: "Solutions par secteur",
-    });
-
-    await expect(industryNav).toBeVisible();
-    await expect(industryNav.getByRole("link")).toHaveCount(4);
     await expect(
-      industryNav.getByRole("link", { name: "HCR" }),
-    ).toHaveAttribute("href", "/fr/secteurs/hcr");
-    await expect(
-      industryNav.getByRole("link", { name: "Enseignement supérieur" }),
-    ).toHaveAttribute("href", "/fr/secteurs/enseignement-superieur");
-    await expect(
-      industryNav.getByRole("link", {
-        name: "Logistique / Transport / Retail",
+      page.getByRole("heading", {
+        name: "4 verticales nettes. Une même boucle de décision.",
       }),
-    ).toHaveAttribute("href", "/fr/secteurs/logistique-transport-retail");
+    ).toBeVisible();
+    await expect(page.locator('a[href="/fr/secteurs/hcr"]')).toHaveCount(1);
     await expect(
-      industryNav.getByRole("link", {
-        name: "Automobile / concessions / ateliers",
-      }),
-    ).toHaveAttribute("href", "/fr/secteurs/automobile-concessions-ateliers");
-    await expect(page.getByLabel("Preuves d'ancrage français")).toBeVisible();
+      page.locator('a[href="/fr/secteurs/enseignement-superieur"]'),
+    ).toHaveCount(1);
+    await expect(
+      page.locator('a[href="/fr/secteurs/logistique-transport-retail"]'),
+    ).toHaveCount(1);
+    await expect(
+      page.locator('a[href="/fr/secteurs/automobile-concessions-ateliers"]'),
+    ).toHaveCount(1);
     await expect(page.getByRole("tab")).toHaveCount(0);
     await expect(page.getByRole("tabpanel")).toHaveCount(0);
   });

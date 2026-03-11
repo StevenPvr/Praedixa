@@ -13,3 +13,4 @@ Source de verite des pages sectorielles.
 ## Regle
 
 La facade publique reste `lib/content/sector-pages.ts`. Les composants et routes consomment cette facade; ils ne doivent pas repliquer la copy ou la logique de routing.
+Chaque verticale doit maintenant embarquer deux listes metier distinctes: des `kpis` predicitifs concrets et des `decisions` optimisables concretes, avec une granularite propre au secteur plutot que des formulations generiques.

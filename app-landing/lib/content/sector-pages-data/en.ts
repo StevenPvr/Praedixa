@@ -1,17 +1,17 @@
-import {
-  Factory,
-  GraduationCap,
-  Storefront,
-  Truck,
-} from "@phosphor-icons/react/ssr";
 import type { SectorPageEntry } from "./types";
+import {
+  CampusLineIcon,
+  CarServiceIcon,
+  FlowNetworkIcon,
+  StorefrontLineIcon,
+} from "../../../components/shared/icons/MarketingIcons";
 import { praedixaMethodSources } from "./shared";
 import { sectorRoutes } from "./routes";
 
 export const sectorPagesEn: readonly SectorPageEntry[] = [
   {
     id: "hcr",
-    icon: Storefront,
+    icon: StorefrontLineIcon,
     groupLabel: "Hospitality / Food service",
     slug: sectorRoutes.en.slugs.hcr,
     shortLabel: "Hospitality / Food service",
@@ -107,15 +107,30 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         body: "Praedixa tracks labor cost, coverage, wait time, and protected margin in a readable decision log.",
       },
     ],
-    kpiKicker: "KPIs to protect",
-    kpiTitle: "The numbers that matter when hospitality staffing gets tight",
+    kpiKicker: "Predictable KPIs",
+    kpiTitle:
+      "The hospitality signals Praedixa can forecast before service quality starts slipping",
     kpis: [
-      "Labor cost by site or outlet",
-      "Overtime hours",
-      "Temp / extra labor usage",
-      "Coverage rate by service",
-      "Wait time and service level",
-      "Protected margin",
+      "Demand by site, day, and service: nights, covers, occupancy rate, average ticket",
+      "Required labor hours by role, shift, and critical daypart",
+      "Coverage rate across service, kitchen, reception, and housekeeping shifts",
+      "Absence, no-show, or under-coverage risk by team and contract mix",
+      "Expected overtime, temp, and extra-labor usage at short horizon",
+      "Wait time, service level, and revenue per labor hour",
+      "Protected or exposed margin depending on the chosen staffing scenario",
+      "Seasonal vs structural workload share by site",
+    ],
+    decisionKicker: "Optimizable decisions",
+    decisionTitle:
+      "The hospitality staffing decisions Praedixa can help teams arbitrate earlier",
+    decisions: [
+      "How many servers, cooks, reception staff, or housekeeping agents to schedule by shift",
+      "When to launch seasonal hiring and on which priority roles",
+      "When to open, close, or reduce a room, floor, service line, or opening window",
+      "When to rely on extras or temp staff versus internal multi-skilling",
+      "Which sites to prioritize for cross-training, retention, or short-term reinforcement",
+      "When to adapt the service promise or commercial pressure to protect margin",
+      "Which properties need housing, transport, or retention action to hold the season",
     ],
     ctaTitle: "See what Praedixa would do on your most exposed services.",
     ctaBody:
@@ -131,11 +146,19 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         label: "France Travail — 2025 labor needs survey",
         url: "https://statistiques.francetravail.org/bmo/bmo?fg=IZ&pp=2025&ss=1",
       },
+      {
+        label: "Insee — hospitality employment Q1 2025",
+        url: "https://www.bnsp.insee.fr/ark%3A/12148/bc6p09p7qj4.pdf",
+      },
+      {
+        label: "Insee Focus 363 — summer tourism 2025",
+        url: "https://www.insee.fr/fr/statistiques/8645986",
+      },
     ],
   },
   {
     id: "higher-education",
-    icon: GraduationCap,
+    icon: CampusLineIcon,
     groupLabel: "Higher education",
     slug: sectorRoutes.en.slugs["higher-education"],
     shortLabel: "Higher education",
@@ -231,15 +254,31 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         body: "Praedixa tracks coverage cost, service continuity, processing time, and operational stability through peak periods.",
       },
     ],
-    kpiKicker: "KPIs to protect",
-    kpiTitle: "The indicators that keep campus peak coverage under control",
+    kpiKicker: "Predictable KPIs",
+    kpiTitle:
+      "The campus indicators Praedixa can forecast before peak pressure hits",
     kpis: [
-      "Adjunct and overtime cost",
-      "Admissions / student services processing time",
-      "Exam and invigilation coverage",
-      "Last-minute staffing changes",
-      "Service continuity during peak periods",
-      "Support-team workload absorbed",
+      "Applications per seat and admission pressure by program or campus",
+      "Admitted-to-enrolled yield and projected enrollment by program",
+      "Fill rate across lecture halls, groups, labs, and practical sessions",
+      "Required teaching hours versus allocated hours by discipline",
+      "Coverage split between tenured staff, contract teachers, and adjuncts",
+      "Risk of under-staffing in teaching or student-support teams during peaks",
+      "Admissions, registry, and student-services processing time at short horizon",
+      "Coverage cost through adjuncts, overtime, and reassignment",
+    ],
+    decisionKicker: "Optimizable decisions",
+    decisionTitle:
+      "The higher-education trade-offs Praedixa can make easier to defend",
+    decisions: [
+      "Open, close, or resize groups, sections, programs, or time slots",
+      "Adjust intake capacity and waiting-list depth",
+      "Allocate teaching load across departments, statuses, and campuses",
+      "Trigger contract hiring or targeted replacements earlier",
+      "Prioritize disciplines to secure before retirement waves hit",
+      "Reassign rooms, labs, and timetables based on projected pressure",
+      "Arbitrate budget between hiring, adjunct coverage, hybrid delivery, and mutualization",
+      "Reallocate student-support teams during enrollment and exam peaks",
     ],
     ctaTitle: "Frame your next campus peaks on a shared decision baseline.",
     ctaBody:
@@ -264,11 +303,19 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         label: "French ministry — contract teachers 2024",
         url: "https://www.enseignementsup-recherche.gouv.fr/fr/les-enseignants-contractuels-affectes-dans-l-enseignement-superieur-annee-2024-100753",
       },
+      {
+        label: "French ministry — retirements 2024-2035",
+        url: "https://www.enseignementsup-recherche.gouv.fr/fr/les-departs-en-retraite-des-enseignants-chercheurs-et-des-professeurs-du-second-degre-affectes-dans-100652",
+      },
+      {
+        label: "French ministry — 2025 faculty recruitment review",
+        url: "https://www.enseignementsup-recherche.gouv.fr/fr/bilan-provisoire-de-recrutement-des-enseignants-chercheurs-et-des-enseignants-du-second-degre-100656",
+      },
     ],
   },
   {
     id: "logistics-transport-retail",
-    icon: Truck,
+    icon: FlowNetworkIcon,
     groupLabel: "Logistics / Transport / Retail",
     slug: sectorRoutes.en.slugs["logistics-transport-retail"],
     shortLabel: "Logistics / Transport / Retail",
@@ -302,7 +349,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         detail: "37.4% difficult to fill and 33.4% seasonal.",
         sourceLabel: "France Travail — 2025 retail labor needs",
         sourceUrl:
-          "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+          "https://statistiques.francetravail.org/bmo/bmo?fg=GC&le=0&pp=2025&ss=1",
       },
       {
         value: "90,380",
@@ -310,7 +357,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         detail: "47.5% are considered difficult to fill.",
         sourceLabel: "France Travail — 2025 transport and warehousing needs",
         sourceUrl:
-          "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+          "https://statistiques.francetravail.org/bmo/bmo?fg=HZ&le=0&pp=2025&ss=1",
       },
     ],
     challengeKicker: "The workforce question",
@@ -363,16 +410,30 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         body: "Praedixa tracks cost, coverage, productivity, OTIF/SLA performance, and protected margin across the network.",
       },
     ],
-    kpiKicker: "KPIs to protect",
+    kpiKicker: "Predictable KPIs",
     kpiTitle:
-      "The numbers that make staffing decisions defensible across a network",
+      "The network indicators Praedixa can forecast before operations break",
     kpis: [
-      "Under / over-staffing rate",
-      "Operating cost and overtime",
-      "Temp labor usage",
-      "Pick / execution productivity",
-      "OTIF / SLA / service-level performance",
-      "Penalties or lost sales avoided",
+      "Demand by site, hour, and activity: orders, order lines, pallets, routes, or store traffic",
+      "Required labor hours by activity, shift, and critical site",
+      "Under- and over-staffing rate by site and time window",
+      "OTIF, SLA, delivery-delay, or service-promise risk",
+      "Expected overtime, temp labor, absenteeism, and no-show at short horizon",
+      "Pick, execution, route, or in-store productivity under each staffing scenario",
+      "Backlog, congestion, penalties, or lost sales avoided",
+      "Operating cost and protected margin by site",
+    ],
+    decisionKicker: "Optimizable decisions",
+    decisionTitle:
+      "The logistics / transport / retail trade-offs Praedixa can help optimize",
+    decisions: [
+      "Reallocate workload, teams, or volume across sites, warehouses, stores, or routes",
+      "Choose between overtime, temp labor, subcontracting, or delayed volume",
+      "Open an additional shift, reduce an opening window, or adjust an operational cut-off",
+      "Prioritize orders, routes, stores, or promotions when capacity tightens",
+      "Adapt the promised service level to the coverage that is actually available",
+      "Decide which sites to protect first during a promo peak or network incident",
+      "Trigger transport reinforcement, inter-site balancing, or a load-shedding plan",
     ],
     ctaTitle: "See how Praedixa arbitrates a network under volume volatility.",
     ctaBody:
@@ -391,17 +452,21 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
       },
       {
         label: "France Travail — 2025 retail labor needs",
-        url: "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+        url: "https://statistiques.francetravail.org/bmo/bmo?fg=GC&le=0&pp=2025&ss=1",
       },
       {
         label: "France Travail — 2025 transport and warehousing needs",
-        url: "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+        url: "https://statistiques.francetravail.org/bmo/bmo?fg=HZ&le=0&pp=2025&ss=1",
+      },
+      {
+        label: "Praedixa — logistics WFM overview",
+        url: "https://www.praedixa.com/fr/ressources/wfm-logistique",
       },
     ],
   },
   {
     id: "automotive",
-    icon: Factory,
+    icon: CarServiceIcon,
     groupLabel: "Automotive / dealerships / workshops",
     slug: sectorRoutes.en.slugs.automotive,
     shortLabel: "Automotive / dealerships / workshops",
@@ -427,7 +492,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         detail: "69.7% are considered difficult to fill.",
         sourceLabel: "France Travail — 2025 automotive labor needs",
         sourceUrl:
-          "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+          "https://statistiques.francetravail.org/bmo/bmo?fg=GA&le=0&pp=2025&ss=1",
       },
       {
         value: "12,420",
@@ -435,7 +500,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         detail: "77.0% recruiting difficulty on this core workshop role.",
         sourceLabel: "France Travail — vehicle mechanic hiring data",
         sourceUrl:
-          "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+          "https://statistiques.francetravail.org/bmo/bmo?fg=GA&le=0&pp=2025&ss=1",
       },
       {
         value: "17,820",
@@ -496,16 +561,28 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         body: "Praedixa tracks workshop delay, covered load, absorption, overtime, and protected revenue.",
       },
     ],
-    kpiKicker: "KPIs to protect",
+    kpiKicker: "Predictable KPIs",
     kpiTitle:
-      "The indicators that turn workshop workload into an economic decision",
+      "The workshop indicators Praedixa can forecast before delays start drifting",
     kpis: [
-      "Appointment lead time",
-      "Workshop backlog",
-      "Sold hours vs produced hours",
-      "Absorption rate",
-      "Overtime hours",
-      "Protected aftersales revenue",
+      "Appointment lead time and open workshop load by day or bay",
+      "Workshop backlog and required hours by intervention type",
+      "Required hours by workshop, time slot, and critical skill cluster",
+      "Sold versus produced hours, technician efficiency, and absorption",
+      "Risk of delay from missing parts, no-shows, or skill shortages",
+      "Expected overtime, external reinforcement, and replanning volume",
+      "Protected or exposed aftersales revenue depending on the staffing choice",
+    ],
+    decisionKicker: "Optimizable decisions",
+    decisionTitle: "The workshop trade-offs Praedixa can help leaders optimize",
+    decisions: [
+      "Allocate technicians by bay, time slot, and critical skill",
+      "Open extra appointment slots or replan lower-priority bookings",
+      "Choose between overtime, reallocation, external reinforcement, or subcontracting",
+      "Move workload across workshops or dealerships when one site saturates",
+      "Prioritize the highest-value or highest-urgency jobs first",
+      "Trigger parts escalation or procurement action on predicted bottlenecks",
+      "Decide when to train, cross-skill, or protect scarce capabilities",
     ],
     ctaTitle: "See how Praedixa would help your most exposed workshops.",
     ctaBody:
@@ -520,7 +597,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
       ...praedixaMethodSources.en,
       {
         label: "France Travail — 2025 automotive labor needs",
-        url: "https://statistiques.francetravail.org/bmo/bmo?lg=0&pp=2025&ss=1",
+        url: "https://statistiques.francetravail.org/bmo/bmo?fg=GA&le=0&pp=2025&ss=1",
       },
       {
         label: "ANFA — 2024 recruitment record",

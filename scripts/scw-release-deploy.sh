@@ -75,7 +75,7 @@ resolve_deploy_image() {
   printf '%s' "${registry_image%%@sha256:*}"
 }
 
-while IFS= read -r service; do
+while IFS= read -r service || [[ -n "$service" ]]; do
   if [[ -z "$service" ]]; then
     continue
   fi

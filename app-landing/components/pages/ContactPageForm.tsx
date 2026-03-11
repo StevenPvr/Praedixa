@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { PaperPlaneRight, SpinnerGap, WarningCircle } from "@phosphor-icons/react";
+import { PaperPlaneRight, SpinnerGap } from "@phosphor-icons/react";
+import { AlertDiamondIcon } from "../shared/icons/MarketingIcons";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
 import { REQUEST_TYPES } from "./contact-page.constants";
@@ -108,7 +109,9 @@ export function ContactPageForm({
         <div>
           <label htmlFor="contact-message" className={LABEL_CLASS}>
             {copy.message} *{" "}
-            <span className="font-normal text-neutral-500">({copy.messageHint})</span>
+            <span className="font-normal text-neutral-500">
+              ({copy.messageHint})
+            </span>
           </label>
           <textarea
             id="contact-message"
@@ -120,7 +123,9 @@ export function ContactPageForm({
             placeholder={copy.messagePlaceholder}
             className={`${getFieldClass(Boolean(fieldErrors.message))} resize-y`}
             aria-invalid={fieldErrors.message ? "true" : "false"}
-            aria-describedby={fieldErrors.message ? "contact-message-error" : undefined}
+            aria-describedby={
+              fieldErrors.message ? "contact-message-error" : undefined
+            }
           />
           {fieldErrors.message ? (
             <p id="contact-message-error" className={ERROR_CLASS}>
@@ -142,7 +147,10 @@ export function ContactPageForm({
                 id="contact-requestType"
                 value={form.requestType}
                 onChange={(event) =>
-                  update("requestType", event.target.value as ContactFormData["requestType"])
+                  update(
+                    "requestType",
+                    event.target.value as ContactFormData["requestType"],
+                  )
                 }
                 className={getFieldClass(false)}
               >
@@ -211,11 +219,19 @@ export function ContactPageForm({
             onChange={(event) => update("consent", event.target.checked)}
             className="mt-1 h-4 w-4 rounded border-neutral-300 text-brass accent-brass"
             aria-invalid={fieldErrors.consent ? "true" : "false"}
-            aria-describedby={fieldErrors.consent ? "contact-consent-error" : undefined}
+            aria-describedby={
+              fieldErrors.consent ? "contact-consent-error" : undefined
+            }
           />
-          <label htmlFor="contact-consent" className="text-sm leading-relaxed text-neutral-600">
+          <label
+            htmlFor="contact-consent"
+            className="text-sm leading-relaxed text-neutral-600"
+          >
             {copy.consentPrefix}
-            <Link href={termsHref} className="text-brass-700 no-underline hover:text-brass-800">
+            <Link
+              href={termsHref}
+              className="text-brass-700 no-underline hover:text-brass-800"
+            >
               {copy.termsLabel}
             </Link>
             {copy.consentJoin}
@@ -239,7 +255,7 @@ export function ContactPageForm({
             className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             aria-live="polite"
           >
-            <WarningCircle size={18} weight="fill" className="mt-0.5 shrink-0" />
+            <AlertDiamondIcon size={18} className="mt-0.5 shrink-0" />
             {errorMsg}
           </div>
         ) : null}

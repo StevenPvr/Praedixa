@@ -1,5 +1,5 @@
-import type { Icon } from "@phosphor-icons/react";
 import type { Locale } from "../../i18n/config";
+import type { MarketingIconComponent } from "../../../components/shared/icons/MarketingIcons";
 
 export type SectorPageId =
   | "hcr"
@@ -37,7 +37,7 @@ export interface SectorDifferentiationCard {
 
 export interface SectorPageEntry {
   id: SectorPageId;
-  icon: Icon;
+  icon: MarketingIconComponent;
   groupLabel: string;
   slug: string;
   shortLabel: string;
@@ -65,6 +65,9 @@ export interface SectorPageEntry {
   kpiKicker: string;
   kpiTitle: string;
   kpis: string[];
+  decisionKicker: string;
+  decisionTitle: string;
+  decisions: string[];
   ctaTitle: string;
   ctaBody: string;
   homepageHook: string;

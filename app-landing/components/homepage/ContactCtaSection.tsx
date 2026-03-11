@@ -9,18 +9,17 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion";
-import {
-  ArrowRight,
-  EnvelopeSimple,
-  CheckCircle,
-  ClockCountdown,
-  WarningCircle,
-} from "@phosphor-icons/react";
+import { ArrowRight, EnvelopeSimple } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
+import {
+  AlertDiamondIcon,
+  CheckBadgeIcon,
+  ClockPulseIcon,
+} from "../shared/icons/MarketingIcons";
 import { SPRING, VP } from "../../lib/animations/variants";
 
 interface ContactCtaSectionProps {
@@ -126,11 +125,7 @@ const MagneticCtaLink = memo(function MagneticCtaLink({
         />
         <span className="relative">{label}</span>
         {icon === "arrow" ? (
-          <ArrowRight
-            size={16}
-            weight="bold"
-            className="relative shrink-0"
-          />
+          <ArrowRight size={16} weight="bold" className="relative shrink-0" />
         ) : (
           <EnvelopeSimple
             size={16}
@@ -160,9 +155,7 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
     cleanedItems.length > 0 && cleanedItems.length !== items.length;
   const isEmpty = cleanedItems.length === 0;
   const localeLabel = locale === "fr";
-  const panelTitle = localeLabel
-    ? "Prochaines étapes"
-    : "Next steps";
+  const panelTitle = localeLabel ? "Prochaines étapes" : "Next steps";
   const panelSubtitle = localeLabel
     ? "Réponse sous 48h ouvrées"
     : "Reply within 48 business hours";
@@ -197,9 +190,8 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
               {panelTitle}
             </p>
           </div>
-          <ClockCountdown
+          <ClockPulseIcon
             size={16}
-            weight="bold"
             className="shrink-0 text-amber-200"
             aria-hidden="true"
           />
@@ -241,9 +233,8 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
                 role="status"
               >
                 <p className="flex items-start gap-2 text-sm leading-relaxed text-red-50">
-                  <WarningCircle
+                  <AlertDiamondIcon
                     size={16}
-                    weight="fill"
                     className="mt-0.5 shrink-0 text-red-200"
                     aria-hidden="true"
                   />
@@ -277,9 +268,8 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
                     variants={trustListItem}
                     className="flex items-start gap-2.5 text-sm leading-relaxed text-neutral-100"
                   >
-                    <CheckCircle
+                    <CheckBadgeIcon
                       size={16}
-                      weight="fill"
                       className="mt-0.5 shrink-0 text-amber-300"
                       aria-hidden="true"
                     />
@@ -338,9 +328,7 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
               <Kicker className="text-amber-100">{dict.contact.kicker}</Kicker>
               <span className="h-px w-16 bg-amber-200/50" aria-hidden="true" />
             </div>
-            <h2
-              className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] tracking-tighter text-white md:text-6xl"
-            >
+            <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] tracking-tighter text-white md:text-6xl">
               {dict.contact.heading}
             </h2>
             <p className="mt-6 max-w-[65ch] text-base leading-relaxed text-neutral-200">

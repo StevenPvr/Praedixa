@@ -1,9 +1,12 @@
-import { CheckCircle, WarningCircle } from "@phosphor-icons/react/ssr";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
+import {
+  AlertDiamondIcon,
+  CheckBadgeIcon,
+} from "../shared/icons/MarketingIcons";
 import { MagneticActionLink } from "../shared/motion/MagneticActionLink";
 import { PulseDot } from "../shared/motion/PulseDot";
 import { ShimmerTrack } from "../shared/motion/ShimmerTrack";
@@ -123,9 +126,8 @@ export function ProblemSection({ locale, dict }: ProblemSectionProps) {
                 className="grid grid-cols-1 gap-4 py-5 md:grid-cols-[4.4rem_1fr] md:gap-6"
               >
                 <div className="flex items-center gap-2">
-                  <WarningCircle
+                  <AlertDiamondIcon
                     size={18}
-                    weight="fill"
                     className="shrink-0 text-amber-300"
                   />
                   <span className="font-mono text-xs text-neutral-300">
@@ -150,8 +152,8 @@ export function ProblemSection({ locale, dict }: ProblemSectionProps) {
           delay={0.2}
           className="md:sticky md:top-28 md:self-start"
         >
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm md:p-7">
-              <span className="text-xs font-semibold uppercase tracking-[0.09em] text-amber-100">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm md:p-7">
+            <span className="text-xs font-semibold uppercase tracking-[0.09em] text-amber-100">
               {locale === "fr" ? "Signaux à surveiller" : "Signals to watch"}
             </span>
             <h3 className="mt-2 text-2xl font-semibold tracking-tight text-white">
@@ -163,9 +165,8 @@ export function ProblemSection({ locale, dict }: ProblemSectionProps) {
                   key={signal}
                   className="m-0 flex items-start gap-2.5 text-sm text-neutral-200"
                 >
-                  <CheckCircle
+                  <CheckBadgeIcon
                     size={18}
-                    weight="fill"
                     className="mt-0.5 shrink-0 text-amber-400"
                   />
                   <PulseDot className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 bg-amber-300" />

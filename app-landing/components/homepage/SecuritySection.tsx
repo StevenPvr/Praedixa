@@ -1,7 +1,11 @@
-import { Database, Plugs, ShieldCheck } from "@phosphor-icons/react/dist/ssr";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
+import {
+  DatabaseStackIcon,
+  PlugLinkIcon,
+  ShieldFrameIcon,
+} from "../shared/icons/MarketingIcons";
 import { PulseDot } from "../shared/motion/PulseDot";
 import { ShimmerTrack } from "../shared/motion/ShimmerTrack";
 import {
@@ -91,9 +95,8 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
                 className="rounded-2xl border border-neutral-200/80 bg-white/85 p-5 shadow-[0_20px_36px_-30px_rgba(15,23,42,0.3)] md:p-6"
               >
                 <div className="flex items-start gap-3">
-                  <ShieldCheck
+                  <ShieldFrameIcon
                     size={20}
-                    weight="fill"
                     className="mt-0.5 shrink-0 text-amber-600"
                   />
                   <div>
@@ -121,7 +124,10 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
         >
           <div className="rounded-2xl border border-neutral-200/80 bg-white/90 p-6 shadow-[0_24px_40px_-30px_rgba(15,23,42,0.28),inset_0_1px_0_rgba(255,255,255,0.75)] md:p-7">
             <div className="flex items-start gap-3">
-              <Plugs size={20} weight="fill" className="mt-1 shrink-0 text-brass-700" />
+              <PlugLinkIcon
+                size={20}
+                className="mt-1 shrink-0 text-brass-700"
+              />
               <div>
                 <h3 className="text-xl font-semibold tracking-tight text-ink">
                   {security.compatibility.title}
@@ -140,7 +146,7 @@ export function SecuritySection({ dict }: SecuritySectionProps) {
                     index % 2 === 1 ? "translate-y-[1px]" : ""
                   }`}
                 >
-                  <Database size={12} weight="fill" className="text-brass-600" />
+                  <DatabaseStackIcon size={12} className="text-brass-600" />
                   {tool}
                 </span>
               ))}

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { PaperPlaneRight, SpinnerGap, WarningCircle } from "@phosphor-icons/react";
+import { PaperPlaneRight, SpinnerGap } from "@phosphor-icons/react";
+import { AlertDiamondIcon } from "../shared/icons/MarketingIcons";
 import type { Dictionary } from "../../lib/i18n/types";
 import { PulseDot } from "../shared/motion/PulseDot";
 import type {
@@ -40,7 +41,8 @@ export function PilotApplicationForm({
   ui: PilotPageUi;
   update: (key: keyof PilotFormData, value: string | boolean) => void;
 }) {
-  const field = (key: string) => dict.form.fields[key] ?? { label: key, placeholder: "" };
+  const field = (key: string) =>
+    dict.form.fields[key] ?? { label: key, placeholder: "" };
 
   return (
     <section className="rounded-[2rem] border border-neutral-200/80 bg-white/95 p-6 shadow-[0_22px_46px_-40px_rgba(15,23,42,0.28),inset_0_1px_0_rgba(255,255,255,0.85)] md:p-8">
@@ -102,9 +104,15 @@ export function PilotApplicationForm({
             onChange={(event) => update("consent", event.target.checked)}
             className="mt-1 h-4 w-4 rounded border-neutral-300 text-brass accent-brass"
           />
-          <label htmlFor="pilot-consent" className="text-sm leading-relaxed text-neutral-600">
+          <label
+            htmlFor="pilot-consent"
+            className="text-sm leading-relaxed text-neutral-600"
+          >
             {ui.legalJoinA}
-            <Link href={termsHref} className="text-brass-700 no-underline hover:text-brass-800">
+            <Link
+              href={termsHref}
+              className="text-brass-700 no-underline hover:text-brass-800"
+            >
               {dict.form.cguLabel}
             </Link>
             {ui.legalJoinB}
@@ -123,7 +131,7 @@ export function PilotApplicationForm({
             className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             aria-live="polite"
           >
-            <WarningCircle size={18} weight="fill" className="mt-0.5 shrink-0" />
+            <AlertDiamondIcon size={18} className="mt-0.5 shrink-0" />
             {errorMsg}
           </div>
         ) : null}
@@ -299,7 +307,10 @@ function PilotChallengeFields({
         onChange={(value) => update("currentStack", value)}
       />
       <div>
-        <label htmlFor="pilot-painPoint" className="mb-1.5 block text-sm font-medium text-ink">
+        <label
+          htmlFor="pilot-painPoint"
+          className="mb-1.5 block text-sm font-medium text-ink"
+        >
           {field("painPoint").label}
         </label>
         <textarea

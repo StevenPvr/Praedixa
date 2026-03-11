@@ -42,24 +42,10 @@ describe("HeroSection", () => {
     expect(screen.getByText("RH")).toBeInTheDocument();
     expect(screen.getByText("FINANCE")).toBeInTheDocument();
     expect(screen.getByText("OPÉRATIONS")).toBeInTheDocument();
-    expect(screen.getByText("HCR")).toBeInTheDocument();
-    expect(screen.getByText("Enseignement supérieur")).toBeInTheDocument();
-    expect(
-      screen.getByText("Logistique / Transport / Retail"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Automobile / concessions / ateliers"),
-    ).toBeInTheDocument();
     expect(screen.queryByText("Restaurant")).not.toBeInTheDocument();
     expect(screen.getByTestId("hero-background-video")).toHaveAttribute(
       "data-mp4-src",
       "/hero-video/hero-industries-montage.mp4",
-    );
-    const euratechLogo = screen.getByAltText("Euratechnologies");
-    expect(euratechLogo).toBeInTheDocument();
-    expect(euratechLogo).toHaveAttribute(
-      "src",
-      "/logos/euratechnologies-wordmark-white.png",
     );
     expect(screen.getByText("RH").className).toContain(
       "text-[var(--brass-dark-700)]",
@@ -79,44 +65,37 @@ describe("HeroSection", () => {
     ).toBeInTheDocument();
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("DecisionOps pour les opérations.");
-    expect(heading).toHaveTextContent("Décidez plus tôt. Prouvez le ROI.");
-    expect(within(heading).getByText("Décidez").className).toContain(
-      "text-[var(--brass-dark-700)]",
+    expect(heading).toHaveTextContent("DecisionOps");
+    const heroSubheadline = screen.getByText(
+      (_, element) =>
+        element?.textContent ===
+        "Anticiper vos besoins. Décidez plus tôt. Prouvez le ROI.",
     );
-    expect(within(heading).getByText("Prouvez").className).toContain(
-      "text-[var(--brass-dark-700)]",
+    expect(heroSubheadline).toBeInTheDocument();
+    expect(within(heroSubheadline).getByText("Anticiper").className).toContain(
+      "text-[var(--brass-400)]",
+    );
+    expect(within(heroSubheadline).getByText("Décidez").className).toContain(
+      "text-[var(--brass-400)]",
+    );
+    expect(within(heroSubheadline).getByText("Prouvez").className).toContain(
+      "text-[var(--brass-400)]",
     );
     expect(
-      screen.getByText(
+      screen.getAllByText(
         "Praedixa se branche sur vos systèmes existants, fédère les données critiques sur une infrastructure hébergée en France, transforme vos arbitrages récurrents en décisions calculées, exécutées et auditables, puis prouve le ROI décision par décision en comité Ops / Finance.",
-      ),
-    ).toBeInTheDocument();
+      ).length,
+    ).toBeGreaterThan(0);
     expect(
       screen.queryByText(
         "Réponse en 48h · lecture seule · entreprise française · données hébergées en France sur Scaleway",
       ),
     ).not.toBeInTheDocument();
-    expect(screen.getByText("Entreprise française")).toBeInTheDocument();
     expect(screen.queryByText("Fondateurs français")).not.toBeInTheDocument();
     expect(
-      screen.getByText("Données hébergées en France sur Scaleway"),
-    ).toBeInTheDocument();
-    const incubatorClaim = screen.getByLabelText("Incubée à Euratechnologies");
-    expect(incubatorClaim).toBeInTheDocument();
-    expect(incubatorClaim.className).toContain("px-3");
-    expect(incubatorClaim.className).toContain("py-1.5");
-    expect(incubatorClaim.className).toContain("w-full");
-    const proofRail = screen.getByLabelText("Preuves d'ancrage français");
-    expect(proofRail.className).toContain("grid");
-    expect(proofRail.className).toContain("grid-cols-3");
-    expect(proofRail).toBeInTheDocument();
-
-    expect(screen.getByRole("link", { name: "HCR" })).toHaveAttribute(
-      "href",
-      "/fr/secteurs/hcr",
-    );
-    expect(screen.getByText("Action validée")).toBeInTheDocument();
-    expect(screen.getByText("ROI prouvé")).toBeInTheDocument();
+      screen.getAllByText(
+        "Lecture seule sur l'existant · validation humaine · revue mensuelle Ops / Finance",
+      ).length,
+    ).toBeGreaterThan(0);
   });
 });

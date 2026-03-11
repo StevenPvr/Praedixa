@@ -2,11 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Lightbulb, Sparkle } from "@phosphor-icons/react";
+import { ArrowRight } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
+import {
+  DecisionGraphIcon,
+  SignalWindowIcon,
+} from "../shared/icons/MarketingIcons";
 import { SPRING, VP } from "../../lib/animations/variants";
 import { PulseDot } from "../shared/motion/PulseDot";
 import { ShimmerTrack } from "../shared/motion/ShimmerTrack";
@@ -43,14 +47,15 @@ function toOrderedCases(cases: UseCase[], activeId: string | null): UseCase[] {
 export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
   const useCases = dict.useCases;
   const cases = Array.isArray(useCases.cases) ? useCases.cases : null;
-  const [activeId, setActiveId] = useState<string | null>(cases?.[0]?.id ?? null);
+  const [activeId, setActiveId] = useState<string | null>(
+    cases?.[0]?.id ?? null,
+  );
 
   const copy =
     locale === "fr"
       ? {
           loadingTitle: "Chargement des décisions couvertes",
-          loadingBody:
-            "Le rail de priorités métier est en cours d’assemblage.",
+          loadingBody: "Le rail de priorités métier est en cours d’assemblage.",
           emptyTitle: "Aucun cas métier disponible",
           emptyBody:
             "Ajoutez des décisions opérationnelles pour alimenter cette section.",
@@ -86,12 +91,13 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
 
   if (!cases) {
     return (
-      <SectionShell id="use-cases" className="bg-[linear-gradient(180deg,#fbfbfa_0%,#f4f2ee_100%)]">
+      <SectionShell
+        id="use-cases"
+        className="bg-[linear-gradient(180deg,#fbfbfa_0%,#f4f2ee_100%)]"
+      >
         <div className="max-w-3xl">
           <Kicker>{useCases.kicker}</Kicker>
-          <h2
-            className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl"
-          >
+          <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
             {copy.loadingTitle}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
@@ -109,12 +115,13 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
 
   if (cases.length === 0) {
     return (
-      <SectionShell id="use-cases" className="bg-[linear-gradient(180deg,#fbfbfa_0%,#f4f2ee_100%)]">
+      <SectionShell
+        id="use-cases"
+        className="bg-[linear-gradient(180deg,#fbfbfa_0%,#f4f2ee_100%)]"
+      >
         <div className="max-w-3xl">
           <Kicker>{useCases.kicker}</Kicker>
-          <h2
-            className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl"
-          >
+          <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
             {copy.emptyTitle}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
@@ -125,17 +132,21 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
     );
   }
 
-  const orderedCases = useMemo(() => toOrderedCases(cases, activeId), [cases, activeId]);
+  const orderedCases = useMemo(
+    () => toOrderedCases(cases, activeId),
+    [cases, activeId],
+  );
   const activeCase = orderedCases[0] ?? null;
 
   if (!activeCase) {
     return (
-      <SectionShell id="use-cases" className="bg-[linear-gradient(180deg,#fbfbfa_0%,#f4f2ee_100%)]">
+      <SectionShell
+        id="use-cases"
+        className="bg-[linear-gradient(180deg,#fbfbfa_0%,#f4f2ee_100%)]"
+      >
         <div className="max-w-3xl">
           <Kicker>{useCases.kicker}</Kicker>
-          <h2
-            className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl"
-          >
+          <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
             {copy.errorTitle}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
@@ -147,7 +158,10 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
   }
 
   return (
-    <SectionShell id="use-cases" className="bg-[linear-gradient(180deg,#fbfbfa_0%,#f4f2ee_100%)]">
+    <SectionShell
+      id="use-cases"
+      className="bg-[linear-gradient(180deg,#fbfbfa_0%,#f4f2ee_100%)]"
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -172,14 +186,16 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
       >
         <motion.aside variants={railItem} className="space-y-3">
           <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-brass-700">
-            <Sparkle size={14} weight="fill" />
+            <DecisionGraphIcon size={14} />
             {copy.railLabel}
           </p>
 
           <div className="space-y-2">
             {orderedCases.map((entry) => {
               const isActive = entry.id === activeCase.id;
-              const sourceIndex = cases.findIndex((item) => item.id === entry.id);
+              const sourceIndex = cases.findIndex(
+                (item) => item.id === entry.id,
+              );
               return (
                 <motion.button
                   key={entry.id}
@@ -234,7 +250,7 @@ export function UseCasesSection({ locale, dict }: UseCasesSectionProps) {
                 </h3>
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-amber-700">
-                <Lightbulb size={14} weight="fill" />
+                <SignalWindowIcon size={14} />
                 {copy.liveLabel}
               </span>
             </div>

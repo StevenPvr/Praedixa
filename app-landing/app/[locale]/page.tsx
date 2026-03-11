@@ -8,8 +8,6 @@ import { ProblemSection } from "../../components/homepage/ProblemSection";
 import { SolutionSection } from "../../components/homepage/SolutionSection";
 import { SectorPagesTeaserSection } from "../../components/homepage/SectorPagesTeaserSection";
 import { ClosedLoopTeaserSection } from "../../components/homepage/ClosedLoopTeaserSection";
-import { IntegrationTeaserSection } from "../../components/homepage/IntegrationTeaserSection";
-import { ServicesPilotTeaserSection } from "../../components/homepage/ServicesPilotTeaserSection";
 import { HomeFaqCtaSection } from "../../components/homepage/HomeFaqCtaSection";
 import { JsonLd } from "../../components/seo/JsonLd";
 
@@ -50,8 +48,6 @@ export default async function LandingPage({
       <SolutionSection dict={dict} />
       <SectorPagesTeaserSection locale={locale} />
       <ClosedLoopTeaserSection locale={locale} />
-      <IntegrationTeaserSection locale={locale} />
-      <ServicesPilotTeaserSection locale={locale} />
       <HomeFaqCtaSection locale={locale} />
       <JsonLd
         locale={locale}

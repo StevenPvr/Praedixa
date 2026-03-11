@@ -1,7 +1,7 @@
-import { CheckSquare, TrendUp } from "@phosphor-icons/react/ssr";
 import type { Dictionary } from "../../lib/i18n/types";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
+import { CheckBadgeIcon, TrendGraphIcon } from "../shared/icons/MarketingIcons";
 import { PulseDot } from "../shared/motion/PulseDot";
 import { ShimmerTrack } from "../shared/motion/ShimmerTrack";
 import {
@@ -32,11 +32,11 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
           <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl">
             {isFrench ? "Chargement de la preuve" : "Loading proof"}
           </h2>
-            <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
-              {isFrench
+          <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
+            {isFrench
               ? "Préparation du comparatif (avant / recommandé / réel)."
               : "Preparing the baseline / recommended / actual comparison."}
-            </p>
+          </p>
           <div className="mt-8 space-y-4">
             <div className="h-16 animate-pulse rounded-2xl border border-white/10 bg-white/[0.06]" />
             <div className="h-16 animate-pulse rounded-2xl border border-white/10 bg-white/[0.06]" />
@@ -53,7 +53,9 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
         <div className="max-w-3xl">
           <Kicker className="text-neutral-100">{deliverables.kicker}</Kicker>
           <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl">
-            {isFrench ? "Aucun référentiel de preuve" : "No proof references yet"}
+            {isFrench
+              ? "Aucun référentiel de preuve"
+              : "No proof references yet"}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
             {isFrench
@@ -82,9 +84,7 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
           <div className="mt-12 space-y-4">
             {roiFrames.map((frame, i) => (
               <MotionReveal key={frame.label} delay={i * 0.08}>
-                <div
-                  className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] md:p-6"
-                >
+                <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] md:p-6">
                   <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-amber-100">
                     <PulseDot className="h-1.5 w-1.5 bg-amber-300" />
                     {frame.label}
@@ -104,10 +104,12 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
                     >
                       {frame.sourceLabel}
                       <span className="sr-only">
-                        {isFrench ? " (nouvel onglet)" : " (opens in a new tab)"}
+                        {isFrench
+                          ? " (nouvel onglet)"
+                          : " (opens in a new tab)"}
                       </span>
                     </a>
-                    <TrendUp size={16} weight="bold" className="text-amber-300" />
+                    <TrendGraphIcon size={16} className="text-amber-300" />
                   </div>
                 </div>
               </MotionReveal>
@@ -122,22 +124,26 @@ export function DeliverablesSection({ dict }: DeliverablesSectionProps) {
         >
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm md:p-7">
             <h3 className="text-xl font-semibold tracking-tight text-white">
-              {isFrench ? "Checklist de preuve mensuelle" : "Monthly proof checklist"}
+              {isFrench
+                ? "Checklist de preuve mensuelle"
+                : "Monthly proof checklist"}
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-neutral-200">
               {isFrench
                 ? "Chaque point rend la preuve exploitable en comité."
                 : "Each item makes the proof usable in reviews."}
             </p>
-            <MotionStagger className="mt-5 list-none space-y-3.5 p-0" staggerDelay={0.08}>
+            <MotionStagger
+              className="mt-5 list-none space-y-3.5 p-0"
+              staggerDelay={0.08}
+            >
               {checklist.map((item) => (
                 <MotionStaggerItem
                   key={item}
                   className="m-0 flex items-start gap-2.5 text-sm text-neutral-200"
                 >
-                  <CheckSquare
+                  <CheckBadgeIcon
                     size={18}
-                    weight="fill"
                     className="mt-0.5 shrink-0 text-amber-400"
                   />
                   {item}

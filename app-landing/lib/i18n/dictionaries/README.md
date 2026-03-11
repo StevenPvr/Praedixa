@@ -34,3 +34,5 @@ Ce dossier est consommé par l'application `app-landing` et s'insère dans son f
 ## Regle editoriale
 
 La copy canonique doit rester alignee sur le positionnement `DecisionOps` de Praedixa: federation de l'existant, arbitrages gouvernes, execution controlee et preuve ROI decision par decision. Eviter de retomber dans un discours generique de `data platform`, `copilote IA` ou `dashboard` sans nuance.
+Sur le hero, garder `hero.headline` tres court et laisser `hero.headlineHighlight` porter la promesse detaillee en dessous, dans une hierarchie secondaire.
+Quand cette promesse secondaire est rendue sur un media sombre, verifier qu'elle garde un contraste clair et une taille intermediaire suffisante entre le H1 et le corps de texte.

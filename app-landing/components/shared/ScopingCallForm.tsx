@@ -1,7 +1,12 @@
 "use client";
 
-import { PaperPlaneRight, SpinnerGap, WarningCircle } from "@phosphor-icons/react";
-import type { ScopingCallFormData, ScopingCallCopy, ScopingFieldErrors } from "./scoping-call.types";
+import { PaperPlaneRight, SpinnerGap } from "@phosphor-icons/react";
+import { AlertDiamondIcon } from "./icons/MarketingIcons";
+import type {
+  ScopingCallFormData,
+  ScopingCallCopy,
+  ScopingFieldErrors,
+} from "./scoping-call.types";
 
 const BASE_FIELD_CLASS =
   "w-full rounded-xl border bg-white/95 px-3 py-2.5 text-sm text-ink transition-all duration-200 [transition-timing-function:var(--ease-snappy)] placeholder:text-neutral-400 focus:border-brass focus:ring-1 focus:ring-brass";
@@ -33,8 +38,12 @@ export function ScopingCallForm({
       aria-label={copy.title}
     >
       <header className="border-b border-neutral-200/80 pb-4">
-        <h2 className="text-xl font-semibold tracking-tight text-ink md:text-2xl">{copy.title}</h2>
-        <p className="mt-2 text-sm leading-relaxed text-neutral-600">{copy.subtitle}</p>
+        <h2 className="text-xl font-semibold tracking-tight text-ink md:text-2xl">
+          {copy.title}
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+          {copy.subtitle}
+        </p>
       </header>
 
       <form onSubmit={onSubmit} className="mt-5 space-y-5" noValidate>
@@ -83,7 +92,9 @@ export function ScopingCallForm({
             placeholder="Europe/Paris"
             aria-invalid={fieldErrors.timezone ? "true" : "false"}
             aria-describedby={
-              fieldErrors.timezone ? "booking-timezone-error" : "booking-timezone-hint"
+              fieldErrors.timezone
+                ? "booking-timezone-error"
+                : "booking-timezone-hint"
             }
           />
           {fieldErrors.timezone ? (
@@ -91,14 +102,19 @@ export function ScopingCallForm({
               {fieldErrors.timezone}
             </p>
           ) : (
-            <p id="booking-timezone-hint" className="mt-1 text-xs text-neutral-500">
+            <p
+              id="booking-timezone-hint"
+              className="mt-1 text-xs text-neutral-500"
+            >
               {copy.timezoneHint}
             </p>
           )}
         </div>
 
         <fieldset className="rounded-2xl border border-neutral-200/80 bg-white/80 p-4">
-          <legend className="px-1 text-sm font-semibold text-ink">{copy.slots}</legend>
+          <legend className="px-1 text-sm font-semibold text-ink">
+            {copy.slots}
+          </legend>
           <p className="mt-1 text-xs text-neutral-500">{copy.slotsHint}</p>
           <div className="mt-3 grid grid-cols-1 gap-3">
             <ScopingSlotField
@@ -120,7 +136,9 @@ export function ScopingCallForm({
               onChange={(value) => update("slot3", value)}
             />
           </div>
-          {fieldErrors.slots ? <p className={ERROR_CLASS}>{fieldErrors.slots}</p> : null}
+          {fieldErrors.slots ? (
+            <p className={ERROR_CLASS}>{fieldErrors.slots}</p>
+          ) : null}
         </fieldset>
 
         <div>
@@ -144,9 +162,10 @@ export function ScopingCallForm({
             className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             aria-live="polite"
           >
-            <WarningCircle size={18} weight="fill" className="mt-0.5 shrink-0" />
+            <AlertDiamondIcon size={18} className="mt-0.5 shrink-0" />
             <span>
-              <span className="font-semibold">{copy.errorPrefix}</span> {errorMsg}
+              <span className="font-semibold">{copy.errorPrefix}</span>{" "}
+              {errorMsg}
             </span>
           </div>
         ) : null}

@@ -25,6 +25,7 @@ Ici vivent les contenus longs, structures ou semi-editorialises que les pages co
 - la facade `sector-pages.ts` sert d'entree unique pour les routes, composants, sitemap et llms
 - la copy partagee des verticales reste dans `sector-pages-data/shared.ts`, pas dans `SectorPage.tsx`
 - les pages sectorielles exposent aussi un helper de deduplication des sources affichees pour garder une liste de references propre par URL
+- les verticales doivent expliciter a la fois les `KPIs` que Praedixa peut predire et les `decisions` que la plateforme peut optimiser pour le secteur
 - les contenus knowledge et sectoriels doivent rester alignes sur la categorie `DecisionOps`, pas sur une promesse vague de plateforme data ou de copilote generique
 
 ## Tests

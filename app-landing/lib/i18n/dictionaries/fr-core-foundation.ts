@@ -25,8 +25,9 @@ export const frCoreFoundation: Partial<Dictionary> = {
 
   hero: {
     kicker: "DecisionOps · RH · Finance · Opérations · Supply Chain",
-    headline: "DecisionOps pour les opérations.",
-    headlineHighlight: "Décidez plus tôt. Prouvez le ROI.",
+    headline: "DecisionOps",
+    headlineHighlight:
+      "Anticiper vos besoins. Décidez plus tôt. Prouvez le ROI.",
     subtitle:
       "Praedixa se branche sur vos systèmes existants, fédère les données critiques sur une infrastructure hébergée en France, transforme vos arbitrages récurrents en décisions calculées, exécutées et auditables, puis prouve le ROI décision par décision en comité Ops / Finance.",
     manifestoLabel: "",

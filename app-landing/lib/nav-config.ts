@@ -1,5 +1,6 @@
 import type { Locale } from "./i18n/config";
 import { getLocalizedPath } from "./i18n/config";
+import { getSectorPageHref } from "./content/sector-pages";
 
 export interface NavChildItem {
   label: string;
@@ -140,14 +141,15 @@ function buildResourcesNavGroup(locale: Locale): NavGroup {
     label: copy(locale, "Ressources", "Resources"),
     menu: createMenu(locale, {
       kicker: ["Ops & Finance", "Ops & Finance"],
-      title: ["Ressources business", "Audit-ready resources"],
+      title: ["Ressources et verticales", "Resources and industry pages"],
       description: [
-        "Guides business, méthode ROI et retours terrain.",
-        "Operational guides, ROI proof method, and industry articles.",
+        "Guides business, pages sectorielles, méthode ROI et retours terrain.",
+        "Operational guides, industry pages, ROI proof method, and field articles.",
       ],
       ctaLabel: ["Accéder aux ressources", "Open resources"],
       ctaHref: getLocalizedPath(locale, "resources"),
-      panelWidth: "md",
+      columns: 2,
+      panelWidth: "lg",
     }),
     items: [
       createNavItem(
@@ -158,6 +160,38 @@ function buildResourcesNavGroup(locale: Locale): NavGroup {
         "Une seule page claire pour les contextes couverts et les cas d'usage.",
         "One clear page for covered contexts and business use cases.",
         true,
+      ),
+      createNavItem(
+        locale,
+        "HCR",
+        "Hospitality / Food service",
+        getSectorPageHref(locale, "hcr"),
+        "Staffing, couverture, extras, qualité de service et marge.",
+        "Coverage, staffing, extras, service quality, and margin.",
+      ),
+      createNavItem(
+        locale,
+        "Enseignement supérieur",
+        "Higher education",
+        getSectorPageHref(locale, "higher-education"),
+        "Admissions, examens, vacations, continuité de service campus.",
+        "Admissions, exams, adjunct coverage, and campus continuity.",
+      ),
+      createNavItem(
+        locale,
+        "Logistique / Transport / Retail",
+        "Logistics / Transport / Retail",
+        getSectorPageHref(locale, "logistics-transport-retail"),
+        "Volumes, OTIF, intérim, réallocation inter-sites et SLA.",
+        "Demand, OTIF, temp labor, inter-site reallocation, and SLA.",
+      ),
+      createNavItem(
+        locale,
+        "Automobile / concessions / ateliers",
+        "Automotive / dealerships / workshops",
+        getSectorPageHref(locale, "automotive"),
+        "Backlog atelier, compétences rares, pièces et délai client.",
+        "Workshop backlog, scarce skills, parts, and customer delay.",
       ),
       createNavItem(
         locale,

@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, CheckCircle, Sparkle } from "@phosphor-icons/react";
+import { ArrowUpRight } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
+import {
+  CheckBadgeIcon,
+  DecisionGraphIcon,
+} from "../shared/icons/MarketingIcons";
 import type { ContactPageCopy } from "./contact-page.types";
 
 export function ContactPageAside({
@@ -19,7 +23,7 @@ export function ContactPageAside({
     <aside className="space-y-6 md:pt-2">
       <div>
         <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.11em] text-brass-700">
-          <Sparkle size={14} weight="fill" />
+          <DecisionGraphIcon size={14} />
           {copy.kicker}
         </span>
         <h1 className="mt-4 max-w-[18ch] text-4xl font-bold leading-none tracking-tighter text-ink md:text-6xl">
@@ -36,8 +40,14 @@ export function ContactPageAside({
         </h2>
         <ul className="mt-4 list-none space-y-2.5 p-0">
           {copy.promiseItems.map((item) => (
-            <li key={item} className="m-0 flex items-start gap-2.5 text-sm text-neutral-700">
-              <CheckCircle size={16} weight="fill" className="mt-0.5 shrink-0 text-amber-600" />
+            <li
+              key={item}
+              className="m-0 flex items-start gap-2.5 text-sm text-neutral-700"
+            >
+              <CheckBadgeIcon
+                size={16}
+                className="mt-0.5 shrink-0 text-amber-600"
+              />
               {item}
             </li>
           ))}

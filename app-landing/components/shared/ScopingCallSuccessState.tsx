@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle } from "@phosphor-icons/react";
+import { CheckBadgeIcon } from "./icons/MarketingIcons";
 import type { ScopingCallCopy } from "./scoping-call.types";
 
 export function ScopingCallSuccessState({
@@ -16,10 +16,14 @@ export function ScopingCallSuccessState({
       aria-live="polite"
     >
       <div className="flex items-start gap-3">
-        <CheckCircle size={22} weight="fill" className="mt-0.5 text-amber-700" />
+        <CheckBadgeIcon size={22} className="mt-0.5 text-amber-700" />
         <div>
-          <h2 className="text-lg font-semibold tracking-tight text-ink">{copy.successTitle}</h2>
-          <p className="mt-1 text-sm leading-relaxed text-neutral-700">{copy.successBody}</p>
+          <h2 className="text-lg font-semibold tracking-tight text-ink">
+            {copy.successTitle}
+          </h2>
+          <p className="mt-1 text-sm leading-relaxed text-neutral-700">
+            {copy.successBody}
+          </p>
         </div>
       </div>
     </section>
