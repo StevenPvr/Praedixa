@@ -58,9 +58,9 @@ export const frCoreFoundation: Partial<Dictionary> = {
       "Première action déclenchée dans vos outils",
       "Validation humaine requise",
       "Preuve mensuelle décision par décision",
-      "Diagnostic ROI gratuit sur vos donnees existantes",
-      "Complement de stack, sans remplacement d'outil",
-      "Gouvernance et securite integrees",
+      "Diagnostic ROI gratuit sur vos données existantes",
+      "Complément de stack, sans remplacement d'outil",
+      "Gouvernance et sécurité intégrées",
       "Hébergé en France (Scaleway)",
     ],
   },
@@ -83,7 +83,7 @@ export const frCoreFoundation: Partial<Dictionary> = {
     kicker: "",
     heading: "Quand les données restent en silos, la marge fuit.",
     subheading:
-      "RH, finance, opérations, Excel, ERP, terrain: chacun a ses chiffres. Le vrai problème, c'est qu'ils ne racontent pas la même histoire au bon moment. Résultat: argent perdu, priorités floues et décisions difficiles a défendre.",
+      "RH, finance, opérations, Excel, ERP, terrain: chacun a ses chiffres. Le vrai problème, c'est qu'ils ne racontent pas la même histoire au bon moment. Résultat: argent perdu, priorités floues et décisions difficiles à défendre.",
     cta: "Obtenir le diagnostic ROI gratuit",
     ctaHint:
       "Réponse sous 48h ouvrées. Diagnostic ROI offert. Démarrage sur vos fichiers et outils existants, en lecture seule.",
@@ -93,7 +93,7 @@ export const frCoreFoundation: Partial<Dictionary> = {
         "Nous structurons les points de friction avant vos arbitrages business.",
       emptyTitle: "Aucun signal remonte",
       emptyBody:
-        "Ajoutez des cas concrets a prioriser pour composer votre lecture business.",
+        "Ajoutez des cas concrets à prioriser pour composer votre lecture business.",
       errorTitle: "Section indisponible",
       errorBody:
         "Le cadrage de problème ne peut pas être affiché pour le moment.",
@@ -127,10 +127,10 @@ export const frCoreFoundation: Partial<Dictionary> = {
     diagnostic: {
       title: "Vous reconnaissez ce fonctionnement ?",
       signals: [
-        "En reunion, vous commencez par reconcilier les chiffres avant de decider",
-        "Un meme ecart terrain ne declenche pas la meme action selon le site",
-        "Les arbitrages sont souvent justifies apres coup, rarement compares avant",
-        "Apres une action, il est difficile de relier clairement le gain au choix fait",
+        "En réunion, vous commencez par réconcilier les chiffres avant de décider",
+        "Un même écart terrain ne déclenche pas la même action selon le site",
+        "Les arbitrages sont souvent justifiés après coup, rarement comparés avant",
+        "Après une action, il est difficile de relier clairement le gain au choix fait",
       ],
     },
   },
@@ -163,19 +163,19 @@ export const frCoreFoundation: Partial<Dictionary> = {
     differentiators: {
       title: "La différence est dans la combinaison DecisionOps",
       description:
-        "Praedixa ne gagne pas sur une brique isolée. Le différenciateur est la combinaison produit empaquetée comme coeur d'exécution.",
+        "Praedixa ne gagne pas sur une brique isolée. Le différenciateur est la combinaison produit empaquetée comme cœur d'exécution.",
       items: [
         {
           is: "Fédération gouvernée sur l'existant",
           isNot: "Projet data ou remplacement d'outils",
         },
         {
-          is: "Decision Journal + premiere action dans les outils",
-          isNot: "Signal ou dashboard sans execution",
+          is: "Decision Journal + première action dans les outils",
+          isNot: "Signal ou dashboard sans exécution",
         },
         {
-          is: "Preuve mensuelle decision par decision",
-          isNot: "ROI marketing generique sans tracabilite",
+          is: "Preuve mensuelle décision par décision",
+          isNot: "ROI marketing générique sans traçabilité",
         },
       ],
     },

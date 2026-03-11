@@ -21,8 +21,8 @@ export const frContentA: Record<
     kicker: "Praedixa",
     title: "À propos",
     description:
-      "Mission, ancrage et positionnement de Praedixa comme plateforme francaise de DecisionOps pour les entreprises multi-sites.",
-    lead: "Praedixa est la plateforme francaise de DecisionOps: elle relie les systemes qui comptent pour une decision, gouverne les arbitrages critiques et prouve le ROI decision par decision.",
+      "Mission, ancrage et positionnement de Praedixa comme plateforme française de DecisionOps pour les entreprises multi-sites.",
+    lead: "Praedixa est la plateforme française de DecisionOps: elle relie les systèmes qui comptent pour une décision, gouverne les arbitrages critiques et prouve le ROI décision par décision.",
     sections: [
       {
         title: "Mission",
@@ -34,8 +34,8 @@ export const frContentA: Record<
       {
         title: "Positionnement",
         paragraphs: [
-          "Praedixa n'est pas une data platform generique, un ERP, un outil de planning ou un dashboard de plus.",
-          "La plateforme se place entre les systemes existants et les arbitrages business a prendre plus tot, avec une execution controlee et une preuve relisible pour les equipes et les comites.",
+          "Praedixa n'est pas une data platform générique, un ERP, un outil de planning ou un dashboard de plus.",
+          "La plateforme se place entre les systèmes existants et les arbitrages business à prendre plus tôt, avec une exécution contrôlée et une preuve relisible pour les équipes et les comités.",
         ],
       },
       {
@@ -142,14 +142,14 @@ export const frContentA: Record<
     kicker: "Produit",
     title: "Produit & méthode",
     description:
-      "Comment Praedixa relie les systemes utiles et transforme des arbitrages recurrents en decisions gouvernees.",
-    lead: "Praedixa relie vos systemes RH, finance, operations et supply chain sans remplacer vos outils pour transformer des signaux disperses en decisions gouvernees, executables et auditables.",
+      "Comment Praedixa relie les systèmes utiles et transforme des arbitrages récurrents en décisions gouvernées.",
+    lead: "Praedixa relie vos systèmes RH, finance, opérations et supply chain sans remplacer vos outils pour transformer des signaux dispersés en décisions gouvernées, exécutables et auditables.",
     sections: [
       {
         title: "Réunir",
         paragraphs: [
-          "La plateforme part des outils en place et relie les donnees utiles dans un meme langage de decision.",
-          "L'objectif n'est pas d'avoir plus de chiffres, mais un cadre commun comprehensible par toutes les equipes.",
+          "La plateforme part des outils en place et relie les données utiles dans un même langage de décision.",
+          "L'objectif n'est pas d'avoir plus de chiffres, mais un cadre commun compréhensible par toutes les équipes.",
         ],
       },
       {
@@ -163,7 +163,7 @@ export const frContentA: Record<
         title: "Optimiser",
         paragraphs: [
           "Les decisions sont priorisees selon l'impact business attendu, pas selon le bruit du moment.",
-          "Chaque action garde une logique claire pour les equipes, la direction et la finance.",
+          "Chaque action garde une logique claire pour les équipes, la direction et la finance.",
         ],
       },
     ],
@@ -181,8 +181,8 @@ export const frContentA: Record<
     kicker: "Méthode",
     title: "Comment ça marche",
     description:
-      "Le parcours Praedixa pour federer les donnees utiles, calculer les options, declencher l'action validee et suivre le ROI.",
-    lead: "Praedixa commence par federer les donnees utiles, puis aide a rendre les besoins visibles plus tot, a calculer les options, a declencher l'action validee et a suivre le ROI.",
+      "Le parcours Praedixa pour fédérer les données utiles, calculer les options, déclencher l'action validée et suivre le ROI.",
+    lead: "Praedixa commence par fédérer les données utiles, puis aide à rendre les besoins visibles plus tôt, à calculer les options, à déclencher l'action validée et à suivre le ROI.",
     sections: [
       {
         title: "1. Réunir les données utiles",
@@ -199,7 +199,7 @@ export const frContentA: Record<
       {
         title: "3. Prioriser les actions",
         paragraphs: [
-          "Les equipes voient ce qu'il faut lancer en premier, qui doit valider et quel arbitrage peut rapporter le plus.",
+          "Les équipes voient ce qu'il faut lancer en premier, qui doit valider et quel arbitrage peut rapporter le plus.",
         ],
       },
       {
@@ -223,7 +223,7 @@ export const frContentA: Record<
     title: "Dossier ROI",
     description:
       "Le format simple pour relier options, actions et gains observes dans le temps.",
-    lead: "Le dossier ROI Praedixa relie chaque arbitrage operationnel a une lecture simple, structuree et relisible par la direction, la finance et les operations.",
+    lead: "Le dossier ROI Praedixa relie chaque arbitrage opérationnel à une lecture simple, structurée et relisible par la direction, la finance et les opérations.",
     sections: [
       {
         title: "Ce qu'il contient",
@@ -261,7 +261,7 @@ export const frContentA: Record<
     title: "Intégration & données",
     description:
       "Comment Praedixa se branche sur l'existant sans créer un nouveau projet lourd.",
-    lead: "Praedixa se branche sur vos exports/API pour federer les systemes qui comptent pour une decision, sans imposer de remplacement SI pour demarrer.",
+    lead: "Praedixa se branche sur vos exports/API pour fédérer les systèmes qui comptent pour une décision, sans imposer de remplacement SI pour démarrer.",
     sections: [
       {
         title: "Démarrage léger",
@@ -272,7 +272,7 @@ export const frContentA: Record<
       {
         title: "Federation gouvernee",
         paragraphs: [
-          "Les donnees RH, finance, operations et supply chain sont remises dans un meme cadre pour accelerer la decision sans ecraser votre stack.",
+          "Les données RH, finance, opérations et supply chain sont remises dans un même cadre pour accélérer la décision sans écraser votre stack.",
         ],
       },
       {

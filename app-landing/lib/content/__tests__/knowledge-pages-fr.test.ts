@@ -22,10 +22,10 @@ describe("knowledge pages FR messaging", () => {
       "supply chain",
     );
     expect(getKnowledgePage("fr", "integrationData").lead).toContain(
-      "federer les systemes",
+      "fédérer les systèmes",
     );
     expect(getKnowledgePage("fr", "howItWorksPage").lead).toContain(
-      "federer les donnees utiles",
+      "fédérer les données utiles",
     );
     expect(getKnowledgePage("fr", "decisionLogProof").title).toBe(
       "Dossier ROI",
@@ -34,7 +34,7 @@ describe("knowledge pages FR messaging", () => {
       "Praedixa DecisionOps vs diagnostic ROI.",
     );
     expect(fr.servicesPage.fullPackage.includes).toContain(
-      "Systemes RH, finance, operations et supply chain federes",
+      "Systèmes RH, finance, opérations et supply chain fédérés",
     );
   });
 

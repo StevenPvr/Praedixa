@@ -29,6 +29,7 @@ Keep modules small and easy to review. As a default rule, avoid source files ove
 Each time a development mistake causes a bug, add one short prevention rule to this `AGENTS.md` so the same error is less likely to happen again.
 After every code change, update the documentation in the affected directories and files within the same change so the distributed doc stays current with the codebase.
 After deleting or renaming Next.js routes or pages in `app-landing`, clear `.next` before restarting Turbopack so the dev cache cannot crash on stale task data.
+Before finalizing a hook-backed commit in a Next.js app, verify `next-env.d.ts` was not dirtied by `next dev` or Playwright web servers, or the commit can fail after the checks themselves pass.
 Before adding a new nested Next.js route page, verify the relative import depth from the route file to shared modules with `tsc` before considering the route done.
 Before adding non-standard React DOM props, verify they are supported by typed HTML attributes or pass them explicitly as intentional lowercase custom attributes.
 For Safari/WebKit media bugs, validate real playback state in WebKit before assuming DOM autoplay attributes are sufficient.
@@ -73,6 +74,7 @@ Before shipping a decorative hero video on the landing page, let a static poster
 Before adding a global webfont to the landing layout, verify it is needed above the fold; every extra high-priority font on `/fr` must justify its LCP cost.
 Before rebaselining a Lighthouse budget, first remove avoidable bottlenecks on a fresh production build and only then version the new threshold as an explicit measured baseline.
 Before reusing a text accent token inside the landing hero, verify it stays readable on the actual dark media background; tokens tuned for light surfaces should not be reused blindly above the fold.
+Before shipping French landing copy, do one explicit pass for missing accents and natural French typography on every user-visible string you changed.
 Before repositioning a persistent hero rail or proof strip, anchor it with the section layout (`flex` / `mt-auto`) instead of compensating with ad hoc margins that depend on headline height.
 Before declaring a landing hero block removed, verify the exact JSX branch is gone and recheck the real desktop rendering instead of assuming adjacent cards were the only remaining element.
 Before trimming a landing explanation of the DecisionOps loop, verify the full product sequence still appears explicitly: federate, predict, calculate, trigger, prove.

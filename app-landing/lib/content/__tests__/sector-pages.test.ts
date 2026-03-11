@@ -76,16 +76,16 @@ describe("sector pages content", () => {
   it("keeps shared differentiation cards in localized content modules", () => {
     expect(listSectorDifferentiationCards("fr")).toEqual([
       {
-        title: "Federation gouvernee sur l'existant",
-        body: "Praedixa se branche au-dessus de l'ERP, du planning, de la BI et d'Excel pour relier les systemes qui comptent pour une decision, sans projet de remplacement.",
+        title: "Fédération gouvernée sur l'existant",
+        body: "Praedixa se branche au-dessus de l'ERP, du planning, de la BI et d'Excel pour relier les systèmes qui comptent pour une décision, sans projet de remplacement.",
       },
       {
-        title: "Decision Journal + premiere action",
-        body: "Le signal ne reste pas dans un dashboard: le choix est compare, journalise, puis la premiere action utile est enclenchee dans les outils existants.",
+        title: "Decision Journal + première action",
+        body: "Le signal ne reste pas dans un dashboard: le choix est comparé, journalisé, puis la première action utile est enclenchée dans les outils existants.",
       },
       {
-        title: "Preuve mensuelle decision par decision",
-        body: "La valeur est relue avec une logique baseline / recommande / reel, des hypotheses explicites et une lecture exploitable en revue Ops / Finance.",
+        title: "Preuve mensuelle décision par décision",
+        body: "La valeur est relue avec une logique baseline / recommandé / réel, des hypothèses explicites et une lecture exploitable en revue Ops / Finance.",
       },
     ]);
 

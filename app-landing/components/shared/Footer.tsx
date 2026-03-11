@@ -135,7 +135,7 @@ export function Footer({ locale, dict }: FooterProps) {
             </Link>
             <p className="max-w-[46ch] text-sm leading-relaxed text-neutral-400">
               {locale === "fr"
-                ? "Praedixa transforme les arbitrages critiques en decisions calculees, executees et auditables, sans remplacer vos outils."
+                ? "Praedixa transforme les arbitrages critiques en décisions calculées, exécutées et auditables, sans remplacer vos outils."
                 : "Praedixa turns critical trade-offs into calculated, executable, auditable decisions."}
             </p>
             <ShimmerTrack

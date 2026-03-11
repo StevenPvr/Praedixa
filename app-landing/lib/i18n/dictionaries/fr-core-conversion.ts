@@ -28,7 +28,7 @@ export const frCoreConversion: Partial<Dictionary> = {
       {
         question: "Praedixa, c'est quoi en une phrase ?",
         answer:
-          "Praedixa est la plateforme francaise de DecisionOps: elle relie vos systemes existants pour transformer les arbitrages critiques en decisions calculees, executees et auditables.",
+          "Praedixa est la plateforme française de DecisionOps: elle relie vos systèmes existants pour transformer les arbitrages critiques en décisions calculées, exécutées et auditables.",
         category: "Comprendre Praedixa",
       },
       {
@@ -53,13 +53,13 @@ export const frCoreConversion: Partial<Dictionary> = {
       {
         question: "Qui prend la décision finale ?",
         answer:
-          "Toujours vos équipes. Praedixa aide a lire, comparer et prioriser. La décision finale reste côté client.",
+          "Toujours vos équipes. Praedixa aide à lire, comparer et prioriser. La décision finale reste côté client.",
         category: "Comprendre Praedixa",
       },
       {
         question: "Quelle différence avec un outil de planning ou un ERP ?",
         answer:
-          "Praedixa ne remplace pas vos outils. La plateforme gouverne les arbitrages qui traversent vos outils, les journalise et les relie a une preuve ROI.",
+          "Praedixa ne remplace pas vos outils. La plateforme gouverne les arbitrages qui traversent vos outils, les journalise et les relie à une preuve ROI.",
         category: "Comprendre Praedixa",
       },
       {
@@ -77,7 +77,7 @@ export const frCoreConversion: Partial<Dictionary> = {
       {
         question: "Comment prouvez-vous le ROI ?",
         answer:
-          "En comparant la situation de départ, les actions lancées et les gains observés dans un dossier simple a relire par la direction, la finance et les operations.",
+          "En comparant la situation de départ, les actions lancées et les gains observés dans un dossier simple à relire par la direction, la finance et les opérations.",
         category: "Pilote & tarification",
       },
       {
@@ -101,7 +101,7 @@ export const frCoreConversion: Partial<Dictionary> = {
       {
         question: "Comment gérez-vous les règles internes et les garde-fous ?",
         answer:
-          "Praedixa s'adapte a vos règles et garde-fous. L'idée n'est pas de forcer vos équipes, mais de leur donner une meilleure lecture pour décider.",
+          "Praedixa s'adapte à vos règles et garde-fous. L'idée n'est pas de forcer vos équipes, mais de leur donner une meilleure lecture pour décider.",
         category: "Technique & données",
       },
       {
@@ -200,7 +200,7 @@ export const frCoreConversion: Partial<Dictionary> = {
           forecastsOnly: "Non inclus",
         },
         {
-          criterion: "Cadence direction / finance / operations",
+          criterion: "Cadence direction / finance / opérations",
           fullPackage: "Inclus",
           forecastsOnly: "Non inclus",
         },

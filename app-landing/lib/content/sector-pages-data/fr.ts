@@ -19,7 +19,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     metaTitle:
       "Praedixa | HCR: anticiper les besoins d'effectif avant que le service se tende",
     metaDescription:
-      "Pour l'hotellerie-restauration, Praedixa relie les systemes utiles, predit les besoins d'effectif, chiffre les arbitrages et prouve le ROI sur masse salariale, couverture et qualite de service.",
+      "Pour l'hôtellerie-restauration, Praedixa relie les systèmes utiles, prédit les besoins d'effectif, chiffre les arbitrages et prouve le ROI sur masse salariale, couverture et qualité de service.",
     heroKicker: "Verticale HCR",
     heroTitle:
       "Anticiper les besoins d'effectif avant que le service se tende.",
@@ -77,9 +77,9 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     ],
     valuePropKicker: "Proposition de valeur",
     valuePropTitle:
-      "Praedixa transforme la couverture en decision operationnelle gouvernee.",
+      "Praedixa transforme la couverture en décision opérationnelle gouvernée.",
     valuePropBody:
-      "Praedixa ne vend pas un outil de planning de plus. La plateforme relie les donnees utiles, anticipe les besoins par site et par service, compare les options d'action et documente la decision qui protege le mieux la marge et le niveau de service.",
+      "Praedixa ne vend pas un outil de planning de plus. La plateforme relie les données utiles, anticipe les besoins par site et par service, compare les options d'action et documente la décision qui protège le mieux la marge et le niveau de service.",
     loopKicker: "Boucle Praedixa",
     loopTitle:
       "Une boucle fermée orientée couverture, coût et qualité de service.",
@@ -126,11 +126,11 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     decisions: [
       "Combien de serveurs, cuisiniers, receptionnistes ou agents housekeeping planifier par shift",
       "Quand lancer les recrutements saisonniers et sur quels métiers prioritaires",
-      "Quand ouvrir, fermer ou réduire une salle, un etage, un service ou une amplitude horaire",
+      "Quand ouvrir, fermer ou réduire une salle, un étage, un service ou une amplitude horaire",
       "Quand recourir aux extras ou à l'intérim vs mobiliser la polyvalence interne",
-      "Quels sites prioriser pour formation croisée, retention ou renfort ponctuel",
-      "Quand ajuster la promesse de service ou la pression commerciale pour proteger la marge",
-      "Quels etablissements ont besoin d'un arbitrage logement, transport ou fidelisation pour tenir la saison",
+      "Quels sites prioriser pour formation croisée, rétention ou renfort ponctuel",
+      "Quand ajuster la promesse de service ou la pression commerciale pour protéger la marge",
+      "Quels établissements ont besoin d'un arbitrage logement, transport ou fidélisation pour tenir la saison",
     ],
     ctaTitle:
       "Voir ce que Praedixa ferait sur vos services les plus sensibles.",
@@ -394,7 +394,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     loopSteps: [
       {
         title: "Réunir les données",
-        body: "Commandes, WMS, TMS, OMS, planning, absences, promos, performance site et couts sont alignes dans une federation gouvernee.",
+        body: "Commandes, WMS, TMS, OMS, planning, absences, promos, performance site et coûts sont alignés dans une fédération gouvernée.",
       },
       {
         title: "Prédire les effectifs nécessaires",
@@ -435,7 +435,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
       "Ouvrir un shift additionnel, réduire une amplitude ou ajuster un cut-off opérationnel",
       "Prioriser commandes, tournées, magasins ou promotions quand la capacité se tend",
       "Ajuster le niveau de service promis selon la couverture réellement disponible",
-      "Décider quels sites proteger en priorité pendant un pic promo ou un aléa réseau",
+      "Décider quels sites protéger en priorité pendant un pic promo ou un aléa réseau",
       "Déclencher un renfort transport, un arbitrage inter-sites ou un plan de délestage",
     ],
     ctaTitle:

@@ -17,7 +17,7 @@ const copy = {
     kicker: "Solutions par secteur",
     heading: "4 verticales nettes. Une même boucle de décision.",
     subheading:
-      "Praedixa ne vend pas un outil de planning generique. Chaque verticale exprime une douleur d'effectif differente, mais la meme boucle DecisionOps: federer les systemes utiles, predire, arbitrer, declencher, prouver le ROI.",
+      "Praedixa ne vend pas un outil de planning générique. Chaque verticale exprime une douleur d'effectif différente, mais la même boucle DecisionOps: fédérer les systèmes utiles, prédire, arbitrer, déclencher, prouver le ROI.",
     cta: "Voir la verticale",
   },
   en: {

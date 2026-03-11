@@ -4,30 +4,30 @@ export const frCoreOperations: Partial<Dictionary> = {
   howItWorks: {
     kicker: "Comment ça marche",
     heading:
-      "Federer les signaux, gouverner les arbitrages, agir la ou ca rapporte.",
+      "Fédérer les signaux, gouverner les arbitrages, agir là où ça rapporte.",
     subheading:
-      "Quatre etapes simples pour transformer des donnees dispersees en decisions gouvernees, executables et relisibles.",
+      "Quatre étapes simples pour transformer des données dispersées en décisions gouvernées, exécutables et relisibles.",
     steps: [
       {
         number: "01",
-        title: "Connexion aux systemes utiles",
+        title: "Connexion aux systèmes utiles",
         subtitle: "RH · Finance · Ops",
         description:
-          "Praedixa reprend vos exports et vos outils existants pour construire une federation gouvernee sur l'existant, sans projet lourd.",
+          "Praedixa reprend vos exports et vos outils existants pour construire une fédération gouvernée sur l'existant, sans projet lourd.",
       },
       {
         number: "02",
         title: "Lecture d'arbitrage commune",
-        subtitle: "Une meme grammaire de decision",
+        subtitle: "Une même grammaire de décision",
         description:
-          "Les donnees sont remises dans un langage simple: ou l'argent se perd, quels sites derapent, quelles options comparer et quels garde-fous respecter.",
+          "Les données sont remises dans un langage simple: où l'argent se perd, quels sites dérapent, quelles options comparer et quels garde-fous respecter.",
       },
       {
         number: "03",
-        title: "Premiere action priorisee",
-        subtitle: "La ou agir d'abord",
+        title: "Première action priorisée",
+        subtitle: "Là où agir d'abord",
         description:
-          "Vous voyez les actions a plus fort impact, site par site, avec un gain attendu compréhensible par les equipes et la direction.",
+          "Vous voyez les actions à plus fort impact, site par site, avec un gain attendu compréhensible par les équipes et la direction.",
       },
       {
         number: "04",
@@ -69,7 +69,7 @@ export const frCoreOperations: Partial<Dictionary> = {
           "Praedixa identifie les sites ou équipes les plus exposés et chiffre l'impact business des options possibles.",
         result: "Des arbitrages plus rapides, plus clairs et mieux défendus.",
         callout:
-          "Aucune usine a gaz: vous gardez une lecture simple et exploitable.",
+          "Aucune usine à gaz: vous gardez une lecture simple et exploitable.",
       },
       {
         id: "intersite",
@@ -88,7 +88,7 @@ export const frCoreOperations: Partial<Dictionary> = {
         context:
           "Les comités ont beaucoup de chiffres mais peu de lecture commune entre RH, finance et opérations.",
         action:
-          "Praedixa rassemble les faits, les priorités et le suivi d'impact dans un dossier ROI facile a relire.",
+          "Praedixa rassemble les faits, les priorités et le suivi d'impact dans un dossier ROI facile à relire.",
         result:
           "Des arbitrages mieux alignés et des budgets plus faciles a défendre.",
       },
@@ -126,10 +126,10 @@ export const frCoreOperations: Partial<Dictionary> = {
     ],
     checklist: [
       "Lecture commune RH / Finance / Operations",
-      "Priorites business classees par impact",
-      "Gain attendu puis gain observe",
+      "Priorités business classées par impact",
+      "Gain attendu puis gain observé",
       "Sites comparables dans le temps",
-      "Dossier simple pour comite de direction",
+      "Dossier simple pour comité de direction",
     ],
   },
 
@@ -178,18 +178,18 @@ export const frCoreOperations: Partial<Dictionary> = {
     compatibility: {
       title: "Compatible avec votre stack",
       description:
-        "Praedixa complete l'existant et relie les systemes critiques dans une seule lecture business.",
+        "Praedixa complète l'existant et relie les systèmes critiques dans une seule lecture business.",
       tools: ["Planning", "ERP", "CRM", "BI", "Excel"],
     },
     honesty:
-      "Le vrai sujet n'est pas d'avoir plus de donnees. C'est de transformer les arbitrages critiques en decisions calculees, executees et auditables.",
+      "Le vrai sujet n'est pas d'avoir plus de données. C'est de transformer les arbitrages critiques en décisions calculées, exécutées et auditables.",
   },
 
   pilot: {
     kicker: "Pilote ROI",
     heading: "Un pilote court pour mettre DecisionOps en production.",
     subheading:
-      "En quelques semaines, Praedixa relie vos systemes critiques, sort les priorites et met le ROI au centre des decisions.",
+      "En quelques semaines, Praedixa relie vos systèmes critiques, sort les priorités et met le ROI au centre des décisions.",
     statusLabels: ["Cadrage", "Premiers gains", "Preuve consolidée"],
     included: {
       title: "Ce que vous obtenez",
@@ -198,7 +198,7 @@ export const frCoreOperations: Partial<Dictionary> = {
         "Une lecture commune RH, finance et opérations",
         "Les sites, équipes ou sujets à plus fort potentiel de gain",
         "Un plan d'action priorisé avec impact attendu",
-        "Un suivi du ROI simple a relire en comite",
+        "Un suivi du ROI simple à relire en comité",
         "Un rythme commun Ops + Finance pour décider plus vite",
       ],
     },
@@ -209,7 +209,7 @@ export const frCoreOperations: Partial<Dictionary> = {
         "Projet IT long avant les premiers résultats",
         "Black box incompréhensible pour les équipes",
         "Promesse irréaliste sans cadre ni méthode",
-        "Usine a gaz impossible a relire en comité",
+        "Usine à gaz impossible à relire en comité",
       ],
     },
     kpis: {
@@ -234,9 +234,9 @@ export const frCoreOperations: Partial<Dictionary> = {
     selection: {
       title: "Critères d’éligibilité",
       items: [
-        "Organisation multi-sites avec donnees dispersees entre equipes",
-        "Sponsor operations et sponsor finance disponibles",
-        "Exports ou outils exploitables cote RH, finance et operations",
+        "Organisation multi-sites avec données dispersées entre équipes",
+        "Sponsor opérations et sponsor finance disponibles",
+        "Exports ou outils exploitables côté RH, finance et opérations",
       ],
     },
     upcoming: {
