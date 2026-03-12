@@ -22,6 +22,9 @@ describe("Skolae proposal site", () => {
       }),
     ).toBeDefined();
     expect(
+      screen.getByText(/Adéquation formation -> entreprise -> emploi/i),
+    ).toBeDefined();
+    expect(
       screen.getAllByRole("link", { name: /Lancer le pilote sur 1 campus/i }),
     ).toHaveLength(2);
   });

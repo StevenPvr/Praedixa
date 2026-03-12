@@ -113,6 +113,11 @@ export const skolaeMessaging = {
         description:
           "Ops, Finance et DSI partent des mêmes signaux, comparent les mêmes options et défendent plus facilement la même décision.",
       },
+      {
+        title: "Mieux relier modules, entreprises et débouchés",
+        description:
+          "En extension, Praedixa aide Skolae à repérer quelles combinaisons parcours, modules et partenaires entreprise améliorent le plus souvent le placement et la cohérence formation-emploi.",
+      },
     ] satisfies ValueBenefit[],
     paragraphs: [
       "Pour remplir les salles, réserver les bons intervenants et décider d'ouvrir ou non un groupe, il faut souvent plusieurs semaines de visibilité. Si tout se joue seulement à J+7, la marge de manœuvre est déjà trop faible.",
@@ -192,6 +197,13 @@ export const skolaeMessaging = {
         title: "Formation continue",
         forecast: "sessions à risque faute de formateur disponible à temps",
         optimize: "sourcer, sous-traiter, regrouper ou replanifier selon marge et priorité client",
+      },
+      {
+        title: "Adéquation formation -> entreprise -> emploi",
+        forecast:
+          "quelles combinaisons modules / parcours / entreprises conduisent le plus souvent à un placement réussi et à des débouchés cohérents, par campus et par programme",
+        optimize:
+          "ajuster les modules, prioriser les entreprises partenaires et renforcer les parcours les plus corrélés à l'emploi obtenu",
       },
     ] satisfies DecisionExtension[],
   },

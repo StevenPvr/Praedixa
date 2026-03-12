@@ -40,6 +40,12 @@ Cette decision reste le centre de la page. Les autres cas d'usage doivent etre p
 - plus de continuite pour les etudiants et les equipes ;
 - plus de decisions defendables entre campus, operations, finance et DSI.
 
+## Extension de valeur a garder en reserve
+
+Une fois le wedge operations / capacite prouve, Praedixa peut aussi aider Skolae a objectiver quelles combinaisons parcours / modules / entreprises ameliorent le plus souvent le placement et la coherence formation-emploi.
+
+Cette valeur doit rester formulee au niveau programme, campus, cohorte et portefeuille entreprises, pas comme une prediction individuelle etudiante.
+
 ## Parties prenantes a servir
 
 - `Marie Gasquet`: porte d'entree et relais credible, pas signataire finale ;
