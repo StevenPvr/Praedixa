@@ -1,0 +1,67 @@
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 42 20% 95%;
+    --foreground: 214 24% 13%;
+    --card: 0 0% 100%;
+    --muted: 36 19% 90%;
+    --muted-foreground: 214 12% 39%;
+    --border: 214 16% 84%;
+    --input: 214 16% 84%;
+    --ring: 185 38% 42%;
+
+    --ink: 214 24% 13%;
+    --limestone: 42 20% 95%;
+    --steel: 210 17% 29%;
+    --sand: 36 24% 89%;
+    --oxide: 185 38% 42%;
+    --oxide-soft: 185 31% 62%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Outfit", system-ui, sans-serif;
+    min-width: 320px;
+    background-image: linear-gradient(180deg, rgba(245, 244, 238, 0.98) 0%, rgba(241, 239, 232, 0.98) 100%);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 20% 12%, rgba(58, 137, 141, 0.08), transparent 24%),
+      radial-gradient(circle at 78% 18%, rgba(11, 19, 29, 0.06), transparent 20%),
+      radial-gradient(circle at 50% 100%, rgba(58, 137, 141, 0.04), transparent 26%);
+    z-index: 0;
+  }
+
+  ::selection {
+    background: rgba(58, 137, 141, 0.18);
+  }
+}
+
+@layer components {
+  .section-shell {
+    @apply relative px-4 py-20 sm:px-6 lg:px-8 lg:py-28;
+  }
+
+  .section-inner {
+    @apply mx-auto max-w-[1400px];
+  }
+}
+
