@@ -154,10 +154,10 @@ export function HeroSection() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxide-soft">
-                    Premier bénéfice concret
+                    Première lecture business
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-                    Couverture pédagogique multi-sites
+                    Arbitrages multi-sites prioritaires
                   </h2>
                 </div>
                 <Warning size={20} className="mt-1 text-oxide-soft" weight="fill" />
@@ -177,11 +177,11 @@ export function HeroSection() {
 
               <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-white/6 p-4">
                 <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxide-soft">
-                  Ce que ce pilote apporte
+                  Ce que la preuve sur historique apporte
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-limestone/78">
-                  Le pilote devient évident quand Ops voit moins de feu, Finance moins de coût
-                  subi et DSI aucun chantier lourd.
+                  La preuve devient convaincante quand Ops voit les urgences evitables,
+                  Finance les couts caches et DSI l'absence de chantier lourd.
                 </p>
               </div>
             </div>

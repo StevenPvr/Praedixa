@@ -6,26 +6,24 @@ describe("Skolae proposal site", () => {
     render(<App />);
 
     expect(
-      screen.getByRole("heading", { name: /Sécuriser la capacité pédagogique/i }),
+      screen.getByRole("heading", { name: /Objectiver les arbitrages de capacité/i }),
     ).toBeDefined();
     expect(
-      screen.getByRole("heading", { name: /Couverture pédagogique multi-sites/i }),
+      screen.getByRole("heading", { name: /Arbitrages multi-sites prioritaires/i }),
     ).toBeDefined();
     expect(
-      screen.getByText(
-        /Voir 4 à 12 semaines à l'avance où la capacité va manquer/i,
-      ),
-    ).toBeDefined();
+      screen.getAllByText(/preuve sur historique en 5 jours ouvrés/i).length,
+    ).toBeGreaterThan(0);
     expect(
       screen.getByRole("heading", {
-        name: /Un pilote simple à lancer, simple à défendre/i,
+        name: /D'abord une preuve sur historique/i,
       }),
     ).toBeDefined();
     expect(
-      screen.getByText(/Adéquation formation -> entreprise -> emploi/i),
+      screen.getByText(/Formation -> entreprises -> débouchés/i),
     ).toBeDefined();
     expect(
-      screen.getAllByRole("link", { name: /Lancer le pilote sur 1 campus/i }),
+      screen.getAllByRole("link", { name: /Demander la preuve sur historique/i }),
     ).toHaveLength(2);
   });
 

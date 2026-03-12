@@ -10,13 +10,14 @@ Mini-site Vite/React autonome pour une proposition commerciale premium `Praedixa
 
 ## Message canonique
 
-- premier wedge: `couverture pedagogique multi-sites`;
-- benefices a faire lire en premier: `plus de capacite securisee`, `moins d'urgences campus`, `moins de couts subis`, `plus de decisions defendables`;
-- promesse: `securiser la capacite a 4-12 semaines -> proteger l'execution a 3-14 jours -> comparer 3 a 5 leviers reels -> lancer la meilleure action -> prouver l'impact`;
-- extension de valeur premium: `mieux relier modules, entreprises et debouches par programme et par campus`;
-- demarrage en lecture seule sur exports ;
+- entree commerciale: `preuve sur historique gratuite en 5 jours ouvres` sur l'existant ;
+- premier wedge: `objectiver les arbitrages de capacite et de continuite qui protegent la marge` ;
+- benefices a faire lire en premier: `arbitrages prioritaires objectivés`, `couts caches rendus visibles`, `decisions plus defendables`, `ROI relisible` ;
+- promesse: `preuve sur historique -> deploiement cible -> boucle DecisionOps -> ROI decision par decision` ;
+- extension de valeur premium: `mieux relier formation, entreprises et debouches par cohortes et clusters agreges` ;
+- demarrage en lecture seule sur exports ou API ;
 - pas un outil de planning, pas un CRM, pas un dashboard supplementaire ;
-- pilote recommande: `8 semaines`, `1 a 3 campus`, gouvernance `Ops + Finance + DSI`.
+- deploiement recommande apres preuve: `8 semaines`, `1 a 3 campus`, gouvernance `Ops + Finance + DSI`.
 
 ## Commandes
 

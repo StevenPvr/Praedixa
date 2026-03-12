@@ -41,21 +41,21 @@ export const evidenceLabels: Record<EvidenceLevel, string> = {
 export const skolaeMessaging = {
   hero: {
     eyebrow: "Praedixa pour Skolae",
-    title: "Sécuriser la capacité pédagogique",
-    highlighted: "et réduire les urgences campus",
+    title: "Objectiver les arbitrages de capacité",
+    highlighted: "qui protègent la continuité pédagogique et la marge",
     intro:
-      "Praedixa aide Skolae à sécuriser plus tôt salles, intervenants et groupes pour éviter les replanifications de dernière minute. Résultat: moins d'urgences campus, moins de coûts de remplacement et plus de stabilité pour les équipes, les étudiants et les entreprises partenaires.",
+      "Praedixa se branche en lecture seule sur le planning, les absences, les salles, les examens et les coûts déjà suivis par Skolae pour montrer où le potentiel de gain est réel. L'objectif n'est pas d'ajouter un dashboard, mais d'aider le réseau à décider plus tôt sur les arbitrages qui comptent.",
     summary:
-      "Praedixa agit sur deux horizons. À 4 à 12 semaines, Skolae sécurise la capacité pédagogique. À 3 à 14 jours, Skolae évite les incidents de dernière minute. Le tout sans remplacer les outils déjà en place.",
-    ctaPrimary: "Lancer le pilote sur 1 campus",
+      "Praedixa commence par une preuve sur historique en 5 jours ouvrés sur un périmètre réaliste. Si le signal est confirmé, Skolae déploie ensuite une boucle DecisionOps légère pour comparer les options, déclencher la bonne action et prouver le ROI dans le temps.",
+    ctaPrimary: "Demander la preuve sur historique",
     ctaPrimaryHref: "#cta",
-    ctaSecondary: "Voir ce que Skolae gagne",
-    ctaSecondaryHref: "#decision-focus",
+    ctaSecondary: "Voir la méthode",
+    ctaSecondaryHref: "#loop",
     chips: [
-      "23 écoles",
-      "37 villes",
+      "5 jours ouvrés",
       "Lecture seule",
-      "Pilote 8 semaines",
+      "Sans remplacement",
+      "ROI lisible",
     ],
     claims: [
       {
@@ -74,101 +74,101 @@ export const skolaeMessaging = {
       },
     ] satisfies EvidenceClaim[],
     boardStats: [
-      { label: "Horizon capacité", value: "4 à 12 semaines", note: "réserver plus tôt salles et intervenants" },
-      { label: "Horizon exécution", value: "3 à 14 jours", note: "éviter la casse de dernière minute" },
-      { label: "Périmètre pilote", value: "1 à 3 campus", note: "faible friction côté réseau" },
-      { label: "Lecture comité", value: "Ops + Finance + DSI", note: "preuve lisible pour décider" },
+      { label: "Preuve d'entrée", value: "5 jours ouvrés", note: "où le potentiel de gain est réel" },
+      { label: "Mode de départ", value: "Lecture seule", note: "sur planning, absences, salles et coûts" },
+      { label: "Décision utile", value: "1 arbitrage prioritaire", note: "avant un déploiement plus large" },
+      { label: "Lecture comité", value: "Ops + Finance + DSI", note: "ROI décision par décision" },
     ],
     boardSignals: [
-      "Plus d'intervenants sécurisés en amont",
-      "Moins de semaines qui déraillent au dernier moment",
-      "Moins de coûts d'urgence et de remplacement subis",
-      "Plus de continuité pour les campus et les étudiants",
+      "Les arbitrages prioritaires enfin objectivés",
+      "Les coûts d'urgence rendus visibles",
+      "Les options comparées sous coût / service / risque",
+      "Une base commune pour Ops, Finance et DSI",
     ],
   },
   whyNow: {
-    eyebrow: "Ce que Skolae gagne",
-    title: "Des bénéfices simples à comprendre,",
-    highlighted: "et rapides à défendre",
+    eyebrow: "Pourquoi Skolae devrait regarder ça",
+    title: "Pas un nouvel outil.",
+    highlighted: "Une lecture business des arbitrages qui coûtent.",
     description:
-      "Skolae a déjà les outils pour opérer. Ce qui manque, c'est une façon simple de réserver, arbitrer et réagir plus tôt quand la capacité commence à se tendre.",
+      "Skolae a déjà du planning, de l'ERP, du CRM, de la BI et des fichiers. Le point n'est pas de remplacer ces outils. Le point est de relier la donnée utile pour décider plus tôt.",
     benefits: [
       {
-        title: "Sécuriser les bons intervenants plus tôt",
+        title: "Voir où l'argent se perd avant l'urgence",
         description:
-          "Praedixa met en lumière les semaines et les groupes qui auront besoin d'être sécurisés avant que le campus ne bascule en mode urgence.",
+          "Praedixa rend visibles les semaines, campus et arbitrages où Skolae va payer trop cher s'il attend trop longtemps pour décider.",
       },
       {
-        title: "Stabiliser salles et groupes avant la tension",
+        title: "Comparer les options sous un même cadre",
         description:
-          "Skolae peut décider plus tôt s'il faut réallouer une salle, rebalancer des groupes ou ouvrir de la capacité au bon endroit.",
-      },
-      {
-        title: "Réduire les replanifications et les coûts subis",
-        description:
-          "Moins de remplacement tardif, moins de modifications à moins de 48 heures, moins de charge improvisée pour les équipes.",
+          "Remplacer, déplacer, mutualiser, ouvrir de la capacité ou absorber autrement: les options sont comparées sous coût, service et risque.",
       },
       {
         title: "Donner au siège et aux campus la même lecture",
         description:
-          "Ops, Finance et DSI partent des mêmes signaux, comparent les mêmes options et défendent plus facilement la même décision.",
+          "Ops, Finance et DSI partent des mêmes signaux, lisent les mêmes arbitrages et défendent plus facilement la même décision.",
       },
       {
-        title: "Mieux relier modules, entreprises et débouchés",
+        title: "Prouver le ROI arbitrage par arbitrage",
         description:
-          "En extension, Praedixa aide Skolae à repérer quelles combinaisons parcours, modules et partenaires entreprise améliorent le plus souvent le placement et la cohérence formation-emploi.",
+          "Le résultat n'est pas un tableau de plus: c'est une preuve simple de ce qui a été évité, déclenché ou mieux décidé.",
+      },
+      {
+        title: "Mieux relier formation, entreprises et débouchés",
+        description:
+          "En extension, Praedixa aide Skolae à repérer, par cohortes et clusters agrégés, quelles combinaisons parcours, modules et partenaires entreprise améliorent le plus souvent le placement et la cohérence formation-emploi.",
       },
     ] satisfies ValueBenefit[],
     paragraphs: [
-      "Pour remplir les salles, réserver les bons intervenants et décider d'ouvrir ou non un groupe, il faut souvent plusieurs semaines de visibilité. Si tout se joue seulement à J+7, la marge de manœuvre est déjà trop faible.",
-      "Quand un campus découvre trop tard un trou de couverture, tout se dégrade ensuite en chaîne: replanifications, remplacement dans l'urgence, tension équipes, étudiants prévenus trop tard et coûts mal tenus.",
-      "Sur un réseau multi-sites, le problème n'est pas seulement local. Il devient groupe: mêmes douleurs, arbitrages différents et aucune lecture commune pour prioriser ce qui mérite d'être traité en premier.",
-      "Praedixa sécurise d'abord la capacité, puis réduit les urgences d'exécution, avec une preuve simple sur continuité pédagogique, charge opérationnelle et coûts d'urgence.",
+      "La vraie douleur n'est pas l'absence de données. C'est que planning, absences, salles, examens et coûts ne racontent pas la même histoire au bon moment.",
+      "Quand un trou de couverture est vu trop tard, Skolae paie deux fois: en continuité pédagogique et en coût subi.",
+      "Praedixa commence par objectiver, en 5 jours ouvrés, où le potentiel de gain est réel. Ensuite seulement, le déploiement installe la boucle DecisionOps sur un périmètre borné.",
+      "Le résultat attendu n'est pas un dashboard de plus. C'est une base commune pour décider, agir et prouver.",
     ],
     signals: [
       {
-        label: "Continuité réseau",
-        value: "23 écoles et 37 villes: plus le réseau est large, plus la décision doit rester lisible d'un campus à l'autre",
-        qualifier: "Praedixa apporte une lecture commune sans centraliser toute l'exécution",
+        label: "Positionnement groupe",
+        value: "23 écoles et 37 villes: l'enjeu n'est pas seulement local, mais réseau",
+        qualifier: "plus le réseau est large, plus la décision doit rester lisible d'un campus à l'autre",
         evidence: "official",
         href: "https://www.skolae.fr/le-groupe",
       },
       {
-        label: "Douleur prouvée",
-        value: "Skolae recrute pour gérer salles, absences, goulots et replanifications rapides",
-        qualifier: "le besoin est déjà visible publiquement, ce qui rend un pilote ciblé plus simple à cadrer",
+        label: "Arbitrages visibles",
+        value: "Skolae recrute explicitement pour gérer salles, absences, goulots et replanifications rapides",
+        qualifier: "la douleur est déjà visible publiquement, ce qui rend une preuve sur historique très crédible",
         evidence: "job",
         href: "https://reseaugeseteductive.flatchr.io/fr/company/reseaugeseteductive/vacancy/jkj0mpzog5adxngx-charge-de-planification-h-f/",
       },
       {
-        label: "Extension future",
-        value: "La logique capacité / staffing existe aussi côté formateurs et formation continue",
-        qualifier: "la première preuve peut être pédagogique; l'extension peut venir ensuite",
+        label: "Traction future",
+        value: "La même logique d'arbitrage existe aussi côté formateurs et formation continue",
+        qualifier: "la première preuve peut être pédagogique; l'extension peut venir ensuite sans changer de grammaire produit",
         evidence: "job",
         href: "https://www.wizbii.com/company/skolae/job/charge-de-recrutement-formateurs-h-f",
       },
     ] satisfies EvidenceClaim[],
   },
   decisionFocus: {
-    eyebrow: "La question clé à traiter",
-    title: "Savoir où la capacité va manquer,",
-    highlighted: "puis agir avant que la semaine casse",
+    eyebrow: "L'arbitrage à objectiver en premier",
+    title: "Quel arbitrage coûte le plus",
+    highlighted: "si Skolae ne décide pas plus tôt ?",
     statement:
-      "Voir 4 à 12 semaines à l'avance où la capacité va manquer, puis 3 à 14 jours à l'avance quels cours risquent d'être annulés, déplacés ou remplacés.",
+      "Sur quel campus, quelle semaine et quel groupe Skolae risque-t-il de perdre le plus en continuité, coût d'urgence et charge administrative si rien n'est décidé plus tôt ?",
     body:
-      "Praedixa ne remplace pas le planning. Praedixa aide Skolae à voir le risque plus tôt, comparer les options concrètes et agir avant que l'urgence prenne la main.",
+      "Praedixa ne vend pas un outil de planning générique. Praedixa aide Skolae à relier les signaux utiles, comparer les options et déclencher la première action validée avant que la marge de manoeuvre se referme.",
     frame: [
       {
-        label: "Ce que Praedixa détecte",
-        value: "Les tensions de capacité à 4-12 semaines, puis les risques d'exécution à 3-14 jours",
+        label: "Ce que Praedixa relie",
+        value: "Planning, absences, salles, examens, charge support et coûts déjà suivis par Skolae",
       },
       {
-        label: "Ce que Praedixa compare",
-        value: "Remplacer, déplacer, mutualiser, réallouer, ouvrir de la capacité ou prioriser",
+        label: "Ce que Praedixa calcule",
+        value: "3 à 5 options réelles sous coût / service / risque, d'abord à moyen terme puis à court horizon",
       },
       {
-        label: "Ce que Skolae gagne",
-        value: "Plus de capacité sécurisée, moins de semaines qui déraillent et un comité mieux armé",
+        label: "Ce que Skolae peut défendre",
+        value: "Une priorité claire, une action validée et une preuve ROI que le comité peut relire",
       },
     ],
     primaryLevers: [
@@ -199,54 +199,54 @@ export const skolaeMessaging = {
         optimize: "sourcer, sous-traiter, regrouper ou replanifier selon marge et priorité client",
       },
       {
-        title: "Adéquation formation -> entreprise -> emploi",
+        title: "Formation -> entreprises -> débouchés",
         forecast:
-          "quelles combinaisons modules / parcours / entreprises conduisent le plus souvent à un placement réussi et à des débouchés cohérents, par campus et par programme",
+          "quels clusters de cohortes, parcours et partenaires conduisent le plus souvent à un placement réussi et à des débouchés cohérents, par campus et par programme",
         optimize:
-          "ajuster les modules, prioriser les entreprises partenaires et renforcer les parcours les plus corrélés à l'emploi obtenu",
+          "ajuster les modules, prioriser les entreprises partenaires et renforcer les parcours les plus corrélés a l'emploi obtenu, sans entrer dans une prédiction individuelle",
       },
     ] satisfies DecisionExtension[],
   },
   loop: {
     eyebrow: "Ce que Praedixa apporte",
-    title: "Une solution légère qui améliore la décision sans remplacer l'existant.",
+    title: "Une boucle DecisionOps légère, sur l'existant.",
     description:
-      "Le bénéfice pour Skolae est simple: se brancher à l'existant, détecter les tensions plus tôt, comparer les bons leviers et prouver le gain sans lancer un chantier SI.",
+      "Praedixa se branche sur les systèmes utiles, sans remplacement ni projet lourd. Le bénéfice n'est pas un signal de plus: c'est une décision plus lisible, plus tôt, puis une preuve ROI décision par décision.",
     steps: [
       {
         number: "01",
         title: "Fédérer",
-        text: "Aligner planning, salles, absences, examens et charge support dans une lecture commune sans refondre les outils.",
+        text: "Relier planning, absences, salles, examens, charge et coûts utiles à la décision sans refondre les outils.",
       },
       {
         number: "02",
-        title: "Anticiper",
-        text: "Projeter d'abord les tensions de capacité à 4-12 semaines, puis les risques d'exécution à 3-14 jours.",
+        title: "Prédire",
+        text: "Rendre visibles les besoins et écarts d'abord à moyen terme, puis à court horizon quand l'exécution se tend.",
       },
       {
         number: "03",
-        title: "Arbitrer",
-        text: "Comparer 3 à 5 leviers concrets sous un cadre commun coût, continuité de service et risque de perturbation.",
+        title: "Calculer",
+        text: "Comparer 3 à 5 options coût / service / risque qui tiennent vraiment sur le terrain Skolae.",
       },
       {
         number: "04",
         title: "Déclencher",
-        text: "Préparer la première action utile avec validation humaine, pas un automatisme opaque.",
+        text: "Préparer la première action validée dans les outils déjà en place, avec validation humaine et garde-fous métier.",
       },
       {
         number: "05",
         title: "Prouver",
-        text: "Relire le point de départ, la décision recommandée, la décision réelle et l'impact observé dans une revue mensuelle claire.",
+        text: "Relire le point de départ, la décision recommandée, la décision réelle et l'impact observé dans une revue mensuelle simple.",
       },
     ],
     footer:
-      "Même outils. Moins d'urgence. Plus de décisions défendables.",
+      "Même outils. Une meilleure lecture. Des arbitrages gouvernés et prouvables.",
   },
   stakeholders: {
-    eyebrow: "Pourquoi ce pilote fédère",
+    eyebrow: "Pourquoi cette preuve fédère",
     title: "Chaque sponsor y voit un gain immédiat.",
     description:
-      "Le pilote avance quand chaque sponsor comprend en une minute ce qu'il gagne à le lancer.",
+      "La preuve avance quand chaque sponsor comprend en une minute ce qu'il gagne à la lancer.",
     views: [
       {
         id: "marie",
@@ -297,7 +297,7 @@ export const skolaeMessaging = {
         ],
         objection: "Le ROI sera contestable si les hypothèses bougent.",
         response:
-          "Le pilote assume des hypothèses simples, explicites et relues chaque mois. L'enjeu est la défendabilité, pas la sur-promesse.",
+          "Le dispositif assume des hypothèses simples, explicites et relues chaque mois. L'enjeu est la défendabilité, pas la sur-promesse.",
         proofMetric: "Coût des remplacements, heures supplémentaires, locations de salles, annulations évitées",
         nextStep: "Valider les trois KPI économiques qui serviront de preuve mensuelle dès le départ.",
       },
@@ -306,7 +306,7 @@ export const skolaeMessaging = {
         label: "DSI",
         title: "Un pilote utile sans ouvrir un chantier de remplacement.",
         summary:
-          "La DSI doit voir un pilote à faible friction: exports existants, lecture seule, périmètre borné, données agrégées et gouvernance claire. C'est ce qui permet de créer de la valeur sans dette cachée.",
+          "La DSI doit voir une entrée à faible friction: exports existants, lecture seule, périmètre borné, données agrégées et gouvernance claire. C'est ce qui permet de créer de la valeur sans dette cachée.",
         bullets: [
           "Exports ou API en lecture seule au démarrage",
           "Aucune réécriture des outils planning / CRM / extranet",
@@ -315,37 +315,37 @@ export const skolaeMessaging = {
         ],
         objection: "Les données sont trop hétérogènes pour un pilote sérieux.",
         response:
-          "Le pilote sert précisément à trouver la donnée exploitable minimale, pas à résoudre l'urbanisme complet du réseau.",
+          "La preuve sert précisément à trouver la donnée exploitable minimale, pas à résoudre l'urbanisme complet du réseau.",
         proofMetric: "Temps d'accès à l'export, stabilité du mapping campus, qualité des données suffisante pour trois décisions",
         nextStep: "Lister l'export planning, l'export absences et le référentiel salles avant la réunion de cadrage.",
       },
     ] satisfies StakeholderView[],
   },
   pilot: {
-    eyebrow: "Un pilote simple à lancer",
-    title: "Un pilote simple à lancer, simple à défendre.",
+    eyebrow: "Le bon parcours commercial",
+    title: "D'abord une preuve sur historique.",
     subtitle:
-      "Le pilote doit prouver en 8 semaines qu'on réduit annulations, remplacements urgents et coûts subis sur 1 à 3 campus, en lecture seule et avec une preuve mensuelle.",
-    scope: ["Lecture seule", "1 à 3 campus", "Capacité + exécution", "Preuve mensuelle"],
+      "En 5 jours ouvrés, Praedixa montre sur les données existantes d'un périmètre Skolae où le potentiel de gain est réel. Si le signal est confirmé, un déploiement cadré installe ensuite le suivi dans le temps.",
+    scope: ["5 jours ouvrés", "Lecture seule", "1 campus ou périmètre réaliste", "Puis déploiement ciblé"],
     timeline: [
       {
-        label: "Semaines 1-2",
-        title: "Objectiver les coûts cachés",
-        text: "Qualifier l'export minimal, relire les pics récents et montrer où temps, argent et continuité se perdent aujourd'hui.",
+        label: "Jours 1-5",
+        title: "Preuve sur historique",
+        text: "Qualifier l'export minimal et objectiver où temps, argent et continuité se perdent déjà sur planning, absences, salles et coûts.",
       },
       {
-        label: "Semaines 3-4",
-        title: "Installer les deux horizons",
-        text: "Mettre en place un signal capacité à 4-12 semaines et un signal exécution à 3-14 jours sur le même périmètre.",
+        label: "Semaine 1",
+        title: "Cadrer le déploiement",
+        text: "Choisir le campus pilote, les arbitrages prioritaires et les KPI qui serviront de preuve mensuelle.",
       },
       {
-        label: "Semaines 5-6",
-        title: "Comparer les décisions réelles",
-        text: "Mesurer ce qui change quand les arbitrages sont pris plus tôt et sur une base commune.",
+        label: "Semaines 2-6",
+        title: "Installer la boucle DecisionOps",
+        text: "Mettre en place les signaux, les options comparées et le journal de décision sur un périmètre borné.",
       },
       {
-        label: "Semaines 7-8",
-        title: "Prouver le gain et décider la suite",
+        label: "Semaine 8",
+        title: "Prouver le ROI et décider la suite",
         text: "Produire une lecture concise pour Ops, Finance et DSI afin de décider une extension crédible.",
       },
     ],
@@ -354,10 +354,12 @@ export const skolaeMessaging = {
       "Absences intervenants et règles de remplacement",
       "Capacités salles et contraintes matérielles",
       "Calendrier examens et rattrapages",
+      "Coûts ou proxies de coûts déjà suivis par Skolae",
       "Volumes agrégés de scolarité ou de support si disponibles",
     ],
     deliverables: [
-      "Les semaines et campus à risque à traiter en priorité",
+      "Une preuve sur historique en 5 jours ouvrés",
+      "Les arbitrages prioritaires à traiter en premier",
       "Trois scénarios types avec coût, service et risque",
       "Un journal de décision partagé pour relire les arbitrages",
       "Une preuve mensuelle que la finance peut défendre",
@@ -379,28 +381,28 @@ export const skolaeMessaging = {
   },
   cta: {
     eyebrow: "Prochain pas",
-    title: "Si Skolae veut un premier résultat,",
-    highlighted: "le bon premier pas est un pilote sur 1 campus",
+    title: "Le bon premier pas pour Skolae,",
+    highlighted: "c'est la preuve sur historique",
     subtitle:
-      "Pas une démo générique. Un atelier de cadrage court pour choisir le campus, l'export minimal et les trois décisions qui peuvent démontrer la valeur dès cette année.",
-    primaryLabel: "Lancer le pilote sur 1 campus",
+      "Pas une démo générique, pas un chantier SI. Une lecture en 5 jours ouvrés sur un périmètre réaliste pour objectiver les arbitrages prioritaires, puis décider si un déploiement ciblé mérite d'être lancé.",
+    primaryLabel: "Demander la preuve sur historique",
     primaryHref: "mailto:contact@praedixa.com?subject=Praedixa%20x%20Skolae%20-%20atelier%20de%20cadrage",
-    secondaryLabel: "Voir le pilote",
+    secondaryLabel: "Voir le parcours",
     secondaryHref: "#pilot",
     agendaTitle: "Ce qu'il faut verrouiller en 45 minutes",
     agendaItems: [
-      "Choisir 1 campus prioritaire et les périodes de tension à relire",
-      "Valider l'horizon capacité et l'horizon exécution à instrumenter",
-      "Valider l'export minimal planning, absences et salles",
-      "Fixer 3 décisions à instrumenter sur 8 semaines",
-      "S'accorder sur la preuve ROI attendue côté finance",
+      "Choisir 1 campus ou périmètre historique à relire",
+      "Valider l'export minimal planning, absences, salles et coûts",
+      "Identifier 3 arbitrages récurrents sous coût / service / risque",
+      "Fixer la preuve ROI attendue côté finance",
+      "Décider des conditions de passage de la preuve au déploiement",
     ],
     note:
-      "Sortir de l'atelier avec un campus pilote, 3 décisions à instrumenter et les KPI Finance/Ops validés.",
+      "Sortir de l'atelier avec un périmètre, les exports minimaux et un critère clair de passage de la preuve sur historique au déploiement.",
   },
   footer: {
     note:
-      "Praedixa aide Skolae à réduire les urgences campus, protéger la continuité pédagogique et prouver la valeur d'une meilleure décision sans remplacer les outils déjà en place.",
+      "Praedixa aide Skolae à objectiver les arbitrages qui protègent la continuité pédagogique et la marge, sans remplacer les outils déjà en place.",
     sources: [
       {
         label: "Skolae - Le groupe",

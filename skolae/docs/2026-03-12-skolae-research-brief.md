@@ -8,15 +8,15 @@ Transformer la recherche commerciale Skolae en mini-site premium de conversion, 
 
 ## These de valeur retenue
 
-La meilleure entree n'est pas "l'IA pour l'education privee".
+La meilleure entree n'est pas "la plateforme qui centralise tout".
 
 La meilleure entree est:
 
-> aider Skolae a reduire les urgences campus, proteger la continuite pedagogique et eviter des couts subis en prenant de meilleures decisions plus tot.
+> aider Skolae a objectiver, en 5 jours ouvres et en lecture seule, quels arbitrages de capacite et de continuite protegent vraiment la marge et meritent d'etre traites en premier.
 
 La formulation produit qui doit rester en dessous est:
 
-> securiser d'abord la capacite pedagogique a moyen terme, puis proteger l'execution a court terme, comparer les leviers disponibles, lancer la premiere action utile et prouver ensuite l'effet sur cout, stabilite et service.
+> preuve sur historique gratuite -> deploiement cible -> boucle DecisionOps sur l'existant: federer, predire, calculer, declencher, prouver.
 
 ## Pourquoi Skolae est un bon fit
 
@@ -28,7 +28,7 @@ La formulation produit qui doit rester en dessous est:
 
 ## Decision a mettre au centre
 
-> Sur quel campus, quelle semaine et quel groupe va-t-on manquer de couverture pedagogique, et quelle action prend-on maintenant ?
+> Sur quel campus, quelle semaine et quel groupe Skolae risque-t-il de perdre le plus en continuite, cout d'urgence et charge administrative si rien n'est decide plus tot ?
 
 Cette decision reste le centre de la page. Les autres cas d'usage doivent etre presentes comme des extensions credibles, pas comme des promesses dispersees.
 
@@ -44,7 +44,9 @@ Cette decision reste le centre de la page. Les autres cas d'usage doivent etre p
 
 Une fois le wedge operations / capacite prouve, Praedixa peut aussi aider Skolae a objectiver quelles combinaisons parcours / modules / entreprises ameliorent le plus souvent le placement et la coherence formation-emploi.
 
-Cette valeur doit rester formulee au niveau programme, campus, cohorte et portefeuille entreprises, pas comme une prediction individuelle etudiante.
+Cette valeur doit rester formulee au niveau programme, campus, cohorte, cluster suffisamment large et portefeuille entreprises, pas comme une prediction individuelle etudiante.
+
+L'anonymat ne vient pas du mot "cluster" a lui seul. Il faut aussi eviter les groupes trop petits ou trop croises, sinon la reidentification reste possible.
 
 ## Parties prenantes a servir
 
@@ -64,6 +66,7 @@ Cette valeur doit rester formulee au niveau programme, campus, cohorte et portef
 
 - ton premium, net, sans jargon demonstratif ;
 - discours de valeur avant discours d'analyse ;
+- la page doit mettre clairement en avant la `preuve sur historique gratuite en 5 jours ouvres` comme premier pas commercial ;
 - page exploitable en partage apres call ;
 - personnalisation Skolae leadership, pas page nominative "lettre ouverte" a Marie ;
 - aucune promesse magique ; tout doit rester compatible avec une lecture Ops / Finance / DSI.
