@@ -165,7 +165,7 @@ jobs:
           version: 9.15.9
 
       - name: Restore Next.js build cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: app-admin/.next/cache
           key: nextjs-admin-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'app-admin/**/*.ts', 'app-admin/**/*.tsx', 'app-admin/**/*.js', 'app-admin/**/*.jsx', 'app-admin/**/*.css', 'packages/shared-types/**/*.ts', 'packages/shared-types/**/*.tsx', 'packages/ui/**/*.ts', 'packages/ui/**/*.tsx', 'packages/ui/**/*.css') }}
