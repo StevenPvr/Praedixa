@@ -6,8 +6,8 @@ Les tests de ce dossier couvrent le runtime API TS sans passer par les frontends
 
 ## Couverture actuelle
 
-- `auth.test.ts` : JWT, claims canoniques top-level, refus explicite des aliases legacy et garde-fous auth.
-- `server.test.ts` : comportement serveur, erreurs transport, headers et guards.
+- `auth.test.ts` : JWT, claims canoniques top-level, refus explicite des aliases legacy, garde-fous auth et publication des reponses `400/401/403` sur toute la surface OpenAPI protegee.
+- `server.test.ts` : comportement serveur, erreurs transport, headers, guards et invariants anti-escalade sur les routes admin sensibles.
 - `config.test.ts` : parsing env et validation des variables runtime.
 - `routes.contracts.test.ts` : contrat fail-close des routes reelles, routes qui restent disponibles sans persistance, et garde-fous contre toute reintroduction de payloads demo/stub.
 - `realm-audience-mapper.test.ts` : contrat Keycloak versionne pour `audience`, `role`, `organization_id`, `site_id` et `permissions` admin.
@@ -34,6 +34,7 @@ pnpm --filter @praedixa/api-ts test
 - Commencer par `config.test.ts` et `auth.test.ts` pour comprendre les invariants.
 - `config.test.ts` couvre aussi le durcissement SSRF du runtime `app-connectors` (`CONNECTORS_RUNTIME_ALLOWED_HOSTS`).
 - `auth.test.ts` et `realm-audience-mapper.test.ts` verrouillent le contrat OIDC canonique; aucun fallback implicite depuis des claims legacy n'est encore accepte.
+- `auth.test.ts` verrouille aussi le contrat OpenAPI des erreurs standard pour toutes les routes bearer exposees publiquement.
 - Lire ensuite `routes.contracts.test.ts` pour le contrat HTTP reeellement expose par le runtime.
 - Finir par les tests de services pour la persistance.
 - `operational-data.test.ts` et `gold-explorer.test.ts` verrouillent aussi le fail-closed quand un `site_id` demande sort du scope accessible.

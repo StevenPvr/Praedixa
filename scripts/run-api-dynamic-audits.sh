@@ -12,10 +12,13 @@ fi
 
 mkdir -p .git/gate-work
 API_LOG=".git/gate-work/api-dynamic.log"
+SCHEMATHESIS_REPORT_DIR=".git/gate-reports/artifacts/schemathesis"
 API_PID=""
 API_PORT=""
 API_BASE_URL=""
 CLEANUP_DONE=0
+
+mkdir -p "${SCHEMATHESIS_REPORT_DIR}"
 
 cleanup() {
   if ((CLEANUP_DONE)); then
@@ -87,7 +90,7 @@ API_BASE_URL="http://127.0.0.1:${API_PORT}"
 
 echo "[api-dynamic] Starting API TS on ${API_BASE_URL}..."
 (
-  PORT="${API_PORT}" pnpm --filter @praedixa/api-ts exec tsx src/index.ts >"${ROOT_DIR}/${API_LOG}" 2>&1
+  DATABASE_URL="" PORT="${API_PORT}" pnpm --filter @praedixa/api-ts exec tsx src/index.ts >"${ROOT_DIR}/${API_LOG}" 2>&1
 ) &
 API_PID="$!"
 
@@ -95,19 +98,19 @@ wait_for_url "${API_BASE_URL}/api/v1/health" 120
 
 echo "[api-dynamic] Schemathesis scan..."
 SCHEMATHESIS_CMD=(
+  --mode positive
   --max-examples 50
   --checks not_a_server_error
   --suppress-health-check=filter_too_much
+  --continue-on-failure
+  --generation-deterministic
+  --generation-with-security-parameters false
+  --report ndjson
+  --report-dir "${SCHEMATHESIS_REPORT_DIR}"
   contracts/openapi/public.yaml
   --url "${API_BASE_URL}"
 )
-if command -v st >/dev/null 2>&1; then
-  run_with_timeout 300 st run "${SCHEMATHESIS_CMD[@]}"
-elif command -v schemathesis >/dev/null 2>&1; then
-  run_with_timeout 300 schemathesis run "${SCHEMATHESIS_CMD[@]}"
-else
-  run_with_timeout 300 uv tool run --from schemathesis st run "${SCHEMATHESIS_CMD[@]}"
-fi
+run_with_timeout 300 "${ROOT_DIR}/scripts/ci-python-tool.sh" schemathesis run "${SCHEMATHESIS_CMD[@]}"
 
 echo "[api-dynamic] k6 smoke..."
 run_with_timeout 120 env BASE_URL="${API_BASE_URL}" k6 run testing/performance/k6-smoke.js

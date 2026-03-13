@@ -44,6 +44,7 @@ _BAU_METHOD_VERSION_FALLBACK = "fallback_static_rate_v1"
 _BAU_METHOD_VERSION_UNPROVEN = _BAU_METHOD_VERSION_FALLBACK
 _DECIMAL_ZERO = Decimal("0.0000")
 _DECIMAL_ONE = Decimal("1.0000")
+_ProofOutcomeValue = Decimal | str | list[str] | int | None
 
 
 def _bounded_ratio(
@@ -67,7 +68,7 @@ def _resolve_bau_baseline(
     cout_reel: Decimal,
     historical_bau_rate: Decimal | None,
     historical_service_bau: Decimal | None,
-) -> dict[str, Decimal | str | list[str] | None]:
+) -> dict[str, _ProofOutcomeValue]:
     """Resolve whether the BAU baseline is finance-grade or still unproven."""
     if historical_bau_rate is None:
         return {
@@ -123,8 +124,8 @@ def _resolve_proof_outcome(
     alertes_emises: int,
     alertes_traitees: int,
     recommended_alert_count: int,
-    bau_baseline: dict[str, Decimal | str | list[str] | None],
-) -> dict[str, Decimal | str | list[str] | None]:
+    bau_baseline: dict[str, _ProofOutcomeValue],
+) -> dict[str, _ProofOutcomeValue]:
     """Resolve proof status from BAU, optimized counterfactual, and observed data."""
     blockers = list(
         cast("list[str]", bau_baseline.get("proof_blockers") or [])

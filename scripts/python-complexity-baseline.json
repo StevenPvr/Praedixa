@@ -265,103 +265,103 @@
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:1025 build_gold_coverage",
+      "target": "app-api/app/services/gold_live_data.py:1004 build_gold_schema",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:1055 build_gold_provenance",
-      "rank": "C"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:1123 build_ml_monitoring_summary",
-      "rank": "C"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:1191 build_ml_monitoring_trend",
+      "target": "app-api/app/services/gold_live_data.py:1033 build_gold_coverage",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:121 _to_float",
+      "target": "app-api/app/services/gold_live_data.py:1063 build_gold_provenance",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:1248 build_client_onboarding_status",
+      "target": "app-api/app/services/gold_live_data.py:108 _to_float",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:182 get_gold_snapshot",
+      "target": "app-api/app/services/gold_live_data.py:1117 build_ml_monitoring_summary",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:1185 build_ml_monitoring_trend",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:211 resolve_client_slug_for_org",
+      "target": "app-api/app/services/gold_live_data.py:1242 build_client_onboarding_status",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:204 get_gold_snapshot",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:241 resolve_client_slug_for_org",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:267 resolve_site_code_for_filter",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:269 resolve_site_code_for_filter",
+      "target": "app-api/app/services/gold_live_data.py:311 filter_rows",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:355 filter_rows",
+      "target": "app-api/app/services/gold_live_data.py:337 build_dashboard_summary",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:381 build_dashboard_summary",
-      "rank": "C"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:452 build_daily_forecasts",
+      "target": "app-api/app/services/gold_live_data.py:404 build_daily_forecasts",
       "rank": "D"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:586 build_canonical_records",
+      "target": "app-api/app/services/gold_live_data.py:536 build_canonical_records",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:640 build_canonical_quality",
+      "target": "app-api/app/services/gold_live_data.py:590 build_canonical_quality",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:688 build_coverage_alerts",
+      "target": "app-api/app/services/gold_live_data.py:638 build_coverage_alerts",
       "rank": "D"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:786 build_proof_records",
+      "target": "app-api/app/services/gold_live_data.py:732 build_proof_records",
+      "rank": "D"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py:77 _parse_scalar",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:865 build_forecast_runs",
+      "target": "app-api/app/services/gold_live_data.py:873 build_forecast_runs",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:90 _parse_scalar",
+      "target": "app-api/app/services/gold_live_data.py:971 _infer_gold_dtype",
       "rank": "C"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:963 _infer_gold_dtype",
-      "rank": "C"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:996 build_gold_schema",
-      "rank": "B"
     },
     {
       "type": "block",
@@ -380,13 +380,33 @@
     },
     {
       "type": "block",
-      "target": "app-api/app/services/integration_runtime_worker.py:199 _validate_runtime_base_url",
+      "target": "app-api/app/services/integration_runtime_worker.py:215 _validate_runtime_base_url",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/integration_runtime_worker.py:310 drain_connector_connection",
+      "target": "app-api/app/services/integration_runtime_worker.py:326 drain_connector_connection",
       "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/medallion_reprocessing.py:190 _matches_filter",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/medallion_reprocessing.py:204 _load_manifest_records",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/medallion_reprocessing.py:252 _record_from_payload",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/medallion_reprocessing.py:314 _range_overlaps",
+      "rank": "C"
     },
     {
       "type": "block",
@@ -430,17 +450,22 @@
     },
     {
       "type": "block",
-      "target": "app-api/app/services/proof_service.py:319 get_proof_summary",
-      "rank": "C"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/proof_service.py:46 _compute_historical_bau_proxy",
+      "target": "app-api/app/services/proof_service.py:118 _resolve_proof_outcome",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/proof_service.py:92 generate_proof_record",
+      "target": "app-api/app/services/proof_service.py:174 _compute_historical_bau_proxy",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/proof_service.py:220 generate_proof_record",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/proof_service.py:447 get_proof_summary",
       "rank": "C"
     },
     {
@@ -535,12 +560,12 @@
     },
     {
       "type": "block",
-      "target": "app-api/app/services/scenario_engine_service.py:185 generate_scenarios",
+      "target": "app-api/app/services/scenario_engine_service.py:203 generate_scenarios",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/scenario_engine_service.py:283 _compute_all_options",
+      "target": "app-api/app/services/scenario_engine_service.py:301 _compute_all_options",
       "rank": "B"
     },
     {
@@ -560,12 +585,12 @@
     },
     {
       "type": "block",
-      "target": "app-api/app/services/transform_engine.py:551 _insert_transformed_rows",
+      "target": "app-api/app/services/transform_engine.py:616 _insert_transformed_rows",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/transform_engine.py:712 _is_after_cutoff",
+      "target": "app-api/app/services/transform_engine.py:777 _is_after_cutoff",
       "rank": "B"
     },
     {
@@ -591,7 +616,7 @@
     {
       "type": "module",
       "target": "app-api/app/services/gold_live_data.py",
-      "rank": "C"
+      "rank": "B"
     },
     {
       "type": "module",
@@ -601,7 +626,7 @@
     {
       "type": "module",
       "target": "app-api/app/services/proof_service.py",
-      "rank": "C"
+      "rank": "B"
     },
     {
       "type": "module",

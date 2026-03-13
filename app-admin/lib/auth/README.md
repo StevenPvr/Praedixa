@@ -27,6 +27,7 @@ Le back-office n'est pas seulement protege par un role; il applique aussi des pe
 
 ## Tests
 
+- `__tests__/admin-route-policies.test.ts`
 - `__tests__/client.test.ts`
 - `__tests__/middleware.test.ts`
 - `__tests__/oidc.test.ts`

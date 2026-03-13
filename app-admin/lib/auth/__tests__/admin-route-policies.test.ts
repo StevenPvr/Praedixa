@@ -1,5 +1,6 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -10,14 +11,41 @@ import {
 } from "../admin-route-policies";
 import { getRequiredPermissionsForPath as getLegacyRequiredPermissionsForPath } from "../route-access";
 
-const permissionTaxonomy = JSON.parse(
-  readFileSync(
+function resolvePermissionTaxonomyPath() {
+  const candidatePaths = [
     path.resolve(
       process.cwd(),
       "../contracts/admin/permission-taxonomy.v1.json",
     ),
-    "utf8",
-  ),
+    path.resolve(process.cwd(), "contracts/admin/permission-taxonomy.v1.json"),
+  ];
+
+  try {
+    candidatePaths.push(
+      fileURLToPath(
+        new URL(
+          "../../../../contracts/admin/permission-taxonomy.v1.json",
+          import.meta.url,
+        ),
+      ),
+    );
+  } catch {
+    // Vitest can expose a non-file import URL; cwd fallbacks cover app-local runs.
+  }
+
+  const resolved = candidatePaths.find((candidatePath) =>
+    existsSync(candidatePath),
+  );
+  if (!resolved) {
+    throw new Error(
+      "Unable to resolve contracts/admin/permission-taxonomy.v1.json",
+    );
+  }
+  return resolved;
+}
+
+const permissionTaxonomy = JSON.parse(
+  readFileSync(resolvePermissionTaxonomyPath(), "utf8"),
 ) as {
   permissions: Array<{ name: string }>;
 };

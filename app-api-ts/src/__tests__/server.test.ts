@@ -87,6 +87,39 @@ describe("api transport and authorization guards", () => {
     }
   });
 
+  it("keeps admin user-management routes fail-closed against role escalation", () => {
+    const privilegedUserRoutes = [
+      {
+        template: "/api/v1/admin/organizations/:orgId/users",
+        permission: "admin:users:read",
+      },
+      {
+        template: "/api/v1/admin/organizations/:orgId/users/:userId/role",
+        permission: "admin:users:write",
+      },
+      {
+        template: "/api/v1/admin/organizations/:orgId/users/invite",
+        permission: "admin:users:write",
+      },
+      {
+        template: "/api/v1/admin/organizations/:orgId/users/:userId/deactivate",
+        permission: "admin:users:write",
+      },
+      {
+        template: "/api/v1/admin/organizations/:orgId/users/:userId/reactivate",
+        permission: "admin:users:write",
+      },
+    ] as const;
+
+    for (const { template, permission } of privilegedUserRoutes) {
+      const route = routes.find((entry) => entry.template === template);
+      expect(route).toBeDefined();
+      expect(route?.authRequired).toBe(true);
+      expect(route?.allowedRoles).toEqual(["super_admin"]);
+      expect(route?.requiredPermissions).toContain(permission);
+    }
+  });
+
   it("matches static admin unread-count route before dynamic conversation id route", () => {
     const matched = matchRoute(
       compileRoutes(routes),

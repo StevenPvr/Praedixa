@@ -1,4 +1,7 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import process from "node:process";
 
 import { parse } from "yaml";
 
@@ -7,10 +10,37 @@ import type {
   PublicApiMethod,
 } from "./common.js";
 
-const PUBLIC_OPENAPI_URL = new URL(
-  "../../../../../contracts/openapi/public.yaml",
-  import.meta.url,
-);
+function resolvePublicOpenApiPath(): string {
+  const candidatePaths = [
+    path.resolve(process.cwd(), "contracts/openapi/public.yaml"),
+    path.resolve(process.cwd(), "../contracts/openapi/public.yaml"),
+  ];
+
+  try {
+    candidatePaths.push(
+      fileURLToPath(
+        new URL(
+          "../../../../../contracts/openapi/public.yaml",
+          import.meta.url,
+        ),
+      ),
+    );
+  } catch {
+    // Vitest / vite-node can expose non-file module URLs; cwd fallbacks cover that case.
+  }
+
+  for (const candidatePath of candidatePaths) {
+    if (existsSync(candidatePath)) {
+      return candidatePath;
+    }
+  }
+
+  throw new Error(
+    `Unable to resolve contracts/openapi/public.yaml from ${process.cwd()}`,
+  );
+}
+
+const PUBLIC_OPENAPI_PATH = resolvePublicOpenApiPath();
 
 const OPENAPI_METHODS = ["get", "post", "patch", "put", "delete"] as const;
 
@@ -135,7 +165,7 @@ function readResponseSchemaRef(
 }
 
 export function loadPublicOpenApiSource(): string {
-  return readFileSync(PUBLIC_OPENAPI_URL, "utf8");
+  return readFileSync(PUBLIC_OPENAPI_PATH, "utf8");
 }
 
 export function loadPublicOpenApiDocument(): PublicOpenApiDocument {

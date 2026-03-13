@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { loadPublicOpenApiDocument } from "@praedixa/shared-types/public-contract-node";
 
 const mockCreateRemoteJWKSet = vi.fn();
 const mockJwtVerify = vi.fn();
@@ -313,5 +314,40 @@ describe("decodeJwtPayload", () => {
         }),
       },
     });
+  });
+});
+
+type OpenApiResponseRef = {
+  $ref?: string;
+};
+
+type OpenApiOperationDocument = {
+  security?: Array<Record<string, string[]>>;
+  responses?: Record<string, OpenApiResponseRef | undefined>;
+};
+
+describe("public OpenAPI auth contract", () => {
+  it("documents standard auth and validation failures for every bearer-protected operation", () => {
+    const document = loadPublicOpenApiDocument();
+    const operations = Object.values(document.paths ?? {}).flatMap((pathItem) =>
+      Object.values(pathItem ?? {}),
+    ) as OpenApiOperationDocument[];
+
+    const protectedOperations = operations.filter(
+      (operation) => (operation.security?.length ?? 0) > 0,
+    );
+
+    expect(protectedOperations.length).toBeGreaterThan(0);
+    expect(
+      protectedOperations.every(
+        (operation) =>
+          operation.responses?.["400"]?.$ref ===
+            "#/components/responses/BadRequestError" &&
+          operation.responses?.["401"]?.$ref ===
+            "#/components/responses/UnauthorizedError" &&
+          operation.responses?.["403"]?.$ref ===
+            "#/components/responses/ForbiddenError",
+      ),
+    ).toBe(true);
   });
 });

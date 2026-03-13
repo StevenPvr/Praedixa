@@ -258,6 +258,7 @@ const document = {
       },
     },
     parameters: pathParameters,
+    responses: buildResponseComponents(),
     schemas,
   },
 };
@@ -423,6 +424,7 @@ function buildPaths() {
             },
           },
         },
+        ...buildStandardErrorResponses(operation),
       },
     };
 
@@ -502,6 +504,52 @@ function buildResponseEnvelopeSchema(envelope, responseTypeName) {
     },
     ["success", "data", "pagination", "timestamp"],
   );
+}
+
+function buildResponseComponents() {
+  return {
+    BadRequestError: buildErrorResponseComponent(
+      "Request validation or path/query parsing failed.",
+    ),
+    UnauthorizedError: buildErrorResponseComponent(
+      "Authentication is missing or invalid.",
+    ),
+    ForbiddenError: buildErrorResponseComponent(
+      "Authentication succeeded but the caller is not allowed to access this resource.",
+    ),
+  };
+}
+
+function buildErrorResponseComponent(description) {
+  return {
+    description,
+    content: {
+      "application/json": {
+        schema: {
+          $ref: "#/components/schemas/Error",
+        },
+      },
+    },
+  };
+}
+
+function buildStandardErrorResponses(operation) {
+  const responses = {
+    "400": {
+      $ref: "#/components/responses/BadRequestError",
+    },
+  };
+
+  if (operation.auth === "bearer") {
+    responses["401"] = {
+      $ref: "#/components/responses/UnauthorizedError",
+    };
+    responses["403"] = {
+      $ref: "#/components/responses/ForbiddenError",
+    };
+  }
+
+  return responses;
 }
 
 function responseStatusFor(method) {

@@ -13,11 +13,14 @@ Sous-dossiers :
 Fichiers :
 
 - `client.test.ts`
+- `admin-route-policies.test.ts`
 - `middleware.test.ts`
 - `oidc.test.ts`
 - `permissions.test.ts`
 - `route-access.test.ts`
 - `server.test.ts`
+
+`admin-route-policies.test.ts` resolve maintenant la taxonomie de permissions admin via plusieurs chemins candidats (`cwd` workspace puis fallback `file://`), afin de rester stable quand Vitest lance le projet avec `cwd=app-admin`.
 
 ## Intégration
 

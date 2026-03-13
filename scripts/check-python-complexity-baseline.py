@@ -44,6 +44,10 @@ class Violation:
         return (self.type, self.target)
 
 
+def _sort_violations(violations: list[Violation]) -> list[Violation]:
+    return sorted(violations, key=lambda violation: (violation.type, violation.target))
+
+
 def _run_xenon() -> tuple[int, list[Violation], str]:
     completed = subprocess.run(
         XENON_COMMAND,
@@ -153,8 +157,8 @@ def main() -> int:
         return 1
 
     current = {violation.key: violation for violation in violations}
-    unexpected = sorted(
-        violation for key, violation in current.items() if key not in baseline
+    unexpected = _sort_violations(
+        [violation for key, violation in current.items() if key not in baseline]
     )
     worsened = sorted(
         (

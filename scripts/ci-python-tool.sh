@@ -14,6 +14,7 @@ Supported tools:
   import-linter
   deptry
   radon
+  schemathesis
 EOF
   exit 2
 }
@@ -57,6 +58,10 @@ case "$TOOL_KEY" in
   radon)
     PACKAGE_SPEC="radon==6.0.1"
     TOOL_COMMAND="radon"
+    ;;
+  schemathesis)
+    PACKAGE_SPEC="schemathesis==4.12.0"
+    TOOL_COMMAND="st"
     ;;
   *)
     echo "Unsupported CI Python tool: $TOOL_KEY" >&2
