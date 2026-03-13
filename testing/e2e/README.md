@@ -10,6 +10,7 @@ Suites end-to-end Playwright du repo.
 - `fixtures/` contient les helpers transverses de reseau, auth OIDC, couverture et reporter.
 
 La config est definie dans `playwright.config.ts` a la racine. Les trois apps sont demarrees automatiquement sur `3000`, `3001` et `3002` pendant les runs E2E.
+Les web servers Playwright doivent demarrer via les binaires app-locaux `./node_modules/.bin/next` avec `cwd` dedie, pas via des wrappers `pnpm`, pour que le teardown des hooks puisse tuer le vrai processus serveur sans rester suspendu.
 
 ## Lancer les suites
 

@@ -8,7 +8,8 @@ This script is idempotent: it creates missing entities/datasets and only
 skips steps that would duplicate already-materialized downstream artifacts.
 
 Pipeline (10 steps):
- 1-4. Foundation organization settings/sites/departments/datasets via app.services.organization_foundation
+ 1-4. Foundation organization settings/sites/departments/datasets
+      via app.services.organization_foundation
  5. Canonical + cost parameters computed from DB-cleaned core datasets
  6. Mock forecasts -> coverage alerts
  7. Scenario options (per alert)
@@ -16,7 +17,7 @@ Pipeline (10 steps):
  9. Proof records (per site-month)
 10. Dashboard alerts + ForecastRun + DailyForecasts
 """
-# ruff: noqa: PLR2004, PLR0911, PLR0915, DTZ011, RUF046
+# ruff: noqa: PLR2004, PLR0911, PLR0915, RUF046
 
 from __future__ import annotations
 
@@ -42,7 +43,6 @@ from app.models.dashboard_alert import (
     RelatedEntityType,
 )
 from app.models.data_catalog import ClientDataset
-from app.models.department import Department
 from app.models.forecast_run import ForecastModelType, ForecastRun, ForecastStatus
 from app.models.operational import (
     CanonicalRecord,
@@ -52,8 +52,6 @@ from app.models.operational import (
     OperationalDecision,
     ScenarioOption,
 )
-from app.models.organization import Organization
-from app.models.site import Site
 from app.services.canonical_data_service import bulk_import_canonical
 from app.services.datasets import get_dataset_data
 from app.services.mock_forecast_service import generate_mock_forecasts
@@ -63,6 +61,10 @@ from app.services.scenario_engine_service import generate_scenarios
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from app.models.department import Department
+    from app.models.organization import Organization
+    from app.models.site import Site
 
 log = structlog.get_logger()
 
@@ -856,7 +858,6 @@ async def _step10b_forecast_run(
 
 
 # ── Main pipeline ────────────────────────────────────────
-
 
 
 async def seed_all(

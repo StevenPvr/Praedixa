@@ -18,10 +18,6 @@ const EXPECT_TIMEOUT_MS = process.env.CI ? 12_000 : 10_000;
 const ACTION_TIMEOUT_MS = 10_000;
 const NAVIGATION_TIMEOUT_MS = 20_000;
 const REUSE_EXISTING_SERVERS = process.env.PW_REUSE_SERVER === "1";
-const PNPM_CMD =
-  typeof process.env.PNPM_BIN === "string" && process.env.PNPM_BIN.length > 0
-    ? process.env.PNPM_BIN
-    : "pnpm";
 const DESKTOP_BROWSER_USE = (() => {
   const use = { ...devices["Desktop Chrome"] } as Record<string, unknown>;
   if (COVERAGE_ENABLED) {
@@ -78,13 +74,16 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: `${PNPM_CMD} --filter @praedixa/landing exec next dev --hostname 127.0.0.1 --port 3000`,
+      command: "./node_modules/.bin/next dev --hostname 127.0.0.1 --port 3000",
+      cwd: "app-landing",
       url: "http://localhost:3000",
       reuseExistingServer: REUSE_EXISTING_SERVERS,
       timeout: 120_000,
     },
     {
-      command: `${PNPM_CMD} --filter @praedixa/webapp exec next dev --turbopack --hostname 127.0.0.1 --port 3001`,
+      command:
+        "./node_modules/.bin/next dev --turbopack --hostname 127.0.0.1 --port 3001",
+      cwd: "app-webapp",
       url: "http://localhost:3001",
       reuseExistingServer: REUSE_EXISTING_SERVERS,
       timeout: 120_000,
@@ -98,7 +97,9 @@ export default defineConfig({
       },
     },
     {
-      command: `${PNPM_CMD} --filter @praedixa/admin exec next dev --turbopack --hostname 127.0.0.1 --port 3002`,
+      command:
+        "./node_modules/.bin/next dev --turbopack --hostname 127.0.0.1 --port 3002",
+      cwd: "app-admin",
       url: "http://localhost:3002",
       reuseExistingServer: REUSE_EXISTING_SERVERS,
       timeout: 120_000,
