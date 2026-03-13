@@ -52,6 +52,10 @@ Variables utiles:
 - `BASIC_AUTH_USERNAME` et `BASIC_AUTH_PASSWORD` pour proteger l'acces.
 - `SCW_DEPLOY_ALLOW_DIRTY=1` seulement si vous assumez explicitement un deploy avec workspace non propre.
 
+## Dependances verrouillees
+
+- `esbuild` est force via `overrides` pour eviter qu'un binaire transitive vulnerable fasse echouer le gate supply-chain du monorepo.
+
 ## Structure
 
 - `src/content/skolaeMessaging.ts`: source unique du fond, des preuves et du CTA.
