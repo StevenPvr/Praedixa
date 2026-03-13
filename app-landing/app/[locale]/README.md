@@ -15,11 +15,11 @@ Ce sous-arbre porte les pages visibles par les visiteurs. Le layout localise val
 ## Pages majeures
 
 - `page.tsx`: homepage
-- `services/page.tsx`: offre signature et variante "forecasts only"
+- `services/page.tsx`: comparaison entre preuve sur historique et déploiement Praedixa
 - `secteurs/[slug]/page.tsx` et `industries/[slug]/page.tsx`: pages verticales FR/EN pour HCR, enseignement supérieur, logistique/transport/retail et automobile
 - `contact/page.tsx`: page contact + formulaire
-- `devenir-pilote/page.tsx` et `pilot-application/page.tsx`: candidature pilote
-- `pilot-protocol/page.tsx`: protocole pilote commun
+- `devenir-pilote/page.tsx` et `deployment-request/page.tsx`: demande de déploiement Praedixa
+- `protocole-deploiement/page.tsx` et `deployment-protocol/page.tsx`: protocole de mise en place commun
 - `comment-ca-marche/page.tsx` et `how-it-works/page.tsx`: narration de la methode
 - `produit-methode/page.tsx` et `product-method/page.tsx`: positionnement produit
 - `decision-log-preuve-roi/page.tsx` et `decision-log-roi-proof/page.tsx`: preuve ROI

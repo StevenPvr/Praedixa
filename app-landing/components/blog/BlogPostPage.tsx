@@ -3,9 +3,17 @@ import type { ReactElement } from "react";
 import type { Locale } from "../../lib/i18n/config";
 import { buildBlogPostPath } from "../../lib/blog/posts";
 import type { BlogPost, BlogSiblingPosts } from "../../lib/blog/types";
-import { formatBlogDate, formatReadingTime, formatTagLabel } from "../../lib/blog/format";
+import {
+  formatBlogDate,
+  formatReadingTime,
+  formatTagLabel,
+} from "../../lib/blog/format";
 import { serializeJsonForScriptTag } from "../../lib/security/json-script";
-import { PRAEDIXA_BASE_URL, PRAEDIXA_BRAND_NAME, PRAEDIXA_LOGO_URL } from "../../lib/seo/entity";
+import {
+  PRAEDIXA_BASE_URL,
+  PRAEDIXA_BRAND_NAME,
+  PRAEDIXA_LOGO_URL,
+} from "../../lib/seo/entity";
 import { SectionShell } from "../shared/SectionShell";
 
 interface BlogPostPageProps {
@@ -107,11 +115,17 @@ export function BlogPostPage({
         />
 
         <nav className="text-xs text-neutral-500" aria-label="Breadcrumb">
-          <Link href={`/${locale}`} className="text-neutral-500 no-underline hover:text-ink">
+          <Link
+            href={`/${locale}`}
+            className="text-neutral-500 no-underline hover:text-ink"
+          >
             Praedixa
           </Link>
           {" / "}
-          <Link href={blogIndexPath} className="text-neutral-500 no-underline hover:text-ink">
+          <Link
+            href={blogIndexPath}
+            className="text-neutral-500 no-underline hover:text-ink"
+          >
             {locale === "fr" ? "Blog" : "Blog"}
           </Link>
           {" / "}
@@ -119,11 +133,17 @@ export function BlogPostPage({
         </nav>
 
         <header className="mt-6">
-          <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">{post.title}</h1>
-          <p className="mt-4 text-base leading-relaxed text-neutral-600">{post.description}</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            {post.title}
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-neutral-600">
+            {post.description}
+          </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500">
-            <time dateTime={post.dateIso}>{formatBlogDate(locale, post.date)}</time>
+            <time dateTime={post.dateIso}>
+              {formatBlogDate(locale, post.date)}
+            </time>
             <span aria-hidden="true">•</span>
             <span>{formatReadingTime(locale, post.readingTimeMinutes)}</span>
             <span aria-hidden="true">•</span>
@@ -157,7 +177,9 @@ export function BlogPostPage({
               <p className="text-xs uppercase tracking-[0.08em] text-neutral-500">
                 {locale === "fr" ? "Article précédent" : "Previous article"}
               </p>
-              <p className="mt-2 font-medium text-ink">{siblingPosts.previous.title}</p>
+              <p className="mt-2 font-medium text-ink">
+                {siblingPosts.previous.title}
+              </p>
             </Link>
           ) : (
             <div />
@@ -171,7 +193,9 @@ export function BlogPostPage({
               <p className="text-xs uppercase tracking-[0.08em] text-neutral-500">
                 {locale === "fr" ? "Article suivant" : "Next article"}
               </p>
-              <p className="mt-2 font-medium text-ink">{siblingPosts.next.title}</p>
+              <p className="mt-2 font-medium text-ink">
+                {siblingPosts.next.title}
+              </p>
             </Link>
           ) : (
             <div />

@@ -36,66 +36,47 @@ vi.mock("../HeroBackgroundVideo", () => ({
 }));
 
 describe("HeroSection", () => {
-  it("clarifies the French hero value proposition", () => {
+  it("keeps the French hero broad while stating the priority-risk entry point", () => {
     render(<HeroSection locale="fr" dict={fr} />);
 
-    expect(screen.getByText("RH")).toBeInTheDocument();
-    expect(screen.getByText("FINANCE")).toBeInTheDocument();
-    expect(screen.getByText("OPÉRATIONS")).toBeInTheDocument();
-    expect(screen.queryByText("Restaurant")).not.toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Pour COO, DAF et directions réseau"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Effectifs · demande · stocks · rétention"),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("hero-background-video")).toHaveAttribute(
       "data-src",
       "/hero-video/hero-industries-montage.mp4",
     );
-    expect(screen.getByText("RH").className).toContain(
-      "text-[var(--brass-dark-700)]",
-    );
-    expect(screen.getByText("FINANCE").className).toContain(
-      "text-[var(--brass-dark-700)]",
-    );
-    expect(screen.getByText("OPÉRATIONS").className).toContain(
-      "text-[var(--brass-dark-700)]",
-    );
-
-    const supplyChainText = screen.getByText("SUPPLY CHAIN");
-    expect(supplyChainText).toBeInTheDocument();
-    expect(supplyChainText.className).toContain("text-[var(--brass-dark-700)]");
-    expect(
-      screen.getByLabelText("RH · FINANCE · OPÉRATIONS · SUPPLY CHAIN"),
-    ).toBeInTheDocument();
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("DecisionOps");
+    expect(heading).toHaveTextContent("Anticipez");
     const heroSubheadline = screen.getByText(
       (_, element) =>
         element?.textContent ===
-        "Anticiper vos besoins. Décidez plus tôt. Prouvez le ROI.",
+        "les risques business qui détruisent la marge.",
     );
     expect(heroSubheadline).toBeInTheDocument();
-    expect(within(heroSubheadline).getByText("Anticiper").className).toContain(
+    expect(within(heroSubheadline).getByText("risques").className).toContain(
       "text-[var(--brass-400)]",
     );
-    expect(within(heroSubheadline).getByText("Décidez").className).toContain(
-      "text-[var(--brass-400)]",
-    );
-    expect(within(heroSubheadline).getByText("Prouvez").className).toContain(
+    expect(within(heroSubheadline).getByText("marge").className).toContain(
       "text-[var(--brass-400)]",
     );
     expect(
       screen.getAllByText(
-        "Praedixa se branche sur vos systèmes existants, fédère les données critiques sur une infrastructure hébergée en France, transforme vos arbitrages récurrents en décisions calculées, exécutées et auditables, puis prouve le ROI décision par décision en comité Ops / Finance.",
+        "Praedixa détecte les écarts qui menacent votre activité et recommande les meilleures décisions à prendre sur les effectifs, la demande, les stocks, les approvisionnements et la rétention client. Nous commençons par le risque le plus coûteux sur votre périmètre.",
       ).length,
     ).toBeGreaterThan(0);
     expect(
-      screen.queryByText(
-        "Réponse en 48h · lecture seule · entreprise française · données hébergées en France sur Scaleway",
+      screen.getAllByText("5 jours ouvrés · lecture seule · validation humaine")
+        .length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getByText(
+        "Effectifs, demande, stocks, approvisionnements, rétention",
       ),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText("Fondateurs français")).not.toBeInTheDocument();
-    expect(
-      screen.getAllByText(
-        "Lecture seule sur l'existant · validation humaine · revue mensuelle Ops / Finance",
-      ).length,
-    ).toBeGreaterThan(0);
+    ).toBeInTheDocument();
   });
 });

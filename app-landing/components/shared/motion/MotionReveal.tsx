@@ -24,15 +24,13 @@ export function MotionReveal({
 }: MotionRevealProps) {
   const reducedMotion = useReducedMotion();
 
-  const initial =
-    reducedMotion
-      ? { opacity: 1 }
-      : direction === "up"
-        ? { opacity: 0, y: 20 }
-        : { opacity: 0, y: 16 };
+  const initial = reducedMotion
+    ? { opacity: 1 }
+    : direction === "up"
+      ? { opacity: 0, y: 20 }
+      : { opacity: 0, y: 16 };
 
-  const animate =
-    reducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 };
+  const animate = reducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 };
 
   return (
     <motion.div

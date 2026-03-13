@@ -7,7 +7,7 @@ Services serveur pour les endpoints du landing.
 - `form-route.ts`: pipeline HTTP commun aux formulaires
 - `resend-client.ts`: singleton Resend
 - `contact/`: validation, persistence, envoi emails contact
-- `pilot-application/`: constantes, rate limit IP, validation, envoi emails pilote
+- `deployment-request/`: constantes, rate limit IP, validation, envoi emails pilote
 - `scoping-call/`: validation et envoi du call de cadrage
 
 ## Mode d'emploi
@@ -28,5 +28,5 @@ Une route `app/api/*` devrait:
 
 ## Tests associes
 
-- `pilot-application/__tests__/rate-limit.test.ts`
+- `deployment-request/__tests__/rate-limit.test.ts`
 - tests de routes dans `app/api/**/__tests__/`

@@ -11,7 +11,7 @@ Servir les formulaires publics, les checks de sante et un endpoint d'ingest publ
 - `GET /api/health`: sante simple pour probes et diagnostic local
 - `GET /api/contact/challenge`: challenge anti-spam signe et non cache
 - `POST /api/contact`: formulaire contact
-- `POST /api/pilot-application`: formulaire candidature pilote
+- `POST /api/deployment-request`: formulaire demande de déploiement
 - `POST /api/scoping-call`: demande de call de cadrage
 - `POST /api/v1/public/contact-requests`: ingest public securise par token
 
@@ -32,7 +32,7 @@ Presque toutes les routes formulaire appliquent, dans cet ordre:
 
 - `lib/api/form-route.ts`
 - `lib/api/contact/*`
-- `lib/api/pilot-application/*`
+- `lib/api/deployment-request/*`
 - `lib/api/scoping-call/*`
 - `lib/api/resend-client.ts`
 - `lib/security/*`
@@ -42,6 +42,6 @@ Presque toutes les routes formulaire appliquent, dans cet ordre:
 - `contact/__tests__/route.test.ts`
 - `contact/challenge/__tests__/route.test.ts`
 - `health/__tests__/route.test.ts`
-- `pilot-application/__tests__/route-*.test.ts`
+- `deployment-request/__tests__/route-*.test.ts`
 - `scoping-call/__tests__/route.test.ts`
 - `v1/public/contact-requests/__tests__/route.test.ts`

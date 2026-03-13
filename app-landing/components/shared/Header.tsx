@@ -13,13 +13,12 @@ interface HeaderProps {
 }
 
 export function Header({ locale, dict }: HeaderProps) {
-  const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=audit`;
+  const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
   const primaryCtaLabel = dict.nav.ctaPrimary;
-  const primaryCtaLabelShort =
-    locale === "fr" ? "Diagnostic ROI" : "Free audit";
-  const pilotCtaHref = getLocalizedPath(locale, "pilot");
+  const primaryCtaLabelShort = locale === "fr" ? "Preuve historique" : "Proof";
+  const pilotCtaHref = getLocalizedPath(locale, "deployment");
   const pilotCtaLabel =
-    locale === "fr" ? "Demander un pilote ROI" : "Apply for the pilot";
+    locale === "fr" ? "Parler du déploiement" : "Discuss deployment";
 
   return (
     <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white">

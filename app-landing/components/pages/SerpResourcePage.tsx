@@ -18,7 +18,7 @@ interface SerpResourcePageProps {
 }
 
 export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
-  const pilotHref = getLocalizedPath(locale, "pilot");
+  const pilotHref = getLocalizedPath(locale, "deployment");
   const trackedPilotHref = `${pilotHref}?${new URLSearchParams({
     source: "seo_resource",
     seo_slug: entry.slug,
@@ -176,9 +176,7 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
         {relatedResources.length > 0 ? (
           <section className="mt-12 border-t border-border-subtle pt-8">
             <h2 className="text-lg font-semibold tracking-tight text-ink">
-              {locale === "fr"
-                ? "Ressources associées"
-                : "Related resources"}
+              {locale === "fr" ? "Ressources associées" : "Related resources"}
             </h2>
             <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-neutral-500">
               {locale === "fr"
@@ -193,7 +191,9 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
                   className="rounded-xl border border-border bg-white p-4 text-sm no-underline transition-colors hover:border-amber-300 hover:bg-amber-50/30"
                 >
                   <p className="font-semibold text-ink">{resource.title}</p>
-                  <p className="mt-2 text-neutral-500">{resource.description}</p>
+                  <p className="mt-2 text-neutral-500">
+                    {resource.description}
+                  </p>
                 </Link>
               ))}
             </div>

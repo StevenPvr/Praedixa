@@ -17,14 +17,14 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     shortLabel: "Hospitality / Food service",
     title: "Hospitality / Food service",
     metaTitle:
-      "Praedixa | Hospitality: anticipate staffing needs before service quality starts slipping",
+      "Praedixa | Hospitality: arbitrate demand, coverage, and service before margin slips",
     metaDescription:
-      "Reservations, PMS, POS, schedules, absences, and labor cost. Praedixa helps hospitality teams predict staffing demand, compare trade-offs, trigger the first action, and prove ROI.",
+      "Reservations, PMS, POS, schedules, absences, and labor cost. Praedixa helps hospitality teams anticipate demand, compare coverage and service trade-offs, and review margin impact.",
     heroKicker: "Hospitality vertical",
     heroTitle:
-      "Anticipate staffing needs before service quality starts slipping.",
+      "Arbitrate demand, coverage, and service level before margin slips.",
     heroSubtitle:
-      "Reservations, PMS, POS, schedules, absences, and labor costs already exist in your stack. Praedixa connects them to turn hospitality volatility into site-level, service-level staffing decisions.",
+      "Reservations, PMS, POS, schedules, absences, and labor costs already exist in your stack. Praedixa connects them to turn hospitality volatility into clearer decisions on coverage, opening windows, service promise, and margin by site.",
     proofKicker: "Why now",
     proofTitle:
       "Hospitality combines strong seasonality, fast demand shifts, and structural hiring pressure.",
@@ -56,7 +56,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
           "https://statistiques.francetravail.org/bmo/bmo?fg=IZ&pp=2025&ss=1",
       },
     ],
-    challengeKicker: "The workforce question",
+    challengeKicker: "The business question",
     challengeTitle:
       "How do you protect service quality when demand accelerates faster than available staff?",
     challengeBody:
@@ -77,12 +77,12 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     ],
     valuePropKicker: "Value proposition",
     valuePropTitle:
-      "Praedixa turns staffing coverage into a governed operational decision.",
+      "Praedixa turns hospitality volatility into more defensible service and margin decisions.",
     valuePropBody:
-      "Praedixa does not sell one more scheduling tool. It connects the right data, predicts staffing requirements by site and service, compares the cost/service/risk trade-offs, and documents the decision that protects both service level and margin.",
+      "Praedixa does not sell one more scheduling tool. It connects demand, coverage, cost, and service-level signals, compares the available trade-offs, and helps launch the first useful action on staffing, opening hours, service promise, or frontline retention.",
     loopKicker: "Praedixa loop",
     loopTitle:
-      "A closed loop built around coverage, cost, and service quality.",
+      "A closed loop built around demand, coverage, service, and margin.",
     loopIntro:
       "Each step is designed for operations leaders and finance stakeholders: see the drift earlier, compare options faster, trigger the first move, and prove what actually paid off.",
     loopSteps: [
@@ -91,8 +91,8 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         body: "Reservations, PMS, POS, schedules, absences, and labor costs are aligned into one operating view.",
       },
       {
-        title: "Predict staffing requirements",
-        body: "Praedixa projects coverage needs at D+3, D+7, and D+14 by site, service, and critical time slot.",
+        title: "Project demand and useful coverage",
+        body: "Praedixa projects at D+3, D+7, and D+14 where demand, coverage, and service level will tighten by site, service, and critical time slot.",
       },
       {
         title: "Calculate the best decision",
@@ -111,20 +111,22 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     kpiTitle:
       "The hospitality signals Praedixa can forecast before service quality starts slipping",
     kpis: [
-      "Demand by site, day, and service: nights, covers, occupancy rate, average ticket",
+      "Demand by site, day, service, and channel: nights, covers, occupancy rate, average ticket",
+      "No-show, late-cancellation, and group/event pressure risk by time slot",
       "Required labor hours by role, shift, and critical daypart",
       "Coverage rate across service, kitchen, reception, and housekeeping shifts",
-      "Absence, no-show, or under-coverage risk by team and contract mix",
+      "Absence or under-coverage risk by team and contract mix",
       "Expected overtime, temp, and extra-labor usage at short horizon",
-      "Wait time, service level, and revenue per labor hour",
-      "Protected or exposed margin depending on the chosen staffing scenario",
-      "Seasonal vs structural workload share by site",
+      "Wait time, table turns, service level, and review-risk exposure",
+      "Revenue per labor hour, RevPAR, and protected margin by coverage scenario",
+      "Frontline turnover or seasonal attrition risk on the most exposed properties",
     ],
     decisionKicker: "Optimizable decisions",
     decisionTitle:
       "The hospitality staffing decisions Praedixa can help teams arbitrate earlier",
     decisions: [
       "How many servers, cooks, reception staff, or housekeeping agents to schedule by shift",
+      "Which groups, service windows, terraces, or openings to accept, limit, or resize when capacity tightens",
       "When to launch seasonal hiring and on which priority roles",
       "When to open, close, or reduce a room, floor, service line, or opening window",
       "When to rely on extras or temp staff versus internal multi-skilling",
@@ -134,12 +136,12 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     ],
     ctaTitle: "See what Praedixa would do on your most exposed services.",
     ctaBody:
-      "We start from your existing data, surface short-horizon signals, and show where coverage is too expensive or too weak to protect margin.",
+      "We start from your existing data, surface short-horizon signals, and show where demand, coverage, or the service promise are eroding margin too quickly.",
     homepageHook:
-      "Anticipate staffing needs before service quality starts slipping.",
+      "Arbitrate demand, coverage, and service before margin slips.",
     homepageStat: "336,850 planned hires, 50.2% difficult, 56.5% seasonal.",
     homepageProblem:
-      "The hospitality challenge: protect service levels without letting temp labor and overtime swallow margin.",
+      "The hospitality challenge: protect service levels without letting demand shocks, temp labor, and overtime swallow margin.",
     sourceLinks: [
       ...praedixaMethodSources.en,
       {
@@ -164,14 +166,14 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     shortLabel: "Higher education",
     title: "Higher education",
     metaTitle:
-      "Praedixa | Higher education: secure campus peaks without letting coverage cost drift",
+      "Praedixa | Higher education: secure admissions, exams, and campus continuity without letting budget and coverage drift",
     metaDescription:
-      "Admissions, student services, exams, staffing, vacations, and payroll. Praedixa helps higher education teams forecast staffing pressure, compare trade-offs, and prove ROI.",
+      "Admissions, student services, exams, contracts, absences, and budget. Praedixa helps higher-education teams anticipate pressure, compare capacity and continuity trade-offs, and review impact.",
     heroKicker: "Higher education vertical",
     heroTitle:
-      "Secure campus peak activity without letting coverage cost drift.",
+      "Secure admissions, exams, and campus continuity without letting budget and coverage drift.",
     heroSubtitle:
-      "Admissions, student services, exams, timetables, vacations, contract teachers, permanent staff, and payroll. Praedixa turns academic peak periods into clearer human and budget decisions.",
+      "Admissions, student services, exams, timetables, adjuncts, permanent staff, absences, and payroll. Praedixa turns academic peak periods into clearer decisions on capacity, budget, student service, and academic priorities.",
     proofKicker: "Why now",
     proofTitle:
       "Institutions must absorb massive recurring peaks with already fragmented human capacity.",
@@ -204,9 +206,9 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
           "https://www.enseignementsup-recherche.gouv.fr/fr/les-enseignants-contractuels-affectes-dans-l-enseignement-superieur-annee-2024-100753",
       },
     ],
-    challengeKicker: "The workforce question",
+    challengeKicker: "The business question",
     challengeTitle:
-      "How do you absorb admissions, enrollment, and exam peaks with fragmented human capacity?",
+      "How do you absorb admissions, enrollment, and exam peaks without degrading service continuity or budget control?",
     challengeBody:
       "Between permanent staff, contract teachers, adjuncts, and support teams, campus coverage is never just a timetable issue. It is a trade-off between service continuity, budget, workload, and student experience.",
     challenges: [
@@ -227,9 +229,10 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     valuePropTitle:
       "Praedixa creates a shared admissions x student services x HR x budget view.",
     valuePropBody:
-      "Praedixa connects academic, operational, and budget data so human needs become visible across peak periods. The platform compares the available trade-offs, helps trigger the first useful action, and measures what actually improved coverage and student-facing continuity.",
+      "Praedixa connects academic, operational, and budget data so human needs become visible across peak periods. The platform compares the available trade-offs, helps trigger the first useful action, and measures what actually improved coverage, student service, and campus continuity.",
     loopKicker: "Praedixa loop",
-    loopTitle: "A decision loop built for academic cycles.",
+    loopTitle:
+      "A decision loop built for campus workload, capacity, and continuity.",
     loopIntro:
       "Praedixa keeps the same product logic everywhere, but translates it into campus language: admissions, student services, exams, adjunct coverage, and coverage cost.",
     loopSteps: [
@@ -238,8 +241,8 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         body: "Admissions, student services, timetables, exams, absences, and payroll are aligned into one operating view.",
       },
       {
-        title: "Predict staffing requirements",
-        body: "Praedixa projects staffing needs across enrollment, admissions, exams, and student support peaks.",
+        title: "Project campus workload and capacity",
+        body: "Praedixa projects pressure across admissions, registry, exams, and student services together with the capacity that can truly be mobilized.",
       },
       {
         title: "Calculate the best decision",
@@ -259,12 +262,13 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
       "The campus indicators Praedixa can forecast before peak pressure hits",
     kpis: [
       "Applications per seat and admission pressure by program or campus",
-      "Admitted-to-enrolled yield and projected enrollment by program",
+      "Admitted-to-enrolled yield, withdrawals, and projected enrollment by program",
       "Fill rate across lecture halls, groups, labs, and practical sessions",
       "Required teaching hours versus allocated hours by discipline",
       "Coverage split between tenured staff, contract teachers, and adjuncts",
-      "Risk of under-staffing in teaching or student-support teams during peaks",
+      "Risk of under-staffing in teaching or student-support teams during admissions, enrollment, and exam peaks",
       "Admissions, registry, and student-services processing time at short horizon",
+      "Exam proctoring coverage and saturation risk for critical rooms or labs",
       "Coverage cost through adjuncts, overtime, and reassignment",
     ],
     decisionKicker: "Optimizable decisions",
@@ -273,22 +277,23 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     decisions: [
       "Open, close, or resize groups, sections, programs, or time slots",
       "Adjust intake capacity and waiting-list depth",
+      "Deploy interview panels, exam proctoring, or registry reinforcement earlier on saturation points",
       "Allocate teaching load across departments, statuses, and campuses",
       "Trigger contract hiring or targeted replacements earlier",
       "Prioritize disciplines to secure before retirement waves hit",
       "Reassign rooms, labs, and timetables based on projected pressure",
-      "Arbitrate budget between hiring, adjunct coverage, hybrid delivery, and mutualization",
+      "Arbitrate budget between hiring, adjunct coverage, hybrid delivery, mutualization, and student-service continuity",
       "Reallocate student-support teams during enrollment and exam peaks",
     ],
     ctaTitle: "Frame your next campus peaks on a shared decision baseline.",
     ctaBody:
-      "Praedixa shows where demand will rise, what human capacity is truly available, and which staffing decision best protects cost and service continuity.",
+      "Praedixa shows where demand will rise, what capacity is truly available, and which decision best protects budget, service continuity, and the student experience.",
     homepageHook:
-      "Secure campus peak activity without letting coverage cost drift.",
+      "Secure admissions, exams, and campus continuity without letting budget and coverage drift.",
     homepageStat:
       "3.04M students, 945,500 Parcoursup candidates, 21,080 contract teachers.",
     homepageProblem:
-      "The campus challenge: absorb admissions and exam peaks with fragmented human capacity.",
+      "The campus challenge: absorb peak pressure with fragmented capacity and constrained budgets.",
     sourceLinks: [
       ...praedixaMethodSources.en,
       {
@@ -321,14 +326,14 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     shortLabel: "Logistics / Transport / Retail",
     title: "Logistics / Transport / Retail",
     metaTitle:
-      "Praedixa | Logistics, transport, retail: manage coverage at the speed of real demand",
+      "Praedixa | Logistics, transport, retail: arbitrate demand, capacity, and customer promise at network speed",
     metaDescription:
-      "Orders, WMS, TMS, promotions, schedules, absences, and labor cost. Praedixa helps logistics, transport, and retail teams forecast staffing needs, compare actions, and prove ROI site by site.",
+      "Orders, WMS, TMS, OMS, promotions, inventory, schedules, and cost. Praedixa helps logistics, transport, and retail teams anticipate demand, arbitrate capacity, inventory, and service, then review ROI site by site.",
     heroKicker: "Logistics / transport / retail vertical",
     heroTitle:
-      "Manage multi-site coverage at the speed of real demand, not in hindsight.",
+      "Arbitrate demand, capacity, and customer promise at the speed of the network.",
     heroSubtitle:
-      "Orders, WMS, TMS, OMS, promo calendars, schedules, absences, site performance, and labor cost. Praedixa turns daily volume volatility into faster, cleaner, more defensible staffing trade-offs.",
+      "Orders, WMS, TMS, OMS, promo calendars, inventory, schedules, absences, site performance, and labor cost. Praedixa turns daily volume volatility into faster decisions on coverage, flow, service level, and margin.",
     proofKicker: "Why now",
     proofTitle:
       "Demand moves faster than staffing capacity, and every coverage decision hits service performance directly.",
@@ -360,9 +365,9 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
           "https://statistiques.francetravail.org/bmo/bmo?fg=HZ&le=0&pp=2025&ss=1",
       },
     ],
-    challengeKicker: "The workforce question",
+    challengeKicker: "The business question",
     challengeTitle:
-      "How do you protect service promises when site demand shifts faster than available capacity?",
+      "How do you protect the customer promise when demand, capacity, and product availability move faster than the network?",
     challengeBody:
       "In these networks, every staffing decision has a double effect: it changes cost today and service tomorrow. Without a shared view, teams decide too late between overtime, temp labor, inter-site reallocation, delayed volume, or adjusted service promise.",
     challenges: [
@@ -381,11 +386,12 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     ],
     valuePropKicker: "Value proposition",
     valuePropTitle:
-      "Praedixa helps teams decide earlier, before the remaining options become too expensive.",
+      "Praedixa helps teams arbitrate earlier between capacity, inventory, promise, and margin.",
     valuePropBody:
-      "Praedixa connects orders, execution, staffing, and cost into one operating view, predicts short-horizon needs, and quantifies the trade-offs between reinforcement, reallocation, controlled promise adjustment, and protected margin.",
+      "Praedixa connects orders, execution, staffing, inventory availability, and cost into one operating view, predicts short-horizon needs, and quantifies the trade-offs between reinforcement, reallocation, inventory coverage, promise adjustment, and protected margin.",
     loopKicker: "Praedixa loop",
-    loopTitle: "A loop built for networks with moving volumes.",
+    loopTitle:
+      "A loop built for networks where demand, capacity, and service move every day.",
     loopIntro:
       "Praedixa keeps the same product logic everywhere, but translates it here into flow, workload, promise, capacity, and site-level economics.",
     loopSteps: [
@@ -394,8 +400,8 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         body: "Orders, WMS, TMS, OMS, schedules, absences, promotions, site performance, and cost are aligned into one baseline.",
       },
       {
-        title: "Predict staffing requirements",
-        body: "Praedixa projects the coverage needed at short horizon based on workload, expected peaks, and available capacity.",
+        title: "Project workload, capacity, and availability",
+        body: "Praedixa projects short-horizon demand, available capacity, and where inventory, flow, or the customer promise are likely to tighten.",
       },
       {
         title: "Calculate the best decision",
@@ -414,7 +420,9 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     kpiTitle:
       "The network indicators Praedixa can forecast before operations break",
     kpis: [
-      "Demand by site, hour, and activity: orders, order lines, pallets, routes, or store traffic",
+      "Demand by site, hour, channel, and activity: orders, order lines, pallets, routes, store traffic, or critical SKUs",
+      "Inventory coverage, stockout risk, and product availability by site, channel, or category",
+      "Dock, route, carrier-slot, or cut-off saturation on critical flows",
       "Required labor hours by activity, shift, and critical site",
       "Under- and over-staffing rate by site and time window",
       "OTIF, SLA, delivery-delay, or service-promise risk",
@@ -427,23 +435,25 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     decisionTitle:
       "The logistics / transport / retail trade-offs Praedixa can help optimize",
     decisions: [
+      "Transfer inventory, workload, or orders across warehouses, stores, or picking zones",
+      "Accelerate, delay, or smooth replenishment, inbound receipts, or carrier appointments",
       "Reallocate workload, teams, or volume across sites, warehouses, stores, or routes",
       "Choose between overtime, temp labor, subcontracting, or delayed volume",
       "Open an additional shift, reduce an opening window, or adjust an operational cut-off",
-      "Prioritize orders, routes, stores, or promotions when capacity tightens",
+      "Prioritize orders, routes, stores, promotions, or SKUs when capacity tightens",
       "Adapt the promised service level to the coverage that is actually available",
       "Decide which sites to protect first during a promo peak or network incident",
       "Trigger transport reinforcement, inter-site balancing, or a load-shedding plan",
     ],
     ctaTitle: "See how Praedixa arbitrates a network under volume volatility.",
     ctaBody:
-      "We start from demand, available capacity, and cost to show where to act first, with which lever, and what ROI to expect by site.",
+      "We start from demand, available capacity, inventory, and cost to show where to act first, with which lever, and what ROI to expect by site.",
     homepageHook:
-      "Manage coverage at the speed of real demand, not in hindsight.",
+      "Arbitrate demand, capacity, and customer promise at the speed of the network.",
     homepageStat:
       "€175.3B e-commerce, 183,760 retail hires, 90,380 transport / warehousing hires.",
     homepageProblem:
-      "The network challenge: trade off cost, productivity, availability, and service level quickly.",
+      "The network challenge: decide quickly across cost, availability, inventory, productivity, and service level.",
     sourceLinks: [
       ...praedixaMethodSources.en,
       {
@@ -472,14 +482,14 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     shortLabel: "Automotive / dealerships / workshops",
     title: "Automotive / dealerships / workshops",
     metaTitle:
-      "Praedixa | Automotive: reduce workshop delays without overloading scarce skills",
+      "Praedixa | Automotive: arbitrate workshop load, parts availability, and scarce skills before delays slip",
     metaDescription:
-      "DMS, workshop bookings, parts availability, skills, absences, and cost. Praedixa helps dealerships and workshops forecast required hours, compare actions, and prove ROI.",
+      "DMS, workshop bookings, parts availability, skills, absences, and cost. Praedixa helps dealerships and workshops anticipate load, arbitrate capacity, parts, and protected revenue, then review impact.",
     heroKicker: "Automotive vertical",
     heroTitle:
-      "Reduce workshop delays without overloading your scarcest skills.",
+      "Arbitrate workshop load, parts availability, and scarce skills before delays slip.",
     heroSubtitle:
-      "DMS, workshop bookings, aftersales history, parts availability, skills, absences, and cost. Praedixa turns workshop workload into quantified trade-offs on delay, absorption, coverage, and protected revenue.",
+      "DMS, workshop bookings, aftersales history, parts availability, skills, absences, and cost. Praedixa turns workshop load into clearer decisions on delay, backlog, parts, coverage, and protected revenue.",
     proofKicker: "Why now",
     proofTitle:
       "Aftersales demand remains structural, while critical skills are harder and harder to cover.",
@@ -511,9 +521,9 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
           "https://www.anfa-auto.fr/actualites/record-de-recrutements-en-2024-pour-les-services-de-lautomobile",
       },
     ],
-    challengeKicker: "The workforce question",
+    challengeKicker: "The business question",
     challengeTitle:
-      "How do you absorb aftersales demand when critical skills are scarce and every staffing move affects appointment delay?",
+      "How do you absorb aftersales demand when scarce skills and parts availability become the real bottleneck?",
     challengeBody:
       "In automotive, staffing is not just a planning problem. It is a workshop-hours, backlog, critical-skills, parts-availability, and protected-revenue problem.",
     challenges: [
@@ -532,11 +542,12 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     ],
     valuePropKicker: "Value proposition",
     valuePropTitle:
-      "Praedixa helps aftersales leaders arbitrate workload, skills, delay, and revenue.",
+      "Praedixa helps aftersales leaders arbitrate load, skills, parts, delay, and revenue.",
     valuePropBody:
-      "Praedixa connects workshop data, skills, absences, parts, and cost to forecast required hours, compare staffing options, and document the actions that best protect customer delay, workshop absorption, and protected aftersales revenue.",
+      "Praedixa connects workshop data, skills, absences, parts, and cost to forecast load, compare action options, and document the ones that best protect customer delay, workshop absorption, parts availability, and aftersales revenue.",
     loopKicker: "Praedixa loop",
-    loopTitle: "A decision loop built for workshops and aftersales operations.",
+    loopTitle:
+      "A decision loop built for workshops, parts, and aftersales operations.",
     loopIntro:
       "Praedixa keeps the same product logic everywhere, but translates it here into appointments, backlog, skills, capacity, and workshop economics.",
     loopSteps: [
@@ -545,8 +556,8 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
         body: "DMS, bookings, aftersales history, parts availability, skills, absences, and cost are unified into one workshop baseline.",
       },
       {
-        title: "Predict staffing requirements",
-        body: "Praedixa projects required hours by workshop, time slot, and critical skill cluster.",
+        title: "Project load, skills, and parts bottlenecks",
+        body: "Praedixa projects required hours by workshop, time slot, and critical skill cluster, plus the parts bottlenecks likely to extend delay.",
       },
       {
         title: "Calculate the best decision",
@@ -565,13 +576,14 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     kpiTitle:
       "The workshop indicators Praedixa can forecast before delays start drifting",
     kpis: [
-      "Appointment lead time and open workshop load by day or bay",
+      "Appointment lead time and open workshop load by day, bay, or intervention type",
       "Workshop backlog and required hours by intervention type",
       "Required hours by workshop, time slot, and critical skill cluster",
-      "Sold versus produced hours, technician efficiency, and absorption",
-      "Risk of delay from missing parts, no-shows, or skill shortages",
+      "Parts fill rate, backorder risk, and supply lead time by critical reference",
+      "Sold versus produced hours, technician efficiency, bay occupancy, and absorption",
+      "Risk of delay from missing parts, no-shows, comeback work, or skill shortages",
       "Expected overtime, external reinforcement, and replanning volume",
-      "Protected or exposed aftersales revenue depending on the staffing choice",
+      "Protected aftersales revenue, exposed CSI, and aftersales churn risk under each coverage choice",
     ],
     decisionKicker: "Optimizable decisions",
     decisionTitle: "The workshop trade-offs Praedixa can help leaders optimize",
@@ -581,18 +593,19 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
       "Choose between overtime, reallocation, external reinforcement, or subcontracting",
       "Move workload across workshops or dealerships when one site saturates",
       "Prioritize the highest-value or highest-urgency jobs first",
-      "Trigger parts escalation or procurement action on predicted bottlenecks",
+      "Trigger parts escalation, inter-site transfers, or procurement action on predicted bottlenecks",
       "Decide when to train, cross-skill, or protect scarce capabilities",
+      "Choose which jobs to protect first to preserve customer delay, CSI, and aftersales retention",
     ],
     ctaTitle: "See how Praedixa would help your most exposed workshops.",
     ctaBody:
-      "We start from bookings, skills, and cost to show where workload is likely to break customer delay and which decision best protects the workshop.",
+      "We start from bookings, skills, parts, and cost to show where load is likely to break customer delay and which decision best protects the workshop.",
     homepageHook:
-      "Reduce workshop delays without overloading your scarcest skills.",
+      "Arbitrate workshop load, parts, and skills before customer delays drift.",
     homepageStat:
       "33,900 planned hires, 69.7% difficult, 17,820 unfilled postings in 2024.",
     homepageProblem:
-      "The workshop challenge: absorb aftersales demand despite scarce critical skills.",
+      "The workshop challenge: absorb aftersales demand despite scarce skills and parts bottlenecks.",
     sourceLinks: [
       ...praedixaMethodSources.en,
       {

@@ -9,8 +9,8 @@ Composants orientes pages ou parcours metier.
 - page services: `ServicesPage.tsx`
 - page verticale: `SectorPage.tsx`
 - parcours contact: `ContactPageClient.tsx`, `ContactPageForm.tsx`, `ContactPageAside.tsx`, `ContactPageSuccessState.tsx`
-- parcours pilote: `PilotApplicationPageClient.tsx`, `PilotApplicationForm.tsx`, `PilotApplicationAside.tsx`, `PilotApplicationStates.tsx`
-- helpers/types de formulaire: `contact-page.*`, `pilot-application.*`
+- parcours deploiement: `PilotApplicationPageClient.tsx`, `PilotApplicationForm.tsx`, `PilotApplicationAside.tsx`, `PilotApplicationStates.tsx`
+- helpers/types de formulaire: `contact-page.*`, `deployment-request.*`
 
 ## Regle de decoupage
 
@@ -23,7 +23,7 @@ Composants orientes pages ou parcours metier.
 ## APIs locales consommees
 
 - contact -> `POST /api/contact`
-- candidature pilote -> `POST /api/pilot-application`
+- demande de deploiement -> `POST /api/deployment-request`
 - les copies de select/options viennent de `lib/content/pilot-form-options.ts`
 
 ## Conventions
@@ -37,3 +37,4 @@ Composants orientes pages ou parcours metier.
 - ne pas recoder de copy sectorielle ou de copy partagee dans `SectorPage.tsx`; la page ne doit faire que du rendu
 - `SectorPage.tsx` doit afficher separement les KPIs predicitifs du secteur et les decisions optimisables, puis garder le CTA/sources dans un bloc distinct
 - pour les badges et pictos marketing de ces pages, reutiliser le set SVG `components/shared/icons/` au lieu de reintroduire des icones decoratives generiques
+- le parcours public doit rester coherent avec l'entree `preuve sur historique -> deploiement -> abonnement`; eviter de reintroduire des CTA `pilote ROI` en dur dans les composants de pages

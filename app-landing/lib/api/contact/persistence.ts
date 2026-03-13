@@ -16,7 +16,10 @@ export async function persistContactRequest(
   const { baseUrl, token } = readContactApiConfig();
   const endpoint = new URL(CONTACT_API_PATH, baseUrl).toString();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), CONTACT_PERSIST_TIMEOUT_MS);
+  const timeoutId = setTimeout(
+    () => controller.abort(),
+    CONTACT_PERSIST_TIMEOUT_MS,
+  );
 
   try {
     const response = await fetch(endpoint, {
@@ -45,7 +48,8 @@ export async function persistContactRequest(
           locale: data.locale,
           userAgent: request.headers.get("user-agent")?.slice(0, 250) ?? "",
           referer: request.headers.get("referer")?.slice(0, 400) ?? "",
-          forwardedFor: request.headers.get("x-forwarded-for")?.slice(0, 250) ?? "",
+          forwardedFor:
+            request.headers.get("x-forwarded-for")?.slice(0, 250) ?? "",
           submittedAt: new Date().toISOString(),
         },
       }),
@@ -54,7 +58,9 @@ export async function persistContactRequest(
     });
 
     if (!response.ok) {
-      throw new Error(`contact persistence failed: ${await extractApiErrorMessage(response)}`);
+      throw new Error(
+        `contact persistence failed: ${await extractApiErrorMessage(response)}`,
+      );
     }
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -79,17 +85,22 @@ function readContactApiConfig(): { baseUrl: string; token: string } {
 
   const parsedBaseUrl = new URL(baseUrl);
   const isLocalHttp =
-    parsedBaseUrl.protocol === "http:" && parsedBaseUrl.hostname === "localhost";
+    parsedBaseUrl.protocol === "http:" &&
+    parsedBaseUrl.hostname === "localhost";
 
   if (parsedBaseUrl.protocol !== "https:" && !isLocalHttp) {
-    throw new Error("CONTACT_API_BASE_URL must use HTTPS in non-local environments");
+    throw new Error(
+      "CONTACT_API_BASE_URL must use HTTPS in non-local environments",
+    );
   }
   if (parsedBaseUrl.username || parsedBaseUrl.password) {
     throw new Error("CONTACT_API_BASE_URL must not include credentials");
   }
 
   assertSafeOutboundUrl(parsedBaseUrl, {
-    allowedHosts: collectAllowedHostnames(process.env.CONTACT_API_ALLOWED_HOSTS),
+    allowedHosts: collectAllowedHostnames(
+      process.env.CONTACT_API_ALLOWED_HOSTS,
+    ),
   });
 
   return { baseUrl: parsedBaseUrl.toString(), token };

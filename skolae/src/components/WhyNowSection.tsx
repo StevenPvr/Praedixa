@@ -86,7 +86,9 @@ export function WhyNowSection() {
                     </a>
                   ) : null}
                 </div>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{signal.qualifier}</p>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  {signal.qualifier}
+                </p>
                 <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                   {evidenceLabels[signal.evidence]}
                 </p>

@@ -15,17 +15,17 @@ interface SectorPagesTeaserSectionProps {
 const copy = {
   fr: {
     kicker: "Solutions par secteur",
-    heading: "4 verticales nettes. Une même boucle de décision.",
+    heading: "Quatre secteurs. Un même moteur de décision.",
     subheading:
-      "Praedixa ne vend pas un outil de planning générique. Chaque verticale exprime une douleur d'effectif différente, mais la même boucle DecisionOps: fédérer les systèmes utiles, prédire, arbitrer, déclencher, prouver le ROI.",
-    cta: "Voir la verticale",
+      "Praedixa n'est pas limité au staffing. Nous commençons par le risque le plus coûteux de chaque réseau, qu'il touche les effectifs, la demande, les stocks, les approvisionnements ou la rétention.",
+    cta: "Voir le cas sectoriel",
   },
   en: {
     kicker: "Solutions by industry",
-    heading: "Four clear verticals. One decision loop.",
+    heading: "Four sectors. One decision engine.",
     subheading:
-      "Praedixa does not sell a generic scheduling tool. Each industry expresses a different staffing problem, but the same DecisionOps loop: federate the useful systems, predict needs, compare actions, trigger the first move, prove ROI.",
-    cta: "View industry page",
+      "Praedixa is not limited to staffing. We start with the most costly risk in each network, whether it touches staffing, demand, inventory, supply, or retention.",
+    cta: "See the industry case",
   },
 } as const;
 

@@ -24,6 +24,7 @@ Construire des metadata Next cohérentes, les entites SEO et quelques schemas de
 ## Convention
 
 - `JsonLd.tsx` emet plusieurs scripts JSON-LD specialises (organisation, website, softwareApplication, service, faq) plutot qu'un `@graph` global monolithique.
+- Les metadata et sorties `llms*.txt` doivent reprendre la promesse publique actuelle de la landing; ne pas y reintroduire un wording categorie plus large que celui visible aux acheteurs.
 
 ## Tests
 

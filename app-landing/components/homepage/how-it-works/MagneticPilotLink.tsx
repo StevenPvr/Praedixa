@@ -19,7 +19,11 @@ interface MagneticPilotLinkProps {
 
 const SPRING = { type: "spring" as const, stiffness: 100, damping: 20 };
 
-export function MagneticPilotLink({ href, label, meta }: MagneticPilotLinkProps) {
+export function MagneticPilotLink({
+  href,
+  label,
+  meta,
+}: MagneticPilotLinkProps) {
   const reducedMotion = useReducedMotion();
   const x = useMotionValue(0);
   const y = useMotionValue(0);

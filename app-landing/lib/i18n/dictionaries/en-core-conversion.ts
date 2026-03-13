@@ -26,7 +26,7 @@ export const enCoreConversion: Partial<Dictionary> = {
       {
         question: "What is Praedixa in one sentence?",
         answer:
-          "The French DecisionOps platform that turns critical trade-offs into calculated, executable, auditable decisions.",
+          "Praedixa anticipates the business risks degrading performance and recommends the best decisions to reduce them, starting with the priority risk in your perimeter.",
         category: "Understanding Praedixa",
       },
       {
@@ -103,7 +103,7 @@ export const enCoreConversion: Partial<Dictionary> = {
     kicker: "Contact",
     heading: "Request the free historical audit.",
     subheading:
-      "We frame your multi-site scope, run the historical audit, then set up the decision protocol and monthly proof.",
+      "We frame your multi-site scope around the workload/capacity gaps that matter first, run the historical audit, then set up decision review over time.",
     trustItems: [
       "Response within 48 business hours",
       "Free historical audit",

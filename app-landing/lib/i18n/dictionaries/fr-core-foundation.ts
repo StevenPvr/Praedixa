@@ -2,12 +2,12 @@ import type { Dictionary } from "../types";
 
 export const frCoreFoundation: Partial<Dictionary> = {
   meta: {
-    title: "Praedixa | Plateforme française de DecisionOps",
+    title: "Praedixa | Risques business et décisions multi-sites",
     description:
-      "Praedixa est la plateforme française de DecisionOps: elle se branche sur vos systèmes existants, gouverne les arbitrages critiques et prouve le ROI décision par décision.",
-    ogTitle: "Praedixa | DecisionOps pour les opérations",
+      "Praedixa anticipe les risques business qui dégradent la performance et recommande les meilleures décisions pour les réduire sur les effectifs, la demande, les stocks, les approvisionnements et la rétention client.",
+    ogTitle: "Praedixa | Risques business et décisions multi-sites",
     ogDescription:
-      "Praedixa fédère les systèmes qui comptent pour une décision, calcule les options coût / service / risque et prouve le ROI décision par décision.",
+      "En 5 jours ouvrés, Praedixa montre quels écarts menacent la performance et quelles décisions lancer d'abord pour protéger marge, service et croissance.",
   },
 
   nav: {
@@ -19,48 +19,48 @@ export const frCoreFoundation: Partial<Dictionary> = {
     security: "Intégration & données",
     faq: "FAQ",
     contact: "Contact",
-    ctaPrimary: "Obtenir le diagnostic ROI gratuit",
+    ctaPrimary: "Demander la preuve sur historique",
     backToSite: "Retour au site",
   },
 
   hero: {
-    kicker: "DecisionOps · RH · Finance · Opérations · Supply Chain",
-    headline: "DecisionOps",
-    headlineHighlight:
-      "Anticiper vos besoins. Décidez plus tôt. Prouvez le ROI.",
+    kicker: "Pour COO, DAF et directions réseau",
+    headline: "Anticipez",
+    headlineHighlight: "les risques business qui détruisent la marge.",
     subtitle:
-      "Praedixa se branche sur vos systèmes existants, fédère les données critiques sur une infrastructure hébergée en France, transforme vos arbitrages récurrents en décisions calculées, exécutées et auditables, puis prouve le ROI décision par décision en comité Ops / Finance.",
+      "Praedixa détecte les écarts qui menacent votre activité et recommande les meilleures décisions à prendre sur les effectifs, la demande, les stocks, les approvisionnements et la rétention client. Nous commençons par le risque le plus coûteux sur votre périmètre.",
     manifestoLabel: "",
     manifestoQuote:
-      "Accompagner la croissance des entreprises en révélant le potentiel de leurs données.",
+      "Voir plus tôt les risques qui dégradent la performance, décider quoi corriger, relire ce qui a marché.",
     bullets: [
       {
-        metric: "DecisionOps",
-        text: "sur l'existant",
+        metric: "5 jours",
+        text: "pour faire remonter le signal",
       },
       {
-        metric: "Action validée",
-        text: "dans vos outils",
+        metric: "Lecture seule",
+        text: "sur vos données existantes",
       },
       {
-        metric: "ROI prouvé",
-        text: "décision par décision",
+        metric: "Du staffing au churn",
+        text: "un même moteur de décision",
       },
     ],
-    ctaPrimary: "Obtenir le diagnostic ROI gratuit",
-    ctaSecondary: "Voir comment ça marche",
+    ctaPrimary: "Demander la preuve sur historique",
+    ctaSecondary: "Voir la méthode",
     previewTitle: "Un aperçu de votre lecture business",
-    ctaMeta: "",
+    ctaMeta: "5 jours ouvrés · lecture seule · validation humaine",
     trustBadges: [
-      "DecisionOps au-dessus de l'existant",
-      "Fédération légère des systèmes critiques",
-      "Arbitrages coût / service / risque gouvernés",
-      "Première action déclenchée dans vos outils",
-      "Validation humaine requise",
-      "Preuve mensuelle décision par décision",
-      "Diagnostic ROI gratuit sur vos données existantes",
-      "Complément de stack, sans remplacement d'outil",
-      "Gouvernance et sécurité intégrées",
+      "Preuve sur historique en 5 jours ouvrés",
+      "Effectifs, demande, stocks, approvisionnements, rétention",
+      "Lecture seule sur vos données existantes",
+      "Validation humaine de chaque action",
+      "Premier périmètre resserré sur le risque prioritaire",
+      "Sans remplacement d'outil",
+      "Premières actions recommandées avant déploiement",
+      "Impact relu site par site",
+      "Onboarding fixe déduit si engagement annuel",
+      "Cadre Ops / Finance partagé",
       "Hébergé en France (Scaleway)",
     ],
   },
@@ -81,12 +81,13 @@ export const frCoreFoundation: Partial<Dictionary> = {
 
   problem: {
     kicker: "",
-    heading: "Quand les données restent en silos, la marge fuit.",
+    heading:
+      "Quand les écarts business remontent trop tard, la performance décroche.",
     subheading:
-      "RH, finance, opérations, Excel, ERP, terrain: chacun a ses chiffres. Le vrai problème, c'est qu'ils ne racontent pas la même histoire au bon moment. Résultat: argent perdu, priorités floues et décisions difficiles à défendre.",
-    cta: "Obtenir le diagnostic ROI gratuit",
+      "Sur les effectifs, la demande, les stocks, les approvisionnements ou la rétention, le même problème revient : les signaux utiles n'arrivent pas assez tôt ni dans un langage commun. Résultat : coût subi, service fragilisé et arbitrages tardifs.",
+    cta: "Demander la preuve sur historique",
     ctaHint:
-      "Réponse sous 48h ouvrées. Diagnostic ROI offert. Démarrage sur vos fichiers et outils existants, en lecture seule.",
+      "Réponse sous 48h ouvrées. Preuve sur historique offerte. Démarrage en lecture seule sur vos fichiers et outils existants.",
     states: {
       loadingTitle: "Lecture des signaux en cours",
       loadingBody:
@@ -100,82 +101,83 @@ export const frCoreFoundation: Partial<Dictionary> = {
     },
     pains: [
       {
-        title: "Les chiffres sont dispersés",
+        title: "Les signaux critiques sont dispersés",
         description:
-          "Une partie est dans les outils RH, une autre dans la finance, une autre dans l'opérationnel.",
+          "Charge, demande, stock, disponibilité matière, churn ou couverture vivent chacun dans des outils et des rythmes différents.",
         consequence:
-          "Personne n'a une vision complète de ce qui coûte vraiment cher.",
-        cost: "La marge se dilue",
+          "Le signal utile apparaît souvent quand la marge de manoeuvre est déjà faible.",
+        cost: "Les corrections coûtent plus cher",
       },
       {
-        title: "Chaque équipe lit autre chose",
+        title: "Chaque fonction arbitre dans sa propre vue",
         description:
-          "Ops, RH et finance arrivent souvent en réunion avec des tableaux différents.",
+          "Ops, finance, supply, commerce ou terrain voient chacun une partie du problème, rarement le compromis complet au bon moment.",
         consequence:
-          "Les arbitrages prennent du temps et personne n'est vraiment aligné.",
+          "Les arbitrages prennent du temps et restent difficiles à défendre.",
         cost: "Les décisions ralentissent",
       },
       {
-        title: "Le ROI reste flou",
+        title: "Les corrections arrivent en urgence",
         description:
-          "On lance des actions, mais on ne sait pas clairement ce qui rapporte vraiment.",
+          "Renfort, réallocation, ajustement de stock, approvisionnement ou action de rétention sont lancés trop tard et sans lecture commune de leur impact.",
         consequence:
-          "Les budgets restent discutés et les priorités bougent sans cesse.",
-        cost: "L'argent gagné n'est pas prouvé",
+          "Les budgets restent discutés et les priorités changent selon le contexte local.",
+        cost: "La marge protégée reste floue",
       },
     ],
     diagnostic: {
       title: "Vous reconnaissez ce fonctionnement ?",
       signals: [
-        "En réunion, vous commencez par réconcilier les chiffres avant de décider",
-        "Un même écart terrain ne déclenche pas la même action selon le site",
-        "Les arbitrages sont souvent justifiés après coup, rarement comparés avant",
-        "Après une action, il est difficile de relier clairement le gain au choix fait",
+        "Un même écart métier est visible localement avant d'apparaître clairement dans une lecture commune",
+        "Les corrections arrivent quand la marge, le service ou le stock sont déjà sous pression",
+        "Deux équipes comparables ne prennent pas la même décision face au même signal",
+        "Après une action, il reste difficile de savoir ce qu'elle a réellement protégé",
       ],
     },
   },
 
   solution: {
-    kicker: "DecisionOps",
-    heading: "DecisionOps au-dessus de vos outils existants.",
+    kicker: "La méthode Praedixa",
+    heading:
+      "Anticiper les risques. Comparer les arbitrages. Lancer la bonne première action.",
     subheading:
-      "Le marché sait déjà prévoir, planifier et simuler. Praedixa apporte autre chose: une fédération des données utiles sur l'existant, des arbitrages gouvernés, une première action déclenchée dans vos outils et une preuve finance-grade du ROI.",
+      "Praedixa ne remplace ni votre ERP, ni votre planning, ni votre BI. La plateforme relie les signaux utiles pour anticiper les risques business à court terme, comparer les arbitrages coût / service / risque et documenter le résultat des décisions prises sur les effectifs, la demande, les stocks, les approvisionnements ou la rétention.",
     principles: [
       {
-        title: "Fédérer les systèmes qui comptent pour une décision",
-        subtitle: "Lecture seule · hébergé en France",
+        title: "Repérer tôt les écarts qui menacent la performance",
+        subtitle: "Données existantes · lecture seule",
         description:
-          "Exports, API, ERP, planning, BI ou Excel sont reliés sans projet de remplacement pour donner un cerveau commun aux arbitrages.",
+          "Exports, API, ERP, planning, BI ou Excel sont reliés sans projet de remplacement pour faire remonter les écarts utiles avant qu'ils ne coûtent plus cher.",
       },
       {
-        title: "Transformer l'arbitrage en décision gouvernée",
+        title: "Comparer les arbitrages sur vos leviers métiers",
         subtitle: "Coût · Service · Risque",
         description:
-          "Praedixa compare les options autorisées, rend le choix explicite, garde les garde-fous métier et prépare l'action au lieu de laisser un simple signal.",
+          "Praedixa met les options à plat, chiffre leurs effets attendus et garde vos garde-fous métier visibles avant validation, qu'il s'agisse d'effectifs, de demande, de stock, d'approvisionnement ou de rétention.",
       },
       {
-        title: "Déclencher et prouver",
-        subtitle: "Action validée · ROI finance-grade",
+        title: "Lancer une première action puis relire l'impact",
+        subtitle: "Validation humaine · impact relu",
         description:
-          "La première étape validée part dans les outils existants, puis la décision est relue avec baseline / recommandé / réel et hypothèses explicites.",
+          "Vos équipes gardent la décision finale. Praedixa prépare la première action dans vos outils, puis relit baseline, recommandé, réel et hypothèses explicites.",
       },
     ],
     differentiators: {
-      title: "La différence est dans la combinaison DecisionOps",
+      title: "Ce qui rend Praedixa crédible",
       description:
-        "Praedixa ne gagne pas sur une brique isolée. Le différenciateur est la combinaison produit empaquetée comme cœur d'exécution.",
+        "La valeur n'est pas dans un mot de catégorie. Elle est dans un mécanisme simple : voir plus tôt, comparer clairement, agir avec garde-fous, puis relire l'impact.",
       items: [
         {
-          is: "Fédération gouvernée sur l'existant",
-          isNot: "Projet data ou remplacement d'outils",
+          is: "Un même moteur pour plusieurs risques business",
+          isNot: "Un outil mono-usage limité à un seul levier",
         },
         {
-          is: "Decision Journal + première action dans les outils",
-          isNot: "Signal ou dashboard sans exécution",
+          is: "Un premier périmètre resserré sur le risque prioritaire",
+          isNot: "Une promesse floue qui prétend tout faire d'un coup",
         },
         {
-          is: "Preuve mensuelle décision par décision",
-          isNot: "ROI marketing générique sans traçabilité",
+          is: "Action validée + impact relu",
+          isNot: "Promesse ROI sans traçabilité",
         },
       ],
     },

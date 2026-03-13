@@ -1,7 +1,7 @@
 import type { Locale } from "../../lib/i18n/config";
 
 export type RequestType =
-  | "founding_pilot"
+  | "deployment_request"
   | "product_demo"
   | "partnership"
   | "press_other";

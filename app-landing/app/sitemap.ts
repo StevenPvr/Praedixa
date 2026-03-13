@@ -86,8 +86,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entries.push(
       localizedEntry(
         locale,
-        `/fr/${localizedSlugs.pilot.fr}`,
-        `/en/${localizedSlugs.pilot.en}`,
+        `/fr/${localizedSlugs.deployment.fr}`,
+        `/en/${localizedSlugs.deployment.en}`,
         0.9,
         "weekly",
       ),
@@ -116,8 +116,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entries.push(
       localizedEntry(
         locale,
-        "/fr/pilot-protocol",
-        "/en/pilot-protocol",
+        `/fr/${localizedSlugs.deploymentProtocol.fr}`,
+        `/en/${localizedSlugs.deploymentProtocol.en}`,
         0.5,
         "monthly",
       ),

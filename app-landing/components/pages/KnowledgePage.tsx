@@ -16,9 +16,9 @@ export function KnowledgePage({
   pageKey: KnowledgePageKey;
 }) {
   const page = getKnowledgePage(locale, pageKey);
-  const pilotHref = getLocalizedPath(locale, "pilot");
-  const auditHref = `${getLocalizedPath(locale, "contact")}?intent=audit`;
-  const auditFirstPages = new Set<KnowledgePageKey>([
+  const deploymentHref = getLocalizedPath(locale, "deployment");
+  const proofHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
+  const proofFirstPages = new Set<KnowledgePageKey>([
     "about",
     "productMethod",
     "howItWorksPage",
@@ -31,7 +31,7 @@ export function KnowledgePage({
     "resources",
     "integrationData",
   ]);
-  const useAuditPrimary = auditFirstPages.has(pageKey);
+  const useProofPrimary = proofFirstPages.has(pageKey);
   const sectionAnchors = page.sections.map((section) => {
     const id = section.title
       .normalize("NFD")
@@ -143,17 +143,19 @@ export function KnowledgePage({
 
           <div className="mt-12 flex flex-wrap items-center gap-3 border-t border-border-subtle pt-8">
             <Link
-              href={useAuditPrimary ? auditHref : pilotHref}
+              href={useProofPrimary ? proofHref : deploymentHref}
               className="btn-primary-gradient inline-flex items-center rounded-lg px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-150 active:scale-[0.98]"
             >
               {page.ctaLabel}
             </Link>
-            {useAuditPrimary ? (
+            {useProofPrimary ? (
               <Link
-                href={pilotHref}
+                href={deploymentHref}
                 className="inline-flex items-center rounded-lg border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors duration-150 hover:bg-neutral-50"
               >
-                {locale === "fr" ? "Demander un pilote ROI" : "Apply for the pilot"}
+                {locale === "fr"
+                  ? "Parler du déploiement"
+                  : "Discuss deployment"}
               </Link>
             ) : null}
           </div>

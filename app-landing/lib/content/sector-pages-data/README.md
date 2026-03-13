@@ -13,4 +13,7 @@ Source de verite des pages sectorielles.
 ## Regle
 
 La facade publique reste `lib/content/sector-pages.ts`. Les composants et routes consomment cette facade; ils ne doivent pas repliquer la copy ou la logique de routing.
+Les contrats de ce dossier importent `Locale` depuis `lib/i18n/locale.ts`, jamais depuis `lib/i18n/config.ts`, pour garder le graphe de contenu acyclique.
 Chaque verticale doit maintenant embarquer deux listes metier distinctes: des `kpis` predicitifs concrets et des `decisions` optimisables concretes, avec une granularite propre au secteur plutot que des formulations generiques.
+La proposition de valeur de chaque verticale doit exprimer un risque business sectoriel clair; ne pas laisser les quatre pages retomber dans la meme promesse reductrice de `staffing` meme quand la capacite humaine fait partie du probleme.
+Chaque verticale doit aussi faire apparaitre au moins un levier non-staffing propre au secteur dans ses `kpis` et ses `decisions` (ex: promesse de service HCR, listes d'attente campus, stock/reapprovisionnement reseau, pieces/retention apres-vente).

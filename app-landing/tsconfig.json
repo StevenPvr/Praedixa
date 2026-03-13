@@ -20,9 +20,5 @@
     "types": ["@testing-library/jest-dom/vitest"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/dist/**"
-  ]
+  "exclude": ["node_modules", "dist", "**/dist/**"]
 }

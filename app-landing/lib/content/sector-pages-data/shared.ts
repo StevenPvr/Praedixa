@@ -1,4 +1,4 @@
-import type { Locale } from "../../i18n/config";
+import type { Locale } from "../../i18n/locale";
 import type { SectorDifferentiationCard, SectorSourceLink } from "./types";
 
 export const praedixaMethodSources: Record<
@@ -8,15 +8,15 @@ export const praedixaMethodSources: Record<
   fr: [
     { label: "Praedixa — plateforme", url: "https://www.praedixa.com/fr" },
     {
-      label: "Praedixa — protocole pilote",
-      url: "https://www.praedixa.com/fr/pilot-protocol",
+      label: "Praedixa — protocole de mise en place",
+      url: "https://www.praedixa.com/fr/protocole-deploiement",
     },
   ],
   en: [
     { label: "Praedixa — platform", url: "https://www.praedixa.com/en" },
     {
-      label: "Praedixa — pilot protocol",
-      url: "https://www.praedixa.com/en/pilot-protocol",
+      label: "Praedixa — deployment protocol",
+      url: "https://www.praedixa.com/en/deployment-protocol",
     },
   ],
 };

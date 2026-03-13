@@ -7,9 +7,11 @@ Ce dossier regroupe les tests associés au dossier parent `app-landing/lib/i18n`
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `request-locale.test.ts`
 
 ## Intégration

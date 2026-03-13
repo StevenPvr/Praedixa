@@ -12,7 +12,8 @@ Infrastructure de localisation du landing.
 
 ## Fichiers clefs
 
-- `config.ts`: locales, slugs, redirections legacy, `getLocalizedPath()`
+- `locale.ts`: contrat neutre des locales supportees (`fr`, `en`) et helpers de validation
+- `config.ts`: slugs, redirections legacy, `getLocalizedPath()`, et re-export du contrat de locale
 - `request-locale.ts`: resolution de locale depuis pathname/headers
 - `get-dictionary.ts`: chargement du dictionnaire
 - `types.ts`: contrat du dictionnaire
@@ -21,6 +22,7 @@ Infrastructure de localisation du landing.
 ## Conventions
 
 - tout nouveau slug traduit doit etre ajoute dans `config.ts`
+- le contrat `Locale` doit vivre dans `locale.ts`, pas dans un module qui importe du contenu ou des redirects
 - les routes legacy a rediriger passent aussi par `legacyRedirectMap`
 - les anciennes URLs sectorielles sont derivees depuis `lib/content/sector-pages.ts` pour garder une seule source de verite
 - les anciennes pages sectorielles ou variantes SEO retirees doivent rediriger vers la page verticale dediee la plus proche, pas vers une page generique

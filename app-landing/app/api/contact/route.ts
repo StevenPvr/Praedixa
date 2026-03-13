@@ -1,8 +1,8 @@
 import {
   MAX_REQUESTS_PER_WINDOW,
   RATE_LIMIT_WINDOW_MS,
-} from "../../../lib/api/pilot-application/constants";
-import { getClientIp } from "../../../lib/api/pilot-application/rate-limit";
+} from "../../../lib/api/deployment-request/constants";
+import { getClientIp } from "../../../lib/api/deployment-request/rate-limit";
 import {
   buildChallengeClientContext,
   DEFAULT_MAX_AGE_MS,

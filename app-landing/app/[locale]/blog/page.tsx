@@ -15,7 +15,11 @@ interface BlogIndexRouteProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function buildBlogIndexMetadata(locale: Locale, tag?: string, page = 1): Metadata {
+function buildBlogIndexMetadata(
+  locale: Locale,
+  tag?: string,
+  page = 1,
+): Metadata {
   const path = buildBlogIndexPath(locale, { page, tag });
   const canonical = absoluteUrl(path);
   const isFilteredVariant = Boolean(tag) || page > 1;
@@ -87,7 +91,11 @@ export async function generateMetadata({
   }
 
   const parsedSearchParams = parseBlogListSearchParams(await searchParams);
-  return buildBlogIndexMetadata(locale, parsedSearchParams.tag, parsedSearchParams.page);
+  return buildBlogIndexMetadata(
+    locale,
+    parsedSearchParams.tag,
+    parsedSearchParams.page,
+  );
 }
 
 export default async function BlogIndexRoute({

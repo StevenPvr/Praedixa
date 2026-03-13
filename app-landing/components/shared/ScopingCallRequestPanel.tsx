@@ -1,10 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createScopingCallCopy, createInitialScopingCallForm, clearScopingFieldError, validateScopingCallForm } from "./scoping-call.helpers";
+import {
+  createScopingCallCopy,
+  createInitialScopingCallForm,
+  clearScopingFieldError,
+  validateScopingCallForm,
+} from "./scoping-call.helpers";
 import { ScopingCallForm } from "./ScopingCallForm";
 import { ScopingCallSuccessState } from "./ScopingCallSuccessState";
-import type { ScopingCallRequestPanelProps, ScopingCallFormData, ScopingFieldErrors } from "./scoping-call.types";
+import type {
+  ScopingCallRequestPanelProps,
+  ScopingCallFormData,
+  ScopingFieldErrors,
+} from "./scoping-call.types";
 
 export function ScopingCallRequestPanel({
   className,
@@ -17,7 +26,9 @@ export function ScopingCallRequestPanel({
   const [form, setForm] = useState<ScopingCallFormData>(
     createInitialScopingCallForm(defaultCompanyName, defaultEmail),
   );
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [fieldErrors, setFieldErrors] = useState<ScopingFieldErrors>({});
 
@@ -38,10 +49,13 @@ export function ScopingCallRequestPanel({
     setForm((prev) => (prev.timezone ? prev : { ...prev, timezone }));
   }, []);
 
-  const update = useCallback((key: keyof ScopingCallFormData, value: string) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-    setFieldErrors((prev) => clearScopingFieldError(prev, key));
-  }, []);
+  const update = useCallback(
+    (key: keyof ScopingCallFormData, value: string) => {
+      setForm((prev) => ({ ...prev, [key]: value }));
+      setFieldErrors((prev) => clearScopingFieldError(prev, key));
+    },
+    [],
+  );
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent) => {
@@ -71,7 +85,10 @@ export function ScopingCallRequestPanel({
             website: form.website,
           }),
         });
-        const payload = (await response.json()) as { success?: boolean; error?: string };
+        const payload = (await response.json()) as {
+          success?: boolean;
+          error?: string;
+        };
 
         if (!response.ok || payload.error) {
           setErrorMsg(payload.error ?? copy.unknownError);

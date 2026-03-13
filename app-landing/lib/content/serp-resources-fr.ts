@@ -1,7 +1,10 @@
 import { serpResourceTargetsFrCore } from "./serp-resources-fr.core";
 import { serpResourceTargetsFrMid } from "./serp-resources-fr.mid";
 import { serpResourceTargetsFrTail } from "./serp-resources-fr.tail";
-import type { SerpResourceEntry, SerpSchemaType } from "./serp-resources-fr.shared";
+import type {
+  SerpResourceEntry,
+  SerpSchemaType,
+} from "./serp-resources-fr.shared";
 
 export type {
   SerpIntent,
@@ -86,15 +89,22 @@ const SERP_INTERNAL_LINK_GRAPH_BY_ID: Partial<Record<number, number[]>> = {
   30: [19, 24, 29],
 };
 
-const SERP_RESOURCES_BY_ID = new Map(serpResourceTargetsFr.map((entry) => [entry.id, entry]));
+const SERP_RESOURCES_BY_ID = new Map(
+  serpResourceTargetsFr.map((entry) => [entry.id, entry]),
+);
 
-function fallbackRelatedResources(current: SerpResourceEntry, take: number): SerpResourceEntry[] {
+function fallbackRelatedResources(
+  current: SerpResourceEntry,
+  take: number,
+): SerpResourceEntry[] {
   return serpResourceTargetsFr
     .filter((entry) => entry.slug !== current.slug)
     .slice(Math.max(0, current.id - 2), Math.max(0, current.id - 2) + take);
 }
 
-export function getSerpResourceBySlug(slug: string): SerpResourceEntry | undefined {
+export function getSerpResourceBySlug(
+  slug: string,
+): SerpResourceEntry | undefined {
   return serpResourceTargetsFr.find((entry) => entry.slug === slug);
 }
 
@@ -111,10 +121,15 @@ export function getSerpResourceSchemaType(slug: string): SerpSchemaType {
 export function getSerpResourcePrimaryCta(slug: string): string {
   const entry = getSerpResourceBySlug(slug);
   if (!entry) return "Demander un pilote prevision effectifs";
-  return SERP_PRIMARY_CTA_BY_ID[entry.id] ?? "Demander un pilote prevision effectifs";
+  return (
+    SERP_PRIMARY_CTA_BY_ID[entry.id] ?? "Demander un pilote prevision effectifs"
+  );
 }
 
-export function getSerpResourceInternalLinks(slug: string, take = 3): SerpResourceEntry[] {
+export function getSerpResourceInternalLinks(
+  slug: string,
+  take = 3,
+): SerpResourceEntry[] {
   const current = getSerpResourceBySlug(slug);
   if (!current) return [];
 
@@ -131,6 +146,9 @@ export function getSerpResourceInternalLinks(slug: string, take = 3): SerpResour
   return fallbackRelatedResources(current, take);
 }
 
-export function getRelatedSerpResources(slug: string, take = 3): SerpResourceEntry[] {
+export function getRelatedSerpResources(
+  slug: string,
+  take = 3,
+): SerpResourceEntry[] {
   return getSerpResourceInternalLinks(slug, take);
 }

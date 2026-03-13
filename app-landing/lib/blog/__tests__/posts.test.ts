@@ -24,9 +24,13 @@ describe("blog posts store", () => {
   });
 
   it("returns null when a post cannot be found by locale and slug", () => {
-    const frPost = getBlogPostBySlug("fr", "sous-sureeffectif-multi-sites-guide-j3-j7-j14", {
-      includeDrafts: false,
-    });
+    const frPost = getBlogPostBySlug(
+      "fr",
+      "sous-sureeffectif-multi-sites-guide-j3-j7-j14",
+      {
+        includeDrafts: false,
+      },
+    );
     expect(frPost).toBeNull();
   });
 

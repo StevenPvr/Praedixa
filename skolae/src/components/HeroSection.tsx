@@ -52,7 +52,9 @@ export function HeroSection() {
             transition={{ duration: 0.65, delay: 0.1 }}
             className="mt-8 space-y-5"
           >
-            <p className="max-w-[64ch] text-lg leading-relaxed text-ink/84">{hero.intro}</p>
+            <p className="max-w-[64ch] text-lg leading-relaxed text-ink/84">
+              {hero.intro}
+            </p>
             <p className="max-w-[64ch] text-base leading-relaxed text-muted-foreground">
               {hero.summary}
             </p>
@@ -80,7 +82,9 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.24 }}
             className="mt-10 flex flex-col gap-3 sm:flex-row"
           >
-            <MagneticButton href={hero.ctaPrimaryHref}>{hero.ctaPrimary}</MagneticButton>
+            <MagneticButton href={hero.ctaPrimaryHref}>
+              {hero.ctaPrimary}
+            </MagneticButton>
             <MagneticButton href={hero.ctaSecondaryHref} variant="secondary">
               {hero.ctaSecondary}
             </MagneticButton>
@@ -143,8 +147,12 @@ export function HeroSection() {
                       </span>
                       <Icon size={18} className="text-oxide" weight="duotone" />
                     </div>
-                    <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">{stat.value}</p>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{stat.note}</p>
+                    <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+                      {stat.value}
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {stat.note}
+                    </p>
                   </div>
                 );
               })}
@@ -160,7 +168,11 @@ export function HeroSection() {
                     Arbitrages multi-sites prioritaires
                   </h2>
                 </div>
-                <Warning size={20} className="mt-1 text-oxide-soft" weight="fill" />
+                <Warning
+                  size={20}
+                  className="mt-1 text-oxide-soft"
+                  weight="fill"
+                />
               </div>
 
               <ul className="mt-5 space-y-3">
@@ -170,7 +182,11 @@ export function HeroSection() {
                     className="flex items-center justify-between gap-3 border-b border-white/8 pb-3 text-sm text-limestone/80 last:border-b-0 last:pb-0"
                   >
                     <span>{signal}</span>
-                    <GraduationCap size={16} className="text-oxide-soft" weight="duotone" />
+                    <GraduationCap
+                      size={16}
+                      className="text-oxide-soft"
+                      weight="duotone"
+                    />
                   </li>
                 ))}
               </ul>
@@ -180,8 +196,9 @@ export function HeroSection() {
                   Ce que la preuve sur historique apporte
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-limestone/78">
-                  La preuve devient convaincante quand Ops voit les urgences evitables,
-                  Finance les couts caches et DSI l'absence de chantier lourd.
+                  La preuve devient convaincante quand Ops voit les urgences
+                  evitables, Finance les couts caches et DSI l'absence de
+                  chantier lourd.
                 </p>
               </div>
             </div>

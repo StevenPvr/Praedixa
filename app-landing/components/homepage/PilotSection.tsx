@@ -37,7 +37,7 @@ const listItem = {
 };
 
 export function PilotSection({ locale, dict }: PilotSectionProps) {
-  const pilotHref = getLocalizedPath(locale, "pilot");
+  const pilotHref = getLocalizedPath(locale, "deployment");
   const pilot = dict.pilot;
   const statusLabels = Array.isArray(pilot.statusLabels)
     ? pilot.statusLabels

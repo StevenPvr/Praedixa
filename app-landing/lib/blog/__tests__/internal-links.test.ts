@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createRehypeInternalLinksPlugin, getInternalLinkRules } from "../internal-links";
+import {
+  createRehypeInternalLinksPlugin,
+  getInternalLinkRules,
+} from "../internal-links";
 import type { InternalLinkRule } from "../types";
 import { legacyRedirectMap } from "../../i18n/config";
 
@@ -42,7 +45,8 @@ describe("rehype internal links", () => {
           children: [
             {
               type: "text",
-              value: "Praedixa services improve alignment. Praedixa services reduce ambiguity.",
+              value:
+                "Praedixa services improve alignment. Praedixa services reduce ambiguity.",
             },
           ],
         },
@@ -60,9 +64,9 @@ describe("rehype internal links", () => {
   it("does not inject links in headings, code blocks, or existing anchors", () => {
     const rules: InternalLinkRule[] = [
       {
-        id: "pilot",
-        patterns: ["founding pilot"],
-        url: "/en/pilot-application",
+        id: "deployment",
+        patterns: ["deployment request"],
+        url: "/en/deployment",
       },
     ];
 
@@ -72,7 +76,7 @@ describe("rehype internal links", () => {
         {
           type: "element",
           tagName: "h2",
-          children: [{ type: "text", value: "founding pilot" }],
+          children: [{ type: "text", value: "deployment request" }],
         },
         {
           type: "element",
@@ -81,7 +85,7 @@ describe("rehype internal links", () => {
             {
               type: "element",
               tagName: "code",
-              children: [{ type: "text", value: "founding pilot" }],
+              children: [{ type: "text", value: "deployment request" }],
             },
           ],
         },
@@ -92,8 +96,8 @@ describe("rehype internal links", () => {
             {
               type: "element",
               tagName: "a",
-              properties: { href: "/en/pilot-application" },
-              children: [{ type: "text", value: "founding pilot" }],
+              properties: { href: "/en/deployment" },
+              children: [{ type: "text", value: "deployment request" }],
             },
           ],
         },
@@ -105,7 +109,7 @@ describe("rehype internal links", () => {
 
     const anchors = collectAnchors(tree);
     expect(anchors).toHaveLength(1);
-    expect(anchors[0]?.properties?.href).toBe("/en/pilot-application");
+    expect(anchors[0]?.properties?.href).toBe("/en/deployment");
   });
 
   it("never targets retired or redirecting internal URLs", () => {

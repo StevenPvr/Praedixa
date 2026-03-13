@@ -34,17 +34,39 @@ export function validateScopingCallBody(
 
   const email = readString(input, "email", 254, true);
   if (!email || !EMAIL_REGEX.test(email)) {
-    return { valid: false, error: localize(locale, "Adresse email invalide.", "Invalid email address.") };
+    return {
+      valid: false,
+      error: localize(
+        locale,
+        "Adresse email invalide.",
+        "Invalid email address.",
+      ),
+    };
   }
 
-  const companyName = readString(input, "companyName", MAX_COMPANY_LENGTH, true);
+  const companyName = readString(
+    input,
+    "companyName",
+    MAX_COMPANY_LENGTH,
+    true,
+  );
   if (!companyName) {
-    return { valid: false, error: localize(locale, "Entreprise requise.", "Company is required.") };
+    return {
+      valid: false,
+      error: localize(locale, "Entreprise requise.", "Company is required."),
+    };
   }
 
   const timezone = readString(input, "timezone", MAX_TIMEZONE_LENGTH, true);
   if (!timezone) {
-    return { valid: false, error: localize(locale, "Fuseau horaire requis.", "Timezone is required.") };
+    return {
+      valid: false,
+      error: localize(
+        locale,
+        "Fuseau horaire requis.",
+        "Timezone is required.",
+      ),
+    };
   }
 
   const slots = readSlots(input.slots, locale);
@@ -54,12 +76,18 @@ export function validateScopingCallBody(
 
   const notes = readString(input, "notes", MAX_NOTES_LENGTH, false);
   if (notes === null) {
-    return { valid: false, error: localize(locale, "Notes invalides.", "Invalid notes.") };
+    return {
+      valid: false,
+      error: localize(locale, "Notes invalides.", "Invalid notes."),
+    };
   }
 
   const source = readString(input, "source", MAX_SOURCE_LENGTH, false);
   if (source === null) {
-    return { valid: false, error: localize(locale, "Source invalide.", "Invalid source.") };
+    return {
+      valid: false,
+      error: localize(locale, "Source invalide.", "Invalid source."),
+    };
   }
 
   return {
@@ -71,7 +99,10 @@ export function validateScopingCallBody(
       timezone,
       slots: slots.value,
       notes,
-      website: typeof input.website === "string" ? input.website.trim().slice(0, 200) : "",
+      website:
+        typeof input.website === "string"
+          ? input.website.trim().slice(0, 200)
+          : "",
       source,
     },
   };
@@ -80,23 +111,35 @@ export function validateScopingCallBody(
 function readSlots(
   raw: unknown,
   locale: "fr" | "en",
-): { valid: true; value: [string, string, string] } | { valid: false; error: string } {
+):
+  | { valid: true; value: [string, string, string] }
+  | { valid: false; error: string } {
   if (!Array.isArray(raw) || raw.length !== MAX_SLOT_COUNT) {
     return {
       valid: false,
-      error: localize(locale, "3 créneaux sont requis.", "3 time slots are required."),
+      error: localize(
+        locale,
+        "3 créneaux sont requis.",
+        "3 time slots are required.",
+      ),
     };
   }
 
   const slots: string[] = [];
   for (const slot of raw) {
     if (typeof slot !== "string") {
-      return { valid: false, error: localize(locale, "Créneau invalide.", "Invalid time slot.") };
+      return {
+        valid: false,
+        error: localize(locale, "Créneau invalide.", "Invalid time slot."),
+      };
     }
 
     const trimmed = slot.trim();
     if (!SLOT_REGEX.test(trimmed)) {
-      return { valid: false, error: localize(locale, "Créneau invalide.", "Invalid time slot.") };
+      return {
+        valid: false,
+        error: localize(locale, "Créneau invalide.", "Invalid time slot."),
+      };
     }
     slots.push(trimmed);
   }
@@ -142,7 +185,9 @@ function normalizeLocale(value: string | null): "fr" | "en" | null {
   }
 
   const normalized = value.trim().toLowerCase();
-  return normalized === "fr" || normalized === "en" ? (normalized as "fr" | "en") : null;
+  return normalized === "fr" || normalized === "en"
+    ? (normalized as "fr" | "en")
+    : null;
 }
 
 function localize(locale: "fr" | "en", fr: string, en: string): string {

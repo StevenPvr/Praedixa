@@ -8,9 +8,13 @@ export function Footer() {
     <footer className="px-4 pb-12 pt-10 sm:px-6 lg:px-8">
       <div className="section-inner border-t border-ink/8 pt-8">
         <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-          <p className="max-w-[58ch] text-sm leading-relaxed text-muted-foreground">{footer.note}</p>
+          <p className="max-w-[58ch] text-sm leading-relaxed text-muted-foreground">
+            {footer.note}
+          </p>
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxide">Sources clés</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxide">
+              Sources clés
+            </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {footer.sources.map((source) => (
                 <a
@@ -22,7 +26,10 @@ export function Footer() {
                 >
                   <span className="flex items-start justify-between gap-3">
                     <span>{source.label}</span>
-                    <ArrowSquareOut size={16} className="shrink-0 text-oxide transition-colors duration-300 group-hover:text-ink" />
+                    <ArrowSquareOut
+                      size={16}
+                      className="shrink-0 text-oxide transition-colors duration-300 group-hover:text-ink"
+                    />
                   </span>
                 </a>
               ))}
@@ -33,4 +40,3 @@ export function Footer() {
     </footer>
   );
 }
-

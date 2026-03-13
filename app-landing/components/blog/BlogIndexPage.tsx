@@ -1,7 +1,10 @@
 import Link from "next/link";
 import type { Locale } from "../../lib/i18n/config";
 import { buildBlogIndexPath } from "../../lib/blog/posts";
-import type { BlogListSearchParams, PaginatedBlogPosts } from "../../lib/blog/types";
+import type {
+  BlogListSearchParams,
+  PaginatedBlogPosts,
+} from "../../lib/blog/types";
 import { formatTagLabel } from "../../lib/blog/format";
 import { SectionShell } from "../shared/SectionShell";
 import { BlogPostCard } from "./BlogPostCard";
@@ -12,7 +15,11 @@ interface BlogIndexPageProps {
   result: PaginatedBlogPosts;
 }
 
-function buildPaginationHref(locale: Locale, search: BlogListSearchParams, page: number): string {
+function buildPaginationHref(
+  locale: Locale,
+  search: BlogListSearchParams,
+  page: number,
+): string {
   return buildBlogIndexPath(locale, {
     page,
     tag: search.tag,
@@ -79,16 +86,27 @@ export function BlogIndexPage({ locale, search, result }: BlogIndexPageProps) {
         ) : (
           <div className="mt-10 space-y-5">
             {result.posts.map((post) => (
-              <BlogPostCard key={`${post.locale}:${post.slug}`} locale={locale} post={post} />
+              <BlogPostCard
+                key={`${post.locale}:${post.slug}`}
+                locale={locale}
+                post={post}
+              />
             ))}
           </div>
         )}
 
         {result.totalPages > 1 ? (
-          <nav className="mt-10 flex items-center justify-between" aria-label="Blog pagination">
+          <nav
+            className="mt-10 flex items-center justify-between"
+            aria-label="Blog pagination"
+          >
             {result.currentPage > 1 ? (
               <Link
-                href={buildPaginationHref(locale, search, result.currentPage - 1)}
+                href={buildPaginationHref(
+                  locale,
+                  search,
+                  result.currentPage - 1,
+                )}
                 className="inline-flex rounded-lg border border-border-subtle bg-white px-4 py-2 text-sm font-medium text-neutral-700 no-underline hover:bg-neutral-50"
               >
                 {locale === "fr" ? "Page précédente" : "Previous page"}
@@ -107,7 +125,11 @@ export function BlogIndexPage({ locale, search, result }: BlogIndexPageProps) {
 
             {result.currentPage < result.totalPages ? (
               <Link
-                href={buildPaginationHref(locale, search, result.currentPage + 1)}
+                href={buildPaginationHref(
+                  locale,
+                  search,
+                  result.currentPage + 1,
+                )}
                 className="inline-flex rounded-lg border border-border-subtle bg-white px-4 py-2 text-sm font-medium text-neutral-700 no-underline hover:bg-neutral-50"
               >
                 {locale === "fr" ? "Page suivante" : "Next page"}

@@ -7,9 +7,11 @@ Ce dossier matérialise un segment de route Next.js. Les fichiers `route.ts` dé
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `route.ts`
 
 ## Intégration

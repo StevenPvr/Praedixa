@@ -35,10 +35,6 @@ describe("JsonLd", () => {
 
     const schemaTypes = readSchemaTypes(container);
 
-    expect(schemaTypes).toEqual([
-      "SoftwareApplication",
-      "Service",
-      "FAQPage",
-    ]);
+    expect(schemaTypes).toEqual(["SoftwareApplication", "Service", "FAQPage"]);
   });
 });

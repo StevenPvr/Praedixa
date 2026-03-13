@@ -39,9 +39,7 @@ describe("GlobalError Page (app/global-error.tsx)", () => {
   it("should render the error description", () => {
     render(<GlobalError error={mockError} reset={mockReset} />);
     expect(
-      screen.getByText(
-        /Le site a rencontré un problème inattendu/,
-      ),
+      screen.getByText(/Le site a rencontré un problème inattendu/),
     ).toBeInTheDocument();
   });
 

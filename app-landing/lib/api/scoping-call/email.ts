@@ -10,7 +10,8 @@ export async function sendScopingCallEmails(
   ip: string,
 ): Promise<void> {
   const fromEmail = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM_EMAIL;
-  const replyToEmail = process.env.RESEND_REPLY_TO_EMAIL || siteConfig.contact.email;
+  const replyToEmail =
+    process.env.RESEND_REPLY_TO_EMAIL || siteConfig.contact.email;
   const confirmSubject =
     data.locale === "en"
       ? "Scoping call request received - Praedixa"
@@ -97,8 +98,12 @@ function buildConfirmHtml(data: ScopingCallPayload): string {
 
 function buildConfirmText(data: ScopingCallPayload): string {
   const lines = [
-    data.locale === "en" ? `Company: ${data.companyName}` : `Entreprise : ${data.companyName}`,
-    data.locale === "en" ? `Timezone: ${data.timezone}` : `Fuseau horaire : ${data.timezone}`,
+    data.locale === "en"
+      ? `Company: ${data.companyName}`
+      : `Entreprise : ${data.companyName}`,
+    data.locale === "en"
+      ? `Timezone: ${data.timezone}`
+      : `Fuseau horaire : ${data.timezone}`,
     "",
     data.locale === "en" ? "Proposed slots:" : "Créneaux proposés :",
     ...data.slots.map((slot) => `- ${slot}`),

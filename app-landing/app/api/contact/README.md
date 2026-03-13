@@ -7,10 +7,12 @@ Ce dossier matérialise un segment de route Next.js. Les fichiers `route.ts` dé
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - `__tests__`
 - `challenge`
 
 Fichiers :
+
 - `route.ts`
 
 ## Intégration

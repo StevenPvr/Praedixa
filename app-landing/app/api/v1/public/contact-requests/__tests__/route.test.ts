@@ -23,29 +23,32 @@ function makeRequest(
 ): Request {
   const text = typeof body === "string" ? body : JSON.stringify(body);
 
-  return new Request("https://www.praedixa.com/api/v1/public/contact-requests", {
-    method: "POST",
-    headers: {
-      "content-type": contentType,
-      "content-length": String(new TextEncoder().encode(text).length),
-      "x-contact-ingest-token": token,
-      "x-request-id": "req-123",
+  return new Request(
+    "https://www.praedixa.com/api/v1/public/contact-requests",
+    {
+      method: "POST",
+      headers: {
+        "content-type": contentType,
+        "content-length": String(new TextEncoder().encode(text).length),
+        "x-contact-ingest-token": token,
+        "x-request-id": "req-123",
+      },
+      body: text,
     },
-    body: text,
-  });
+  );
 }
 
 function validPayload() {
   return {
     locale: "fr",
-    requestType: "founding_pilot",
+    requestType: "deployment_request",
     companyName: "ACME",
     firstName: "Jean",
     lastName: "Martin",
     role: "COO",
     email: "jean@acme.fr",
     phone: "+33612345678",
-    subject: "Diagnostic ROI",
+    subject: "Preuve sur historique offerte",
     message: "Bonjour, nous voulons cadrer un pilote.",
     consent: true,
     sourceIp: "203.0.113.10",

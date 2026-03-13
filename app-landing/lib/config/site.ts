@@ -12,7 +12,7 @@ export const siteConfig = {
   },
 
   routes: {
-    pilot: "/devenir-pilote",
+    deployment: "/deploiement",
     contact: "/contact",
     mentionsLegales: "/mentions-legales",
     confidentialite: "/confidentialite",

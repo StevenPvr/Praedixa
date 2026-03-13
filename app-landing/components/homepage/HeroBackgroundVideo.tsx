@@ -49,9 +49,7 @@ function shouldSkipVideoUpgrade() {
     return true;
   }
 
-  return Boolean(
-    (navigator as NavigatorWithConnection).connection?.saveData,
-  );
+  return Boolean((navigator as NavigatorWithConnection).connection?.saveData);
 }
 
 function scheduleVideoUpgrade(activate: () => void) {
@@ -78,9 +76,9 @@ function canResumePlayback(
 ): video is HTMLVideoElement {
   return Boolean(
     video &&
-      !video.ended &&
-      document.visibilityState === "visible" &&
-      video.paused,
+    !video.ended &&
+    document.visibilityState === "visible" &&
+    video.paused,
   );
 }
 

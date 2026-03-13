@@ -28,7 +28,7 @@ export const frCoreConversion: Partial<Dictionary> = {
       {
         question: "Praedixa, c'est quoi en une phrase ?",
         answer:
-          "Praedixa est la plateforme française de DecisionOps: elle relie vos systèmes existants pour transformer les arbitrages critiques en décisions calculées, exécutées et auditables.",
+          "Praedixa anticipe les risques business qui dégradent la performance et recommande les meilleures décisions pour les réduire, en commençant par le risque prioritaire de votre périmètre.",
         category: "Comprendre Praedixa",
       },
       {
@@ -115,17 +115,17 @@ export const frCoreConversion: Partial<Dictionary> = {
 
   contact: {
     kicker: "Contact",
-    heading: "Obtenir le diagnostic ROI gratuit.",
+    heading: "Demander la preuve sur historique.",
     subheading:
-      "Envoyez vos données ou vos exports. On revient avec une lecture simple: où vous perdez de l'argent, quoi prioriser et comment cadrer le pilote.",
+      "Envoyez vos données ou vos exports. On revient avec une lecture simple: quels arbitrages prioriser, quel potentiel objectiver et quel prochain pas recommander.",
     trustItems: [
       "Réponse sous 48h ouvrées",
-      "Diagnostic ROI offert",
+      "Preuve sur historique offerte",
       "Lecture seule via exports/API",
-      "Aucun engagement post-pilote imposé",
+      "5 jours ouvrés sur données existantes",
     ],
-    ctaPrimary: "Obtenir le diagnostic ROI gratuit",
-    ctaSecondary: "Voir le protocole pilote",
+    ctaPrimary: "Demander la preuve sur historique",
+    ctaSecondary: "Voir le protocole de mise en place",
   },
 
   servicesPage: {
@@ -155,10 +155,10 @@ export const frCoreConversion: Partial<Dictionary> = {
         "Lecture commune pour comités et équipes",
         "Comparaison multi-sites et standardisation",
       ],
-      cta: "Demander un pilote ROI Praedixa",
+      cta: "Parler du déploiement Praedixa",
     },
     forecastsOnly: {
-      badge: "Diagnostic ROI",
+      badge: "Preuve sur historique",
       title: "Point de départ rapide",
       summary:
         "Une première lecture pour voir où l'argent se perd et où Praedixa peut créer le plus de valeur.",
@@ -229,21 +229,21 @@ export const frCoreConversion: Partial<Dictionary> = {
       kicker: "Praedixa",
       heading:
         "Vos données dispersées peuvent rapporter plus. Encore faut-il les faire parler.",
-      cta: "Obtenir le diagnostic ROI gratuit",
+      cta: "Demander la preuve sur historique",
     },
   },
 
   stickyCta: {
-    text: "Obtenir le diagnostic ROI gratuit",
+    text: "Demander la preuve sur historique",
   },
 
   form: {
-    pageTitle: "Demande de pilote ROI Praedixa",
+    pageTitle: "Demande de déploiement Praedixa",
     pageSubtitle:
       "Cette demande permet de cadrer un pilote court, centré sur vos données, vos priorités et votre ROI.",
     pill: "Pilote ROI Praedixa",
     valuePoints: [
-      "Diagnostic ROI offert",
+      "Preuve sur historique offerte",
       "Qualification orientée COO/Ops et CFO/DAF",
       "Réponse sous 48h ouvrées",
     ],
@@ -289,7 +289,7 @@ export const frCoreConversion: Partial<Dictionary> = {
       description:
         "Nous revenons vers vous sous 48h ouvrées avec un cadrage adapté a votre contexte et un plan de diagnostic ROI.",
       backToSite: "Retour au site",
-      checkEmail: "Voir le protocole pilote",
+      checkEmail: "Voir le protocole de mise en place",
     },
     error: "Une erreur est survenue. Veuillez réessayer.",
     sectors: [

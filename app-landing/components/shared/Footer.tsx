@@ -13,7 +13,7 @@ interface FooterProps {
 }
 
 export function Footer({ locale, dict }: FooterProps) {
-  const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=audit`;
+  const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
   const servicesHref = getLocalizedPath(locale, "services");
   const productHref = getLocalizedPath(locale, "productMethod");
   const methodHref = getLocalizedPath(locale, "howItWorksPage");
@@ -135,8 +135,8 @@ export function Footer({ locale, dict }: FooterProps) {
             </Link>
             <p className="max-w-[46ch] text-sm leading-relaxed text-neutral-400">
               {locale === "fr"
-                ? "Praedixa transforme les arbitrages critiques en décisions calculées, exécutées et auditables, sans remplacer vos outils."
-                : "Praedixa turns critical trade-offs into calculated, executable, auditable decisions."}
+                ? "Praedixa aide les entreprises multi-sites à détecter plus tôt les écarts charge/capacité qui pèsent sur la marge, sans remplacer les outils existants."
+                : "Praedixa helps multi-site teams detect workload/capacity gaps earlier, without replacing the tools they already use."}
             </p>
             <ShimmerTrack
               className="max-w-[16rem] bg-white/10"

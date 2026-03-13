@@ -60,24 +60,43 @@ export const skolaeMessaging = {
     claims: [
       {
         label: "Empreinte groupe",
-        value: "23 écoles, 37 villes, plus de 21 000 étudiants et 150 000 apprenants",
+        value:
+          "23 écoles, 37 villes, plus de 21 000 étudiants et 150 000 apprenants",
         qualifier: "portefeuille public SKOLAE Education et SKOLAE Formation",
         evidence: "official",
         href: "https://www.skolae.fr/le-groupe",
       },
       {
         label: "Signal opérations",
-        value: "Goulots d'étranglement, absences, optimisation des salles et modifications d'emplois du temps",
-        qualifier: "éléments explicitement demandés dans le poste de Chargé de planification",
+        value:
+          "Goulots d'étranglement, absences, optimisation des salles et modifications d'emplois du temps",
+        qualifier:
+          "éléments explicitement demandés dans le poste de Chargé de planification",
         evidence: "job",
         href: "https://reseaugeseteductive.flatchr.io/fr/company/reseaugeseteductive/vacancy/jkj0mpzog5adxngx-charge-de-planification-h-f/",
       },
     ] satisfies EvidenceClaim[],
     boardStats: [
-      { label: "Preuve d'entrée", value: "5 jours ouvrés", note: "où le potentiel de gain est réel" },
-      { label: "Mode de départ", value: "Lecture seule", note: "sur planning, absences, salles et coûts" },
-      { label: "Décision utile", value: "1 arbitrage prioritaire", note: "avant un déploiement plus large" },
-      { label: "Lecture comité", value: "Ops + Finance + DSI", note: "ROI décision par décision" },
+      {
+        label: "Preuve d'entrée",
+        value: "5 jours ouvrés",
+        note: "où le potentiel de gain est réel",
+      },
+      {
+        label: "Mode de départ",
+        value: "Lecture seule",
+        note: "sur planning, absences, salles et coûts",
+      },
+      {
+        label: "Décision utile",
+        value: "1 arbitrage prioritaire",
+        note: "avant un déploiement plus large",
+      },
+      {
+        label: "Lecture comité",
+        value: "Ops + Finance + DSI",
+        note: "ROI décision par décision",
+      },
     ],
     boardSignals: [
       "Les arbitrages prioritaires enfin objectivés",
@@ -128,22 +147,28 @@ export const skolaeMessaging = {
     signals: [
       {
         label: "Positionnement groupe",
-        value: "23 écoles et 37 villes: l'enjeu n'est pas seulement local, mais réseau",
-        qualifier: "plus le réseau est large, plus la décision doit rester lisible d'un campus à l'autre",
+        value:
+          "23 écoles et 37 villes: l'enjeu n'est pas seulement local, mais réseau",
+        qualifier:
+          "plus le réseau est large, plus la décision doit rester lisible d'un campus à l'autre",
         evidence: "official",
         href: "https://www.skolae.fr/le-groupe",
       },
       {
         label: "Arbitrages visibles",
-        value: "Skolae recrute explicitement pour gérer salles, absences, goulots et replanifications rapides",
-        qualifier: "la douleur est déjà visible publiquement, ce qui rend une preuve sur historique très crédible",
+        value:
+          "Skolae recrute explicitement pour gérer salles, absences, goulots et replanifications rapides",
+        qualifier:
+          "la douleur est déjà visible publiquement, ce qui rend une preuve sur historique très crédible",
         evidence: "job",
         href: "https://reseaugeseteductive.flatchr.io/fr/company/reseaugeseteductive/vacancy/jkj0mpzog5adxngx-charge-de-planification-h-f/",
       },
       {
         label: "Traction future",
-        value: "La même logique d'arbitrage existe aussi côté formateurs et formation continue",
-        qualifier: "la première preuve peut être pédagogique; l'extension peut venir ensuite sans changer de grammaire produit",
+        value:
+          "La même logique d'arbitrage existe aussi côté formateurs et formation continue",
+        qualifier:
+          "la première preuve peut être pédagogique; l'extension peut venir ensuite sans changer de grammaire produit",
         evidence: "job",
         href: "https://www.wizbii.com/company/skolae/job/charge-de-recrutement-formateurs-h-f",
       },
@@ -155,20 +180,22 @@ export const skolaeMessaging = {
     highlighted: "si Skolae ne décide pas plus tôt ?",
     statement:
       "Sur quel campus, quelle semaine et quel groupe Skolae risque-t-il de perdre le plus en continuité, coût d'urgence et charge administrative si rien n'est décidé plus tôt ?",
-    body:
-      "Praedixa ne vend pas un outil de planning générique. Praedixa aide Skolae à relier les signaux utiles, comparer les options et déclencher la première action validée avant que la marge de manoeuvre se referme.",
+    body: "Praedixa ne vend pas un outil de planning générique. Praedixa aide Skolae à relier les signaux utiles, comparer les options et déclencher la première action validée avant que la marge de manoeuvre se referme.",
     frame: [
       {
         label: "Ce que Praedixa relie",
-        value: "Planning, absences, salles, examens, charge support et coûts déjà suivis par Skolae",
+        value:
+          "Planning, absences, salles, examens, charge support et coûts déjà suivis par Skolae",
       },
       {
         label: "Ce que Praedixa calcule",
-        value: "3 à 5 options réelles sous coût / service / risque, d'abord à moyen terme puis à court horizon",
+        value:
+          "3 à 5 options réelles sous coût / service / risque, d'abord à moyen terme puis à court horizon",
       },
       {
         label: "Ce que Skolae peut défendre",
-        value: "Une priorité claire, une action validée et une preuve ROI que le comité peut relire",
+        value:
+          "Une priorité claire, une action validée et une preuve ROI que le comité peut relire",
       },
     ],
     primaryLevers: [
@@ -180,23 +207,30 @@ export const skolaeMessaging = {
     extensions: [
       {
         title: "Salles et groupes",
-        forecast: "conflits capacité / taille de groupe à l'approche de la rentrée ou des examens",
-        optimize: "changer la salle, déplacer le cours, mutualiser deux groupes, ouvrir une capacité additionnelle",
+        forecast:
+          "conflits capacité / taille de groupe à l'approche de la rentrée ou des examens",
+        optimize:
+          "changer la salle, déplacer le cours, mutualiser deux groupes, ouvrir une capacité additionnelle",
       },
       {
         title: "Alternance",
-        forecast: "stock d'étudiants sans contrat et goulot de capacité côté équipes relations entreprises",
-        optimize: "prioriser les relances, les jobdatings et les renforts campus par campus",
+        forecast:
+          "stock d'étudiants sans contrat et goulot de capacité côté équipes relations entreprises",
+        optimize:
+          "prioriser les relances, les jobdatings et les renforts campus par campus",
       },
       {
         title: "Scolarité",
-        forecast: "backlog de tâches à venir sur examens, rattrapages, émargements et notes",
-        optimize: "répartir la charge, séquencer les tâches et absorber les pics plus tôt",
+        forecast:
+          "backlog de tâches à venir sur examens, rattrapages, émargements et notes",
+        optimize:
+          "répartir la charge, séquencer les tâches et absorber les pics plus tôt",
       },
       {
         title: "Formation continue",
         forecast: "sessions à risque faute de formateur disponible à temps",
-        optimize: "sourcer, sous-traiter, regrouper ou replanifier selon marge et priorité client",
+        optimize:
+          "sourcer, sous-traiter, regrouper ou replanifier selon marge et priorité client",
       },
       {
         title: "Formation -> entreprises -> débouchés",
@@ -251,7 +285,8 @@ export const skolaeMessaging = {
       {
         id: "marie",
         label: "Marie Gasquet",
-        title: "Un sujet crédible à ouvrir parce qu'il protège la promesse faite aux entreprises et aux étudiants.",
+        title:
+          "Un sujet crédible à ouvrir parce qu'il protège la promesse faite aux entreprises et aux étudiants.",
         summary:
           "Avec Marie, l'objectif n'est pas de parler modèle. Il faut parler fiabilité campus, qualité de suivi et sujet groupe qu'elle peut transmettre aux bons décideurs.",
         bullets: [
@@ -262,8 +297,10 @@ export const skolaeMessaging = {
         objection: "Je ne porte pas le budget ni l'exploitation.",
         response:
           "Pas besoin. Son rôle utile est d'ouvrir un sujet transversal crédible et d'amener les bons sponsors à la table.",
-        proofMetric: "Continuité campus et qualité perçue par les entreprises partenaires",
-        nextStep: "Introduire un atelier avec direction des études, finance et DSI.",
+        proofMetric:
+          "Continuité campus et qualité perçue par les entreprises partenaires",
+        nextStep:
+          "Introduire un atelier avec direction des études, finance et DSI.",
       },
       {
         id: "ops",
@@ -280,8 +317,10 @@ export const skolaeMessaging = {
         objection: "Nos cas sont trop spécifiques campus par campus.",
         response:
           "Praedixa standardise le cadre de lecture, pas l'exécution. Chaque campus garde ses contraintes et ses arbitrages locaux.",
-        proofMetric: "Cours annulés, modifications <48h, incidents salles, délai d'information étudiants",
-        nextStep: "Choisir 1 campus avec historique planning propre et 3 décisions répétitives à instrumenter.",
+        proofMetric:
+          "Cours annulés, modifications <48h, incidents salles, délai d'information étudiants",
+        nextStep:
+          "Choisir 1 campus avec historique planning propre et 3 décisions répétitives à instrumenter.",
       },
       {
         id: "finance",
@@ -298,8 +337,10 @@ export const skolaeMessaging = {
         objection: "Le ROI sera contestable si les hypothèses bougent.",
         response:
           "Le dispositif assume des hypothèses simples, explicites et relues chaque mois. L'enjeu est la défendabilité, pas la sur-promesse.",
-        proofMetric: "Coût des remplacements, heures supplémentaires, locations de salles, annulations évitées",
-        nextStep: "Valider les trois KPI économiques qui serviront de preuve mensuelle dès le départ.",
+        proofMetric:
+          "Coût des remplacements, heures supplémentaires, locations de salles, annulations évitées",
+        nextStep:
+          "Valider les trois KPI économiques qui serviront de preuve mensuelle dès le départ.",
       },
       {
         id: "dsi",
@@ -316,8 +357,10 @@ export const skolaeMessaging = {
         objection: "Les données sont trop hétérogènes pour un pilote sérieux.",
         response:
           "La preuve sert précisément à trouver la donnée exploitable minimale, pas à résoudre l'urbanisme complet du réseau.",
-        proofMetric: "Temps d'accès à l'export, stabilité du mapping campus, qualité des données suffisante pour trois décisions",
-        nextStep: "Lister l'export planning, l'export absences et le référentiel salles avant la réunion de cadrage.",
+        proofMetric:
+          "Temps d'accès à l'export, stabilité du mapping campus, qualité des données suffisante pour trois décisions",
+        nextStep:
+          "Lister l'export planning, l'export absences et le référentiel salles avant la réunion de cadrage.",
       },
     ] satisfies StakeholderView[],
   },
@@ -326,7 +369,12 @@ export const skolaeMessaging = {
     title: "D'abord une preuve sur historique.",
     subtitle:
       "En 5 jours ouvrés, Praedixa montre sur les données existantes d'un périmètre Skolae où le potentiel de gain est réel. Si le signal est confirmé, un déploiement cadré installe ensuite le suivi dans le temps.",
-    scope: ["5 jours ouvrés", "Lecture seule", "1 campus ou périmètre réaliste", "Puis déploiement ciblé"],
+    scope: [
+      "5 jours ouvrés",
+      "Lecture seule",
+      "1 campus ou périmètre réaliste",
+      "Puis déploiement ciblé",
+    ],
     timeline: [
       {
         label: "Jours 1-5",
@@ -386,7 +434,8 @@ export const skolaeMessaging = {
     subtitle:
       "Pas une démo générique, pas un chantier SI. Une lecture en 5 jours ouvrés sur un périmètre réaliste pour objectiver les arbitrages prioritaires, puis décider si un déploiement ciblé mérite d'être lancé.",
     primaryLabel: "Demander la preuve sur historique",
-    primaryHref: "mailto:contact@praedixa.com?subject=Praedixa%20x%20Skolae%20-%20atelier%20de%20cadrage",
+    primaryHref:
+      "mailto:contact@praedixa.com?subject=Praedixa%20x%20Skolae%20-%20atelier%20de%20cadrage",
     secondaryLabel: "Voir le parcours",
     secondaryHref: "#pilot",
     agendaTitle: "Ce qu'il faut verrouiller en 45 minutes",
@@ -397,12 +446,10 @@ export const skolaeMessaging = {
       "Fixer la preuve ROI attendue côté finance",
       "Décider des conditions de passage de la preuve au déploiement",
     ],
-    note:
-      "Sortir de l'atelier avec un périmètre, les exports minimaux et un critère clair de passage de la preuve sur historique au déploiement.",
+    note: "Sortir de l'atelier avec un périmètre, les exports minimaux et un critère clair de passage de la preuve sur historique au déploiement.",
   },
   footer: {
-    note:
-      "Praedixa aide Skolae à objectiver les arbitrages qui protègent la continuité pédagogique et la marge, sans remplacer les outils déjà en place.",
+    note: "Praedixa aide Skolae à objectiver les arbitrages qui protègent la continuité pédagogique et la marge, sans remplacer les outils déjà en place.",
     sources: [
       {
         label: "Skolae - Le groupe",

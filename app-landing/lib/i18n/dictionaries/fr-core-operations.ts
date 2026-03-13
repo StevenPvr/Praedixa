@@ -107,21 +107,21 @@ export const frCoreOperations: Partial<Dictionary> = {
         value: "Ce que vous subissez",
         note: "Coûts, frottements et sites qui dégradent la performance.",
         sourceLabel: "Source: Protocole pilote Praedixa",
-        sourceUrl: "/fr/pilot-protocol",
+        sourceUrl: "/fr/protocole-deploiement",
       },
       {
         label: "Priorité",
         value: "Ce qu'il faut lancer",
         note: "Les actions à plus fort impact business, classées simplement.",
         sourceLabel: "Source: Protocole pilote Praedixa",
-        sourceUrl: "/fr/pilot-protocol",
+        sourceUrl: "/fr/protocole-deploiement",
       },
       {
         label: "Résultat",
         value: "Ce que vous avez gagné",
         note: "Le gain observé, ce qui reste à corriger et la suite à donner.",
         sourceLabel: "Source: Protocole pilote Praedixa",
-        sourceUrl: "/fr/pilot-protocol",
+        sourceUrl: "/fr/protocole-deploiement",
       },
     ],
     checklist: [
@@ -186,19 +186,19 @@ export const frCoreOperations: Partial<Dictionary> = {
   },
 
   pilot: {
-    kicker: "Pilote ROI",
-    heading: "Un pilote court pour mettre DecisionOps en production.",
+    kicker: "Déploiement Praedixa",
+    heading: "Une mise en place cadrée avant l'abonnement.",
     subheading:
-      "En quelques semaines, Praedixa relie vos systèmes critiques, sort les priorités et met le ROI au centre des décisions.",
-    statusLabels: ["Cadrage", "Premiers gains", "Preuve consolidée"],
+      "Après la preuve sur historique, Praedixa relie vos systèmes critiques, sort les priorités et installe le suivi des gains dans la durée.",
+    statusLabels: ["Preuve sur historique", "Onboarding", "Abonnement annuel"],
     included: {
       title: "Ce que vous obtenez",
       items: [
-        "Diagnostic ROI offert sur vos données existantes",
+        "Preuve sur historique offerte sur vos données existantes",
         "Une lecture commune RH, finance et opérations",
         "Les sites, équipes ou sujets à plus fort potentiel de gain",
         "Un plan d'action priorisé avec impact attendu",
-        "Un suivi du ROI simple à relire en comité",
+        "Un suivi des gains simple à relire en comité",
         "Un rythme commun Ops + Finance pour décider plus vite",
       ],
     },
@@ -240,13 +240,14 @@ export const frCoreOperations: Partial<Dictionary> = {
       ],
     },
     upcoming: {
-      title: "Après le pilote",
+      title: "Après la mise en place",
       description:
-        "Vous élargissez progressivement Praedixa aux sites et sujets qui créent le plus de valeur.",
+        "Praedixa tourne ensuite en abonnement annuel pour industrialiser les arbitrages qui créent le plus de valeur.",
     },
     urgency:
-      "Candidatures examinées sous 48h ouvrées. Objectif du pilote: une preuve simple, lisible et orientée ROI x3.",
-    ctaPrimary: "Demander un pilote ROI",
-    ctaMeta: "Diagnostic offert · lecture seule · objectif ROI x3",
+      "Réponse sous 48h ouvrées. Onboarding fixe déduit en cas d'engagement annuel.",
+    ctaPrimary: "Parler du déploiement",
+    ctaMeta:
+      "5 jours ouvrés pour la preuve · onboarding fixe · abonnement annuel",
   },
 };

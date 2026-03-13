@@ -30,21 +30,36 @@ export function CTASection() {
               </MagneticButton>
             </div>
 
-            <p className="mt-4 text-sm leading-relaxed text-limestone/48">{cta.note}</p>
+            <p className="mt-4 text-sm leading-relaxed text-limestone/48">
+              {cta.note}
+            </p>
           </div>
 
           <div className="rounded-[2rem] border border-white/10 bg-white/6 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
             <div className="flex items-center gap-3">
-              <CompassTool size={18} className="text-oxide-soft" weight="duotone" />
+              <CompassTool
+                size={18}
+                className="text-oxide-soft"
+                weight="duotone"
+              />
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxide-soft">
                 {cta.agendaTitle}
               </p>
             </div>
             <ul className="mt-5 space-y-4">
               {cta.agendaItems.map((item) => (
-                <li key={item} className="flex gap-3 border-b border-white/8 pb-4 last:border-b-0 last:pb-0">
-                  <CalendarCheck size={18} className="mt-0.5 shrink-0 text-oxide-soft" weight="duotone" />
-                  <span className="text-sm leading-relaxed text-limestone/80">{item}</span>
+                <li
+                  key={item}
+                  className="flex gap-3 border-b border-white/8 pb-4 last:border-b-0 last:pb-0"
+                >
+                  <CalendarCheck
+                    size={18}
+                    className="mt-0.5 shrink-0 text-oxide-soft"
+                    weight="duotone"
+                  />
+                  <span className="text-sm leading-relaxed text-limestone/80">
+                    {item}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -54,4 +69,3 @@ export function CTASection() {
     </section>
   );
 }
-

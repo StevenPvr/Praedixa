@@ -7,9 +7,11 @@ Ce dossier matérialise un segment de route Next.js. Les fichiers `page.tsx` dé
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - `[slug]`
 
 Fichiers :
+
 - `page.tsx`
 
 ## Intégration

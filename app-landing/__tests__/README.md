@@ -7,9 +7,11 @@ Ce dossier regroupe les tests associés au dossier parent `app-landing`. Il docu
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `proxy.test.ts`
 
 ## Intégration

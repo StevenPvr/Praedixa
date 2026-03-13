@@ -6,11 +6,11 @@ Site marketing de `praedixa.com`, construit avec Next.js App Router, React 19, T
 
 Le positioning de production doit rester coherent avec ces points:
 
-- Boucle fermee: forecast D+3 / D+7 / D+14 -> decision optimale -> premiere action assistee -> preuve ROI mensuelle.
-- Superposition sur l'existant (exports/API), demarrage en lecture seule.
+- Entree commerciale: preuve sur historique en 5 jours ouvrés, en lecture seule.
+- Mise en place ensuite via onboarding fixe, puis abonnement annuel.
+- Boucle produit: federer les signaux utiles -> arbitrer -> agir -> prouver l'impact.
 - Le manager reste decisionnaire.
 - Le produit ne remplace pas un WFM / planning.
-- Le premier mois est un audit historique en lecture seule.
 
 ## Commandes utiles
 

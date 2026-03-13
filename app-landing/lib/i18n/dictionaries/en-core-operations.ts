@@ -52,12 +52,10 @@ export const enCoreOperations: Partial<Dictionary> = {
       {
         id: "volatility",
         title: "Multi-site demand peaks",
-        context:
-          "Rush periods and volume swings destabilize field capacity.",
+        context: "Rush periods and volume swings destabilize field capacity.",
         action:
           "Forecasts, standardized options, documented cost/service/risk trade-offs.",
-        result:
-          "Less last-minute urgency and more stable service levels.",
+        result: "Less last-minute urgency and more stable service levels.",
       },
       {
         id: "absenteeism",
@@ -66,16 +64,13 @@ export const enCoreOperations: Partial<Dictionary> = {
           "Operational fragility from critical absences and workshop/clinical/maintenance dependencies.",
         action:
           "Criticality-based prioritization, alternative action options, recorded choices.",
-        result:
-          "More robust continuity and reduced emergency mode.",
-        callout:
-          "No individual data — only team/site-level steering.",
+        result: "More robust continuity and reduced emergency mode.",
+        callout: "No individual data — only team/site-level steering.",
       },
       {
         id: "crosssite",
         title: "Cross-site capacity arbitrage",
-        context:
-          "Limited resources must be allocated across competing sites.",
+        context: "Limited resources must be allocated across competing sites.",
         action:
           "Compare options across sites with local constraints and network-level goals.",
         result:
@@ -86,12 +81,10 @@ export const enCoreOperations: Partial<Dictionary> = {
       {
         id: "roi",
         title: "Monthly Ops/Finance review",
-        context:
-          "Hard to connect field decisions to real economic impact.",
+        context: "Hard to connect field decisions to real economic impact.",
         action:
           "Decision journal + before / recommended / actual comparison protocol.",
-        result:
-          "A monthly pack usable for priorities, budgets, and renewal.",
+        result: "A monthly pack usable for priorities, budgets, and renewal.",
       },
     ],
   },
@@ -99,29 +92,28 @@ export const enCoreOperations: Partial<Dictionary> = {
   deliverables: {
     kicker: "Economic impact proof",
     heading: "Differentiator: decision journal + proof.",
-    subheading:
-      "No vague promises: a simple, comparable, repeatable protocol.",
+    subheading: "No vague promises: a simple, comparable, repeatable protocol.",
     roiFrames: [
       {
         label: "Baseline (reference)",
         value: "Your current operating baseline",
         note: "Stable comparison point: what would happen without Praedixa recommendations.",
         sourceLabel: "Source: Praedixa pilot protocol",
-        sourceUrl: "/en/pilot-protocol",
+        sourceUrl: "/en/deployment-protocol",
       },
       {
         label: "Recommended (potential)",
         value: "The recommended scenario",
         note: "Potential under your constraints (cost, service, business rules).",
         sourceLabel: "Source: Praedixa pilot protocol",
-        sourceUrl: "/en/pilot-protocol",
+        sourceUrl: "/en/deployment-protocol",
       },
       {
         label: "Actual (field)",
         value: "What was done, and why",
         note: "Captures what was executed in the field to attribute net impact.",
         sourceLabel: "Source: Praedixa pilot protocol",
-        sourceUrl: "/en/pilot-protocol",
+        sourceUrl: "/en/deployment-protocol",
       },
     ],
     checklist: [
@@ -182,11 +174,14 @@ export const enCoreOperations: Partial<Dictionary> = {
 
   pilot: {
     kicker: "Pilot offer",
-    heading:
-      "Praedixa Signature pilot: free audit, proof in 3 months.",
+    heading: "Praedixa Signature pilot: free audit, proof in 3 months.",
     subheading:
       "Multi-vertical program for multi-site companies: restaurants, retail, hospitality, dealerships/workshops, logistics, healthcare, industry, call centers.",
-    statusLabels: ["Free audit (M1)", "Proof milestone (S8)", "Consolidation (M3)"],
+    statusLabels: [
+      "Free audit (M1)",
+      "Proof milestone (S8)",
+      "Consolidation (M3)",
+    ],
     included: {
       title: "What you receive",
       items: [
@@ -241,7 +236,6 @@ export const enCoreOperations: Partial<Dictionary> = {
     urgency:
       "Applications reviewed within 48 business hours. Focused-scope kickoff possible.",
     ctaPrimary: "Apply for the Praedixa Signature pilot",
-    ctaMeta:
-      "Free historical audit · Read-only exports/APIs · Monthly proof",
+    ctaMeta: "Free historical audit · Read-only exports/APIs · Monthly proof",
   },
 };

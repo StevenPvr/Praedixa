@@ -40,8 +40,12 @@ function resolveAlternateLanguageUrls(
   const languageUrls: Record<string, string> = {};
 
   if (alternates.fr) {
-    languageUrls["fr-FR"] = absoluteUrl(buildBlogPostPath("fr", alternates.fr.slug));
-    languageUrls["x-default"] = absoluteUrl(buildBlogPostPath("fr", alternates.fr.slug));
+    languageUrls["fr-FR"] = absoluteUrl(
+      buildBlogPostPath("fr", alternates.fr.slug),
+    );
+    languageUrls["x-default"] = absoluteUrl(
+      buildBlogPostPath("fr", alternates.fr.slug),
+    );
   }
 
   if (alternates.en) {
@@ -49,7 +53,9 @@ function resolveAlternateLanguageUrls(
   }
 
   if (!languageUrls["x-default"]) {
-    languageUrls["x-default"] = absoluteUrl(buildBlogPostPath(locale, post.slug));
+    languageUrls["x-default"] = absoluteUrl(
+      buildBlogPostPath(locale, post.slug),
+    );
   }
 
   return languageUrls;
@@ -76,11 +82,17 @@ export async function generateMetadata({
     return {};
   }
 
-  const fallbackCanonicalUrl = absoluteUrl(buildBlogPostPath(locale, post.slug));
+  const fallbackCanonicalUrl = absoluteUrl(
+    buildBlogPostPath(locale, post.slug),
+  );
   const canonicalUrl = post.canonical
     ? toAbsoluteCanonicalUrl(post.canonical)
     : fallbackCanonicalUrl;
-  const languageAlternates = resolveAlternateLanguageUrls(locale, post, includeDrafts);
+  const languageAlternates = resolveAlternateLanguageUrls(
+    locale,
+    post,
+    includeDrafts,
+  );
   const isDraft = post.draft;
   const robots = isDraft
     ? {

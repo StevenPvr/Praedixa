@@ -89,12 +89,15 @@ describe("contact challenge", () => {
   });
 
   it("binds the challenge to the originating client context when provided", () => {
-    const request = new Request("https://www.praedixa.com/api/contact/challenge", {
-      headers: {
-        "cf-connecting-ip": "203.0.113.10",
-        "user-agent": "Vitest Browser",
+    const request = new Request(
+      "https://www.praedixa.com/api/contact/challenge",
+      {
+        headers: {
+          "cf-connecting-ip": "203.0.113.10",
+          "user-agent": "Vitest Browser",
+        },
       },
-    });
+    );
     const clientContext = buildChallengeClientContext(request);
     const challenge = createContactChallenge(Date.now() - 5_000, clientContext);
     expect(challenge).toBeTruthy();

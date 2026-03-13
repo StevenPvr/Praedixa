@@ -9,11 +9,20 @@ export const metadata: Metadata = {
 };
 
 export default function LogoPreviewPage() {
-  const colors = ["Ink", "Amber", "Blue", "Emerald", "Violet", "White"] as const;
+  const colors = [
+    "Ink",
+    "Amber",
+    "Blue",
+    "Emerald",
+    "Violet",
+    "White",
+  ] as const;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold tracking-tight text-ink">Logo preview</h1>
+      <h1 className="text-3xl font-bold tracking-tight text-ink">
+        Logo preview
+      </h1>
       <p className="mt-2 text-sm text-neutral-500">
         Prévisualisation interne des variantes de logo et de leur lisibilité.
       </p>

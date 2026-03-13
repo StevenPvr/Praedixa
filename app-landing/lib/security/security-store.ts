@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
-import { getClientIp } from "../api/pilot-application/rate-limit";
+import { getClientIp } from "../api/deployment-request/rate-limit";
 import {
   RedisSecurityStore,
   readRedisSecurityConfig,
 } from "./redis-security-store";
+import type { SecurityRateLimitResult } from "./security-store.types";
 
 interface ConsumeRateLimitInput {
   key: string;
@@ -26,13 +27,6 @@ interface SecurityStore {
     input: ConsumeRateLimitInput,
   ): Promise<SecurityRateLimitResult>;
   claimOneTimeKey(input: ClaimOneTimeKeyInput): Promise<boolean>;
-}
-
-export interface SecurityRateLimitResult {
-  allowed: boolean;
-  retryAfterSeconds: number;
-  remaining: number;
-  resetAtEpochSeconds: number;
 }
 
 export class SecurityStoreUnavailableError extends Error {
@@ -99,7 +93,9 @@ function logRedisFailure(error: unknown): void {
 
   nextRedisFailureLogAt = now + REDIS_FAILURE_LOG_INTERVAL_MS;
   const message =
-    error instanceof Error ? error.message : "Unknown Redis security store error";
+    error instanceof Error
+      ? error.message
+      : "Unknown Redis security store error";
 
   // eslint-disable-next-line no-console
   console.warn(`[landing-security] redis_unavailable ${message}`);
@@ -126,7 +122,10 @@ class MemorySecurityStore implements SecurityStore {
     return buildRateLimitResult(existing.count, existing.expiresAt, max, now);
   }
 
-  async claimOneTimeKey({ key, ttlMs }: ClaimOneTimeKeyInput): Promise<boolean> {
+  async claimOneTimeKey({
+    key,
+    ttlMs,
+  }: ClaimOneTimeKeyInput): Promise<boolean> {
     const now = Date.now();
     cleanupExpiredMemoryEntries(now);
 
@@ -206,7 +205,9 @@ export async function consumeSecurityRateLimit(
     identifier?: string | null;
   },
 ): Promise<SecurityRateLimitResult> {
-  const key = hashKey(`${scope}:${resolveClientIdentifier(request, identifier)}`);
+  const key = hashKey(
+    `${scope}:${resolveClientIdentifier(request, identifier)}`,
+  );
 
   return runSecurityStoreAction((store) =>
     store.consumeRateLimit({ key, max, windowMs }),

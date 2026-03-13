@@ -91,4 +91,60 @@ describe("sector pages content", () => {
 
     expect(listSectorDifferentiationCards("en")).toHaveLength(3);
   });
+
+  it("keeps sector value propositions differentiated by business risk, not only staffing", () => {
+    const hospitalityFr = getSectorPageById("fr", "hcr");
+    const higherEducationFr = getSectorPageById("fr", "higher-education");
+    const logisticsFr = getSectorPageById("fr", "logistics-transport-retail");
+    const automotiveFr = getSectorPageById("fr", "automotive");
+
+    expect(hospitalityFr.valuePropBody).toContain("promesse de service");
+    expect(higherEducationFr.valuePropBody).toContain("service étudiant");
+    expect(logisticsFr.valuePropBody).toContain("couverture stock");
+    expect(automotiveFr.valuePropBody).toContain("pièces");
+
+    const hospitalityEn = getSectorPageById("en", "hcr");
+    const higherEducationEn = getSectorPageById("en", "higher-education");
+    const logisticsEn = getSectorPageById("en", "logistics-transport-retail");
+    const automotiveEn = getSectorPageById("en", "automotive");
+
+    expect(hospitalityEn.valuePropBody).toContain("service promise");
+    expect(higherEducationEn.valuePropBody).toContain("student service");
+    expect(logisticsEn.valuePropBody).toContain("inventory coverage");
+    expect(automotiveEn.valuePropBody).toContain("parts");
+  });
+
+  it("keeps sector KPIs and decisions anchored in distinct business levers", () => {
+    const hospitalityFr = getSectorPageById("fr", "hcr");
+    const higherEducationFr = getSectorPageById("fr", "higher-education");
+    const logisticsFr = getSectorPageById("fr", "logistics-transport-retail");
+    const automotiveFr = getSectorPageById("fr", "automotive");
+
+    expect(hospitalityFr.kpis.join(" ")).toContain("RevPAR");
+    expect(hospitalityFr.decisions.join(" ")).toContain("terrasses");
+    expect(higherEducationFr.kpis.join(" ")).toContain("yield");
+    expect(higherEducationFr.decisions.join(" ")).toContain(
+      "surveillance d'examens",
+    );
+    expect(logisticsFr.kpis.join(" ")).toContain("Couverture de stock");
+    expect(logisticsFr.decisions.join(" ")).toContain("réapprovisionnement");
+    expect(automotiveFr.kpis.join(" ")).toContain("Taux de service pièces");
+    expect(automotiveFr.decisions.join(" ")).toContain(
+      "transferts inter-sites",
+    );
+
+    const hospitalityEn = getSectorPageById("en", "hcr");
+    const higherEducationEn = getSectorPageById("en", "higher-education");
+    const logisticsEn = getSectorPageById("en", "logistics-transport-retail");
+    const automotiveEn = getSectorPageById("en", "automotive");
+
+    expect(hospitalityEn.kpis.join(" ")).toContain("RevPAR");
+    expect(hospitalityEn.decisions.join(" ")).toContain("terraces");
+    expect(higherEducationEn.kpis.join(" ")).toContain("yield");
+    expect(higherEducationEn.decisions.join(" ")).toContain("exam proctoring");
+    expect(logisticsEn.kpis.join(" ")).toContain("Inventory coverage");
+    expect(logisticsEn.decisions.join(" ")).toContain("replenishment");
+    expect(automotiveEn.kpis.join(" ")).toContain("Parts fill rate");
+    expect(automotiveEn.decisions.join(" ")).toContain("inter-site transfers");
+  });
 });

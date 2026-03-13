@@ -8,13 +8,14 @@ Socle securite du landing.
 - audit securite local (`audit-log.ts`)
 - verification d'origine et de requete JSON (`request-origin.ts`, `json-request.ts`, `request-body.ts`)
 - challenge anti-spam contact (`contact-challenge.ts`)
-- rate limit et tokens one-shot via store partage (`security-store.ts`, `redis-security-store.ts`)
+- rate limit et tokens one-shot via store partage (`security-store.ts`, `redis-security-store.ts`, `security-store.types.ts`)
 - sanitation d'URL / JSON script (`outbound-url.ts`, `json-script.ts`)
 - headers additionnels (`headers.ts`)
 
 ## Points a connaitre
 
 - `security-store.ts` bascule vers Redis si configure, sinon memoire hors production
+- `security-store.types.ts` porte les contrats partages pour eviter une dependance circulaire entre orchestrateur et backend Redis
 - les formulaires publics reutilisent ce dossier via `lib/api/form-route.ts`
 - `contact-challenge.ts` protege le formulaire contact contre rejeu et automatisation
 - `proxy.ts` consomme la CSP issue de ce dossier a chaque requete

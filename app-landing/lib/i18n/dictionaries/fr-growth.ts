@@ -64,20 +64,21 @@ export const frGrowth: Pick<
   },
 
   pilot: {
-    kicker: "Pilote ROI",
-    heading: "Un pilote court pour mettre DecisionOps en production.",
+    kicker: "Déploiement Praedixa",
+    heading: "Une mise en place cadrée avant l'abonnement.",
     subheading:
-      "En quelques semaines, Praedixa relie vos systèmes critiques, cadre les arbitrages prioritaires, déclenche les premières actions et installe la preuve ROI en cadence Ops / Finance.",
-    statusLabels: ["Cadrage", "Premiers gains", "Preuve consolidée"],
+      "Après la preuve sur historique, Praedixa démarre par un onboarding fixe pour relier l'existant, cadrer les arbitrages prioritaires et installer le suivi des gains.",
+    statusLabels: ["Preuve sur historique", "Onboarding", "Abonnement annuel"],
     included: {
       title: "Ce que vous obtenez",
       items: [
-        "Diagnostic ROI offert sur vos données existantes",
+        "Preuve sur historique offerte sur vos données existantes",
+        "Onboarding fixe sur un périmètre multi-sites réaliste",
         "Une fédération RH, finance, opérations et supply chain sur l'existant",
         "Les arbitrages ou sujets à plus fort potentiel de gain",
         "Un plan d'action priorisé avec impact attendu",
-        "Un suivi du ROI simple à relire en comité",
-        "Un Decision Journal et un rythme commun Ops + Finance pour décider plus vite",
+        "Un suivi des gains simple à relire en comité",
+        "Un Decision Journal et un rythme commun Ops + Finance pour décider avec une base commune",
       ],
     },
     excluded: {
@@ -86,7 +87,7 @@ export const frGrowth: Pick<
         "Refonte de vos outils existants",
         "Projet IT long avant les premiers résultats",
         "Black box incompréhensible pour les équipes",
-        "Promesse irréaliste sans cadre ni méthode",
+        "Promesse irréaliste sans base historique ni méthode",
         "Usine à gaz impossible à relire en comité",
       ],
     },
@@ -94,8 +95,8 @@ export const frGrowth: Pick<
       title: "Ce que nous suivons",
       items: [
         "L'argent perdu aujourd'hui",
-        "Le potentiel de gain par site, équipe ou sujet",
-        "Les actions lancées et leur impact réel",
+        "Le potentiel de gain objectivé pendant la preuve sur historique",
+        "Les arbitrages mis en place et leur impact réel",
         "L'alignement RH / Finance / Operations",
         "La vitesse de décision et la clarté des priorités",
       ],
@@ -112,20 +113,21 @@ export const frGrowth: Pick<
     selection: {
       title: "Critères d’éligibilité",
       items: [
-        "Organisation multi-sites avec données dispersées entre équipes",
+        "Organisation multi-sites avec arbitrages récurrents entre coût, service et risque",
         "Sponsor opérations et sponsor finance disponibles",
         "Exports ou outils exploitables côté RH, finance et opérations",
       ],
     },
     upcoming: {
-      title: "Après le pilote",
+      title: "Après la mise en place",
       description:
-        "Vous élargissez progressivement Praedixa aux sites et sujets qui créent le plus de valeur.",
+        "Praedixa tourne ensuite en abonnement annuel pour industrialiser la détection, la priorisation et la preuve d'impact dans le temps.",
     },
     urgency:
-      "Candidatures examinées sous 48h ouvrées. Objectif du pilote: une preuve simple, lisible et orientée ROI x3.",
-    ctaPrimary: "Demander un pilote ROI",
-    ctaMeta: "Diagnostic offert · lecture seule · objectif ROI x3",
+      "Réponse sous 48h ouvrées. Onboarding fixe déduit en cas d'engagement annuel.",
+    ctaPrimary: "Parler du déploiement",
+    ctaMeta:
+      "5 jours ouvrés pour la preuve · onboarding fixe · abonnement annuel",
   },
 
   faq: {
@@ -155,7 +157,7 @@ export const frGrowth: Pick<
       {
         question: "Praedixa, c'est quoi en une phrase ?",
         answer:
-          "Praedixa est la plateforme française de DecisionOps: elle relie vos systèmes existants pour transformer les arbitrages critiques en décisions calculées, exécutées et auditables.",
+          "Praedixa aide les entreprises multi-sites à objectiver et piloter les arbitrages opérationnels qui ont le plus d'impact sur la marge, sans remplacer leurs outils.",
         category: "Comprendre Praedixa",
       },
       {
@@ -190,15 +192,15 @@ export const frGrowth: Pick<
         category: "Comprendre Praedixa",
       },
       {
-        question: "Le diagnostic ROI offert couvre quoi ?",
+        question: "La preuve sur historique offerte couvre quoi ?",
         answer:
-          "Une première lecture sur vos données pour repérer où l'argent se perd, quels sujets ont le plus de potentiel et comment cadrer le pilote.",
+          "Une lecture en 5 jours ouvrés sur vos données pour objectiver les arbitrages prioritaires, le potentiel de gain et la pertinence d'un déploiement.",
         category: "Pilote & tarification",
       },
       {
-        question: "Comment se structure le pilote sur 3 mois ?",
+        question: "Comment se structure la mise en place ?",
         answer:
-          "On démarre sur l'existant, on relie les systèmes critiques, on sort les premières priorités, puis on consolide la preuve de valeur site par site et au niveau réseau.",
+          "On commence par la preuve sur historique. Si le potentiel est confirmé, l'onboarding fixe met Praedixa en place sur un périmètre ciblé avant l'abonnement annuel.",
         category: "Pilote & tarification",
       },
       {
@@ -234,7 +236,7 @@ export const frGrowth: Pick<
       {
         question: "Peut-on commencer petit ?",
         answer:
-          "Oui. Beaucoup d'équipes démarrent par un diagnostic ROI et un périmètre resserré avant d'étendre Praedixa aux sites et sujets les plus rentables.",
+          "Oui. Beaucoup d'équipes commencent par une preuve sur historique sur un périmètre resserré avant de lancer le déploiement.",
         category: "Pilote & tarification",
       },
     ],
@@ -242,66 +244,67 @@ export const frGrowth: Pick<
 
   contact: {
     kicker: "Contact",
-    heading: "Obtenir le diagnostic ROI gratuit.",
+    heading: "Demander la preuve sur historique.",
     subheading:
-      "Partagez votre contexte. On revient avec un cadrage DecisionOps: arbitrages prioritaires, systèmes à fédérer et première boucle de preuve ROI.",
+      "Partagez votre contexte. On revient avec une lecture claire des arbitrages prioritaires, du potentiel objectivable et du prochain pas recommandé.",
     trustItems: [
       "Réponse sous 48h ouvrées",
-      "Diagnostic ROI offert",
+      "Preuve sur historique offerte",
+      "5 jours ouvrés sur données existantes",
       "Lecture seule via exports/API",
-      "Aucun engagement post-pilote imposé",
     ],
-    ctaPrimary: "Obtenir le diagnostic ROI gratuit",
-    ctaSecondary: "Voir le protocole pilote",
+    ctaPrimary: "Demander la preuve sur historique",
+    ctaSecondary: "Voir le protocole de mise en place",
   },
 
   servicesPage: {
     meta: {
-      title: "Praedixa | Plateforme DecisionOps vs diagnostic ROI",
+      title: "Praedixa | Déploiement complet vs preuve sur historique",
       description:
-        "Comparez la plateforme Praedixa DecisionOps et le diagnostic ROI pour choisir votre meilleur point d'entree.",
-      ogTitle: "Praedixa | DecisionOps ou diagnostic ROI",
+        "Comparez la preuve sur historique et le déploiement Praedixa pour choisir le bon point d'entrée.",
+      ogTitle: "Praedixa | Déploiement ou preuve sur historique",
       ogDescription:
-        "Deux façons de démarrer: un diagnostic ROI rapide ou la plateforme DecisionOps pour fédérer, décider, déclencher et prouver.",
+        "Deux façons de démarrer: une preuve sur historique en 5 jours ou la mise en place Praedixa dans la durée.",
     },
     kicker: "Offre",
-    heading: "Praedixa DecisionOps vs diagnostic ROI.",
+    heading: "Déploiement Praedixa vs preuve sur historique.",
     subheading:
-      "Vous pouvez démarrer par un diagnostic ROI sur vos arbitrages, puis passer à la plateforme DecisionOps complète pour gouverner l'exécution et la preuve dans le temps.",
+      "Vous pouvez commencer par une preuve sur historique d'une semaine, puis lancer la mise en place Praedixa avec un onboarding fixe déduit en cas d'engagement annuel.",
     fullPackage: {
-      badge: "Praedixa complet",
-      title: "Fédérer, décider, déclencher, prouver",
+      badge: "Déploiement Praedixa",
+      title: "Mettre Praedixa en place dans la durée",
       summary:
-        "Le cœur de valeur Praedixa: un protocole DecisionOps souverain au-dessus de l'existant.",
+        "Le cœur de valeur Praedixa: une cadence de décision multi-sites suivie, relisible et orientée marge.",
       includesTitle: "Ce qui est inclus",
       includes: [
+        "Onboarding fixe sur un périmètre multi-sites réaliste",
         "Systèmes RH, finance, opérations et supply chain fédérés",
-        "Arbitrages business classes par impact",
-        "Premiere action preparee dans les outils existants",
-        "Suivi du ROI dans le temps",
-        "Decision Journal pour comités et équipes",
-        "Comparaison multi-sites et standardisation",
+        "Priorités business suivies dans le temps",
+        "Cadence de revue Ops / Finance",
+        "Impact prouvé arbitrage par arbitrage",
+        "Extension progressive aux sites et sujets les plus rentables",
       ],
-      cta: "Demander un pilote ROI Praedixa",
+      cta: "Parler du déploiement Praedixa",
     },
     forecastsOnly: {
-      badge: "Diagnostic ROI",
-      title: "Point de départ rapide",
+      badge: "Preuve sur historique",
+      title: "Vérifier rapidement le potentiel",
       summary:
-        "Une première lecture pour voir où l'argent se perd et où Praedixa peut créer le plus de valeur.",
+        "Une lecture en 5 jours ouvrés pour voir où la marge fuit et si Praedixa peut créer un gain mesurable.",
       includesTitle: "Ce qui est inclus",
       includes: [
         "Analyse de vos données existantes",
-        "Repérage des pertes et des gains potentiels",
-        "Démarrage lecture seule via exports/API.",
+        "Objectivation des arbitrages prioritaires",
+        "Estimation du potentiel de gain",
+        "Démarrage lecture seule via exports/API",
       ],
       limitsTitle: "Ce qui n'est pas inclus",
       limits: [
-        "Pas de suivi continu du ROI",
-        "Pas de priorisation détaillée dans le temps",
-        "Pas de cadre multi-sites complet",
+        "Pas de suivi mensuel des gains",
+        "Pas d'onboarding outillé",
+        "Pas de cadence continue de décision",
       ],
-      cta: "Demander un diagnostic ROI",
+      cta: "Demander la preuve sur historique",
     },
     comparison: {
       title: "Comparatif rapide",
@@ -337,42 +340,42 @@ export const frGrowth: Pick<
     decisionGuide: {
       title: "Quand choisir chaque mode",
       items: [
-        "Choisissez Praedixa complet si votre priorité est d'aligner les équipes et de suivre le ROI dans le temps.",
-        "Choisissez le diagnostic ROI si vous voulez d'abord objectiver où l'argent se perd.",
-        "Vous pouvez commencer petit puis activer Praedixa complet sans changer d'outil.",
+        "Choisissez le déploiement Praedixa si vous voulez industrialiser la décision et suivre les gains dans le temps.",
+        "Choisissez la preuve sur historique si vous voulez d'abord objectiver le potentiel avant engagement.",
+        "Vous pouvez commencer par la preuve puis lancer la mise en place sans changer d'outil.",
       ],
     },
     bottomNote:
-      "Le diagnostic ROI est un point de départ. La vraie valeur est dans la fédération sur l'existant, la décision gouvernée, l'exécution et la preuve dans le temps.",
+      "La preuve sur historique réduit le risque d'entrée. La vraie valeur commence quand Praedixa est mis en place dans la durée.",
   },
 
   footer: {
     tagline:
-      "Praedixa transforme les arbitrages critiques en décisions calculées, exécutées et auditables.",
-    badges: ["DecisionOps", "ROI prouve"],
+      "Praedixa aide les équipes multi-sites à anticiper les risques business qui pèsent sur la performance, puis à suivre les décisions lancées dans le temps.",
+    badges: ["Preuve sur historique", "Impact relu"],
     navigation: "Navigation",
     legalContact: "Légal & contact",
     copyright: "Conçu et hébergé en France",
     ctaBanner: {
       kicker: "Praedixa",
       heading:
-        "Les entreprises n'ont pas besoin d'un data hub de plus. Elles ont besoin d'un moteur de décisions.",
-      cta: "Obtenir le diagnostic ROI gratuit",
+        "Les risques business coûtent cher quand ils sont vus trop tard.",
+      cta: "Demander la preuve sur historique",
     },
   },
 
   stickyCta: {
-    text: "Obtenir le diagnostic ROI gratuit",
+    text: "Demander la preuve sur historique",
   },
 
   form: {
-    pageTitle: "Demande de pilote ROI Praedixa",
+    pageTitle: "Demande de déploiement Praedixa",
     pageSubtitle:
-      "Cette demande permet de cadrer un pilote court centré sur vos arbitrages critiques, les systèmes à fédérer et votre preuve ROI.",
-    pill: "Pilote ROI Praedixa",
+      "Cette demande permet de cadrer la mise en place, l'onboarding et l'engagement annuel sur un périmètre réaliste.",
+    pill: "Déploiement Praedixa",
     valuePoints: [
-      "Diagnostic ROI offert",
-      "Qualification orientée COO/Ops et CFO/DAF",
+      "Cadrage de mise en place multi-sites",
+      "Onboarding fixe déduit si engagement annuel",
       "Réponse sous 48h ouvrées",
     ],
     estimatedTime: "Temps estimé",
@@ -415,9 +418,9 @@ export const frGrowth: Pick<
     success: {
       title: "Candidature transmise",
       description:
-        "Nous revenons vers vous sous 48h ouvrées avec un cadrage adapté a votre contexte et un plan de diagnostic ROI.",
+        "Nous revenons vers vous sous 48h ouvrées avec un cadrage adapté a votre contexte et une proposition de mise en place.",
       backToSite: "Retour au site",
-      checkEmail: "Voir le protocole pilote",
+      checkEmail: "Voir le protocole de mise en place",
     },
     error: "Une erreur est survenue. Veuillez réessayer.",
     sectors: [

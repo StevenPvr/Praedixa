@@ -26,12 +26,12 @@ describe("Homepage FR messaging", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "DecisionOps: transformer l'arbitrage en action gouvernée.",
+        name: "Du risque détecté à l'action priorisée.",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Praedixa fédère les données utiles sur l'existant, anticipe les besoins, compare les options coût / service / risque, fait valider l'action utile et referme la boucle avec une preuve mensuelle du ROI.",
+        "Praedixa fédère les signaux utiles, anticipe les écarts business à court terme, calcule les arbitrages coût / service / risque, prépare la première action validée et relit l'impact obtenu.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("Prédire")).toBeInTheDocument();
@@ -42,7 +42,7 @@ describe("Homepage FR messaging", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Praedixa est la plateforme française de DecisionOps. Elle se branche sur vos outils existants pour transformer des arbitrages récurrents en décisions calculées, exécutées et auditables.",
+        "Praedixa détecte les risques business qui menacent la performance et recommande les meilleures décisions pour les réduire sur les effectifs, la demande, les stocks, les approvisionnements et la rétention client. En pratique, nous commençons par le risque le plus coûteux sur votre périmètre.",
       ),
     ).toBeInTheDocument();
   });

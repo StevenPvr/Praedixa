@@ -26,7 +26,7 @@ describe("knowledge pages EN messaging", () => {
     );
     expect(getKnowledgePage("en", "decisionLogProof").title).toBe("ROI pack");
     expect(en.servicesPage.heading).toBe(
-      "Praedixa DecisionOps vs ROI diagnostic.",
+      "Praedixa deployment vs ROI diagnostic.",
     );
     expect(en.servicesPage.fullPackage.includes).toContain(
       "HR, finance, operations, and supply chain systems federated",

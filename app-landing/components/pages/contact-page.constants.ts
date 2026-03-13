@@ -7,9 +7,9 @@ export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const REQUEST_TYPES: RequestTypeOption[] = [
   {
-    value: "founding_pilot",
-    fr: "Pilote ROI Praedixa",
-    en: "Praedixa Signature pilot",
+    value: "deployment_request",
+    fr: "Déploiement Praedixa",
+    en: "Praedixa deployment",
   },
   { value: "product_demo", fr: "Démonstration produit", en: "Product demo" },
   { value: "partnership", fr: "Partenariat", en: "Partnership" },
@@ -18,18 +18,18 @@ export const REQUEST_TYPES: RequestTypeOption[] = [
 
 export function createInitialContactForm(
   locale: Locale,
-  isAuditIntent: boolean,
+  isProofIntent: boolean,
 ): ContactFormData {
   return {
     locale,
-    requestType: "founding_pilot",
+    requestType: "deployment_request",
     companyName: "",
     firstName: "",
     lastName: "",
     role: "",
     email: "",
     phone: "",
-    subject: getInitialSubject(locale, isAuditIntent),
+    subject: getInitialSubject(locale, isProofIntent),
     message: "",
     consent: false,
     website: "",
@@ -38,10 +38,12 @@ export function createInitialContactForm(
   };
 }
 
-function getInitialSubject(locale: Locale, isAuditIntent: boolean): string {
-  if (!isAuditIntent) {
+function getInitialSubject(locale: Locale, isProofIntent: boolean): string {
+  if (!isProofIntent) {
     return "";
   }
 
-  return locale === "fr" ? "Diagnostic ROI gratuit" : "Free ROI diagnostic";
+  return locale === "fr"
+    ? "Preuve sur historique offerte"
+    : "Historical proof request";
 }

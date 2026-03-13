@@ -12,12 +12,6 @@ interface HeroSectionProps {
   dict: Dictionary;
 }
 
-const heroKickerSegments = [
-  "RH",
-  "FINANCE",
-  "OPÉRATIONS",
-  "SUPPLY CHAIN",
-] as const;
 const heroKickerAccentClass =
   "text-[var(--brass-dark-700)] [text-shadow:0_0_20px_rgba(244,231,198,0.16)]";
 const heroHeadlineAccentClass =
@@ -76,25 +70,25 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
     industriesLabel: isFr ? "Solutions par secteur" : "Solutions by industry",
   };
 
-  const auditHref = `${getLocalizedPath(locale, "contact")}?intent=audit`;
+  const proofHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
   const secondaryHref = isFr
     ? getLocalizedPath(locale, "howItWorksPage")
-    : getLocalizedPath(locale, "pilot");
+    : getLocalizedPath(locale, "deployment");
   const hasManifestoLabel = copy.manifestoLabel.trim().length > 0;
-  const heroKickerLabel = isFr ? heroKickerSegments.join(" · ") : copy.kicker;
+  const heroKickerLabel = copy.kicker;
   const heroSupportLine =
     copy.microcopy.trim().length > 0
       ? copy.microcopy
       : isFr
-        ? "Lecture seule sur l'existant · validation humaine · revue mensuelle Ops / Finance"
-        : "Read-only on top of your stack · human validation · monthly Ops / Finance review";
+        ? "Lecture seule sur vos outils · validation humaine · impact relu dans le temps"
+        : "Read-only on your tools · human validation · impact reviewed over time";
   const heroChrome = isFr
     ? {
-        kicker: "Plateforme française de DecisionOps",
+        kicker: "Effectifs · demande · stocks · rétention",
         shelfEyebrow: "Ce que Praedixa verrouille",
       }
     : {
-        kicker: "French DecisionOps platform",
+        kicker: "Staffing · demand · inventory · retention",
         shelfEyebrow: "What Praedixa locks in",
       };
 
@@ -134,28 +128,9 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                   className="h-1.5 w-1.5 rounded-full bg-[var(--brass-dark-600)] shadow-[0_0_12px_rgba(244,231,198,0.35)]"
                   aria-hidden="true"
                 />
-                {isFr ? (
-                  <span className="flex flex-wrap items-center gap-1.5">
-                    {heroKickerSegments.map((segment, index) => (
-                      <span
-                        key={segment}
-                        className="inline-flex items-center gap-1.5"
-                      >
-                        {index > 0 ? (
-                          <span
-                            className="text-[color:rgba(244,231,198,0.42)]"
-                            aria-hidden="true"
-                          >
-                            ·
-                          </span>
-                        ) : null}
-                        <span className={heroKickerAccentClass}>{segment}</span>
-                      </span>
-                    ))}
-                  </span>
-                ) : (
-                  copy.kicker
-                )}
+                <span className={isFr ? heroKickerAccentClass : undefined}>
+                  {copy.kicker}
+                </span>
               </div>
 
               <p className="mt-7 text-[11px] font-semibold uppercase tracking-[0.18em] text-[rgba(255,255,255,0.52)]">
@@ -170,7 +145,7 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                 {isFr
                   ? renderHeadlineWithAccents(
                       copy.headingHighlight,
-                      ["Anticiper", "Décidez", "Prouvez"],
+                      ["risques", "marge"],
                       heroHeadlineAccentClass,
                     )
                   : copy.headingHighlight}
@@ -182,7 +157,7 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
 
               <div className="mt-8 flex flex-wrap items-center gap-3.5">
                 <Link
-                  href={auditHref}
+                  href={proofHref}
                   className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-white px-6 py-3 text-sm font-semibold text-neutral-950 no-underline shadow-[0_30px_72px_-42px_rgba(2,6,23,0.82)] transition-all duration-300 [transition-timing-function:var(--ease-snappy)] hover:bg-amber-50 hover:shadow-[0_38px_90px_-48px_rgba(2,6,23,0.9)] active:translate-y-[1px] active:scale-[0.98]"
                 >
                   {copy.ctaPrimary}

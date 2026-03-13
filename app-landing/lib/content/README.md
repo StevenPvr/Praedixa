@@ -23,10 +23,13 @@ Ici vivent les contenus longs, structures ou semi-editorialises que les pages co
 - garder les cles partagees dans `knowledge-pages-shared.ts`
 - si une page a besoin d'un contrat fort, exporter types + acces centralises depuis ce dossier
 - la facade `sector-pages.ts` sert d'entree unique pour les routes, composants, sitemap et llms
+- les modules `sector-pages*` consomment le contrat `Locale` depuis `lib/i18n/locale.ts`, pas depuis un module de redirects qui reimporte cette facade
 - la copy partagee des verticales reste dans `sector-pages-data/shared.ts`, pas dans `SectorPage.tsx`
 - les pages sectorielles exposent aussi un helper de deduplication des sources affichees pour garder une liste de references propre par URL
 - les verticales doivent expliciter a la fois les `KPIs` que Praedixa peut predire et les `decisions` que la plateforme peut optimiser pour le secteur
-- les contenus knowledge et sectoriels doivent rester alignes sur la categorie `DecisionOps`, pas sur une promesse vague de plateforme data ou de copilote generique
+- chaque verticale doit faire ressortir au moins un levier metier non limite au seul headcount, pour montrer la largeur produit sans refaire une promesse floue de "tout"
+- les contenus knowledge et sectoriels doivent rester alignes sur la promesse publique actuelle: risques business, arbitrages, impact. Ne pas retomber ni dans un jargon de categorie, ni dans quatre verticales qui racontent toutes la meme histoire de staffing.
+- quand l'offre publique change de vocabulaire approuve (`preuve sur historique`, `deploiement`, `abonnement`), realigner dans la meme passe les assertions des tests knowledge/services au lieu de laisser un ancien wording DecisionOps ou pilote derivant.
 
 ## Tests
 

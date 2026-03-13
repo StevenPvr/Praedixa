@@ -79,10 +79,10 @@ describe("navigation menus", () => {
     const { rerender } = render(
       <MobileNav
         locale="fr"
-        primaryCtaHref="/fr/contact?intent=audit"
-        primaryCtaLabel="Obtenir le diagnostic ROI gratuit"
+        primaryCtaHref="/fr/contact?intent=proof"
+        primaryCtaLabel="Demander la preuve sur historique"
         secondaryCtaHref="/fr/devenir-pilote"
-        secondaryCtaLabel="Demander un pilote ROI"
+        secondaryCtaLabel="Parler du déploiement"
       />,
     );
 
@@ -104,10 +104,10 @@ describe("navigation menus", () => {
     rerender(
       <MobileNav
         locale="fr"
-        primaryCtaHref="/fr/contact?intent=audit"
-        primaryCtaLabel="Obtenir le diagnostic ROI gratuit"
+        primaryCtaHref="/fr/contact?intent=proof"
+        primaryCtaLabel="Demander la preuve sur historique"
         secondaryCtaHref="/fr/devenir-pilote"
-        secondaryCtaLabel="Demander un pilote ROI"
+        secondaryCtaLabel="Parler du déploiement"
       />,
     );
 

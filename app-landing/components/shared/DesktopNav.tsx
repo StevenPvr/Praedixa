@@ -64,7 +64,8 @@ export function DesktopNav({ locale }: DesktopNavProps) {
     };
   }, []);
 
-  const labelMainNav = locale === "fr" ? "Navigation principale" : "Main navigation";
+  const labelMainNav =
+    locale === "fr" ? "Navigation principale" : "Main navigation";
 
   return (
     <nav
@@ -84,8 +85,12 @@ export function DesktopNav({ locale }: DesktopNavProps) {
           const hasMenu = menuItems.length > 0;
           const isOpen = openKey === group.key;
           const menuMeta = group.menu;
-          const panelCols = menuMeta?.columns === 2 ? "sm:grid-cols-2 sm:auto-rows-fr" : "grid-cols-1";
-          const panelWidth = menuMeta?.panelWidth === "lg" ? "w-[44rem]" : "w-[36rem]";
+          const panelCols =
+            menuMeta?.columns === 2
+              ? "sm:grid-cols-2 sm:auto-rows-fr"
+              : "grid-cols-1";
+          const panelWidth =
+            menuMeta?.panelWidth === "lg" ? "w-[44rem]" : "w-[36rem]";
           const panelPosition =
             group.key === "product"
               ? "left-0 translate-x-0"
@@ -191,7 +196,9 @@ export function DesktopNav({ locale }: DesktopNavProps) {
                                 size={13}
                                 weight="bold"
                                 className={`mt-0.5 shrink-0 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 ${
-                                  item.primary ? "text-navy-700" : "text-neutral-400"
+                                  item.primary
+                                    ? "text-navy-700"
+                                    : "text-neutral-400"
                                 }`}
                               />
                             </span>

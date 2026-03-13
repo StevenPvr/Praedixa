@@ -18,8 +18,8 @@ describe("sitemap()", () => {
 
   it("should include pilot page (locale-prefixed)", () => {
     const urls = result.map((entry) => entry.url);
-    expect(urls).toContain("https://www.praedixa.com/fr/devenir-pilote");
-    expect(urls).toContain("https://www.praedixa.com/en/pilot-application");
+    expect(urls).toContain("https://www.praedixa.com/fr/deploiement");
+    expect(urls).toContain("https://www.praedixa.com/en/deployment");
   });
 
   it("should include legal pages (locale-prefixed)", () => {
@@ -130,7 +130,7 @@ describe("sitemap()", () => {
 
   it("should set pilot page priority to 0.9", () => {
     const page = result.find(
-      (entry) => entry.url === "https://www.praedixa.com/fr/devenir-pilote",
+      (entry) => entry.url === "https://www.praedixa.com/fr/deploiement",
     );
     expect(page?.priority).toBe(0.9);
   });

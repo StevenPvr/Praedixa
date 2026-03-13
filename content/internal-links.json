@@ -1,18 +1,13 @@
 [
   {
     "id": "fr-workforce-planning",
-    "patterns": [
-      "planification des effectifs",
-      "planification workforce"
-    ],
+    "patterns": ["planification des effectifs", "planification workforce"],
     "url": "/fr/ressources/workforce-planning-multi-sites",
     "maxPerDoc": 1
   },
   {
     "id": "fr-wfm",
-    "patterns": [
-      "WFM"
-    ],
+    "patterns": ["WFM"],
     "url": "/fr/ressources/wfm-logistique",
     "maxPerDoc": 1
   },
@@ -28,41 +23,25 @@
   },
   {
     "id": "fr-pilot",
-    "patterns": [
-      "pilote fondateur",
-      "pilote Praedixa",
-      "demander un pilote"
-    ],
+    "patterns": ["pilote fondateur", "pilote Praedixa", "demander un pilote"],
     "url": "/fr/devenir-pilote",
     "maxPerDoc": 1
   },
   {
     "id": "en-workforce-planning",
-    "patterns": [
-      "workforce planning",
-      "coverage gap",
-      "WFM"
-    ],
+    "patterns": ["workforce planning", "coverage gap", "WFM"],
     "url": "/en/resources",
     "maxPerDoc": 1
   },
   {
     "id": "en-services",
-    "patterns": [
-      "Praedixa services",
-      "Praedixa offer",
-      "service offering"
-    ],
+    "patterns": ["Praedixa services", "Praedixa offer", "service offering"],
     "url": "/en/services",
     "maxPerDoc": 1
   },
   {
     "id": "en-pilot",
-    "patterns": [
-      "founding pilot",
-      "Praedixa pilot",
-      "request a pilot"
-    ],
+    "patterns": ["founding pilot", "Praedixa pilot", "request a pilot"],
     "url": "/en/pilot-application",
     "maxPerDoc": 1
   }

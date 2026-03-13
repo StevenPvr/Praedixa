@@ -301,8 +301,8 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
 });
 
 export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
-  const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=audit`;
-  const protocolHref = `/${locale}/pilot-protocol`;
+  const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
+  const protocolHref = getLocalizedPath(locale, "deploymentProtocol");
 
   return (
     <SectionShell id="contact" className="section-dark overflow-hidden">

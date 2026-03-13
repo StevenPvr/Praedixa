@@ -9,7 +9,9 @@ const VIEWPORTS = [
 
 test.describe("Landing horizontal overflow", () => {
   for (const viewport of VIEWPORTS) {
-    test(`has no horizontal overflow at ${viewport.width}px`, async ({ page }) => {
+    test(`has no horizontal overflow at ${viewport.width}px`, async ({
+      page,
+    }) => {
       await page.setViewportSize(viewport);
       await page.goto("/fr");
 
@@ -24,8 +26,12 @@ test.describe("Landing horizontal overflow", () => {
         };
       });
 
-      expect(metrics.docScrollWidth - metrics.docClientWidth).toBeLessThanOrEqual(1);
-      expect(metrics.bodyScrollWidth - metrics.bodyClientWidth).toBeLessThanOrEqual(1);
+      expect(
+        metrics.docScrollWidth - metrics.docClientWidth,
+      ).toBeLessThanOrEqual(1);
+      expect(
+        metrics.bodyScrollWidth - metrics.bodyClientWidth,
+      ).toBeLessThanOrEqual(1);
     });
   }
 });

@@ -33,9 +33,7 @@ describe("NotFound Page (app/not-found.tsx)", () => {
   it("should render the description text", () => {
     render(<NotFound />);
     expect(
-      screen.getByText(
-        "Cette page n'existe pas ou a été déplacée.",
-      ),
+      screen.getByText("Cette page n'existe pas ou a été déplacée."),
     ).toBeInTheDocument();
   });
 

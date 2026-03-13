@@ -109,12 +109,8 @@ export function HeroProofCard({ locale, className }: HeroProofCardProps) {
         >
           <div className="flex items-center gap-2.5">
             <PulseDot className="bg-emerald-500" duration={2.4} />
-            <span className="text-sm font-semibold text-ink">
-              {copy.title}
-            </span>
-            <span className="text-[13px] text-neutral-500">
-              — {copy.site}
-            </span>
+            <span className="text-sm font-semibold text-ink">{copy.title}</span>
+            <span className="text-[13px] text-neutral-500">— {copy.site}</span>
           </div>
           <span className="rounded-full border border-neutral-200 bg-white/70 px-2.5 py-1 font-mono text-[10px] font-semibold text-neutral-600">
             {copy.horizon}

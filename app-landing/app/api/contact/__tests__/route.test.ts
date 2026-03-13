@@ -23,7 +23,7 @@ function validBody(overrides: Record<string, unknown> = {}) {
 
   return {
     locale: "fr",
-    requestType: "founding_pilot",
+    requestType: "deployment_request",
     companyName: "ACME Corp",
     firstName: "Jean",
     lastName: "Martin",

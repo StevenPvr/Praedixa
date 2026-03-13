@@ -33,6 +33,7 @@ Ce dossier est consommé par l'application `app-landing` et s'insère dans son f
 
 ## Regle editoriale
 
-La copy canonique doit rester alignée sur le positionnement `DecisionOps` de Praedixa: fédération de l'existant, arbitrages gouvernés, exécution contrôlée et preuve ROI décision par décision. Éviter de retomber dans un discours générique de `data platform`, `copilote IA` ou `dashboard` sans nuance.
+La copy canonique doit rester alignée sur la promesse business publique de Praedixa: anticiper les risques business qui dégradent la performance, recommander les meilleures décisions sur les effectifs, la demande, les stocks, les approvisionnements et la rétention, puis relire l'impact dans le temps. La wedge commerciale doit rester visible comme point d'entrée prioritaire, sans réduire toute la plateforme à un seul cas d'usage. Éviter de retomber soit dans le jargon de catégorie (`DecisionOps` partout), soit dans un discours générique de `data platform`, `copilote IA` ou `dashboard`.
+Le parcours d'entree public FR doit rester cohérent avec la promesse commerciale actuelle: `preuve sur historique` en quelques jours, puis `déploiement` avec onboarding fixe, puis abonnement annuel.
 Sur le hero, garder `hero.headline` tres court et laisser `hero.headlineHighlight` porter la promesse detaillee en dessous, dans une hierarchie secondaire.
 Quand cette promesse secondaire est rendue sur un media sombre, verifier qu'elle garde un contraste clair et une taille intermediaire suffisante entre le H1 et le corps de texte.

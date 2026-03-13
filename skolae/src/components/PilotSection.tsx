@@ -37,9 +37,15 @@ export function PilotSection() {
                 transition={{ duration: 0.45, delay: index * 0.06 }}
                 className="rounded-[1.9rem] border border-ink/8 bg-limestone/75 p-5"
               >
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxide">{step.label}</p>
-                <h3 className="mt-3 text-xl font-semibold tracking-tight text-ink">{step.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{step.text}</p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxide">
+                  {step.label}
+                </p>
+                <h3 className="mt-3 text-xl font-semibold tracking-tight text-ink">
+                  {step.title}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  {step.text}
+                </p>
               </motion.article>
             ))}
           </div>
@@ -60,7 +66,10 @@ export function PilotSection() {
               </div>
               <ul className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
                 {pilot.dataInputs.map((item) => (
-                  <li key={item} className="border-b border-ink/8 pb-3 last:border-b-0 last:pb-0">
+                  <li
+                    key={item}
+                    className="border-b border-ink/8 pb-3 last:border-b-0 last:pb-0"
+                  >
                     {item}
                   </li>
                 ))}
@@ -96,7 +105,11 @@ export function PilotSection() {
                 className="rounded-[2rem] border border-ink/8 bg-limestone/74 p-6"
               >
                 <div className="flex items-center gap-3">
-                  <SealCheck size={18} className="text-oxide" weight="duotone" />
+                  <SealCheck
+                    size={18}
+                    className="text-oxide"
+                    weight="duotone"
+                  />
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxide">
                     Gouvernance
                   </p>
@@ -121,7 +134,10 @@ export function PilotSection() {
               </p>
               <ul className="mt-4 grid gap-3 text-sm leading-relaxed text-limestone/80">
                 {pilot.deliverables.map((item) => (
-                  <li key={item} className="rounded-[1.35rem] border border-white/10 bg-white/6 p-4">
+                  <li
+                    key={item}
+                    className="rounded-[1.35rem] border border-white/10 bg-white/6 p-4"
+                  >
                     {item}
                   </li>
                 ))}

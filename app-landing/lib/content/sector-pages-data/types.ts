@@ -1,4 +1,4 @@
-import type { Locale } from "../../i18n/config";
+import type { Locale } from "../../i18n/locale";
 import type { MarketingIconComponent } from "../../../components/shared/icons/MarketingIcons";
 
 export type SectorPageId =

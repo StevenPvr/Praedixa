@@ -8,10 +8,7 @@ interface LegalStaticPageProps {
   pageKey: LegalPageKey;
 }
 
-export function LegalStaticPage({
-  locale,
-  pageKey,
-}: LegalStaticPageProps) {
+export function LegalStaticPage({ locale, pageKey }: LegalStaticPageProps) {
   const content = getLegalContent(locale, pageKey);
 
   return (

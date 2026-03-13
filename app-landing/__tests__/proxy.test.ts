@@ -65,14 +65,14 @@ describe("landing proxy", () => {
   });
 
   it("canonicalizes apex host and legacy path while preserving query params", async () => {
-    const req = makeRequest("/devenir-pilote?src=brand", {
+    const req = makeRequest("/deploiement?src=brand", {
       host: "praedixa.com",
     });
     const result = await proxy(req);
 
     expect(result.status).toBe(301);
     expect(result.headers.get("location")).toBe(
-      "https://www.praedixa.com/fr/devenir-pilote?src=brand",
+      "https://www.praedixa.com/fr/deploiement?src=brand",
     );
   });
 
@@ -85,22 +85,22 @@ describe("landing proxy", () => {
   });
 
   it("redirects FR legacy non-localized URLs to localized target", async () => {
-    const req = makeRequest("/devenir-pilote");
+    const req = makeRequest("/deploiement");
     const result = await proxy(req);
 
     expect(result.status).toBe(301);
     expect(result.headers.get("location")).toBe(
-      "http://localhost:3001/fr/devenir-pilote",
+      "http://localhost:3001/fr/deploiement",
     );
   });
 
   it("redirects EN legacy non-localized URLs to localized target", async () => {
-    const req = makeRequest("/pilot-application");
+    const req = makeRequest("/deployment");
     const result = await proxy(req);
 
     expect(result.status).toBe(301);
     expect(result.headers.get("location")).toBe(
-      "http://localhost:3001/en/pilot-application",
+      "http://localhost:3001/en/deployment",
     );
   });
 
@@ -109,7 +109,9 @@ describe("landing proxy", () => {
     const result = await proxy(req);
 
     expect(result.status).toBe(301);
-    expect(result.headers.get("location")).toBe("http://localhost:3001/fr/blog");
+    expect(result.headers.get("location")).toBe(
+      "http://localhost:3001/fr/blog",
+    );
   });
 
   it("sets CSP header on locale-prefixed pages", async () => {

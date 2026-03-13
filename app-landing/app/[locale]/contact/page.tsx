@@ -21,8 +21,8 @@ export async function generateMetadata({
     title: locale === "fr" ? "Praedixa | Contact" : "Praedixa | Contact",
     description:
       locale === "fr"
-        ? "Demandez un diagnostic ROI gratuit ou echangez sur la facon de cadrer vos arbitrages critiques, les systemes a federer et la preuve ROI."
-        : "Request the free ROI diagnostic or discuss how to frame your critical trade-offs, the systems to federate, and ROI proof.",
+        ? "Demandez une preuve sur historique ou echangez sur la facon de cadrer vos arbitrages critiques, les systemes a federer et la mise en place Praedixa."
+        : "Request historical proof or discuss how to frame your critical trade-offs, the systems to federate, and Praedixa deployment.",
   });
 }
 

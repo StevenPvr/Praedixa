@@ -1,5 +1,10 @@
-import { createHash, createHmac, randomInt, timingSafeEqual } from "node:crypto";
-import { getClientIp } from "../api/pilot-application/rate-limit";
+import {
+  createHash,
+  createHmac,
+  randomInt,
+  timingSafeEqual,
+} from "node:crypto";
+import { getClientIp } from "../api/deployment-request/rate-limit";
 
 export const DEFAULT_MIN_SOLVE_MS = 2_500;
 export const DEFAULT_MAX_AGE_MS = 1000 * 60 * 15;
@@ -107,7 +112,9 @@ function parsePayload(tokenPayload: string): ChallengePayload | null {
     payload.a > MAX_OPERAND ||
     payload.b > MAX_OPERAND ||
     (payload.ctx !== undefined &&
-      (typeof payload.ctx !== "string" || payload.ctx.length === 0 || payload.ctx.length > 64))
+      (typeof payload.ctx !== "string" ||
+        payload.ctx.length === 0 ||
+        payload.ctx.length > 64))
   ) {
     return null;
   }
@@ -117,7 +124,8 @@ function parsePayload(tokenPayload: string): ChallengePayload | null {
 
 export function buildChallengeClientContext(request: Request): string {
   const ip = getClientIp(request);
-  const userAgent = request.headers.get("user-agent")?.trim().slice(0, 200) ?? "";
+  const userAgent =
+    request.headers.get("user-agent")?.trim().slice(0, 200) ?? "";
 
   return createHash("sha256")
     .update(`${ip}|${userAgent}`, "utf8")
@@ -180,10 +188,7 @@ export function verifyContactChallenge({
   const payload = parsePayload(payloadPart);
   if (!payload) return { valid: false, reason: "malformed" };
 
-  if (
-    payload.ctx &&
-    (!clientContext || payload.ctx !== clientContext)
-  ) {
+  if (payload.ctx && (!clientContext || payload.ctx !== clientContext)) {
     return { valid: false, reason: "invalid-context" };
   }
 

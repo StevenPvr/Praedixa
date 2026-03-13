@@ -138,14 +138,12 @@ const MagneticCategoryPill = memo(function MagneticCategoryPill({
   );
 });
 
-const FaqSkeleton = memo(function FaqSkeleton({
-  label,
-}: {
-  label: string;
-}) {
+const FaqSkeleton = memo(function FaqSkeleton({ label }: { label: string }) {
   return (
     <div className="rounded-2xl border border-border-subtle bg-[color:var(--surface-elevated)] p-4 md:p-6">
-      <p className="text-xs uppercase tracking-[0.12em] text-neutral-500">{label}</p>
+      <p className="text-xs uppercase tracking-[0.12em] text-neutral-500">
+        {label}
+      </p>
       <div className="mt-4 space-y-3">
         {Array.from({ length: 4 }).map((_, index) => (
           <div
@@ -175,7 +173,9 @@ function EmptyState({ title, body }: EmptyStateProps) {
 function ErrorState({ title, body, retryLabel, onRetry }: ErrorStateProps) {
   return (
     <div className="rounded-2xl border border-brass-200 bg-brass-50/40 p-6">
-      <p className="text-sm font-semibold tracking-tight text-brass-800">{title}</p>
+      <p className="text-sm font-semibold tracking-tight text-brass-800">
+        {title}
+      </p>
       <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-brass-700/90">
         {body}
       </p>
@@ -237,7 +237,8 @@ export function FaqSectionClient({ dict }: FaqSectionClientProps) {
   }, [filteredItems]);
 
   const hasCategories = categories.length > 0;
-  const hasInvalidCategory = !hasCategories || !categories.includes(activeCategory);
+  const hasInvalidCategory =
+    !hasCategories || !categories.includes(activeCategory);
   const isLoading = loadingCategory === activeCategory && !hasInvalidCategory;
 
   const handleCategorySelect = (category: string) => {

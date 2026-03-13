@@ -17,14 +17,14 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     shortLabel: "HCR",
     title: "HCR",
     metaTitle:
-      "Praedixa | HCR: anticiper les besoins d'effectif avant que le service se tende",
+      "Praedixa | HCR: arbitrer demande, couverture et service avant que la marge ne glisse",
     metaDescription:
-      "Pour l'hôtellerie-restauration, Praedixa relie les systèmes utiles, prédit les besoins d'effectif, chiffre les arbitrages et prouve le ROI sur masse salariale, couverture et qualité de service.",
+      "Pour l'hôtellerie-restauration, Praedixa relie les systèmes utiles, anticipe la demande, compare les arbitrages de couverture et de service, puis suit l'impact sur la marge.",
     heroKicker: "Verticale HCR",
     heroTitle:
-      "Anticiper les besoins d'effectif avant que le service se tende.",
+      "Arbitrer demande, couverture et niveau de service avant que la marge ne glisse.",
     heroSubtitle:
-      "Réservations, PMS, POS, plannings, absences et coûts vivent déjà dans vos outils. Praedixa les relie pour transformer la volatilité HCR en arbitrages chiffrés site par site, service par service.",
+      "Réservations, PMS, POS, plannings, absences et coûts vivent déjà dans vos outils. Praedixa les relie pour transformer la volatilité HCR en décisions plus propres sur couverture, amplitude, promesse de service et marge site par site.",
     proofKicker: "Pourquoi maintenant",
     proofTitle:
       "Le HCR combine saisonnalité forte, demande instable et équipes déjà sous tension.",
@@ -56,7 +56,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
           "https://statistiques.francetravail.org/bmo/bmo?fg=IZ&pp=2025&ss=1",
       },
     ],
-    challengeKicker: "La vraie question d'effectif",
+    challengeKicker: "La vraie question business",
     challengeTitle:
       "Comment couvrir le bon niveau de service quand la demande accélère plus vite que les équipes disponibles ?",
     challengeBody:
@@ -77,12 +77,12 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     ],
     valuePropKicker: "Proposition de valeur",
     valuePropTitle:
-      "Praedixa transforme la couverture en décision opérationnelle gouvernée.",
+      "Praedixa transforme la volatilité HCR en décisions de service et de marge plus défendables.",
     valuePropBody:
-      "Praedixa ne vend pas un outil de planning de plus. La plateforme relie les données utiles, anticipe les besoins par site et par service, compare les options d'action et documente la décision qui protège le mieux la marge et le niveau de service.",
+      "Praedixa ne vend pas un outil de planning de plus. La plateforme relie demande, couverture, coûts et niveau de service, compare les arbitrages possibles et aide à lancer la première action utile sur les effectifs, l'amplitude, la promesse de service ou la rétention terrain.",
     loopKicker: "Boucle Praedixa",
     loopTitle:
-      "Une boucle fermée orientée couverture, coût et qualité de service.",
+      "Une boucle fermée orientée demande, couverture, service et marge.",
     loopIntro:
       "Chaque étape est formulée pour un directeur d'exploitation, un responsable réseau ou un directeur financier: voir plus tôt, arbitrer plus proprement, déclencher plus vite, prouver ce qui a rapporté.",
     loopSteps: [
@@ -91,8 +91,8 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         body: "Réservations, PMS, POS, planning, absences, coûts et calendrier local sont remis dans une même lecture.",
       },
       {
-        title: "Prédire les effectifs nécessaires",
-        body: "Praedixa estime la couverture à J+3, J+7 et J+14 par site, service et créneau critique.",
+        title: "Projeter demande et couverture utiles",
+        body: "Praedixa estime à J+3, J+7 et J+14 où la demande, la couverture et le niveau de service vont se tendre par site, service et créneau critique.",
       },
       {
         title: "Calculer la décision optimale",
@@ -111,20 +111,22 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     kpiTitle:
       "Les signaux HCR que Praedixa peut projeter avant que le service se tende",
     kpis: [
-      "Nuitées, couverts, taux d'occupation et ticket moyen par site, jour et service",
-      "Heures de travail requises par role, shift et plage horaire critique",
-      "Taux de couverture des shifts critiques en salle, cuisine, reception et housekeeping",
-      "Risque d'absentéisme, de no-show ou de sous-couverture par equipe et type de contrat",
+      "Réservations, nuitées, couverts, taux d'occupation, ticket moyen et mix canal par site, jour et service",
+      "Risque de no-show, d'annulation tardive ou de pression groupes/événements par créneau",
+      "Heures de travail requises par rôle, shift et plage horaire critique",
+      "Taux de couverture des shifts critiques en salle, cuisine, réception et housekeeping",
+      "Risque d'absentéisme ou de sous-couverture par équipe et type de contrat",
       "Volume d'heures supplémentaires, extras et intérim à court horizon",
-      "Temps d'attente, niveau de service et revenu par heure travaillée",
-      "Marge protégée ou exposée selon le niveau de couverture retenu",
-      "Part de charge saisonnière vs permanente par site",
+      "Temps d'attente, rotation, niveau de service et risque d'avis dégradés",
+      "Revenu par heure travaillée, RevPAR et marge protégée selon la couverture retenue",
+      "Risque de turnover terrain ou d'attrition saisonnière sur les sites les plus tendus",
     ],
     decisionKicker: "Décisions optimisables",
     decisionTitle:
       "Les arbitrages HCR que Praedixa peut aider à trancher plus tôt",
     decisions: [
       "Combien de serveurs, cuisiniers, receptionnistes ou agents housekeeping planifier par shift",
+      "Quels groupes, services, terrasses ou amplitudes accepter, limiter ou redimensionner quand la capacité se tend",
       "Quand lancer les recrutements saisonniers et sur quels métiers prioritaires",
       "Quand ouvrir, fermer ou réduire une salle, un étage, un service ou une amplitude horaire",
       "Quand recourir aux extras ou à l'intérim vs mobiliser la polyvalence interne",
@@ -135,13 +137,13 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     ctaTitle:
       "Voir ce que Praedixa ferait sur vos services les plus sensibles.",
     ctaBody:
-      "On part de vos données existantes, on remonte les signaux à court horizon et on montre où la couverture coûte trop cher ou protège mal la marge.",
+      "On part de vos données existantes, on remonte les signaux à court horizon et on montre où la demande, la couverture ou la promesse de service dégradent trop vite la marge.",
     homepageHook:
-      "Anticipez les besoins de staffing avant que le service se tende.",
+      "Arbitrez demande, couverture et service avant que la marge ne glisse.",
     homepageStat:
       "336 850 projets de recrutement, 50,2 % difficiles, 56,5 % saisonniers.",
     homepageProblem:
-      "Le vrai enjeu HCR: tenir le niveau de service sans exploser extras, intérim et heures supplémentaires.",
+      "Le vrai enjeu HCR: tenir le niveau de service sans subir trop tard la demande, les renforts et la marge.",
     sourceLinks: [
       ...praedixaMethodSources.fr,
       {
@@ -166,14 +168,14 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     shortLabel: "Enseignement supérieur",
     title: "Enseignement supérieur",
     metaTitle:
-      "Praedixa | Enseignement supérieur: sécuriser les pics de charge campus sans laisser dériver les coûts",
+      "Praedixa | Enseignement supérieur: sécuriser admissions, examens et continuité campus sans laisser dériver budget et couverture",
     metaDescription:
-      "Admissions, scolarité, examens, services campus, vacations et absences: Praedixa aide l'enseignement supérieur à prévoir les besoins humains, arbitrer les ressources rares et prouver le ROI.",
+      "Admissions, scolarité, examens, services campus, vacations, absences et budget: Praedixa aide l'enseignement supérieur à anticiper la charge, arbitrer capacité et continuité de service, puis prouver l'impact.",
     heroKicker: "Verticale enseignement supérieur",
     heroTitle:
-      "Sécuriser les pics d'activité campus sans laisser dériver les coûts de couverture.",
+      "Sécuriser admissions, examens et continuité campus sans laisser dériver budget et couverture.",
     heroSubtitle:
-      "Admissions, scolarité, examens, services campus, vacations, contractuels, permanents et absences: Praedixa transforme les pics calendaires en décisions humaines et budgétaires plus lisibles.",
+      "Admissions, scolarité, examens, services campus, vacations, contractuels, permanents et absences: Praedixa transforme les pics calendaires en décisions plus lisibles sur capacité, budget, service étudiant et priorités académiques.",
     proofKicker: "Pourquoi maintenant",
     proofTitle:
       "Les établissements doivent absorber des pics massifs, mais avec une capacité humaine fragmentée et déjà sous tension.",
@@ -206,9 +208,9 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
           "https://www.enseignementsup-recherche.gouv.fr/fr/les-enseignants-contractuels-affectes-dans-l-enseignement-superieur-annee-2024-100753",
       },
     ],
-    challengeKicker: "La vraie question d'effectif",
+    challengeKicker: "La vraie question business",
     challengeTitle:
-      "Comment absorber les pics de rentrée, d'admissions et d'examens avec une capacité humaine déjà fragmentée ?",
+      "Comment absorber les pics de rentrée, d'admissions et d'examens sans dégrader continuité de service ni budget ?",
     challengeBody:
       "Entre permanents, contractuels, vacataires et équipes support, la couverture des pics n'est jamais seulement une question d'emploi du temps. C'est un arbitrage entre continuité de service, budget, charge humaine et qualité de l'expérience étudiante.",
     challenges: [
@@ -229,9 +231,10 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     valuePropTitle:
       "Praedixa structure une lecture commune admissions x scolarité x RH x budget.",
     valuePropBody:
-      "Praedixa réunit les données académiques, opérationnelles et budgétaires pour rendre visibles les besoins humains sur les pics de charge. La plateforme compare les arbitrages possibles, aide à déclencher la première action utile et mesure ce qui a réellement amélioré la couverture et la continuité de service.",
+      "Praedixa réunit les données académiques, opérationnelles et budgétaires pour rendre visibles les besoins humains sur les pics de charge. La plateforme compare les arbitrages possibles, aide à déclencher la première action utile et mesure ce qui a réellement amélioré la couverture, le service étudiant et la continuité campus.",
     loopKicker: "Boucle Praedixa",
-    loopTitle: "Une boucle de décision pensée pour les cycles académiques.",
+    loopTitle:
+      "Une boucle de décision pensée pour charge, capacité et continuité campus.",
     loopIntro:
       "Praedixa garde la même logique partout, mais la traduit en langage campus: admissions, scolarité, examens, services étudiants, vacations et coûts de couverture.",
     loopSteps: [
@@ -240,8 +243,8 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         body: "Admissions, scolarité, emplois du temps, examens, services campus, absences et masse salariale sont remis dans une lecture partagée.",
       },
       {
-        title: "Prédire les effectifs nécessaires",
-        body: "Praedixa projette les besoins humains sur les pics de rentrée, d'admission, d'examens et de service étudiant.",
+        title: "Projeter charge et capacité campus",
+        body: "Praedixa projette la pression sur admissions, scolarité, examens et services étudiants, ainsi que la capacité réellement mobilisable.",
       },
       {
         title: "Calculer la décision optimale",
@@ -261,12 +264,13 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
       "Les indicateurs campus que Praedixa peut projeter avant les pics de charge",
     kpis: [
       "Candidatures par place et pression d'admission par formation ou campus",
-      "Taux de yield admis vers inscrits et prevision d'inscrits par programme",
-      "Taux de remplissage des groupes, amphis, TD, TP et capacites critiques",
+      "Taux de yield admis vers inscrits, désistements et prévision d'inscrits par programme",
+      "Taux de remplissage des groupes, amphis, TD, TP et capacités critiques",
       "Heures d'enseignement requises vs heures affectées par discipline",
       "Part de couverture assurée par titulaires, contractuels et vacataires",
-      "Risque de sous-effectif enseignant ou support sur les periodes de rentrée et d'examens",
+      "Risque de sous-effectif enseignant ou support sur les périodes de rentrée, d'admissions et d'examens",
       "Délai de traitement admissions, scolarité et services étudiants à court horizon",
+      "Taux de convocation, surveillance d'examens et saturation des salles ou laboratoires critiques",
       "Coût de couverture via vacations, heures complémentaires et réaffectations",
     ],
     decisionKicker: "Décisions optimisables",
@@ -275,23 +279,24 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     decisions: [
       "Ouvrir, fermer ou redimensionner des groupes, sections, parcours ou créneaux",
       "Ajuster les capacités d'accueil et la profondeur des listes d'attente",
+      "Déployer plus tôt jurys, entretiens, surveillance d'examens ou renforts scolarité sur les points de saturation",
       "Allouer les charges d'enseignement entre départements, statuts et campus",
       "Déclencher plus tôt des recrutements contractuels ou des remplacements ciblés",
       "Prioriser les disciplines à sécuriser avant les vagues de départs en retraite",
       "Répartir salles, laboratoires et créneaux selon la charge réellement projetée",
-      "Arbitrer budget entre recrutement, vacations, mutualisation et hybridation",
+      "Arbitrer budget entre recrutement, vacations, mutualisation, hybridation et continuité de service étudiant",
       "Réallouer les équipes support étudiantes pendant les pics d'inscription et d'examens",
     ],
     ctaTitle:
       "Cadrer vos prochains pics campus sur une base de décision commune.",
     ctaBody:
-      "Praedixa montre où la charge va monter, quelles ressources sont réellement mobilisables et quel arbitrage protège le mieux coût, continuité de service et qualité étudiante.",
+      "Praedixa montre où la charge va monter, quelles ressources sont réellement mobilisables et quel arbitrage protège le mieux budget, continuité de service et qualité étudiante.",
     homepageHook:
-      "Sécurisez les pics d'activité campus sans laisser dériver les coûts de couverture.",
+      "Sécurisez admissions, examens et continuité campus sans laisser dériver budget et couverture.",
     homepageStat:
       "3,04 M d'étudiants, 945 500 candidats Parcoursup, 21 080 enseignants contractuels.",
     homepageProblem:
-      "Le vrai enjeu campus: absorber rentrée, admissions et examens avec une capacité humaine fragmentée.",
+      "Le vrai enjeu campus: absorber les pics de charge avec une capacité fragmentée et un budget contraint.",
     sourceLinks: [
       ...praedixaMethodSources.fr,
       {
@@ -324,14 +329,14 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     shortLabel: "Logistique / Transport / Retail",
     title: "Logistique / Transport / Retail",
     metaTitle:
-      "Praedixa | Logistique, transport, retail: piloter la couverture au rythme réel des volumes",
+      "Praedixa | Logistique, transport, retail: arbitrer demande, capacité et promesse client au rythme réel du réseau",
     metaDescription:
-      "Commandes, WMS, TMS, promos, plannings, absences et coûts: Praedixa aide les réseaux logistique, transport et retail à prévoir les besoins, arbitrer les renforts et prouver le ROI site par site.",
+      "Commandes, WMS, TMS, OMS, promos, stock, plannings et coûts: Praedixa aide les réseaux logistique, transport et retail à anticiper la demande, arbitrer capacité, stock et service, puis prouver le ROI site par site.",
     heroKicker: "Verticale logistique / transport / retail",
     heroTitle:
-      "Piloter la couverture multi-sites au rythme réel des volumes, pas au rétroviseur.",
+      "Arbitrer demande, capacité et promesse client au rythme réel du réseau.",
     heroSubtitle:
-      "Commandes, WMS, TMS, OMS, calendrier promo, plannings, absences, performance site et coûts. Praedixa transforme la variabilité quotidienne des volumes en arbitrages plus rapides, plus propres et plus défendables.",
+      "Commandes, WMS, TMS, OMS, calendrier promo, stock, plannings, absences, performance site et coûts. Praedixa transforme la variabilité quotidienne des volumes en décisions plus rapides sur couverture, flux, niveau de service et marge.",
     proofKicker: "Pourquoi maintenant",
     proofTitle:
       "Les volumes bougent plus vite que les effectifs disponibles, alors que chaque décision de couverture pèse directement sur le service.",
@@ -363,9 +368,9 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
           "https://statistiques.francetravail.org/bmo/bmo?fg=HZ&le=0&pp=2025&ss=1",
       },
     ],
-    challengeKicker: "La vraie question d'effectif",
+    challengeKicker: "La vraie question business",
     challengeTitle:
-      "Comment tenir la promesse de service quand les volumes et la charge site changent plus vite que la capacité disponible ?",
+      "Comment tenir la promesse client quand volumes, capacité et disponibilité produit bougent plus vite que le réseau ?",
     challengeBody:
       "Dans ces réseaux, chaque arbitrage de couverture a un double effet: il touche le coût aujourd'hui et le service livré demain. Sans lecture commune, on choisit trop tard entre heures sup, intérim, réaffectation, report de charge ou ajustement du niveau de service.",
     challenges: [
@@ -384,11 +389,12 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     ],
     valuePropKicker: "Proposition de valeur",
     valuePropTitle:
-      "Praedixa aide à décider plus tôt avant que les options ne deviennent trop chères.",
+      "Praedixa aide à arbitrer plus tôt entre capacité, stock, promesse et marge.",
     valuePropBody:
-      "Praedixa réunit les données commandes, exécution, staffing et coûts dans une même lecture, prédit les besoins à court terme et chiffre les arbitrages entre renfort, réallocation, ajustement de promesse et protection de marge. Vous partez d'une première action recommandée, pas d'une discussion abstraite.",
+      "Praedixa réunit commandes, exécution, staffing, disponibilité et coûts dans une même lecture, anticipe les besoins à court terme et chiffre les arbitrages entre renfort, réallocation, couverture stock, ajustement de promesse et protection de marge. Vous partez d'une première action recommandée, pas d'une discussion abstraite.",
     loopKicker: "Boucle Praedixa",
-    loopTitle: "Une boucle pensée pour les réseaux à volumes mouvants.",
+    loopTitle:
+      "Une boucle pensée pour les réseaux où demande, capacité et service bougent tous les jours.",
     loopIntro:
       "Praedixa garde la même logique produit, mais la traduit ici en flux, charge, promesse de service, capacité et coût site par site.",
     loopSteps: [
@@ -397,8 +403,8 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         body: "Commandes, WMS, TMS, OMS, planning, absences, promos, performance site et coûts sont alignés dans une fédération gouvernée.",
       },
       {
-        title: "Prédire les effectifs nécessaires",
-        body: "Praedixa projette la couverture nécessaire à court horizon selon les flux, les pics attendus et la capacité disponible.",
+        title: "Projeter charge, capacité et disponibilité",
+        body: "Praedixa projette à court horizon les volumes, la capacité disponible et les points où stock, flux ou promesse client vont se tendre.",
       },
       {
         title: "Calculer la décision optimale",
@@ -417,7 +423,9 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     kpiTitle:
       "Les indicateurs réseau que Praedixa peut projeter avant la casse opérationnelle",
     kpis: [
-      "Charge par site, jour, heure et activité: commandes, lignes, palettes, tournées ou passages caisse",
+      "Charge par site, jour, heure, canal et activité: commandes, lignes, palettes, tournées, passages caisse ou SKU critiques",
+      "Couverture de stock, risque de rupture et disponibilité produit par site, canal ou famille",
+      "Saturation des quais, tournées, créneaux transporteurs ou cut-offs critiques",
       "Heures de travail requises par activité, shift et site critique",
       "Taux de sous-effectif ou de sur-effectif par site et par créneau",
       "Risque de retard OTIF, SLA, délai de livraison ou rupture de promesse client",
@@ -430,10 +438,12 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     decisionTitle:
       "Les arbitrages logistique / transport / retail que Praedixa peut optimiser",
     decisions: [
+      "Transférer du stock, du volume ou des commandes entre entrepôts, magasins ou zones de préparation",
+      "Accélérer, décaler ou lisser le réapprovisionnement, les réceptions ou les créneaux transporteurs",
       "Réallouer charge, équipes ou volume entre sites, entrepôts, magasins ou tournées",
       "Choisir entre heures supplémentaires, intérim, sous-traitance ou report de charge",
       "Ouvrir un shift additionnel, réduire une amplitude ou ajuster un cut-off opérationnel",
-      "Prioriser commandes, tournées, magasins ou promotions quand la capacité se tend",
+      "Prioriser commandes, tournées, magasins, promotions ou SKU quand la capacité se tend",
       "Ajuster le niveau de service promis selon la couverture réellement disponible",
       "Décider quels sites protéger en priorité pendant un pic promo ou un aléa réseau",
       "Déclencher un renfort transport, un arbitrage inter-sites ou un plan de délestage",
@@ -441,13 +451,13 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     ctaTitle:
       "Voir comment Praedixa arbitre un réseau multi-sites sous variabilité.",
     ctaBody:
-      "On part des volumes, de la capacité et des coûts pour identifier où agir d'abord, avec quel levier et quel ROI attendre sur chaque site.",
+      "On part des volumes, de la capacité, du stock et des coûts pour identifier où agir d'abord, avec quel levier et quel ROI attendre sur chaque site.",
     homepageHook:
-      "Pilotez la couverture multi-sites au rythme réel des volumes, pas au rétroviseur.",
+      "Arbitrez demande, capacité et promesse client au rythme réel du réseau.",
     homepageStat:
       "175,3 Md€ e-commerce, 183 760 recrutements retail, 90 380 en transport-entreposage.",
     homepageProblem:
-      "Le vrai enjeu réseau: arbitrer vite entre coût, productivité, disponibilité et niveau de service.",
+      "Le vrai enjeu réseau: décider vite entre coût, disponibilité, stock, productivité et niveau de service.",
     sourceLinks: [
       ...praedixaMethodSources.fr,
       {
@@ -476,14 +486,14 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     shortLabel: "Automobile / concessions / ateliers",
     title: "Automobile / concessions / ateliers",
     metaTitle:
-      "Praedixa | Automobile: réduire les délais atelier sans surcharger les compétences rares",
+      "Praedixa | Automobile: arbitrer charge atelier, disponibilité pièces et compétences rares avant que les délais ne glissent",
     metaDescription:
-      "DMS, rendez-vous atelier, disponibilité pièces, compétences, absences et coûts: Praedixa aide les concessions et ateliers à prévoir la charge, arbitrer les renforts et prouver le ROI.",
+      "DMS, rendez-vous atelier, disponibilité pièces, compétences, absences et coûts: Praedixa aide les concessions et ateliers à anticiper la charge, arbitrer capacité, pièces et revenu protégé, puis prouver l'impact.",
     heroKicker: "Verticale automobile",
     heroTitle:
-      "Réduire les délais atelier sans surcharger les compétences les plus rares.",
+      "Arbitrer charge atelier, disponibilité pièces et compétences rares avant que les délais ne glissent.",
     heroSubtitle:
-      "DMS, rendez-vous atelier, historique après-vente, disponibilité pièces, compétences, absences et coûts. Praedixa transforme la charge atelier en arbitrages chiffrés sur délai, absorption, couverture et chiffre d'affaires protégé.",
+      "DMS, rendez-vous atelier, historique après-vente, disponibilité pièces, compétences, absences et coûts. Praedixa transforme la charge atelier en décisions plus propres sur délai, backlog, pièces, couverture et chiffre d'affaires protégé.",
     proofKicker: "Pourquoi maintenant",
     proofTitle:
       "L'après-vente doit absorber une charge structurelle, mais avec des compétences critiques de plus en plus difficiles à couvrir.",
@@ -516,9 +526,9 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
           "https://www.anfa-auto.fr/actualites/record-de-recrutements-en-2024-pour-les-services-de-lautomobile",
       },
     ],
-    challengeKicker: "La vraie question d'effectif",
+    challengeKicker: "La vraie question business",
     challengeTitle:
-      "Comment absorber la charge après-vente quand les compétences sont rares, les rendez-vous s'accumulent et que chaque arbitrage pèse sur le délai client ?",
+      "Comment absorber la demande après-vente quand compétences critiques et pièces disponibles deviennent le vrai goulet ?",
     challengeBody:
       "Dans l'automobile, le staffing n'est pas un simple problème de planning. C'est un problème d'heures atelier, de backlog, de compétences critiques, de disponibilité pièces et de chiffre d'affaires protégé.",
     challenges: [
@@ -537,11 +547,12 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     ],
     valuePropKicker: "Proposition de valeur",
     valuePropTitle:
-      "Praedixa aide l'après-vente à arbitrer charge, compétences, délai et chiffre d'affaires.",
+      "Praedixa aide l'après-vente à arbitrer charge, compétences, pièces, délai et chiffre d'affaires.",
     valuePropBody:
-      "Praedixa relie les données atelier, compétences, absences, pièces et coûts pour prévoir les heures nécessaires, comparer les options d'action et documenter celles qui protègent le mieux délai client, absorption et chiffre d'affaires atelier.",
+      "Praedixa relie les données atelier, compétences, absences, pièces et coûts pour prévoir la charge, comparer les options d'action et documenter celles qui protègent le mieux délai client, absorption, disponibilité et chiffre d'affaires atelier.",
     loopKicker: "Boucle Praedixa",
-    loopTitle: "Une boucle de décision pensée pour l'atelier et l'après-vente.",
+    loopTitle:
+      "Une boucle de décision pensée pour l'atelier, les pièces et l'après-vente.",
     loopIntro:
       "Praedixa garde la même mécanique produit, mais la traduit ici en rendez-vous, backlog, compétences, disponibilité et arbitrages économiques d'atelier.",
     loopSteps: [
@@ -550,8 +561,8 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
         body: "DMS, rendez-vous, historique après-vente, disponibilité pièces, compétences, absences et coûts sont unifiés dans une lecture atelier.",
       },
       {
-        title: "Prédire les effectifs nécessaires",
-        body: "Praedixa projette les heures nécessaires par atelier, créneau et type de compétence critique.",
+        title: "Projeter charge, compétences et goulets pièces",
+        body: "Praedixa projette les heures nécessaires par atelier, créneau et type de compétence critique, ainsi que les goulets pièces qui risquent d'allonger le délai.",
       },
       {
         title: "Calculer la décision optimale",
@@ -570,13 +581,14 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     kpiTitle:
       "Les indicateurs atelier que Praedixa peut projeter avant l'allongement des délais",
     kpis: [
-      "Délai de prise de rendez-vous et charge atelier ouverte par jour ou baie",
+      "Délai de prise de rendez-vous et charge atelier ouverte par jour, baie ou type d'intervention",
       "Backlog atelier et heures nécessaires par type d'intervention",
       "Besoin d'heures par atelier, créneau et cluster de compétences critiques",
-      "Heures vendues vs heures produites, efficience et taux d'absorption",
-      "Risque de décalage lié aux pièces, au no-show ou à l'indisponibilité d'une compétence",
+      "Taux de service pièces, risque de backorder et délai d'approvisionnement par référence critique",
+      "Heures vendues vs heures produites, efficience, occupation des baies et taux d'absorption",
+      "Risque de décalage lié aux pièces, au no-show, au comeback ou à l'indisponibilité d'une compétence",
       "Volume d'heures supplémentaires, recours externe et replanifications",
-      "Chiffre d'affaires atelier protégé ou exposé selon la couverture retenue",
+      "Chiffre d'affaires atelier protégé, CSI exposé et risque de churn après-vente selon la couverture retenue",
     ],
     decisionKicker: "Décisions optimisables",
     decisionTitle: "Les arbitrages atelier que Praedixa peut aider à optimiser",
@@ -586,18 +598,19 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
       "Choisir entre heures supplémentaires, réaffectation, renfort externe ou sous-traitance",
       "Déplacer la charge entre ateliers ou concessions quand une équipe sature",
       "Prioriser les interventions à forte valeur ou à forte urgence client",
-      "Déclencher plus tôt les approvisionnements ou arbitrages pièces sur les goulets prévus",
+      "Déclencher plus tôt les approvisionnements, transferts inter-sites ou arbitrages pièces sur les goulets prévus",
       "Décider quand former, polyvalentiser ou sanctuariser certaines compétences rares",
+      "Choisir quelles interventions protéger d'abord pour préserver délai client, CSI et rétention après-vente",
     ],
     ctaTitle: "Voir comment Praedixa aiderait vos ateliers les plus tendus.",
     ctaBody:
-      "On part des rendez-vous, des compétences et des coûts pour identifier où la charge risque de casser le délai client et quelle décision protège le mieux l'atelier.",
+      "On part des rendez-vous, des compétences, des pièces et des coûts pour identifier où la charge risque de casser le délai client et quelle décision protège le mieux l'atelier.",
     homepageHook:
-      "Réduisez les délais atelier sans surcharger vos compétences les plus rares.",
+      "Arbitrez charge atelier, pièces et compétences avant que le délai client ne dérive.",
     homepageStat:
       "33 900 recrutements projetés, 69,7 % difficiles, 17 820 offres non pourvues en 2024.",
     homepageProblem:
-      "Le vrai enjeu atelier: absorber la charge après-vente malgré la rareté des compétences critiques.",
+      "Le vrai enjeu atelier: absorber la demande après-vente malgré la rareté des compétences et les goulets pièces.",
     sourceLinks: [
       ...praedixaMethodSources.fr,
       {

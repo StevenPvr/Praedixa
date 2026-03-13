@@ -8,7 +8,7 @@ test.describe("Hero industry links", () => {
 
     await expect(
       page.getByRole("heading", {
-        name: "4 verticales nettes. Une même boucle de décision.",
+        name: "Quatre secteurs. Un même moteur de décision.",
       }),
     ).toBeVisible();
     await expect(page.locator('a[href="/fr/secteurs/hcr"]')).toHaveCount(1);

@@ -1,4 +1,7 @@
-import { sharedExecutionSection, type SerpResourceEntry } from "./serp-resources-fr.shared";
+import {
+  sharedExecutionSection,
+  type SerpResourceEntry,
+} from "./serp-resources-fr.shared";
 
 export const serpResourceTargetsFrMid: readonly SerpResourceEntry[] = [
   {

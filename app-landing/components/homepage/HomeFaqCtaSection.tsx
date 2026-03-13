@@ -19,44 +19,44 @@ const faqs: Record<"fr" | "en", FaqItem[]> = {
     {
       question: "Praedixa remplace-t-il nos outils existants ?",
       answer:
-        "Non. Praedixa réunit la donnée utile au-dessus de l'existant (ERP, planning, BI, Excel, autres outils), sans remplacement ni projet IT lourd pour démarrer.",
+        "Non. Praedixa lit les données utiles dans vos outils existants et renvoie une recommandation priorisée. Ce n'est ni un nouvel ERP, ni une BI de plus, ni un projet IT lourd pour démarrer.",
     },
     {
-      question: "Faut-il comprendre la data science pour utiliser Praedixa ?",
+      question: "Praedixa exécute-t-il à notre place ?",
       answer:
-        "Non. La complexité reste chez nous. Côté client, vous voyez l'essentiel: les données réunies, les besoins qui remontent, les priorités et l'impact business.",
+        "Praedixa recommande et prépare la première action. Vos équipes valident puis lancent l'action dans leurs outils ; nous ne promettons pas une automatisation aveugle.",
     },
     {
       question: "Qu'est-ce que Praedixa fait concrètement ?",
       answer:
-        "Praedixa est la plateforme française de DecisionOps. Elle se branche sur vos outils existants pour transformer des arbitrages récurrents en décisions calculées, exécutées et auditables.",
+        "Praedixa détecte les risques business qui menacent la performance et recommande les meilleures décisions pour les réduire sur les effectifs, la demande, les stocks, les approvisionnements et la rétention client. En pratique, nous commençons par le risque le plus coûteux sur votre périmètre.",
     },
     {
       question: "Quand voit-on les premiers résultats ?",
       answer:
-        "Une première lecture utile arrive rapidement. Ensuite, Praedixa aide à prioriser les premières actions, à les déclencher proprement et à suivre le ROI dans le temps.",
+        "En 5 jours ouvrés, la preuve sur historique montre si un gain mesurable est réaliste. Ensuite, Praedixa cadre la mise en place pour suivre les décisions lancées et leur impact dans le temps.",
     },
   ],
   en: [
     {
       question: "Does Praedixa replace our existing tools?",
       answer:
-        "No. It is a DecisionOps layer on top of your existing stack (ERP, scheduling, BI, Excel). No replacement, no heavy IT project to get started.",
+        "No. Praedixa reads the useful data in your current tools and returns a prioritized recommendation. It is not a new ERP, another BI layer, or a heavy IT project to get started.",
     },
     {
-      question: "Who keeps final decision authority?",
+      question: "Does Praedixa execute on our behalf?",
       answer:
-        "Managers always do. Praedixa recommends and assists execution. Final sign-off stays with the manager and is logged in the Decision Journal.",
+        "Praedixa recommends and prepares the first action. Your teams validate it and launch it in their tools; this is not blind automation.",
     },
     {
-      question: "How is ROI proven?",
+      question: "What does Praedixa actually do?",
       answer:
-        "Through a monthly Decision Journal with baseline / recommended / actual comparison and explicit assumptions. Audit-ready for steering or Finance reviews.",
+        "Praedixa detects the business risks threatening performance and recommends the best decisions to reduce them across staffing, demand, inventory, supply, and customer retention. In practice, we start with the most costly risk in your perimeter.",
     },
     {
       question: "When do we see the first results?",
       answer:
-        "First proof milestone at week 8. Consolidated multi-site proof at month 3. The free historical audit sets the baseline before launch.",
+        "Within 5 business days, the historical proof shows whether a measurable gain is realistic. Deployment then tracks the decisions launched and their impact over time.",
     },
   ],
 };
@@ -65,8 +65,8 @@ export function HomeFaqCtaSection({ locale }: HomeFaqCtaSectionProps) {
   const isFr = locale === "fr";
   const items = faqs[locale];
 
-  const auditHref = `${getLocalizedPath(locale, "contact")}?intent=audit`;
-  const pilotHref = getLocalizedPath(locale, "pilot");
+  const proofHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
+  const deploymentHref = getLocalizedPath(locale, "deployment");
 
   return (
     <SectionShell id="home-faq-cta">
@@ -78,7 +78,7 @@ export function HomeFaqCtaSection({ locale }: HomeFaqCtaSectionProps) {
       </h2>
       <p className="mt-3 max-w-[52ch] text-sm leading-relaxed text-neutral-500">
         {isFr
-          ? "Des réponses simples sur l'intégration, l'existant, le délai de mise en route et le ROI."
+          ? "Des réponses simples sur la preuve sur historique, l'existant, la mise en place et le ROI."
           : "COO, CFO, multi-site managers — the most common objections, answered plainly."}
       </p>
 
@@ -111,19 +111,19 @@ export function HomeFaqCtaSection({ locale }: HomeFaqCtaSectionProps) {
       {/* CTAs */}
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <Link
-          href={auditHref}
+          href={proofHref}
           className="btn-primary-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-200 active:scale-[0.98]"
         >
           {isFr
-            ? "Obtenir le diagnostic ROI gratuit"
-            : "Get the free historical audit"}
+            ? "Demander la preuve sur historique"
+            : "Request the historical proof"}
           <ArrowRight size={14} weight="bold" />
         </Link>
         <Link
-          href={pilotHref}
+          href={deploymentHref}
           className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors duration-200 hover:bg-neutral-50 active:scale-[0.98]"
         >
-          {isFr ? "Demander un pilote ROI" : "Apply for the pilot"}
+          {isFr ? "Parler du déploiement" : "Discuss deployment"}
         </Link>
       </div>
     </SectionShell>

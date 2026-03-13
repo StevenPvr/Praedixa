@@ -1,14 +1,14 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Pilot application form (/devenir-pilote)", () => {
+test.describe("Deployment request form (/fr/deploiement)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/fr/devenir-pilote");
+    await page.goto("/fr/deploiement");
   });
 
-  test("loads the pilot form page", async ({ page }) => {
+  test("loads the deployment form page", async ({ page }) => {
     await page.waitForLoadState("domcontentloaded");
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
-      /demande de pilote roi praedixa/i,
+      /demande de deploiement praedixa/i,
       { timeout: 15_000 },
     );
     await expect(
@@ -42,7 +42,7 @@ test.describe("Pilot application form (/devenir-pilote)", () => {
   test("submits successfully when required fields are complete", async ({
     page,
   }) => {
-    await page.route("**/api/pilot-application", async (route) => {
+    await page.route("**/api/deployment-request", async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",

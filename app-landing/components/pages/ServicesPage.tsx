@@ -30,7 +30,7 @@ function isPositiveComparisonValue(value: string): boolean {
 
 export function ServicesPage({ locale, dict }: ServicesPageProps) {
   const copy = dict.servicesPage;
-  const pilotHref = getLocalizedPath(locale, "pilot");
+  const pilotHref = getLocalizedPath(locale, "deployment");
   const contactHref = getLocalizedPath(locale, "contact");
   const fullPackageIncludes = toList(copy.fullPackage.includes);
   const forecastsIncludes = toList(copy.forecastsOnly.includes);
@@ -48,7 +48,7 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
           comparisonFallback: "Comparatif indisponible pour le moment.",
           criterionLabel: "Critère",
           signatureLabel: "Offre Praedixa",
-          forecastingLabel: "Diagnostic ROI",
+          forecastingLabel: "Preuve sur historique",
           includesFallback: "Aucun élément renseigné pour le moment.",
           limitsFallback: "Aucune limite renseignée pour le moment.",
           decisionFallback: "Guide de décision indisponible pour le moment.",

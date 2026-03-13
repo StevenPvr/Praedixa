@@ -2,7 +2,11 @@ import Link from "next/link";
 import type { Locale } from "../../lib/i18n/config";
 import { buildBlogPostPath } from "../../lib/blog/posts";
 import type { BlogPost } from "../../lib/blog/types";
-import { formatBlogDate, formatReadingTime, formatTagLabel } from "../../lib/blog/format";
+import {
+  formatBlogDate,
+  formatReadingTime,
+  formatTagLabel,
+} from "../../lib/blog/format";
 
 interface BlogPostCardProps {
   locale: Locale;
@@ -21,12 +25,17 @@ export function BlogPostCard({ locale, post }: BlogPostCardProps) {
       </div>
 
       <h2 className="mt-3 text-xl font-semibold tracking-tight text-ink">
-        <Link href={href} className="text-ink no-underline hover:text-brass-700">
+        <Link
+          href={href}
+          className="text-ink no-underline hover:text-brass-700"
+        >
           {post.title}
         </Link>
       </h2>
 
-      <p className="mt-3 text-sm leading-relaxed text-neutral-600">{post.description}</p>
+      <p className="mt-3 text-sm leading-relaxed text-neutral-600">
+        {post.description}
+      </p>
 
       <ul className="mt-4 flex list-none flex-wrap gap-2 p-0">
         {post.tags.map((tag) => (

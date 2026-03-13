@@ -7,9 +7,11 @@ Ce dossier regroupe les tests associés au dossier parent `app-landing/component
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `NavigationMenus.test.tsx`
 
 ## Intégration

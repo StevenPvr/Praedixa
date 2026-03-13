@@ -26,20 +26,32 @@ function shouldUseMemoryCache(): boolean {
   return isProductionEnvironment();
 }
 
-function resolveRawString(value: unknown, fieldName: string, sourcePath: string): string {
+function resolveRawString(
+  value: unknown,
+  fieldName: string,
+  sourcePath: string,
+): string {
   if (typeof value !== "string") {
-    throw new Error(`${sourcePath}: frontmatter field '${fieldName}' must be a string.`);
+    throw new Error(
+      `${sourcePath}: frontmatter field '${fieldName}' must be a string.`,
+    );
   }
 
   const trimmed = value.trim();
   if (trimmed.length === 0) {
-    throw new Error(`${sourcePath}: frontmatter field '${fieldName}' cannot be empty.`);
+    throw new Error(
+      `${sourcePath}: frontmatter field '${fieldName}' cannot be empty.`,
+    );
   }
 
   return trimmed;
 }
 
-function resolveOptionalString(value: unknown, fieldName: string, sourcePath: string): string | undefined {
+function resolveOptionalString(
+  value: unknown,
+  fieldName: string,
+  sourcePath: string,
+): string | undefined {
   if (value === undefined || value === null) {
     return undefined;
   }
@@ -54,26 +66,40 @@ function resolveStringArray(
 ): string[] {
   if (value === undefined || value === null) {
     if (required) {
-      throw new Error(`${sourcePath}: frontmatter field '${fieldName}' must be an array of strings.`);
+      throw new Error(
+        `${sourcePath}: frontmatter field '${fieldName}' must be an array of strings.`,
+      );
     }
     return [];
   }
 
   if (!Array.isArray(value)) {
-    throw new Error(`${sourcePath}: frontmatter field '${fieldName}' must be an array of strings.`);
+    throw new Error(
+      `${sourcePath}: frontmatter field '${fieldName}' must be an array of strings.`,
+    );
   }
 
-  const values = value.map((entry) => resolveRawString(entry, fieldName, sourcePath));
+  const values = value.map((entry) =>
+    resolveRawString(entry, fieldName, sourcePath),
+  );
   if (required && values.length === 0) {
-    throw new Error(`${sourcePath}: frontmatter field '${fieldName}' must contain at least one value.`);
+    throw new Error(
+      `${sourcePath}: frontmatter field '${fieldName}' must contain at least one value.`,
+    );
   }
 
   return values;
 }
 
-function resolveBoolean(value: unknown, fieldName: string, sourcePath: string): boolean {
+function resolveBoolean(
+  value: unknown,
+  fieldName: string,
+  sourcePath: string,
+): boolean {
   if (typeof value !== "boolean") {
-    throw new Error(`${sourcePath}: frontmatter field '${fieldName}' must be a boolean.`);
+    throw new Error(
+      `${sourcePath}: frontmatter field '${fieldName}' must be a boolean.`,
+    );
   }
 
   return value;
@@ -89,7 +115,9 @@ function resolveOptionalPositiveNumber(
   }
 
   if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
-    throw new Error(`${sourcePath}: frontmatter field '${fieldName}' must be a positive number.`);
+    throw new Error(
+      `${sourcePath}: frontmatter field '${fieldName}' must be a positive number.`,
+    );
   }
 
   return Math.max(1, Math.round(value));
@@ -105,7 +133,9 @@ function resolveOptionalBoolean(
   }
 
   if (typeof value !== "boolean") {
-    throw new Error(`${sourcePath}: frontmatter field '${fieldName}' must be a boolean.`);
+    throw new Error(
+      `${sourcePath}: frontmatter field '${fieldName}' must be a boolean.`,
+    );
   }
 
   return value;
@@ -125,7 +155,10 @@ function resolveLocaleValue(value: unknown, sourcePath: string): Locale {
   return value;
 }
 
-function resolveDate(value: unknown, sourcePath: string): { date: Date; iso: string } {
+function resolveDate(
+  value: unknown,
+  sourcePath: string,
+): { date: Date; iso: string } {
   const raw = resolveRawString(value, "date", sourcePath);
 
   if (!DATE_PATTERN.test(raw)) {
@@ -136,7 +169,9 @@ function resolveDate(value: unknown, sourcePath: string): { date: Date; iso: str
 
   const parsed = new Date(`${raw}T00:00:00.000Z`);
   if (Number.isNaN(parsed.getTime())) {
-    throw new Error(`${sourcePath}: frontmatter field 'date' is not a valid calendar date.`);
+    throw new Error(
+      `${sourcePath}: frontmatter field 'date' is not a valid calendar date.`,
+    );
   }
 
   return { date: parsed, iso: raw };
@@ -165,13 +200,20 @@ function parseFrontmatter(sourcePath: string, source: string): BlogPost {
     sourcePath,
   );
 
-  const computedReadingTime = Math.max(1, Math.round(readingTime(parsed.content).minutes));
+  const computedReadingTime = Math.max(
+    1,
+    Math.round(readingTime(parsed.content).minutes),
+  );
 
   return {
     slug: fileName,
     locale: resolveLocaleValue(frontmatter.lang, sourcePath),
     title: resolveRawString(frontmatter.title, "title", sourcePath),
-    description: resolveRawString(frontmatter.description, "description", sourcePath),
+    description: resolveRawString(
+      frontmatter.description,
+      "description",
+      sourcePath,
+    ),
     date,
     dateIso: iso,
     rssVersion: rssVersion ?? 1,
@@ -180,17 +222,26 @@ function parseFrontmatter(sourcePath: string, source: string): BlogPost {
       "translationKey",
       sourcePath,
     ),
-    tags: resolveStringArray(frontmatter.tags, "tags", sourcePath, { required: true }),
+    tags: resolveStringArray(frontmatter.tags, "tags", sourcePath, {
+      required: true,
+    }),
     draft: resolveBoolean(frontmatter.draft, "draft", sourcePath),
-    canonical: resolveOptionalString(frontmatter.canonical, "canonical", sourcePath),
+    canonical: resolveOptionalString(
+      frontmatter.canonical,
+      "canonical",
+      sourcePath,
+    ),
     image: resolveOptionalString(frontmatter.image, "image", sourcePath),
     authors: resolveStringArray(frontmatter.authors, "authors", sourcePath, {
       required: false,
     }),
     readingTimeMinutes: explicitReadingTime ?? computedReadingTime,
     disableAutoLinks:
-      resolveOptionalBoolean(frontmatter.disableAutoLinks, "disableAutoLinks", sourcePath) ??
-      false,
+      resolveOptionalBoolean(
+        frontmatter.disableAutoLinks,
+        "disableAutoLinks",
+        sourcePath,
+      ) ?? false,
     body: parsed.content,
     sourcePath,
   };
@@ -249,7 +300,10 @@ function shouldIncludeDrafts(includeDrafts?: boolean): boolean {
   return !isProductionEnvironment();
 }
 
-function filterVisibility(posts: BlogPost[], includeDrafts?: boolean): BlogPost[] {
+function filterVisibility(
+  posts: BlogPost[],
+  includeDrafts?: boolean,
+): BlogPost[] {
   const includesDrafts = shouldIncludeDrafts(includeDrafts);
   if (includesDrafts) {
     return posts;
@@ -268,7 +322,9 @@ function filterByTag(posts: BlogPost[], selectedTag?: string): BlogPost[] {
   }
 
   const normalizedTag = normalizeTag(selectedTag);
-  return posts.filter((post) => post.tags.some((tag) => normalizeTag(tag) === normalizedTag));
+  return posts.filter((post) =>
+    post.tags.some((tag) => normalizeTag(tag) === normalizedTag),
+  );
 }
 
 function parsePositiveInteger(value: string | undefined): number {
@@ -284,7 +340,9 @@ function parsePositiveInteger(value: string | undefined): number {
   return parsed;
 }
 
-function resolveFirstValue(value: string | string[] | undefined): string | undefined {
+function resolveFirstValue(
+  value: string | string[] | undefined,
+): string | undefined {
   if (Array.isArray(value)) {
     return value[0];
   }
@@ -310,7 +368,10 @@ export function buildBlogPostPath(locale: Locale, slug: string): string {
   return `/${locale}/${BLOG_ROUTE_SEGMENT}/${slug}`;
 }
 
-export function buildBlogIndexPath(locale: Locale, search: BlogListSearchParams): string {
+export function buildBlogIndexPath(
+  locale: Locale,
+  search: BlogListSearchParams,
+): string {
   const basePath = `/${locale}/${BLOG_ROUTE_SEGMENT}`;
   const query = new URLSearchParams();
 
@@ -334,7 +395,9 @@ export function getBlogPostsByLocale(
   locale: Locale,
   options?: { includeDrafts?: boolean },
 ): BlogPost[] {
-  const localePosts = getAllBlogPosts().filter((post) => post.locale === locale);
+  const localePosts = getAllBlogPosts().filter(
+    (post) => post.locale === locale,
+  );
   return filterVisibility(localePosts, options?.includeDrafts);
 }
 
@@ -364,9 +427,13 @@ export function getPaginatedBlogPosts(
   search: BlogListSearchParams,
   options?: { includeDrafts?: boolean; pageSize?: number },
 ): PaginatedBlogPosts {
-  const visiblePosts = getBlogPostsByLocale(locale, { includeDrafts: options?.includeDrafts });
+  const visiblePosts = getBlogPostsByLocale(locale, {
+    includeDrafts: options?.includeDrafts,
+  });
   const availableTags = Array.from(
-    new Set(visiblePosts.flatMap((post) => post.tags.map((tag) => normalizeTag(tag)))),
+    new Set(
+      visiblePosts.flatMap((post) => post.tags.map((tag) => normalizeTag(tag))),
+    ),
   ).sort((left, right) => left.localeCompare(right));
 
   const taggedPosts = filterByTag(visiblePosts, search.tag);
@@ -412,9 +479,14 @@ export function getBlogPostAlternateLocales(
   options?: { includeDrafts?: boolean },
 ): Partial<Record<Locale, BlogPost>> {
   const alternates: Partial<Record<Locale, BlogPost>> = {};
-  const visiblePosts = filterVisibility(getAllPostsFromStore(), options?.includeDrafts);
+  const visiblePosts = filterVisibility(
+    getAllPostsFromStore(),
+    options?.includeDrafts,
+  );
   const pairedPosts = post.translationKey
-    ? visiblePosts.filter((candidate) => candidate.translationKey === post.translationKey)
+    ? visiblePosts.filter(
+        (candidate) => candidate.translationKey === post.translationKey,
+      )
     : visiblePosts.filter((candidate) => candidate.slug === post.slug);
 
   for (const locale of locales) {

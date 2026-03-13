@@ -61,19 +61,34 @@ test.describe("Local booking flow", () => {
     await expect(submit).toBeEnabled();
     await submit.click();
 
-    await expect(page.getByRole("heading", { name: /Message envoyé/i })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /Message envoyé/i }),
+    ).toBeVisible();
 
     await expect(
       page.getByRole("heading", { name: /Proposer un cadrage/i }),
     ).toBeVisible();
 
-    await expect(page.locator("#booking-company")).toHaveValue("Atlas Logistics");
-    await expect(page.locator("#booking-email")).toHaveValue("camille@atlas.fr");
+    await expect(page.locator("#booking-company")).toHaveValue(
+      "Atlas Logistics",
+    );
+    await expect(page.locator("#booking-email")).toHaveValue(
+      "camille@atlas.fr",
+    );
 
     await page.locator("#booking-timezone").fill("Europe/Paris");
-    await page.locator('input[type="datetime-local"]').nth(0).fill("2030-01-10T10:00");
-    await page.locator('input[type="datetime-local"]').nth(1).fill("2030-01-10T14:00");
-    await page.locator('input[type="datetime-local"]').nth(2).fill("2030-01-11T09:30");
+    await page
+      .locator('input[type="datetime-local"]')
+      .nth(0)
+      .fill("2030-01-10T10:00");
+    await page
+      .locator('input[type="datetime-local"]')
+      .nth(1)
+      .fill("2030-01-10T14:00");
+    await page
+      .locator('input[type="datetime-local"]')
+      .nth(2)
+      .fill("2030-01-11T09:30");
 
     await page.getByRole("button", { name: /Proposer mes créneaux/i }).click();
 

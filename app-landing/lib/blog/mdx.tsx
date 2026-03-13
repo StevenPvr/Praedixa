@@ -71,7 +71,9 @@ async function compilePostContent(post: BlogPost): Promise<CompiledBlogMdx> {
   };
 }
 
-export async function getCompiledBlogMdx(post: BlogPost): Promise<CompiledBlogMdx> {
+export async function getCompiledBlogMdx(
+  post: BlogPost,
+): Promise<CompiledBlogMdx> {
   if (!shouldUseCache()) {
     return compilePostContent(post);
   }

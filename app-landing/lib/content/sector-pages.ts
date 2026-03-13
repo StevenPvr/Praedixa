@@ -1,4 +1,4 @@
-import type { Locale } from "../i18n/config";
+import type { Locale } from "../i18n/locale";
 import { sectorPagesEn } from "./sector-pages-data/en";
 import { sectorPagesFr } from "./sector-pages-data/fr";
 import { sectorLegacyAliases, sectorRoutes } from "./sector-pages-data/routes";

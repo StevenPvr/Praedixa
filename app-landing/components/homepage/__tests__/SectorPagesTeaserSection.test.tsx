@@ -19,7 +19,7 @@ describe("SectorPagesTeaserSection", () => {
     render(<SectorPagesTeaserSection locale="fr" />);
 
     const hrefs = screen
-      .getAllByRole("link", { name: /Voir la verticale/i })
+      .getAllByRole("link", { name: /Voir le cas sectoriel/i })
       .map((link) => link.getAttribute("href"));
 
     expect(hrefs).toContain("/fr/secteurs/hcr");

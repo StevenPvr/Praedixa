@@ -30,9 +30,10 @@ export function LoopSection() {
               </p>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              La plateforme n'a pas besoin d'en faire plus au départ. Elle doit simplement relier
-              le bon signal, le bon arbitrage et la bonne preuve de manière assez claire pour être
-              lisible en comité mensuel.
+              La plateforme n'a pas besoin d'en faire plus au départ. Elle doit
+              simplement relier le bon signal, le bon arbitrage et la bonne
+              preuve de manière assez claire pour être lisible en comité
+              mensuel.
             </p>
             <div className="mt-6 rounded-[1.6rem] border border-ink/8 bg-limestone/75 p-4">
               <div className="flex items-center gap-3">
@@ -42,8 +43,8 @@ export function LoopSection() {
                 </p>
               </div>
               <p className="mt-3 text-sm leading-relaxed text-ink/76">
-                Un dispositif léger, des options déjà comparées, une action validée humainement et
-                une preuve relue en comité.
+                Un dispositif léger, des options déjà comparées, une action
+                validée humainement et une preuve relue en comité.
               </p>
             </div>
           </motion.aside>
@@ -67,8 +68,12 @@ export function LoopSection() {
                   </p>
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold tracking-tight text-ink">{step.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.text}</p>
+                  <h3 className="text-xl font-semibold tracking-tight text-ink">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {step.text}
+                  </p>
                 </div>
               </motion.article>
             ))}
@@ -76,8 +81,14 @@ export function LoopSection() {
         </div>
 
         <div className="mt-8 flex items-center gap-3 rounded-[1.8rem] border border-ink/8 bg-ink px-5 py-4 text-limestone shadow-diffusion">
-          <TrendUp size={18} className="shrink-0 text-oxide-soft" weight="duotone" />
-          <p className="text-sm leading-relaxed text-limestone/84">{loop.footer}</p>
+          <TrendUp
+            size={18}
+            className="shrink-0 text-oxide-soft"
+            weight="duotone"
+          />
+          <p className="text-sm leading-relaxed text-limestone/84">
+            {loop.footer}
+          </p>
         </div>
       </div>
     </section>

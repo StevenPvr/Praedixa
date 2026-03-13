@@ -32,6 +32,9 @@ export interface KnowledgePageContent {
   ctaLabel: string;
 }
 
-export function getKnowledgePath(locale: Locale, key: KnowledgePageKey): string {
+export function getKnowledgePath(
+  locale: Locale,
+  key: KnowledgePageKey,
+): string {
   return `/${locale}/${localizedSlugs[key][locale]}`;
 }

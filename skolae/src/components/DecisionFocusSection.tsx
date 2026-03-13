@@ -50,9 +50,15 @@ export function DecisionFocusSection() {
                       <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxide-soft">
                         {item.label}
                       </p>
-                      <Icon size={18} className="text-oxide-soft" weight="duotone" />
+                      <Icon
+                        size={18}
+                        className="text-oxide-soft"
+                        weight="duotone"
+                      />
                     </div>
-                    <p className="mt-3 text-sm leading-relaxed text-limestone/80">{item.value}</p>
+                    <p className="mt-3 text-sm leading-relaxed text-limestone/80">
+                      {item.value}
+                    </p>
                   </div>
                 );
               })}
@@ -66,16 +72,20 @@ export function DecisionFocusSection() {
             transition={{ duration: 0.5, delay: 0.05 }}
             className="rounded-[2.1rem] border border-ink/8 bg-white/68 p-6 shadow-panel shadow-[inset_0_1px_0_rgba(255,255,255,0.76)] backdrop-blur-sm"
           >
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxide">
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxide">
               Actions que Skolae peut comparer
-              </p>
+            </p>
             <ul className="mt-5 space-y-4">
               {decisionFocus.primaryLevers.map((lever) => (
                 <li
                   key={lever}
                   className="flex gap-3 border-b border-ink/8 pb-4 text-sm leading-relaxed text-ink/78 last:border-b-0 last:pb-0"
                 >
-                  <CalendarDots size={18} className="mt-0.5 shrink-0 text-oxide" weight="duotone" />
+                  <CalendarDots
+                    size={18}
+                    className="mt-0.5 shrink-0 text-oxide"
+                    weight="duotone"
+                  />
                   <span>{lever}</span>
                 </li>
               ))}
@@ -97,10 +107,12 @@ export function DecisionFocusSection() {
                 {extension.title}
               </p>
               <p className="mt-3 text-sm leading-relaxed text-ink">
-                <span className="font-medium">Risque vu plus tôt:</span> {extension.forecast}
+                <span className="font-medium">Risque vu plus tôt:</span>{" "}
+                {extension.forecast}
               </p>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                <span className="font-medium text-ink">Action priorisée:</span> {extension.optimize}
+                <span className="font-medium text-ink">Action priorisée:</span>{" "}
+                {extension.optimize}
               </p>
             </motion.article>
           ))}

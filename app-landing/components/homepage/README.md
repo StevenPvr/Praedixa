@@ -37,13 +37,15 @@ Construire une homepage modulaire ou chaque section est lisible seule, reordonna
 ## Convention pratique
 
 Si une section commence a porter de la logique de page complete, la remonter dans `components/pages/` plutot que d'alourdir la homepage.
-La homepage doit garder un message produit unique: Praedixa = `DecisionOps` sur l'existant, avec arbitrages gouvernés, première action déclenchée et preuve ROI décision par décision.
+La homepage doit garder un message produit unique: Praedixa anticipe les risques business qui pèsent sur la performance, avec une vision large en surface (`effectifs`, `demande`, `stocks`, `approvisionnements`, `rétention`) puis une entrée commerciale resserrée sur le risque prioritaire, validée par la `preuve sur historique`.
 Le couple `hero.headline` + `hero.headlineHighlight` doit rester court et net; si le positionnement s'allonge, raccourcir la copy avant d'essayer de le compenser par le layout.
 Dans le hero, `hero.headline` doit rester le mot-ancre principal, et `hero.headlineHighlight` doit vivre dessous dans une taille visiblement plus petite plutot qu'etre une deuxieme ligne geante.
 Sur une hero image ou video sombre, ne pas reutiliser des tokens texte pensés pour fond clair sur `hero.headlineHighlight`; la ligne secondaire doit rester claire et lisible au premier coup d'oeil.
+Le hero FR ne doit plus cacher le `hero.kicker` derriere une liste statique de fonctions; si la promesse cible un persona ou une offre d'entree, afficher la copy du dictionnaire telle quelle.
 Pour les mots accentués du hero, choisir la couleur de marque la plus lisible sur le média réel (`--accent-*` ou `--brass-*`), pas une teinte pâle qui ressemble à un simple halo.
 Le rail de preuves en bas du hero doit etre ancre avec le layout (`flex-1` + `mt-auto`), pas repositionne uniquement au `margin-top`, pour qu'il ne remonte pas quand la copy du hero change.
 Sur la hero actuelle avec video de fond, garder une seule masse editoriale dominante. Ne pas reintroduire de grosse carte laterale si elle concurrence la lecture du message principal.
+Au-dessus de la ligne de flottaison, préférer la promesse business large (`risques business -> décisions -> performance`) à la catégorie `DecisionOps`; le wedge concret doit apparaître comme point d'entrée, pas comme réduction de toute la vision produit.
 Dans `ClosedLoopTeaserSection.tsx`, garder la boucle produit complète: `Fédérer -> Prédire -> Calculer -> Déclencher -> Prouver`.
 Dans `ClosedLoopTeaserSection.tsx`, eviter les grilles de 5 cartes identiques: preferer une composition asymetrique avec une colonne d'intention et des etapes de tailles variees.
 Dans `ClosedLoopTeaserSection.tsx`, ne pas utiliser de `translate-y` decoratif sur les etapes si cela fragilise la lecture ou le contraste; privilegier un rail vertical compact et stable.

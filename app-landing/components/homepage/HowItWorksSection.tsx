@@ -70,9 +70,11 @@ function HowItWorksBackdrop() {
 export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
   const copy = sectionCopy[locale];
   const protocol = dict?.howItWorks;
-  const pilotHref = getLocalizedPath(locale, "pilot");
+  const pilotHref = getLocalizedPath(locale, "deployment");
 
-  const rawSteps = protocol?.steps as Dictionary["howItWorks"]["steps"] | undefined;
+  const rawSteps = protocol?.steps as
+    | Dictionary["howItWorks"]["steps"]
+    | undefined;
   const isLoading = Boolean(protocol) && !rawSteps;
   const hasInvalidShape = rawSteps !== undefined && !Array.isArray(rawSteps);
 
@@ -90,7 +92,10 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
             <div className="h-[260px] animate-pulse rounded-[2rem] bg-white/[0.04]" />
             <div className="space-y-3">
               {[1, 2, 3, 4].map((n) => (
-                <div key={n} className="h-24 animate-pulse rounded-[2rem] bg-white/[0.04]" />
+                <div
+                  key={n}
+                  className="h-24 animate-pulse rounded-[2rem] bg-white/[0.04]"
+                />
               ))}
             </div>
           </div>
@@ -105,7 +110,9 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
         <HowItWorksBackdrop />
         <div className="relative max-w-2xl">
           <Kicker className="text-neutral-100">{copy.errorTitle}</Kicker>
-          <p className="mt-4 text-sm leading-relaxed text-neutral-400">{copy.errorBody}</p>
+          <p className="mt-4 text-sm leading-relaxed text-neutral-400">
+            {copy.errorBody}
+          </p>
         </div>
       </SectionShell>
     );
@@ -124,7 +131,9 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
           <h2 className="mt-3 text-4xl font-semibold tracking-tighter text-white">
             {copy.emptyTitle}
           </h2>
-          <p className="mt-4 text-sm leading-relaxed text-neutral-400">{copy.emptyBody}</p>
+          <p className="mt-4 text-sm leading-relaxed text-neutral-400">
+            {copy.emptyBody}
+          </p>
         </div>
       </SectionShell>
     );
@@ -153,7 +162,6 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
 
         {/* ── Two-column body ───────────────────────────────────────────── */}
         <div className="mt-14 grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start">
-
           {/* Left — compact loop chain + CTA (sticky) */}
           <motion.aside
             initial={{ opacity: 0, x: -14 }}
@@ -178,7 +186,10 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
               />
               <div className="space-y-5">
                 {steps.map((step, i) => (
-                  <div key={`loop-${step.number}`} className="flex items-center gap-3">
+                  <div
+                    key={`loop-${step.number}`}
+                    className="flex items-center gap-3"
+                  >
                     <span className="relative z-10 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-amber-300/35 bg-amber-500/12 text-[9px] font-bold leading-none text-amber-200/75">
                       {i + 1}
                     </span>
@@ -197,7 +208,9 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
               {/* Loop-back indicator */}
               <div className="mt-4 flex items-center gap-2">
                 <span className="text-xs text-neutral-600">↩</span>
-                <span className="text-[10px] text-neutral-600">{copy.rhythmLabel}</span>
+                <span className="text-[10px] text-neutral-600">
+                  {copy.rhythmLabel}
+                </span>
               </div>
             </div>
 
@@ -222,7 +235,9 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
             <div className="divide-y divide-white/8">
               {steps.map((step, i) => {
                 const statusLabel =
-                  copy.statuses[i] ?? copy.statuses[copy.statuses.length - 1] ?? "";
+                  copy.statuses[i] ??
+                  copy.statuses[copy.statuses.length - 1] ??
+                  "";
 
                 return (
                   <motion.article

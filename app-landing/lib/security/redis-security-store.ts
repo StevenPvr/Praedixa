@@ -4,7 +4,7 @@ import {
   toNumber,
   toStringValue,
 } from "./redis-protocol";
-import type { SecurityRateLimitResult } from "./security-store";
+import type { SecurityRateLimitResult } from "./security-store.types";
 
 const DEFAULT_REDIS_CONNECT_TIMEOUT_MS = 300;
 const DEFAULT_REDIS_COMMAND_TIMEOUT_MS = 300;
@@ -35,7 +35,10 @@ export interface RedisSecurityConfig {
   keyPrefix: string;
 }
 
-function parsePositiveInteger(value: string | undefined, fallback: number): number {
+function parsePositiveInteger(
+  value: string | undefined,
+  fallback: number,
+): number {
   if (!value) return fallback;
 
   const parsed = Number.parseInt(value, 10);
@@ -89,7 +92,8 @@ export function readRedisSecurityConfig(): RedisSecurityConfig | null {
       DEFAULT_REDIS_COMMAND_TIMEOUT_MS,
     ),
     keyPrefix:
-      process.env.LANDING_SECURITY_KEY_PREFIX?.trim() || DEFAULT_REDIS_KEY_PREFIX,
+      process.env.LANDING_SECURITY_KEY_PREFIX?.trim() ||
+      DEFAULT_REDIS_KEY_PREFIX,
   };
 }
 
@@ -101,7 +105,10 @@ async function authenticateConnection(
     const authArgs = config.username
       ? ["AUTH", config.username, config.password]
       : ["AUTH", config.password];
-    const authReply = await connection.command(authArgs, config.commandTimeoutMs);
+    const authReply = await connection.command(
+      authArgs,
+      config.commandTimeoutMs,
+    );
     if (toStringValue(authReply) !== "OK") {
       throw new Error("Redis AUTH failed");
     }

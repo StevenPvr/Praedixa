@@ -18,8 +18,8 @@ interface SectorPageProps {
 }
 
 export function SectorPage({ locale, entry }: SectorPageProps) {
-  const pilotHref = getLocalizedPath(locale, "pilot");
-  const protocolHref = `/${locale}/pilot-protocol`;
+  const pilotHref = getLocalizedPath(locale, "deployment");
+  const protocolHref = getLocalizedPath(locale, "deploymentProtocol");
   const displaySourceLinks = getSectorDisplaySourceLinks(entry);
   const differentiationCards = listSectorDifferentiationCards(locale);
   const canonicalPath =
@@ -125,8 +125,8 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
                     className="btn-primary-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-200 active:scale-[0.98]"
                   >
                     {locale === "fr"
-                      ? "Demander un pilote ROI"
-                      : "Request an ROI pilot"}
+                      ? "Parler du déploiement"
+                      : "Discuss deployment"}
                     <ArrowRight size={16} weight="bold" />
                   </Link>
                   <Link
@@ -134,8 +134,8 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
                     className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white/82 px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors hover:border-neutral-400 hover:bg-white"
                   >
                     {locale === "fr"
-                      ? "Voir le protocole pilote"
-                      : "View the pilot protocol"}
+                      ? "Voir le protocole de mise en place"
+                      : "View the deployment protocol"}
                   </Link>
                 </div>
               </div>
@@ -338,8 +338,8 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
                   className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-neutral-950 no-underline transition-colors hover:bg-amber-50"
                 >
                   {locale === "fr"
-                    ? "Demander un pilote ROI"
-                    : "Request an ROI pilot"}
+                    ? "Parler du déploiement"
+                    : "Discuss deployment"}
                   <ArrowRight size={16} weight="bold" />
                 </Link>
                 <Link
@@ -347,8 +347,8 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
                   className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white no-underline transition-colors hover:bg-white/[0.1]"
                 >
                   {locale === "fr"
-                    ? "Voir le protocole pilote"
-                    : "View the pilot protocol"}
+                    ? "Voir le protocole de mise en place"
+                    : "View the deployment protocol"}
                 </Link>
               </div>
 

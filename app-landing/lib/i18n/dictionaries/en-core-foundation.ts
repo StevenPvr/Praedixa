@@ -2,12 +2,12 @@ import type { Dictionary } from "../types";
 
 export const enCoreFoundation: Partial<Dictionary> = {
   meta: {
-    title: "Praedixa | French DecisionOps platform",
+    title: "Praedixa | Business risks and multi-site decisions",
     description:
-      "Praedixa is the French DecisionOps platform: it connects to your existing systems, governs critical trade-offs, triggers the first validated action, and proves ROI decision by decision.",
-    ogTitle: "Praedixa | DecisionOps for operations",
+      "Praedixa anticipates the business risks degrading performance and recommends the best decisions to reduce them across staffing, demand, inventory, supply, and customer retention.",
+    ogTitle: "Praedixa | Business risks and multi-site decisions",
     ogDescription:
-      "Praedixa connects the systems that matter to a decision, calculates cost / service / risk options, and proves ROI decision by decision.",
+      "In 5 business days, Praedixa shows which gaps threaten performance and which decisions to launch first to protect margin, service, and growth.",
   },
 
   nav: {
@@ -24,40 +24,40 @@ export const enCoreFoundation: Partial<Dictionary> = {
   },
 
   hero: {
-    kicker: "French DecisionOps platform",
-    headline: "DecisionOps",
-    headlineHighlight: "Anticipate needs. Decide earlier. Prove ROI.",
+    kicker: "For COO, CFO, and network leadership",
+    headline: "Anticipate",
+    headlineHighlight: "the business risks eroding margin.",
     subtitle:
-      "Praedixa connects to your existing systems, federates the critical data on France-hosted infrastructure, turns recurring operational trade-offs into governed, auditable decisions, then proves ROI decision by decision for Ops / Finance reviews. Human validation required.",
+      "Praedixa detects the gaps threatening your business and recommends the best decisions to take across staffing, demand, inventory, supply, and customer retention. We start with the most costly risk in your perimeter.",
     manifestoLabel: "Our purpose",
     manifestoQuote:
-      "Supporting company growth by revealing the potential of their data.",
+      "See earlier which risks degrade performance, decide what to fix, review what worked.",
     bullets: [
       {
-        metric: "DecisionOps",
-        text: "on top of your stack",
+        metric: "5 days",
+        text: "to surface the signal",
       },
       {
-        metric: "Validated action",
-        text: "inside existing tools",
+        metric: "Read-only",
+        text: "on your existing data",
       },
       {
-        metric: "ROI proof",
-        text: "decision by decision",
+        metric: "From staffing to churn",
+        text: "one decision engine",
       },
     ],
     ctaPrimary: "Request the free historical audit",
     ctaSecondary: "See the proof protocol",
     previewTitle: "A preview of what awaits you",
-    ctaMeta:
-      "Ops & Finance aligned · Human validation · France-hosted infrastructure",
+    ctaMeta: "5 business days · read-only · human validation",
     trustBadges: [
-      "DecisionOps on top of the existing stack",
-      "Read-only federation of critical systems",
-      "Governed cost / service / risk trade-offs",
-      "First validated action triggered in existing tools",
-      "Human validation required",
-      "Decision-by-decision ROI proof",
+      "Historical proof in 5 business days",
+      "Staffing, demand, inventory, supply, retention",
+      "Read-only on your existing data",
+      "Human validation on every action",
+      "First perimeter scoped around the priority risk",
+      "No tool replacement required",
+      "Impact reviewed site by site",
       "Hosted in France (Scaleway)",
     ],
   },
@@ -76,9 +76,9 @@ export const enCoreFoundation: Partial<Dictionary> = {
 
   problem: {
     kicker: "Operational problem",
-    heading: "Cost/service trade-offs happen daily — rarely with proof.",
+    heading: "When business gaps surface too late, performance slips.",
     subheading:
-      "Without a shared Ops/Finance protocol, decisions stay defensive, vary by site, and are hard to defend economically.",
+      "Across staffing, demand, inventory, supply, or retention, the same problem keeps returning: useful signals do not arrive early enough or in a shared language. The result is reactive cost, fragile service, and late trade-offs.",
     cta: "Request the free historical audit",
     ctaHint:
       "Reply within 48 business hours. Free historical audit. Ops + Finance framing from week 1.",
@@ -95,77 +95,81 @@ export const enCoreFoundation: Partial<Dictionary> = {
     },
     pains: [
       {
-        title: "Late trade-offs",
+        title: "Critical signals are scattered",
         description:
-          "Useful signals arrive when room for maneuver is already limited.",
-        consequence: "Emergency measures, overload, unstable service quality",
-        cost: "Reacting often costs more than anticipating",
+          "Workload, demand, stock, raw-material availability, churn, or coverage all live in different tools and cadences.",
+        consequence:
+          "The useful signal often shows up when room for action is already limited.",
+        cost: "Corrections cost more than anticipation",
       },
       {
-        title: "Different rules across sites",
-        description: "Each site applies local logic with no shared reference.",
-        consequence: "Harder comparisons and fragile network governance",
-        cost: "Less controlled operations budget at network level",
+        title: "Each function arbitrates in its own view",
+        description:
+          "Operations, finance, supply, commercial, or field teams each see part of the issue, rarely the full trade-off at the right moment.",
+        consequence: "Trade-offs take longer and stay harder to defend.",
+        cost: "Decisions slow down",
       },
       {
-        title: "Economic impact is hard to attribute",
-        description: "Actions are launched, but real impact stays unclear.",
-        consequence: "Reviews lack clear evidence of what works",
-        cost: "Budgets and priorities are challenged without proof",
+        title: "Corrections happen in emergency mode",
+        description:
+          "Reinforcement, reallocation, stock adjustment, supply action, or retention moves are launched too late and without a shared read of their impact.",
+        consequence: "Budgets stay debated and priorities drift by site.",
+        cost: "Protected margin remains unclear",
       },
     ],
     diagnostic: {
       title: "Does this sound familiar?",
       signals: [
-        "You have forecasts, but no usable decision journal",
-        "Field adjustments are poorly documented (or not reusable)",
-        "Baseline / recommended / actual is not standardized",
-        "Multi-site reviews rely on ad-hoc explanations",
+        "A local team spots the issue before it becomes visible in a shared read",
+        "Corrections arrive when margin, service, or stock are already under pressure",
+        "Two similar teams do not make the same choice when facing the same signal",
+        "After an action, it is still hard to know what it actually protected",
       ],
     },
   },
 
   solution: {
-    kicker: "DecisionOps",
-    heading: "DecisionOps above your existing tools.",
+    kicker: "Praedixa method",
+    heading:
+      "Anticipate risks. Compare trade-offs. Launch the right first action.",
     subheading:
-      "The market already offers forecasting, scheduling automation, labor costing, and scenario simulation. Praedixa adds something else: a governed federation of the useful data on top of your stack, executable trade-offs, and finance-grade ROI proof.",
+      "Praedixa does not replace your ERP, scheduling, or BI. It connects the signals that matter, anticipates short-horizon business risks, compares cost / service / risk trade-offs, and documents the result of the decisions taken across staffing, demand, inventory, supply, or retention.",
     principles: [
       {
-        title: "Federate the systems that matter to a decision",
-        subtitle: "Read-only · France-hosted",
+        title: "Spot early the gaps threatening performance",
+        subtitle: "Existing data · read-only",
         description:
-          "Exports, APIs, ERP, scheduling, BI, and spreadsheets are connected into one governed frame without asking teams to replace their core tools.",
+          "Exports, APIs, ERP, scheduling, BI, and spreadsheets are linked without a replacement project so the useful gaps surface before they get more expensive.",
       },
       {
-        title: "Turn trade-offs into governed decisions",
+        title: "Compare trade-offs across your operating levers",
         subtitle: "Cost / service / risk",
         description:
-          "Praedixa puts real options on the table, makes the trade-off explicit, keeps business guardrails visible, and prepares the next move instead of stopping at the signal.",
+          "Praedixa lays the options out, quantifies their expected effects, and keeps your operating guardrails visible before validation, whether the lever is staffing, demand, inventory, supply, or retention.",
       },
       {
-        title: "Trigger and prove",
-        subtitle: "Validated action · finance-grade proof",
+        title: "Launch a first action, then review the impact",
+        subtitle: "Human validation · impact reviewed",
         description:
-          "The validated first step is pushed into existing tools, then the decision is reviewed with baseline / recommended / actual and explicit assumptions.",
+          "Your teams keep final authority. Praedixa prepares the first action inside your tools, then reviews baseline, recommended, actual, and assumptions.",
       },
     ],
     differentiators: {
-      title: "The difference is in the DecisionOps combination",
+      title: "What makes Praedixa credible",
       description:
-        "No single brick is unique on its own. What stands out is the product combination packaged as the operating core.",
+        "The value is not a category label. It is a simple mechanism: see earlier, compare clearly, act with guardrails, then review the impact.",
       items: [
         {
-          is: "Governed federation on top of the stack",
-          isNot: "Data project or tool replacement",
+          is: "One engine across multiple business risks",
+          isNot: "A single-purpose tool stuck on one lever",
         },
         {
-          is: "Decision Journal + first action in the tools",
-          isNot: "Signals or dashboards with no execution path",
+          is: "A first perimeter scoped around the priority risk",
+          isNot: "A vague promise pretending to do everything at once",
         },
         {
-          is: "Decision-by-decision monthly proof",
-          isNot: "Generic ROI claims disconnected from decisions",
+          is: "Validated action + reviewed impact",
+          isNot: "ROI claims with no traceability",
         },
       ],
     },

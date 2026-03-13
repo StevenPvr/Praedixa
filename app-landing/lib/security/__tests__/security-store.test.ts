@@ -162,20 +162,26 @@ describe("landing security store", () => {
     vi.stubEnv("NODE_ENV", "test");
     const mod = await import("../security-store");
 
-    const first = await mod.consumeSecurityRateLimit(createRequest({
-      "user-agent": "vitest-a",
-    }), {
-      scope: "landing-contact",
-      max: 1,
-      windowMs: 60_000,
-    });
-    const second = await mod.consumeSecurityRateLimit(createRequest({
-      "user-agent": "vitest-a",
-    }), {
-      scope: "landing-contact",
-      max: 1,
-      windowMs: 60_000,
-    });
+    const first = await mod.consumeSecurityRateLimit(
+      createRequest({
+        "user-agent": "vitest-a",
+      }),
+      {
+        scope: "landing-contact",
+        max: 1,
+        windowMs: 60_000,
+      },
+    );
+    const second = await mod.consumeSecurityRateLimit(
+      createRequest({
+        "user-agent": "vitest-a",
+      }),
+      {
+        scope: "landing-contact",
+        max: 1,
+        windowMs: 60_000,
+      },
+    );
 
     expect(first.allowed).toBe(true);
     expect(second.allowed).toBe(false);
@@ -187,13 +193,16 @@ describe("landing security store", () => {
     const mod = await import("../security-store");
 
     await expect(
-      mod.consumeSecurityRateLimit(createRequest({
-        "user-agent": "vitest-b",
-      }), {
-        scope: "landing-contact",
-        max: 1,
-        windowMs: 60_000,
-      }),
+      mod.consumeSecurityRateLimit(
+        createRequest({
+          "user-agent": "vitest-b",
+        }),
+        {
+          scope: "landing-contact",
+          max: 1,
+          windowMs: 60_000,
+        },
+      ),
     ).rejects.toBeInstanceOf(mod.SecurityStoreUnavailableError);
   });
 

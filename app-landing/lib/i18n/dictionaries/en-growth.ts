@@ -55,9 +55,9 @@ export const enGrowth: Pick<
 
   pilot: {
     kicker: "Pilot offer",
-    heading: "A short pilot to put DecisionOps into production.",
+    heading: "A short pilot to operationalize better business decisions.",
     subheading:
-      "In a few weeks, Praedixa connects the critical systems, scopes the priority trade-offs, triggers the first actions, and installs ROI proof in an Ops / Finance cadence.",
+      "In a few weeks, Praedixa connects the critical systems, scopes the priority business trade-offs, prepares the first actions, and installs impact review in an Ops / Finance cadence.",
     statusLabels: [
       "Free diagnostic (M1)",
       "Proof milestone (S8)",
@@ -145,7 +145,7 @@ export const enGrowth: Pick<
       {
         question: "What is Praedixa in one sentence?",
         answer:
-          "Praedixa is the French DecisionOps platform: it connects your existing systems to turn critical trade-offs into calculated, executable, auditable decisions.",
+          "Praedixa anticipates the business risks degrading performance and recommends the best decisions to reduce them, starting with the priority risk in your perimeter.",
         category: "Understanding Praedixa",
       },
       {
@@ -222,7 +222,7 @@ export const enGrowth: Pick<
     kicker: "Contact",
     heading: "Get the free ROI diagnostic.",
     subheading:
-      "Share your context. We come back with a DecisionOps framing: priority trade-offs, systems to federate, and the first ROI proof loop.",
+      "Share your context. We come back with a clear framing: which business risks matter first, which trade-offs to compare, and what proof loop to start with.",
     trustItems: [
       "Response within 48 business hours",
       "Free ROI diagnostic",
@@ -235,22 +235,22 @@ export const enGrowth: Pick<
 
   servicesPage: {
     meta: {
-      title: "Praedixa | DecisionOps platform vs ROI diagnostic",
+      title: "Praedixa | Deployment vs ROI diagnostic",
       description:
-        "Compare the full Praedixa DecisionOps platform and the ROI diagnostic to choose your best starting point.",
-      ogTitle: "Praedixa | DecisionOps or ROI diagnostic",
+        "Compare the full Praedixa deployment and the ROI diagnostic to choose your best starting point.",
+      ogTitle: "Praedixa | Deployment or ROI diagnostic",
       ogDescription:
-        "Two ways to start: a fast ROI diagnostic or the full DecisionOps platform to federate, decide, trigger, and prove.",
+        "Two ways to start: a fast ROI diagnostic or the full Praedixa deployment to compare decisions and review impact over time.",
     },
     kicker: "Offer",
-    heading: "Praedixa DecisionOps vs ROI diagnostic.",
+    heading: "Praedixa deployment vs ROI diagnostic.",
     subheading:
-      "You can start with an ROI diagnostic on your trade-offs, then activate the full DecisionOps platform to govern execution and proof over time.",
+      "You can start with an ROI diagnostic on your trade-offs, then activate the full Praedixa deployment to operationalize decisions and review impact over time.",
     fullPackage: {
-      badge: "Praedixa full offer",
-      title: "Federate, decide, trigger, prove",
+      badge: "Praedixa deployment",
+      title: "See earlier, act sooner, review impact",
       summary:
-        "Praedixa core value: a sovereignty-minded DecisionOps protocol on top of the existing stack.",
+        "Praedixa core value: detect business risks earlier, compare trade-offs clearly, and review launched decisions.",
       includesTitle: "What is included",
       includes: [
         "HR, finance, operations, and supply chain systems federated",
@@ -320,20 +320,19 @@ export const enGrowth: Pick<
       ],
     },
     bottomNote:
-      "The ROI diagnostic is a starting point. The real value is in federation on top of the existing stack, governed decisions, execution, and proof over time.",
+      "The ROI diagnostic is a starting point. The real value begins when Praedixa is deployed to compare decisions and review impact over time.",
   },
 
   footer: {
     tagline:
-      "Praedixa turns critical trade-offs into calculated, executable, auditable decisions.",
-    badges: ["DecisionOps", "ROI proof"],
+      "Praedixa helps multi-site teams anticipate the business risks weighing on performance, then review launched decisions over time.",
+    badges: ["Historical proof", "Impact reviewed"],
     navigation: "Navigation",
     legalContact: "Legal & contact",
     copyright: "Designed and hosted in France",
     ctaBanner: {
       kicker: "Praedixa",
-      heading:
-        "Companies do not need another data hub. They need a decision engine.",
+      heading: "Business risks get expensive when teams see them too late.",
       cta: "Get the free ROI diagnostic",
     },
   },

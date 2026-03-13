@@ -31,17 +31,17 @@ describe("knowledge pages FR messaging", () => {
       "Dossier ROI",
     );
     expect(fr.servicesPage.heading).toBe(
-      "Praedixa DecisionOps vs diagnostic ROI.",
+      "Déploiement Praedixa vs preuve sur historique.",
     );
     expect(fr.servicesPage.fullPackage.includes).toContain(
-      "Systèmes RH, finance, opérations et supply chain fédérés",
+      "Onboarding fixe sur un périmètre multi-sites réaliste",
     );
   });
 
   it("uses only the approved French CTAs on annex knowledge pages", () => {
     const allowedCtas = new Set([
-      "Obtenir le diagnostic ROI gratuit",
-      "Demander un pilote ROI",
+      "Demander la preuve sur historique",
+      "Parler du déploiement",
     ]);
 
     frKnowledgeKeys.forEach((key) => {

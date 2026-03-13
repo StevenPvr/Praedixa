@@ -7,7 +7,12 @@ import {
   isProductionEnvironment,
   resolveInternalLinksConfigPath,
 } from "./config";
-import type { HastElement, HastNode, HastRoot, HastText } from "./internal-links-hast";
+import type {
+  HastElement,
+  HastNode,
+  HastRoot,
+  HastText,
+} from "./internal-links-hast";
 import type { InternalLinkRule } from "./types";
 
 const SKIPPED_TAGS = new Set([
@@ -90,7 +95,9 @@ function normalizeRuleUrl(url: string): string {
   }
 
   if (!trimmed.startsWith("/")) {
-    throw new Error(`Internal link rule URL must be absolute or start with '/': ${trimmed}`);
+    throw new Error(
+      `Internal link rule URL must be absolute or start with '/': ${trimmed}`,
+    );
   }
 
   const parsed = new URL(trimmed, PRAEDIXA_BASE_URL);
@@ -111,11 +118,15 @@ function parseRule(input: unknown, index: number): InternalLinkRule {
   const urlRaw = input.url;
   const maxPerDocRaw = input.maxPerDoc;
   if (typeof idRaw !== "string" || idRaw.trim().length === 0) {
-    throw new Error(`Internal link rule at index ${index} must define a non-empty string 'id'.`);
+    throw new Error(
+      `Internal link rule at index ${index} must define a non-empty string 'id'.`,
+    );
   }
 
   if (!Array.isArray(patternsRaw) || patternsRaw.length === 0) {
-    throw new Error(`Internal link rule '${idRaw}' must define a non-empty 'patterns' array.`);
+    throw new Error(
+      `Internal link rule '${idRaw}' must define a non-empty 'patterns' array.`,
+    );
   }
 
   const patterns = patternsRaw.map((pattern, patternIndex) => {
@@ -128,7 +139,9 @@ function parseRule(input: unknown, index: number): InternalLinkRule {
   });
 
   if (typeof urlRaw !== "string") {
-    throw new Error(`Internal link rule '${idRaw}' must define a string 'url'.`);
+    throw new Error(
+      `Internal link rule '${idRaw}' must define a string 'url'.`,
+    );
   }
 
   const maxPerDoc =
@@ -181,12 +194,16 @@ function getAllInternalLinkRules(): InternalLinkRule[] {
 }
 
 function resolveLocalePrefix(url: string): Locale | null {
-  const pathToInspect = url.startsWith("http://") || url.startsWith("https://")
-    ? new URL(url).pathname
-    : url;
+  const pathToInspect =
+    url.startsWith("http://") || url.startsWith("https://")
+      ? new URL(url).pathname
+      : url;
 
   for (const locale of locales) {
-    if (pathToInspect === `/${locale}` || pathToInspect.startsWith(`/${locale}/`)) {
+    if (
+      pathToInspect === `/${locale}` ||
+      pathToInspect.startsWith(`/${locale}/`)
+    ) {
       return locale;
     }
   }
@@ -194,7 +211,9 @@ function resolveLocalePrefix(url: string): Locale | null {
   return null;
 }
 
-export function getInternalLinkRules(options?: { locale?: Locale }): InternalLinkRule[] {
+export function getInternalLinkRules(options?: {
+  locale?: Locale;
+}): InternalLinkRule[] {
   const rules = getAllInternalLinkRules();
 
   if (!options?.locale) {
@@ -228,7 +247,11 @@ function isRootNode(node: HastNode): node is HastRoot {
 }
 
 function toHastRoot(tree: unknown): HastRoot | null {
-  if (!isObjectRecord(tree) || !Array.isArray(tree.children) || tree.type !== "root") {
+  if (
+    !isObjectRecord(tree) ||
+    !Array.isArray(tree.children) ||
+    tree.type !== "root"
+  ) {
     return null;
   }
 
@@ -271,12 +294,18 @@ function getElementHref(node: HastElement): string | null {
   return normalizeTrackedUrl(trimmed);
 }
 
-function incrementUsageCount(usageByUrl: Map<string, number>, url: string): void {
+function incrementUsageCount(
+  usageByUrl: Map<string, number>,
+  url: string,
+): void {
   const current = usageByUrl.get(url) ?? 0;
   usageByUrl.set(url, current + 1);
 }
 
-function collectExistingLinks(node: HastNode, usageByUrl: Map<string, number>): void {
+function collectExistingLinks(
+  node: HastNode,
+  usageByUrl: Map<string, number>,
+): void {
   if (isElementNode(node) && node.tagName.toLowerCase() === "a") {
     const href = getElementHref(node);
     if (href) {
@@ -395,7 +424,10 @@ function injectLinksInTextNode(
   }
 
   return transformedNodes.filter(
-    (node) => !isTextNode(node) || node.value.trim().length > 0 || node.value.length > 0,
+    (node) =>
+      !isTextNode(node) ||
+      node.value.trim().length > 0 ||
+      node.value.length > 0,
   );
 }
 
@@ -444,9 +476,13 @@ function walkTree(
   }
 }
 
-export function createRehypeInternalLinksPlugin(options: InternalLinksPluginOptions) {
+export function createRehypeInternalLinksPlugin(
+  options: InternalLinksPluginOptions,
+) {
   const generatedUrls = options.generatedUrls ?? new Set<string>();
-  const excludedUrls = new Set((options.excludeUrls ?? []).map(normalizeTrackedUrl));
+  const excludedUrls = new Set(
+    (options.excludeUrls ?? []).map(normalizeTrackedUrl),
+  );
   const compiledRules = compileRules(options.rules, excludedUrls);
 
   return function rehypeInternalLinksPlugin() {

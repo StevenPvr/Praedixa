@@ -26,7 +26,8 @@ export function createScopingCallCopy(locale: Locale): ScopingCallCopy {
         submit: "Proposer mes créneaux",
         submitting: "Envoi en cours…",
         successTitle: "Créneaux envoyés",
-        successBody: "Merci. Nous revenons par email pour confirmer un créneau.",
+        successBody:
+          "Merci. Nous revenons par email pour confirmer un créneau.",
         errorPrefix: "Erreur :",
         invalidEmail: "Adresse email invalide.",
         requiredCompany: "Entreprise requise.",

@@ -61,35 +61,35 @@ function softwareApplicationSchema(locale: Locale, dict: Dictionary) {
     featureList:
       locale === "fr"
         ? [
-            "DecisionOps sur l'existant pour RH, finance et operations",
-            "Systemes critiques federes sans projet lourd",
-            "Arbitrages classes par impact business",
-            "Premiere action validee dans les outils",
-            "Preuve ROI decision par decision",
+            "Anticipation des risques business",
+            "Lecture seule sur les outils existants",
+            "Effectifs, demande, stocks, approvisionnements, retention",
+            "Premiere action validee par les equipes",
+            "Impact relu site par site",
           ]
         : [
-            "DecisionOps layer on top of the existing stack",
-            "Read-only federation of critical systems",
-            "Quantified cost / service / risk trade-offs",
-            "Validated first action triggered in existing tools",
-            "Decision-by-decision ROI proof",
+            "Business-risk anticipation",
+            "Read-only on top of the existing stack",
+            "Staffing, demand, inventory, supply, retention",
+            "First action validated by the teams",
+            "Impact reviewed site by site",
           ],
   };
 }
 
 function serviceSchema(locale: Locale) {
-  const pilotPath = getLocalizedPath(locale, "pilot");
+  const pilotPath = getLocalizedPath(locale, "deployment");
   return {
     "@context": "https://schema.org",
     "@type": "Service",
     name:
       locale === "fr"
-        ? "Pilote ROI Praedixa — 3 mois"
-        : "Praedixa pilot (DecisionOps platform) — 3 months",
+        ? "Déploiement Praedixa — 3 mois"
+        : "Praedixa pilot — 3 months",
     serviceType:
       locale === "fr"
-        ? "Pilote de lecture business et ROI multi-sites"
-        : "Multi-site operational decision governance pilot",
+        ? "Pilotage multi-sites des risques business"
+        : "Multi-site business-risk decision pilot",
     provider: {
       "@type": "Organization",
       name: PRAEDIXA_BRAND_NAME,

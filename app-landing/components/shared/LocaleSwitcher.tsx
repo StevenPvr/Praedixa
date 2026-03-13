@@ -18,9 +18,7 @@ export function LocaleSwitcher({ locale, className }: LocaleSwitcherProps) {
         "inline-flex h-8 w-8 items-center justify-center rounded-md text-xs font-semibold uppercase tracking-wider text-neutral-500 transition-colors duration-150 hover:bg-neutral-100 hover:text-ink",
         className,
       )}
-      aria-label={
-        locale === "fr" ? "Switch to English" : "Passer en français"
-      }
+      aria-label={locale === "fr" ? "Switch to English" : "Passer en français"}
     >
       {label}
     </Link>

@@ -22,6 +22,9 @@ const enContent: Record<KnowledgePageKey, KnowledgePageContent> = {
   ...enContentA,
 };
 
-export function getKnowledgePage(locale: Locale, key: KnowledgePageKey): KnowledgePageContent {
+export function getKnowledgePage(
+  locale: Locale,
+  key: KnowledgePageKey,
+): KnowledgePageContent {
   return locale === "fr" ? frContent[key] : enContent[key];
 }

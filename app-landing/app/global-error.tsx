@@ -24,10 +24,18 @@ export default function GlobalError({
             textAlign: "center",
           }}
         >
-          <h1 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#1a1a2e" }}>
+          <h1
+            style={{ fontSize: "1.25rem", fontWeight: 600, color: "#1a1a2e" }}
+          >
             Une erreur critique est survenue
           </h1>
-          <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "#6b7280" }}>
+          <p
+            style={{
+              marginTop: "0.5rem",
+              fontSize: "0.875rem",
+              color: "#6b7280",
+            }}
+          >
             Le site a rencontré un problème inattendu.
           </p>
           <button

@@ -12,7 +12,10 @@ function parseUrlHostname(value: string): string | null {
 
 function extractRawHostname(value: string): string {
   return normalizeHostname(
-    value.replace(/^https?:\/\//, "").split("/")[0]?.split(":")[0] ?? value,
+    value
+      .replace(/^https?:\/\//, "")
+      .split("/")[0]
+      ?.split(":")[0] ?? value,
   );
 }
 
@@ -87,7 +90,9 @@ function isLocalHostname(hostname: string): boolean {
   );
 }
 
-export function collectAllowedHostnames(value: string | undefined): Set<string> {
+export function collectAllowedHostnames(
+  value: string | undefined,
+): Set<string> {
   const hosts = new Set<string>();
 
   for (const candidate of value?.split(",") ?? []) {
@@ -104,7 +109,11 @@ export function assertSafeOutboundUrl(
 ): void {
   const hostname = normalizeHostname(url.hostname);
 
-  if (isLocalHostname(hostname) || isPrivateIpv4(hostname) || isPrivateIpv6(hostname)) {
+  if (
+    isLocalHostname(hostname) ||
+    isPrivateIpv4(hostname) ||
+    isPrivateIpv6(hostname)
+  ) {
     throw new Error("Outbound URL host is not allowed");
   }
 

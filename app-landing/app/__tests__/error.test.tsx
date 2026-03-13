@@ -18,9 +18,7 @@ describe("Error Page (app/error.tsx)", () => {
 
   it("should render without errors", () => {
     render(<ErrorPage error={mockError} reset={mockReset} />);
-    expect(
-      screen.getByText("Une erreur est survenue"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Une erreur est survenue")).toBeInTheDocument();
   });
 
   it("should render the error heading", () => {
@@ -35,9 +33,7 @@ describe("Error Page (app/error.tsx)", () => {
   it("should render the error description text", () => {
     render(<ErrorPage error={mockError} reset={mockReset} />);
     expect(
-      screen.getByText(
-        /Le chargement de cette page a échoué/,
-      ),
+      screen.getByText(/Le chargement de cette page a échoué/),
     ).toBeInTheDocument();
   });
 

@@ -51,7 +51,7 @@ export const frContentA: Record<
       { label: "Intégration & données", key: "integrationData" },
       { label: "Ressources essentielles", key: "resources" },
     ],
-    ctaLabel: "Demander un pilote ROI",
+    ctaLabel: "Parler du déploiement",
   },
 
   security: {
@@ -89,7 +89,7 @@ export const frContentA: Record<
       { label: "À propos de Praedixa", key: "about" },
       { label: "Ressources essentielles", key: "resources" },
     ],
-    ctaLabel: "Demander un pilote ROI",
+    ctaLabel: "Parler du déploiement",
   },
 
   resources: {
@@ -134,7 +134,7 @@ export const frContentA: Record<
       { label: "Dossier ROI", key: "decisionLogProof" },
       { label: "Intégration & données", key: "integrationData" },
     ],
-    ctaLabel: "Obtenir le diagnostic ROI gratuit",
+    ctaLabel: "Demander la preuve sur historique",
   },
 
   productMethod: {
@@ -173,7 +173,7 @@ export const frContentA: Record<
       { label: "Intégration & données", key: "integrationData" },
       { label: "Ressources essentielles", key: "resources" },
     ],
-    ctaLabel: "Obtenir le diagnostic ROI gratuit",
+    ctaLabel: "Demander la preuve sur historique",
   },
 
   howItWorksPage: {
@@ -214,7 +214,7 @@ export const frContentA: Record<
       { label: "Dossier ROI", key: "decisionLogProof" },
       { label: "Intégration & données", key: "integrationData" },
     ],
-    ctaLabel: "Obtenir le diagnostic ROI gratuit",
+    ctaLabel: "Demander la preuve sur historique",
   },
 
   decisionLogProof: {
@@ -252,7 +252,7 @@ export const frContentA: Record<
       { label: "Comment ça marche", key: "howItWorksPage" },
       { label: "Ressources essentielles", key: "resources" },
     ],
-    ctaLabel: "Obtenir le diagnostic ROI gratuit",
+    ctaLabel: "Demander la preuve sur historique",
   },
 
   integrationData: {
@@ -287,6 +287,6 @@ export const frContentA: Record<
       { label: "Sécurité de l'espace Praedixa", key: "security" },
       { label: "Ressources essentielles", key: "resources" },
     ],
-    ctaLabel: "Obtenir le diagnostic ROI gratuit",
+    ctaLabel: "Demander la preuve sur historique",
   },
 };

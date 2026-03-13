@@ -1,0 +1,149 @@
+import { notFound } from "next/navigation";
+import { getLocalizedPath, isValidLocale, localizedSlugs } from "../../../lib/i18n/config";
+import type { Metadata } from "next";
+import { buildLocaleMetadata, localePathMap } from "../../../lib/seo/metadata";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isValidLocale(locale)) return {};
+  const isFr = locale === "fr";
+  return buildLocaleMetadata({
+    locale,
+    paths: localePathMap(
+      `/fr/${localizedSlugs.deploymentProtocol.fr}`,
+      `/en/${localizedSlugs.deploymentProtocol.en}`,
+    ),
+    title: isFr
+      ? "Praedixa | Protocole de mise en place"
+      : "Praedixa | Deployment protocol",
+    description: isFr
+      ? "Protocole de mise en place: preuve sur historique, onboarding fixe, arbitrages prioritaires et abonnement annuel."
+      : "Deployment protocol: historical proof, fixed onboarding, priority trade-offs, and annual subscription.",
+  });
+}
+
+export default async function DeploymentProtocolPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  if (!isValidLocale(locale)) notFound();
+  if (localizedSlugs.deploymentProtocol[locale] !== "protocole-deploiement") {
+    notFound();
+  }
+
+  const { getDictionary } = await import("../../../lib/i18n/get-dictionary");
+  const dict = await getDictionary(locale);
+  const p = dict.pilot;
+  const isFr = locale === "fr";
+  const deploymentHref = getLocalizedPath(locale, "deployment");
+
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+      <span className="inline-block text-xs font-semibold uppercase tracking-[0.08em] text-brass">
+        {p.kicker}
+      </span>
+      <h1 className="mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl md:text-4xl">
+        {isFr ? "Protocole de mise en place" : "Deployment protocol"}
+      </h1>
+      <p className="mt-4 max-w-[58ch] text-base leading-relaxed text-neutral-500">
+        {p.subheading}
+      </p>
+
+      <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="rounded-xl border border-border-subtle bg-white p-6">
+          <h2 className="text-sm font-semibold text-ink">{p.included.title}</h2>
+          <ul className="mt-3 list-none space-y-2 p-0">
+            {p.included.items.map((item: string) => (
+              <li
+                key={item}
+                className="m-0 flex items-start gap-2 text-sm text-neutral-600"
+              >
+                <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-border-subtle bg-white p-6">
+          <h2 className="text-sm font-semibold text-ink">{p.excluded.title}</h2>
+          <ul className="mt-3 list-none space-y-2 p-0">
+            {p.excluded.items.map((item: string) => (
+              <li
+                key={item}
+                className="m-0 flex items-start gap-2 text-sm text-neutral-400 line-through"
+              >
+                <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-300" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="rounded-xl border border-border-subtle bg-white p-6">
+          <h2 className="text-sm font-semibold text-ink">{p.kpis.title}</h2>
+          <ul className="mt-3 list-none space-y-2 p-0">
+            {p.kpis.items.map((item: string) => (
+              <li key={item} className="m-0 text-sm text-neutral-600">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-border-subtle bg-white p-6">
+          <h2 className="text-sm font-semibold text-ink">
+            {p.governance.title}
+          </h2>
+          <ul className="mt-3 list-none space-y-2 p-0">
+            {p.governance.items.map((item: string) => (
+              <li key={item} className="m-0 text-sm text-neutral-600">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-8 rounded-xl border border-border-subtle bg-white p-6">
+        <h2 className="text-sm font-semibold text-ink">{p.selection.title}</h2>
+        <ul className="mt-3 list-none space-y-2 p-0">
+          {p.selection.items.map((item: string) => (
+            <li key={item} className="m-0 text-sm text-neutral-600">
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50/50 p-6">
+        <h2 className="text-sm font-semibold text-amber-700">
+          {p.upcoming.title}
+        </h2>
+        <p className="mt-1.5 text-sm leading-relaxed text-amber-600">
+          {p.upcoming.description}
+        </p>
+      </div>
+
+      <p className="mt-6 text-xs text-neutral-400">{p.urgency}</p>
+
+      <div className="mt-8 border-t border-border-subtle pt-8">
+        <a
+          href={deploymentHref}
+          className="inline-flex items-center rounded-lg bg-brass px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-150 hover:bg-brass-600 active:scale-[0.98]"
+        >
+          {p.ctaPrimary}
+        </a>
+        <p className="mt-2 text-xs text-neutral-400">{p.ctaMeta}</p>
+      </div>
+    </div>
+  );
+}

@@ -7,9 +7,11 @@ Ce dossier fait partie du périmètre `app-landing` et regroupe des fichiers li�
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `euratechnologies-black.svg`
 - `euratechnologies-header.png`
 - `euratechnologies-white-official.svg`

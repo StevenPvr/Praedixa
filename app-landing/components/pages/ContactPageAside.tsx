@@ -17,7 +17,7 @@ export function ContactPageAside({
   copy: ContactPageCopy;
   locale: Locale;
 }) {
-  const pilotHref = getLocalizedPath(locale, "pilot");
+  const pilotHref = getLocalizedPath(locale, "deployment");
 
   return (
     <aside className="space-y-6 md:pt-2">

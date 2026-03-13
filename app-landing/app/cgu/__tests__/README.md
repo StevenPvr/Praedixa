@@ -7,9 +7,11 @@ Ce dossier regroupe les tests associés au dossier parent `app-landing/app/cgu`.
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `page.test.tsx`
 
 ## Intégration

@@ -18,10 +18,13 @@ const icons = {
 
 export function StakeholderSection() {
   const { stakeholders } = skolaeMessaging;
-  const [activeId, setActiveId] = useState<(typeof stakeholders.views)[number]["id"]>("ops");
+  const [activeId, setActiveId] =
+    useState<(typeof stakeholders.views)[number]["id"]>("ops");
 
   const activeView = useMemo(
-    () => stakeholders.views.find((view) => view.id === activeId) ?? stakeholders.views[0],
+    () =>
+      stakeholders.views.find((view) => view.id === activeId) ??
+      stakeholders.views[0],
     [activeId, stakeholders.views],
   );
 
@@ -54,15 +57,25 @@ export function StakeholderSection() {
                       <motion.span
                         layoutId="stakeholder-highlight"
                         className="absolute inset-0 rounded-[1.5rem] border border-ink/10 bg-limestone"
-                        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 100,
+                          damping: 20,
+                        }}
                       />
                     ) : null}
                     <span className="relative flex items-center gap-3">
                       <span className="rounded-full border border-ink/8 bg-white/70 p-2">
-                        <Icon size={18} className={isActive ? "text-oxide" : "text-ink/60"} weight="duotone" />
+                        <Icon
+                          size={18}
+                          className={isActive ? "text-oxide" : "text-ink/60"}
+                          weight="duotone"
+                        />
                       </span>
                       <span>
-                        <span className="block text-sm font-medium text-ink">{view.label}</span>
+                        <span className="block text-sm font-medium text-ink">
+                          {view.label}
+                        </span>
                         <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
                           {view.title}
                         </span>
@@ -85,7 +98,11 @@ export function StakeholderSection() {
               >
                 <div className="flex items-center gap-3">
                   <span className="rounded-full border border-white/10 bg-white/6 p-2">
-                    <ActiveIcon size={18} className="text-oxide-soft" weight="duotone" />
+                    <ActiveIcon
+                      size={18}
+                      className="text-oxide-soft"
+                      weight="duotone"
+                    />
                   </span>
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-oxide-soft">
                     Lecture {activeView.label}
@@ -106,7 +123,10 @@ export function StakeholderSection() {
                     </p>
                     <ul className="mt-4 space-y-3 text-sm leading-relaxed text-limestone/80">
                       {activeView.bullets.map((bullet) => (
-                        <li key={bullet} className="border-b border-white/8 pb-3 last:border-b-0 last:pb-0">
+                        <li
+                          key={bullet}
+                          className="border-b border-white/8 pb-3 last:border-b-0 last:pb-0"
+                        >
                           {bullet}
                         </li>
                       ))}

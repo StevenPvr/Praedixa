@@ -4,27 +4,27 @@ import type { ContactPageCopy } from "./contact-page.types";
 
 export function getContactPageCopy(
   locale: Locale,
-  isAuditIntent: boolean,
+  isProofIntent: boolean,
 ): ContactPageCopy {
   const base = locale === "fr" ? getFrenchCopy() : getEnglishCopy();
-  return isAuditIntent ? getAuditCopy(locale, base) : base;
+  return isProofIntent ? getProofCopy(locale, base) : base;
 }
 
 function getFrenchCopy(): ContactPageCopy {
   return {
     kicker: "Contact",
-    heading: "Parlons de vos données, de vos priorités et de votre ROI.",
+    heading: "Parlons de vos arbitrages, de votre marge et du prochain pas.",
     intro:
-      "Décrivez votre contexte. Nous revenons avec une base claire pour décider et un prochain pas concret.",
+      "Décrivez votre contexte. Nous revenons avec une lecture claire de vos arbitrages multi-sites et un prochain pas concret.",
     promiseTitle: "Ce que vous recevez",
     promiseItems: [
       "Réponse qualifiée sous 48h ouvrées.",
-      "Orientation claire : diagnostic ROI ou pilote ROI.",
+      "Orientation claire : preuve sur historique ou déploiement Praedixa.",
       "Plan de démarrage adapté à vos contraintes terrain.",
     ],
-    pilotHint: "Déjà prêt pour un pilote orienté ROI ?",
-    pilotCta: "Demander un pilote ROI Praedixa",
-    pilotMeta: "Démarrage en lecture seule via exports/API.",
+    pilotHint: "Déjà prêt à cadrer le déploiement ?",
+    pilotCta: "Parler du déploiement Praedixa",
+    pilotMeta: "Onboarding fixe déduit si engagement annuel.",
     formTitle: "Envoyer une demande",
     formSubtitle:
       "Champs requis : entreprise, email, message. Le reste est optionnel.",
@@ -70,18 +70,18 @@ function getFrenchCopy(): ContactPageCopy {
 function getEnglishCopy(): ContactPageCopy {
   return {
     kicker: "Contact",
-    heading: "Let us look at your data, priorities, and ROI.",
+    heading: "Let us look at your trade-offs, margin, and next step.",
     intro:
-      "Share your context. We reply with a clear first reading of your data and a practical next step.",
+      "Share your context. We reply with a clear reading of your multi-site trade-offs and a practical next step.",
     promiseTitle: "What you get",
     promiseItems: [
       "Qualified response within 48 business hours.",
-      "Clear orientation: ROI diagnostic or ROI pilot.",
+      "Clear orientation: historical proof or Praedixa deployment.",
       "Start plan adapted to your field constraints.",
     ],
-    pilotHint: "Already ready for a structured pilot?",
-    pilotCta: "Apply for the Praedixa Signature pilot",
-    pilotMeta: "Read-only kickoff via exports/APIs.",
+    pilotHint: "Already ready to frame deployment?",
+    pilotCta: "Discuss Praedixa deployment",
+    pilotMeta: "Fixed onboarding credited on annual commitment.",
     formTitle: "Send a request",
     formSubtitle:
       "Required fields: company, email, message. Everything else is optional.",
@@ -124,37 +124,34 @@ function getEnglishCopy(): ContactPageCopy {
   };
 }
 
-function getAuditCopy(
-  locale: Locale,
-  base: ContactPageCopy,
-): ContactPageCopy {
+function getProofCopy(locale: Locale, base: ContactPageCopy): ContactPageCopy {
   if (locale === "fr") {
     return {
       ...base,
-      kicker: "Diagnostic ROI",
-      heading: "Obtenir le diagnostic ROI gratuit.",
+      kicker: "Preuve sur historique",
+      heading: "Demander la preuve sur historique.",
       intro:
-        "Décrivez votre contexte. Nous revenons avec une première base claire de vos données et un cadrage concret.",
+        "Décrivez votre contexte. Nous revenons avec une première lecture claire de vos arbitrages et du potentiel objectivable sur vos données.",
       promiseItems: [
-        "Diagnostic ROI en lecture seule sur vos données.",
-        "Synthèse simple: pertes, priorités, gains potentiels.",
+        "Preuve sur historique en lecture seule sur vos données.",
+        "Synthèse simple: arbitrages prioritaires, potentiel de gain, prochain pas recommandé.",
         "Proposition de cadrage 30 min si pertinent.",
       ],
-      formTitle: "Obtenir le diagnostic",
+      formTitle: "Demander la preuve",
     };
   }
 
   return {
     ...base,
-    kicker: "ROI diagnostic",
-    heading: "Get the free ROI diagnostic.",
+    kicker: "Historical proof",
+    heading: "Request the historical proof.",
     intro:
-      "Share your context. We reply with a clear first reading of your data and a concrete framing.",
+      "Share your context. We reply with a clear reading of your trade-offs and the objective potential in your data.",
     promiseItems: [
-      "Read-only ROI diagnostic on your data.",
-      "Simple synthesis: losses, priorities, potential gains.",
+      "Read-only historical proof on your data.",
+      "Simple synthesis: priority trade-offs, potential gains, recommended next step.",
       "30-min framing proposal if relevant.",
     ],
-    formTitle: "Get the diagnostic",
+    formTitle: "Request the proof",
   };
 }

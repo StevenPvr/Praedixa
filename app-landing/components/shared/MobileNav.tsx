@@ -83,7 +83,11 @@ export function MobileNav({
         aria-expanded={open}
         aria-controls="mobile-nav-panel"
       >
-        {open ? <X size={22} weight="bold" /> : <List size={22} weight="bold" />}
+        {open ? (
+          <X size={22} weight="bold" />
+        ) : (
+          <List size={22} weight="bold" />
+        )}
       </button>
 
       <AnimatePresence>
@@ -144,11 +148,16 @@ export function MobileNav({
                   }
 
                   return (
-                    <section key={group.key} className="rounded-xl border border-neutral-200 bg-white">
+                    <section
+                      key={group.key}
+                      className="rounded-xl border border-neutral-200 bg-white"
+                    >
                       <button
                         type="button"
                         onClick={() =>
-                          setExpandedKey((prev) => (prev === group.key ? null : group.key))
+                          setExpandedKey((prev) =>
+                            prev === group.key ? null : group.key,
+                          )
                         }
                         className="flex w-full items-center justify-between px-3 py-3 text-left text-base font-medium text-ink"
                         aria-expanded={isExpanded}
@@ -196,7 +205,9 @@ export function MobileNav({
                                           : "border-transparent text-neutral-700 hover:border-neutral-200 hover:bg-neutral-50"
                                       }`}
                                     >
-                                      <span className="block font-medium">{item.label}</span>
+                                      <span className="block font-medium">
+                                        {item.label}
+                                      </span>
                                       {item.description ? (
                                         <span className="mt-0.5 block text-xs leading-relaxed text-neutral-500">
                                           {item.description}

@@ -74,7 +74,9 @@ function sanitizeContactPayload(data: ContactPayload, ip: string) {
   };
 }
 
-function buildAdminHtml(data: ReturnType<typeof sanitizeContactPayload>): string {
+function buildAdminHtml(
+  data: ReturnType<typeof sanitizeContactPayload>,
+): string {
   return `
     <h2>Nouveau message de contact</h2>
     <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
@@ -92,7 +94,9 @@ function buildAdminHtml(data: ReturnType<typeof sanitizeContactPayload>): string
   `;
 }
 
-function buildConfirmHtml(data: ReturnType<typeof sanitizeContactPayload>): string {
+function buildConfirmHtml(
+  data: ReturnType<typeof sanitizeContactPayload>,
+): string {
   const contactEmail = escapeHtml(siteConfig.contact.email);
   const brandEmailColor = siteConfig.brand?.primaryEmailColor ?? "#2563eb";
 

@@ -14,18 +14,22 @@ import {
   focusFirstContactError,
   validateContactForm,
 } from "./contact-page.helpers";
-import type { ContactChallenge, ContactFormData, FieldErrors } from "./contact-page.types";
+import type {
+  ContactChallenge,
+  ContactFormData,
+  FieldErrors,
+} from "./contact-page.types";
 
 type ContactStatus = "idle" | "submitting" | "success" | "error";
 
 export function ContactPageClient({ locale }: { locale: Locale }) {
   const searchParams = useSearchParams();
-  const isAuditIntent = searchParams.get("intent") === "audit";
-  const copy = getContactPageCopy(locale, isAuditIntent);
+  const isProofIntent = searchParams.get("intent") === "proof";
+  const copy = getContactPageCopy(locale, isProofIntent);
   const [captcha, setCaptcha] = useState<ContactChallenge | null>(null);
   const [captchaLoading, setCaptchaLoading] = useState(true);
   const [form, setForm] = useState<ContactFormData>(
-    createInitialContactForm(locale, isAuditIntent),
+    createInitialContactForm(locale, isProofIntent),
   );
   const [status, setStatus] = useState<ContactStatus>("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -33,17 +37,21 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
 
   useEffect(() => {
     setForm((prev) => ({
-      ...createInitialContactForm(locale, isAuditIntent),
+      ...createInitialContactForm(locale, isProofIntent),
       ...prev,
       locale,
-      subject: prev.subject || createInitialContactForm(locale, isAuditIntent).subject,
+      subject:
+        prev.subject || createInitialContactForm(locale, isProofIntent).subject,
     }));
-  }, [isAuditIntent, locale]);
+  }, [isProofIntent, locale]);
 
-  const update = useCallback((key: keyof ContactFormData, value: string | boolean) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-    setFieldErrors((prev) => clearFieldError(prev, key));
-  }, []);
+  const update = useCallback(
+    (key: keyof ContactFormData, value: string | boolean) => {
+      setForm((prev) => ({ ...prev, [key]: value }));
+      setFieldErrors((prev) => clearFieldError(prev, key));
+    },
+    [],
+  );
 
   const loadCaptchaChallenge = useCallback(async () => {
     setCaptchaLoading(true);
@@ -116,7 +124,10 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
           }),
         });
 
-        const payload = (await response.json()) as { success?: boolean; error?: string };
+        const payload = (await response.json()) as {
+          success?: boolean;
+          error?: string;
+        };
         if (!response.ok || payload.error) {
           setErrorMsg(payload.error ?? copy.unknownError);
           setStatus("error");
@@ -158,7 +169,10 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
           fieldErrors={fieldErrors}
           form={form}
           isFr={locale === "fr"}
-          isSubmitDisabled={!canSubmitContactForm(form, captcha, captchaLoading) || status === "submitting"}
+          isSubmitDisabled={
+            !canSubmitContactForm(form, captcha, captchaLoading) ||
+            status === "submitting"
+          }
           loadCaptchaChallenge={loadCaptchaChallenge}
           locale={locale}
           onSubmit={handleSubmit}

@@ -6,10 +6,10 @@ const PHONE_REGEX = /^[+]?[\d\s().-]{6,30}$/;
 const SUPPORTED_LOCALES = new Set(["fr", "en"]);
 
 const REQUEST_TYPE_LABELS = {
-  founding_pilot: {
+  deployment_request: {
     tag: "PILOT",
-    fr: "Pilote ROI",
-    en: "Closed-loop pilot",
+    fr: "Déploiement Praedixa",
+    en: "Praedixa deployment",
   },
   product_demo: {
     tag: "DEMO",
@@ -74,7 +74,12 @@ export function validateContactBody(
     return { valid: false, error: "Entreprise requise." };
   }
 
-  const firstName = readOptionalField(input, "firstName", 80, "Prénom invalide.");
+  const firstName = readOptionalField(
+    input,
+    "firstName",
+    80,
+    "Prénom invalide.",
+  );
   if (!firstName.valid) {
     return firstName;
   }
@@ -142,7 +147,10 @@ export function validateContactBody(
       subject: subject.value,
       message,
       consent: true,
-      website: typeof input.website === "string" ? input.website.trim().slice(0, 200) : "",
+      website:
+        typeof input.website === "string"
+          ? input.website.trim().slice(0, 200)
+          : "",
       captchaAnswer,
       challengeToken,
     },
@@ -162,14 +170,16 @@ export function requestTypeTag(type: ContactRequestType): string {
 
 function readRequestType(
   input: Record<string, unknown>,
-): { valid: true; value: ContactRequestType } | { valid: false; error: string } {
+):
+  | { valid: true; value: ContactRequestType }
+  | { valid: false; error: string } {
   const requestTypeRaw = readString(input, "requestType", 40, false);
   if (requestTypeRaw === null) {
     return { valid: false, error: "Type de demande invalide." };
   }
 
   if (requestTypeRaw === "") {
-    return { valid: true, value: "founding_pilot" };
+    return { valid: true, value: "deployment_request" };
   }
 
   const normalized = requestTypeRaw.trim() as ContactRequestType;
@@ -211,10 +221,10 @@ function defaultSubjectForRequest({
   requestType: ContactRequestType;
 }): string {
   const prefix =
-    requestType === "founding_pilot"
+    requestType === "deployment_request"
       ? locale === "en"
-        ? "Free historical audit"
-        : "Diagnostic ROI gratuit"
+        ? "Historical proof request"
+        : "Preuve sur historique offerte"
       : requestTypeLabel(requestType, locale);
 
   return companyName.trim() ? `${prefix} — ${companyName.trim()}` : prefix;

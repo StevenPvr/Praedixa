@@ -13,7 +13,7 @@ export interface ScopingCallRequestPanelProps {
   locale: Locale;
   defaultCompanyName?: string;
   defaultEmail?: string;
-  source?: "contact_success" | "pilot_success" | string;
+  source?: "contact_success" | "deployment_success" | string;
   className?: string;
 }
 

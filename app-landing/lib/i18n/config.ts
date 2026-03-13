@@ -1,16 +1,15 @@
 import { getSectorLegacyRedirects } from "../content/sector-pages";
+import type { Locale } from "./locale";
 
-export const locales = ["fr", "en"] as const;
-export type Locale = (typeof locales)[number];
-export const defaultLocale: Locale = "fr";
-
-export function isValidLocale(value: string): value is Locale {
-  return (locales as readonly string[]).includes(value);
-}
+export { defaultLocale, isValidLocale, locales, type Locale } from "./locale";
 
 /** Route slugs that differ between locales */
 export const localizedSlugs = {
-  pilot: { fr: "devenir-pilote", en: "pilot-application" },
+  deployment: { fr: "deploiement", en: "deployment" },
+  deploymentProtocol: {
+    fr: "protocole-deploiement",
+    en: "deployment-protocol",
+  },
   contact: { fr: "contact", en: "contact" },
   services: { fr: "services", en: "services" },
   productMethod: { fr: "produit-methode", en: "product-method" },
@@ -30,7 +29,8 @@ export const localizedSlugs = {
 } as const;
 
 const explicitLegacyRedirects = {
-  "/pilot-protocol": "/fr/pilot-protocol",
+  "/protocole-deploiement": "/fr/protocole-deploiement",
+  "/deployment-protocol": "/en/deployment-protocol",
   "/logo-preview": "/fr/logo-preview",
 } as const;
 
