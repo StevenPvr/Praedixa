@@ -41,6 +41,8 @@ function resolvePublicOpenApiPath(): string {
 }
 
 const PUBLIC_OPENAPI_PATH = resolvePublicOpenApiPath();
+let cachedPublicOpenApiSource: string | null = null;
+let cachedPublicOpenApiDocument: PublicOpenApiDocument | null = null;
 
 const OPENAPI_METHODS = ["get", "post", "patch", "put", "delete"] as const;
 
@@ -165,15 +167,24 @@ function readResponseSchemaRef(
 }
 
 export function loadPublicOpenApiSource(): string {
-  return readFileSync(PUBLIC_OPENAPI_PATH, "utf8");
+  if (cachedPublicOpenApiSource === null) {
+    cachedPublicOpenApiSource = readFileSync(PUBLIC_OPENAPI_PATH, "utf8");
+  }
+
+  return cachedPublicOpenApiSource;
 }
 
 export function loadPublicOpenApiDocument(): PublicOpenApiDocument {
-  const parsed = parse(loadPublicOpenApiSource());
-  if (!isObjectRecord(parsed)) {
-    throw new Error("Public OpenAPI contract must parse to an object");
+  if (cachedPublicOpenApiDocument === null) {
+    const parsed = parse(loadPublicOpenApiSource());
+    if (!isObjectRecord(parsed)) {
+      throw new Error("Public OpenAPI contract must parse to an object");
+    }
+
+    cachedPublicOpenApiDocument = parsed as PublicOpenApiDocument;
   }
-  return parsed as PublicOpenApiDocument;
+
+  return cachedPublicOpenApiDocument;
 }
 
 export function normalizePublicOpenApiPath(pathname: string): string {

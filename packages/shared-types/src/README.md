@@ -34,6 +34,7 @@ pnpm --filter @praedixa/shared-types build
 - Les apps frontend importent ces types directement.
 - `contracts/openapi/public.yaml` doit rester coherent avec les payloads exposes publiquement.
 - Le parseur structurel de la spec publique vit dans `api/public-contract/openapi-node.ts` et reste reserve aux checks Node; il ne doit pas fuiter dans les bundles browser.
+- Ce helper Node met en cache le parse de `contracts/openapi/public.yaml` a l'echelle du processus pour que les suites de contrat et les gates coverage restent deterministes sans relire la spec a chaque assertion.
 - `app-api-ts` et les tests dans `testing/` sont les premiers endroits a verifier apres un changement de contrat.
 - `OperationalDecisionCreateRequest` est le contrat canonique de soumission runtime (`alertId`, `optionId`, `notes?`) ; aucun front ne doit reconstruire un payload legacy derive du workspace.
 - `ApprovalDecisionRequest` et `ApprovalDecisionResponse` gardent la decision admin d'approbation et le retour runtime synchronises entre `app-admin` et `app-api-ts`.
