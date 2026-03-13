@@ -73,3 +73,15 @@ cd app-api
 uv run ruff check .
 uv run mypy app
 ```
+
+Observabilite:
+
+```bash
+cd app-api
+uv run pytest tests/test_telemetry.py -q
+uv run python scripts/run_inference_job.py --org-id <uuid> --job-id <uuid> --request-id <req-id>
+```
+
+`app/core/telemetry.py` configure maintenant un logger `structlog` JSON pour les frontieres batch les plus sensibles du data plane. Les services `integration_runtime_worker.py`, `transform_engine.py` et le script `run_inference_job.py` bindent explicitement `request_id`, `run_id`, `connector_run_id`, `organization_id` et `trace_id` quand ils sont connus, et laissent ces champs a `null` sinon.
+
+Le bootstrap reel d'une nouvelle organisation passe maintenant par `app/services/organization_foundation.py`; il s'arrete au socle persistant minimum et n'injecte plus les forecasts/alerts/decisions de `seed_full_demo.py`.

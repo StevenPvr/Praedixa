@@ -10,12 +10,13 @@ test.describe("Dashboard page", () => {
 
   test("displays page title and subtitle", async ({ page }) => {
     await page.goto("/dashboard");
+    const main = page.getByRole("main");
 
     await expect(
       page.getByRole("heading", { name: "Priorites du jour" }),
     ).toBeVisible();
     await expect(
-      page.getByText(
+      main.getByText(
         "Vue synthese des risques, de la qualite data et des prochaines actions.",
       ),
     ).toBeVisible();

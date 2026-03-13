@@ -185,12 +185,26 @@ describe("DonneesPage", () => {
         };
       }
       if (url?.includes("/canonical/quality")) {
-        return { data: mockQuality, loading: false, error: null, refetch: vi.fn() };
+        return {
+          data: mockQuality,
+          loading: false,
+          error: null,
+          refetch: vi.fn(),
+        };
       }
       if (url?.includes("/canonical")) {
-        return { data: mockCanonical, loading: false, error: null, refetch: vi.fn() };
+        return {
+          data: mockCanonical,
+          loading: false,
+          error: null,
+          refetch: vi.fn(),
+        };
       }
-      if (url?.includes("/datasets") && !url?.includes("/data") && !url?.includes("/features")) {
+      if (
+        url?.includes("/datasets") &&
+        !url?.includes("/data") &&
+        !url?.includes("/features")
+      ) {
         return { data: [], loading: false, error: null, refetch: vi.fn() };
       }
       if (url?.includes("/datasets/") && url?.endsWith("/data")) {

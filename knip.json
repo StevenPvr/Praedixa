@@ -2,11 +2,14 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "ignore": [
     ".next/**",
+    ".open-next/**",
     "dist/**",
     "coverage/**",
     "playwright-report/**",
     "test-results/**",
-    "testing/e2e/**/snapshots/**"
+    "testing/e2e/**/snapshots/**",
+    "skolae/**",
+    "centaurus/**"
   ],
   "ignoreBinaries": [
     "semgrep",

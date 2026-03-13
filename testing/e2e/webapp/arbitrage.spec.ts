@@ -10,12 +10,15 @@ test.describe("Actions page", () => {
 
   test("displays page heading and subtitle", async ({ page }) => {
     await page.goto("/actions");
+    const main = page.getByRole("main");
 
     await expect(
       page.getByRole("heading", { name: "Centre Actions" }),
     ).toBeVisible();
     await expect(
-      page.getByText("Validez les decisions recommandees puis suivez leur historique."),
+      main.getByText(
+        "Validez les decisions recommandees puis suivez leur historique.",
+      ),
     ).toBeVisible();
   });
 
@@ -23,20 +26,27 @@ test.describe("Actions page", () => {
     await page.goto("/actions");
 
     await expect(page.getByRole("heading", { name: "Alertes" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Diagnostic" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Diagnostic" }),
+    ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Options recommandees" }),
     ).toBeVisible();
   });
 
-  test("validating a selected option resets to disabled state", async ({ page }) => {
+  test("validating a selected option resets to disabled state", async ({
+    page,
+  }) => {
     await page.goto("/actions");
 
     const validateButton = page.getByRole("button", {
       name: "Valider la decision",
     });
 
-    await page.getByRole("button", { name: /interim/i }).first().click();
+    await page
+      .getByRole("button", { name: /interim/i })
+      .first()
+      .click();
     await expect(validateButton).toBeEnabled();
 
     await validateButton.click();

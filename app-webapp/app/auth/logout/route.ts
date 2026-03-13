@@ -9,7 +9,7 @@ import {
 import { isSameOriginBrowserRequest } from "@/lib/security/same-origin";
 
 export async function POST(request: NextRequest) {
-  if (!isSameOriginBrowserRequest(request)) {
+  if (!isSameOriginBrowserRequest(request, { allowNavigate: true })) {
     const response = NextResponse.json({ error: "forbidden" }, { status: 403 });
     response.headers.set("Cache-Control", "no-store");
     response.headers.set("Pragma", "no-cache");

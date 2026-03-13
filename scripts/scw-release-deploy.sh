@@ -70,11 +70,6 @@ resolve_services() {
   jq -r --arg env "$ENVIRONMENT" '.targets[$env] | keys[]' "$MANIFEST_PATH"
 }
 
-resolve_deploy_image() {
-  local registry_image="$1"
-  printf '%s' "${registry_image%%@sha256:*}"
-}
-
 while IFS= read -r service || [[ -n "$service" ]]; do
   if [[ -z "$service" ]]; then
     continue
@@ -89,8 +84,6 @@ while IFS= read -r service || [[ -n "$service" ]]; do
     exit 1
   fi
 
-  deploy_image="$(resolve_deploy_image "$registry_image")"
-
   container_id="$(
     scw container container list region="$region" -o json |
       jq -r --arg n "$container_name" '.[] | select(.name == $n) | .id' |
@@ -102,12 +95,12 @@ while IFS= read -r service || [[ -n "$service" ]]; do
     exit 1
   fi
 
-  echo "[release-deploy] ${service} -> ${container_name} (${deploy_image})"
+  echo "[release-deploy] ${service} -> ${container_name} (${registry_image})"
   update_output="$(
     scw container container update \
     "$container_id" \
     region="$region" \
-    registry-image="$deploy_image" \
+    registry-image="$registry_image" \
     redeploy=true \
     -w \
     -o json

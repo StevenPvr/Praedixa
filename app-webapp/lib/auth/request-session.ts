@@ -76,11 +76,17 @@ export async function resolveRequestSession(
     let accessToken = accessTokenCookie ?? "";
     let refreshToken = refreshTokenCookie ?? null;
 
-    if (accessToken && !(await doesSessionMatchAccessToken(session, accessToken))) {
+    if (
+      accessToken &&
+      !(await doesSessionMatchAccessToken(session, accessToken))
+    ) {
       return { ok: false, clearCookies: true };
     }
 
-    if (refreshToken && !(await doesSessionMatchRefreshToken(session, refreshToken))) {
+    if (
+      refreshToken &&
+      !(await doesSessionMatchRefreshToken(session, refreshToken))
+    ) {
       return { ok: false, clearCookies: true };
     }
 

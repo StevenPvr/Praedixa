@@ -78,6 +78,19 @@ const workspace = {
       isRecommended: false,
       contraintesJson: {},
     },
+    {
+      id: "o2",
+      coverageAlertId: "a1",
+      costParameterId: "cp2",
+      optionType: "interim",
+      label: "Interim",
+      coutTotalEur: 520,
+      serviceAttenduPct: 95,
+      heuresCouvertes: 6,
+      isParetoOptimal: true,
+      isRecommended: false,
+      contraintesJson: {},
+    },
   ],
   recommendedOptionId: "o1",
   diagnostic: { topDrivers: ["absence_rate"] },
@@ -108,7 +121,9 @@ function setupHooks(options?: {
   const historyRefetch = vi.fn();
 
   mockUseApiGet.mockImplementation((url: string | null) => {
-    if (url?.startsWith("/api/v1/live/coverage-alerts?status=open&page_size=200")) {
+    if (
+      url?.startsWith("/api/v1/live/coverage-alerts?status=open&page_size=200")
+    ) {
       return {
         data: options?.alerts ?? alertRows,
         loading: options?.alertsLoading ?? false,
@@ -210,13 +225,8 @@ describe("ActionsPage", () => {
     await waitFor(() => {
       expect(mockMutate).toHaveBeenCalledWith(
         expect.objectContaining({
-          coverageAlertId: "a1",
-          chosenOptionId: "o1",
-          siteId: "Lyon",
-          shift: "AM",
-          decisionDate: "2026-02-10",
-          horizon: "j7",
-          gapH: 6,
+          alertId: "a1",
+          optionId: "o1",
         }),
       );
     });
@@ -224,6 +234,35 @@ describe("ActionsPage", () => {
     await waitFor(() => {
       expect(alertsRefetch).toHaveBeenCalledTimes(1);
       expect(historyRefetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("requires notes before submitting an override decision", async () => {
+    render(<ActionsPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: /interim/i }));
+
+    expect(
+      screen.getByLabelText("Justification de l'override"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Valider la decision" }),
+    ).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Justification de l'override"), {
+      target: { value: "Contrainte terrain exceptionnelle" },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Valider la decision" }),
+    );
+
+    await waitFor(() => {
+      expect(mockMutate).toHaveBeenCalledWith({
+        alertId: "a1",
+        optionId: "o2",
+        notes: "Contrainte terrain exceptionnelle",
+      });
     });
   });
 

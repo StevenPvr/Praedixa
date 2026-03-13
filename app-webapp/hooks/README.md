@@ -1,24 +1,22 @@
 # `hooks/` - Hooks React du webapp
 
-Les hooks de ce dossier encapsulent l'acces API, les etats de polling et quelques comportements d'UI reutilises dans les pages clientes.
+Hooks locaux relies surtout au fetch browser-aware et a deux besoins metier recurrents.
 
 ## Hooks exposes
 
-| Hook | Fichier | Role |
-| --- | --- | --- |
-| `useApiGet`, `useApiGetPaginated`, `useApiPost`, `useApiPatch` | `use-api.ts` | Couche de data-fetching browser-aware avec annulation et gestion d'erreurs |
-| `useDecisionConfig` | `use-decision-config.ts` | Lecture de la configuration de decision effective |
-| `useLatestForecasts` | `use-latest-forecasts.ts` | Recuperation et normalisation des previsions recentes |
-| `useCountUp` | `use-count-up.ts` | Animation numerique cote client |
+| Hook                 | Fichier                   | Role reel                                                                                |
+| -------------------- | ------------------------- | ---------------------------------------------------------------------------------------- |
+| `useApiGet`          | `use-api.ts`              | GET avec abort, polling optionnel, auto-retry et reauth sur `401` non silencieux         |
+| `useApiGetPaginated` | `use-api.ts`              | variante paginee de `useApiGet`                                                          |
+| `useApiPost`         | `use-api.ts`              | mutation POST qui annule la requete precedente du meme hook et force la reauth sur `401` |
+| `useApiPatch`        | `use-api.ts`              | mutation PATCH sur le meme contrat                                                       |
+| `useDecisionConfig`  | `use-decision-config.ts`  | lecture de la config de decision effective                                               |
+| `useLatestForecasts` | `use-latest-forecasts.ts` | lecture/normalisation des previsions recentes                                            |
+| `useCountUp`         | `use-count-up.ts`         | animation numerique locale                                                               |
 
-## Conventions
+## Comportements utiles de `use-api.ts`
 
-- Les hooks API passent par le BFF `/api/v1/*`, jamais par un token browser.
-- Les hooks metier s'appuient sur `lib/api/endpoints.ts`.
-- Les appels longs ou repetes utilisent le polling defini dans `lib/chat-config.ts`.
-
-## Tests
-
-- `__tests__/use-api.test.ts`
-- `__tests__/use-decision-config.test.ts`
-- `__tests__/use-latest-forecasts.test.ts`
+- les hooks GET passent par `lib/api/client.ts`, donc par le BFF same-origin
+- `useApiGet` remet son state a vide si l'URL devient `null`
+- les retries automatiques ne couvrent que les erreurs retryables (`408`, `429`, `5xx`) hors polling
+- les mutations exposent `reset()` et annulent leur requete precedente au prochain `mutate()`

@@ -1,5 +1,4 @@
 import {
-  DEFAULT_ROLE,
   DEFAULT_SESSION_MAX_AGE_SECONDS,
   SESSION_CLOCK_SKEW_SECONDS,
   type AuthSessionData,
@@ -152,7 +151,8 @@ export async function signSession(
 
 function parseRefreshTokenHash(parsed: JwtPayload): string | null {
   const rawRefreshTokenHash = getOwnValue(parsed, "refreshTokenHash");
-  return typeof rawRefreshTokenHash === "string" && rawRefreshTokenHash.length > 0
+  return typeof rawRefreshTokenHash === "string" &&
+    rawRefreshTokenHash.length > 0
     ? rawRefreshTokenHash
     : rawRefreshTokenHash === null
       ? null
@@ -188,7 +188,7 @@ export async function verifySession(
 
   const sub = getString(parsed, "sub");
   const email = getString(parsed, "email");
-  const role = getString(parsed, "role") ?? DEFAULT_ROLE;
+  const role = getString(parsed, "role");
   const accessTokenExp = parsed.accessTokenExp;
   const issuedAt = parsed.issuedAt;
   const sessionExpiresAt = parsed.sessionExpiresAt;
@@ -198,6 +198,7 @@ export async function verifySession(
   if (
     !sub ||
     !email ||
+    !role ||
     typeof accessTokenExp !== "number" ||
     typeof issuedAt !== "number" ||
     typeof sessionExpiresAt !== "number" ||
@@ -210,10 +211,15 @@ export async function verifySession(
     return null;
   }
 
+  const normalizedRole = normalizeKnownRole(role);
+  if (!normalizedRole) {
+    return null;
+  }
+
   return {
     sub,
     email,
-    role: normalizeKnownRole(role),
+    role: normalizedRole,
     organizationId: getString(parsed, "organizationId"),
     siteId: getString(parsed, "siteId"),
     accessTokenExp,

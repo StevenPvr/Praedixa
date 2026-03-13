@@ -1,0 +1,265 @@
+{
+  "version": 2,
+  "owner": "Infra/DevOps",
+  "sourceRunbooks": [
+    "docs/runbooks/observability-baseline.md",
+    "docs/runbooks/post-deploy-smoke-baseline.md",
+    "docs/runbooks/release-and-rollback-baseline.md"
+  ],
+  "requiredServiceCoverage": {
+    "api": 2,
+    "landing": 1,
+    "webapp": 1,
+    "admin": 1,
+    "auth": 1,
+    "connectors": 1
+  },
+  "requiredProbeIntents": {
+    "api": ["health", "anonymous_rejection"],
+    "landing": ["public_homepage"],
+    "webapp": ["login_page"],
+    "admin": ["login_page"],
+    "auth": ["oidc_discovery"],
+    "connectors": ["health"]
+  },
+  "requiredMetadataFields": [
+    "runbook",
+    "dashboard",
+    "responseOwner",
+    "smokeService",
+    "symptom"
+  ],
+  "checks": [
+    {
+      "id": "api-health",
+      "service": "api",
+      "probe": {
+        "kind": "http_status",
+        "intent": "health"
+      },
+      "method": "GET",
+      "expectedStatus": 200,
+      "timeoutSeconds": 5,
+      "cadenceSeconds": 60,
+      "severity": "critical",
+      "description": "API runtime health endpoint must stay reachable.",
+      "metadata": {
+        "runbook": "docs/runbooks/observability-baseline.md",
+        "dashboard": "platform-overview",
+        "responseOwner": "Platform TS",
+        "smokeService": "api",
+        "symptom": "Public API health endpoint unavailable"
+      },
+      "targets": {
+        "staging": {
+          "hostMode": "canonical",
+          "baseUrl": "https://staging-api.praedixa.com",
+          "path": "/api/v1/health"
+        },
+        "prod": {
+          "hostMode": "canonical",
+          "baseUrl": "https://api.praedixa.com",
+          "path": "/api/v1/health"
+        }
+      }
+    },
+    {
+      "id": "api-protected-route-unauthorized",
+      "service": "api",
+      "probe": {
+        "kind": "http_status",
+        "intent": "anonymous_rejection"
+      },
+      "method": "GET",
+      "expectedStatus": 401,
+      "timeoutSeconds": 5,
+      "cadenceSeconds": 300,
+      "severity": "warning",
+      "description": "Protected API routes must reject anonymous access.",
+      "metadata": {
+        "runbook": "docs/runbooks/observability-baseline.md",
+        "dashboard": "platform-overview",
+        "responseOwner": "Platform TS",
+        "smokeService": "api",
+        "symptom": "Protected API route stopped rejecting anonymous traffic"
+      },
+      "targets": {
+        "staging": {
+          "hostMode": "canonical",
+          "baseUrl": "https://staging-api.praedixa.com",
+          "path": "/api/v1/dashboard/summary"
+        },
+        "prod": {
+          "hostMode": "canonical",
+          "baseUrl": "https://api.praedixa.com",
+          "path": "/api/v1/dashboard/summary"
+        }
+      }
+    },
+    {
+      "id": "landing-home-fr",
+      "service": "landing",
+      "probe": {
+        "kind": "http_status",
+        "intent": "public_homepage"
+      },
+      "method": "GET",
+      "expectedStatus": 200,
+      "timeoutSeconds": 10,
+      "cadenceSeconds": 300,
+      "severity": "critical",
+      "description": "Landing must resolve to the French public homepage.",
+      "metadata": {
+        "runbook": "docs/runbooks/post-deploy-smoke-baseline.md",
+        "dashboard": "platform-overview",
+        "responseOwner": "Front marketing",
+        "smokeService": "landing",
+        "symptom": "Public French landing page unavailable"
+      },
+      "targets": {
+        "staging": {
+          "hostMode": "explicit",
+          "baseUrl": null,
+          "path": "/fr"
+        },
+        "prod": {
+          "hostMode": "canonical",
+          "baseUrl": "https://praedixa.com",
+          "path": "/fr"
+        }
+      }
+    },
+    {
+      "id": "webapp-login",
+      "service": "webapp",
+      "probe": {
+        "kind": "http_status",
+        "intent": "login_page"
+      },
+      "method": "GET",
+      "expectedStatus": 200,
+      "timeoutSeconds": 10,
+      "cadenceSeconds": 300,
+      "severity": "critical",
+      "description": "Webapp login page must stay reachable.",
+      "metadata": {
+        "runbook": "docs/runbooks/post-deploy-smoke-baseline.md",
+        "dashboard": "platform-overview",
+        "responseOwner": "Front produit",
+        "smokeService": "webapp",
+        "symptom": "Webapp login entrypoint unavailable"
+      },
+      "targets": {
+        "staging": {
+          "hostMode": "canonical",
+          "baseUrl": "https://staging-app.praedixa.com",
+          "path": "/login"
+        },
+        "prod": {
+          "hostMode": "canonical",
+          "baseUrl": "https://app.praedixa.com",
+          "path": "/login"
+        }
+      }
+    },
+    {
+      "id": "admin-login",
+      "service": "admin",
+      "probe": {
+        "kind": "http_status",
+        "intent": "login_page"
+      },
+      "method": "GET",
+      "expectedStatus": 200,
+      "timeoutSeconds": 10,
+      "cadenceSeconds": 300,
+      "severity": "critical",
+      "description": "Admin login page must stay reachable.",
+      "metadata": {
+        "runbook": "docs/runbooks/post-deploy-smoke-baseline.md",
+        "dashboard": "platform-overview",
+        "responseOwner": "Front admin",
+        "smokeService": "admin",
+        "symptom": "Admin login entrypoint unavailable"
+      },
+      "targets": {
+        "staging": {
+          "hostMode": "canonical",
+          "baseUrl": "https://staging-admin.praedixa.com",
+          "path": "/login"
+        },
+        "prod": {
+          "hostMode": "canonical",
+          "baseUrl": "https://admin.praedixa.com",
+          "path": "/login"
+        }
+      }
+    },
+    {
+      "id": "auth-oidc-well-known",
+      "service": "auth",
+      "probe": {
+        "kind": "http_status",
+        "intent": "oidc_discovery"
+      },
+      "method": "GET",
+      "expectedStatus": 200,
+      "timeoutSeconds": 10,
+      "cadenceSeconds": 300,
+      "severity": "critical",
+      "description": "OIDC discovery document must stay reachable.",
+      "metadata": {
+        "runbook": "docs/runbooks/observability-baseline.md",
+        "dashboard": "platform-overview",
+        "responseOwner": "Infra/DevOps",
+        "smokeService": "auth",
+        "symptom": "OIDC discovery endpoint unavailable"
+      },
+      "targets": {
+        "staging": {
+          "hostMode": "explicit",
+          "baseUrl": null,
+          "path": "/realms/praedixa/.well-known/openid-configuration"
+        },
+        "prod": {
+          "hostMode": "canonical",
+          "baseUrl": "https://auth.praedixa.com",
+          "path": "/realms/praedixa/.well-known/openid-configuration"
+        }
+      }
+    },
+    {
+      "id": "connectors-health",
+      "service": "connectors",
+      "probe": {
+        "kind": "http_status",
+        "intent": "health"
+      },
+      "method": "GET",
+      "expectedStatus": 200,
+      "timeoutSeconds": 5,
+      "cadenceSeconds": 60,
+      "severity": "critical",
+      "description": "Connectors public health endpoint must stay reachable when exposed.",
+      "metadata": {
+        "runbook": "docs/runbooks/observability-baseline.md",
+        "dashboard": "data-and-connectors",
+        "responseOwner": "Integrations",
+        "smokeService": "connectors",
+        "symptom": "Public connectors health endpoint unavailable"
+      },
+      "targets": {
+        "staging": {
+          "hostMode": "explicit",
+          "baseUrl": null,
+          "path": "/health"
+        },
+        "prod": {
+          "hostMode": "canonical",
+          "baseUrl": "https://connectors.praedixa.com",
+          "path": "/health"
+        }
+      }
+    }
+  ]
+}

@@ -29,10 +29,7 @@ export {
 } from "./oidc/env";
 export { getTrustedOidcEndpoints } from "./oidc/discovery";
 export { sanitizeNextPath } from "./oidc/navigation";
-export {
-  createPkceChallenge,
-  createRandomToken,
-} from "./oidc/session";
+export { createPkceChallenge, createRandomToken } from "./oidc/session";
 export {
   buildSessionData,
   doesSessionMatchAccessToken,
@@ -47,8 +44,4 @@ export {
   refreshTokens,
   revokeOidcToken,
 } from "./oidc/tokens";
-export {
-  clearAuthCookies,
-  secureCookie,
-  setAuthCookies,
-} from "./oidc/cookies";
+export { clearAuthCookies, secureCookie, setAuthCookies } from "./oidc/cookies";

@@ -52,13 +52,19 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const isReauth = searchParams.get("reauth") === "1";
   const error = searchParams.get("error");
-  const tokenReason = sanitizeIncidentToken(searchParams.get("token_reason"), 64);
+  const tokenReason = sanitizeIncidentToken(
+    searchParams.get("token_reason"),
+    64,
+  );
   const errorMessage = toLoginErrorMessage(error);
   const reason = searchParams.get("reason");
   const errorCode = sanitizeIncidentToken(searchParams.get("error_code"), 64);
   const requestId = sanitizeIncidentToken(searchParams.get("request_id"), 128);
   const reauthMessage = toReauthMessage(reason, errorCode);
-  const supportHint = [errorCode && `code ${errorCode}`, requestId && `incident ${requestId}`]
+  const supportHint = [
+    errorCode && `code ${errorCode}`,
+    requestId && `incident ${requestId}`,
+  ]
     .filter(Boolean)
     .join(" · ");
 
@@ -93,7 +99,8 @@ function LoginForm() {
             <p>{reauthMessage}</p>
             {supportHint && (
               <p className="mt-2 text-xs">
-                Reference support: <span className="font-semibold">{supportHint}</span>
+                Reference support:{" "}
+                <span className="font-semibold">{supportHint}</span>
               </p>
             )}
           </div>
@@ -104,13 +111,19 @@ function LoginForm() {
             <p>{errorMessage}</p>
             {error === "auth_token_incompatible" && tokenReason && (
               <p className="mt-2 text-xs">
-                Detail technique: <span className="font-semibold">{tokenReason}</span>
+                Detail technique:{" "}
+                <span className="font-semibold">{tokenReason}</span>
               </p>
             )}
           </div>
         )}
 
-        <Button type="button" onClick={handleLogin} className="w-full" size="lg">
+        <Button
+          type="button"
+          onClick={handleLogin}
+          className="w-full"
+          size="lg"
+        >
           <LockKey className="mr-2 h-4 w-4" />
           Continuer vers la connexion
           <ArrowRight className="ml-2 h-4 w-4" />

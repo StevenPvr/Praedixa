@@ -108,10 +108,6 @@ function parseCorsOrigins(
   return normalizedOrigins;
 }
 
-function parseAllowedOrgs(rawAllowedOrgs: string | undefined): string[] {
-  return dedupeAllowedOrgs((rawAllowedOrgs ?? "").split(","));
-}
-
 function parseList(rawValue: string | undefined): string[] {
   const value = rawValue?.trim() ?? "";
   if (!value) {
@@ -127,20 +123,10 @@ function parseList(rawValue: string | undefined): string[] {
   );
 }
 
-function normalizeCapability(value: string): ServiceTokenCapability {
-  if ((SERVICE_TOKEN_CAPABILITIES as readonly string[]).includes(value)) {
-    return value as ServiceTokenCapability;
-  }
-  throw new Error(`Unsupported service token capability "${value}"`);
-}
-
-function parseAllowedCapabilities(
-  rawCapabilities: string | undefined,
-): ServiceTokenCapability[] {
-  return parseList(rawCapabilities).map((entry) => normalizeCapability(entry));
-}
-
-function parseAllowedOutboundHosts(rawHosts: string | undefined): string[] {
+function parseAllowedOutboundHosts(
+  rawHosts: string | undefined,
+  label: string,
+): string[] {
   return parseList(rawHosts).map((entry) => {
     const normalized = entry.toLowerCase();
     if (
@@ -148,9 +134,7 @@ function parseAllowedOutboundHosts(rawHosts: string | undefined): string[] {
         normalized,
       )
     ) {
-      throw new Error(
-        `CONNECTORS_ALLOWED_OUTBOUND_HOSTS contains invalid host "${entry}"`,
-      );
+      throw new Error(`${label} contains invalid host "${entry}"`);
     }
     return normalized;
   });
@@ -174,6 +158,14 @@ function parsePublicBaseUrl(
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
     throw new Error("CONNECTORS_PUBLIC_BASE_URL must use http(s)");
   }
+  if (parsed.username || parsed.password) {
+    throw new Error("CONNECTORS_PUBLIC_BASE_URL must not embed credentials");
+  }
+  if (parsed.search || parsed.hash) {
+    throw new Error(
+      "CONNECTORS_PUBLIC_BASE_URL must not include query or fragment",
+    );
+  }
   if (nodeEnv !== "development" && parsed.protocol !== "https:") {
     throw new Error(
       "CONNECTORS_PUBLIC_BASE_URL must use https outside development",
@@ -183,10 +175,16 @@ function parsePublicBaseUrl(
   return parsed.toString().replace(/\/$/, "");
 }
 
-function parseDatabaseUrl(rawValue: string | undefined): string | null {
+function parseDatabaseUrl(
+  rawValue: string | undefined,
+  nodeEnv: AppConfig["nodeEnv"],
+): string | null {
   const value = rawValue?.trim();
   if (!value) {
-    return null;
+    if (nodeEnv === "development") {
+      return null;
+    }
+    throw new Error("DATABASE_URL is required outside development");
   }
 
   const parsed = new URL(value);
@@ -215,19 +213,16 @@ function parseBooleanEnv(
 }
 
 function parseObjectStoreRoot(rawValue: string | undefined): string {
-  const candidate =
-    rawValue?.trim() || path.join(tmpdir(), "praedixa-connectors-object-store");
-  if (candidate.length === 0) {
-    throw new Error("CONNECTORS_OBJECT_STORE_ROOT must not be empty");
+  const candidate = rawValue?.trim() ?? "";
+  if (candidate.length > 0) {
+    return candidate;
   }
-  return candidate;
+
+  return path.join(tmpdir(), "praedixa-connectors-object-store");
 }
 
 function parseServiceTokens(
   rawTokens: string | undefined,
-  legacyToken: string | undefined,
-  legacyAllowedOrgs: string[],
-  legacyAllowedCapabilities: readonly ServiceTokenCapability[],
 ): AppConfig["serviceTokens"] {
   if (rawTokens != null && rawTokens.trim().length > 0) {
     let parsed: unknown;
@@ -248,31 +243,7 @@ function parseServiceTokens(
       }));
   }
 
-  if (legacyToken != null && legacyToken.trim().length > 0) {
-    if (legacyAllowedOrgs.length === 0) {
-      throw new Error(
-        "CONNECTORS_ALLOWED_ORGS is required when using CONNECTORS_INTERNAL_TOKEN",
-      );
-    }
-    if (legacyAllowedCapabilities.length === 0) {
-      throw new Error(
-        "CONNECTORS_ALLOWED_CAPABILITIES is required when using CONNECTORS_INTERNAL_TOKEN",
-      );
-    }
-
-    return [
-      serviceTokenSchema.parse({
-        name: "legacy-internal-token",
-        token: legacyToken.trim(),
-        allowedOrgs: legacyAllowedOrgs,
-        capabilities: legacyAllowedCapabilities,
-      }),
-    ];
-  }
-
-  throw new Error(
-    "CONNECTORS_SERVICE_TOKENS is required (or CONNECTORS_INTERNAL_TOKEN with CONNECTORS_ALLOWED_ORGS)",
-  );
+  throw new Error("CONNECTORS_SERVICE_TOKENS is required");
 }
 
 const envSchema = z.object({
@@ -295,9 +266,62 @@ const envSchema = z.object({
   CONNECTORS_ALLOWED_ORGS: z.string().optional(),
   CONNECTORS_ALLOWED_CAPABILITIES: z.string().optional(),
   CONNECTORS_ALLOWED_OUTBOUND_HOSTS: z.string().optional(),
+  CONNECTORS_ALLOWED_SANDBOX_OUTBOUND_HOSTS: z.string().optional(),
   CONNECTORS_SECRET_SEALING_KEY: z.string().trim().min(32).optional(),
   TRUST_PROXY: z.string().optional(),
 });
+
+function rejectLegacyServiceTokenEnv(rawEnv: {
+  CONNECTORS_INTERNAL_TOKEN?: string | undefined;
+  CONNECTORS_ALLOWED_ORGS?: string | undefined;
+  CONNECTORS_ALLOWED_CAPABILITIES?: string | undefined;
+}): void {
+  const legacyKeys = [
+    ["CONNECTORS_INTERNAL_TOKEN", rawEnv.CONNECTORS_INTERNAL_TOKEN],
+    ["CONNECTORS_ALLOWED_ORGS", rawEnv.CONNECTORS_ALLOWED_ORGS],
+    ["CONNECTORS_ALLOWED_CAPABILITIES", rawEnv.CONNECTORS_ALLOWED_CAPABILITIES],
+  ]
+    .filter(([, value]) => (value?.trim() ?? "").length > 0)
+    .map(([key]) => key);
+
+  if (legacyKeys.length === 0) {
+    return;
+  }
+
+  const verb = legacyKeys.length === 1 ? "is" : "are";
+  throw new Error(
+    `${legacyKeys.join(", ")} ${verb} no longer supported; use CONNECTORS_SERVICE_TOKENS`,
+  );
+}
+
+function parseRequiredObjectStoreRoot(
+  rawValue: string | undefined,
+  nodeEnv: AppConfig["nodeEnv"],
+): string {
+  const objectStoreRoot = parseObjectStoreRoot(rawValue);
+  if (nodeEnv !== "development" && (rawValue?.trim() ?? "").length === 0) {
+    throw new Error(
+      "CONNECTORS_OBJECT_STORE_ROOT is required outside development",
+    );
+  }
+  return objectStoreRoot;
+}
+
+function parseSecretSealingKey(
+  rawValue: string | undefined,
+  nodeEnv: AppConfig["nodeEnv"],
+): string | null {
+  const value = rawValue?.trim() ?? "";
+  if (value.length > 0) {
+    return value;
+  }
+  if (nodeEnv === "development") {
+    return null;
+  }
+  throw new Error(
+    "CONNECTORS_SECRET_SEALING_KEY is required outside development",
+  );
+}
 
 export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
   const parsed = envSchema.parse(rawEnv);
@@ -312,18 +336,15 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
     throw new Error(`Invalid HOST value "${host}"`);
   }
 
-  const allowedOrgs = parseAllowedOrgs(parsed.CONNECTORS_ALLOWED_ORGS);
-  const allowedCapabilities = parseAllowedCapabilities(
-    parsed.CONNECTORS_ALLOWED_CAPABILITIES,
-  );
-  const serviceTokens = parseServiceTokens(
-    parsed.CONNECTORS_SERVICE_TOKENS,
-    parsed.CONNECTORS_INTERNAL_TOKEN,
-    allowedOrgs,
-    allowedCapabilities,
-  );
+  rejectLegacyServiceTokenEnv(parsed);
+  const serviceTokens = parseServiceTokens(parsed.CONNECTORS_SERVICE_TOKENS);
   const allowedOutboundHosts = parseAllowedOutboundHosts(
     parsed.CONNECTORS_ALLOWED_OUTBOUND_HOSTS,
+    "CONNECTORS_ALLOWED_OUTBOUND_HOSTS",
+  );
+  const allowedSandboxOutboundHosts = parseAllowedOutboundHosts(
+    parsed.CONNECTORS_ALLOWED_SANDBOX_OUTBOUND_HOSTS,
+    "CONNECTORS_ALLOWED_SANDBOX_OUTBOUND_HOSTS",
   );
   if (parsed.NODE_ENV !== "development" && allowedOutboundHosts.length === 0) {
     throw new Error(
@@ -340,11 +361,18 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
       parsed.CONNECTORS_PUBLIC_BASE_URL,
       parsed.NODE_ENV,
     ),
-    databaseUrl: parseDatabaseUrl(parsed.DATABASE_URL),
-    objectStoreRoot: parseObjectStoreRoot(parsed.CONNECTORS_OBJECT_STORE_ROOT),
+    databaseUrl: parseDatabaseUrl(parsed.DATABASE_URL, parsed.NODE_ENV),
+    objectStoreRoot: parseRequiredObjectStoreRoot(
+      parsed.CONNECTORS_OBJECT_STORE_ROOT,
+      parsed.NODE_ENV,
+    ),
     allowedOutboundHosts,
+    allowedSandboxOutboundHosts,
     corsOrigins: parseCorsOrigins(parsed.CORS_ORIGINS, parsed.NODE_ENV),
     serviceTokens,
-    secretSealingKey: parsed.CONNECTORS_SECRET_SEALING_KEY ?? null,
+    secretSealingKey: parseSecretSealingKey(
+      parsed.CONNECTORS_SECRET_SEALING_KEY,
+      parsed.NODE_ENV,
+    ),
   };
 }

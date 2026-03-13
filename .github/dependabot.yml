@@ -4,22 +4,106 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    labels:
+      - "dependencies"
+      - "ci"
+      - "github-actions"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
     open-pull-requests-limit: 10
 
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "daily"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "docker"
+    directory: "/app-api-ts"
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "docker"
+    directory: "/app-admin"
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "docker"
+    directory: "/app-webapp"
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "docker"
+    directory: "/app-landing"
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "docker"
+    directory: "/infra/auth"
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
     open-pull-requests-limit: 10
 
   - package-ecosystem: "pip"
     directory: "/app-api"
     schedule:
       interval: "daily"
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
     open-pull-requests-limit: 10
 
   - package-ecosystem: "terraform"
     directory: "/"
     schedule:
       interval: "daily"
+    labels:
+      - "dependencies"
+      - "terraform"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
     open-pull-requests-limit: 10

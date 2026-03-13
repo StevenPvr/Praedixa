@@ -162,19 +162,44 @@ function normalizeSiteId(siteId: string | null | undefined): string | null {
 }
 
 function toIso(value: string | Date): string {
-  return typeof value === "string" ? new Date(value).toISOString() : value.toISOString();
+  return typeof value === "string"
+    ? new Date(value).toISOString()
+    : value.toISOString();
 }
 
-function clonePayload(payload: DecisionEngineConfigPayload): DecisionEngineConfigPayload {
+function clonePayload(
+  payload: DecisionEngineConfigPayload,
+): DecisionEngineConfigPayload {
   return JSON.parse(JSON.stringify(payload)) as DecisionEngineConfigPayload;
 }
 
 function defaultConfigPayload(): DecisionEngineConfigPayload {
   return {
     horizons: [
-      { id: "j3", label: "J+3", days: 3, rank: 1, active: true, isDefault: false },
-      { id: "j7", label: "J+7", days: 7, rank: 2, active: true, isDefault: true },
-      { id: "j14", label: "J+14", days: 14, rank: 3, active: true, isDefault: false },
+      {
+        id: "j3",
+        label: "J+3",
+        days: 3,
+        rank: 1,
+        active: true,
+        isDefault: false,
+      },
+      {
+        id: "j7",
+        label: "J+7",
+        days: 7,
+        rank: 2,
+        active: true,
+        isDefault: true,
+      },
+      {
+        id: "j14",
+        label: "J+14",
+        days: 14,
+        rank: 3,
+        active: true,
+        isDefault: false,
+      },
     ],
     optionCatalog: SUPPORTED_OPTION_TYPES.map((optionType) => ({
       optionType,
@@ -219,7 +244,10 @@ function validatePayload(payload: DecisionEngineConfigPayload): void {
   if (!Array.isArray(payload.horizons) || payload.horizons.length === 0) {
     throw new Error("At least one horizon must be configured");
   }
-  if (!Array.isArray(payload.optionCatalog) || payload.optionCatalog.length === 0) {
+  if (
+    !Array.isArray(payload.optionCatalog) ||
+    payload.optionCatalog.length === 0
+  ) {
     throw new Error("Option catalog cannot be empty");
   }
 
@@ -251,7 +279,9 @@ function validatePayload(payload: DecisionEngineConfigPayload): void {
   );
   for (const horizon of payload.horizons) {
     if (!policyHorizonIds.has(horizon.id)) {
-      throw new Error(`Missing recommendation policy for horizon "${horizon.id}"`);
+      throw new Error(
+        `Missing recommendation policy for horizon "${horizon.id}"`,
+      );
     }
   }
 }
@@ -262,7 +292,8 @@ function scoreOption(
   weights: RecommendationWeights,
 ): number {
   const service = Math.max(0, Math.min(1, option.serviceAttenduPct / 100));
-  const risk = option.riskScore == null ? 0.5 : Math.max(0, Math.min(1, option.riskScore));
+  const risk =
+    option.riskScore == null ? 0.5 : Math.max(0, Math.min(1, option.riskScore));
   const feasibility =
     option.feasibilityScore == null
       ? 0.5
@@ -281,7 +312,10 @@ function compareByTieBreakers(
   tieBreakers: readonly string[],
 ): number {
   for (const tieBreaker of tieBreakers) {
-    if (tieBreaker === "service_desc" && b.serviceAttenduPct !== a.serviceAttenduPct) {
+    if (
+      tieBreaker === "service_desc" &&
+      b.serviceAttenduPct !== a.serviceAttenduPct
+    ) {
       return b.serviceAttenduPct - a.serviceAttenduPct;
     }
     if (tieBreaker === "cost_asc" && a.coutTotalEur !== b.coutTotalEur) {
@@ -302,7 +336,9 @@ function pickPolicy(
   horizonId: string,
 ): RecommendationPolicyByHorizon | null {
   return (
-    payload.policiesByHorizon.find((policy) => policy.horizonId === horizonId) ??
+    payload.policiesByHorizon.find(
+      (policy) => policy.horizonId === horizonId,
+    ) ??
     payload.policiesByHorizon[0] ??
     null
   );
@@ -333,12 +369,18 @@ export function pickRecommendedOptionId(
   const filtered = options.filter((option) => {
     const rule = enabledRules.get(option.optionType);
     if (!rule) return false;
-    if (rule.maxCoveredHours != null && (option.heuresCouvertes ?? 0) > rule.maxCoveredHours) {
+    if (
+      rule.maxCoveredHours != null &&
+      (option.heuresCouvertes ?? 0) > rule.maxCoveredHours
+    ) {
       return false;
     }
 
     const constraints = policy.constraints;
-    if (constraints?.minServicePct != null && option.serviceAttenduPct < constraints.minServicePct) {
+    if (
+      constraints?.minServicePct != null &&
+      option.serviceAttenduPct < constraints.minServicePct
+    ) {
       return false;
     }
     if (
@@ -355,7 +397,10 @@ export function pickRecommendedOptionId(
     ) {
       return false;
     }
-    if (constraints?.requirePolicyCompliance && option.policyCompliance === false) {
+    if (
+      constraints?.requirePolicyCompliance &&
+      option.policyCompliance === false
+    ) {
       return false;
     }
     return true;
@@ -440,8 +485,10 @@ function toAuditEntry(row: DbAuditRow): DecisionConfigAuditEntry {
     actorUserId: row.actor_user_id,
     requestId: row.request_id,
     targetVersionId: row.target_version_id,
-    beforePayload: row.before_payload == null ? null : clonePayload(row.before_payload),
-    afterPayload: row.after_payload == null ? null : clonePayload(row.after_payload),
+    beforePayload:
+      row.before_payload == null ? null : clonePayload(row.before_payload),
+    afterPayload:
+      row.after_payload == null ? null : clonePayload(row.after_payload),
     metadata: row.metadata ?? {},
     createdAt: toIso(row.created_at),
   };
@@ -457,7 +504,9 @@ export class DecisionConfigService {
   private readonly schemaReady: Promise<void>;
 
   constructor(databaseUrl: string | null) {
-    this.pool = databaseUrl ? new Pool({ connectionString: databaseUrl }) : null;
+    this.pool = databaseUrl
+      ? new Pool({ connectionString: databaseUrl })
+      : null;
     this.schemaReady = this.ensureSchema();
   }
 
@@ -516,7 +565,9 @@ export class DecisionConfigService {
     await this.schemaReady;
   }
 
-  private async writeAudit(entry: Omit<DecisionConfigAuditEntry, "id" | "createdAt">): Promise<void> {
+  private async writeAudit(
+    entry: Omit<DecisionConfigAuditEntry, "id" | "createdAt">,
+  ): Promise<void> {
     await this.ready();
     const row: DecisionConfigAuditEntry = {
       id: randomUUID(),
@@ -570,7 +621,9 @@ export class DecisionConfigService {
     if (!this.pool) {
       return this.memoryAudit
         .filter((row) => row.organizationId === organizationId)
-        .filter((row) => (siteId === undefined ? true : row.siteId === normalizedSiteId))
+        .filter((row) =>
+          siteId === undefined ? true : row.siteId === normalizedSiteId,
+        )
         .slice(0, limit)
         .map((row) => ({ ...row, metadata: { ...row.metadata } }));
     }
@@ -594,7 +647,8 @@ export class DecisionConfigService {
     const now = new Date().toISOString();
     if (!this.pool) {
       const hasOrgConfig = this.memoryVersions.some(
-        (version) => version.organizationId === organizationId && version.siteId == null,
+        (version) =>
+          version.organizationId === organizationId && version.siteId == null,
       );
       if (hasOrgConfig) return;
 
@@ -768,15 +822,23 @@ export class DecisionConfigService {
     }
   }
 
-  async listVersions(organizationId: string, siteId?: string | null): Promise<DecisionEngineConfigVersion[]> {
+  async listVersions(
+    organizationId: string,
+    siteId?: string | null,
+  ): Promise<DecisionEngineConfigVersion[]> {
     await this.ready();
     const normalizedSiteId = normalizeSiteId(siteId);
     if (!this.pool) {
       return this.memoryVersions
         .filter((version) => version.organizationId === organizationId)
-        .filter((version) => (siteId === undefined ? true : version.siteId === normalizedSiteId))
+        .filter((version) =>
+          siteId === undefined ? true : version.siteId === normalizedSiteId,
+        )
         .sort((a, b) => b.effectiveAt.localeCompare(a.effectiveAt))
-        .map((version) => ({ ...version, payload: clonePayload(version.payload) }));
+        .map((version) => ({
+          ...version,
+          payload: clonePayload(version.payload),
+        }));
     }
 
     const rows = await this.pool.query<DbVersionRow>(
@@ -792,7 +854,9 @@ export class DecisionConfigService {
     return rows.rows.map(toVersion);
   }
 
-  async createVersion(input: CreateVersionInput): Promise<DecisionEngineConfigVersion> {
+  async createVersion(
+    input: CreateVersionInput,
+  ): Promise<DecisionEngineConfigVersion> {
     await this.ensureBootstrap(input.organizationId);
     validatePayload(input.payload);
 
@@ -903,7 +967,9 @@ export class DecisionConfigService {
     return toVersion(row);
   }
 
-  async cancelVersion(input: CancelVersionInput): Promise<DecisionEngineConfigVersion> {
+  async cancelVersion(
+    input: CancelVersionInput,
+  ): Promise<DecisionEngineConfigVersion> {
     await this.ensureBootstrap(input.organizationId);
     const normalizedSiteId = normalizeSiteId(input.siteId);
     const nowIso = new Date().toISOString();
@@ -988,8 +1054,12 @@ export class DecisionConfigService {
       input.requestId ?? null,
     );
 
-    const versions = await this.listVersions(input.organizationId, normalizedSiteId);
-    const current = versions.find((version) => version.status === "active") ?? null;
+    const versions = await this.listVersions(
+      input.organizationId,
+      normalizedSiteId,
+    );
+    const current =
+      versions.find((version) => version.status === "active") ?? null;
     const previous =
       versions
         .filter((version) => version.id !== current?.id)
@@ -1077,8 +1147,11 @@ export class DecisionConfigService {
               row.status === "active" &&
               row.effectiveAt <= at,
           )
-          .sort((a, b) => b.effectiveAt.localeCompare(a.effectiveAt))[0] ?? null;
-      return version ? { ...version, payload: clonePayload(version.payload) } : null;
+          .sort((a, b) => b.effectiveAt.localeCompare(a.effectiveAt))[0] ??
+        null;
+      return version
+        ? { ...version, payload: clonePayload(version.payload) }
+        : null;
     }
 
     const rows = await this.pool.query<DbVersionRow>(
@@ -1098,20 +1171,36 @@ export class DecisionConfigService {
     return row ? toVersion(row) : null;
   }
 
-  async resolveConfig(input: ResolveConfigInput): Promise<ResolvedDecisionEngineConfig> {
+  async resolveConfig(
+    input: ResolveConfigInput,
+  ): Promise<ResolvedDecisionEngineConfig> {
     await this.ensureBootstrap(input.organizationId);
-    const atIso = input.at ? new Date(input.at).toISOString() : new Date().toISOString();
+    const atIso = input.at
+      ? new Date(input.at).toISOString()
+      : new Date().toISOString();
     const normalizedSiteId = normalizeSiteId(input.siteId);
 
     await this.activateDueVersions(input.organizationId, null, atIso);
     if (normalizedSiteId) {
-      await this.activateDueVersions(input.organizationId, normalizedSiteId, atIso);
+      await this.activateDueVersions(
+        input.organizationId,
+        normalizedSiteId,
+        atIso,
+      );
     }
 
     const siteVersion = normalizedSiteId
-      ? await this.getActiveVersion(input.organizationId, normalizedSiteId, atIso)
+      ? await this.getActiveVersion(
+          input.organizationId,
+          normalizedSiteId,
+          atIso,
+        )
       : null;
-    const orgVersion = await this.getActiveVersion(input.organizationId, null, atIso);
+    const orgVersion = await this.getActiveVersion(
+      input.organizationId,
+      null,
+      atIso,
+    );
     const chosen = siteVersion ?? orgVersion;
 
     if (!chosen) {
@@ -1121,7 +1210,11 @@ export class DecisionConfigService {
     const nextSite = normalizedSiteId
       ? await this.getNextVersion(input.organizationId, normalizedSiteId, atIso)
       : null;
-    const nextOrg = await this.getNextVersion(input.organizationId, null, atIso);
+    const nextOrg = await this.getNextVersion(
+      input.organizationId,
+      null,
+      atIso,
+    );
     const nextVersion = nextSite ?? nextOrg;
 
     return {
@@ -1144,7 +1237,9 @@ export class DecisionConfigService {
 
 let singleton: DecisionConfigService | null = null;
 
-export async function initializeDecisionConfigService(databaseUrl: string | null): Promise<void> {
+export async function initializeDecisionConfigService(
+  databaseUrl: string | null,
+): Promise<void> {
   singleton = new DecisionConfigService(databaseUrl);
   await singleton.resolveConfig({
     organizationId: "11111111-1111-1111-1111-111111111111",
@@ -1154,12 +1249,16 @@ export async function initializeDecisionConfigService(databaseUrl: string | null
 
 export function getDecisionConfigService(): DecisionConfigService {
   if (!singleton) {
-    singleton = new DecisionConfigService(process.env.DATABASE_URL?.trim() || null);
+    singleton = new DecisionConfigService(
+      process.env.DATABASE_URL?.trim() || null,
+    );
   }
   return singleton;
 }
 
-export function getDefaultHorizon(payload: DecisionEngineConfigPayload): DecisionHorizonConfig | null {
+export function getDefaultHorizon(
+  payload: DecisionEngineConfigPayload,
+): DecisionHorizonConfig | null {
   return (
     payload.horizons
       .filter((horizon) => horizon.active)

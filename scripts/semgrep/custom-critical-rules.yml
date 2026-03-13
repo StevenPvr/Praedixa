@@ -82,7 +82,7 @@ rules:
     message: "Security bypass marker detected (TODO/FIXME bypass)."
     severity: ERROR
     languages: [regex]
-    pattern-regex: '(?i)(TODO|FIXME).*(bypass|disable|skip).*(auth|security|csrf|tenant|role|rate.?limit)'
+    pattern-regex: "(?i)(TODO|FIXME).*(bypass|disable|skip).*(auth|security|csrf|tenant|role|rate.?limit)"
     paths:
       exclude:
         - "**/__tests__/**"

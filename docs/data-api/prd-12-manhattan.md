@@ -11,12 +11,12 @@ Connecter Manhattan pour exploiter execution entrepot/transport et pilotage de p
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets Manhattan | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| Entrepot | work orders/tasks | task id, zone, assigned user, status, timestamps | 15-30 min | `warehouse_task` |
-| Stock | inventory by location | item, bin, on hand, reserved | 60 min | `inventory_snapshot` |
-| Transport | shipment/route | shipment id, route, status, eta | 15-30 min | `shipment`, `route_stop` |
-| Main-d'oeuvre | labor performance | worker id, productivity metrics | 30-60 min | `labor_productivity_fact` |
+| Domaine       | Objets Manhattan      | Champs minimum                                   | Frequence | Canonical                 |
+| ------------- | --------------------- | ------------------------------------------------ | --------- | ------------------------- |
+| Entrepot      | work orders/tasks     | task id, zone, assigned user, status, timestamps | 15-30 min | `warehouse_task`          |
+| Stock         | inventory by location | item, bin, on hand, reserved                     | 60 min    | `inventory_snapshot`      |
+| Transport     | shipment/route        | shipment id, route, status, eta                  | 15-30 min | `shipment`, `route_stop`  |
+| Main-d'oeuvre | labor performance     | worker id, productivity metrics                  | 30-60 min | `labor_productivity_fact` |
 
 ## 3. Specification d'integration
 

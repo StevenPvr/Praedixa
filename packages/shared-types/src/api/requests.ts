@@ -28,6 +28,49 @@ export interface DateRangeFilter {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Public Contract Requests
+// ─────────────────────────────────────────────────────────────
+
+/** Landing contact request submission */
+export interface ContactRequestSubmission {
+  companyName: string;
+  email: string;
+  message: string;
+  consent: boolean;
+  firstName?: string;
+  lastName?: string;
+  role?: string;
+  requestType?: string;
+  website?: string;
+}
+
+/** Scenario generation payload intentionally stays empty */
+export type ScenarioGenerationRequest = Record<string, never>;
+
+/** Proof pack generation request */
+export interface ProofPackGenerateRequest {
+  siteId?: string;
+  month?: string;
+}
+
+/** Conversation creation request */
+export interface ConversationCreateRequest {
+  subject: string;
+}
+
+/** Message creation request */
+export interface MessageCreateRequest {
+  content: string;
+}
+
+/** Operational decision creation request */
+export interface OperationalDecisionCreateRequest {
+  alertId: UUID;
+  optionId?: UUID;
+  notes?: string;
+}
+
+// ─────────────────────────────────────────────────────────────
 // Forecast Requests
 // ─────────────────────────────────────────────────────────────
 

@@ -3,7 +3,11 @@ import { z } from "zod";
 import { CONNECTOR_CATALOG } from "./catalog.js";
 import { failure, success } from "./response.js";
 import { route } from "./router.js";
-import { createDefaultConnectorService } from "./service.js";
+import {
+  createDefaultConnectorService,
+  IngestAuthenticationError,
+} from "./service.js";
+import { redactSensitive } from "./security.js";
 import type {
   AuthorizationCompleteInput,
   AuthorizationStartInput,
@@ -29,6 +33,7 @@ const vendors = CONNECTOR_CATALOG.map((entry) => entry.vendor);
 const authModes = Array.from(
   new Set(CONNECTOR_CATALOG.flatMap((entry) => entry.authModes)),
 );
+const runtimeEnvironments = ["production", "sandbox"] as const;
 const syncTriggers: SyncTriggerType[] = [
   "manual",
   "schedule",
@@ -41,6 +46,7 @@ const IDEMPOTENCY_KEY_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9:_-]{7,127}$/;
 const createConnectionSchema = z.object({
   vendor: z.enum(vendors as [ConnectorVendor, ...ConnectorVendor[]]),
   displayName: z.string().min(3).max(120),
+  runtimeEnvironment: z.enum(runtimeEnvironments).optional(),
   authMode: z.enum(authModes as [ConnectorAuthMode, ...ConnectorAuthMode[]]),
   config: z.record(z.unknown()).optional(),
   secretRef: z.string().min(8).max(256).optional().nullable(),
@@ -59,6 +65,7 @@ const createConnectionSchema = z.object({
 
 const updateConnectionSchema = z.object({
   displayName: z.string().min(3).max(120).optional(),
+  runtimeEnvironment: z.enum(runtimeEnvironments).optional(),
   config: z.record(z.unknown()).optional(),
   sourceObjects: z.array(z.string().min(1).max(120)).max(32).optional(),
   syncIntervalMinutes: z.number().int().min(5).max(1440).optional(),
@@ -111,7 +118,7 @@ const issueIngestCredentialSchema = z.object({
     .max(32)
     .optional()
     .nullable(),
-  requireSignature: z.boolean().optional().default(false),
+  requireSignature: z.boolean().optional().default(true),
 });
 
 const ingestEventsSchema = z.object({
@@ -171,15 +178,6 @@ function parseBody<T>(
   return { ok: true, data: parsed.data };
 }
 
-function actorUserIdFromContext(ctx: RouteContext): string | null {
-  const header = ctx.headers["x-actor-user-id"];
-  if (typeof header !== "string") {
-    return null;
-  }
-  const normalized = header.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
 export function parseIdempotencyKeyHeader(
   rawHeader: string | string[] | undefined,
 ):
@@ -224,9 +222,34 @@ export function parseIdempotencyKeyHeader(
 function buildAuditContext(ctx: RouteContext) {
   return {
     actorService: ctx.principal?.name ?? null,
-    actorUserId: actorUserIdFromContext(ctx),
+    actorUserId: null,
     requestId: ctx.requestId,
   };
+}
+
+function normalizeCorrelationId(
+  value: string | null | undefined,
+): string | null {
+  const trimmed = value?.trim() ?? "";
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function bindRouteCorrelation(
+  ctx: RouteContext,
+  updates: {
+    runId?: string | null;
+    connectorRunId?: string | null;
+  },
+): void {
+  const runId = normalizeCorrelationId(updates.runId);
+  if (runId != null) {
+    ctx.runId = runId;
+  }
+
+  const connectorRunId = normalizeCorrelationId(updates.connectorRunId);
+  if (connectorRunId != null) {
+    ctx.connectorRunId = connectorRunId;
+  }
 }
 
 function getSingleHeader(
@@ -289,6 +312,22 @@ function buildIngestAuthContext(ctx: RouteContext): IngestAuthContext {
     clientIp: ctx.clientIp,
     rawBody: ctx.rawBody,
   };
+}
+
+function logIngestSecurityEvent(
+  event: string,
+  ctx: RouteContext,
+  payload: Record<string, unknown>,
+): void {
+  const envelope = redactSensitive({
+    event,
+    requestId: ctx.requestId,
+    path: ctx.path,
+    method: ctx.method,
+    clientIp: ctx.clientIp,
+    ...payload,
+  });
+  process.stderr.write(`[connectors][security] ${JSON.stringify(envelope)}\n`);
 }
 
 export const routes: RouteDefinition[] = [
@@ -701,6 +740,9 @@ export const routes: RouteDefinition[] = [
           idempotencyKey.value,
           buildAuditContext(ctx),
         );
+        bindRouteCorrelation(ctx, {
+          connectorRunId: run.run.id,
+        });
         return success(
           run.run,
           ctx.requestId,
@@ -737,6 +779,9 @@ export const routes: RouteDefinition[] = [
     "GET",
     "/v1/organizations/:orgId/sync-runs/:runId",
     async (ctx) => {
+      bindRouteCorrelation(ctx, {
+        connectorRunId: ctx.params.runId ?? null,
+      });
       const run = (await getService()).getSyncRun(
         ctx.params.orgId ?? "",
         ctx.params.runId ?? "",
@@ -785,23 +830,51 @@ export const routes: RouteDefinition[] = [
         return parsed.response;
       }
 
-      return await runServiceAction(
-        ctx,
-        {
-          errorCode: "INGEST_FAILED",
-          errorMessage: "Unable to ingest events",
-          successMessage: "Events ingested",
-        },
-        async (service) =>
-          await service.ingestEvents(
-            ctx.params.orgId ?? "",
-            ctx.params.connectionId ?? "",
-            parsed.data,
-            buildIngestAuthContext(ctx),
-            idempotencyKey.value,
-          ),
-      );
+      try {
+        const result = await (
+          await getService()
+        ).ingestEvents(
+          ctx.params.orgId ?? "",
+          ctx.params.connectionId ?? "",
+          parsed.data,
+          buildIngestAuthContext(ctx),
+          idempotencyKey.value,
+        );
+        bindRouteCorrelation(ctx, {
+          connectorRunId: result.runId,
+        });
+        return success(result, ctx.requestId, "Events ingested");
+      } catch (error) {
+        if (error instanceof IngestAuthenticationError) {
+          logIngestSecurityEvent("connectors.ingest.auth_failed", ctx, {
+            organizationId: ctx.params.orgId ?? "",
+            connectionId: ctx.params.connectionId ?? "",
+            reason: error.reason,
+          });
+          return failure(
+            "INGEST_AUTH_FAILED",
+            "Invalid ingestion credentials",
+            ctx.requestId,
+            401,
+          );
+        }
+        return failureFromError(
+          ctx,
+          {
+            errorCode: "INGEST_FAILED",
+            errorMessage: "Unable to ingest events",
+          },
+          error,
+        );
+      }
     },
-    { authRequired: false },
+    {
+      authRequired: false,
+      rateLimit: {
+        maxRequests: 120,
+        scope: "ip",
+        windowMs: 60_000,
+      },
+    },
   ),
 ];

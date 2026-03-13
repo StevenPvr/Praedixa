@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import type { OperationalDecisionCreateRequest } from "@praedixa/shared-types/api";
 
 // ─────────────────────────────────────────────────
 // Consistent IDs used across all mocks
@@ -890,6 +891,68 @@ export async function mockOperationalDecisionsPost(
   });
 }
 
+interface OperationalDecisionSubmissionSpy {
+  waitForSubmission: () => Promise<OperationalDecisionCreateRequest>;
+}
+
+function parseOperationalDecisionPayload(
+  rawBody: string | null,
+): OperationalDecisionCreateRequest {
+  if (rawBody === null || rawBody.trim().length === 0) {
+    throw new Error("Operational decision submission body is empty.");
+  }
+
+  return JSON.parse(rawBody) as OperationalDecisionCreateRequest;
+}
+
+export async function spyOperationalDecisionSubmission(
+  page: Page,
+): Promise<OperationalDecisionSubmissionSpy> {
+  let resolveSubmission:
+    | ((payload: OperationalDecisionCreateRequest) => void)
+    | undefined;
+  let rejectSubmission: ((error: Error) => void) | undefined;
+
+  const submissionPromise = new Promise<OperationalDecisionCreateRequest>(
+    (resolve, reject) => {
+      resolveSubmission = resolve;
+      rejectSubmission = reject;
+    },
+  );
+
+  await page.route("**/api/v1/operational-decisions*", (route) => {
+    if (route.request().method() !== "POST") {
+      return route.fallback();
+    }
+
+    try {
+      resolveSubmission?.(
+        parseOperationalDecisionPayload(route.request().postData()),
+      );
+    } catch (error) {
+      rejectSubmission?.(
+        error instanceof Error
+          ? error
+          : new Error("Failed to parse operational decision payload."),
+      );
+    }
+
+    return route.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        data: { id: "dec-new-0000-0000-000000000000" },
+        timestamp: NOW,
+      }),
+    });
+  });
+
+  return {
+    waitForSubmission: () => submissionPromise,
+  };
+}
+
 // ─────────────────────────────────────────────────
 // Sites
 // ─────────────────────────────────────────────────
@@ -1166,6 +1229,46 @@ export async function mockOrganizationMe(page: Page): Promise<void> {
   );
 }
 
+export async function mockUserPreferences(page: Page): Promise<void> {
+  let language: "fr" | "en" = "fr";
+
+  await page.route("**/api/v1/users/me/preferences*", async (route) => {
+    const method = route.request().method().toUpperCase();
+
+    if (method === "GET") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          data: { language },
+          timestamp: NOW,
+        }),
+      });
+    }
+
+    if (method === "PATCH") {
+      const body = route.request().postDataJSON() as
+        | { language?: string }
+        | undefined;
+
+      language = body?.language === "en" ? "en" : "fr";
+
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          data: { language },
+          timestamp: NOW,
+        }),
+      });
+    }
+
+    return route.fallback();
+  });
+}
+
 // ─────────────────────────────────────────────────
 // Conversations & Messages
 // ─────────────────────────────────────────────────
@@ -1409,6 +1512,7 @@ export async function mockAllApis(page: Page): Promise<void> {
   await mockProofPacks(page);
   await mockOrganization(page);
   await mockOrganizationMe(page);
+  await mockUserPreferences(page);
   await mockConversations(page);
   await mockConversationMessages(page);
   await mockUnreadCount(page);

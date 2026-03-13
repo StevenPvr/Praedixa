@@ -29,7 +29,9 @@ test.describe("Client workspace layout", () => {
     ).toBeVisible();
   });
 
-  test("displays client workspace tab links in ClientTabsNav", async ({ page }) => {
+  test("displays client workspace tab links in ClientTabsNav", async ({
+    page,
+  }) => {
     await mockCatchAll(page);
     await mockVueClientApis(page);
     await page.goto(`/clients/${TEST_ORG_ID}/vue-client`);

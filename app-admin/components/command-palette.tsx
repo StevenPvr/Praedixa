@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Search,
   Home,
   Building2,
+  Bell,
   Mail,
   BookOpen,
   Settings,
@@ -20,7 +21,12 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@praedixa/ui";
-import { canAccessPath } from "@/lib/auth/route-access";
+import {
+  ADMIN_GLOBAL_NAV_ITEMS,
+  canAccessPath,
+  CLIENT_WORKSPACE_TABS,
+  resolveWorkspaceBasePath,
+} from "@/lib/auth/route-access";
 
 interface CommandItem {
   id: string;
@@ -32,115 +38,57 @@ interface CommandItem {
   shortcut?: string;
 }
 
-const COMMAND_ITEMS: CommandItem[] = [
-  {
-    id: "home",
-    label: "Accueil admin",
+const GLOBAL_COMMAND_ICONS: Record<string, LucideIcon> = {
+  home: Home,
+  clients: Building2,
+  contact: Mail,
+  journal: BookOpen,
+  settings: Settings,
+};
+
+const GLOBAL_COMMAND_ITEMS: CommandItem[] = ADMIN_GLOBAL_NAV_ITEMS.map(
+  (item) => ({
+    id: item.id,
+    label: item.label === "Accueil" ? "Accueil admin" : item.label,
     section: "global",
-    href: "/",
-    icon: Home,
-    keywords: ["home", "accueil", "pilotage"],
-    shortcut: "G H",
-  },
-  {
-    id: "clients",
-    label: "Clients",
-    section: "global",
-    href: "/clients",
-    icon: Building2,
-    keywords: ["organisations", "clients", "workspace"],
-    shortcut: "G C",
-  },
-  {
-    id: "contact",
-    label: "Demandes contact",
-    section: "global",
-    href: "/demandes-contact",
-    icon: Mail,
-    keywords: ["contact", "leads", "messages"],
-  },
-  {
-    id: "journal",
-    label: "Journal",
-    section: "global",
-    href: "/journal",
-    icon: BookOpen,
-    keywords: ["audit", "rgpd", "journal"],
-  },
-  {
-    id: "settings",
-    label: "Parametres",
-    section: "global",
-    href: "/parametres",
-    icon: Settings,
-    keywords: ["config", "parametres", "onboarding"],
-    shortcut: "G S",
-  },
-  {
-    id: "workspace-dashboard",
-    label: "Workspace • Tableau de bord",
-    section: "workspace",
-    href: "/clients",
-    icon: LayoutDashboard,
-    keywords: ["dashboard", "workspace", "miroir"],
-  },
-  {
-    id: "workspace-donnees",
-    label: "Workspace • Donnees",
-    section: "workspace",
-    href: "/clients",
-    icon: Database,
-    keywords: ["donnees", "canonical", "gold"],
-  },
-  {
-    id: "workspace-previsions",
-    label: "Workspace • Previsions",
-    section: "workspace",
-    href: "/clients",
-    icon: TrendingUp,
-    keywords: ["forecast", "previsions", "modeles"],
-  },
-  {
-    id: "workspace-actions",
-    label: "Workspace • Actions",
-    section: "workspace",
-    href: "/clients",
-    icon: Zap,
-    keywords: ["actions", "decisions", "traitement"],
-  },
-  {
-    id: "workspace-rapports",
-    label: "Workspace • Rapports",
-    section: "workspace",
-    href: "/clients",
-    icon: BarChart3,
-    keywords: ["rapports", "proof", "exports"],
-  },
-  {
-    id: "workspace-onboarding",
-    label: "Workspace • Onboarding",
-    section: "workspace",
-    href: "/clients",
-    icon: ClipboardCheck,
-    keywords: ["onboarding", "step", "readiness"],
-  },
-  {
-    id: "workspace-equipe",
-    label: "Workspace • Equipe",
-    section: "workspace",
-    href: "/clients",
-    icon: Users,
-    keywords: ["users", "roles", "equipe"],
-  },
-  {
-    id: "workspace-messages",
-    label: "Workspace • Messages",
-    section: "workspace",
-    href: "/clients",
-    icon: MessageSquare,
-    keywords: ["chat", "support", "messages"],
-  },
-];
+    href: item.href,
+    icon: GLOBAL_COMMAND_ICONS[item.icon] ?? Home,
+    keywords: [...item.keywords],
+    shortcut: item.shortcut,
+  }),
+);
+
+const WORKSPACE_ICONS: Record<string, LucideIcon> = {
+  actions: Zap,
+  alerts: Bell,
+  "client-overview": LayoutDashboard,
+  dashboard: LayoutDashboard,
+  data: Database,
+  forecasts: TrendingUp,
+  messages: MessageSquare,
+  onboarding: ClipboardCheck,
+  reports: BarChart3,
+  settings: Settings,
+  team: Users,
+};
+
+export { resolveWorkspaceBasePath } from "@/lib/auth/route-access";
+
+export function buildWorkspaceCommandItems(pathname: string): CommandItem[] {
+  const basePath = resolveWorkspaceBasePath(pathname);
+  if (!basePath) {
+    return [];
+  }
+
+  return CLIENT_WORKSPACE_TABS.map((tab) => ({
+    id: `workspace-${tab.href}`,
+    label: `Workspace • ${tab.label}`,
+    section: "workspace" as const,
+    href: `${basePath}/${tab.href}`,
+    icon: WORKSPACE_ICONS[tab.icon] ?? LayoutDashboard,
+    keywords: [...tab.keywords],
+  }));
+}
 
 export function useCommandPalette() {
   const [open, setOpen] = React.useState(false);
@@ -171,17 +119,22 @@ export function CommandPalette({
   onClose,
   permissions,
 }: CommandPaletteProps) {
+  const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement>(null);
+  const commandItems = React.useMemo(
+    () => [...GLOBAL_COMMAND_ITEMS, ...buildWorkspaceCommandItems(pathname)],
+    [pathname],
+  );
   const availableItems = React.useMemo(
     () =>
       permissions == null
-        ? COMMAND_ITEMS
-        : COMMAND_ITEMS.filter((item) => canAccessPath(item.href, permissions)),
-    [permissions],
+        ? commandItems
+        : commandItems.filter((item) => canAccessPath(item.href, permissions)),
+    [commandItems, permissions],
   );
 
   const filtered = React.useMemo(() => {
@@ -203,12 +156,16 @@ export function CommandPalette({
   }, [open]);
 
   React.useEffect(() => {
-    setSelectedIndex((prev) => Math.min(prev, Math.max(0, filtered.length - 1)));
+    setSelectedIndex((prev) =>
+      Math.min(prev, Math.max(0, filtered.length - 1)),
+    );
   }, [filtered.length]);
 
   React.useEffect(() => {
     if (!open) return;
-    const active = listRef.current?.querySelector<HTMLElement>('[data-active="true"]');
+    const active = listRef.current?.querySelector<HTMLElement>(
+      '[data-active="true"]',
+    );
     active?.scrollIntoView({ block: "nearest" });
   }, [open, selectedIndex]);
 
@@ -306,7 +263,9 @@ export function CommandPalette({
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{item.label}</p>
                     <p className="text-xs text-ink-tertiary">
-                      {item.section === "global" ? "Back-office" : "Workspace client"}
+                      {item.section === "global"
+                        ? "Back-office"
+                        : "Workspace client"}
                     </p>
                   </div>
                   {item.shortcut ? (

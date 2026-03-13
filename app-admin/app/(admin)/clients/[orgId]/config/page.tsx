@@ -142,8 +142,11 @@ export default function ConfigPage() {
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [lastRecompute, setLastRecompute] =
     useState<DecisionConfigRecomputeResponse | null>(null);
-  const [selectedIntegrationId, setSelectedIntegrationId] = useState<string | null>(null);
-  const [ingestCredentialLabel, setIngestCredentialLabel] = useState("CRM outbound");
+  const [selectedIntegrationId, setSelectedIntegrationId] = useState<
+    string | null
+  >(null);
+  const [ingestCredentialLabel, setIngestCredentialLabel] =
+    useState("CRM outbound");
   const [issuedCredential, setIssuedCredential] =
     useState<IntegrationIssueIngestCredentialResult | null>(null);
   const canManageConfig = hasAnyPermission(currentUser?.permissions, [
@@ -206,16 +209,23 @@ export default function ConfigPage() {
     error: integrationsError,
     refetch: refetchIntegrations,
   } = useApiGet<IntegrationConnection[]>(
-    canReadIntegrations ? ADMIN_ENDPOINTS.orgIntegrationConnections(orgId) : null,
+    canReadIntegrations
+      ? ADMIN_ENDPOINTS.orgIntegrationConnections(orgId)
+      : null,
   );
 
   useEffect(() => {
-    if (!selectedIntegrationId && integrationConnections && integrationConnections.length > 0) {
+    if (
+      !selectedIntegrationId &&
+      integrationConnections &&
+      integrationConnections.length > 0
+    ) {
       setSelectedIntegrationId(integrationConnections[0]?.id ?? null);
     }
   }, [integrationConnections, selectedIntegrationId]);
 
-  const effectiveIntegrationId = selectedIntegrationId ?? integrationConnections?.[0]?.id ?? null;
+  const effectiveIntegrationId =
+    selectedIntegrationId ?? integrationConnections?.[0]?.id ?? null;
 
   const {
     data: ingestCredentials,
@@ -224,7 +234,10 @@ export default function ConfigPage() {
     refetch: refetchIngestCredentials,
   } = useApiGet<IntegrationIngestCredential[]>(
     canReadIntegrations && effectiveIntegrationId
-      ? ADMIN_ENDPOINTS.orgIntegrationIngestCredentials(orgId, effectiveIntegrationId)
+      ? ADMIN_ENDPOINTS.orgIntegrationIngestCredentials(
+          orgId,
+          effectiveIntegrationId,
+        )
       : null,
   );
 
@@ -268,10 +281,8 @@ export default function ConfigPage() {
     }
 
     try {
-      const response = await apiPost<T>(
-        url,
-        body,
-        async () => getValidAccessToken(),
+      const response = await apiPost<T>(url, body, async () =>
+        getValidAccessToken(),
       );
       return response.data;
     } catch (error) {
@@ -332,7 +343,9 @@ export default function ConfigPage() {
     await refreshDecisionConfigViews();
   }
 
-  async function cancelScheduledVersion(version: DecisionEngineConfigVersion): Promise<void> {
+  async function cancelScheduledVersion(
+    version: DecisionEngineConfigVersion,
+  ): Promise<void> {
     setActionLoading(`cancel-${version.id}`);
     setActionError(null);
     setActionSuccess(null);
@@ -351,7 +364,9 @@ export default function ConfigPage() {
     await refreshDecisionConfigViews();
   }
 
-  async function rollbackVersion(version: DecisionEngineConfigVersion): Promise<void> {
+  async function rollbackVersion(
+    version: DecisionEngineConfigVersion,
+  ): Promise<void> {
     setActionLoading(`rollback-${version.id}`);
     setActionError(null);
     setActionSuccess(null);
@@ -412,19 +427,25 @@ export default function ConfigPage() {
     setActionSuccess(null);
     setIssuedCredential(null);
 
-    const issued = await postAdminAction<IntegrationIssueIngestCredentialResult>(
-      ADMIN_ENDPOINTS.orgIntegrationIngestCredentials(orgId, effectiveIntegrationId),
-      {
-        label: ingestCredentialLabel.trim() || "Client outbound",
-        requireSignature: true,
-      },
-    );
+    const issued =
+      await postAdminAction<IntegrationIssueIngestCredentialResult>(
+        ADMIN_ENDPOINTS.orgIntegrationIngestCredentials(
+          orgId,
+          effectiveIntegrationId,
+        ),
+        {
+          label: ingestCredentialLabel.trim() || "Client outbound",
+          requireSignature: true,
+        },
+      );
 
     setActionLoading(null);
     if (!issued) return;
 
     setIssuedCredential(issued);
-    setActionSuccess(`Cle d'ingestion generee pour ${issued.credential.label}.`);
+    setActionSuccess(
+      `Cle d'ingestion generee pour ${issued.credential.label}.`,
+    );
     await refreshIntegrationViews();
   }
 
@@ -458,7 +479,9 @@ export default function ConfigPage() {
     {
       key: "category",
       label: "Categorie",
-      render: (row) => <span className="font-medium text-ink">{row.category}</span>,
+      render: (row) => (
+        <span className="font-medium text-ink">{row.category}</span>
+      ),
     },
     {
       key: "value",
@@ -553,7 +576,9 @@ export default function ConfigPage() {
       key: "id",
       label: "Version",
       render: (row) => (
-        <span className="font-mono text-xs text-ink">{compactVersionId(row.id)}</span>
+        <span className="font-mono text-xs text-ink">
+          {compactVersionId(row.id)}
+        </span>
       ),
     },
     {
@@ -577,7 +602,9 @@ export default function ConfigPage() {
       key: "effectiveAt",
       label: "Effet",
       render: (row) => (
-        <span className="text-xs text-ink-tertiary">{formatDateTime(row.effectiveAt)}</span>
+        <span className="text-xs text-ink-tertiary">
+          {formatDateTime(row.effectiveAt)}
+        </span>
       ),
     },
     {
@@ -625,7 +652,9 @@ export default function ConfigPage() {
     {
       key: "displayName",
       label: "Connexion",
-      render: (row) => <span className="font-medium text-ink">{row.displayName}</span>,
+      render: (row) => (
+        <span className="font-medium text-ink">{row.displayName}</span>
+      ),
     },
     { key: "vendor", label: "Vendor" },
     { key: "authMode", label: "Auth" },
@@ -634,59 +663,70 @@ export default function ConfigPage() {
       key: "updatedAt",
       label: "Mise a jour",
       render: (row) => (
-        <span className="text-xs text-ink-tertiary">{formatDateTime(row.updatedAt)}</span>
+        <span className="text-xs text-ink-tertiary">
+          {formatDateTime(row.updatedAt)}
+        </span>
       ),
     },
   ];
 
-  const ingestCredentialColumns: DataTableColumn<IntegrationIngestCredential>[] = [
-    {
-      key: "label",
-      label: "Credential",
-      render: (row) => <span className="font-medium text-ink">{row.label}</span>,
-    },
-    { key: "authMode", label: "Mode" },
-    {
-      key: "tokenPreview",
-      label: "Preview",
-      render: (row) => <span className="font-mono text-xs text-ink">{row.tokenPreview}</span>,
-    },
-    {
-      key: "lastUsedAt",
-      label: "Derniere utilisation",
-      render: (row) => (
-        <span className="text-xs text-ink-tertiary">{formatDateTime(row.lastUsedAt)}</span>
-      ),
-    },
-    {
-      key: "expiresAt",
-      label: "Expire le",
-      render: (row) => (
-        <span className="text-xs text-ink-tertiary">{formatDateTime(row.expiresAt)}</span>
-      ),
-    },
-    {
-      key: "actions",
-      label: "Actions",
-      render: (row) => (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            void revokeIngestCredential(row.id);
-          }}
-          disabled={
-            !canManageIntegrations ||
-            row.revokedAt != null ||
-            actionLoading != null
-          }
-        >
-          Revoquer
-        </Button>
-      ),
-    },
-  ];
+  const ingestCredentialColumns: DataTableColumn<IntegrationIngestCredential>[] =
+    [
+      {
+        key: "label",
+        label: "Credential",
+        render: (row) => (
+          <span className="font-medium text-ink">{row.label}</span>
+        ),
+      },
+      { key: "authMode", label: "Mode" },
+      {
+        key: "tokenPreview",
+        label: "Preview",
+        render: (row) => (
+          <span className="font-mono text-xs text-ink">{row.tokenPreview}</span>
+        ),
+      },
+      {
+        key: "lastUsedAt",
+        label: "Derniere utilisation",
+        render: (row) => (
+          <span className="text-xs text-ink-tertiary">
+            {formatDateTime(row.lastUsedAt)}
+          </span>
+        ),
+      },
+      {
+        key: "expiresAt",
+        label: "Expire le",
+        render: (row) => (
+          <span className="text-xs text-ink-tertiary">
+            {formatDateTime(row.expiresAt)}
+          </span>
+        ),
+      },
+      {
+        key: "actions",
+        label: "Actions",
+        render: (row) => (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              void revokeIngestCredential(row.id);
+            }}
+            disabled={
+              !canManageIntegrations ||
+              row.revokedAt != null ||
+              actionLoading != null
+            }
+          >
+            Revoquer
+          </Button>
+        ),
+      },
+    ];
 
   const rawEventColumns: DataTableColumn<IntegrationRawEvent>[] = [
     { key: "sourceObject", label: "Objet" },
@@ -707,7 +747,9 @@ export default function ConfigPage() {
       key: "receivedAt",
       label: "Recu le",
       render: (row) => (
-        <span className="text-xs text-ink-tertiary">{formatDateTime(row.receivedAt)}</span>
+        <span className="text-xs text-ink-tertiary">
+          {formatDateTime(row.receivedAt)}
+        </span>
       ),
     },
   ];
@@ -722,7 +764,9 @@ export default function ConfigPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-serif text-lg font-semibold text-ink">Configuration</h2>
+      <h2 className="font-serif text-lg font-semibold text-ink">
+        Configuration
+      </h2>
 
       {(actionError || actionSuccess) && (
         <div
@@ -738,15 +782,16 @@ export default function ConfigPage() {
 
       {!canManageConfig ? (
         <div className="rounded-xl border border-border-subtle bg-card px-4 py-3 text-sm text-ink-tertiary">
-          Mode lecture seule. Permission requise pour planifier, annuler, rollbacker
-          ou recalculer une configuration:
-          {" "}
+          Mode lecture seule. Permission requise pour planifier, annuler,
+          rollbacker ou recalculer une configuration:{" "}
           <span className="font-medium text-ink">admin:org:write</span>
         </div>
       ) : null}
 
       <div>
-        <h3 className="mb-3 text-sm font-medium text-ink-secondary">Parametres de cout</h3>
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
+          Parametres de cout
+        </h3>
         {costLoading ? (
           <SkeletonCard />
         ) : costError ? (
@@ -771,7 +816,10 @@ export default function ConfigPage() {
         {decisionConfigLoading ? (
           <SkeletonCard />
         ) : decisionConfigError ? (
-          <ErrorFallback message={decisionConfigError} onRetry={refetchResolvedConfig} />
+          <ErrorFallback
+            message={decisionConfigError}
+            onRetry={refetchResolvedConfig}
+          />
         ) : (
           <Card className="rounded-2xl shadow-soft">
             <CardContent className="space-y-4 p-4">
@@ -779,11 +827,15 @@ export default function ConfigPage() {
                 <div className="rounded-lg border border-border bg-surface px-3 py-2">
                   <p className="text-xs text-ink-secondary">Version active</p>
                   <p className="font-mono text-sm text-ink">
-                    {resolvedConfig ? compactVersionId(resolvedConfig.versionId) : "-"}
+                    {resolvedConfig
+                      ? compactVersionId(resolvedConfig.versionId)
+                      : "-"}
                   </p>
                 </div>
                 <div className="rounded-lg border border-border bg-surface px-3 py-2">
-                  <p className="text-xs text-ink-secondary">Horizon par defaut</p>
+                  <p className="text-xs text-ink-secondary">
+                    Horizon par defaut
+                  </p>
                   <p className="text-sm font-medium text-ink">
                     {activeHorizon
                       ? `${activeHorizon.label} (${activeHorizon.days} jours)`
@@ -811,12 +863,14 @@ export default function ConfigPage() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm font-medium text-ink">Horizons configures</p>
+                <p className="text-sm font-medium text-ink">
+                  Horizons configures
+                </p>
                 <ul className="space-y-1 text-sm text-ink-secondary">
                   {orderedHorizons.map((horizon) => (
                     <li key={horizon.id}>
-                      {horizon.label} ({horizon.id}) · {horizon.days} jours · rank{" "}
-                      {horizon.rank}
+                      {horizon.label} ({horizon.id}) · {horizon.days} jours ·
+                      rank {horizon.rank}
                       {horizon.active ? " · actif" : " · inactif"}
                       {horizon.isDefault ? " · defaut" : ""}
                     </li>
@@ -826,17 +880,23 @@ export default function ConfigPage() {
 
               <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
                 <label className="space-y-1">
-                  <span className="text-sm font-medium text-ink">Date d'effet</span>
+                  <span className="text-sm font-medium text-ink">
+                    Date d'effet
+                  </span>
                   <input
                     type="datetime-local"
                     value={effectiveAtInput}
-                    onChange={(event) => setEffectiveAtInput(event.target.value)}
+                    onChange={(event) =>
+                      setEffectiveAtInput(event.target.value)
+                    }
                     disabled={!canManageConfig}
                     className="h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-ink outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
                   />
                 </label>
                 <label className="space-y-1">
-                  <span className="text-sm font-medium text-ink">Motif (optionnel)</span>
+                  <span className="text-sm font-medium text-ink">
+                    Motif (optionnel)
+                  </span>
                   <input
                     type="text"
                     value={changeReason}
@@ -852,7 +912,11 @@ export default function ConfigPage() {
                     onClick={() => {
                       void scheduleVersionFromCurrentConfig();
                     }}
-                    disabled={!canManageConfig || !resolvedConfig || actionLoading != null}
+                    disabled={
+                      !canManageConfig ||
+                      !resolvedConfig ||
+                      actionLoading != null
+                    }
                   >
                     Planifier version
                   </Button>
@@ -874,11 +938,15 @@ export default function ConfigPage() {
 
               <div className="grid gap-3 lg:grid-cols-[1fr_auto]">
                 <label className="space-y-1">
-                  <span className="text-sm font-medium text-ink">Recalcul scenario alerte</span>
+                  <span className="text-sm font-medium text-ink">
+                    Recalcul scenario alerte
+                  </span>
                   <input
                     type="text"
                     value={recomputeAlertId}
-                    onChange={(event) => setRecomputeAlertId(event.target.value)}
+                    onChange={(event) =>
+                      setRecomputeAlertId(event.target.value)
+                    }
                     placeholder="alt-001"
                     disabled={!canManageConfig}
                     className="h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-ink outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
@@ -902,8 +970,8 @@ export default function ConfigPage() {
                 <p className="text-xs text-ink-secondary">
                   Dernier recalcul: {lastRecompute.alertId} · recommande{" "}
                   {lastRecompute.recommendedOptionId ?? "-"} · policy{" "}
-                  {compactVersionId(lastRecompute.recommendationPolicyVersion)} ·{" "}
-                  {formatDateTime(lastRecompute.recomputedAt)}
+                  {compactVersionId(lastRecompute.recommendationPolicyVersion)}{" "}
+                  · {formatDateTime(lastRecompute.recomputedAt)}
                 </p>
               )}
             </CardContent>
@@ -941,19 +1009,25 @@ export default function ConfigPage() {
         </h3>
         {!canReadIntegrations ? (
           <div className="rounded-xl border border-border-subtle bg-card px-4 py-3 text-sm text-ink-tertiary">
-            Permission requise:
-            {" "}
-            <span className="font-medium text-ink">admin:integrations:read</span>
+            Permission requise:{" "}
+            <span className="font-medium text-ink">
+              admin:integrations:read
+            </span>
           </div>
         ) : integrationsLoading ? (
           <SkeletonCard />
         ) : integrationsError ? (
-          <ErrorFallback message={integrationsError} onRetry={refetchIntegrations} />
+          <ErrorFallback
+            message={integrationsError}
+            onRetry={refetchIntegrations}
+          />
         ) : (
           <Card className="rounded-2xl shadow-soft">
             <CardContent className="space-y-4 p-4">
               <div className="space-y-2">
-                <p className="text-sm font-medium text-ink">Connexions configurees</p>
+                <p className="text-sm font-medium text-ink">
+                  Connexions configurees
+                </p>
                 <DataTable
                   columns={integrationColumns}
                   data={integrationConnections ?? []}
@@ -963,7 +1037,9 @@ export default function ConfigPage() {
 
               <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
                 <label className="space-y-1">
-                  <span className="text-sm font-medium text-ink">Connexion active</span>
+                  <span className="text-sm font-medium text-ink">
+                    Connexion active
+                  </span>
                   <select
                     value={effectiveIntegrationId ?? ""}
                     onChange={(event) =>
@@ -979,11 +1055,15 @@ export default function ConfigPage() {
                   </select>
                 </label>
                 <label className="space-y-1">
-                  <span className="text-sm font-medium text-ink">Label de la cle</span>
+                  <span className="text-sm font-medium text-ink">
+                    Label de la cle
+                  </span>
                   <input
                     type="text"
                     value={ingestCredentialLabel}
-                    onChange={(event) => setIngestCredentialLabel(event.target.value)}
+                    onChange={(event) =>
+                      setIngestCredentialLabel(event.target.value)
+                    }
                     disabled={!canManageIntegrations}
                     className="h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-ink outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
                   />
@@ -1012,26 +1092,25 @@ export default function ConfigPage() {
                     Credential pack a transmettre au client
                   </p>
                   <p className="text-xs text-ink-tertiary">
-                    Ces secrets ne sont affiches qu'apres emission. Ils doivent etre
-                    copies dans le CRM/WFM/iPaaS du client.
+                    Ces secrets ne sont affiches qu'apres emission. Ils doivent
+                    etre copies dans le CRM/WFM/iPaaS du client.
                   </p>
                   <div className="space-y-1 text-xs text-ink-secondary">
                     <p>
-                      URL:
-                      {" "}
-                      <span className="font-mono text-ink">{issuedCredential.ingestUrl}</span>
+                      URL:{" "}
+                      <span className="font-mono text-ink">
+                        {issuedCredential.ingestUrl}
+                      </span>
                     </p>
                     <p>
-                      Auth:
-                      {" "}
+                      Auth:{" "}
                       <span className="font-mono text-ink">
                         {issuedCredential.authScheme} {issuedCredential.apiKey}
                       </span>
                     </p>
                     {issuedCredential.signingSecret ? (
                       <p>
-                        Secret signature:
-                        {" "}
+                        Secret signature:{" "}
                         <span className="font-mono text-ink">
                           {issuedCredential.signingSecret}
                         </span>
@@ -1039,13 +1118,10 @@ export default function ConfigPage() {
                     ) : null}
                     {issuedCredential.signature ? (
                       <p>
-                        Headers HMAC:
-                        {" "}
+                        Headers HMAC:{" "}
                         <span className="font-mono text-ink">
-                          {issuedCredential.signature.keyIdHeader},
-                          {" "}
-                          {issuedCredential.signature.timestampHeader},
-                          {" "}
+                          {issuedCredential.signature.keyIdHeader},{" "}
+                          {issuedCredential.signature.timestampHeader},{" "}
                           {issuedCredential.signature.signatureHeader}
                         </span>
                       </p>
@@ -1077,7 +1153,10 @@ export default function ConfigPage() {
                 {rawEventsLoading ? (
                   <SkeletonCard />
                 ) : rawEventsError ? (
-                  <ErrorFallback message={rawEventsError} onRetry={refetchRawEvents} />
+                  <ErrorFallback
+                    message={rawEventsError}
+                    onRetry={refetchRawEvents}
+                  />
                 ) : (
                   <DataTable
                     columns={rawEventColumns}
@@ -1092,7 +1171,9 @@ export default function ConfigPage() {
       </div>
 
       <div>
-        <h3 className="mb-3 text-sm font-medium text-ink-secondary">Packs de preuves</h3>
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
+          Packs de preuves
+        </h3>
         {proofLoading ? (
           <SkeletonCard />
         ) : proofError ? (

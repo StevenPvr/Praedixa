@@ -34,13 +34,18 @@ Ces PRD sont alignes avec l'architecture medaillon Praedixa:
 ## PRD transverse
 
 - Socle commun d'integration: `prd-00-integration-platform.md`
+- Matrice de certification standard: `connector-certification-matrix.md`
+- Politique runtime sandbox/prod: `sandbox-runtime-policy.md`
+- Fondation replay/backfill/quarantine medaillon: `medallion-reprocessing-foundation.md`
 
 ## Mode d'utilisation
 
 1. Valider le connecteur choisi par le client.
 2. Ouvrir le PRD dedie.
-3. Completer la section "Checklist de branchement client".
-4. Lancer l'implementation avec les exigences FR/NFR du PRD.
+3. Choisir explicitement `runtimeEnvironment=production|sandbox` et verifier les allowlists du runtime.
+4. Verifier que le connecteur standard passe la matrice de certification et le verdict de readiness d'activation.
+5. Completer la section "Checklist de branchement client".
+6. Lancer l'implementation avec les exigences FR/NFR du PRD.
 
 ## Convention de statut
 

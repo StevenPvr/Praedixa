@@ -1,6 +1,14 @@
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import {
+  createServer,
+  type IncomingMessage,
+  type ServerResponse,
+} from "node:http";
 import { randomUUID } from "node:crypto";
 
+import {
+  createTelemetryCorrelation,
+  createTelemetryLogger,
+} from "@praedixa/telemetry";
 import { decodeJwtPayloadDetailed, parseBearerToken } from "./auth.js";
 import { failure } from "./response.js";
 import { compileRoutes, matchRoute } from "./router.js";
@@ -17,7 +25,7 @@ import type {
 const compiledRoutes = compileRoutes(routes);
 export const CORS_ALLOWED_METHODS = "GET,POST,PATCH,PUT,DELETE,OPTIONS";
 export const CORS_ALLOWED_HEADERS =
-  "Authorization,Content-Type,X-Request-ID,Accept,Accept-Language";
+  "Authorization,Content-Type,X-Request-ID,X-Trace-ID,Accept,Accept-Language";
 
 export const SECURITY_HEADERS = {
   "Content-Security-Policy":
@@ -46,6 +54,47 @@ const DEFAULT_ADMIN_READ_RATE_LIMIT: RouteRateLimit = {
   windowMs: 60_000,
 };
 const RATE_LIMIT_BUCKETS = new Map<string, number[]>();
+const LOG_ALIAS_KEYS = new Set([
+  "requestId",
+  "request_id",
+  "runId",
+  "run_id",
+  "connectorRunId",
+  "connector_run_id",
+  "actionId",
+  "action_id",
+  "contractVersion",
+  "contract_version",
+  "organizationId",
+  "organization_id",
+  "siteId",
+  "site_id",
+  "traceId",
+  "trace_id",
+  "spanId",
+  "span_id",
+  "statusCode",
+  "status_code",
+  "durationMs",
+  "duration_ms",
+  "errorCode",
+  "error_code",
+  "clientIp",
+  "ip",
+  "method",
+  "path",
+  "origin",
+  "message",
+  "status",
+  "user_agent",
+  "userAgent",
+  "user_id",
+  "userId",
+  "user_role",
+  "role",
+  "route_template",
+  "routeTemplate",
+]);
 type BodyReadErrorCode = "PAYLOAD_TOO_LARGE" | "INVALID_JSON";
 
 class BodyReadError extends Error {
@@ -130,12 +179,21 @@ function sendResult(
   corsHeaders: Record<string, string>,
   extraHeaders?: Record<string, string>,
 ): void {
-  writeJson(response, result.statusCode, result.payload, corsHeaders, extraHeaders);
+  writeJson(
+    response,
+    result.statusCode,
+    result.payload,
+    corsHeaders,
+    extraHeaders,
+  );
 }
 
 function hasRequestBody(request: IncomingMessage): boolean {
   const transferEncoding = request.headers["transfer-encoding"];
-  if (typeof transferEncoding === "string" && transferEncoding.trim().length > 0) {
+  if (
+    typeof transferEncoding === "string" &&
+    transferEncoding.trim().length > 0
+  ) {
     return true;
   }
 
@@ -156,7 +214,9 @@ function hasRequestBody(request: IncomingMessage): boolean {
   return value > 0;
 }
 
-export function isJsonContentType(contentType: string | string[] | undefined): boolean {
+export function isJsonContentType(
+  contentType: string | string[] | undefined,
+): boolean {
   if (contentType == null) {
     return false;
   }
@@ -234,7 +294,9 @@ async function readBody(request: IncomingMessage): Promise<unknown> {
       try {
         safeResolve(JSON.parse(text));
       } catch {
-        safeReject(new BodyReadError("INVALID_JSON", "Request body must be valid JSON"));
+        safeReject(
+          new BodyReadError("INVALID_JSON", "Request body must be valid JSON"),
+        );
       }
     });
 
@@ -309,7 +371,10 @@ export function resolveClientIp(
     const forwardedValue = Array.isArray(forwardedFor)
       ? forwardedFor[0]
       : forwardedFor;
-    if (typeof forwardedValue === "string" && forwardedValue.trim().length > 0) {
+    if (
+      typeof forwardedValue === "string" &&
+      forwardedValue.trim().length > 0
+    ) {
       return (
         forwardedValue
           .split(",")
@@ -322,7 +387,10 @@ export function resolveClientIp(
   return remoteAddress ?? null;
 }
 
-function getClientIp(request: IncomingMessage, trustProxy: boolean): string | null {
+function getClientIp(
+  request: IncomingMessage,
+  trustProxy: boolean,
+): string | null {
   return resolveClientIp(
     request.headers["x-forwarded-for"],
     request.socket.remoteAddress ?? null,
@@ -330,32 +398,154 @@ function getClientIp(request: IncomingMessage, trustProxy: boolean): string | nu
   );
 }
 
-function logStructuredEvent(
-  level: "warn" | "error",
-  event: string,
-  details: Record<string, unknown>,
-): void {
-  if (process.env.NODE_ENV === "test") {
+function writeTelemetryStream(entry: {
+  level: "info" | "warn" | "error";
+  serialized: string;
+}): void {
+  const payload = `${entry.serialized}\n`;
+  if (entry.level === "error") {
+    process.stderr.write(payload);
     return;
   }
+  process.stdout.write(payload);
+}
 
-  const payload = JSON.stringify({
-    timestamp: new Date().toISOString(),
-    level,
-    event,
-    ...details,
+function readHeaderValue(value: string | string[] | undefined): string | null {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+  return null;
+}
+
+function resolvePrimarySiteId(siteIds: readonly string[]): string | null {
+  const primarySiteId = siteIds[0]?.trim();
+  return primarySiteId ? primarySiteId : null;
+}
+
+function readNullableString(
+  details: Record<string, unknown>,
+  ...keys: string[]
+): string | null {
+  for (const key of keys) {
+    const value = details[key];
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function readNullableNumber(
+  details: Record<string, unknown>,
+  ...keys: string[]
+): number | null {
+  for (const key of keys) {
+    const value = details[key];
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function createStructuredEventLogger(nodeEnv: AppConfig["nodeEnv"]) {
+  const logger = createTelemetryLogger({
+    service: "api",
+    env: nodeEnv,
+    enabled: process.env.NODE_ENV !== "test",
+    write: writeTelemetryStream,
   });
 
-  if (level === "error") {
-    process.stderr.write(`${payload}\n`);
-    return;
+  return (
+    level: "info" | "warn" | "error",
+    event: string,
+    details: Record<string, unknown>,
+  ): void => {
+    const remainingFields = Object.fromEntries(
+      Object.entries(details).filter(([key]) => !LOG_ALIAS_KEYS.has(key)),
+    );
+
+    const requestId = readNullableString(details, "request_id", "requestId");
+    if (requestId == null) {
+      return;
+    }
+
+    const logMethod =
+      level === "error"
+        ? logger.error
+        : level === "warn"
+          ? logger.warn
+          : logger.info;
+
+    logMethod({
+      event,
+      message:
+        readNullableString(details, "message") ??
+        (level === "error" ? "API request failed" : event),
+      correlation: createTelemetryCorrelation({
+        requestId,
+        traceId: readNullableString(details, "trace_id", "traceId"),
+        runId: readNullableString(details, "run_id", "runId"),
+        connectorRunId: readNullableString(
+          details,
+          "connector_run_id",
+          "connectorRunId",
+        ),
+        actionId: readNullableString(details, "action_id", "actionId"),
+        contractVersion: readNullableString(
+          details,
+          "contract_version",
+          "contractVersion",
+        ),
+        organizationId: readNullableString(
+          details,
+          "organization_id",
+          "organizationId",
+        ),
+        siteId: readNullableString(details, "site_id", "siteId"),
+      }),
+      status: readNullableString(details, "status"),
+      statusCode: readNullableNumber(details, "status_code", "statusCode"),
+      durationMs: readNullableNumber(details, "duration_ms", "durationMs"),
+      method: readNullableString(details, "method"),
+      path: readNullableString(details, "path"),
+      routeTemplate: readNullableString(
+        details,
+        "route_template",
+        "routeTemplate",
+      ),
+      clientIp: readNullableString(details, "client_ip", "clientIp", "ip"),
+      origin: readNullableString(details, "origin"),
+      userAgent: readNullableString(details, "user_agent", "userAgent"),
+      userId: readNullableString(details, "user_id", "userId"),
+      userRole: readNullableString(details, "user_role", "role"),
+      details: remainingFields,
+    });
+  };
+}
+
+function extractTraceId(
+  traceparentHeader: string | string[] | undefined,
+): string | null {
+  const raw = Array.isArray(traceparentHeader)
+    ? traceparentHeader[0]
+    : traceparentHeader;
+  if (raw == null) {
+    return null;
   }
 
-  process.stdout.write(`${payload}\n`);
+  const match = raw.match(/^[\da-f]{2}-([\da-f]{32})-[\da-f]{16}-[\da-f]{2}$/i);
+  return match?.[1]?.toLowerCase() ?? null;
 }
 
 export function resolveRateLimitPolicy(
-  route: Pick<CompiledRoute, "authRequired" | "method" | "rateLimit" | "template">,
+  route: Pick<
+    CompiledRoute,
+    "authRequired" | "method" | "rateLimit" | "template"
+  >,
 ): RouteRateLimit | null {
   if (route.rateLimit != null) {
     return route.rateLimit;
@@ -381,7 +571,9 @@ export function consumeRateLimit(
   store: Map<string, number[]> = RATE_LIMIT_BUCKETS,
 ): { allowed: boolean; remaining: number; retryAfterSeconds: number } {
   const windowStart = nowMs - policy.windowMs;
-  const timestamps = (store.get(key) ?? []).filter((timestamp) => timestamp > windowStart);
+  const timestamps = (store.get(key) ?? []).filter(
+    (timestamp) => timestamp > windowStart,
+  );
 
   if (timestamps.length >= policy.maxRequests) {
     store.set(key, timestamps);
@@ -417,16 +609,18 @@ function buildRateLimitKey(
 ): string {
   const actorKey =
     policy.scope === "principal"
-      ? userId ?? clientIp ?? "anonymous"
-      : clientIp ?? "anonymous";
+      ? (userId ?? clientIp ?? "anonymous")
+      : (clientIp ?? "anonymous");
 
   return `${routeTemplate}:${policy.scope}:${actorKey}`;
 }
 
 export function createAppServer(config: AppConfig) {
+  const logStructuredEvent = createStructuredEventLogger(config.nodeEnv);
+
   return createServer(async (request, response) => {
     const requestId =
-      (request.headers["x-request-id"] as string | undefined) ?? randomUUID();
+      readHeaderValue(request.headers["x-request-id"]) ?? randomUUID();
     const clientIp = getClientIp(request, config.trustProxy);
     const requestOrigin = normalizeOrigin(request.headers.origin);
     const corsHeaders = resolveCorsHeaders(
@@ -434,15 +628,81 @@ export function createAppServer(config: AppConfig) {
       config.corsOrigins,
       config.nodeEnv,
     );
+    const traceId =
+      readHeaderValue(request.headers["x-trace-id"]) ??
+      extractTraceId(request.headers.traceparent);
+    const requestUrl = new URL(request.url ?? "/", "http://localhost");
+    const startedAt = Date.now();
+    const userAgent =
+      typeof request.headers["user-agent"] === "string"
+        ? request.headers["user-agent"]
+        : Array.isArray(request.headers["user-agent"])
+          ? (request.headers["user-agent"][0] ?? null)
+          : null;
+    let routeTemplate: string | null = null;
+    let userId: string | null = null;
+    let role: string | null = null;
+    let organizationId: string | null = null;
+    let siteId: string | null = null;
+
+    response.setHeader("X-Request-ID", requestId);
+    response.setHeader("X-Trace-ID", traceId ?? requestId);
+    response.once("finish", () => {
+      const statusCode = response.statusCode;
+      logStructuredEvent(
+        statusCode >= 500 ? "error" : "info",
+        statusCode >= 500 ? "http.request.failed" : "http.request.completed",
+        {
+          requestId,
+          traceId,
+          method: request.method?.toUpperCase() ?? null,
+          path: requestUrl.pathname,
+          route_template: routeTemplate,
+          origin: requestOrigin,
+          clientIp,
+          user_agent: userAgent,
+          user_id: userId,
+          role,
+          organizationId,
+          siteId,
+          status:
+            statusCode >= 500
+              ? "failed"
+              : statusCode >= 400
+                ? "rejected"
+                : "completed",
+          statusCode,
+          durationMs: Date.now() - startedAt,
+        },
+      );
+    });
+
+    logStructuredEvent("info", "http.request.started", {
+      requestId,
+      traceId,
+      method: request.method?.toUpperCase() ?? null,
+      path: requestUrl.pathname,
+      origin: requestOrigin,
+      clientIp,
+      user_agent: userAgent,
+      status: "started",
+    });
 
     if (request.method?.toUpperCase() === "OPTIONS") {
-      if (requestOrigin != null && corsHeaders["Access-Control-Allow-Origin"] == null) {
+      if (
+        requestOrigin != null &&
+        corsHeaders["Access-Control-Allow-Origin"] == null
+      ) {
         logStructuredEvent("warn", "http.origin_forbidden", {
           requestId,
+          traceId,
           method: "OPTIONS",
           path: request.url ?? "/",
           origin: requestOrigin,
-          ip: clientIp,
+          clientIp,
+          errorCode: "FORBIDDEN",
+          status: "rejected",
+          statusCode: 403,
         });
         sendResult(
           response,
@@ -482,24 +742,21 @@ export function createAppServer(config: AppConfig) {
       return;
     }
 
-    const requestUrl = new URL(request.url ?? "/", "http://localhost");
     const matched = matchRoute(compiledRoutes, method, requestUrl.pathname);
     const isMutationRequest = isBodyMethod(method);
 
     if (matched == null) {
       sendResult(
         response,
-        failure(
-          "NOT_FOUND",
-          "Route not found",
-          requestId,
-          404,
-          { path: requestUrl.pathname, method },
-        ),
+        failure("NOT_FOUND", "Route not found", requestId, 404, {
+          path: requestUrl.pathname,
+          method,
+        }),
         corsHeaders,
       );
       return;
     }
+    routeTemplate = matched.route.template;
 
     const rateLimitPolicy = resolveRateLimitPolicy(matched.route);
 
@@ -510,8 +767,10 @@ export function createAppServer(config: AppConfig) {
     ) {
       logStructuredEvent("warn", "http.origin_forbidden", {
         requestId,
+        traceId,
         method,
         path: requestUrl.pathname,
+        routeTemplate,
         origin: requestOrigin,
         ip: clientIp,
       });
@@ -554,19 +813,16 @@ export function createAppServer(config: AppConfig) {
       if (token == null) {
         logStructuredEvent("warn", "auth.missing_bearer_token", {
           requestId,
+          traceId,
           method,
           path: requestUrl.pathname,
+          routeTemplate,
           ip: clientIp,
           origin: requestOrigin,
         });
         sendResult(
           response,
-          failure(
-            "UNAUTHORIZED",
-            "Missing bearer token",
-            requestId,
-            401,
-          ),
+          failure("UNAUTHORIZED", "Missing bearer token", requestId, 401),
           corsHeaders,
         );
         return;
@@ -577,8 +833,10 @@ export function createAppServer(config: AppConfig) {
       if (user == null) {
         logStructuredEvent("warn", "auth.jwt_rejected", {
           requestId,
+          traceId,
           method,
           path: requestUrl.pathname,
+          routeTemplate,
           ip: clientIp,
           origin: requestOrigin,
           rejectionStage: decoded.failure?.stage ?? "unknown",
@@ -587,12 +845,7 @@ export function createAppServer(config: AppConfig) {
         });
         sendResult(
           response,
-          failure(
-            "UNAUTHORIZED",
-            "Invalid JWT claims",
-            requestId,
-            401,
-          ),
+          failure("UNAUTHORIZED", "Invalid JWT claims", requestId, 401),
           corsHeaders,
         );
         return;
@@ -602,8 +855,10 @@ export function createAppServer(config: AppConfig) {
       if (allowedRoles != null && !allowedRoles.includes(user.role)) {
         logStructuredEvent("warn", "auth.role_forbidden", {
           requestId,
+          traceId,
           method,
           path: requestUrl.pathname,
+          routeTemplate,
           ip: clientIp,
           origin: requestOrigin,
           userId: user.userId,
@@ -612,13 +867,10 @@ export function createAppServer(config: AppConfig) {
         });
         sendResult(
           response,
-          failure(
-            "FORBIDDEN",
-            "Insufficient permissions",
-            requestId,
-            403,
-            { role: user.role, allowedRoles },
-          ),
+          failure("FORBIDDEN", "Insufficient permissions", requestId, 403, {
+            role: user.role,
+            allowedRoles,
+          }),
           corsHeaders,
         );
         return;
@@ -635,8 +887,10 @@ export function createAppServer(config: AppConfig) {
       ) {
         logStructuredEvent("warn", "auth.permission_forbidden", {
           requestId,
+          traceId,
           method,
           path: requestUrl.pathname,
+          routeTemplate,
           ip: clientIp,
           origin: requestOrigin,
           userId: user.userId,
@@ -646,17 +900,11 @@ export function createAppServer(config: AppConfig) {
         });
         sendResult(
           response,
-          failure(
-            "FORBIDDEN",
-            "Insufficient permissions",
-            requestId,
-            403,
-            {
-              role: user.role,
-              requiredPermissions,
-              permissionMode: matched.route.permissionMode,
-            },
-          ),
+          failure("FORBIDDEN", "Insufficient permissions", requestId, 403, {
+            role: user.role,
+            requiredPermissions,
+            permissionMode: matched.route.permissionMode,
+          }),
           corsHeaders,
         );
         return;
@@ -677,6 +925,7 @@ export function createAppServer(config: AppConfig) {
       if (!rateLimitResult.allowed) {
         logStructuredEvent("warn", "http.rate_limited", {
           requestId,
+          traceId,
           method,
           path: requestUrl.pathname,
           routeTemplate: matched.route.template,
@@ -686,15 +935,9 @@ export function createAppServer(config: AppConfig) {
         });
         sendResult(
           response,
-          failure(
-            "TOO_MANY_REQUESTS",
-            "Rate limit exceeded",
-            requestId,
-            429,
-            {
-              retryAfterSeconds: rateLimitResult.retryAfterSeconds,
-            },
-          ),
+          failure("TOO_MANY_REQUESTS", "Rate limit exceeded", requestId, 429, {
+            retryAfterSeconds: rateLimitResult.retryAfterSeconds,
+          }),
           corsHeaders,
           {
             "retry-after": String(rateLimitResult.retryAfterSeconds),
@@ -709,7 +952,10 @@ export function createAppServer(config: AppConfig) {
       try {
         body = await readBody(request);
       } catch (error) {
-        if (error instanceof BodyReadError && error.code === "PAYLOAD_TOO_LARGE") {
+        if (
+          error instanceof BodyReadError &&
+          error.code === "PAYLOAD_TOO_LARGE"
+        ) {
           sendResult(
             response,
             failure(
@@ -753,41 +999,51 @@ export function createAppServer(config: AppConfig) {
       path: requestUrl.pathname,
       query: requestUrl.searchParams,
       requestId,
+      telemetry: createTelemetryCorrelation({
+        requestId,
+        traceId,
+        organizationId,
+        siteId,
+      }),
       clientIp,
-      userAgent:
-        typeof request.headers["user-agent"] === "string"
-          ? request.headers["user-agent"]
-          : Array.isArray(request.headers["user-agent"])
-            ? request.headers["user-agent"][0] ?? null
-            : null,
+      userAgent,
       params: matched.params,
       body,
       user,
     };
+    userId = user?.userId ?? null;
+    role = user?.role ?? null;
+    organizationId = user?.organizationId ?? null;
+    siteId = user != null ? resolvePrimarySiteId(user.siteIds) : null;
 
     try {
       sendResult(response, await matched.route.handler(context), corsHeaders);
     } catch (error) {
       logStructuredEvent("error", "http.unhandled_error", {
         requestId,
+        traceId,
         method,
         path: requestUrl.pathname,
-        ip: clientIp,
+        route_template: routeTemplate,
         origin: requestOrigin,
-        userId: user?.userId ?? null,
+        clientIp,
+        user_agent: userAgent,
+        user_id: user?.userId ?? null,
         role: user?.role ?? null,
+        organizationId,
+        siteId,
         errorName: error instanceof Error ? error.name : "UnknownError",
         errorMessage:
-          error instanceof Error ? error.message : "Unexpected non-error thrown",
+          error instanceof Error
+            ? error.message
+            : "Unexpected non-error thrown",
+        errorCode: "INTERNAL_ERROR",
+        status: "failed",
+        statusCode: 500,
       });
       sendResult(
         response,
-        failure(
-          "INTERNAL_ERROR",
-          "Unexpected server error",
-          requestId,
-          500,
-        ),
+        failure("INTERNAL_ERROR", "Unexpected server error", requestId, 500),
         corsHeaders,
       );
     }

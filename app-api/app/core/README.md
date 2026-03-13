@@ -15,9 +15,11 @@ Primitives communes utilisees par les scripts, services et modeles.
 - `validation.py` / `yaml_validation.py` : validation applicative et YAML.
 - `pipeline_config.py` : validation de la config medallion/orchestrateur.
 - `key_management.py` : providers de cles locaux et Scaleway Secrets.
+- `telemetry.py` : logs JSON structures et contexte de correlation pour les jobs data/ML.
 
 ## Invariants
 
 - Toute lecture/criture tenant-scoped doit passer par `TenantFilter`.
 - Les chemins DDL/secret management sont plus sensibles que le code service standard.
 - Les scripts batch s'appuient ici plutot que de reimplementer config, DB et validation.
+- Les services batch frontiere doivent binder `request_id`, `run_id`, `connector_run_id`, `organization_id` et `trace_id` via `telemetry.py` au lieu de reconstruire leur propre format de logs.

@@ -167,6 +167,30 @@ describe("useApiGet", () => {
     expect(mockApiGet).not.toHaveBeenCalled();
   });
 
+  it("clears stale data and error state when the url becomes null", async () => {
+    mockApiGet.mockResolvedValue(successResponse({ id: 1, name: "Widget" }));
+
+    const { result, rerender } = renderHook(
+      ({ url }: { url: string | null }) => useApiGet<TestItem>(url),
+      {
+        initialProps: { url: "/api/v1/items" },
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual({ id: 1, name: "Widget" });
+    });
+
+    rerender({ url: null });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.data).toBeNull();
+    expect(result.current.error).toBeNull();
+  });
+
   it("should handle ApiError and set error message", async () => {
     mockApiGet.mockRejectedValue(new ApiError("Ressource introuvable", 404));
 

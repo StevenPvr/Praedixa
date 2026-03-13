@@ -1,3 +1,5 @@
+import type { TelemetryCorrelationContext } from "@praedixa/telemetry";
+
 export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 export type RoutePermissionMode = "all" | "any";
 export type RateLimitScope = "ip" | "principal";
@@ -58,6 +60,7 @@ export interface RouteContext {
   path: string;
   query: URLSearchParams;
   requestId: string;
+  telemetry: TelemetryCorrelationContext;
   clientIp: string | null;
   userAgent: string | null;
   params: Record<string, string>;

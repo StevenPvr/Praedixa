@@ -4,8 +4,10 @@ const mockRedirect = vi.fn();
 
 const mockClearAuthCookies = vi.fn();
 const mockBuildSessionData = vi.fn();
+const mockConsumeRateLimit = vi.fn();
 const mockExchangeCodeForTokens = vi.fn();
 const mockGetOidcEnv = vi.fn();
+const mockHasRequiredAdminMfa = vi.fn();
 const mockIsAccessTokenCompatible = vi.fn();
 const mockGetTokenExp = vi.fn();
 const mockResolveAuthAppOrigin = vi.fn();
@@ -17,8 +19,23 @@ const mockUserFromAccessToken = vi.fn();
 
 vi.mock("next/server", () => ({
   NextResponse: {
+    json: (body: unknown, init?: { status?: number }) => ({
+      body,
+      status: init?.status ?? 200,
+      headers: {
+        set: vi.fn(),
+      },
+      cookies: {
+        delete: vi.fn(),
+        set: vi.fn(),
+      },
+    }),
     redirect: (...args: unknown[]) => mockRedirect(...args),
   },
+}));
+
+vi.mock("@/lib/security/rate-limit", () => ({
+  consumeRateLimit: (...args: unknown[]) => mockConsumeRateLimit(...args),
 }));
 
 vi.mock("@/lib/auth/oidc", () => ({
@@ -30,6 +47,7 @@ vi.mock("@/lib/auth/oidc", () => ({
   exchangeCodeForTokens: (...args: unknown[]) =>
     mockExchangeCodeForTokens(...args),
   getOidcEnv: (...args: unknown[]) => mockGetOidcEnv(...args),
+  hasRequiredAdminMfa: (...args: unknown[]) => mockHasRequiredAdminMfa(...args),
   isAccessTokenCompatible: (...args: unknown[]) =>
     mockIsAccessTokenCompatible(...args),
   getTokenExp: (...args: unknown[]) => mockGetTokenExp(...args),
@@ -48,6 +66,9 @@ function createRedirectResponse(url: string | URL) {
   return {
     status: 302,
     redirectUrl: typeof url === "string" ? url : url.toString(),
+    headers: {
+      set: vi.fn(),
+    },
     cookies: {
       delete: vi.fn(),
       set: vi.fn(),
@@ -92,6 +113,12 @@ describe("GET /auth/callback (admin)", () => {
       clientSecret: "secret",
       sessionSecret: "session-secret",
     });
+    mockConsumeRateLimit.mockResolvedValue({
+      allowed: true,
+      retryAfterSeconds: 0,
+      remaining: 29,
+      resetAtEpochSeconds: 2_000_000_000,
+    });
     mockResolveAuthAppOrigin.mockReturnValue("https://admin.praedixa.com");
 
     mockSanitizeNextPath.mockImplementation(
@@ -109,6 +136,7 @@ describe("GET /auth/callback (admin)", () => {
       expires_in: 900,
       refresh_expires_in: 7200,
     });
+    mockHasRequiredAdminMfa.mockReturnValue(true);
     mockIsAccessTokenCompatible.mockReturnValue(true);
     mockBuildSessionData.mockResolvedValue({
       sub: "admin-1",
@@ -151,6 +179,15 @@ describe("GET /auth/callback (admin)", () => {
     expect(response.redirectUrl).toBe("https://admin.praedixa.com/clients");
     expect(mockExchangeCodeForTokens).toHaveBeenCalled();
     expect(mockSetAuthCookies).toHaveBeenCalled();
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Cache-Control", "no-store");
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("X-RateLimit-Limit", "30");
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("X-RateLimit-Remaining", "29");
   });
 
   it("redirects to /login with callback error when params are invalid", async () => {
@@ -168,6 +205,9 @@ describe("GET /auth/callback (admin)", () => {
       "https://admin.praedixa.com/login?error=auth_callback_failed",
     );
     expect(mockClearAuthCookies).toHaveBeenCalled();
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Cache-Control", "no-store");
   });
 
   it("rejects mismatched state", async () => {
@@ -186,6 +226,9 @@ describe("GET /auth/callback (admin)", () => {
       "https://admin.praedixa.com/login?error=auth_callback_failed",
     );
     expect(mockExchangeCodeForTokens).not.toHaveBeenCalled();
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Cache-Control", "no-store");
   });
 
   it("sanitizes unsafe next cookie to /", async () => {
@@ -201,16 +244,19 @@ describe("GET /auth/callback (admin)", () => {
     )) as { redirectUrl: string };
 
     expect(response.redirectUrl).toBe("https://admin.praedixa.com/");
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Cache-Control", "no-store");
   });
 
-  it("redirects non-super-admin users to /unauthorized", async () => {
+  it("redirects users without explicit admin console permission to /unauthorized", async () => {
     mockUserFromAccessToken.mockReturnValueOnce({
       id: "u1",
-      email: "viewer@praedixa.com",
-      role: "viewer",
+      email: "admin@praedixa.com",
+      role: "super_admin",
       permissions: [],
-      organizationId: "org-1",
-      siteId: "site-1",
+      organizationId: "global-super-admin",
+      siteId: null,
     });
 
     const response = (await GET(
@@ -227,6 +273,9 @@ describe("GET /auth/callback (admin)", () => {
     expect(response.redirectUrl).toBe(
       "https://admin.praedixa.com/unauthorized",
     );
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Cache-Control", "no-store");
   });
 
   it("rejects access tokens that do not match the expected OIDC contract", async () => {
@@ -247,6 +296,32 @@ describe("GET /auth/callback (admin)", () => {
       "https://admin.praedixa.com/login?error=auth_callback_failed",
     );
     expect(mockSetAuthCookies).not.toHaveBeenCalled();
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Cache-Control", "no-store");
+  });
+
+  it("redirects to login with admin_mfa_required when the token lacks MFA evidence", async () => {
+    mockHasRequiredAdminMfa.mockReturnValueOnce(false);
+
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-123" },
+        {
+          prx_admin_state: "state-123",
+          prx_admin_verifier: "verifier-123",
+          prx_admin_next: "/clients",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe(
+      "https://admin.praedixa.com/login?error=admin_mfa_required",
+    );
+    expect(mockSetAuthCookies).not.toHaveBeenCalled();
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Cache-Control", "no-store");
   });
 
   it("accepts delegated admin permission without super_admin role", async () => {
@@ -271,9 +346,12 @@ describe("GET /auth/callback (admin)", () => {
     )) as { redirectUrl: string };
 
     expect(response.redirectUrl).toBe("https://admin.praedixa.com/clients");
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Cache-Control", "no-store");
   });
 
-  it("redirects to login with oidc_config_missing when the public auth origin cannot be resolved", async () => {
+  it("fails closed with a 500 when the public auth origin cannot be resolved", async () => {
     mockResolveAuthAppOrigin.mockImplementationOnce(() => {
       throw new Error("Missing AUTH_APP_ORIGIN");
     });
@@ -286,12 +364,56 @@ describe("GET /auth/callback (admin)", () => {
           prx_admin_verifier: "verifier-123",
         },
       ),
-    )) as { redirectUrl: string };
+    )) as {
+      body: { error: string };
+      status: number;
+      headers: { set: ReturnType<typeof vi.fn> };
+    };
 
-    expect(response.redirectUrl).toBe(
-      "https://admin.praedixa.com/login?error=oidc_config_missing",
-    );
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({ error: "oidc_config_missing" });
     expect(mockExchangeCodeForTokens).not.toHaveBeenCalled();
     expect(mockClearAuthCookies).toHaveBeenCalled();
+    expect(response.headers.set).toHaveBeenCalledWith(
+      "Cache-Control",
+      "no-store",
+    );
+    expect(response.headers.set).toHaveBeenCalledWith(
+      "X-RateLimit-Limit",
+      "30",
+    );
+  });
+
+  it("rate limits the callback before exchanging tokens", async () => {
+    mockConsumeRateLimit.mockResolvedValueOnce({
+      allowed: false,
+      retryAfterSeconds: 60,
+      remaining: 0,
+      resetAtEpochSeconds: 2_000_000_060,
+    });
+
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-123" },
+        {
+          prx_admin_state: "state-123",
+          prx_admin_verifier: "verifier-123",
+        },
+      ),
+    )) as { redirectUrl: string; headers: { set: ReturnType<typeof vi.fn> } };
+
+    expect(response.redirectUrl).toBe(
+      "https://admin.praedixa.com/login?error=rate_limited",
+    );
+    expect(mockExchangeCodeForTokens).not.toHaveBeenCalled();
+    expect(response.headers.set).toHaveBeenCalledWith(
+      "X-RateLimit-Limit",
+      "30",
+    );
+    expect(response.headers.set).toHaveBeenCalledWith(
+      "X-RateLimit-Remaining",
+      "0",
+    );
+    expect(response.headers.set).toHaveBeenCalledWith("Retry-After", "60");
   });
 });

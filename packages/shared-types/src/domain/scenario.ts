@@ -1,6 +1,6 @@
 // Scenario types — staffing arbitrage options and Pareto frontier
 
-import type { TenantEntity, UUID } from "../utils/common";
+import type { TenantEntity, UUID } from "../utils/common.js";
 
 /** Type of remediation option */
 export type ScenarioOptionType =

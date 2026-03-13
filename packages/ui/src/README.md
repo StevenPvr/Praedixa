@@ -17,6 +17,7 @@ Source du design system partage Praedixa.
 - Ajouter ici uniquement des composants ou helpers reutilisables par plusieurs apps.
 - Garder le package agnostique du routing, de l'auth et des services metier.
 - Exporter explicitement tout nouvel element depuis `index.ts`.
+- Comme `dist/` est consomme en ESM par les apps et les builds Docker, garder les imports/exports relatifs avec suffixe `.js` dans `src/` pour que les artefacts compiles restent resolvables hors mode dev.
 - Si un composant depend de types partages, les importer depuis `@praedixa/shared-types` plutot que de redefinir des shapes locales.
 
 ## Verification locale

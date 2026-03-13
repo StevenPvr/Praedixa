@@ -12,7 +12,12 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
+        mono: [
+          "var(--font-mono)",
+          "ui-monospace",
+          "SFMono-Regular",
+          "monospace",
+        ],
       },
       colors: {
         /* ── Premium blue surfaces ── */

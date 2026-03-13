@@ -11,12 +11,12 @@ Connecter Reynolds pour capter ventes, service et parts afin de piloter producti
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets Reynolds | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| Sales | deal / desking data | deal id, VIN, F&I amount, close status | 30 min | `sales_deal` |
-| Service | repair order / appointments | RO id, op codes, promised time, status | 15-30 min | `service_order` |
-| Parts | parts sales/inventory | part number, qty on hand, movement | 60 min | `inventory_snapshot` |
-| Customer | customer profile light | id, segment, contact flags | 60 min | `customer_account` |
+| Domaine  | Objets Reynolds             | Champs minimum                         | Frequence | Canonical            |
+| -------- | --------------------------- | -------------------------------------- | --------- | -------------------- |
+| Sales    | deal / desking data         | deal id, VIN, F&I amount, close status | 30 min    | `sales_deal`         |
+| Service  | repair order / appointments | RO id, op codes, promised time, status | 15-30 min | `service_order`      |
+| Parts    | parts sales/inventory       | part number, qty on hand, movement     | 60 min    | `inventory_snapshot` |
+| Customer | customer profile light      | id, segment, contact flags             | 60 min    | `customer_account`   |
 
 ## 3. Specification d'integration
 

@@ -11,12 +11,12 @@ Capter les flux DMS/CRM CDK (ventes, atelier, stock vehicules) pour modeliser ca
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets CDK | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| Ventes | deals / opportunities | deal id, VIN, stage, gross, close date | 30 min | `sales_deal` |
-| Atelier | repair orders | RO id, advisor, labor hours, status | 15-30 min | `service_order` |
-| Stock | vehicle inventory | VIN, make/model, age, price, status | 60 min | `inventory_snapshot` |
-| CRM | leads / activities | lead source, owner, follow-up | 30 min | `customer_account`, `activity_event` |
+| Domaine | Objets CDK            | Champs minimum                         | Frequence | Canonical                            |
+| ------- | --------------------- | -------------------------------------- | --------- | ------------------------------------ |
+| Ventes  | deals / opportunities | deal id, VIN, stage, gross, close date | 30 min    | `sales_deal`                         |
+| Atelier | repair orders         | RO id, advisor, labor hours, status    | 15-30 min | `service_order`                      |
+| Stock   | vehicle inventory     | VIN, make/model, age, price, status    | 60 min    | `inventory_snapshot`                 |
+| CRM     | leads / activities    | lead source, owner, follow-up          | 30 min    | `customer_account`, `activity_event` |
 
 ## 3. Specification d'integration
 

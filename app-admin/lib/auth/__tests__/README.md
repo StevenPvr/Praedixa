@@ -7,9 +7,11 @@ Ce dossier regroupe les tests associés au dossier parent `app-admin/lib/auth`. 
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `client.test.ts`
 - `middleware.test.ts`
 - `oidc.test.ts`

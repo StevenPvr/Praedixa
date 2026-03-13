@@ -7,9 +7,11 @@ Ce dossier contient les types et structures de domaine exposés par le package p
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `canonical.ts`
 - `cost-parameter.ts`
 - `coverage-alert.ts`

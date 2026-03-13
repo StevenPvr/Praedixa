@@ -4,13 +4,13 @@ Ce dossier regroupe les protections techniques complementaires a l'auth OIDC: CS
 
 ## Fichiers
 
-| Fichier | Role |
-| --- | --- |
-| `browser-request.ts` | Resolution d'origine attendue et verifications same-origin |
-| `csp.ts` | Construction de la Content Security Policy |
-| `headers.ts` | Headers de securite pour `next.config.ts` |
-| `navigation.ts` | Sanitize des liens externes et `mailto:` |
-| `rate-limit.ts` | Rate limiting des routes JSON auth/admin |
+| Fichier              | Role                                                                                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `browser-request.ts` | Resolution d'origine attendue et verifications same-origin fail-closed, sans fallback implicite a `request.nextUrl.origin` en cas de misconfiguration         |
+| `csp.ts`             | Construction de la Content Security Policy                                                                                                                    |
+| `headers.ts`         | Headers de securite pour `next.config.ts`                                                                                                                     |
+| `navigation.ts`      | Sanitize des liens externes et `mailto:`                                                                                                                      |
+| `rate-limit.ts`      | Rate limiting des routes JSON auth/admin, fail-close hors developpement si le store distribue ou son salt manquent, avec `mode` explicite sur chaque resultat |
 
 ## Usage
 
@@ -22,3 +22,5 @@ Ce dossier regroupe les protections techniques complementaires a l'auth OIDC: CS
 
 - `__tests__/csp.test.ts`
 - `__tests__/navigation.test.ts`
+- `__tests__/browser-request.test.ts`
+- `__tests__/rate-limit.test.ts`

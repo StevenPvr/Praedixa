@@ -1,6 +1,6 @@
 # @praedixa/shared-types
 
-Definitions de types TypeScript partages entre les trois applications frontend Praedixa (landing, webapp, admin). Zero dependance runtime en dehors de `zod` (validation optionnelle). Ce package garantit un contrat type unique entre le backend FastAPI (qui serialise en camelCase via `CamelModel`) et tous les clients.
+Definitions de types TypeScript partages entre les apps Praedixa et le runtime `app-api-ts`. Zero dependance runtime en dehors de `zod` (validation optionnelle). Ce package garantit un contrat type unique entre le contrat OpenAPI public versionne, le runtime Node/TypeScript et les clients.
 
 ## Table des matieres
 
@@ -34,7 +34,9 @@ import type { ApiResponse } from "@praedixa/shared-types/api";
 import type { Organization } from "@praedixa/shared-types/domain";
 ```
 
-**Ordre de build** : `shared-types` est le premier package builde. Toutes les autres cibles en dependent.
+**Ordre de build** : `shared-types` est le premier package builde. Toutes les autres cibles en dependent. Le build utilise `tsc --build --force` pour regenerer `dist/` proprement a chaque passe critique.
+
+Les points d'entree runtime du package (`.`, `./api`, `./api-client`, `./domain`, `./public-contract-node`) sortent en ESM interne. Les imports/exports relatifs des fichiers qui emettent du JavaScript doivent donc garder des suffixes `.js` dans `src/`, sinon un builder propre peut produire un `dist/` present mais non resolvable.
 
 ```bash
 # Build
@@ -214,7 +216,12 @@ pnpm --filter @praedixa/shared-types dev
 
 ### API
 
-3 modules dans `src/api/` pour typer les echanges HTTP.
+Les modules `src/api/` couvrent a la fois le contrat public versionne et les contrats DecisionOps/admin internes reutilises entre `app-admin` et `app-api-ts`.
+
+Le catalogue versionne des operations publiques non-admin vit dans `src/api/public-contract.ts`. Il decrit pour chaque `operationId` le `method`, le `path`, l'enveloppe de reponse et le type partage attendu, afin de garder une source de verite explicite entre `contracts/openapi/public.yaml` et les consumers TypeScript.
+Les payloads write publics nommes vivent dans `src/api/requests.ts` et sont references directement par les composants schemas OpenAPI, ce qui evite les `object` generiques permissifs.
+Les contrats DecisionOps/admin internes typent aussi les surfaces persistantes non-publiques, par exemple `src/api/approval-inbox.ts`, `src/api/action-dispatch-detail.ts`, `src/api/ledger-detail.ts` et `src/api/approval-decision.ts`.
+Le helper Node `@praedixa/shared-types/public-contract-node` sert uniquement aux tests et audits de contrat; il parse `contracts/openapi/public.yaml` de maniere structurelle sans tirer `fs` ou `yaml` dans les exports browser du package.
 
 #### `responses.ts` -- Enveloppes de reponse
 

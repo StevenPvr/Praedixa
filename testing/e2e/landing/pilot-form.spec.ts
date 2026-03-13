@@ -8,7 +8,7 @@ test.describe("Deployment request form (/fr/deploiement)", () => {
   test("loads the deployment form page", async ({ page }) => {
     await page.waitForLoadState("domcontentloaded");
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
-      /demande de deploiement praedixa/i,
+      /demande de d[ée]ploiement praedixa/i,
       { timeout: 15_000 },
     );
     await expect(

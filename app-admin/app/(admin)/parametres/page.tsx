@@ -89,6 +89,9 @@ export default function ParametresPage() {
   const canManageOnboarding = hasAnyPermission(currentUser?.permissions, [
     "admin:onboarding:write",
   ]);
+  const canReadConfigHealth = hasAnyPermission(currentUser?.permissions, [
+    "admin:monitoring:read",
+  ]);
   const [section, setSection] = useState<Section>(
     canReadOnboarding ? "onboarding" : "config",
   );
@@ -122,7 +125,9 @@ export default function ParametresPage() {
     loading: costLoading,
     error: costError,
     refetch: costRefetch,
-  } = useApiGet<MissingCostParams>(ADMIN_ENDPOINTS.monitoringCostParamsMissing);
+  } = useApiGet<MissingCostParams>(
+    canReadConfigHealth ? ADMIN_ENDPOINTS.monitoringCostParamsMissing : null,
+  );
 
   async function handleStartOnboarding() {
     if (!canManageOnboarding) {
@@ -310,9 +315,10 @@ export default function ParametresPage() {
         <div className="space-y-4">
           {!canReadOnboarding ? (
             <div className="rounded-xl border border-border-subtle bg-card px-4 py-3 text-sm text-ink-tertiary">
-              Permission requise pour consulter cette section:
-              {" "}
-              <span className="font-medium text-ink">admin:onboarding:read</span>
+              Permission requise pour consulter cette section:{" "}
+              <span className="font-medium text-ink">
+                admin:onboarding:read
+              </span>
             </div>
           ) : null}
           <div className="rounded-2xl border border-border-subtle bg-card p-5 shadow-soft">
@@ -392,7 +398,14 @@ export default function ParametresPage() {
       {/* Config section */}
       {section === "config" && (
         <div className="space-y-4">
-          {costLoading ? (
+          {!canReadConfigHealth ? (
+            <div className="rounded-xl border border-border-subtle bg-card px-4 py-3 text-sm text-ink-tertiary">
+              Permission requise pour consulter cette section:{" "}
+              <span className="font-medium text-ink">
+                admin:monitoring:read
+              </span>
+            </div>
+          ) : costLoading ? (
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, i) => (
                 <SkeletonCard key={`param-skel-${i}`} />

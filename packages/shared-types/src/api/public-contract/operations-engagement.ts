@@ -1,0 +1,96 @@
+import type { PublicApiOperationContract } from "./common.js";
+import type { PublicApiSharedTypeName } from "./types.js";
+
+type TypedPublicApiOperationContract =
+  PublicApiOperationContract<PublicApiSharedTypeName>;
+
+export const PUBLIC_API_ENGAGEMENT_OPERATIONS = [
+  {
+    operationId: "getUserPreferences",
+    method: "GET",
+    path: "/api/v1/users/me/preferences",
+    auth: "bearer",
+    responseEnvelope: "SuccessObject",
+    responseTypeName: "UserUxPreferences",
+  },
+  {
+    operationId: "updateUserPreferences",
+    method: "PATCH",
+    path: "/api/v1/users/me/preferences",
+    auth: "bearer",
+    requestTypeName: "UserUxPreferencesPatch",
+    responseEnvelope: "SuccessObject",
+    responseTypeName: "UserUxPreferences",
+  },
+  {
+    operationId: "ingestProductEventsBatch",
+    method: "POST",
+    path: "/api/v1/product-events/batch",
+    auth: "bearer",
+    requestTypeName: "ProductEventBatchRequest",
+    responseEnvelope: "SuccessObject",
+    responseTypeName: "ProductEventBatchAccepted",
+  },
+  {
+    operationId: "listConversations",
+    method: "GET",
+    path: "/api/v1/conversations",
+    auth: "bearer",
+    responseEnvelope: "SuccessArray",
+    responseTypeName: "ConversationSummary",
+  },
+  {
+    operationId: "createConversation",
+    method: "POST",
+    path: "/api/v1/conversations",
+    auth: "bearer",
+    requestTypeName: "ConversationCreateRequest",
+    requestBodyRequired: true,
+    responseEnvelope: "SuccessObject",
+    responseTypeName: "ConversationSummary",
+  },
+  {
+    operationId: "listConversationMessages",
+    method: "GET",
+    path: "/api/v1/conversations/{convId}/messages",
+    auth: "bearer",
+    responseEnvelope: "SuccessArray",
+    responseTypeName: "ConversationMessage",
+  },
+  {
+    operationId: "createConversationMessage",
+    method: "POST",
+    path: "/api/v1/conversations/{convId}/messages",
+    auth: "bearer",
+    requestTypeName: "MessageCreateRequest",
+    requestBodyRequired: true,
+    responseEnvelope: "SuccessObject",
+    responseTypeName: "ConversationMessage",
+  },
+  {
+    operationId: "getConversationUnreadCount",
+    method: "GET",
+    path: "/api/v1/conversations/unread-count",
+    auth: "bearer",
+    responseEnvelope: "SuccessObject",
+    responseTypeName: "ConversationUnreadCount",
+  },
+  {
+    operationId: "getSupportThread",
+    method: "GET",
+    path: "/api/v1/support-thread",
+    auth: "bearer",
+    responseEnvelope: "SuccessObject",
+    responseTypeName: "SupportThreadView",
+  },
+  {
+    operationId: "createSupportThreadMessage",
+    method: "POST",
+    path: "/api/v1/support-thread/messages",
+    auth: "bearer",
+    requestTypeName: "MessageCreateRequest",
+    requestBodyRequired: true,
+    responseEnvelope: "SuccessObject",
+    responseTypeName: "SupportThreadMessage",
+  },
+] as const satisfies readonly TypedPublicApiOperationContract[];

@@ -3,6 +3,7 @@ import type {
   HttpMethod,
   RouteDefinition,
   RouteHandler,
+  RouteRateLimit,
   ServiceTokenCapability,
 } from "./types.js";
 
@@ -43,6 +44,7 @@ export function route(
   options?: {
     authRequired?: boolean;
     requiredCapabilities?: readonly ServiceTokenCapability[];
+    rateLimit?: RouteRateLimit;
   },
 ): RouteDefinition {
   return {
@@ -50,6 +52,7 @@ export function route(
     template,
     authRequired: options?.authRequired ?? true,
     requiredCapabilities: options?.requiredCapabilities ?? [],
+    rateLimit: options?.rateLimit ?? null,
     handler,
   };
 }
@@ -62,6 +65,7 @@ export function compileRoutes(routes: RouteDefinition[]): CompiledRoute[] {
       template: entry.template,
       authRequired: entry.authRequired,
       requiredCapabilities: entry.requiredCapabilities,
+      rateLimit: entry.rateLimit,
       handler: entry.handler,
       regex: compiled.regex,
       paramNames: compiled.paramNames,

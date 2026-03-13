@@ -1,0 +1,109 @@
+{
+  "kind": "admin_permission_taxonomy",
+  "schema_version": "2026-03-12",
+  "namespace": "admin",
+  "permissions": [
+    {
+      "name": "admin:console:access",
+      "domain": "console",
+      "mode": "read",
+      "description": "Open the admin console shell and shared workspace chrome."
+    },
+    {
+      "name": "admin:monitoring:read",
+      "domain": "monitoring",
+      "mode": "read",
+      "description": "Read platform, tenant and operational monitoring surfaces."
+    },
+    {
+      "name": "admin:org:read",
+      "domain": "organization",
+      "mode": "read",
+      "description": "Read tenant-scoped admin data, pages and exports."
+    },
+    {
+      "name": "admin:org:write",
+      "domain": "organization",
+      "mode": "write",
+      "description": "Mutate tenant-scoped organization control-plane state."
+    },
+    {
+      "name": "admin:users:read",
+      "domain": "users",
+      "mode": "read",
+      "description": "Read tenant user directories and membership metadata."
+    },
+    {
+      "name": "admin:users:write",
+      "domain": "users",
+      "mode": "write",
+      "description": "Invite, change role, deactivate and reactivate tenant users."
+    },
+    {
+      "name": "admin:billing:read",
+      "domain": "billing",
+      "mode": "read",
+      "description": "Read billing plans, history and finance-facing summaries."
+    },
+    {
+      "name": "admin:billing:write",
+      "domain": "billing",
+      "mode": "write",
+      "description": "Change plan or mutate billing-facing control-plane settings."
+    },
+    {
+      "name": "admin:audit:read",
+      "domain": "audit",
+      "mode": "read",
+      "description": "Read append-only audit and journal surfaces."
+    },
+    {
+      "name": "admin:onboarding:read",
+      "domain": "onboarding",
+      "mode": "read",
+      "description": "Read onboarding state and supporting tenant activation data."
+    },
+    {
+      "name": "admin:onboarding:write",
+      "domain": "onboarding",
+      "mode": "write",
+      "description": "Advance onboarding steps and mutate onboarding state."
+    },
+    {
+      "name": "admin:messages:read",
+      "domain": "messages",
+      "mode": "read",
+      "description": "Read admin conversations, support threads and inbox counts."
+    },
+    {
+      "name": "admin:messages:write",
+      "domain": "messages",
+      "mode": "write",
+      "description": "Reply to admin conversations or mutate message state."
+    },
+    {
+      "name": "admin:support:read",
+      "domain": "support",
+      "mode": "read",
+      "description": "Read support and contact-request surfaces."
+    },
+    {
+      "name": "admin:support:write",
+      "domain": "support",
+      "mode": "write",
+      "description": "Mutate support workflows and contact-request status."
+    },
+    {
+      "name": "admin:integrations:read",
+      "domain": "integrations",
+      "mode": "read",
+      "description": "Read integration catalog, connection status, sync runs and raw events."
+    },
+    {
+      "name": "admin:integrations:write",
+      "domain": "integrations",
+      "mode": "write",
+      "description": "Mutate integration connections, credentials, syncs and write-back configuration."
+    }
+  ]
+}

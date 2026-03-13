@@ -24,6 +24,16 @@ function noStoreRedirect(url: string | URL): NextResponse {
   return response;
 }
 
+function createOidcConfigErrorResponse(): NextResponse {
+  const response = NextResponse.json(
+    { error: "oidc_config_missing" },
+    { status: 500 },
+  );
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Pragma", "no-cache");
+  return response;
+}
+
 function applyRateLimitHeaders(
   response: NextResponse,
   limit: number,
@@ -42,13 +52,13 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get("next"),
     "/dashboard",
   );
-  const fallbackOrigin = (() => {
-    try {
-      return resolveAuthAppOrigin(request);
-    } catch {
-      return request.nextUrl.origin;
-    }
-  })();
+  let appOrigin: string;
+  try {
+    appOrigin = resolveAuthAppOrigin(request);
+  } catch {
+    return createOidcConfigErrorResponse();
+  }
+
   const maxAttempts = 20;
   const rate = await consumeRateLimit(request, {
     scope: "auth:login",
@@ -56,7 +66,7 @@ export async function GET(request: NextRequest) {
     windowMs: 60_000,
   });
   if (!rate.allowed) {
-    const fallbackUrl = new URL("/login", fallbackOrigin);
+    const fallbackUrl = new URL("/login", appOrigin);
     fallbackUrl.searchParams.set("error", "rate_limited");
     fallbackUrl.searchParams.set("next", next);
     const response = noStoreRedirect(fallbackUrl.toString());
@@ -65,7 +75,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const appOrigin = resolveAuthAppOrigin(request);
     const { issuerUrl, clientId, scope } = getOidcEnv();
     const { authorizationEndpoint } = await getTrustedOidcEndpoints(issuerUrl);
     const state = createRandomToken(32);
@@ -76,10 +85,7 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set("client_id", clientId);
     authUrl.searchParams.set("response_type", "code");
     authUrl.searchParams.set("scope", scope);
-    authUrl.searchParams.set(
-      "redirect_uri",
-      `${appOrigin}/auth/callback`,
-    );
+    authUrl.searchParams.set("redirect_uri", `${appOrigin}/auth/callback`);
     authUrl.searchParams.set("state", state);
     authUrl.searchParams.set("code_challenge", challenge);
     authUrl.searchParams.set("code_challenge_method", "S256");
@@ -116,7 +122,7 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    const fallbackUrl = new URL("/login", fallbackOrigin);
+    const fallbackUrl = new URL("/login", appOrigin);
     fallbackUrl.searchParams.set(
       "error",
       isMissingOidcEnvError(error)

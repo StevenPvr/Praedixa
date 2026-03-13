@@ -1,6 +1,5 @@
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 
-const config: ReturnType<typeof defineCloudflareConfig> =
-  defineCloudflareConfig();
+const cloudflareConfig = defineCloudflareConfig();
 
-export default config;
+export default cloudflareConfig;

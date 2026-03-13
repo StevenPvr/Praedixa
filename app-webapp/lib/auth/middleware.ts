@@ -17,6 +17,7 @@ import {
   userFromAccessToken,
   verifySession,
 } from "@/lib/auth/oidc";
+import { resolveWebappRoutePolicy } from "@/lib/auth/route-policy";
 import { isSuperAdmin } from "@/lib/auth/roles";
 
 interface AuthState {
@@ -49,12 +50,18 @@ async function tryRefresh(
     return { session: null, accessToken: null };
   }
 
-  if (accessToken && !(await doesSessionMatchAccessToken(session, accessToken))) {
+  if (
+    accessToken &&
+    !(await doesSessionMatchAccessToken(session, accessToken))
+  ) {
     clearAuthCookies(response);
     return { session: null, accessToken: null };
   }
 
-  if (refreshToken && !(await doesSessionMatchRefreshToken(session, refreshToken))) {
+  if (
+    refreshToken &&
+    !(await doesSessionMatchRefreshToken(session, refreshToken))
+  ) {
     clearAuthCookies(response);
     return { session: null, accessToken: null };
   }
@@ -62,7 +69,9 @@ async function tryRefresh(
   const hasUsableAccessToken =
     !!accessToken && !isTokenExpired(accessToken, 60);
   if (hasUsableAccessToken) {
-    if (getApiAccessTokenCompatibilityReason(accessToken, getOidcEnv().clientId)) {
+    if (
+      getApiAccessTokenCompatibilityReason(accessToken, getOidcEnv().clientId)
+    ) {
       clearAuthCookies(response);
       return { session: null, accessToken: null };
     }
@@ -145,10 +154,12 @@ export async function updateSession(
     requestHeaders ? { request: { headers: requestHeaders } } : { request },
   );
   const pathname = request.nextUrl.pathname;
+  const route = resolveWebappRoutePolicy(pathname);
 
-  const isLoginRoute = pathname === "/login";
-  const isAuthRoute = pathname === "/auth" || pathname.startsWith("/auth/");
-  const isApiRoute = pathname === "/api" || pathname.startsWith("/api/");
+  const isLoginRoute = route.kind === "login";
+  const isAuthRoute = route.kind === "auth";
+  const isApiRoute = route.kind === "api";
+  const isKnownAppRoute = route.kind === "root" || route.kind === "app";
 
   if (isAuthRoute || isApiRoute) {
     return response;
@@ -157,14 +168,19 @@ export async function updateSession(
   const authState = await tryRefresh(request, response);
   const userRole = authState.session?.role;
 
-  if (!authState.session && !isLoginRoute) {
+  if (route.kind === "unknown") {
+    if (!authState.session || isSuperAdmin(userRole)) {
+      return redirectTo(request, "/login", true);
+    }
+    return redirectTo(request, "/dashboard");
+  }
+
+  if (!authState.session && isKnownAppRoute) {
     return redirectTo(request, "/login", true);
   }
 
-  if (authState.session && !isLoginRoute) {
-    if (isSuperAdmin(userRole)) {
-      return redirectTo(request, "/login", true);
-    }
+  if (authState.session && isKnownAppRoute && isSuperAdmin(userRole)) {
+    return redirectTo(request, "/login", true);
   }
 
   const isForcedReauth =

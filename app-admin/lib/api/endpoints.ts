@@ -95,6 +95,14 @@ export const ADMIN_ENDPOINTS = {
     `${V1}/organizations/${encodeURIComponent(orgId)}/alerts`,
   orgScenarios: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/scenarios`,
+  orgApprovalsInbox: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/approval-inbox`,
+  orgApprovalDecision: (orgId: string, approvalId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/approvals/${encodeURIComponent(approvalId)}/decision`,
+  orgActionDispatchDetail: (orgId: string, actionId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/action-dispatches/${encodeURIComponent(actionId)}`,
+  orgLedgerDetail: (orgId: string, ledgerId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/ledgers/${encodeURIComponent(ledgerId)}`,
   orgMlMonitoringSummary: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/ml-monitoring/summary`,
   orgMlMonitoringDrift: (orgId: string) =>

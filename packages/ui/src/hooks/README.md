@@ -7,9 +7,11 @@ Ce dossier regroupe les hooks React réutilisables du périmètre. Ils extraient
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `use-media-query.ts`
 
 ## Intégration

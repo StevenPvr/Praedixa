@@ -97,14 +97,17 @@ erDiagram
 
 #### Operational
 
-| Modele                | Table                   | Mixin         | Colonnes cles                                                                                                                 |
-| --------------------- | ----------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `CanonicalRecord`     | `canonical_records`     | `TenantMixin` | id, site_id, date, shift, competence, charge_units, capacite_plan_h, realise_h, abs_h, hs_h, interim_h                        |
-| `CostParameter`       | `cost_parameters`       | `TenantMixin` | id, site_id, version, c_int, maj_hs, c_interim, premium_urgence, c_backlog, effective_from, effective_until                   |
-| `CoverageAlert`       | `coverage_alerts`       | `TenantMixin` | id, site_id, alert_date, shift, horizon, p_rupture, gap_h, severity, status, drivers_json (JSONB)                             |
-| `ScenarioOption`      | `scenario_options`      | `TenantMixin` | id, coverage_alert_id, cost_parameter_id, option_type, cout_total_eur, service_attendu_pct, is_pareto_optimal, is_recommended |
-| `OperationalDecision` | `operational_decisions` | `TenantMixin` | id, coverage_alert_id, chosen_option_id, site_id, decision_date, is_override, override_reason, cout_observe_eur               |
-| `ProofRecord`         | `proof_records`         | `TenantMixin` | id, site_id, month, cout_bau_eur, cout_reel_eur, gain_net_eur, capture_rate, adoption_pct                                     |
+| Modele                | Table                     | Mixin         | Colonnes cles                                                                                                                 |
+| --------------------- | ------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `CanonicalRecord`     | `canonical_records`       | `TenantMixin` | id, site_id, date, shift, competence, charge_units, capacite_plan_h, realise_h, abs_h, hs_h, interim_h                        |
+| `CostParameter`       | `cost_parameters`         | `TenantMixin` | id, site_id, version, c_int, maj_hs, c_interim, premium_urgence, c_backlog, effective_from, effective_until                   |
+| `CoverageAlert`       | `coverage_alerts`         | `TenantMixin` | id, site_id, alert_date, shift, horizon, p_rupture, gap_h, severity, status, drivers_json (JSONB)                             |
+| `ScenarioOption`      | `scenario_options`        | `TenantMixin` | id, coverage_alert_id, cost_parameter_id, option_type, cout_total_eur, service_attendu_pct, is_pareto_optimal, is_recommended |
+| `OperationalDecision` | `operational_decisions`   | `TenantMixin` | id, coverage_alert_id, chosen_option_id, site_id, decision_date, is_override, override_reason, cout_observe_eur               |
+| `ProofRecord`         | `proof_records`           | `TenantMixin` | id, site_id, month, cout_bau_eur, cout_reel_eur, gain_net_eur, capture_rate, adoption_pct                                     |
+| `DecisionApproval`    | `decision_approvals`      | `TenantMixin` | approval_id, recommendation_id, site_id, contract_id, status, approver_role, requested_at, record_json (JSONB)                |
+| `ActionDispatch`      | `action_dispatches`       | `TenantMixin` | action_id, recommendation_id, approval_id, site_id, contract_id, status, dispatch_mode, idempotency_key, record_json (JSONB)  |
+| `DecisionLedger`      | `decision_ledger_entries` | `TenantMixin` | ledger_id, revision, recommendation_id, action_id, site_id, contract_id, status, validation_status, record_json (JSONB)       |
 
 #### Forecasting
 
@@ -212,26 +215,27 @@ class TenantMixin(TimestampMixin):
 
 ## Historique des migrations
 
-| #   | Fichier                                 | Description                                                                                                                              |
-| --- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| 001 | `001_initial_schema.py`                 | Schema initial : organizations, sites, departments, users, employees, absences, forecast_runs, decisions, action_plans, dashboard_alerts |
-| 002 | `002_pgcrypto_extension.py`             | Extension `pgcrypto` pour `gen_random_uuid()`                                                                                            |
-| 003 | `003_data_catalog_enums.py`             | Enums PostgreSQL pour le data catalog (DatasetStatus, IngestionMode, RunStatus, ColumnDtype, ColumnRole)                                 |
-| 004 | `004_data_catalog_tables.py`            | Tables data catalog : client_datasets, dataset_columns, fit_parameters, ingestion_log, pipeline_config_history                           |
-| 005 | `005_fit_parameters_immutability.py`    | Trigger d'immutabilite sur fit_parameters (INSERT-only)                                                                                  |
-| 006 | `006_role_architecture.py`              | Extension du systeme de roles (UserRole enum etendu)                                                                                     |
-| 007 | `007_rls_policies.py`                   | Politiques Row-Level Security initiales                                                                                                  |
-| 008 | `008_file_upload_ingestion.py`          | Champs file_name, file_size sur ingestion_log + table quality_reports                                                                    |
-| 009 | `009_quality_report.py`                 | Extension quality_reports (column_details, strategy_config)                                                                              |
-| 010 | `010_admin_backoffice.py`               | Tables admin : admin_audit_log, plan_change_history, onboarding_states                                                                   |
-| 011 | `011_features_access_control.py`        | Controle d'acces aux features par organisation                                                                                           |
-| 012 | `012_operational_layer.py`              | Tables operationnelles : canonical_records, cost_parameters, coverage_alerts, scenario_options, operational_decisions, proof_records     |
-| 013 | `013_rls_hardening.py`                  | Renforcement des politiques RLS (defense en profondeur)                                                                                  |
-| 014 | `014_merge_schemas.py`                  | Fusion des schemas platform/public                                                                                                       |
-| 015 | `015_add_user_site_id.py`               | Ajout site_id sur users pour filtrage par site                                                                                           |
-| 016 | `016_decision_engine_v2_fields.py`      | Champs supplementaires pour le moteur de decision v2                                                                                     |
-| 017 | `017_conversations.py`                  | Tables messagerie : conversations, messages                                                                                              |
-| 018 | `018_daily_forecast_capacity_curves.py` | Champs capacity curves sur daily_forecasts (capacity_planned_current, capacity_planned_predicted, capacity_optimal_predicted)            |
+| #   | Fichier                                  | Description                                                                                                                              |
+| --- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 001 | `001_initial_schema.py`                  | Schema initial : organizations, sites, departments, users, employees, absences, forecast_runs, decisions, action_plans, dashboard_alerts |
+| 002 | `002_pgcrypto_extension.py`              | Extension `pgcrypto` pour `gen_random_uuid()`                                                                                            |
+| 003 | `003_data_catalog_enums.py`              | Enums PostgreSQL pour le data catalog (DatasetStatus, IngestionMode, RunStatus, ColumnDtype, ColumnRole)                                 |
+| 004 | `004_data_catalog_tables.py`             | Tables data catalog : client_datasets, dataset_columns, fit_parameters, ingestion_log, pipeline_config_history                           |
+| 005 | `005_fit_parameters_immutability.py`     | Trigger d'immutabilite sur fit_parameters (INSERT-only)                                                                                  |
+| 006 | `006_role_architecture.py`               | Extension du systeme de roles (UserRole enum etendu)                                                                                     |
+| 007 | `007_rls_policies.py`                    | Politiques Row-Level Security initiales                                                                                                  |
+| 008 | `008_file_upload_ingestion.py`           | Champs file_name, file_size sur ingestion_log + table quality_reports                                                                    |
+| 009 | `009_quality_report.py`                  | Extension quality_reports (column_details, strategy_config)                                                                              |
+| 010 | `010_admin_backoffice.py`                | Tables admin : admin_audit_log, plan_change_history, onboarding_states                                                                   |
+| 011 | `011_features_access_control.py`         | Controle d'acces aux features par organisation                                                                                           |
+| 012 | `012_operational_layer.py`               | Tables operationnelles : canonical_records, cost_parameters, coverage_alerts, scenario_options, operational_decisions, proof_records     |
+| 013 | `013_rls_hardening.py`                   | Renforcement des politiques RLS (defense en profondeur)                                                                                  |
+| 014 | `014_merge_schemas.py`                   | Fusion des schemas platform/public                                                                                                       |
+| 015 | `015_add_user_site_id.py`                | Ajout site_id sur users pour filtrage par site                                                                                           |
+| 016 | `016_decision_engine_v2_fields.py`       | Champs supplementaires pour le moteur de decision v2                                                                                     |
+| 017 | `017_conversations.py`                   | Tables messagerie : conversations, messages                                                                                              |
+| 018 | `018_daily_forecast_capacity_curves.py`  | Champs capacity curves sur daily_forecasts (capacity_planned_current, capacity_planned_predicted, capacity_optimal_predicted)            |
+| 027 | `027_decisionops_runtime_persistence.py` | Persistance DecisionOps read-model : decision_approvals, action_dispatches, decision_ledger_entries + RLS                                |
 
 ## Politiques RLS
 

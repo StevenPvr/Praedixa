@@ -11,12 +11,12 @@ Recuperer les donnees workforce (planning, pointage, absences) pour fiabiliser l
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets UKG | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| Workforce | Employee profile | employee id, site, job code, status | 60 min | `employee` |
-| Planning | Schedules / shifts | start/end, role, location, published flag | 15 min | `shift_plan` |
-| Realise | Punches / timesheets | clock in/out, source terminal, approved flag | 15 min | `timesheet` |
-| RH | Absence / leave | type, start/end, status, paid flag | 30 min | `absence_event` |
+| Domaine   | Objets UKG           | Champs minimum                               | Frequence | Canonical       |
+| --------- | -------------------- | -------------------------------------------- | --------- | --------------- |
+| Workforce | Employee profile     | employee id, site, job code, status          | 60 min    | `employee`      |
+| Planning  | Schedules / shifts   | start/end, role, location, published flag    | 15 min    | `shift_plan`    |
+| Realise   | Punches / timesheets | clock in/out, source terminal, approved flag | 15 min    | `timesheet`     |
+| RH        | Absence / leave      | type, start/end, status, paid flag           | 30 min    | `absence_event` |
 
 ## 3. Specification d'integration
 

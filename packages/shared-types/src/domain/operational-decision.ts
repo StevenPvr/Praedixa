@@ -1,8 +1,8 @@
 // Operational decision types — manager decisions on coverage alerts
 
-import type { TenantEntity, UUID, ISODateString } from "../utils/common";
-import type { ShiftType } from "./canonical";
-import type { AlertHorizon } from "./coverage-alert";
+import type { TenantEntity, UUID, ISODateString } from "../utils/common.js";
+import type { ShiftType } from "./canonical.js";
+import type { AlertHorizon } from "./coverage-alert.js";
 
 /** An operational decision made on a coverage alert */
 export interface OperationalDecision extends TenantEntity {

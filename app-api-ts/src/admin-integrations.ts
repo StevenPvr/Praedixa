@@ -17,7 +17,11 @@ export type IntegrationVendor =
   | "manhattan"
   | "ncr_aloha";
 
-export type IntegrationAuthMode = "oauth2" | "api_key" | "service_account" | "sftp";
+export type IntegrationAuthMode =
+  | "oauth2"
+  | "api_key"
+  | "service_account"
+  | "sftp";
 export type IntegrationConnectionStatus =
   | "pending"
   | "active"
@@ -27,8 +31,18 @@ export type IntegrationAuthorizationState =
   | "not_started"
   | "awaiting_authorization"
   | "authorized";
-export type IntegrationSyncStatus = "queued" | "running" | "success" | "failed" | "canceled";
-export type IntegrationSyncTrigger = "manual" | "schedule" | "backfill" | "replay" | "webhook";
+export type IntegrationSyncStatus =
+  | "queued"
+  | "running"
+  | "success"
+  | "failed"
+  | "canceled";
+export type IntegrationSyncTrigger =
+  | "manual"
+  | "schedule"
+  | "backfill"
+  | "replay"
+  | "webhook";
 
 type RuntimeSuccess<T> = {
   success: true;
@@ -222,9 +236,12 @@ function getRuntimeConfig(): { baseUrl: string; token: string } {
 function encodePathSegment(label: string, value: string): string {
   const trimmed = value.trim();
   if (!PATH_SEGMENT_PATTERN.test(trimmed)) {
-    throw new IntegrationInputError(`${label} contains unsupported characters`, {
-      label,
-    });
+    throw new IntegrationInputError(
+      `${label} contains unsupported characters`,
+      {
+        label,
+      },
+    );
   }
 
   return encodeURIComponent(trimmed);
@@ -269,9 +286,6 @@ async function callConnectorsRuntime<T>(
   if (options?.body !== undefined) {
     headers["content-type"] = "application/json";
   }
-  if (options?.actorUserId != null) {
-    headers["x-actor-user-id"] = options.actorUserId;
-  }
   if (options?.idempotencyKey != null) {
     headers["idempotency-key"] = options.idempotencyKey;
   }
@@ -288,7 +302,9 @@ async function callConnectorsRuntime<T>(
       headers,
       redirect: "error",
       signal: controller.signal,
-      ...(options?.body !== undefined ? { body: JSON.stringify(options.body) } : {}),
+      ...(options?.body !== undefined
+        ? { body: JSON.stringify(options.body) }
+        : {}),
     });
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -308,7 +324,9 @@ async function callConnectorsRuntime<T>(
     clearTimeout(timeout);
   }
 
-  const payload = (await response.json().catch(() => null)) as RuntimeResponse<T> | null;
+  const payload = (await response
+    .json()
+    .catch(() => null)) as RuntimeResponse<T> | null;
   if (payload == null) {
     throw new IntegrationInputError(
       "connectors runtime returned an invalid response",
@@ -331,8 +349,12 @@ async function callConnectorsRuntime<T>(
   return payload.data;
 }
 
-export async function listIntegrationCatalog(): Promise<IntegrationCatalogItem[]> {
-  return await callConnectorsRuntime<IntegrationCatalogItem[]>("/v1/connectors/catalog");
+export async function listIntegrationCatalog(): Promise<
+  IntegrationCatalogItem[]
+> {
+  return await callConnectorsRuntime<IntegrationCatalogItem[]>(
+    "/v1/connectors/catalog",
+  );
 }
 
 export async function listIntegrationConnections(
@@ -433,13 +455,10 @@ export async function testIntegrationConnection(
     latencyMs: number;
     checkedScopes: string[];
     warnings: string[];
-  }>(
-    `${buildConnectionPath(organizationId, connectionId)}/test`,
-    {
-      method: "POST",
-      actorUserId,
-    },
-  );
+  }>(`${buildConnectionPath(organizationId, connectionId)}/test`, {
+    method: "POST",
+    actorUserId,
+  });
 }
 
 export async function triggerIntegrationSync(

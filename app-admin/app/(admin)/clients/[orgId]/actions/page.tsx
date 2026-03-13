@@ -109,7 +109,8 @@ export default function ActionsPage() {
       <div>
         <h2 className="font-serif text-lg font-semibold text-ink">Actions</h2>
         <p className="text-sm text-ink-tertiary">
-          Centre de traitement admin: priorisation des alertes et scenarios en attente.
+          Centre de traitement admin: priorisation des alertes et scenarios en
+          attente.
         </p>
       </div>
 
@@ -140,7 +141,9 @@ export default function ActionsPage() {
 
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-ink-secondary">File d'alertes</h3>
+          <h3 className="text-sm font-medium text-ink-secondary">
+            File d'alertes
+          </h3>
           {alertsLoading ? (
             <SkeletonCard />
           ) : alertsError ? (
@@ -159,11 +162,16 @@ export default function ActionsPage() {
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-ink-secondary">Scenarios proposes</h3>
+          <h3 className="text-sm font-medium text-ink-secondary">
+            Scenarios proposes
+          </h3>
           {scenariosLoading ? (
             <SkeletonCard />
           ) : scenariosError ? (
-            <ErrorFallback message={scenariosError} onRetry={scenariosRefetch} />
+            <ErrorFallback
+              message={scenariosError}
+              onRetry={scenariosRefetch}
+            />
           ) : (
             <Card className="rounded-2xl shadow-soft">
               <CardContent className="p-0">

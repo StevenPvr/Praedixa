@@ -45,9 +45,10 @@ async function fetchToken(
       signal: controller.signal,
     });
 
-    const payload = (await response.json().catch(() => null)) as
-      | Record<string, unknown>
-      | null;
+    const payload = (await response.json().catch(() => null)) as Record<
+      string,
+      unknown
+    > | null;
 
     if (!response.ok || payload == null) {
       throw new Error("OAuth token exchange failed");
@@ -76,7 +77,9 @@ async function fetchToken(
     return {
       accessToken,
       refreshToken:
-        typeof payload.refresh_token === "string" ? payload.refresh_token : null,
+        typeof payload.refresh_token === "string"
+          ? payload.refresh_token
+          : null,
       expiresAt,
       scope: normalizeScope(payload.scope),
       tokenType,
@@ -96,7 +99,10 @@ export function buildAuthorizationUrl(
   url.searchParams.set("client_id", clientCredentials.clientId);
   url.searchParams.set("redirect_uri", session.redirectUri);
   url.searchParams.set("state", session.state);
-  url.searchParams.set("code_challenge", createPkceChallenge(session.codeVerifier));
+  url.searchParams.set(
+    "code_challenge",
+    createPkceChallenge(session.codeVerifier),
+  );
   url.searchParams.set("code_challenge_method", "S256");
   if (session.scopes.length > 0) {
     url.searchParams.set("scope", session.scopes.join(" "));

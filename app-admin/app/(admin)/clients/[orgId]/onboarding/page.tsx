@@ -4,8 +4,17 @@ import { useMemo, useState } from "react";
 import { useClientContext } from "../client-context";
 import { useApiGet, useApiGetPaginated, useApiPost } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
-import { Card, CardContent, Button, StatCard, SkeletonCard } from "@praedixa/ui";
-import { OnboardingStatusBadge, type OnboardingStatus } from "@/components/onboarding-status-badge";
+import {
+  Card,
+  CardContent,
+  Button,
+  StatCard,
+  SkeletonCard,
+} from "@praedixa/ui";
+import {
+  OnboardingStatusBadge,
+  type OnboardingStatus,
+} from "@/components/onboarding-status-badge";
 import { ErrorFallback } from "@/components/error-fallback";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, ClipboardList, Rocket, Workflow } from "lucide-react";
@@ -57,7 +66,11 @@ export default function OnboardingPage() {
     loading: onboardingLoading,
     error: onboardingError,
     refetch: onboardingRefetch,
-  } = useApiGetPaginated<OnboardingListItem>(ADMIN_ENDPOINTS.onboardingList, page, 20);
+  } = useApiGetPaginated<OnboardingListItem>(
+    ADMIN_ENDPOINTS.onboardingList,
+    page,
+    20,
+  );
 
   const startOnboarding = useApiPost<
     { orgName: string; orgSlug: string; contactEmail: string; plan: string },
@@ -65,7 +78,10 @@ export default function OnboardingPage() {
   >(ADMIN_ENDPOINTS.onboardingStart);
 
   const orgEntries = useMemo(
-    () => (onboardingEntries ?? []).filter((entry) => entry.organizationId === orgId),
+    () =>
+      (onboardingEntries ?? []).filter(
+        (entry) => entry.organizationId === orgId,
+      ),
     [onboardingEntries, orgId],
   );
 
@@ -96,9 +112,12 @@ export default function OnboardingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-serif text-lg font-semibold text-ink">Onboarding</h2>
+        <h2 className="font-serif text-lg font-semibold text-ink">
+          Onboarding
+        </h2>
         <p className="text-sm text-ink-tertiary">
-          Suivi de readiness et orchestration des etapes de mise en service client.
+          Suivi de readiness et orchestration des etapes de mise en service
+          client.
         </p>
       </div>
 
@@ -153,7 +172,9 @@ export default function OnboardingPage() {
                 disabled={startOnboarding.loading || !org}
               >
                 <Rocket className="mr-1.5 h-3.5 w-3.5" />
-                {startOnboarding.loading ? "Demarrage..." : "Demarrer un onboarding"}
+                {startOnboarding.loading
+                  ? "Demarrage..."
+                  : "Demarrer un onboarding"}
               </Button>
             </div>
 
@@ -162,14 +183,19 @@ export default function OnboardingPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <OnboardingStatusBadge status={latestEntry.status} />
                   <span className="text-xs text-ink-tertiary">
-                    Cree le {new Date(latestEntry.createdAt).toLocaleDateString("fr-FR")}
+                    Cree le{" "}
+                    {new Date(latestEntry.createdAt).toLocaleDateString(
+                      "fr-FR",
+                    )}
                   </span>
                 </div>
                 <div className="space-y-2">
                   <div className="h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
                     <div
                       className="h-full rounded-full bg-primary transition-all"
-                      style={{ width: `${(latestEntry.currentStep / TOTAL_STEPS) * 100}%` }}
+                      style={{
+                        width: `${(latestEntry.currentStep / TOTAL_STEPS) * 100}%`,
+                      }}
                     />
                   </div>
                   <p className="text-xs text-ink-tertiary">

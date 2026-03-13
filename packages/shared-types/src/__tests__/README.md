@@ -7,9 +7,11 @@ Ce dossier regroupe les tests associés au dossier parent `packages/shared-types
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `api-client.test.ts`
 - `canonical.test.ts`
 - `cost-parameter.test.ts`
@@ -17,9 +19,11 @@ Fichiers :
 - `decision-config.test.ts`
 - `integration.test.ts`
 - `operational-decision.test.ts`
+- `public-contract.test.ts`
 - `report.test.ts`
 - `scenario.test.ts`
 
 ## Intégration
 
 Ce dossier appartient au package partagé `packages/shared-types` et peut être importé par plusieurs apps du monorepo.
+`public-contract.test.ts` verrouille la parite entre `contracts/openapi/public.yaml` et le manifeste type partage des operations publiques.

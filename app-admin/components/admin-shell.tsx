@@ -5,57 +5,18 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMediaQuery } from "@praedixa/ui";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { AdminTopbar } from "@/components/admin-topbar";
-import { CommandPalette, useCommandPalette } from "@/components/command-palette";
+import {
+  CommandPalette,
+  useCommandPalette,
+} from "@/components/command-palette";
 import { RouteProgressBar } from "@/components/route-progress-bar";
 import { clearAuthSession, useCurrentUserState } from "@/lib/auth/client";
 import {
   canAccessPath,
+  getAdminPageTitle,
   getRequiredPermissionsForPath,
+  hasExplicitAdminPagePolicy,
 } from "@/lib/auth/route-access";
-
-const ROOT_PAGE_TITLES: Record<string, string> = {
-  "/": "Accueil",
-  "/clients": "Clients",
-  "/demandes-contact": "Demandes contact",
-  "/journal": "Journal",
-  "/parametres": "Parametres",
-};
-
-const WORKSPACE_PAGE_TITLES: Record<string, string> = {
-  "dashboard": "Workspace client - Tableau de bord",
-  "vue-client": "Workspace client - Vue client",
-  "donnees": "Workspace client - Donnees",
-  "previsions": "Workspace client - Previsions",
-  "actions": "Workspace client - Actions",
-  "alertes": "Workspace client - Alertes",
-  "rapports": "Workspace client - Rapports",
-  "onboarding": "Workspace client - Onboarding",
-  "equipe": "Workspace client - Equipe",
-  "config": "Workspace client - Configuration",
-  "messages": "Workspace client - Messages",
-};
-
-function getPageTitle(pathname: string): string | undefined {
-  if (ROOT_PAGE_TITLES[pathname]) {
-    return ROOT_PAGE_TITLES[pathname];
-  }
-
-  if (pathname.startsWith("/clients/")) {
-    const [, , , section] = pathname.split("/");
-    if (section && WORKSPACE_PAGE_TITLES[section]) {
-      return WORKSPACE_PAGE_TITLES[section];
-    }
-    return "Workspace client";
-  }
-
-  for (const [prefix, title] of Object.entries(ROOT_PAGE_TITLES)) {
-    if (prefix !== "/" && pathname.startsWith(`${prefix}/`)) {
-      return title;
-    }
-  }
-
-  return undefined;
-}
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -91,12 +52,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     }
   }, [isSigningOut, router]);
 
-  const title = getPageTitle(pathname);
+  const title = getAdminPageTitle(pathname);
   const currentPermissions = currentUserState.loading
     ? []
     : (currentUser?.permissions ?? []);
+  const hasExplicitPolicy = hasExplicitAdminPagePolicy(pathname);
   const canRenderCurrentPath =
-    currentUserState.loading || canAccessPath(pathname, currentPermissions);
+    currentUserState.loading ||
+    (hasExplicitPolicy && canAccessPath(pathname, currentPermissions));
   const requiredPermissions = getRequiredPermissionsForPath(pathname);
   const permissionHint = requiredPermissions.join(" ou ");
 
@@ -156,6 +119,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           title={title}
           userEmail={currentUser?.email ?? undefined}
           userRole={currentUser?.role ?? undefined}
+          permissions={currentPermissions}
           onOpenCommandPalette={() => setCommandOpen(true)}
           onLogout={handleLogout}
           isSigningOut={isSigningOut}
@@ -175,7 +139,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   Acces restreint
                 </h2>
                 <p className="mt-2 text-sm text-ink-tertiary">
-                  Permission requise: {permissionHint || "admin:console:access"}
+                  {hasExplicitPolicy
+                    ? `Permission requise: ${permissionHint || "admin:console:access"}`
+                    : "Aucune policy explicite n'autorise ce chemin admin."}
                 </p>
               </div>
             )}

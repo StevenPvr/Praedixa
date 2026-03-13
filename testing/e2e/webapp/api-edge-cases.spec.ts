@@ -23,9 +23,7 @@ test.describe("API edge cases", () => {
     );
 
     await page.goto("/actions");
-    await expect(page).toHaveURL(
-      /\/login\?reauth=1&reason=api_unauthorized/,
-    );
+    await expect(page).toHaveURL(/\/login\?reauth=1&reason=api_unauthorized/);
   });
 
   test("401 on forecasts endpoint redirects to login", async ({ page }) => {
@@ -42,8 +40,6 @@ test.describe("API edge cases", () => {
     );
 
     await page.goto("/previsions");
-    await expect(page).toHaveURL(
-      /\/login\?reauth=1&reason=api_unauthorized/,
-    );
+    await expect(page).toHaveURL(/\/login\?reauth=1&reason=api_unauthorized/);
   });
 });

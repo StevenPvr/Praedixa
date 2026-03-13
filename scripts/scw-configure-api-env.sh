@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/json-env.sh"
+
 if [ "$#" -ne 1 ]; then
   echo "Usage: $0 <staging|prod>" >&2
   exit 1
@@ -35,6 +38,13 @@ require_non_empty() {
   fi
 }
 
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "Missing required command: $1" >&2
+    exit 1
+  }
+}
+
 DATABASE_URL="${DATABASE_URL:-}"
 AUTH_JWKS_URL="${AUTH_JWKS_URL:-}"
 AUTH_ISSUER_URL="${AUTH_ISSUER_URL:-}"
@@ -59,6 +69,10 @@ require_non_empty "$CONTACT_API_INGEST_TOKEN" "CONTACT_API_INGEST_TOKEN"
 require_non_empty "$SCW_SECRET_KEY" "SCW_SECRET_KEY"
 require_non_empty "$SCW_DEFAULT_PROJECT_ID" "SCW_DEFAULT_PROJECT_ID"
 
+require_cmd scw
+require_cmd jq
+require_cmd python3
+
 NS_ID=$(scw container namespace list region="$REGION" -o json | jq -r --arg n "$NAMESPACE_NAME" '.[] | select(.name==$n) | .id' | head -n1)
 if [ -z "$NS_ID" ]; then
   echo "Namespace not found: $NAMESPACE_NAME" >&2
@@ -71,29 +85,50 @@ if [ -z "$CONTAINER_ID" ]; then
   exit 1
 fi
 
-cmd=(
-  scw container container update "$CONTAINER_ID"
-  "region=$REGION"
-  "environment-variables.ENVIRONMENT=$ENVIRONMENT_VALUE"
-  "environment-variables.DEBUG=false"
-  "environment-variables.LOG_LEVEL=$LOG_LEVEL"
-  "environment-variables.KEY_PROVIDER=scaleway"
-  "environment-variables.AUTH_JWKS_URL=$AUTH_JWKS_URL"
-  "environment-variables.AUTH_ISSUER_URL=$AUTH_ISSUER_URL"
-  "environment-variables.AUTH_AUDIENCE=$AUTH_AUDIENCE"
-  "environment-variables.AUTH_ALLOWED_JWKS_HOSTS=$AUTH_ALLOWED_JWKS_HOSTS"
-  "environment-variables.CORS_ORIGINS=$CORS_ORIGINS"
-  "environment-variables.SCW_DEFAULT_PROJECT_ID=$SCW_DEFAULT_PROJECT_ID"
-  "secret-environment-variables.0.key=DATABASE_URL"
-  "secret-environment-variables.0.value=$DATABASE_URL"
-  "secret-environment-variables.1.key=RATE_LIMIT_STORAGE_URI"
-  "secret-environment-variables.1.value=$RATE_LIMIT_STORAGE_URI"
-  "secret-environment-variables.2.key=CONTACT_API_INGEST_TOKEN"
-  "secret-environment-variables.2.value=$CONTACT_API_INGEST_TOKEN"
-  "secret-environment-variables.3.key=SCW_SECRET_KEY"
-  "secret-environment-variables.3.value=$SCW_SECRET_KEY"
-)
+TMP_DIR="$(mktemp -d)"
+cleanup() {
+  rm -rf "$TMP_DIR"
+}
+trap cleanup EXIT
+
+ENV_FILE_PATH="$TMP_DIR/env.json"
+SECRETS_FILE_PATH="$TMP_DIR/secrets.json"
+SECRET_PATH_PREFIX="/praedixa/${ENV}/${CONTAINER_NAME}/runtime"
+
+DEBUG="false"
+ENVIRONMENT="$ENVIRONMENT_VALUE"
+KEY_PROVIDER="scaleway"
+export ENVIRONMENT LOG_LEVEL AUTH_JWKS_URL AUTH_ISSUER_URL AUTH_AUDIENCE AUTH_ALLOWED_JWKS_HOSTS CORS_ORIGINS SCW_DEFAULT_PROJECT_ID DEBUG KEY_PROVIDER
+write_json_from_env \
+  "$ENV_FILE_PATH" \
+  ENVIRONMENT \
+  DEBUG \
+  LOG_LEVEL \
+  KEY_PROVIDER \
+  AUTH_JWKS_URL \
+  AUTH_ISSUER_URL \
+  AUTH_AUDIENCE \
+  AUTH_ALLOWED_JWKS_HOSTS \
+  CORS_ORIGINS \
+  SCW_DEFAULT_PROJECT_ID
+
+export DATABASE_URL RATE_LIMIT_STORAGE_URI CONTACT_API_INGEST_TOKEN SCW_SECRET_KEY
+write_json_from_env \
+  "$SECRETS_FILE_PATH" \
+  DATABASE_URL \
+  RATE_LIMIT_STORAGE_URI \
+  CONTACT_API_INGEST_TOKEN \
+  SCW_SECRET_KEY
+
+./scripts/scw-secret-sync.sh \
+  --region "$REGION" \
+  --path-prefix "$SECRET_PATH_PREFIX" \
+  --secrets-file "$SECRETS_FILE_PATH" >/dev/null
 
 echo "Configuring api:${ENV} container env (${CONTAINER_ID})"
-"${cmd[@]}" >/dev/null
+./scripts/scw-apply-container-config.sh \
+  --container-id "$CONTAINER_ID" \
+  --region "$REGION" \
+  --env-file "$ENV_FILE_PATH" \
+  --secrets-file "$SECRETS_FILE_PATH" >/dev/null
 echo "Environment configured for api:${ENV}."

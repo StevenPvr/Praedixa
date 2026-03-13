@@ -1,18 +1,27 @@
-# Actions
+# `app/(app)/actions/`
 
-## Rôle
+Route `/actions`.
 
-Ce dossier matérialise un segment de route Next.js. Les fichiers `loading.tsx`, `page.tsx` définissent le rendu, le layout ou le handler HTTP de ce segment.
+## Fichiers
 
-## Contenu immédiat
+| Fichier       | Role reel                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| `page.tsx`    | gere l'onglet `A traiter`, l'onglet `Historique`, la selection d'alerte et la validation d'une decision |
+| `loading.tsx` | etat de chargement de la route                                                                          |
 
-Sous-dossiers :
-- `__tests__`
+## Fetch reel
 
-Fichiers :
-- `loading.tsx`
-- `page.tsx`
+- `useApiGet` pour les alertes ouvertes
+- `useApiGet` pour le workspace de decision de l'alerte selectionnee
+- `useApiGetPaginated` pour l'historique
+- `useApiPost` pour enregistrer une decision
+- `useDecisionConfig` pour les labels d'horizon
+- la soumission runtime suit le contrat partage `OperationalDecisionCreateRequest` (`alertId`, `optionId`, `notes?`) et n'envoie plus les anciens champs derives du front
 
-## Intégration
+## Etats degrades visibles
 
-Ce dossier est consommé par l'application `app-webapp` et s'insère dans son flux runtime, build ou test.
+- banniere inline pour les erreurs d'alertes
+- banniere inline pour les erreurs de workspace
+- banniere inline pour les erreurs d'historique
+- traitement possible seulement si une alerte et une option sont selectionnees
+- une justification est requise avant toute validation d'une option differente de la recommandation

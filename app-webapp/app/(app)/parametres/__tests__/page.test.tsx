@@ -50,6 +50,8 @@ describe("ParametresPage", () => {
 
     mockUseI18n.mockReturnValue({
       locale: "fr",
+      preferencesSyncError: null,
+      preferencesSyncState: "ready",
       setLocale: vi.fn(),
       t: (key: string) => key,
     });
@@ -100,6 +102,8 @@ describe("ParametresPage", () => {
     const setLocale = vi.fn();
     mockUseI18n.mockReturnValue({
       locale: "fr",
+      preferencesSyncError: null,
+      preferencesSyncState: "ready",
       setLocale,
       t: (key: string) => key,
     });
@@ -161,5 +165,23 @@ describe("ParametresPage", () => {
     fireEvent.click(checkbox);
 
     expect(localStorageMock.setItem).toHaveBeenCalledWith(STORAGE_KEY, "0");
+  });
+
+  it("shows preference sync errors explicitly", () => {
+    mockUseI18n.mockReturnValue({
+      locale: "fr",
+      preferencesSyncError:
+        "Preferences indisponibles. La langue reste sur la derniere valeur confirmee tant que la persistance serveur n'est pas retablie.",
+      preferencesSyncState: "unavailable",
+      setLocale: vi.fn(),
+      t: (key: string) => key,
+    });
+
+    render(<ParametresPage />);
+
+    expect(
+      screen.getByText(/Preferences indisponibles\./i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Langue" })).toBeDisabled();
   });
 });

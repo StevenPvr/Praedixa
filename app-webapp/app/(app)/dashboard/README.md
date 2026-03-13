@@ -1,18 +1,15 @@
-# Dashboard
+# `app/(app)/dashboard/`
 
-## Rôle
+Route `/dashboard`.
 
-Ce dossier matérialise un segment de route Next.js. Les fichiers `loading.tsx`, `page.tsx` définissent le rendu, le layout ou le handler HTTP de ce segment.
+## Fichiers
 
-## Contenu immédiat
+| Fichier       | Role reel                      |
+| ------------- | ------------------------------ |
+| `page.tsx`    | monte `WarRoomDashboard`       |
+| `loading.tsx` | etat de chargement de la route |
 
-Sous-dossiers :
-- `__tests__`
+## Notes
 
-Fichiers :
-- `loading.tsx`
-- `page.tsx`
-
-## Intégration
-
-Ce dossier est consommé par l'application `app-webapp` et s'insère dans son flux runtime, build ou test.
+- la logique de rendu principale vit dans `components/dashboard/war-room.tsx`
+- le README du dossier `components/dashboard/` decrit mieux les widgets reels que ce segment de route

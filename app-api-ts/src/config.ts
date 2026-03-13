@@ -253,7 +253,13 @@ function parseConnectorsRuntimeUrl(
   nodeEnv: AppConfig["nodeEnv"],
   allowedHosts: readonly string[],
 ): string {
-  const candidate = rawValue?.trim() || "http://127.0.0.1:8100";
+  const candidate = rawValue?.trim() ?? "";
+  if (candidate.length === 0) {
+    if (nodeEnv === "development") {
+      return "http://127.0.0.1:8100";
+    }
+    throw new Error("CONNECTORS_RUNTIME_URL is required outside development");
+  }
 
   let parsed: URL;
   try {
@@ -334,6 +340,18 @@ const envSchema = z.object({
   CONNECTORS_RUNTIME_TOKEN: z.string().optional(),
   CONNECTORS_INTERNAL_TOKEN: z.string().optional(),
 });
+
+function rejectLegacyConnectorsRuntimeToken(
+  rawLegacyToken: string | undefined,
+): void {
+  if ((rawLegacyToken?.trim() ?? "").length === 0) {
+    return;
+  }
+
+  throw new Error(
+    "CONNECTORS_INTERNAL_TOKEN is no longer supported; use CONNECTORS_RUNTIME_TOKEN",
+  );
+}
 
 function parseBooleanEnv(
   rawValue: string | undefined,
@@ -425,10 +443,11 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
   if (!audience) {
     throw new Error("AUTH_AUDIENCE is required");
   }
-  if (parsed.NODE_ENV !== "development" && !demoMode && databaseUrl == null) {
-    throw new Error(
-      "DATABASE_URL is required outside development when DEMO_MODE is false",
-    );
+  if (parsed.NODE_ENV !== "development" && demoMode) {
+    throw new Error("DEMO_MODE is only supported in development");
+  }
+  if (parsed.NODE_ENV !== "development" && databaseUrl == null) {
+    throw new Error("DATABASE_URL is required outside development");
   }
 
   const issuerUrl = parseAbsoluteUrl(
@@ -446,6 +465,12 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
     parsed.NODE_ENV,
     connectorsRuntimeAllowedHosts,
   );
+  rejectLegacyConnectorsRuntimeToken(parsed.CONNECTORS_INTERNAL_TOKEN);
+  const connectorsRuntimeToken =
+    parsed.CONNECTORS_RUNTIME_TOKEN?.trim() || null;
+  if (parsed.NODE_ENV !== "development" && connectorsRuntimeToken == null) {
+    throw new Error("CONNECTORS_RUNTIME_TOKEN is required outside development");
+  }
 
   return {
     port: parsed.PORT,
@@ -456,10 +481,7 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
     connectors: {
       runtimeUrl: connectorsRuntimeUrl,
       runtimeAllowedHosts: connectorsRuntimeAllowedHosts,
-      runtimeToken:
-        parsed.CONNECTORS_RUNTIME_TOKEN?.trim() ||
-        parsed.CONNECTORS_INTERNAL_TOKEN?.trim() ||
-        null,
+      runtimeToken: connectorsRuntimeToken,
     },
     jwt: {
       issuerUrl,

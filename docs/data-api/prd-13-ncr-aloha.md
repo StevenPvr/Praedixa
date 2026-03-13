@@ -11,12 +11,12 @@ Integrer NCR Aloha pour recuperer ventes POS, cadence service et donnees de main
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets Aloha | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| POS | checks/orders/payments | check id, store, open/close time, totals | 5-15 min | `pos_ticket`, `order_header` |
-| Produits | line items/modifiers | item, qty, price, discount | 15 min | `order_line` |
-| Main-d'oeuvre | labor/timesheet | employee, clock events, role | 15-30 min | `timesheet`, `employee` |
-| Referential | menu/store metadata | menu item, category, active flag | 24h | `menu_item`, `site` |
+| Domaine       | Objets Aloha           | Champs minimum                           | Frequence | Canonical                    |
+| ------------- | ---------------------- | ---------------------------------------- | --------- | ---------------------------- |
+| POS           | checks/orders/payments | check id, store, open/close time, totals | 5-15 min  | `pos_ticket`, `order_header` |
+| Produits      | line items/modifiers   | item, qty, price, discount               | 15 min    | `order_line`                 |
+| Main-d'oeuvre | labor/timesheet        | employee, clock events, role             | 15-30 min | `timesheet`, `employee`      |
+| Referential   | menu/store metadata    | menu item, category, active flag         | 24h       | `menu_item`, `site`          |
 
 ## 3. Specification d'integration
 

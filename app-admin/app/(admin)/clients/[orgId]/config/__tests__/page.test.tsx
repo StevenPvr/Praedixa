@@ -90,13 +90,33 @@ const mockResolvedDecisionConfig = {
   nextVersion: null,
   payload: {
     horizons: [
-      { id: "j3", label: "J+3", days: 3, rank: 1, active: true, isDefault: false },
-      { id: "j7", label: "J+7", days: 7, rank: 2, active: true, isDefault: true },
+      {
+        id: "j3",
+        label: "J+3",
+        days: 3,
+        rank: 1,
+        active: true,
+        isDefault: false,
+      },
+      {
+        id: "j7",
+        label: "J+7",
+        days: 7,
+        rank: 2,
+        active: true,
+        isDefault: true,
+      },
     ],
     optionCatalog: [{ optionType: "hs", enabled: true }],
     policiesByHorizon: [
-      { horizonId: "j3", weights: { cost: 0.2, service: 0.5, risk: 0.2, feasibility: 0.1 } },
-      { horizonId: "j7", weights: { cost: 0.3, service: 0.4, risk: 0.2, feasibility: 0.1 } },
+      {
+        horizonId: "j3",
+        weights: { cost: 0.2, service: 0.5, risk: 0.2, feasibility: 0.1 },
+      },
+      {
+        horizonId: "j7",
+        weights: { cost: 0.3, service: 0.4, risk: 0.2, feasibility: 0.1 },
+      },
     ],
   },
 };
@@ -206,7 +226,10 @@ function setupApiGetMocks(options?: SetupOptions) {
         refetch: vi.fn(),
       };
     }
-    if (url.includes("/integrations/connections/") && url.includes("/ingest-credentials")) {
+    if (
+      url.includes("/integrations/connections/") &&
+      url.includes("/ingest-credentials")
+    ) {
       return {
         data: mockIngestCredentials,
         loading,
@@ -214,7 +237,10 @@ function setupApiGetMocks(options?: SetupOptions) {
         refetch: vi.fn(),
       };
     }
-    if (url.includes("/integrations/connections/") && url.includes("/raw-events")) {
+    if (
+      url.includes("/integrations/connections/") &&
+      url.includes("/raw-events")
+    ) {
       return {
         data: mockRawEvents,
         loading,
@@ -258,8 +284,12 @@ describe("ConfigPage", () => {
     render(<ConfigPage />);
     expect(screen.getByText("Moteur de recommandation")).toBeInTheDocument();
     expect(screen.getByText("J+7 (7 jours)")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Planifier version" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Rollback" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Planifier version" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Rollback" }),
+    ).toBeInTheDocument();
   });
 
   it("renders proof packs table", () => {
@@ -291,7 +321,9 @@ describe("ConfigPage", () => {
     mockContext.selectedSiteId = "site-77";
     render(<ConfigPage />);
     const calledUrls = mockUseApiGet.mock.calls.map((call) => String(call[0]));
-    expect(calledUrls.some((url) => url.includes("site_id=site-77"))).toBe(true);
+    expect(calledUrls.some((url) => url.includes("site_id=site-77"))).toBe(
+      true,
+    );
   });
 
   it("renders proof pack with no download url", () => {

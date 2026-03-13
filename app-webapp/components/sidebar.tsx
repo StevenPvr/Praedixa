@@ -113,7 +113,10 @@ export function Sidebar({
         )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-5" aria-label="Navigation principale">
+      <nav
+        className="flex-1 overflow-y-auto px-3 py-5"
+        aria-label="Navigation principale"
+      >
         <ul className="space-y-1" role="list">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -138,7 +141,9 @@ export function Sidebar({
                     aria-hidden="true"
                     weight="regular"
                   />
-                  <span className="min-w-0 flex-1 truncate">{t(item.labelKey)}</span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {t(item.labelKey)}
+                  </span>
                 </Link>
               </li>
             );

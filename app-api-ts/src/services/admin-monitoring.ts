@@ -107,7 +107,11 @@ function toNumber(value: string | number | null): number {
   return Number.parseFloat(value);
 }
 
-function toRoundedPercentage(numerator: number, denominator: number, digits = 2): number {
+function toRoundedPercentage(
+  numerator: number,
+  denominator: number,
+  digits = 2,
+): number {
   if (denominator <= 0) {
     return 0;
   }
@@ -165,7 +169,10 @@ export async function getPersistentPlatformKpis(): Promise<{
     totalDatasets: toNumber(row?.total_datasets ?? 0),
     totalForecasts,
     totalDecisions: toNumber(row?.total_decisions ?? 0),
-    ingestionSuccessRate: toRoundedPercentage(ingestionSuccesses, ingestionTotal),
+    ingestionSuccessRate: toRoundedPercentage(
+      ingestionSuccesses,
+      ingestionTotal,
+    ),
     apiErrorRate: toRoundedPercentage(forecastFailures, totalForecasts),
   };
 }
@@ -599,7 +606,11 @@ export async function getPersistentAdminOrgMetrics(orgId: string): Promise<{
   const activeAlerts = toNumber(alertsRows[0]?.count ?? 0);
   const totalDecisions = toNumber(adoptionRows[0]?.total_decisions ?? 0);
   const adoptedDecisions = toNumber(adoptionRows[0]?.adopted_decisions ?? 0);
-  const adoptionRatePct = toRoundedPercentage(adoptedDecisions, totalDecisions, 1);
+  const adoptionRatePct = toRoundedPercentage(
+    adoptedDecisions,
+    totalDecisions,
+    1,
+  );
 
   return {
     orgId,
@@ -676,7 +687,9 @@ export async function getPersistentAdminOrgMirror(orgId: string): Promise<{
   };
 }
 
-export async function getPersistentAdminOrgUsageMetrics(orgId: string): Promise<{
+export async function getPersistentAdminOrgUsageMetrics(
+  orgId: string,
+): Promise<{
   activeUsers: number;
   totalDatasets: number;
   forecastRuns: number;

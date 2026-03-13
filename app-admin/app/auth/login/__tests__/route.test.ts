@@ -146,6 +146,11 @@ describe("GET /auth/login (admin)", () => {
       "/clients",
       expect.any(Object),
     );
+    expect(response.headers.set).toHaveBeenCalledWith(
+      "Cache-Control",
+      "no-store",
+    );
+    expect(response.headers.set).toHaveBeenCalledWith("Pragma", "no-cache");
   });
 
   it("redirects to /login with oidc_config_missing when OIDC env is missing", async () => {
@@ -166,6 +171,9 @@ describe("GET /auth/login (admin)", () => {
     );
     expect(redirectUrl.searchParams.get("error")).toBe("oidc_config_missing");
     expect(redirectUrl.searchParams.get("next")).toBe("/");
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Cache-Control", "no-store");
   });
 
   it("redirects to /login with oidc_provider_untrusted when discovery is invalid", async () => {
@@ -186,6 +194,9 @@ describe("GET /auth/login (admin)", () => {
       "oidc_provider_untrusted",
     );
     expect(redirectUrl.searchParams.get("next")).toBe("/");
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Cache-Control", "no-store");
   });
 
   it("redirects to /login with rate_limited when the client exceeds the login budget", async () => {
@@ -210,5 +221,8 @@ describe("GET /auth/login (admin)", () => {
     expect(
       (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
     ).toHaveBeenCalledWith("Retry-After", "120");
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Cache-Control", "no-store");
   });
 });

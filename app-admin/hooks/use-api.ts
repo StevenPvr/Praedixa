@@ -185,10 +185,15 @@ export function useApiGet<T>(
           setError(getErrorMessage(err));
         }
 
-        if (shouldScheduleRetry(err, autoRetryEnabled, pollInterval, fetchOptions)) {
+        if (
+          shouldScheduleRetry(err, autoRetryEnabled, pollInterval, fetchOptions)
+        ) {
           scheduleRetry(retryTimerRef, retryDelayMs, () => {
             const controller = new AbortController();
-            void fetchData(controller.signal, { silent: true, fromRetry: true });
+            void fetchData(controller.signal, {
+              silent: true,
+              fromRetry: true,
+            });
           });
         }
       } finally {
@@ -312,10 +317,15 @@ export function useApiGetPaginated<T>(
           setError(getErrorMessage(err));
         }
 
-        if (shouldScheduleRetry(err, autoRetryEnabled, pollInterval, fetchOptions)) {
+        if (
+          shouldScheduleRetry(err, autoRetryEnabled, pollInterval, fetchOptions)
+        ) {
           scheduleRetry(retryTimerRef, retryDelayMs, () => {
             const controller = new AbortController();
-            void fetchData(controller.signal, { silent: true, fromRetry: true });
+            void fetchData(controller.signal, {
+              silent: true,
+              fromRetry: true,
+            });
           });
         }
       } finally {
@@ -328,7 +338,14 @@ export function useApiGetPaginated<T>(
         }
       }
     },
-    [autoRetryEnabled, fullUrl, getAccessToken, pollInterval, retryDelayMs, router],
+    [
+      autoRetryEnabled,
+      fullUrl,
+      getAccessToken,
+      pollInterval,
+      retryDelayMs,
+      router,
+    ],
   );
 
   useEffect(() => {

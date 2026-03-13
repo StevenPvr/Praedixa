@@ -14,7 +14,13 @@ import {
 } from "@praedixa/ui";
 import { ErrorFallback } from "@/components/error-fallback";
 import { sanitizeHttpHref } from "@/lib/security/navigation";
-import { Archive, FileCheck2, Share2, ShieldCheck, TrendingUp } from "lucide-react";
+import {
+  Archive,
+  FileCheck2,
+  Share2,
+  ShieldCheck,
+  TrendingUp,
+} from "lucide-react";
 
 interface ProofPack {
   id: string;
@@ -152,7 +158,8 @@ export default function RapportsPage() {
       <div>
         <h2 className="font-serif text-lg font-semibold text-ink">Rapports</h2>
         <p className="text-sm text-ink-tertiary">
-          Synthese executive: preuve, qualite et exposition au risque pour ce client.
+          Synthese executive: preuve, qualite et exposition au risque pour ce
+          client.
         </p>
       </div>
 
@@ -194,16 +201,20 @@ export default function RapportsPage() {
 
       <Card className="rounded-2xl shadow-soft">
         <CardContent className="space-y-3 p-5">
-          <h3 className="text-sm font-medium text-ink-secondary">Qualite des donnees</h3>
+          <h3 className="text-sm font-medium text-ink-secondary">
+            Qualite des donnees
+          </h3>
           {qualityError ? (
             <p className="text-sm text-ink-tertiary">{qualityError}</p>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <p className="text-sm text-ink-tertiary">
-                Total: <span className="text-ink">{quality?.totalRecords ?? "-"}</span>
+                Total:{" "}
+                <span className="text-ink">{quality?.totalRecords ?? "-"}</span>
               </p>
               <p className="text-sm text-ink-tertiary">
-                Valides: <span className="text-ink">{quality?.validRecords ?? "-"}</span>
+                Valides:{" "}
+                <span className="text-ink">{quality?.validRecords ?? "-"}</span>
               </p>
               <p className="text-sm text-ink-tertiary">
                 Completion:{" "}
@@ -214,7 +225,8 @@ export default function RapportsPage() {
                 </span>
               </p>
               <p className="text-sm text-ink-tertiary">
-                Alertes critiques: <span className="text-ink">{criticalAlerts}</span>
+                Alertes critiques:{" "}
+                <span className="text-ink">{criticalAlerts}</span>
               </p>
             </div>
           )}
@@ -234,13 +246,17 @@ export default function RapportsPage() {
 
             <div className="rounded-lg border border-border bg-surface-sunken p-3">
               <div className="mb-2 flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-ink">Partager avec le client</h4>
+                <h4 className="text-sm font-semibold text-ink">
+                  Partager avec le client
+                </h4>
                 <Share2 className="h-4 w-4 text-ink-secondary" />
               </div>
 
               <div className="flex flex-wrap items-end gap-2">
                 <label className="min-w-[240px] flex-1 space-y-1">
-                  <span className="text-xs font-medium text-ink-secondary">Proof pack</span>
+                  <span className="text-xs font-medium text-ink-secondary">
+                    Proof pack
+                  </span>
                   <select
                     value={effectiveProofId}
                     onChange={(event) => setSelectedProofId(event.target.value)}
@@ -266,12 +282,15 @@ export default function RapportsPage() {
                 </button>
               </div>
 
-              {shareError && <p className="mt-2 text-xs text-danger">{shareError}</p>}
+              {shareError && (
+                <p className="mt-2 text-xs text-danger">{shareError}</p>
+              )}
 
               {shareData && (
                 <div className="mt-3 rounded-md border border-border bg-card p-2">
                   <p className="text-xs text-ink-secondary">
-                    Expire le {new Date(shareData.expiresAt).toLocaleString("fr-FR")}
+                    Expire le{" "}
+                    {new Date(shareData.expiresAt).toLocaleString("fr-FR")}
                   </p>
                   <div className="mt-1 flex gap-2">
                     <input

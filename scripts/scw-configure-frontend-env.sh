@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/json-env.sh"
+
 if [ "$#" -ne 2 ]; then
   echo "Usage: $0 <webapp|admin> <staging|prod>" >&2
   exit 1
@@ -55,11 +58,19 @@ require_binary_flag() {
   fi
 }
 
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "Missing required command: $1" >&2
+    exit 1
+  }
+}
+
 NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-}"
 AUTH_OIDC_ISSUER_URL="${AUTH_OIDC_ISSUER_URL:-}"
 AUTH_OIDC_CLIENT_ID="${AUTH_OIDC_CLIENT_ID:-$DEFAULT_CLIENT_ID}"
 AUTH_OIDC_SCOPE="${AUTH_OIDC_SCOPE:-openid profile email offline_access}"
 AUTH_SESSION_SECRET="${AUTH_SESSION_SECRET:-}"
+AUTH_ADMIN_REQUIRED_AMR="${AUTH_ADMIN_REQUIRED_AMR:-}"
 AUTH_OIDC_CLIENT_SECRET="${AUTH_OIDC_CLIENT_SECRET:-}"
 AUTH_TRUST_X_FORWARDED_FOR="${AUTH_TRUST_X_FORWARDED_FOR:-0}"
 AUTH_RATE_LIMIT_KEY_PREFIX="${AUTH_RATE_LIMIT_KEY_PREFIX:-prx:auth:rl}"
@@ -72,11 +83,16 @@ require_non_empty "$NEXT_PUBLIC_API_URL" "NEXT_PUBLIC_API_URL"
 require_non_empty "$AUTH_OIDC_ISSUER_URL" "AUTH_OIDC_ISSUER_URL"
 require_non_empty "$AUTH_OIDC_CLIENT_ID" "AUTH_OIDC_CLIENT_ID"
 require_non_empty "$AUTH_SESSION_SECRET" "AUTH_SESSION_SECRET"
-require_binary_flag "$AUTH_TRUST_X_FORWARDED_FOR" "AUTH_TRUST_X_FORWARDED_FOR"
-
-if [ "$APP" = "webapp" ]; then
-  require_non_empty "$AUTH_RATE_LIMIT_REDIS_URL" "AUTH_RATE_LIMIT_REDIS_URL (or RATE_LIMIT_STORAGE_URI)"
+if [ "$APP" = "admin" ] && [ "$ENV" = "prod" ]; then
+  require_non_empty "$AUTH_ADMIN_REQUIRED_AMR" "AUTH_ADMIN_REQUIRED_AMR"
 fi
+require_binary_flag "$AUTH_TRUST_X_FORWARDED_FOR" "AUTH_TRUST_X_FORWARDED_FOR"
+require_non_empty "$AUTH_RATE_LIMIT_REDIS_URL" "AUTH_RATE_LIMIT_REDIS_URL (or RATE_LIMIT_STORAGE_URI)"
+require_non_empty "$AUTH_RATE_LIMIT_KEY_SALT" "AUTH_RATE_LIMIT_KEY_SALT"
+
+require_cmd scw
+require_cmd jq
+require_cmd python3
 
 NS_ID=$(scw container namespace list region="$REGION" -o json | jq -r --arg n "$NAMESPACE_NAME" '.[] | select(.name==$n) | .id' | head -n1)
 if [ -z "$NS_ID" ]; then
@@ -90,54 +106,46 @@ if [ -z "$CONTAINER_ID" ]; then
   exit 1
 fi
 
-cmd=(
-  scw container container update "$CONTAINER_ID"
-  "region=$REGION"
-  "environment-variables.NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL"
-  "environment-variables.AUTH_OIDC_ISSUER_URL=$AUTH_OIDC_ISSUER_URL"
-  "environment-variables.AUTH_OIDC_CLIENT_ID=$AUTH_OIDC_CLIENT_ID"
-  "environment-variables.AUTH_OIDC_SCOPE=$AUTH_OIDC_SCOPE"
-)
+TMP_DIR="$(mktemp -d)"
+cleanup() {
+  rm -rf "$TMP_DIR"
+}
+trap cleanup EXIT
 
-if [ "$APP" = "webapp" ]; then
-  cmd+=(
-    "environment-variables.AUTH_TRUST_X_FORWARDED_FOR=$AUTH_TRUST_X_FORWARDED_FOR"
-    "environment-variables.AUTH_RATE_LIMIT_KEY_PREFIX=$AUTH_RATE_LIMIT_KEY_PREFIX"
-    "environment-variables.AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS=$AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS"
-    "environment-variables.AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS=$AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS"
-  )
-fi
+ENV_FILE_PATH="$TMP_DIR/env.json"
+SECRETS_FILE_PATH="$TMP_DIR/secrets.json"
+SECRET_PATH_PREFIX="/praedixa/${ENV}/${CONTAINER_NAME}/runtime"
 
-secret_index=0
-cmd+=(
-  "secret-environment-variables.${secret_index}.key=AUTH_SESSION_SECRET"
-  "secret-environment-variables.${secret_index}.value=$AUTH_SESSION_SECRET"
-)
-secret_index=$((secret_index + 1))
+export NEXT_PUBLIC_API_URL AUTH_OIDC_ISSUER_URL AUTH_OIDC_CLIENT_ID AUTH_OIDC_SCOPE AUTH_TRUST_X_FORWARDED_FOR AUTH_RATE_LIMIT_KEY_PREFIX AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS AUTH_ADMIN_REQUIRED_AMR
+write_json_from_env \
+  "$ENV_FILE_PATH" \
+  NEXT_PUBLIC_API_URL \
+  AUTH_OIDC_ISSUER_URL \
+  AUTH_OIDC_CLIENT_ID \
+  AUTH_OIDC_SCOPE \
+  AUTH_ADMIN_REQUIRED_AMR \
+  AUTH_TRUST_X_FORWARDED_FOR \
+  AUTH_RATE_LIMIT_KEY_PREFIX \
+  AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS \
+  AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS
 
-if [ -n "$AUTH_OIDC_CLIENT_SECRET" ]; then
-  cmd+=(
-    "secret-environment-variables.${secret_index}.key=AUTH_OIDC_CLIENT_SECRET"
-    "secret-environment-variables.${secret_index}.value=$AUTH_OIDC_CLIENT_SECRET"
-  )
-  secret_index=$((secret_index + 1))
-fi
+export AUTH_SESSION_SECRET AUTH_OIDC_CLIENT_SECRET AUTH_RATE_LIMIT_REDIS_URL AUTH_RATE_LIMIT_KEY_SALT
+write_json_from_env \
+  "$SECRETS_FILE_PATH" \
+  AUTH_SESSION_SECRET \
+  AUTH_OIDC_CLIENT_SECRET \
+  AUTH_RATE_LIMIT_REDIS_URL \
+  AUTH_RATE_LIMIT_KEY_SALT
 
-if [ "$APP" = "webapp" ]; then
-  cmd+=(
-    "secret-environment-variables.${secret_index}.key=AUTH_RATE_LIMIT_REDIS_URL"
-    "secret-environment-variables.${secret_index}.value=$AUTH_RATE_LIMIT_REDIS_URL"
-  )
-  secret_index=$((secret_index + 1))
-
-  if [ -n "$AUTH_RATE_LIMIT_KEY_SALT" ]; then
-    cmd+=(
-      "secret-environment-variables.${secret_index}.key=AUTH_RATE_LIMIT_KEY_SALT"
-      "secret-environment-variables.${secret_index}.value=$AUTH_RATE_LIMIT_KEY_SALT"
-    )
-  fi
-fi
+./scripts/scw-secret-sync.sh \
+  --region "$REGION" \
+  --path-prefix "$SECRET_PATH_PREFIX" \
+  --secrets-file "$SECRETS_FILE_PATH" >/dev/null
 
 echo "Configuring ${APP}:${ENV} container env (${CONTAINER_ID})"
-"${cmd[@]}" >/dev/null
+./scripts/scw-apply-container-config.sh \
+  --container-id "$CONTAINER_ID" \
+  --region "$REGION" \
+  --env-file "$ENV_FILE_PATH" \
+  --secrets-file "$SECRETS_FILE_PATH" >/dev/null
 echo "Environment configured for ${APP}:${ENV}."

@@ -35,6 +35,11 @@ from zoneinfo import ZoneInfo
 import numpy as np
 
 from app.services.file_parser import parse_file
+from app.services.medallion_reprocessing import (
+    QuarantineRecord,
+    build_quarantine_record,
+    save_quarantine_records,
+)
 
 DAILY_DATASETS: frozenset[str] = frozenset(
     {
@@ -44,8 +49,8 @@ DAILY_DATASETS: frozenset[str] = frozenset(
         "quality_incidents_daily",
         "actions_adoption_daily",
         "pipeline_observability_daily",
-        "mock_forecasts_daily",
         "model_monitoring_daily",
+        "forecasts_daily",
     }
 )
 
@@ -72,6 +77,9 @@ DEFAULT_STATE = {
     "watermarks": {},
     "last_run": None,
 }
+
+_LEGACY_DATASET_PREFIX = "mock_"
+_LEGACY_RUNTIME_COLUMN_PREFIX = "mock_"
 
 _VALID_SCHOOL_ZONES: dict[str, str] = {
     "a": "A",
@@ -111,6 +119,15 @@ class BronzeManifestEntry:
     min_date: str | None
     max_date: str | None
     ingested_at: str
+
+
+@dataclass(frozen=True)
+class SourceInspection:
+    rows: list[dict[str, Any]]
+    source_columns: list[str]
+    date_column: str
+    min_date: date | None
+    max_date: date | None
 
 
 def now_utc() -> datetime:
@@ -396,6 +413,75 @@ def parse_source_rows(source: SourceFile) -> tuple[list[dict[str, Any]], list[st
     return rows, result.source_columns
 
 
+def inspect_source_file(
+    source: SourceFile,
+    aliases: dict[str, list[str]],
+) -> SourceInspection:
+    rows, source_columns = parse_source_rows(source)
+    date_col, _site_code_col, _site_name_col = resolve_key_columns(
+        source_columns,
+        source.dataset,
+        aliases,
+    )
+    parsed_dates = [
+        parse_date_any(str(row.get(date_col)))
+        for row in rows
+        if row.get(date_col) is not None
+    ]
+    valid_dates = [
+        parsed_date for parsed_date in parsed_dates if parsed_date is not None
+    ]
+    return SourceInspection(
+        rows=rows,
+        source_columns=source_columns,
+        date_column=date_col,
+        min_date=min(valid_dates) if valid_dates else None,
+        max_date=max(valid_dates) if valid_dates else None,
+    )
+
+
+def _quarantine_source_file(
+    *,
+    source: SourceFile,
+    output_root: Path,
+    run_id: str,
+    reason_code: str,
+    reason_detail: str,
+    file_hash: str,
+    file_size_bytes: int,
+    rows_detected: int | None = None,
+    min_date: date | None = None,
+    max_date: date | None = None,
+    watermark: date | None = None,
+) -> QuarantineRecord:
+    quarantine_dir = (
+        output_root
+        / "quarantine"
+        / f"client={source.client_slug}"
+        / f"dataset={source.dataset}"
+        / f"detected_at={run_id}"
+    )
+    quarantine_dir.mkdir(parents=True, exist_ok=True)
+    quarantine_path = quarantine_dir / source.path.name
+    shutil.copy2(source.path, quarantine_path)
+    return build_quarantine_record(
+        source_path=str(source.path),
+        quarantine_path=str(quarantine_path),
+        client_slug=source.client_slug,
+        domain=source.domain,
+        dataset=source.dataset,
+        detected_at=run_id,
+        reason_code=reason_code,
+        reason_detail=reason_detail,
+        file_hash=file_hash,
+        file_size_bytes=file_size_bytes,
+        rows_detected=rows_detected,
+        min_date=min_date.isoformat() if min_date else None,
+        max_date=max_date.isoformat() if max_date else None,
+        watermark=watermark.isoformat() if watermark else None,
+    )
+
+
 def stage_bronze(
     changed: list[SourceFile],
     output_root: Path,
@@ -406,27 +492,33 @@ def stage_bronze(
 ) -> list[BronzeManifestEntry]:
     run_id = now_utc().strftime("%Y%m%dT%H%M%SZ")
     bronze_root = output_root / "bronze"
-    quarantine_root = output_root / "quarantine"
     manifest_entries: list[BronzeManifestEntry] = []
+    quarantine_records: list[QuarantineRecord] = []
     tracked_files: dict[str, str] = state.setdefault("files", {})
     watermarks: dict[str, str] = state.setdefault("watermarks", {})
 
     for source in changed:
-        rows, source_columns = parse_source_rows(source)
-        date_col, _site_code_col, _site_name_col = resolve_key_columns(
-            source_columns,
-            source.dataset,
-            aliases,
-        )
+        digest = sha256_file(source.path)
+        bytes_size = source.path.stat().st_size
+        try:
+            inspection = inspect_source_file(source, aliases)
+        except Exception as exc:
+            quarantine_records.append(
+                _quarantine_source_file(
+                    source=source,
+                    output_root=output_root,
+                    run_id=run_id,
+                    reason_code="invalid_payload",
+                    reason_detail=str(exc),
+                    file_hash=digest,
+                    file_size_bytes=bytes_size,
+                )
+            )
+            print("quarantine", source.path, f"reason=invalid_payload({exc})")
+            continue
 
-        parsed_dates = [
-            parse_date_any(str(row.get(date_col)))
-            for row in rows
-            if row.get(date_col) is not None
-        ]
-        parsed_dates = [d for d in parsed_dates if d is not None]
-        min_date = min(parsed_dates) if parsed_dates else None
-        max_date = max(parsed_dates) if parsed_dates else None
+        min_date = inspection.min_date
+        max_date = inspection.max_date
 
         wm_key = f"{source.client_slug}::{source.dataset}"
         watermark_raw = watermarks.get(wm_key)
@@ -438,14 +530,21 @@ def stage_bronze(
             and min_date is not None
             and min_date <= watermark
         ):
-            quarantine_dir = (
-                quarantine_root
-                / f"client={source.client_slug}"
-                / f"dataset={source.dataset}"
-                / f"detected_at={run_id}"
+            quarantine_records.append(
+                _quarantine_source_file(
+                    source=source,
+                    output_root=output_root,
+                    run_id=run_id,
+                    reason_code="retroactive_watermark",
+                    reason_detail=f"min_date({min_date}) <= watermark({watermark})",
+                    file_hash=digest,
+                    file_size_bytes=bytes_size,
+                    rows_detected=len(inspection.rows),
+                    min_date=min_date,
+                    max_date=max_date,
+                    watermark=watermark,
+                )
             )
-            quarantine_dir.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source.path, quarantine_dir / source.path.name)
             print(
                 "quarantine",
                 source.path,
@@ -453,8 +552,6 @@ def stage_bronze(
             )
             continue
 
-        digest = sha256_file(source.path)
-        bytes_size = source.path.stat().st_size
         bronze_dir = (
             bronze_root
             / f"client={source.client_slug}"
@@ -478,7 +575,7 @@ def stage_bronze(
                 dataset=source.dataset,
                 file_hash=digest,
                 file_size_bytes=bytes_size,
-                rows_detected=len(rows),
+                rows_detected=len(inspection.rows),
                 min_date=min_date.isoformat() if min_date else None,
                 max_date=max_date.isoformat() if max_date else None,
                 ingested_at=run_id,
@@ -488,6 +585,8 @@ def stage_bronze(
     if manifest_entries:
         manifest_path = output_root / "bronze" / "_manifests" / f"{run_id}.json"
         write_json(manifest_path, [asdict(entry) for entry in manifest_entries])
+    state["last_quarantine_count"] = len(quarantine_records)
+    save_quarantine_records(output_root, run_id=run_id, records=quarantine_records)
 
     return manifest_entries
 
@@ -563,6 +662,11 @@ def build_silver_rows(
     site_min_max: dict[tuple[str, str], tuple[date, date]] = {}
 
     for asset in assets:
+        if asset.dataset.startswith(_LEGACY_DATASET_PREFIX):
+            raise RuntimeError(
+                "Bronze assets must already use canonical dataset names; "
+                f"got '{asset.dataset}'"
+            )
         content = asset.path.read_bytes()
         result = parse_file(
             content, asset.path.name, format_hint="csv", max_rows=2_000_000
@@ -578,23 +682,23 @@ def build_silver_rows(
 
         metric_prefix = f"{normalize_identifier(asset.dataset)}__"
 
-        for row in source_rows:
-            raw_date = row.get(date_col)
+        for source_row in source_rows:
+            raw_date = source_row.get(date_col)
             parsed = parse_date_any(str(raw_date)) if raw_date is not None else None
             if parsed is None:
                 continue
 
-            site_code = str(row.get(site_code_col) or "").strip().upper()
+            site_code = str(source_row.get(site_code_col) or "").strip().upper()
             if not site_code:
                 continue
 
             if site_name_col:
-                site_name = str(row.get(site_name_col) or "").strip()
+                site_name = str(source_row.get(site_name_col) or "").strip()
                 if site_name:
                     site_names[(asset.client_slug, site_code)] = site_name
 
             metrics: dict[str, Any] = {}
-            for col_name, value in row.items():
+            for col_name, value in source_row.items():
                 if col_name in {date_col, site_code_col, site_name_col}:
                     continue
                 normalized_col = normalize_identifier(col_name)
@@ -626,21 +730,21 @@ def build_silver_rows(
 
     rows: list[dict[str, Any]] = []
     for client_slug, site_code, d in dense_keys:
-        row: dict[str, Any] = {
+        dense_row: dict[str, Any] = {
             "client_slug": client_slug,
             "site_code": site_code,
             "site_name": site_names.get((client_slug, site_code)),
             "date": d.isoformat(),
         }
-        row.update(daily_rows.get((client_slug, site_code, d), {}))
+        dense_row.update(daily_rows.get((client_slug, site_code, d), {}))
         # Use only previous completed month aggregates to avoid leakage.
-        row.update(
+        dense_row.update(
             monthly_rows.get(
                 (client_slug, site_code, previous_month_start(d)),
                 {},
             )
         )
-        rows.append(row)
+        rows.append(dense_row)
 
     return rows
 
@@ -959,7 +1063,7 @@ def apply_silver_quality(
 
             client = str(row.get("client_slug") or "")
             site = str(row.get("site_code") or "")
-            history = group_indices.get((client, site), [])
+            site_history_indices = group_indices.get((client, site), [])
 
             predicted: float | None = None
             method = None
@@ -971,11 +1075,11 @@ def apply_silver_quality(
                         idx,
                         col,
                         numeric_cols,
-                        history,
+                        site_history_indices,
                     )
                     if predicted is not None:
                         predicted = clip_to_history(
-                            sorted_rows, idx, col, history, predicted
+                            sorted_rows, idx, col, site_history_indices, predicted
                         )
                         method = (
                             "causal_ridge" if score >= 0.15 else "causal_ridge_low_conf"
@@ -1004,14 +1108,14 @@ def apply_silver_quality(
         # Point-in-time robust outlier clamping (MAD)
         clamped_count = 0
         for indices in group_indices.values():
-            history: deque[float] = deque(maxlen=56)
+            rolling_history: deque[float] = deque(maxlen=56)
             for idx in indices:
                 value = to_float(sorted_rows[idx].get(col))
                 if value is None:
                     continue
 
-                if len(history) >= 14:
-                    arr = np.array(history, dtype=float)
+                if len(rolling_history) >= 14:
+                    arr = np.array(rolling_history, dtype=float)
                     median = float(np.median(arr))
                     mad = float(np.median(np.abs(arr - median)))
                     if mad > 1e-9:
@@ -1025,7 +1129,7 @@ def apply_silver_quality(
                             value = to_float(sorted_rows[idx].get(col))
 
                 if value is not None:
-                    history.append(value)
+                    rolling_history.append(float(value))
 
         quality_summary["columns"][col] = {
             "missing_rate": round(missing_rate, 6),
@@ -1062,7 +1166,8 @@ def fetch_json(url: str) -> dict[str, Any] | None:
     try:
         with urllib.request.urlopen(req, timeout=20) as response:  # noqa: S310  # nosec B310
             data = response.read()
-            return json.loads(data.decode("utf-8"))
+            payload = json.loads(data.decode("utf-8"))
+            return payload if isinstance(payload, dict) else None
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
         return None
 
@@ -1080,8 +1185,13 @@ def fetch_weather_series(
             isinstance(cached, dict)
             and cached.get("start") == start.isoformat()
             and cached.get("end") == end.isoformat()
+            and isinstance(cached.get("data"), dict)
         ):
-            return cached.get("data", {})
+            data = cached["data"]
+            return {
+                str(day): values if isinstance(values, dict) else {}
+                for day, values in data.items()
+            }
 
     query = urllib.parse.urlencode(
         {
@@ -1258,18 +1368,16 @@ def add_external_features(
     if not rows:
         return
 
-    min_date = min(
-        parse_date_any(row.get("date"))
+    dated_values = [
+        parsed_date
         for row in rows
-        if parse_date_any(row.get("date")) is not None
-    )
-    max_date = max(
-        parse_date_any(row.get("date"))
-        for row in rows
-        if parse_date_any(row.get("date")) is not None
-    )
-    if min_date is None or max_date is None:
+        for parsed_date in [parse_date_any(row.get("date"))]
+        if parsed_date is not None
+    ]
+    if not dated_values:
         return
+    min_date = min(dated_values)
+    max_date = max(dated_values)
 
     weather_cache_root = cache_root / "weather"
     holidays_cache_root = cache_root / "school_holidays"
@@ -1402,8 +1510,8 @@ def select_gold_feature_columns(rows: list[dict[str, Any]]) -> list[str]:
         "workforce_daily__absent_fte",
         "workforce_daily__present_fte",
         "labor_cost_daily__total_labor_cost_eur",
-        "mock_forecasts_daily__forecasted_orders",
-        "mock_forecasts_daily__predicted_required_fte",
+        "forecasts_daily__forecasted_orders",
+        "forecasts_daily__predicted_required_fte",
     ]
 
     available = {k for row in rows for k in row}
@@ -1418,6 +1526,20 @@ def select_gold_feature_columns(rows: list[dict[str, Any]]) -> list[str]:
 def split_gold_features_and_quality_metadata(
     rows: list[dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[str]]:
+    legacy_runtime_columns = sorted(
+        {
+            key
+            for row in rows
+            for key in row
+            if key.startswith(_LEGACY_RUNTIME_COLUMN_PREFIX)
+        }
+    )
+    if legacy_runtime_columns:
+        raise RuntimeError(
+            "Gold features must use canonical runtime column names; "
+            f"found: {', '.join(legacy_runtime_columns)}"
+        )
+
     key_columns = {"client_slug", "site_code", "site_name", "date"}
     quality_suffixes = ("__imputation_method", "__imputed", "__outlier_clamped")
 
@@ -1457,44 +1579,14 @@ def write_csv_rows(path: Path, rows: list[dict[str, Any]]) -> None:
             writer.writerow(row)
 
 
-def run_once(
-    data_root: Path,
+def _finalize_medallion_outputs(
+    *,
     output_root: Path,
     metadata_root: Path,
-    *,
-    allow_reprocess: bool,
-    force_rebuild: bool,
-) -> bool:
-    state_path = output_root / ".medallion_state.json"
-    state = load_json(state_path, DEFAULT_STATE)
-    if force_rebuild:
-        state["files"] = {}
-        state["watermarks"] = {}
-
-    aliases = load_column_aliases(metadata_root / "column_aliases.json")
-
-    source_files = discover_source_files(data_root)
-    changed = detect_changed_files(source_files, state)
-
-    if force_rebuild:
-        changed = source_files
-
-    if not changed:
-        print("No new source files detected.")
-        return False
-
-    manifest_entries = stage_bronze(
-        changed,
-        output_root,
-        state,
-        aliases,
-        allow_reprocess=allow_reprocess,
-    )
-    if not manifest_entries:
-        print("No files staged to bronze (all quarantined or invalid).")
-        write_json(state_path, state)
-        return False
-
+    aliases: dict[str, list[str]],
+    state: dict[str, Any],
+    bronze_file_count: int,
+) -> None:
     assets = discover_latest_bronze_assets(output_root / "bronze")
     silver_base = build_silver_rows(assets, aliases)
     silver_rows, quality_summary = apply_silver_quality(silver_base)
@@ -1517,7 +1609,6 @@ def run_once(
     gold_path = output_root / "gold" / "gold_site_day.csv"
     write_csv_rows(gold_path, gold_rows)
 
-    # Per-client exports for downstream secure routing.
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in gold_rows:
         grouped[str(row.get("client_slug") or "")].append(row)
@@ -1529,7 +1620,7 @@ def run_once(
 
     run_summary = {
         "run_at": now_utc().isoformat(),
-        "bronze_files": len(manifest_entries),
+        "bronze_files": bronze_file_count,
         "silver_rows": len(silver_rows),
         "gold_rows": len(gold_rows),
         "feature_columns_for_lags": feature_cols,
@@ -1550,12 +1641,86 @@ def run_once(
         gold_feature_quality_report,
     )
     write_json(output_root / "reports" / "last_run_summary.json", run_summary)
-    write_json(state_path, state)
 
-    print(f"Bronze staged files: {len(manifest_entries)}")
+    print(f"Bronze staged files: {bronze_file_count}")
     print(f"Silver rows: {len(silver_rows)} -> {silver_path}")
     print(f"Gold rows: {len(gold_rows)} -> {gold_path}")
 
+
+def run_selected_sources(
+    selected_sources: list[SourceFile],
+    *,
+    output_root: Path,
+    metadata_root: Path,
+    allow_reprocess: bool,
+    force_rebuild: bool = False,
+) -> dict[str, Any]:
+    state_path = output_root / ".medallion_state.json"
+    state = load_json(state_path, DEFAULT_STATE)
+    if force_rebuild:
+        state["files"] = {}
+        state["watermarks"] = {}
+
+    aliases = load_column_aliases(metadata_root / "column_aliases.json")
+    manifest_entries = stage_bronze(
+        selected_sources,
+        output_root,
+        state,
+        aliases,
+        allow_reprocess=allow_reprocess,
+    )
+    if not manifest_entries:
+        write_json(state_path, state)
+        return {
+            "changed": False,
+            "staged_files": 0,
+            "quarantined_files": int(state.get("last_quarantine_count") or 0),
+        }
+
+    _finalize_medallion_outputs(
+        output_root=output_root,
+        metadata_root=metadata_root,
+        aliases=aliases,
+        state=state,
+        bronze_file_count=len(manifest_entries),
+    )
+    write_json(state_path, state)
+    return {
+        "changed": True,
+        "staged_files": len(manifest_entries),
+        "quarantined_files": int(state.get("last_quarantine_count") or 0),
+    }
+
+
+def run_once(
+    data_root: Path,
+    output_root: Path,
+    metadata_root: Path,
+    *,
+    allow_reprocess: bool,
+    force_rebuild: bool,
+) -> bool:
+    source_files = discover_source_files(data_root)
+    state = load_json(output_root / ".medallion_state.json", DEFAULT_STATE)
+    changed = detect_changed_files(source_files, state)
+
+    if force_rebuild:
+        changed = source_files
+
+    if not changed:
+        print("No new source files detected.")
+        return False
+
+    result = run_selected_sources(
+        changed,
+        output_root=output_root,
+        metadata_root=metadata_root,
+        allow_reprocess=allow_reprocess,
+        force_rebuild=force_rebuild,
+    )
+    if not result["changed"]:
+        print("No files staged to bronze (all quarantined or invalid).")
+        return False
     return True
 
 

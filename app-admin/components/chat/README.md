@@ -7,9 +7,11 @@ Ce sous-dossier contient une famille spécialisée de composants rattachée à `
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - `__tests__`
 
 Fichiers :
+
 - `conversation-list.tsx`
 - `message-input.tsx`
 - `message-thread.tsx`

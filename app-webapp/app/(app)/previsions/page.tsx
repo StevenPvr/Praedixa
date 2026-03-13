@@ -41,12 +41,17 @@ export default function PrevisionsPage() {
     );
   }, [availableHorizons, decisionConfig]);
 
-  const [selectedHorizonId, setSelectedHorizonId] = useState<string | null>(null);
+  const [selectedHorizonId, setSelectedHorizonId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!defaultHorizonId) return;
     setSelectedHorizonId((current) => {
-      if (current && availableHorizons.some((horizon) => horizon.id === current)) {
+      if (
+        current &&
+        availableHorizons.some((horizon) => horizon.id === current)
+      ) {
         return current;
       }
       return defaultHorizonId;
@@ -106,10 +111,12 @@ export default function PrevisionsPage() {
           Anticiper
         </p>
         <h1 className="text-2xl font-semibold text-ink">
-          Previsions {selectedHorizon ? `${selectedHorizon.days} jours` : "horizon actif"}
+          Previsions{" "}
+          {selectedHorizon ? `${selectedHorizon.days} jours` : "horizon actif"}
         </h1>
         <p className="text-sm text-ink-secondary">
-          Projection de risque et capacite previsionnelle pour orienter les actions.
+          Projection de risque et capacite previsionnelle pour orienter les
+          actions.
         </p>
       </section>
 
@@ -189,7 +196,9 @@ export default function PrevisionsPage() {
 
       <section className="rounded-xl border border-border bg-card px-4 py-4">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-ink">Capacite previsionnelle</h2>
+          <h2 className="text-base font-semibold text-ink">
+            Capacite previsionnelle
+          </h2>
           <Link
             href="/actions"
             className="text-sm font-medium text-primary hover:text-primary-700"
@@ -201,7 +210,9 @@ export default function PrevisionsPage() {
         {forecastLoading ? (
           <p className="text-sm text-ink-secondary">Chargement...</p>
         ) : orderedForecast.length === 0 ? (
-          <p className="text-sm text-ink-secondary">Aucune prevision disponible.</p>
+          <p className="text-sm text-ink-secondary">
+            Aucune prevision disponible.
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full border-collapse text-sm">
@@ -216,7 +227,10 @@ export default function PrevisionsPage() {
               </thead>
               <tbody>
                 {orderedForecast.map((row) => (
-                  <tr key={row.forecastDate} className="border-b border-border/70">
+                  <tr
+                    key={row.forecastDate}
+                    className="border-b border-border/70"
+                  >
                     <td className="py-2 pr-4 text-ink">{row.forecastDate}</td>
                     <td className="py-2 pr-4 text-ink">
                       {row.predictedDemand.toFixed(1)}
@@ -227,7 +241,9 @@ export default function PrevisionsPage() {
                     <td className="py-2 pr-4 text-ink">
                       {row.capacityOptimalPredicted.toFixed(1)}
                     </td>
-                    <td className="py-2 pr-0 text-ink">{formatPercent(row.riskScore)}</td>
+                    <td className="py-2 pr-0 text-ink">
+                      {formatPercent(row.riskScore)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -237,11 +253,15 @@ export default function PrevisionsPage() {
       </section>
 
       <section className="rounded-xl border border-border bg-card px-4 py-4">
-        <h2 className="text-base font-semibold text-ink">Alertes prioritaires</h2>
+        <h2 className="text-base font-semibold text-ink">
+          Alertes prioritaires
+        </h2>
         {alertsLoading ? (
           <p className="mt-3 text-sm text-ink-secondary">Chargement...</p>
         ) : topAlerts.length === 0 ? (
-          <p className="mt-3 text-sm text-ink-secondary">Aucune alerte active.</p>
+          <p className="mt-3 text-sm text-ink-secondary">
+            Aucune alerte active.
+          </p>
         ) : (
           <ul className="mt-3 space-y-2">
             {topAlerts.map((alert) => (
@@ -250,10 +270,12 @@ export default function PrevisionsPage() {
                 className="rounded-lg border border-border bg-surface-sunken px-3 py-2 text-sm"
               >
                 <p className="font-medium text-ink">
-                  {alert.siteId} · {alert.alertDate} · {String(alert.shift).toUpperCase()}
+                  {alert.siteId} · {alert.alertDate} ·{" "}
+                  {String(alert.shift).toUpperCase()}
                 </p>
                 <p className="mt-1 text-xs text-ink-secondary">
-                  Severite: {alert.severity} · Risque: {formatPercent(alert.pRupture)} · Ecart:{" "}
+                  Severite: {alert.severity} · Risque:{" "}
+                  {formatPercent(alert.pRupture)} · Ecart:{" "}
                   {alert.gapH.toFixed(1)}h
                 </p>
               </li>

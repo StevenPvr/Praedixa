@@ -8,15 +8,14 @@ test.describe("Webapp coverage harness", () => {
     await mockAllApis(page);
   });
 
-  test("coverage harness route falls back to not-found page", async ({
+  test("coverage harness route redirects authenticated users to dashboard", async ({
     page,
   }) => {
     await page.goto("/coverage-harness");
 
-    await expect(page.getByText("404")).toBeVisible();
-    await expect(page.getByText("Page introuvable")).toBeVisible();
+    await expect(page).toHaveURL(/\/dashboard$/);
     await expect(
-      page.getByRole("link", { name: "Retour au tableau de bord" }),
+      page.getByRole("heading", { name: "Priorites du jour" }),
     ).toBeVisible();
   });
 });

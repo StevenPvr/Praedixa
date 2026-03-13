@@ -2,9 +2,22 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Menu, X, Search, Bell, LayoutGrid, Building2, Settings, LogOut } from "lucide-react";
+import {
+  Menu,
+  X,
+  Search,
+  Bell,
+  LayoutGrid,
+  Building2,
+  Settings,
+  LogOut,
+  Mail,
+  BookOpen,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@praedixa/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ADMIN_GLOBAL_NAV_ITEMS, canAccessPath } from "@/lib/auth/route-access";
 
 interface AdminTopbarProps {
   mobileOpen: boolean;
@@ -12,10 +25,21 @@ interface AdminTopbarProps {
   title?: string;
   userEmail?: string;
   userRole?: string;
+  permissions?: readonly string[] | null;
   onOpenCommandPalette?: () => void;
   onLogout?: () => Promise<void>;
   isSigningOut?: boolean;
 }
+
+const PROFILE_MENU_ICON_BY_ROUTE: Record<string, LucideIcon> = {
+  "/": LayoutGrid,
+  "/clients": Building2,
+  "/demandes-contact": Mail,
+  "/journal": BookOpen,
+  "/parametres": Settings,
+};
+
+const PROFILE_MENU_PATHS = new Set(["/", "/clients", "/parametres"]);
 
 export function AdminTopbar({
   mobileOpen,
@@ -23,6 +47,7 @@ export function AdminTopbar({
   title,
   userEmail,
   userRole,
+  permissions,
   onOpenCommandPalette,
   onLogout,
   isSigningOut = false,
@@ -31,6 +56,15 @@ export function AdminTopbar({
   const [profileMenuOpen, setProfileMenuOpen] = React.useState(false);
   const profileMenuRef = React.useRef<HTMLDivElement>(null);
   const profileMenuButtonRef = React.useRef<HTMLButtonElement>(null);
+  const profileMenuItems = React.useMemo(
+    () =>
+      ADMIN_GLOBAL_NAV_ITEMS.filter(
+        (item) =>
+          PROFILE_MENU_PATHS.has(item.href) &&
+          (permissions == null || canAccessPath(item.href, permissions)),
+      ),
+    [permissions],
+  );
 
   React.useEffect(() => {
     if (!profileMenuOpen) return;
@@ -73,7 +107,11 @@ export function AdminTopbar({
           )}
           aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
         >
-          {mobileOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
+          {mobileOpen ? (
+            <X className="h-4.5 w-4.5" />
+          ) : (
+            <Menu className="h-4.5 w-4.5" />
+          )}
         </button>
 
         <div className="flex items-center gap-2">
@@ -148,46 +186,31 @@ export function AdminTopbar({
                 <p className="truncate text-sm font-semibold text-ink">
                   {userEmail ?? "Compte non renseigne"}
                 </p>
-                <p className="text-xs text-ink-secondary">{userRole ?? "admin"}</p>
+                <p className="text-xs text-ink-secondary">
+                  {userRole ?? "admin"}
+                </p>
               </div>
 
               <div className="p-1.5">
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setProfileMenuOpen(false);
-                    router.push("/");
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-ink transition-colors duration-fast hover:bg-surface-interactive"
-                >
-                  <LayoutGrid className="h-4 w-4 text-ink-secondary" />
-                  Accueil
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setProfileMenuOpen(false);
-                    router.push("/clients");
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-ink transition-colors duration-fast hover:bg-surface-interactive"
-                >
-                  <Building2 className="h-4 w-4 text-ink-secondary" />
-                  Clients
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setProfileMenuOpen(false);
-                    router.push("/parametres");
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-ink transition-colors duration-fast hover:bg-surface-interactive"
-                >
-                  <Settings className="h-4 w-4 text-ink-secondary" />
-                  Parametres
-                </button>
+                {profileMenuItems.map((item) => {
+                  const Icon =
+                    PROFILE_MENU_ICON_BY_ROUTE[item.href] ?? LayoutGrid;
+                  return (
+                    <button
+                      key={item.href}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        router.push(item.href);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-ink transition-colors duration-fast hover:bg-surface-interactive"
+                    >
+                      <Icon className="h-4 w-4 text-ink-secondary" />
+                      {item.label}
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="border-t border-border p-1.5">

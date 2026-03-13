@@ -7,9 +7,11 @@ Ce dossier regroupe les utilitaires transverses du périmètre.
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `cn.ts`
 - `date.ts`
 

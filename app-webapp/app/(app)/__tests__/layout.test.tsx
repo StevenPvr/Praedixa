@@ -2,6 +2,21 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import AppLayout from "../layout";
 
+const translations: Record<string, string> = {
+  "appShell.openMenu": "Ouvrir la navigation",
+  "appShell.closeMenu": "Fermer la navigation",
+  "appShell.languageLabel": "Langue",
+  "appShell.profileMenu.open": "Ouvrir le compte",
+  "appShell.profileMenu.title": "Compte",
+  "appShell.profileMenu.noEmail": "Aucun email",
+  "appShell.profileMenu.roleFallback": "Compte",
+  "appShell.profileMenu.dashboard": "Accueil",
+  "appShell.profileMenu.settings": "Reglages",
+  "appShell.profileMenu.support": "Support",
+  "appShell.profileMenu.logout": "Se deconnecter",
+  "appShell.profileMenu.loggingOut": "Deconnexion...",
+};
+
 // Mock next/navigation
 const mockRouterPush = vi.fn();
 const mockRouterReplace = vi.fn();
@@ -33,6 +48,17 @@ vi.mock("@/lib/auth/client", () => ({
     role: "admin",
   }),
   clearAuthSession: () => mockClearAuthSession(),
+}));
+
+vi.mock("@/lib/i18n/provider", () => ({
+  I18nProvider: ({ children }: { children: React.ReactNode }) => children,
+  useI18n: () => ({
+    locale: "fr",
+    preferencesSyncError: null,
+    preferencesSyncState: "ready",
+    setLocale: vi.fn(),
+    t: (key: string) => translations[key] ?? key,
+  }),
 }));
 
 vi.mock("@/hooks/use-ux-preferences", () => ({
@@ -226,9 +252,7 @@ describe("AppLayout", () => {
       </AppLayout>,
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: /ouvrir le compte/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /ouvrir le compte/i }));
 
     fireEvent.click(screen.getByRole("menuitem", { name: /reglages/i }));
     expect(mockRouterPush).toHaveBeenCalledWith("/parametres");
@@ -241,9 +265,7 @@ describe("AppLayout", () => {
       </AppLayout>,
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: /ouvrir le compte/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /ouvrir le compte/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: /se deconnecter/i }));
 
     await waitFor(() => {

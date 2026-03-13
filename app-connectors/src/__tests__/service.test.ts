@@ -143,6 +143,86 @@ describe("connector service control plane", () => {
     ).toThrow(/allowlist/i);
   });
 
+  it("rejects sandbox-reserved hosts on production connections", () => {
+    const service = new ConnectorService(
+      new InMemoryConnectorStore(),
+      "s".repeat(32),
+      "https://connectors.praedixa.com",
+      null,
+      "production",
+      ["login.salesforce.com", "my.salesforce.com"],
+      ["test.salesforce.com", "sandbox.my.salesforce.com"],
+    );
+
+    expect(() =>
+      service.createConnection(
+        "org-1",
+        {
+          vendor: "salesforce",
+          displayName: "Salesforce Production",
+          runtimeEnvironment: "production",
+          authMode: "oauth2",
+          baseUrl: "https://acme--uat.sandbox.my.salesforce.com",
+        },
+        {
+          actorService: "admin-api",
+          actorUserId: "user-1",
+          requestId: "req-prod-sandbox-1",
+        },
+      ),
+    ).toThrow(/reserved for sandbox/i);
+  });
+
+  it("supports explicit sandbox oauth defaults with a dedicated sandbox allowlist", () => {
+    const service = new ConnectorService(
+      new InMemoryConnectorStore(),
+      "s".repeat(32),
+      "https://connectors.praedixa.com",
+      null,
+      "production",
+      ["login.salesforce.com", "my.salesforce.com"],
+      ["test.salesforce.com", "sandbox.my.salesforce.com"],
+    );
+
+    const created = service.createConnection(
+      "org-sbx-1",
+      {
+        vendor: "salesforce",
+        displayName: "Salesforce Sandbox",
+        runtimeEnvironment: "sandbox",
+        authMode: "oauth2",
+        baseUrl: "https://acme--uat.sandbox.my.salesforce.com",
+        credentials: {
+          clientId: "salesforce-client-id",
+          clientSecret: "salesforce-client-secret-123",
+        },
+      },
+      {
+        actorService: "admin-api",
+        actorUserId: "user-sbx-1",
+        requestId: "req-sbx-1",
+      },
+    );
+
+    const authStart = service.startAuthorization(
+      "org-sbx-1",
+      created.id,
+      {
+        redirectUri: "https://app.praedixa.com/oauth/callback",
+      },
+      {
+        actorService: "admin-api",
+        actorUserId: "user-sbx-1",
+        requestId: "req-sbx-2",
+      },
+    );
+
+    expect(created.runtimeEnvironment).toBe("sandbox");
+    expect(authStart.authorizationUrl).toContain(
+      "test.salesforce.com/services/oauth2/authorize",
+    );
+  });
+
   it("supports interactive oauth onboarding, test and queued sync", async () => {
     const service = new ConnectorService(
       new InMemoryConnectorStore(),
@@ -471,6 +551,85 @@ describe("connector service control plane", () => {
     expect(audits.map((event) => event.action)).toContain(
       "connectors.ingest.accepted",
     );
+  });
+
+  it("fails closed when public ingest credentials are requested without a public base URL", () => {
+    const service = new ConnectorService(
+      new InMemoryConnectorStore(),
+      "s".repeat(32),
+    );
+
+    const connection = service.createConnection(
+      "org-no-public-url",
+      {
+        vendor: "salesforce",
+        displayName: "Missing public URL",
+        authMode: "oauth2",
+        sourceObjects: ["Account"],
+        config: {},
+      },
+      {
+        actorService: "admin-api",
+        actorUserId: "user-no-public-url",
+        requestId: "req-no-public-url-1",
+      },
+    );
+
+    expect(() =>
+      service.issueIngestCredential(
+        "org-no-public-url",
+        connection.id,
+        {
+          label: "Should fail",
+        },
+        {
+          actorService: "admin-api",
+          actorUserId: "user-no-public-url",
+          requestId: "req-no-public-url-2",
+        },
+      ),
+    ).toThrow(/CONNECTORS_PUBLIC_BASE_URL is required/i);
+  });
+
+  it("enables signed ingestion credentials by default", () => {
+    const service = new ConnectorService(
+      new InMemoryConnectorStore(),
+      "s".repeat(32),
+      "https://connectors.praedixa.test",
+    );
+
+    const connection = service.createConnection(
+      "org-default-signature",
+      {
+        vendor: "salesforce",
+        displayName: "Signed by default",
+        authMode: "oauth2",
+        sourceObjects: ["Account"],
+        config: {},
+      },
+      {
+        actorService: "admin-api",
+        actorUserId: "user-default-signature",
+        requestId: "req-default-signature-1",
+      },
+    );
+
+    const issued = service.issueIngestCredential(
+      "org-default-signature",
+      connection.id,
+      {
+        label: "Default signature",
+      },
+      {
+        actorService: "admin-api",
+        actorUserId: "user-default-signature",
+        requestId: "req-default-signature-2",
+      },
+    );
+
+    expect(issued.credential.authMode).toBe("bearer_hmac");
+    expect(issued.signature?.algorithm).toBe("hmac-sha256");
+    expect(issued.signingSecret).toContain("prdx_sig_");
   });
 
   it("rejects inbound ingestion when the credential is revoked or the signature is invalid", async () => {

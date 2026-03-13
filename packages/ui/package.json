@@ -12,8 +12,8 @@
     "./brand-tokens.css": "./src/brand-tokens.css"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsc --build --force",
+    "dev": "tsc --build --watch",
     "lint": "eslint --max-warnings=0 src/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

@@ -16,12 +16,14 @@ describe("loadConfig", () => {
         DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
         CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
         CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+        CONNECTORS_RUNTIME_TOKEN: "token-long-enough-1234567890abcd",
       }),
     ).toMatchObject({
       nodeEnv: "production",
       corsOrigins: ["https://app.praedixa.com", "https://admin.praedixa.com"],
       connectors: {
         runtimeAllowedHosts: ["praedixa.internal"],
+        runtimeToken: "token-long-enough-1234567890abcd",
       },
     });
   });
@@ -87,6 +89,7 @@ describe("loadConfig", () => {
         DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
         CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
         CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+        CONNECTORS_RUNTIME_TOKEN: "token-long-enough-1234567890abcd",
       }),
     ).toThrow(/wildcard/i);
   });
@@ -104,6 +107,20 @@ describe("loadConfig", () => {
     ).toThrow(/https outside development/i);
   });
 
+  it("requires explicit connectors runtime URLs outside development", () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: "production",
+        AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
+        AUTH_AUDIENCE: "praedixa-api",
+        CORS_ORIGINS: "https://app.praedixa.com",
+        DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
+        CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+        CONNECTORS_RUNTIME_TOKEN: "token-long-enough-1234567890abcd",
+      }),
+    ).toThrow(/CONNECTORS_RUNTIME_URL is required outside development/i);
+  });
+
   it("rejects localhost CORS origins outside development", () => {
     expect(() =>
       loadConfig({
@@ -114,11 +131,12 @@ describe("loadConfig", () => {
         DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
         CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
         CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+        CONNECTORS_RUNTIME_TOKEN: "token-long-enough-1234567890abcd",
       }),
     ).toThrow(/localhost/i);
   });
 
-  it("requires a database outside development when demo mode is disabled", () => {
+  it("requires a database outside development", () => {
     expect(() =>
       loadConfig({
         NODE_ENV: "production",
@@ -127,12 +145,13 @@ describe("loadConfig", () => {
         CORS_ORIGINS: "https://app.praedixa.com",
         CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
         CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+        CONNECTORS_RUNTIME_TOKEN: "token-long-enough-1234567890abcd",
       }),
     ).toThrow(/DATABASE_URL is required/i);
   });
 
-  it("still allows explicit demo mode outside development without a database", () => {
-    expect(
+  it("rejects demo mode outside development", () => {
+    expect(() =>
       loadConfig({
         NODE_ENV: "staging",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
@@ -140,12 +159,10 @@ describe("loadConfig", () => {
         CORS_ORIGINS: "https://app.praedixa.com",
         CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
         CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+        CONNECTORS_RUNTIME_TOKEN: "token-long-enough-1234567890abcd",
         DEMO_MODE: "true",
       }),
-    ).toMatchObject({
-      nodeEnv: "staging",
-      databaseUrl: null,
-    });
+    ).toThrow(/DEMO_MODE is only supported in development/i);
   });
 
   it("rejects connectors runtime URLs with credentials", () => {
@@ -159,6 +176,7 @@ describe("loadConfig", () => {
         CONNECTORS_RUNTIME_URL:
           "https://user:pass@connectors.praedixa.internal",
         CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+        CONNECTORS_RUNTIME_TOKEN: "token-long-enough-1234567890abcd",
       }),
     ).toThrow(/must not embed credentials/i);
   });
@@ -174,6 +192,7 @@ describe("loadConfig", () => {
         CONNECTORS_RUNTIME_URL:
           "https://connectors.praedixa.internal/runtime?debug=1#fragment",
         CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+        CONNECTORS_RUNTIME_TOKEN: "token-long-enough-1234567890abcd",
       }),
     ).toThrow(/must not include query or fragment/i);
   });
@@ -187,6 +206,7 @@ describe("loadConfig", () => {
         CORS_ORIGINS: "https://app.praedixa.com",
         DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
         CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
+        CONNECTORS_RUNTIME_TOKEN: "token-long-enough-1234567890abcd",
       }),
     ).toThrow(/CONNECTORS_RUNTIME_ALLOWED_HOSTS/i);
   });
@@ -201,6 +221,7 @@ describe("loadConfig", () => {
         DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
         CONNECTORS_RUNTIME_URL: "https://runtime.evil.example",
         CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+        CONNECTORS_RUNTIME_TOKEN: "token-long-enough-1234567890abcd",
       }),
     ).toThrow(/allowlist/i);
   });
@@ -215,6 +236,7 @@ describe("loadConfig", () => {
         DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
         CONNECTORS_RUNTIME_URL: "https://connectors.eu-west.praedixa.internal",
         CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+        CONNECTORS_RUNTIME_TOKEN: "token-long-enough-1234567890abcd",
       }),
     ).toMatchObject({
       connectors: {
@@ -222,5 +244,30 @@ describe("loadConfig", () => {
         runtimeAllowedHosts: ["praedixa.internal"],
       },
     });
+  });
+
+  it("requires CONNECTORS_RUNTIME_TOKEN outside development", () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: "production",
+        AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
+        AUTH_AUDIENCE: "praedixa-api",
+        CORS_ORIGINS: "https://app.praedixa.com",
+        DATABASE_URL: "postgresql://praedixa:secret@db.internal:5432/praedixa",
+        CONNECTORS_RUNTIME_URL: "https://connectors.praedixa.internal",
+        CONNECTORS_RUNTIME_ALLOWED_HOSTS: "praedixa.internal",
+      }),
+    ).toThrow(/CONNECTORS_RUNTIME_TOKEN is required/i);
+  });
+
+  it("rejects legacy CONNECTORS_INTERNAL_TOKEN aliases", () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: "development",
+        AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
+        AUTH_AUDIENCE: "praedixa-api",
+        CONNECTORS_INTERNAL_TOKEN: "token-long-enough-1234567890abcd",
+      }),
+    ).toThrow(/CONNECTORS_INTERNAL_TOKEN is no longer supported/i);
   });
 });

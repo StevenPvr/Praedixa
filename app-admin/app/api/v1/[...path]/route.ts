@@ -9,6 +9,10 @@ import {
   isSameOriginBrowserRequest,
   resolveExpectedOrigin,
 } from "@/lib/security/browser-request";
+import {
+  canAccessAdminApiPath,
+  isPublicAdminProxyPath,
+} from "@/lib/auth/route-access";
 
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
@@ -22,17 +26,23 @@ const HOP_BY_HOP_HEADERS = new Set([
   "transfer-encoding",
   "upgrade",
 ]);
-const PUBLIC_GET_PATHS = new Set(["health"]);
+const DEFAULT_MAX_PROXY_BODY_BYTES = 1024 * 1024;
 const NO_STORE_HEADERS = {
   "Cache-Control": "no-store",
   Pragma: "no-cache",
 } as const;
+const BFF_SERVICE_NAME = "admin-bff";
+
+class PayloadTooLargeError extends Error {
+  constructor() {
+    super("Request body exceeds the configured proxy limit");
+    this.name = "PayloadTooLargeError";
+  }
+}
 
 function isLoopbackHostname(hostname: string): boolean {
   return (
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname === "[::1]"
+    hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]"
   );
 }
 
@@ -65,16 +75,33 @@ function getBackendApiBaseUrl(): string {
 }
 
 function buildUpstreamUrl(request: NextRequest, path: string[]): string {
-  const encodedPath = path.map((segment) => encodeURIComponent(segment)).join("/");
+  const encodedPath = path
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
   return `${getBackendApiBaseUrl()}/api/v1/${encodedPath}${request.nextUrl.search}`;
 }
 
-function isPublicGetPath(method: string, path: string[]): boolean {
-  return method === "GET" && path.length === 1 && PUBLIC_GET_PATHS.has(path[0]);
+function getMaxProxyBodyBytes(): number {
+  const raw = process.env.API_PROXY_MAX_BODY_BYTES?.trim();
+  if (!raw) {
+    return DEFAULT_MAX_PROXY_BODY_BYTES;
+  }
+
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return DEFAULT_MAX_PROXY_BODY_BYTES;
+  }
+
+  return Math.min(parsed, 10 * 1024 * 1024);
+}
+
+function resolveRequestId(request: NextRequest): string {
+  return request.headers.get("x-request-id") ?? crypto.randomUUID();
 }
 
 function buildForwardHeaders(
   request: NextRequest,
+  requestId: string,
   accessToken: string | null,
 ): Headers {
   const headers = new Headers();
@@ -85,22 +112,75 @@ function buildForwardHeaders(
     "Accept",
     request.headers.get("accept") ?? "application/json, text/plain, */*",
   );
-  headers.set(
-    "X-Request-ID",
-    request.headers.get("x-request-id") ?? crypto.randomUUID(),
-  );
+  headers.set("X-Request-ID", requestId);
 
   const contentType = request.headers.get("content-type");
   if (contentType) {
     headers.set("Content-Type", contentType);
   }
 
+  const traceparent = request.headers.get("traceparent");
+  if (traceparent) {
+    headers.set("traceparent", traceparent);
+  }
+
+  const tracestate = request.headers.get("tracestate");
+  if (tracestate) {
+    headers.set("tracestate", tracestate);
+  }
+
   return headers;
+}
+
+function buildProxyFailureLogEntry(input: {
+  requestId: string;
+  traceId: string | null;
+  method: string;
+  path: string;
+  upstreamUrl: string | null;
+  durationMs: number;
+  error: unknown;
+}): string {
+  return JSON.stringify({
+    timestamp: new Date().toISOString(),
+    level: "error",
+    service: BFF_SERVICE_NAME,
+    env: process.env.NODE_ENV ?? "development",
+    event: "proxy.upstream_failed",
+    message:
+      "Admin same-origin API proxy failed before receiving an upstream response",
+    request_id: input.requestId,
+    trace_id: input.traceId ?? input.requestId,
+    run_id: null,
+    connector_run_id: null,
+    action_id: null,
+    contract_version: null,
+    organization_id: null,
+    site_id: null,
+    status: "failed",
+    status_code: 502,
+    duration_ms: input.durationMs,
+    method: input.method,
+    path: input.path,
+    upstream_url: input.upstreamUrl,
+    error:
+      input.error instanceof Error
+        ? { name: input.error.name, message: input.error.message }
+        : String(input.error),
+  });
 }
 
 function applyNoStoreHeaders(headers: Headers): void {
   headers.set("Cache-Control", NO_STORE_HEADERS["Cache-Control"]);
   headers.set("Pragma", NO_STORE_HEADERS.Pragma);
+}
+
+function withRequestId(
+  response: NextResponse,
+  requestId: string,
+): NextResponse {
+  response.headers.set("X-Request-ID", requestId);
+  return response;
 }
 
 function copyResponseHeaders(source: Headers): Headers {
@@ -116,8 +196,13 @@ function copyResponseHeaders(source: Headers): Headers {
 }
 
 function createJsonErrorResponse(
-  error: "bad_gateway" | "csrf_failed" | "unauthorized",
-  status: 401 | 403 | 502,
+  error:
+    | "bad_gateway"
+    | "csrf_failed"
+    | "forbidden"
+    | "payload_too_large"
+    | "unauthorized",
+  status: 401 | 403 | 413 | 502,
 ): NextResponse {
   const response = NextResponse.json({ error }, { status });
   applyNoStoreHeaders(response.headers);
@@ -142,22 +227,95 @@ async function resolveProxySession(
   });
 }
 
-async function readRequestBody(request: NextRequest): Promise<string | undefined> {
+async function readRequestBody(
+  request: NextRequest,
+  maxBytes: number,
+): Promise<ArrayBuffer | undefined> {
   if (request.method === "GET" || request.method === "HEAD") {
     return undefined;
   }
 
-  const body = await request.text();
-  return body.length > 0 ? body : undefined;
+  const contentLength = request.headers.get("content-length");
+  if (contentLength) {
+    const parsedLength = Number.parseInt(contentLength, 10);
+    if (Number.isFinite(parsedLength) && parsedLength > maxBytes) {
+      throw new PayloadTooLargeError();
+    }
+  }
+
+  if (!request.body) {
+    const fallbackBody = await request.text();
+    if (!fallbackBody) {
+      return undefined;
+    }
+    const encoded = new TextEncoder().encode(fallbackBody);
+    if (encoded.byteLength > maxBytes) {
+      throw new PayloadTooLargeError();
+    }
+    return encoded.buffer.slice(
+      encoded.byteOffset,
+      encoded.byteOffset + encoded.byteLength,
+    );
+  }
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    if (!value) {
+      continue;
+    }
+
+    totalBytes += value.byteLength;
+    if (totalBytes > maxBytes) {
+      await reader.cancel();
+      throw new PayloadTooLargeError();
+    }
+
+    chunks.push(value);
+  }
+
+  if (totalBytes === 0) {
+    return undefined;
+  }
+
+  const body = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength);
+}
+
+function payloadTooLarge(requestId: string): NextResponse {
+  return withRequestId(
+    createJsonErrorResponse("payload_too_large", 413),
+    requestId,
+  );
 }
 
 async function handleProxy(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> },
 ): Promise<NextResponse> {
+  const requestId = resolveRequestId(request);
+  const startedAtMs = Date.now();
+  let upstreamUrl: string | null = null;
+
   try {
     const { path } = await context.params;
-    const isPublicPath = isPublicGetPath(request.method, path);
+    const requestPathname = request.nextUrl.pathname;
+    const isPublicPath = isPublicAdminProxyPath(
+      requestPathname,
+      request.method,
+    );
     if (
       !isPublicPath &&
       !isSameOriginBrowserRequest(
@@ -165,29 +323,59 @@ async function handleProxy(
         resolveExpectedOrigin(request, resolveAuthAppOrigin),
       )
     ) {
-      return createJsonErrorResponse("csrf_failed", 403);
+      return withRequestId(
+        createJsonErrorResponse("csrf_failed", 403),
+        requestId,
+      );
     }
 
     const resolved = await resolveProxySession(request, isPublicPath);
 
     if (resolved && !resolved.ok) {
-      return createUnauthorizedResponse(resolved.clearCookies);
+      return withRequestId(
+        createUnauthorizedResponse(resolved.clearCookies),
+        requestId,
+      );
     }
 
-    const upstream = await fetch(buildUpstreamUrl(request, path), {
+    const sessionPermissions =
+      resolved && resolved.ok ? resolved.session.permissions : null;
+
+    if (
+      !isPublicPath &&
+      !canAccessAdminApiPath(
+        requestPathname,
+        request.method,
+        sessionPermissions,
+      )
+    ) {
+      return withRequestId(
+        createJsonErrorResponse("forbidden", 403),
+        requestId,
+      );
+    }
+
+    const requestBody = await readRequestBody(request, getMaxProxyBodyBytes());
+
+    upstreamUrl = buildUpstreamUrl(request, path);
+    const upstream = await fetch(upstreamUrl, {
       method: request.method,
       headers: buildForwardHeaders(
         request,
+        requestId,
         resolved && resolved.ok ? resolved.accessToken : null,
       ),
-      body: await readRequestBody(request),
+      body: requestBody ?? undefined,
       cache: "no-store",
     });
 
-    const response = new NextResponse(upstream.body, {
-      status: upstream.status,
-      headers: copyResponseHeaders(upstream.headers),
-    });
+    const response = withRequestId(
+      new NextResponse(upstream.body, {
+        status: upstream.status,
+        headers: copyResponseHeaders(upstream.headers),
+      }),
+      requestId,
+    );
 
     if (resolved && resolved.ok && resolved.cookieUpdate) {
       setAuthCookies(response, request, resolved.cookieUpdate);
@@ -198,8 +386,27 @@ async function handleProxy(
     }
 
     return response;
-  } catch {
-    return createJsonErrorResponse("bad_gateway", 502);
+  } catch (error) {
+    if (error instanceof PayloadTooLargeError) {
+      return payloadTooLarge(requestId);
+    }
+
+    // eslint-disable-next-line no-console
+    console.error(
+      buildProxyFailureLogEntry({
+        requestId,
+        traceId: request.headers.get("traceparent"),
+        method: request.method,
+        path: request.nextUrl.pathname,
+        upstreamUrl,
+        durationMs: Date.now() - startedAtMs,
+        error,
+      }),
+    );
+    return withRequestId(
+      createJsonErrorResponse("bad_gateway", 502),
+      requestId,
+    );
   }
 }
 

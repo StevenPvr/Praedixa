@@ -5,6 +5,7 @@ export interface AuthenticatedServicePrincipal {
 }
 
 export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+export type RateLimitScope = "ip" | "principal";
 export type ServiceTokenCapability =
   | "catalog:read"
   | "connections:read"
@@ -45,6 +46,13 @@ export interface RouteContext {
   path: string;
   query: URLSearchParams;
   requestId: string;
+  traceId: string;
+  runId: string | null;
+  connectorRunId: string | null;
+  actionId: string | null;
+  contractVersion: string | null;
+  organizationId: string | null;
+  siteId: string | null;
   params: Record<string, string>;
   body: unknown;
   rawBody: string | null;
@@ -62,11 +70,18 @@ export type RouteHandler = (
   ctx: RouteContext,
 ) => RouteResult | Promise<RouteResult>;
 
+export interface RouteRateLimit {
+  maxRequests: number;
+  scope: RateLimitScope;
+  windowMs: number;
+}
+
 export interface RouteDefinition {
   method: HttpMethod;
   template: string;
   authRequired: boolean;
   requiredCapabilities: readonly ServiceTokenCapability[];
+  rateLimit: RouteRateLimit | null;
   handler: RouteHandler;
 }
 
@@ -75,6 +90,7 @@ export interface CompiledRoute {
   template: string;
   authRequired: boolean;
   requiredCapabilities: readonly ServiceTokenCapability[];
+  rateLimit: RouteRateLimit | null;
   paramNames: string[];
   regex: RegExp;
   handler: RouteHandler;
@@ -110,11 +126,25 @@ export type ConnectorAuthMode =
   | "service_account"
   | "sftp";
 
+export type ConnectorRuntimeEnvironment = "production" | "sandbox";
+
 export type ConnectorOnboardingMode =
   | "interactive_oauth"
   | "credential_submission"
   | "managed_service_account"
   | "push_api";
+
+export type ConnectorActivationReadinessIssueCode =
+  | "disabled_connection"
+  | "missing_required_config"
+  | "missing_stored_credentials"
+  | "missing_oauth_endpoints"
+  | "authorization_required"
+  | "authorization_pending"
+  | "missing_probe_target"
+  | "connection_not_tested"
+  | "connection_not_active"
+  | "invalid_endpoint_configuration";
 
 export type ConnectionStatus =
   | "pending"
@@ -156,6 +186,10 @@ export interface ConnectorOAuthDefaults {
   pkceRequired?: boolean;
 }
 
+export type ConnectorOAuthDefaultsByEnvironment = Partial<
+  Record<ConnectorRuntimeEnvironment, ConnectorOAuthDefaults>
+>;
+
 export interface ConnectorCatalogItem {
   vendor: ConnectorVendor;
   label: string;
@@ -167,7 +201,7 @@ export interface ConnectorCatalogItem {
   onboardingModes: ConnectorOnboardingMode[];
   requiredConfigFields: readonly string[];
   credentialFieldHints: Partial<Record<ConnectorAuthMode, readonly string[]>>;
-  oauthDefaults?: ConnectorOAuthDefaults;
+  oauthDefaults?: ConnectorOAuthDefaultsByEnvironment;
 }
 
 export interface ConnectorConnection {
@@ -177,6 +211,7 @@ export interface ConnectorConnection {
   displayName: string;
   status: ConnectionStatus;
   authorizationState: AuthorizationState;
+  runtimeEnvironment: ConnectorRuntimeEnvironment;
   authMode: ConnectorAuthMode;
   config: Record<string, unknown>;
   secretRef: string | null;
@@ -193,6 +228,27 @@ export interface ConnectorConnection {
   disabledReason: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ConnectorActivationReadinessIssue {
+  code: ConnectorActivationReadinessIssueCode;
+  field: string | null;
+  message: string;
+}
+
+export interface ConnectorActivationReadiness {
+  connectionId: string;
+  vendor: ConnectorVendor;
+  authMode: ConnectorAuthMode;
+  runtimeEnvironment: ConnectorRuntimeEnvironment;
+  missingRequiredConfigFields: string[];
+  missingCredentialFields: string[];
+  blockingIssues: ConnectorActivationReadinessIssue[];
+  warnings: ConnectorActivationReadinessIssue[];
+  isReadyForAuthorizationStart: boolean;
+  isReadyForConnectionTest: boolean;
+  isReadyForSync: boolean;
+  recommendedNextStep: string;
 }
 
 export interface SyncRun {
@@ -399,6 +455,7 @@ export interface IngestAuthContext {
 export interface CreateConnectionInput {
   vendor: ConnectorVendor;
   displayName: string;
+  runtimeEnvironment?: ConnectorRuntimeEnvironment;
   authMode: ConnectorAuthMode;
   config?: Record<string, unknown>;
   secretRef?: string | null;
@@ -414,6 +471,7 @@ export interface CreateConnectionInput {
 
 export interface UpdateConnectionInput {
   displayName?: string;
+  runtimeEnvironment?: ConnectorRuntimeEnvironment;
   config?: Record<string, unknown>;
   sourceObjects?: string[];
   syncIntervalMinutes?: number;
@@ -465,6 +523,7 @@ export interface AppConfig {
   databaseUrl: string | null;
   objectStoreRoot: string;
   allowedOutboundHosts: readonly string[];
+  allowedSandboxOutboundHosts: readonly string[];
   corsOrigins: readonly string[];
   serviceTokens: readonly ServiceTokenConfig[];
   secretSealingKey: string | null;

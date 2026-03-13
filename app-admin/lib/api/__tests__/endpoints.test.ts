@@ -21,6 +21,8 @@ describe("ADMIN_ENDPOINTS", () => {
     const orgId = "org/a b";
     const userId = "user+id";
     const datasetId = "dataset/01";
+    const actionId = "action/42";
+    const ledgerId = "ledger/7";
 
     expect(ADMIN_ENDPOINTS.orgMetrics(orgId)).toContain("org%2Fa%20b");
     expect(ADMIN_ENDPOINTS.orgMirror(orgId)).toContain("org%2Fa%20b");
@@ -63,6 +65,18 @@ describe("ADMIN_ENDPOINTS", () => {
     expect(ADMIN_ENDPOINTS.orgCostParams(orgId)).toContain("cost-params");
     expect(ADMIN_ENDPOINTS.orgAlerts(orgId)).toContain("alerts");
     expect(ADMIN_ENDPOINTS.orgScenarios(orgId)).toContain("scenarios");
+    expect(ADMIN_ENDPOINTS.orgApprovalsInbox(orgId)).toContain(
+      "organizations/org%2Fa%20b/approval-inbox",
+    );
+    expect(ADMIN_ENDPOINTS.orgApprovalDecision(orgId, "approval/9")).toContain(
+      "approvals/approval%2F9/decision",
+    );
+    expect(ADMIN_ENDPOINTS.orgActionDispatchDetail(orgId, actionId)).toContain(
+      "action-dispatches/action%2F42",
+    );
+    expect(ADMIN_ENDPOINTS.orgLedgerDetail(orgId, ledgerId)).toContain(
+      "ledgers/ledger%2F7",
+    );
     expect(ADMIN_ENDPOINTS.orgProofPacks(orgId)).toContain("proof-packs");
     expect(ADMIN_ENDPOINTS.orgIngestionLog(orgId)).toContain("ingestion-log");
     expect(ADMIN_ENDPOINTS.orgDatasetData(orgId, datasetId)).toContain(

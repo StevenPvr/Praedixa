@@ -13,6 +13,7 @@ Source de verite Python sur la structure Postgres du domaine Praedixa.
 
 - Operationnel
   - `operational.py` : canonical, cost parameters, coverage alerts, scenarios, operational decisions, proof records
+  - `decisionops_runtime.py` : approvals persistantes, dispatches d'action et revisions de ledger DecisionOps
   - `daily_forecast.py`, `forecast_run.py`
 - Donnees et ingestion
   - `data_catalog.py` : datasets client, colonnes, ingestion logs, rapports qualite, historique config pipeline

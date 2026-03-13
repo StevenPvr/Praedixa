@@ -15,7 +15,8 @@ vi.mock("@/lib/auth/oidc", () => ({
 }));
 
 vi.mock("@/lib/auth/request-session", () => ({
-  resolveRequestSession: (...args: unknown[]) => mockResolveRequestSession(...args),
+  resolveRequestSession: (...args: unknown[]) =>
+    mockResolveRequestSession(...args),
 }));
 
 vi.mock("@/lib/security/rate-limit", () => ({

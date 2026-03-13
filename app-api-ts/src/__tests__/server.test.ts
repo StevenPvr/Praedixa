@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { routes } from "../routes.js";
 import { compileRoutes, matchRoute } from "../router.js";
@@ -7,6 +7,7 @@ import {
   CORS_ALLOWED_METHODS,
   clearRateLimitBuckets,
   consumeRateLimit,
+  createAppServer,
   isJsonContentType,
   normalizeOrigin,
   resolveClientIp,
@@ -14,10 +15,50 @@ import {
   resolveCorsHeaders,
   SECURITY_HEADERS,
 } from "../server.js";
+import type { RouteContext } from "../types.js";
+
+const TEST_ORGANIZATION_ID = "11111111-1111-4111-8111-111111111111";
+
+function buildRouteContext(
+  overrides: Partial<RouteContext> = {},
+): RouteContext {
+  return {
+    method: "GET",
+    path: "/",
+    query: new URLSearchParams(),
+    requestId: "req-test",
+    telemetry: {
+      requestId: "req-test",
+      traceId: "trace-test",
+      traceparent: null,
+      tracestate: null,
+      runId: null,
+      connectorRunId: null,
+      actionId: null,
+      contractVersion: null,
+      organizationId: TEST_ORGANIZATION_ID,
+      siteId: "site-lyon",
+    },
+    clientIp: "127.0.0.1",
+    userAgent: "vitest",
+    params: {},
+    body: null,
+    user: {
+      userId: "user-1",
+      email: "user@praedixa.test",
+      organizationId: TEST_ORGANIZATION_ID,
+      role: "viewer",
+      siteIds: ["site-lyon"],
+      permissions: [],
+    },
+    ...overrides,
+  };
+}
 
 describe("api transport and authorization guards", () => {
   afterEach(() => {
     clearRateLimitBuckets();
+    vi.unstubAllEnvs();
   });
 
   it("keeps mandatory transport security headers enabled", () => {
@@ -79,10 +120,9 @@ describe("api transport and authorization guards", () => {
   });
 
   it("builds CORS headers only for allowlisted origins", () => {
-    const allowlistedHeaders = resolveCorsHeaders(
+    const allowlistedHeaders = resolveCorsHeaders("http://localhost:3001", [
       "http://localhost:3001",
-      ["http://localhost:3001"],
-    );
+    ]);
     expect(allowlistedHeaders).toEqual({
       "Access-Control-Allow-Origin": "http://localhost:3001",
       "Access-Control-Allow-Methods": CORS_ALLOWED_METHODS,
@@ -91,19 +131,19 @@ describe("api transport and authorization guards", () => {
       Vary: "Origin",
     });
 
-    expect(resolveCorsHeaders("http://localhost:3999", ["http://localhost:3001"])).toEqual(
-      {},
-    );
+    expect(
+      resolveCorsHeaders("http://localhost:3999", ["http://localhost:3001"]),
+    ).toEqual({});
     expect(resolveCorsHeaders(null, ["http://localhost:3001"])).toEqual({});
   });
 
   it("trusts forwarded client IPs only when proxy trust is explicit", () => {
-    expect(
-      resolveClientIp("203.0.113.10, 10.0.0.4", "10.0.0.4", false),
-    ).toBe("10.0.0.4");
-    expect(
-      resolveClientIp("203.0.113.10, 10.0.0.4", "10.0.0.4", true),
-    ).toBe("203.0.113.10");
+    expect(resolveClientIp("203.0.113.10, 10.0.0.4", "10.0.0.4", false)).toBe(
+      "10.0.0.4",
+    );
+    expect(resolveClientIp("203.0.113.10, 10.0.0.4", "10.0.0.4", true)).toBe(
+      "203.0.113.10",
+    );
   });
 
   it("allows private LAN origins during development", () => {
@@ -152,34 +192,31 @@ describe("api transport and authorization guards", () => {
       (entry) => entry.template === "/api/v1/conversations/unread-count",
     );
     const adminSuspendRoute = routes.find(
-      (entry) => entry.template === "/api/v1/admin/organizations/:orgId/suspend",
+      (entry) =>
+        entry.template === "/api/v1/admin/organizations/:orgId/suspend",
     );
-    const healthRoute = routes.find((entry) => entry.template === "/api/v1/health");
+    const healthRoute = routes.find(
+      (entry) => entry.template === "/api/v1/health",
+    );
 
     expect(contactRoute).toBeDefined();
     expect(unreadCountRoute).toBeDefined();
     expect(adminSuspendRoute).toBeDefined();
     expect(healthRoute).toBeDefined();
 
-    expect(
-      resolveRateLimitPolicy(contactRoute!),
-    ).toEqual({
+    expect(resolveRateLimitPolicy(contactRoute!)).toEqual({
       maxRequests: 5,
       scope: "ip",
       windowMs: 600000,
     });
 
-    expect(
-      resolveRateLimitPolicy(unreadCountRoute!),
-    ).toEqual({
+    expect(resolveRateLimitPolicy(unreadCountRoute!)).toEqual({
       maxRequests: 120,
       scope: "principal",
       windowMs: 60000,
     });
 
-    expect(
-      resolveRateLimitPolicy(adminSuspendRoute!),
-    ).toEqual({
+    expect(resolveRateLimitPolicy(adminSuspendRoute!)).toEqual({
       maxRequests: 30,
       scope: "principal",
       windowMs: 60000,
@@ -187,7 +224,9 @@ describe("api transport and authorization guards", () => {
 
     expect(
       resolveRateLimitPolicy(
-        routes.find((entry) => entry.template === "/api/v1/admin/monitoring/platform")!,
+        routes.find(
+          (entry) => entry.template === "/api/v1/admin/monitoring/platform",
+        )!,
       ),
     ).toEqual({
       maxRequests: 120,
@@ -218,5 +257,174 @@ describe("api transport and authorization guards", () => {
       remaining: 0,
       retryAfterSeconds: 1,
     });
+  });
+
+  it("emits structured request lifecycle logs through the shared telemetry package", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const stdoutWrite = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(() => true);
+    const stderrWrite = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+
+    const server = createAppServer({
+      port: 0,
+      nodeEnv: "staging",
+      trustProxy: false,
+      corsOrigins: [],
+      databaseUrl: null,
+      connectors: {
+        runtimeUrl: "https://connectors.praedixa.internal",
+        runtimeAllowedHosts: ["connectors.praedixa.internal"],
+        runtimeToken: "token-long-enough-1234567890abcd",
+      },
+      jwt: {
+        issuerUrl: "https://auth.praedixa.com/realms/praedixa",
+        audience: "praedixa-api",
+        jwksUrl:
+          "https://auth.praedixa.com/realms/praedixa/protocol/openid-connect/certs",
+        algorithms: ["RS256"],
+      },
+    });
+
+    try {
+      const address = server.address();
+      expect(address).not.toBeNull();
+      expect(typeof address).toBe("object");
+      const port =
+        address != null && typeof address === "object" ? address.port : null;
+      expect(typeof port).toBe("number");
+
+      const response = await fetch(`http://127.0.0.1:${port}/api/v1/health`, {
+        headers: {
+          "X-Request-ID": "req-health-123",
+          "X-Trace-ID": "trace-health-123",
+        },
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("x-request-id")).toBe("req-health-123");
+      expect(response.headers.get("x-trace-id")).toBe("trace-health-123");
+    } finally {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve();
+        });
+      });
+    }
+
+    const stdoutLogs = stdoutWrite.mock.calls
+      .map(([chunk]) => chunk.toString().trim())
+      .filter((line) => line.length > 0)
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+
+    expect(stderrWrite).not.toHaveBeenCalled();
+    expect(stdoutLogs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          service: "api",
+          env: "staging",
+          event: "http.request.started",
+          request_id: "req-health-123",
+          trace_id: "trace-health-123",
+          run_id: null,
+          connector_run_id: null,
+          action_id: null,
+          contract_version: null,
+          organization_id: null,
+          site_id: null,
+          status: "started",
+          status_code: null,
+          duration_ms: null,
+          path: "/api/v1/health",
+          route_template: null,
+        }),
+        expect.objectContaining({
+          service: "api",
+          env: "staging",
+          event: "http.request.completed",
+          request_id: "req-health-123",
+          trace_id: "trace-health-123",
+          run_id: null,
+          connector_run_id: null,
+          action_id: null,
+          contract_version: null,
+          organization_id: null,
+          site_id: null,
+          status: "completed",
+          status_code: 200,
+          path: "/api/v1/health",
+          route_template: "/api/v1/health",
+        }),
+      ]),
+    );
+    expect(
+      stdoutLogs.some(
+        (entry) =>
+          entry.event === "http.request.completed" &&
+          typeof entry.duration_ms === "number",
+      ),
+    ).toBe(true);
+  });
+
+  it("fails closed on high-trust live decision routes when persistence is unavailable even if DEMO_MODE is enabled", async () => {
+    vi.stubEnv("DEMO_MODE", "true");
+    vi.stubEnv("DATABASE_URL", "");
+
+    const routeExpectations = [
+      {
+        template: "/api/v1/live/coverage-alerts",
+        context: buildRouteContext({
+          path: "/api/v1/live/coverage-alerts",
+        }),
+      },
+      {
+        template: "/api/v1/live/coverage-alerts/queue",
+        context: buildRouteContext({
+          path: "/api/v1/live/coverage-alerts/queue",
+        }),
+      },
+      {
+        template: "/api/v1/live/scenarios/alert/:alertId",
+        context: buildRouteContext({
+          path: "/api/v1/live/scenarios/alert/alt-001",
+          params: { alertId: "alt-001" },
+        }),
+      },
+      {
+        template: "/api/v1/live/decision-workspace/:alertId",
+        context: buildRouteContext({
+          path: "/api/v1/live/decision-workspace/alt-001",
+          params: { alertId: "alt-001" },
+        }),
+      },
+      {
+        template: "/api/v1/scenarios/generate/:alertId",
+        context: buildRouteContext({
+          method: "POST",
+          path: "/api/v1/scenarios/generate/alt-001",
+          params: { alertId: "alt-001" },
+        }),
+      },
+    ] as const;
+
+    for (const { template, context } of routeExpectations) {
+      const route = routes.find((entry) => entry.template === template);
+      expect(route).toBeDefined();
+
+      const result = await route!.handler(context);
+      expect(result.statusCode).toBe(503);
+      expect(result.payload).toMatchObject({
+        success: false,
+        error: {
+          code: "PERSISTENCE_UNAVAILABLE",
+        },
+      });
+    }
   });
 });

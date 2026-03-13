@@ -32,10 +32,10 @@ export function useDecisionConfig(
       ? `/api/v1/live/decision-config?${query}`
       : "/api/v1/live/decision-config";
 
-  const { data, loading, error, refetch } = useApiGet<LiveDecisionConfigResponse>(
-    url,
-    { pollInterval: LIVE_DATA_POLL_INTERVAL_MS },
-  );
+  const { data, loading, error, refetch } =
+    useApiGet<LiveDecisionConfigResponse>(url, {
+      pollInterval: LIVE_DATA_POLL_INTERVAL_MS,
+    });
 
   return {
     config: data,

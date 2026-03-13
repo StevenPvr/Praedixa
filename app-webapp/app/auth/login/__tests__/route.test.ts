@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockRedirect = vi.fn();
+const mockJson = vi.fn();
 
 const mockCreatePkceChallenge = vi.fn();
 const mockCreateRandomToken = vi.fn();
@@ -11,10 +12,12 @@ const mockIsMissingOidcEnvError = vi.fn();
 const mockResolveAuthAppOrigin = vi.fn();
 const mockSanitizeNextPath = vi.fn();
 const mockSecureCookie = vi.fn();
+const mockConsumeRateLimit = vi.fn();
 
 vi.mock("next/server", () => ({
   NextResponse: {
     redirect: (...args: unknown[]) => mockRedirect(...args),
+    json: (...args: unknown[]) => mockJson(...args),
   },
 }));
 
@@ -40,6 +43,10 @@ vi.mock("@/lib/auth/origin", () => ({
     mockResolveAuthAppOrigin(...args),
 }));
 
+vi.mock("@/lib/auth/rate-limit", () => ({
+  consumeRateLimit: (...args: unknown[]) => mockConsumeRateLimit(...args),
+}));
+
 import { GET } from "../route";
 
 function createRedirectResponse(url: string | URL) {
@@ -50,6 +57,16 @@ function createRedirectResponse(url: string | URL) {
       set: vi.fn(),
     },
     cookies: {
+      set: vi.fn(),
+    },
+  };
+}
+
+function createJsonResponse(body: unknown, init?: { status?: number }) {
+  return {
+    body,
+    status: init?.status ?? 200,
+    headers: {
       set: vi.fn(),
     },
   };
@@ -75,6 +92,9 @@ describe("GET /auth/login (webapp)", () => {
 
     mockRedirect.mockImplementation((url: string | URL) =>
       createRedirectResponse(url),
+    );
+    mockJson.mockImplementation((body: unknown, init?: { status?: number }) =>
+      createJsonResponse(body, init),
     );
     mockGetOidcEnv.mockReturnValue({
       issuerUrl: "https://sso.praedixa.com",
@@ -102,6 +122,12 @@ describe("GET /auth/login (webapp)", () => {
       },
     );
     mockSecureCookie.mockReturnValue(false);
+    mockConsumeRateLimit.mockResolvedValue({
+      allowed: true,
+      retryAfterSeconds: 0,
+      remaining: 19,
+      resetAtEpochSeconds: 2_000_000_000,
+    });
   });
 
   it("redirects to OIDC authorization endpoint and sets login cookies", async () => {
@@ -164,17 +190,32 @@ describe("GET /auth/login (webapp)", () => {
     expect(redirectUrl.searchParams.get("next")).toBe("/dashboard");
   });
 
+  it("fails closed with 500 when no explicit public auth origin can be resolved", async () => {
+    mockResolveAuthAppOrigin.mockImplementationOnce(() => {
+      throw new Error(
+        "Missing AUTH_APP_ORIGIN (or NEXT_PUBLIC_APP_ORIGIN) for production auth redirects",
+      );
+    });
+
+    const response = (await GET(createMockRequest({ next: "/dashboard" }))) as {
+      body: { error: string };
+      status: number;
+    };
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({ error: "oidc_config_missing" });
+    expect(mockRedirect).not.toHaveBeenCalled();
+  });
+
   it("uses the configured public auth origin for redirect_uri generation", async () => {
     mockResolveAuthAppOrigin.mockReturnValueOnce("https://app.praedixa.com");
 
-    const response = (await GET(
-      {
-        nextUrl: {
-          origin: "http://internal-webapp:3001",
-          searchParams: new URLSearchParams("next=/dashboard"),
-        },
-      } as Parameters<typeof GET>[0],
-    )) as { redirectUrl: string };
+    const response = (await GET({
+      nextUrl: {
+        origin: "http://internal-webapp:3001",
+        searchParams: new URLSearchParams("next=/dashboard"),
+      },
+    } as Parameters<typeof GET>[0])) as { redirectUrl: string };
 
     const redirectUrl = new URL(response.redirectUrl);
     expect(redirectUrl.searchParams.get("redirect_uri")).toBe(
@@ -224,17 +265,23 @@ describe("GET /auth/login (webapp)", () => {
   });
 
   it("redirects to /login with rate_limited when login attempts are throttled", async () => {
-    const request = createMockRequest({ next: "/dashboard" });
-    for (let i = 0; i < 20; i += 1) {
-      await GET(request);
-    }
+    mockConsumeRateLimit.mockResolvedValueOnce({
+      allowed: false,
+      retryAfterSeconds: 120,
+      remaining: 0,
+      resetAtEpochSeconds: 2_000_000_000,
+    });
 
-    const response = (await GET(request)) as { redirectUrl: string };
+    const response = (await GET(createMockRequest({ next: "/dashboard" }))) as {
+      redirectUrl: string;
+      headers: { set: ReturnType<typeof vi.fn> };
+    };
     const redirectUrl = new URL(response.redirectUrl);
     expect(redirectUrl.origin + redirectUrl.pathname).toBe(
       "https://app.praedixa.com/login",
     );
     expect(redirectUrl.searchParams.get("error")).toBe("rate_limited");
     expect(redirectUrl.searchParams.get("next")).toBe("/dashboard");
+    expect(response.headers.set).toHaveBeenCalledWith("Retry-After", "120");
   });
 });

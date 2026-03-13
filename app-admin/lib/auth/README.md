@@ -4,21 +4,26 @@ Le back-office n'est pas seulement protege par un role; il applique aussi des pe
 
 ## Fichiers principaux
 
-| Fichier | Role |
-| --- | --- |
-| `middleware.ts` | Garde des requetes Next, redirections login/unauthorized |
-| `request-session.ts` | Resolution centralisee de la session admin |
-| `server.ts` | Helpers serveur pour lire l'utilisateur |
-| `client.ts` | Lecture client de la session via `/auth/session` |
-| `permissions.ts` | Normalisation des permissions et acces console |
-| `route-access.ts` | Mapping pathname -> permissions requises |
-| `oidc.ts` | Sous-systeme OIDC admin (cookies, JWT, refresh, session) |
+| Fichier                   | Role                                                                         |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| `admin-route-policies.ts` | Source de verite typée des pages admin, tabs workspace et policies API proxy |
+| `middleware.ts`           | Garde des requetes Next, redirections login/unauthorized                     |
+| `request-session.ts`      | Resolution centralisee de la session admin                                   |
+| `server.ts`               | Helpers serveur pour lire l'utilisateur                                      |
+| `client.ts`               | Lecture client de la session via `/auth/session`                             |
+| `permissions.ts`          | Normalisation des permissions et acces console                               |
+| `route-access.ts`         | Facade de compatibilite qui re-exporte la matrice de policies                |
+| `oidc.ts`                 | Sous-systeme OIDC admin (cookies, JWT, refresh, session)                     |
 
 ## Regles importantes
 
 - Acces console reserve a `canAccessAdminConsole(...)`.
 - Les routes `/api/*` ne sont pas gerees par le middleware de page; elles gardent leur propre contrat JSON.
-- `route-access.ts` protege aussi les URL directes du workspace client, pas seulement la navigation visible.
+- `admin-route-policies.ts` protege les URL directes du workspace client, la navigation UI et le proxy same-origin `/api/v1/[...path]`.
+- Les pages detail read-only (`approvals`, `dispatches/[actionId]`, `ledgers/[ledgerId]`) doivent etre declarees dans `admin-route-policies.ts` en meme temps que leurs endpoints API, sinon middleware, navigation et proxy divergent.
+- Tout chemin admin ou proxy admin sans policy explicite est refuse par defaut.
+- Les JWT admin n'acceptent plus que les claims top-level canoniques `sub`, `email`, `role`, `organization_id`, `site_id` et `permissions`; aucune permission n'est derivee depuis `profiles` ou `roles`.
+- En production, le callback admin exige aussi un claim `amr` conforme a `AUTH_ADMIN_REQUIRED_AMR` avant de creer la session console.
 
 ## Tests
 

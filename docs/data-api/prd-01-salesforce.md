@@ -15,12 +15,12 @@ Connecter Salesforce pour recuperer pipeline commercial, activites et comptes cl
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets Salesforce | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| CRM B2B | `Account`, `Contact` | `Id`, `Name`, `Industry`, `Billing*`, `OwnerId` | 30 min | `customer_account`, `site` |
-| Funnel | `Lead`, `Opportunity` | `Status`, `StageName`, `Amount`, `CloseDate`, `LastModifiedDate` | 15 min | `sales_deal` |
-| Activites | `Task`, `Event` | `WhoId`, `WhatId`, `Status`, `ActivityDate` | 15 min | `activity_event` |
-| Support | `Case` (optionnel V1.1) | `Priority`, `Status`, `Origin` | 60 min | `service_case` |
+| Domaine   | Objets Salesforce       | Champs minimum                                                   | Frequence | Canonical                  |
+| --------- | ----------------------- | ---------------------------------------------------------------- | --------- | -------------------------- |
+| CRM B2B   | `Account`, `Contact`    | `Id`, `Name`, `Industry`, `Billing*`, `OwnerId`                  | 30 min    | `customer_account`, `site` |
+| Funnel    | `Lead`, `Opportunity`   | `Status`, `StageName`, `Amount`, `CloseDate`, `LastModifiedDate` | 15 min    | `sales_deal`               |
+| Activites | `Task`, `Event`         | `WhoId`, `WhatId`, `Status`, `ActivityDate`                      | 15 min    | `activity_event`           |
+| Support   | `Case` (optionnel V1.1) | `Priority`, `Status`, `Origin`                                   | 60 min    | `service_case`             |
 
 ## 3. Specification d'integration
 
@@ -28,12 +28,17 @@ Connecter Salesforce pour recuperer pipeline commercial, activites et comptes cl
 
 - [ ] `client_id` / `client_secret` de la Connected App
 - [ ] utilisateur integration dedie avec profil lecture
+- [ ] `runtimeEnvironment=production|sandbox` confirme des le branchement
 - [ ] URL `login` ou `test` selon environnement
 - [ ] scopes OAuth valides (`api`, `refresh_token`)
+- [ ] suffixes d'hotes autorises alignes avec l'environnement
+  - `production`: `login.salesforce.com`, `my.salesforce.com`
+  - `sandbox`: `test.salesforce.com`, `sandbox.my.salesforce.com`
 
 ### 3.2 Authentification
 
 - OAuth 2.0 Authorization Code (si consentement admin) ou JWT Bearer Flow (service-to-service)
+- les defaults OAuth doivent suivre l'environnement choisi (`login.salesforce.com` en prod, `test.salesforce.com` en sandbox)
 - Token refresh gere automatiquement
 - Rotation secrete cote Praedixa sans downtime
 
@@ -68,6 +73,7 @@ Connecter Salesforce pour recuperer pipeline commercial, activites et comptes cl
 - `NFR-SF-01`: lag median < 20 minutes pour objets funnel
 - `NFR-SF-02`: taux d'echec extraction < 1% par run
 - `NFR-SF-03`: aucun champ secret/token en logs
+- `NFR-SF-04`: aucune confusion `production` / `sandbox` dans les endpoints configures ou les allowlists runtime
 
 ## 6. Plan d'implementation
 

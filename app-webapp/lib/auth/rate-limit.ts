@@ -10,6 +10,13 @@ import {
   resetInMemoryRateLimitState,
 } from "./rate-limit/memory";
 import {
+  AuthRateLimitRequirementError,
+  buildClosedRateLimitResult,
+  isWeakLocalRateLimitModeAllowed,
+  logRateLimitRequirementFailure,
+  resetRateLimitPolicyState,
+} from "./rate-limit/policy";
+import {
   executeRedisRateLimit,
   logRedisFailure,
   parseRedisConfig,
@@ -30,7 +37,15 @@ function getScopedRateLimitKey(
       : getRawClientKey(request);
 
   return hashIdentifier(rawClientKey)
-    .catch(() => `h-${hashFallbackIdentifier(rawClientKey)}`)
+    .catch((error) => {
+      if (
+        isWeakLocalRateLimitModeAllowed() &&
+        !(error instanceof AuthRateLimitRequirementError)
+      ) {
+        return `h-${hashFallbackIdentifier(rawClientKey)}`;
+      }
+      throw error;
+    })
     .then((hashedClientKey) => `${options.scope}:${hashedClientKey}`);
 }
 
@@ -38,8 +53,21 @@ export async function consumeRateLimit(
   request: NextRequest,
   options: RateLimitOptions,
 ): Promise<RateLimitResult> {
-  const scopedKey = await getScopedRateLimitKey(request, options);
-  const redisConfig = parseRedisConfig();
+  let scopedKey: string;
+  try {
+    scopedKey = await getScopedRateLimitKey(request, options);
+  } catch (error) {
+    logRateLimitRequirementFailure(error);
+    return buildClosedRateLimitResult(options, "misconfigured");
+  }
+
+  let redisConfig: ReturnType<typeof parseRedisConfig>;
+  try {
+    redisConfig = parseRedisConfig();
+  } catch (error) {
+    logRateLimitRequirementFailure(error);
+    return buildClosedRateLimitResult(options, "misconfigured");
+  }
 
   if (redisConfig) {
     const redisKey = `${redisConfig.keyPrefix}:${scopedKey}`;
@@ -47,7 +75,19 @@ export async function consumeRateLimit(
       return await executeRedisRateLimit(redisConfig, redisKey, options);
     } catch (error) {
       logRedisFailure(error);
+      if (!isWeakLocalRateLimitModeAllowed()) {
+        return buildClosedRateLimitResult(options, "unavailable");
+      }
     }
+  }
+
+  if (!isWeakLocalRateLimitModeAllowed()) {
+    logRateLimitRequirementFailure(
+      new AuthRateLimitRequirementError(
+        "Distributed auth rate limit is required outside development",
+      ),
+    );
+    return buildClosedRateLimitResult(options, "misconfigured");
   }
 
   return consumeRateLimitInMemory(scopedKey, options);
@@ -57,4 +97,5 @@ export function __resetRateLimitStateForTests(): void {
   resetInMemoryRateLimitState();
   resetRedisRateLimitState();
   resetFingerprintRateLimitState();
+  resetRateLimitPolicyState();
 }

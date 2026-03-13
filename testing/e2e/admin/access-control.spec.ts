@@ -22,9 +22,7 @@ async function setupAdminAuthWithoutSuperAdmin(page: Page) {
 }
 
 test.describe("Admin access control", () => {
-  test("non-console-admin is redirected back to login", async ({
-    page,
-  }) => {
+  test("non-console-admin is redirected back to login", async ({ page }) => {
     await setupAdminAuthWithoutSuperAdmin(page);
 
     await page.goto("/dashboard");

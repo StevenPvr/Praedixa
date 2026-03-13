@@ -8,7 +8,9 @@ test.describe("Authenticated navigation", () => {
     await mockAllApis(page);
   });
 
-  test("sidebar navigation links work between existing pages", async ({ page }) => {
+  test("sidebar navigation links work between existing pages", async ({
+    page,
+  }) => {
     await page.goto("/dashboard");
     await expect(
       page.getByRole("heading", { name: "Priorites du jour" }),
@@ -35,7 +37,9 @@ test.describe("Authenticated navigation", () => {
     ).toBeVisible();
   });
 
-  test("active page has aria-current indicator in sidebar", async ({ page }) => {
+  test("active page has aria-current indicator in sidebar", async ({
+    page,
+  }) => {
     await page.goto("/dashboard");
 
     const nav = page.getByLabel("Navigation principale");
@@ -49,19 +53,19 @@ test.describe("Authenticated navigation", () => {
       "aria-current",
       "page",
     );
-    await expect(nav.getByRole("link", { name: /Accueil/ })).not.toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    await expect(
+      nav.getByRole("link", { name: /Accueil/ }),
+    ).not.toHaveAttribute("aria-current", "page");
   });
 
-  test("invalid route shows 404 not-found page", async ({ page }) => {
+  test("invalid route redirects authenticated users to dashboard", async ({
+    page,
+  }) => {
     await page.goto("/this-page-does-not-exist");
 
-    await expect(page.getByText("404")).toBeVisible();
-    await expect(page.getByText("Page introuvable")).toBeVisible();
+    await expect(page).toHaveURL(/\/dashboard$/);
     await expect(
-      page.getByRole("link", { name: "Retour au tableau de bord" }),
+      page.getByRole("heading", { name: "Priorites du jour" }),
     ).toBeVisible();
   });
 

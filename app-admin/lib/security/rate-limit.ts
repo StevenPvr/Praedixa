@@ -35,7 +35,11 @@ export interface RateLimitResult {
   retryAfterSeconds: number;
   remaining: number;
   resetAtEpochSeconds: number;
+  reason?: "rate_limited" | "misconfigured" | "unavailable";
+  mode?: "development-local" | "distributed-required";
 }
+
+type RateLimitMode = NonNullable<RateLimitResult["mode"]>;
 
 type RespValue = string | number | null | RespValue[] | Error;
 
@@ -45,6 +49,8 @@ const MAX_RATE_LIMIT_BUCKETS = 20_000;
 
 const REDIS_FAILURE_LOG_INTERVAL_MS = 60_000;
 let nextRedisFailureLogAt = 0;
+const REQUIREMENT_FAILURE_LOG_INTERVAL_MS = 60_000;
+let nextRequirementFailureLogAt = 0;
 
 const REDIS_RATE_LIMIT_SCRIPT = [
   "local current = redis.call('INCR', KEYS[1])",
@@ -171,7 +177,100 @@ function shouldTrustProxyIpHeaders(): boolean {
   return process.env.AUTH_TRUST_X_FORWARDED_FOR === "1";
 }
 
-function parsePositiveInteger(value: string | undefined, fallback: number): number {
+class RateLimitRequirementError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RateLimitRequirementError";
+  }
+}
+
+function isWeakLocalRateLimitModeAllowed(): boolean {
+  return process.env.NODE_ENV === "development";
+}
+
+function buildClosedRateLimitResult(
+  options: RateLimitOptions,
+): RateLimitResult {
+  return {
+    allowed: false,
+    retryAfterSeconds: Math.max(1, Math.ceil(options.windowMs / 1000)),
+    remaining: 0,
+    resetAtEpochSeconds: Math.ceil((Date.now() + options.windowMs) / 1000),
+    reason: "unavailable",
+    mode: isWeakLocalRateLimitModeAllowed()
+      ? "development-local"
+      : "distributed-required",
+  };
+}
+
+function buildMisconfiguredRateLimitResult(
+  options: RateLimitOptions,
+): RateLimitResult {
+  return {
+    ...buildClosedRateLimitResult(options),
+    reason: "misconfigured",
+  };
+}
+
+function getConfiguredRedisUrl(): string | null {
+  const rawUrl =
+    process.env.AUTH_RATE_LIMIT_REDIS_URL?.trim() ??
+    process.env.RATE_LIMIT_STORAGE_URI?.trim() ??
+    "";
+
+  if (rawUrl) {
+    return rawUrl;
+  }
+
+  if (isWeakLocalRateLimitModeAllowed()) {
+    return null;
+  }
+
+  throw new RateLimitRequirementError(
+    "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI is required outside development",
+  );
+}
+
+function requireRateLimitKeySalt(): string {
+  const explicitSalt = process.env.AUTH_RATE_LIMIT_KEY_SALT?.trim();
+  if (explicitSalt) {
+    return explicitSalt;
+  }
+
+  if (isWeakLocalRateLimitModeAllowed()) {
+    return process.env.AUTH_SESSION_SECRET?.trim() || "prx-rate-limit-dev";
+  }
+
+  throw new RateLimitRequirementError(
+    "AUTH_RATE_LIMIT_KEY_SALT is required outside development",
+  );
+}
+
+function logRequirementFailure(error: unknown): void {
+  const now = Date.now();
+  if (now < nextRequirementFailureLogAt) {
+    return;
+  }
+
+  nextRequirementFailureLogAt = now + REQUIREMENT_FAILURE_LOG_INTERVAL_MS;
+  const message =
+    error instanceof Error
+      ? error.message
+      : "Unknown admin auth rate limit configuration error";
+
+  if (isWeakLocalRateLimitModeAllowed()) {
+    process.emitWarning(`[admin-auth-rate-limit] ${message}`);
+    return;
+  }
+
+  // eslint-disable-next-line no-console
+  console.error(`[admin-auth-rate-limit] ${message}`);
+}
+
+function parsePositiveInteger(
+  value: string | undefined,
+  fallback: number,
+): number {
   if (!value) return fallback;
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed) || parsed <= 0) {
@@ -314,10 +413,7 @@ function encodeRespArray(args: Array<string | number>): Buffer {
 }
 
 function parseRedisConfig(): RedisRateLimitConfig | null {
-  const rawUrl =
-    process.env.AUTH_RATE_LIMIT_REDIS_URL?.trim() ??
-    process.env.RATE_LIMIT_STORAGE_URI?.trim() ??
-    "";
+  const rawUrl = getConfiguredRedisUrl();
   if (!rawUrl) {
     return null;
   }
@@ -326,26 +422,44 @@ function parseRedisConfig(): RedisRateLimitConfig | null {
   try {
     parsed = new URL(rawUrl);
   } catch {
-    return null;
+    if (isWeakLocalRateLimitModeAllowed()) {
+      return null;
+    }
+    throw new RateLimitRequirementError(
+      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must be a valid redis:// or rediss:// URL outside development",
+    );
   }
 
   if (parsed.protocol !== "redis:" && parsed.protocol !== "rediss:") {
-    return null;
+    if (isWeakLocalRateLimitModeAllowed()) {
+      return null;
+    }
+    throw new RateLimitRequirementError(
+      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must use redis:// or rediss:// outside development",
+    );
   }
 
   if (!parsed.hostname) {
-    return null;
+    if (isWeakLocalRateLimitModeAllowed()) {
+      return null;
+    }
+    throw new RateLimitRequirementError(
+      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must include a hostname outside development",
+    );
   }
 
   const tls = parsed.protocol === "rediss:";
-  const port =
-    Number.parseInt(parsed.port, 10) ||
-    (tls ? 6380 : 6379);
+  const port = Number.parseInt(parsed.port, 10) || (tls ? 6380 : 6379);
 
   const dbPath = parsed.pathname.replace(/^\//, "").trim();
   const db = dbPath ? Number.parseInt(dbPath, 10) : 0;
   if (!Number.isFinite(db) || db < 0) {
-    return null;
+    if (isWeakLocalRateLimitModeAllowed()) {
+      return null;
+    }
+    throw new RateLimitRequirementError(
+      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must reference a valid Redis database index outside development",
+    );
   }
 
   return {
@@ -424,6 +538,7 @@ function buildResult(
   ttlMs: number,
   max: number,
   nowMs: number,
+  mode?: RateLimitMode,
 ): RateLimitResult {
   const normalizedTtlMs = Math.max(1, ttlMs);
   const retryAfterSeconds = Math.max(1, Math.ceil(normalizedTtlMs / 1000));
@@ -434,6 +549,7 @@ function buildResult(
       retryAfterSeconds,
       remaining: 0,
       resetAtEpochSeconds: Math.ceil((nowMs + normalizedTtlMs) / 1000),
+      mode,
     };
   }
 
@@ -442,6 +558,7 @@ function buildResult(
     retryAfterSeconds: 0,
     remaining: Math.max(0, max - count),
     resetAtEpochSeconds: Math.ceil((nowMs + normalizedTtlMs) / 1000),
+    mode,
   };
 }
 
@@ -454,14 +571,9 @@ function hashString(value: string): string {
 }
 
 async function hashIdentifier(value: string): Promise<string> {
-  const salt =
-    process.env.AUTH_RATE_LIMIT_KEY_SALT?.trim() ??
-    process.env.AUTH_SESSION_SECRET?.trim() ??
-    "prx-rate-limit";
-
   const digest = await crypto.subtle.digest(
     "SHA-256",
-    new TextEncoder().encode(`${salt}:${value}`),
+    new TextEncoder().encode(`${requireRateLimitKeySalt()}:${value}`),
   );
 
   const bytes = new Uint8Array(digest);
@@ -535,7 +647,9 @@ function pruneBucketsIfNeeded(): void {
   if (buckets.size <= MAX_RATE_LIMIT_BUCKETS) return;
 
   const toDrop =
-    buckets.size - MAX_RATE_LIMIT_BUCKETS + Math.ceil(MAX_RATE_LIMIT_BUCKETS * 0.05);
+    buckets.size -
+    MAX_RATE_LIMIT_BUCKETS +
+    Math.ceil(MAX_RATE_LIMIT_BUCKETS * 0.05);
   const entries = [...buckets.entries()].sort(
     (left, right) => left[1].resetAt - right[1].resetAt,
   );
@@ -567,15 +681,20 @@ function consumeRateLimitInMemory(
       retryAfterSeconds: 0,
       remaining: Math.max(0, options.max - 1),
       resetAtEpochSeconds: Math.ceil(resetAt / 1000),
+      mode: "development-local",
     };
   }
 
   if (existing.count >= options.max) {
     return {
       allowed: false,
-      retryAfterSeconds: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)),
+      retryAfterSeconds: Math.max(
+        1,
+        Math.ceil((existing.resetAt - now) / 1000),
+      ),
       remaining: 0,
       resetAtEpochSeconds: Math.ceil(existing.resetAt / 1000),
+      mode: "development-local",
     };
   }
 
@@ -587,6 +706,7 @@ function consumeRateLimitInMemory(
     retryAfterSeconds: 0,
     remaining: Math.max(0, options.max - existing.count),
     resetAtEpochSeconds: Math.ceil(existing.resetAt / 1000),
+    mode: "development-local",
   };
 }
 
@@ -600,8 +720,17 @@ function logRedisFailure(error: unknown): void {
 
   const message =
     error instanceof Error ? error.message : "Unknown Redis rate limit error";
-  process.emitWarning(
-    `[admin-auth-rate-limit] Redis unavailable, fallback to in-memory limiter (${message})`,
+
+  if (isWeakLocalRateLimitModeAllowed()) {
+    process.emitWarning(
+      `[admin-auth-rate-limit] Redis unavailable, local in-memory limiter remains active (${message})`,
+    );
+    return;
+  }
+
+  // eslint-disable-next-line no-console
+  console.error(
+    `[admin-auth-rate-limit] Redis unavailable; blocking auth rate-limited routes instead of degrading locally (${message})`,
   );
 }
 
@@ -616,7 +745,10 @@ async function executeRedisRateLimit(
       const authArgs = config.username
         ? ["AUTH", config.username, config.password]
         : ["AUTH", config.password];
-      const authReply = await connection.command(authArgs, config.commandTimeoutMs);
+      const authReply = await connection.command(
+        authArgs,
+        config.commandTimeoutMs,
+      );
       const authStatus = toStringValue(authReply);
       if (authStatus !== "OK") {
         throw new Error("Redis AUTH failed");
@@ -651,7 +783,13 @@ async function executeRedisRateLimit(
     }
 
     const effectiveTtlMs = ttlMs < 0 ? options.windowMs : ttlMs;
-    return buildResult(count, effectiveTtlMs, options.max, Date.now());
+    return buildResult(
+      count,
+      effectiveTtlMs,
+      options.max,
+      Date.now(),
+      "distributed-required",
+    );
   } finally {
     connection.close();
   }
@@ -667,30 +805,49 @@ export async function consumeRateLimit(
       ? overrideIdentifier
       : getRawClientKey(request);
 
-  let hashedClientKey = `h-${hashString(rawClientKey)}`;
   try {
-    hashedClientKey = await hashIdentifier(rawClientKey);
-  } catch {
-    // Fallback to non-crypto hash.
-  }
+    const hashedClientKey = await hashIdentifier(rawClientKey);
+    const scopedKey = `${options.scope}:${hashedClientKey}`;
+    const redisConfig = parseRedisConfig();
 
-  const scopedKey = `${options.scope}:${hashedClientKey}`;
-  const redisConfig = parseRedisConfig();
-
-  if (redisConfig) {
-    const redisKey = `${redisConfig.keyPrefix}:${scopedKey}`;
-    try {
-      return await executeRedisRateLimit(redisConfig, redisKey, options);
-    } catch (error) {
-      logRedisFailure(error);
+    if (redisConfig) {
+      const redisKey = `${redisConfig.keyPrefix}:${scopedKey}`;
+      try {
+        return await executeRedisRateLimit(redisConfig, redisKey, options);
+      } catch (error) {
+        logRedisFailure(error);
+        if (!isWeakLocalRateLimitModeAllowed()) {
+          return buildClosedRateLimitResult(options);
+        }
+      }
     }
-  }
 
-  return consumeRateLimitInMemory(scopedKey, options);
+    if (!isWeakLocalRateLimitModeAllowed()) {
+      logRequirementFailure(
+        new RateLimitRequirementError(
+          "Distributed auth rate limit is required outside development",
+        ),
+      );
+      return buildMisconfiguredRateLimitResult(options);
+    }
+
+    return consumeRateLimitInMemory(scopedKey, options);
+  } catch (error) {
+    if (isWeakLocalRateLimitModeAllowed()) {
+      const scopedKey = `${options.scope}:h-${hashString(rawClientKey)}`;
+      if (!(error instanceof RateLimitRequirementError)) {
+        return consumeRateLimitInMemory(scopedKey, options);
+      }
+    }
+
+    logRequirementFailure(error);
+    return buildMisconfiguredRateLimitResult(options);
+  }
 }
 
 export function __resetRateLimitStateForTests(): void {
   buckets.clear();
   nextSweepAt = 0;
   nextRedisFailureLogAt = 0;
+  nextRequirementFailureLogAt = 0;
 }

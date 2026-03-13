@@ -24,9 +24,7 @@ export const CSP_REPORT_TO_GROUP = "csp-endpoint";
 
 function isLoopbackHostname(hostname: string): boolean {
   return (
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname === "[::1]"
+    hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]"
   );
 }
 
@@ -37,7 +35,11 @@ function getTrustedOriginOrEmpty(value: string): string {
     if (parsed.protocol === "https:") {
       return parsed.origin;
     }
-    if (!isProd && parsed.protocol === "http:" && isLoopbackHostname(parsed.hostname)) {
+    if (
+      !isProd &&
+      parsed.protocol === "http:" &&
+      isLoopbackHostname(parsed.hostname)
+    ) {
       return parsed.origin;
     }
     return "";
@@ -101,8 +103,7 @@ const normalizedReportToUrl = normalizeReportToUrl(cspReportToUrl);
 export function buildCspHeader(nonce: string): string {
   const authOrigin = getTrustedOriginOrEmpty(oidcIssuerUrl);
   const apiOrigin =
-    getTrustedOriginOrEmpty(apiUrl) ||
-    (!isProd ? "http://localhost:8000" : "");
+    getTrustedOriginOrEmpty(apiUrl) || (!isProd ? "http://localhost:8000" : "");
   const connectSources = ["'self'"];
   if (apiOrigin) {
     connectSources.push(apiOrigin);

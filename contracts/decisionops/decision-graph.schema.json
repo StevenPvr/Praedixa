@@ -1,0 +1,520 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "https://schemas.praedixa.dev/contracts/decisionops/decision-graph.schema.json",
+  "title": "Praedixa Decision Graph",
+  "description": "Versioned semantic model for entities, relations, metrics and horizons used by contracts, scenarios, UI and ledger.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "schema_version",
+    "graph_id",
+    "graph_version",
+    "status",
+    "canonical_model_version",
+    "supported_packs",
+    "entities",
+    "relations",
+    "metrics",
+    "dimensions",
+    "horizons",
+    "entity_resolution",
+    "compatibility",
+    "audit"
+  ],
+  "properties": {
+    "kind": {
+      "const": "DecisionGraph"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "graph_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]{2,127}$"
+    },
+    "graph_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "status": {
+      "enum": ["draft", "testing", "published", "archived"]
+    },
+    "canonical_model_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "supported_packs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": ["coverage", "flow", "allocation", "core"]
+      },
+      "uniqueItems": true
+    },
+    "entities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/entity"
+      }
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relation"
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/metric"
+      }
+    },
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dimension"
+      }
+    },
+    "horizons": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/horizon"
+      }
+    },
+    "entity_resolution": {
+      "$ref": "#/$defs/entityResolution"
+    },
+    "compatibility": {
+      "$ref": "#/$defs/compatibility"
+    },
+    "change_impact": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/changeImpact"
+      }
+    },
+    "audit": {
+      "$ref": "#/$defs/audit"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "published"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "audit": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/audit"
+              },
+              {
+                "required": ["published_at"]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    },
+    "grain": {
+      "enum": [
+        "organization",
+        "site",
+        "team",
+        "flow",
+        "route",
+        "order_aggregate",
+        "stock_node",
+        "period"
+      ]
+    },
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "label", "grain", "identifiers", "attributes"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9_]{1,63}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "grain": {
+          "$ref": "#/$defs/grain"
+        },
+        "identifiers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+          },
+          "uniqueItems": true
+        },
+        "attributes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/attribute"
+          }
+        },
+        "source_bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sourceBinding"
+          }
+        }
+      }
+    },
+    "attribute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "value_type", "nullable"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "value_type": {
+          "enum": ["string", "integer", "number", "boolean", "date", "datetime"]
+        },
+        "nullable": {
+          "type": "boolean"
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 32
+        }
+      }
+    },
+    "sourceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_system", "field"],
+      "properties": {
+        "source_system": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "from_entity",
+        "to_entity",
+        "cardinality",
+        "join_keys"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "from_entity": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9_]{1,63}$"
+        },
+        "to_entity": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9_]{1,63}$"
+        },
+        "relation_type": {
+          "enum": ["ownership", "dependency", "aggregation", "reference"]
+        },
+        "cardinality": {
+          "enum": ["one_to_one", "one_to_many", "many_to_one", "many_to_many"]
+        },
+        "join_keys": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/joinKey"
+          }
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "joinKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from_key", "to_key"],
+      "properties": {
+        "from_key": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "to_key": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        }
+      }
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "label",
+        "grain",
+        "value_type",
+        "expression",
+        "depends_on",
+        "snapshot_policy",
+        "time_horizon_required"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,127}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "grain": {
+          "$ref": "#/$defs/grain"
+        },
+        "owner_entity": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9_]{1,63}$"
+        },
+        "value_type": {
+          "enum": ["integer", "number", "boolean"]
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "expression": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "depends_on": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "uniqueItems": true
+        },
+        "snapshot_policy": {
+          "enum": ["recomputable", "materialized", "event_sourced"]
+        },
+        "time_horizon_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "label", "value_type"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "value_type": {
+          "enum": ["string", "integer", "number", "boolean", "date"]
+        },
+        "allowed_values": {
+          "type": "array",
+          "items": {
+            "type": ["string", "number", "integer", "boolean"]
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "horizon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "horizon_id",
+        "label",
+        "start_offset_days",
+        "end_offset_days",
+        "snapshot_mode"
+      ],
+      "properties": {
+        "horizon_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9+_-]{0,31}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "start_offset_days": {
+          "type": "integer",
+          "minimum": -3650,
+          "maximum": 3650
+        },
+        "end_offset_days": {
+          "type": "integer",
+          "minimum": -3650,
+          "maximum": 3650
+        },
+        "snapshot_mode": {
+          "enum": ["point_in_time", "rolling_window", "period_bucket"]
+        }
+      }
+    },
+    "entityResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["duplicate_policy", "strategies"],
+      "properties": {
+        "duplicate_policy": {
+          "enum": ["fail", "flag", "merge"]
+        },
+        "strategies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/resolutionStrategy"
+          }
+        }
+      }
+    },
+    "resolutionStrategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entity", "source_system", "match_keys"],
+      "properties": {
+        "entity": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9_]{1,63}$"
+        },
+        "source_system": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "match_keys": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+          },
+          "uniqueItems": true
+        },
+        "confidence_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backward_compatible_with", "breaking_change"],
+      "properties": {
+        "backward_compatible_with": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "uniqueItems": true
+        },
+        "breaking_change": {
+          "type": "boolean"
+        },
+        "change_summary": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      }
+    },
+    "changeImpact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_id", "minimum_contract_version", "impact_level"],
+      "properties": {
+        "contract_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]{2,127}$"
+        },
+        "minimum_contract_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "impact_level": {
+          "enum": ["low", "medium", "high"]
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["created_at", "created_by", "change_reason"],
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "created_by": {
+          "$ref": "#/$defs/uuid"
+        },
+        "published_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "change_reason": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 1000
+        }
+      }
+    }
+  }
+}

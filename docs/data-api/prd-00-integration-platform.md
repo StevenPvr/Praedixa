@@ -116,6 +116,7 @@ Le modele cible cote client est:
 - `FR-PLAT-06`: separation stricte multi-tenant par `organization_id`.
 - `FR-PLAT-07`: journaliser les erreurs exploitables par support.
 - `FR-PLAT-08`: exposer metriques par connecteur dans monitoring admin.
+- `FR-PLAT-09`: fournir un verdict de readiness/activation standardise avant `connection test` et avant `sync`.
 
 ## 7. Exigences non-fonctionnelles (NFR)
 
@@ -134,6 +135,14 @@ Le modele cible cote client est:
 - Journal d'acces admin et audit trail sur modifications de connexion.
 - Masquage PII dans logs (`email`, `phone`, `license_plate`, `VIN`).
 - DPA fournisseur valide pour chaque connecteur traite.
+
+### 8.1 Runtime sandbox en production
+
+- Une connexion fournisseur doit declarer `runtimeEnvironment=production|sandbox`.
+- `production` et `sandbox` utilisent des allowlists distinctes du runtime (`CONNECTORS_ALLOWED_OUTBOUND_HOSTS` vs `CONNECTORS_ALLOWED_SANDBOX_OUTBOUND_HOSTS`).
+- Un host reserve a la sandbox ne doit jamais etre reutilise par une connexion `production`.
+- Les URLs publiques d'ingestion remises a un fournisseur doivent toujours venir d'un `CONNECTORS_PUBLIC_BASE_URL` explicitement configure, jamais d'un fallback local.
+- Reference detaillee: `docs/data-api/sandbox-runtime-policy.md`.
 
 ## 9. Observabilite
 
@@ -171,9 +180,10 @@ Alertes:
 
 1. Tests unitaires par mapper/extractor.
 2. Tests integration avec mocks fournisseurs.
-3. Tests resilience (timeouts, 429, payload incomplet, schema drift).
-4. Tests securite (secret leak, auth revoke, privilege check).
-5. Tests de charge sur volume cible client pilote.
+3. Tests de readiness/activation standardises par connecteur certifie.
+4. Tests resilience (timeouts, 429, payload incomplet, schema drift).
+5. Tests securite (secret leak, auth revoke, privilege check).
+6. Tests de charge sur volume cible client pilote.
 
 ## 12. Definition of Done globale
 
@@ -183,10 +193,21 @@ Alertes:
 - Reprocessing valide en preproduction.
 - Au moins un dry-run client termine sans erreur bloquante.
 
+## 12.1 Fondation Python actuellement branchee
+
+Le data-plane Python porte maintenant une fondation runtime disjointe pour:
+
+- quarantaine append-only des payloads invalides ou retroactifs via `data-ready/quarantine/_manifests/*.json`
+- `replay` cible depuis la quarantaine avec `uv run python -m scripts.medallion_replay`
+- `backfill` cible par fenetre avec `uv run python -m scripts.medallion_backfill`
+
+Cette fondation reste strictement sur le chemin medaillon `raw -> harmonized -> features` et ne remplace pas encore les surfaces admin/control-plane.
+
 ## 13. Dependencies externes
 
 - Contrats API partenaire fournisseur.
 - Credentials techniques + sandbox client.
+- Environnement cible confirme des le branchement (`production` ou `sandbox`) avec suffixes d'hotes autorises.
 - Validation legale des flux PII.
 - Disponibilite d'un referent IT client.
 
@@ -203,10 +224,12 @@ Alertes:
 - le client cree un compte integration lecture seule
 - il autorise l'app Praedixa (OAuth/API key)
 - il partage tenant URL + credentials via canal securise
+- il confirme si le tenant est `production` ou `sandbox`
 
 ### J1 - Activation technique Praedixa
 
 - creation de la connexion dans admin
+- verdict readiness vert (`config`, `credentials`, `authorization`, `probe target`)
 - test de connexion + test de permissions
 - full sync initiale (backfill)
 

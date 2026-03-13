@@ -18,4 +18,5 @@ Fixtures Playwright partagees entre plusieurs projets E2E.
 ## Attention
 
 - Les fixtures d'auth doivent rester coherentes avec les cookies et sessions gerees dans `app-webapp` et `app-admin`.
+- Quand `app-admin` exige des permissions explicites dans la session, `oidc-auth.ts` doit injecter les memes permissions a la fois dans le JWT E2E et dans la session signee; un role seul ne suffit pas.
 - Une fixture partagee trop specifique cree du couplage: preferer des primitives simples et composees par les specs.

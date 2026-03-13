@@ -17,6 +17,7 @@ Specs Playwright de la landing publique.
 - Quand une interaction disparait cote landing, supprimer ou adapter la spec correspondante dans le meme changement.
 - Quand le parcours public de deploiement change de slug, d'endpoint ou de libelle, mettre a jour la spec Playwright dans le meme diff pour rester aligne avec les dictionnaires localises et l'API publique reelle.
 - Quand la section sectorielle de la home change, mettre a jour `hero-industry-links.spec.ts` dans le meme diff pour rester aligne avec les liens et libelles publies.
+- Pour les pages francaises, ne pas supposer qu'une regex ASCII matchera les accents visibles; ecrire les assertions de titre avec les caracteres reels ou des classes explicites.
 
 ## Commande ciblee
 

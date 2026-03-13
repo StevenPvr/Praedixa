@@ -7,9 +7,11 @@ Ce sous-dossier contient une famille spécialisée de composants rattachée à `
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - `__tests__`
 
 Fichiers :
+
 - `chart-insight.tsx`
 - `forecast-timeline-chart.tsx`
 - `war-room.tsx`

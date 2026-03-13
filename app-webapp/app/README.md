@@ -1,35 +1,33 @@
 # `app/` - App Router du webapp
 
-Ce dossier porte l'arborescence Next.js du produit client. Il assemble les layouts globaux, les pages publiques, les pages authentifiees et les route handlers qui servent d'interface entre le navigateur et le backend Praedixa.
+Arborescence Next.js du workspace client. Ce dossier se limite a 3 surfaces:
 
-## Sous-zones
-
-| Dossier | Role |
-| --- | --- |
-| `(app)/` | Pages authentifiees du tableau de bord client |
-| `(auth)/` | Ecrans publics de connexion |
-| `auth/` | Route handlers OIDC et session |
-| `api/` | BFF same-origin vers `NEXT_PUBLIC_API_URL` |
-| `__tests__/` | Tests des layouts et pages racine |
+- un shell authentifie sous `app/(app)/`
+- une UI publique de login sous `app/(auth)/`
+- des route handlers sous `app/auth/` et `app/api/`
 
 ## Fichiers racine
 
-| Fichier | Role |
-| --- | --- |
-| `layout.tsx` | Layout global de l'application, styles et garde-fou runtime |
-| `page.tsx` | Point d'entree `/`, redirigé vers l'experience principale |
-| `not-found.tsx` | 404 globale |
-| `globals.css` | Tokens CSS et styles globaux |
-| `robots.ts` | Robots de l'app |
+| Fichier         | Role reel                                      |
+| --------------- | ---------------------------------------------- |
+| `layout.tsx`    | root layout, skip-link et `RuntimeErrorShield` |
+| `page.tsx`      | redirect serveur de `/` vers `/dashboard`      |
+| `not-found.tsx` | 404 globale de l'app                           |
+| `globals.css`   | styles globaux du webapp                       |
+| `robots.ts`     | robots de l'app                                |
 
-## Routage
+## Sous-zones
 
-- Les pages metier vivent dans `app/(app)/README.md`.
-- Le login UI vit dans `app/(auth)/README.md`.
-- Les callbacks OIDC, la session et la deconnexion vivent dans `app/auth/README.md`.
-- Les appels browser vers le backend passent par `app/api/README.md`.
+| Dossier      | Role reel                                              |
+| ------------ | ------------------------------------------------------ |
+| `(app)/`     | pages authentifiees du workspace client                |
+| `(auth)/`    | layout et page `/login`                                |
+| `auth/`      | handlers OIDC, session et logout                       |
+| `api/`       | proxy same-origin vers l'API Praedixa                  |
+| `__tests__/` | tests du root layout, de la page `/` et du `not-found` |
 
-## Tests
+## Regles de routage
 
-- `app/__tests__/layout.test.tsx`, `page.test.tsx`, `not-found.test.tsx` couvrent les points d'entree et les garde-fous de rendu.
-- Les tests de pages plus metier sont colocalises dans les sous-dossiers `(app)` et `(auth)`.
+- Le middleware s'aligne sur `lib/auth/route-policy.ts`.
+- Tout nouveau chemin supporte doit etre ajoute a cette registry.
+- Les groupes `(auth)` et `(app)` ne remplacent pas les handlers `app/auth/*`: l'UI login et les endpoints auth sont deux surfaces distinctes.

@@ -7,9 +7,11 @@ Ce dossier regroupe les composants UI du périmètre concerné. Ils encapsulent 
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - `data-table`
 
 Fichiers :
+
 - `button.tsx`
 - `card.tsx`
 - `praedixa-logo.tsx`

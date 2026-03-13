@@ -1,9 +1,12 @@
 import * as React from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { cn } from "../../utils/cn";
-import type { DataTableColumn, DataTableSelection } from "./data-table-types";
-import { alignClass } from "./data-table-utils";
-import { DataTableCheckbox } from "./data-table-checkbox";
+import { cn } from "../../utils/cn.js";
+import type {
+  DataTableColumn,
+  DataTableSelection,
+} from "./data-table-types.js";
+import { alignClass } from "./data-table-utils.js";
+import { DataTableCheckbox } from "./data-table-checkbox.js";
 
 const ROW_HEIGHT = 36;
 

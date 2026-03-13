@@ -134,7 +134,9 @@ describe("useApiGet behavior", () => {
       (_url: string, _getToken: unknown, opts: { signal: AbortSignal }) =>
         new Promise((_resolve, reject) => {
           opts.signal.addEventListener("abort", () => {
-            reject(new DOMException("The operation was aborted.", "AbortError"));
+            reject(
+              new DOMException("The operation was aborted.", "AbortError"),
+            );
           });
         }),
     );

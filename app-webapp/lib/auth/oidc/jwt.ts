@@ -59,169 +59,19 @@ export function getString(payload: JwtPayload, key: string): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-function getStringArray(payload: JwtPayload, key: string): string[] {
-  const value = getOwnValue(payload, key);
-  if (!Array.isArray(value)) return [];
-  return value.filter(
-    (entry): entry is string => typeof entry === "string" && entry.length > 0,
-  );
-}
-
-function getNestedString(
-  payload: JwtPayload,
-  parentKey: string,
-  childKey?: string,
-): string | null {
-  const parentValue = getOwnValue(payload, parentKey);
-  if (childKey === undefined) {
-    return typeof parentValue === "string" && parentValue.length > 0
-      ? parentValue
-      : null;
-  }
-  if (
-    !parentValue ||
-    typeof parentValue !== "object" ||
-    Array.isArray(parentValue)
-  ) {
-    return null;
-  }
-  const childValue = getOwnValue(
-    parentValue as Record<string, unknown>,
-    childKey,
-  );
-  return typeof childValue === "string" && childValue.length > 0
-    ? childValue
-    : null;
-}
-
-function normalizeRoleValue(rawRole: string): string {
+function normalizeRole(rawRole: string): KnownRole | null {
   const trimmed = rawRole.trim();
-  if (trimmed.length === 0) return "";
-
-  const withoutPath = trimmed.includes("/")
-    ? (trimmed.split("/").at(-1) ?? "")
-    : trimmed;
-
-  return withoutPath
-    .toLowerCase()
-    .replace(/^role[_:-]?/, "")
-    .replace(/[\s-]+/g, "_");
-}
-
-function mapToKnownRole(rawRole: string): KnownRole | null {
-  const normalized = normalizeRoleValue(rawRole);
-  if (normalized.length === 0) return null;
-
-  if (
-    normalized === "admin" ||
-    normalized === "orgadmin" ||
-    normalized === "organization_admin" ||
-    normalized === "org_administrator"
-  ) {
-    return "org_admin";
+  if (trimmed.length === 0) {
+    return null;
   }
 
-  if (
-    normalized === "superadmin" ||
-    normalized === "super_administrator"
-  ) {
-    return "super_admin";
-  }
-
-  if (normalized === "hrmanager") {
-    return "hr_manager";
-  }
-
-  return ROLE_PRIORITY.includes(normalized as KnownRole)
-    ? (normalized as KnownRole)
+  return ROLE_PRIORITY.includes(trimmed as KnownRole)
+    ? (trimmed as KnownRole)
     : null;
-}
-
-function getRoleFromList(value: unknown): string | null {
-  if (!Array.isArray(value)) return null;
-  const roles = value.filter(
-    (entry): entry is string => typeof entry === "string",
-  );
-  if (roles.length === 0) return null;
-
-  const knownRoles = roles
-    .map((role) => mapToKnownRole(role))
-    .filter((role): role is KnownRole => role != null);
-
-  for (const candidate of ROLE_PRIORITY) {
-    if (knownRoles.includes(candidate)) {
-      return candidate;
-    }
-  }
-
-  return null;
-}
-
-function getClientResourceRole(
-  payload: JwtPayload,
-  clientId: string,
-): string | null {
-  const resourceAccess = getOwnValue(payload, "resource_access");
-  if (
-    !resourceAccess ||
-    typeof resourceAccess !== "object" ||
-    Array.isArray(resourceAccess) ||
-    !isSafeObjectKey(clientId)
-  ) {
-    return null;
-  }
-
-  const clientAccess = getOwnValue(
-    resourceAccess as Record<string, unknown>,
-    clientId,
-  );
-  if (
-    !clientAccess ||
-    typeof clientAccess !== "object" ||
-    Array.isArray(clientAccess)
-  ) {
-    return null;
-  }
-
-  return getRoleFromList(
-    getOwnValue(clientAccess as Record<string, unknown>, "roles"),
-  );
-}
-
-function extractRole(payload: JwtPayload, clientId: string): string {
-  const clientResourceRole = getClientResourceRole(payload, clientId);
-  if (clientResourceRole) return clientResourceRole;
-
-  const directRole =
-    getString(payload, "role") ??
-    getNestedString(payload, "app_metadata", "role");
-  if (directRole) return directRole;
-
-  const topLevelRoles = getRoleFromList(getOwnValue(payload, "roles"));
-  if (topLevelRoles) return topLevelRoles;
-
-  const groupsRole = getRoleFromList(getOwnValue(payload, "groups"));
-  if (groupsRole) return groupsRole;
-
-  const realmAccess = getOwnValue(payload, "realm_access");
-  const realmRoles = getRoleFromList(
-    realmAccess &&
-      typeof realmAccess === "object" &&
-      !Array.isArray(realmAccess)
-      ? getOwnValue(realmAccess as Record<string, unknown>, "roles")
-      : undefined,
-  );
-  if (realmRoles) return realmRoles;
-
-  return DEFAULT_ROLE;
-}
-
-function toKnownRole(role: string): string {
-  return mapToKnownRole(role) ?? DEFAULT_ROLE;
 }
 
 export function normalizeKnownRole(role: string): string {
-  return toKnownRole(role);
+  return normalizeRole(role) ?? DEFAULT_ROLE;
 }
 
 export function decodeJwtPayload(token: string): JwtPayload | null {
@@ -245,41 +95,26 @@ export function isTokenExpired(token: string, minTtlSeconds = 0): boolean {
 
 export function userFromAccessToken(
   token: string,
-  clientId: string,
+  _clientId: string,
 ): OidcUser | null {
+  void _clientId;
   const payload = decodeJwtPayload(token);
   if (!payload) return null;
 
   const sub = getString(payload, "sub");
-  const email =
-    getString(payload, "email") ??
-    getNestedString(payload, "preferred_username");
-  if (!sub || !email) return null;
+  const email = getString(payload, "email");
+  const rawRole = getString(payload, "role");
+  if (!sub || !email || !rawRole) return null;
 
-  const organizationId =
-    getString(payload, "org_id") ??
-    getString(payload, "organization_id") ??
-    getString(payload, "organizationId") ??
-    getNestedString(payload, "app_metadata", "organization_id") ??
-    getNestedString(payload, "app_metadata", "org_id");
-
-  const siteIdCandidates = [
-    getString(payload, "site_id"),
-    getString(payload, "siteId"),
-    getNestedString(payload, "app_metadata", "site_id"),
-    getStringArray(payload, "site_ids").length === 1
-      ? getStringArray(payload, "site_ids")[0]
-      : null,
-  ].filter(
-    (value): value is string => typeof value === "string" && value.length > 0,
-  );
+  const role = normalizeRole(rawRole);
+  if (!role) return null;
 
   return {
     id: sub,
     email,
-    role: toKnownRole(extractRole(payload, clientId)),
-    organizationId,
-    siteId: siteIdCandidates[0] ?? null,
+    role,
+    organizationId: getString(payload, "organization_id"),
+    siteId: getString(payload, "site_id"),
   };
 }
 

@@ -131,12 +131,36 @@ pnpm run scw:deploy:webapp:staging
 pnpm run scw:deploy:admin:staging
 ```
 
+### Smoke post-deploy frontends
+
+Le smoke front ne se limite plus a verifier que `/login` repond. Pour `webapp` et `admin`, il valide aussi:
+
+- le redirect OIDC de `/auth/login` vers le vrai host auth attendu;
+- la presence des cookies bootstrap OIDC;
+- le comportement `same-origin` / `cross-origin` de `/auth/session`.
+
+Exemples:
+
+```bash
+./scripts/scw-post-deploy-smoke.sh \
+  --env staging \
+  --services webapp,admin \
+  --auth-url https://<staging-auth-explicite>
+
+./scripts/scw-post-deploy-smoke.sh \
+  --env prod \
+  --services webapp,admin,auth
+```
+
+Sans `--auth-url` explicite en staging, le smoke front fail-close: on ne considere plus `webapp` ou `admin` comme validates si le redirect OIDC reel n'est pas verifie.
+
 ### Contraintes importantes
 
 - Les scripts `scw:deploy:*` refusent un workspace git non propre par defaut.
 - Pour forcer (non recommande): `SCW_DEPLOY_ALLOW_DIRTY=1`.
 - Aucun deploy staging/prod n'est lance tant que non demande explicitement.
 - La landing n'a plus de chemin de deploy local supporte en staging/prod; elle passe uniquement par le release runner immuable.
+- Un smoke frontend vert suppose maintenant une origine auth staging explicite et isolee pour `webapp/admin`; un simple `200` sur `/login` n'est plus suffisant.
 
 ### Reste a faire
 

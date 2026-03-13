@@ -10,6 +10,7 @@ vi.mock("../services/persistence.js", async (importOriginal) => {
 });
 
 import {
+  listPersistentForecastRuns,
   listPersistentLatestDailyForecasts,
   listPersistentOnboardings,
   listPersistentProofRecords,
@@ -148,6 +149,50 @@ describe("operational data persistence helpers", () => {
       "2026-03-07",
       "2026-03-14",
     ]);
+  });
+
+  it("scopes forecast runs by accessible site ids when live reads are not org-wide", async () => {
+    mockedQueryRows.mockResolvedValueOnce([
+      {
+        id: "fr-1",
+        organization_id: ORGANIZATION_ID,
+        model_type: "xgboost",
+        model_version: "v1",
+        horizon_days: 7,
+        status: "completed",
+        started_at: "2026-03-07T06:00:00.000Z",
+        completed_at: "2026-03-07T06:05:00.000Z",
+        accuracy_score: "0.93",
+        created_at: "2026-03-07T05:59:00.000Z",
+      },
+    ] as never);
+
+    const result = await listPersistentForecastRuns({
+      organizationId: ORGANIZATION_ID,
+      scope: {
+        orgWide: false,
+        accessibleSiteIds: ["site-lyon", "site-paris"],
+        requestedSiteId: null,
+      },
+      status: "completed",
+    });
+
+    expect(mockedQueryRows).toHaveBeenCalledTimes(1);
+    const [sql, values] = mockedQueryRows.mock.calls[0] ?? [];
+    expect(sql).toContain("d_run.site_id::text = ANY");
+    expect(sql).toContain("d_scope.site_id::text = ANY");
+    expect(sql).toContain("fr.status::text = $3");
+    expect(values).toEqual([
+      ORGANIZATION_ID,
+      ["site-lyon", "site-paris"],
+      "completed",
+    ]);
+    expect(result[0]).toMatchObject({
+      id: "fr-1",
+      organizationId: ORGANIZATION_ID,
+      status: "completed",
+      horizonDays: 7,
+    });
   });
 
   it("summarizes proof packs deterministically", () => {

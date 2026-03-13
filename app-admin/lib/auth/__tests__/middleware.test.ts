@@ -19,7 +19,8 @@ vi.mock("@/lib/auth/oidc", () => ({
 }));
 
 vi.mock("@/lib/auth/request-session", () => ({
-  resolveRequestSession: (...args: unknown[]) => mockResolveRequestSession(...args),
+  resolveRequestSession: (...args: unknown[]) =>
+    mockResolveRequestSession(...args),
 }));
 
 import { updateSession } from "../middleware";
@@ -86,14 +87,16 @@ describe("updateSession (admin)", () => {
   });
 
   it("allows API routes to be handled by route handlers", async () => {
-    const result = await updateSession(createMockRequest("/api/v1/organizations"));
+    const result = await updateSession(
+      createMockRequest("/api/v1/organizations"),
+    );
 
     expect(result.status).toBe(200);
     expect(mockResolveRequestSession).not.toHaveBeenCalled();
   });
 
   it("redirects unauthenticated users to /login", async () => {
-    const result = await updateSession(createMockRequest("/dashboard"));
+    const result = await updateSession(createMockRequest("/"));
 
     expect((result as { redirectUrl: string }).redirectUrl).toBe(
       "https://admin.praedixa.com/login",
@@ -115,7 +118,7 @@ describe("updateSession (admin)", () => {
       },
     });
 
-    const result = await updateSession(createMockRequest("/dashboard"));
+    const result = await updateSession(createMockRequest("/"));
 
     expect(result.status).toBe(200);
     expect(mockSetAuthCookies).toHaveBeenCalled();
@@ -125,7 +128,10 @@ describe("updateSession (admin)", () => {
   it("redirects authenticated admins away from restricted governance routes", async () => {
     mockResolveRequestSession.mockResolvedValue({
       ok: true,
-      session: createSession(),
+      session: {
+        ...createSession(),
+        permissions: ["admin:console:access", "admin:audit:read"],
+      },
       accessToken: "server-only-token",
       refreshToken: "refresh-token",
       cookieUpdate: null,
@@ -175,5 +181,58 @@ describe("updateSession (admin)", () => {
       "https://admin.praedixa.com/unauthorized",
     );
     expect(mockClearAuthCookies).not.toHaveBeenCalled();
+  });
+
+  it("fails closed on unknown admin paths", async () => {
+    mockResolveRequestSession.mockResolvedValue({
+      ok: true,
+      session: createSession(),
+      accessToken: "server-only-token",
+      refreshToken: "refresh-token",
+      cookieUpdate: null,
+    });
+
+    const result = await updateSession(createMockRequest("/legacy-dashboard"));
+
+    expect((result as { redirectUrl: string }).redirectUrl).toBe(
+      "https://admin.praedixa.com/unauthorized",
+    );
+  });
+
+  it("enforces the explicit config route policy", async () => {
+    mockResolveRequestSession.mockResolvedValue({
+      ok: true,
+      session: {
+        ...createSession(),
+        permissions: ["admin:console:access", "admin:org:read"],
+      },
+      accessToken: "server-only-token",
+      refreshToken: "refresh-token",
+      cookieUpdate: null,
+    });
+
+    const denied = await updateSession(
+      createMockRequest("/clients/org-1/config"),
+    );
+
+    expect((denied as { redirectUrl: string }).redirectUrl).toBe(
+      "https://admin.praedixa.com/unauthorized",
+    );
+
+    mockResolveRequestSession.mockResolvedValue({
+      ok: true,
+      session: {
+        ...createSession(),
+        permissions: ["admin:console:access", "admin:billing:read"],
+      },
+      accessToken: "server-only-token",
+      refreshToken: "refresh-token",
+      cookieUpdate: null,
+    });
+
+    const allowed = await updateSession(
+      createMockRequest("/clients/org-1/config"),
+    );
+    expect(allowed.status).toBe(200);
   });
 });

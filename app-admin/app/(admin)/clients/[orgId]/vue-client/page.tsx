@@ -338,8 +338,7 @@ export default function VueClientPage() {
         </div>
         {!canManageLifecycle ? (
           <p className="text-xs text-ink-placeholder">
-            Permission requise pour suspendre ou reactiver un client:
-            {" "}
+            Permission requise pour suspendre ou reactiver un client:{" "}
             <span className="font-medium text-ink">admin:org:write</span>
           </p>
         ) : null}

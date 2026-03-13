@@ -164,8 +164,7 @@ export default function EquipePage() {
 
       {!canManageUsers ? (
         <p className="text-sm text-ink-tertiary">
-          Mode lecture seule. Permission requise pour inviter un utilisateur:
-          {" "}
+          Mode lecture seule. Permission requise pour inviter un utilisateur:{" "}
           <span className="font-medium text-ink">admin:users:write</span>
         </p>
       ) : null}

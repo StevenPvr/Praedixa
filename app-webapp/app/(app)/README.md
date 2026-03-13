@@ -1,34 +1,34 @@
-# `app/(app)/` - Routes authentifiees
+# `app/(app)/` - Routes authentifiees du webapp
 
-Ce groupe contient l'experience principale du client une fois la session OIDC validee. Le layout de ce dossier monte l'`AppShell`, la navigation, le scope de site et les providers transverses.
+Ce groupe contient les 5 pages authentifiees du workspace client. Le fichier `layout.tsx` ne fait qu'injecter `AppShell`; la majeure partie du shell vit dans `components/app-shell.tsx`.
 
 ## Routes presentes
 
-| Route | Fichier | Role |
-| --- | --- | --- |
-| `/dashboard` | `dashboard/page.tsx` | Vue d'ensemble operationnelle |
-| `/previsions` | `previsions/page.tsx` | Lecture des previsions et decomposition |
-| `/actions` | `actions/page.tsx` | Arbitrage des alertes et scenarios |
-| `/messages` | `messages/page.tsx` | Messagerie client <> Praedixa |
-| `/parametres` | `parametres/page.tsx` | Reglages et configuration visible client |
+| Route         | Fichier               | Role reel                                                    |
+| ------------- | --------------------- | ------------------------------------------------------------ |
+| `/dashboard`  | `dashboard/page.tsx`  | vue d'ensemble client via `WarRoomDashboard`                 |
+| `/previsions` | `previsions/page.tsx` | lecture des horizons actifs, previsions et alertes ouvertes  |
+| `/actions`    | `actions/page.tsx`    | traitement d'alertes et historique de decisions              |
+| `/messages`   | `messages/page.tsx`   | conversations support Praedixa                               |
+| `/parametres` | `parametres/page.tsx` | profil, preferences UI et lecture de la configuration active |
 
-## Fichiers structurants
+## Shell et patterns communs
 
-| Fichier | Role |
-| --- | --- |
-| `layout.tsx` | Shell authentifie, sidebar/topbar, providers et navigation |
-| `not-found.tsx` | 404 interne a la zone authentifiee |
-| `*/loading.tsx` | Etats de chargement par route |
-| `messages/use-messages-page-model.ts` | Modele de page compose les appels API et le state de messagerie |
+- `layout.tsx` monte `AppShell`, pas de providers metier supplementaires dans la route elle-meme.
+- `AppShell` gere la sidebar, les breadcrumbs, le menu profil, le logout, l'i18n et le `SiteScopeProvider`.
+- Pour `manager` et `hr_manager`, le site est verrouille au `siteId` de la session.
+- Chaque page a son `loading.tsx`; il n'y a pas de couche de fallback generique dediee a ce groupe en dehors du `RuntimeErrorShield` global.
 
-## Dependances principales
+## Fetch et etats degrades observes
 
-- `@/components/app-shell` structure le layout.
-- `@/hooks/use-api` alimente les pages en donnees backend.
-- `@/hooks/use-decision-config` et `@/hooks/use-latest-forecasts` concentrent des besoins metier recurrents.
-- `@/lib/site-scope` garde le filtre de site partage entre pages.
+- les pages utilisent surtout `useApiGet`, `useApiGetPaginated`, `useDecisionConfig` et `useLatestForecasts`
+- les erreurs metier sont rendues inline dans la page, pas transformees en route error boundary specifique
+- `previsions`, `actions`, `messages` et `parametres` ont chacune des etats vides ou des messages d'indisponibilite visibles dans le JSX
 
-## Tests
+## Lire ensuite
 
-- `__tests__/layout.test.tsx` et `not-found.test.tsx` valident l'encapsulation du groupe.
-- Les composants riches ont leurs tests dans `components/**/__tests__`.
+- `dashboard/README.md`
+- `previsions/README.md`
+- `actions/README.md`
+- `messages/README.md`
+- `parametres/README.md`

@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KCADM_BIN="${KCADM_BIN:-$SCRIPT_DIR/kcadm}"
 USER_PROFILE_CONTRACT_PATH="${USER_PROFILE_CONTRACT_PATH:-$SCRIPT_DIR/../infra/auth/user-profile-praedixa.json}"
+source "$SCRIPT_DIR/lib/keycloak.sh"
 
 KEYCLOAK_SERVER_URL="${KEYCLOAK_SERVER_URL:-https://auth.praedixa.com}"
 KEYCLOAK_ADMIN_REALM="${KEYCLOAK_ADMIN_REALM:-master}"
@@ -60,11 +61,11 @@ fi
 
 login_admin() {
   echo "[auth] Logging into Keycloak admin API"
-  "$KCADM_BIN" config credentials \
+  run_kcadm_with_password "$KEYCLOAK_ADMIN_PASSWORD" \
+    "$KCADM_BIN" config credentials \
     --server "$KEYCLOAK_SERVER_URL" \
     --realm "$KEYCLOAK_ADMIN_REALM" \
-    --user "$KEYCLOAK_ADMIN_USERNAME" \
-    --password "$KEYCLOAK_ADMIN_PASSWORD" >/dev/null
+    --user "$KEYCLOAK_ADMIN_USERNAME" >/dev/null
 }
 
 get_client_uuid() {

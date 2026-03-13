@@ -23,6 +23,7 @@ export function createLucideIconMocks() {
   return {
     // Navigation / layout
     Home: icon("Home"),
+    LayoutGrid: icon("LayoutGrid"),
     Menu: icon("Menu"),
     X: icon("X"),
     ChevronLeft: icon("ChevronLeft"),

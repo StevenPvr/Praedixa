@@ -75,7 +75,9 @@ test.describe("Messages page", () => {
     await page.goto("/messages");
 
     await page.getByText("Question sur les previsions").click();
-    await expect(page.getByPlaceholder("Ecrivez votre message...")).toBeVisible();
+    await expect(
+      page.getByPlaceholder("Ecrivez votre message..."),
+    ).toBeVisible();
     await expect(page.getByLabel("Envoyer")).toBeVisible();
   });
 
@@ -97,7 +99,9 @@ test.describe("Messages page", () => {
 
     await page.getByLabel("Nouvelle conversation").click();
     await expect(page.getByLabel("Sujet", { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Creer le sujet" })).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Creer le sujet" }),
+    ).toBeDisabled();
   });
 
   test("shows fallback when conversations API fails", async ({ page }) => {

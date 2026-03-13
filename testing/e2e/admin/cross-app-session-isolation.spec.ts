@@ -39,7 +39,9 @@ test.describe("Cross-app session isolation", () => {
     await webappPage.close();
 
     await page.reload();
-    await expect(page).toHaveURL(new RegExp(`/clients/${TEST_ORG_ID}/vue-client`));
+    await expect(page).toHaveURL(
+      new RegExp(`/clients/${TEST_ORG_ID}/vue-client`),
+    );
     await expect(
       page.getByRole("heading", { name: "Vue client", exact: true }),
     ).toBeVisible({ timeout: 10_000 });

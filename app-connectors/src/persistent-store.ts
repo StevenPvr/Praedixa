@@ -83,7 +83,9 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
 
     this.hydrate({
       auditEvents: asArray<ConnectorAuditEvent>(payload.auditEvents),
-      authorizationSessions: asArray<AuthorizationSession>(payload.authorizationSessions),
+      authorizationSessions: asArray<AuthorizationSession>(
+        payload.authorizationSessions,
+      ),
       connections: asArray<ConnectorConnection>(payload.connections),
       ingestCredentials: asArray<IngestCredential>(payload.ingestCredentials),
       latestSecretRefs: asArray<[string, string]>(payload.latestSecretRefs),
@@ -131,7 +133,11 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
       this.authorizationSessions.set(session.connectionId, session);
     }
 
-    this.auditEvents.splice(0, this.auditEvents.length, ...snapshot.auditEvents);
+    this.auditEvents.splice(
+      0,
+      this.auditEvents.length,
+      ...snapshot.auditEvents,
+    );
 
     this.ingestCredentials.clear();
     for (const credential of snapshot.ingestCredentials) {
@@ -253,7 +259,11 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
     connectionId: string,
     input: Parameters<InMemoryConnectorStore["createIngestCredential"]>[2],
   ): IngestCredential {
-    const credential = super.createIngestCredential(organizationId, connectionId, input);
+    const credential = super.createIngestCredential(
+      organizationId,
+      connectionId,
+      input,
+    );
     this.scheduleFlush();
     return credential;
   }
@@ -276,9 +286,10 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
     return credential;
   }
 
-  override createRawEvent(
-    event: IngestRawEvent,
-  ): { created: boolean; event: IngestRawEvent } {
+  override createRawEvent(event: IngestRawEvent): {
+    created: boolean;
+    event: IngestRawEvent;
+  } {
     const result = super.createRawEvent(event);
     if (result.created) {
       this.scheduleFlush();
@@ -292,7 +303,12 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
     eventId: string,
     patch: Partial<IngestRawEvent>,
   ): IngestRawEvent | null {
-    const updated = super.updateRawEvent(organizationId, connectionId, eventId, patch);
+    const updated = super.updateRawEvent(
+      organizationId,
+      connectionId,
+      eventId,
+      patch,
+    );
     if (updated != null) {
       this.scheduleFlush();
     }
@@ -305,7 +321,12 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
     workerId: string,
     limit: number,
   ): IngestRawEvent[] {
-    const claimed = super.claimRawEvents(organizationId, connectionId, workerId, limit);
+    const claimed = super.claimRawEvents(
+      organizationId,
+      connectionId,
+      workerId,
+      limit,
+    );
     if (claimed.length > 0) {
       this.scheduleFlush();
     }

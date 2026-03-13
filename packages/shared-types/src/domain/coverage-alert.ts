@@ -4,8 +4,8 @@ import type {
   TenantEntity,
   ISODateString,
   ISODateTimeString,
-} from "../utils/common";
-import type { ShiftType } from "./canonical";
+} from "../utils/common.js";
+import type { ShiftType } from "./canonical.js";
 
 /**
  * Forecast horizon identifier.

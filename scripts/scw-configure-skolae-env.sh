@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/json-env.sh"
+
 REGION="fr-par"
 NAMESPACE_NAME="skolae-prod"
 CONTAINER_NAME="skolae-prospect"
@@ -40,13 +43,11 @@ trap cleanup EXIT
 
 SECRETS_FILE_PATH="$TMP_DIR/secrets.json"
 
-jq -n \
-  --arg basic_auth_username "$BASIC_AUTH_USERNAME" \
-  --arg basic_auth_password "$BASIC_AUTH_PASSWORD" \
-  '{
-    BASIC_AUTH_USERNAME: $basic_auth_username,
-    BASIC_AUTH_PASSWORD: $basic_auth_password
-  }' >"$SECRETS_FILE_PATH"
+export BASIC_AUTH_USERNAME BASIC_AUTH_PASSWORD
+write_json_from_env \
+  "$SECRETS_FILE_PATH" \
+  BASIC_AUTH_USERNAME \
+  BASIC_AUTH_PASSWORD
 
 echo "Configuring skolae protected access (${CONTAINER_ID})"
 ./scripts/scw-apply-container-config.sh \

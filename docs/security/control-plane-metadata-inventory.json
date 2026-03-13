@@ -1,0 +1,43 @@
+{
+  "inventory_type": "control-plane-metadata",
+  "schema_version": "1",
+  "inventory_version": "1",
+  "required_restore_checks": [
+    {
+      "check_id": "tenant_site_registry_restored",
+      "target": "tenant_site_registry",
+      "description": "Le registre tenant/site et ses proprietaires restent lisibles apres restore.",
+      "evidence_hint": "requete SQL bornee ou appel admin de lecture"
+    },
+    {
+      "check_id": "rbac_assignments_restored",
+      "target": "rbac_links",
+      "description": "Les liens utilisateur-role-permission critiques restent restitues.",
+      "evidence_hint": "lecture bornee des affectations IAM admin"
+    },
+    {
+      "check_id": "accessible_site_scopes_restored",
+      "target": "accessible_site_scopes",
+      "description": "Les scopes `accessibleSiteIds` et perimetres associes restent coherents.",
+      "evidence_hint": "lecture bornee des scopes d'acces par utilisateur"
+    },
+    {
+      "check_id": "auth_configuration_restored",
+      "target": "oidc_mfa_configuration",
+      "description": "La configuration OIDC/MFA critique du control plane reste presente.",
+      "evidence_hint": "lecture bornee de la configuration auth et MFA"
+    },
+    {
+      "check_id": "connector_secret_refs_restored",
+      "target": "connector_secret_references",
+      "description": "Les references de secrets et webhooks des connecteurs restent restituees.",
+      "evidence_hint": "lecture bornee de la configuration connecteurs"
+    },
+    {
+      "check_id": "critical_flags_and_origins_restored",
+      "target": "critical_flags_and_origins",
+      "description": "Les flags critiques, allowlists et origines de confiance restent restitues.",
+      "evidence_hint": "lecture bornee de la configuration de securite et des flags"
+    }
+  ]
+}

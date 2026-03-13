@@ -18,3 +18,4 @@ Ce dossier contient le code Python versionne qui structure la persistance, les m
 - `app-api-ts` lit les tables remplies ou maintenues par ces modeles/services.
 - `app-connectors` envoie ou expose des donnees que `integration_runtime_worker.py` et `integration_event_ingestor.py` consomment ensuite.
 - les scripts de `app-api/scripts/` assemblent ces briques pour les runs batch.
+- `app/core/telemetry.py` fournit maintenant le logger `structlog` JSON et les champs de correlation communs pour les jobs data/ML qui servent de frontieres de confiance.

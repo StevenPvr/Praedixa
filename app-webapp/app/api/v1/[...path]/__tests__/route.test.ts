@@ -7,7 +7,8 @@ const mockFetch = vi.fn();
 const mockIsSameOriginBrowserRequest = vi.fn();
 
 vi.mock("@/lib/auth/request-session", () => ({
-  resolveRequestSession: (...args: unknown[]) => mockResolveRequestSession(...args),
+  resolveRequestSession: (...args: unknown[]) =>
+    mockResolveRequestSession(...args),
 }));
 
 vi.mock("@/lib/auth/oidc", () => ({
@@ -29,7 +30,10 @@ function createMockRequest(
     headers = {},
   }: { query?: string; headers?: Record<string, string> } = {},
 ) {
-  const url = new URL(`/api/v1/conversations${query}`, "https://app.praedixa.com");
+  const url = new URL(
+    `/api/v1/conversations${query}`,
+    "https://app.praedixa.com",
+  );
   const normalizedHeaders = Object.fromEntries(
     Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value]),
   );
@@ -38,6 +42,7 @@ function createMockRequest(
     method,
     nextUrl: {
       origin: url.origin,
+      pathname: url.pathname,
       search: url.search,
     },
     headers: {
@@ -103,7 +108,8 @@ describe("/api/v1 proxy route", () => {
       }),
     );
 
-    const response = await GET(createMockRequest("GET", { query: "?page=2" }), {
+    const request = createMockRequest("GET", { query: "?page=2" });
+    const response = await GET(request, {
       params: Promise.resolve({ path: ["conversations"] }),
     });
 
@@ -123,6 +129,7 @@ describe("/api/v1 proxy route", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true, data: [] });
+    expect(mockIsSameOriginBrowserRequest).toHaveBeenCalledWith(request);
   });
 
   it("allows the public health endpoint without session resolution", async () => {
@@ -243,24 +250,34 @@ describe("/api/v1 proxy route", () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
-    mockFetch.mockRejectedValueOnce(new Error("connect ECONNREFUSED 127.0.0.1:8000"));
+    mockFetch.mockRejectedValueOnce(
+      new Error("connect ECONNREFUSED 127.0.0.1:8000"),
+    );
 
-    const response = await GET(createMockRequest("GET"), {
-      params: Promise.resolve({ path: ["health"] }),
-    });
+    const response = await GET(
+      createMockRequest("GET", {
+        headers: {
+          "x-request-id": "req-proxy-webapp-1",
+        },
+      }),
+      {
+        params: Promise.resolve({ path: ["health"] }),
+      },
+    );
 
     expect(response.status).toBe(502);
     await expect(response.json()).resolves.toEqual({ error: "bad_gateway" });
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "[api-proxy] Upstream request failed",
-      expect.objectContaining({
-        method: "GET",
-        upstreamUrl: "https://api.praedixa.com/api/v1/health",
-        error: expect.objectContaining({
-          message: "connect ECONNREFUSED 127.0.0.1:8000",
-          name: "Error",
-        }),
-      }),
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    const [rawEntry] = consoleErrorSpy.mock.calls[0] as [string];
+    expect(JSON.parse(rawEntry)).toMatchObject({
+      level: "error",
+      service: "webapp-bff",
+      event: "proxy.upstream_failed",
+      request_id: "req-proxy-webapp-1",
+      trace_id: "req-proxy-webapp-1",
+      path: "/api/v1/conversations",
+      upstream_url: "https://api.praedixa.com/api/v1/health",
+      status_code: 502,
+    });
   });
 });

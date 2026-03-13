@@ -1,30 +1,30 @@
-# `app/auth/` - Route handlers OIDC et session
+# `app/auth/` - Handlers auth du webapp
 
-Ce dossier contient les endpoints Next.js qui gerent le cycle de vie de la session webapp. Ils sont appeles par le navigateur ou par `lib/auth/client.ts`, mais restent server-side pour ne jamais exposer directement le bearer token aux composants.
+Handlers Next.js server-side du cycle OIDC et de la session browser. Rien ici n'expose le bearer token aux composants client.
 
 ## Routes
 
-| Route | Fichier | Role |
-| --- | --- | --- |
-| `/auth/login` | `login/route.ts` | Demarre le flow OIDC Authorization Code + PKCE |
-| `/auth/callback` | `callback/route.ts` | Echange `code` contre tokens, cree les cookies et la session signee |
-| `/auth/session` | `session/route.ts` | Retourne l'utilisateur courant, refresh best-effort, rate limit et same-origin |
-| `/auth/logout` | `logout/route.ts` | Nettoie les cookies et revoque si possible le refresh token |
+| Route            | Fichier             | Comportement reel                                                                                                         |
+| ---------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `/auth/login`    | `login/route.ts`    | prepare le flow OIDC PKCE et redirige vers l'issuer                                                                       |
+| `/auth/callback` | `callback/route.ts` | echange le `code`, valide les claims utiles a l'API, signe la session et redirige                                         |
+| `/auth/session`  | `session/route.ts`  | GET same-origin only, renvoie l'utilisateur courant et rafraichit la session si necessaire                                |
+| `/auth/logout`   | `logout/route.ts`   | nettoie les cookies, tente une revocation best-effort et accepte seulement une navigation browser explicitement autorisee |
 
-## Invariants de securite
+## Invariants verifies par le code
 
-- Verification same-origin pour les routes JSON/browser sensibles.
-- Cache desactive (`no-store`) pour les reponses de session.
-- Cookies signes et rotatifs via `lib/auth/oidc`.
-- Rate limiting sur les endpoints auth browser-facing.
+- reponses `no-store` sur les flux de session/redirect sensibles
+- protection same-origin stricte sur `/auth/session`
+- `/auth/logout` n'accepte `Sec-Fetch-Site:none` que via un opt-in navigation explicite; pas de fallback implicite pour les autres JSON routes
+- `401` pour une session introuvable ou invalide, `403` si la requete browser n'est pas same-origin, `429` si le rate limit auth refuse la requete
+- le callback refuse les tokens incompatibles avec le contrat API attendu
+- le rate limit auth est browser-facing et fail-close hors developpement: sans store distribue explicite ou sans `AUTH_RATE_LIMIT_KEY_SALT`, les handlers refusent au lieu de degrader localement
+- `login` et `callback` exigent une origine publique explicite et valide via `AUTH_APP_ORIGIN` ou `NEXT_PUBLIC_APP_ORIGIN` en production
+- aucun handler auth ne reconstruit l'origine publique depuis `request.nextUrl.origin` en production
 
-## Dependances
+## Dependances directes
 
-- `@/lib/auth/request-session`
 - `@/lib/auth/oidc`
+- `@/lib/auth/request-session`
 - `@/lib/auth/rate-limit`
 - `@/lib/security/same-origin`
-
-## Tests
-
-- Les tests sont colocalises dans `callback/__tests__/`, `login/__tests__/`, `logout/__tests__/` et `session/__tests__/`.

@@ -86,17 +86,14 @@ const DetailCard = React.forwardRef<HTMLDivElement, DetailCardProps>(
               <h3 className="text-title-sm font-semibold tracking-tight text-ink">
                 {title}
               </h3>
-              {action && <div className="flex items-center gap-3">{action}</div>}
+              {action && (
+                <div className="flex items-center gap-3">{action}</div>
+              )}
             </div>
             <div className="border-b border-border/70" aria-hidden="true" />
           </>
         )}
-        <div
-          className={cn(
-            "flex-1",
-            title && bodyPaddingWhenTitled[padding],
-          )}
-        >
+        <div className={cn("flex-1", title && bodyPaddingWhenTitled[padding])}>
           {children}
         </div>
       </div>

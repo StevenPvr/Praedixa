@@ -11,12 +11,12 @@ Recuperer les signaux telematics (vehicule, trajet, conduite, incidents) pour en
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets Geotab | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| Flotte | Device / Vehicle | id, plate, vehicle group, status | 30 min | `vehicle` |
-| Trajets | Trip summary | start/end time, distance, idle, driver id | 5-15 min | `shipment_trip`, `telematics_event` |
-| Geo | GPS records | timestamp, lat/lon, speed | 1-5 min | `route_stop_event` |
-| Securite | fault/diagnostic/events | code, severity, detected_at | 5-15 min | `telematics_event` |
+| Domaine  | Objets Geotab           | Champs minimum                            | Frequence | Canonical                           |
+| -------- | ----------------------- | ----------------------------------------- | --------- | ----------------------------------- |
+| Flotte   | Device / Vehicle        | id, plate, vehicle group, status          | 30 min    | `vehicle`                           |
+| Trajets  | Trip summary            | start/end time, distance, idle, driver id | 5-15 min  | `shipment_trip`, `telematics_event` |
+| Geo      | GPS records             | timestamp, lat/lon, speed                 | 1-5 min   | `route_stop_event`                  |
+| Securite | fault/diagnostic/events | code, severity, detected_at               | 5-15 min  | `telematics_event`                  |
 
 ## 3. Specification d'integration
 

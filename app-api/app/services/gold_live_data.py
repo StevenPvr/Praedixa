@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 
+from app.core.exceptions import PraedixaError
 from app.models.organization import Organization
 from app.models.site import Site
 
@@ -32,31 +33,17 @@ _GOLD_QUALITY_REPORT_PATH = (
 )
 _LAST_RUN_SUMMARY_PATH = _ROOT / "data-ready" / "reports" / "last_run_summary.json"
 
-_ORG_CLIENT_FALLBACKS: dict[str, str] = {
-    "praedixa_demo": "acme-logistics",
-    "praedixa-demo": "acme-logistics",
-    "demo_org": "acme-logistics",
-}
-_SITE_CODE_CITY_ALIASES: dict[str, str] = {
-    "BORDEAUX": "BDX",
-    "CDG": "CDG",
-    "LILLE": "LIL",
-    "LYON": "LYO",
-    "MARSEILLE": "MRS",
-    "PARIS": "CDG",
-    "RUNGIS": "RGS",
-}
+_LEGACY_RUNTIME_COLUMN_PREFIX = "mock_"
 
 _CACHE_LOCK = threading.Lock()
-_MOCK_COLUMN_PREFIX = "mock_"
-_ALLOWED_MOCK_PREFIXES = ("mock_forecasts_daily__",)
-_ALLOWED_MOCK_DOMAINS = ("forecasts",)
 
 
 @dataclass(frozen=True)
 class GoldSnapshot:
     rows: list[dict[str, Any]]
     columns: list[str]
+    source_columns: list[str]
+    legacy_runtime_columns: list[str]
     revision: str
     loaded_at: str
     source_path: Path
@@ -153,11 +140,38 @@ def _date_range(rows: list[dict[str, Any]]) -> tuple[date | None, date | None]:
     return min(dates), max(dates)
 
 
+def _detect_legacy_runtime_columns(columns: list[str]) -> list[str]:
+    return sorted(
+        column for column in columns if column.startswith(_LEGACY_RUNTIME_COLUMN_PREFIX)
+    )
+
+
+def _raise_forbidden_runtime_columns(
+    *,
+    path: Path,
+    legacy_runtime_columns: list[str],
+) -> None:
+    if not legacy_runtime_columns:
+        return
+
+    raise PraedixaError(
+        message="Gold snapshot contains forbidden legacy runtime columns",
+        code="GOLD_RUNTIME_FORBIDDEN_COLUMNS",
+        status_code=500,
+        details={
+            "source_path": str(path),
+            "columns": ",".join(legacy_runtime_columns),
+        },
+    )
+
+
 def _load_csv_rows(path: Path) -> GoldSnapshot:
     if not path.exists():
         return GoldSnapshot(
             rows=[],
             columns=[],
+            source_columns=[],
+            legacy_runtime_columns=[],
             revision="missing",
             loaded_at=datetime.now(UTC).isoformat(),
             source_path=path,
@@ -165,14 +179,22 @@ def _load_csv_rows(path: Path) -> GoldSnapshot:
 
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
+        source_columns = list(reader.fieldnames or [])
+        legacy_runtime_columns = _detect_legacy_runtime_columns(source_columns)
+        _raise_forbidden_runtime_columns(
+            path=path,
+            legacy_runtime_columns=legacy_runtime_columns,
+        )
         rows = [{k: _parse_scalar(v) for k, v in row.items()} for row in reader]
-        columns = list(reader.fieldnames or [])
+        columns = list(source_columns)
 
     stat = path.stat()
     revision = f"{stat.st_mtime_ns}-{stat.st_size}"
     return GoldSnapshot(
         rows=rows,
         columns=columns,
+        source_columns=source_columns,
+        legacy_runtime_columns=legacy_runtime_columns,
         revision=revision,
         loaded_at=datetime.now(UTC).isoformat(),
         source_path=path,
@@ -208,11 +230,19 @@ def _deterministic_uuid(token: str) -> uuid.UUID:
     return uuid.uuid5(uuid.NAMESPACE_URL, token)
 
 
+def _result_one_or_none(result: Any) -> Any:
+    if hasattr(result, "one_or_none"):
+        return result.one_or_none()
+    if hasattr(result, "scalar_one_or_none"):
+        return result.scalar_one_or_none()
+    return None
+
+
 async def resolve_client_slug_for_org(
     session: AsyncSession,
     organization_id: uuid.UUID,
     available_client_slugs: set[str],
-    client_site_codes: dict[str, set[str]] | None = None,
+    _client_site_codes: dict[str, set[str]] | None = None,
 ) -> str | None:
     if not available_client_slugs:
         return None
@@ -220,49 +250,17 @@ async def resolve_client_slug_for_org(
     org_query = select(Organization.slug, Organization.name).where(
         Organization.id == organization_id
     )
-    row = (await session.execute(org_query)).one_or_none()
+    row = _result_one_or_none(await session.execute(org_query))
     if row is None:
         return None
 
-    org_slug = str(row[0])
-    org_name = str(row[1] or "")
-    candidates = [
-        org_slug,
-        _normalize_slug(org_slug),
-        _normalize_slug(org_name),
-        _ORG_CLIENT_FALLBACKS.get(org_slug),
-        _ORG_CLIENT_FALLBACKS.get(_normalize_slug(org_slug)),
-    ]
+    org_slug = str(row[0] or "") if isinstance(row, tuple) else str(row or "")
+
+    candidates = [org_slug, _normalize_slug(org_slug)]
     for candidate in candidates:
         if candidate and candidate in available_client_slugs:
             return candidate
 
-    # Heuristic fallback: match by maximum overlap between org site codes
-    # and client site codes found in Gold data.
-    if client_site_codes:
-        site_query = select(Site.code).where(Site.organization_id == organization_id)
-        org_site_codes = {
-            str(code).strip().upper()
-            for code in (await session.execute(site_query)).scalars().all()
-            if isinstance(code, str) and code.strip()
-        }
-        if org_site_codes:
-            scored_matches: list[tuple[int, str]] = []
-            for slug in available_client_slugs:
-                overlap = len(org_site_codes & client_site_codes.get(slug, set()))
-                if overlap > 0:
-                    scored_matches.append((overlap, slug))
-            scored_matches.sort(key=lambda item: item[0], reverse=True)
-            if scored_matches:
-                best_score = scored_matches[0][0]
-                best_slugs = [
-                    slug for overlap, slug in scored_matches if overlap == best_score
-                ]
-                if len(best_slugs) == 1:
-                    return best_slugs[0]
-
-    if len(available_client_slugs) == 1:
-        return next(iter(available_client_slugs))
     return None
 
 
@@ -279,49 +277,8 @@ async def resolve_site_code_for_filter(
         for code in (allowed_site_codes or set())
         if isinstance(code, str) and code.strip()
     }
-
-    def _normalize_with_alias(
-        raw_code: str,
-        *,
-        site_name: str | None = None,
-    ) -> str:
-        normalized = raw_code.strip().upper()
-        if not normalized:
-            return normalized
-        if not normalized_allowed:
-            return normalized
-
-        candidates: list[str] = []
-
-        def _push(value: str | None) -> None:
-            if not isinstance(value, str):
-                return
-            token = value.strip().upper()
-            if not token or token in candidates:
-                return
-            candidates.append(token)
-
-        _push(normalized)
-        if normalized.startswith("S_"):
-            suffix = normalized[2:]
-            _push(suffix)
-            if len(suffix) >= 3:
-                _push(suffix[:3])
-            _push(_SITE_CODE_CITY_ALIASES.get(suffix))
-
-        if site_name:
-            cleaned = (
-                site_name.upper().replace("-", " ").replace("_", " ").replace("/", " ")
-            )
-            for token in cleaned.split():
-                _push(_SITE_CODE_CITY_ALIASES.get(token))
-                if len(token) >= 3:
-                    _push(token[:3])
-
-        for candidate_code in candidates:
-            if candidate_code in normalized_allowed:
-                return candidate_code
-        return normalized
+    if not normalized_allowed:
+        return None
 
     candidate = site_filter.site_id or requested_site
     if not candidate:
@@ -334,22 +291,21 @@ async def resolve_site_code_for_filter(
     try:
         site_uuid = uuid.UUID(normalized)
     except ValueError:
-        return _normalize_with_alias(normalized)
+        site_code = normalized.upper()
+        if site_code in normalized_allowed:
+            return site_code
+        return None
 
-    query = tenant.apply(
-        select(Site.code, Site.name).where(Site.id == site_uuid),
-        Site,
-    )
-    row = (await session.execute(query)).one_or_none()
-    if row is not None:
-        site_code = row[0]
-        site_name = row[1]
-        if isinstance(site_code, str) and site_code.strip():
-            return _normalize_with_alias(
-                site_code,
-                site_name=site_name if isinstance(site_name, str) else None,
-            )
-    return normalized.upper()
+    query = tenant.apply(select(Site.code).where(Site.id == site_uuid), Site)
+    result = _result_one_or_none(await session.execute(query))
+    site_code = result[0] if isinstance(result, tuple) else result
+    if not isinstance(site_code, str) or not site_code.strip():
+        return None
+
+    normalized_site_code = site_code.strip().upper()
+    if normalized_site_code in normalized_allowed:
+        return normalized_site_code
+    return None
 
 
 def filter_rows(
@@ -400,23 +356,19 @@ def build_dashboard_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
             last_date = d
 
         required_fte = _to_float(
-            row.get("mock_forecasts_daily__predicted_required_fte")
+            row.get("forecasts_daily__predicted_required_fte")
             or row.get("workforce_daily__required_fte")
         )
         present_fte = _to_float(row.get("workforce_daily__present_fte"))
         if required_fte and required_fte > 0 and present_fte is not None:
             human_pairs.append((present_fte, required_fte))
 
-        forecasted_orders = _to_float(
-            row.get("mock_forecasts_daily__forecasted_orders")
-        )
+        forecasted_orders = _to_float(row.get("forecasts_daily__forecasted_orders"))
         processed_orders = _to_float(row.get("operations_daily__orders_processed"))
         if forecasted_orders and forecasted_orders > 0 and processed_orders is not None:
             merch_pairs.append((processed_orders, forecasted_orders))
 
-        risk_pct = _to_float(
-            row.get("mock_forecasts_daily__predicted_service_risk_pct")
-        )
+        risk_pct = _to_float(row.get("forecasts_daily__predicted_service_risk_pct"))
         if risk_pct is not None:
             risk_values.append(risk_pct)
 
@@ -480,7 +432,7 @@ def build_daily_forecasts(
 
         if dim_value == "human":
             demand = _to_float(
-                row.get("mock_forecasts_daily__predicted_required_fte")
+                row.get("forecasts_daily__predicted_required_fte")
                 or row.get("workforce_daily__required_fte")
             )
             capacity = _to_float(row.get("workforce_daily__present_fte"))
@@ -500,14 +452,12 @@ def build_daily_forecasts(
             if interim is not None:
                 bucket["capacity_planned_predicted"] += interim
         else:
-            demand = _to_float(row.get("mock_forecasts_daily__forecasted_orders"))
+            demand = _to_float(row.get("forecasts_daily__forecasted_orders"))
             capacity = _to_float(row.get("operations_daily__orders_processed"))
             planned = _to_float(row.get("operations_daily__orders_received"))
             backlog = _to_float(row.get("operations_daily__backlog_orders"))
-            conf_low = _to_float(row.get("mock_forecasts_daily__confidence_low_orders"))
-            conf_high = _to_float(
-                row.get("mock_forecasts_daily__confidence_high_orders")
-            )
+            conf_low = _to_float(row.get("forecasts_daily__confidence_low_orders"))
+            conf_high = _to_float(row.get("forecasts_daily__confidence_high_orders"))
 
             if demand is not None:
                 bucket["predicted_demand"] += demand
@@ -524,7 +474,7 @@ def build_daily_forecasts(
             if conf_high is not None:
                 bucket["confidence_upper"] += conf_high
 
-        risk = _to_float(row.get("mock_forecasts_daily__predicted_service_risk_pct"))
+        risk = _to_float(row.get("forecasts_daily__predicted_service_risk_pct"))
         if risk is not None:
             bucket["risk_score"] += risk
             bucket["risk_count"] += 1.0
@@ -698,11 +648,9 @@ def build_coverage_alerts(
         if d is None or not site_code:
             continue
 
-        risk_pct = _to_float(
-            row.get("mock_forecasts_daily__predicted_service_risk_pct")
-        )
+        risk_pct = _to_float(row.get("forecasts_daily__predicted_service_risk_pct"))
         required = _to_float(
-            row.get("mock_forecasts_daily__predicted_required_fte")
+            row.get("forecasts_daily__predicted_required_fte")
             or row.get("workforce_daily__required_fte")
         )
         present = _to_float(row.get("workforce_daily__present_fte"))
@@ -767,9 +715,7 @@ def build_coverage_alerts(
                 "gap_h": round(gap_h, 2),
                 "prediction_interval_low": round(low, 2),
                 "prediction_interval_high": round(high, 2),
-                "model_version": str(
-                    row.get("mock_forecasts_daily__model_version") or ""
-                ),
+                "model_version": str(row.get("forecasts_daily__model_version") or ""),
                 "calibration_bucket": "gold_live_v1",
                 "impact_eur": round(impact_eur, 2),
                 "severity": severity,
@@ -808,24 +754,68 @@ def build_proof_records(
         key=lambda item: item[0][1],
         reverse=True,
     ):
-        labor_cost = _to_float(row.get("finance_monthly__labor_cost_eur")) or 0.0
-        savings = _to_float(row.get("roi_monthly__savings_eur")) or 0.0
-        avoided = _to_float(row.get("roi_monthly__avoided_cost_eur")) or 0.0
+        labor_cost = max(
+            _to_float(row.get("finance_monthly__labor_cost_eur")) or 0.0,
+            0.0,
+        )
+        bau_cost = _to_float(row.get("roi_monthly__bau_cost_eur"))
+        optimized_cost = _to_float(row.get("roi_monthly__optimized_cost_eur"))
         net_gain = _to_float(row.get("roi_monthly__net_gain_eur"))
-        if net_gain is None:
-            net_gain = savings
+        adoption_pct = _normalize_percent_ratio(
+            row.get("actions_adoption_daily__adoption_rate_pct")
+        )
+        service_reel_pct = _normalize_percent_ratio(
+            row.get("operations_daily__on_time_rate_pct")
+        )
+        service_bau_pct = _normalize_percent_ratio(
+            row.get("roi_monthly__bau_service_pct")
+        )
 
-        cout_reel = max(labor_cost, 0.0)
-        cout_bau = max(cout_reel + savings, 0.0)
-        cout_100 = max(cout_reel - max(avoided, 0.0) * 0.25, 0.0)
-        adoption_pct = (
-            _to_float(row.get("actions_adoption_daily__adoption_rate_pct")) or 0.0
-        ) / 100.0
-        service_reel_pct = (
-            _to_float(row.get("operations_daily__on_time_rate_pct")) or 0.0
-        ) / 100.0
-        service_bau_pct = max(service_reel_pct - 0.03, 0.0)
+        proof_blockers: list[str] = []
+        if bau_cost is None:
+            proof_blockers.append("missing_bau_cost")
+        if optimized_cost is None:
+            proof_blockers.append("missing_optimized_cost")
+        if (
+            bau_cost is not None
+            and optimized_cost is not None
+            and service_bau_pct is None
+        ):
+            proof_blockers.append("missing_service_bau")
 
+        proof_status = "proved"
+        capture_rate: float | None = None
+        gain_net_eur = 0.0
+        bau_method_version = "gold_live_explicit_cost_inputs_v1"
+        if proof_blockers:
+            proof_status = "cannot_prove_yet"
+            bau_method_version = "gold_live_cannot_prove_yet_v1"
+        else:
+            assert bau_cost is not None
+            assert optimized_cost is not None
+
+            if optimized_cost >= bau_cost:
+                proof_status = "no_feasible_solution"
+                proof_blockers.append(
+                    "optimized_counterfactual_not_better_than_bau"
+                )
+            else:
+                gain_net_eur = round(
+                    net_gain if net_gain is not None else bau_cost - labor_cost,
+                    2,
+                )
+                capture_rate = _round_optional(adoption_pct, 4)
+
+        cout_bau_eur = _round_optional(bau_cost, 2)
+        cout_100_eur = _round_optional(optimized_cost, 2)
+        cout_reel_eur = round(labor_cost, 2)
+        service_bau_pct_value = _round_optional(service_bau_pct, 4)
+        service_reel_pct_value = _round_optional(service_reel_pct, 4) or 0.0
+        adoption_pct_value = _round_optional(adoption_pct, 4) or 0.0
+        attribution_confidence = _round_optional(
+            min((adoption_pct or 0.0) + 0.15, 1.0),
+            4,
+        ) or 0.0
         alerts_emises = int(
             _to_float(row.get("quality_incidents_daily__quality_incidents")) or 0
         )
@@ -844,22 +834,40 @@ def build_proof_records(
                 "updated_at": now,
                 "site_id": site_code,
                 "month": month_start,
-                "cout_bau_eur": round(cout_bau, 2),
-                "cout_100_eur": round(cout_100, 2),
-                "cout_reel_eur": round(cout_reel, 2),
-                "gain_net_eur": round(net_gain, 2),
-                "service_bau_pct": round(service_bau_pct, 4),
-                "service_reel_pct": round(service_reel_pct, 4),
-                "capture_rate": round(adoption_pct, 4),
-                "bau_method_version": "gold_live_v1",
-                "attribution_confidence": round(min(adoption_pct + 0.15, 1.0), 4),
-                "adoption_pct": round(adoption_pct, 4),
+                "cout_bau_eur": cout_bau_eur,
+                "cout_100_eur": cout_100_eur,
+                "cout_reel_eur": cout_reel_eur,
+                "gain_net_eur": gain_net_eur,
+                "service_bau_pct": service_bau_pct_value,
+                "service_reel_pct": service_reel_pct_value,
+                "capture_rate": capture_rate,
+                "bau_method_version": bau_method_version,
+                "attribution_confidence": attribution_confidence,
+                "adoption_pct": adoption_pct_value,
                 "alertes_emises": alerts_emises,
                 "alertes_traitees": alerts_traitees,
-                "details_json": {"source": "gold_dataset"},
+                "details_json": {
+                    "source": "gold_dataset",
+                    "proof_status": proof_status,
+                    "proof_blockers": proof_blockers,
+                },
             }
         )
     return out
+
+
+def _normalize_percent_ratio(value: Any) -> float | None:
+    numeric = _to_float(value)
+    if numeric is None:
+        return None
+    ratio = numeric / 100.0 if numeric > 1 else numeric
+    return min(max(ratio, 0.0), 1.0)
+
+
+def _round_optional(value: float | None, digits: int) -> float | None:
+    if value is None:
+        return None
+    return round(value, digits)
 
 
 def build_forecast_runs(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -911,10 +919,10 @@ def build_forecast_runs(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 _BUSINESS_VIEW_COLUMN_MAP: dict[str, set[str]] = {
     "dashboard": {
         "workforce_daily__present_fte",
-        "mock_forecasts_daily__predicted_required_fte",
+        "forecasts_daily__predicted_required_fte",
         "operations_daily__orders_processed",
-        "mock_forecasts_daily__forecasted_orders",
-        "mock_forecasts_daily__predicted_service_risk_pct",
+        "forecasts_daily__forecasted_orders",
+        "forecasts_daily__predicted_service_risk_pct",
         "model_monitoring_daily__mape_orders_pct",
     },
     "donnees": {
@@ -927,14 +935,14 @@ _BUSINESS_VIEW_COLUMN_MAP: dict[str, set[str]] = {
         "labor_cost_daily__wage_eur",
     },
     "previsions": {
-        "mock_forecasts_daily__predicted_required_fte",
-        "mock_forecasts_daily__forecasted_orders",
-        "mock_forecasts_daily__predicted_service_risk_pct",
-        "mock_forecasts_daily__confidence_low_orders",
-        "mock_forecasts_daily__confidence_high_orders",
+        "forecasts_daily__predicted_required_fte",
+        "forecasts_daily__forecasted_orders",
+        "forecasts_daily__predicted_service_risk_pct",
+        "forecasts_daily__confidence_low_orders",
+        "forecasts_daily__confidence_high_orders",
     },
     "actions": {
-        "mock_forecasts_daily__predicted_service_risk_pct",
+        "forecasts_daily__predicted_service_risk_pct",
         "operations_daily__backlog_orders",
         "workforce_daily__absent_fte",
         "operations_daily__on_time_rate_pct",
@@ -1060,18 +1068,6 @@ def build_gold_provenance(
     scoped_rows = snapshot.rows if rows is None else rows
     columns = snapshot.columns
 
-    mock_columns = sorted(
-        column for column in columns if column.startswith(_MOCK_COLUMN_PREFIX)
-    )
-    forecast_mock_columns = sorted(
-        column
-        for column in mock_columns
-        if any(column.startswith(prefix) for prefix in _ALLOWED_MOCK_PREFIXES)
-    )
-    non_forecast_mock_columns = sorted(
-        column for column in mock_columns if column not in set(forecast_mock_columns)
-    )
-
     reports = load_live_quality_reports()
     silver_quality = reports.get("silver_quality")
     gold_feature_quality = reports.get("gold_feature_quality")
@@ -1102,10 +1098,8 @@ def build_gold_provenance(
         "total_rows": len(snapshot.rows),
         "total_columns": len(columns),
         "policy": {
-            "allowed_mock_domains": list(_ALLOWED_MOCK_DOMAINS),
-            "forecast_mock_columns": forecast_mock_columns,
-            "non_forecast_mock_columns": non_forecast_mock_columns,
-            "strict_data_policy_ok": len(non_forecast_mock_columns) == 0,
+            "legacy_runtime_columns_detected": snapshot.legacy_runtime_columns,
+            "strict_data_policy_ok": len(snapshot.legacy_runtime_columns) == 0,
         },
         "quality_reports": {
             "silver_quality_available": isinstance(silver_quality, dict)
@@ -1252,7 +1246,7 @@ def build_client_onboarding_status(
 ) -> dict[str, Any]:
     has_rows = len(rows) > 0
     has_forecasts = any(
-        _to_float(row.get("mock_forecasts_daily__forecasted_orders")) is not None
+        _to_float(row.get("forecasts_daily__forecasted_orders")) is not None
         for row in rows
     )
     has_monitoring = any(

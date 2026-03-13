@@ -35,6 +35,7 @@ fi
 
 SBOM_PATH="${ARTIFACT_DIR}/sbom.cdx.json"
 GRYPE_JSON="${ARTIFACT_DIR}/grype-findings.json"
+SUMMARY_JSON="${ARTIFACT_DIR}/supply-chain-evidence.json"
 
 SYFT_EXCLUDES=(
   "./.git/**"
@@ -71,6 +72,21 @@ append_nested_repo_excludes() {
 
 append_nested_repo_excludes
 
+compute_sha256() {
+  openssl dgst -sha256 "$1" | awk '{print $2}'
+}
+
+tool_version() {
+  local cmd="$1"
+  local output=""
+  if output="$("$cmd" version 2>/dev/null | head -n 1)"; then
+    :
+  elif output="$("$cmd" --version 2>/dev/null | head -n 1)"; then
+    :
+  fi
+  printf '%s' "$output"
+}
+
 # Generate a CycloneDX SBOM for traceability and incident response.
 echo "[supply-chain] Generating SBOM..."
 syft_args=(dir:. -o "cyclonedx-json=${SBOM_PATH}")
@@ -85,5 +101,46 @@ GRYPE_CHECK_FOR_APP_UPDATE=false grype "sbom:${SBOM_PATH}" --fail-on medium -o j
 
 ACTIVE_SIGNAL_COUNT="$(jq '[.matches[] | select((.vulnerability.id // "") != "") | select(.vulnerability.id | test("CVE-|GHSA-"))] | length' "$GRYPE_JSON")"
 echo "[supply-chain] Findings with known IDs: ${ACTIVE_SIGNAL_COUNT}"
+
+jq -n \
+  --arg summary_type "supply-chain-evidence" \
+  --arg schema_version "1" \
+  --arg recorded_at "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+  --arg status "pass" \
+  --arg syft_version "$(tool_version syft)" \
+  --arg grype_version "$(tool_version grype)" \
+  --arg sbom_path "$SBOM_PATH" \
+  --arg sbom_sha256 "$(compute_sha256 "$SBOM_PATH")" \
+  --arg scan_path "$GRYPE_JSON" \
+  --arg scan_sha256 "$(compute_sha256 "$GRYPE_JSON")" \
+  --argjson active_signal_count "$ACTIVE_SIGNAL_COUNT" \
+  '{
+    summary_type: $summary_type,
+    schema_version: $schema_version,
+    recorded_at: $recorded_at,
+    status: $status,
+    policy: {
+      vulnerability_fail_on: "medium"
+    },
+    tools: ({
+      syft: $syft_version,
+      grype: $grype_version
+    } | with_entries(select(.value != ""))),
+    artifacts: {
+      sbom: {
+        format: "cyclonedx-json",
+        path: $sbom_path,
+        sha256: $sbom_sha256
+      },
+      vulnerability_scan: {
+        engine: "grype",
+        path: $scan_path,
+        sha256: $scan_sha256,
+        active_signal_count: $active_signal_count
+      }
+    }
+  }' >"$SUMMARY_JSON"
+
+echo "[supply-chain] Evidence summary: ${SUMMARY_JSON}"
 
 echo "[supply-chain] OK"

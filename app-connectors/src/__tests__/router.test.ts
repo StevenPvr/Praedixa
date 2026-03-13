@@ -8,7 +8,11 @@ describe("router hardening", () => {
     const compiledRoutes = compileRoutes(routes);
 
     expect(() =>
-      matchRoute(compiledRoutes, "GET", "/v1/organizations/%E0%A4%A/connections"),
+      matchRoute(
+        compiledRoutes,
+        "GET",
+        "/v1/organizations/%E0%A4%A/connections",
+      ),
     ).toThrow(RouteMatchError);
   });
 });

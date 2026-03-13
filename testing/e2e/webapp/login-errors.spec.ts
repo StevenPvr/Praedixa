@@ -18,9 +18,7 @@ test.describe("Login page error handling", () => {
   }) => {
     await page.goto("/login?error=oidc_config_missing");
 
-    await expect(
-      page.getByText(/Configuration OIDC invalide\./),
-    ).toBeVisible();
+    await expect(page.getByText(/Configuration OIDC invalide\./)).toBeVisible();
   });
 
   test("displays provider trust error when OIDC provider is untrusted", async ({

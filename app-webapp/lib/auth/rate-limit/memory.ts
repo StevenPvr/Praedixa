@@ -24,7 +24,9 @@ function pruneBucketsIfNeeded(): void {
   if (buckets.size <= MAX_RATE_LIMIT_BUCKETS) return;
 
   const toDrop =
-    buckets.size - MAX_RATE_LIMIT_BUCKETS + Math.ceil(MAX_RATE_LIMIT_BUCKETS * 0.05);
+    buckets.size -
+    MAX_RATE_LIMIT_BUCKETS +
+    Math.ceil(MAX_RATE_LIMIT_BUCKETS * 0.05);
   const entries = [...buckets.entries()].sort(
     (a, b) => a[1].resetAt - b[1].resetAt,
   );
@@ -61,7 +63,10 @@ export function consumeRateLimitInMemory(
   if (existing.count >= options.max) {
     return {
       allowed: false,
-      retryAfterSeconds: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)),
+      retryAfterSeconds: Math.max(
+        1,
+        Math.ceil((existing.resetAt - now) / 1000),
+      ),
       remaining: 0,
       resetAtEpochSeconds: Math.ceil(existing.resetAt / 1000),
     };

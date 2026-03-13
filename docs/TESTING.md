@@ -283,9 +283,19 @@ pnpm test:e2e           # Tous les E2E
 pnpm test:e2e:landing   # Landing seul
 pnpm test:e2e:webapp    # Webapp seul
 pnpm test:e2e:admin     # Admin seul
-pnpm test:e2e:smoke     # Smoke test admin
+pnpm test:e2e:smoke     # Smoke cross-app webapp + admin versionne
 pnpm test:e2e:coverage  # Avec couverture V8
+node --test scripts/__tests__/synthetic-monitoring-baseline.test.mjs  # Baseline synthetics versionnee
 ```
+
+### Smoke et synthetics versionnes
+
+Les E2E ne remplacent pas les verifications de release et d'exploitation versionnees dans `scripts/`:
+
+- `./scripts/scw-post-deploy-smoke.sh` est le smoke CLI canonique apres deploy ou rollback pour `api`, `webapp`, `admin`, `auth`, `landing` et `connectors` selon les URLs disponibles;
+- `./scripts/validate-synthetic-monitoring-baseline.mjs` valide la baseline machine-readable `docs/runbooks/synthetic-monitoring-baseline.json`, utilisee comme source de verite pour les checks synthetiques critiques.
+
+Ces checks doivent rester coherents avec `docs/runbooks/observability-baseline.md`, `docs/runbooks/post-deploy-smoke-baseline.md` et `docs/runbooks/release-and-rollback-baseline.md`.
 
 ### Exemple reel
 
@@ -309,15 +319,15 @@ test.describe("Dashboard page", () => {
 
 ## 6. Pieges courants
 
-| Piege                     | Solution                                                                                     |
-| ------------------------- | -------------------------------------------------------------------------------------------- |
-| **Build avant typecheck** | `pnpm build` puis `pnpm typecheck` (les apps importent les packages compiles)                |
-| **UUID SQLAlchemy**       | `default=uuid.uuid4` assigne au INSERT, pas a l'init -- mocker `session.flush`               |
-| **Alembic PG ENUM**       | Utiliser `PG_ENUM(name=..., create_type=False)` + SQL brut, pas `sa.Enum(create_type=False)` |
-| **slowapi 429**           | `limiter.enabled = False` dans les fixtures                                                  |
-| **ESLint + test mocks**   | `next build` lint les tests -- ajouter `/* eslint-disable */` si necessaire                  |
-| **`@apply` + oklch**      | Ne fonctionne pas dans Tailwind 3.4 -- utiliser du CSS brut                                  |
-| **Migrations paralleles** | Verifier `alembic heads` apres travail parallele et corriger les chaines                     |
+| Piege                     | Solution                                                                                                         |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Build avant typecheck** | `pnpm build` puis `pnpm typecheck` (les apps importent les packages compiles)                                    |
+| **UUID SQLAlchemy**       | `default=uuid.uuid4` assigne au INSERT, pas a l'init -- mocker `session.flush`                                   |
+| **Alembic PG ENUM**       | Utiliser `PG_ENUM(name=..., create_type=False)` + SQL brut, pas `sa.Enum(create_type=False)`                     |
+| **slowapi 429**           | `limiter.enabled = False` dans les fixtures                                                                      |
+| **ESLint + test mocks**   | `next build` lint les tests -- ajouter `/* eslint-disable */` si necessaire                                      |
+| **`@apply` + oklch**      | Ne fonctionne pas dans Tailwind 3.4 -- utiliser du CSS brut                                                      |
+| **Migrations paralleles** | Verifier `./scripts/check-alembic-heads.sh` (ou `alembic heads`) apres travail parallele et corriger les chaines |
 
 ## 7. Ajouter de nouveaux tests
 

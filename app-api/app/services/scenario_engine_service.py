@@ -132,33 +132,27 @@ def select_recommendation(
 ) -> ScenarioOption | None:
     """Select recommended option from the Pareto frontier.
 
-    Strategy: apply policy-compliant Pareto options only, then
+    Strategy: apply explicit policy-compliant Pareto options only, then
     choose the minimum expected cost (tie-breaker: minimum risk).
-    If explicit policy flags exist and none comply, return None
-    (comparative mode). For legacy records without policy fields,
-    fallback to the previous max-service/min-cost heuristic.
+    If policy flags are missing or all options are non-compliant,
+    fail closed and return None.
     """
     if not pareto_options:
         return None
 
     compliant: list[ScenarioOption] = []
     has_explicit_policy = False
+    missing_policy_flags = False
     for opt in pareto_options:
         policy_flag = getattr(opt, "policy_compliance", None)
         if policy_flag is not None:
             has_explicit_policy = True
             if bool(policy_flag):
                 compliant.append(opt)
-            continue
-
-        feasibility = getattr(opt, "feasibility_score", Decimal("1.0000"))
-        service_ok = opt.service_attendu_pct >= _MIN_SERVICE_THRESHOLD
-        feasibility_ok = Decimal(str(feasibility)) >= _MIN_FEASIBILITY_THRESHOLD
-        if service_ok and feasibility_ok:
-            compliant.append(opt)
+        else:
+            missing_policy_flags = True
 
     if compliant:
-        # Policy: service >= 98% at minimum cost, then minimum residual risk.
         return min(
             compliant,
             key=lambda o: (
@@ -171,15 +165,39 @@ def select_recommendation(
             ),
         )
 
-    # Explicit-policy mode: no compliant options -> no recommendation.
-    if has_explicit_policy:
+    if missing_policy_flags or has_explicit_policy:
         return None
 
-    # Legacy fallback for records without explicit policy fields.
-    return min(
-        pareto_options,
-        key=lambda o: (-o.service_attendu_pct, o.cout_total_eur),
-    )
+    return None
+
+
+def resolve_recommendation_outcome(
+    pareto_options: list[ScenarioOption],
+) -> dict[str, str | None]:
+    """Explain why recommendation selection succeeded or failed."""
+    recommended = select_recommendation(pareto_options)
+    if recommended is not None:
+        return {
+            "state": "recommended",
+            "reason": "policy_compliant_option_selected",
+            "label": recommended.label,
+        }
+
+    if any(
+        getattr(option, "policy_compliance", None) is None
+        for option in pareto_options
+    ):
+        return {
+            "state": "unconfigured",
+            "reason": "missing_policy_compliance_flags",
+            "label": None,
+        }
+
+    return {
+        "state": "no_feasible_solution",
+        "reason": "no_policy_compliant_option",
+        "label": None,
+    }
 
 
 async def generate_scenarios(
@@ -290,15 +308,14 @@ def _compute_all_options(
     policy_version: str = _RECOMMENDATION_POLICY_VERSION,
 ) -> list[dict[str, object]]:
     """Compute the 6 scenario options given a gap and cost parameters."""
-    # Extract cost parameters (handle both ORM objects and dicts)
-    c_int = Decimal(str(getattr(cost_param, "c_int", 0)))
-    maj_hs = Decimal(str(getattr(cost_param, "maj_hs", 0)))
-    c_interim = Decimal(str(getattr(cost_param, "c_interim", 0)))
-    premium_urgence = Decimal(str(getattr(cost_param, "premium_urgence", 0)))
-    c_backlog = Decimal(str(getattr(cost_param, "c_backlog", 0)))
-    cap_hs_shift = int(getattr(cost_param, "cap_hs_shift", 30))
-    cap_interim_site = int(getattr(cost_param, "cap_interim_site", 50))
-    lead_time_jours = int(getattr(cost_param, "lead_time_jours", 2))
+    c_int = _require_decimal_cost_param(cost_param, "c_int")
+    maj_hs = _require_decimal_cost_param(cost_param, "maj_hs")
+    c_interim = _require_decimal_cost_param(cost_param, "c_interim")
+    premium_urgence = _require_decimal_cost_param(cost_param, "premium_urgence")
+    c_backlog = _require_decimal_cost_param(cost_param, "c_backlog")
+    cap_hs_shift = _require_int_cost_param(cost_param, "cap_hs_shift")
+    cap_interim_site = _require_int_cost_param(cost_param, "cap_interim_site")
+    lead_time_jours = _require_int_cost_param(cost_param, "lead_time_jours")
 
     options = []
     zero = Decimal("0.00")
@@ -330,10 +347,10 @@ def _compute_all_options(
                     "risk_score": Decimal("0.0000"),
                     "policy_compliance": True,
                     "recommendation_policy_version": policy_version,
-                    "contraintes_json": {},
+                    "contraintes_json": {"selection_state": "no_gap"},
                 }
             )
-        return options
+        return _finalize_blueprint_options(options)
 
     # 1. HS: overtime
     hs_hours = min(gap, Decimal(str(cap_hs_shift)))
@@ -484,7 +501,7 @@ def _compute_all_options(
         }
     )
 
-    return options
+    return _finalize_blueprint_options(options)
 
 
 def _round2(v: Decimal) -> Decimal:
@@ -495,6 +512,32 @@ def _round2(v: Decimal) -> Decimal:
 def _round4(v: Decimal) -> Decimal:
     """Round a Decimal to 4 decimal places."""
     return v.quantize(Decimal("0.0001"))
+
+
+def _finalize_blueprint_options(
+    options: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    for option in options:
+        option.setdefault("is_pareto_optimal", False)
+        option.setdefault("is_recommended", False)
+    return options
+
+
+def _require_cost_param_value(cost_param: object, field_name: str) -> object:
+    value = getattr(cost_param, field_name, None)
+    if value is None and isinstance(cost_param, dict):
+        value = cost_param.get(field_name)
+    if value is None:
+        raise ValueError(f"unconfigured cost parameter: {field_name}")
+    return value
+
+
+def _require_decimal_cost_param(cost_param: object, field_name: str) -> Decimal:
+    return Decimal(str(_require_cost_param_value(cost_param, field_name)))
+
+
+def _require_int_cost_param(cost_param: object, field_name: str) -> int:
+    return int(str(_require_cost_param_value(cost_param, field_name)))
 
 
 async def get_scenarios_for_alert(

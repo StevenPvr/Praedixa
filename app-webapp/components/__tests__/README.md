@@ -7,9 +7,11 @@ Ce dossier regroupe les tests associés au dossier parent `app-webapp/components
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `sidebar.test.tsx`
 
 ## Intégration

@@ -4,10 +4,10 @@ L'admin garde volontairement peu de hooks locaux: ils encapsulent surtout l'acce
 
 ## Hooks exposes
 
-| Hook | Fichier | Role |
-| --- | --- | --- |
-| `useApiGet`, `useApiGetPaginated`, `useApiPost`, `useApiPatch` | `use-api.ts` | Couche de data-fetching admin avec annulation, pagination et mutations |
-| `useToast` | `use-toast.ts` | Acces au systeme de toast monte par `ToastProvider` |
+| Hook                                                           | Fichier        | Role                                                                   |
+| -------------------------------------------------------------- | -------------- | ---------------------------------------------------------------------- |
+| `useApiGet`, `useApiGetPaginated`, `useApiPost`, `useApiPatch` | `use-api.ts`   | Couche de data-fetching admin avec annulation, pagination et mutations |
+| `useToast`                                                     | `use-toast.ts` | Acces au systeme de toast monte par `ToastProvider`                    |
 
 ## Conventions
 

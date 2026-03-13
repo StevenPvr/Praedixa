@@ -244,7 +244,9 @@ export default function ContactRequestsPage() {
                 {row.email}
               </a>
             ) : (
-              <span className="text-sm font-medium text-primary">{row.email}</span>
+              <span className="text-sm font-medium text-primary">
+                {row.email}
+              </span>
             )}
             <p className="text-xs text-ink-placeholder">{row.phone || "-"}</p>
           </div>
@@ -344,8 +346,7 @@ export default function ContactRequestsPage() {
 
       {!canManageSupport ? (
         <div className="rounded-xl border border-border-subtle bg-card px-4 py-3 text-sm text-ink-tertiary">
-          Mode lecture seule. Permission requise pour modifier le statut:
-          {" "}
+          Mode lecture seule. Permission requise pour modifier le statut:{" "}
           <span className="font-medium text-ink">admin:support:write</span>
         </div>
       ) : null}

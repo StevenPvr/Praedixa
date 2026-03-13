@@ -11,13 +11,13 @@ Connecter Fourth pour obtenir planning, heures travaillees, cout main-d'oeuvre e
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets Fourth | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| RH | employee profile | employee id, role, contract, store | 60 min | `employee` |
-| Planning | roster / shift plan | shift start/end, role, published status | 15 min | `shift_plan` |
-| Temps | time records | clock in/out, breaks, overtime | 15 min | `timesheet` |
-| Cout | labor cost / forecast | labor cost, budget, variance | 30-60 min | `labor_cost_fact` |
-| Stock | purchasing/inventory (optionnel) | item, qty, waste | 60 min | `inventory_snapshot` |
+| Domaine  | Objets Fourth                    | Champs minimum                          | Frequence | Canonical            |
+| -------- | -------------------------------- | --------------------------------------- | --------- | -------------------- |
+| RH       | employee profile                 | employee id, role, contract, store      | 60 min    | `employee`           |
+| Planning | roster / shift plan              | shift start/end, role, published status | 15 min    | `shift_plan`         |
+| Temps    | time records                     | clock in/out, breaks, overtime          | 15 min    | `timesheet`          |
+| Cout     | labor cost / forecast            | labor cost, budget, variance            | 30-60 min | `labor_cost_fact`    |
+| Stock    | purchasing/inventory (optionnel) | item, qty, waste                        | 60 min    | `inventory_snapshot` |
 
 ## 3. Specification d'integration
 

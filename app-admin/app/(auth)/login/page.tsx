@@ -15,6 +15,9 @@ function toLoginErrorMessage(error: string | null): string | null {
   if (error === "rate_limited") {
     return "Trop de tentatives de connexion. Patientez quelques instants puis reessayez.";
   }
+  if (error === "admin_mfa_required") {
+    return "La console admin exige une authentification MFA valide. Reconnectez-vous avec un facteur admin autorise.";
+  }
   return "La connexion a echoue. Veuillez reessayer.";
 }
 

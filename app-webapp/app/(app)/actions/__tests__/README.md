@@ -7,10 +7,17 @@ Ce dossier regroupe les tests associés au dossier parent `app-webapp/app/(app)/
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `page.test.tsx`
+
+## Invariants surveilles
+
+- la page soumet le contrat runtime partage `OperationalDecisionCreateRequest`
+- un override ne peut pas etre envoye sans justification explicite
 
 ## Intégration
 

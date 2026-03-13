@@ -2,8 +2,11 @@ import { isIP } from "node:net";
 
 type ValidateOutboundUrlOptions = {
   allowedHosts: readonly string[];
+  allowlistLabel?: string;
   label: string;
   nodeEnv: "development" | "staging" | "production";
+  reservedHosts?: readonly string[];
+  reservedLabel?: string;
 };
 
 function normalizeHostname(hostname: string): string {
@@ -100,13 +103,24 @@ export function validateOutboundUrl(
   if (isLocalHostname(hostname) || isLoopbackOrPrivateIp(hostname)) {
     throw new Error(`${options.label} host is not allowed`);
   }
-  if (options.allowedHosts.length === 0) {
+  if (
+    options.reservedHosts != null &&
+    options.reservedHosts.length > 0 &&
+    isAllowedHost(hostname, options.reservedHosts)
+  ) {
     throw new Error(
-      "CONNECTORS_ALLOWED_OUTBOUND_HOSTS must be configured outside development",
+      `${options.label} host is reserved for ${options.reservedLabel ?? "a reserved environment"}`,
     );
   }
+  const allowlistLabel =
+    options.allowlistLabel ?? "CONNECTORS_ALLOWED_OUTBOUND_HOSTS";
+  if (options.allowedHosts.length === 0) {
+    throw new Error(`${allowlistLabel} must be configured outside development`);
+  }
   if (!isAllowedHost(hostname, options.allowedHosts)) {
-    throw new Error(`${options.label} host is not on the allowlist`);
+    throw new Error(
+      `${options.label} host is not on the ${allowlistLabel} allowlist`,
+    );
   }
 
   return parsed.toString().replace(/\/$/, "");

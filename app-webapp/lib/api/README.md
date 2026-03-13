@@ -4,15 +4,15 @@ Ce dossier formalise la facon dont React parle au backend Praedixa sans connaitr
 
 ## Fichiers
 
-| Fichier | Role |
-| --- | --- |
-| `client.ts` | Fonctions HTTP de base (`apiGet`, `apiPost`, etc.) |
-| `base-url.ts` | Resolution de la base URL selon contexte browser/server |
-| `endpoints.ts` | Barrel export des endpoints typed |
-| `endpoints/core.ts` | Routes coeur produit: dashboard, org, forecasts, decisions |
-| `endpoints/data.ts` | Routes data/ops: datasets, canonical, coverage alerts, proof packs |
-| `endpoints/support.ts` | Conversations et support |
-| `endpoints/shared.ts` | Helpers de query string et d'encodage |
+| Fichier                | Role                                                               |
+| ---------------------- | ------------------------------------------------------------------ |
+| `client.ts`            | Fonctions HTTP de base (`apiGet`, `apiPost`, etc.)                 |
+| `base-url.ts`          | Resolution de la base URL selon contexte browser/server            |
+| `endpoints.ts`         | Barrel export des endpoints typed                                  |
+| `endpoints/core.ts`    | Routes coeur produit: dashboard, org, forecasts, decisions         |
+| `endpoints/data.ts`    | Routes data/ops: datasets, canonical, coverage alerts, proof packs |
+| `endpoints/support.ts` | Conversations et support                                           |
+| `endpoints/shared.ts`  | Helpers de query string et d'encodage                              |
 
 ## Flux
 

@@ -17,7 +17,7 @@ from __future__ import annotations
 import uuid
 from datetime import timedelta
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -41,6 +41,133 @@ _DECEMBER = 12
 _DEFAULT_BAU_RATE = Decimal("40.00")
 _BAU_METHOD_VERSION_HISTORICAL = "historical_site_rolling_90d_v1"
 _BAU_METHOD_VERSION_FALLBACK = "fallback_static_rate_v1"
+_BAU_METHOD_VERSION_UNPROVEN = _BAU_METHOD_VERSION_FALLBACK
+_DECIMAL_ZERO = Decimal("0.0000")
+_DECIMAL_ONE = Decimal("1.0000")
+
+
+def _bounded_ratio(
+    numerator: int | float | Decimal,
+    denominator: int | float | Decimal,
+) -> Decimal:
+    """Return a 0..1 ratio with four-decimal precision."""
+    denominator_decimal = Decimal(str(denominator))
+    if denominator_decimal <= 0:
+        return _DECIMAL_ZERO
+
+    ratio = Decimal(str(numerator)) / denominator_decimal
+    return min(_DECIMAL_ONE, max(_DECIMAL_ZERO, ratio)).quantize(
+        Decimal("0.0001")
+    )
+
+
+def _resolve_bau_baseline(
+    *,
+    total_gap: Decimal,
+    cout_reel: Decimal,
+    historical_bau_rate: Decimal | None,
+    historical_service_bau: Decimal | None,
+) -> dict[str, Decimal | str | list[str] | None]:
+    """Resolve whether the BAU baseline is finance-grade or still unproven."""
+    if historical_bau_rate is None:
+        return {
+            "cout_bau": cout_reel,
+            "gain_net": Decimal("0.00"),
+            "bau_method_version": _BAU_METHOD_VERSION_UNPROVEN,
+            "proof_status": "cannot_prove_yet",
+            "proof_blockers": ["missing_historical_bau"],
+            "historical_bau_status": "cannot_prove_yet",
+            "service_bau": None,
+            "service_bau_status": "cannot_prove_yet",
+        }
+
+    cout_bau = (total_gap * historical_bau_rate).quantize(Decimal("0.01"))
+    blockers: list[str] = []
+    service_status = "configured"
+    proof_status = "proved"
+
+    if historical_service_bau is None:
+        blockers.append("missing_service_bau")
+        service_status = "cannot_prove_yet"
+        proof_status = "cannot_prove_yet"
+
+    return {
+        "cout_bau": cout_bau,
+        "gain_net": (cout_bau - cout_reel).quantize(Decimal("0.01")),
+        "bau_method_version": _BAU_METHOD_VERSION_HISTORICAL,
+        "proof_status": proof_status,
+        "proof_blockers": blockers,
+        "historical_bau_status": "configured",
+        "service_bau": historical_service_bau,
+        "service_bau_status": service_status,
+    }
+
+
+def _build_observed_decision_aggregate_query(alerts_subq):  # type: ignore[no-untyped-def]
+    """Build the observed decision aggregate with distinct alert coverage."""
+    return select(
+        func.coalesce(func.sum(OperationalDecision.cout_observe_eur), Decimal("0")),
+        func.count(func.distinct(OperationalDecision.coverage_alert_id)),
+    ).where(
+        OperationalDecision.coverage_alert_id.in_(select(alerts_subq.c.id)),
+        OperationalDecision.exogenous_event_tag.is_(None),
+    )
+
+
+def _resolve_proof_outcome(
+    *,
+    cout_bau: Decimal,
+    cout_100: Decimal,
+    cout_reel: Decimal,
+    adoption_pct: Decimal,
+    alertes_emises: int,
+    alertes_traitees: int,
+    recommended_alert_count: int,
+    bau_baseline: dict[str, Decimal | str | list[str] | None],
+) -> dict[str, Decimal | str | list[str] | None]:
+    """Resolve proof status from BAU, optimized counterfactual, and observed data."""
+    blockers = list(
+        cast("list[str]", bau_baseline.get("proof_blockers") or [])
+    )
+
+    optimized_status = "configured"
+    if alertes_traitees <= 0:
+        blockers.append("missing_observed_decisions")
+
+    if recommended_alert_count <= 0 or cout_100 <= 0:
+        blockers.append("missing_optimized_counterfactual")
+        optimized_status = "cannot_prove_yet"
+    elif cout_100 >= cout_bau:
+        blockers.append("optimized_counterfactual_not_better_than_bau")
+        optimized_status = "no_feasible_solution"
+
+    if "optimized_counterfactual_not_better_than_bau" in blockers:
+        proof_status = "no_feasible_solution"
+        gain_net = Decimal("0.00")
+    elif blockers:
+        proof_status = "cannot_prove_yet"
+        gain_net = Decimal("0.00")
+    else:
+        proof_status = "proved"
+        gain_net = (cout_bau - cout_reel).quantize(Decimal("0.01"))
+
+    denom = cout_bau - cout_100
+    capture_rate = (
+        _bounded_ratio(cout_bau - cout_reel, denom)
+        if proof_status == "proved" and denom > 0
+        else None
+    )
+
+    return {
+        "proof_status": proof_status,
+        "optimized_counterfactual_status": optimized_status,
+        "proof_blockers": blockers,
+        "gain_net": gain_net,
+        "capture_rate": capture_rate,
+        "attribution_confidence": _bounded_ratio(adoption_pct, Decimal("1")),
+        "alertes_emises": alertes_emises,
+        "alertes_traitees": alertes_traitees,
+    }
 
 
 async def _compute_historical_bau_proxy(

@@ -33,6 +33,8 @@ export interface RateLimitResult {
   retryAfterSeconds: number;
   remaining: number;
   resetAtEpochSeconds: number;
+  reason?: "rate_limited" | "misconfigured" | "unavailable";
+  mode?: "development-local" | "distributed-required";
 }
 
 export type RespValue = string | number | null | RespValue[] | Error;

@@ -1,29 +1,30 @@
-# `app/(admin)/` - Console super-admin
+# `app/(admin)/` - Console authentifiee
 
-Ce groupe contient les routes protegees du back-office Praedixa. Le layout monte `AdminShell`, applique la navigation laterale et centralise l'acces a la console reservee aux utilisateurs autorises.
+Groupe de routes protegees du back-office. Le `layout.tsx` ne fait qu'injecter `AdminShell`; le controle d'acces reel est centralise dans `lib/auth/admin-route-policies.ts`.
 
 ## Routes presentes
 
-| Route | Fichier | Role |
-| --- | --- | --- |
-| `/` | `page.tsx` | Accueil admin, KPIs plateforme, inbox et signaux globaux |
-| `/clients` | `clients/page.tsx` | Liste multi-tenant des organisations |
-| `/clients/[orgId]/*` | `clients/[orgId]/...` | Workspace detaille par organisation |
-| `/demandes-contact` | `demandes-contact/page.tsx` | Traitement des demandes entrantes |
-| `/journal` | `journal/page.tsx` | Journal d'audit |
-| `/parametres` | `parametres/page.tsx` | Parametrage plateforme |
-| `/coverage-harness` | `coverage-harness/page.tsx` | Route interne de QA/couverture, non produit |
+| Route                | Fichier                     | Role reel                                    |
+| -------------------- | --------------------------- | -------------------------------------------- |
+| `/`                  | `page.tsx`                  | accueil admin                                |
+| `/clients`           | `clients/page.tsx`          | liste des organisations                      |
+| `/clients/[orgId]/*` | `clients/[orgId]/...`       | workspace detaille par organisation          |
+| `/demandes-contact`  | `demandes-contact/page.tsx` | traitement des demandes entrantes            |
+| `/journal`           | `journal/page.tsx`          | consultation du journal admin                |
+| `/parametres`        | `parametres/page.tsx`       | reglages plateforme visibles dans la console |
+| `/coverage-harness`  | `coverage-harness/page.tsx` | route interne de couverture/QA               |
 
-## Fichiers structurants
+## Shell reel
 
-| Fichier | Role |
-| --- | --- |
-| `layout.tsx` | Monte le shell admin, la topbar et la sidebar |
-| `page.tsx` | Dashboard global admin |
-| `__tests__/page.test.tsx` | Couvre le dashboard |
-| `__tests__/uncovered-pages.test.tsx` | Balaye des pages moins couvertes pour eviter les regressions |
+- `AdminShell` monte `AdminSidebar`, `AdminTopbar`, `CommandPalette` et `RouteProgressBar`
+- la sidebar et la palette derivent de la meme registry de policies que les controles d'acces
+- le shell affiche un etat de verification de permissions tant que l'utilisateur courant charge
+- si la page est connue mais non autorisee, le shell rend un panneau `Acces restreint`
 
-## Workspace client
+## Lire ensuite
 
-- Le detail du workspace client est documente dans [`clients/README.md`](./clients/README.md).
-- Le contexte partage org/site vit dans `clients/[orgId]/client-context.tsx`.
+- `clients/README.md`
+- `coverage-harness/README.md`
+- `demandes-contact/README.md`
+- `journal/README.md`
+- `parametres/README.md`

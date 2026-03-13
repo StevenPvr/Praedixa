@@ -11,12 +11,12 @@ Integrer OTM pour exploiter ordres transport, execution des expeditions et couts
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets OTM | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| Plan transport | order release / shipment | shipment id, mode, origin, destination, status | 15-30 min | `shipment` |
-| Execution | stops/events | event code, milestone time, delay | 15 min | `route_stop`, `service_timing_event` |
-| Cout | charges/rates | carrier, base cost, surcharge, currency | 60 min | `freight_cost_fact` |
-| Referentiel | carriers/locations | carrier id, location id, timezone | 24h | `carrier`, `site` |
+| Domaine        | Objets OTM               | Champs minimum                                 | Frequence | Canonical                            |
+| -------------- | ------------------------ | ---------------------------------------------- | --------- | ------------------------------------ |
+| Plan transport | order release / shipment | shipment id, mode, origin, destination, status | 15-30 min | `shipment`                           |
+| Execution      | stops/events             | event code, milestone time, delay              | 15 min    | `route_stop`, `service_timing_event` |
+| Cout           | charges/rates            | carrier, base cost, surcharge, currency        | 60 min    | `freight_cost_fact`                  |
+| Referentiel    | carriers/locations       | carrier id, location id, timezone              | 24h       | `carrier`, `site`                    |
 
 ## 3. Specification d'integration
 

@@ -1,11 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { canAccessAdminConsole } from "@/lib/auth/permissions";
-import {
-  clearAuthCookies,
-  setAuthCookies,
-} from "@/lib/auth/oidc";
+import { clearAuthCookies, setAuthCookies } from "@/lib/auth/oidc";
 import { resolveRequestSession } from "@/lib/auth/request-session";
-import { canAccessPath } from "@/lib/auth/route-access";
+import {
+  canAccessPath,
+  hasExplicitAdminPagePolicy,
+} from "@/lib/auth/route-access";
 
 function redirectTo(
   request: NextRequest,
@@ -68,7 +68,8 @@ export async function updateSession(
   if (
     session &&
     !isLoginRoute &&
-    !canAccessPath(pathname, session.permissions)
+    (!hasExplicitAdminPagePolicy(pathname) ||
+      !canAccessPath(pathname, session.permissions))
   ) {
     return redirectTo(request, "/unauthorized");
   }

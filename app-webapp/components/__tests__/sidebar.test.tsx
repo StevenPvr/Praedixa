@@ -39,7 +39,9 @@ describe("Sidebar", () => {
     render(<Sidebar currentPath="/dashboard" userRole="admin" />);
 
     expect(screen.getByRole("link", { name: "Accueil" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Previsions" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Previsions" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Actions" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Support" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Reglages" })).toBeInTheDocument();

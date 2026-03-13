@@ -50,7 +50,8 @@ export default function MessagesPage() {
         </p>
         <h1 className="text-2xl font-semibold text-ink">Messagerie support</h1>
         <p className="text-sm text-ink-secondary">
-          Un sujet par conversation. Posez votre question et suivez la reponse ici.
+          Un sujet par conversation. Posez votre question et suivez la reponse
+          ici.
         </p>
       </section>
 
@@ -67,13 +68,18 @@ export default function MessagesPage() {
         <section className="rounded-xl border border-border bg-card px-4 py-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <div className="flex-1 space-y-1">
-              <label htmlFor="new-conversation-subject" className="text-sm font-medium text-ink">
+              <label
+                htmlFor="new-conversation-subject"
+                className="text-sm font-medium text-ink"
+              >
                 Sujet
               </label>
               <input
                 id="new-conversation-subject"
                 value={newConversationSubject}
-                onChange={(event) => setNewConversationSubject(event.target.value)}
+                onChange={(event) =>
+                  setNewConversationSubject(event.target.value)
+                }
                 onKeyDown={(event) => {
                   if (event.key !== "Enter") return;
                   event.preventDefault();
@@ -111,7 +117,9 @@ export default function MessagesPage() {
         <div className="flex min-h-[560px] flex-col overflow-hidden rounded-xl border border-border bg-card">
           {selectedConversation ? (
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <p className="truncate text-sm font-semibold text-ink">{selectedConversation.subject}</p>
+              <p className="truncate text-sm font-semibold text-ink">
+                {selectedConversation.subject}
+              </p>
               <span
                 className={cn(
                   "rounded-full px-2 py-0.5 text-[11px] font-medium",

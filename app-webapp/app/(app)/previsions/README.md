@@ -1,18 +1,19 @@
-# Previsions
+# `app/(app)/previsions/`
 
-## Rôle
+Route `/previsions`.
 
-Ce dossier matérialise un segment de route Next.js. Les fichiers `loading.tsx`, `page.tsx` définissent le rendu, le layout ou le handler HTTP de ce segment.
+## Fichiers
 
-## Contenu immédiat
+| Fichier       | Role reel                                                                                                      |
+| ------------- | -------------------------------------------------------------------------------------------------------------- |
+| `page.tsx`    | combine `useDecisionConfig`, `useLatestForecasts` et `useApiGet` pour afficher horizons, previsions et alertes |
+| `loading.tsx` | etat de chargement de la route                                                                                 |
 
-Sous-dossiers :
-- `__tests__`
+## Etats degrades visibles
 
-Fichiers :
-- `loading.tsx`
-- `page.tsx`
+- banniere d'erreur inline avec bouton `Reessayer`
+- message `Aucun horizon actif configure`
+- message `Aucune prevision disponible`
+- message `Aucune alerte active`
 
-## Intégration
-
-Ce dossier est consommé par l'application `app-webapp` et s'insère dans son flux runtime, build ou test.
+La page ne monte pas de graphe ou composant local dedie: l'essentiel du rendu reste dans le JSX de `page.tsx`.

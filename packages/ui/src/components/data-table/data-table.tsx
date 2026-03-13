@@ -1,9 +1,9 @@
 import * as React from "react";
-import { cn } from "../../utils/cn";
-import type { DataTableColumn, DataTableProps } from "./data-table-types";
-import { DataTableHeader } from "./data-table-header";
-import { DataTableBody } from "./data-table-body";
-import { DataTablePaginationBar } from "./data-table-pagination";
+import { cn } from "../../utils/cn.js";
+import type { DataTableColumn, DataTableProps } from "./data-table-types.js";
+import { DataTableHeader } from "./data-table-header.js";
+import { DataTableBody } from "./data-table-body.js";
+import { DataTablePaginationBar } from "./data-table-pagination.js";
 
 const VIRTUALISE_THRESHOLD = 100;
 

@@ -1,0 +1,423 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "https://schemas.praedixa.dev/contracts/decisionops/ledger-entry.schema.json",
+  "title": "Praedixa Ledger Entry",
+  "description": "Versioned economic and operational trace for a decision, from baseline to realized ROI.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "schema_version",
+    "ledger_id",
+    "contract_id",
+    "contract_version",
+    "recommendation_id",
+    "status",
+    "revision",
+    "scope",
+    "baseline",
+    "recommended",
+    "approvals",
+    "action",
+    "counterfactual",
+    "roi",
+    "explanation",
+    "opened_at"
+  ],
+  "properties": {
+    "kind": {
+      "const": "LedgerEntry"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "ledger_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "contract_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]{2,127}$"
+    },
+    "contract_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "recommendation_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "scenario_run_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "status": {
+      "enum": ["open", "measuring", "closed", "recalculated", "disputed"]
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "scope": {
+      "$ref": "#/$defs/scope"
+    },
+    "baseline": {
+      "$ref": "#/$defs/metricSnapshot"
+    },
+    "recommended": {
+      "$ref": "#/$defs/recommendedSnapshot"
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/approvalSummary"
+      }
+    },
+    "action": {
+      "$ref": "#/$defs/actionSummary"
+    },
+    "actual": {
+      "$ref": "#/$defs/metricSnapshot"
+    },
+    "counterfactual": {
+      "$ref": "#/$defs/counterfactual"
+    },
+    "roi": {
+      "$ref": "#/$defs/roi"
+    },
+    "explanation": {
+      "$ref": "#/$defs/explanation"
+    },
+    "opened_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "closed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "supersedes": {
+      "$ref": "#/$defs/supersedes"
+    },
+    "dispute": {
+      "$ref": "#/$defs/dispute"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": ["closed", "recalculated", "disputed"]
+          }
+        }
+      },
+      "then": {
+        "required": ["actual", "closed_at"]
+      }
+    }
+  ],
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entity_type", "selector", "horizon_id"],
+      "properties": {
+        "entity_type": {
+          "enum": [
+            "organization",
+            "site",
+            "team",
+            "flow",
+            "route",
+            "order_aggregate",
+            "stock_node",
+            "period"
+          ]
+        },
+        "selector": {
+          "$ref": "#/$defs/selector"
+        },
+        "horizon_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9+_-]{0,31}$"
+        }
+      }
+    },
+    "selector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "enum": ["all", "ids", "query"]
+        },
+        "ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "uniqueItems": true
+        },
+        "query": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      }
+    },
+    "metricSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recorded_at", "values"],
+      "properties": {
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "values": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-z0-9][a-z0-9_.-]{1,127}$"
+          },
+          "additionalProperties": {
+            "type": ["number", "integer", "string", "boolean", "null"]
+          }
+        }
+      }
+    },
+    "recommendedSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recorded_at", "action_summary", "values"],
+      "properties": {
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "action_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "values": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-z0-9][a-z0-9_.-]{1,127}$"
+          },
+          "additionalProperties": {
+            "type": ["number", "integer", "string", "boolean", "null"]
+          }
+        }
+      }
+    },
+    "approvalSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approval_id", "outcome", "actor_role", "decided_at"],
+      "properties": {
+        "approval_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "outcome": {
+          "enum": ["granted", "rejected", "overridden"]
+        },
+        "actor_role": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "actor_user_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "decided_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "actionSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action_id", "status", "destination"],
+      "properties": {
+        "action_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "status": {
+          "enum": [
+            "dry_run",
+            "pending",
+            "dispatched",
+            "acknowledged",
+            "failed",
+            "retried",
+            "canceled"
+          ]
+        },
+        "destination": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "target_reference": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "last_attempt_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "counterfactual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method"],
+      "properties": {
+        "method": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "method_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "roi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["currency", "validation_status", "components"],
+      "properties": {
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "estimated_value": {
+          "type": "number"
+        },
+        "realized_value": {
+          "type": "number"
+        },
+        "validation_status": {
+          "enum": ["estimated", "validated", "contested"]
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/roiComponent"
+          }
+        },
+        "validated_by": {
+          "$ref": "#/$defs/uuid"
+        },
+        "validated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "roiComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "label", "kind", "value", "validation_status"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "kind": {
+          "enum": ["benefit", "cost"]
+        },
+        "value": {
+          "type": "number"
+        },
+        "validation_status": {
+          "enum": ["estimated", "validated", "contested"]
+        }
+      }
+    },
+    "explanation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["top_drivers", "binding_constraints"],
+      "properties": {
+        "top_drivers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+          },
+          "uniqueItems": true
+        },
+        "binding_constraints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+          },
+          "uniqueItems": true
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      }
+    },
+    "supersedes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ledger_id", "revision"],
+      "properties": {
+        "ledger_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "dispute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["opened_at", "reason"],
+      "properties": {
+        "opened_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 1000
+        },
+        "reviewer_user_id": {
+          "$ref": "#/$defs/uuid"
+        }
+      }
+    }
+  }
+}

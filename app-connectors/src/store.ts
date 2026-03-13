@@ -33,7 +33,10 @@ export class InMemoryConnectorStore {
   protected readonly syncReplayIndex = new Map<string, string>();
   protected readonly secretsByRef = new Map<string, StoredSecretRecord>();
   protected readonly latestSecretRefByConnection = new Map<string, string>();
-  protected readonly authorizationSessions = new Map<string, AuthorizationSession>();
+  protected readonly authorizationSessions = new Map<
+    string,
+    AuthorizationSession
+  >();
   protected readonly auditEvents: ConnectorAuditEvent[] = [];
   protected readonly ingestCredentials = new Map<string, IngestCredential>();
   protected readonly rawEvents = new Map<string, IngestRawEvent>();
@@ -64,7 +67,9 @@ export class InMemoryConnectorStore {
     input: CreateConnectionInput,
   ): ConnectorConnection {
     const now = new Date().toISOString();
-    const catalogEntry = CONNECTOR_CATALOG.find((entry) => entry.vendor === input.vendor);
+    const catalogEntry = CONNECTOR_CATALOG.find(
+      (entry) => entry.vendor === input.vendor,
+    );
     const sourceObjects =
       input.sourceObjects != null && input.sourceObjects.length > 0
         ? [...input.sourceObjects]
@@ -75,13 +80,16 @@ export class InMemoryConnectorStore {
       vendor: input.vendor,
       displayName: input.displayName.trim(),
       status: "pending",
-      authorizationState: input.secretRef != null ? "authorized" : "not_started",
+      authorizationState:
+        input.secretRef != null ? "authorized" : "not_started",
+      runtimeEnvironment: input.runtimeEnvironment ?? "production",
       authMode: input.authMode,
       config: input.config ?? {},
       secretRef: input.secretRef ?? null,
       secretVersion: input.secretRef != null ? 1 : null,
       sourceObjects,
-      syncIntervalMinutes: input.syncIntervalMinutes ?? catalogEntry?.recommendedSyncMinutes ?? 30,
+      syncIntervalMinutes:
+        input.syncIntervalMinutes ?? catalogEntry?.recommendedSyncMinutes ?? 30,
       webhookEnabled: input.webhookEnabled ?? false,
       baseUrl: input.baseUrl ?? null,
       externalAccountId: input.externalAccountId ?? null,
@@ -257,7 +265,11 @@ export class InMemoryConnectorStore {
     credentialId: string,
     patch: Partial<IngestCredential>,
   ): IngestCredential | null {
-    const previous = this.getIngestCredential(organizationId, connectionId, credentialId);
+    const previous = this.getIngestCredential(
+      organizationId,
+      connectionId,
+      credentialId,
+    );
     if (previous == null) {
       return null;
     }
@@ -285,7 +297,10 @@ export class InMemoryConnectorStore {
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
-  createRawEvent(event: IngestRawEvent): { created: boolean; event: IngestRawEvent } {
+  createRawEvent(event: IngestRawEvent): {
+    created: boolean;
+    event: IngestRawEvent;
+  } {
     const replayKey = makeIdempotencyKey(
       event.organizationId,
       event.connectionId,

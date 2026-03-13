@@ -266,7 +266,7 @@ uv sync --active --extra dev
 # Installer les navigateurs (une seule fois)
 pnpm exec playwright install
 
-# Smoke local reproductible (admin)
+# Smoke local reproductible (webapp + admin)
 pnpm test:e2e:smoke
 
 # Lancer la suite E2E par projet (RECOMMANDÉ pour la stabilité)
@@ -341,13 +341,13 @@ Le `pre-push` bloque si le rapport signe du commit courant est absent, stale, in
 
 ### Deploiement
 
-| Service              | Hebergement actuel                       | URL principale                          | Config / scripts                                                      |
-| -------------------- | ---------------------------------------- | --------------------------------------- | --------------------------------------------------------------------- |
+| Service              | Hebergement actuel                       | URL principale                          | Config / scripts                                                   |
+| -------------------- | ---------------------------------------- | --------------------------------------- | ------------------------------------------------------------------ |
 | Landing              | Scaleway Serverless Container (`fr-par`) | `praedixa.com` (cutover DNS en attente) | `app-landing/Dockerfile.scaleway`, `pnpm run scw:deploy:landing:*` |
-| Web app client       | Scaleway Serverless Container (`fr-par`) | `app.praedixa.com`                      | `app-webapp/Dockerfile.scaleway`, `pnpm run scw:deploy:webapp:*`      |
-| Admin back-office    | Scaleway Serverless Container (`fr-par`) | `admin.praedixa.com`                    | `app-admin/Dockerfile.scaleway`, `pnpm run scw:deploy:admin:*`        |
-| API backend          | Scaleway Serverless Container (`fr-par`) | `api.praedixa.com`                      | `app-api-ts/Dockerfile`, `pnpm run scw:deploy:api:*`                  |
-| Auth OIDC (Keycloak) | Scaleway Serverless Container (`fr-par`) | `auth.praedixa.com`                     | configuration manuelle + env secrets                                  |
+| Web app client       | Scaleway Serverless Container (`fr-par`) | `app.praedixa.com`                      | `app-webapp/Dockerfile.scaleway`, `pnpm run scw:deploy:webapp:*`   |
+| Admin back-office    | Scaleway Serverless Container (`fr-par`) | `admin.praedixa.com`                    | `app-admin/Dockerfile.scaleway`, `pnpm run scw:deploy:admin:*`     |
+| API backend          | Scaleway Serverless Container (`fr-par`) | `api.praedixa.com`                      | `app-api-ts/Dockerfile`, `pnpm run scw:deploy:api:*`               |
+| Auth OIDC (Keycloak) | Scaleway Serverless Container (`fr-par`) | `auth.praedixa.com`                     | configuration manuelle + env secrets                               |
 
 Preflight complet sans deploy:
 

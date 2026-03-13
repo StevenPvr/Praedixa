@@ -4,9 +4,9 @@ Ce dossier centralise les chemins et le client HTTP utilises par la console supe
 
 ## Fichiers
 
-| Fichier | Role |
-| --- | --- |
-| `client.ts` | Fonctions HTTP generiques et `ApiError` |
+| Fichier        | Role                                           |
+| -------------- | ---------------------------------------------- |
+| `client.ts`    | Fonctions HTTP generiques et `ApiError`        |
 | `endpoints.ts` | Catalogue complet des routes `/api/v1/admin/*` |
 
 ## Families d'endpoints
@@ -20,6 +20,7 @@ Ce dossier centralise les chemins et le client HTTP utilises par la console supe
 - Data operationnelle par organisation
 - Conversations et demandes de contact
 - Integrations et raw events
+- Surfaces DecisionOps (`approval-inbox`, `approvals/:id/decision`, `action-dispatches/:id`, `ledgers/:id`)
 
 ## Usage
 

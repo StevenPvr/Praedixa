@@ -11,12 +11,12 @@ Connecter SAP TM pour ingerer planification/execution transport et donnees de co
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets SAP TM | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| Transport | freight order / booking | FO id, mode, status, source/destination | 15-30 min | `shipment` |
-| Execution | event management | event type, planned vs actual, delay | 15 min | `service_timing_event`, `route_stop` |
-| Cout | freight settlement | charge type, amount, currency, carrier | 60 min | `freight_cost_fact` |
-| Referentiel | business partner, location | bp id, location id, timezone | 24h | `carrier`, `site` |
+| Domaine     | Objets SAP TM              | Champs minimum                          | Frequence | Canonical                            |
+| ----------- | -------------------------- | --------------------------------------- | --------- | ------------------------------------ |
+| Transport   | freight order / booking    | FO id, mode, status, source/destination | 15-30 min | `shipment`                           |
+| Execution   | event management           | event type, planned vs actual, delay    | 15 min    | `service_timing_event`, `route_stop` |
+| Cout        | freight settlement         | charge type, amount, currency, carrier  | 60 min    | `freight_cost_fact`                  |
+| Referentiel | business partner, location | bp id, location id, timezone            | 24h       | `carrier`, `site`                    |
 
 ## 3. Specification d'integration
 

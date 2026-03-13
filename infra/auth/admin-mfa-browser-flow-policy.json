@@ -1,0 +1,35 @@
+{
+  "schema_version": "1",
+  "realm": "praedixa",
+  "required_amr_values": ["otp"],
+  "realm_browser_flow_alias": "browser",
+  "required_actions": ["CONFIGURE_TOTP"],
+  "otp_policy": {
+    "type": "totp",
+    "algorithm": "HmacSHA1",
+    "digits": 6,
+    "period": 30,
+    "look_ahead_window": 1,
+    "code_reusable": false
+  },
+  "required_execution_checks": [
+    {
+      "display_name": "Browser - Conditional 2FA",
+      "requirement": "CONDITIONAL",
+      "level": 1,
+      "authentication_flow": true
+    },
+    {
+      "display_name": "Condition - User Configured",
+      "requirement": "REQUIRED",
+      "level": 2,
+      "authentication_flow": false
+    },
+    {
+      "display_name": "OTP Form",
+      "requirement": "ALTERNATIVE",
+      "level": 2,
+      "authentication_flow": false
+    }
+  ]
+}

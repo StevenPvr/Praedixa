@@ -7,9 +7,11 @@ Ce dossier regroupe les tests associés au dossier parent `app-admin/components`
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `admin-sidebar.test.tsx`
 - `admin-topbar.test.tsx`
 - `client-tabs-nav.test.tsx`

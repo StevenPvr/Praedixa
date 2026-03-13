@@ -7,9 +7,11 @@ Ce dossier fait partie du périmètre `app-webapp` et regroupe des fichiers lié
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `core.ts`
 - `data.ts`
 - `shared.ts`

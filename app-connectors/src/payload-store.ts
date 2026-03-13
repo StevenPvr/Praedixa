@@ -45,7 +45,10 @@ export class LocalFilePayloadStore implements PayloadStore {
     const absolutePath = path.join(this.rootDir, relativeKey);
     await mkdir(path.dirname(absolutePath), { recursive: true });
     const serialized = JSON.stringify(payload);
-    await writeFile(absolutePath, serialized, { encoding: "utf8", mode: 0o600 });
+    await writeFile(absolutePath, serialized, {
+      encoding: "utf8",
+      mode: 0o600,
+    });
     return {
       key: relativeKey,
       contentType: "application/json",

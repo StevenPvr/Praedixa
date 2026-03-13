@@ -114,6 +114,23 @@ describe("POST /auth/logout (webapp)", () => {
     expect(mockClearAuthCookies).toHaveBeenCalledTimes(1);
   });
 
+  it("allows direct logout navigation requests without an Origin header", async () => {
+    const response = await POST(
+      createMockRequest(
+        {
+          "sec-fetch-site": "none",
+        },
+        {
+          prx_web_rt: "refresh-token",
+        },
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockRevokeOidcToken).toHaveBeenCalledTimes(1);
+    expect(mockClearAuthCookies).toHaveBeenCalledTimes(1);
+  });
+
   it("still clears local cookies when upstream revocation fails", async () => {
     mockRevokeOidcToken.mockRejectedValueOnce(new Error("revocation down"));
 

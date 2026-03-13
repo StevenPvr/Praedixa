@@ -14,7 +14,9 @@ export class PersistenceError extends Error {
   }
 }
 
-export function isUuidString(value: string | null | undefined): value is string {
+export function isUuidString(
+  value: string | null | undefined,
+): value is string {
   if (!value) {
     return false;
   }
@@ -28,7 +30,9 @@ export function hasPersistentDatabase(): boolean {
   return (process.env.DATABASE_URL?.trim().length ?? 0) > 0;
 }
 
-export function canUsePersistentStore(scopeId: string | null | undefined): boolean {
+export function canUsePersistentStore(
+  scopeId: string | null | undefined,
+): boolean {
   return hasPersistentDatabase() && isUuidString(scopeId);
 }
 

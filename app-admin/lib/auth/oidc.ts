@@ -12,7 +12,6 @@ const ROLE_PRIORITY = [
 
 type KnownRole = (typeof ROLE_PRIORITY)[number];
 
-const DEFAULT_ROLE: KnownRole = "viewer";
 const DEFAULT_SCOPE = "openid profile email offline_access";
 const DEFAULT_DEV_AUTH_ORIGIN = "http://localhost:3002";
 const DEFAULT_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 14;
@@ -130,33 +129,6 @@ function getString(payload: JwtPayload, key: string): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-function getNestedString(
-  payload: JwtPayload,
-  parentKey: string,
-  childKey?: string,
-): string | null {
-  const parentValue = getOwnValue(payload, parentKey);
-  if (childKey === undefined) {
-    return typeof parentValue === "string" && parentValue.length > 0
-      ? parentValue
-      : null;
-  }
-  if (
-    !parentValue ||
-    typeof parentValue !== "object" ||
-    Array.isArray(parentValue)
-  ) {
-    return null;
-  }
-  const childValue = getOwnValue(
-    parentValue as Record<string, unknown>,
-    childKey,
-  );
-  return typeof childValue === "string" && childValue.length > 0
-    ? childValue
-    : null;
-}
-
 function getStringList(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.filter(
@@ -165,152 +137,20 @@ function getStringList(value: unknown): string[] {
   );
 }
 
-function extractProfiles(payload: JwtPayload): string[] {
-  const topLevelProfiles = getStringList(getOwnValue(payload, "profiles"));
-  const topLevelProfile = getString(payload, "profile");
+function getNormalizedStringList(value: unknown): string[] {
+  if (typeof value === "string" && value.trim().length > 0) {
+    return [value.trim().toLowerCase()];
+  }
 
-  const appMetadata = getOwnValue(payload, "app_metadata");
-  const appMetadataProfile =
-    appMetadata &&
-    typeof appMetadata === "object" &&
-    !Array.isArray(appMetadata)
-      ? getOwnValue(appMetadata as Record<string, unknown>, "profile")
-      : undefined;
-  const appMetadataProfiles =
-    appMetadata &&
-    typeof appMetadata === "object" &&
-    !Array.isArray(appMetadata)
-      ? getStringList(
-          getOwnValue(appMetadata as Record<string, unknown>, "profiles"),
-        )
-      : [];
-
-  const profiles = [
-    ...(topLevelProfile ? [topLevelProfile] : []),
-    ...topLevelProfiles,
-    ...(typeof appMetadataProfile === "string" && appMetadataProfile.length > 0
-      ? [appMetadataProfile]
-      : []),
-    ...appMetadataProfiles,
-  ];
-
-  return Array.from(new Set(profiles));
+  return getStringList(value).map((entry) => entry.trim().toLowerCase());
 }
 
-function normalizeRoleValue(rawRole: string): string {
+function normalizeRole(rawRole: string): KnownRole | null {
   const trimmed = rawRole.trim();
-  if (trimmed.length === 0) return "";
-
-  const withoutPath = trimmed.includes("/")
-    ? (trimmed.split("/").at(-1) ?? "")
-    : trimmed;
-
-  return withoutPath
-    .toLowerCase()
-    .replace(/^role[_:-]?/, "")
-    .replace(/[\s-]+/g, "_");
-}
-
-function mapToKnownRole(rawRole: string): KnownRole | null {
-  const normalized = normalizeRoleValue(rawRole);
-  if (normalized.length === 0) return null;
-
-  if (
-    normalized === "admin" ||
-    normalized === "orgadmin" ||
-    normalized === "organization_admin" ||
-    normalized === "org_administrator"
-  ) {
-    return "org_admin";
-  }
-
-  if (
-    normalized === "superadmin" ||
-    normalized === "super_administrator"
-  ) {
-    return "super_admin";
-  }
-
-  if (normalized === "hrmanager") {
-    return "hr_manager";
-  }
-
-  return ROLE_PRIORITY.includes(normalized as KnownRole)
-    ? (normalized as KnownRole)
+  if (trimmed.length === 0) return null;
+  return ROLE_PRIORITY.includes(trimmed as KnownRole)
+    ? (trimmed as KnownRole)
     : null;
-}
-
-function getRoleFromList(value: unknown): string | null {
-  if (!Array.isArray(value)) return null;
-  const roles = value.filter(
-    (entry): entry is string => typeof entry === "string",
-  );
-  if (roles.length === 0) return null;
-
-  const knownRoles = roles
-    .map((role) => mapToKnownRole(role))
-    .filter((role): role is KnownRole => role != null);
-
-  for (const candidate of ROLE_PRIORITY) {
-    if (knownRoles.includes(candidate)) {
-      return candidate;
-    }
-  }
-  return null;
-}
-
-function extractRole(payload: JwtPayload, clientId: string): string {
-  const directRole =
-    getString(payload, "role") ??
-    getNestedString(payload, "app_metadata", "role");
-  if (directRole) return directRole;
-
-  const topLevelRoles = getRoleFromList(getOwnValue(payload, "roles"));
-  if (topLevelRoles) return topLevelRoles;
-
-  const groupsRole = getRoleFromList(getOwnValue(payload, "groups"));
-  if (groupsRole) return groupsRole;
-
-  const realmAccess = getOwnValue(payload, "realm_access");
-  const realmRoles = getRoleFromList(
-    realmAccess &&
-      typeof realmAccess === "object" &&
-      !Array.isArray(realmAccess)
-      ? getOwnValue(realmAccess as Record<string, unknown>, "roles")
-      : undefined,
-  );
-  if (realmRoles) return realmRoles;
-
-  const resourceAccess = getOwnValue(payload, "resource_access");
-  let resourceRoles: string | null = null;
-  if (
-    resourceAccess &&
-    typeof resourceAccess === "object" &&
-    !Array.isArray(resourceAccess) &&
-    isSafeObjectKey(clientId)
-  ) {
-    const clientAccess = getOwnValue(
-      resourceAccess as Record<string, unknown>,
-      clientId,
-    );
-    if (
-      clientAccess &&
-      typeof clientAccess === "object" &&
-      !Array.isArray(clientAccess)
-    ) {
-      resourceRoles = getRoleFromList(
-        getOwnValue(clientAccess as Record<string, unknown>, "roles"),
-      );
-    }
-  }
-
-  if (resourceRoles) return resourceRoles;
-
-  return DEFAULT_ROLE;
-}
-
-function toKnownRole(role: string): string {
-  return mapToKnownRole(role) ?? DEFAULT_ROLE;
 }
 
 export function decodeJwtPayload(token: string): JwtPayload | null {
@@ -335,7 +175,10 @@ function getTokenNotBefore(token: string): number | null {
   return typeof nbf === "number" ? nbf : null;
 }
 
-function tokenIncludesAudience(value: unknown, expectedAudience: string): boolean {
+function tokenIncludesAudience(
+  value: unknown,
+  expectedAudience: string,
+): boolean {
   if (typeof value === "string") {
     return value === expectedAudience;
   }
@@ -427,41 +270,19 @@ export function isTokenExpired(token: string, minTtlSeconds = 0): boolean {
 
 export function userFromAccessToken(
   token: string,
-  clientId: string,
+  _clientId: string,
 ): OidcUser | null {
+  void _clientId;
   const payload = decodeJwtPayload(token);
   if (!payload) return null;
 
   const sub = getString(payload, "sub");
-  const email =
-    getString(payload, "email") ??
-    getNestedString(payload, "preferred_username");
-  if (!sub || !email) return null;
+  const email = getString(payload, "email");
+  const rawRole = getString(payload, "role");
+  if (!sub || !email || !rawRole) return null;
 
-  const organizationId =
-    getString(payload, "organization_id") ??
-    getNestedString(payload, "app_metadata", "organization_id") ??
-    getNestedString(payload, "app_metadata", "org_id");
-
-  const siteId =
-    getString(payload, "site_id") ??
-    getNestedString(payload, "app_metadata", "site_id");
-
-  const role = toKnownRole(extractRole(payload, clientId));
-  const appMetadataRaw = getOwnValue(payload, "app_metadata");
-  const appMetadata =
-    appMetadataRaw &&
-    typeof appMetadataRaw === "object" &&
-    !Array.isArray(appMetadataRaw)
-      ? (appMetadataRaw as Record<string, unknown>)
-      : null;
-  const explicitPermissions = [
-    ...getStringList(getOwnValue(payload, "permissions")),
-    ...getStringList(
-      appMetadata ? getOwnValue(appMetadata, "permissions") : undefined,
-    ),
-  ];
-  const profiles = extractProfiles(payload);
+  const role = normalizeRole(rawRole);
+  if (!role) return null;
 
   return {
     id: sub,
@@ -469,12 +290,49 @@ export function userFromAccessToken(
     role,
     permissions: resolveAdminPermissions({
       role,
-      explicitPermissions,
-      profiles,
+      explicitPermissions: getStringList(getOwnValue(payload, "permissions")),
+      profiles: null,
     }),
-    organizationId,
-    siteId,
+    organizationId: getString(payload, "organization_id"),
+    siteId: getString(payload, "site_id"),
   };
+}
+
+function getRequiredAdminAmrValues(): string[] {
+  const parsed = (process.env.AUTH_ADMIN_REQUIRED_AMR?.trim() ?? "")
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter((entry) => entry.length > 0);
+
+  if (parsed.length === 0) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "Missing AUTH_ADMIN_REQUIRED_AMR for production admin auth",
+      );
+    }
+    return [];
+  }
+
+  return Array.from(new Set(parsed));
+}
+
+export function hasRequiredAdminMfa(token: string): boolean {
+  const requiredAmrValues = getRequiredAdminAmrValues();
+  if (requiredAmrValues.length === 0) {
+    return true;
+  }
+
+  const payload = decodeJwtPayload(token);
+  if (!payload) {
+    return false;
+  }
+
+  const amrValues = getNormalizedStringList(getOwnValue(payload, "amr"));
+  if (amrValues.length === 0) {
+    return false;
+  }
+
+  return requiredAmrValues.some((required) => amrValues.includes(required));
 }
 
 export function getOidcEnv(): OidcEnv {
@@ -491,6 +349,7 @@ export function getOidcEnv(): OidcEnv {
   }
 
   validateSessionSecret(sessionSecret);
+  getRequiredAdminAmrValues();
 
   return {
     issuerUrl: issuerUrl.replace(/\/$/, ""),
@@ -546,7 +405,8 @@ export function isMissingOidcEnvError(error: unknown): boolean {
   return (
     error instanceof Error &&
     (error.message.includes("Missing OIDC env vars:") ||
-      error.message.includes("Missing AUTH_APP_ORIGIN"))
+      error.message.includes("Missing AUTH_APP_ORIGIN") ||
+      error.message.includes("Missing AUTH_ADMIN_REQUIRED_AMR"))
   );
 }
 
@@ -875,7 +735,7 @@ export async function verifySession(
 
   const sub = getString(parsed, "sub");
   const email = getString(parsed, "email");
-  const role = getString(parsed, "role") ?? DEFAULT_ROLE;
+  const rawRole = getString(parsed, "role");
   const permissions = getStringList(getOwnValue(parsed, "permissions"));
   const accessTokenExp = parsed.accessTokenExp;
   const issuedAt = parsed.issuedAt;
@@ -892,6 +752,7 @@ export async function verifySession(
   if (
     !sub ||
     !email ||
+    !rawRole ||
     typeof accessTokenExp !== "number" ||
     typeof issuedAt !== "number" ||
     typeof sessionExpiresAt !== "number" ||
@@ -900,7 +761,11 @@ export async function verifySession(
     return null;
   }
 
-  const normalizedRole = toKnownRole(role);
+  const normalizedRole = normalizeRole(rawRole);
+  if (!normalizedRole) {
+    return null;
+  }
+
   const nowEpochSeconds = Math.floor(Date.now() / 1000);
   if (
     issuedAt > nowEpochSeconds + SESSION_CLOCK_SKEW_SECONDS ||
@@ -1058,8 +923,11 @@ export function secureCookie(request: NextRequest): boolean {
   }
 
   const forwardedProto =
-    request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase() ??
-    "";
+    request.headers
+      .get("x-forwarded-proto")
+      ?.split(",")[0]
+      ?.trim()
+      .toLowerCase() ?? "";
   if (forwardedProto === "https") {
     return true;
   }

@@ -37,10 +37,9 @@ test.describe("Sidebar interactions", () => {
       "aria-current",
       "page",
     );
-    await expect(nav.locator('a[href="/dashboard"]').first()).not.toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    await expect(
+      nav.locator('a[href="/dashboard"]').first(),
+    ).not.toHaveAttribute("aria-current", "page");
   });
 
   test("sidebar brand is visible on desktop", async ({ page }) => {
@@ -51,14 +50,20 @@ test.describe("Sidebar interactions", () => {
   test("profile menu exposes account actions", async ({ page }) => {
     await gotoDashboard(page);
 
-    await page.getByRole("button", { name: "Ouvrir le compte", exact: true }).click({
-      force: true,
-    });
+    await page
+      .getByRole("button", { name: "Ouvrir le compte", exact: true })
+      .click({
+        force: true,
+      });
 
     await expect(page.getByRole("menuitem", { name: "Accueil" })).toBeVisible();
-    await expect(page.getByRole("menuitem", { name: "Reglages" })).toBeVisible();
+    await expect(
+      page.getByRole("menuitem", { name: "Reglages" }),
+    ).toBeVisible();
     await expect(page.getByRole("menuitem", { name: "Support" })).toBeVisible();
-    await expect(page.getByRole("menuitem", { name: "Se deconnecter" })).toBeVisible();
+    await expect(
+      page.getByRole("menuitem", { name: "Se deconnecter" }),
+    ).toBeVisible();
   });
 });
 
@@ -81,7 +86,9 @@ test.describe("Sidebar mobile behavior", () => {
     await expect(sidebarNav).toBeVisible();
 
     await page.evaluate(() => {
-      const overlay = document.querySelector('[data-testid="mobile-sidebar-overlay"]');
+      const overlay = document.querySelector(
+        '[data-testid="mobile-sidebar-overlay"]',
+      );
       overlay?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     await expect(sidebarNav).not.toBeVisible();

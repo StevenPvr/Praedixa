@@ -8,6 +8,7 @@ import {
   clearAuthCookies,
   exchangeCodeForTokens,
   getOidcEnv,
+  hasRequiredAdminMfa,
   isAccessTokenCompatible,
   getTokenExp,
   resolveAuthAppOrigin,
@@ -17,6 +18,9 @@ import {
   timingSafeEqual,
   userFromAccessToken,
 } from "@/lib/auth/oidc";
+import { consumeRateLimit } from "@/lib/security/rate-limit";
+
+type RateLimitSnapshot = Awaited<ReturnType<typeof consumeRateLimit>>;
 
 function clearLoginFlowCookies(response: NextResponse): void {
   response.cookies.delete(LOGIN_STATE_COOKIE);
@@ -24,14 +28,63 @@ function clearLoginFlowCookies(response: NextResponse): void {
   response.cookies.delete(LOGIN_NEXT_COOKIE);
 }
 
+function createNoStoreRedirect(url: string | URL): NextResponse {
+  const response = NextResponse.redirect(url.toString());
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Pragma", "no-cache");
+  return response;
+}
+
+function createNoStoreJsonResponse(
+  body: unknown,
+  status: number,
+): NextResponse {
+  const response = NextResponse.json(body, { status });
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Pragma", "no-cache");
+  return response;
+}
+
+function applyRateLimitHeaders(
+  response: NextResponse,
+  limit: number,
+  rate: RateLimitSnapshot,
+): void {
+  response.headers.set("X-RateLimit-Limit", String(limit));
+  response.headers.set("X-RateLimit-Remaining", String(rate.remaining));
+  response.headers.set("X-RateLimit-Reset", String(rate.resetAtEpochSeconds));
+  if (!rate.allowed) {
+    response.headers.set("Retry-After", String(rate.retryAfterSeconds));
+  }
+}
+
 export async function GET(request: NextRequest) {
+  const maxAttempts = 30;
+  const rate = await consumeRateLimit(request, {
+    scope: "auth:callback",
+    max: maxAttempts,
+    windowMs: 60_000,
+  });
+
   let appOrigin: string;
   try {
     appOrigin = resolveAuthAppOrigin(request);
   } catch {
-    const redirect = NextResponse.redirect(
-      `${request.nextUrl.origin}/login?error=oidc_config_missing`,
+    const response = createNoStoreJsonResponse(
+      { error: "oidc_config_missing" },
+      500,
     );
+    applyRateLimitHeaders(response, maxAttempts, rate);
+    clearAuthCookies(response);
+    clearLoginFlowCookies(response);
+    return response;
+  }
+
+  if (!rate.allowed) {
+    const redirect = createNoStoreRedirect(
+      `${appOrigin}/login?error=rate_limited`,
+    );
+    applyRateLimitHeaders(redirect, maxAttempts, rate);
     clearAuthCookies(redirect);
     clearLoginFlowCookies(redirect);
     return redirect;
@@ -51,9 +104,10 @@ export async function GET(request: NextRequest) {
     !timingSafeEqual(returnedState, expectedState) ||
     !verifier
   ) {
-    const redirect = NextResponse.redirect(
+    const redirect = createNoStoreRedirect(
       `${appOrigin}/login?error=auth_callback_failed`,
     );
+    applyRateLimitHeaders(redirect, maxAttempts, rate);
     clearAuthCookies(redirect);
     clearLoginFlowCookies(redirect);
     return redirect;
@@ -71,9 +125,10 @@ export async function GET(request: NextRequest) {
     });
 
     if (!tokenPayload?.access_token) {
-      const redirect = NextResponse.redirect(
+      const redirect = createNoStoreRedirect(
         `${appOrigin}/login?error=auth_callback_failed`,
       );
+      applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);
       clearLoginFlowCookies(redirect);
       return redirect;
@@ -81,9 +136,20 @@ export async function GET(request: NextRequest) {
 
     const accessToken = tokenPayload.access_token;
     if (!isAccessTokenCompatible(accessToken, { issuerUrl, clientId })) {
-      const redirect = NextResponse.redirect(
+      const redirect = createNoStoreRedirect(
         `${appOrigin}/login?error=auth_callback_failed`,
       );
+      applyRateLimitHeaders(redirect, maxAttempts, rate);
+      clearAuthCookies(redirect);
+      clearLoginFlowCookies(redirect);
+      return redirect;
+    }
+
+    if (!hasRequiredAdminMfa(accessToken)) {
+      const redirect = createNoStoreRedirect(
+        `${appOrigin}/login?error=admin_mfa_required`,
+      );
+      applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);
       clearLoginFlowCookies(redirect);
       return redirect;
@@ -92,9 +158,8 @@ export async function GET(request: NextRequest) {
     const user = userFromAccessToken(accessToken, clientId);
     const exp = getTokenExp(accessToken);
     if (!user || !exp || !canAccessAdminConsole(user.role, user.permissions)) {
-      const redirect = NextResponse.redirect(
-        `${appOrigin}/unauthorized`,
-      );
+      const redirect = createNoStoreRedirect(`${appOrigin}/unauthorized`);
+      applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);
       clearLoginFlowCookies(redirect);
       return redirect;
@@ -111,7 +176,7 @@ export async function GET(request: NextRequest) {
       sessionSecret,
     );
 
-    const redirect = NextResponse.redirect(`${appOrigin}${safeNext}`);
+    const redirect = createNoStoreRedirect(`${appOrigin}${safeNext}`);
     setAuthCookies(redirect, request, {
       accessToken,
       refreshToken: tokenPayload.refresh_token ?? null,
@@ -120,12 +185,14 @@ export async function GET(request: NextRequest) {
       refreshTokenMaxAge: tokenPayload.refresh_expires_in ?? 60 * 60 * 24 * 14,
     });
     clearLoginFlowCookies(redirect);
+    applyRateLimitHeaders(redirect, maxAttempts, rate);
 
     return redirect;
   } catch {
-    const redirect = NextResponse.redirect(
+    const redirect = createNoStoreRedirect(
       `${appOrigin}/login?error=auth_callback_failed`,
     );
+    applyRateLimitHeaders(redirect, maxAttempts, rate);
     clearAuthCookies(redirect);
     clearLoginFlowCookies(redirect);
     return redirect;

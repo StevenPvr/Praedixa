@@ -32,6 +32,7 @@ interface OidcCookieAuthOptions {
   userId: string;
   email: string;
   role: string;
+  permissions?: string[];
   organizationId?: string | null;
   siteId?: string | null;
   accessTokenTtlSeconds?: number;
@@ -64,6 +65,7 @@ export async function applyOidcAuthCookies(
     userId,
     email,
     role,
+    permissions = [],
     organizationId = null,
     siteId = null,
     accessTokenTtlSeconds = 60 * 60,
@@ -84,6 +86,7 @@ export async function applyOidcAuthCookies(
     aud: [clientId, "praedixa-api"],
     organization_id: organizationId,
     site_id: siteId,
+    permissions,
   });
 
   const { buildSessionData, signSession } =
@@ -91,14 +94,26 @@ export async function applyOidcAuthCookies(
       ? await import("../../../app-webapp/lib/auth/oidc")
       : await import("../../../app-admin/lib/auth/oidc");
 
+  const sessionUser =
+    app === "admin"
+      ? {
+          id: userId,
+          email,
+          role,
+          permissions,
+          organizationId,
+          siteId,
+        }
+      : {
+          id: userId,
+          email,
+          role,
+          organizationId,
+          siteId,
+        };
+
   const sessionData = await buildSessionData(
-    {
-      id: userId,
-      email,
-      role,
-      organizationId,
-      siteId,
-    },
+    sessionUser,
     exp,
     accessToken,
     refreshTokenValue,

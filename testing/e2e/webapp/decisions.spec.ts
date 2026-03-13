@@ -15,7 +15,9 @@ test.describe("Actions decisions flow", () => {
       page.getByRole("heading", { name: "Centre Actions" }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "Alertes" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Diagnostic" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Diagnostic" }),
+    ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Options recommandees" }),
     ).toBeVisible();
@@ -38,9 +40,15 @@ test.describe("Actions decisions flow", () => {
     await page.goto("/actions");
     await page.getByRole("button", { name: "Historique" }).click();
 
-    await expect(page.getByRole("columnheader", { name: "Decision" })).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: "Statut" })).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: "Confiance" })).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Decision" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Statut" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Confiance" }),
+    ).toBeVisible();
   });
 
   test("empty alerts state is shown when API returns no active alerts", async ({

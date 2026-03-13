@@ -1,10 +1,6 @@
 // Integration platform domain types - connector inventory, connections and sync runs
 
-import type {
-  ISODateTimeString,
-  TenantEntity,
-  UUID,
-} from "../utils/common";
+import type { ISODateTimeString, TenantEntity, UUID } from "../utils/common";
 
 export type IntegrationVendor =
   | "salesforce"

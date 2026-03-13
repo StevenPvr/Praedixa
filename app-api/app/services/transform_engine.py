@@ -24,7 +24,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
-import logging
+import time
 import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
@@ -36,6 +36,7 @@ from app.core.config import settings
 from app.core.ddl_connection import ddl_connection
 from app.core.ddl_validation import validate_identifier, validate_schema_name
 from app.core.pipeline_config import sanitize_feature_pipeline_config
+from app.core.telemetry import TelemetryContext, get_telemetry_logger
 from app.models.data_catalog import (
     ClientDataset,
     DatasetColumn,
@@ -55,7 +56,7 @@ from app.services.schema_manager import resolve_transformed_columns
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = logging.getLogger(__name__)
+logger = get_telemetry_logger(__name__)
 
 _TRANSFORM_INSERT_BATCH_SIZE = 1000
 
@@ -86,6 +87,10 @@ def _verify_all_hmacs(fit_params: list[FitParameter], secret: str) -> None:
             raise ValueError(msg)
 
 
+def _duration_ms(started_at: float) -> int:
+    return round((time.perf_counter() - started_at) * 1000)
+
+
 # ── Public API ───────────────────────────────────────────
 
 
@@ -108,6 +113,7 @@ async def run_incremental(
     6. Write ingestion_log entry.
     """
     started_at = datetime.now(UTC)
+    started_perf = time.perf_counter()
     log_entry = IngestionLog(
         dataset_id=dataset_id,
         mode=IngestionMode.INCREMENTAL,
@@ -122,6 +128,20 @@ async def run_incremental(
     try:
         # Load dataset and columns
         dataset = await _load_dataset(dataset_id, session)
+        telemetry = logger.bind(
+            **TelemetryContext(
+                request_id=request_id,
+                run_id=str(log_entry.id),
+                organization_id=str(dataset.organization_id),
+            ).as_log_fields()
+        )
+        telemetry.info(
+            "Incremental transform started",
+            event="transform.incremental.started",
+            status="running",
+            dataset_id=str(dataset_id),
+            triggered_by=triggered_by,
+        )
         columns = await _load_columns(dataset_id, session)
         fit_params = await _load_active_fit_params(dataset_id, session)
 
@@ -160,11 +180,14 @@ async def run_incremental(
         await session.flush()
         await set_ingestion_log_watermark(session, log_entry.id, watermark)
 
-        logger.info(
-            "Incremental transform completed: dataset=%s, rows=%d/%d",
-            dataset_id,
-            rows_transformed,
-            rows_received,
+        telemetry.info(
+            "Incremental transform completed",
+            event="transform.incremental.completed",
+            status="success",
+            dataset_id=str(dataset_id),
+            rows_received=rows_received,
+            rows_transformed=rows_transformed,
+            duration_ms=_duration_ms(started_perf),
         )
 
     except Exception as exc:
@@ -172,7 +195,19 @@ async def run_incremental(
         log_entry.status = RunStatus.FAILED
         log_entry.error_message = str(exc)[:2000]
         await session.flush()
-        logger.exception("Incremental transform failed: dataset=%s", dataset_id)
+        logger.bind(
+            **TelemetryContext(
+                request_id=request_id,
+                run_id=str(log_entry.id),
+            ).as_log_fields()
+        ).exception(
+            "Incremental transform failed",
+            event="transform.incremental.failed",
+            status="failed",
+            dataset_id=str(dataset_id),
+            error_code="transform_incremental_failed",
+            duration_ms=_duration_ms(started_perf),
+        )
         raise
 
     return log_entry
@@ -197,6 +232,7 @@ async def run_full_refit(
     6. Write ingestion_log + pipeline_config_history entries.
     """
     started_at = datetime.now(UTC)
+    started_perf = time.perf_counter()
     log_entry = IngestionLog(
         dataset_id=dataset_id,
         mode=IngestionMode.FULL_REFIT,
@@ -210,6 +246,20 @@ async def run_full_refit(
 
     try:
         dataset = await _load_dataset(dataset_id, session)
+        telemetry = logger.bind(
+            **TelemetryContext(
+                request_id=request_id,
+                run_id=str(log_entry.id),
+                organization_id=str(dataset.organization_id),
+            ).as_log_fields()
+        )
+        telemetry.info(
+            "Full refit started",
+            event="transform.full_refit.started",
+            status="running",
+            dataset_id=str(dataset_id),
+            triggered_by=triggered_by,
+        )
         columns = await _load_columns(dataset_id, session)
 
         # Execute full refit pipeline
@@ -230,11 +280,14 @@ async def run_full_refit(
         await session.flush()
         await set_ingestion_log_watermark(session, log_entry.id, watermark)
 
-        logger.info(
-            "Full refit completed: dataset=%s, rows=%d/%d",
-            dataset_id,
-            rows_transformed,
-            rows_received,
+        telemetry.info(
+            "Full refit completed",
+            event="transform.full_refit.completed",
+            status="success",
+            dataset_id=str(dataset_id),
+            rows_received=rows_received,
+            rows_transformed=rows_transformed,
+            duration_ms=_duration_ms(started_perf),
         )
 
     except Exception as exc:
@@ -242,7 +295,19 @@ async def run_full_refit(
         log_entry.status = RunStatus.FAILED
         log_entry.error_message = str(exc)[:2000]
         await session.flush()
-        logger.exception("Full refit failed: dataset=%s", dataset_id)
+        logger.bind(
+            **TelemetryContext(
+                request_id=request_id,
+                run_id=str(log_entry.id),
+            ).as_log_fields()
+        ).exception(
+            "Full refit failed",
+            event="transform.full_refit.failed",
+            status="failed",
+            dataset_id=str(dataset_id),
+            error_code="transform_full_refit_failed",
+            duration_ms=_duration_ms(started_perf),
+        )
         raise
 
     return log_entry

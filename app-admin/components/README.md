@@ -1,28 +1,21 @@
-# `components/` - UI specifique a la console admin
+# `components/` - Composants locaux de la console admin
 
-Ce dossier regroupe les composants React propres au back-office. On y trouve le shell d'administration, les composants de navigation par organisation, la messagerie admin-client et plusieurs badges ou vues de supervision.
+Composants propres au back-office. Ici vivent le shell admin, la navigation pilotee par policies, les vues de supervision et les composants de workspace client.
 
-## Zones principales
+## Inventaire reel
 
-| Dossier/fichier | Role |
-| --- | --- |
-| `admin-shell.tsx` | Shell principal de la console |
-| `admin-sidebar.tsx` | Navigation laterale globale |
-| `admin-topbar.tsx` | Topbar, titre et actions hautes |
-| `client-tabs-nav.tsx` | Onglets du workspace client |
-| `site-tree.tsx` | Filtre de site et hierarchie |
-| `chat/` | Messagerie admin-client |
-| `skeletons/` | Etats de chargement admin |
-| `ui/` | Petites primitives locales (`StatusBadge`, `DataTableToolbar`) |
-| `toast*.tsx` | Systeme de notifications |
-| `command-palette.tsx` | Palette de commandes de navigation rapide |
+| Zone                  | Contenu reel                                                                                                    |
+| --------------------- | --------------------------------------------------------------------------------------------------------------- |
+| shell                 | `admin-shell.tsx`, `admin-sidebar.tsx`, `admin-topbar.tsx`, `route-progress-bar.tsx`                            |
+| navigation workspace  | `client-tabs-nav.tsx`, `site-tree.tsx`, `command-palette.tsx`                                                   |
+| supervision           | `activity-feed.tsx`, `system-health-bar.tsx`, `unread-messages-card.tsx`, `inbox-item-card.tsx`                 |
+| identite/statut       | `org-header.tsx`, `plan-badge.tsx`, `org-status-badge.tsx`, `onboarding-status-badge.tsx`, `severity-badge.tsx` |
+| messagerie            | `chat/`                                                                                                         |
+| skeletons             | `skeletons/`                                                                                                    |
+| utilitaires UI locaux | `ui/`, `toast*.tsx`, `theme-*.tsx`, `error-fallback.tsx`, `praedixa-logo.tsx`                                   |
 
-## Composants metier utiles
+## Patterns a conserver
 
-- `OrgHeader`, `PlanBadge`, `OrgStatusBadge`, `OnboardingStatusBadge`
-- `InboxItemCard`, `UnreadMessagesCard`, `ActivityFeed`, `SystemHealthBar`
-- `ErrorFallback`, `RouteProgressBar`, `ThemeToggle`
-
-## Tests
-
-- Les tests sont colocalises dans `__tests__/`, `chat/__tests__/` et `skeletons/__tests__/`.
+- sidebar, topbar, palette et tabs de workspace lisent la meme source de verite de permissions/routes
+- `AdminShell` est responsable des etats de chargement permissions et de l'etat `Acces restreint`
+- les composants de navigation ne doivent pas reconstruire leurs propres listes de routes

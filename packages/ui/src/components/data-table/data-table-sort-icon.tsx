@@ -1,5 +1,5 @@
-import { cn } from "../../utils/cn";
-import type { SortDirection } from "./data-table-types";
+import { cn } from "../../utils/cn.js";
+import type { SortDirection } from "./data-table-types.js";
 
 export function DataTableSortIcon({
   active,

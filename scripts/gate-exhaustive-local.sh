@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 source "${ROOT_DIR}/scripts/lib/pnpm.sh"
+CI_PYTHON_TOOL="${ROOT_DIR}/scripts/ci-python-tool.sh"
 
 MODE="manual"
 REPORT_PATH=""
@@ -253,18 +254,20 @@ run_manual_exhaustive_layer() {
   run_check "tests:vitest-coverage" "quality" "low" "pnpm test:coverage"
   run_check "tests:api-ts" "quality" "low" "pnpm --filter @praedixa/api-ts test"
   run_check "tests:pytest-data" "quality" "low" "cd app-api && uv run pytest tests/"
+  run_check "quality:alembic-heads" "quality" "low" "./scripts/check-alembic-heads.sh"
   run_check "build:next-monorepo" "quality" "low" "pnpm build"
   run_check "security:invariants-full" "security" "medium" "python3 scripts/check-security-invariants.py --mode full"
 
   run_check "security:codeql" "security" "medium" "./scripts/run-codeql-local.sh"
   run_check "security:dynamic-api-audits" "security" "medium" "./scripts/run-api-dynamic-audits.sh"
 
-  run_check "architecture:dependency-cruiser" "architecture" "low" "pnpm dlx dependency-cruiser@16.10.4 --config .dependency-cruiser.cjs --output-type err app-landing app-webapp app-admin packages"
-  run_check "architecture:knip" "architecture" "low" "pnpm dlx knip@5.62.0 --config knip.json --strict --dependencies --no-config-hints"
-  run_check "architecture:import-linter" "architecture" "low" "cd app-api && uv tool run --from import-linter lint-imports --config .importlinter"
-  run_check "quality:deptry" "quality" "low" "cd app-api && uv tool run --from deptry deptry . --config pyproject.toml"
+  run_check "architecture:dependency-cruiser" "architecture" "low" "pnpm architecture:dependency-cruiser"
+  run_check "architecture:knip" "architecture" "low" "pnpm architecture:knip"
+  run_check "architecture:ts-guardrails" "architecture" "low" "pnpm architecture:ts-guardrails"
+  run_check "architecture:import-linter" "architecture" "low" "\"${CI_PYTHON_TOOL}\" --cwd app-api import-linter --config .importlinter"
+  run_check "quality:deptry" "quality" "low" "\"${CI_PYTHON_TOOL}\" --cwd app-api deptry . --config pyproject.toml"
   run_check "quality:python-complexity-baseline" "quality" "low" "python3 scripts/check-python-complexity-baseline.py"
-  run_check "quality:radon-maintainability" "quality" "low" "uv tool run --from radon radon mi app-api/app -s -n A"
+  run_check "quality:radon-maintainability" "quality" "low" "\"${CI_PYTHON_TOOL}\" radon mi app-api/app -s -n A"
 
   run_check "e2e:playwright-chromium-ready" "quality" "low" "./scripts/check-playwright-chromium.sh"
   run_check "e2e:api-edge-webapp" "quality" "low" "pnpm e2e:ports:free && PW_REUSE_SERVER=0 pnpm playwright test testing/e2e/webapp/api-edge-cases.spec.ts --project=webapp --workers=1 --retries=0"

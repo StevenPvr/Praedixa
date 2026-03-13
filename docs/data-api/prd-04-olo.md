@@ -11,12 +11,12 @@ Integrer Olo pour recuperer la commande digitale (web/app/aggregateurs) et enric
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets Olo | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| Commandes | order header/status | order id, store id, channel, status timeline | 5-15 min | `order_header`, `pos_ticket` |
-| Lignes | items/modifiers | sku, qty, unit price, promo | 15 min | `order_line` |
-| SLA | promised/ready/picked-up | promised time, ready time, delay reason | 15 min | `service_timing_event` |
-| Client | identifiers pseudonymises | customer id hash, loyalty flag | 30 min | `customer_profile_light` |
+| Domaine   | Objets Olo                | Champs minimum                               | Frequence | Canonical                    |
+| --------- | ------------------------- | -------------------------------------------- | --------- | ---------------------------- |
+| Commandes | order header/status       | order id, store id, channel, status timeline | 5-15 min  | `order_header`, `pos_ticket` |
+| Lignes    | items/modifiers           | sku, qty, unit price, promo                  | 15 min    | `order_line`                 |
+| SLA       | promised/ready/picked-up  | promised time, ready time, delay reason      | 15 min    | `service_timing_event`       |
+| Client    | identifiers pseudonymises | customer id hash, loyalty flag               | 30 min    | `customer_profile_light`     |
 
 ## 3. Specification d'integration
 

@@ -1,4 +1,4 @@
-export { DataTable } from "./data-table";
+export { DataTable } from "./data-table.js";
 export type {
   DataTableColumn,
   DataTableSort,
@@ -6,4 +6,4 @@ export type {
   DataTableSelection,
   DataTableProps,
   SortDirection,
-} from "./data-table-types";
+} from "./data-table-types.js";

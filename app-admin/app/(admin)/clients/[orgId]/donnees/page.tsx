@@ -193,7 +193,9 @@ export default function DonneesPage() {
     error: datasetsError,
   } = useApiGet<AdminDatasetSummary[]>(ADMIN_ENDPOINTS.orgDatasets(orgId));
 
-  const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null);
+  const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(
+    null,
+  );
 
   const effectiveDatasetId = useMemo(() => {
     if (selectedDatasetId) return selectedDatasetId;
@@ -273,7 +275,8 @@ export default function DonneesPage() {
             <StatCard
               label="Colonnes retirees du Gold"
               value={String(
-                medallionReport.goldFeatureQuality?.removedFromGoldColumnsCount ??
+                medallionReport.goldFeatureQuality
+                  ?.removedFromGoldColumnsCount ??
                   medallionReport.goldFeatureQuality
                     ?.removed_from_gold_columns_count ??
                   0,
@@ -360,7 +363,9 @@ export default function DonneesPage() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <label className="space-y-1">
-                  <span className="text-xs font-medium text-ink-secondary">Dataset</span>
+                  <span className="text-xs font-medium text-ink-secondary">
+                    Dataset
+                  </span>
                   <select
                     value={effectiveDatasetId ?? ""}
                     onChange={(event) =>
@@ -398,7 +403,9 @@ export default function DonneesPage() {
               <p className="text-sm text-ink-tertiary">{datasetDataError}</p>
             )}
             {datasetFeaturesError && (
-              <p className="text-sm text-ink-tertiary">{datasetFeaturesError}</p>
+              <p className="text-sm text-ink-tertiary">
+                {datasetFeaturesError}
+              </p>
             )}
 
             {datasetDataLoading ? (
@@ -407,19 +414,27 @@ export default function DonneesPage() {
               <DataTable
                 columns={goldTableColumns}
                 data={goldRows}
-                getRowKey={(row, index) => `${effectiveDatasetId ?? "dataset"}-${index}`}
+                getRowKey={(row, index) =>
+                  `${effectiveDatasetId ?? "dataset"}-${index}`
+                }
                 emptyMessage="Aucune ligne disponible"
               />
             ) : (
-              <p className="text-sm text-ink-secondary">Aucune donnee Gold disponible.</p>
+              <p className="text-sm text-ink-secondary">
+                Aucune donnee Gold disponible.
+              </p>
             )}
 
             <div>
-              <p className="mb-2 text-xs font-medium text-ink-secondary">Features derivees</p>
+              <p className="mb-2 text-xs font-medium text-ink-secondary">
+                Features derivees
+              </p>
               {datasetFeaturesLoading ? (
                 <p className="text-sm text-ink-secondary">Chargement...</p>
               ) : (datasetFeatures?.features?.length ?? 0) === 0 ? (
-                <p className="text-sm text-ink-secondary">Aucune feature exposee.</p>
+                <p className="text-sm text-ink-secondary">
+                  Aucune feature exposee.
+                </p>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {(datasetFeatures?.features ?? []).map((feature) => (

@@ -23,6 +23,10 @@ Backend applicatif TypeScript expose aux frontends `app-webapp` et `app-admin`.
 - [src/services/README.md](./src/services/README.md) : services, persistance et dependances.
 - [src/**tests**/README.md](./src/__tests__/README.md) : couverture Vitest.
 - [migrations/README.md](./migrations/README.md) : migration SQL versionnee.
+- [../contracts/openapi/public.yaml](../contracts/openapi/public.yaml) : contrat public non-admin versionne.
+- [../packages/shared-types/src/api/public-contract.ts](../packages/shared-types/src/api/public-contract.ts) : catalogue type partage des operations publiques et politique de compatibilite.
+- [../packages/shared-types/package.json](../packages/shared-types/package.json) : package workspace qui porte aussi l'helper `@praedixa/shared-types/public-contract-node` consomme par les tests de parite spec/runtime.
+- [../packages/telemetry/README.md](../packages/telemetry/README.md) : fondation runtime legere pour les envelopes telemetry et les champs de correlation partages.
 
 ## Routes principales
 
@@ -48,6 +52,8 @@ Surface admin:
 - `GET/POST /api/v1/admin/organizations/:orgId/decision-config/*`
 
 Le contrat public versionne reste dans `contracts/openapi/public.yaml`.
+Le runtime ne doit pas faire evoluer seul une operation publique: `paths/methods/operationId` vivent dans la spec, les payloads partages dans `packages/shared-types`, et les tests verrouillent cette triple parite.
+Le cycle de vie HTTP runtime utilise `@praedixa/telemetry` pour emettre des logs structures `http.request.started` / `http.request.completed`, avec `request_id`, `trace_id` et les champs de correlation non applicables forces a `null`.
 
 ## Configuration runtime
 
@@ -57,12 +63,15 @@ Variables importantes chargees par `src/config.ts`:
 - `CORS_ORIGINS`
 - `AUTH_ISSUER_URL`, `AUTH_AUDIENCE`, `AUTH_JWKS_URL`, `AUTH_JWT_ALGORITHMS`
 - `DATABASE_URL`
-- `DEMO_MODE`
+- `DEMO_MODE` en developpement uniquement
 - `CONNECTORS_RUNTIME_URL`, `CONNECTORS_RUNTIME_ALLOWED_HOSTS`, `CONNECTORS_RUNTIME_TOKEN`
-- `CONNECTORS_INTERNAL_TOKEN` pour le mode legacy transitoire
 
 La config refuse les URLs non absolues, les wildcards CORS et les schemas non `http(s)`/`postgres`.
+Hors developpement, `DATABASE_URL` est obligatoire et `DEMO_MODE` est refuse pour eviter tout fallback applicatif implicite.
+Sur toutes les vraies routes produit/admin, le runtime fail-close des qu'une implementation persistante manque: aucun payload demo/stub ne doit etre servi comme mode normal.
+Hors developpement, `CONNECTORS_RUNTIME_URL` doit etre explicite.
 Hors developpement, `CONNECTORS_RUNTIME_URL` doit aussi etre en `https`, sans credentials/query/fragment, et son host doit appartenir a `CONNECTORS_RUNTIME_ALLOWED_HOSTS`.
+Hors developpement, `CONNECTORS_RUNTIME_TOKEN` est aussi obligatoire et l'ancien alias `CONNECTORS_INTERNAL_TOKEN` est refuse.
 
 ## Workflows utiles
 

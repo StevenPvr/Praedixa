@@ -2,27 +2,27 @@
 // Central type definitions shared across frontend and backend
 
 // Domain types
-export * from "./domain/organization";
-export * from "./domain/forecast";
-export * from "./domain/decision";
-export * from "./domain/dataset";
-export * from "./domain/canonical";
-export * from "./domain/coverage-alert";
-export * from "./domain/scenario";
-export * from "./domain/operational-decision";
-export * from "./domain/cost-parameter";
-export * from "./domain/report";
-export * from "./domain/dashboard";
-export * from "./domain/decision-workspace";
-export * from "./domain/decision-config";
-export * from "./domain/user-preferences";
-export * from "./domain/product-event";
-export * from "./domain/integration";
+export * from "./domain/organization.js";
+export * from "./domain/forecast.js";
+export * from "./domain/decision.js";
+export * from "./domain/dataset.js";
+export * from "./domain/canonical.js";
+export * from "./domain/coverage-alert.js";
+export * from "./domain/scenario.js";
+export * from "./domain/operational-decision.js";
+export * from "./domain/cost-parameter.js";
+export * from "./domain/report.js";
+export * from "./domain/dashboard.js";
+export * from "./domain/decision-workspace.js";
+export * from "./domain/decision-config.js";
+export * from "./domain/user-preferences.js";
+export * from "./domain/product-event.js";
+export * from "./domain/integration.js";
 
 // API types
-export * from "./api/responses";
-export * from "./api/requests";
+export * from "./api/responses.js";
+export * from "./api/requests.js";
 
 // Utility types
-export * from "./utils/common";
-export * from "./utils/dates";
+export * from "./utils/common.js";
+export * from "./utils/dates.js";

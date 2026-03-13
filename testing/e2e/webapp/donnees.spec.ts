@@ -8,19 +8,25 @@ test.describe("Removed donnees routes", () => {
     await mockAllApis(page);
   });
 
-  test("/donnees returns not-found page", async ({ page }) => {
+  test("/donnees redirects authenticated users to dashboard", async ({
+    page,
+  }) => {
     await page.goto("/donnees");
 
-    await expect(page.getByText("404")).toBeVisible();
-    await expect(page.getByText("Page introuvable")).toBeVisible();
+    await expect(page).toHaveURL(/\/dashboard$/);
     await expect(
-      page.getByRole("link", { name: "Retour au tableau de bord" }),
+      page.getByRole("heading", { name: "Priorites du jour" }),
     ).toBeVisible();
   });
 
-  test("nested legacy donnees route also returns not-found", async ({ page }) => {
+  test("nested legacy donnees route also redirects to dashboard", async ({
+    page,
+  }) => {
     await page.goto("/donnees/canonique");
 
-    await expect(page.getByText("Page introuvable")).toBeVisible();
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(
+      page.getByRole("heading", { name: "Priorites du jour" }),
+    ).toBeVisible();
   });
 });

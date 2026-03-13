@@ -156,7 +156,9 @@ export default function AccueilPage() {
       </div>
 
       {/* Activity feed */}
-      {canReadAudit && auditEntries ? <ActivityFeed entries={auditEntries} /> : null}
+      {canReadAudit && auditEntries ? (
+        <ActivityFeed entries={auditEntries} />
+      ) : null}
     </div>
   );
 }

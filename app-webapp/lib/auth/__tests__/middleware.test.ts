@@ -121,10 +121,36 @@ describe("updateSession (webapp)", () => {
   });
 
   it("allows /api routes without login redirects", async () => {
-    const result = await updateSession(createMockRequest("/api/v1/conversations"));
+    const result = await updateSession(
+      createMockRequest("/api/v1/conversations"),
+    );
 
     expect(result.status).toBe(200);
     expect(mockRedirect).not.toHaveBeenCalled();
+  });
+
+  it("fails closed for unknown app routes when unauthenticated", async () => {
+    const result = await updateSession(createMockRequest("/coverage-harness"));
+
+    expect((result as { redirectUrl: string }).redirectUrl).toBe(
+      "https://app.praedixa.com/login",
+    );
+    expect(mockClearAuthCookies).toHaveBeenCalled();
+  });
+
+  it("redirects authenticated users away from unknown app routes", async () => {
+    mockVerifySession.mockResolvedValue(createSession("org_admin"));
+
+    const result = await updateSession(
+      createMockRequest("/coverage-harness", {
+        prx_web_at: "access-token",
+        prx_web_sess: "session-cookie",
+      }),
+    );
+
+    expect((result as { redirectUrl: string }).redirectUrl).toBe(
+      "https://app.praedixa.com/dashboard",
+    );
   });
 
   it("redirects unauthenticated users to /login", async () => {

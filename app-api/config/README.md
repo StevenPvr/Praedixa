@@ -7,9 +7,11 @@ Ce dossier fait partie du périmètre `app-api` et regroupe des fichiers liés �
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - `medallion`
 
 Fichiers :
+
 - Aucun élément versionné direct.
 
 ## Intégration

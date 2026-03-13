@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/hmac.sh"
+
 UNSIGNED_PATH=""
 OUTPUT_PATH=""
 KEY_PATH="${PRAEDIXA_RELEASE_KEY_PATH:-${HOME}/.praedixa/release-manifest.key}"
@@ -40,18 +43,20 @@ if [[ ! -f "$UNSIGNED_PATH" ]]; then
   exit 1
 fi
 
-mkdir -p "$(dirname "$KEY_PATH")"
-if [[ ! -f "$KEY_PATH" ]]; then
-  umask 177
-  openssl rand -hex 64 >"$KEY_PATH"
+if ! require_existing_hmac_key_file "$KEY_PATH" "release manifest key"; then
+  exit 1
 fi
-chmod 600 "$KEY_PATH"
 
-KEY_CONTENT="$(cat "$KEY_PATH")"
-SIGNATURE="$(openssl dgst -sha256 -hmac "$KEY_CONTENT" "$UNSIGNED_PATH" | awk '{print $2}')"
+SIGNATURE="$(compute_hmac_sha256_json_file "$KEY_PATH" "$UNSIGNED_PATH")"
+TMP_OUTPUT="$(mktemp "${OUTPUT_PATH}.XXXXXX")"
+cleanup() {
+  rm -f "$TMP_OUTPUT"
+}
+trap cleanup EXIT
 
 jq --arg signature "$SIGNATURE" '. + { signature: $signature }' \
-  "$UNSIGNED_PATH" >"$OUTPUT_PATH"
+  "$UNSIGNED_PATH" >"$TMP_OUTPUT"
 
+mv "$TMP_OUTPUT" "$OUTPUT_PATH"
 chmod 600 "$OUTPUT_PATH"
 echo "$OUTPUT_PATH"

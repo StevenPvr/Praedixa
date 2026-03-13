@@ -15,25 +15,28 @@ Connecter Toast pour capter ventes, cadence de service et donnees operations mag
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets Toast | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| Vente | orders/checks/payments | order id, location, opened/closed at, totals, payment type | 5-15 min | `pos_ticket`, `order_header` |
-| Produits | item selections | item id, qty, modifiers, net sales | 15 min | `order_line` |
-| Operations | labor/employee (si scope actif) | employee id, role, clock events | 15 min | `timesheet`, `employee` |
-| Referential | menus/items | sku, category, active flag | 24h | `menu_item` |
+| Domaine     | Objets Toast                    | Champs minimum                                             | Frequence | Canonical                    |
+| ----------- | ------------------------------- | ---------------------------------------------------------- | --------- | ---------------------------- |
+| Vente       | orders/checks/payments          | order id, location, opened/closed at, totals, payment type | 5-15 min  | `pos_ticket`, `order_header` |
+| Produits    | item selections                 | item id, qty, modifiers, net sales                         | 15 min    | `order_line`                 |
+| Operations  | labor/employee (si scope actif) | employee id, role, clock events                            | 15 min    | `timesheet`, `employee`      |
+| Referential | menus/items                     | sku, category, active flag                                 | 24h       | `menu_item`                  |
 
 ## 3. Specification d'integration
 
 ### 3.1 Checklist de branchement client
 
 - [ ] tenant Toast + environnement prod/sandbox
+- [ ] `runtimeEnvironment=production|sandbox` confirme des le branchement
 - [ ] credentials API (partner app)
 - [ ] liste des locations autorisees
 - [ ] timezone par location
+- [ ] suffixes d'hotes autorises documentes pour l'environnement retenu
 
 ### 3.2 Authentification
 
 - OAuth 2.0 (partner integration) ou credentiels API selon programme
+- aucun host sandbox ne doit etre reutilise en `production`; si Toast fournit un host sandbox dedie, il doit vivre dans l'allowlist sandbox du runtime
 - token refresh gere dans la couche core
 
 ### 3.3 Extraction

@@ -1,27 +1,25 @@
-# `components/` - UI specifique au webapp
+# `components/` - Composants locaux du webapp
 
-Ce dossier regroupe les composants React propres au tableau de bord client. Il complete `@praedixa/ui` avec des composants d'orchestration, de navigation et des vues metier.
+Ce dossier contient les composants propres au workspace client. Il ne faut pas y documenter des zones qui n'existent plus: pas de dossier `previsions/`, pas de `charts/` generique et pas de systeme toast local versionne ici.
 
-## Zones principales
+## Inventaire reel
 
-| Dossier/fichier | Role |
-| --- | --- |
-| `app-shell.tsx` | Shell principal des routes authentifiees |
-| `sidebar.tsx` | Navigation laterale client |
-| `dashboard/` | Widgets et graphiques du dashboard |
-| `previsions/` | Visualisations liees aux previsions |
-| `actions/` | Composants d'arbitrage et d'optimisation |
-| `chat/` | Liste de conversations, thread et saisie de message |
-| `charts/` | Charts D3 locaux reutilises par plusieurs pages |
-| `ui/` | Primitives locales complementaires au package partage |
-| `runtime-error-shield.tsx` | Garde-fou client contre erreurs runtime externes |
+| Zone            | Contenu reel                                                                              |
+| --------------- | ----------------------------------------------------------------------------------------- |
+| `app-shell.tsx` | shell authentifie, i18n client, site scope, profil/logout                                 |
+| `sidebar.tsx`   | navigation locale du webapp                                                               |
+| `dashboard/`    | `WarRoomDashboard`, `ForecastTimelineChart`, `ChartInsight`                               |
+| `actions/`      | `OptimizationPanel`                                                                       |
+| `chat/`         | `ConversationList`, `MessageThread`, `MessageInput`                                       |
+| `ui/`           | primitives locales de presentation (`button`, `card`, `detail-card`, charts ciblés, etc.) |
+| racine          | `PraedixaLogo`, `RuntimeErrorShield`                                                      |
 
 ## Frontiere avec `@praedixa/ui`
 
-- Ici: composants lies au routing, a la metrique Praedixa et au state local.
-- Dans `@praedixa/ui`: primitives partagees entre apps, logo, badges, cartes et utilitaires visuels communs.
+- ici: shell, navigation, composants metier ou primitives specifiques a ce webapp
+- dans `@praedixa/ui`: primitives partagees entre apps et tokens communs
 
-## Tests
+## Patterns a conserver
 
-- Les tests unitaires sont colocalises dans `__tests__/` ou `*/__tests__/`.
-- Les pages de `app/(app)` s'appuient majoritairement sur ces composants plutot que sur de la logique inline.
+- `AppShell` et `Sidebar` n'inventent pas de permissions: ils s'appuient sur l'etat utilisateur et le routage reel du webapp
+- les etats degrades visibles restent dans les pages et composants metier, pas dans une couche magique de fallback globale

@@ -1,7 +1,7 @@
 import * as React from "react";
-import { cn } from "../../utils/cn";
-import type { DataTablePagination } from "./data-table-types";
-import { getPageNumbers } from "./data-table-utils";
+import { cn } from "../../utils/cn.js";
+import type { DataTablePagination } from "./data-table-types.js";
+import { getPageNumbers } from "./data-table-utils.js";
 
 interface DataTablePaginationBarProps {
   pagination: DataTablePagination;

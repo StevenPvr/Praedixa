@@ -56,7 +56,9 @@ function getSelectedConversation(
   );
 }
 
-function buildMessagesUrl(selectedConversationId: string | null): string | null {
+function buildMessagesUrl(
+  selectedConversationId: string | null,
+): string | null {
   if (!selectedConversationId) {
     return null;
   }
@@ -178,7 +180,12 @@ export function useMessagesPageModel(): MessagesPageModel {
       refetchMessages();
       refetchConversations();
     },
-    [refetchConversations, refetchMessages, selectedConversationId, sendMessage],
+    [
+      refetchConversations,
+      refetchMessages,
+      selectedConversationId,
+      sendMessage,
+    ],
   );
 
   return {

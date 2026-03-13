@@ -1,7 +1,7 @@
 // Decision config types — admin-managed forecast horizons + recommendation policy
 
-import type { ISODateTimeString, UUID } from "../utils/common";
-import type { ScenarioOptionType } from "./scenario";
+import type { ISODateTimeString, UUID } from "../utils/common.js";
+import type { ScenarioOptionType } from "./scenario.js";
 
 export interface DecisionHorizonConfig {
   id: string;

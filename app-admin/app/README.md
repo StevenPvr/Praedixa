@@ -1,29 +1,32 @@
 # `app/` - App Router de l'admin
 
-Ce dossier contient l'interface Next.js du back-office Praedixa. Il assemble la console super-admin, les pages publiques de login, les route handlers d'auth et le BFF admin vers l'API backend.
+Arborescence Next.js du back-office. Ce dossier assemble 4 surfaces distinctes:
 
-## Sous-zones
-
-| Dossier | Role |
-| --- | --- |
-| `(admin)/` | Console authentifiee super-admin |
-| `(auth)/` | Ecran de connexion |
-| `auth/` | Route handlers OIDC, session, logout |
-| `api/` | Proxy same-origin vers `/api/v1/*` backend |
-| `unauthorized/` | Ecran de refus d'acces |
-| `__tests__/` | Tests des layouts/pages racine |
+- la console authentifiee sous `app/(admin)/`
+- l'UI publique de login sous `app/(auth)/`
+- les handlers auth sous `app/auth/`
+- le BFF same-origin sous `app/api/`
 
 ## Fichiers racine
 
-| Fichier | Role |
-| --- | --- |
-| `layout.tsx` | Layout global, providers de theme et toasts |
-| `globals.css` | Styles globaux admin |
-| `robots.ts` | Robots de l'admin |
+| Fichier       | Role reel                        |
+| ------------- | -------------------------------- |
+| `layout.tsx`  | root layout et providers globaux |
+| `globals.css` | styles globaux admin             |
+| `robots.ts`   | robots de l'admin                |
 
-## Navigation
+Il n'y a pas de `page.tsx` racine hors groupes: l'accueil produit du back-office vit dans `app/(admin)/page.tsx`.
 
-- La console metier vit dans `app/(admin)/README.md`.
-- Le login UI vit dans `app/(auth)/README.md`.
-- Les handlers serveur d'auth vivent dans `app/auth/README.md`.
-- Le BFF admin vit dans `app/api/README.md`.
+## Sous-zones
+
+| Dossier         | Role reel                                  |
+| --------------- | ------------------------------------------ |
+| `(admin)/`      | console authentifiee, shell, routes metier |
+| `(auth)/`       | UI de `/login`                             |
+| `auth/`         | handlers OIDC, session, logout             |
+| `api/`          | proxy admin vers l'API backend             |
+| `unauthorized/` | page de refus d'acces                      |
+
+## Regle de verite
+
+Pour la console authentifiee, la verite des chemins et permissions reste `lib/auth/admin-route-policies.ts`.

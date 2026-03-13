@@ -1,276 +1,2047 @@
 openapi: 3.1.0
 info:
-  title: Praedixa API TS
+  title: Praedixa Public API
   version: 2.0.0
-  description: Big-bang TypeScript API contract.
+  description: Generated public OpenAPI contract for the non-admin TypeScript API surface.
 servers:
   - url: http://localhost:8000
+x-praedixa-compatibility:
+  additiveChangesWithinMajorOnly: true
+  breakingChangesRequireNewMajor: true
+  minDeprecationNoticeDays: 90
+  deprecationHeader: Deprecation
+  sunsetHeader: Sunset
+  replacementRequiredBeforeRemoval: true
 paths:
   /api/v1/health:
     get:
       operationId: getHealth
       responses:
         "200":
-          description: Health status
+          description: getHealth response.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessObject"
-  /api/v1/live/dashboard/summary:
-    get:
-      security:
-        - bearerAuth: []
-      operationId: getDashboardSummary
-      responses:
-        "200":
-          description: Dashboard summary
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessObject"
-  /api/v1/organizations/me:
-    get:
-      security:
-        - bearerAuth: []
-      operationId: getOrganizationMe
-      responses:
-        "200":
-          description: Organization details
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessObject"
-  /api/v1/forecasts:
-    get:
-      security:
-        - bearerAuth: []
-      operationId: listForecasts
-      responses:
-        "200":
-          description: Paginated forecasts
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PaginatedSuccess"
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/PublicHealthPayload"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+  /api/v1/public/contact-requests:
     post:
-      security:
-        - bearerAuth: []
-      operationId: createForecastRequest
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
+      operationId: createContactRequest
       responses:
         "201":
-          description: Forecast request queued
+          description: createContactRequest response.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessObject"
-  /api/v1/decisions:
-    get:
-      security:
-        - bearerAuth: []
-      operationId: listDecisions
-      responses:
-        "200":
-          description: Paginated decisions
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PaginatedSuccess"
-  /api/v1/decisions/{decisionId}:
-    get:
-      security:
-        - bearerAuth: []
-      operationId: getDecision
-      parameters:
-        - $ref: "#/components/parameters/DecisionId"
-      responses:
-        "200":
-          description: Decision details
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessObject"
-  /api/v1/alerts:
-    get:
-      security:
-        - bearerAuth: []
-      operationId: listAlerts
-      responses:
-        "200":
-          description: Alerts
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessArray"
-  /api/v1/datasets:
-    get:
-      security:
-        - bearerAuth: []
-      operationId: listDatasets
-      responses:
-        "200":
-          description: Paginated datasets
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PaginatedSuccess"
-  /api/v1/live/canonical:
-    get:
-      security:
-        - bearerAuth: []
-      operationId: listCanonical
-      responses:
-        "200":
-          description: Paginated canonical rows
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PaginatedSuccess"
-  /api/v1/operational-decisions:
-    get:
-      security:
-        - bearerAuth: []
-      operationId: listOperationalDecisions
-      responses:
-        "200":
-          description: Paginated operational decisions
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PaginatedSuccess"
-  /api/v1/proof:
-    get:
-      security:
-        - bearerAuth: []
-      operationId: listProof
-      responses:
-        "200":
-          description: Proof packs
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessArray"
-  /api/v1/conversations:
-    get:
-      security:
-        - bearerAuth: []
-      operationId: listConversations
-      responses:
-        "200":
-          description: Conversations
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessArray"
-    post:
-      security:
-        - bearerAuth: []
-      operationId: createConversation
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ContactRequestReceipt"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                subject:
-                  type: string
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessObject"
-
-  /api/v1/admin/organizations:
+              $ref: "#/components/schemas/ContactRequestSubmission"
+  /api/v1/live/dashboard/summary:
     get:
-      security:
-        - bearerAuth: []
-      operationId: adminListOrganizations
+      operationId: getLiveDashboardSummary
       responses:
         "200":
-          description: Paginated organizations
+          description: getLiveDashboardSummary response.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PaginatedSuccess"
-    post:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/DashboardSummary"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
       security:
         - bearerAuth: []
-      operationId: adminCreateOrganization
+  /api/v1/live/forecasts:
+    get:
+      operationId: listLiveForecastRuns
+      responses:
+        "200":
+          description: listLiveForecastRuns response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ForecastRunSummary"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/live/forecasts/latest/daily:
+    get:
+      operationId: listLatestDailyForecasts
+      responses:
+        "200":
+          description: listLatestDailyForecasts response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LatestDailyForecastRow"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/live/decision-config:
+    get:
+      operationId: getLiveDecisionConfig
+      responses:
+        "200":
+          description: getLiveDecisionConfig response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ResolvedDecisionConfigView"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/live/gold/schema:
+    get:
+      operationId: getLiveGoldSchema
+      responses:
+        "200":
+          description: getLiveGoldSchema response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/GoldSchemaView"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/live/gold/rows:
+    get:
+      operationId: listLiveGoldRows
+      responses:
+        "200":
+          description: listLiveGoldRows response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CanonicalRecord"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - pagination
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/live/gold/coverage:
+    get:
+      operationId: getLiveGoldCoverage
+      responses:
+        "200":
+          description: getLiveGoldCoverage response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/GoldCoverageView"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/live/gold/provenance:
+    get:
+      operationId: getLiveGoldProvenance
+      responses:
+        "200":
+          description: getLiveGoldProvenance response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/GoldProvenanceView"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/live/proof:
+    get:
+      operationId: listLiveProof
+      responses:
+        "200":
+          description: listLiveProof response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProofPack"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/live/canonical:
+    get:
+      operationId: listLiveCanonicalRows
+      responses:
+        "200":
+          description: listLiveCanonicalRows response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CanonicalRecord"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - pagination
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/live/canonical/quality:
+    get:
+      operationId: getLiveCanonicalQuality
+      responses:
+        "200":
+          description: getLiveCanonicalQuality response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/CanonicalQualityDashboard"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/live/coverage-alerts:
+    get:
+      operationId: listLiveCoverageAlerts
+      responses:
+        "200":
+          description: listLiveCoverageAlerts response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CoverageAlert"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/live/coverage-alerts/queue:
+    get:
+      operationId: getLiveCoverageAlertQueue
+      responses:
+        "200":
+          description: getLiveCoverageAlertQueue response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DecisionQueueItem"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/live/scenarios/alert/{alertId}:
+    get:
+      operationId: getLiveScenarioForAlert
+      responses:
+        "200":
+          description: getLiveScenarioForAlert response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ParetoFrontierResponse"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/alertId"
+  /api/v1/live/decision-workspace/{alertId}:
+    get:
+      operationId: getLiveDecisionWorkspace
+      responses:
+        "200":
+          description: getLiveDecisionWorkspace response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/DecisionWorkspace"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/alertId"
+  /api/v1/scenarios/generate/{alertId}:
+    post:
+      operationId: generateScenarioForAlert
+      responses:
+        "201":
+          description: generateScenarioForAlert response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ParetoFrontierResponse"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/alertId"
       requestBody:
         required: false
         content:
           application/json:
             schema:
-              type: object
+              $ref: "#/components/schemas/ScenarioGenerationRequest"
+  /api/v1/organizations/me:
+    get:
+      operationId: getOrganizationMe
+      responses:
+        "200":
+          description: getOrganizationMe response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/OrganizationProfile"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/departments:
+    get:
+      operationId: listDepartments
+      responses:
+        "200":
+          description: listDepartments response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DepartmentSummary"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/sites:
+    get:
+      operationId: listSites
+      responses:
+        "200":
+          description: listSites response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SiteSummary"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/forecasts:
+    get:
+      operationId: listForecastRuns
+      responses:
+        "200":
+          description: listForecastRuns response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ForecastRunSummary"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - pagination
+                  - timestamp
+      security:
+        - bearerAuth: []
+    post:
+      operationId: createForecastRequest
       responses:
         "201":
-          description: Organization created
+          description: createForecastRequest response.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessObject"
-  /api/v1/admin/audit-log:
-    get:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ForecastRequestAccepted"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
       security:
         - bearerAuth: []
-      operationId: adminAuditLog
-      responses:
-        "200":
-          description: Paginated audit entries
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PaginatedSuccess"
-  /api/v1/admin/onboarding:
-    get:
-      security:
-        - bearerAuth: []
-      operationId: adminListOnboarding
-      responses:
-        "200":
-          description: Paginated onboarding
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PaginatedSuccess"
-    post:
-      security:
-        - bearerAuth: []
-      operationId: adminCreateOnboarding
       requestBody:
         required: false
         content:
           application/json:
             schema:
-              type: object
-      responses:
-        "201":
-          description: Onboarding created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessObject"
-  /api/v1/admin/contact-requests:
+              $ref: "#/components/schemas/RequestForecastRequest"
+  /api/v1/forecasts/{forecastId}/summary:
     get:
-      security:
-        - bearerAuth: []
-      operationId: adminListContactRequests
+      operationId: getForecastSummary
       responses:
         "200":
-          description: Paginated contact requests
+          description: getForecastSummary response.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PaginatedSuccess"
-
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ForecastDetailSummary"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/forecastId"
+  /api/v1/forecasts/{forecastId}/daily:
+    get:
+      operationId: getForecastDailyRows
+      responses:
+        "200":
+          description: getForecastDailyRows response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ForecastDailyDetail"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/forecastId"
+  /api/v1/forecasts/what-if:
+    post:
+      operationId: createForecastWhatIf
+      responses:
+        "201":
+          description: createForecastWhatIf response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ForecastWhatIfResult"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WhatIfScenarioRequest"
+  /api/v1/decisions:
+    get:
+      operationId: listDecisions
+      responses:
+        "200":
+          description: listDecisions response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DecisionRecord"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - pagination
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/decisions/{decisionId}:
+    get:
+      operationId: getDecision
+      responses:
+        "200":
+          description: getDecision response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/DecisionRecord"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/decisionId"
+  /api/v1/decisions/{decisionId}/review:
+    patch:
+      operationId: reviewDecision
+      responses:
+        "200":
+          description: reviewDecision response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/DecisionReviewResult"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/decisionId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewDecisionRequest"
+  /api/v1/decisions/{decisionId}/outcome:
+    post:
+      operationId: recordDecisionOutcome
+      responses:
+        "201":
+          description: recordDecisionOutcome response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/DecisionOutcomeResult"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/decisionId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordDecisionOutcomeRequest"
+  /api/v1/arbitrage/{alertId}/options:
+    get:
+      operationId: listArbitrageOptions
+      responses:
+        "200":
+          description: listArbitrageOptions response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ArbitrageOptionsView"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/alertId"
+  /api/v1/arbitrage/{alertId}/validate:
+    post:
+      operationId: validateArbitrageDecision
+      responses:
+        "201":
+          description: validateArbitrageDecision response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ArbitrageValidationResult"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/alertId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidateArbitrageRequest"
+  /api/v1/alerts:
+    get:
+      operationId: listAlerts
+      responses:
+        "200":
+          description: listAlerts response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DashboardAlertRecord"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/alerts/{alertId}/dismiss:
+    patch:
+      operationId: dismissAlert
+      responses:
+        "200":
+          description: dismissAlert response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/DashboardAlertRecord"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/alertId"
+  /api/v1/analytics/costs:
+    get:
+      operationId: getAnalyticsCosts
+      responses:
+        "200":
+          description: getAnalyticsCosts response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/AnalyticsCostsSummary"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/exports/{resource}:
+    post:
+      operationId: queueExport
+      responses:
+        "201":
+          description: queueExport response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/QueuedExportResult"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/resource"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportRequest"
+  /api/v1/datasets:
+    get:
+      operationId: listDatasets
+      responses:
+        "200":
+          description: listDatasets response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DatasetDetailResponse"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - pagination
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/datasets/{datasetId}:
+    get:
+      operationId: getDataset
+      responses:
+        "200":
+          description: getDataset response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/DatasetDetailResponse"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+  /api/v1/datasets/{datasetId}/data:
+    get:
+      operationId: getDatasetRows
+      responses:
+        "200":
+          description: getDatasetRows response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/DatasetDataPreviewResponse"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+  /api/v1/datasets/{datasetId}/columns:
+    get:
+      operationId: getDatasetColumns
+      responses:
+        "200":
+          description: getDatasetColumns response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GoldSchemaColumn"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+  /api/v1/datasets/{datasetId}/ingestion-log:
+    get:
+      operationId: getDatasetIngestionLog
+      responses:
+        "200":
+          description: getDatasetIngestionLog response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/IngestionHistoryResponse"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+  /api/v1/coverage-alerts/{alertId}/acknowledge:
+    patch:
+      operationId: acknowledgeCoverageAlert
+      responses:
+        "200":
+          description: acknowledgeCoverageAlert response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/CoverageAlert"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/alertId"
+  /api/v1/coverage-alerts/{alertId}/resolve:
+    patch:
+      operationId: resolveCoverageAlert
+      responses:
+        "200":
+          description: resolveCoverageAlert response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/CoverageAlert"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/alertId"
+  /api/v1/operational-decisions:
+    get:
+      operationId: listOperationalDecisions
+      responses:
+        "200":
+          description: listOperationalDecisions response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/OperationalDecision"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - pagination
+                  - timestamp
+      security:
+        - bearerAuth: []
+    post:
+      operationId: createOperationalDecision
+      responses:
+        "201":
+          description: createOperationalDecision response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/OperationalDecision"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OperationalDecisionCreateRequest"
+  /api/v1/operational-decisions/override-stats:
+    get:
+      operationId: getOperationalDecisionOverrideStats
+      responses:
+        "200":
+          description: getOperationalDecisionOverrideStats response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/OverrideStatistics"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/cost-parameters:
+    get:
+      operationId: listCostParameters
+      responses:
+        "200":
+          description: listCostParameters response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CostParameterView"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/cost-parameters/effective:
+    get:
+      operationId: getEffectiveCostParameters
+      responses:
+        "200":
+          description: getEffectiveCostParameters response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/CostParameterView"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/cost-parameters/history:
+    get:
+      operationId: getCostParameterHistory
+      responses:
+        "200":
+          description: getCostParameterHistory response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CostParameterHistoryEntry"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/proof:
+    get:
+      operationId: listProofPacks
+      responses:
+        "200":
+          description: listProofPacks response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProofPack"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/proof/summary:
+    get:
+      operationId: getProofSummary
+      responses:
+        "200":
+          description: getProofSummary response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ProofPackSummary"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/proof/generate:
+    post:
+      operationId: generateProofPack
+      responses:
+        "201":
+          description: generateProofPack response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ProofPack"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProofPackGenerateRequest"
+  /api/v1/proof/pdf:
+    get:
+      operationId: getProofPdfUrl
+      responses:
+        "200":
+          description: getProofPdfUrl response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ProofPdfLink"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/users/me/preferences:
+    get:
+      operationId: getUserPreferences
+      responses:
+        "200":
+          description: getUserPreferences response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/UserUxPreferences"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+    patch:
+      operationId: updateUserPreferences
+      responses:
+        "200":
+          description: updateUserPreferences response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/UserUxPreferences"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUxPreferencesPatch"
+  /api/v1/product-events/batch:
+    post:
+      operationId: ingestProductEventsBatch
+      responses:
+        "201":
+          description: ingestProductEventsBatch response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ProductEventBatchAccepted"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductEventBatchRequest"
+  /api/v1/conversations:
+    get:
+      operationId: listConversations
+      responses:
+        "200":
+          description: listConversations response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ConversationSummary"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+    post:
+      operationId: createConversation
+      responses:
+        "201":
+          description: createConversation response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ConversationSummary"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConversationCreateRequest"
+  /api/v1/conversations/{convId}/messages:
+    get:
+      operationId: listConversationMessages
+      responses:
+        "200":
+          description: listConversationMessages response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ConversationMessage"
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/convId"
+    post:
+      operationId: createConversationMessage
+      responses:
+        "201":
+          description: createConversationMessage response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ConversationMessage"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/convId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageCreateRequest"
+  /api/v1/conversations/unread-count:
+    get:
+      operationId: getConversationUnreadCount
+      responses:
+        "200":
+          description: getConversationUnreadCount response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ConversationUnreadCount"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/support-thread:
+    get:
+      operationId: getSupportThread
+      responses:
+        "200":
+          description: getSupportThread response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/SupportThreadView"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+  /api/v1/support-thread/messages:
+    post:
+      operationId: createSupportThreadMessage
+      responses:
+        "201":
+          description: createSupportThreadMessage response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                  requestId:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/SupportThreadMessage"
+                  message:
+                    type: string
+                additionalProperties: false
+                required:
+                  - success
+                  - data
+                  - timestamp
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageCreateRequest"
 components:
   securitySchemes:
     bearerAuth:
@@ -278,62 +2049,69 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
-    DecisionId:
+    alertId:
+      name: alertId
+      in: path
+      required: true
+      description: Identifier of the coverage alert or alert-backed decision.
+      schema:
+        type: string
+    forecastId:
+      name: forecastId
+      in: path
+      required: true
+      description: Identifier of the forecast.
+      schema:
+        type: string
+    decisionId:
       name: decisionId
       in: path
       required: true
+      description: Identifier of the decision.
+      schema:
+        type: string
+    resource:
+      name: resource
+      in: path
+      required: true
+      description: Export resource name.
+      schema:
+        type: string
+    datasetId:
+      name: datasetId
+      in: path
+      required: true
+      description: Identifier of the dataset.
+      schema:
+        type: string
+    convId:
+      name: convId
+      in: path
+      required: true
+      description: Identifier of the conversation.
       schema:
         type: string
   schemas:
-    SuccessObject:
-      type: object
-      properties:
-        success:
-          type: boolean
-          const: true
-        data:
-          type: object
-          additionalProperties: true
-        message:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-        requestId:
-          type: string
-      required: [success, data, timestamp]
-    SuccessArray:
-      type: object
-      properties:
-        success:
-          type: boolean
-          const: true
-        data:
-          type: array
-          items:
-            type: object
-            additionalProperties: true
-        timestamp:
-          type: string
-          format: date-time
-        requestId:
-          type: string
-      required: [success, data, timestamp]
     PaginationMeta:
       type: object
       properties:
         total:
           type: integer
+          minimum: 0
         page:
           type: integer
+          minimum: 1
         pageSize:
           type: integer
+          minimum: 1
         totalPages:
           type: integer
+          minimum: 0
         hasNextPage:
           type: boolean
         hasPreviousPage:
           type: boolean
+      additionalProperties: false
       required:
         - total
         - page
@@ -341,25 +2119,6 @@ components:
         - totalPages
         - hasNextPage
         - hasPreviousPage
-    PaginatedSuccess:
-      type: object
-      properties:
-        success:
-          type: boolean
-          const: true
-        data:
-          type: array
-          items:
-            type: object
-            additionalProperties: true
-        pagination:
-          $ref: "#/components/schemas/PaginationMeta"
-        timestamp:
-          type: string
-          format: date-time
-        requestId:
-          type: string
-      required: [success, data, pagination, timestamp]
     Error:
       type: object
       properties:
@@ -376,10 +2135,2284 @@ components:
             details:
               type: object
               additionalProperties: true
-          required: [code, message]
+          additionalProperties: false
+          required:
+            - code
+            - message
         timestamp:
           type: string
           format: date-time
         requestId:
           type: string
-      required: [success, error, timestamp]
+      additionalProperties: false
+      required:
+        - success
+        - error
+        - timestamp
+    AnalyticsCostsSummary:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            startDate:
+              anyOf:
+                - &a1
+                  type: string
+                  format: date
+                - type: "null"
+            endDate:
+              anyOf:
+                - *a1
+                - type: "null"
+          additionalProperties: false
+        totals:
+          type: object
+          properties:
+            overtimeEur:
+              type: number
+            interimEur:
+              type: number
+            avoidedEur:
+              type: number
+          additionalProperties: false
+          required:
+            - overtimeEur
+            - interimEur
+            - avoidedEur
+      additionalProperties: false
+      required:
+        - period
+        - totals
+    ArbitrageOptionsView:
+      type: object
+      properties:
+        alertId:
+          type: string
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              label:
+                type: string
+            additionalProperties: false
+            required:
+              - id
+              - label
+      additionalProperties: false
+      required:
+        - alertId
+        - options
+    ArbitrageValidationResult:
+      type: object
+      properties:
+        alertId:
+          type: string
+      additionalProperties: false
+      required:
+        - alertId
+    CanonicalQualityDashboard:
+      type: object
+      properties:
+        totalRecords:
+          type: integer
+          minimum: 0
+        coveragePct:
+          type: number
+        sites:
+          type: integer
+          minimum: 0
+        dateRange:
+          type: array
+          items: *a1
+        missingShiftsPct:
+          type: number
+        avgAbsPct:
+          type: number
+      additionalProperties: false
+      required:
+        - totalRecords
+        - coveragePct
+        - sites
+        - dateRange
+        - missingShiftsPct
+        - avgAbsPct
+    CanonicalRecord:
+      type: object
+      properties:
+        id: &a2
+          type: string
+        organizationId: *a2
+        siteId:
+          type: string
+        date: *a1
+        shift: &a3
+          type: string
+          enum:
+            - am
+            - pm
+        competence:
+          anyOf:
+            - type: string
+            - type: "null"
+        chargeUnits:
+          anyOf:
+            - type: number
+            - type: "null"
+        capacitePlanH:
+          type: number
+        realiseH:
+          anyOf:
+            - type: number
+            - type: "null"
+        absH:
+          anyOf:
+            - type: number
+            - type: "null"
+        hsH:
+          anyOf:
+            - type: number
+            - type: "null"
+        interimH:
+          anyOf:
+            - type: number
+            - type: "null"
+        coutInterneEst:
+          anyOf:
+            - type: number
+            - type: "null"
+        siteName:
+          anyOf:
+            - type: string
+            - type: "null"
+      additionalProperties: false
+      required:
+        - id
+        - organizationId
+        - siteId
+        - date
+        - shift
+        - capacitePlanH
+    ContactRequestReceipt:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        receivedAt: &a4
+          type: string
+          format: date-time
+        requestType:
+          type: string
+        companyName:
+          type: string
+        email:
+          type: string
+          format: email
+      additionalProperties: false
+      required:
+        - id
+        - status
+        - receivedAt
+        - requestType
+        - companyName
+        - email
+    ConversationMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        conversationId:
+          type: string
+        content:
+          type: string
+      additionalProperties: false
+      required:
+        - id
+        - conversationId
+        - content
+    ConversationSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        subject:
+          type: string
+        status:
+          type: string
+      additionalProperties: false
+      required:
+        - id
+    ConversationUnreadCount:
+      type: object
+      properties:
+        unreadCount:
+          type: integer
+          minimum: 0
+      additionalProperties: false
+      required:
+        - unreadCount
+    CostParameterHistoryEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        siteId:
+          anyOf:
+            - type: string
+            - type: "null"
+        version:
+          type: integer
+          minimum: 0
+      additionalProperties: false
+      required:
+        - id
+        - version
+    CostParameterView:
+      type: object
+      properties:
+        siteId:
+          anyOf:
+            - type: string
+            - type: "null"
+      additionalProperties: false
+    CoverageAlert:
+      type: object
+      properties:
+        id: *a2
+        organizationId: *a2
+        siteId:
+          type: string
+        alertDate: *a1
+        shift: *a3
+        horizon:
+          type: string
+        pRupture:
+          type: number
+        gapH:
+          type: number
+        predictionIntervalLow:
+          type: number
+        predictionIntervalHigh:
+          type: number
+        modelVersion:
+          type: string
+        calibrationBucket:
+          type: string
+        impactEur:
+          type: number
+        severity: &a5
+          type: string
+          enum:
+            - low
+            - medium
+            - high
+            - critical
+        status: &a6
+          type: string
+          enum:
+            - open
+            - acknowledged
+            - resolved
+            - expired
+        driversJson:
+          type: array
+          items:
+            type: string
+        acknowledgedAt: *a4
+        resolvedAt: *a4
+        createdAt: *a4
+        updatedAt: *a4
+        siteName:
+          anyOf:
+            - type: string
+            - type: "null"
+      additionalProperties: false
+      required:
+        - id
+        - organizationId
+        - siteId
+        - alertDate
+        - shift
+        - horizon
+        - pRupture
+        - gapH
+        - severity
+        - status
+        - driversJson
+        - createdAt
+        - updatedAt
+    DashboardAlertRecord:
+      type: object
+      properties:
+        id: *a2
+        type:
+          type: string
+          enum:
+            - risk
+            - decision
+            - forecast
+            - absence
+            - system
+        severity:
+          type: string
+          enum:
+            - info
+            - warning
+            - error
+            - critical
+        title:
+          type: string
+        message:
+          type: string
+        relatedEntityType:
+          type: string
+          enum:
+            - absence
+            - decision
+            - forecast
+            - employee
+            - department
+        relatedEntityId:
+          type: string
+        actionUrl:
+          type: string
+        actionLabel:
+          type: string
+        createdAt: *a4
+        dismissedAt: *a4
+        expiresAt: *a4
+      additionalProperties: false
+      required:
+        - id
+        - type
+        - severity
+        - title
+        - message
+        - createdAt
+    DashboardSummary:
+      type: object
+      properties:
+        coverageHuman:
+          type: number
+        coverageMerchandise:
+          type: number
+        activeAlertsCount:
+          type: integer
+          minimum: 0
+        forecastAccuracy:
+          anyOf:
+            - type: number
+            - type: "null"
+        lastForecastDate:
+          anyOf:
+            - *a1
+            - type: "null"
+      additionalProperties: false
+      required:
+        - coverageHuman
+        - coverageMerchandise
+        - activeAlertsCount
+        - forecastAccuracy
+        - lastForecastDate
+    DatasetDataPreviewResponse:
+      type: object
+      properties:
+        columns:
+          type: array
+          items:
+            type: string
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        maskedColumns:
+          type: array
+          items:
+            type: string
+        total:
+          type: integer
+          minimum: 0
+      additionalProperties: false
+      required:
+        - columns
+        - rows
+        - maskedColumns
+        - total
+    DatasetDetailResponse:
+      type: object
+      properties:
+        id: *a2
+        name:
+          type: string
+        status:
+          type: string
+        tableName:
+          type: string
+        temporalIndex:
+          type: string
+        groupBy:
+          type: array
+          items:
+            type: string
+        rowCount:
+          type: integer
+          minimum: 0
+        lastIngestionAt:
+          anyOf:
+            - *a4
+            - type: "null"
+        columns:
+          type: array
+          items:
+            type: object
+            properties:
+              id: *a2
+              createdAt: *a4
+              updatedAt: *a4
+              datasetId: *a2
+              name:
+                type: string
+              dtype:
+                type: string
+                enum:
+                  - float
+                  - integer
+                  - date
+                  - category
+                  - boolean
+                  - text
+              role:
+                type: string
+                enum:
+                  - target
+                  - feature
+                  - temporal_index
+                  - group_by
+                  - id
+                  - meta
+              nullable:
+                type: boolean
+              rulesOverride:
+                anyOf:
+                  - type: object
+                    additionalProperties: {}
+                  - type: "null"
+              ordinalPosition:
+                type: integer
+                minimum: 0
+            additionalProperties: false
+            required:
+              - id
+              - createdAt
+              - updatedAt
+              - datasetId
+              - name
+              - dtype
+              - role
+              - nullable
+              - rulesOverride
+              - ordinalPosition
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - status
+        - tableName
+        - temporalIndex
+        - groupBy
+        - rowCount
+        - lastIngestionAt
+        - columns
+    DecisionOutcomeResult:
+      type: object
+      properties:
+        id:
+          type: string
+      additionalProperties: false
+      required:
+        - id
+    DecisionQueueItem:
+      type: object
+      properties:
+        id: *a2
+        siteId:
+          type: string
+        alertDate: *a1
+        shift:
+          type: string
+        severity:
+          type: string
+          enum:
+            - low
+            - medium
+            - high
+            - critical
+        horizon:
+          anyOf:
+            - type: string
+            - type: "null"
+        gapH:
+          type: number
+        pRupture:
+          type: number
+        driversJson:
+          type: array
+          items:
+            type: string
+        priorityScore:
+          type: number
+        estimatedImpactEur:
+          anyOf:
+            - type: number
+            - type: "null"
+        timeToBreachHours:
+          anyOf:
+            - type: number
+            - type: "null"
+      additionalProperties: false
+      required:
+        - id
+        - siteId
+        - alertDate
+        - shift
+        - severity
+        - gapH
+    DecisionRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        title:
+          type: string
+      additionalProperties: false
+      required:
+        - id
+    DecisionReviewResult:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+      additionalProperties: false
+      required:
+        - id
+        - status
+    DecisionWorkspace:
+      type: object
+      properties:
+        alert:
+          type: object
+          properties:
+            id: *a2
+            organizationId: *a2
+            siteId:
+              type: string
+            alertDate: *a1
+            shift: *a3
+            horizon:
+              type: string
+            pRupture:
+              type: number
+            gapH:
+              type: number
+            predictionIntervalLow:
+              type: number
+            predictionIntervalHigh:
+              type: number
+            modelVersion:
+              type: string
+            calibrationBucket:
+              type: string
+            impactEur:
+              type: number
+            severity: *a5
+            status: *a6
+            driversJson:
+              type: array
+              items:
+                type: string
+            acknowledgedAt: *a4
+            resolvedAt: *a4
+            createdAt: *a4
+            updatedAt: *a4
+            siteName:
+              anyOf:
+                - type: string
+                - type: "null"
+          additionalProperties: false
+          required:
+            - id
+            - organizationId
+            - siteId
+            - alertDate
+            - shift
+            - horizon
+            - pRupture
+            - gapH
+            - severity
+            - status
+            - driversJson
+            - createdAt
+            - updatedAt
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              id: *a2
+              organizationId: *a2
+              createdAt: *a4
+              updatedAt: *a4
+              coverageAlertId: *a2
+              costParameterId: *a2
+              optionType:
+                type: string
+                enum:
+                  - hs
+                  - interim
+                  - realloc_intra
+                  - realloc_inter
+                  - service_adjust
+                  - outsource
+              label:
+                type: string
+              coutTotalEur:
+                type: number
+              serviceAttenduPct:
+                type: number
+              heuresCouvertes:
+                type: number
+              feasibilityScore:
+                type: number
+              riskScore:
+                type: number
+              policyCompliance:
+                type: boolean
+              dominanceReason:
+                type: string
+              recommendationPolicyVersion:
+                type: string
+              isParetoOptimal:
+                type: boolean
+              isRecommended:
+                type: boolean
+              contraintesJson:
+                type: object
+                additionalProperties: {}
+            additionalProperties: false
+            required:
+              - id
+              - organizationId
+              - createdAt
+              - updatedAt
+              - coverageAlertId
+              - costParameterId
+              - optionType
+              - label
+              - coutTotalEur
+              - serviceAttenduPct
+              - heuresCouvertes
+              - isParetoOptimal
+              - isRecommended
+              - contraintesJson
+        recommendedOptionId:
+          anyOf:
+            - type: string
+            - type: "null"
+        diagnostic:
+          type: object
+          properties:
+            topDrivers:
+              type: array
+              items:
+                type: string
+            confidencePct:
+              type: integer
+              minimum: 0
+            riskTrend:
+              type: string
+              enum:
+                - improving
+                - stable
+                - worsening
+            note:
+              type: string
+          additionalProperties: false
+      additionalProperties: false
+      required:
+        - alert
+        - options
+    DepartmentSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      additionalProperties: false
+      required:
+        - id
+        - name
+    ForecastDailyDetail:
+      type: object
+      properties:
+        forecastId:
+          type: string
+        date: *a1
+      additionalProperties: false
+      required:
+        - forecastId
+        - date
+    ForecastDetailSummary:
+      type: object
+      properties:
+        forecastId:
+          type: string
+        status:
+          type: string
+        drivers:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
+      required:
+        - forecastId
+        - status
+        - drivers
+    ForecastRequestAccepted:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+      additionalProperties: false
+      required:
+        - id
+        - status
+    ForecastRunSummary:
+      type: object
+      properties:
+        id: *a2
+        organizationId: *a2
+        modelType:
+          type: string
+        modelVersion:
+          type: string
+        horizonDays:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+            - pending
+            - running
+            - completed
+            - failed
+        accuracyScore:
+          anyOf:
+            - type: number
+            - type: "null"
+        startedAt:
+          anyOf:
+            - *a4
+            - type: "null"
+        completedAt:
+          anyOf:
+            - *a4
+            - type: "null"
+        createdAt: *a4
+      additionalProperties: false
+      required:
+        - id
+        - organizationId
+        - modelType
+        - horizonDays
+        - status
+        - createdAt
+    ForecastWhatIfResult:
+      type: object
+      properties:
+        scenario:
+          type: string
+        deltaCostEur:
+          type: number
+        deltaServicePct:
+          type: number
+      additionalProperties: false
+      required:
+        - scenario
+        - deltaCostEur
+        - deltaServicePct
+    GoldCoverageView:
+      type: object
+      properties:
+        totalColumns:
+          type: integer
+          minimum: 0
+        explorerExposedColumns:
+          type: integer
+          minimum: 0
+        businessMappedColumns:
+          type: integer
+          minimum: 0
+        totalRows:
+          type: integer
+          minimum: 0
+        columns:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              exposedInExplorer:
+                type: boolean
+              usedInBusinessViews:
+                type: boolean
+              mappedViews:
+                type: array
+                items:
+                  type: string
+            additionalProperties: false
+            required:
+              - name
+              - exposedInExplorer
+              - usedInBusinessViews
+              - mappedViews
+      additionalProperties: false
+      required:
+        - totalColumns
+        - explorerExposedColumns
+        - businessMappedColumns
+        - totalRows
+        - columns
+    GoldProvenanceView:
+      type: object
+      properties:
+        revision:
+          type: string
+        loadedAt: *a4
+        sourcePath:
+          type: string
+        scopedRows:
+          type: integer
+          minimum: 0
+        totalRows:
+          type: integer
+          minimum: 0
+        totalColumns:
+          type: integer
+          minimum: 0
+        policy:
+          type: object
+          properties:
+            allowedMockDomains:
+              type: array
+              items:
+                type: string
+            forecastMockColumns:
+              type: array
+              items:
+                type: string
+            nonForecastMockColumns:
+              type: array
+              items:
+                type: string
+            strictDataPolicyOk:
+              type: boolean
+          additionalProperties: false
+          required:
+            - allowedMockDomains
+            - forecastMockColumns
+            - nonForecastMockColumns
+            - strictDataPolicyOk
+        qualityReports:
+          type: object
+          properties:
+            silverQualityAvailable:
+              type: boolean
+            goldFeatureQualityAvailable:
+              type: boolean
+            lastRunSummaryAvailable:
+              type: boolean
+            lastRunAt:
+              anyOf:
+                - *a4
+                - type: "null"
+            lastRunGoldRows:
+              type: integer
+              minimum: 0
+          additionalProperties: false
+          required:
+            - silverQualityAvailable
+            - goldFeatureQualityAvailable
+            - lastRunSummaryAvailable
+            - lastRunAt
+            - lastRunGoldRows
+      additionalProperties: false
+      required:
+        - revision
+        - loadedAt
+        - sourcePath
+        - scopedRows
+        - totalRows
+        - totalColumns
+        - policy
+        - qualityReports
+    GoldSchemaColumn:
+      type: object
+      properties:
+        name:
+          type: string
+        dtype:
+          type: string
+          enum:
+            - string
+            - date
+            - number
+            - boolean
+        nullable:
+          type: boolean
+        sample:
+          anyOf:
+            - type: string
+            - type: number
+            - type: boolean
+      additionalProperties: false
+      required:
+        - name
+        - dtype
+        - nullable
+        - sample
+    GoldSchemaView:
+      type: object
+      properties:
+        revision:
+          type: string
+        loadedAt: *a4
+        totalRows:
+          type: integer
+          minimum: 0
+        totalColumns:
+          type: integer
+          minimum: 0
+        columns:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              dtype:
+                type: string
+                enum:
+                  - string
+                  - date
+                  - number
+                  - boolean
+              nullable:
+                type: boolean
+              sample:
+                anyOf:
+                  - type: string
+                  - type: number
+                  - type: boolean
+            additionalProperties: false
+            required:
+              - name
+              - dtype
+              - nullable
+              - sample
+      additionalProperties: false
+      required:
+        - revision
+        - loadedAt
+        - totalRows
+        - totalColumns
+        - columns
+    IngestionHistoryResponse:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            type: object
+            properties:
+              id: *a2
+              createdAt: *a4
+              updatedAt: *a4
+              datasetId: *a2
+              mode:
+                type: string
+                enum:
+                  - incremental
+                  - full_refit
+              rowsReceived:
+                type: integer
+                minimum: 0
+              rowsTransformed:
+                type: integer
+                minimum: 0
+              startedAt: *a4
+              completedAt:
+                anyOf:
+                  - *a4
+                  - type: "null"
+              status:
+                type: string
+                enum:
+                  - running
+                  - success
+                  - failed
+              errorMessage:
+                anyOf:
+                  - type: string
+                  - type: "null"
+              triggeredBy:
+                type: string
+              requestId:
+                anyOf:
+                  - type: string
+                  - type: "null"
+            additionalProperties: false
+            required:
+              - id
+              - createdAt
+              - updatedAt
+              - datasetId
+              - mode
+              - rowsReceived
+              - rowsTransformed
+              - startedAt
+              - completedAt
+              - status
+              - errorMessage
+              - triggeredBy
+              - requestId
+        total:
+          type: integer
+          minimum: 0
+      additionalProperties: false
+      required:
+        - entries
+        - total
+    LatestDailyForecastRow:
+      type: object
+      properties:
+        id: *a2
+        organizationId: *a2
+        siteId:
+          anyOf:
+            - type: string
+            - type: "null"
+        forecastDate: *a1
+        dimension:
+          type: string
+          enum:
+            - human
+            - merchandise
+        predictedDemand:
+          type: number
+        predictedCapacity:
+          type: number
+        capacityPlannedCurrent:
+          type: number
+        capacityPlannedPredicted:
+          type: number
+        capacityOptimalPredicted:
+          type: number
+        gap:
+          type: number
+        riskScore:
+          type: number
+        confidenceLower:
+          type: number
+        confidenceUpper:
+          type: number
+      additionalProperties: false
+      required:
+        - id
+        - organizationId
+        - forecastDate
+        - dimension
+        - predictedDemand
+        - predictedCapacity
+        - capacityPlannedCurrent
+        - capacityPlannedPredicted
+        - capacityOptimalPredicted
+        - gap
+        - riskScore
+        - confidenceLower
+        - confidenceUpper
+    OperationalDecision:
+      type: object
+      properties:
+        id: *a2
+        organizationId: *a2
+        createdAt: *a4
+        updatedAt: *a4
+        coverageAlertId: *a2
+        recommendedOptionId: *a2
+        chosenOptionId: *a2
+        siteId:
+          type: string
+        decisionDate: *a1
+        shift: *a3
+        horizon:
+          type: string
+        gapH:
+          type: number
+        isOverride:
+          type: boolean
+        overrideReason:
+          type: string
+        overrideCategory:
+          type: string
+        exogenousEventTag:
+          type: string
+        recommendationPolicyVersion:
+          type: string
+        coutAttenduEur:
+          type: number
+        serviceAttenduPct:
+          type: number
+        coutObserveEur:
+          type: number
+        serviceObservePct:
+          type: number
+        decidedBy: *a2
+        comment:
+          type: string
+      additionalProperties: false
+      required:
+        - id
+        - organizationId
+        - createdAt
+        - updatedAt
+        - coverageAlertId
+        - siteId
+        - decisionDate
+        - shift
+        - horizon
+        - gapH
+        - isOverride
+        - decidedBy
+    OrganizationProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+        plan:
+          type: string
+      additionalProperties: false
+      required:
+        - id
+    OverrideStatistics:
+      type: object
+      properties:
+        totalDecisions:
+          type: integer
+          minimum: 0
+        overrideCount:
+          type: integer
+          minimum: 0
+        overridePct:
+          type: number
+        topOverrideReasons:
+          type: array
+          items:
+            type: object
+            properties:
+              reason:
+                type: string
+              count:
+                type: integer
+                minimum: 0
+            additionalProperties: false
+            required:
+              - reason
+              - count
+        avgCostDelta:
+          type: number
+      additionalProperties: false
+      required:
+        - totalDecisions
+        - overrideCount
+        - overridePct
+        - topOverrideReasons
+        - avgCostDelta
+    ParetoFrontierResponse:
+      type: object
+      properties:
+        alertId: *a2
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              id: *a2
+              organizationId: *a2
+              createdAt: *a4
+              updatedAt: *a4
+              coverageAlertId: *a2
+              costParameterId: *a2
+              optionType:
+                type: string
+                enum:
+                  - hs
+                  - interim
+                  - realloc_intra
+                  - realloc_inter
+                  - service_adjust
+                  - outsource
+              label:
+                type: string
+              coutTotalEur:
+                type: number
+              serviceAttenduPct:
+                type: number
+              heuresCouvertes:
+                type: number
+              feasibilityScore:
+                type: number
+              riskScore:
+                type: number
+              policyCompliance:
+                type: boolean
+              dominanceReason:
+                type: string
+              recommendationPolicyVersion:
+                type: string
+              isParetoOptimal:
+                type: boolean
+              isRecommended:
+                type: boolean
+              contraintesJson:
+                type: object
+                additionalProperties: {}
+            additionalProperties: false
+            required:
+              - id
+              - organizationId
+              - createdAt
+              - updatedAt
+              - coverageAlertId
+              - costParameterId
+              - optionType
+              - label
+              - coutTotalEur
+              - serviceAttenduPct
+              - heuresCouvertes
+              - isParetoOptimal
+              - isRecommended
+              - contraintesJson
+        paretoFrontier:
+          type: array
+          items:
+            type: object
+            properties:
+              id: *a2
+              organizationId: *a2
+              createdAt: *a4
+              updatedAt: *a4
+              coverageAlertId: *a2
+              costParameterId: *a2
+              optionType:
+                type: string
+                enum:
+                  - hs
+                  - interim
+                  - realloc_intra
+                  - realloc_inter
+                  - service_adjust
+                  - outsource
+              label:
+                type: string
+              coutTotalEur:
+                type: number
+              serviceAttenduPct:
+                type: number
+              heuresCouvertes:
+                type: number
+              feasibilityScore:
+                type: number
+              riskScore:
+                type: number
+              policyCompliance:
+                type: boolean
+              dominanceReason:
+                type: string
+              recommendationPolicyVersion:
+                type: string
+              isParetoOptimal:
+                type: boolean
+              isRecommended:
+                type: boolean
+              contraintesJson:
+                type: object
+                additionalProperties: {}
+            additionalProperties: false
+            required:
+              - id
+              - organizationId
+              - createdAt
+              - updatedAt
+              - coverageAlertId
+              - costParameterId
+              - optionType
+              - label
+              - coutTotalEur
+              - serviceAttenduPct
+              - heuresCouvertes
+              - isParetoOptimal
+              - isRecommended
+              - contraintesJson
+        recommended:
+          anyOf:
+            - type: object
+              properties:
+                id: *a2
+                organizationId: *a2
+                createdAt: *a4
+                updatedAt: *a4
+                coverageAlertId: *a2
+                costParameterId: *a2
+                optionType:
+                  type: string
+                  enum:
+                    - hs
+                    - interim
+                    - realloc_intra
+                    - realloc_inter
+                    - service_adjust
+                    - outsource
+                label:
+                  type: string
+                coutTotalEur:
+                  type: number
+                serviceAttenduPct:
+                  type: number
+                heuresCouvertes:
+                  type: number
+                feasibilityScore:
+                  type: number
+                riskScore:
+                  type: number
+                policyCompliance:
+                  type: boolean
+                dominanceReason:
+                  type: string
+                recommendationPolicyVersion:
+                  type: string
+                isParetoOptimal:
+                  type: boolean
+                isRecommended:
+                  type: boolean
+                contraintesJson:
+                  type: object
+                  additionalProperties: {}
+              additionalProperties: false
+              required:
+                - id
+                - organizationId
+                - createdAt
+                - updatedAt
+                - coverageAlertId
+                - costParameterId
+                - optionType
+                - label
+                - coutTotalEur
+                - serviceAttenduPct
+                - heuresCouvertes
+                - isParetoOptimal
+                - isRecommended
+                - contraintesJson
+            - type: "null"
+      additionalProperties: false
+      required:
+        - alertId
+        - options
+        - paretoFrontier
+        - recommended
+    ProductEventBatchAccepted:
+      type: object
+      properties:
+        accepted:
+          type: integer
+          minimum: 0
+      additionalProperties: false
+      required:
+        - accepted
+    ProofPack:
+      type: object
+      properties:
+        id: *a2
+        organizationId: *a2
+        siteId:
+          type: string
+        month: *a1
+        coutBauEur:
+          type: number
+        cout100Eur:
+          type: number
+        coutReelEur:
+          type: number
+        gainNetEur:
+          type: number
+        serviceBauPct:
+          type: number
+        serviceReelPct:
+          type: number
+        captureRate:
+          type: number
+        bauMethodVersion:
+          type: string
+        attributionConfidence:
+          type: number
+        adoptionPct:
+          type: number
+        alertesEmises:
+          type: integer
+          minimum: 0
+        alertesTraitees:
+          type: integer
+          minimum: 0
+      additionalProperties: false
+      required:
+        - id
+        - organizationId
+        - siteId
+        - month
+        - coutBauEur
+        - cout100Eur
+        - coutReelEur
+        - gainNetEur
+        - alertesEmises
+        - alertesTraitees
+    ProofPackSummary:
+      type: object
+      properties:
+        totalGainNetEur:
+          type: number
+        avgAdoptionPct:
+          anyOf:
+            - type: number
+            - type: "null"
+        totalAlertesEmises:
+          type: integer
+          minimum: 0
+        totalAlertesTraitees:
+          type: integer
+          minimum: 0
+        records:
+          type: array
+          items:
+            type: object
+            properties:
+              id: *a2
+              organizationId: *a2
+              siteId:
+                type: string
+              month: *a1
+              coutBauEur:
+                type: number
+              cout100Eur:
+                type: number
+              coutReelEur:
+                type: number
+              gainNetEur:
+                type: number
+              serviceBauPct:
+                type: number
+              serviceReelPct:
+                type: number
+              captureRate:
+                type: number
+              bauMethodVersion:
+                type: string
+              attributionConfidence:
+                type: number
+              adoptionPct:
+                type: number
+              alertesEmises:
+                type: integer
+                minimum: 0
+              alertesTraitees:
+                type: integer
+                minimum: 0
+            additionalProperties: false
+            required:
+              - id
+              - organizationId
+              - siteId
+              - month
+              - coutBauEur
+              - cout100Eur
+              - coutReelEur
+              - gainNetEur
+              - alertesEmises
+              - alertesTraitees
+      additionalProperties: false
+      required:
+        - totalGainNetEur
+        - avgAdoptionPct
+        - totalAlertesEmises
+        - totalAlertesTraitees
+        - records
+    ProofPdfLink:
+      type: object
+      properties:
+        url:
+          type: string
+      additionalProperties: false
+      required:
+        - url
+    PublicHealthPayload:
+      type: object
+      properties:
+        status:
+          type: string
+          const: healthy
+        timestamp: *a4
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              status:
+                type: string
+                const: pass
+            additionalProperties: false
+            required:
+              - name
+              - status
+      additionalProperties: false
+      required:
+        - status
+        - timestamp
+        - checks
+    QueuedExportResult:
+      type: object
+      properties:
+        exportId:
+          type: string
+        status:
+          type: string
+      additionalProperties: false
+      required:
+        - exportId
+        - status
+    ResolvedDecisionConfigView:
+      type: object
+      properties:
+        organizationId: *a2
+        siteId:
+          anyOf:
+            - type: string
+            - type: "null"
+        versionId: *a2
+        effectiveAt: *a4
+        resolvedAt: *a4
+        payload:
+          type: object
+          properties:
+            horizons:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  label:
+                    type: string
+                  days:
+                    type: integer
+                    minimum: 1
+                  rank:
+                    type: integer
+                    minimum: 0
+                  active:
+                    type: boolean
+                  isDefault:
+                    type: boolean
+                additionalProperties: false
+                required:
+                  - id
+                  - label
+                  - days
+                  - rank
+                  - active
+                  - isDefault
+            optionCatalog:
+              type: array
+              items:
+                type: object
+                properties:
+                  optionType:
+                    type: string
+                    enum:
+                      - hs
+                      - interim
+                      - realloc_intra
+                      - realloc_inter
+                      - service_adjust
+                      - outsource
+                  enabled:
+                    type: boolean
+                  label:
+                    type: string
+                  maxCoveredHours:
+                    type: number
+                additionalProperties: false
+                required:
+                  - optionType
+                  - enabled
+            policiesByHorizon:
+              type: array
+              items:
+                type: object
+                properties:
+                  horizonId:
+                    type: string
+                  weights:
+                    type: object
+                    properties:
+                      cost:
+                        type: number
+                      service:
+                        type: number
+                      risk:
+                        type: number
+                      feasibility:
+                        type: number
+                    additionalProperties: false
+                    required:
+                      - cost
+                      - service
+                      - risk
+                      - feasibility
+                  constraints:
+                    type: object
+                    properties:
+                      minServicePct:
+                        type: number
+                      maxRiskScore:
+                        type: number
+                      minFeasibilityScore:
+                        type: number
+                      requirePolicyCompliance:
+                        type: boolean
+                    additionalProperties: false
+                  tieBreakers:
+                    type: array
+                    items:
+                      type: string
+                additionalProperties: false
+                required:
+                  - horizonId
+                  - weights
+          additionalProperties: false
+          required:
+            - horizons
+            - optionCatalog
+            - policiesByHorizon
+        nextVersion:
+          anyOf:
+            - type: object
+              properties:
+                id: *a2
+                effectiveAt: *a4
+              additionalProperties: false
+              required:
+                - id
+                - effectiveAt
+            - type: "null"
+        selectedHorizon:
+          anyOf:
+            - type: object
+              properties:
+                id:
+                  type: string
+                label:
+                  type: string
+                days:
+                  type: integer
+                  minimum: 1
+                rank:
+                  type: integer
+                  minimum: 0
+                active:
+                  type: boolean
+                isDefault:
+                  type: boolean
+              additionalProperties: false
+              required:
+                - id
+                - label
+                - days
+                - rank
+                - active
+                - isDefault
+            - type: "null"
+      additionalProperties: false
+      required:
+        - organizationId
+        - versionId
+        - effectiveAt
+        - resolvedAt
+        - payload
+        - nextVersion
+    SiteSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      additionalProperties: false
+      required:
+        - id
+        - name
+    SupportThreadMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+      additionalProperties: false
+      required:
+        - id
+        - content
+    SupportThreadView:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        messages:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              content:
+                type: string
+            additionalProperties: false
+            required:
+              - id
+              - content
+      additionalProperties: false
+      required:
+        - id
+        - status
+        - messages
+    UserUxPreferences:
+      type: object
+      properties:
+        userId: *a2
+        language:
+          type: string
+          enum:
+            - fr
+            - en
+        density: &a7
+          type: string
+          enum:
+            - comfortable
+            - compact
+        defaultLanding:
+          type: string
+        dismissedCoachmarks:
+          type: array
+          items:
+            type: string
+        nav:
+          type: object
+          properties:
+            sidebarCollapsed:
+              type: boolean
+            sidebarWidth:
+              type: number
+            starredItems:
+              type: array
+              items:
+                type: string
+            recentItems:
+              type: array
+              items:
+                type: string
+          additionalProperties: false
+        tables:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              density: *a7
+              pageSize:
+                type: integer
+                minimum: 1
+              columns:
+                type: array
+                items:
+                  type: string
+              sort:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  direction:
+                    type: string
+                    enum:
+                      - asc
+                      - desc
+                additionalProperties: false
+            additionalProperties: false
+        savedViews:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              resource:
+                type: string
+              scope:
+                type: string
+                enum:
+                  - personal
+                  - team
+              filters:
+                type: object
+                additionalProperties: {}
+              sort:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  direction:
+                    type: string
+                    enum:
+                      - asc
+                      - desc
+                additionalProperties: false
+              columns:
+                type: array
+                items:
+                  type: string
+              groupBy:
+                type: array
+                items:
+                  type: string
+              isDefault:
+                type: boolean
+              updatedAt: *a4
+            additionalProperties: false
+            required:
+              - id
+              - name
+              - resource
+              - scope
+        theme:
+          type: object
+          properties:
+            mode:
+              type: string
+              enum:
+                - light
+                - dark
+                - system
+          additionalProperties: false
+      additionalProperties: false
+      required:
+        - language
+        - density
+        - defaultLanding
+        - dismissedCoachmarks
+    ContactRequestSubmission:
+      type: object
+      properties:
+        locale:
+          type: string
+          enum:
+            - fr
+            - en
+        requestType:
+          type: string
+          enum:
+            - founding_pilot
+            - product_demo
+            - partnership
+            - press_other
+        companyName:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        subject:
+          type: string
+        message:
+          type: string
+        consent:
+          type: boolean
+          const: true
+        website:
+          type: string
+      additionalProperties: false
+      required:
+        - companyName
+        - email
+        - message
+        - consent
+    ScenarioGenerationRequest:
+      type: object
+      properties:
+        notes:
+          type: string
+      additionalProperties: false
+    RequestForecastRequest:
+      type: object
+      properties:
+        horizonDays:
+          type: integer
+          minimum: 1
+        granularity:
+          type: string
+        modelType:
+          type: string
+        departmentId:
+          type: string
+        includeConfidenceIntervals:
+          type: boolean
+        includeRiskIndicators:
+          type: boolean
+      additionalProperties: false
+      required:
+        - horizonDays
+    WhatIfScenarioRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        absenceRateModifier:
+          type: number
+        typeModifiers:
+          type: object
+          additionalProperties:
+            type: number
+        additionalAbsences:
+          type: array
+          items:
+            type: object
+            properties:
+              employeeId:
+                type: string
+              startDate:
+                type: string
+                format: date
+              endDate:
+                type: string
+                format: date
+              type:
+                type: string
+            additionalProperties: false
+            required:
+              - employeeId
+              - startDate
+              - endDate
+              - type
+      additionalProperties: false
+      required:
+        - name
+    ReviewDecisionRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+            - approve
+            - reject
+            - defer
+        notes:
+          type: string
+        implementationDeadline:
+          type: string
+          format: date
+      additionalProperties: false
+      required:
+        - action
+    RecordDecisionOutcomeRequest:
+      type: object
+      properties:
+        effective:
+          type: boolean
+        actualCost:
+          type: number
+        actualImpact:
+          type: string
+        lessonsLearned:
+          type: string
+      additionalProperties: false
+      required:
+        - effective
+        - actualImpact
+    ValidateArbitrageRequest:
+      type: object
+      properties:
+        selectedOptionIndex:
+          type: integer
+          minimum: 0
+        notes:
+          type: string
+      additionalProperties: false
+      required:
+        - selectedOptionIndex
+    ExportRequest:
+      type: object
+      properties:
+        format:
+          type: string
+          enum:
+            - csv
+            - xlsx
+            - pdf
+            - json
+        dateRange:
+          type: object
+          properties:
+            startDate:
+              type: string
+              format: date
+            endDate:
+              type: string
+              format: date
+          additionalProperties: false
+        filters:
+          type: object
+          additionalProperties: true
+        columns:
+          type: array
+          items:
+            type: string
+        includeHeaders:
+          type: boolean
+      additionalProperties: false
+      required:
+        - format
+    OperationalDecisionCreateRequest:
+      type: object
+      properties:
+        alertId:
+          type: string
+        optionId:
+          type: string
+        notes:
+          type: string
+      additionalProperties: false
+    ProofPackGenerateRequest:
+      type: object
+      properties:
+        siteId:
+          type: string
+        month:
+          type: string
+          format: date
+      additionalProperties: false
+    UserUxPreferencesPatch:
+      type: object
+      properties:
+        language:
+          type: string
+          enum:
+            - fr
+            - en
+        density:
+          type: string
+          enum:
+            - comfortable
+            - compact
+        defaultLanding:
+          type: string
+        dismissedCoachmarks:
+          type: array
+          items:
+            type: string
+        nav:
+          type: object
+          properties:
+            sidebarCollapsed:
+              type: boolean
+            sidebarWidth:
+              type: number
+            starredItems:
+              type: array
+              items:
+                type: string
+            recentItems:
+              type: array
+              items:
+                type: string
+          additionalProperties: false
+        tables:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              density:
+                type: string
+                enum:
+                  - comfortable
+                  - compact
+              pageSize:
+                type: integer
+                minimum: 1
+              columns:
+                type: array
+                items:
+                  type: string
+              sort:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  direction:
+                    type: string
+                    enum:
+                      - asc
+                      - desc
+                additionalProperties: false
+            additionalProperties: false
+        savedViews:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              resource:
+                type: string
+              scope:
+                type: string
+                enum:
+                  - personal
+                  - team
+              filters:
+                type: object
+                additionalProperties: true
+              sort:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  direction:
+                    type: string
+                    enum:
+                      - asc
+                      - desc
+                additionalProperties: false
+              columns:
+                type: array
+                items:
+                  type: string
+              groupBy:
+                type: array
+                items:
+                  type: string
+              isDefault:
+                type: boolean
+              updatedAt:
+                type: string
+                format: date-time
+            additionalProperties: false
+            required:
+              - id
+              - name
+              - resource
+              - scope
+        theme:
+          type: object
+          properties:
+            mode:
+              type: string
+              enum:
+                - light
+                - dark
+                - system
+          additionalProperties: false
+      additionalProperties: false
+    ProductEventBatchRequest:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                enum:
+                  - decision_queue_opened
+                  - decision_option_selected
+                  - decision_validated
+                  - time_to_decision_ms
+                  - onboarding_step_completed
+              occurredAt:
+                type: string
+                format: date-time
+              context:
+                type: object
+                additionalProperties: true
+            additionalProperties: false
+            required:
+              - name
+      additionalProperties: false
+      required:
+        - events
+    ConversationCreateRequest:
+      type: object
+      properties:
+        subject:
+          type: string
+      additionalProperties: false
+      required:
+        - subject
+    MessageCreateRequest:
+      type: object
+      properties:
+        content:
+          type: string
+      additionalProperties: false
+      required:
+        - content

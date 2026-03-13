@@ -205,7 +205,9 @@ export default function PrevisionsPage() {
       </div>
 
       <div>
-        <h3 className="mb-3 text-sm font-medium text-ink-secondary">Scenarios</h3>
+        <h3 className="mb-3 text-sm font-medium text-ink-secondary">
+          Scenarios
+        </h3>
         {scenariosLoading ? (
           <SkeletonCard />
         ) : scenariosError ? (

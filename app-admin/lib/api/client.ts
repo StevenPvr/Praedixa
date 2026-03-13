@@ -9,9 +9,7 @@ const isProduction = process.env.NODE_ENV === "production";
 
 function isLoopbackHostname(hostname: string): boolean {
   return (
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname === "[::1]"
+    hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]"
   );
 }
 

@@ -75,11 +75,17 @@ export async function resolveRequestSession(
     let accessToken = accessTokenCookie ?? "";
     let refreshToken = refreshTokenCookie ?? null;
 
-    if (accessToken && !(await doesSessionMatchAccessToken(session, accessToken))) {
+    if (
+      accessToken &&
+      !(await doesSessionMatchAccessToken(session, accessToken))
+    ) {
       return { ok: false, clearCookies: true };
     }
 
-    if (refreshToken && !(await doesSessionMatchRefreshToken(session, refreshToken))) {
+    if (
+      refreshToken &&
+      !(await doesSessionMatchRefreshToken(session, refreshToken))
+    ) {
       return { ok: false, clearCookies: true };
     }
 
@@ -104,13 +110,22 @@ export async function resolveRequestSession(
         };
       }
 
-      if (!isAccessTokenCompatible(refreshed.access_token, { issuerUrl, clientId })) {
+      if (
+        !isAccessTokenCompatible(refreshed.access_token, {
+          issuerUrl,
+          clientId,
+        })
+      ) {
         return { ok: false, clearCookies: true };
       }
 
       const user = userFromAccessToken(refreshed.access_token, clientId);
       const exp = getTokenExp(refreshed.access_token);
-      if (!user || !exp || !canAccessAdminConsole(user.role, user.permissions)) {
+      if (
+        !user ||
+        !exp ||
+        !canAccessAdminConsole(user.role, user.permissions)
+      ) {
         return { ok: false, clearCookies: true };
       }
 
@@ -139,7 +154,10 @@ export async function resolveRequestSession(
       };
     }
 
-    if (!accessToken || !canAccessAdminConsole(session.role, session.permissions)) {
+    if (
+      !accessToken ||
+      !canAccessAdminConsole(session.role, session.permissions)
+    ) {
       return { ok: false, clearCookies: true };
     }
 

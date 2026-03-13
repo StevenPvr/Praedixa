@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
+source "$ROOT_DIR/scripts/lib/hmac.sh"
 
 MODE="manual"
 RUN_IF_MISSING="0"
@@ -65,8 +66,7 @@ if [[ ! -f "$REPORT_PATH" ]]; then
   exit 1
 fi
 
-if [[ ! -f "$KEY_PATH" ]]; then
-  echo "[gate-verify] Missing gate signing key: $KEY_PATH" >&2
+if ! require_existing_hmac_key_file "$KEY_PATH" "gate signing key"; then
   exit 1
 fi
 
@@ -150,8 +150,7 @@ UNSIGNED_TMP="$(mktemp)"
 trap 'rm -f "$UNSIGNED_TMP"' EXIT
 jq 'del(.signature)' "$REPORT_PATH" >"$UNSIGNED_TMP"
 
-KEY_CONTENT="$(cat "$KEY_PATH")"
-SIG_ACTUAL="$(openssl dgst -sha256 -hmac "$KEY_CONTENT" "$UNSIGNED_TMP" | awk '{print $2}')"
+SIG_ACTUAL="$(compute_hmac_sha256_json_file "$KEY_PATH" "$UNSIGNED_TMP")"
 if [[ "$SIG_ACTUAL" != "$SIG_EXPECTED" ]]; then
   echo "[gate-verify] Invalid signature" >&2
   exit 1

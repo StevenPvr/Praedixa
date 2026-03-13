@@ -17,7 +17,8 @@ export function ClientTabsNav({ basePath }: ClientTabsNavProps) {
   const visibleTabs = CLIENT_WORKSPACE_TABS.filter((tab) =>
     hasAnyPermission(currentUser?.permissions, tab.requiredPermissions),
   );
-  const tabs = visibleTabs.length > 0 ? visibleTabs : [CLIENT_WORKSPACE_TABS[0]];
+  const tabs =
+    visibleTabs.length > 0 ? visibleTabs : [CLIENT_WORKSPACE_TABS[0]];
 
   return (
     <nav
@@ -26,7 +27,8 @@ export function ClientTabsNav({ basePath }: ClientTabsNavProps) {
     >
       {tabs.map((tab) => {
         const fullHref = `${basePath}/${tab.href}`;
-        const isActive = pathname === fullHref || pathname.startsWith(`${fullHref}/`);
+        const isActive =
+          pathname === fullHref || pathname.startsWith(`${fullHref}/`);
 
         return (
           <Link

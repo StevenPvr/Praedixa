@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
+  hasRequiredAdminMfa,
   isAccessTokenCompatible,
   isTokenExpired,
   resolveAuthAppOrigin,
@@ -19,63 +20,100 @@ function makeToken(payload: Record<string, unknown>): string {
 }
 
 describe("admin OIDC role parsing", () => {
-  it("accepts super-admin alias from role claim", () => {
+  it("accepts canonical top-level claims and explicit permissions", () => {
     const token = makeToken({
       sub: "u-1",
       email: "admin@praedixa.com",
-      role: "super-admin",
+      role: "super_admin",
+      organization_id: "global-super-admin",
+      permissions: ["ADMIN:CONSOLE:ACCESS", "admin:console:access"],
     });
 
-    expect(userFromAccessToken(token, "admin-client")).toMatchObject({
+    expect(userFromAccessToken(token, "admin-client")).toEqual({
       id: "u-1",
       email: "admin@praedixa.com",
       role: "super_admin",
-      permissions: expect.arrayContaining(["admin:console:access"]),
+      permissions: ["admin:console:access"],
+      organizationId: "global-super-admin",
+      siteId: null,
     });
   });
 
-  it("accepts ROLE_SUPER_ADMIN in top-level roles claim", () => {
+  it("keeps permissions empty when the token omits them", () => {
     const token = makeToken({
       sub: "u-2",
-      email: "admin@praedixa.com",
-      roles: ["ROLE_SUPER_ADMIN"],
+      email: "viewer@praedixa.com",
+      role: "viewer",
+      organization_id: "org-1",
     });
 
     expect(userFromAccessToken(token, "admin-client")).toMatchObject({
       id: "u-2",
-      email: "admin@praedixa.com",
-      role: "super_admin",
-      permissions: expect.arrayContaining(["admin:console:access"]),
+      role: "viewer",
+      permissions: [],
     });
   });
 
-  it("accepts /super_admin role from groups claim", () => {
+  it("rejects non-canonical role aliases", () => {
     const token = makeToken({
       sub: "u-3",
       email: "admin@praedixa.com",
-      groups: ["/super_admin", "/ops"],
+      role: "super-admin",
+      permissions: ["admin:console:access"],
     });
 
-    expect(userFromAccessToken(token, "admin-client")).toMatchObject({
-      id: "u-3",
-      email: "admin@praedixa.com",
-      role: "super_admin",
-      permissions: expect.arrayContaining(["admin:console:access"]),
-    });
+    expect(userFromAccessToken(token, "admin-client")).toBeNull();
   });
 
-  it("falls back to profile permissions when explicit permissions are absent", () => {
+  it("rejects role derivation through roles, groups, realm_access, and resource_access", () => {
     const token = makeToken({
       sub: "u-4",
+      email: "admin@praedixa.com",
+      roles: ["ROLE_SUPER_ADMIN"],
+      groups: ["/super_admin"],
+      realm_access: {
+        roles: ["super_admin"],
+      },
+      resource_access: {
+        "admin-client": {
+          roles: ["super_admin"],
+        },
+      },
+      permissions: ["admin:console:access"],
+    });
+
+    expect(userFromAccessToken(token, "admin-client")).toBeNull();
+  });
+
+  it("rejects app_metadata and preferred_username fallbacks", () => {
+    const token = makeToken({
+      sub: "u-5",
+      preferred_username: "admin@praedixa.com",
+      app_metadata: {
+        role: "super_admin",
+        organization_id: "org-1",
+        site_id: "site-1",
+        permissions: ["admin:console:access"],
+      },
+    });
+
+    expect(userFromAccessToken(token, "admin-client")).toBeNull();
+  });
+
+  it("does not derive permissions from profiles when explicit permissions are absent", () => {
+    const token = makeToken({
+      sub: "u-6",
       email: "compliance@praedixa.com",
       role: "viewer",
+      organization_id: "org-1",
       profile: "admin_compliance",
+      profiles: ["admin_ops"],
     });
 
     expect(userFromAccessToken(token, "admin-client")).toMatchObject({
-      id: "u-4",
+      id: "u-6",
       role: "viewer",
-      permissions: expect.arrayContaining(["admin:audit:read"]),
+      permissions: [],
     });
   });
 
@@ -85,7 +123,7 @@ describe("admin OIDC role parsing", () => {
 
   it("rejects tokens from a different issuer", () => {
     const token = makeToken({
-      sub: "u-5",
+      sub: "u-7",
       email: "admin@praedixa.com",
       iss: "https://evil.example/realms/praedixa",
       azp: "admin-client",
@@ -102,7 +140,7 @@ describe("admin OIDC role parsing", () => {
 
   it("rejects tokens that are not bound to the admin client", () => {
     const token = makeToken({
-      sub: "u-6",
+      sub: "u-8",
       email: "admin@praedixa.com",
       iss: "https://auth.praedixa.com/realms/praedixa",
       azp: "other-client",
@@ -119,13 +157,13 @@ describe("admin OIDC role parsing", () => {
 
   it("accepts tokens bound through resource_access when azp is absent", () => {
     const token = makeToken({
-      sub: "u-7",
+      sub: "u-9",
       email: "admin@praedixa.com",
       iss: "https://auth.praedixa.com/realms/praedixa",
       exp: Math.floor(Date.now() / 1000) + 600,
       resource_access: {
         "admin-client": {
-          roles: ["admin"],
+          roles: ["viewer"],
         },
       },
     });
@@ -136,6 +174,45 @@ describe("admin OIDC role parsing", () => {
         clientId: "admin-client",
       }),
     ).toBe(true);
+  });
+
+  it("requires explicit MFA evidence in production when AUTH_ADMIN_REQUIRED_AMR is configured", () => {
+    process.env.NODE_ENV = "production";
+    process.env.AUTH_ADMIN_REQUIRED_AMR = "otp,webauthn";
+
+    const token = makeToken({
+      sub: "u-10",
+      email: "admin@praedixa.com",
+      amr: ["pwd", "otp"],
+    });
+
+    expect(hasRequiredAdminMfa(token)).toBe(true);
+  });
+
+  it("rejects admin tokens without the configured MFA evidence", () => {
+    process.env.NODE_ENV = "production";
+    process.env.AUTH_ADMIN_REQUIRED_AMR = "otp";
+
+    const token = makeToken({
+      sub: "u-11",
+      email: "admin@praedixa.com",
+      amr: ["pwd"],
+    });
+
+    expect(hasRequiredAdminMfa(token)).toBe(false);
+  });
+
+  it("throws in production when AUTH_ADMIN_REQUIRED_AMR is not configured", () => {
+    process.env.NODE_ENV = "production";
+    delete process.env.AUTH_ADMIN_REQUIRED_AMR;
+
+    const token = makeToken({
+      sub: "u-12",
+      email: "admin@praedixa.com",
+      amr: ["otp"],
+    });
+
+    expect(() => hasRequiredAdminMfa(token)).toThrow(/AUTH_ADMIN_REQUIRED_AMR/);
   });
 });
 

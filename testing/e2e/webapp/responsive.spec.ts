@@ -49,7 +49,9 @@ test.describe("Responsive behavior", () => {
     }
   });
 
-  test("dashboard content remains readable at mobile width", async ({ page }) => {
+  test("dashboard content remains readable at mobile width", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/dashboard");
 
@@ -57,7 +59,9 @@ test.describe("Responsive behavior", () => {
       page.getByRole("heading", { name: "Priorites du jour" }),
     ).toBeVisible();
     await expect(page.getByText("Alertes ouvertes").first()).toBeVisible();
-    await expect(page.getByText("Alertes prioritaires")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Alertes prioritaires" }),
+    ).toBeVisible();
 
     const mainBox = await page.locator("main").boundingBox();
     expect(mainBox).not.toBeNull();

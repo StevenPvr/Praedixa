@@ -11,12 +11,12 @@ Integrer Blue Yonder pour synchroniser planification supply chain, execution tra
 
 ## 2. Donnees cibles et mapping canonique
 
-| Domaine | Objets Blue Yonder | Champs minimum | Frequence | Canonical |
-| --- | --- | --- | --- | --- |
-| TMS | loads / shipments | load id, route, status, eta | 15-30 min | `shipment` |
-| WMS | tasks / waves | task id, area, start/end, completion | 15-30 min | `warehouse_task` |
-| Inventaire | stock snapshots | item, location, qty, timestamp | 60 min | `inventory_snapshot` |
-| Ressources | labor assignments | employee/task assignment, shift | 30 min | `shift_plan`, `timesheet` |
+| Domaine    | Objets Blue Yonder | Champs minimum                       | Frequence | Canonical                 |
+| ---------- | ------------------ | ------------------------------------ | --------- | ------------------------- |
+| TMS        | loads / shipments  | load id, route, status, eta          | 15-30 min | `shipment`                |
+| WMS        | tasks / waves      | task id, area, start/end, completion | 15-30 min | `warehouse_task`          |
+| Inventaire | stock snapshots    | item, location, qty, timestamp       | 60 min    | `inventory_snapshot`      |
+| Ressources | labor assignments  | employee/task assignment, shift      | 30 min    | `shift_plan`, `timesheet` |
 
 ## 3. Specification d'integration
 

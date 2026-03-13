@@ -7,11 +7,17 @@ Ce dossier regroupe les tests associés au dossier parent `app-admin/app/(admin)
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `page.test.tsx`
 - `uncovered-pages.test.tsx`
+
+## Convention de mock
+
+- `uncovered-pages.test.tsx` doit representer un profil admin large et coherent avec le smoke du back-office; quand une nouvelle section admin repose sur une permission read standard, ajouter cette permission au mock de base au lieu de laisser la suite render des etats `forbidden` trompeurs.
 
 ## Intégration
 

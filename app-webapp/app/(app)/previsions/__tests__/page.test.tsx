@@ -58,8 +58,22 @@ const sampleDecisionConfig = {
   selectedHorizon: { id: "j7", label: "J+7", days: 7 },
   payload: {
     horizons: [
-      { id: "j3", label: "J+3", days: 3, rank: 1, active: true, isDefault: false },
-      { id: "j7", label: "J+7", days: 7, rank: 2, active: true, isDefault: true },
+      {
+        id: "j3",
+        label: "J+3",
+        days: 3,
+        rank: 1,
+        active: true,
+        isDefault: false,
+      },
+      {
+        id: "j7",
+        label: "J+7",
+        days: 7,
+        rank: 2,
+        active: true,
+        isDefault: true,
+      },
     ],
     optionCatalog: [],
     policiesByHorizon: [],
@@ -127,7 +141,9 @@ describe("PrevisionsPage", () => {
     expect(screen.getByText("Alertes ouvertes")).toBeInTheDocument();
     expect(screen.getByText("Alertes critiques")).toBeInTheDocument();
 
-    const actionsLink = screen.getByRole("link", { name: "Aller dans Actions" });
+    const actionsLink = screen.getByRole("link", {
+      name: "Aller dans Actions",
+    });
     expect(actionsLink).toHaveAttribute("href", "/actions");
   });
 
@@ -144,7 +160,9 @@ describe("PrevisionsPage", () => {
     setupMocks({ dailyData: [] });
     render(<PrevisionsPage />);
 
-    expect(screen.getByText("Aucune prevision disponible.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Aucune prevision disponible."),
+    ).toBeInTheDocument();
   });
 
   it("shows empty alerts state", () => {
@@ -185,7 +203,9 @@ describe("PrevisionsPage", () => {
     expect(latestCall?.[1]).toBe(null);
     expect(mockUseDecisionConfig).toHaveBeenCalledWith(null);
     expect(mockUseApiGet).toHaveBeenCalledWith(
-      expect.stringContaining("/api/v1/live/coverage-alerts?status=open&page_size=200"),
+      expect.stringContaining(
+        "/api/v1/live/coverage-alerts?status=open&page_size=200",
+      ),
     );
   });
 });

@@ -107,7 +107,10 @@ interface AdminAuditMetadata {
   ipAddress: string | null;
   userAgent: string | null;
   metadata: Record<string, unknown>;
+  severity?: "INFO" | "WARN" | "ERROR";
 }
+
+type PrivilegedAttemptOutcome = "success" | "rejected" | "failed";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -130,10 +133,7 @@ const PLAN_PRICING: Record<BillingPlan, number | null> = {
   professional: null,
   enterprise: null,
 };
-const PLAN_LIMITS: Record<
-  BillingPlan,
-  { forecastsPerMonth: number | null }
-> = {
+const PLAN_LIMITS: Record<BillingPlan, { forecastsPerMonth: number | null }> = {
   free: { forecastsPerMonth: 5 },
   starter: { forecastsPerMonth: 50 },
   professional: { forecastsPerMonth: 500 },
@@ -253,7 +253,9 @@ function ensureBillingPlan(plan: string): asserts plan is BillingPlan {
 }
 
 function toIso(value: string | Date): string {
-  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+  return value instanceof Date
+    ? value.toISOString()
+    : new Date(value).toISOString();
 }
 
 function buildDefaultFullName(email: string): string {
@@ -300,7 +302,9 @@ function mapDashboardAlertRow(row: DbDashboardAlertRow): DashboardAlertRecord {
     ...(row.related_entity_type
       ? { relatedEntityType: row.related_entity_type }
       : {}),
-    ...(row.related_entity_id ? { relatedEntityId: row.related_entity_id } : {}),
+    ...(row.related_entity_id
+      ? { relatedEntityId: row.related_entity_id }
+      : {}),
     ...(row.action_url ? { actionUrl: row.action_url } : {}),
     ...(row.action_label ? { actionLabel: row.action_label } : {}),
     createdAt: toIso(row.created_at),
@@ -320,10 +324,16 @@ function mapCoverageAlertRow(row: DbCoverageAlertRow): CoverageAlertRecord {
     pRupture: Number.parseFloat(row.p_rupture),
     gapH: Number.parseFloat(row.gap_h),
     ...(row.prediction_interval_low != null
-      ? { predictionIntervalLow: Number.parseFloat(row.prediction_interval_low) }
+      ? {
+          predictionIntervalLow: Number.parseFloat(row.prediction_interval_low),
+        }
       : {}),
     ...(row.prediction_interval_high != null
-      ? { predictionIntervalHigh: Number.parseFloat(row.prediction_interval_high) }
+      ? {
+          predictionIntervalHigh: Number.parseFloat(
+            row.prediction_interval_high,
+          ),
+        }
       : {}),
     ...(row.model_version ? { modelVersion: row.model_version } : {}),
     ...(row.calibration_bucket
@@ -335,7 +345,9 @@ function mapCoverageAlertRow(row: DbCoverageAlertRow): CoverageAlertRecord {
     severity: row.severity,
     status: row.status,
     driversJson: Array.isArray(row.drivers_json) ? row.drivers_json : [],
-    ...(row.acknowledged_at ? { acknowledgedAt: toIso(row.acknowledged_at) } : {}),
+    ...(row.acknowledged_at
+      ? { acknowledgedAt: toIso(row.acknowledged_at) }
+      : {}),
     ...(row.resolved_at ? { resolvedAt: toIso(row.resolved_at) } : {}),
     createdAt: toIso(row.created_at),
     updatedAt: toIso(row.updated_at),
@@ -344,7 +356,9 @@ function mapCoverageAlertRow(row: DbCoverageAlertRow): CoverageAlertRecord {
 
 function nextBillingDate(): string {
   const now = new Date();
-  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  const next = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
+  );
   return next.toISOString().slice(0, 10);
 }
 
@@ -352,7 +366,9 @@ export class AdminBackofficeService {
   private readonly pool: Pool | null;
 
   constructor(databaseUrl: string | null) {
-    this.pool = databaseUrl ? new Pool({ connectionString: databaseUrl }) : null;
+    this.pool = databaseUrl
+      ? new Pool({ connectionString: databaseUrl })
+      : null;
   }
 
   hasDatabase(): boolean {
@@ -364,7 +380,7 @@ export class AdminBackofficeService {
       throw new AdminBackofficeError(
         "DATABASE_URL is required for persistent admin backoffice operations",
         503,
-        "SERVICE_UNAVAILABLE",
+        "PERSISTENCE_UNAVAILABLE",
       );
     }
     return this.pool;
@@ -420,7 +436,7 @@ export class AdminBackofficeService {
         $8,
         $9,
         $10::jsonb,
-        'INFO'
+        $11
       )
       `,
       [
@@ -434,11 +450,77 @@ export class AdminBackofficeService {
         input.userAgent,
         input.requestId,
         JSON.stringify(input.metadata),
+        input.severity ?? "INFO",
       ],
     );
   }
 
-  async listOrganizationUsers(organizationId: string): Promise<AdminUserRecord[]> {
+  async recordPrivilegedUserAttempt(input: {
+    actorUserId: string;
+    targetOrgId: string;
+    requestId: string;
+    clientIp: string | null;
+    userAgent: string | null;
+    permissionUsed: string;
+    routeTemplate: string;
+    operation: "invite_user" | "change_role";
+    outcome: PrivilegedAttemptOutcome;
+    resourceId?: string | null;
+    metadata: Record<string, unknown>;
+  }): Promise<void> {
+    const client = await this.getPool().connect();
+    try {
+      await this.writeAudit(client, {
+        action: input.operation,
+        actorUserId: input.actorUserId,
+        targetOrgId: input.targetOrgId,
+        resourceType: "user",
+        resourceId: input.resourceId ?? null,
+        requestId: input.requestId,
+        ipAddress: input.clientIp,
+        userAgent: input.userAgent,
+        severity:
+          input.outcome === "failed"
+            ? "ERROR"
+            : input.outcome === "rejected"
+              ? "WARN"
+              : "INFO",
+        metadata: {
+          ...input.metadata,
+          permissionUsed: input.permissionUsed,
+          routeTemplate: input.routeTemplate,
+          operation: input.operation,
+          outcome: input.outcome,
+        },
+      });
+    } finally {
+      client.release();
+    }
+  }
+
+  private async safeRecordPrivilegedUserAttempt(input: {
+    actorUserId: string;
+    targetOrgId: string;
+    requestId: string;
+    clientIp: string | null;
+    userAgent: string | null;
+    permissionUsed: string;
+    routeTemplate: string;
+    operation: "invite_user" | "change_role";
+    outcome: PrivilegedAttemptOutcome;
+    resourceId?: string | null;
+    metadata: Record<string, unknown>;
+  }): Promise<void> {
+    try {
+      await this.recordPrivilegedUserAttempt(input);
+    } catch {
+      // Preserve the original admin operation error when audit persistence fails.
+    }
+  }
+
+  async listOrganizationUsers(
+    organizationId: string,
+  ): Promise<AdminUserRecord[]> {
     ensureUuid(organizationId, "organizationId");
     const rows = await this.getPool().query<DbUserRow>(
       `
@@ -500,6 +582,8 @@ export class AdminBackofficeService {
     requestId: string;
     clientIp: string | null;
     userAgent: string | null;
+    permissionUsed?: string;
+    routeTemplate?: string;
   }): Promise<AdminUserRecord> {
     ensureUuid(input.organizationId, "organizationId");
     ensureUuid(input.actorUserId, "actorUserId");
@@ -515,90 +599,128 @@ export class AdminBackofficeService {
       );
     }
 
-    return await this.withTransaction(async (client) => {
-      const existing = await client.query<{ id: string }>(
-        "SELECT id::text FROM users WHERE email = $1 LIMIT 1",
-        [email],
-      );
-      if (existing.rows[0]) {
-        throw new AdminBackofficeError(
-          "A user with this email already exists in this organization",
-          409,
-          "CONFLICT",
-          { organizationId: input.organizationId, email },
+    try {
+      return await this.withTransaction(async (client) => {
+        const existing = await client.query<{ id: string }>(
+          "SELECT id::text FROM users WHERE email = $1 LIMIT 1",
+          [email],
         );
-      }
+        if (existing.rows[0]) {
+          throw new AdminBackofficeError(
+            "A user with this email already exists in this organization",
+            409,
+            "CONFLICT",
+            { organizationId: input.organizationId, email },
+          );
+        }
 
-      const inserted = await client.query<DbUserRow>(
-        `
-        INSERT INTO users (
-          id,
-          organization_id,
-          auth_user_id,
-          email,
-          email_verified,
-          role,
-          status,
-          created_at,
-          updated_at
-        )
-        VALUES (
-          $1::uuid,
-          $2::uuid,
-          $3,
-          $4,
-          false,
-          $5,
-          'pending',
-          NOW(),
-          NOW()
-        )
-        RETURNING
-          id::text,
-          organization_id::text,
-          email,
-          role::text,
-          status::text,
-          (SELECT name FROM sites WHERE id = users.site_id) AS site_name,
-          last_login_at,
-          created_at,
-          updated_at
-        `,
-        [
-          randomUUID(),
-          input.organizationId,
-          `pending-${randomUUID()}`,
-          email,
-          input.role,
-        ],
-      );
+        const inserted = await client.query<DbUserRow>(
+          `
+          INSERT INTO users (
+            id,
+            organization_id,
+            auth_user_id,
+            email,
+            email_verified,
+            role,
+            status,
+            created_at,
+            updated_at
+          )
+          VALUES (
+            $1::uuid,
+            $2::uuid,
+            $3,
+            $4,
+            false,
+            $5,
+            'pending',
+            NOW(),
+            NOW()
+          )
+          RETURNING
+            id::text,
+            organization_id::text,
+            email,
+            role::text,
+            status::text,
+            (SELECT name FROM sites WHERE id = users.site_id) AS site_name,
+            last_login_at,
+            created_at,
+            updated_at
+          `,
+          [
+            randomUUID(),
+            input.organizationId,
+            `pending-${randomUUID()}`,
+            email,
+            input.role,
+          ],
+        );
 
-      const row = inserted.rows[0];
-      await this.writeAudit(client, {
-        action: "invite_user",
+        const row = inserted.rows[0];
+        await this.writeAudit(client, {
+          action: "invite_user",
+          actorUserId: input.actorUserId,
+          targetOrgId: input.organizationId,
+          resourceType: "user",
+          resourceId: row?.id ?? null,
+          requestId: input.requestId,
+          ipAddress: input.clientIp,
+          userAgent: input.userAgent,
+          metadata: {
+            email,
+            role: input.role,
+            invitedByEmail: input.actorEmail,
+            targetStatus: row?.status ?? null,
+            targetUserId: row?.id ?? null,
+            permissionUsed: input.permissionUsed ?? null,
+            routeTemplate: input.routeTemplate ?? null,
+            operation: "invite_user",
+            outcome: "success",
+          },
+        });
+
+        if (!row) {
+          throw new AdminBackofficeError(
+            "Unable to create user invite",
+            500,
+            "INTERNAL_ERROR",
+          );
+        }
+        return mapUserRow(row);
+      });
+    } catch (error) {
+      const normalized =
+        error instanceof AdminBackofficeError
+          ? error
+          : new AdminBackofficeError(
+              "Unable to create user invite",
+              500,
+              "INTERNAL_ERROR",
+            );
+      await this.safeRecordPrivilegedUserAttempt({
         actorUserId: input.actorUserId,
         targetOrgId: input.organizationId,
-        resourceType: "user",
-        resourceId: row?.id ?? null,
         requestId: input.requestId,
-        ipAddress: input.clientIp,
+        clientIp: input.clientIp,
         userAgent: input.userAgent,
+        permissionUsed: input.permissionUsed ?? "admin:users:write",
+        routeTemplate:
+          input.routeTemplate ??
+          "/api/v1/admin/organizations/:orgId/users/invite",
+        operation: "invite_user",
+        outcome: normalized.statusCode >= 500 ? "failed" : "rejected",
         metadata: {
           email,
           role: input.role,
           invitedByEmail: input.actorEmail,
+          errorCode: normalized.code,
+          failureStatusCode: normalized.statusCode,
         },
       });
-
-      if (!row) {
-        throw new AdminBackofficeError(
-          "Unable to create user invite",
-          500,
-          "INTERNAL_ERROR",
-        );
-      }
-      return mapUserRow(row);
-    });
+      throw error;
+    }
   }
 
   async changeOrganizationUserRole(input: {
@@ -609,89 +731,130 @@ export class AdminBackofficeService {
     requestId: string;
     clientIp: string | null;
     userAgent: string | null;
+    permissionUsed?: string;
+    routeTemplate?: string;
   }): Promise<AdminUserRecord> {
     ensureUuid(input.organizationId, "organizationId");
     ensureUuid(input.userId, "userId");
     ensureUuid(input.actorUserId, "actorUserId");
     ensureAssignableRole(input.role);
 
-    return await this.withTransaction(async (client) => {
-      const current = await client.query<DbUserRow>(
-        `
-        SELECT
-          u.id::text,
-          u.organization_id::text,
-          u.email,
-          u.role::text,
-          u.status::text,
-          s.name AS site_name,
-          u.last_login_at,
-          u.created_at,
-          u.updated_at
-        FROM users u
-        LEFT JOIN sites s ON s.id = u.site_id
-        WHERE u.organization_id = $1::uuid
-          AND u.id = $2::uuid
-        LIMIT 1
-        `,
-        [input.organizationId, input.userId],
-      );
-      const row = current.rows[0];
-      if (!row) {
-        throw new AdminBackofficeError(
-          "User not found for this organization",
-          404,
-          "NOT_FOUND",
-          { organizationId: input.organizationId, userId: input.userId },
+    try {
+      return await this.withTransaction(async (client) => {
+        const current = await client.query<DbUserRow>(
+          `
+          SELECT
+            u.id::text,
+            u.organization_id::text,
+            u.email,
+            u.role::text,
+            u.status::text,
+            s.name AS site_name,
+            u.last_login_at,
+            u.created_at,
+            u.updated_at
+          FROM users u
+          LEFT JOIN sites s ON s.id = u.site_id
+          WHERE u.organization_id = $1::uuid
+            AND u.id = $2::uuid
+          LIMIT 1
+          `,
+          [input.organizationId, input.userId],
         );
-      }
+        const row = current.rows[0];
+        if (!row) {
+          throw new AdminBackofficeError(
+            "User not found for this organization",
+            404,
+            "NOT_FOUND",
+            { organizationId: input.organizationId, userId: input.userId },
+          );
+        }
 
-      const updated = await client.query<DbUserRow>(
-        `
-        UPDATE users
-        SET role = $3, updated_at = NOW()
-        WHERE organization_id = $1::uuid
-          AND id = $2::uuid
-        RETURNING
-          id::text,
-          organization_id::text,
-          email,
-          role::text,
-          status::text,
-          (SELECT name FROM sites WHERE id = users.site_id) AS site_name,
-          last_login_at,
-          created_at,
-          updated_at
-        `,
-        [input.organizationId, input.userId, input.role],
-      );
-      const next = updated.rows[0];
-      if (!next) {
-        throw new AdminBackofficeError(
-          "Unable to update user role",
-          500,
-          "INTERNAL_ERROR",
+        const updated = await client.query<DbUserRow>(
+          `
+          UPDATE users
+          SET role = $3, updated_at = NOW()
+          WHERE organization_id = $1::uuid
+            AND id = $2::uuid
+          RETURNING
+            id::text,
+            organization_id::text,
+            email,
+            role::text,
+            status::text,
+            (SELECT name FROM sites WHERE id = users.site_id) AS site_name,
+            last_login_at,
+            created_at,
+            updated_at
+          `,
+          [input.organizationId, input.userId, input.role],
         );
-      }
+        const next = updated.rows[0];
+        if (!next) {
+          throw new AdminBackofficeError(
+            "Unable to update user role",
+            500,
+            "INTERNAL_ERROR",
+          );
+        }
 
-      await this.writeAudit(client, {
-        action: "change_role",
+        await this.writeAudit(client, {
+          action: "change_role",
+          actorUserId: input.actorUserId,
+          targetOrgId: input.organizationId,
+          resourceType: "user",
+          resourceId: input.userId,
+          requestId: input.requestId,
+          ipAddress: input.clientIp,
+          userAgent: input.userAgent,
+          metadata: {
+            beforeRole: row.role,
+            afterRole: next.role,
+            beforeStatus: row.status,
+            afterStatus: next.status,
+            email: row.email,
+            targetUserId: input.userId,
+            permissionUsed: input.permissionUsed ?? null,
+            routeTemplate: input.routeTemplate ?? null,
+            operation: "change_role",
+            outcome: "success",
+          },
+        });
+
+        return mapUserRow(next);
+      });
+    } catch (error) {
+      const normalized =
+        error instanceof AdminBackofficeError
+          ? error
+          : new AdminBackofficeError(
+              "Unable to update user role",
+              500,
+              "INTERNAL_ERROR",
+            );
+      await this.safeRecordPrivilegedUserAttempt({
         actorUserId: input.actorUserId,
         targetOrgId: input.organizationId,
-        resourceType: "user",
         resourceId: input.userId,
         requestId: input.requestId,
-        ipAddress: input.clientIp,
+        clientIp: input.clientIp,
         userAgent: input.userAgent,
+        permissionUsed: input.permissionUsed ?? "admin:users:write",
+        routeTemplate:
+          input.routeTemplate ??
+          "/api/v1/admin/organizations/:orgId/users/:userId/role",
+        operation: "change_role",
+        outcome: normalized.statusCode >= 500 ? "failed" : "rejected",
         metadata: {
-          beforeRole: row.role,
-          afterRole: next.role,
-          email: row.email,
+          targetUserId: input.userId,
+          targetRole: input.role,
+          errorCode: normalized.code,
+          failureStatusCode: normalized.statusCode,
         },
       });
-
-      return mapUserRow(next);
-    });
+      throw error;
+    }
   }
 
   async deactivateOrganizationUser(input: {
@@ -994,7 +1157,9 @@ export class AdminBackofficeService {
     }));
   }
 
-  async listDashboardAlerts(organizationId: string): Promise<DashboardAlertRecord[]> {
+  async listDashboardAlerts(
+    organizationId: string,
+  ): Promise<DashboardAlertRecord[]> {
     ensureUuid(organizationId, "organizationId");
     const rows = await this.getPool().query<DbDashboardAlertRow>(
       `

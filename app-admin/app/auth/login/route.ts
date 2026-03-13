@@ -12,9 +12,7 @@ import {
   sanitizeNextPath,
   secureCookie,
 } from "@/lib/auth/oidc";
-import {
-  consumeRateLimit,
-} from "@/lib/security/rate-limit";
+import { consumeRateLimit } from "@/lib/security/rate-limit";
 
 const LOGIN_RATE_LIMIT_MAX_ATTEMPTS = 8;
 const LOGIN_RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
@@ -25,6 +23,13 @@ function resolveFallbackOrigin(request: NextRequest): string {
   } catch {
     return request.nextUrl.origin;
   }
+}
+
+function createNoStoreRedirect(url: string | URL): NextResponse {
+  const response = NextResponse.redirect(url);
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Pragma", "no-cache");
+  return response;
 }
 
 export async function GET(request: NextRequest) {
@@ -42,7 +47,7 @@ export async function GET(request: NextRequest) {
     process.emitWarning(
       `admin auth login rate limited (${rateLimit.retryAfterSeconds}s)`,
     );
-    const response = NextResponse.redirect(fallbackUrl.toString());
+    const response = createNoStoreRedirect(fallbackUrl.toString());
     response.headers.set("Retry-After", String(rateLimit.retryAfterSeconds));
     return response;
   }
@@ -59,10 +64,7 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set("client_id", clientId);
     authUrl.searchParams.set("response_type", "code");
     authUrl.searchParams.set("scope", scope);
-    authUrl.searchParams.set(
-      "redirect_uri",
-      `${appOrigin}/auth/callback`,
-    );
+    authUrl.searchParams.set("redirect_uri", `${appOrigin}/auth/callback`);
     authUrl.searchParams.set("state", state);
     authUrl.searchParams.set("code_challenge", challenge);
     authUrl.searchParams.set("code_challenge_method", "S256");
@@ -71,7 +73,7 @@ export async function GET(request: NextRequest) {
       authUrl.searchParams.set("prompt", "login");
     }
 
-    const response = NextResponse.redirect(authUrl.toString());
+    const response = createNoStoreRedirect(authUrl.toString());
     const secure = secureCookie(request);
 
     response.cookies.set(LOGIN_STATE_COOKIE, state, {
@@ -105,6 +107,6 @@ export async function GET(request: NextRequest) {
         : "oidc_provider_untrusted",
     );
     fallbackUrl.searchParams.set("next", next);
-    return NextResponse.redirect(fallbackUrl.toString());
+    return createNoStoreRedirect(fallbackUrl.toString());
   }
 }

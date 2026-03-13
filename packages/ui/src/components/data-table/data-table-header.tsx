@@ -1,14 +1,14 @@
 import * as React from "react";
-import { cn } from "../../utils/cn";
+import { cn } from "../../utils/cn.js";
 import type {
   DataTableColumn,
   DataTableSort,
   DataTableSelection,
   SortDirection,
-} from "./data-table-types";
-import { alignClass } from "./data-table-utils";
-import { DataTableCheckbox } from "./data-table-checkbox";
-import { DataTableSortIcon } from "./data-table-sort-icon";
+} from "./data-table-types.js";
+import { alignClass } from "./data-table-utils.js";
+import { DataTableCheckbox } from "./data-table-checkbox.js";
+import { DataTableSortIcon } from "./data-table-sort-icon.js";
 
 interface DataTableHeaderProps<T> {
   columns: DataTableColumn<T>[];

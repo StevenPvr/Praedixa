@@ -47,7 +47,9 @@ test.describe("Login page", () => {
   test("shows generic login error for unknown code", async ({ page }) => {
     await page.goto("/login?error=auth_callback_failed");
 
-    await expect(page.getByText(/La connexion a echoue\. Veuillez reessayer\./i)).toBeVisible();
+    await expect(
+      page.getByText(/La connexion a echoue\. Veuillez reessayer\./i),
+    ).toBeVisible();
   });
 
   test("login CTA preserves safe next path", async ({ page }) => {

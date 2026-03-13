@@ -6,6 +6,7 @@ Ce dossier regroupe la documentation longue durée du monorepo.
 
 - architecture, base de données et stratégie de test ;
 - plans de travail ;
+- PRD, cadrage produit et checklists de fermeture ;
 - runbooks d'exploitation ;
 - documentation de sécurité et conformité ;
 - documentation SEO et contenu ;
@@ -13,12 +14,20 @@ Ce dossier regroupe la documentation longue durée du monorepo.
 
 ## Sous-dossiers
 
+- `architecture/` : ADRs, ownership et regles de placement des briques du socle.
 - `data-api/` : documentation produit et intégration de la plateforme data.
 - `deployment/` : guides d'installation et de déploiement.
+- `governance/` : regles de livraison, compatibilite et hygiene du socle.
+- `performance/` : budgets, enveloppes de charge et cadres cout/scalabilite.
+- `prd/` : PRD DecisionOps, conversion Markdown et checklist build-ready.
 - `plans/` : plans et documents de travail actifs.
 - `runbooks/` : procédures opératoires.
 - `security/` : audits, posture, invariants et conformité.
 - `seo/` : stratégie éditoriale et SEO/GEO.
+
+## Runbooks clés
+
+- `runbooks/remote-ci-governance.md` : matrice merge vs release, checks GitHub requis et périmètre de la CI distante.
 
 ## Lecture recommandée pour un nouveau
 

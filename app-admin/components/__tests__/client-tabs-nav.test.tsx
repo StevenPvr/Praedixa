@@ -49,6 +49,7 @@ describe("ClientTabsNav", () => {
     });
     render(<ClientTabsNav basePath="/clients/org-1" />);
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Vue client")).toBeInTheDocument();
     expect(screen.getByText("Donnees")).toBeInTheDocument();
     expect(screen.getByText("Previsions")).toBeInTheDocument();
     expect(screen.getByText("Actions")).toBeInTheDocument();
@@ -79,6 +80,7 @@ describe("ClientTabsNav", () => {
     const links = screen.getAllByRole("link");
     const hrefs = links.map((l) => l.getAttribute("href"));
     expect(hrefs).toContain("/clients/org-1/dashboard");
+    expect(hrefs).toContain("/clients/org-1/vue-client");
     expect(hrefs).toContain("/clients/org-1/actions");
     expect(hrefs).toContain("/clients/org-1/rapports");
     expect(hrefs).toContain("/clients/org-1/donnees");

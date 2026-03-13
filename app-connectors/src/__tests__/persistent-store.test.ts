@@ -37,7 +37,8 @@ describe("postgres-backed connector store", () => {
                     authorizationState: "authorized",
                     authMode: "oauth2",
                     config: {},
-                    secretRef: "memory://connectors/org-1/conn-1/oauth2_token/v1",
+                    secretRef:
+                      "memory://connectors/org-1/conn-1/oauth2_token/v1",
                     secretVersion: 1,
                     sourceObjects: ["Account"],
                     syncIntervalMinutes: 30,
@@ -54,7 +55,12 @@ describe("postgres-backed connector store", () => {
                   },
                 ],
                 ingestCredentials: [],
-                latestSecretRefs: [["conn-1", "memory://connectors/org-1/conn-1/oauth2_token/v1"]],
+                latestSecretRefs: [
+                  [
+                    "conn-1",
+                    "memory://connectors/org-1/conn-1/oauth2_token/v1",
+                  ],
+                ],
                 rawEventIndex: [],
                 rawEvents: [],
                 runs: [],
@@ -91,7 +97,9 @@ describe("postgres-backed connector store", () => {
       return { rows: [] };
     });
 
-    const store = new PostgresBackedConnectorStore("postgres://user:pass@localhost:5432/db");
+    const store = new PostgresBackedConnectorStore(
+      "postgres://user:pass@localhost:5432/db",
+    );
     await store.ready();
 
     expect(store.listConnections("org-1")).toHaveLength(1);
@@ -106,7 +114,9 @@ describe("postgres-backed connector store", () => {
   it("persists runtime snapshot and secrets to separate postgres writes", async () => {
     mockQuery.mockResolvedValue({ rows: [] });
 
-    const store = new PostgresBackedConnectorStore("postgres://user:pass@localhost:5432/db");
+    const store = new PostgresBackedConnectorStore(
+      "postgres://user:pass@localhost:5432/db",
+    );
     await store.ready();
 
     const connection = store.createConnection("org-9", {
@@ -143,10 +153,9 @@ describe("postgres-backed connector store", () => {
 
     expect(secretWrite).toBeDefined();
     expect(snapshotWrite).toBeDefined();
-    const snapshotPayload = JSON.parse(String(snapshotWrite?.[1]?.[1] ?? "{}")) as Record<
-      string,
-      unknown
-    >;
+    const snapshotPayload = JSON.parse(
+      String(snapshotWrite?.[1]?.[1] ?? "{}"),
+    ) as Record<string, unknown>;
     expect(snapshotPayload.secrets).toBeUndefined();
 
     await store.close();

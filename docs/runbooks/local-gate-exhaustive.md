@@ -46,6 +46,8 @@ Installation hooks:
   - `schema_version: "2"`
 - cle locale:
   - `.git/gate-signing.key`
+- provisionnement:
+  - la cle doit exister avant signature; `gate-report-sign.sh` et `verify-gate-report.sh` refusent desormais de creer une racine HMAC implicite
 - signature:
   - `HMAC-SHA256` sur le JSON non signe
 - garde-fou:
@@ -107,6 +109,7 @@ Securite/qualite/perf:
 Le `pre-push` profond execute aussi `./scripts/gate-quality-static.sh` avec lint ESLint sans warnings, puis la verification des invariants declares (`python3 scripts/check-security-invariants.py --mode full`) avant la verification du rapport signe.
 Le gate exhaustif lance CodeQL `security-extended` sur un snapshot source epure des artefacts generes (`.next`, `.open-next`, `coverage`, `playwright-report`) et des depots imbriques hors scope. Les controles de qualite restent portes par ESLint, TypeScript, Ruff, MyPy, Knip, dependency-cruiser, deptry et les builds/tests.
 Pour la dette Python historique, le gate exhaustif bloque toute nouvelle violation Xenon ou toute aggravation via `scripts/check-python-complexity-baseline.py`, avec baseline versionnee dans `scripts/python-complexity-baseline.json`.
+Pour la dette TypeScript/Next/Node historique, le gate exhaustif bloque aussi toute nouvelle derive de taille/focalisation via `scripts/check-ts-guardrail-baseline.mjs`, avec baseline versionnee dans `scripts/ts-guardrail-baseline.json`.
 
 Si un outil requis manque, le gate echoue par defaut.
 

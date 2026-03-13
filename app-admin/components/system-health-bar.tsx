@@ -6,7 +6,9 @@ export function SystemHealthBar({ kpis }: { kpis: PlatformKPIs }) {
   const ingestionSuccessRate = Number.isFinite(kpis.ingestionSuccessRate)
     ? kpis.ingestionSuccessRate
     : 0;
-  const apiErrorRate = Number.isFinite(kpis.apiErrorRate) ? kpis.apiErrorRate : 0;
+  const apiErrorRate = Number.isFinite(kpis.apiErrorRate)
+    ? kpis.apiErrorRate
+    : 0;
 
   const ingestionOk = ingestionSuccessRate >= 95;
   const apiOk = apiErrorRate <= 2;

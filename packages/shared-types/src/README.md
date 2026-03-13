@@ -5,10 +5,14 @@ Source de verite des types partages Praedixa.
 ## Structure
 
 - `api/` contient les shapes de requetes et reponses attendues cote front et BFF.
+- `api/public-contract.ts` reste le point d'entree du manifeste public partage; les sous-modules `api/public-contract/*` gardent ce contrat decoupe par responsabilite pour rester dans les guardrails du socle.
+- `api/requests.ts` porte les payloads write publics nommes, reutilises a la fois par la spec OpenAPI et par le registre type partage.
+- `api/approval-decision.ts` porte le contrat interne admin pour une decision d'approbation persistante (`granted` / `rejected`) et son retour de synchronisation runtime.
 - `domain/` contient les modeles metier reutilises dans plusieurs apps.
 - `utils/` contient les helpers de typage ou de manipulation de donnees partages.
 - `__tests__/` couvre les invariants de types, transformations et helpers exposes.
 - `index.ts` et les sous-exports organisent l'API publique du package.
+- Les points d'entree runtime (`index.ts`, `api-client.ts`, `api.ts`, `domain.ts`, `public-contract-node.ts`) doivent garder des imports/exports relatifs suffixes en `.js` pour que `dist/` reste executable dans un builder ESM propre.
 
 ## Quand ajouter un fichier ici
 
@@ -29,4 +33,7 @@ pnpm --filter @praedixa/shared-types build
 
 - Les apps frontend importent ces types directement.
 - `contracts/openapi/public.yaml` doit rester coherent avec les payloads exposes publiquement.
+- Le parseur structurel de la spec publique vit dans `api/public-contract/openapi-node.ts` et reste reserve aux checks Node; il ne doit pas fuiter dans les bundles browser.
 - `app-api-ts` et les tests dans `testing/` sont les premiers endroits a verifier apres un changement de contrat.
+- `OperationalDecisionCreateRequest` est le contrat canonique de soumission runtime (`alertId`, `optionId`, `notes?`) ; aucun front ne doit reconstruire un payload legacy derive du workspace.
+- `ApprovalDecisionRequest` et `ApprovalDecisionResponse` gardent la decision admin d'approbation et le retour runtime synchronises entre `app-admin` et `app-api-ts`.

@@ -34,10 +34,32 @@ describe("webapp OIDC helpers", () => {
     vi.unstubAllEnvs();
   });
 
-  it("prefers client-specific resource role over global super_admin realm role", () => {
+  it("accepts canonical top-level claims", () => {
     const token = makeToken({
       sub: "u-1",
       email: "client@praedixa.com",
+      role: "org_admin",
+      organization_id: "org-1",
+      site_id: "site-1",
+      aud: ["account", "praedixa-api"],
+    });
+
+    expect(userFromAccessToken(token, "web-client")).toEqual({
+      id: "u-1",
+      email: "client@praedixa.com",
+      role: "org_admin",
+      organizationId: "org-1",
+      siteId: "site-1",
+    });
+    expect(
+      getApiAccessTokenCompatibilityReason(token, "web-client"),
+    ).toBeNull();
+  });
+
+  it("rejects legacy role derivation through realm_access and resource_access", () => {
+    const token = makeToken({
+      sub: "u-2",
+      email: "admin@praedixa.com",
       realm_access: {
         roles: ["super_admin"],
       },
@@ -46,55 +68,58 @@ describe("webapp OIDC helpers", () => {
           roles: ["org_admin"],
         },
       },
+      aud: ["praedixa-api"],
     });
 
-    expect(userFromAccessToken(token, "web-client")).toMatchObject({
-      id: "u-1",
-      email: "client@praedixa.com",
-      role: "org_admin",
-    });
+    expect(userFromAccessToken(token, "web-client")).toBeNull();
+    expect(getApiAccessTokenCompatibilityReason(token, "web-client")).toBe(
+      "invalid_claims",
+    );
   });
 
-  it("falls back to realm role when no client-specific resource role exists", () => {
-    const token = makeToken({
-      sub: "u-2",
-      email: "admin@praedixa.com",
-      realm_access: {
-        roles: ["super_admin"],
-      },
-    });
-
-    expect(userFromAccessToken(token, "web-client")).toMatchObject({
-      id: "u-2",
-      email: "admin@praedixa.com",
-      role: "super_admin",
-    });
-  });
-
-  it("reads top-level org_id and siteId-compatible claims", () => {
+  it("rejects non-canonical role aliases", () => {
     const token = makeToken({
       sub: "u-3",
-      email: "ops@praedixa.com",
-      role: "manager",
-      org_id: "org-1",
-      siteId: "site-lyon",
-      aud: ["account", "praedixa-api"],
+      email: "admin@praedixa.com",
+      role: "super-admin",
+      organization_id: "org-1",
+      aud: ["praedixa-api"],
     });
 
-    expect(userFromAccessToken(token, "web-client")).toMatchObject({
-      id: "u-3",
+    expect(userFromAccessToken(token, "web-client")).toBeNull();
+    expect(getApiAccessTokenCompatibilityReason(token, "web-client")).toBe(
+      "invalid_claims",
+    );
+  });
+
+  it("rejects legacy organization, site, and email aliases", () => {
+    const token = makeToken({
+      sub: "u-4",
+      preferred_username: "ops@praedixa.com",
+      role: "manager",
+      org_id: "org-1",
       organizationId: "org-1",
       siteId: "site-lyon",
+      site_ids: ["site-lyon"],
+      app_metadata: {
+        organization_id: "org-1",
+        site_id: "site-lyon",
+      },
+      aud: ["praedixa-api"],
     });
-    expect(getApiAccessTokenCompatibilityReason(token, "web-client")).toBeNull();
+
+    expect(userFromAccessToken(token, "web-client")).toBeNull();
+    expect(getApiAccessTokenCompatibilityReason(token, "web-client")).toBe(
+      "invalid_claims",
+    );
   });
 
   it("flags tokens that are missing the API audience", () => {
     const token = makeToken({
-      sub: "u-4",
+      sub: "u-5",
       email: "ops@praedixa.com",
       role: "org_admin",
-      org_id: "org-1",
+      organization_id: "org-1",
       aud: ["account"],
     });
 
@@ -105,7 +130,7 @@ describe("webapp OIDC helpers", () => {
 
   it("flags tokens that are missing tenant claims", () => {
     const token = makeToken({
-      sub: "u-5",
+      sub: "u-6",
       email: "ops@praedixa.com",
       role: "org_admin",
       aud: ["praedixa-api"],
@@ -116,6 +141,23 @@ describe("webapp OIDC helpers", () => {
     });
     expect(getApiAccessTokenCompatibilityReason(token, "web-client")).toBe(
       "missing_organization_id",
+    );
+  });
+
+  it("flags manager tokens that are missing site_id", () => {
+    const token = makeToken({
+      sub: "u-7",
+      email: "manager@praedixa.com",
+      role: "manager",
+      organization_id: "org-1",
+      aud: ["praedixa-api"],
+    });
+
+    expect(userFromAccessToken(token, "web-client")).toMatchObject({
+      siteId: null,
+    });
+    expect(getApiAccessTokenCompatibilityReason(token, "web-client")).toBe(
+      "missing_site_id",
     );
   });
 
@@ -136,7 +178,10 @@ describe("webapp OIDC helpers", () => {
   });
 
   it("rejects weak or placeholder session secrets", () => {
-    vi.stubEnv("AUTH_OIDC_ISSUER_URL", "https://auth.praedixa.com/realms/praedixa");
+    vi.stubEnv(
+      "AUTH_OIDC_ISSUER_URL",
+      "https://auth.praedixa.com/realms/praedixa",
+    );
     vi.stubEnv("AUTH_OIDC_CLIENT_ID", "praedixa-webapp");
     vi.stubEnv("AUTH_SESSION_SECRET", "change-me-long-random-session-secret");
 

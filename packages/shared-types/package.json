@@ -16,14 +16,18 @@
       "types": "./dist/api.d.ts",
       "import": "./dist/api.js"
     },
+    "./public-contract-node": {
+      "types": "./dist/api/public-contract/openapi-node.d.ts",
+      "import": "./dist/api/public-contract/openapi-node.js"
+    },
     "./domain": {
       "types": "./dist/domain.d.ts",
       "import": "./dist/domain.js"
     }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsc --build --force",
+    "dev": "tsc --build --watch",
     "lint": "eslint --max-warnings=0 src/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -33,6 +37,7 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "yaml": "^2.8.1"
   }
 }

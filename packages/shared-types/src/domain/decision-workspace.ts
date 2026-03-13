@@ -4,10 +4,10 @@ import type {
   CoverageAlert,
   CoverageAlertSeverity,
   AlertHorizon,
-} from "./coverage-alert";
-import type { ScenarioOption } from "./scenario";
-import type { ShiftType } from "./canonical";
-import type { UUID } from "../utils/common";
+} from "./coverage-alert.js";
+import type { ScenarioOption } from "./scenario.js";
+import type { ShiftType } from "./canonical.js";
+import type { UUID } from "../utils/common.js";
 
 /**
  * Lightweight queue item optimized for fast decision triage.

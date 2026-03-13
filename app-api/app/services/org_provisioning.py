@@ -9,6 +9,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from app.core.exceptions import PraedixaError
+from app.services.organization_foundation import (
+    provision_organization_foundation,
+)
 
 if TYPE_CHECKING:
     import uuid
@@ -21,18 +24,15 @@ async def provision_new_organization(
     *,
     organization_id: uuid.UUID,
 ) -> None:
-    """Provision full client stack for a newly created organization.
+    """Provision the minimal persistent client foundation.
 
     Strict mode:
     - any provisioning error aborts organization creation transaction.
     """
     try:
-        from scripts.seed_full_demo import seed_all
-
-        await seed_all(
+        await provision_organization_foundation(
             session,
-            target_org_id=organization_id,
-            strict_step4=True,
+            organization_id=organization_id,
         )
     except Exception as exc:  # pragma: no cover - depends on DB privileges/runtime
         msg = (

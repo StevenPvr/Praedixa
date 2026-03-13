@@ -3,6 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KCADM_BIN="${KCADM_BIN:-$SCRIPT_DIR/kcadm}"
+source "$SCRIPT_DIR/lib/json-env.sh"
+source "$SCRIPT_DIR/lib/keycloak.sh"
 
 REGION="${REGION:-fr-par}"
 KEYCLOAK_SERVER_URL="${KEYCLOAK_SERVER_URL:-https://auth.praedixa.com}"
@@ -58,11 +60,11 @@ fetch_current_password_from_secret_manager() {
 }
 
 login_admin() {
-  "$KCADM_BIN" config credentials \
+  run_kcadm_with_password "$CURRENT_KEYCLOAK_ADMIN_PASSWORD" \
+    "$KCADM_BIN" config credentials \
     --server "$KEYCLOAK_SERVER_URL" \
     --realm "$KEYCLOAK_ADMIN_REALM" \
-    --user "$KEYCLOAK_ADMIN_USERNAME" \
-    --password "$CURRENT_KEYCLOAK_ADMIN_PASSWORD" >/dev/null
+    --user "$KEYCLOAK_ADMIN_USERNAME" >/dev/null
 }
 
 lookup_user_id() {
@@ -76,9 +78,8 @@ sync_secret_manager() {
   trap 'rm -rf "$tmp_dir"' EXIT
   secrets_file="$tmp_dir/secrets.json"
 
-  jq -n \
-    --arg keycloak_admin_password "$NEW_KEYCLOAK_ADMIN_PASSWORD" \
-    '{ KC_BOOTSTRAP_ADMIN_PASSWORD: $keycloak_admin_password }' >"$secrets_file"
+  export KC_BOOTSTRAP_ADMIN_PASSWORD="$NEW_KEYCLOAK_ADMIN_PASSWORD"
+  write_json_from_env "$secrets_file" KC_BOOTSTRAP_ADMIN_PASSWORD
 
   "$SCRIPT_DIR/scw-secret-sync.sh" \
     --region "$REGION" \
@@ -114,10 +115,10 @@ if [ -z "$user_id" ]; then
 fi
 
 echo "[auth] Resetting Keycloak admin password for ${KEYCLOAK_ADMIN_USERNAME}"
-"$KCADM_BIN" set-password \
+run_kcadm_with_password "$NEW_KEYCLOAK_ADMIN_PASSWORD" \
+  "$KCADM_BIN" set-password \
   -r "$KEYCLOAK_REALM" \
   --userid "$user_id" \
-  --new-password "$NEW_KEYCLOAK_ADMIN_PASSWORD" \
   --temporary=false >/dev/null
 
 CURRENT_KEYCLOAK_ADMIN_PASSWORD="$NEW_KEYCLOAK_ADMIN_PASSWORD"

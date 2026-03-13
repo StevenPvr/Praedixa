@@ -2,11 +2,11 @@
 // Shared React components for all applications
 
 // Utilities
-export { cn } from "./utils/cn";
-export { formatRelativeTime } from "./utils/date";
+export { cn } from "./utils/cn.js";
+export { formatRelativeTime } from "./utils/date.js";
 
 // Components
-export { Button, type ButtonProps } from "./components/button";
+export { Button, type ButtonProps } from "./components/button.js";
 export {
   Card,
   CardHeader,
@@ -14,13 +14,13 @@ export {
   CardDescription,
   CardContent,
   CardFooter,
-} from "./components/card";
+} from "./components/card.js";
 export {
   StatCard,
   type StatCardProps,
   type MetricStatus,
   type TrendDirection,
-} from "./components/stat-card";
+} from "./components/stat-card.js";
 export {
   DataTable,
   type DataTableColumn,
@@ -29,7 +29,7 @@ export {
   type DataTableSelection,
   type DataTableProps,
   type SortDirection,
-} from "./components/data-table/index";
+} from "./components/data-table/index.js";
 
 export {
   Skeleton,
@@ -42,13 +42,10 @@ export {
   type SkeletonMetricRowProps,
   type SkeletonTableProps,
   type SkeletonChartProps,
-} from "./components/skeleton";
+} from "./components/skeleton.js";
 
 // Logo
-export {
-  PraedixaLogo,
-  LOGO_COLORS,
-} from "./components/praedixa-logo";
+export { PraedixaLogo, LOGO_COLORS } from "./components/praedixa-logo.js";
 
 // Hooks
-export { useMediaQuery } from "./hooks/use-media-query";
+export { useMediaQuery } from "./hooks/use-media-query.js";

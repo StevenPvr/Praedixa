@@ -1,0 +1,91 @@
+{
+  "inventory_type": "rollback-targets",
+  "schema_version": "1",
+  "environments": {
+    "staging": {
+      "landing": {
+        "region": "fr-par",
+        "container_name": "landing-staging",
+        "smoke": {
+          "service": "landing",
+          "requires_explicit_url": true
+        }
+      },
+      "webapp": {
+        "region": "fr-par",
+        "container_name": "webapp-staging",
+        "smoke": {
+          "service": "webapp"
+        }
+      },
+      "admin": {
+        "region": "fr-par",
+        "container_name": "admin-staging",
+        "smoke": {
+          "service": "admin"
+        }
+      },
+      "api": {
+        "region": "fr-par",
+        "container_name": "api-staging",
+        "smoke": {
+          "service": "api"
+        }
+      },
+      "connectors": {
+        "requires_target_override": true,
+        "smoke": {
+          "service": "connectors",
+          "requires_explicit_url": true
+        }
+      }
+    },
+    "prod": {
+      "landing": {
+        "region": "fr-par",
+        "container_name": "landing-web",
+        "smoke": {
+          "service": "landing",
+          "default_url": "https://praedixa.com",
+          "alternate_urls": ["https://www.praedixa.com"]
+        }
+      },
+      "webapp": {
+        "region": "fr-par",
+        "container_name": "webapp-prod",
+        "smoke": {
+          "service": "webapp"
+        }
+      },
+      "admin": {
+        "region": "fr-par",
+        "container_name": "admin-prod",
+        "smoke": {
+          "service": "admin"
+        }
+      },
+      "api": {
+        "region": "fr-par",
+        "container_name": "api-prod",
+        "smoke": {
+          "service": "api"
+        }
+      },
+      "auth": {
+        "region": "fr-par",
+        "container_name": "auth-prod",
+        "smoke": {
+          "service": "auth",
+          "default_url": "https://auth.praedixa.com"
+        }
+      },
+      "connectors": {
+        "requires_target_override": true,
+        "smoke": {
+          "service": "connectors",
+          "default_url": "https://connectors.praedixa.com"
+        }
+      }
+    }
+  }
+}

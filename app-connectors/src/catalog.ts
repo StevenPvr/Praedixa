@@ -19,17 +19,31 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["Account", "Opportunity", "Case", "Task"],
     recommendedSyncMinutes: 30,
     medallionTargets: ["bronze", "silver", "gold"],
-    onboardingModes: ["interactive_oauth", "managed_service_account", "push_api"],
+    onboardingModes: [
+      "interactive_oauth",
+      "managed_service_account",
+      "push_api",
+    ],
     requiredConfigFields: ["baseUrl"],
     credentialFieldHints: {
       oauth2: OAUTH_CLIENT_HINTS,
       service_account: SERVICE_ACCOUNT_HINTS,
     },
     oauthDefaults: {
-      authorizationEndpoint: "https://login.salesforce.com/services/oauth2/authorize",
-      tokenEndpoint: "https://login.salesforce.com/services/oauth2/token",
-      defaultScopes: ["api", "refresh_token"],
-      pkceRequired: true,
+      production: {
+        authorizationEndpoint:
+          "https://login.salesforce.com/services/oauth2/authorize",
+        tokenEndpoint: "https://login.salesforce.com/services/oauth2/token",
+        defaultScopes: ["api", "refresh_token"],
+        pkceRequired: true,
+      },
+      sandbox: {
+        authorizationEndpoint:
+          "https://test.salesforce.com/services/oauth2/authorize",
+        tokenEndpoint: "https://test.salesforce.com/services/oauth2/token",
+        defaultScopes: ["api", "refresh_token"],
+        pkceRequired: true,
+      },
     },
   },
   {
@@ -84,7 +98,11 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["ServiceOrders", "ROLines", "Vehicle", "Technician"],
     recommendedSyncMinutes: 60,
     medallionTargets: ["bronze", "silver", "gold"],
-    onboardingModes: ["managed_service_account", "credential_submission", "push_api"],
+    onboardingModes: [
+      "managed_service_account",
+      "credential_submission",
+      "push_api",
+    ],
     requiredConfigFields: ["baseUrl"],
     credentialFieldHints: {
       service_account: SERVICE_ACCOUNT_HINTS,
@@ -99,7 +117,11 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["RepairOrder", "Customer", "Vehicle", "Parts"],
     recommendedSyncMinutes: 60,
     medallionTargets: ["bronze", "silver", "gold"],
-    onboardingModes: ["managed_service_account", "credential_submission", "push_api"],
+    onboardingModes: [
+      "managed_service_account",
+      "credential_submission",
+      "push_api",
+    ],
     requiredConfigFields: ["baseUrl"],
     credentialFieldHints: {
       service_account: SERVICE_ACCOUNT_HINTS,
@@ -144,7 +166,11 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["Shipment", "OrderRelease", "Route", "Stop"],
     recommendedSyncMinutes: 30,
     medallionTargets: ["bronze", "silver", "gold"],
-    onboardingModes: ["credential_submission", "managed_service_account", "push_api"],
+    onboardingModes: [
+      "credential_submission",
+      "managed_service_account",
+      "push_api",
+    ],
     requiredConfigFields: ["tokenEndpoint", "baseUrl"],
     credentialFieldHints: {
       oauth2: OAUTH_CLIENT_HINTS,
@@ -159,7 +185,11 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["FreightOrder", "FreightUnit", "Resource", "Stop"],
     recommendedSyncMinutes: 30,
     medallionTargets: ["bronze", "silver", "gold"],
-    onboardingModes: ["credential_submission", "managed_service_account", "push_api"],
+    onboardingModes: [
+      "credential_submission",
+      "managed_service_account",
+      "push_api",
+    ],
     requiredConfigFields: ["tokenEndpoint", "baseUrl"],
     credentialFieldHints: {
       oauth2: OAUTH_CLIENT_HINTS,
@@ -174,7 +204,11 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["DemandPlan", "LaborPlan", "Store", "SKU"],
     recommendedSyncMinutes: 60,
     medallionTargets: ["bronze", "silver", "gold"],
-    onboardingModes: ["credential_submission", "managed_service_account", "push_api"],
+    onboardingModes: [
+      "credential_submission",
+      "managed_service_account",
+      "push_api",
+    ],
     requiredConfigFields: ["baseUrl"],
     credentialFieldHints: {
       api_key: API_KEY_HINTS,
@@ -189,7 +223,11 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     sourceObjects: ["Wave", "Task", "Inventory", "Shipment"],
     recommendedSyncMinutes: 30,
     medallionTargets: ["bronze", "silver", "gold"],
-    onboardingModes: ["credential_submission", "managed_service_account", "push_api"],
+    onboardingModes: [
+      "credential_submission",
+      "managed_service_account",
+      "push_api",
+    ],
     requiredConfigFields: ["baseUrl"],
     credentialFieldHints: {
       api_key: API_KEY_HINTS,

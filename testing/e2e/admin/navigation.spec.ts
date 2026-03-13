@@ -1,115 +1,11 @@
 import { test, expect } from "./fixtures/coverage";
 import { setupAdminAuth } from "./fixtures/auth";
-
-/**
- * Route-level mocks that keep all admin pages stable for navigation-only checks.
- */
-async function mockAllApis(page: import("@playwright/test").Page) {
-  const timestamp = "2026-02-07T12:00:00Z";
-  const apiResponse = (data: unknown) => ({ success: true, data, timestamp });
-  const paginatedResponse = (data: unknown[]) => ({
-    success: true,
-    data,
-    pagination: {
-      total: data.length,
-      page: 1,
-      pageSize: 20,
-      totalPages: 1,
-      hasNextPage: false,
-      hasPreviousPage: false,
-    },
-    timestamp,
-  });
-
-  await page.route("**/api/v1/**", (route) => {
-    const { pathname } = new URL(route.request().url());
-
-    if (pathname.startsWith("/api/v1/admin/monitoring/platform")) {
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(
-          apiResponse({
-            totalOrganizations: 12,
-            activeOrganizations: 10,
-            totalUsers: 245,
-            ingestionSuccessRate: 97.8,
-            apiErrorRate: 0.3,
-          }),
-        ),
-      });
-    }
-
-    if (pathname.startsWith("/api/v1/admin/monitoring/alerts/by-org")) {
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(
-          apiResponse({ organizations: [], totalAlerts: 0 }),
-        ),
-      });
-    }
-
-    if (pathname.startsWith("/api/v1/admin/monitoring/cost-params/missing")) {
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(apiResponse({ organizations: [] })),
-      });
-    }
-
-    if (pathname.startsWith("/api/v1/admin/monitoring/decisions/adoption")) {
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(apiResponse({ organizations: [] })),
-      });
-    }
-
-    if (pathname.startsWith("/api/v1/admin/conversations/unread-count")) {
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(apiResponse({ total: 0, byOrg: [] })),
-      });
-    }
-
-    if (pathname.startsWith("/api/v1/admin/audit-log")) {
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(paginatedResponse([])),
-      });
-    }
-
-    if (pathname.startsWith("/api/v1/admin/organizations")) {
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(paginatedResponse([])),
-      });
-    }
-
-    if (pathname.startsWith("/api/v1/admin/onboarding")) {
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(paginatedResponse([])),
-      });
-    }
-
-    return route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify(apiResponse([])),
-    });
-  });
-}
+import { mockAdminShellApis } from "./fixtures/api-mocks";
 
 test.describe("Sidebar navigation", () => {
   test.beforeEach(async ({ page }) => {
     await setupAdminAuth(page);
-    await mockAllApis(page);
+    await mockAdminShellApis(page);
   });
 
   test("sidebar has 4 nav items", async ({ page }) => {

@@ -122,8 +122,8 @@ export async function clearAuthSession(): Promise<void> {
 }
 
 export function useCurrentUser(): CurrentUser | null {
-  const [user, setUser] = useState<CurrentUser | null>(() =>
-    getCachedSession()?.user ?? null,
+  const [user, setUser] = useState<CurrentUser | null>(
+    () => getCachedSession()?.user ?? null,
   );
 
   useEffect(() => {

@@ -1,6 +1,15 @@
 {
   "attributes": [
     {
+      "name": "role",
+      "displayName": "role",
+      "permissions": {
+        "view": ["admin"],
+        "edit": ["admin"]
+      },
+      "multivalued": false
+    },
+    {
       "name": "organization_id",
       "displayName": "organization_id",
       "permissions": {
@@ -17,6 +26,15 @@
         "edit": ["admin"]
       },
       "multivalued": false
+    },
+    {
+      "name": "permissions",
+      "displayName": "permissions",
+      "permissions": {
+        "view": ["admin"],
+        "edit": ["admin"]
+      },
+      "multivalued": true
     }
   ]
 }

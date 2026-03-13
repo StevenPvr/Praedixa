@@ -30,7 +30,9 @@ vi.mock("@praedixa/ui", async () => {
         {data?.[0] &&
           columns?.map((col: any) => (
             <div key={col.key}>
-              {col.render ? col.render(data[0]) : String(data[0][col.key] ?? "")}
+              {col.render
+                ? col.render(data[0])
+                : String(data[0][col.key] ?? "")}
             </div>
           ))}
       </div>
@@ -127,7 +129,11 @@ describe("PrevisionsPage", () => {
   });
 
   it("shows loading skeletons", () => {
-    setupMocks({ summaryLoading: true, driftLoading: true, scenariosLoading: true });
+    setupMocks({
+      summaryLoading: true,
+      driftLoading: true,
+      scenariosLoading: true,
+    });
     render(<PrevisionsPage />);
 
     expect(screen.getAllByTestId("skeleton-card").length).toBeGreaterThan(0);

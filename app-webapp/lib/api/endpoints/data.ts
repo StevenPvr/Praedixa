@@ -203,10 +203,7 @@ export function listCostParameters(
 export function getEffectiveCostParameters(
   token: GetAccessToken,
 ): Promise<ApiResponse<CostParameter>> {
-  return getEndpoint<CostParameter>(
-    "/api/v1/cost-parameters/effective",
-    token,
-  );
+  return getEndpoint<CostParameter>("/api/v1/cost-parameters/effective", token);
 }
 
 export function getCostParameterHistory(

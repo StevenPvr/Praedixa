@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
 
-export function normalizeOrigin(value: string | null | undefined): string | null {
+export function normalizeOrigin(
+  value: string | null | undefined,
+): string | null {
   if (!value) return null;
 
   try {
@@ -21,7 +23,7 @@ export function resolveExpectedOrigin(
   try {
     return resolveOrigin(request);
   } catch {
-    return request.nextUrl.origin;
+    return "";
   }
 }
 
@@ -56,5 +58,5 @@ export function isSameOriginBrowserRequest(
     }
   }
 
-  return true;
+  return false;
 }

@@ -195,6 +195,24 @@ describe("Auth middleware security", () => {
     expect(mockRedirect).not.toHaveBeenCalled();
   });
 
+  it("keeps /auth/* paths outside the app shell public even when unknown to Next pages", async () => {
+    const result = await updateSession(
+      createMockRequest("/auth/unknown", "https://app.praedixa.com"),
+    );
+
+    expect(result.status).toBe(200);
+    expect(mockRedirect).not.toHaveBeenCalled();
+  });
+
+  it("keeps /api/* paths out of route-level redirects", async () => {
+    const result = await updateSession(
+      createMockRequest("/api/unknown", "https://app.praedixa.com"),
+    );
+
+    expect(result.status).toBe(200);
+    expect(mockRedirect).not.toHaveBeenCalled();
+  });
+
   it("does not treat /login-admin as the login route", async () => {
     const result = await updateSession(
       createMockRequest("/login-admin", "https://app.praedixa.com"),

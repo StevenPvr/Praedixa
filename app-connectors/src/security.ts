@@ -103,7 +103,12 @@ export function safeEqualSecret(
 
   if (expectedBuffer.length !== receivedBuffer.length) {
     const padded = Buffer.alloc(expectedBuffer.length);
-    receivedBuffer.copy(padded, 0, 0, Math.min(receivedBuffer.length, padded.length));
+    receivedBuffer.copy(
+      padded,
+      0,
+      0,
+      Math.min(receivedBuffer.length, padded.length),
+    );
     timingSafeEqual(expectedBuffer, padded);
     return false;
   }
@@ -177,10 +182,7 @@ export function createOpaqueApiKey(prefix = "prdx_live"): string {
   return `${prefix}_${randomBytes(24).toString("base64url")}`;
 }
 
-export function computeHmacSha256(
-  payload: string,
-  secret: string,
-): string {
+export function computeHmacSha256(payload: string, secret: string): string {
   return createHmac("sha256", secret).update(payload, "utf8").digest("hex");
 }
 

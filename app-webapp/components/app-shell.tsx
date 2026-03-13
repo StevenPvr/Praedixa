@@ -157,7 +157,8 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const currentUser = useCurrentUser();
-  const { locale, setLocale, t } = useI18n();
+  const { locale, preferencesSyncError, preferencesSyncState, setLocale, t } =
+    useI18n();
 
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = React.useState(false);
@@ -169,6 +170,21 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
   const currentDate = formatHeaderDate(locale);
   const userInitial = currentUser?.email?.charAt(0).toUpperCase() ?? "U";
   const siteScopeValue = useLockedSiteScope(currentUser);
+  const languageControlDisabled =
+    preferencesSyncState === "loading" ||
+    preferencesSyncState === "saving" ||
+    preferencesSyncState === "unavailable";
+  const languageControlHint =
+    preferencesSyncState === "loading"
+      ? "Chargement des preferences de langue..."
+      : preferencesSyncState === "saving"
+        ? "Enregistrement de la preference de langue..."
+        : preferencesSyncState === "unavailable"
+          ? (preferencesSyncError ??
+            "Preferences indisponibles. Ouvrez les parametres pour plus de details.")
+          : preferencesSyncState === "error"
+            ? (preferencesSyncError ?? "Echec du dernier enregistrement.")
+            : null;
 
   React.useEffect(() => {
     setMobileOpen(false);
@@ -194,7 +210,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
     setIsSigningOut(true);
     try {
       await clearAuthSession();
-      router.replace('/login');
+      router.replace("/login");
     } finally {
       setProfileMenuOpen(false);
       setIsSigningOut(false);
@@ -297,6 +313,11 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                   onChange={(event) =>
                     setLocale(event.target.value === "en" ? "en" : "fr")
                   }
+                  disabled={languageControlDisabled}
+                  aria-describedby={
+                    languageControlHint ? "app-language-sync-status" : undefined
+                  }
+                  title={languageControlHint ?? undefined}
                   className={cn(
                     "cursor-pointer appearance-none rounded-lg border border-border",
                     "h-9 bg-surface pl-2.5 pr-7",
@@ -305,12 +326,18 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                     "hover:border-border-hover hover:bg-surface-sunken",
                     "active:translate-y-px",
                     "focus:border-primary/40 focus:ring-2 focus:ring-primary/20",
+                    "disabled:cursor-not-allowed disabled:opacity-60",
                   )}
                 >
                   <option value="fr">FR</option>
                   <option value="en">EN</option>
                 </select>
               </div>
+              {languageControlHint ? (
+                <span id="app-language-sync-status" className="sr-only">
+                  {languageControlHint}
+                </span>
+              ) : null}
 
               <div className="mx-0.5 hidden h-5 w-px bg-border sm:block" />
 
@@ -344,29 +371,46 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                   >
                     <div className="border-b border-border px-3 py-2.5">
                       <p className="truncate text-title-sm text-ink">
-                        {currentUser?.email ?? t("appShell.profileMenu.noEmail")}
+                        {currentUser?.email ??
+                          t("appShell.profileMenu.noEmail")}
                       </p>
                       <p className="text-caption text-ink-secondary">
-                        {currentUser?.role ?? t("appShell.profileMenu.roleFallback")}
+                        {currentUser?.role ??
+                          t("appShell.profileMenu.roleFallback")}
                       </p>
                     </div>
 
                     <div className="p-1.5">
                       <ProfileMenuItem
-                        icon={<SquaresFour className="h-4 w-4 text-ink-secondary" weight="regular" />}
-                        onClick={() => handleProfileNavigate('/dashboard')}
+                        icon={
+                          <SquaresFour
+                            className="h-4 w-4 text-ink-secondary"
+                            weight="regular"
+                          />
+                        }
+                        onClick={() => handleProfileNavigate("/dashboard")}
                       >
                         {t("appShell.profileMenu.dashboard")}
                       </ProfileMenuItem>
                       <ProfileMenuItem
-                        icon={<Gear className="h-4 w-4 text-ink-secondary" weight="regular" />}
-                        onClick={() => handleProfileNavigate('/parametres')}
+                        icon={
+                          <Gear
+                            className="h-4 w-4 text-ink-secondary"
+                            weight="regular"
+                          />
+                        }
+                        onClick={() => handleProfileNavigate("/parametres")}
                       >
                         {t("appShell.profileMenu.settings")}
                       </ProfileMenuItem>
                       <ProfileMenuItem
-                        icon={<ChatCircle className="h-4 w-4 text-ink-secondary" weight="regular" />}
-                        onClick={() => handleProfileNavigate('/messages')}
+                        icon={
+                          <ChatCircle
+                            className="h-4 w-4 text-ink-secondary"
+                            weight="regular"
+                          />
+                        }
+                        onClick={() => handleProfileNavigate("/messages")}
                       >
                         {t("appShell.profileMenu.support")}
                       </ProfileMenuItem>

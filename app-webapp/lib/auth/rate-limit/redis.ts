@@ -1,5 +1,14 @@
-import type { RedisRateLimitConfig, RateLimitOptions, RateLimitResult } from "./types";
+import type {
+  RedisRateLimitConfig,
+  RateLimitOptions,
+  RateLimitResult,
+} from "./types";
 import { RespConnection, toNumber, toStringValue } from "./resp";
+import {
+  AuthRateLimitRequirementError,
+  getConfiguredRedisUrl,
+  isWeakLocalRateLimitModeAllowed,
+} from "./policy";
 
 const REDIS_FAILURE_LOG_INTERVAL_MS = 60_000;
 let nextRedisFailureLogAt = 0;
@@ -17,7 +26,10 @@ const REDIS_RATE_LIMIT_SCRIPT = [
   "return {current, ttl}",
 ].join("\n");
 
-function parsePositiveInteger(value: string | undefined, fallback: number): number {
+function parsePositiveInteger(
+  value: string | undefined,
+  fallback: number,
+): number {
   if (!value) return fallback;
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed) || parsed <= 0) {
@@ -27,10 +39,7 @@ function parsePositiveInteger(value: string | undefined, fallback: number): numb
 }
 
 export function parseRedisConfig(): RedisRateLimitConfig | null {
-  const rawUrl =
-    process.env.AUTH_RATE_LIMIT_REDIS_URL?.trim() ??
-    process.env.RATE_LIMIT_STORAGE_URI?.trim() ??
-    "";
+  const rawUrl = getConfiguredRedisUrl();
   if (!rawUrl) {
     return null;
   }
@@ -39,15 +48,30 @@ export function parseRedisConfig(): RedisRateLimitConfig | null {
   try {
     parsed = new URL(rawUrl);
   } catch {
-    return null;
+    if (isWeakLocalRateLimitModeAllowed()) {
+      return null;
+    }
+    throw new AuthRateLimitRequirementError(
+      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must be a valid redis:// or rediss:// URL outside development",
+    );
   }
 
   if (parsed.protocol !== "redis:" && parsed.protocol !== "rediss:") {
-    return null;
+    if (isWeakLocalRateLimitModeAllowed()) {
+      return null;
+    }
+    throw new AuthRateLimitRequirementError(
+      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must use redis:// or rediss:// outside development",
+    );
   }
 
   if (!parsed.hostname) {
-    return null;
+    if (isWeakLocalRateLimitModeAllowed()) {
+      return null;
+    }
+    throw new AuthRateLimitRequirementError(
+      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must include a hostname outside development",
+    );
   }
 
   const tls = parsed.protocol === "rediss:";
@@ -56,7 +80,12 @@ export function parseRedisConfig(): RedisRateLimitConfig | null {
   const dbPath = parsed.pathname.replace(/^\//, "").trim();
   const db = dbPath ? Number.parseInt(dbPath, 10) : 0;
   if (!Number.isFinite(db) || db < 0) {
-    return null;
+    if (isWeakLocalRateLimitModeAllowed()) {
+      return null;
+    }
+    throw new AuthRateLimitRequirementError(
+      "AUTH_RATE_LIMIT_REDIS_URL or RATE_LIMIT_STORAGE_URI must reference a valid Redis database index outside development",
+    );
   }
 
   return {
@@ -152,7 +181,10 @@ export async function executeRedisRateLimit(
       const authArgs = config.username
         ? ["AUTH", config.username, config.password]
         : ["AUTH", config.password];
-      const authReply = await connection.command(authArgs, config.commandTimeoutMs);
+      const authReply = await connection.command(
+        authArgs,
+        config.commandTimeoutMs,
+      );
       const authStatus = toStringValue(authReply);
       if (authStatus !== "OK") {
         throw new Error("Redis AUTH failed");
@@ -203,9 +235,19 @@ export function logRedisFailure(error: unknown): void {
 
   const message =
     error instanceof Error ? error.message : "Unknown Redis rate limit error";
+  const prefix = "[auth-rate-limit]";
+
+  if (isWeakLocalRateLimitModeAllowed()) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `${prefix} Redis unavailable, local in-memory limiter remains active (${message})`,
+    );
+    return;
+  }
+
   // eslint-disable-next-line no-console
-  console.warn(
-    `[auth-rate-limit] Redis unavailable, fallback to in-memory limiter (${message})`,
+  console.error(
+    `${prefix} Redis unavailable; blocking auth rate-limited routes instead of degrading locally (${message})`,
   );
 }
 

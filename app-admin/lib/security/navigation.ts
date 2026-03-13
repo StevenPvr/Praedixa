@@ -1,6 +1,8 @@
 const isProd = process.env.NODE_ENV === "production";
 
-export function sanitizeHttpHref(href: string | null | undefined): string | null {
+export function sanitizeHttpHref(
+  href: string | null | undefined,
+): string | null {
   if (!href) return null;
 
   const trimmed = href.trim();
@@ -25,7 +27,9 @@ export function sanitizeHttpHref(href: string | null | undefined): string | null
   return null;
 }
 
-export function buildMailtoHref(email: string | null | undefined): string | null {
+export function buildMailtoHref(
+  email: string | null | undefined,
+): string | null {
   if (!email) return null;
 
   const trimmed = email.trim();

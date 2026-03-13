@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { requireRateLimitKeySalt } from "./policy";
 
 function shouldTrustProxyIpHeaders(): boolean {
   return process.env.AUTH_TRUST_X_FORWARDED_FOR === "1";
@@ -13,14 +14,9 @@ function hashString(value: string): string {
 }
 
 export async function hashIdentifier(value: string): Promise<string> {
-  const salt =
-    process.env.AUTH_RATE_LIMIT_KEY_SALT?.trim() ??
-    process.env.AUTH_SESSION_SECRET?.trim() ??
-    "prx-rate-limit";
-
   const digest = await crypto.subtle.digest(
     "SHA-256",
-    new TextEncoder().encode(`${salt}:${value}`),
+    new TextEncoder().encode(`${requireRateLimitKeySalt()}:${value}`),
   );
 
   const bytes = new Uint8Array(digest);

@@ -60,6 +60,13 @@ describe("Admin LoginPage", () => {
     expect(screen.getByText(/La connexion a echoue/)).toBeInTheDocument();
   });
 
+  it("renders explicit MFA-required banner", () => {
+    mockSearchParams = new URLSearchParams("error=admin_mfa_required");
+    render(<LoginPage />);
+
+    expect(screen.getByText(/authentification MFA valide/)).toBeInTheDocument();
+  });
+
   it("renders explicit missing OIDC config banner", () => {
     mockSearchParams = new URLSearchParams("error=oidc_config_missing");
     render(<LoginPage />);

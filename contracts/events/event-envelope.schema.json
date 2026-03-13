@@ -1,0 +1,718 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "https://schemas.praedixa.dev/contracts/events/event-envelope.schema.json",
+  "title": "Praedixa Event Envelope",
+  "description": "Versioned envelope for internal domain events and outgoing webhooks.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "schema_version",
+    "payload_version",
+    "event_id",
+    "event_type",
+    "occurred_at",
+    "source",
+    "payload"
+  ],
+  "properties": {
+    "kind": {
+      "const": "PraedixaEvent"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "payload_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "event_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "event_type": {
+      "enum": [
+        "source.sync.completed",
+        "dataset.freshness.breached",
+        "contract.published",
+        "signal.generated",
+        "scenario.requested",
+        "scenario.completed",
+        "approval.requested",
+        "approval.granted",
+        "action.dispatched",
+        "action.completed",
+        "action.failed",
+        "ledger.closed"
+      ]
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "organization_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "workspace_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "correlation_id": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "causation_id": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "trace_id": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "partition_key": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "subject": {
+      "$ref": "#/$defs/subject"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "source.sync.completed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/sourceSyncCompletedPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "dataset.freshness.breached"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/datasetFreshnessBreachedPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "contract.published"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/contractPublishedPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "signal.generated"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/signalGeneratedPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "scenario.requested"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/scenarioRequestedPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "scenario.completed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/scenarioCompletedPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "approval.requested"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/approvalRequestedPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "approval.granted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/approvalGrantedPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "action.dispatched"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/actionDispatchedPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "action.completed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/actionCompletedPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "action.failed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/actionFailedPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "ledger.closed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/ledgerClosedPayload"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["service", "environment"],
+      "properties": {
+        "service": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "component": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "environment": {
+          "enum": ["development", "staging", "production"]
+        }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "contract_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]{2,127}$"
+        },
+        "contract_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "run_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "recommendation_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "approval_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "action_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "ledger_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "dataset_id": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "source_id": {
+          "type": "string",
+          "maxLength": 120
+        }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_type", "actor_id"],
+      "properties": {
+        "actor_type": {
+          "enum": ["user", "system", "service"]
+        },
+        "actor_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "actor_role": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entity_type", "selector", "horizon_id"],
+      "properties": {
+        "entity_type": {
+          "enum": [
+            "organization",
+            "site",
+            "team",
+            "flow",
+            "route",
+            "order_aggregate",
+            "stock_node",
+            "period"
+          ]
+        },
+        "selector": {
+          "$ref": "#/$defs/selector"
+        },
+        "horizon_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9+_-]{0,31}$"
+        }
+      }
+    },
+    "selector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "enum": ["all", "ids", "query"]
+        },
+        "ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "uniqueItems": true
+        },
+        "query": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      }
+    },
+    "confidenceBand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["p50", "p80", "p90"],
+      "properties": {
+        "p50": {
+          "type": "number"
+        },
+        "p80": {
+          "type": "number"
+        },
+        "p90": {
+          "type": "number"
+        }
+      }
+    },
+    "sourceSyncCompletedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "dataset_id",
+        "run_id",
+        "record_count",
+        "status"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "dataset_id": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "run_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 64
+        }
+      }
+    },
+    "datasetFreshnessBreachedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dataset_id", "expected_at", "observed_at", "severity"],
+      "properties": {
+        "dataset_id": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "expected_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "severity": {
+          "enum": ["warning", "critical"]
+        }
+      }
+    },
+    "contractPublishedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_id", "version", "actor", "scope"],
+      "properties": {
+        "contract_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]{2,127}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "actor": {
+          "$ref": "#/$defs/actor"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        }
+      }
+    },
+    "signalGeneratedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal_id",
+        "contract_id",
+        "scope",
+        "horizon",
+        "confidence_band"
+      ],
+      "properties": {
+        "signal_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "contract_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]{2,127}$"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "horizon": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9+_-]{0,31}$"
+        },
+        "confidence_band": {
+          "$ref": "#/$defs/confidenceBand"
+        }
+      }
+    },
+    "scenarioRequestedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "contract_id", "scope", "actor_or_system"],
+      "properties": {
+        "run_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "contract_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]{2,127}$"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "actor_or_system": {
+          "$ref": "#/$defs/actor"
+        }
+      }
+    },
+    "scenarioCompletedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "recommendation_ids", "best_score", "status"],
+      "properties": {
+        "run_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "recommendation_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/uuid"
+          },
+          "uniqueItems": true
+        },
+        "best_score": {
+          "type": "number"
+        },
+        "status": {
+          "enum": ["completed", "failed", "timed_out", "expired"]
+        }
+      }
+    },
+    "approvalRequestedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approval_id",
+        "recommendation_id",
+        "approver_role",
+        "deadline"
+      ],
+      "properties": {
+        "approval_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "recommendation_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "approver_role": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "deadline": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "approvalGrantedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approval_id", "actor", "decision"],
+      "properties": {
+        "approval_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "actor": {
+          "$ref": "#/$defs/actor"
+        },
+        "decision": {
+          "const": "granted"
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      }
+    },
+    "actionDispatchedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action_id", "destination", "idempotency_key", "status"],
+      "properties": {
+        "action_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "destination": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 200
+        },
+        "status": {
+          "const": "dispatched"
+        }
+      }
+    },
+    "actionCompletedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action_id", "status", "target_ref", "latency_ms"],
+      "properties": {
+        "action_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "status": {
+          "enum": ["acknowledged", "canceled"]
+        },
+        "target_ref": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "latency_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "actionFailedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_id",
+        "destination",
+        "idempotency_key",
+        "status",
+        "error_code",
+        "retryable"
+      ],
+      "properties": {
+        "action_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "destination": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 200
+        },
+        "status": {
+          "const": "failed"
+        },
+        "error_code": {
+          "type": "string",
+          "pattern": "^[A-Z0-9_]{2,64}$"
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ledgerClosedPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ledger_id", "realized_roi", "validation_status"],
+      "properties": {
+        "ledger_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "realized_roi": {
+          "type": "number"
+        },
+        "validation_status": {
+          "enum": ["estimated", "validated", "contested"]
+        }
+      }
+    }
+  }
+}

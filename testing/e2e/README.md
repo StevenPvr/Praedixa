@@ -19,6 +19,7 @@ pnpm test:e2e
 pnpm test:e2e:landing
 pnpm test:e2e:webapp
 pnpm test:e2e:admin
+pnpm test:e2e:smoke
 ```
 
 Pour une spec ciblee:
@@ -34,6 +35,7 @@ playwright test testing/e2e/webapp/dashboard.spec.ts --project=webapp
 - Garder les specs centrees sur un parcours utilisateur ou une regression nommee.
 - Si un test depend d'un contrat API mocke, aligner le mock avec `packages/shared-types` et `contracts/openapi/`.
 - Les changements de copy ou d'ARIA visibles peuvent casser les assertions Playwright: ajuster la spec en meme temps que l'UI.
+- `pnpm test:e2e:smoke` est la suite minimale cross-app pour `webapp` et `admin`; elle doit rester alignée avec le runbook de release.
 
 ## Sous-dossiers
 

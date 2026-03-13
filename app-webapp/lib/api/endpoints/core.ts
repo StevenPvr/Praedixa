@@ -65,7 +65,10 @@ export function listForecasts(
   params: Partial<ListForecastsRequest>,
   token: GetAccessToken,
 ) {
-  return getPaginatedEndpoint<ForecastRun>(`/api/v1/forecasts${qs(params)}`, token);
+  return getPaginatedEndpoint<ForecastRun>(
+    `/api/v1/forecasts${qs(params)}`,
+    token,
+  );
 }
 
 export function getForecastSummary(

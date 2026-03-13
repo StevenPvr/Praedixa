@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import ipaddress
-import logging
+import time
 import urllib.parse
 from dataclasses import dataclass
 from types import SimpleNamespace
@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, cast
 import httpx
 
 from app.core.config import settings
+from app.core.telemetry import TelemetryContext, get_telemetry_logger
 from app.services.integration_event_ingestor import (
     ConnectorPayloadLoader,
     ingest_raw_events_to_dataset,
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
 
     from app.core.security import TenantFilter
 
-logger = logging.getLogger(__name__)
+logger = get_telemetry_logger(__name__)
 _MIN_RUNTIME_TOKEN_LENGTH = 32
 _RUNTIME_ERROR_INVALID_INPUT = "invalid_mapping_or_payload"
 _RUNTIME_ERROR_HTTP = "connectors_runtime_http_error"
@@ -58,9 +59,11 @@ class ConnectorsRuntimeClient:
         token: str,
         *,
         timeout_seconds: float = 10.0,
+        telemetry_context: TelemetryContext | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
-        self._client = httpx.AsyncClient(
+        self.telemetry_context = telemetry_context or TelemetryContext()
+        self.client = httpx.AsyncClient(
             base_url=self.base_url,
             headers={
                 "authorization": f"Bearer {token}",
@@ -70,8 +73,18 @@ class ConnectorsRuntimeClient:
             follow_redirects=False,
         )
 
+    def with_telemetry_context(
+        self,
+        telemetry_context: TelemetryContext,
+    ) -> ConnectorsRuntimeClient:
+        clone = self.__class__.__new__(self.__class__)
+        clone.base_url = self.base_url
+        clone.telemetry_context = telemetry_context
+        clone.client = self.client
+        return clone
+
     async def aclose(self) -> None:
-        await self._client.aclose()
+        await self.client.aclose()
 
     async def _request_json(
         self,
@@ -80,7 +93,12 @@ class ConnectorsRuntimeClient:
         *,
         json_body: dict[str, Any] | None = None,
     ) -> Any:
-        response = await self._client.request(method, path, json=json_body)
+        response = await self.client.request(
+            method,
+            path,
+            json=json_body,
+            headers=self.telemetry_context.as_http_headers() or None,
+        )
         response.raise_for_status()
         payload = response.json()
         if not _is_success_payload(payload):
@@ -173,11 +191,7 @@ class ConnectorsRuntimeClient:
 
 
 def _parse_allowed_hosts(raw_value: str) -> tuple[str, ...]:
-    return tuple(
-        host.strip().lower()
-        for host in raw_value.split(",")
-        if host.strip()
-    )
+    return tuple(host.strip().lower() for host in raw_value.split(",") if host.strip())
 
 
 def _is_success_payload(payload: Any) -> bool:
@@ -185,8 +199,10 @@ def _is_success_payload(payload: Any) -> bool:
 
 
 def _is_local_runtime_host(host: str, host_ip: IPAddress | None) -> bool:
-    return host == "localhost" or host.endswith(".localhost") or (
-        host_ip is not None and host_ip.is_loopback
+    return (
+        host == "localhost"
+        or host.endswith(".localhost")
+        or (host_ip is not None and host_ip.is_loopback)
     )
 
 
@@ -316,11 +332,29 @@ async def drain_connector_connection(
     connection_id: str,
     worker_id: str,
     limit: int = 50,
+    request_id: str | None = None,
+    run_id: str | None = None,
+    connector_run_id: str | None = None,
+    trace_id: str | None = None,
 ) -> RuntimeDrainResult:
     """Claim one batch of raw events and route them into the dataset pipeline."""
     normalized_limit = _normalize_batch_limit(limit)
+    started_at = time.perf_counter()
+    telemetry_context = TelemetryContext(
+        request_id=request_id,
+        run_id=run_id,
+        connector_run_id=connector_run_id,
+        organization_id=organization_id,
+        trace_id=trace_id,
+    )
+    telemetry = logger.bind(**telemetry_context.as_log_fields())
+    bound_runtime_client = _bind_runtime_client_telemetry(
+        runtime_client, telemetry_context
+    )
 
-    connection = await runtime_client.get_connection(organization_id, connection_id)
+    connection = await bound_runtime_client.get_connection(
+        organization_id, connection_id
+    )
     config = connection.get("config", {})
     if not isinstance(config, dict):
         raise TypeError("connection config must be an object")
@@ -328,17 +362,28 @@ async def drain_connector_connection(
     if not isinstance(fields_json, dict):
         raise TypeError("connection.config.datasetMapping must be configured")
 
-    claimed = await runtime_client.claim_raw_events(
+    claimed = await bound_runtime_client.claim_raw_events(
         organization_id,
         connection_id,
         worker_id,
         limit=normalized_limit,
     )
     if not claimed:
+        telemetry.info(
+            "Connector drain completed with no claimed raw events",
+            event="connector.runtime.drain.completed",
+            status="success",
+            connection_id=connection_id,
+            worker_id=worker_id,
+            claimed_count=0,
+            processed_count=0,
+            failed_count=0,
+            duration_ms=_duration_ms(started_at),
+        )
         return RuntimeDrainResult(claimed=0, processed=0, failed=0, dataset_name=None)
 
     payload_loader = RuntimePayloadLoader(
-        runtime_client,
+        bound_runtime_client,
         organization_id,
         connection_id,
         {event.object_store_key: event.id for event in claimed},
@@ -354,6 +399,14 @@ async def drain_connector_connection(
     ]
 
     try:
+        telemetry.info(
+            "Connector drain started",
+            event="connector.runtime.drain.started",
+            status="running",
+            connection_id=connection_id,
+            worker_id=worker_id,
+            claimed_count=len(claimed),
+        )
         ingestion = await ingest_raw_events_to_dataset(
             tenant,
             session,
@@ -362,29 +415,47 @@ async def drain_connector_connection(
             payload_loader,
         )
         for event in claimed:
-            await runtime_client.mark_raw_event_processed(
+            await bound_runtime_client.mark_raw_event_processed(
                 organization_id,
                 connection_id,
                 event.id,
                 worker_id,
             )
+        duration_ms = _duration_ms(started_at)
+        dataset_name = ingestion.dataset_name if ingestion is not None else None
+        telemetry.info(
+            "Connector drain completed",
+            event="connector.runtime.drain.completed",
+            status="success",
+            connection_id=connection_id,
+            worker_id=worker_id,
+            claimed_count=len(claimed),
+            processed_count=len(claimed),
+            failed_count=0,
+            dataset_name=dataset_name,
+            duration_ms=duration_ms,
+        )
         return RuntimeDrainResult(
             claimed=len(claimed),
             processed=len(claimed),
             failed=0,
-            dataset_name=ingestion.dataset_name if ingestion is not None else None,
+            dataset_name=dataset_name,
         )
     except Exception as exc:
         sanitized_error = _sanitize_runtime_error(exc)
-        logger.exception(
-            "Connector ingestion failed: org=%s connection=%s worker=%s claimed=%d",
-            organization_id,
-            connection_id,
-            worker_id,
-            len(claimed),
+        telemetry.exception(
+            "Connector drain failed",
+            event="connector.runtime.drain.failed",
+            status="failed",
+            connection_id=connection_id,
+            worker_id=worker_id,
+            claimed_count=len(claimed),
+            failed_count=len(claimed),
+            error_code=sanitized_error,
+            duration_ms=_duration_ms(started_at),
         )
         for event in claimed:
-            await runtime_client.mark_raw_event_failed(
+            await bound_runtime_client.mark_raw_event_failed(
                 organization_id,
                 connection_id,
                 event.id,
@@ -392,3 +463,17 @@ async def drain_connector_connection(
                 sanitized_error,
             )
         raise
+
+
+def _bind_runtime_client_telemetry(
+    runtime_client: ConnectorsRuntimeClient,
+    telemetry_context: TelemetryContext,
+) -> ConnectorsRuntimeClient:
+    bind_telemetry = getattr(runtime_client, "with_telemetry_context", None)
+    if callable(bind_telemetry):
+        return cast("ConnectorsRuntimeClient", bind_telemetry(telemetry_context))
+    return runtime_client
+
+
+def _duration_ms(started_at: float) -> int:
+    return round((time.perf_counter() - started_at) * 1000)

@@ -27,7 +27,9 @@ Le package est interne au monorepo (`"private": true`). Toutes les apps l'import
 import { Button, DataTable, StatCard } from "@praedixa/ui";
 ```
 
-**Ordre de build obligatoire** : `shared-types` -> `ui` -> apps. La commande `pnpm build` dans le monorepo respecte cet ordre automatiquement. Le build produit les fichiers compiles dans `dist/` via `tsc`.
+**Ordre de build obligatoire** : `shared-types` -> `ui` -> apps. La commande `pnpm build` dans le monorepo respecte cet ordre automatiquement. Le build produit les fichiers compiles dans `dist/` via `tsc --build --force`, pour ne pas laisser un cache incremental stale masquer un `dist/` invalide.
+
+Le package est publie en ESM interne: les imports relatifs dans `src/` doivent donc rester ecrits avec des suffixes `.js` (`./utils/cn.js`, `./components/button.js`, etc.) pour que `dist/` reste executable dans un builder propre, y compris en Docker.
 
 ```bash
 # Build uniquement ce package

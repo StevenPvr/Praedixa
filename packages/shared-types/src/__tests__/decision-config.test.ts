@@ -49,7 +49,9 @@ describe("decision-config types", () => {
   it("contains payload and version wrappers", () => {
     expectTypeOf<DecisionEngineConfigPayload>().toHaveProperty("horizons");
     expectTypeOf<DecisionEngineConfigPayload>().toHaveProperty("optionCatalog");
-    expectTypeOf<DecisionEngineConfigPayload>().toHaveProperty("policiesByHorizon");
+    expectTypeOf<DecisionEngineConfigPayload>().toHaveProperty(
+      "policiesByHorizon",
+    );
 
     expectTypeOf<DecisionEngineConfigVersion>().toHaveProperty("payload");
     expectTypeOf<ResolvedDecisionEngineConfig>().toHaveProperty("versionId");

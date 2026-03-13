@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 if [ "$#" -gt 1 ]; then
   echo "Usage: $0 [staging|prod|all]" >&2
   exit 1
@@ -18,11 +21,13 @@ esac
 REGION="fr-par"
 ZONE="fr-par-1"
 DNS_ZONE="praedixa.com"
-DNS_DELEGATION_MODE="${DNS_DELEGATION_MODE:-transitional}"
+DNS_DELEGATION_MODE="${DNS_DELEGATION_MODE:-strict}"
 AUTH_RDB_NAME="${AUTH_RDB_NAME:-praedixa-auth-prod}"
+RUNTIME_SECRETS_INVENTORY_PATH="$REPO_ROOT/docs/deployment/runtime-secrets-inventory.json"
 
 FAIL_COUNT=0
 WARN_COUNT=0
+RUNTIME_SECRETS_INVENTORY_JSON='{"services":[]}'
 
 ok() {
   echo "[ok] $1"
@@ -38,11 +43,32 @@ fail() {
   echo "[fail] $1" >&2
 }
 
+case "$DNS_DELEGATION_MODE" in
+  strict | transitional) ;;
+  *)
+    echo "Unsupported DNS_DELEGATION_MODE: $DNS_DELEGATION_MODE (expected strict|transitional)" >&2
+    exit 1
+    ;;
+esac
+
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
     echo "Missing required command: $1" >&2
     exit 1
   }
+}
+
+load_runtime_secrets_inventory() {
+  local output
+
+  if output="$(node "$SCRIPT_DIR/validate-runtime-secret-inventory.mjs" --inventory "$RUNTIME_SECRETS_INVENTORY_PATH" --structure-only 2>&1)"; then
+    ok "Runtime secret inventory validated"
+  else
+    fail "Runtime secret inventory invalid: $(printf '%s' "$output" | tr '\n' '; ')"
+    return
+  fi
+
+  RUNTIME_SECRETS_INVENTORY_JSON="$(cat "$RUNTIME_SECRETS_INVENTORY_PATH")"
 }
 
 is_target_enabled() {
@@ -59,6 +85,16 @@ check_file_exists() {
     ok "File present: $file_path"
   else
     fail "Missing file: $file_path"
+  fi
+}
+
+check_versioned_admin_mfa_policy() {
+  local output
+
+  if output="$(node "$SCRIPT_DIR/verify-admin-mfa-readiness.mjs" 2>&1)"; then
+    ok "Versioned admin MFA browser flow policy validated"
+  else
+    fail "Versioned admin MFA browser flow policy invalid: $(printf '%s' "$output" | tr '\n' '; ')"
   fi
 }
 
@@ -128,6 +164,112 @@ container_has_secret() {
   printf '%s' "$container_json" | jq -e --arg k "$key" '(.secret_environment_variables // [])[]? | select(.key == $k)' >/dev/null
 }
 
+get_runtime_secret_service_json() {
+  local container_name="$1"
+  printf '%s' "$RUNTIME_SECRETS_INVENTORY_JSON" | jq -c --arg c "$container_name" '.services[] | select(.container_name == $c)' | head -n1
+}
+
+check_declared_frontend_public_origin() {
+  local container_name="$1"
+  local container_json="$2"
+  local service_json expected_origin env_key actual_origin
+
+  service_json="$(get_runtime_secret_service_json "$container_name")"
+  if [ -z "$service_json" ]; then
+    fail "Runtime secret inventory is missing container ${container_name}"
+    return
+  fi
+
+  expected_origin="$(printf '%s' "$service_json" | jq -r '.public_origin.expected_origin // ""')"
+  if [ -z "$expected_origin" ]; then
+    fail "${container_name}: runtime secret inventory is missing public_origin.expected_origin"
+    return
+  fi
+
+  while IFS= read -r env_key || [ -n "$env_key" ]; do
+    if [ -z "$env_key" ]; then
+      continue
+    fi
+
+    if container_has_env "$container_json" "$env_key"; then
+      ok "${container_name}: env ${env_key} configured"
+    else
+      fail "${container_name}: env ${env_key} missing"
+      continue
+    fi
+
+    actual_origin="$(container_env_value "$container_json" "$env_key")"
+    if [ "$actual_origin" = "$expected_origin" ]; then
+      ok "${container_name}: env ${env_key} matches canonical public origin"
+    else
+      fail "${container_name}: env ${env_key} must equal ${expected_origin} (current: ${actual_origin:-missing})"
+    fi
+  done <<<"$(printf '%s' "$service_json" | jq -r '.public_origin.env_keys[]?')"
+}
+
+check_declared_runtime_secrets() {
+  local container_name="$1"
+  local container_json="$2"
+  local service_json group_json mode group_keys key found_one
+
+  service_json="$(get_runtime_secret_service_json "$container_name")"
+  if [ -z "$service_json" ]; then
+    fail "Runtime secret inventory is missing container ${container_name}"
+    return
+  fi
+
+  if ! printf '%s' "$service_json" | jq -e '[.secret_groups[] | select(.required_in_preflight == true)] | length > 0' >/dev/null; then
+    fail "${container_name}: runtime secret inventory has no preflight_required secrets"
+    return
+  fi
+
+  while IFS= read -r group_json || [ -n "$group_json" ]; do
+    if [ -z "$group_json" ]; then
+      continue
+    fi
+
+    mode="$(printf '%s' "$group_json" | jq -r '.mode')"
+    group_keys="$(printf '%s' "$group_json" | jq -r '.keys[]')"
+
+    case "$mode" in
+      all_of)
+        while IFS= read -r key || [ -n "$key" ]; do
+          if [ -z "$key" ]; then
+            continue
+          fi
+
+          if container_has_secret "$container_json" "$key"; then
+            ok "${container_name}: secret ${key} configured"
+          else
+            fail "${container_name}: secret ${key} missing"
+          fi
+        done <<<"$group_keys"
+        ;;
+      any_of)
+        found_one=0
+        while IFS= read -r key || [ -n "$key" ]; do
+          if [ -z "$key" ]; then
+            continue
+          fi
+
+          if container_has_secret "$container_json" "$key"; then
+            ok "${container_name}: secret ${key} configured"
+            found_one=1
+            break
+          fi
+        done <<<"$group_keys"
+
+        if [ "$found_one" -ne 1 ]; then
+          fail "${container_name}: at least one secret is required from group [$(printf '%s' "$group_keys" | paste -sd ', ' -)]"
+        fi
+        ;;
+      *)
+        fail "${container_name}: unsupported runtime secret group mode ${mode}"
+        ;;
+    esac
+  done <<<"$(printf '%s' "$service_json" | jq -c '.secret_groups[] | select(.required_in_preflight == true)')"
+}
+
 check_frontend_container_env() {
   local container_name="$1"
   local container_json
@@ -145,11 +287,8 @@ check_frontend_container_env() {
     fi
   done
 
-  if container_has_secret "$container_json" "AUTH_SESSION_SECRET"; then
-    ok "${container_name}: secret AUTH_SESSION_SECRET configured"
-  else
-    fail "${container_name}: secret AUTH_SESSION_SECRET missing"
-  fi
+  check_declared_frontend_public_origin "$container_name" "$container_json"
+  check_declared_runtime_secrets "$container_name" "$container_json"
 
   for key in AUTH_TRUST_X_FORWARDED_FOR AUTH_RATE_LIMIT_KEY_PREFIX AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS; do
     if container_has_env "$container_json" "$key"; then
@@ -166,18 +305,24 @@ check_frontend_container_env() {
   else
     fail "${container_name}: AUTH_TRUST_X_FORWARDED_FOR must be 0 or 1 (current: ${trust_xff:-missing})"
   fi
+}
 
-  if container_has_secret "$container_json" "AUTH_RATE_LIMIT_REDIS_URL"; then
-    ok "${container_name}: secret AUTH_RATE_LIMIT_REDIS_URL configured"
-  else
-    fail "${container_name}: secret AUTH_RATE_LIMIT_REDIS_URL missing"
+check_admin_mfa_env() {
+  local container_name="$1"
+  local container_json required_amr
+  container_json="$(get_container_json "$container_name")"
+  if [ -z "$container_json" ]; then
+    fail "Container ${container_name} is missing"
+    return
   fi
 
-  if container_has_secret "$container_json" "AUTH_RATE_LIMIT_KEY_SALT"; then
-    ok "${container_name}: secret AUTH_RATE_LIMIT_KEY_SALT configured"
-  else
-    warn "${container_name}: secret AUTH_RATE_LIMIT_KEY_SALT missing (fallback uses AUTH_SESSION_SECRET)"
+  required_amr="$(container_env_value "$container_json" "AUTH_ADMIN_REQUIRED_AMR")"
+  if [ -z "$required_amr" ]; then
+    fail "${container_name}: env AUTH_ADMIN_REQUIRED_AMR missing"
+    return
   fi
+
+  ok "${container_name}: AUTH_ADMIN_REQUIRED_AMR configured"
 }
 
 check_distinct_frontend_client_ids() {
@@ -230,13 +375,7 @@ check_api_container_env() {
     fi
   done
 
-  for skey in DATABASE_URL RATE_LIMIT_STORAGE_URI CONTACT_API_INGEST_TOKEN SCW_SECRET_KEY; do
-    if container_has_secret "$container_json" "$skey"; then
-      ok "${container_name}: secret ${skey} configured"
-    else
-      fail "${container_name}: secret ${skey} missing"
-    fi
-  done
+  check_declared_runtime_secrets "$container_name" "$container_json"
 
   sandbox="$(printf '%s' "$container_json" | jq -r '.sandbox // ""')"
   private_network_id="$(printf '%s' "$container_json" | jq -r '.private_network_id // ""')"
@@ -277,13 +416,7 @@ check_auth_container_env() {
     fail "${container_name}: KC_DB must be postgres (current: ${kc_db:-missing})"
   fi
 
-  for skey in KC_DB_PASSWORD KC_BOOTSTRAP_ADMIN_PASSWORD; do
-    if container_has_secret "$container_json" "$skey"; then
-      ok "${container_name}: secret ${skey} configured"
-    else
-      fail "${container_name}: secret ${skey} missing"
-    fi
-  done
+  check_declared_runtime_secrets "$container_name" "$container_json"
 
   sandbox="$(printf '%s' "$container_json" | jq -r '.sandbox // ""')"
   private_network_id="$(printf '%s' "$container_json" | jq -r '.private_network_id // ""')"
@@ -315,29 +448,7 @@ check_landing_container_env() {
     fail "${container_name}: env CONTACT_API_BASE_URL missing"
   fi
 
-  if container_has_secret "$container_json" "CONTACT_API_INGEST_TOKEN"; then
-    ok "${container_name}: secret CONTACT_API_INGEST_TOKEN configured"
-  else
-    fail "${container_name}: secret CONTACT_API_INGEST_TOKEN missing"
-  fi
-
-  if container_has_secret "$container_json" "RESEND_API_KEY"; then
-    ok "${container_name}: secret RESEND_API_KEY configured"
-  else
-    fail "${container_name}: secret RESEND_API_KEY missing"
-  fi
-
-  if container_has_secret "$container_json" "RATE_LIMIT_STORAGE_URI"; then
-    ok "${container_name}: secret RATE_LIMIT_STORAGE_URI configured"
-  else
-    fail "${container_name}: secret RATE_LIMIT_STORAGE_URI missing"
-  fi
-
-  if container_has_secret "$container_json" "CONTACT_FORM_CHALLENGE_SECRET"; then
-    ok "${container_name}: secret CONTACT_FORM_CHALLENGE_SECRET configured"
-  else
-    fail "${container_name}: secret CONTACT_FORM_CHALLENGE_SECRET missing"
-  fi
+  check_declared_runtime_secrets "$container_name" "$container_json"
 
   trust_proxy="$(container_env_value "$container_json" "LANDING_TRUST_PROXY_IP_HEADERS")"
   if [ "$trust_proxy" = "0" ] || [ "$trust_proxy" = "1" ]; then
@@ -439,11 +550,18 @@ check_public_host() {
         warn "${host} does not resolve on public DNS yet"
       fi
     fi
+  elif [ "$mode" = "strict" ]; then
+    fail "${host} cannot be verified on public DNS because neither dig nor nslookup is installed"
+  else
+    warn "${host} cannot be verified on public DNS because neither dig nor nslookup is installed"
   fi
 }
 
 require_cmd scw
 require_cmd jq
+require_cmd node
+
+load_runtime_secrets_inventory
 
 read_scw_json() {
   local fallback_json="$1"
@@ -470,6 +588,7 @@ check_file_exists "scripts/scw-deploy-api.sh"
 check_file_exists "scripts/scw-configure-auth-env.sh"
 check_file_exists "scripts/scw-configure-api-env.sh"
 check_file_exists "scripts/scw-configure-frontend-env.sh"
+check_versioned_admin_mfa_policy
 
 if ! ZONES_JSON="$(read_scw_json '[]' scw dns zone list)"; then
   fail "Unable to list Scaleway DNS zones"
@@ -518,6 +637,10 @@ if command -v dig >/dev/null 2>&1; then
   else
     fail "Public DNS delegation does not point to Scaleway NS (current: $(echo "$delegated_ns" | tr '\n' ' '))"
   fi
+elif [ "$DNS_DELEGATION_MODE" = "transitional" ]; then
+  warn "Skipping public DNS delegation check because dig is not installed and transitional mode was requested explicitly"
+else
+  fail "Strict DNS delegation verification requires dig to be installed"
 fi
 
 check_namespace "auth-prod"
@@ -565,6 +688,7 @@ if is_target_enabled "prod"; then
   check_landing_container_env "landing-web"
   check_frontend_container_env "webapp-prod"
   check_frontend_container_env "admin-prod"
+  check_admin_mfa_env "admin-prod"
   check_distinct_frontend_client_ids "webapp-prod" "admin-prod" "prod"
   check_api_container_env "api-prod"
 fi
@@ -649,16 +773,13 @@ echo "Scaleway deploy preflight (${TARGET}) passed with ${WARN_COUNT} warning(s)
 echo "No deployment executed."
 echo "Next step when ready:"
 if is_target_enabled "staging"; then
-  echo "  pnpm release:build -- --service landing --ref <git-ref> --tag <tag> --registry-prefix <registry>"
-  echo "  pnpm release:manifest:create -- --ref <git-ref> --output <manifest> --image \"landing=<registry-image@sha256>\""
-  echo "  pnpm release:deploy -- --manifest <manifest> --env staging"
-  echo "  pnpm run scw:deploy:api:staging"
-  echo "  pnpm run scw:deploy:webapp:staging"
-  echo "  pnpm run scw:deploy:admin:staging"
+  echo "  pnpm release:build -- --service <landing|webapp|admin|api> --ref <git-ref> --tag <tag> --registry-prefix <registry> --output <service-json>"
+  echo "  pnpm release:manifest:create -- --ref <git-ref> --gate-report .git/gate-reports/<sha>.json --output <manifest> --image \"landing=<registry-image@sha256>\" --image \"webapp=<registry-image@sha256>\" --image \"admin=<registry-image@sha256>\" --image \"api=<registry-image@sha256>\""
+  echo "  pnpm release:deploy -- --manifest <manifest> --env staging --services landing,webapp,admin,api"
+  echo "  ./scripts/scw-post-deploy-smoke.sh --env staging --services api,webapp,admin"
+  echo "  ./scripts/scw-post-deploy-smoke.sh --env staging --services auth --auth-url https://<staging-auth-origin>  # only when a dedicated staging auth host exists"
 fi
 if is_target_enabled "prod"; then
-  echo "  pnpm release:deploy -- --manifest <manifest> --env prod"
-  echo "  pnpm run scw:deploy:api:prod"
-  echo "  pnpm run scw:deploy:webapp:prod"
-  echo "  pnpm run scw:deploy:admin:prod"
+  echo "  pnpm release:promote -- --manifest <manifest> --to prod --services landing,webapp,admin,api"
+  echo "  ./scripts/scw-post-deploy-smoke.sh --env prod --services api,webapp,admin,auth"
 fi

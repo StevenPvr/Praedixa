@@ -112,10 +112,9 @@ describe("apiGet", () => {
 
   it("should use the same-origin proxy in the browser without calling getAccessToken", async () => {
     const originalWindow = globalThis.window;
-    vi.stubGlobal(
-      "window",
-      { location: { origin: "https://app.praedixa.com" } } as unknown as Window,
-    );
+    vi.stubGlobal("window", {
+      location: { origin: "https://app.praedixa.com" },
+    } as unknown as Window);
 
     const browserToken = vi.fn(() => Promise.resolve("browser-token"));
     mockFetch.mockResolvedValueOnce(
@@ -139,10 +138,9 @@ describe("apiGet", () => {
 
   it("should allow omitting getAccessToken for same-origin browser requests", async () => {
     const originalWindow = globalThis.window;
-    vi.stubGlobal(
-      "window",
-      { location: { origin: "https://app.praedixa.com" } } as unknown as Window,
-    );
+    vi.stubGlobal("window", {
+      location: { origin: "https://app.praedixa.com" },
+    } as unknown as Window);
 
     mockFetch.mockResolvedValueOnce(
       jsonResponse({ success: true, data: { id: 1 }, timestamp: "t" }),

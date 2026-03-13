@@ -35,8 +35,7 @@ export const messages: Record<AppLocale, MessageTree> = {
     },
     sidebar: {
       title: "Priorite immediate",
-      subtitle:
-        "Traitez d'abord ce qui bloque l'operationnel.",
+      subtitle: "Traitez d'abord ce qui bloque l'operationnel.",
       cta: "Ouvrir le centre de traitement",
       groups: {
         pilotage: "Pilotage",

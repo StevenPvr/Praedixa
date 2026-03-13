@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "packages/shared-types" },
+    { "path": "packages/telemetry" },
     { "path": "app-api-ts" },
     { "path": "app-connectors" },
     { "path": "packages/ui" },

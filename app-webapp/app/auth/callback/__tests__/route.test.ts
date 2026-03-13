@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockRedirect = vi.fn();
+const mockJson = vi.fn();
 
 const mockClearAuthCookies = vi.fn();
 const mockBuildSessionData = vi.fn();
@@ -14,10 +15,12 @@ const mockSignSession = vi.fn();
 const mockTimingSafeEqual = vi.fn();
 const mockUserFromAccessToken = vi.fn();
 const mockResolveAuthAppOrigin = vi.fn();
+const mockConsumeRateLimit = vi.fn();
 
 vi.mock("next/server", () => ({
   NextResponse: {
     redirect: (...args: unknown[]) => mockRedirect(...args),
+    json: (...args: unknown[]) => mockJson(...args),
   },
 }));
 
@@ -45,6 +48,10 @@ vi.mock("@/lib/auth/origin", () => ({
     mockResolveAuthAppOrigin(...args),
 }));
 
+vi.mock("@/lib/auth/rate-limit", () => ({
+  consumeRateLimit: (...args: unknown[]) => mockConsumeRateLimit(...args),
+}));
+
 import { GET } from "../route";
 
 function createRedirectResponse(url: string | URL) {
@@ -56,6 +63,16 @@ function createRedirectResponse(url: string | URL) {
     },
     cookies: {
       delete: vi.fn(),
+      set: vi.fn(),
+    },
+  };
+}
+
+function createJsonResponse(body: unknown, init?: { status?: number }) {
+  return {
+    body,
+    status: init?.status ?? 200,
+    headers: {
       set: vi.fn(),
     },
   };
@@ -91,6 +108,9 @@ describe("GET /auth/callback (webapp)", () => {
     mockRedirect.mockImplementation((url: string | URL) =>
       createRedirectResponse(url),
     );
+    mockJson.mockImplementation((body: unknown, init?: { status?: number }) =>
+      createJsonResponse(body, init),
+    );
 
     mockGetOidcEnv.mockReturnValue({
       issuerUrl: "https://sso.praedixa.com",
@@ -118,6 +138,12 @@ describe("GET /auth/callback (webapp)", () => {
       expires_in: 900,
       refresh_expires_in: 7200,
     });
+    mockConsumeRateLimit.mockResolvedValue({
+      allowed: true,
+      retryAfterSeconds: 0,
+      remaining: 29,
+      resetAtEpochSeconds: 2_000_000_000,
+    });
     mockUserFromAccessToken.mockReturnValue({
       id: "user-1",
       email: "ops@praedixa.com",
@@ -142,6 +168,25 @@ describe("GET /auth/callback (webapp)", () => {
     mockSignSession.mockResolvedValue("signed-session");
   });
 
+  it("fails closed with 500 when no explicit public auth origin can be resolved", async () => {
+    mockResolveAuthAppOrigin.mockImplementationOnce(() => {
+      throw new Error(
+        "Missing AUTH_APP_ORIGIN (or NEXT_PUBLIC_APP_ORIGIN) for production auth redirects",
+      );
+    });
+
+    const response = (await GET(
+      createMockRequest({ code: "valid-code", state: "state-123" }),
+    )) as {
+      body: { error: string };
+      status: number;
+    };
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({ error: "oidc_config_missing" });
+    expect(mockRedirect).not.toHaveBeenCalled();
+  });
+
   it("redirects to sanitized next path after successful callback", async () => {
     const response = (await GET(
       createMockRequest(
@@ -162,25 +207,23 @@ describe("GET /auth/callback (webapp)", () => {
   it("uses the configured public auth origin for token exchange and redirects", async () => {
     mockResolveAuthAppOrigin.mockReturnValueOnce("https://app.praedixa.com");
 
-    await GET(
-      {
-        nextUrl: {
-          origin: "http://internal-webapp:3001",
-          searchParams: new URLSearchParams("code=valid-code&state=state-123"),
+    await GET({
+      nextUrl: {
+        origin: "http://internal-webapp:3001",
+        searchParams: new URLSearchParams("code=valid-code&state=state-123"),
+      },
+      cookies: {
+        get: (name: string) => {
+          const values: Record<string, string> = {
+            prx_web_state: "state-123",
+            prx_web_verifier: "verifier-123",
+            prx_web_next: "/dashboard",
+          };
+          const value = values[name];
+          return value ? { name, value } : undefined;
         },
-        cookies: {
-          get: (name: string) => {
-            const values: Record<string, string> = {
-              prx_web_state: "state-123",
-              prx_web_verifier: "verifier-123",
-              prx_web_next: "/dashboard",
-            };
-            const value = values[name];
-            return value ? { name, value } : undefined;
-          },
-        },
-      } as Parameters<typeof GET>[0],
-    );
+      },
+    } as Parameters<typeof GET>[0]);
 
     expect(mockExchangeCodeForTokens).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -306,22 +349,29 @@ describe("GET /auth/callback (webapp)", () => {
   });
 
   it("redirects to /login with rate_limited when callback attempts are throttled", async () => {
-    const request = createMockRequest(
-      { code: "valid-code", state: "state-123" },
-      {
-        prx_web_state: "state-123",
-        prx_web_verifier: "verifier-123",
-        prx_web_next: "/dashboard",
-      },
-    );
+    mockConsumeRateLimit.mockResolvedValueOnce({
+      allowed: false,
+      retryAfterSeconds: 90,
+      remaining: 0,
+      resetAtEpochSeconds: 2_000_000_000,
+    });
 
-    for (let i = 0; i < 30; i += 1) {
-      await GET(request);
-    }
-
-    const response = (await GET(request)) as { redirectUrl: string };
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-123" },
+        {
+          prx_web_state: "state-123",
+          prx_web_verifier: "verifier-123",
+          prx_web_next: "/dashboard",
+        },
+      ),
+    )) as {
+      redirectUrl: string;
+      headers: { set: ReturnType<typeof vi.fn> };
+    };
     expect(response.redirectUrl).toBe(
       "https://app.praedixa.com/login?error=rate_limited",
     );
+    expect(response.headers.set).toHaveBeenCalledWith("Retry-After", "90");
   });
 });

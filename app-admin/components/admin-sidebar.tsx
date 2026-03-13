@@ -15,15 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@praedixa/ui";
 import { PraedixaLogo } from "./praedixa-logo";
-import { canAccessPath } from "@/lib/auth/route-access";
-
-interface NavItem {
-  id: string;
-  label: string;
-  href: string;
-  icon: LucideIcon;
-  group: "pilotage" | "operations" | "gouvernance";
-}
+import { ADMIN_GLOBAL_NAV_ITEMS, canAccessPath } from "@/lib/auth/route-access";
 
 interface AdminSidebarProps {
   currentPath: string;
@@ -34,51 +26,24 @@ interface AdminSidebarProps {
   permissions?: readonly string[] | null;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  {
-    id: "home",
-    label: "Accueil",
-    href: "/",
-    icon: Home,
-    group: "pilotage",
-  },
-  {
-    id: "clients",
-    label: "Clients",
-    href: "/clients",
-    icon: Building2,
-    group: "operations",
-  },
-  {
-    id: "contact",
-    label: "Demandes contact",
-    href: "/demandes-contact",
-    icon: Mail,
-    group: "operations",
-  },
-  {
-    id: "journal",
-    label: "Journal",
-    href: "/journal",
-    icon: BookOpen,
-    group: "gouvernance",
-  },
-  {
-    id: "settings",
-    label: "Parametres",
-    href: "/parametres",
-    icon: Settings,
-    group: "gouvernance",
-  },
-];
+const NAV_ICONS: Record<string, LucideIcon> = {
+  clients: Building2,
+  contact: Mail,
+  home: Home,
+  journal: BookOpen,
+  settings: Settings,
+};
 
-const GROUP_LABELS: Record<NavItem["group"], string> = {
+const GROUP_LABELS: Record<
+  (typeof ADMIN_GLOBAL_NAV_ITEMS)[number]["group"],
+  string
+> = {
   pilotage: "Pilotage",
   operations: "Operations",
   gouvernance: "Gouvernance",
 };
 
-const GROUP_ORDER: Array<NavItem["group"]> = [
+const GROUP_ORDER: Array<(typeof ADMIN_GLOBAL_NAV_ITEMS)[number]["group"]> = [
   "pilotage",
   "operations",
   "gouvernance",
@@ -95,8 +60,10 @@ export function AdminSidebar({
   const visibleNavItems = React.useMemo(
     () =>
       permissions == null
-        ? NAV_ITEMS
-        : NAV_ITEMS.filter((item) => canAccessPath(item.href, permissions)),
+        ? ADMIN_GLOBAL_NAV_ITEMS
+        : ADMIN_GLOBAL_NAV_ITEMS.filter((item) =>
+            canAccessPath(item.href, permissions),
+          ),
     [permissions],
   );
 
@@ -161,7 +128,7 @@ export function AdminSidebar({
               )}
               <ul className="space-y-0.5" role="list">
                 {items.map((item) => {
-                  const Icon = item.icon;
+                  const Icon = NAV_ICONS[item.icon] ?? Home;
                   const active = isActive(item.href);
 
                   return (
@@ -186,7 +153,10 @@ export function AdminSidebar({
                               : "text-sidebar-text-muted hover:bg-sidebar-hover hover:text-sidebar-text",
                           )}
                         >
-                          <Icon className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />
+                          <Icon
+                            className="h-4.5 w-4.5 shrink-0"
+                            aria-hidden="true"
+                          />
                           {!collapsed && (
                             <span className="min-w-0 flex-1 truncate">
                               {item.label}
@@ -212,7 +182,9 @@ export function AdminSidebar({
                   {userEmail.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs text-sidebar-text">{userEmail}</p>
+                  <p className="truncate text-xs text-sidebar-text">
+                    {userEmail}
+                  </p>
                   <p className="text-[10px] uppercase tracking-wider text-sidebar-text-muted">
                     Super Admin
                   </p>

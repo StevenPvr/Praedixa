@@ -20,7 +20,8 @@ vi.mock("@/lib/auth/oidc", () => ({
 }));
 
 vi.mock("@/lib/auth/request-session", () => ({
-  resolveRequestSession: (...args: unknown[]) => mockResolveRequestSession(...args),
+  resolveRequestSession: (...args: unknown[]) =>
+    mockResolveRequestSession(...args),
 }));
 
 vi.mock("@/lib/auth/rate-limit", () => ({
@@ -100,9 +101,8 @@ describe("GET /auth/session (webapp)", () => {
   });
 
   it("returns current user without exposing the access token", async () => {
-    const response = await GET(
-      createMockRequest({}, { prx_web_sess: "session-cookie" }),
-    );
+    const request = createMockRequest({}, { prx_web_sess: "session-cookie" });
+    const response = await GET(request);
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -115,6 +115,7 @@ describe("GET /auth/session (webapp)", () => {
       },
     });
     expect(response.body).not.toHaveProperty("accessToken");
+    expect(mockIsSameOriginBrowserRequest).toHaveBeenCalledWith(request);
   });
 
   it("rejects cross-site browser requests before session resolution", async () => {

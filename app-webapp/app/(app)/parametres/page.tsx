@@ -10,7 +10,8 @@ const NOTIFICATIONS_STORAGE_KEY = "praedixa_notifications_critical_only";
 
 export default function ParametresPage() {
   const currentUser = useCurrentUser();
-  const { locale, setLocale } = useI18n();
+  const { locale, preferencesSyncError, preferencesSyncState, setLocale } =
+    useI18n();
   const { selectedSiteId } = useSiteScope();
   const {
     config: decisionConfig,
@@ -40,7 +41,19 @@ export default function ParametresPage() {
     [decisionConfig],
   );
   const defaultHorizon =
-    activeHorizons.find((horizon) => horizon.isDefault) ?? activeHorizons[0] ?? null;
+    activeHorizons.find((horizon) => horizon.isDefault) ??
+    activeHorizons[0] ??
+    null;
+  const isLocaleSelectDisabled =
+    preferencesSyncState === "loading" ||
+    preferencesSyncState === "saving" ||
+    preferencesSyncState === "unavailable";
+  const localeStatusId =
+    preferencesSyncState === "loading" || preferencesSyncState === "saving"
+      ? "preferences-sync-status"
+      : preferencesSyncError
+        ? "preferences-sync-error"
+        : undefined;
 
   return (
     <div className="min-h-full space-y-8">
@@ -59,15 +72,21 @@ export default function ParametresPage() {
         <dl className="mt-3 grid gap-3 text-sm text-ink-secondary sm:grid-cols-2">
           <div className="rounded-lg bg-surface-sunken px-3 py-2">
             <dt>Email</dt>
-            <dd className="font-medium text-ink">{currentUser?.email ?? "--"}</dd>
+            <dd className="font-medium text-ink">
+              {currentUser?.email ?? "--"}
+            </dd>
           </div>
           <div className="rounded-lg bg-surface-sunken px-3 py-2">
             <dt>Role</dt>
-            <dd className="font-medium text-ink">{currentUser?.role ?? "--"}</dd>
+            <dd className="font-medium text-ink">
+              {currentUser?.role ?? "--"}
+            </dd>
           </div>
           <div className="rounded-lg bg-surface-sunken px-3 py-2 sm:col-span-2">
             <dt>Organisation</dt>
-            <dd className="font-medium text-ink">{currentUser?.organizationId ?? "--"}</dd>
+            <dd className="font-medium text-ink">
+              {currentUser?.organizationId ?? "--"}
+            </dd>
           </div>
         </dl>
       </section>
@@ -80,7 +99,11 @@ export default function ParametresPage() {
             <span className="text-sm font-medium text-ink">Langue</span>
             <select
               value={locale}
-              onChange={(event) => setLocale(event.target.value === "en" ? "en" : "fr")}
+              onChange={(event) =>
+                setLocale(event.target.value === "en" ? "en" : "fr")
+              }
+              disabled={isLocaleSelectDisabled}
+              aria-describedby={localeStatusId}
               className="h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-ink outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
             >
               <option value="fr">Francais</option>
@@ -94,21 +117,48 @@ export default function ParametresPage() {
               <input
                 type="checkbox"
                 checked={criticalOnly}
-                onChange={(event) => handleCriticalOnlyChange(event.target.checked)}
+                onChange={(event) =>
+                  handleCriticalOnlyChange(event.target.checked)
+                }
                 className="h-4 w-4 rounded border-border"
               />
               Alertes critiques uniquement
             </label>
           </div>
         </div>
+
+        {preferencesSyncState === "loading" ||
+        preferencesSyncState === "saving" ? (
+          <p
+            id="preferences-sync-status"
+            className="mt-3 text-sm text-ink-secondary"
+          >
+            {preferencesSyncState === "loading"
+              ? "Synchronisation des preferences en cours..."
+              : "Enregistrement des preferences..."}
+          </p>
+        ) : null}
+
+        {preferencesSyncError ? (
+          <p
+            id="preferences-sync-error"
+            className="mt-3 text-sm text-warning-text"
+          >
+            {preferencesSyncError}
+          </p>
+        ) : null}
       </section>
 
       <section className="rounded-xl border border-border bg-card px-4 py-4">
-        <h2 className="text-base font-semibold text-ink">Configuration active</h2>
+        <h2 className="text-base font-semibold text-ink">
+          Configuration active
+        </h2>
         {decisionConfigLoading ? (
           <p className="mt-3 text-sm text-ink-secondary">Chargement...</p>
         ) : decisionConfigError ? (
-          <p className="mt-3 text-sm text-warning-text">{decisionConfigError}</p>
+          <p className="mt-3 text-sm text-warning-text">
+            {decisionConfigError}
+          </p>
         ) : !decisionConfig ? (
           <p className="mt-3 text-sm text-ink-secondary">
             Configuration indisponible.
@@ -116,7 +166,10 @@ export default function ParametresPage() {
         ) : (
           <div className="mt-3 space-y-3 text-sm text-ink-secondary">
             <p>
-              Version: <span className="font-mono text-ink">{decisionConfig.versionId}</span>
+              Version:{" "}
+              <span className="font-mono text-ink">
+                {decisionConfig.versionId}
+              </span>
             </p>
             <p>
               Horizon par defaut:{" "}

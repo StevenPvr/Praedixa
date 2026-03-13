@@ -53,7 +53,9 @@ test.describe("Error states", () => {
     await expect(page.getByRole("button", { name: "Reessayer" })).toBeVisible();
   });
 
-  test("API 500 on actions workspace shows error fallback", async ({ page }) => {
+  test("API 500 on actions workspace shows error fallback", async ({
+    page,
+  }) => {
     await page.route("**/api/v1/**decision-workspace/*", (route) =>
       route.fulfill({
         status: 500,

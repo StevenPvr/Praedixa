@@ -27,6 +27,16 @@ function noStoreRedirect(url: string | URL): NextResponse {
   return response;
 }
 
+function createOidcConfigErrorResponse(): NextResponse {
+  const response = NextResponse.json(
+    { error: "oidc_config_missing" },
+    { status: 500 },
+  );
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Pragma", "no-cache");
+  return response;
+}
+
 function clearLoginFlowCookies(response: NextResponse): void {
   response.cookies.delete(LOGIN_STATE_COOKIE);
   response.cookies.delete(LOGIN_VERIFIER_COOKIE);
@@ -51,12 +61,7 @@ export async function GET(request: NextRequest) {
   try {
     appOrigin = resolveAuthAppOrigin(request);
   } catch {
-    const redirect = noStoreRedirect(
-      `${request.nextUrl.origin}/login?error=oidc_config_missing`,
-    );
-    clearAuthCookies(redirect);
-    clearLoginFlowCookies(redirect);
-    return redirect;
+    return createOidcConfigErrorResponse();
   }
 
   const maxAttempts = 30;
@@ -89,7 +94,9 @@ export async function GET(request: NextRequest) {
     !timingSafeEqual(returnedState, expectedState) ||
     !verifier
   ) {
-    const redirect = noStoreRedirect(`${appOrigin}/login?error=auth_callback_failed`);
+    const redirect = noStoreRedirect(
+      `${appOrigin}/login?error=auth_callback_failed`,
+    );
     applyRateLimitHeaders(redirect, maxAttempts, rate);
     clearAuthCookies(redirect);
     clearLoginFlowCookies(redirect);
@@ -108,7 +115,9 @@ export async function GET(request: NextRequest) {
     });
 
     if (!tokenPayload?.access_token) {
-      const redirect = noStoreRedirect(`${appOrigin}/login?error=auth_callback_failed`);
+      const redirect = noStoreRedirect(
+        `${appOrigin}/login?error=auth_callback_failed`,
+      );
       applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);
       clearLoginFlowCookies(redirect);
@@ -118,7 +127,9 @@ export async function GET(request: NextRequest) {
     const user = userFromAccessToken(tokenPayload.access_token, clientId);
     const exp = getTokenExp(tokenPayload.access_token);
     if (!user || !exp) {
-      const redirect = noStoreRedirect(`${appOrigin}/login?error=auth_claims_invalid`);
+      const redirect = noStoreRedirect(
+        `${appOrigin}/login?error=auth_claims_invalid`,
+      );
       applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);
       clearLoginFlowCookies(redirect);
@@ -172,7 +183,9 @@ export async function GET(request: NextRequest) {
 
     return redirect;
   } catch {
-    const redirect = noStoreRedirect(`${appOrigin}/login?error=auth_callback_failed`);
+    const redirect = noStoreRedirect(
+      `${appOrigin}/login?error=auth_callback_failed`,
+    );
     applyRateLimitHeaders(redirect, maxAttempts, rate);
     clearAuthCookies(redirect);
     clearLoginFlowCookies(redirect);

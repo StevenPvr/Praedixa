@@ -5,6 +5,8 @@ Helpers shell partages par plusieurs scripts.
 ## Fichier present
 
 - `pnpm.sh` detecte un binaire `pnpm` utilisable et prepare un wrapper si necessaire.
+- `json-env.sh` serialise une liste de variables d'environnement vers un JSON temporaire sans exposer leurs valeurs dans les arguments CLI.
+- `keycloak.sh` encapsule les appels `kcadm` qui doivent fournir un mot de passe via `KC_CLI_PASSWORD` plutot que `--password` ou `--new-password`.
 
 ## Pourquoi ce dossier existe
 

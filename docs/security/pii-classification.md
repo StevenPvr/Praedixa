@@ -24,20 +24,20 @@ Chaque champ est classe selon trois niveaux :
 
 ### 2.1 User (`users`)
 
-| Champ              | Type DB     | Classification  | Chiffrement au repos | Masquage | Retention                  |
-| ------------------ | ----------- | --------------- | -------------------- | -------- | -------------------------- |
-| `id`               | UUID PK     | PII Indirecte   | Non                  | Non      | Duree du compte            |
-| `organization_id`  | UUID FK     | Operationnelle  | Non                  | Non      | Duree du compte            |
-| `auth_user_id`     | String(255) | PII Indirecte   | Non                  | Non      | Duree du compte            |
-| `email`            | String(320) | **PII Directe** | Non (index unique)   | Non      | **GAP** : pas de retention |
-| `email_verified`   | Boolean     | Operationnelle  | Non                  | Non      | Duree du compte            |
-| `role`             | Enum        | Operationnelle  | Non                  | Non      | Duree du compte            |
-| `status`           | Enum        | Operationnelle  | Non                  | Non      | Duree du compte            |
-| `employee_id`      | UUID        | PII Indirecte   | Non                  | Non      | Duree du compte            |
-| `last_login_at`    | DateTime    | PII Indirecte   | Non                  | Non      | **GAP** : comportemental   |
-| `mfa_enabled`      | Boolean     | Securite        | Non                  | Non      | Duree du compte            |
-| `locale`           | String(10)  | Operationnelle  | Non                  | Non      | Duree du compte            |
-| `timezone`         | String(50)  | Operationnelle  | Non                  | Non      | Duree du compte            |
+| Champ             | Type DB     | Classification  | Chiffrement au repos | Masquage | Retention                  |
+| ----------------- | ----------- | --------------- | -------------------- | -------- | -------------------------- |
+| `id`              | UUID PK     | PII Indirecte   | Non                  | Non      | Duree du compte            |
+| `organization_id` | UUID FK     | Operationnelle  | Non                  | Non      | Duree du compte            |
+| `auth_user_id`    | String(255) | PII Indirecte   | Non                  | Non      | Duree du compte            |
+| `email`           | String(320) | **PII Directe** | Non (index unique)   | Non      | **GAP** : pas de retention |
+| `email_verified`  | Boolean     | Operationnelle  | Non                  | Non      | Duree du compte            |
+| `role`            | Enum        | Operationnelle  | Non                  | Non      | Duree du compte            |
+| `status`          | Enum        | Operationnelle  | Non                  | Non      | Duree du compte            |
+| `employee_id`     | UUID        | PII Indirecte   | Non                  | Non      | Duree du compte            |
+| `last_login_at`   | DateTime    | PII Indirecte   | Non                  | Non      | **GAP** : comportemental   |
+| `mfa_enabled`     | Boolean     | Securite        | Non                  | Non      | Duree du compte            |
+| `locale`          | String(10)  | Operationnelle  | Non                  | Non      | Duree du compte            |
+| `timezone`        | String(50)  | Operationnelle  | Non                  | Non      | Duree du compte            |
 
 **Risques** :
 

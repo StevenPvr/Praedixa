@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "https://schemas.praedixa.dev/contracts/decisionops/action-dispatch.schema.json",
+  "title": "Praedixa Action Dispatch",
+  "description": "Versioned execution record for dry-run, dispatch, retries, acknowledgments and fallback handling.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "schema_version",
+    "action_id",
+    "contract_id",
+    "contract_version",
+    "recommendation_id",
+    "status",
+    "dispatch_mode",
+    "template",
+    "destination",
+    "permissions_context",
+    "idempotency_key",
+    "payload_preview",
+    "attempts",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "kind": {
+      "const": "ActionDispatch"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "action_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "contract_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]{2,127}$"
+    },
+    "contract_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "recommendation_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "approval_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "status": {
+      "enum": [
+        "dry_run",
+        "pending",
+        "dispatched",
+        "acknowledged",
+        "failed",
+        "retried",
+        "canceled"
+      ]
+    },
+    "dispatch_mode": {
+      "enum": ["dry_run", "live", "sandbox"]
+    },
+    "template": {
+      "$ref": "#/$defs/template"
+    },
+    "destination": {
+      "$ref": "#/$defs/destination"
+    },
+    "permissions_context": {
+      "$ref": "#/$defs/permissionsContext"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 200
+    },
+    "payload_preview": {
+      "$ref": "#/$defs/freeformObject"
+    },
+    "payload_final": {
+      "$ref": "#/$defs/freeformObject"
+    },
+    "attempts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dispatchAttempt"
+      }
+    },
+    "fallback": {
+      "$ref": "#/$defs/fallback"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    },
+    "freeformObject": {
+      "type": "object"
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "template_id",
+        "template_version",
+        "action_type",
+        "destination_type"
+      ],
+      "properties": {
+        "template_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]{2,127}$"
+        },
+        "template_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "action_type": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "destination_type": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        }
+      }
+    },
+    "destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system", "target_resource_type"],
+      "properties": {
+        "system": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "connector_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "target_resource_type": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+        },
+        "target_resource_id": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "sandbox": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "permissionsContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed_by_contract", "permission_keys"],
+      "properties": {
+        "allowed_by_contract": {
+          "type": "boolean"
+        },
+        "permission_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "dispatchAttempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempt_number", "status", "dispatched_at"],
+      "properties": {
+        "attempt_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "enum": [
+            "dispatched",
+            "acknowledged",
+            "failed",
+            "retried",
+            "canceled"
+          ]
+        },
+        "dispatched_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "latency_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "target_reference": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "error_code": {
+          "type": "string",
+          "pattern": "^[A-Z0-9_]{2,64}$"
+        },
+        "error_message": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      }
+    },
+    "fallback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "channel"],
+      "properties": {
+        "status": {
+          "enum": ["not_needed", "prepared", "executed", "dismissed"]
+        },
+        "channel": {
+          "enum": ["export", "link", "notification", "task_copy"]
+        },
+        "reference": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "prepared_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "executed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

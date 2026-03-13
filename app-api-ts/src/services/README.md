@@ -34,6 +34,16 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
   - service agrege pour organisations, utilisateurs, onboarding, billing, conversations, alerts et datasets admin
   - expose un point d'entree unique cote handlers admin
 
+- `decisionops-runtime.ts`
+  - persistance read-model pour `Approval`, `ActionDispatch` et `LedgerEntry`
+  - initialisation transactionnelle du triplet approval/action/ledger a la creation d'une `operational_decision`
+  - lectures admin read-only pour inbox d'approbation, detail de dispatch et detail de ledger
+
+- `decisionops-runtime-approval.ts`
+  - mutation persistante des decisions d'approbation admin
+  - cascade coherente en cas de rejet (annulation des approbations soeurs encore ouvertes, annulation du dispatch pending)
+  - synchronisation du snapshot ledger interne sans pretendre qu'un write-back externe a deja eu lieu
+
 ## Flux standard
 
 1. `routes.ts` valide la requete et le contexte.
@@ -51,5 +61,7 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
 
 - Ajouter une nouvelle lecture SQL produit/admin : `operational-data.ts`, `gold-explorer.ts` ou `admin-monitoring.ts`.
 - Ajouter une operation admin transverse : `admin-backoffice.ts`.
+- Ajouter une lecture ou une initialisation DecisionOps persistante : `decisionops-runtime.ts`.
+- Ajouter une mutation d'approbation persistante : `decisionops-runtime-approval.ts`.
 - Modifier le moteur de configuration de decision : `decision-config.ts` + migration SQL si schema touche.
 - Modifier les garde-fous DB : `persistence.ts`.

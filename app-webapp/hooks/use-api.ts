@@ -130,6 +130,8 @@ export function useApiGet<T>(
     async (signal: AbortSignal, fetchOptions?: FetchOptions) => {
       if (!url) {
         clearRetryTimer(retryTimerRef);
+        setData((current) => (current === null ? current : null));
+        setError((current) => (current === null ? current : null));
         setLoading(false);
         return;
       }
@@ -163,10 +165,15 @@ export function useApiGet<T>(
           setError(getErrorMessage(err));
         }
 
-        if (shouldScheduleRetry(err, autoRetryEnabled, pollInterval, fetchOptions)) {
+        if (
+          shouldScheduleRetry(err, autoRetryEnabled, pollInterval, fetchOptions)
+        ) {
           scheduleRetry(retryTimerRef, retryDelayMs, () => {
             const controller = new AbortController();
-            void fetchData(controller.signal, { silent: true, fromRetry: true });
+            void fetchData(controller.signal, {
+              silent: true,
+              fromRetry: true,
+            });
           });
         }
       } finally {
@@ -284,10 +291,15 @@ export function useApiGetPaginated<T>(
           setError(getErrorMessage(err));
         }
 
-        if (shouldScheduleRetry(err, autoRetryEnabled, pollInterval, fetchOptions)) {
+        if (
+          shouldScheduleRetry(err, autoRetryEnabled, pollInterval, fetchOptions)
+        ) {
           scheduleRetry(retryTimerRef, retryDelayMs, () => {
             const controller = new AbortController();
-            void fetchData(controller.signal, { silent: true, fromRetry: true });
+            void fetchData(controller.signal, {
+              silent: true,
+              fromRetry: true,
+            });
           });
         }
       } finally {

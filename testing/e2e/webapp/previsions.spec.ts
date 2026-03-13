@@ -10,12 +10,13 @@ test.describe("Previsions page", () => {
 
   test("displays page title and subtitle", async ({ page }) => {
     await page.goto("/previsions");
+    const main = page.getByRole("main");
 
     await expect(
       page.getByRole("heading", { name: "Previsions 7 jours", level: 1 }),
     ).toBeVisible();
     await expect(
-      page.getByText(
+      main.getByText(
         "Projection de risque et capacite previsionnelle pour orienter les actions.",
       ),
     ).toBeVisible();
@@ -47,10 +48,16 @@ test.describe("Previsions page", () => {
       .catch(() => false);
 
     if (hasDateColumn) {
-      await expect(page.getByRole("columnheader", { name: "Date" }).first()).toBeVisible();
-      await expect(page.getByRole("columnheader", { name: "Demande" }).first()).toBeVisible();
+      await expect(
+        page.getByRole("columnheader", { name: "Date" }).first(),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("columnheader", { name: "Demande" }).first(),
+      ).toBeVisible();
     } else {
-      await expect(page.getByText("Aucune prevision disponible.")).toBeVisible();
+      await expect(
+        page.getByText("Aucune prevision disponible."),
+      ).toBeVisible();
     }
   });
 

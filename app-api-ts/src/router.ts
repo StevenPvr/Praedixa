@@ -8,7 +8,10 @@ import type {
   UserRole,
 } from "./types.js";
 
-function compileTemplate(template: string): { regex: RegExp; paramNames: string[] } {
+function compileTemplate(template: string): {
+  regex: RegExp;
+  paramNames: string[];
+} {
   const chunks = template.split("/").filter((chunk) => chunk.length > 0);
   const paramNames: string[] = [];
   const patternParts = chunks.map((chunk) => {

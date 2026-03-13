@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { evaluateConnectionActivationReadiness } from "./activation-readiness.js";
 import { CONNECTOR_CATALOG } from "./catalog.js";
 import { loadConfig } from "./config.js";
 import { LocalFilePayloadStore, type PayloadStore } from "./payload-store.js";
@@ -33,6 +34,7 @@ import type {
   AuthorizationSession,
   AuthorizationStartInput,
   AuthorizationStartResult,
+  ConnectorActivationReadiness,
   ConnectorAuditEvent,
   ConnectorCatalogItem,
   ConnectorConnection,
@@ -52,6 +54,7 @@ import type {
   SyncDispatchResult,
   SyncRun,
   TestConnectionResult,
+  ConnectorRuntimeEnvironment,
   TriggerSyncInput,
   UpdateConnectionInput,
 } from "./types.js";
@@ -81,6 +84,16 @@ type IngestClientSecretPayload = {
   signingSecret: string | null;
   keyId: string;
 };
+
+export class IngestAuthenticationError extends Error {
+  readonly reason: string;
+
+  constructor(message: string, reason: string) {
+    super(message);
+    this.name = "IngestAuthenticationError";
+    this.reason = reason;
+  }
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -269,6 +282,7 @@ export class ConnectorService {
       | "staging"
       | "production" = "development",
     private readonly allowedOutboundHosts: readonly string[] = [],
+    private readonly allowedSandboxOutboundHosts: readonly string[] = [],
   ) {}
 
   listCatalog() {
@@ -287,6 +301,14 @@ export class ConnectorService {
     connectionId: string,
   ): ConnectorConnection | null {
     return this.store.getConnection(organizationId, connectionId);
+  }
+
+  getConnectionActivationReadiness(
+    organizationId: string,
+    connectionId: string,
+  ): ConnectorActivationReadiness {
+    const connection = this.getConnectionOrThrow(organizationId, connectionId);
+    return this.buildConnectionActivationReadiness(connection);
   }
 
   listAuditEvents(
@@ -443,6 +465,47 @@ export class ConnectorService {
       throw new Error("Connection not found");
     }
     return connection;
+  }
+
+  private getCatalogOAuthDefaults(
+    catalogItem: ConnectorCatalogItem,
+    runtimeEnvironment: ConnectorRuntimeEnvironment,
+  ) {
+    return (
+      catalogItem.oauthDefaults?.[runtimeEnvironment] ??
+      catalogItem.oauthDefaults?.production ??
+      null
+    );
+  }
+
+  private getOutboundPolicy(runtimeEnvironment: ConnectorRuntimeEnvironment): {
+    allowedHosts: readonly string[];
+    allowlistLabel: string;
+    reservedHosts?: readonly string[];
+    reservedLabel?: string;
+  } {
+    if (runtimeEnvironment === "sandbox") {
+      return {
+        allowedHosts: this.allowedSandboxOutboundHosts,
+        allowlistLabel: "CONNECTORS_ALLOWED_SANDBOX_OUTBOUND_HOSTS",
+      };
+    }
+
+    return {
+      allowedHosts: this.allowedOutboundHosts,
+      allowlistLabel: "CONNECTORS_ALLOWED_OUTBOUND_HOSTS",
+      reservedHosts: this.allowedSandboxOutboundHosts,
+      reservedLabel: "sandbox runtimeEnvironment",
+    };
+  }
+
+  private requirePublicBaseUrl(): string {
+    if (this.publicBaseUrl == null || this.publicBaseUrl.length === 0) {
+      throw new Error(
+        "CONNECTORS_PUBLIC_BASE_URL is required to issue public ingest credentials",
+      );
+    }
+    return this.publicBaseUrl;
   }
 
   private requirePayloadStore(): PayloadStore {
@@ -626,10 +689,7 @@ export class ConnectorService {
     organizationId: string,
     connectionId: string,
   ): string {
-    const baseUrl = (this.publicBaseUrl ?? "http://127.0.0.1:8100").replace(
-      /\/$/,
-      "",
-    );
+    const baseUrl = this.requirePublicBaseUrl().replace(/\/$/, "");
     return `${baseUrl}/v1/ingest/${encodeURIComponent(organizationId)}/${encodeURIComponent(
       connectionId,
     )}/events`;
@@ -644,44 +704,190 @@ export class ConnectorService {
     return fromConfig ?? fallback ?? null;
   }
 
-  private validateOutboundUrl(rawUrl: string, label: string): string {
+  private validateOutboundUrl(
+    rawUrl: string,
+    label: string,
+    runtimeEnvironment: ConnectorRuntimeEnvironment,
+  ): string {
+    const policy = this.getOutboundPolicy(runtimeEnvironment);
     return validateOutboundUrl(rawUrl, {
       label,
       nodeEnv: this.nodeEnv,
-      allowedHosts: this.allowedOutboundHosts,
+      allowedHosts: policy.allowedHosts,
+      allowlistLabel: policy.allowlistLabel,
+      reservedHosts: policy.reservedHosts,
+      reservedLabel: policy.reservedLabel,
     });
   }
 
   private validateConnectionUrls(
     vendor: ConnectorVendor,
+    runtimeEnvironment: ConnectorRuntimeEnvironment,
     baseUrl: string | null | undefined,
     config: Record<string, unknown>,
   ): void {
     if (baseUrl != null) {
-      this.validateOutboundUrl(baseUrl, "baseUrl");
+      this.validateOutboundUrl(baseUrl, "baseUrl", runtimeEnvironment);
     }
 
     const testEndpoint = getConfigUrl(config, "testEndpoint");
     if (testEndpoint != null) {
-      this.validateOutboundUrl(testEndpoint, "config.testEndpoint");
+      this.validateOutboundUrl(
+        testEndpoint,
+        "config.testEndpoint",
+        runtimeEnvironment,
+      );
     }
 
     const catalogItem = this.getCatalogItem(vendor);
+    const oauthDefaults = this.getCatalogOAuthDefaults(
+      catalogItem,
+      runtimeEnvironment,
+    );
     const authorizationEndpoint =
       getConfigUrl(config, "authorizationEndpoint") ??
-      catalogItem.oauthDefaults?.authorizationEndpoint ??
+      oauthDefaults?.authorizationEndpoint ??
       null;
     if (authorizationEndpoint != null) {
-      this.validateOutboundUrl(authorizationEndpoint, "authorizationEndpoint");
+      this.validateOutboundUrl(
+        authorizationEndpoint,
+        "authorizationEndpoint",
+        runtimeEnvironment,
+      );
     }
 
     const tokenEndpoint =
       getConfigUrl(config, "tokenEndpoint") ??
-      catalogItem.oauthDefaults?.tokenEndpoint ??
+      oauthDefaults?.tokenEndpoint ??
       null;
     if (tokenEndpoint != null) {
-      this.validateOutboundUrl(tokenEndpoint, "tokenEndpoint");
+      this.validateOutboundUrl(
+        tokenEndpoint,
+        "tokenEndpoint",
+        runtimeEnvironment,
+      );
     }
+  }
+
+  private getMissingRequiredConfigFields(
+    connection: ConnectorConnection,
+    catalogItem: ConnectorCatalogItem,
+  ): string[] {
+    return catalogItem.requiredConfigFields.filter((field) => {
+      if (field === "baseUrl") {
+        return asTrimmedString(connection.baseUrl) == null;
+      }
+      return getConfigUrl(connection.config, field) == null;
+    });
+  }
+
+  private getMissingCredentialFields(
+    connection: ConnectorConnection,
+    catalogItem: ConnectorCatalogItem,
+  ): string[] {
+    if (connection.secretRef != null && connection.secretRef.length > 0) {
+      return [];
+    }
+    return [...(catalogItem.credentialFieldHints[connection.authMode] ?? [])];
+  }
+
+  private hasProbeTarget(connection: ConnectorConnection): boolean {
+    return (
+      asTrimmedString(connection.baseUrl) != null ||
+      getConfigUrl(connection.config, "testEndpoint") != null
+    );
+  }
+
+  private hasOAuthEndpoints(
+    connection: ConnectorConnection,
+    catalogItem: ConnectorCatalogItem,
+  ): boolean {
+    if (connection.authMode !== "oauth2") {
+      return true;
+    }
+
+    const oauthDefaults = this.getCatalogOAuthDefaults(
+      catalogItem,
+      connection.runtimeEnvironment,
+    );
+    return (
+      this.getOptionalUrl(
+        connection,
+        "authorizationEndpoint",
+        oauthDefaults?.authorizationEndpoint,
+      ) != null &&
+      this.getOptionalUrl(
+        connection,
+        "tokenEndpoint",
+        oauthDefaults?.tokenEndpoint,
+      ) != null
+    );
+  }
+
+  private hasValidEndpointConfiguration(
+    connection: ConnectorConnection,
+  ): boolean {
+    try {
+      this.validateConnectionUrls(
+        connection.vendor,
+        connection.runtimeEnvironment,
+        connection.baseUrl,
+        connection.config,
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private buildConnectionActivationReadiness(
+    connection: ConnectorConnection,
+  ): ConnectorActivationReadiness {
+    const catalogItem = this.getCatalogItem(connection.vendor);
+    return evaluateConnectionActivationReadiness({
+      catalogItem,
+      connection,
+      missingRequiredConfigFields: this.getMissingRequiredConfigFields(
+        connection,
+        catalogItem,
+      ),
+      missingCredentialFields: this.getMissingCredentialFields(
+        connection,
+        catalogItem,
+      ),
+      hasStoredCredentials:
+        connection.secretRef != null && connection.secretRef.length > 0,
+      hasOauthEndpoints: this.hasOAuthEndpoints(connection, catalogItem),
+      hasProbeTarget: this.hasProbeTarget(connection),
+      hasValidEndpointConfiguration:
+        this.hasValidEndpointConfiguration(connection),
+    });
+  }
+
+  private assertReadyForConnectionTest(connection: ConnectorConnection): void {
+    const readiness = this.buildConnectionActivationReadiness(connection);
+    if (readiness.isReadyForConnectionTest) {
+      return;
+    }
+    throw new Error(
+      `Connection is not ready for test: ${readiness.blockingIssues
+        .map((issue) => issue.message)
+        .join(" ")}`,
+    );
+  }
+
+  private assertReadyForSync(connection: ConnectorConnection): void {
+    const readiness = this.buildConnectionActivationReadiness(connection);
+    if (readiness.isReadyForSync) {
+      return;
+    }
+    const reasons = [
+      ...readiness.blockingIssues.map((issue) => issue.message),
+      ...readiness.warnings
+        .filter((issue) => issue.code === "connection_not_tested")
+        .map((issue) => issue.message),
+    ];
+    throw new Error(`Connection is not ready for sync: ${reasons.join(" ")}`);
   }
 
   private async ensureOAuthAccessToken(
@@ -693,10 +899,14 @@ export class ConnectorService {
   }> {
     const { record, payload } =
       this.getLatestSecretPayload<Record<string, unknown>>(connection);
+    const oauthDefaults = this.getCatalogOAuthDefaults(
+      this.getCatalogItem(connection.vendor),
+      connection.runtimeEnvironment,
+    );
     const tokenEndpoint = this.getOptionalUrl(
       connection,
       "tokenEndpoint",
-      this.getCatalogItem(connection.vendor).oauthDefaults?.tokenEndpoint,
+      oauthDefaults?.tokenEndpoint,
     );
     if (tokenEndpoint == null) {
       throw new Error("OAuth tokenEndpoint is missing from config");
@@ -704,6 +914,7 @@ export class ConnectorService {
     const validatedTokenEndpoint = this.validateOutboundUrl(
       tokenEndpoint,
       "tokenEndpoint",
+      connection.runtimeEnvironment,
     );
 
     if (record.kind === "oauth2_token") {
@@ -711,6 +922,7 @@ export class ConnectorService {
       const effectiveTokenEndpoint = this.validateOutboundUrl(
         oauthPayload.tokenEndpoint || validatedTokenEndpoint,
         "tokenEndpoint",
+        connection.runtimeEnvironment,
       );
       if (
         !isExpired(oauthPayload.expiresAt) &&
@@ -827,7 +1039,11 @@ export class ConnectorService {
       }
       headers.authorization = `Bearer ${token.accessToken}`;
       const response = await fetch(
-        this.validateOutboundUrl(probeUrl, "probeUrl"),
+        this.validateOutboundUrl(
+          probeUrl,
+          "probeUrl",
+          connection.runtimeEnvironment,
+        ),
         { headers },
       );
       if (!response.ok) {
@@ -862,7 +1078,11 @@ export class ConnectorService {
           ? `${headerPrefix} ${payload.apiKey}`
           : payload.apiKey;
       const response = await fetch(
-        this.validateOutboundUrl(probeUrl, "probeUrl"),
+        this.validateOutboundUrl(
+          probeUrl,
+          "probeUrl",
+          connection.runtimeEnvironment,
+        ),
         { headers },
       );
       if (!response.ok) {
@@ -929,7 +1149,10 @@ export class ConnectorService {
       token == null ||
       token.length < 16
     ) {
-      throw new Error("A valid Bearer ingestion API key is required");
+      throw new IngestAuthenticationError(
+        "A valid Bearer ingestion API key is required",
+        "missing_or_invalid_bearer_token",
+      );
     }
 
     const credentials = this.store.listIngestCredentials(
@@ -959,26 +1182,32 @@ export class ConnectorService {
         (auth.clientIp == null ||
           !credential.allowedIpAddresses.includes(auth.clientIp))
       ) {
-        throw new Error(
+        throw new IngestAuthenticationError(
           "The ingestion credential is not allowed from this client IP",
+          "client_ip_not_allowlisted",
         );
       }
 
       if (credential.authMode === "bearer_hmac") {
         if (auth.keyIdHeader?.trim() !== credential.keyId) {
-          throw new Error("Missing or invalid X-Praedixa-Key-Id header");
+          throw new IngestAuthenticationError(
+            "Missing or invalid X-Praedixa-Key-Id header",
+            "invalid_key_id",
+          );
         }
         if (!isFreshUnixTimestamp(auth.timestampHeader, 300)) {
-          throw new Error(
+          throw new IngestAuthenticationError(
             "X-Praedixa-Timestamp is missing or outside the allowed time window",
+            "invalid_timestamp",
           );
         }
         if (
           payload.signingSecret == null ||
           payload.signingSecret.length < 16
         ) {
-          throw new Error(
+          throw new IngestAuthenticationError(
             "Signing secret is unavailable for this ingestion credential",
+            "missing_signing_secret",
           );
         }
         const rawBody = auth.rawBody ?? "";
@@ -990,7 +1219,10 @@ export class ConnectorService {
             payload.signingSecret,
           )
         ) {
-          throw new Error("Invalid X-Praedixa-Signature header");
+          throw new IngestAuthenticationError(
+            "Invalid X-Praedixa-Signature header",
+            "invalid_signature",
+          );
         }
       }
 
@@ -1000,7 +1232,10 @@ export class ConnectorService {
       };
     }
 
-    throw new Error("The ingestion API key is invalid, revoked or expired");
+    throw new IngestAuthenticationError(
+      "The ingestion API key is invalid, revoked or expired",
+      "credential_not_found",
+    );
   }
 
   issueIngestCredential(
@@ -1021,13 +1256,15 @@ export class ConnectorService {
       throw new Error("expiresAt must be in the future");
     }
 
+    const requireSignature = input.requireSignature !== false;
     const keyId = randomUUID();
     const apiKey = createOpaqueApiKey();
-    const signingSecret = input.requireSignature
+    const signingSecret = requireSignature
       ? createOpaqueApiKey("prdx_sig")
       : null;
-    const authMode: IngestCredentialAuthMode =
-      input.requireSignature === true ? "bearer_hmac" : "bearer";
+    const authMode: IngestCredentialAuthMode = requireSignature
+      ? "bearer_hmac"
+      : "bearer";
     const stored = this.storeDetachedSecret(
       connection,
       "ingest_client",
@@ -1298,7 +1535,17 @@ export class ConnectorService {
 
     const config = isRecord(input.config) ? input.config : {};
     assertNoSecretsInConfig(config);
-    this.validateConnectionUrls(input.vendor, input.baseUrl ?? null, config);
+    const runtimeEnvironment = input.runtimeEnvironment ?? "production";
+    const oauthDefaults = this.getCatalogOAuthDefaults(
+      catalogItem,
+      runtimeEnvironment,
+    );
+    this.validateConnectionUrls(
+      input.vendor,
+      runtimeEnvironment,
+      input.baseUrl ?? null,
+      config,
+    );
     const sourceObjects = this.normalizeSourceObjects(
       catalogItem,
       input.sourceObjects,
@@ -1306,6 +1553,7 @@ export class ConnectorService {
 
     const connection = this.store.createConnection(organizationId, {
       ...input,
+      runtimeEnvironment,
       config: redactSensitive(config),
       sourceObjects,
       syncIntervalMinutes:
@@ -1314,8 +1562,8 @@ export class ConnectorService {
       oauthScopes:
         input.oauthScopes?.length != null && input.oauthScopes.length > 0
           ? [...input.oauthScopes]
-          : catalogItem.oauthDefaults?.defaultScopes != null
-            ? [...catalogItem.oauthDefaults.defaultScopes]
+          : oauthDefaults?.defaultScopes != null
+            ? [...oauthDefaults.defaultScopes]
             : null,
     });
 
@@ -1342,6 +1590,7 @@ export class ConnectorService {
       "connectors.connection.created",
       {
         vendor: connection.vendor,
+        runtimeEnvironment: connection.runtimeEnvironment,
         authMode: connection.authMode,
         sourceObjects: connection.sourceObjects,
         hasCredentials: input.credentials != null || input.secretRef != null,
@@ -1362,12 +1611,15 @@ export class ConnectorService {
   ): ConnectorConnection {
     const connection = this.getConnectionOrThrow(organizationId, connectionId);
     const catalogItem = this.getCatalogItem(connection.vendor);
+    const nextRuntimeEnvironment =
+      input.runtimeEnvironment ?? connection.runtimeEnvironment;
     const nextConfig = isRecord(input.config)
       ? input.config
       : connection.config;
     assertNoSecretsInConfig(nextConfig);
     this.validateConnectionUrls(
       connection.vendor,
+      nextRuntimeEnvironment,
       input.baseUrl ?? connection.baseUrl,
       nextConfig,
     );
@@ -1384,6 +1636,7 @@ export class ConnectorService {
 
     const updated = this.store.updateConnection(organizationId, connectionId, {
       displayName: input.displayName?.trim() || connection.displayName,
+      runtimeEnvironment: nextRuntimeEnvironment,
       config: redactSensitive(nextConfig),
       sourceObjects: nextSourceObjects,
       syncIntervalMinutes:
@@ -1405,6 +1658,7 @@ export class ConnectorService {
       connectionId,
       "connectors.connection.updated",
       {
+        runtimeEnvironment: updated.runtimeEnvironment,
         status: updated.status,
         syncIntervalMinutes: updated.syncIntervalMinutes,
         webhookEnabled: updated.webhookEnabled,
@@ -1429,19 +1683,23 @@ export class ConnectorService {
     }
 
     const catalogItem = this.getCatalogItem(connection.vendor);
+    const oauthDefaults = this.getCatalogOAuthDefaults(
+      catalogItem,
+      connection.runtimeEnvironment,
+    );
     const authorizationEndpoint =
       input.authorizationEndpoint ??
       this.getOptionalUrl(
         connection,
         "authorizationEndpoint",
-        catalogItem.oauthDefaults?.authorizationEndpoint,
+        oauthDefaults?.authorizationEndpoint,
       );
     const tokenEndpoint =
       input.tokenEndpoint ??
       this.getOptionalUrl(
         connection,
         "tokenEndpoint",
-        catalogItem.oauthDefaults?.tokenEndpoint,
+        oauthDefaults?.tokenEndpoint,
       );
     if (authorizationEndpoint == null || tokenEndpoint == null) {
       throw new Error(
@@ -1451,10 +1709,12 @@ export class ConnectorService {
     const validatedAuthorizationEndpoint = this.validateOutboundUrl(
       authorizationEndpoint,
       "authorizationEndpoint",
+      connection.runtimeEnvironment,
     );
     const validatedTokenEndpoint = this.validateOutboundUrl(
       tokenEndpoint,
       "tokenEndpoint",
+      connection.runtimeEnvironment,
     );
 
     if (input.clientCredentials != null) {
@@ -1479,9 +1739,7 @@ export class ConnectorService {
     const scopes =
       input.scopes?.length != null && input.scopes.length > 0
         ? [...input.scopes]
-        : (connection.oauthScopes ??
-          catalogItem.oauthDefaults?.defaultScopes ??
-          []);
+        : (connection.oauthScopes ?? oauthDefaults?.defaultScopes ?? []);
     const session: AuthorizationSession = {
       id: randomUUID(),
       organizationId,
@@ -1721,17 +1979,7 @@ export class ConnectorService {
     context: AuditContext,
   ): Promise<TestConnectionResult> {
     const connection = this.getConnectionOrThrow(organizationId, connectionId);
-    if (connection.secretRef == null || connection.secretRef.length === 0) {
-      throw new Error(
-        "Connection credentials must be completed before testing",
-      );
-    }
-    if (
-      Object.keys(connection.config).length === 0 &&
-      connection.baseUrl == null
-    ) {
-      throw new Error("Connector config or baseUrl is required before testing");
-    }
+    this.assertReadyForConnectionTest(connection);
 
     const probe = await this.probeConnection(connection);
     const nextScheduledSyncAt = new Date(
@@ -1770,17 +2018,7 @@ export class ConnectorService {
     context: AuditContext,
   ): Promise<SyncDispatchResult> {
     const connection = this.getConnectionOrThrow(organizationId, connectionId);
-    if (connection.status === "disabled") {
-      throw new Error("Connection is disabled");
-    }
-    if (
-      connection.status !== "active" ||
-      connection.authorizationState !== "authorized"
-    ) {
-      throw new Error(
-        "Connection must be authorized and tested before syncing",
-      );
-    }
+    this.assertReadyForSync(connection);
 
     const sourceWindowStart = parseIsoDate(input.sourceWindowStart);
     const sourceWindowEnd = parseIsoDate(input.sourceWindowEnd);
@@ -1870,5 +2108,6 @@ export async function createDefaultConnectorService(): Promise<ConnectorService>
     new LocalFilePayloadStore(config.objectStoreRoot),
     config.nodeEnv,
     config.allowedOutboundHosts,
+    config.allowedSandboxOutboundHosts,
   );
 }

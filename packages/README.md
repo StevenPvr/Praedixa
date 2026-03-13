@@ -5,13 +5,15 @@ Ce dossier contient les packages TypeScript partages par les applications du mon
 ## Role dans le repo
 
 - `shared-types/` centralise les contrats TypeScript consommes par `app-webapp`, `app-admin`, `app-landing` et `app-api-ts`.
+- `telemetry/` centralise l'enveloppe de logs structures et les champs de correlation partages entre runtimes Node et BFF Next.
 - `ui/` centralise les composants React, les hooks UI et les tokens de marque reutilisables.
 
 Le flux habituel est:
 
 1. Faire evoluer les types dans `packages/shared-types`.
-2. Adapter `packages/ui` si l'interface partagee change.
-3. Mettre a jour les apps consommatrices.
+2. Faire evoluer `packages/telemetry` si le contrat runtime d'observabilite change.
+3. Adapter `packages/ui` si l'interface partagee change.
+4. Mettre a jour les apps consommatrices.
 
 ## Commandes utiles
 
@@ -20,6 +22,8 @@ Depuis la racine du repo:
 ```bash
 pnpm --filter @praedixa/shared-types build
 pnpm --filter @praedixa/shared-types test
+pnpm --filter @praedixa/telemetry build
+pnpm --filter @praedixa/telemetry test
 pnpm --filter @praedixa/ui build
 pnpm --filter @praedixa/ui test
 ```
@@ -41,5 +45,7 @@ pnpm build
 
 - `packages/shared-types/README.md`
 - `packages/shared-types/src/README.md`
+- `packages/telemetry/README.md`
+- `packages/telemetry/src/README.md`
 - `packages/ui/README.md`
 - `packages/ui/src/README.md`

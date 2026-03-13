@@ -165,7 +165,9 @@ describe("useApiGet core", () => {
   it("redirects to login on 401 ApiError", async () => {
     mockApiGet.mockRejectedValue(new ApiError("Unauthorized", 401));
 
-    renderHook(() => useApiGet<TestItem>("/api/v1/items", { autoRetry: false }));
+    renderHook(() =>
+      useApiGet<TestItem>("/api/v1/items", { autoRetry: false }),
+    );
 
     await waitFor(() => {
       expect(mockClearAuthSession).toHaveBeenCalled();
@@ -186,7 +188,9 @@ describe("useApiGet core", () => {
       ),
     );
 
-    renderHook(() => useApiGet<TestItem>("/api/v1/items", { autoRetry: false }));
+    renderHook(() =>
+      useApiGet<TestItem>("/api/v1/items", { autoRetry: false }),
+    );
 
     await waitFor(() => {
       expect(mockClearAuthSession).toHaveBeenCalled();

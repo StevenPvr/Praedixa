@@ -125,9 +125,7 @@ export default function ClientDashboardPage() {
     loading: overviewLoading,
     error: overviewError,
     refetch: overviewRefetch,
-  } = useApiGet<OrgOverview>(
-    ADMIN_ENDPOINTS.orgOverview(orgId),
-  );
+  } = useApiGet<OrgOverview>(ADMIN_ENDPOINTS.orgOverview(orgId));
 
   const { mutate: suspend, loading: suspendLoading } = useApiPost<
     Record<string, never>,
@@ -280,7 +278,9 @@ export default function ClientDashboardPage() {
           value={String(mirror?.activeAlerts ?? "-")}
           icon={<AlertTriangle className="h-4 w-4" />}
           variant={
-            mirror?.activeAlerts && mirror.activeAlerts > 0 ? "warning" : undefined
+            mirror?.activeAlerts && mirror.activeAlerts > 0
+              ? "warning"
+              : undefined
           }
         />
         <StatCard
@@ -296,7 +296,9 @@ export default function ClientDashboardPage() {
 
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-ink-secondary">Alertes prioritaires</h3>
+          <h3 className="text-sm font-medium text-ink-secondary">
+            Alertes prioritaires
+          </h3>
           <Card className="rounded-2xl shadow-soft">
             <CardContent className="p-0">
               <DataTable
@@ -309,7 +311,9 @@ export default function ClientDashboardPage() {
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-ink-secondary">Scenarios recents</h3>
+          <h3 className="text-sm font-medium text-ink-secondary">
+            Scenarios recents
+          </h3>
           <Card className="rounded-2xl shadow-soft">
             <CardContent className="p-0">
               <DataTable
@@ -325,22 +329,29 @@ export default function ClientDashboardPage() {
       <div className="grid gap-4 xl:grid-cols-2">
         <Card className="rounded-2xl shadow-soft">
           <CardContent className="space-y-2 p-5">
-            <h3 className="text-sm font-medium text-ink-secondary">Facturation</h3>
+            <h3 className="text-sm font-medium text-ink-secondary">
+              Facturation
+            </h3>
             <div className="grid gap-2 sm:grid-cols-2">
               <p className="text-sm text-ink-tertiary">
                 <span className="text-ink">Plan:</span> {billing?.plan ?? "-"}
               </p>
               <p className="text-sm text-ink-tertiary">
-                <span className="text-ink">Cycle:</span> {billing?.billingCycle ?? "-"}
+                <span className="text-ink">Cycle:</span>{" "}
+                {billing?.billingCycle ?? "-"}
               </p>
               <p className="text-sm text-ink-tertiary">
                 <span className="text-ink">Montant:</span>{" "}
-                {billing?.monthlyAmount != null ? `${billing.monthlyAmount} EUR` : "-"}
+                {billing?.monthlyAmount != null
+                  ? `${billing.monthlyAmount} EUR`
+                  : "-"}
               </p>
               <p className="text-sm text-ink-tertiary">
                 <span className="text-ink">Prochaine echeance:</span>{" "}
                 {billing?.nextBillingDate
-                  ? new Date(billing.nextBillingDate).toLocaleDateString("fr-FR")
+                  ? new Date(billing.nextBillingDate).toLocaleDateString(
+                      "fr-FR",
+                    )
                   : "-"}
               </p>
             </div>
@@ -349,7 +360,9 @@ export default function ClientDashboardPage() {
 
         <Card className="rounded-2xl shadow-soft">
           <CardContent className="space-y-3 p-5">
-            <h3 className="text-sm font-medium text-ink-secondary">Actions admin</h3>
+            <h3 className="text-sm font-medium text-ink-secondary">
+              Actions admin
+            </h3>
             <div className="flex flex-wrap gap-2">
               {org.status === "active" ? (
                 <Button

@@ -6,6 +6,7 @@ import type {
   CoverageAlert,
   DecisionSummary,
   DecisionWorkspace,
+  OperationalDecisionCreateRequest,
   OperationalDecision,
 } from "@praedixa/shared-types";
 import { DataTable, type DataTableColumn } from "@praedixa/ui";
@@ -20,16 +21,6 @@ const SEVERITY_FILTERS: Array<CoverageAlert["severity"] | "all"> = [
   "medium",
   "low",
 ];
-
-interface DecisionBody {
-  coverageAlertId: string;
-  chosenOptionId: string;
-  siteId: string;
-  shift: string;
-  decisionDate: string;
-  horizon: string;
-  gapH: number;
-}
 
 function statusLabel(value: string): string {
   switch (value) {
@@ -103,6 +94,7 @@ export default function ActionsPage() {
   );
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [decisionNotes, setDecisionNotes] = useState("");
   const [historyPage, setHistoryPage] = useState(1);
   const { config: decisionConfig } = useDecisionConfig(selectedSiteId);
 
@@ -153,8 +145,24 @@ export default function ActionsPage() {
     setSelectedOptionId(workspace.recommendedOptionId ?? null);
   }, [workspace?.alert?.id, workspace?.recommendedOptionId]);
 
-  const { mutate: submitDecision, loading: submitLoading, error: submitError } =
-    useApiPost<DecisionBody, OperationalDecision>("/api/v1/operational-decisions");
+  const requiresOverrideNotes =
+    workspace?.recommendedOptionId != null &&
+    selectedOptionId != null &&
+    selectedOptionId !== workspace.recommendedOptionId;
+
+  useEffect(() => {
+    if (!requiresOverrideNotes) {
+      setDecisionNotes("");
+    }
+  }, [requiresOverrideNotes]);
+
+  const {
+    mutate: submitDecision,
+    loading: submitLoading,
+    error: submitError,
+  } = useApiPost<OperationalDecisionCreateRequest, OperationalDecision>(
+    "/api/v1/operational-decisions",
+  );
 
   const {
     data: historyRows,
@@ -170,17 +178,23 @@ export default function ActionsPage() {
 
   async function handleValidateDecision(): Promise<void> {
     if (!selectedAlert || !selectedOptionId) return;
-    const result = await submitDecision({
-      coverageAlertId: selectedAlert.id,
-      chosenOptionId: selectedOptionId,
-      siteId: selectedAlert.siteId,
-      shift: selectedAlert.shift,
-      decisionDate: selectedAlert.alertDate,
-      horizon: selectedAlert.horizon,
-      gapH: selectedAlert.gapH,
-    });
+    const normalizedNotes = decisionNotes.trim();
+    if (requiresOverrideNotes && normalizedNotes.length === 0) {
+      return;
+    }
+
+    const payload: OperationalDecisionCreateRequest = {
+      alertId: selectedAlert.id,
+      optionId: selectedOptionId,
+    };
+    if (normalizedNotes.length > 0) {
+      payload.notes = normalizedNotes;
+    }
+
+    const result = await submitDecision(payload);
     if (result) {
       setSelectedOptionId(null);
+      setDecisionNotes("");
       refetchAlerts();
       refetchHistory();
     }
@@ -260,7 +274,9 @@ export default function ActionsPage() {
               {alertsLoading ? (
                 <p className="mt-3 text-sm text-ink-secondary">Chargement...</p>
               ) : (alerts?.length ?? 0) === 0 ? (
-                <p className="mt-3 text-sm text-ink-secondary">Aucune alerte.</p>
+                <p className="mt-3 text-sm text-ink-secondary">
+                  Aucune alerte.
+                </p>
               ) : (
                 <ul className="mt-3 space-y-2">
                   {(alerts ?? []).map((alert) => {
@@ -283,7 +299,8 @@ export default function ActionsPage() {
                             {alert.siteId} · {alert.alertDate}
                           </p>
                           <p className="text-xs text-ink-secondary">
-                            {String(alert.shift).toUpperCase()} · {alert.severity} ·
+                            {String(alert.shift).toUpperCase()} ·{" "}
+                            {alert.severity} ·
                             {formatHorizonLabel(alert.horizon)} · risque{" "}
                             {formatPercent(alert.pRupture)}
                           </p>
@@ -306,15 +323,21 @@ export default function ActionsPage() {
                   <dl className="mt-3 grid gap-2 text-sm text-ink-secondary sm:grid-cols-2">
                     <div className="rounded-lg bg-surface-sunken px-3 py-2">
                       <dt>Site</dt>
-                      <dd className="font-medium text-ink">{selectedAlert.siteId}</dd>
+                      <dd className="font-medium text-ink">
+                        {selectedAlert.siteId}
+                      </dd>
                     </div>
                     <div className="rounded-lg bg-surface-sunken px-3 py-2">
                       <dt>Risque rupture</dt>
-                      <dd className="font-medium text-ink">{formatPercent(selectedAlert.pRupture)}</dd>
+                      <dd className="font-medium text-ink">
+                        {formatPercent(selectedAlert.pRupture)}
+                      </dd>
                     </div>
                     <div className="rounded-lg bg-surface-sunken px-3 py-2">
                       <dt>Ecart</dt>
-                      <dd className="font-medium text-ink">{selectedAlert.gapH.toFixed(1)}h</dd>
+                      <dd className="font-medium text-ink">
+                        {selectedAlert.gapH.toFixed(1)}h
+                      </dd>
                     </div>
                     <div className="rounded-lg bg-surface-sunken px-3 py-2">
                       <dt>Horizon</dt>
@@ -325,16 +348,24 @@ export default function ActionsPage() {
                   </dl>
                 )}
                 {workspaceError && (
-                  <p className="mt-3 text-sm text-warning-text">{workspaceError}</p>
+                  <p className="mt-3 text-sm text-warning-text">
+                    {workspaceError}
+                  </p>
                 )}
               </div>
 
               <div className="rounded-xl border border-border bg-card p-4">
-                <h2 className="text-sm font-semibold text-ink">Options recommandees</h2>
+                <h2 className="text-sm font-semibold text-ink">
+                  Options recommandees
+                </h2>
                 {workspaceLoading ? (
-                  <p className="mt-3 text-sm text-ink-secondary">Chargement...</p>
+                  <p className="mt-3 text-sm text-ink-secondary">
+                    Chargement...
+                  </p>
                 ) : options.length === 0 ? (
-                  <p className="mt-3 text-sm text-ink-secondary">Aucune option disponible.</p>
+                  <p className="mt-3 text-sm text-ink-secondary">
+                    Aucune option disponible.
+                  </p>
                 ) : (
                   <ul className="mt-3 space-y-2">
                     {options.map((option) => (
@@ -355,13 +386,40 @@ export default function ActionsPage() {
                               : ""}
                           </p>
                           <p className="text-xs text-ink-secondary">
-                            Cout: {Math.round(option.coutTotalEur).toLocaleString("fr-FR")}€ ·
-                            service: {Math.round(option.serviceAttenduPct)}%
+                            Cout:{" "}
+                            {Math.round(option.coutTotalEur).toLocaleString(
+                              "fr-FR",
+                            )}
+                            € · service: {Math.round(option.serviceAttenduPct)}%
                           </p>
                         </button>
                       </li>
                     ))}
                   </ul>
+                )}
+
+                {requiresOverrideNotes && (
+                  <div className="mt-4 space-y-2">
+                    <label
+                      htmlFor="decision-notes"
+                      className="block text-sm font-medium text-ink"
+                    >
+                      Justification de l'override
+                    </label>
+                    <textarea
+                      id="decision-notes"
+                      value={decisionNotes}
+                      onChange={(event) => setDecisionNotes(event.target.value)}
+                      rows={3}
+                      maxLength={1000}
+                      placeholder="Expliquez pourquoi vous vous ecartez de la recommandation."
+                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-primary"
+                    />
+                    <p className="text-xs text-ink-secondary">
+                      Une justification est obligatoire pour valider une option
+                      differente de la recommandation.
+                    </p>
+                  </div>
                 )}
 
                 <div className="mt-4 flex items-center gap-3">
@@ -370,13 +428,20 @@ export default function ActionsPage() {
                     onClick={() => {
                       void handleValidateDecision();
                     }}
-                    disabled={!selectedOptionId || submitLoading}
+                    disabled={
+                      !selectedOptionId ||
+                      submitLoading ||
+                      (requiresOverrideNotes &&
+                        decisionNotes.trim().length === 0)
+                    }
                     className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {submitLoading ? "Validation..." : "Valider la decision"}
                   </button>
                   {submitError && (
-                    <span className="text-sm text-danger-text">{submitError}</span>
+                    <span className="text-sm text-danger-text">
+                      {submitError}
+                    </span>
                   )}
                 </div>
               </div>
@@ -396,7 +461,9 @@ export default function ActionsPage() {
               columns={HISTORY_COLUMNS}
               data={historyRows}
               getRowKey={(row) => row.id}
-              emptyMessage={historyLoading ? "Chargement..." : "Aucune decision"}
+              emptyMessage={
+                historyLoading ? "Chargement..." : "Aucune decision"
+              }
               pagination={{
                 page: historyPage,
                 pageSize: 20,

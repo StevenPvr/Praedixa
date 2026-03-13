@@ -20,7 +20,10 @@ function isTrustedLogoutRequest(request: NextRequest): boolean {
   );
 }
 
-function createNoStoreJsonResponse(body: unknown, status: number): NextResponse {
+function createNoStoreJsonResponse(
+  body: unknown,
+  status: number,
+): NextResponse {
   const response = NextResponse.json(body, { status });
   response.headers.set("Cache-Control", "no-store");
   return response;

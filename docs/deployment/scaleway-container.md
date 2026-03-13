@@ -17,41 +17,54 @@ La landing est prete sur Scaleway en `staging` et `prod`; le cutover public de `
 - Namespaces existants: `landing-staging`, `landing-prod`, `webapp-staging`, `webapp-prod`, `admin-staging`, `admin-prod`, `api-staging`, `api-prod`, `auth-prod`.
 - `auth-prod` (Keycloak) est deployee et `ready`.
 - Containers `landing/webapp/admin/api` sont provisionnes mais restent en `error` tant qu'aucune image n'est deployee (normal).
-- Preflight staging: `pnpm run scw:preflight:staging` passe, avec warning attendu si delegation NS encore Cloudflare.
-- Preflight global deploy readiness: `pnpm run scw:preflight:deploy` (sans deploy).
+- Preflight staging/prod versionne: `./scripts/scw-preflight-deploy.sh staging|prod`, strict par defaut sur la delegation DNS.
+- Preflight global deploy readiness: `./scripts/scw-preflight-deploy.sh all` (sans deploy).
+- Inventaire runtime secrets versionne: `node ./scripts/validate-runtime-secret-inventory.mjs`.
 
 ## Prerequis
 
 - CLI Scaleway configuree (`scw init`, projet actif).
 - `scw`, `jq`, `pnpm`, Docker disponibles localement.
-- Acces DNS du domaine `praedixa.com` (mode transitoire Cloudflare ou delegation complete Scaleway).
+- Acces DNS du domaine `praedixa.com`; le chemin build-ready suppose une verification stricte de la delegation publique vers Scaleway. Un mode `DNS_DELEGATION_MODE=transitional` n'est autorise que comme override explicite et temporaire.
+
+Reference complementaire a garder a cote:
+
+- `docs/deployment/runtime-secrets-inventory.json`
+- `docs/deployment/rollback-targets.json`
+- `docs/deployment/environment-secrets-owners-matrix.md`
 
 ## Scripts de reference
 
-| Commande                                              | Role                                                          |
-| ----------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------- |
-| `pnpm run scw:bootstrap:frontends`                    | Cree namespaces/containers frontends + buckets frontends      |
-| `pnpm run scw:bootstrap:api`                          | Cree namespaces/containers API                                |
-| `pnpm run scw:configure:landing:staging`              | Injecte env vars/secrets landing staging                      |
-| `pnpm run scw:configure:landing:prod`                 | Injecte env vars/secrets landing prod                         |
-| `pnpm run scw:configure:webapp:staging`               | Injecte env vars/secrets webapp staging                       |
-| `pnpm run scw:configure:webapp:prod`                  | Injecte env vars/secrets webapp prod                          |
-| `pnpm run scw:configure:admin:staging`                | Injecte env vars/secrets admin staging                        |
-| `pnpm run scw:configure:admin:prod`                   | Injecte env vars/secrets admin prod                           |
-| `pnpm run scw:configure:api:staging`                  | Injecte env vars/secrets API staging                          |
-| `pnpm run scw:configure:api:prod`                     | Injecte env vars/secrets API prod                             |
-| `pnpm run scw:preflight:deploy`                       | Controle readiness globale staging+prod+landing (sans deploy) |
-| `pnpm run scw:preflight:prod`                         | Controle readiness prod+landing (sans deploy)                 |
-| `pnpm run scw:preflight:staging`                      | Controle readiness infra + DNS staging (sans deploy)          |
-| `pnpm release:build -- --service landing ...`         | Build/push image landing immuable par digest                  |
-| `pnpm release:manifest:create -- ...`                 | Cree un manifest signe pour la release landing                |
-| `pnpm release:deploy -- --manifest ... --env <staging | prod>`                                                        | Deploie landing par digest depuis un manifest signe |
-| `pnpm run scw:deploy:webapp:staging`                  | Build + deploy webapp staging                                 |
-| `pnpm run scw:deploy:webapp:prod`                     | Build + deploy webapp prod                                    |
-| `pnpm run scw:deploy:admin:staging`                   | Build + deploy admin staging                                  |
-| `pnpm run scw:deploy:admin:prod`                      | Build + deploy admin prod                                     |
-| `pnpm run scw:deploy:api:staging`                     | Build + deploy API staging                                    |
-| `pnpm run scw:deploy:api:prod`                        | Build + deploy API prod                                       |
+| Commande                                                        | Role                                                          |
+| --------------------------------------------------------------- | ------------------------------------------------------------- |
+| `pnpm run scw:bootstrap:frontends`                              | Cree namespaces/containers frontends + buckets frontends      |
+| `pnpm run scw:bootstrap:api`                                    | Cree namespaces/containers API                                |
+| `pnpm run scw:configure:landing:staging`                        | Injecte env vars/secrets landing staging                      |
+| `pnpm run scw:configure:landing:prod`                           | Injecte env vars/secrets landing prod                         |
+| `pnpm run scw:configure:webapp:staging`                         | Injecte env vars/secrets webapp staging                       |
+| `pnpm run scw:configure:webapp:prod`                            | Injecte env vars/secrets webapp prod                          |
+| `pnpm run scw:configure:admin:staging`                          | Injecte env vars/secrets admin staging                        |
+| `pnpm run scw:configure:admin:prod`                             | Injecte env vars/secrets admin prod                           |
+| `pnpm run scw:configure:api:staging`                            | Injecte env vars/secrets API staging                          |
+| `pnpm run scw:configure:api:prod`                               | Injecte env vars/secrets API prod                             |
+| `./scripts/scw-preflight-deploy.sh all`                         | Controle readiness globale staging+prod+landing (sans deploy) |
+| `./scripts/scw-preflight-deploy.sh prod`                        | Controle readiness prod+landing (sans deploy)                 |
+| `./scripts/scw-preflight-deploy.sh staging`                     | Controle readiness infra + DNS staging (sans deploy)          |
+| `pnpm release:build -- --service <service> ...`                 | Build/push image immuable par digest                          |
+| `pnpm release:manifest:create -- ...`                           | Cree un manifest signe pour la release multi-service          |
+| `pnpm release:deploy -- --manifest ... --env <env>`             | Deploie par digest depuis un manifest signe                   |
+| `./scripts/scw-rollback-plan.sh --current-manifest ...`         | Selectionne et verifie le manifest precedent pour rollback    |
+| `./scripts/scw-rollback-execute.sh --current-manifest ...`      | Redeploie le manifest precedent et peut enchainer le smoke    |
+| `./scripts/scw-post-deploy-smoke.sh --env <env> --services ...` | Smoke CLI canonique post-deploy ou post-rollback              |
+
+Regle d'exploitation:
+
+- le chemin de release build-ready est `release:build` -> `release:manifest:create` -> `release:deploy` / `release:promote`;
+- les wrappers `scw:deploy:webapp:*`, `scw:deploy:admin:*`, `scw:deploy:api:*` et `scw:deploy:auth:prod` ne sont pas le chemin de release evidencable de reference;
+- les scripts `scw:configure:*` synchronisent maintenant aussi les secrets runtime vers Scaleway Secret Manager sous `/praedixa/<env>/<container>/runtime`.
+- `scw-preflight-deploy.sh` valide d'abord l'inventaire machine-readable `runtime-secrets-inventory.json`, puis controle sur les containers les cles marquees `preflight_required` dans cet inventaire.
+- le chemin rollback standard est maintenant `scw-rollback-plan.sh` puis `scw-rollback-execute.sh`; un rollback image ne doit plus etre reconstruit a la main depuis `scw container update`.
+- `docs/deployment/rollback-targets.json` est la source de verite des targets rollback connues. Tant qu'une surface reste marquee `requires_target_override`, il faut fournir `--target <service>=<container-name>[@region]` a la commande de rollback.
 
 ## Sequence recommandee (sans surprise)
 
@@ -67,25 +80,78 @@ pnpm run scw:bootstrap:api
 3. Verifier avant deploy:
 
 ```bash
-pnpm run scw:preflight:deploy
-pnpm run scw:preflight:staging
+node ./scripts/validate-runtime-secret-inventory.mjs
+./scripts/scw-preflight-deploy.sh all
+./scripts/scw-preflight-deploy.sh staging
 ```
 
 4. Deployer quand valide via runner immuable:
 
 ```bash
-pnpm release:build -- --service landing --ref <git-ref> --tag <tag> --registry-prefix <registry>
-pnpm release:manifest:create -- --ref <git-ref> --output /tmp/landing-manifest.json --image "landing=<registry-image@sha256>"
-pnpm release:deploy -- --manifest /tmp/landing-manifest.json --env staging
-pnpm run scw:deploy:api:staging
-pnpm run scw:deploy:webapp:staging
-pnpm run scw:deploy:admin:staging
-pnpm release:deploy -- --manifest /tmp/landing-manifest.json --env prod
+pnpm release:build -- --service landing --ref <git-ref> --tag <tag> --registry-prefix <registry> --output /tmp/landing.json
+pnpm release:build -- --service webapp --ref <git-ref> --tag <tag> --registry-prefix <registry> --output /tmp/webapp.json
+pnpm release:build -- --service admin --ref <git-ref> --tag <tag> --registry-prefix <registry> --output /tmp/admin.json
+pnpm release:build -- --service api --ref <git-ref> --tag <tag> --registry-prefix <registry> --output /tmp/api.json
+
+pnpm release:manifest:create -- \
+  --ref <git-ref> \
+  --gate-report .git/gate-reports/<sha>.json \
+  --output /tmp/release-manifest.json \
+  --image "landing=$(jq -r '.registry_image' /tmp/landing.json)" \
+  --image "webapp=$(jq -r '.registry_image' /tmp/webapp.json)" \
+  --image "admin=$(jq -r '.registry_image' /tmp/admin.json)" \
+  --image "api=$(jq -r '.registry_image' /tmp/api.json)"
+
+pnpm release:deploy -- --manifest /tmp/release-manifest.json --env staging --services landing,webapp,admin,api
+./scripts/scw-post-deploy-smoke.sh --env staging --services api,webapp,admin
+
+pnpm release:promote -- --manifest /tmp/release-manifest.json --to prod --services landing,webapp,admin,api
+./scripts/scw-post-deploy-smoke.sh --env prod --services api,webapp,admin,auth
 ```
 
 Note de build frontend:
 
 - pour les images Next.js ciblees en `linux/amd64`, preferer une base glibc (`node:*bookworm-slim` ou equivalent) si un build Docker Alpine casse sur des binaires natifs pendant `next build`.
+- pour un monorepo PNPM avec packages workspace utilises par Next (`@praedixa/ui`, `@praedixa/shared-types`, etc.), faire un `pnpm install --frozen-lockfile` propre dans le builder apres `COPY . .`; restaurer seulement le `node_modules` racine depuis un stage precedent ne suffit pas, car les liens package-local de PNPM peuvent manquer et rendre les packages workspace introuvables uniquement dans Docker.
+- exclure aussi les `*.tsbuildinfo` du contexte Docker, ou les supprimer explicitement dans le builder avant compilation: conserver un cache TypeScript incremental sans copier `dist/` peut faire croire a `tsc` que les packages workspace sont deja buildes alors qu'aucun artefact n'existe dans l'image.
+- pour `app-webapp`, l'image runtime cible copie seulement la sortie `standalone` Next.js (`.next/standalone`, `.next/static`, `public`) et demarre via `node server.js`; le bundle `OpenNext` reste reserve au chemin Cloudflare et ne sert pas au deploiement Scaleway.
+- si aucun asset public n'est encore livre par le webapp, garder quand meme `app-webapp/public/` versionne (meme vide) pour que le `COPY` runtime reste deterministe dans l'image.
+
+## One-pagers prospects proteges: bootstrap DNS sans zone grise
+
+Les bootstrap prospects `centaurus` et `skolae` n'acceptent plus un chemin "semi-manuel" ou le container est provisionne mais le DNS resterait a finir plus tard.
+
+Deux modes seulement sont autorises:
+
+1. `SCW_BOOTSTRAP_DNS_MODE=scaleway-managed`
+   - le script cree ou met a jour le `container domain`
+   - il ecrit le CNAME dans la zone DNS Scaleway
+   - il verifie ensuite le binding container, le record dans Scaleway et la resolution publique effective
+
+2. `SCW_BOOTSTRAP_DNS_MODE=external-verified`
+   - le script cree ou rebinde le `container domain`
+   - il n'ecrit pas le DNS
+   - il exige cependant que le CNAME public existe deja et resolve vers la cible attendue avant de reussir
+
+Variables utiles:
+
+- `SCW_BOOTSTRAP_DNS_MODE=scaleway-managed|external-verified`
+- `SCW_BOOTSTRAP_VERIFY_ATTEMPTS` pour la fenetre de verification
+- `SCW_BOOTSTRAP_VERIFY_SLEEP_SECONDS` pour l'intervalle entre deux controles
+
+Exemple avec DNS externe deja prepare:
+
+```bash
+SCW_BOOTSTRAP_DNS_MODE=external-verified \
+SCW_BOOTSTRAP_VERIFY_ATTEMPTS=30 \
+SCW_BOOTSTRAP_VERIFY_SLEEP_SECONDS=5 \
+pnpm run scw:bootstrap:centaurus
+```
+
+Regle d'exploitation:
+
+- si la resolution publique attendue n'est pas observable, le bootstrap doit echouer
+- aucun warning de type "ajouter le CNAME manuellement plus tard" n'est un resultat acceptable
 
 ## Variables requises (configuration containers)
 
@@ -94,23 +160,31 @@ Note de build frontend:
 Variables shell requises:
 
 - `NEXT_PUBLIC_API_URL`
+- `AUTH_APP_ORIGIN`
+- `NEXT_PUBLIC_APP_ORIGIN`
 - `AUTH_OIDC_ISSUER_URL`
+- `AUTH_OIDC_CLIENT_ID`
 - `AUTH_SESSION_SECRET`
-
-Variables shell requises pour `webapp` uniquement (rate limit distribue):
-
 - `AUTH_RATE_LIMIT_REDIS_URL` (ou `RATE_LIMIT_STORAGE_URI`)
+- `AUTH_RATE_LIMIT_KEY_SALT`
 
 Variables optionnelles:
 
-- `AUTH_OIDC_CLIENT_ID` (defaut selon app)
 - `AUTH_OIDC_SCOPE` (defaut: `openid profile email offline_access`)
 - `AUTH_OIDC_CLIENT_SECRET`
 - `AUTH_TRUST_X_FORWARDED_FOR` (`0` ou `1`, defaut: `0`)
 - `AUTH_RATE_LIMIT_KEY_PREFIX` (defaut: `prx:auth:rl`)
-- `AUTH_RATE_LIMIT_KEY_SALT` (recommande)
 - `AUTH_RATE_LIMIT_REDIS_CONNECT_TIMEOUT_MS` (defaut: `300`)
 - `AUTH_RATE_LIMIT_REDIS_COMMAND_TIMEOUT_MS` (defaut: `300`)
+
+Regle d'exploitation:
+
+- `AUTH_APP_ORIGIN` et `NEXT_PUBLIC_APP_ORIGIN` doivent etre l'origin HTTPS publique effective du frontend cible (`staging-app.praedixa.com`, `app.praedixa.com`, etc.);
+- `NEXT_PUBLIC_API_URL` doit pointer vers une API reachable en HTTPS; pour une boucle complete avec integrations sandbox externes, on utilise une pile sandbox explicite, jamais une URL loopback;
+- hors developpement, `webapp` comme `admin` ne doivent plus deployer sans store distribue explicite ni sans `AUTH_RATE_LIMIT_KEY_SALT` ;
+- les preflights staging/deploy controlent maintenant cette exigence a partir de l'inventaire runtime versionne; la cle runtime attendue sur le container reste `AUTH_RATE_LIMIT_REDIS_URL`.
+- les secrets frontend sont synchronises sous `/praedixa/<env>/<container>/runtime` avant application au container;
+- la generation des JSON temporaires ne passe plus aucune valeur secrete dans `argv`.
 
 ### Landing (`scw-configure-landing-env.sh`)
 
@@ -133,6 +207,11 @@ Variables optionnelles:
 - `LANDING_SECURITY_REDIS_CONNECT_TIMEOUT_MS` (defaut: `300`)
 - `LANDING_SECURITY_REDIS_COMMAND_TIMEOUT_MS` (defaut: `300`)
 
+Regle d'exploitation:
+
+- les secrets landing runtime sont synchronises sous `/praedixa/<env>/<container>/runtime` avant application au container;
+- la generation des JSON temporaires ne passe plus aucune valeur secrete dans `argv`.
+
 ### API (`scw-configure-api-env.sh`)
 
 Variables shell requises:
@@ -148,9 +227,46 @@ Variables shell requises:
 - `SCW_SECRET_KEY`
 - `SCW_DEFAULT_PROJECT_ID`
 
-## DNS: deux modes supportes
+Regle d'exploitation:
 
-### 1) Mode transitoire (actuel)
+- les secrets API runtime sont synchronises sous `/praedixa/<env>/<container>/runtime` avant application au container;
+- la generation des JSON temporaires ne passe plus aucune valeur secrete dans `argv`.
+
+### Auth (`scw-configure-auth-env.sh`)
+
+Variables shell requises:
+
+- `KC_DB_URL_HOST`
+- `KC_DB_URL_PORT` (defaut pratique: `5432`)
+- `KC_DB_URL_DATABASE`
+- `KC_DB_USERNAME`
+- `KC_DB_PASSWORD`
+- `KEYCLOAK_ADMIN_PASSWORD`
+
+Variables optionnelles:
+
+- `AUTH_HOSTNAME` (defaut: `auth.praedixa.com`)
+- `KEYCLOAK_ADMIN_USERNAME` (defaut: `kcadmin`)
+
+Regle d'exploitation:
+
+- `KC_DB` est force a `postgres` par le script de configuration;
+- le secret bootstrap admin runtime est synchronise sous `/praedixa/prod/auth-prod/runtime` avant application au container;
+- `KC_DB_PASSWORD` est synchronise sur le meme path secret manager que `KC_BOOTSTRAP_ADMIN_PASSWORD`;
+- la generation des JSON temporaires ne passe plus aucune valeur secrete dans `argv`;
+- le smoke staging n'utilise plus `auth-prod` comme preuve implicite: il faut un `--auth-url` dedie pour valider un host auth staging.
+
+## DNS: modes supportes
+
+Le mode par defaut est `strict`.
+
+### 1) Mode strict (par defaut)
+
+- Delegation NS publique attendue vers Scaleway (`ns0.dom.scw.cloud`, `ns1.dom.scw.cloud`).
+- Sans `dig`, le preflight echoue au lieu de passer silencieusement.
+- Si la delegation n'est pas en place, le preflight echoue.
+
+### 2) Mode transitoire (override explicite)
 
 - Delegation NS publique: Cloudflare.
 - CNAME publics pointes vers Scaleway pour:
@@ -163,13 +279,10 @@ Variables shell requises:
   - `staging-api.praedixa.com`
 - `praedixa.com` / `www.praedixa.com` peuvent rester sur Workers pendant la transition landing.
 
-### 2) Mode delegation complete
-
-- Delegation NS publique vers Scaleway (`ns0.dom.scw.cloud`, `ns1.dom.scw.cloud`).
-- Le preflight peut etre force en mode strict:
+Le preflight ne tolere ce mode qu'avec un override explicite:
 
 ```bash
-DNS_DELEGATION_MODE=full ./scripts/scw-preflight-staging.sh
+DNS_DELEGATION_MODE=transitional ./scripts/scw-preflight-deploy.sh staging
 ```
 
 ## Authentification OIDC (FR)

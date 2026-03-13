@@ -27,9 +27,7 @@ test.describe("Webapp authentication", () => {
 
   test("login page displays OIDC config error", async ({ page }) => {
     await page.goto("/login?error=oidc_config_missing");
-    await expect(
-      page.getByText(/Configuration OIDC invalide\./),
-    ).toBeVisible();
+    await expect(page.getByText(/Configuration OIDC invalide\./)).toBeVisible();
   });
 
   test("unauthenticated access to /dashboard redirects to /login", async ({

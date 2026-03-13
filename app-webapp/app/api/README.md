@@ -4,8 +4,8 @@ Le webapp ne parle pas directement au backend depuis le navigateur. Ce dossier c
 
 ## Route presente
 
-| Route | Fichier | Role |
-| --- | --- | --- |
+| Route               | Fichier                 | Role                                  |
+| ------------------- | ----------------------- | ------------------------------------- |
 | `/api/v1/[...path]` | `v1/[...path]/route.ts` | Proxy authentifie vers l'API Praedixa |
 
 ## Responsabilites du proxy
@@ -14,9 +14,11 @@ Le webapp ne parle pas directement au backend depuis le navigateur. Ce dossier c
 - Verifier la session pour les autres appels.
 - Refaire le refresh si necessaire via `resolveRequestSession`.
 - Injecter `Authorization: Bearer ...` cote serveur.
+- Propager `X-Request-ID`, `traceparent` et `tracestate` vers l'API amont.
 - Bloquer les requetes browser cross-site.
+- Refuser `Sec-Fetch-Site:none` sur le proxy JSON; seul un handler qui opt-in explicitement a ce mode peut l'accepter.
 - Copier la reponse upstream en retirant les hop-by-hop headers.
-- Poser `no-store` et vider les cookies en cas de `401`.
+- Poser `no-store`, reexposer `X-Request-ID` et vider les cookies en cas de `401`.
 
 ## Limites et garde-fous
 

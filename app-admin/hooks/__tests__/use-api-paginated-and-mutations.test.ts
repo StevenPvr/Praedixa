@@ -44,11 +44,7 @@ vi.mock("@/lib/auth/client", () => ({
 }));
 
 import { ApiError } from "@/lib/api/client";
-import {
-  useApiGetPaginated,
-  useApiPatch,
-  useApiPost,
-} from "../use-api";
+import { useApiGetPaginated, useApiPatch, useApiPost } from "../use-api";
 
 interface TestItem {
   id: number;
@@ -131,7 +127,10 @@ describe("useApiGetPaginated", () => {
   });
 
   it("fetches paginated data successfully", async () => {
-    const items: TestItem[] = [{ id: 1, name: "A" }, { id: 2, name: "B" }];
+    const items: TestItem[] = [
+      { id: 1, name: "A" },
+      { id: 2, name: "B" },
+    ];
     mockApiGetPaginated.mockResolvedValue(
       paginatedResponse(items, defaultPagination),
     );

@@ -31,7 +31,10 @@ function createUnauthorizedResponse(clearCookies = true): NextResponse {
   return response;
 }
 
-function applyRateLimitHeaders(response: NextResponse, rate: RateLimitSnapshot): void {
+function applyRateLimitHeaders(
+  response: NextResponse,
+  rate: RateLimitSnapshot,
+): void {
   response.headers.set("X-RateLimit-Limit", String(SESSION_RATE_LIMIT_MAX));
   response.headers.set("X-RateLimit-Remaining", String(rate.remaining));
   response.headers.set("X-RateLimit-Reset", String(rate.resetAtEpochSeconds));

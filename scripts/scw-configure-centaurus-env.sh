@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/json-env.sh"
+
 REGION="fr-par"
 NAMESPACE_NAME="centaurus-prod"
 CONTAINER_NAME="centaurus-prospect"
@@ -32,11 +35,23 @@ if [ -z "$CONTAINER_ID" ]; then
   exit 1
 fi
 
+TMP_DIR="$(mktemp -d)"
+cleanup() {
+  rm -rf "$TMP_DIR"
+}
+trap cleanup EXIT
+
+SECRETS_FILE_PATH="$TMP_DIR/secrets.json"
+
+export BASIC_AUTH_USERNAME BASIC_AUTH_PASSWORD
+write_json_from_env \
+  "$SECRETS_FILE_PATH" \
+  BASIC_AUTH_USERNAME \
+  BASIC_AUTH_PASSWORD
+
 echo "Configuring centaurus protected access (${CONTAINER_ID})"
-scw container container update "$CONTAINER_ID" \
-  region="$REGION" \
-  secret-environment-variables.0.key=BASIC_AUTH_USERNAME \
-  secret-environment-variables.0.value="$BASIC_AUTH_USERNAME" \
-  secret-environment-variables.1.key=BASIC_AUTH_PASSWORD \
-  secret-environment-variables.1.value="$BASIC_AUTH_PASSWORD" >/dev/null
+./scripts/scw-apply-container-config.sh \
+  --container-id "$CONTAINER_ID" \
+  --region "$REGION" \
+  --secrets-file "$SECRETS_FILE_PATH" >/dev/null
 echo "Environment configured for centaurus."

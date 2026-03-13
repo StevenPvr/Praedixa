@@ -1,22 +1,21 @@
-# `app/auth/` - Route handlers d'auth admin
+# `app/auth/` - Handlers auth de l'admin
 
-Ce dossier contient les endpoints serveur qui pilotent le flow OIDC du back-office. Ils ressemblent a ceux du webapp, avec en plus les controles d'origine et de permissions propres a la console super-admin.
+Handlers Next.js server-side du flow OIDC de la console super-admin.
 
 ## Routes
 
-| Route | Fichier | Role |
-| --- | --- | --- |
-| `/auth/login` | `login/route.ts` | Demarre le flow OIDC |
-| `/auth/callback` | `callback/route.ts` | Echange le `code`, cree les cookies et valide l'acces admin |
-| `/auth/session` | `session/route.ts` | Retourne la session admin courante, meme-origin + rate limit |
-| `/auth/logout` | `logout/route.ts` | Nettoie la session et ferme le parcours |
+| Route            | Fichier             | Comportement reel                                                                |
+| ---------------- | ------------------- | -------------------------------------------------------------------------------- |
+| `/auth/login`    | `login/route.ts`    | prepare le flow OIDC et redirige vers l'issuer                                   |
+| `/auth/callback` | `callback/route.ts` | echange le `code`, cree la session admin et refuse les permissions insuffisantes |
+| `/auth/session`  | `session/route.ts`  | GET same-origin only qui renvoie l'utilisateur admin courant et ses permissions  |
+| `/auth/logout`   | `logout/route.ts`   | nettoie la session et ferme le parcours                                          |
 
-## Spec admin
+## Invariants verifies par le code
 
-- Les reponses de session renvoient aussi les `permissions`.
-- Les verifications same-origin utilisent `lib/security/browser-request.ts`.
-- La route session applique un rate limit dedie.
-
-## Tests
-
-- Les tests sont colocalises dans chaque sous-dossier `__tests__/`.
+- les reponses de session renvoient `permissions` en plus du role
+- le callback exige l'acces `admin:console:access`
+- en production, le callback refuse aussi tout token admin sans preuve MFA compatible avec `AUTH_ADMIN_REQUIRED_AMR`
+- `/auth/session` est no-store et same-origin only
+- `/auth/session` renvoie `403` sur echec CSRF, `401` si la session ne peut pas etre resolue et `429` si le rate limit refuse
+- le rate limit auth est fail-close hors developpement: sans store distribue explicite ou sans `AUTH_RATE_LIMIT_KEY_SALT`, les handlers refusent

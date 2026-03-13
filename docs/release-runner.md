@@ -18,9 +18,9 @@ Ce repo contient maintenant un squelette de release immuable orienté runner Sca
   - agrège une ou plusieurs images `service=registry@sha256:...`
   - produit un manifest signé
 - `scripts/release-manifest-sign.sh`
-  - signe un manifest avec une clé HMAC runner
+  - signe un manifest avec une clé HMAC runner déjà provisionnée
 - `scripts/release-manifest-verify.sh`
-  - vérifie la signature d’un manifest
+  - vérifie la signature d’un manifest ainsi que le digest du gate report et des evidences référencées
 - `scripts/scw-release-deploy.sh`
   - lit le manifest et met à jour les containers Scaleway par `registry-image`
 - `scripts/scw-release-promote.sh`
@@ -86,8 +86,9 @@ Ce repo contient maintenant un squelette de release immuable orienté runner Sca
 ## Notes
 
 - Le manifest contient les digests; staging et prod doivent consommer exactement les mêmes images.
-- Le deploy Scaleway Container consomme une reference taggee; le script de deploy derive cette reference a partir de l'image signee du manifest en retirant le suffixe `@sha256:...`.
+- Le deploy Scaleway Container doit consommer exactement la reference `registry_image@sha256:...` signee dans le manifest, jamais un tag mutable rederive.
 - La clé HMAC par défaut vit hors repo: `${HOME}/.praedixa/release-manifest.key`.
+- Cette clé doit être préprovisionnée hors repo avant signature ou vérification; aucun script ne doit créer une nouvelle racine de confiance à la volée.
 - Pour `landing`, ce flow remplace définitivement le legacy `scw-deploy-landing.sh`.
 - Le mapping `service -> container_name` est actuellement embarqué dans le manifest create/deploy. Si vous industrialisez le runner, déplacez ce mapping dans un inventaire d’environnement versionné.
 - `auth` n’est ciblé que pour `prod` dans ce squelette, ce qui reflète l’état courant du repo.

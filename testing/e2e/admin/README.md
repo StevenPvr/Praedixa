@@ -5,6 +5,7 @@ Specs Playwright de l'application d'administration.
 ## Ce qui est teste ici
 
 - login et controle d'acces;
+- smoke minimal post-deploy sur le shell admin et la redirection vers `/login`;
 - navigation et isolation de session entre apps;
 - vues donnees, clients, equipe, journal, previsions et parametres;
 - workspace admin et ses regressions de layout ou messagerie;
@@ -20,4 +21,5 @@ Specs Playwright de l'application d'administration.
 
 ```bash
 pnpm test:e2e:admin
+pnpm test:e2e:smoke
 ```
