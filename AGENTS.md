@@ -103,6 +103,9 @@ After replacing the homepage sector navigation, update the matching landing E2E 
 Before adding a blocking dynamic audit to Git hooks, enforce explicit network and process timeouts so a degraded local service cannot hang `pre-push` indefinitely.
 Before relying on a background server inside a blocking hook script, force-stop it after a short grace period during cleanup so `wait` cannot hang the whole Git hook.
 Before spawning `pnpm`-managed background servers in hook scripts, stop the full child process tree, not just the top-level wrapper PID, or the hook can leak `tsx/node` children and stay stuck.
+Before starting long-lived Next.js servers inside shell-based gates or audits, prefer the built standalone server entrypoint with full process-tree cleanup over `pnpm ... next start`, or the hook can finish its work and still hang in `EXIT` cleanup.
+When a shell gate polls background PIDs during cleanup, treat zombie children as already exited and guard the cleanup trap against reentry, or `pre-push` can hang after the real work already finished.
+When a shell helper starts a long-lived background service whose PID must be tracked, launch it in the current shell and assign `$!` directly instead of wrapping the starter in command substitution, or the service can die with the subshell before later gate steps run.
 Before defining Playwright `webServer` commands for hook-backed E2E gates, launch Next apps from the app-local binary with a dedicated `cwd` instead of a `pnpm` wrapper, or teardown can miss the real server process and stall the hook.
 Before trusting an E2E admin session fixture, inject the explicit permission set into both the mocked access token and the signed session cookie; a `super_admin` role alone does not authorize admin routes.
 Before considering a webapp E2E shell fixture complete, mock provider bootstrap endpoints like `/api/v1/users/me/preferences`, not just visible page data APIs.

@@ -5,6 +5,7 @@ Helpers shell partages par plusieurs scripts.
 ## Fichier present
 
 - `pnpm.sh` detecte un binaire `pnpm` utilisable et prepare un wrapper si necessaire.
+- `process-tree.sh` termine un arbre de process complet et attend l'extinction d'un PID avec timeout borne, en traitant les zombies comme des processus deja sortis pour eviter les hooks pendus sur des wrappers shell ou `pnpm`.
 - `json-env.sh` serialise une liste de variables d'environnement vers un JSON temporaire sans exposer leurs valeurs dans les arguments CLI.
 - `keycloak.sh` encapsule les appels `kcadm` qui doivent fournir un mot de passe via `KC_CLI_PASSWORD` plutot que `--password` ou `--new-password`.
 

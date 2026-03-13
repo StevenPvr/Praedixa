@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 source "${ROOT_DIR}/scripts/lib/pnpm.sh"
+source "${ROOT_DIR}/scripts/lib/process-tree.sh"
 
 mkdir -p .git/gate-work
 
@@ -14,11 +15,22 @@ ADMIN_LOG=".git/gate-work/admin-start.log"
 LANDING_PID=""
 WEBAPP_PID=""
 ADMIN_PID=""
+STARTED_PID=""
+CLEANUP_DONE=0
 
 cleanup() {
+  if ((CLEANUP_DONE)); then
+    return
+  fi
+  CLEANUP_DONE=1
+  trap - EXIT INT TERM
+
   for pid in "$LANDING_PID" "$WEBAPP_PID" "$ADMIN_PID"; do
-    if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
-      kill "$pid" 2>/dev/null || true
+    if [[ -n "$pid" ]] && is_process_alive "$pid"; then
+      terminate_process_tree "$pid" TERM
+      if ! wait_for_pid_exit "$pid" 10; then
+        terminate_process_tree "$pid" KILL
+      fi
       wait "$pid" 2>/dev/null || true
     fi
   done
@@ -29,7 +41,7 @@ wait_for_url() {
   local url="$1"
   local timeout_seconds="${2:-120}"
   local elapsed=0
-  while ! curl -fsS "$url" >/dev/null 2>&1; do
+  while ! curl --connect-timeout 2 --max-time 5 -fsS "$url" >/dev/null 2>&1; do
     sleep 1
     elapsed=$((elapsed + 1))
     if ((elapsed >= timeout_seconds)); then
@@ -48,16 +60,36 @@ PLAYWRIGHT_CHROMIUM_PATH="$(
   pnpm exec node -e "const { chromium } = require('@playwright/test'); console.log(chromium.executablePath())"
 )"
 
+start_standalone_app() {
+  local app_dir="$1"
+  local port="$2"
+  local log_path="$3"
+  local server_path="${ROOT_DIR}/${app_dir}/.next/standalone/${app_dir}/server.js"
+
+  if [[ ! -f "$server_path" ]]; then
+    echo "[frontend-audits] Missing standalone server for ${app_dir}: ${server_path}" >&2
+    echo "[frontend-audits] Run the monorepo build before frontend audits." >&2
+    exit 1
+  fi
+
+  (
+    cd "${ROOT_DIR}/${app_dir}"
+    exec env HOSTNAME="127.0.0.1" PORT="$port" \
+      node ".next/standalone/${app_dir}/server.js" >"$log_path" 2>&1
+  ) &
+  STARTED_PID="$!"
+}
+
 echo "[frontend-audits] Freeing ports..."
 bash ./scripts/e2e-free-ports.sh || true
 
-echo "[frontend-audits] Starting landing/webapp/admin (Next.js start)..."
-pnpm --filter @praedixa/landing exec next start --hostname 127.0.0.1 --port 3000 >"$LANDING_LOG" 2>&1 &
-LANDING_PID="$!"
-pnpm --filter @praedixa/webapp exec next start --hostname 127.0.0.1 --port 3001 >"$WEBAPP_LOG" 2>&1 &
-WEBAPP_PID="$!"
-pnpm --filter @praedixa/admin exec next start --hostname 127.0.0.1 --port 3002 >"$ADMIN_LOG" 2>&1 &
-ADMIN_PID="$!"
+echo "[frontend-audits] Starting landing/webapp/admin standalone servers..."
+start_standalone_app "app-landing" 3000 "${ROOT_DIR}/${LANDING_LOG}"
+LANDING_PID="$STARTED_PID"
+start_standalone_app "app-webapp" 3001 "${ROOT_DIR}/${WEBAPP_LOG}"
+WEBAPP_PID="$STARTED_PID"
+start_standalone_app "app-admin" 3002 "${ROOT_DIR}/${ADMIN_LOG}"
+ADMIN_PID="$STARTED_PID"
 
 wait_for_url "http://127.0.0.1:3000/fr" 180
 wait_for_url "http://127.0.0.1:3001/login" 180

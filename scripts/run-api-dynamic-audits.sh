@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
+source "${ROOT_DIR}/scripts/lib/process-tree.sh"
 
 if ! command -v k6 >/dev/null 2>&1; then
   echo "[api-dynamic] Missing k6 command" >&2
@@ -14,32 +15,20 @@ API_LOG=".git/gate-work/api-dynamic.log"
 API_PID=""
 API_PORT=""
 API_BASE_URL=""
-
-kill_process_tree() {
-  local pid="$1"
-  local signal="${2:-TERM}"
-  local child
-
-  while read -r child; do
-    [[ -n "$child" ]] || continue
-    kill_process_tree "$child" "$signal"
-  done < <(pgrep -P "$pid" 2>/dev/null || true)
-
-  kill -s "$signal" "$pid" 2>/dev/null || true
-}
+CLEANUP_DONE=0
 
 cleanup() {
-  if [[ -n "$API_PID" ]] && kill -0 "$API_PID" 2>/dev/null; then
-    kill_process_tree "$API_PID" TERM
-    local waited=0
-    while kill -0 "$API_PID" 2>/dev/null; do
-      sleep 1
-      waited=$((waited + 1))
-      if ((waited >= 10)); then
-        kill_process_tree "$API_PID" KILL
-        break
-      fi
-    done
+  if ((CLEANUP_DONE)); then
+    return
+  fi
+  CLEANUP_DONE=1
+  trap - EXIT INT TERM
+
+  if [[ -n "$API_PID" ]] && is_process_alive "$API_PID"; then
+    terminate_process_tree "$API_PID" TERM
+    if ! wait_for_pid_exit "$API_PID" 10; then
+      terminate_process_tree "$API_PID" KILL
+    fi
     wait "$API_PID" 2>/dev/null || true
   fi
 }
