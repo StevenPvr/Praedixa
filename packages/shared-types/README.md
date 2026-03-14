@@ -252,6 +252,7 @@ Le helper Node `@praedixa/shared-types/public-contract-node` sert uniquement aux
 | Utilisateurs    | `CreateUserRequest`, `UpdateUserRequest`, `LoginRequest`, `RegisterRequest`                                                 |
 | Previsions      | `RequestForecastRequest`, `ListForecastsRequest`, `WhatIfScenarioRequest`                                                   |
 | Decisions       | `ListDecisionsRequest`, `ReviewDecisionRequest`, `ValidateArbitrageRequest`, `RecordDecisionOutcomeRequest`                 |
+| DecisionOps     | `ActionDispatchDecisionRequest`, `ActionDispatchDecisionResponse`, `LedgerDecisionRequest`, `LedgerDecisionResponse`         |
 | Organisation    | `UpdateOrganizationSettingsRequest`, `UpdateWorkingDaysConfigRequest`                                                       |
 | Datasets        | `ListDatasetsRequest`, `GetDatasetDataRequest`                                                                              |
 | Export/Import   | `ExportRequest`, `ImportRequest`                                                                                            |

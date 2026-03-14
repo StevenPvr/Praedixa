@@ -121,6 +121,12 @@ function applyActionDecision(
           errorMessage,
         });
     }
+
+    throw new PersistenceError(
+      "Action dispatch decision outcome is invalid.",
+      400,
+      "INVALID_ACTION_DISPATCH_DECISION",
+    );
   } catch (error) {
     throw new PersistenceError(
       error instanceof Error
