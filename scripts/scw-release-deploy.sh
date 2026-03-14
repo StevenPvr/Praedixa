@@ -70,11 +70,6 @@ resolve_services() {
   jq -r --arg env "$ENVIRONMENT" '.targets[$env] | keys[]' "$MANIFEST_PATH"
 }
 
-resolve_deploy_image() {
-  local registry_image="$1"
-  printf '%s' "${registry_image%%@sha256:*}"
-}
-
 while IFS= read -r service; do
   if [[ -z "$service" ]]; then
     continue
@@ -89,7 +84,10 @@ while IFS= read -r service; do
     exit 1
   fi
 
-  deploy_image="$(resolve_deploy_image "$registry_image")"
+  if [[ "$registry_image" != *@sha256:* ]]; then
+    echo "Manifest image for service=${service} must include a @sha256 digest" >&2
+    exit 1
+  fi
 
   container_id="$(
     scw container container list region="$region" -o json |
@@ -102,12 +100,12 @@ while IFS= read -r service; do
     exit 1
   fi
 
-  echo "[release-deploy] ${service} -> ${container_name} (${deploy_image})"
+  echo "[release-deploy] ${service} -> ${container_name} (${registry_image})"
   update_output="$(
     scw container container update \
     "$container_id" \
     region="$region" \
-    registry-image="$deploy_image" \
+    registry-image="$registry_image" \
     redeploy=true \
     -w \
     -o json

@@ -52,6 +52,7 @@ Before wiring E2E OIDC defaults into Next auth apps, keep `AUTH_SESSION_SECRET` 
 Before running repo-wide security scans from the monorepo root, exclude nested Git repositories in the workspace so unrelated external projects cannot block the main repo gate.
 Before building or deploying with Dockerfiles that run `pnpm install --frozen-lockfile`, sync `pnpm-lock.yaml` with every changed workspace `package.json`, or release builds will fail on the runner.
 Before shipping a Next.js frontend image for `linux/amd64`, validate the full Docker build under the target platform and prefer a glibc-based base image over Alpine when native build binaries fail.
+Before deploying signed release manifests, preserve each `registry_image` digest in deploy commands and reject tag-only image references.
 
 ## Testing Guidelines
 Vitest is the default unit test runner; place tests as `*.test.ts` or under `__tests__/`. Playwright covers full flows in `testing/e2e/`. Python tests live in `app-api/tests/`. Add or update tests for every behavior change, especially auth, tenant scoping, and deployment scripts. Run the smallest relevant suite before pushing, then rerun the impacted app build.
