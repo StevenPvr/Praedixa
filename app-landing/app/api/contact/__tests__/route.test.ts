@@ -96,6 +96,22 @@ describe("POST /api/contact", () => {
     expect(response.headers.get("Cache-Control")).toBe("no-store");
   });
 
+  it("returns 403 when a trusted production origin arrives as cross-site", async () => {
+    const request = makeRequest(validBody(), {
+      host: "www.praedixa.com",
+      origin: "https://www.praedixa.com",
+      "sec-fetch-site": "cross-site",
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({
+      error: "Origine de requête non autorisée.",
+    });
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+  });
+
   it("returns 403 when source headers are missing", async () => {
     const request = makeRequest(validBody());
 

@@ -20,3 +20,4 @@ Fichiers :
 ## Intégration
 
 Ce dossier est consommé par l'application `app-landing` et s'insère dans son flux runtime, build ou test.
+Les assertions de messaging doivent suivre la homepage canonique actuelle; si la home change de spine ou de wedge, mettre a jour ces tests dans la meme passe.

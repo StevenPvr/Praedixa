@@ -91,6 +91,14 @@ Before adding a global webfont to the landing layout, verify it is needed above 
 Before rebaselining a Lighthouse budget, first remove avoidable bottlenecks on a fresh production build and only then version the new threshold as an explicit measured baseline.
 Before reusing a text accent token inside the landing hero, verify it stays readable on the actual dark media background; tokens tuned for light surfaces should not be reused blindly above the fold.
 Before shipping French landing copy, do one explicit pass for missing accents and natural French typography on every user-visible string you changed.
+Before publishing a landing knowledge or ROI page, strip any internal editorial note or workflow comment from the structured content source so no drafting note can leak to production.
+Before tightening the landing CSP `style-src`, verify the live page does not rely on Framer Motion inline transforms; otherwise production will log CSP violations and silently lose motion behavior.
+Before shipping French public landing copy, remove leftover English positioning labels when a natural French equivalent exists; do not leave hybrids like `Decision layer`, `wedge`, or `Cycle decision` in user-facing text.
+Before finalizing landing mission copy, verify the hero support quote and the `/a-propos` mission section match the approved raison d'être, and do not reuse `Pourquoi maintenant` in both places.
+Before finalizing a landing hero or above-the-fold support block, scan the first viewport for literal duplicate sentences; do not paste the same subtitle or reassurance copy into stacked cards.
+Before shipping copy on a dark landing section, do not invent non-standard Tailwind opacity suffixes like `text-white/72`; use a supported token or an explicit arbitrary color and verify the real browser rendering.
+Before using Tailwind opacity modifiers on custom brand colors like `text-amber-400/55`, verify the class actually compiles in the target app; otherwise use an explicit arbitrary color.
+Before changing landing security helpers or CSP-sensitive files, update at least one abuse test under `app-landing/app/api/*/__tests__` so the public-form boundary stays explicitly covered and hook checks do not drift.
 Before repositioning a persistent hero rail or proof strip, anchor it with the section layout (`flex` / `mt-auto`) instead of compensating with ad hoc margins that depend on headline height.
 Before declaring a landing hero block removed, verify the exact JSX branch is gone and recheck the real desktop rendering instead of assuming adjacent cards were the only remaining element.
 Before trimming a landing explanation of the DecisionOps loop, verify the full product sequence still appears explicitly: federate, predict, calculate, trigger, prove.
@@ -113,6 +121,8 @@ Before using a Node-only contract helper repeatedly in coverage gates, cache par
 Before wiring Schemathesis into a blocking gate, pin the CLI version through the repo helper and keep `--continue-on-failure` plus a machine-readable report enabled, or schema/auth warnings can flap the hook without leaving reproducible evidence.
 Before using Schemathesis in a stateless pre-push gate without real auth fixtures, keep the run in positive deterministic mode; broad negative fuzzing belongs to a dedicated authenticated harness, not to a hook that is supposed to validate the published contract.
 Before defining Playwright `webServer` commands for hook-backed E2E gates, launch Next apps from the app-local binary with a dedicated `cwd` instead of a `pnpm` wrapper, or teardown can miss the real server process and stall the hook.
+Before adding a targeted Playwright root script or gate, scope `PW_SERVER_TARGETS` to the apps under test so a single-suite run does not boot every Next app in the monorepo.
+Before keeping a Scaleway deploy wrapper, require an explicit immutable `registry-image@sha256` or a signed release manifest; do not keep `scw container deploy build-source=...` on repeatable deployment paths.
 Before trusting an E2E admin session fixture, inject the explicit permission set into both the mocked access token and the signed session cookie; a `super_admin` role alone does not authorize admin routes.
 Before considering a webapp E2E shell fixture complete, mock provider bootstrap endpoints like `/api/v1/users/me/preferences`, not just visible page data APIs.
 When a public landing funnel changes slug, endpoint, or canonical heading, update the matching Playwright spec in the same diff so hooks stay aligned with the real published journey.
@@ -128,12 +138,14 @@ Before using a Markdown matrix as release-critical inventory, version an equival
 Before signing JSON evidence with HMAC in shell scripts, sign a canonical JSON serialization and require a pre-provisioned key file; never auto-generate a trust root during signing or verification.
 Before accepting restore-drill evidence in a signed manifest, require one evidence artifact plus digest for every mandatory semantic check, not just a summary status string.
 Before spawning workflow or approval records from a user action, carry both the actor id and actor role from the authenticated request context so separation-of-duties and audit records stay complete.
+Before seeding or persisting a retryable action dispatch, do not mark human fallback as `prepared` before a real failure or explicit escalation, or retry eligibility will be blocked from the start.
 Before reading Gold runtime data or medallion features, reject legacy `mock_*` dataset and column names explicitly instead of silently canonicalizing them.
 Before resolving a Gold client or site scope, require an explicit canonical slug or allowlisted site code; never fall back to demo aliases, overlap heuristics, or raw site tokens.
 Before computing scenario blueprints or Gold proof states, require explicit cost and BAU inputs; never substitute silent zero defaults for missing configuration.
 Before constraining authenticated actor ids in admin/runtime flows, verify the repo treats them as guaranteed UUIDs; if the contract only guarantees opaque auth ids, validate non-empty identity instead of inventing a stricter format.
 Before extracting a legacy bootstrap path into a new strict service, remove stale wrapper-only keyword flags in every caller and test the direct service contract instead of preserving obsolete compatibility arguments.
 Before renaming landing offer vocabulary, update the matching knowledge/services tests in the same change so hooks do not keep asserting an older public wording after the copy is approved.
+Before duplicating landing public copy across multiple dictionaries, keep one source of truth and reference it; duplicated marketing strings drift silently and break published wording.
 Before adding a new admin page or admin proxy endpoint, register both the page policy and the API policy in `admin-route-policies.ts` in the same change, or middleware, navigation, and direct URL access will drift apart.
 Before returning a rate-limit result from shared auth/security helpers, keep the execution mode (`development-local` vs `distributed-required`) explicit on allowed and blocked paths so tests and observability do not infer it indirectly.
 Before importing a new `lucide-react` icon in a shared component covered by global Vitest mocks, add it to `testing/utils/mocks/icons.ts` in the same change or the full app suite will fail on an incomplete module mock.

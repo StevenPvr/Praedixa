@@ -29,7 +29,10 @@ Ici vivent les contenus longs, structures ou semi-editorialises que les pages co
 - les verticales doivent expliciter a la fois les `KPIs` que Praedixa peut predire et les `decisions` que la plateforme peut optimiser pour le secteur
 - chaque verticale doit faire ressortir au moins un levier metier non limite au seul headcount, pour montrer la largeur produit sans refaire une promesse floue de "tout"
 - les contenus knowledge et sectoriels doivent rester alignes sur la promesse publique actuelle: risques business, arbitrages, impact. Ne pas retomber ni dans un jargon de categorie, ni dans quatre verticales qui racontent toutes la meme histoire de staffing.
+- si un contenu mentionne le machine learning ou l'optimisation, l'ancrer dans la qualite de l'arbitrage et la preuve methologique; ne pas le faire glisser vers une promesse de conseil IA generique.
+- si un contenu EN mentionne econometrics, constrained optimization, or forecasting, l'ancrer a l'attribution d'impact et a la decision quality, pas a un discours hype sur AI.
 - quand l'offre publique change de vocabulaire approuve (`preuve sur historique`, `deploiement`, `abonnement`), realigner dans la meme passe les assertions des tests knowledge/services au lieu de laisser un ancien wording DecisionOps ou pilote derivant.
+- ne jamais laisser passer de note editoriale interne ou commentaire de travail dans un contenu public versionne; les modules `knowledge-pages*` doivent rester publiables tels quels.
 
 ## Tests
 

@@ -6,9 +6,13 @@ import { buildLocaleMetadata, localePathMap } from "../../lib/seo/metadata";
 import { HeroSection } from "../../components/homepage/HeroSection";
 import { ProblemSection } from "../../components/homepage/ProblemSection";
 import { SolutionSection } from "../../components/homepage/SolutionSection";
-import { SectorPagesTeaserSection } from "../../components/homepage/SectorPagesTeaserSection";
-import { ClosedLoopTeaserSection } from "../../components/homepage/ClosedLoopTeaserSection";
-import { HomeFaqCtaSection } from "../../components/homepage/HomeFaqCtaSection";
+import { HowItWorksSection } from "../../components/homepage/HowItWorksSection";
+import { UseCasesSection } from "../../components/homepage/UseCasesSection";
+import { DeliverablesSection } from "../../components/homepage/DeliverablesSection";
+import { SecuritySection } from "../../components/homepage/SecuritySection";
+import { PilotSection } from "../../components/homepage/PilotSection";
+import { FaqSection } from "../../components/homepage/FaqSection";
+import { ContactCtaSection } from "../../components/homepage/ContactCtaSection";
 import { JsonLd } from "../../components/seo/JsonLd";
 
 export async function generateMetadata({
@@ -46,9 +50,13 @@ export default async function LandingPage({
       <HeroSection locale={locale} dict={dict} />
       <ProblemSection locale={locale} dict={dict} />
       <SolutionSection dict={dict} />
-      <SectorPagesTeaserSection locale={locale} />
-      <ClosedLoopTeaserSection locale={locale} />
-      <HomeFaqCtaSection locale={locale} />
+      <HowItWorksSection locale={locale} dict={dict} />
+      <UseCasesSection locale={locale} dict={dict} />
+      <DeliverablesSection dict={dict} />
+      <SecuritySection dict={dict} />
+      <PilotSection locale={locale} dict={dict} />
+      <FaqSection dict={dict} />
+      <ContactCtaSection locale={locale} dict={dict} />
       <JsonLd
         locale={locale}
         dict={dict}

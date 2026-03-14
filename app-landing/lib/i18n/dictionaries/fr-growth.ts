@@ -1,3 +1,4 @@
+import { frCoreConversion } from "./fr-core-conversion";
 import type { Dictionary } from "../types";
 
 export const frGrowth: Pick<
@@ -12,132 +13,125 @@ export const frGrowth: Pick<
   | "form"
 > = {
   security: {
-    kicker: "Overlay & données",
-    heading: "Fédérer les systèmes critiques sans remplacer vos outils.",
+    kicker: "Sécurité & IT",
+    heading:
+      "Déploiement sobre au départ, compatible avec une revue IT sérieuse.",
     subheading:
-      "CSV, Excel, API, ERP, outils RH ou finance: Praedixa se branche en lecture seule sur les systèmes qui comptent pour une décision et les relie dans une infrastructure hébergée en France.",
+      "Praedixa commence en lecture seule sur vos exports, API ou outils existants. L’objectif est de créer vite une première lecture utile sans ouvrir un chantier SI lourd avant la preuve d’intérêt.",
     tiles: [
       {
-        title: "Fédération légère",
+        title: "Connexion à l’existant",
         description:
-          "Praedixa demarre sur vos exports et API existants. Pas besoin de remplacer vos outils.",
+          "Le premier périmètre se branche sur l’existant pour objectiver les arbitrages avant toute intégration plus poussée.",
       },
       {
-        title: "Cadre de décision commun",
+        title: "Données agrégées",
         description:
-          "Les données RH, finance, opérations et supply chain sont reliées dans un même cadre de décision.",
+          "Le démarrage présenté ici travaille au niveau site, équipe ou activité, pas au niveau individuel.",
       },
       {
-        title: "Données utiles",
+        title: "Exports CSV / Excel ou API",
         description:
-          "On travaille au niveau site, équipe, activité ou réseau pour garder une lecture claire.",
+          "Praedixa démarre sur ce que vous avez déjà, sans exiger un remplacement d’outil ou une refonte de process.",
       },
       {
-        title: "Garde-fous métier",
+        title: "Cadre de sécurité clair",
         description:
-          "Chaque arbitrage reste gouverne par vos regles internes, vos seuils et votre validation humaine.",
+          "Chiffrement, contrôle d’accès et journalisation sont pensés pour entrer dans une discussion IT sérieuse sans lourdeur inutile.",
       },
       {
-        title: "Sécurité",
+        title: "Hébergement France",
         description:
-          "Chiffrement, contrôle d'accès et journalisation des actions pour garder un cadre propre.",
+          "La plateforme et les données sont hébergées en France sur Scaleway.",
       },
       {
-        title: "Comparaison multi-sites",
+        title: "Montée en charge progressive",
         description:
-          "Vous voyez rapidement où ça marche, où ça fuit et où agir en premier.",
-      },
-      {
-        title: "Hébergé en France (Scaleway)",
-        description:
-          "Plateforme et données hébergées en France (Paris), avec une posture de transparence sur les pratiques de sécurité.",
+          "L’intégration s’élargit seulement quand la valeur business est prouvée et que le contexte le justifie.",
       },
     ],
     compatibility: {
-      title: "Compatible avec vos outils en place",
+      title: "Compatible avec votre stack actuelle",
       description:
-        "Praedixa complète l'existant et fédère les systèmes critiques pour gouverner les arbitrages.",
+        "Praedixa se branche au-dessus de l’existant pour structurer la décision, pas pour imposer un remplacement.",
       tools: ["Planning", "ERP", "CRM", "BI", "Excel"],
     },
     honesty:
-      "Le vrai sujet n'est pas d'avoir plus de données. C'est de transformer les arbitrages critiques en décisions calculées, exécutées et auditables.",
+      "L’intégration doit rassurer la revue IT, pas monopoliser la conversation avant que la valeur business soit prouvée.",
   },
 
   pilot: {
-    kicker: "Déploiement Praedixa",
-    heading: "Une mise en place cadrée avant l'abonnement.",
+    kicker: "Pilote",
+    heading: "3 mois pour construire un premier cadre de décision utile.",
     subheading:
-      "Après la preuve sur historique, Praedixa démarre par un onboarding fixe pour relier l'existant, cadrer les arbitrages prioritaires et installer le suivi des gains.",
-    statusLabels: ["Preuve sur historique", "Onboarding", "Abonnement annuel"],
+      "Le pilote ne vend pas une transformation floue. Il installe une première lecture, calibre les hypothèses, documente les arbitrages et prépare la suite sans lourdeur inutile.",
+    statusLabels: ["Lecture initiale", "Calibration", "Cadence pilote"],
     included: {
-      title: "Ce que vous obtenez",
+      title: "Ce que le pilote construit",
       items: [
-        "Preuve sur historique offerte sur vos données existantes",
-        "Onboarding fixe sur un périmètre multi-sites réaliste",
-        "Une fédération RH, finance, opérations et supply chain sur l'existant",
-        "Les arbitrages ou sujets à plus fort potentiel de gain",
-        "Un plan d'action priorisé avec impact attendu",
-        "Un suivi des gains simple à relire en comité",
-        "Un Decision Journal et un rythme commun Ops + Finance pour décider avec une base commune",
+        "Une première lecture utile sur vos données existantes",
+        "Les arbitrages prioritaires rendus visibles",
+        "Des hypothèses coût / service / risque explicites",
+        "Un dossier de décision relisible par Ops et Finance",
+        "Une méthode réutilisable pour la suite",
       ],
     },
     excluded: {
-      title: "Ce qu'il n'inclut pas",
+      title: "Ce que le pilote n’est pas",
       items: [
-        "Refonte de vos outils existants",
-        "Projet IT long avant les premiers résultats",
-        "Black box incompréhensible pour les équipes",
-        "Promesse irréaliste sans base historique ni méthode",
-        "Usine à gaz impossible à relire en comité",
+        "Une refonte de votre stack",
+        "Un projet SI avant la preuve de valeur",
+        "Un audit sans suite opérable",
+        "Un tableau de bord de plus",
+        "Une promesse d’optimiser toute l’entreprise d’un coup",
       ],
     },
     kpis: {
-      title: "Ce que nous suivons",
+      title: "Ce que le pilote cadre",
       items: [
-        "L'argent perdu aujourd'hui",
-        "Le potentiel de gain objectivé pendant la preuve sur historique",
-        "Les arbitrages mis en place et leur impact réel",
-        "L'alignement RH / Finance / Operations",
-        "La vitesse de décision et la clarté des priorités",
+        "Tensions prioritaires",
+        "Hypothèses économiques",
+        "Options comparées",
+        "Décisions prises",
+        "Impacts relus",
       ],
     },
     governance: {
-      title: "Gouvernance",
+      title: "Rythme de travail",
       items: [
-        "Point hebdomadaire opérations",
-        "Revue mensuelle Opérations + Finance",
-        "Sponsor opérations identifié côté client",
-        "Journal de décision et preuve mensuelle partagés",
+        "Référent opérationnel identifié",
+        "Point court hebdomadaire",
+        "Relecture Ops / Finance structurée",
+        "Journal de décision partagé",
       ],
     },
     selection: {
-      title: "Critères d’éligibilité",
+      title: "Pré-requis",
       items: [
-        "Organisation multi-sites avec arbitrages récurrents entre coût, service et risque",
-        "Sponsor opérations et sponsor finance disponibles",
-        "Exports ou outils exploitables côté RH, finance et opérations",
+        "Organisation multi-sites",
+        "Exports ou API exploitables",
+        "Sponsor opérationnel disponible",
       ],
     },
     upcoming: {
-      title: "Après la mise en place",
+      title: "Après le pilote",
       description:
-        "Praedixa tourne ensuite en abonnement annuel pour industrialiser la détection, la priorisation et la preuve d'impact dans le temps.",
+        "Si la preuve est là, Praedixa s’étend progressivement aux arbitrages où la marge gagne le plus à être protégée.",
     },
     urgency:
-      "Réponse sous 48h ouvrées. Onboarding fixe déduit en cas d'engagement annuel.",
-    ctaPrimary: "Parler du déploiement",
-    ctaMeta:
-      "5 jours ouvrés pour la preuve · onboarding fixe · abonnement annuel",
+      "Réponse sous 48h ouvrées. Démarrage possible sans intégration SI lourde.",
+    ctaPrimary: "Parler du pilote",
+    ctaMeta: "Référent identifié · rythme hebdomadaire · mise en place cadrée",
   },
 
   faq: {
     kicker: "FAQ",
     heading: "Questions fréquentes",
     subheading:
-      "Réponses claires pour COO/Ops, CFO/DAF et responsables multi-sites.",
-    signalLabel: "Repères",
+      "Réponses courtes pour décider si le point d’entrée Praedixa mérite d’être ouvert maintenant.",
+    signalLabel: "Ce que la FAQ clarifie",
     signalBody:
-      "Des réponses formulées pour aider une décision rapide entre Opérations, Finance et IT.",
+      "De quoi comprendre le point d’entrée, le démarrage et le cadre data sans jargon de plomberie.",
     categoryHint: "Choisir une catégorie puis ouvrir une question",
     liveLabel: "Bloc FAQ dynamique",
     loadingLabel: "Chargement des réponses…",
@@ -148,218 +142,81 @@ export const frGrowth: Pick<
     errorBody:
       "La catégorie active est invalide. Réinitialisez sur la première catégorie.",
     retryLabel: "Réinitialiser la catégorie",
-    categories: [
-      "Comprendre Praedixa",
-      "Pilote & tarification",
-      "Technique & données",
-    ],
+    categories: ["Comprendre Praedixa", "Démarrage", "Données & sécurité"],
     items: [
       {
         question: "Praedixa, c'est quoi en une phrase ?",
         answer:
-          "Praedixa aide les entreprises multi-sites à objectiver et piloter les arbitrages opérationnels qui ont le plus d'impact sur la marge, sans remplacer leurs outils.",
+          "Praedixa est une couche de décision pour organisations multi-sites qui aide à arbitrer entre coût, capacité, service et risque, puis à relire l’impact des décisions prises.",
         category: "Comprendre Praedixa",
       },
       {
-        question:
-          "Faut-il comprendre la data science ou un modèle compliqué pour utiliser Praedixa ?",
+        question: "Praedixa remplace-t-il nos outils existants ?",
         answer:
-          "Non. La complexité reste chez nous. Côté client, vous voyez une base claire: pertes, priorités, actions et ROI.",
+          "Non. Praedixa s’appuie sur l’existant et structure la décision au-dessus des outils déjà en place.",
         category: "Comprendre Praedixa",
       },
       {
-        question: "Qu'est-ce que vous réunissez concrètement ?",
+        question: "Faut-il lancer une grosse intégration pour démarrer ?",
         answer:
-          "Les données utiles pour décider: RH, finance, opérations, activités site par site, exports Excel/CSV, ERP, BI ou autres outils déjà en place.",
-        category: "Comprendre Praedixa",
-      },
-      {
-        question: "Que voit-on concrètement dans Praedixa ?",
-        answer:
-          "Des arbitrages gouvernés: quelles options comparer, quel choix valider, quelle première action lancer et ce qui a vraiment rapporté ensuite.",
-        category: "Comprendre Praedixa",
-      },
-      {
-        question: "Qui prend la décision finale ?",
-        answer:
-          "Toujours vos équipes. Praedixa aide à lire, comparer et prioriser. La décision finale reste côté client.",
-        category: "Comprendre Praedixa",
-      },
-      {
-        question: "Quelle différence avec un outil de planning ou un ERP ?",
-        answer:
-          "Praedixa ne remplace pas vos outils. La plateforme gouverne les arbitrages qui traversent vos outils, les journalise et les relie à une preuve ROI.",
-        category: "Comprendre Praedixa",
-      },
-      {
-        question: "La preuve sur historique offerte couvre quoi ?",
-        answer:
-          "Une lecture en 5 jours ouvrés sur vos données pour objectiver les arbitrages prioritaires, le potentiel de gain et la pertinence d'un déploiement.",
-        category: "Pilote & tarification",
-      },
-      {
-        question: "Comment se structure la mise en place ?",
-        answer:
-          "On commence par la preuve sur historique. Si le potentiel est confirmé, l'onboarding fixe met Praedixa en place sur un périmètre ciblé avant l'abonnement annuel.",
-        category: "Pilote & tarification",
-      },
-      {
-        question: "Comment prouvez-vous le ROI ?",
-        answer:
-          "En comparant la situation de départ, les actions lancées et les gains observés dans un dossier simple à relire par la direction, la finance et les opérations.",
-        category: "Pilote & tarification",
-      },
-      {
-        question: "Quelles données faut-il pour démarrer ?",
-        answer:
-          "Vos exports existants ou vos outils actuels: RH, finance, opérations, activité, coûts, planning ou autres données utiles selon votre contexte.",
-        category: "Technique & données",
-      },
-      {
-        question: "Faut-il une intégration IT lourde ?",
-        answer:
-          "Non. Praedixa démarre en lecture seule via exports ou API, puis s'étend seulement si cela crée de la valeur.",
-        category: "Technique & données",
+          "Non. Praedixa peut démarrer en lecture seule sur vos exports ou API existants, puis s’étendre seulement si cela crée de la valeur.",
+        category: "Démarrage",
       },
       {
         question: "Traitez-vous des données individuelles ?",
         answer:
-          "Non. Praedixa fonctionne sur des données agrégées équipe/site et n'effectue pas de prédiction individuelle.",
-        category: "Technique & données",
+          "Non pour le point d’entrée présenté ici. Le démarrage se fait sur des données agrégées par site, équipe ou activité.",
+        category: "Données & sécurité",
       },
       {
-        question: "Comment gérez-vous les règles internes et les garde-fous ?",
+        question: "Quel est l’objectif du pilote ?",
         answer:
-          "Praedixa s'adapte a vos règles et garde-fous. L'idée n'est pas de forcer vos équipes, mais de leur donner une meilleure lecture pour décider.",
-        category: "Technique & données",
+          "Construire un premier cadre de décision utile: tensions prioritaires, hypothèses explicites, arbitrages comparés et relecture d’impact.",
+        category: "Démarrage",
       },
       {
-        question: "Peut-on commencer petit ?",
+        question: "Que voit-on concrètement dans Praedixa ?",
         answer:
-          "Oui. Beaucoup d'équipes commencent par une preuve sur historique sur un périmètre resserré avant de lancer le déploiement.",
-        category: "Pilote & tarification",
+          "Une lecture commune entre opérations, finance et réseau: où la marge se fragilise, quelles options comparer, quelle décision cadrer et ce qui a vraiment changé ensuite.",
+        category: "Comprendre Praedixa",
+      },
+      {
+        question: "Comment Praedixa calcule les arbitrages ?",
+        answer:
+          "Praedixa combine prévision, apprentissage statistique et optimisation sous contrainte pour comparer les options dans un cadre exploitable par les équipes. La relecture des résultats mobilise aussi des modèles économétriques pour distinguer plus proprement ce qui relève du contexte, de la décision prise et de l’impact observé.",
+        category: "Comprendre Praedixa",
       },
     ],
   },
 
   contact: {
-    kicker: "Contact",
-    heading: "Demander la preuve sur historique.",
+    kicker: "Dernier pas",
+    heading: "Vos équipes décident déjà tous les jours sous contrainte.",
     subheading:
-      "Partagez votre contexte. On revient avec une lecture claire des arbitrages prioritaires, du potentiel objectivable et du prochain pas recommandé.",
+      "La question est simple: vos arbitrages sont-ils encore pilotés à vue ? Qualification rapide, lecture seule au départ, NDA possible dès le premier échange.",
     trustItems: [
       "Réponse sous 48h ouvrées",
-      "Preuve sur historique offerte",
-      "5 jours ouvrés sur données existantes",
-      "Lecture seule via exports/API",
+      "Lecture seule au démarrage",
+      "NDA possible dès le premier échange",
+      "Premier point d’entrée resserré sur les arbitrages qui coûtent cher",
     ],
     ctaPrimary: "Demander la preuve sur historique",
     ctaSecondary: "Voir le protocole de mise en place",
   },
 
-  servicesPage: {
-    meta: {
-      title: "Praedixa | Déploiement complet vs preuve sur historique",
-      description:
-        "Comparez la preuve sur historique et le déploiement Praedixa pour choisir le bon point d'entrée.",
-      ogTitle: "Praedixa | Déploiement ou preuve sur historique",
-      ogDescription:
-        "Deux façons de démarrer: une preuve sur historique en 5 jours ou la mise en place Praedixa dans la durée.",
-    },
-    kicker: "Offre",
-    heading: "Déploiement Praedixa vs preuve sur historique.",
-    subheading:
-      "Vous pouvez commencer par une preuve sur historique d'une semaine, puis lancer la mise en place Praedixa avec un onboarding fixe déduit en cas d'engagement annuel.",
-    fullPackage: {
-      badge: "Déploiement Praedixa",
-      title: "Mettre Praedixa en place dans la durée",
-      summary:
-        "Le cœur de valeur Praedixa: une cadence de décision multi-sites suivie, relisible et orientée marge.",
-      includesTitle: "Ce qui est inclus",
-      includes: [
-        "Onboarding fixe sur un périmètre multi-sites réaliste",
-        "Systèmes RH, finance, opérations et supply chain fédérés",
-        "Priorités business suivies dans le temps",
-        "Cadence de revue Ops / Finance",
-        "Impact prouvé arbitrage par arbitrage",
-        "Extension progressive aux sites et sujets les plus rentables",
-      ],
-      cta: "Parler du déploiement Praedixa",
-    },
-    forecastsOnly: {
-      badge: "Preuve sur historique",
-      title: "Vérifier rapidement le potentiel",
-      summary:
-        "Une lecture en 5 jours ouvrés pour voir où la marge fuit et si Praedixa peut créer un gain mesurable.",
-      includesTitle: "Ce qui est inclus",
-      includes: [
-        "Analyse de vos données existantes",
-        "Objectivation des arbitrages prioritaires",
-        "Estimation du potentiel de gain",
-        "Démarrage lecture seule via exports/API",
-      ],
-      limitsTitle: "Ce qui n'est pas inclus",
-      limits: [
-        "Pas de suivi mensuel des gains",
-        "Pas d'onboarding outillé",
-        "Pas de cadence continue de décision",
-      ],
-      cta: "Demander la preuve sur historique",
-    },
-    comparison: {
-      title: "Comparatif rapide",
-      columns: [
-        {
-          criterion:
-            "Lecture des données RH, finance, opérations et supply chain",
-          fullPackage: "Inclus",
-          forecastsOnly: "Inclus",
-        },
-        {
-          criterion: "Priorités business classées par impact",
-          fullPackage: "Inclus",
-          forecastsOnly: "Non inclus",
-        },
-        {
-          criterion: "Plan d'action suivi dans le temps",
-          fullPackage: "Inclus",
-          forecastsOnly: "Non inclus",
-        },
-        {
-          criterion: "Suivi du ROI multi-sites",
-          fullPackage: "Inclus",
-          forecastsOnly: "Non inclus",
-        },
-        {
-          criterion: "Cadence direction / finance / opérations",
-          fullPackage: "Inclus",
-          forecastsOnly: "Non inclus",
-        },
-      ],
-    },
-    decisionGuide: {
-      title: "Quand choisir chaque mode",
-      items: [
-        "Choisissez le déploiement Praedixa si vous voulez industrialiser la décision et suivre les gains dans le temps.",
-        "Choisissez la preuve sur historique si vous voulez d'abord objectiver le potentiel avant engagement.",
-        "Vous pouvez commencer par la preuve puis lancer la mise en place sans changer d'outil.",
-      ],
-    },
-    bottomNote:
-      "La preuve sur historique réduit le risque d'entrée. La vraie valeur commence quand Praedixa est mis en place dans la durée.",
-  },
+  servicesPage: frCoreConversion.servicesPage as Dictionary["servicesPage"],
 
   footer: {
     tagline:
-      "Praedixa aide les équipes multi-sites à anticiper les risques business qui pèsent sur la performance, puis à suivre les décisions lancées dans le temps.",
-    badges: ["Preuve sur historique", "Impact relu"],
+      "Praedixa aide les organisations multi-sites à arbitrer plus tôt entre demande, capacité, coût, service et risque, puis à relire l’impact réel.",
+    badges: ["Décisions cadrées", "Preuve ROI relisible"],
     navigation: "Navigation",
     legalContact: "Légal & contact",
     copyright: "Conçu et hébergé en France",
     ctaBanner: {
       kicker: "Praedixa",
       heading:
-        "Les risques business coûtent cher quand ils sont vus trop tard.",
+        "Les arbitrages qui détruisent la marge sont souvent vus trop tard.",
       cta: "Demander la preuve sur historique",
     },
   },

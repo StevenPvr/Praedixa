@@ -353,7 +353,7 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
               </div>
 
               <div className="border-t border-white/10 pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/52">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[rgba(255,255,255,0.52)]">
                   {locale === "fr" ? "Sources" : "Sources"}
                 </p>
                 <ul className="mt-3 list-none space-y-2 p-0">

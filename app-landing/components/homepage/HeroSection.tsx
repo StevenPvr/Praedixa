@@ -80,19 +80,22 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
     copy.microcopy.trim().length > 0
       ? copy.microcopy
       : isFr
-        ? "Lecture seule sur vos outils · validation humaine · impact relu dans le temps"
+        ? "Lecture seule au démarrage · données agrégées · impact relu dans le temps"
         : "Read-only on your tools · human validation · impact reviewed over time";
   const heroChrome = isFr
     ? {
-        kicker: "Effectifs · demande · stocks · rétention",
-        shelfEyebrow: "Ce que Praedixa verrouille",
+        kicker: "Décision multi-sites · arbitrages explicites · preuve ROI",
+        shelfEyebrow: "Ce que le démarrage vous donne",
       }
     : {
-        kicker: "Staffing · demand · inventory · retention",
-        shelfEyebrow: "What Praedixa locks in",
+        kicker: "Multi-site decisions · explicit trade-offs · ROI proof",
+        shelfEyebrow: "What the start gives you",
       };
 
   const trustBadges = copy.trustBadges.slice(0, 4);
+  const heroManifestoBridge = isFr
+    ? "Cette raison d’être prend une forme concrète: démarrage en lecture seule, arbitrages comparés plus tôt et impact relu dans le temps."
+    : "This mission becomes concrete through a read-only start, earlier trade-off comparisons, and impact reviewed over time.";
 
   return (
     <>
@@ -122,7 +125,7 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
             <div>
               <div
                 aria-label={heroKickerLabel}
-                className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/78 shadow-[0_18px_40px_-34px_rgba(2,6,23,0.8)] backdrop-blur-md"
+                className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[rgba(255,255,255,0.78)] shadow-[0_18px_40px_-34px_rgba(2,6,23,0.8)] backdrop-blur-md"
               >
                 <span
                   className="h-1.5 w-1.5 rounded-full bg-[var(--brass-dark-600)] shadow-[0_0_12px_rgba(244,231,198,0.35)]"
@@ -137,15 +140,15 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                 {heroChrome.kicker}
               </p>
 
-              <h1 className="mt-3 max-w-[8ch] text-[3.9rem] font-semibold leading-[0.88] tracking-[-0.065em] text-white sm:text-[5rem] lg:text-[6.3rem]">
+              <h1 className="mt-3 max-w-[10ch] text-[3.9rem] font-semibold leading-[0.88] tracking-[-0.065em] text-white sm:text-[5rem] lg:text-[6.3rem]">
                 {copy.heading}
               </h1>
 
-              <p className="mt-4 max-w-[14ch] text-[2.2rem] font-semibold leading-[0.93] tracking-[-0.05em] text-[rgba(255,255,255,0.92)] [text-shadow:0_12px_36px_rgba(2,6,23,0.3)] sm:max-w-[15ch] sm:text-[3rem] lg:max-w-[14ch] lg:text-[4.1rem]">
+              <p className="mt-4 max-w-[18ch] text-[2.2rem] font-semibold leading-[0.93] tracking-[-0.05em] text-[rgba(255,255,255,0.92)] [text-shadow:0_12px_36px_rgba(2,6,23,0.3)] sm:max-w-[19ch] sm:text-[3rem] lg:max-w-[18ch] lg:text-[4.1rem]">
                 {isFr
                   ? renderHeadlineWithAccents(
                       copy.headingHighlight,
-                      ["risques", "marge"],
+                      ["marge"],
                       heroHeadlineAccentClass,
                     )
                   : copy.headingHighlight}
@@ -195,13 +198,28 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                   </p>
                 ) : null}
                 <blockquote
-                  className={`${hasManifestoLabel ? "mt-3" : "mt-0"} max-w-[22ch] text-3xl font-semibold leading-[1.04] tracking-[-0.04em] text-ink sm:text-[2.6rem] lg:text-[3.2rem]`}
+                  className={`${hasManifestoLabel ? "mt-3" : "mt-0"} max-w-[30ch] text-[1.7rem] font-semibold leading-[1.08] tracking-[-0.03em] text-ink sm:text-[2rem] lg:text-[2.35rem]`}
                 >
                   “{copy.manifestoQuote}”
                 </blockquote>
                 <p className="mt-6 max-w-[58ch] text-base leading-relaxed text-neutral-700 md:text-lg">
-                  {copy.subtitle}
+                  {heroManifestoBridge}
                 </p>
+                <ul className="mt-6 grid gap-3 sm:grid-cols-3">
+                  {copy.pillars.map((pillar) => (
+                    <li
+                      key={`${pillar.metric}-${pillar.text}`}
+                      className="rounded-[1.35rem] border border-neutral-200/85 bg-white/68 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.88)]"
+                    >
+                      <p className="text-sm font-semibold tracking-[-0.02em] text-ink">
+                        {pillar.metric}
+                      </p>
+                      <p className="mt-1 text-sm leading-relaxed text-neutral-600">
+                        {pillar.text}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               <div className="lg:pl-6">
@@ -219,12 +237,6 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                       </li>
                     ))}
                   </ul>
-                </div>
-
-                <div className="mt-4 rounded-[1.65rem] border border-neutral-200/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.84)_0%,rgba(255,255,255,0.7)_100%)] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.84)]">
-                  <p className="text-sm leading-relaxed text-neutral-700">
-                    {heroSupportLine}
-                  </p>
                 </div>
               </div>
             </div>

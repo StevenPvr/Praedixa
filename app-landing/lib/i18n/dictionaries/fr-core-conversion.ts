@@ -5,10 +5,10 @@ export const frCoreConversion: Partial<Dictionary> = {
     kicker: "FAQ",
     heading: "Questions fréquentes",
     subheading:
-      "Réponses claires pour COO/Ops, CFO/DAF et responsables multi-sites.",
-    signalLabel: "Repères",
+      "Réponses courtes pour décider si le wedge Praedixa mérite d’être ouvert maintenant.",
+    signalLabel: "Ce que la FAQ clarifie",
     signalBody:
-      "Des réponses formulées pour aider une décision rapide entre Opérations, Finance et IT.",
+      "De quoi comprendre le point d’entrée, le démarrage et le cadre data sans jargon de plomberie.",
     categoryHint: "Choisir une catégorie puis ouvrir une question",
     liveLabel: "Bloc FAQ dynamique",
     loadingLabel: "Chargement des réponses…",
@@ -19,110 +19,63 @@ export const frCoreConversion: Partial<Dictionary> = {
     errorBody:
       "La catégorie active est invalide. Réinitialisez sur la première catégorie.",
     retryLabel: "Réinitialiser la catégorie",
-    categories: [
-      "Comprendre Praedixa",
-      "Pilote & tarification",
-      "Technique & données",
-    ],
+    categories: ["Comprendre Praedixa", "Démarrage", "Données & sécurité"],
     items: [
       {
         question: "Praedixa, c'est quoi en une phrase ?",
         answer:
-          "Praedixa anticipe les risques business qui dégradent la performance et recommande les meilleures décisions pour les réduire, en commençant par le risque prioritaire de votre périmètre.",
+          "Praedixa est une couche de décision pour organisations multi-sites qui aide à arbitrer entre coût, capacité, service et risque, puis à relire l’impact des décisions prises.",
         category: "Comprendre Praedixa",
       },
       {
-        question:
-          "Faut-il comprendre la data science ou un modèle compliqué pour utiliser Praedixa ?",
+        question: "Praedixa remplace-t-il nos outils existants ?",
         answer:
-          "Non. La complexité reste chez nous. Côté client, vous voyez une lecture business simple: pertes, priorités, actions et ROI.",
+          "Non. Praedixa s’appuie sur l’existant et structure la décision au-dessus des outils déjà en place.",
         category: "Comprendre Praedixa",
       },
       {
-        question: "Qu'est-ce que vous réunissez concrètement ?",
+        question: "Faut-il lancer une grosse intégration pour démarrer ?",
         answer:
-          "Les données utiles pour décider: RH, finance, opérations, activités site par site, exports Excel/CSV, ERP, BI ou autres outils déjà en place.",
-        category: "Comprendre Praedixa",
-      },
-      {
-        question: "Que voit-on concrètement dans Praedixa ?",
-        answer:
-          "Une lecture commune entre RH, finance et opérations: où l'argent fuit, quels sites ou sujets prioriser, quel gain attendre et ce qui a vraiment rapporté.",
-        category: "Comprendre Praedixa",
-      },
-      {
-        question: "Qui prend la décision finale ?",
-        answer:
-          "Toujours vos équipes. Praedixa aide à lire, comparer et prioriser. La décision finale reste côté client.",
-        category: "Comprendre Praedixa",
-      },
-      {
-        question: "Quelle différence avec un outil de planning ou un ERP ?",
-        answer:
-          "Praedixa ne remplace pas vos outils. La plateforme gouverne les arbitrages qui traversent vos outils, les journalise et les relie à une preuve ROI.",
-        category: "Comprendre Praedixa",
-      },
-      {
-        question: "Le diagnostic ROI offert couvre quoi ?",
-        answer:
-          "Une première lecture sur vos données pour repérer où l'argent se perd, quels sujets ont le plus de potentiel et comment cadrer le pilote.",
-        category: "Pilote & tarification",
-      },
-      {
-        question: "Comment se structure le pilote sur 3 mois ?",
-        answer:
-          "On démarre sur l'existant, on aligne les données, on sort les premières priorités, puis on consolide la preuve de valeur site par site et au niveau réseau.",
-        category: "Pilote & tarification",
-      },
-      {
-        question: "Comment prouvez-vous le ROI ?",
-        answer:
-          "En comparant la situation de départ, les actions lancées et les gains observés dans un dossier simple à relire par la direction, la finance et les opérations.",
-        category: "Pilote & tarification",
-      },
-      {
-        question: "Quelles données faut-il pour démarrer ?",
-        answer:
-          "Vos exports existants ou vos outils actuels: RH, finance, opérations, activité, coûts, planning ou autres données utiles selon votre contexte.",
-        category: "Technique & données",
-      },
-      {
-        question: "Faut-il une intégration IT lourde ?",
-        answer:
-          "Non. Praedixa démarre en lecture seule via exports ou API, puis s'étend seulement si cela crée de la valeur.",
-        category: "Technique & données",
+          "Non. Praedixa peut démarrer en lecture seule sur vos exports ou API existants, puis s’étendre seulement si cela crée de la valeur.",
+        category: "Démarrage",
       },
       {
         question: "Traitez-vous des données individuelles ?",
         answer:
-          "Non. Praedixa fonctionne sur des données agrégées équipe/site et n'effectue pas de prédiction individuelle.",
-        category: "Technique & données",
+          "Non pour le wedge présenté ici. Le démarrage se fait sur des données agrégées par site, équipe ou activité.",
+        category: "Données & sécurité",
       },
       {
-        question: "Comment gérez-vous les règles internes et les garde-fous ?",
+        question: "Quel est l’objectif du pilote ?",
         answer:
-          "Praedixa s'adapte à vos règles et garde-fous. L'idée n'est pas de forcer vos équipes, mais de leur donner une meilleure lecture pour décider.",
-        category: "Technique & données",
+          "Construire un premier cadre de décision utile: tensions prioritaires, hypothèses explicites, arbitrages comparés et relecture d’impact.",
+        category: "Démarrage",
       },
       {
-        question: "Peut-on commencer petit ?",
+        question: "Que voit-on concrètement dans Praedixa ?",
         answer:
-          "Oui. Beaucoup d'équipes démarrent par un diagnostic ROI et un périmètre resserré avant d'étendre Praedixa aux sites et sujets les plus rentables.",
-        category: "Pilote & tarification",
+          "Une lecture commune entre opérations, finance et réseau: où la marge se fragilise, quelles options comparer, quelle décision cadrer et ce qui a vraiment changé ensuite.",
+        category: "Comprendre Praedixa",
+      },
+      {
+        question: "Comment Praedixa calcule les arbitrages ?",
+        answer:
+          "Praedixa combine prévision, apprentissage statistique et optimisation sous contrainte pour comparer les options dans un cadre exploitable par les équipes. La relecture des résultats mobilise aussi des modèles économétriques pour distinguer plus proprement ce qui relève du contexte, de la décision prise et de l’impact observé.",
+        category: "Comprendre Praedixa",
       },
     ],
   },
 
   contact: {
-    kicker: "Contact",
-    heading: "Demander la preuve sur historique.",
+    kicker: "Dernier pas",
+    heading: "Vos équipes décident déjà tous les jours sous contrainte.",
     subheading:
-      "Envoyez vos données ou vos exports. On revient avec une lecture simple: quels arbitrages prioriser, quel potentiel objectiver et quel prochain pas recommander.",
+      "La question est simple: vos arbitrages sont-ils encore pilotés à vue ? Qualification rapide, lecture seule au départ, NDA possible dès le premier échange.",
     trustItems: [
       "Réponse sous 48h ouvrées",
-      "Preuve sur historique offerte",
-      "Lecture seule via exports/API",
-      "5 jours ouvrés sur données existantes",
+      "Lecture seule au démarrage",
+      "NDA possible dès le premier échange",
+      "Premier wedge resserré sur les arbitrages qui coûtent cher",
     ],
     ctaPrimary: "Demander la preuve sur historique",
     ctaSecondary: "Voir le protocole de mise en place",
@@ -220,15 +173,15 @@ export const frCoreConversion: Partial<Dictionary> = {
 
   footer: {
     tagline:
-      "Praedixa réunit RH, finance et opérations pour montrer où l'argent se perd, quoi prioriser et ce qui rapporte.",
-    badges: ["Lecture business commune", "ROI lisible"],
+      "Praedixa aide les organisations multi-sites à arbitrer plus tôt entre demande, capacité, coût, service et risque, puis à relire l’impact réel.",
+    badges: ["Décisions cadrées", "Preuve ROI relisible"],
     navigation: "Navigation",
     legalContact: "Légal & contact",
     copyright: "Conçu et hébergé en France",
     ctaBanner: {
       kicker: "Praedixa",
       heading:
-        "Vos données dispersées peuvent rapporter plus. Encore faut-il les faire parler.",
+        "Les arbitrages qui détruisent la marge sont souvent vus trop tard.",
       cta: "Demander la preuve sur historique",
     },
   },

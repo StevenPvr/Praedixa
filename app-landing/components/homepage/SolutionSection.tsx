@@ -105,6 +105,9 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
                   <h3 className="text-lg font-semibold tracking-tight text-ink">
                     {principle.title}
                   </h3>
+                  <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-neutral-600">
+                    {principle.description}
+                  </p>
                 </div>
               </MotionStaggerItem>
             ))}

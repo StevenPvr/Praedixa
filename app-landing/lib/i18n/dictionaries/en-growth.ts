@@ -1,3 +1,4 @@
+import { enCoreConversion } from "./en-core-conversion";
 import type { Dictionary } from "../types";
 
 export const enGrowth: Pick<
@@ -192,6 +193,12 @@ export const enGrowth: Pick<
         category: "Pilot & pricing",
       },
       {
+        question: "How does Praedixa calculate trade-offs?",
+        answer:
+          "Praedixa combines forecasting, statistical learning, and constrained optimization to compare the available options in a frame teams can actually use. The impact review also uses econometric models to separate what comes from context, from the decision taken, and from the outcome actually observed.",
+        category: "Understanding Praedixa",
+      },
+      {
         question: "What data do you need to start?",
         answer:
           "Your existing exports (CSV/Excel/API): demand/workload, teams/capacity, inventory/supply, absences, plus key business rules.",
@@ -233,95 +240,7 @@ export const enGrowth: Pick<
     ctaSecondary: "See the pilot protocol",
   },
 
-  servicesPage: {
-    meta: {
-      title: "Praedixa | Deployment vs ROI diagnostic",
-      description:
-        "Compare the full Praedixa deployment and the ROI diagnostic to choose your best starting point.",
-      ogTitle: "Praedixa | Deployment or ROI diagnostic",
-      ogDescription:
-        "Two ways to start: a fast ROI diagnostic or the full Praedixa deployment to compare decisions and review impact over time.",
-    },
-    kicker: "Offer",
-    heading: "Praedixa deployment vs ROI diagnostic.",
-    subheading:
-      "You can start with an ROI diagnostic on your trade-offs, then activate the full Praedixa deployment to operationalize decisions and review impact over time.",
-    fullPackage: {
-      badge: "Praedixa deployment",
-      title: "See earlier, act sooner, review impact",
-      summary:
-        "Praedixa core value: detect business risks earlier, compare trade-offs clearly, and review launched decisions.",
-      includesTitle: "What is included",
-      includes: [
-        "HR, finance, operations, and supply chain systems federated",
-        "Business trade-offs ranked by impact",
-        "First action prepared inside existing tools",
-        "ROI tracked over time",
-        "Decision Journal for committees and teams",
-        "Multi-site comparison and standardization",
-      ],
-      cta: "Apply for a Praedixa ROI pilot",
-    },
-    forecastsOnly: {
-      badge: "ROI diagnostic",
-      title: "Fast starting point",
-      summary:
-        "A first reading to see where money leaks and where Praedixa can create the most value.",
-      includesTitle: "What is included",
-      includes: [
-        "Analysis of your existing data",
-        "Losses and gain potential identified",
-        "Read-only start via exports/APIs",
-      ],
-      limitsTitle: "What is not included",
-      limits: [
-        "No ongoing ROI tracking",
-        "No detailed prioritization over time",
-        "No full multi-site framework",
-      ],
-      cta: "Get the free ROI diagnostic",
-    },
-    comparison: {
-      title: "Quick comparison",
-      columns: [
-        {
-          criterion: "Reading HR, finance, operations, and supply chain data",
-          fullPackage: "Included",
-          forecastsOnly: "Included",
-        },
-        {
-          criterion: "Business priorities ranked by impact",
-          fullPackage: "Included",
-          forecastsOnly: "Not included",
-        },
-        {
-          criterion: "Action plan tracked over time",
-          fullPackage: "Included",
-          forecastsOnly: "Not included",
-        },
-        {
-          criterion: "Multi-site ROI tracking",
-          fullPackage: "Included",
-          forecastsOnly: "Not included",
-        },
-        {
-          criterion: "Leadership / finance / operations cadence",
-          fullPackage: "Included",
-          forecastsOnly: "Not included",
-        },
-      ],
-    },
-    decisionGuide: {
-      title: "When to choose each mode",
-      items: [
-        "Choose the full Praedixa offer when aligning teams and tracking ROI over time are top priorities.",
-        "Choose the ROI diagnostic if you first want to objectify where money is leaking.",
-        "You can start small, then activate the full Praedixa offer without changing tools.",
-      ],
-    },
-    bottomNote:
-      "The ROI diagnostic is a starting point. The real value begins when Praedixa is deployed to compare decisions and review impact over time.",
-  },
+  servicesPage: enCoreConversion.servicesPage as Dictionary["servicesPage"],
 
   footer: {
     tagline:

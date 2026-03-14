@@ -19,7 +19,7 @@ export const enCoreOperations: Partial<Dictionary> = {
         title: "Read-only connection",
         subtitle: "Your existing exports",
         description:
-          "Read-only connection via CSV/Excel/APIs. We set up the indicators you need based on your priorities.",
+          "Read-only connection via CSV/Excel/APIs. We set up the indicators you need based on your priorities, using forecasting, statistical learning, and constrained optimization to compare the most relevant options.",
       },
       {
         number: "03",
@@ -33,7 +33,7 @@ export const enCoreOperations: Partial<Dictionary> = {
         title: "Impact proof & governance",
         subtitle: "Week 8 then month 3",
         description:
-          "Monthly proof, Ops + Finance reviews, multi-site standardization, and scale-up plan.",
+          "Monthly proof, Ops + Finance reviews, multi-site standardization, and scale-up plan. The impact review also uses econometric models to separate what comes from context, from the decision taken, and from the outcome actually observed.",
       },
     ],
   },

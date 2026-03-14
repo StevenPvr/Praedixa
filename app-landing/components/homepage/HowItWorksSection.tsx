@@ -32,16 +32,16 @@ const stepItemVariant = {
 
 const sectionCopy = {
   fr: {
-    loopLabel: "Methode simple",
-    rhythmLabel: "Lecture commune · priorites claires",
-    ctaMeta: "Lecture seule au demarrage (exports/API)",
+    loopLabel: "Cycle de décision",
+    rhythmLabel: "Lecture commune · arbitrage explicite",
+    ctaMeta: "Démarrage sobre sur exports ou API",
     loadingTitle: "Chargement de la méthode",
     loadingBody: "Assemblage des étapes en cours.",
     emptyTitle: "Aucune étape disponible",
     emptyBody: "Ajoutez des étapes pour afficher la boucle.",
     errorTitle: "Boucle temporairement indisponible",
     errorBody: "Rechargez la page.",
-    statuses: ["Données", "Lecture", "Priorités", "ROI"],
+    statuses: ["Signal", "Arbitrage", "Décision", "Preuve"],
   },
   en: {
     loopLabel: "Simple method",
@@ -109,8 +109,10 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
       <SectionShell id="how-it-works" className="section-dark relative">
         <HowItWorksBackdrop />
         <div className="relative max-w-2xl">
-          <Kicker className="text-neutral-100">{copy.errorTitle}</Kicker>
-          <p className="mt-4 text-sm leading-relaxed text-neutral-400">
+          <Kicker className="text-[rgba(255,255,255,0.84)]">
+            {copy.errorTitle}
+          </Kicker>
+          <p className="mt-4 text-sm leading-relaxed text-[rgba(255,255,255,0.64)]">
             {copy.errorBody}
           </p>
         </div>
@@ -127,11 +129,13 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
       <SectionShell id="how-it-works" className="section-dark relative">
         <HowItWorksBackdrop />
         <div className="relative max-w-2xl">
-          <Kicker className="text-neutral-100">{protocol.kicker}</Kicker>
+          <Kicker className="text-[rgba(255,255,255,0.84)]">
+            {protocol.kicker}
+          </Kicker>
           <h2 className="mt-3 text-4xl font-semibold tracking-tighter text-white">
             {copy.emptyTitle}
           </h2>
-          <p className="mt-4 text-sm leading-relaxed text-neutral-400">
+          <p className="mt-4 text-sm leading-relaxed text-[rgba(255,255,255,0.64)]">
             {copy.emptyBody}
           </p>
         </div>
@@ -151,11 +155,13 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
           viewport={VP}
           transition={SPRING}
         >
-          <Kicker className="text-neutral-100">{protocol.kicker}</Kicker>
+          <Kicker className="text-[rgba(255,255,255,0.84)]">
+            {protocol.kicker}
+          </Kicker>
           <h2 className="mt-3 max-w-3xl text-4xl font-semibold leading-[1.04] tracking-tighter text-white md:text-5xl">
             {protocol.heading}
           </h2>
-          <p className="mt-4 max-w-[58ch] text-sm leading-relaxed text-neutral-300">
+          <p className="mt-4 max-w-[58ch] text-sm leading-relaxed text-[rgba(255,255,255,0.72)]">
             {protocol.subheading}
           </p>
         </motion.div>
@@ -173,7 +179,7 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
             {/* Loop label */}
             <div className="flex items-center gap-3">
               <span className="h-px w-8 shrink-0 bg-white/15" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-400/60">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[rgba(244,231,198,0.78)]">
                 {copy.loopLabel}
               </span>
             </div>
@@ -194,10 +200,10 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
                       {i + 1}
                     </span>
                     <div className="min-w-0">
-                      <span className="block text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-500">
+                      <span className="block text-[10px] font-semibold uppercase tracking-[0.1em] text-[rgba(255,255,255,0.72)]">
                         {step.subtitle}
                       </span>
-                      <span className="block truncate text-xs font-medium text-neutral-200">
+                      <span className="block truncate text-xs font-medium text-[rgba(255,255,255,0.84)]">
                         {copy.statuses[i] ?? ""}
                       </span>
                     </div>
@@ -207,8 +213,8 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
 
               {/* Loop-back indicator */}
               <div className="mt-4 flex items-center gap-2">
-                <span className="text-xs text-neutral-600">↩</span>
-                <span className="text-[10px] text-neutral-600">
+                <span className="text-xs text-[rgba(255,255,255,0.72)]">↩</span>
+                <span className="text-[10px] text-[rgba(255,255,255,0.72)]">
                   {copy.rhythmLabel}
                 </span>
               </div>
@@ -256,7 +262,7 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
                     <div className="relative">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
-                          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-400/55">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[rgba(244,231,198,0.74)]">
                             {step.subtitle}
                           </span>
                           <h3 className="mt-1.5 text-lg font-semibold tracking-tight text-white md:text-xl">
@@ -268,7 +274,7 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
                         </div>
                       </div>
 
-                      <p className="mt-3 max-w-[60ch] text-sm leading-relaxed text-neutral-300">
+                      <p className="mt-3 max-w-[60ch] text-sm leading-relaxed text-[rgba(255,255,255,0.72)]">
                         {step.description}
                       </p>
                     </div>

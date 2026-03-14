@@ -14,7 +14,7 @@ Ce sous-arbre porte les pages visibles par les visiteurs. Le layout localise val
 
 ## Pages majeures
 
-- `page.tsx`: homepage
+- `page.tsx`: homepage composee autour du parcours principal `probleme -> solution -> methode -> cas -> preuve -> securite -> pilote -> FAQ -> CTA`
 - `services/page.tsx`: comparaison entre preuve sur historique et déploiement Praedixa
 - `secteurs/[slug]/page.tsx` et `industries/[slug]/page.tsx`: pages verticales FR/EN pour HCR, enseignement supérieur, logistique/transport/retail et automobile
 - `contact/page.tsx`: page contact + formulaire

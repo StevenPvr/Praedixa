@@ -32,4 +32,14 @@ describe("Landing CSP wrapper", () => {
     expect(csp).not.toContain("supabase");
     expect(csp).not.toContain("localhost:8000");
   });
+
+  it("allows inline styles required by motion-heavy marketing sections while keeping scripts nonce-bound", async () => {
+    const { buildCspHeader } = await import("../csp");
+    const csp = buildCspHeader("dGVzdA==");
+
+    expect(csp).toContain("style-src 'self' 'unsafe-inline'");
+    expect(csp).toContain(
+      "script-src 'self' 'nonce-dGVzdA==' 'strict-dynamic'",
+    );
+  });
 });

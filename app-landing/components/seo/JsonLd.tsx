@@ -61,11 +61,11 @@ function softwareApplicationSchema(locale: Locale, dict: Dictionary) {
     featureList:
       locale === "fr"
         ? [
-            "Anticipation des risques business",
-            "Lecture seule sur les outils existants",
-            "Effectifs, demande, stocks, approvisionnements, retention",
-            "Premiere action validee par les equipes",
-            "Impact relu site par site",
+            "Arbitrages multi-sites entre coût, service et risque",
+            "Lecture seule au démarrage sur les outils existants",
+            "Décisions documentées avec hypothèses explicites",
+            "Preuve ROI relue dans le temps",
+            "Premier wedge sur les arbitrages de couverture et d’allocation",
           ]
         : [
             "Business-risk anticipation",

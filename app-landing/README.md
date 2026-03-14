@@ -6,9 +6,9 @@ Site marketing de `praedixa.com`, construit avec Next.js App Router, React 19, T
 
 Le positioning de production doit rester coherent avec ces points:
 
-- Entree commerciale: preuve sur historique en 5 jours ouvrés, en lecture seule.
-- Mise en place ensuite via onboarding fixe, puis abonnement annuel.
-- Boucle produit: federer les signaux utiles -> arbitrer -> agir -> prouver l'impact.
+- Praedixa est une couche de decision pour organisations multi-sites, pas un WFM, pas un ERP, pas une data platform generique.
+- Entree commerciale actuelle: preuve sur historique en lecture seule pour objectiver les arbitrages les plus couteux.
+- Boucle produit: voir plus tot -> comparer les options -> cadrer la decision -> prouver l'impact.
 - Le manager reste decisionnaire.
 - Le produit ne remplace pas un WFM / planning.
 

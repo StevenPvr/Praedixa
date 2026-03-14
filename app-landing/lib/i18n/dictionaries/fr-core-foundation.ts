@@ -2,12 +2,12 @@ import type { Dictionary } from "../types";
 
 export const frCoreFoundation: Partial<Dictionary> = {
   meta: {
-    title: "Praedixa | Risques business et décisions multi-sites",
+    title: "Praedixa | Décisions multi-sites et preuve ROI",
     description:
-      "Praedixa anticipe les risques business qui dégradent la performance et recommande les meilleures décisions pour les réduire sur les effectifs, la demande, les stocks, les approvisionnements et la rétention client.",
-    ogTitle: "Praedixa | Risques business et décisions multi-sites",
+      "Praedixa aide les organisations multi-sites à arbitrer plus tôt entre demande, capacité, coût, service et risque, puis à prouver l’impact réel des décisions prises.",
+    ogTitle: "Praedixa | Décisions multi-sites et preuve ROI",
     ogDescription:
-      "En 5 jours ouvrés, Praedixa montre quels écarts menacent la performance et quelles décisions lancer d'abord pour protéger marge, service et croissance.",
+      "Praedixa aide les organisations multi-sites à voir plus tôt les arbitrages qui menacent la marge, à comparer les options et à relire l’impact réel des décisions prises.",
   },
 
   nav: {
@@ -15,8 +15,8 @@ export const frCoreFoundation: Partial<Dictionary> = {
     method: "Méthode",
     services: "Offre",
     howItWorks: "Comment ça marche",
-    useCases: "Cas business",
-    security: "Intégration & données",
+    useCases: "Cas d’usage",
+    security: "Sécurité",
     faq: "FAQ",
     contact: "Contact",
     ctaPrimary: "Demander la preuve sur historique",
@@ -24,44 +24,42 @@ export const frCoreFoundation: Partial<Dictionary> = {
   },
 
   hero: {
-    kicker: "Pour COO, DAF et directions réseau",
-    headline: "Anticipez",
-    headlineHighlight: "les risques business qui détruisent la marge.",
+    kicker: "Couche de décision pour opérations multi-sites",
+    headline: "Décidez plus tôt.",
+    headlineHighlight: "Protégez la marge avant que l’opération ne casse.",
     subtitle:
-      "Praedixa détecte les écarts qui menacent votre activité et recommande les meilleures décisions à prendre sur les effectifs, la demande, les stocks, les approvisionnements et la rétention client. Nous commençons par le risque le plus coûteux sur votre périmètre.",
-    manifestoLabel: "",
+      "Praedixa aide les organisations multi-sites à arbitrer entre demande, capacité, coût, service et risque à partir des données déjà présentes dans leurs outils. Nous commençons par les décisions de couverture et d’allocation les plus coûteuses.",
+    manifestoLabel: "Raison d’être",
     manifestoQuote:
-      "Voir plus tôt les risques qui dégradent la performance, décider quoi corriger, relire ce qui a marché.",
+      "Accompagner la croissance des entreprises françaises en révélant le potentiel dans leurs données, tout en gardant leur souveraineté.",
     bullets: [
       {
-        metric: "5 jours",
-        text: "pour faire remonter le signal",
-      },
-      {
         metric: "Lecture seule",
-        text: "sur vos données existantes",
+        text: "pour démarrer sans projet SI lourd",
       },
       {
-        metric: "Du staffing au churn",
-        text: "un même moteur de décision",
+        metric: "Arbitrage",
+        text: "coût, service, risque sur une même base",
+      },
+      {
+        metric: "Preuve ROI",
+        text: "impact relu dans le temps",
       },
     ],
     ctaPrimary: "Demander la preuve sur historique",
-    ctaSecondary: "Voir la méthode",
+    ctaSecondary: "Voir comment ça marche",
     previewTitle: "Un aperçu de votre lecture business",
-    ctaMeta: "5 jours ouvrés · lecture seule · validation humaine",
+    ctaMeta:
+      "Point d’entrée resserré · lecture commune Ops / Finance · NDA possible",
     trustBadges: [
-      "Preuve sur historique en 5 jours ouvrés",
-      "Effectifs, demande, stocks, approvisionnements, rétention",
-      "Lecture seule sur vos données existantes",
-      "Validation humaine de chaque action",
-      "Premier périmètre resserré sur le risque prioritaire",
-      "Sans remplacement d'outil",
-      "Premières actions recommandées avant déploiement",
-      "Impact relu site par site",
-      "Onboarding fixe déduit si engagement annuel",
-      "Cadre Ops / Finance partagé",
-      "Hébergé en France (Scaleway)",
+      "Lecture seule au démarrage",
+      "Données agrégées uniquement",
+      "Hébergement France",
+      "NDA possible dès le premier échange",
+      "Premier point d’entrée: arbitrages de couverture et d’allocation",
+      "Pas de remplacement d’outil au départ",
+      "Cadre commun Ops / Finance / Réseau",
+      "Impact relu avant / recommandé / réel",
     ],
   },
 
@@ -80,104 +78,103 @@ export const frCoreFoundation: Partial<Dictionary> = {
   },
 
   problem: {
-    kicker: "",
+    kicker: "Pourquoi maintenant",
     heading:
-      "Quand les écarts business remontent trop tard, la performance décroche.",
+      "Le problème n’est pas le manque de données. Le problème, c’est le manque de cadre pour arbitrer.",
     subheading:
-      "Sur les effectifs, la demande, les stocks, les approvisionnements ou la rétention, le même problème revient : les signaux utiles n'arrivent pas assez tôt ni dans un langage commun. Résultat : coût subi, service fragilisé et arbitrages tardifs.",
+      "Dans les opérations multi-sites, les arbitrages critiques sont souvent pris trop tard, trop vite et sans preuve économique solide. Résultat: plus de coûts d’urgence, moins de marge de manœuvre et des décisions difficiles à défendre.",
     cta: "Demander la preuve sur historique",
     ctaHint:
-      "Réponse sous 48h ouvrées. Preuve sur historique offerte. Démarrage en lecture seule sur vos fichiers et outils existants.",
+      "Lecture seule sur vos exports et API existants. Objectif: rendre visible en quelques jours le conflit économique qui coûte déjà de la marge.",
     states: {
       loadingTitle: "Lecture des signaux en cours",
       loadingBody:
-        "Nous structurons les points de friction avant vos arbitrages business.",
-      emptyTitle: "Aucun signal remonte",
+        "Nous structurons les tensions avant les arbitrages critiques.",
+      emptyTitle: "Aucun signal structuré",
       emptyBody:
-        "Ajoutez des cas concrets à prioriser pour composer votre lecture business.",
+        "Ajoutez les situations métier à prioriser pour composer cette lecture.",
       errorTitle: "Section indisponible",
       errorBody:
-        "Le cadrage de problème ne peut pas être affiché pour le moment.",
+        "Le cadrage du problème ne peut pas être affiché pour le moment.",
     },
     pains: [
       {
-        title: "Les signaux critiques sont dispersés",
+        title: "Les signaux arrivent trop tard",
         description:
-          "Charge, demande, stock, disponibilité matière, churn ou couverture vivent chacun dans des outils et des rythmes différents.",
+          "Quand le risque devient visible, il est souvent déjà plus cher à traiter et les équipes disposent de moins d’options crédibles.",
         consequence:
-          "Le signal utile apparaît souvent quand la marge de manoeuvre est déjà faible.",
-        cost: "Les corrections coûtent plus cher",
+          "La marge de manœuvre se réduit avant même que la discussion commence.",
+        cost: "Le coût d’urgence monte plus vite que la qualité de décision.",
       },
       {
-        title: "Chaque fonction arbitre dans sa propre vue",
+        title: "Les options ne sont pas comparées proprement",
         description:
-          "Ops, finance, supply, commerce ou terrain voient chacun une partie du problème, rarement le compromis complet au bon moment.",
+          "Ops, finance et réseau arbitrent souvent sous pression, sans base commune pour comparer coût, service, capacité et risque.",
         consequence:
-          "Les arbitrages prennent du temps et restent difficiles à défendre.",
-        cost: "Les décisions ralentissent",
+          "Les décisions deviennent difficiles à expliquer et à tenir dans la durée.",
+        cost: "On choisit plus souvent la vitesse que le meilleur arbitrage.",
       },
       {
-        title: "Les corrections arrivent en urgence",
+        title: "L’impact est rarement relu",
         description:
-          "Renfort, réallocation, ajustement de stock, approvisionnement ou action de rétention sont lancés trop tard et sans lecture commune de leur impact.",
+          "Les décisions s’enchaînent, mais la preuve de ce qu’elles ont réellement protégé ou coûté manque au moment de refaire le même arbitrage.",
         consequence:
-          "Les budgets restent discutés et les priorités changent selon le contexte local.",
-        cost: "La marge protégée reste floue",
+          "Les réunions repartent de zéro et les hypothèses restent implicites.",
+        cost: "Le ROI est décrit, pas démontré.",
       },
     ],
     diagnostic: {
       title: "Vous reconnaissez ce fonctionnement ?",
       signals: [
-        "Un même écart métier est visible localement avant d'apparaître clairement dans une lecture commune",
-        "Les corrections arrivent quand la marge, le service ou le stock sont déjà sous pression",
+        "Un même écart métier est visible localement avant d’apparaître clairement dans une lecture commune",
+        "Les corrections arrivent quand la marge ou le service sont déjà sous pression",
         "Deux équipes comparables ne prennent pas la même décision face au même signal",
-        "Après une action, il reste difficile de savoir ce qu'elle a réellement protégé",
+        "Après une action, il reste difficile de savoir ce qu’elle a réellement protégé",
       ],
     },
   },
 
   solution: {
-    kicker: "La méthode Praedixa",
-    heading:
-      "Anticiper les risques. Comparer les arbitrages. Lancer la bonne première action.",
+    kicker: "Produit",
+    heading: "Une couche de décision au-dessus de vos outils existants.",
     subheading:
-      "Praedixa ne remplace ni votre ERP, ni votre planning, ni votre BI. La plateforme relie les signaux utiles pour anticiper les risques business à court terme, comparer les arbitrages coût / service / risque et documenter le résultat des décisions prises sur les effectifs, la demande, les stocks, les approvisionnements ou la rétention.",
+      "Praedixa ne remplace pas votre ERP, votre BI, votre outil de planning ou vos process terrain. Praedixa structure ce qui manque entre eux: un cadre de lecture, de comparaison et de justification des décisions.",
     principles: [
       {
-        title: "Repérer tôt les écarts qui menacent la performance",
-        subtitle: "Données existantes · lecture seule",
+        title: "Voir",
+        subtitle: "Tensions et conflits plus tôt",
         description:
-          "Exports, API, ERP, planning, BI ou Excel sont reliés sans projet de remplacement pour faire remonter les écarts utiles avant qu'ils ne coûtent plus cher.",
+          "Praedixa détecte plus tôt les tensions, dérives et conflits opérationnels avant qu’ils ne se transforment en coûts d’urgence.",
       },
       {
-        title: "Comparer les arbitrages sur vos leviers métiers",
-        subtitle: "Coût · Service · Risque",
+        title: "Comparer",
+        subtitle: "Coût · service · risque",
         description:
-          "Praedixa met les options à plat, chiffre leurs effets attendus et garde vos garde-fous métier visibles avant validation, qu'il s'agisse d'effectifs, de demande, de stock, d'approvisionnement ou de rétention.",
+          "Les options sont mises à plat avec des hypothèses explicites pour arbitrer proprement entre niveau de service, capacité, coût et exposition.",
       },
       {
-        title: "Lancer une première action puis relire l'impact",
-        subtitle: "Validation humaine · impact relu",
+        title: "Prouver",
+        subtitle: "Décision documentée · impact relu",
         description:
-          "Vos équipes gardent la décision finale. Praedixa prépare la première action dans vos outils, puis relit baseline, recommandé, réel et hypothèses explicites.",
+          "Les décisions gardent leur contexte, leurs hypothèses et leur impact observé pour construire une vraie boucle ROI.",
       },
     ],
     differentiators: {
-      title: "Ce qui rend Praedixa crédible",
+      title: "Ce que Praedixa ajoute réellement",
       description:
-        "La valeur n'est pas dans un mot de catégorie. Elle est dans un mécanisme simple : voir plus tôt, comparer clairement, agir avec garde-fous, puis relire l'impact.",
+        "Vos outils stockent, reportent, planifient et exécutent. Praedixa ajoute la couche qui aide à arbitrer, comparer, justifier et relire l’impact.",
       items: [
         {
-          is: "Un même moteur pour plusieurs risques business",
-          isNot: "Un outil mono-usage limité à un seul levier",
+          is: "Une couche d’arbitrage au-dessus de l’existant",
+          isNot: "Un planning de plus",
         },
         {
-          is: "Un premier périmètre resserré sur le risque prioritaire",
-          isNot: "Une promesse floue qui prétend tout faire d'un coup",
+          is: "Un point d’entrée resserré sur les arbitrages qui coûtent cher",
+          isNot: "Un outil qui prétend optimiser toute l’entreprise d’un coup",
         },
         {
-          is: "Action validée + impact relu",
-          isNot: "Promesse ROI sans traçabilité",
+          is: "Une décision cadrée puis relue dans le temps",
+          isNot: "Une recommandation opaque sans preuve après coup",
         },
       ],
     },

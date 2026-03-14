@@ -36,14 +36,16 @@ vi.mock("../HeroBackgroundVideo", () => ({
 }));
 
 describe("HeroSection", () => {
-  it("keeps the French hero broad while stating the priority-risk entry point", () => {
+  it("keeps the French hero focused on multi-site trade-offs and proof", () => {
     render(<HeroSection locale="fr" dict={fr} />);
 
     expect(
-      screen.getByLabelText("Pour COO, DAF et directions réseau"),
+      screen.getByLabelText("Couche de décision pour opérations multi-sites"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Effectifs · demande · stocks · rétention"),
+      screen.getByText(
+        "Décision multi-sites · arbitrages explicites · preuve ROI",
+      ),
     ).toBeInTheDocument();
     expect(screen.getByTestId("hero-background-video")).toHaveAttribute(
       "data-src",
@@ -51,32 +53,26 @@ describe("HeroSection", () => {
     );
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("Anticipez");
+    expect(heading).toHaveTextContent("Décidez plus tôt.");
     const heroSubheadline = screen.getByText(
       (_, element) =>
         element?.textContent ===
-        "les risques business qui détruisent la marge.",
+        "Protégez la marge avant que l’opération ne casse.",
     );
     expect(heroSubheadline).toBeInTheDocument();
-    expect(within(heroSubheadline).getByText("risques").className).toContain(
-      "text-[var(--brass-400)]",
-    );
     expect(within(heroSubheadline).getByText("marge").className).toContain(
       "text-[var(--brass-400)]",
     );
     expect(
       screen.getAllByText(
-        "Praedixa détecte les écarts qui menacent votre activité et recommande les meilleures décisions à prendre sur les effectifs, la demande, les stocks, les approvisionnements et la rétention client. Nous commençons par le risque le plus coûteux sur votre périmètre.",
+        "Praedixa aide les organisations multi-sites à arbitrer entre demande, capacité, coût, service et risque à partir des données déjà présentes dans leurs outils. Nous commençons par les décisions de couverture et d’allocation les plus coûteuses.",
       ).length,
     ).toBeGreaterThan(0);
     expect(
-      screen.getAllByText("5 jours ouvrés · lecture seule · validation humaine")
-        .length,
+      screen.getAllByText(
+        "Point d’entrée resserré · lecture commune Ops / Finance · NDA possible",
+      ).length,
     ).toBeGreaterThan(0);
-    expect(
-      screen.getByText(
-        "Effectifs, demande, stocks, approvisionnements, rétention",
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Lecture seule au démarrage")).toBeInTheDocument();
   });
 });

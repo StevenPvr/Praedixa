@@ -79,7 +79,7 @@ export function MagneticPilotLink({
           <ArrowRight size={16} weight="bold" />
         </span>
       </Link>
-      <p className="mt-2 text-xs text-neutral-200">{meta}</p>
+      <p className="mt-2 text-xs text-[rgba(255,255,255,0.82)]">{meta}</p>
     </motion.div>
   );
 }

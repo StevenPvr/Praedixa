@@ -17,3 +17,4 @@ Fichiers :
 ## Intégration
 
 Ce dossier est consommé par l'application `app-landing` et s'insère dans son flux runtime, build ou test.
+Conserver au moins un test d'abus qui prouve qu'un `Origin` de prod apparemment valide reste rejete quand `Sec-Fetch-Site` indique une requete cross-site.

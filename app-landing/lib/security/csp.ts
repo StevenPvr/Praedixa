@@ -8,7 +8,7 @@ export function buildCspHeader(nonce: string): string {
   const directives = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://cdn.jsdelivr.net https://www.googletagmanager.com${!isProd ? " 'unsafe-eval'" : ""}`,
-    `style-src 'self' https://cdn.jsdelivr.net${!isProd ? " 'unsafe-inline'" : ` 'nonce-${nonce}'`}`,
+    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
     "img-src 'self' data: https:",
     "font-src 'self' data:",
     "media-src 'self' data: blob:",

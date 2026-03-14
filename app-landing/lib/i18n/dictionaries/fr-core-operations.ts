@@ -3,251 +3,242 @@ import type { Dictionary } from "../types";
 export const frCoreOperations: Partial<Dictionary> = {
   howItWorks: {
     kicker: "Comment ça marche",
-    heading:
-      "Fédérer les signaux, gouverner les arbitrages, agir là où ça rapporte.",
+    heading: "Un cycle simple, orienté décision. Pas un dashboard de plus.",
     subheading:
-      "Quatre étapes simples pour transformer des données dispersées en décisions gouvernées, exécutables et relisibles.",
+      "Praedixa lit les signaux utiles, compare les arbitrages, cadre la décision et relit l’impact dans le temps.",
     steps: [
       {
         number: "01",
-        title: "Connexion aux systèmes utiles",
-        subtitle: "RH · Finance · Ops",
+        title: "Lecture anticipative",
+        subtitle: "Signaux utiles · lecture seule",
         description:
-          "Praedixa reprend vos exports et vos outils existants pour construire une fédération gouvernée sur l'existant, sans projet lourd.",
+          "Praedixa part des données déjà présentes dans vos outils pour faire remonter les zones de tension avant la casse.",
       },
       {
         number: "02",
-        title: "Lecture d'arbitrage commune",
-        subtitle: "Une même grammaire de décision",
+        title: "Arbitrage économique",
+        subtitle: "Coût · non-action · risque",
         description:
-          "Les données sont remises dans un langage simple: où l'argent se perd, quels sites dérapent, quelles options comparer et quels garde-fous respecter.",
+          "Les options sont comparées avec des hypothèses explicites: coût d’action, coût de non-action, impact opérationnel et niveau de risque. Les comparaisons s’appuient sur des modèles de prévision, d’apprentissage statistique et d’optimisation sous contrainte adaptés au contexte métier.",
       },
       {
         number: "03",
-        title: "Première action priorisée",
-        subtitle: "Là où agir d'abord",
+        title: "Décision cadrée",
+        subtitle: "Cadre commun Ops · Finance",
         description:
-          "Vous voyez les actions à plus fort impact, site par site, avec un gain attendu compréhensible par les équipes et la direction.",
+          "L’équipe décide avec une base commune plutôt qu’en réaction dispersée, sans remplacer ses outils existants.",
       },
       {
         number: "04",
-        title: "Preuve du ROI",
-        subtitle: "Ce qui rapporte vraiment",
+        title: "Preuve d’impact",
+        subtitle: "Avant · recommandé · réel",
         description:
-          "Vous mesurez ce qui a ete lance, ce que cela a rapporte et ce qu'il faut corriger ensuite.",
+          "Les décisions et leurs effets sont relus pour construire une boucle ROI exploitable par les opérations et la finance. La relecture mobilise des modèles économétriques pour distinguer plus proprement ce qui relève du contexte, de la décision prise et de l’impact réellement observé.",
       },
     ],
   },
 
   useCases: {
-    kicker: "Ce que vous gagnez",
-    heading: "Les décisions business qui deviennent enfin plus simples.",
+    kicker: "Cas d’usage",
+    heading: "Des arbitrages concrets, pas des promesses vagues.",
     subheading:
-      "Praedixa aligne les équipes autour des sujets qui font perdre ou gagner de l'argent, site par site.",
+      "Praedixa rend visibles les décisions récurrentes qui détruisent la marge quand elles sont prises trop tard ou sans cadre partagé.",
     labels: {
       context: "Ce qui bloque",
-      action: "Ce que Praedixa met en lumière",
-      impact: "Ce que vous gagnez",
+      action: "Ce que Praedixa structure",
+      impact: "Ce que cela change",
     },
     cases: [
       {
         id: "volatilite",
-        title: "Variations de charge et de staffing",
+        title: "Volatilité de charge",
         context:
-          "Des écarts terrain répétés entre besoins réels, présence, coûts et niveau de service.",
+          "Identifier trop tard les sites qui vont absorber un pic finit en surcharge locale, coûts d’urgence et promesse de service dégradée.",
         action:
-          "Praedixa relie données RH, finance et opérations pour montrer où l'organisation perd de l'argent et quelles actions prioriser.",
+          "Praedixa compare les options disponibles site par site avant la dernière minute, avec des hypothèses visibles par Ops et Finance.",
         result:
-          "Moins d'urgence, plus de visibilité et des décisions plus rentables.",
+          "Moins d’urgence, plus de marge de manœuvre et des arbitrages défendables.",
       },
       {
-        id: "absenteisme",
-        title: "Absences, remplacements et tension équipes",
+        id: "couverture",
+        title: "Dérive de couverture",
         context:
-          "Des trous de couverture qui dégradent la qualité de service et renchérissent le coût opérationnel.",
+          "Des zones structurellement fragiles glissent jusqu’au moment où le recours d’urgence devient la seule option.",
         action:
-          "Praedixa identifie les sites ou équipes les plus exposés et chiffre l'impact business des options possibles.",
-        result: "Des arbitrages plus rapides, plus clairs et mieux défendus.",
-        callout:
-          "Aucune usine à gaz: vous gardez une lecture simple et exploitable.",
+          "Praedixa repère plus tôt les dérives et met les scénarios sur une même base coût / service / risque.",
+        result:
+          "Les décisions ne reposent plus seulement sur l’intuition locale.",
       },
       {
         id: "intersite",
-        title: "Écarts de performance entre sites",
+        title: "Arbitrages inter-sites",
         context:
-          "Certains sites tiennent la marge, d'autres la dégradent sans explication partagée.",
+          "Déplacer la pression d’un site à l’autre peut donner l’illusion d’une solution sans réduire le coût global.",
         action:
-          "Praedixa met les sites sur une même base de lecture pour comparer, prioriser et standardiser les actions.",
+          "Praedixa compare proprement plusieurs options d’allocation ou de renfort avant de déplacer la contrainte.",
         result:
-          "Une gouvernance réseau plus simple et des décisions comparables.",
-        callout: "Le manager garde toujours la décision finale.",
+          "Les renforts deviennent comparables, justifiables et relisibles.",
       },
       {
         id: "roi",
-        title: "Revue business direction",
+        title: "Boucle ROI opérationnelle",
         context:
-          "Les comités ont beaucoup de chiffres mais peu de lecture commune entre RH, finance et opérations.",
+          "Après la décision, il reste souvent impossible de dire ce qu’elle a réellement protégé ou coûté.",
         action:
-          "Praedixa rassemble les faits, les priorités et le suivi d'impact dans un dossier ROI facile à relire.",
+          "Praedixa documente le raisonnement, la décision prise et les écarts observés ensuite.",
         result:
-          "Des arbitrages mieux alignés et des budgets plus faciles a défendre.",
+          "Ops et Finance peuvent enfin relire les arbitrages sur une base commune.",
       },
     ],
   },
 
   deliverables: {
-    kicker: "Dossier ROI",
-    heading:
-      "Un dossier simple pour voir où vous perdez, où vous gagnez et quoi faire ensuite.",
+    kicker: "Preuve",
+    heading: "Ce que vous obtenez quand Praedixa entre dans la boucle.",
     subheading:
-      "Même lecture pour RH, finance et opérations. Des chiffres utiles, pas du jargon.",
+      "Pas un signal de plus. Un cadre exploitable pour décider, expliquer et relire l’impact.",
     roiFrames: [
       {
-        label: "Aujourd'hui",
-        value: "Ce que vous subissez",
-        note: "Coûts, frottements et sites qui dégradent la performance.",
-        sourceLabel: "Source: Protocole pilote Praedixa",
+        label: "Situation de départ",
+        value: "Le conflit économique visible",
+        note: "Tension prioritaire, sites exposés, coûts d’urgence et zones de marge fragilisées.",
+        sourceLabel: "Source: protocole de mise en place Praedixa",
         sourceUrl: "/fr/protocole-deploiement",
       },
       {
-        label: "Priorité",
-        value: "Ce qu'il faut lancer",
-        note: "Les actions à plus fort impact business, classées simplement.",
-        sourceLabel: "Source: Protocole pilote Praedixa",
+        label: "Arbitrage retenu",
+        value: "Les options comparées",
+        note: "Hypothèses explicites, arbitrage choisi, garde-fous et ordre d’action.",
+        sourceLabel: "Source: protocole de mise en place Praedixa",
         sourceUrl: "/fr/protocole-deploiement",
       },
       {
-        label: "Résultat",
-        value: "Ce que vous avez gagné",
-        note: "Le gain observé, ce qui reste à corriger et la suite à donner.",
-        sourceLabel: "Source: Protocole pilote Praedixa",
+        label: "Impact relu",
+        value: "Ce qui a vraiment changé",
+        note: "Avant, recommandé, réel, avec hypothèses, limites et prochain pas.",
+        sourceLabel: "Source: protocole de mise en place Praedixa",
         sourceUrl: "/fr/protocole-deploiement",
       },
     ],
     checklist: [
-      "Lecture commune RH / Finance / Operations",
-      "Priorités business classées par impact",
-      "Gain attendu puis gain observé",
-      "Sites comparables dans le temps",
-      "Dossier simple pour comité de direction",
+      "Cartographie des tensions prioritaires",
+      "Hypothèses économiques explicites",
+      "Scénarios comparés",
+      "Priorisation par criticité",
+      "Journal de décision partagé",
+      "Relecture avant / après des impacts observés",
     ],
   },
 
   security: {
-    kicker: "Overlay & données",
-    heading: "Vos données sont déjà là. Praedixa les réunit sans projet lourd.",
+    kicker: "Sécurité & IT",
+    heading:
+      "Déploiement sobre au départ, compatible avec une revue IT sérieuse.",
     subheading:
-      "CSV, Excel, API, ERP, outils RH ou finance: Praedixa part de l'existant, en lecture seule, pour produire une lecture business commune.",
+      "Praedixa commence en lecture seule sur vos exports, API ou outils existants. L’objectif est de créer vite une première lecture utile sans ouvrir un chantier SI lourd avant la preuve d’intérêt.",
     tiles: [
       {
-        title: "Connexion légère",
+        title: "Connexion à l’existant",
         description:
-          "Praedixa démarre sur vos exports et API existants. Pas besoin de remplacer vos outils.",
+          "Le premier périmètre se branche sur l’existant pour objectiver les arbitrages avant toute intégration plus poussée.",
       },
       {
-        title: "Lecture commune",
+        title: "Données agrégées",
         description:
-          "Les données RH, finance et opérations sont regroupées dans un même cadre.",
+          "Le démarrage présenté ici travaille au niveau site, équipe ou activité, pas au niveau individuel.",
       },
       {
-        title: "Données utiles",
+        title: "Exports CSV / Excel ou API",
         description:
-          "On travaille au niveau site, équipe, activité ou réseau pour garder une lecture claire.",
+          "Praedixa démarre sur ce que vous avez déjà, sans exiger un remplacement d’outil ou une refonte de process.",
       },
       {
-        title: "Priorités partagées",
+        title: "Cadre de sécurité clair",
         description:
-          "Chaque équipe retrouve les mêmes chiffres, le même langage et les mêmes priorités.",
+          "Chiffrement, contrôle d’accès et journalisation sont pensés pour entrer dans une discussion IT sérieuse sans lourdeur inutile.",
       },
       {
-        title: "Sécurité",
+        title: "Hébergement France",
         description:
-          "Chiffrement, contrôle d'accès et journalisation des actions pour garder un cadre propre.",
+          "La plateforme et les données sont hébergées en France sur Scaleway.",
       },
       {
-        title: "Comparaison multi-sites",
+        title: "Montée en charge progressive",
         description:
-          "Vous voyez rapidement où ça marche, où ça fuit et où agir en premier.",
-      },
-      {
-        title: "Hébergé en France (Scaleway)",
-        description:
-          "Plateforme et données hébergées en France (Paris), avec une posture de transparence sur les pratiques de sécurité.",
+          "L’intégration s’élargit seulement quand la valeur business est prouvée et que le contexte le justifie.",
       },
     ],
     compatibility: {
-      title: "Compatible avec votre stack",
+      title: "Compatible avec votre stack actuelle",
       description:
-        "Praedixa complète l'existant et relie les systèmes critiques dans une seule lecture business.",
-      tools: ["Planning", "ERP", "CRM", "BI", "Excel"],
+        "Praedixa se branche au-dessus de l’existant pour structurer la décision, pas pour imposer un remplacement.",
+      tools: ["ERP", "Planning", "CRM", "BI", "Excel"],
     },
     honesty:
-      "Le vrai sujet n'est pas d'avoir plus de données. C'est de transformer les arbitrages critiques en décisions calculées, exécutées et auditables.",
+      "L’intégration doit rassurer la revue IT, pas monopoliser la conversation avant que la valeur business soit prouvée.",
   },
 
   pilot: {
-    kicker: "Déploiement Praedixa",
-    heading: "Une mise en place cadrée avant l'abonnement.",
+    kicker: "Pilote",
+    heading: "3 mois pour construire un premier cadre de décision utile.",
     subheading:
-      "Après la preuve sur historique, Praedixa relie vos systèmes critiques, sort les priorités et installe le suivi des gains dans la durée.",
-    statusLabels: ["Preuve sur historique", "Onboarding", "Abonnement annuel"],
+      "Le pilote ne vend pas une transformation floue. Il installe une première lecture, calibre les hypothèses, documente les arbitrages et prépare la suite sans lourdeur inutile.",
+    statusLabels: ["Lecture initiale", "Calibration", "Cadence pilote"],
     included: {
-      title: "Ce que vous obtenez",
+      title: "Ce que le pilote construit",
       items: [
-        "Preuve sur historique offerte sur vos données existantes",
-        "Une lecture commune RH, finance et opérations",
-        "Les sites, équipes ou sujets à plus fort potentiel de gain",
-        "Un plan d'action priorisé avec impact attendu",
-        "Un suivi des gains simple à relire en comité",
-        "Un rythme commun Ops + Finance pour décider plus vite",
+        "Une première lecture utile sur vos données existantes",
+        "Les arbitrages prioritaires rendus visibles",
+        "Des hypothèses coût / service / risque explicites",
+        "Un dossier de décision relisible par Ops et Finance",
+        "Une méthode réutilisable pour la suite",
       ],
     },
     excluded: {
-      title: "Ce qu'il n'inclut pas",
+      title: "Ce que le pilote n’est pas",
       items: [
-        "Refonte de votre stack existante",
-        "Projet IT long avant les premiers résultats",
-        "Black box incompréhensible pour les équipes",
-        "Promesse irréaliste sans cadre ni méthode",
-        "Usine à gaz impossible à relire en comité",
+        "Une refonte de votre stack",
+        "Un projet SI avant la preuve de valeur",
+        "Un audit sans suite opérable",
+        "Un tableau de bord de plus",
+        "Une promesse d’optimiser toute l’entreprise d’un coup",
       ],
     },
     kpis: {
-      title: "Ce que nous suivons",
+      title: "Ce que le pilote cadre",
       items: [
-        "L'argent perdu aujourd'hui",
-        "Le potentiel de gain par site, équipe ou sujet",
-        "Les actions lancées et leur impact réel",
-        "L'alignement RH / Finance / Operations",
-        "La vitesse de décision et la clarté des priorités",
+        "Tensions prioritaires",
+        "Hypothèses économiques",
+        "Options comparées",
+        "Décisions prises",
+        "Impacts relus",
       ],
     },
     governance: {
-      title: "Gouvernance",
+      title: "Rythme de travail",
       items: [
-        "Point hebdomadaire opérations",
-        "Revue mensuelle Opérations + Finance",
-        "Sponsor opérations identifié côté client",
-        "Journal de décision et preuve mensuelle partagés",
+        "Référent opérationnel identifié",
+        "Point court hebdomadaire",
+        "Relecture Ops / Finance structurée",
+        "Journal de décision partagé",
       ],
     },
     selection: {
-      title: "Critères d’éligibilité",
+      title: "Pré-requis",
       items: [
-        "Organisation multi-sites avec données dispersées entre équipes",
-        "Sponsor opérations et sponsor finance disponibles",
-        "Exports ou outils exploitables côté RH, finance et opérations",
+        "Organisation multi-sites",
+        "Exports ou API exploitables",
+        "Sponsor opérationnel disponible",
       ],
     },
     upcoming: {
-      title: "Après la mise en place",
+      title: "Après le pilote",
       description:
-        "Praedixa tourne ensuite en abonnement annuel pour industrialiser les arbitrages qui créent le plus de valeur.",
+        "Si la preuve est là, Praedixa s’étend progressivement aux arbitrages où la marge gagne le plus à être protégée.",
     },
     urgency:
-      "Réponse sous 48h ouvrées. Onboarding fixe déduit en cas d'engagement annuel.",
-    ctaPrimary: "Parler du déploiement",
-    ctaMeta:
-      "5 jours ouvrés pour la preuve · onboarding fixe · abonnement annuel",
+      "Réponse sous 48h ouvrées. Démarrage possible sans intégration SI lourde.",
+    ctaPrimary: "Parler du pilote",
+    ctaMeta: "Référent identifié · rythme hebdomadaire · mise en place cadrée",
   },
 };

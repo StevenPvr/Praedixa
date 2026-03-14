@@ -18,19 +18,33 @@ describe("knowledge pages EN messaging", () => {
     expect(getKnowledgePage("en", "productMethod").lead).toContain(
       "without replacing your tools",
     );
+    expect(
+      getKnowledgePage("en", "productMethod").sections[2]?.paragraphs[1],
+    ).toContain("Forecasting");
+    expect(
+      getKnowledgePage("en", "productMethod").sections[3]?.paragraphs[1],
+    ).toContain("Econometric models");
     expect(getKnowledgePage("en", "integrationData").lead).toContain(
       "systems that matter to a decision",
     );
     expect(getKnowledgePage("en", "howItWorksPage").lead).toContain(
       "federate the useful data",
     );
+    expect(
+      getKnowledgePage("en", "decisionLogProof").sections[0]?.paragraphs[1],
+    ).toContain("Econometric models");
     expect(getKnowledgePage("en", "decisionLogProof").title).toBe("ROI pack");
     expect(en.servicesPage.heading).toBe(
-      "Praedixa deployment vs ROI diagnostic.",
+      "Praedixa Signature Service vs KPI forecasting only.",
     );
     expect(en.servicesPage.fullPackage.includes).toContain(
-      "HR, finance, operations, and supply chain systems federated",
+      "Decision journal: option, choice, reason, outcome.",
     );
+    expect(
+      en.faq.items.some(
+        (item) => item.question === "How does Praedixa calculate trade-offs?",
+      ),
+    ).toBe(true);
   });
 
   it("uses only the approved English CTAs on annex knowledge pages", () => {

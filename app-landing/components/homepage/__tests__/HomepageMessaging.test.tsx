@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { ClosedLoopTeaserSection } from "../ClosedLoopTeaserSection";
-import { HomeFaqCtaSection } from "../HomeFaqCtaSection";
+import { fr } from "../../../lib/i18n/dictionaries/fr";
+import { HowItWorksSection } from "../HowItWorksSection";
+import { UseCasesSection } from "../UseCasesSection";
+import { ContactCtaSection } from "../ContactCtaSection";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -16,33 +18,45 @@ vi.mock("next/link", () => ({
 }));
 
 describe("Homepage FR messaging", () => {
-  it("keeps teaser sections aligned with the simplified value proposition", () => {
+  it("keeps the homepage sections aligned with the French positioning", () => {
     render(
       <>
-        <ClosedLoopTeaserSection locale="fr" />
-        <HomeFaqCtaSection locale="fr" />
+        <HowItWorksSection locale="fr" dict={fr} />
+        <UseCasesSection locale="fr" dict={fr} />
+        <ContactCtaSection locale="fr" dict={fr} />
       </>,
     );
 
     expect(
       screen.getByRole("heading", {
-        name: "Du risque détecté à l'action priorisée.",
+        name: "Un cycle simple, orienté décision. Pas un dashboard de plus.",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Praedixa fédère les signaux utiles, anticipe les écarts business à court terme, calcule les arbitrages coût / service / risque, prépare la première action validée et relit l'impact obtenu.",
+        "Praedixa lit les signaux utiles, compare les arbitrages, cadre la décision et relit l’impact dans le temps.",
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText("Prédire")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /optimisation sous contrainte adaptés au contexte métier/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /modèles économétriques pour distinguer plus proprement/i,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Arbitrages inter-sites")).toBeInTheDocument();
+    expect(screen.getAllByText("Signal").length).toBeGreaterThan(0);
     expect(
       screen.getByRole("heading", {
-        name: "Les questions avant de démarrer",
+        name: "Vos équipes décident déjà tous les jours sous contrainte.",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Praedixa détecte les risques business qui menacent la performance et recommande les meilleures décisions pour les réduire sur les effectifs, la demande, les stocks, les approvisionnements et la rétention client. En pratique, nous commençons par le risque le plus coûteux sur votre périmètre.",
+        "La question est simple: vos arbitrages sont-ils encore pilotés à vue ? Qualification rapide, lecture seule au départ, NDA possible dès le premier échange.",
       ),
     ).toBeInTheDocument();
   });

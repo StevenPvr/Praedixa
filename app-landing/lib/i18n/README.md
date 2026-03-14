@@ -27,6 +27,7 @@ Infrastructure de localisation du landing.
 - les anciennes URLs sectorielles sont derivees depuis `lib/content/sector-pages.ts` pour garder une seule source de verite
 - les anciennes pages sectorielles ou variantes SEO retirees doivent rediriger vers la page verticale dediee la plus proche, pas vers une page generique
 - les composants prennent de preference le `dict` deja charge plutot que de recharger eux-memes des modules
+- la copy FR de la homepage doit rester centree sur `arbitrer plus tot -> comparer -> prouver`, sans retomber dans une liste de leviers trop large ni dans une categorie `DecisionOps` posee comme argument principal
 
 ## Tests
 

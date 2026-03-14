@@ -28,5 +28,6 @@ Shell partage du site et primitives visuelles reutilisables.
 - les comportements d'animation repetables vont dans `motion/` pour eviter la duplication
 - l'iconographie marketing doit passer par `shared/icons/` plutot que multiplier des glyphes generiques de librairie avec des styles incoherents
 - dans `Header.tsx`, garder un nom accessible explicite pour les CTA responsives et verifier le contraste reel des variantes desktop/mobile au lieu de supposer que les spans caches restent neutres pour l'audit a11y
+- `Footer.tsx` doit reprendre exactement la meme these publique que la homepage; ne pas y reintroduire un wording legacy plus etroit (`charge/capacite`, `coverage`) une fois le message canonique mis a jour
 - les verticales doivent rester accessibles depuis la navigation globale de la landing, pas seulement depuis la homepage ou le footer
 - les tests de navigation doivent matcher les liens de cartes avec un nom accessible partiel plus le `href`, car le titre et la description sont exposes dans le meme lien

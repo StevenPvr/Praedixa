@@ -162,7 +162,14 @@ export const enContentA: Record<
         title: "Optimize decisions",
         paragraphs: [
           "Actions are prioritized by expected business impact, not by noise or urgency alone.",
-          "Each decision keeps a business rationale leadership, finance, and teams can reread later.",
+          "Forecasting, constrained optimization, and statistical learning help compare the options while keeping the reasoning explicit enough for leadership, finance, and teams to reread later.",
+        ],
+      },
+      {
+        title: "Prove the impact",
+        paragraphs: [
+          "Every decision keeps its baseline, rationale, and observed result.",
+          "Econometric models help separate what comes from context, from the decision taken, and from the outcome actually observed.",
         ],
       },
     ],
@@ -198,13 +205,14 @@ export const enContentA: Record<
       {
         title: "3. Prioritize the actions",
         paragraphs: [
-          "Teams see what to launch first, who should validate it, and where the strongest gain potential sits.",
+          "Teams see what to launch first, who should validate it, and where the strongest gain potential sits. Forecasting, statistical learning, and constrained optimization help compare the scenarios in a frame people can actually use.",
         ],
       },
       {
         title: "4. Track ROI",
         paragraphs: [
           "The result is reviewed in a simple ROI pack: starting point, priorities, actions, and observed gains.",
+          "Econometric models help separate context effects from the decision itself so the impact review stays more defensible.",
         ],
       },
     ],
@@ -228,7 +236,7 @@ export const enContentA: Record<
         title: "What it contains",
         paragraphs: [
           "Starting point, chosen priorities, launched actions, and observed gains.",
-          "The goal is to prove what creates value, not to pile up dashboards.",
+          "The goal is to prove what creates value, not to pile up dashboards. Econometric models help attribute impact more carefully instead of confusing a context change with the effect of a decision.",
         ],
       },
       {
@@ -239,10 +247,10 @@ export const enContentA: Record<
         ],
       },
       {
-        title: "Why we keep this page",
+        title: "Why it matters",
         paragraphs: [
-          "This is one of the few annex pages that still carries real commercial value.",
-          "It shows how Praedixa turns data into business proof.",
+          "It closes the loop between baseline, decision, and observed impact.",
+          "It gives finance, operations, and leadership a shared frame to review what really changed.",
         ],
       },
     ],

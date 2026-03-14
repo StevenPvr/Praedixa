@@ -1,6 +1,7 @@
 export const siteConfig = {
   name: "Praedixa",
-  description: "Intelligence de couverture pour opérations multi-sites.",
+  description:
+    "Couche de décision pour organisations multi-sites: arbitrer plus tôt, comparer les options et prouver l’impact réel.",
   url: "https://www.praedixa.com",
 
   contact: {

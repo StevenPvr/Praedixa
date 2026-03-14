@@ -21,21 +21,21 @@ export const frContentA: Record<
     kicker: "Praedixa",
     title: "À propos",
     description:
-      "Mission, ancrage et positionnement de Praedixa comme plateforme française de DecisionOps pour les entreprises multi-sites.",
-    lead: "Praedixa est la plateforme française de DecisionOps: elle relie les systèmes qui comptent pour une décision, gouverne les arbitrages critiques et prouve le ROI décision par décision.",
+      "Mission, ancrage et positionnement de Praedixa comme couche de décision pour les organisations multi-sites.",
+    lead: "Praedixa aide les organisations multi-sites à arbitrer plus tôt entre demande, capacité, coût, service et risque, puis à prouver l’impact réel des décisions prises.",
     sections: [
       {
         title: "Mission",
         paragraphs: [
-          "Accompagner la croissance des entreprises en révélant le potentiel de leurs données.",
-          "Praedixa aide les équipes à partir d'une base commune plutôt qu'à recoller des chiffres dispersés en réunion.",
+          "Accompagner la croissance des entreprises françaises en révélant le potentiel dans leurs données, tout en gardant leur souveraineté.",
+          "Praedixa transforme cette raison d’être en cadre opérable: voir plus tôt les arbitrages critiques, comparer les options sur une base commune et relire ce qui a réellement changé.",
         ],
       },
       {
         title: "Positionnement",
         paragraphs: [
           "Praedixa n'est pas une data platform générique, un ERP, un outil de planning ou un dashboard de plus.",
-          "La plateforme se place entre les systèmes existants et les arbitrages business à prendre plus tôt, avec une exécution contrôlée et une preuve relisible pour les équipes et les comités.",
+          "Praedixa se place au-dessus des outils existants pour structurer les arbitrages coût / service / risque, cadrer la décision et relire l’impact dans le temps.",
         ],
       },
       {
@@ -142,28 +142,28 @@ export const frContentA: Record<
     kicker: "Produit",
     title: "Produit & méthode",
     description:
-      "Comment Praedixa relie les systèmes utiles et transforme des arbitrages récurrents en décisions gouvernées.",
-    lead: "Praedixa relie vos systèmes RH, finance, opérations et supply chain sans remplacer vos outils pour transformer des signaux dispersés en décisions gouvernées, exécutables et auditables.",
+      "Comment Praedixa transforme des signaux dispersés en arbitrages lisibles, décidables et relisibles.",
+    lead: "Praedixa aide les organisations multi-sites à voir plus tôt les arbitrages critiques, comparer les options et relire l’impact des décisions sans remplacer les outils déjà en place.",
     sections: [
       {
-        title: "Réunir",
+        title: "Voir",
         paragraphs: [
-          "La plateforme part des outils en place et relie les données utiles dans un même langage de décision.",
-          "L'objectif n'est pas d'avoir plus de chiffres, mais un cadre commun compréhensible par toutes les équipes.",
+          "Praedixa part des outils en place pour rendre visibles plus tôt les tensions qui fragilisent la marge, le service ou la capacité.",
+          "L'objectif n'est pas d'avoir plus de chiffres, mais une lecture utile des conflits économiques qui méritent un arbitrage.",
         ],
       },
       {
-        title: "Anticiper",
+        title: "Comparer",
         paragraphs: [
-          "Praedixa fait ressortir les besoins plus tôt pour éviter les arbitrages en retard.",
-          "Les écarts deviennent visibles avant qu'ils coûtent cher.",
+          "Les options sont comparées avec des hypothèses explicites: coût d’action, coût de non-action, niveau de service et risque.",
+          "Les comparaisons s’appuient sur des modèles de prévision, d’apprentissage statistique et d’optimisation sous contrainte pour rendre l’arbitrage plus défendable, sans imposer de boîte noire aux équipes.",
         ],
       },
       {
-        title: "Optimiser",
+        title: "Prouver",
         paragraphs: [
-          "Les decisions sont priorisees selon l'impact business attendu, pas selon le bruit du moment.",
-          "Chaque action garde une logique claire pour les équipes, la direction et la finance.",
+          "Chaque décision garde son contexte, son raisonnement et ce qui a réellement changé ensuite.",
+          "La relecture s’appuie sur des modèles économétriques pour relier plus proprement baseline, décision prise et impact observé. La valeur est dans la boucle complète: arbitrer, documenter, relire et améliorer le prochain arbitrage.",
         ],
       },
     ],
@@ -181,31 +181,33 @@ export const frContentA: Record<
     kicker: "Méthode",
     title: "Comment ça marche",
     description:
-      "Le parcours Praedixa pour fédérer les données utiles, calculer les options, déclencher l'action validée et suivre le ROI.",
-    lead: "Praedixa commence par fédérer les données utiles, puis aide à rendre les besoins visibles plus tôt, à calculer les options, à déclencher l'action validée et à suivre le ROI.",
+      "Le cycle Praedixa pour rendre un arbitrage visible, comparable, décidé et relu.",
+    lead: "Praedixa lit les signaux utiles, compare les arbitrages, cadre la décision et relit l’impact dans le temps.",
     sections: [
       {
-        title: "1. Réunir les données utiles",
+        title: "1. Lecture anticipative",
         paragraphs: [
-          "Praedixa part des exports, API et outils deja en place pour constituer une federation gouvernee sur l'existant.",
+          "Praedixa part des exports, API et outils déjà en place pour faire remonter les zones de tension avant la casse.",
         ],
       },
       {
-        title: "2. Faire ressortir les besoins",
+        title: "2. Arbitrage économique",
         paragraphs: [
-          "Les signaux business deviennent lisibles: où ça bloque, où l'argent fuit, où il faut agir.",
+          "Les options sont comparées avec des hypothèses explicites: coût d’action, coût de non-action, impact opérationnel et niveau de risque.",
+          "Le calcul combine prévision, apprentissage statistique et optimisation sous contrainte pour comparer les scénarios dans un cadre exploitable par les équipes.",
         ],
       },
       {
-        title: "3. Prioriser les actions",
+        title: "3. Décision cadrée",
         paragraphs: [
-          "Les équipes voient ce qu'il faut lancer en premier, qui doit valider et quel arbitrage peut rapporter le plus.",
+          "L’équipe décide avec un cadre commun plutôt qu’en réaction dispersée, sans remplacer ses outils existants.",
         ],
       },
       {
-        title: "4. Suivre le ROI",
+        title: "4. Preuve d’impact",
         paragraphs: [
-          "Le résultat est relu dans un dossier ROI simple: situation de départ, priorités, actions et gains observés.",
+          "Le résultat est relu dans une boucle avant / recommandé / réel pour comprendre ce qui a effectivement protégé la marge et ce qu’il faut corriger ensuite.",
+          "Cette relecture mobilise des modèles économétriques pour distinguer plus proprement ce qui relève du contexte, de la décision prise et de l’impact réellement observé.",
         ],
       },
     ],
@@ -228,8 +230,8 @@ export const frContentA: Record<
       {
         title: "Ce qu'il contient",
         paragraphs: [
-          "Situation de départ, priorités retenues, actions lancées et résultats observés.",
-          "Le but est de prouver ce qui rapporte, pas d'empiler des tableaux.",
+          "Situation de départ, options comparées, arbitrage retenu, hypothèses explicites et résultats observés.",
+          "Le but est de prouver ce qui rapporte réellement, pas d'empiler des tableaux. La relecture s’appuie sur des modèles économétriques pour mieux attribuer l’impact et éviter de confondre changement de contexte et effet réel d’une décision.",
         ],
       },
       {
@@ -240,10 +242,10 @@ export const frContentA: Record<
         ],
       },
       {
-        title: "Pourquoi nous le gardons",
+        title: "Pourquoi cela compte",
         paragraphs: [
-          "C'est une des rares pages annexes qui apporte encore une vraie valeur commerciale.",
-          "Elle montre comment Praedixa transforme la donnée en preuve business.",
+          "Le dossier ROI ferme la boucle entre lecture, arbitrage, décision et impact relu.",
+          "Il permet à la direction, à la finance et aux opérations de parler enfin du même arbitrage sur une base commune.",
         ],
       },
     ],
@@ -260,25 +262,25 @@ export const frContentA: Record<
     kicker: "Intégration",
     title: "Intégration & données",
     description:
-      "Comment Praedixa se branche sur l'existant sans créer un nouveau projet lourd.",
-    lead: "Praedixa se branche sur vos exports/API pour fédérer les systèmes qui comptent pour une décision, sans imposer de remplacement SI pour démarrer.",
+      "Comment Praedixa se branche sur l'existant sans transformer le sujet en chantier SI avant la preuve d’intérêt.",
+    lead: "Praedixa démarre sur vos exports et API existants en lecture seule pour créer une première lecture utile sans imposer un remplacement d’outil.",
     sections: [
       {
         title: "Démarrage léger",
         paragraphs: [
-          "Lecture seule, exports, API et outils en place: le point de départ reste simple.",
+          "Lecture seule, exports, API et outils en place: le point de départ reste simple et rapide à cadrer.",
         ],
       },
       {
-        title: "Federation gouvernee",
+        title: "Cadre commun",
         paragraphs: [
-          "Les données RH, finance, opérations et supply chain sont remises dans un même cadre pour accélérer la décision sans écraser votre stack.",
+          "Les données utiles sont remises dans un même cadre pour accélérer la décision sans écraser votre stack ni faire dériver la discussion vers la plomberie.",
         ],
       },
       {
         title: "Cadre de confiance",
         paragraphs: [
-          "RBAC, chiffrement, journalisation et hébergement en France sur Scaleway.",
+          "Chiffrement, contrôle d'accès, journalisation et hébergement en France sur Scaleway.",
         ],
       },
     ],

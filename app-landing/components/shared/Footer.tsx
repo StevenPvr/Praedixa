@@ -135,8 +135,8 @@ export function Footer({ locale, dict }: FooterProps) {
             </Link>
             <p className="max-w-[46ch] text-sm leading-relaxed text-neutral-400">
               {locale === "fr"
-                ? "Praedixa aide les entreprises multi-sites à détecter plus tôt les écarts charge/capacité qui pèsent sur la marge, sans remplacer les outils existants."
-                : "Praedixa helps multi-site teams detect workload/capacity gaps earlier, without replacing the tools they already use."}
+                ? "Praedixa aide les organisations multi-sites à arbitrer plus tôt entre demande, capacité, coût, service et risque, sans remplacer les outils déjà en place."
+                : "Praedixa helps multi-site organizations arbitrate earlier across demand, capacity, cost, service, and risk without replacing the tools they already use."}
             </p>
             <ShimmerTrack
               className="max-w-[16rem] bg-white/10"
@@ -145,7 +145,7 @@ export function Footer({ locale, dict }: FooterProps) {
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[rgba(255,255,255,0.40)]">
               {dict.footer.navigation}
             </h3>
             <ul className="list-none divide-y divide-white/[0.08] rounded-2xl border border-white/10 bg-white/[0.04] p-0">
@@ -161,7 +161,7 @@ export function Footer({ locale, dict }: FooterProps) {
                   </li>
                 ))
               ) : (
-                <li className="m-0 px-4 py-3 text-sm text-white/30">
+                <li className="m-0 px-4 py-3 text-sm text-[rgba(255,255,255,0.30)]">
                   {locale === "fr"
                     ? "Navigation disponible prochainement."
                     : "Navigation coming soon."}
@@ -171,7 +171,7 @@ export function Footer({ locale, dict }: FooterProps) {
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[rgba(255,255,255,0.40)]">
               {dict.footer.legalContact}
             </h3>
             <ul className="list-none divide-y divide-white/[0.08] rounded-2xl border border-white/10 bg-white/[0.04] p-0">
@@ -187,7 +187,7 @@ export function Footer({ locale, dict }: FooterProps) {
                   </li>
                 ))
               ) : (
-                <li className="m-0 px-4 py-3 text-sm text-white/30">
+                <li className="m-0 px-4 py-3 text-sm text-[rgba(255,255,255,0.30)]">
                   {locale === "fr"
                     ? "Informations légales indisponibles."
                     : "Legal information unavailable."}
@@ -197,11 +197,11 @@ export function Footer({ locale, dict }: FooterProps) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2.5 py-6 text-xs text-white/30 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-2.5 py-6 text-xs text-[rgba(255,255,255,0.30)] md:flex-row md:items-center md:justify-between">
           <p>
             {dict.footer.copyright} &middot; Praedixa {year}
           </p>
-          <p className="text-white/20">
+          <p className="text-[rgba(255,255,255,0.20)]">
             {locale === "fr"
               ? "Disponible en français et en anglais."
               : "Available in French and English."}
