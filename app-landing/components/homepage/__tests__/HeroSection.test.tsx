@@ -46,7 +46,7 @@ describe("HeroSection", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Réseaux multi-sites · arbitrages critiques · impact relu",
+        "Réseaux multi-sites · arbitrages coûteux · impact relu",
       ),
     ).toBeInTheDocument();
     expect(screen.getByTestId("hero-background-video")).toHaveAttribute(

@@ -47,17 +47,35 @@ describe("navigation menus", () => {
     mockPathname = "/fr";
   });
 
-  it("keeps the desktop Resources links navigable and closes after a route change", async () => {
-    const { rerender } = render(<DesktopNav locale="fr" />);
+  it("keeps direct links while exposing sector ICP pages in a dropdown", async () => {
+    const user = userEvent.setup();
 
-    const resourcesButton = screen.getByRole("button", { name: /ressources/i });
-    fireEvent.focus(resourcesButton);
+    render(<DesktopNav locale="fr" />);
 
-    const resourcesLink = screen.getByRole("link", {
-      name: /Ressources essentielles/i,
-    });
+    expect(screen.getByRole("link", { name: "Méthode" })).toHaveAttribute(
+      "href",
+      "/fr/produit-methode",
+    );
+    expect(screen.getByRole("link", { name: "Preuve" })).toHaveAttribute(
+      "href",
+      "/fr/decision-log-preuve-roi",
+    );
+    expect(screen.getByRole("link", { name: "Intégration" })).toHaveAttribute(
+      "href",
+      "/fr/integration-donnees",
+    );
+    expect(screen.getByRole("link", { name: "Offre" })).toHaveAttribute(
+      "href",
+      "/fr/services",
+    );
+    expect(screen.getByRole("link", { name: "Contact" })).toHaveAttribute(
+      "href",
+      "/fr/contact",
+    );
 
-    expect(resourcesLink).toHaveAttribute("href", "/fr/ressources");
+    const sectorsButton = screen.getByRole("button", { name: /secteurs/i });
+    fireEvent.focus(sectorsButton);
+
     expect(screen.getByRole("link", { name: /HCR/i })).toHaveAttribute(
       "href",
       "/fr/secteurs/hcr",
@@ -65,16 +83,20 @@ describe("navigation menus", () => {
     expect(
       screen.getByRole("link", { name: /Enseignement supérieur/i }),
     ).toHaveAttribute("href", "/fr/secteurs/enseignement-superieur");
-
-    mockPathname = "/fr/ressources";
-    rerender(<DesktopNav locale="fr" />);
-
     expect(
-      screen.queryByRole("link", { name: /Ressources essentielles/i }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("link", { name: /Logistique \/ Transport \/ Retail/i }),
+    ).toHaveAttribute("href", "/fr/secteurs/logistique-transport-retail");
+    expect(
+      screen.getByRole("link", {
+        name: /Automobile \/ concessions \/ ateliers/i,
+      }),
+    ).toHaveAttribute("href", "/fr/secteurs/automobile-concessions-ateliers");
+    expect(
+      screen.getByRole("link", { name: /Voir la page ressources/i }),
+    ).toHaveAttribute("href", "/fr/ressources");
   });
 
-  it("closes the mobile menu after a route change", async () => {
+  it("exposes sector ICP pages in the mobile navigation and closes after a route change", async () => {
     const user = userEvent.setup();
     const { rerender } = render(
       <MobileNav
@@ -87,20 +109,32 @@ describe("navigation menus", () => {
     );
 
     await user.click(screen.getByRole("button", { name: /ouvrir le menu/i }));
-    await user.click(screen.getByRole("button", { name: /ressources/i }));
 
-    expect(
-      screen.getByRole("link", { name: /Ressources essentielles/i }),
-    ).toHaveAttribute("href", "/fr/ressources");
+    expect(screen.getByRole("link", { name: "Méthode" })).toHaveAttribute(
+      "href",
+      "/fr/produit-methode",
+    );
+    expect(screen.getByRole("link", { name: "Preuve" })).toHaveAttribute(
+      "href",
+      "/fr/decision-log-preuve-roi",
+    );
+
+    await user.click(screen.getByRole("button", { name: /^Secteurs$/i }));
+
     expect(screen.getByRole("link", { name: /HCR/i })).toHaveAttribute(
       "href",
       "/fr/secteurs/hcr",
     );
     expect(
-      screen.getByRole("link", { name: /Enseignement supérieur/i }),
-    ).toHaveAttribute("href", "/fr/secteurs/enseignement-superieur");
+      screen.getByRole("link", { name: /Logistique \/ Transport \/ Retail/i }),
+    ).toHaveAttribute("href", "/fr/secteurs/logistique-transport-retail");
+    expect(
+      screen.getByRole("link", {
+        name: /Automobile \/ concessions \/ ateliers/i,
+      }),
+    ).toHaveAttribute("href", "/fr/secteurs/automobile-concessions-ateliers");
 
-    mockPathname = "/fr/ressources";
+    mockPathname = "/fr/produit-methode";
     rerender(
       <MobileNav
         locale="fr"
@@ -112,7 +146,7 @@ describe("navigation menus", () => {
     );
 
     expect(
-      screen.queryByRole("link", { name: /Ressources essentielles/i }),
+      screen.queryByRole("link", { name: "Méthode" }),
     ).not.toBeInTheDocument();
   });
 });

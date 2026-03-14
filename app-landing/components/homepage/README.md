@@ -9,9 +9,10 @@ Construire une homepage modulaire ou chaque section reste lisible seule, reordon
 - conflit economique visible
 - cadre d'arbitrage au-dessus de l'existant
 - methode concrete
+- livrables et preuve riche
 - cas d'usage
-- exemple concret et preuve d'impact
 - cadre IT/securite
+- offre publique et cadrage de mise en place
 - FAQ
 - CTA final
 
@@ -22,9 +23,8 @@ Construire une homepage modulaire ou chaque section reste lisible seule, reordon
 - `HeroProofCard.tsx`: carte de preuve ROI dans le hero
 - `ProblemSection.tsx`, `SolutionSection.tsx`: problème et réponse produit
 - `HowItWorksSection.tsx`: narration en etapes
-- `UseCasesSection.tsx`, `RoiProofTeaserSection.tsx`: cas d'usage et preuve publique
-- `SecuritySection.tsx`, `FaqSection.tsx`: confiance et FAQ
-- `PillarLinksSection.tsx`: hub de pages piliers pour clarifier la hierarchie publique et le crawl
+- `DeliverablesSection.tsx`, `UseCasesSection.tsx`: livrables concrets et cas d'usage
+- `SecuritySection.tsx`, `PilotSection.tsx`, `FaqSection.tsx`: confiance, offre et FAQ
 - `SectorPagesTeaserSection.tsx`, `ClosedLoopTeaserSection.tsx`, `RoiProofTeaserSection.tsx`: teasers reutilisables hors parcours principal si besoin
 - `ContactCtaSection.tsx`, `HomeFaqCtaSection.tsx`: CTA de sortie
 - `how-it-works/*`: micro-composants d'interaction pour la section "how it works"
@@ -58,6 +58,7 @@ Le couple `hero.headline` + `hero.headlineHighlight` doit rester court et net; s
 Dans le hero, `hero.headline` doit rester le mot-ancre principal, et `hero.headlineHighlight` doit vivre dessous dans une taille visiblement plus petite plutot qu'etre une deuxieme ligne geante.
 Sur une hero image ou video sombre, ne pas reutiliser des tokens texte pensés pour fond clair sur `hero.headlineHighlight`; la ligne secondaire doit rester claire et lisible au premier coup d'oeil.
 Le hero FR ne doit plus cacher le `hero.kicker` derriere une liste statique de fonctions; si la promesse cible un persona ou une offre d'entree, afficher la copy du dictionnaire telle quelle.
+Dans le hero actuel, le CTA primaire montre l'exemple concret, le secondaire file vers le deploiement, et le tertiaire garde la preuve sur historique en niveau de lecture inferieur.
 Pour les mots accentués du hero, choisir la couleur de marque la plus lisible sur le média réel (`--accent-*` ou `--brass-*`), pas une teinte pâle qui ressemble à un simple halo.
 Le rail de preuves en bas du hero doit etre ancre avec le layout (`flex-1` + `mt-auto`), pas repositionne uniquement au `margin-top`, pour qu'il ne remonte pas quand la copy du hero change.
 Sur la hero actuelle avec video de fond, garder une seule masse editoriale dominante. Ne pas reintroduire de grosse carte laterale si elle concurrence la lecture du message principal.
@@ -66,6 +67,7 @@ Pour proteger le contraste du hero video, preferer un voile neutre chaud ou char
 Au-dessus de la ligne de flottaison, preferer le conflit economique concret (`arbitrages vus trop tard -> marge fragilisee`) a une categorie inventee ou a une liste de leviers trop large.
 Dans `HowItWorksSection.tsx` ou `ClosedLoopTeaserSection.tsx`, garder la boucle produit complete: `voir -> comparer -> decider -> prouver`.
 La homepage ne doit pas laisser un bloc `pilote` reconstituer une offre parallele; si une preuve publique ou l'offre change de statut, refondre aussi l'ordre des sections au lieu de garder les anciens blocs par inertie.
+Sur la home principale, preferer un parcours `hero -> probleme -> solution -> methode -> livrables -> cas -> securite -> offre -> FAQ -> CTA` a une accumulation de teasers et hubs qui remontent trop tot dans la lecture.
 Dans `ClosedLoopTeaserSection.tsx`, eviter les grilles de 5 cartes identiques: preferer une composition asymetrique avec une colonne d'intention et des etapes de tailles variees.
 Dans `ClosedLoopTeaserSection.tsx`, ne pas utiliser de `translate-y` decoratif sur les etapes si cela fragilise la lecture ou le contraste; privilegier un rail vertical compact et stable.
 Dans le rail d'etapes horizontal de `ClosedLoopTeaserSection.tsx`, garder toutes les cartes a hauteur identique et eviter tout contenu additionnel reserve a une seule carte.

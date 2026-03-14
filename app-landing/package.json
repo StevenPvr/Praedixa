@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "clean:dev-cache": "rm -rf .next .turbo",
-    "dev:fresh": "pnpm clean:dev-cache && next dev --turbopack",
+    "dev:fresh": "pnpm clean:dev-cache && next dev",
     "dev:webpack:fresh": "pnpm clean:dev-cache && next dev --webpack",
     "dev:turbopack": "next dev --turbopack",
     "resend:check": "node ./scripts/check-resend-readiness.mjs",
@@ -20,7 +20,7 @@
     "deploy": "pnpm resend:check && pnpm cf:build && opennextjs-cloudflare deploy",
     "deploy:scw:prod": "cd .. && ./scripts/scw-deploy-landing.sh prod",
     "deploy:scw:staging": "cd .. && ./scripts/scw-deploy-landing.sh staging",
-    "dev:webpack": "next dev",
+    "dev:webpack": "next dev --webpack",
     "blog:audit-links": "node ./scripts/audit-blog-links.mjs",
     "test": "vitest run --config vitest.config.ts"
   },

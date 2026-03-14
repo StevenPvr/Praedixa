@@ -9,7 +9,7 @@ Ce sous-arbre porte les pages visibles par les visiteurs. Le layout localise val
 ## Layout et resolution de locale
 
 - `layout.tsx`: charge `getDictionary(locale)`, installe `Header`, `Footer`, `JsonLd`
-- `generateStaticParams()`: pregenere `fr` et `en`
+- `generateStaticParams()`: pregénère `fr` et `en` en build, mais retourne vide en développement pour éviter les corruptions locales de `prerender-manifest.json`
 - `generateMetadata()`: titre + description de base par langue
 
 ## Pages majeures
@@ -48,5 +48,6 @@ Ce sous-arbre porte les pages visibles par les visiteurs. Le layout localise val
 
 ## Tests associes
 
+- `__tests__/layout.test.ts`
 - `blog/__tests__/`
 - `ressources/[slug]/asset/__tests__/`

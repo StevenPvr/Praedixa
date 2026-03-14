@@ -68,7 +68,6 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
     ctaTertiary: hero.ctaTertiary,
     microcopy: hero.ctaMeta,
     trustBadges: hero.trustBadges,
-    industriesLabel: isFr ? "Solutions par secteur" : "Solutions by industry",
   };
 
   const exampleHref = getLocalizedPath(locale, "decisionLogProof");
@@ -84,18 +83,18 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
         : "Read-only on your tools · human validation · impact reviewed over time";
   const heroChrome = isFr
     ? {
-        kicker: "Réseaux multi-sites · arbitrages critiques · impact relu",
-        shelfEyebrow: "Ce que Praedixa clarifie d’abord",
+        kicker: "Réseaux multi-sites · arbitrages coûteux · impact relu",
+        shelfEyebrow: "Ce qu’un acheteur peut vérifier maintenant",
       }
     : {
-        kicker: "Multi-site networks · critical trade-offs · impact reviewed",
-        shelfEyebrow: "What Praedixa clarifies first",
+        kicker: "Multi-site networks · costly trade-offs · impact reviewed",
+        shelfEyebrow: "What a buyer can verify now",
       };
 
   const trustBadges = copy.trustBadges.slice(0, 4);
   const heroManifestoBridge = isFr
-    ? "Praedixa entre par les arbitrages qui coûtent le plus vite: renforcer, réallouer, reporter ou ajuster le niveau de service avant que l’urgence ne décide à votre place."
-    : "Praedixa starts with the trade-offs that get expensive fastest: reinforce, reallocate, postpone, or adjust the service level before urgency decides for you.";
+    ? "Praedixa aide d’abord à cadrer les arbitrages qui coûtent cher quand ils sont vus trop tard: où renforcer, où réallouer, où accepter un report, puis comment relire l’effet réel de la décision sur coût, service et risque."
+    : "Praedixa starts by framing the trade-offs that get expensive when they are seen too late: where to reinforce, where to reallocate, where to accept delay, and then how to review the actual effect on cost, service, and risk.";
 
   return (
     <>
@@ -140,11 +139,11 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                 {heroChrome.kicker}
               </p>
 
-              <h1 className="mt-3 max-w-[10ch] text-[3.9rem] font-semibold leading-[0.88] tracking-[-0.065em] text-white sm:text-[5rem] lg:text-[6.3rem]">
+              <h1 className="mt-3 max-w-[11ch] text-[3.9rem] font-semibold leading-[0.88] tracking-[-0.065em] text-white sm:text-[5rem] lg:text-[6.3rem]">
                 {copy.heading}
               </h1>
 
-              <p className="mt-4 max-w-[18ch] text-[2.2rem] font-semibold leading-[0.93] tracking-[-0.05em] text-[rgba(255,255,255,0.92)] [text-shadow:0_12px_36px_rgba(2,6,23,0.3)] sm:max-w-[19ch] sm:text-[3rem] lg:max-w-[18ch] lg:text-[4.1rem]">
+              <p className="mt-4 max-w-[20ch] text-[2.1rem] font-semibold leading-[0.93] tracking-[-0.05em] text-[rgba(255,255,255,0.92)] [text-shadow:0_12px_36px_rgba(2,6,23,0.3)] sm:max-w-[21ch] sm:text-[2.9rem] lg:max-w-[20ch] lg:text-[4rem]">
                 {isFr
                   ? renderHeadlineWithAccents(
                       copy.headingHighlight,
@@ -173,13 +172,14 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                 </Link>
                 <Link
                   href={deploymentHref}
-                  className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/18 bg-white/10 px-6 py-3 text-sm font-semibold text-white no-underline shadow-[0_18px_40px_-34px_rgba(2,6,23,0.72)] backdrop-blur-sm transition-all duration-300 [transition-timing-function:var(--ease-snappy)] hover:border-white/28 hover:bg-white/16 active:translate-y-[1px] active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-white no-underline transition-colors duration-200 hover:text-amber-50"
                 >
                   {copy.ctaSecondary}
+                  <ArrowRight size={14} weight="bold" />
                 </Link>
                 <Link
                   href={proofRequestHref}
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-[rgba(255,255,255,0.78)] no-underline transition-colors duration-200 hover:text-white"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-[rgba(255,255,255,0.68)] no-underline transition-colors duration-200 hover:text-white"
                 >
                   {copy.ctaTertiary}
                 </Link>

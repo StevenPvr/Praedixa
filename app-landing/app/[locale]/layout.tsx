@@ -8,6 +8,10 @@ import { Footer } from "../../components/shared/Footer";
 import { JsonLd } from "../../components/seo/JsonLd";
 
 export async function generateStaticParams() {
+  if (process.env.NODE_ENV === "development") {
+    return [];
+  }
+
   return locales.map((locale) => ({ locale }));
 }
 

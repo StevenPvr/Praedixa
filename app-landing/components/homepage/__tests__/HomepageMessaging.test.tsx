@@ -66,6 +66,6 @@ describe("Homepage FR messaging", () => {
     ).toBe(true);
     expect(
       screen.getByRole("link", { name: "Demander la preuve sur historique" }),
-    ).toHaveAttribute("href", "/fr/contact?intent=proof");
+    ).toHaveAttribute("href", "/fr/decision-log-preuve-roi");
   });
 });

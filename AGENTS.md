@@ -90,6 +90,8 @@ Before adding a global skip-link in a Next.js app shell, verify that every route
 Before shipping a decorative hero video on the landing page, let a static poster carry the initial paint and defer video loading so Lighthouse LCP stays tied to the real content, not the media upgrade.
 Before calling a decorative hero video "progressive", verify it can still mount automatically without a user gesture, or the homepage can look broken on first visit.
 Before simplifying landing hero media to a single shipped video asset, keep an explicit poster fallback so a failed video load does not leave a blank or frozen hero.
+Before assuming a landing locale route is broken after a local Next JSON.parse crash, verify whether `generateStaticParams()` is writing into `prerender-manifest.json` during development; keep locale pre-generation disabled in dev if it destabilizes `.next`.
+Before simplifying the landing header navigation, verify the approved ICP pages still stay directly reachable from the header, not only through footer or body links.
 Before adding a global webfont to the landing layout, verify it is needed above the fold; every extra high-priority font on `/fr` must justify its LCP cost.
 Before rebaselining a Lighthouse budget, first remove avoidable bottlenecks on a fresh production build and only then version the new threshold as an explicit measured baseline.
 Before reusing a text accent token inside the landing hero, verify it stays readable on the actual dark media background; tokens tuned for light surfaces should not be reused blindly above the fold.
