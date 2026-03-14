@@ -18,13 +18,13 @@ export function DeploymentRequestAside({
   dict,
   homeHref,
   options,
-  protocolHref,
+  offerHref,
   ui,
 }: {
   dict: Dictionary;
   homeHref: string;
   options: DeploymentRequestFormOptions;
-  protocolHref: string;
+  offerHref: string;
   ui: DeploymentRequestPageUi;
 }) {
   return (
@@ -81,10 +81,10 @@ export function DeploymentRequestAside({
 
       <section className="rounded-[1.75rem] border border-neutral-200/80 bg-white/95 p-5 md:p-6">
         <p className="text-sm leading-relaxed text-neutral-600">
-          {ui.protocolHint}
+          {ui.offerHint}
         </p>
         <Link
-          href={protocolHref}
+          href={offerHref}
           className="mt-3 inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-neutral-400 hover:bg-neutral-50 active:-translate-y-[1px] active:scale-[0.99]"
         >
           {dict.form.success.checkEmail}

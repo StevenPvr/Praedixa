@@ -33,17 +33,20 @@ describe("knowledge pages FR messaging", () => {
     expect(getKnowledgePage("fr", "howItWorksPage").lead).toContain(
       "compare les arbitrages",
     );
+    expect(getKnowledgePage("fr", "decisionLogProof").lead).toContain(
+      "Exemple illustratif",
+    );
     expect(
-      getKnowledgePage("fr", "decisionLogProof").sections[0]?.paragraphs[1],
+      getKnowledgePage("fr", "decisionLogProof").sections[2]?.paragraphs[1],
     ).toContain("modèles économétriques");
     expect(getKnowledgePage("fr", "decisionLogProof").title).toBe(
       "Dossier ROI",
     );
     expect(fr.servicesPage.heading).toBe(
-      "Praedixa complet vs diagnostic ROI initial.",
+      "Déploiement Praedixa et preuve sur historique.",
     );
     expect(fr.servicesPage.fullPackage.includes).toContain(
-      "Comparaison multi-sites et standardisation",
+      "Cadre commun Ops / Finance / Réseau",
     );
     expect(
       fr.faq.items.some(
@@ -59,7 +62,7 @@ describe("knowledge pages FR messaging", () => {
 
   it("uses only the approved French CTAs on annex knowledge pages", () => {
     const allowedCtas = new Set([
-      "Demander la preuve sur historique",
+      "Voir un exemple concret",
       "Parler du déploiement",
     ]);
 

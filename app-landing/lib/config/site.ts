@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: "Praedixa",
   description:
-    "Couche de décision pour organisations multi-sites: arbitrer plus tôt, comparer les options et prouver l’impact réel.",
+    "Praedixa aide les réseaux multi-sites à repérer plus tôt les arbitrages qui fragilisent la marge, à comparer les options, puis à relire l’impact réel.",
   url: "https://www.praedixa.com",
 
   contact: {

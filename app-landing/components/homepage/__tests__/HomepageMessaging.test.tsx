@@ -34,7 +34,7 @@ describe("Homepage FR messaging", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Praedixa lit les signaux utiles, compare les arbitrages, cadre la décision et relit l’impact dans le temps.",
+        "Praedixa lit les signaux utiles, compare les arbitrages, cadre la décision et relit l’impact dans le temps, à partir d’un conflit économique concret.",
       ),
     ).toBeInTheDocument();
     expect(
@@ -51,13 +51,21 @@ describe("Homepage FR messaging", () => {
     expect(screen.getAllByText("Signal").length).toBeGreaterThan(0);
     expect(
       screen.getByRole("heading", {
-        name: "Vos équipes décident déjà tous les jours sous contrainte.",
+        name: "Vous savez déjà où la marge se fragilise. Voyons quelle décision couvrir en premier.",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "La question est simple: vos arbitrages sont-ils encore pilotés à vue ? Qualification rapide, lecture seule au départ, NDA possible dès le premier échange.",
+        "Parlez-nous du réseau, des arbitrages qui reviennent le plus souvent et du prochain pas utile. Déploiement Praedixa d’abord, preuve sur historique si elle aide à objectiver le point de départ.",
       ),
     ).toBeInTheDocument();
+    expect(
+      screen
+        .getAllByRole("link", { name: "Parler du déploiement" })
+        .every((link) => link.getAttribute("href") === "/fr/deploiement"),
+    ).toBe(true);
+    expect(
+      screen.getByRole("link", { name: "Demander la preuve sur historique" }),
+    ).toHaveAttribute("href", "/fr/contact?intent=proof");
   });
 });

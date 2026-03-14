@@ -5,7 +5,7 @@ export const frCoreConversion: Partial<Dictionary> = {
     kicker: "FAQ",
     heading: "Questions fréquentes",
     subheading:
-      "Réponses courtes pour décider si le wedge Praedixa mérite d’être ouvert maintenant.",
+      "Réponses courtes pour décider si Déploiement Praedixa mérite d’être ouvert maintenant.",
     signalLabel: "Ce que la FAQ clarifie",
     signalBody:
       "De quoi comprendre le point d’entrée, le démarrage et le cadre data sans jargon de plomberie.",
@@ -24,7 +24,7 @@ export const frCoreConversion: Partial<Dictionary> = {
       {
         question: "Praedixa, c'est quoi en une phrase ?",
         answer:
-          "Praedixa est une couche de décision pour organisations multi-sites qui aide à arbitrer entre coût, capacité, service et risque, puis à relire l’impact des décisions prises.",
+          "Praedixa aide les réseaux multi-sites à repérer plus tôt les arbitrages qui fragilisent la marge, à comparer les options sous contraintes, puis à relire l’impact réel des décisions prises.",
         category: "Comprendre Praedixa",
       },
       {
@@ -42,19 +42,19 @@ export const frCoreConversion: Partial<Dictionary> = {
       {
         question: "Traitez-vous des données individuelles ?",
         answer:
-          "Non pour le wedge présenté ici. Le démarrage se fait sur des données agrégées par site, équipe ou activité.",
+          "Non pour le périmètre présenté ici. Le démarrage se fait sur des données agrégées par site, équipe ou activité.",
         category: "Données & sécurité",
       },
       {
-        question: "Quel est l’objectif du pilote ?",
+        question: "À quoi sert la preuve sur historique ?",
         answer:
-          "Construire un premier cadre de décision utile: tensions prioritaires, hypothèses explicites, arbitrages comparés et relecture d’impact.",
+          "Elle sert à objectiver un premier arbitrage sur vos données existantes, à montrer ce que Praedixa rendrait visible, et à cadrer le déploiement si le sujet mérite d’aller plus loin.",
         category: "Démarrage",
       },
       {
         question: "Que voit-on concrètement dans Praedixa ?",
         answer:
-          "Une lecture commune entre opérations, finance et réseau: où la marge se fragilise, quelles options comparer, quelle décision cadrer et ce qui a vraiment changé ensuite.",
+          "Une lecture utile pour les opérations et le réseau: où la marge se fragilise, quelles options comparer, quelle décision cadrer et ce qui a réellement changé ensuite.",
         category: "Comprendre Praedixa",
       },
       {
@@ -68,107 +68,108 @@ export const frCoreConversion: Partial<Dictionary> = {
 
   contact: {
     kicker: "Dernier pas",
-    heading: "Vos équipes décident déjà tous les jours sous contrainte.",
+    heading:
+      "Vous savez déjà où la marge se fragilise. Voyons quelle décision couvrir en premier.",
     subheading:
-      "La question est simple: vos arbitrages sont-ils encore pilotés à vue ? Qualification rapide, lecture seule au départ, NDA possible dès le premier échange.",
+      "Parlez-nous du réseau, des arbitrages qui reviennent le plus souvent et du prochain pas utile. Déploiement Praedixa d’abord, preuve sur historique si elle aide à objectiver le point de départ.",
     trustItems: [
       "Réponse sous 48h ouvrées",
       "Lecture seule au démarrage",
       "NDA possible dès le premier échange",
-      "Premier wedge resserré sur les arbitrages qui coûtent cher",
+      "Premier périmètre resserré sur les arbitrages qui coûtent cher",
     ],
-    ctaPrimary: "Demander la preuve sur historique",
-    ctaSecondary: "Voir le protocole de mise en place",
+    ctaPrimary: "Parler du déploiement",
+    ctaSecondary: "Demander la preuve sur historique",
   },
 
   servicesPage: {
     meta: {
-      title: "Praedixa | Plateforme ROI complète vs diagnostic ROI initial",
+      title: "Praedixa | Déploiement Praedixa et preuve sur historique",
       description:
-        "Comparez la plateforme Praedixa complète et le diagnostic ROI initial pour choisir votre meilleur point d'entrée.",
-      ogTitle: "Praedixa | Praedixa complet ou diagnostic ROI",
+        "Comprendre ce qu’inclut Déploiement Praedixa, quand commencer par la preuve sur historique, et comment cadrer une mise en place logicielle sobre sur vos données existantes.",
+      ogTitle: "Praedixa | Déploiement Praedixa et preuve sur historique",
       ogDescription:
-        "Deux façons de démarrer: un diagnostic ROI rapide ou la plateforme complète pour réunir les données, prioriser et suivre les gains.",
+        "Une seule offre publique: Déploiement Praedixa. La preuve sur historique sert à objectiver un premier arbitrage et à cadrer la mise en place.",
     },
-    kicker: "Service",
-    heading: "Praedixa complet vs diagnostic ROI initial.",
+    kicker: "Offre",
+    heading: "Déploiement Praedixa et preuve sur historique.",
     subheading:
-      "Vous pouvez démarrer par un diagnostic ROI sur vos données, puis activer la couche complète de priorisation et de suivi.",
+      "Une seule offre publique: Déploiement Praedixa. La preuve sur historique sert à objectiver un premier arbitrage sur vos données existantes et à cadrer la mise en place si le sujet mérite d’aller plus loin.",
     fullPackage: {
-      badge: "Praedixa complet",
-      title: "Réunir les données, prioriser, suivre le ROI",
+      badge: "Déploiement Praedixa",
+      title: "Logiciel + mise en place cadrée",
       summary:
-        "Le cœur de valeur Praedixa: une lecture business commune et un plan d'action rentable.",
+        "Le cœur de valeur Praedixa: voir plus tôt les arbitrages critiques, comparer les options sous contraintes et relire l’impact dans le temps.",
       includesTitle: "Ce qui est inclus",
       includes: [
-        "Données RH, finance et opérations réunies",
-        "Priorités business classées par impact",
-        "Plan d'action site par site",
-        "Suivi du ROI dans le temps",
-        "Lecture commune pour comités et équipes",
-        "Comparaison multi-sites et standardisation",
+        "Lecture utile sur vos données existantes",
+        "Arbitrages comparés avec hypothèses explicites",
+        "Cadre commun Ops / Finance / Réseau",
+        "Déploiement logiciel et montée en charge cadrée",
+        "Relecture d’impact avant / recommandé / réel",
+        "Extension progressive aux arbitrages les plus coûteux",
       ],
-      cta: "Parler du déploiement Praedixa",
+      cta: "Parler du déploiement",
     },
     forecastsOnly: {
       badge: "Preuve sur historique",
-      title: "Point de départ rapide",
+      title: "Point d’entrée pour objectiver le sujet",
       summary:
-        "Une première lecture pour voir où l'argent se perd et où Praedixa peut créer le plus de valeur.",
+        "Une première lecture en lecture seule pour montrer un arbitrage concret, estimer le potentiel, et décider si Déploiement Praedixa mérite d’être lancé.",
       includesTitle: "Ce qui est inclus",
       includes: [
-        "Analyse de vos données existantes",
-        "Repérage des pertes et des gains potentiels",
-        "Démarrage lecture seule via exports/API.",
+        "Lecture en lecture seule sur vos données existantes",
+        "Repérage des arbitrages prioritaires",
+        "Synthèse simple: options, potentiel, prochain pas",
       ],
       limitsTitle: "Ce qui n'est pas inclus",
       limits: [
-        "Pas de suivi continu du ROI",
-        "Pas de priorisation détaillée dans le temps",
-        "Pas de cadre multi-sites complet",
+        "Pas de déploiement logiciel complet",
+        "Pas de boucle de relecture installée dans le temps",
+        "Pas d’extension réseau au-delà du premier périmètre cadré",
       ],
-      cta: "Demander un diagnostic ROI",
+      cta: "Demander la preuve sur historique",
     },
     comparison: {
-      title: "Comparatif rapide",
+      title: "Ce qui change réellement",
       columns: [
         {
-          criterion: "Lecture des données RH, finance et opérations",
+          criterion: "Lecture utile sur vos données existantes",
           fullPackage: "Inclus",
           forecastsOnly: "Inclus",
         },
         {
-          criterion: "Priorités business classées par impact",
+          criterion: "Arbitrages comparés sous contraintes",
+          fullPackage: "Inclus",
+          forecastsOnly: "Partiel",
+        },
+        {
+          criterion: "Déploiement logiciel et cadre de mise en place",
           fullPackage: "Inclus",
           forecastsOnly: "Non inclus",
         },
         {
-          criterion: "Plan d'action suivi dans le temps",
+          criterion: "Relecture d’impact dans le temps",
           fullPackage: "Inclus",
           forecastsOnly: "Non inclus",
         },
         {
-          criterion: "Suivi du ROI multi-sites",
-          fullPackage: "Inclus",
-          forecastsOnly: "Non inclus",
-        },
-        {
-          criterion: "Cadence direction / finance / opérations",
+          criterion: "Extension progressive du périmètre multi-sites",
           fullPackage: "Inclus",
           forecastsOnly: "Non inclus",
         },
       ],
     },
     decisionGuide: {
-      title: "Quand choisir chaque mode",
+      title: "Quand commencer par la preuve sur historique",
       items: [
-        "Choisissez Praedixa complet si votre priorité est d'aligner les équipes et de suivre le ROI dans le temps.",
-        "Choisissez le diagnostic ROI si vous voulez d'abord objectiver où l'argent se perd.",
-        "Vous pouvez commencer petit puis activer Praedixa complet sans changer d'outil.",
+        "Commencez par la preuve sur historique si vous devez d’abord objectiver un arbitrage ou convaincre un comité.",
+        "Passez directement au déploiement si le besoin, le périmètre et le sponsor sont déjà clairs.",
+        "La preuve sur historique n’est pas une autre offre: c’est un point d’entrée vers Déploiement Praedixa.",
       ],
     },
     bottomNote:
-      "Le diagnostic ROI est un point de départ. La vraie valeur est dans la lecture commune, la priorisation et le suivi des gains dans le temps.",
+      "La preuve sur historique qualifie le démarrage. La vraie valeur est dans Déploiement Praedixa: logiciel, arbitrages comparés, et impact relu dans le temps.",
   },
 
   footer: {
@@ -182,22 +183,22 @@ export const frCoreConversion: Partial<Dictionary> = {
       kicker: "Praedixa",
       heading:
         "Les arbitrages qui détruisent la marge sont souvent vus trop tard.",
-      cta: "Demander la preuve sur historique",
+      cta: "Parler du déploiement",
     },
   },
 
   stickyCta: {
-    text: "Demander la preuve sur historique",
+    text: "Parler du déploiement",
   },
 
   form: {
     pageTitle: "Demande de déploiement Praedixa",
     pageSubtitle:
-      "Cette demande permet de cadrer un pilote court, centré sur vos données, vos priorités et votre ROI.",
-    pill: "Pilote ROI Praedixa",
+      "Cette demande permet de cadrer Déploiement Praedixa, le premier périmètre à couvrir et la mise en place sur vos données existantes.",
+    pill: "Déploiement Praedixa",
     valuePoints: [
-      "Preuve sur historique offerte",
-      "Qualification orientée COO/Ops et CFO/DAF",
+      "Logiciel + mise en place cadrée",
+      "Qualification orientée COO / Ops / Réseau",
       "Réponse sous 48h ouvrées",
     ],
     estimatedTime: "Temps estimé",
@@ -238,11 +239,11 @@ export const frCoreConversion: Partial<Dictionary> = {
     submit: "Envoyer ma candidature",
     submitting: "Envoi en cours…",
     success: {
-      title: "Candidature transmise",
+      title: "Demande transmise",
       description:
-        "Nous revenons vers vous sous 48h ouvrées avec un cadrage adapté a votre contexte et un plan de diagnostic ROI.",
+        "Nous revenons vers vous sous 48h ouvrées avec un cadrage adapté à votre contexte et un prochain pas clair pour le déploiement.",
       backToSite: "Retour au site",
-      checkEmail: "Voir le protocole de mise en place",
+      checkEmail: "Voir l’offre",
     },
     error: "Une erreur est survenue. Veuillez réessayer.",
     sectors: [

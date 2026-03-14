@@ -120,10 +120,8 @@ export function getSerpResourceSchemaType(slug: string): SerpSchemaType {
 
 export function getSerpResourcePrimaryCta(slug: string): string {
   const entry = getSerpResourceBySlug(slug);
-  if (!entry) return "Demander un pilote prevision effectifs";
-  return (
-    SERP_PRIMARY_CTA_BY_ID[entry.id] ?? "Demander un pilote prevision effectifs"
-  );
+  if (!entry) return "Parler du déploiement";
+  return SERP_PRIMARY_CTA_BY_ID[entry.id] ?? "Parler du déploiement";
 }
 
 export function getSerpResourceInternalLinks(

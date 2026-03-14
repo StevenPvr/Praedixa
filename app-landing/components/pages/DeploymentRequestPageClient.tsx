@@ -38,7 +38,7 @@ export function DeploymentRequestPageClient({
 
   const privacyHref = getLocalizedPath(locale, "privacy");
   const termsHref = getLocalizedPath(locale, "terms");
-  const protocolHref = getLocalizedPath(locale, "deploymentProtocol");
+  const offerHref = getLocalizedPath(locale, "services");
   const homeHref = `/${locale}`;
 
   const update = useCallback(
@@ -61,7 +61,10 @@ export function DeploymentRequestPageClient({
           body: JSON.stringify(form),
         });
 
-        const payload = (await response.json()) as { success?: boolean; error?: string };
+        const payload = (await response.json()) as {
+          success?: boolean;
+          error?: string;
+        };
         if (!response.ok || payload.error) {
           setErrorMsg(payload.error ?? ui.unknownError);
           setStatus("error");
@@ -89,7 +92,7 @@ export function DeploymentRequestPageClient({
         email={form.email}
         homeHref={homeHref}
         locale={locale}
-        protocolHref={protocolHref}
+        offerHref={offerHref}
       />
     );
   }
@@ -101,7 +104,7 @@ export function DeploymentRequestPageClient({
           dict={dict}
           homeHref={homeHref}
           options={options}
-          protocolHref={protocolHref}
+          offerHref={offerHref}
           ui={ui}
         />
         <DeploymentRequestForm

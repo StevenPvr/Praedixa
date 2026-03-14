@@ -26,16 +26,13 @@ describe("llms routes", () => {
 
     expect(body).toContain("# Praedixa");
     expect(body).toContain(
-      "> Praedixa helps multi-site teams anticipate business risks across staffing, demand, inventory, supply, and retention",
+      "> Praedixa helps multi-site networks spot the trade-offs that threaten margin earlier",
     );
     expect(body).toContain(
       "[llms-full.txt](https://www.praedixa.com/llms-full.txt)",
     );
     expect(body).toContain("[Homepage FR](https://www.praedixa.com/fr)");
     expect(body).toContain("[Homepage EN](https://www.praedixa.com/en)");
-    expect(body).toContain(
-      "[Deployment Protocol EN](https://www.praedixa.com/en/deployment-protocol)",
-    );
     expect(body).toContain(
       "[Deployment EN](https://www.praedixa.com/en/deployment)",
     );

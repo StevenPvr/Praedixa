@@ -13,7 +13,7 @@ interface FooterProps {
 }
 
 export function Footer({ locale, dict }: FooterProps) {
-  const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
+  const primaryCtaHref = getLocalizedPath(locale, "deployment");
   const servicesHref = getLocalizedPath(locale, "services");
   const productHref = getLocalizedPath(locale, "productMethod");
   const methodHref = getLocalizedPath(locale, "howItWorksPage");
@@ -37,7 +37,7 @@ export function Footer({ locale, dict }: FooterProps) {
       href: methodHref,
     },
     {
-      label: locale === "fr" ? "Dossier ROI" : "Decision Log and ROI proof",
+      label: locale === "fr" ? "Dossier ROI" : "Proof example",
       href: proofHref,
     },
     {
@@ -135,8 +135,8 @@ export function Footer({ locale, dict }: FooterProps) {
             </Link>
             <p className="max-w-[46ch] text-sm leading-relaxed text-neutral-400">
               {locale === "fr"
-                ? "Praedixa aide les organisations multi-sites à arbitrer plus tôt entre demande, capacité, coût, service et risque, sans remplacer les outils déjà en place."
-                : "Praedixa helps multi-site organizations arbitrate earlier across demand, capacity, cost, service, and risk without replacing the tools they already use."}
+                ? "Praedixa aide les réseaux multi-sites à arbitrer plus tôt entre demande, capacité, coût, service et risque, sans remplacer les outils déjà en place."
+                : "Praedixa helps multi-site networks arbitrate earlier across demand, capacity, cost, service, and risk without replacing the tools they already use."}
             </p>
             <ShimmerTrack
               className="max-w-[16rem] bg-white/10"

@@ -8,15 +8,15 @@ export const praedixaMethodSources: Record<
   fr: [
     { label: "Praedixa — plateforme", url: "https://www.praedixa.com/fr" },
     {
-      label: "Praedixa — protocole de mise en place",
-      url: "https://www.praedixa.com/fr/protocole-deploiement",
+      label: "Praedixa — offre",
+      url: "https://www.praedixa.com/fr/services",
     },
   ],
   en: [
     { label: "Praedixa — platform", url: "https://www.praedixa.com/en" },
     {
-      label: "Praedixa — deployment protocol",
-      url: "https://www.praedixa.com/en/deployment-protocol",
+      label: "Praedixa — offer",
+      url: "https://www.praedixa.com/en/services",
     },
   ],
 };

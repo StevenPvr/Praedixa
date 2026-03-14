@@ -18,8 +18,8 @@ interface SerpResourcePageProps {
 }
 
 export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
-  const pilotHref = getLocalizedPath(locale, "deployment");
-  const trackedPilotHref = `${pilotHref}?${new URLSearchParams({
+  const deploymentHref = getLocalizedPath(locale, "deployment");
+  const trackedDeploymentHref = `${deploymentHref}?${new URLSearchParams({
     source: "seo_resource",
     seo_slug: entry.slug,
   }).toString()}`;
@@ -31,7 +31,7 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
   const primaryCtaLabel =
     locale === "fr"
       ? getSerpResourcePrimaryCta(entry.slug)
-      : "Request a pilot (closed loop)";
+      : "Discuss deployment";
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -202,7 +202,7 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
 
         <div className="mt-12 border-t border-border-subtle pt-8">
           <Link
-            href={trackedPilotHref}
+            href={trackedDeploymentHref}
             className="btn-primary-gradient inline-flex items-center rounded-lg px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-150 active:scale-[0.98]"
           >
             {primaryCtaLabel}

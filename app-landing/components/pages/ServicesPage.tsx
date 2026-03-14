@@ -5,6 +5,8 @@ import { ArrowUpRight } from "@phosphor-icons/react";
 import type { Locale } from "../../lib/i18n/config";
 import { getLocalizedPath } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import { CorePageJsonLd } from "../seo/CorePageJsonLd";
+import { BreadcrumbTrail } from "../shared/BreadcrumbTrail";
 import {
   CheckBadgeIcon,
   DecisionGraphIcon,
@@ -67,9 +69,36 @@ export function ServicesPage({ locale, dict }: ServicesPageProps) {
 
   return (
     <SectionShell className="py-14 md:py-20">
+      <CorePageJsonLd
+        locale={locale}
+        name={copy.heading}
+        description={copy.meta.description}
+        path={getLocalizedPath(locale, "services")}
+        breadcrumbs={[
+          {
+            name: locale === "fr" ? "Accueil" : "Home",
+            path: `/${locale}`,
+          },
+          {
+            name: copy.heading,
+            path: getLocalizedPath(locale, "services"),
+          },
+        ]}
+      />
       <article className="mx-auto max-w-[1400px]">
         <header className="grid grid-cols-1 gap-6 border-b border-neutral-200/80 pb-10 md:grid-cols-[1.45fr_0.55fr] md:items-end md:gap-10">
           <div>
+            <BreadcrumbTrail
+              items={[
+                {
+                  label: locale === "fr" ? "Accueil" : "Home",
+                  href: `/${locale}`,
+                },
+                {
+                  label: copy.heading,
+                },
+              ]}
+            />
             <Kicker>{copy.kicker}</Kicker>
             <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-none tracking-tighter text-ink md:text-6xl">
               {copy.heading}

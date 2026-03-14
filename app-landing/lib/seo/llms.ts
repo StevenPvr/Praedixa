@@ -36,22 +36,12 @@ function buildPrimaryLinks() {
     link(
       "Homepage FR",
       "/fr",
-      "Canonical French overview of the closed-loop decision product and deployment entry points.",
+      "Canonical French overview of the trade-offs Praedixa helps multi-site networks frame earlier.",
     ),
     link(
       "Homepage EN",
       "/en",
-      "Canonical English overview of the closed-loop decision product and deployment entry points.",
-    ),
-    link(
-      "Deployment Protocol FR",
-      `/fr/${localizedSlugs.deploymentProtocol.fr}`,
-      "French method, governance, onboarding, and how deployment is framed.",
-    ),
-    link(
-      "Deployment Protocol EN",
-      `/en/${localizedSlugs.deploymentProtocol.en}`,
-      "English method, governance, onboarding, and how deployment is framed.",
+      "Canonical English overview of the trade-offs Praedixa helps multi-site networks frame earlier.",
     ),
     link(
       "Deployment FR",
@@ -190,18 +180,18 @@ export function buildLlmsTxt(): string {
   return [
     "# Praedixa",
     "",
-    "> Praedixa helps multi-site teams anticipate business risks across staffing, demand, inventory, supply, and retention, compare cost/service/risk trade-offs, launch the best first action, and review business impact over time.",
+    "> Praedixa helps multi-site networks spot the trade-offs that threaten margin earlier, compare constrained options, and review the real impact of the decisions taken.",
     "",
     "Canonical domain: https://www.praedixa.com",
     "Primary market language: French, with English parity on core product pages.",
     "",
     section("Canonical Positioning", [
-      "- Broad product vision across staffing, demand, inventory, supply, and retention.",
-      "- Commercial entry point starts with the most costly risk in the customer perimeter.",
+      "- Primary audience: COO, operations leaders, and network managers in multi-site organizations.",
+      "- Praedixa starts with the most costly coverage and allocation trade-offs in the customer perimeter.",
       "- Read-only overlay on existing exports and APIs before any deeper integration.",
       "- Human in the loop: managers remain decision-makers.",
       "- Not a scheduling, WFM, ERP, BI, or generic data-platform replacement project.",
-      "- Best fit: multi-site networks that need clearer cost/service/risk trade-offs.",
+      "- Best fit: multi-site networks that need clearer cost/service/risk trade-offs and an impact review their teams can reread later.",
     ]),
     section("Primary Entry Points", buildPrimaryLinks()),
     section("Core Knowledge", buildCoreKnowledgeLinks()),

@@ -22,7 +22,7 @@ interface ProblemSectionProps {
 }
 
 export function ProblemSection({ locale, dict }: ProblemSectionProps) {
-  const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
+  const primaryCtaHref = getLocalizedPath(locale, "decisionLogProof");
   const problem = dict.problem;
   const hasKicker = problem.kicker.trim().length > 0;
   const pains = Array.isArray(problem.pains) ? problem.pains : null;

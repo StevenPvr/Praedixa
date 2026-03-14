@@ -21,14 +21,14 @@ export const enContentA: Record<
     kicker: "Praedixa",
     title: "About",
     description:
-      "Mission, positioning, and operating footprint of Praedixa as a French DecisionOps platform.",
-    lead: "Praedixa is the French DecisionOps platform: it links the systems that matter to a decision, governs critical trade-offs, and proves ROI decision by decision.",
+      "Mission, positioning, and operating footprint of Praedixa for multi-site networks.",
+    lead: "Praedixa helps multi-site networks spot earlier the trade-offs that put margin at risk, compare constrained options, and review the real impact of the decisions taken.",
     sections: [
       {
         title: "Mission",
         paragraphs: [
-          "Support company growth by revealing the potential of existing data.",
-          "Praedixa helps teams start from a shared foundation instead of reconciling disconnected numbers in every meeting.",
+          "Support the growth of French companies by revealing the potential in their data while preserving sovereignty.",
+          "Praedixa turns that mission into an operating frame: surface the critical trade-offs earlier, compare the options, and review what actually changed.",
         ],
       },
       {
@@ -51,7 +51,7 @@ export const enContentA: Record<
       { label: "Integration and data", key: "integrationData" },
       { label: "Essential resources", key: "resources" },
     ],
-    ctaLabel: "Apply for the ROI pilot",
+    ctaLabel: "Discuss deployment",
   },
 
   security: {
@@ -89,7 +89,7 @@ export const enContentA: Record<
       { label: "About Praedixa", key: "about" },
       { label: "Essential resources", key: "resources" },
     ],
-    ctaLabel: "Apply for the ROI pilot",
+    ctaLabel: "Discuss deployment",
   },
 
   resources: {
@@ -134,7 +134,7 @@ export const enContentA: Record<
       { label: "ROI pack", key: "decisionLogProof" },
       { label: "Integration and data", key: "integrationData" },
     ],
-    ctaLabel: "Get the free ROI diagnostic",
+    ctaLabel: "See a concrete example",
   },
 
   productMethod: {
@@ -142,34 +142,28 @@ export const enContentA: Record<
     kicker: "Product",
     title: "Product and method",
     description:
-      "How Praedixa links the useful systems and turns recurring trade-offs into governed decisions.",
-    lead: "Praedixa links HR, finance, operations, and supply chain systems without replacing your tools, so teams can turn scattered signals into governed, executable, auditable decisions.",
+      "How Praedixa turns scattered signals into trade-offs teams can compare, decide, and review.",
+    lead: "Praedixa helps multi-site networks surface critical trade-offs earlier, compare constrained options, and review impact without replacing the tools already in place.",
     sections: [
       {
-        title: "Bring the data together",
+        title: "See",
         paragraphs: [
-          "Praedixa starts from the systems already in place and rewrites useful data into one shared decision language.",
-          "The goal is not more reporting. It is a governed frame teams can actually act on.",
+          "Praedixa starts from the systems already in place to surface earlier the tensions that erode margin, service, or capacity.",
+          "The goal is not more reporting. It is a useful read of the economic conflicts that deserve a decision.",
         ],
       },
       {
-        title: "Anticipate needs",
+        title: "Compare",
         paragraphs: [
-          "The platform helps teams surface needs earlier so they do not wait until the cost is already locked in.",
+          "Options are compared with explicit assumptions: cost of action, cost of inaction, service level, and risk.",
+          "Forecasting, constrained optimization, and statistical learning help compare the available scenarios without turning the product into an unreadable black box.",
         ],
       },
       {
-        title: "Optimize decisions",
+        title: "Prove",
         paragraphs: [
-          "Actions are prioritized by expected business impact, not by noise or urgency alone.",
-          "Forecasting, constrained optimization, and statistical learning help compare the options while keeping the reasoning explicit enough for leadership, finance, and teams to reread later.",
-        ],
-      },
-      {
-        title: "Prove the impact",
-        paragraphs: [
-          "Every decision keeps its baseline, rationale, and observed result.",
-          "Econometric models help separate what comes from context, from the decision taken, and from the outcome actually observed.",
+          "Each decision keeps its context, rationale, and observed result.",
+          "Econometric models help link baseline, chosen decision, and observed impact more carefully. The value sits in the full loop: compare, document, review, and improve the next trade-off.",
         ],
       },
     ],
@@ -179,7 +173,7 @@ export const enContentA: Record<
       { label: "Integration and data", key: "integrationData" },
       { label: "Essential resources", key: "resources" },
     ],
-    ctaLabel: "Get the free ROI diagnostic",
+    ctaLabel: "See a concrete example",
   },
 
   howItWorksPage: {
@@ -187,31 +181,32 @@ export const enContentA: Record<
     kicker: "Method",
     title: "How it works",
     description:
-      "The Praedixa path to federate the useful data, calculate options, trigger the validated action, and track ROI.",
-    lead: "Praedixa starts by helping teams federate the useful data, then surface needs earlier, calculate options, trigger the validated action, and track ROI.",
+      "The Praedixa sequence that makes a trade-off visible, comparable, decided, and reviewed.",
+    lead: "Praedixa reads the useful signals, compares trade-offs, frames the decision, and reviews impact over time.",
     sections: [
       {
-        title: "1. Bring the useful data together",
+        title: "1. Early read",
         paragraphs: [
-          "Praedixa starts from exports, APIs, and existing tools to build a governed federation on top of the existing stack.",
+          "Praedixa starts from exports, APIs, and the tools already in place to surface the tension before the operating break happens.",
         ],
       },
       {
-        title: "2. Surface the needs",
+        title: "2. Economic comparison",
         paragraphs: [
-          "Business signals become readable: where it hurts, where money leaks, and where teams should act first.",
+          "Options are compared with explicit assumptions: cost of action, cost of inaction, operational impact, and risk level.",
+          "Forecasting, statistical learning, and constrained optimization help compare the scenarios in a frame people can actually use.",
         ],
       },
       {
-        title: "3. Prioritize the actions",
+        title: "3. Framed decision",
         paragraphs: [
-          "Teams see what to launch first, who should validate it, and where the strongest gain potential sits. Forecasting, statistical learning, and constrained optimization help compare the scenarios in a frame people can actually use.",
+          "The team decides with a shared frame instead of reacting through disconnected tools or last-minute urgency.",
         ],
       },
       {
-        title: "4. Track ROI",
+        title: "4. Impact proof",
         paragraphs: [
-          "The result is reviewed in a simple ROI pack: starting point, priorities, actions, and observed gains.",
+          "The result is reviewed through a before / recommended / actual loop to understand what really protected margin and what still needs correction.",
           "Econometric models help separate context effects from the decision itself so the impact review stays more defensible.",
         ],
       },
@@ -221,7 +216,7 @@ export const enContentA: Record<
       { label: "ROI pack", key: "decisionLogProof" },
       { label: "Integration and data", key: "integrationData" },
     ],
-    ctaLabel: "Get the free ROI diagnostic",
+    ctaLabel: "See a concrete example",
   },
 
   decisionLogProof: {
@@ -229,28 +224,35 @@ export const enContentA: Record<
     kicker: "Proof",
     title: "ROI pack",
     description:
-      "The simple format that links priorities, actions, and observed gains over time.",
-    lead: "The Praedixa ROI pack links each operational trade-off to a clear monthly reading that finance, operations, and leadership can actually use.",
+      "A public example of how Praedixa links options, chosen decision, and reviewed impact over time.",
+    lead: "Illustrative public example inspired by a multi-site logistics case: a demand spike puts service under pressure and pushes three sites toward expensive emergency decisions.",
     sections: [
       {
-        title: "What it contains",
+        title: "Starting point",
         paragraphs: [
-          "Starting point, chosen priorities, launched actions, and observed gains.",
-          "The goal is to prove what creates value, not to pile up dashboards. Econometric models help attribute impact more carefully instead of confusing a context change with the effect of a decision.",
+          "Three logistics sites have to absorb a five-day workload spike. Without a common frame, the team risks mixing poorly targeted overtime, late temp labor, and reallocation choices that only move the problem around.",
+          "Praedixa turns that context into an explicit trade-off: where to reinforce, where to reallocate, where to delay, and which site deserves service protection first.",
         ],
       },
       {
-        title: "What it changes",
+        title: "Compared options",
         paragraphs: [
-          "Committees stop restarting from scratch at every review.",
-          "Decisions become easier to explain, reread, and improve.",
+          "The example compares four options: local overtime, targeted temp labor, cross-site reallocation, and temporary service-level adjustment.",
+          "Each option is reviewed with the same assumptions: action cost, cost of inaction, service level protected, and spillover risk on the rest of the network.",
         ],
       },
       {
-        title: "Why it matters",
+        title: "Chosen decision and reviewed impact",
         paragraphs: [
-          "It closes the loop between baseline, decision, and observed impact.",
-          "It gives finance, operations, and leadership a shared frame to review what really changed.",
+          "The chosen recommendation combines cross-site reallocation and targeted temp labor instead of a blanket overtime reaction.",
+          "The before / recommended / actual review then helps separate what comes from context, from the decision taken, and from the observed impact. Econometric models are used here to make attribution more defensible, not to decorate the outcome.",
+        ],
+      },
+      {
+        title: "What Praedixa adds",
+        paragraphs: [
+          "ERP, BI, planning tools, and spreadsheets already expose useful data, but the economic trade-off often stays split across teams and screens.",
+          "Praedixa adds the missing frame between those tools: compared options, documented decision, explicit assumptions, and impact review over time.",
         ],
       },
     ],
@@ -259,7 +261,7 @@ export const enContentA: Record<
       { label: "How it works", key: "howItWorksPage" },
       { label: "Essential resources", key: "resources" },
     ],
-    ctaLabel: "Get the free ROI diagnostic",
+    ctaLabel: "Discuss deployment",
   },
 
   integrationData: {
@@ -294,6 +296,6 @@ export const enContentA: Record<
       { label: "Praedixa workspace security", key: "security" },
       { label: "Essential resources", key: "resources" },
     ],
-    ctaLabel: "Get the free ROI diagnostic",
+    ctaLabel: "See a concrete example",
   },
 };

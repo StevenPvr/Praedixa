@@ -13,28 +13,31 @@ export function RoiProofTeaserSection({ locale }: RoiProofTeaserSectionProps) {
   const isFr = locale === "fr";
   const frames = isFr
     ? [
-        { label: "Aujourd'hui", note: "Ce que vous subissez" },
-        { label: "Priorité", note: "Ce qu'il faut lancer" },
-        { label: "Résultat", note: "Ce que vous avez gagné" },
+        { label: "Situation", note: "Pic de charge sur 3 sites" },
+        { label: "Options", note: "HS, intérim, réallocation, report" },
+        { label: "Impact relu", note: "Service protégé, surcoût évité" },
       ]
     : [
-        { label: "Baseline", note: "Stable reference" },
-        { label: "Recommended", note: "Proposed option" },
-        { label: "Actual", note: "Executed decision" },
+        { label: "Situation", note: "Demand spike across 3 sites" },
+        { label: "Options", note: "Overtime, temp labor, reallocation, delay" },
+        {
+          label: "Impact review",
+          note: "Service protected, avoidable cost reduced",
+        },
       ];
 
   return (
     <SectionShell id="roi-proof">
-      <Kicker>{isFr ? "Dossier ROI" : "ROI pack"}</Kicker>
+      <Kicker>{isFr ? "Preuve publique" : "Public proof"}</Kicker>
       <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-ink md:text-5xl">
         {isFr
-          ? "Un dossier simple pour comités et directions"
-          : "A simple ROI pack for leadership reviews"}
+          ? "Voir un arbitrage complet avant de nous parler."
+          : "See one full trade-off before you talk to us."}
       </h2>
       <p className="mt-4 max-w-[66ch] text-sm leading-relaxed text-neutral-600 md:text-base">
         {isFr
-          ? "Praedixa met noir sur blanc la situation actuelle, les priorités retenues et les gains observés dans un format facile à relire."
-          : "Praedixa turns scattered data into a simple readout of current state, priorities, and realized gains."}
+          ? "Nous montrons un exemple concret: situation de départ, options comparées, recommandation, décision retenue et impact relu. Pas seulement le protocole de la preuve."
+          : "We show a concrete example: starting point, compared options, recommendation, chosen decision, and impact review. Not just the proof protocol."}
       </p>
 
       <div className="mt-7 grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -55,7 +58,7 @@ export function RoiProofTeaserSection({ locale }: RoiProofTeaserSectionProps) {
         href={getLocalizedPath(locale, "decisionLogProof")}
         className="mt-6 inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-colors duration-200 hover:bg-neutral-50"
       >
-        {isFr ? "Voir un exemple de dossier ROI" : "See an ROI pack example"}
+        {isFr ? "Voir un exemple concret" : "See a concrete example"}
         <ArrowRight size={14} weight="bold" />
       </Link>
     </SectionShell>

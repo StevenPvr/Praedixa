@@ -14,12 +14,12 @@ Ce sous-arbre porte les pages visibles par les visiteurs. Le layout localise val
 
 ## Pages majeures
 
-- `page.tsx`: homepage composee autour du parcours principal `probleme -> solution -> methode -> cas -> preuve -> securite -> pilote -> FAQ -> CTA`
+- `page.tsx`: homepage composee autour du parcours principal `probleme -> solution -> methode -> cas -> preuve publique -> securite -> FAQ -> pages cles -> CTA`
 - `services/page.tsx`: comparaison entre preuve sur historique et déploiement Praedixa
 - `secteurs/[slug]/page.tsx` et `industries/[slug]/page.tsx`: pages verticales FR/EN pour HCR, enseignement supérieur, logistique/transport/retail et automobile
 - `contact/page.tsx`: page contact + formulaire
-- `devenir-pilote/page.tsx` et `deployment-request/page.tsx`: demande de déploiement Praedixa
-- `protocole-deploiement/page.tsx` et `deployment-protocol/page.tsx`: protocole de mise en place commun
+- `deploiement/page.tsx` et `deployment/page.tsx`: demande de déploiement Praedixa
+- `protocole-deploiement/page.tsx` et `deployment-protocol/page.tsx`: redirections permanentes vers l'offre `services`
 - `comment-ca-marche/page.tsx` et `how-it-works/page.tsx`: narration de la methode
 - `produit-methode/page.tsx` et `product-method/page.tsx`: positionnement produit
 - `decision-log-preuve-roi/page.tsx` et `decision-log-roi-proof/page.tsx`: preuve ROI
@@ -44,6 +44,7 @@ Ce sous-arbre porte les pages visibles par les visiteurs. Le layout localise val
 - les pages FR/EN miroirs doivent rester coherentes dans le fond, meme si la copy diverge
 - les pages legales partagent `components/pages/LegalStaticPage.tsx`
 - les pages formulaire doivent reutiliser les composants de `components/pages/` ou `components/shared/`
+- les pages publiques a forte intention (`services`, `contact`, `deploiement`, pages knowledge) doivent exposer une breadcrumb visible et un balisage `WebPage`/`BreadcrumbList` coherent
 
 ## Tests associes
 

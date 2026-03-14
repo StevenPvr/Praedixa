@@ -7,9 +7,11 @@ Ce dossier matérialise un segment de route Next.js. Les fichiers `page.tsx` dé
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - Aucun élément versionné direct.
 
 Fichiers :
+
 - `page.tsx`
 
 ## Intégration
@@ -18,5 +20,5 @@ Ce dossier est consommé par l'application `app-landing` et s'insère dans son f
 
 ## Note de copy
 
-Cette route documente le protocole de mise en place Praedixa: preuve sur historique, onboarding fixe, puis abonnement annuel.
-Le contenu public de la page est alimente par `dict.pilot`; ne pas reintroduire d'ancienne cle `deployment` dans le contrat i18n.
+Cette route ne porte plus un contenu public autonome: elle redirige de facon permanente vers `services` pour eviter de recreer une seconde identite commerciale.
+Ne pas y remettre un contenu marketing complet sans realigner en meme temps l'offre canonique, la navigation et les snippets SEO.

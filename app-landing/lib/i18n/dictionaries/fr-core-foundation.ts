@@ -2,12 +2,12 @@ import type { Dictionary } from "../types";
 
 export const frCoreFoundation: Partial<Dictionary> = {
   meta: {
-    title: "Praedixa | Décisions multi-sites et preuve ROI",
+    title: "Praedixa | Déploiement Praedixa pour réseaux multi-sites",
     description:
-      "Praedixa aide les organisations multi-sites à arbitrer plus tôt entre demande, capacité, coût, service et risque, puis à prouver l’impact réel des décisions prises.",
-    ogTitle: "Praedixa | Décisions multi-sites et preuve ROI",
+      "Praedixa aide les réseaux multi-sites à repérer plus tôt les arbitrages qui fragilisent la marge, à comparer les options sous contraintes, puis à relire l’impact réel des décisions prises.",
+    ogTitle: "Praedixa | Déploiement Praedixa pour réseaux multi-sites",
     ogDescription:
-      "Praedixa aide les organisations multi-sites à voir plus tôt les arbitrages qui menacent la marge, à comparer les options et à relire l’impact réel des décisions prises.",
+      "Quand un réseau multi-sites voit trop tard ses arbitrages critiques, la marge part en urgence. Praedixa les fait remonter plus tôt, compare les options et relit l’impact réel des décisions.",
   },
 
   nav: {
@@ -19,46 +19,46 @@ export const frCoreFoundation: Partial<Dictionary> = {
     security: "Sécurité",
     faq: "FAQ",
     contact: "Contact",
-    ctaPrimary: "Demander la preuve sur historique",
+    ctaPrimary: "Voir un exemple concret",
     backToSite: "Retour au site",
   },
 
   hero: {
-    kicker: "Couche de décision pour opérations multi-sites",
+    kicker: "Pour COO, directions des opérations et responsables réseau",
     headline: "Décidez plus tôt.",
     headlineHighlight: "Protégez la marge avant que l’opération ne casse.",
     subtitle:
-      "Praedixa aide les organisations multi-sites à arbitrer entre demande, capacité, coût, service et risque à partir des données déjà présentes dans leurs outils. Nous commençons par les décisions de couverture et d’allocation les plus coûteuses.",
-    manifestoLabel: "Raison d’être",
+      "Praedixa aide les réseaux multi-sites à repérer plus tôt quand renforcer, réallouer, reporter ou ajuster le niveau de service, puis à comparer les options sous contraintes et à relire l’impact réel des décisions prises.",
+    manifestoLabel: "Pour qui Praedixa est fait",
     manifestoQuote:
-      "Accompagner la croissance des entreprises françaises en révélant le potentiel dans leurs données, tout en gardant leur souveraineté.",
+      "COO, directions des opérations et responsables réseau qui arbitrent tous les jours sous contrainte.",
     bullets: [
       {
-        metric: "Lecture seule",
-        text: "pour démarrer sans projet SI lourd",
+        metric: "Pour qui",
+        text: "Réseaux multi-sites qui doivent protéger marge et service sans attendre la casse.",
       },
       {
-        metric: "Arbitrage",
-        text: "coût, service, risque sur une même base",
+        metric: "Décisions",
+        text: "Quand renforcer, réallouer, reporter ou ajuster le niveau de service.",
       },
       {
-        metric: "Preuve ROI",
-        text: "impact relu dans le temps",
+        metric: "Résultat",
+        text: "Des arbitrages comparés plus tôt puis relus sur leur impact réel.",
       },
     ],
-    ctaPrimary: "Demander la preuve sur historique",
-    ctaSecondary: "Voir comment ça marche",
+    ctaPrimary: "Voir un exemple concret",
+    ctaSecondary: "Parler du déploiement",
+    ctaTertiary: "Demander la preuve sur historique",
     previewTitle: "Un aperçu de votre lecture business",
-    ctaMeta:
-      "Point d’entrée resserré · lecture commune Ops / Finance · NDA possible",
+    ctaMeta: "Déploiement Praedixa · lecture seule au départ · NDA possible",
     trustBadges: [
       "Lecture seule au démarrage",
       "Données agrégées uniquement",
       "Hébergement France",
       "NDA possible dès le premier échange",
-      "Premier point d’entrée: arbitrages de couverture et d’allocation",
-      "Pas de remplacement d’outil au départ",
-      "Cadre commun Ops / Finance / Réseau",
+      "Premier point d’entrée: arbitrages de couverture et d’allocation les plus coûteux",
+      "Logiciel + mise en place cadrée sur vos données existantes",
+      "Lecture par rôle: Ops d’abord, Finance et IT ensuite",
       "Impact relu avant / recommandé / réel",
     ],
   },
@@ -83,9 +83,9 @@ export const frCoreFoundation: Partial<Dictionary> = {
       "Le problème n’est pas le manque de données. Le problème, c’est le manque de cadre pour arbitrer.",
     subheading:
       "Dans les opérations multi-sites, les arbitrages critiques sont souvent pris trop tard, trop vite et sans preuve économique solide. Résultat: plus de coûts d’urgence, moins de marge de manœuvre et des décisions difficiles à défendre.",
-    cta: "Demander la preuve sur historique",
+    cta: "Voir un exemple concret",
     ctaHint:
-      "Lecture seule sur vos exports et API existants. Objectif: rendre visible en quelques jours le conflit économique qui coûte déjà de la marge.",
+      "Exemple public d’un arbitrage logistique: options comparées, décision retenue et impact relu sans passer d’abord par un formulaire.",
     states: {
       loadingTitle: "Lecture des signaux en cours",
       loadingBody:
@@ -138,7 +138,7 @@ export const frCoreFoundation: Partial<Dictionary> = {
     kicker: "Produit",
     heading: "Une couche de décision au-dessus de vos outils existants.",
     subheading:
-      "Praedixa ne remplace pas votre ERP, votre BI, votre outil de planning ou vos process terrain. Praedixa structure ce qui manque entre eux: un cadre de lecture, de comparaison et de justification des décisions.",
+      "Praedixa ne remplace pas votre ERP, votre BI, votre outil de planning ou vos process terrain. Praedixa ajoute le cadre qui aide à arbitrer plus tôt, comparer les options et relire l’impact des décisions prises.",
     principles: [
       {
         title: "Voir",

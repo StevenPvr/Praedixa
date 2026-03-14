@@ -301,8 +301,8 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
 });
 
 export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
-  const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
-  const protocolHref = getLocalizedPath(locale, "deploymentProtocol");
+  const deploymentHref = getLocalizedPath(locale, "deployment");
+  const proofHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
 
   return (
     <SectionShell id="contact" className="section-dark overflow-hidden">
@@ -344,7 +344,7 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
             >
               <motion.div variants={ctaItem} layout>
                 <MagneticCtaLink
-                  href={primaryCtaHref}
+                  href={deploymentHref}
                   label={dict.contact.ctaPrimary}
                   icon="arrow"
                   variant="primary"
@@ -352,7 +352,7 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
               </motion.div>
               <motion.div variants={ctaItem} layout>
                 <MagneticCtaLink
-                  href={protocolHref}
+                  href={proofHref}
                   label={dict.contact.ctaSecondary}
                   icon="arrow"
                   variant="secondary"

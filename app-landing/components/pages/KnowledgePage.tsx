@@ -5,6 +5,8 @@ import {
   getKnowledgePage,
   type KnowledgePageKey,
 } from "../../lib/content/knowledge-pages";
+import { CorePageJsonLd } from "../seo/CorePageJsonLd";
+import { BreadcrumbTrail } from "../shared/BreadcrumbTrail";
 import { Kicker } from "../shared/Kicker";
 import { SectionShell } from "../shared/SectionShell";
 
@@ -17,12 +19,11 @@ export function KnowledgePage({
 }) {
   const page = getKnowledgePage(locale, pageKey);
   const deploymentHref = getLocalizedPath(locale, "deployment");
+  const exampleHref = getLocalizedPath(locale, "decisionLogProof");
   const proofHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
-  const proofFirstPages = new Set<KnowledgePageKey>([
-    "about",
+  const exampleFirstPages = new Set<KnowledgePageKey>([
     "productMethod",
     "howItWorksPage",
-    "decisionLogProof",
     "integrationData",
     "resources",
   ]);
@@ -31,7 +32,8 @@ export function KnowledgePage({
     "resources",
     "integrationData",
   ]);
-  const useProofPrimary = proofFirstPages.has(pageKey);
+  const useExamplePrimary = exampleFirstPages.has(pageKey);
+  const useProofSecondary = pageKey === "decisionLogProof";
   const sectionAnchors = page.sections.map((section) => {
     const id = section.title
       .normalize("NFD")
@@ -46,9 +48,35 @@ export function KnowledgePage({
   const articleClassName = showStickySubnav
     ? "mx-auto grid max-w-7xl grid-cols-1 gap-10 md:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] md:gap-14"
     : "mx-auto max-w-3xl";
+  const currentPath = `/${locale}/${localizedSlugs[pageKey][locale]}`;
+  const breadcrumbItems = [
+    {
+      label: locale === "fr" ? "Accueil" : "Home",
+      href: `/${locale}`,
+    },
+    {
+      label: page.title,
+    },
+  ] as const;
 
   return (
     <SectionShell className="py-16 md:py-24">
+      <CorePageJsonLd
+        locale={locale}
+        name={page.title}
+        description={page.description}
+        path={currentPath}
+        breadcrumbs={[
+          {
+            name: locale === "fr" ? "Accueil" : "Home",
+            path: `/${locale}`,
+          },
+          {
+            name: page.title,
+            path: currentPath,
+          },
+        ]}
+      />
       <article className={articleClassName}>
         {showStickySubnav ? (
           <aside className="md:sticky md:top-24 md:self-start">
@@ -73,6 +101,7 @@ export function KnowledgePage({
         ) : null}
 
         <div>
+          <BreadcrumbTrail items={breadcrumbItems} />
           <Kicker>{page.kicker}</Kicker>
           <h1 className="mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl md:text-4xl">
             {page.title}
@@ -143,12 +172,12 @@ export function KnowledgePage({
 
           <div className="mt-12 flex flex-wrap items-center gap-3 border-t border-border-subtle pt-8">
             <Link
-              href={useProofPrimary ? proofHref : deploymentHref}
+              href={useExamplePrimary ? exampleHref : deploymentHref}
               className="btn-primary-gradient inline-flex items-center rounded-lg px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-150 active:scale-[0.98]"
             >
               {page.ctaLabel}
             </Link>
-            {useProofPrimary ? (
+            {useExamplePrimary ? (
               <Link
                 href={deploymentHref}
                 className="inline-flex items-center rounded-lg border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors duration-150 hover:bg-neutral-50"
@@ -156,6 +185,16 @@ export function KnowledgePage({
                 {locale === "fr"
                   ? "Parler du déploiement"
                   : "Discuss deployment"}
+              </Link>
+            ) : null}
+            {useProofSecondary ? (
+              <Link
+                href={proofHref}
+                className="inline-flex items-center rounded-lg border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors duration-150 hover:bg-neutral-50"
+              >
+                {locale === "fr"
+                  ? "Demander la preuve sur historique"
+                  : "Request historical proof"}
               </Link>
             ) : null}
           </div>

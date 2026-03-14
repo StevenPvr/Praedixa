@@ -69,9 +69,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         <div className="max-w-3xl">
           <Kicker className="text-neutral-100">{pilot.kicker}</Kicker>
           <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl">
-            {locale === "fr"
-              ? "Chargement de l'offre pilote"
-              : "Loading pilot offer"}
+            {locale === "fr" ? "Chargement de l'offre" : "Loading the offer"}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
             {locale === "fr"
@@ -94,12 +92,12 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
         <div className="max-w-3xl">
           <Kicker className="text-neutral-100">{pilot.kicker}</Kicker>
           <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-white md:text-6xl">
-            {locale === "fr" ? "Offre pilote vide" : "Empty pilot offer"}
+            {locale === "fr" ? "Offre vide" : "Empty offer"}
           </h2>
           <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-200">
             {locale === "fr"
-              ? "Ajoutez les livrables du pilote pour activer cette section."
-              : "Add pilot deliverables to activate this section."}
+              ? "Ajoutez les livrables de l'offre pour activer cette section."
+              : "Add the offer deliverables to activate this section."}
           </p>
         </div>
       </SectionShell>

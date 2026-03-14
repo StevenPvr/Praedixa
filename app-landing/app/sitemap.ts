@@ -113,16 +113,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       ),
     );
 
-    entries.push(
-      localizedEntry(
-        locale,
-        `/fr/${localizedSlugs.deploymentProtocol.fr}`,
-        `/en/${localizedSlugs.deploymentProtocol.en}`,
-        0.5,
-        "monthly",
-      ),
-    );
-
     for (const key of ["legal", "privacy", "terms"] as const) {
       entries.push(
         localizedEntry(

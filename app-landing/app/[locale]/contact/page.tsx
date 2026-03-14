@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { permanentRedirect } from "next/navigation";
-import { localizedSlugs } from "../../../lib/i18n/config";
+import { getLocalizedPath, localizedSlugs } from "../../../lib/i18n/config";
 import { resolveLocale } from "../../../lib/seo/knowledge";
 import { buildLocaleMetadata, localePathMap } from "../../../lib/seo/metadata";
 import { ContactPageClient } from "../../../components/pages/ContactPageClient";
+import { CorePageJsonLd } from "../../../components/seo/CorePageJsonLd";
+import { BreadcrumbTrail } from "../../../components/shared/BreadcrumbTrail";
+import { SectionShell } from "../../../components/shared/SectionShell";
 
 const FR_PATH = `/fr/${localizedSlugs.contact.fr}`;
 const EN_PATH = `/en/${localizedSlugs.contact.en}`;
@@ -37,5 +40,44 @@ export default async function ContactPage({
     permanentRedirect(`/${locale}/${localizedSlugs.contact[locale]}`);
   }
 
-  return <ContactPageClient locale={locale} />;
+  const pageTitle = locale === "fr" ? "Contact" : "Contact";
+
+  return (
+    <>
+      <CorePageJsonLd
+        locale={locale}
+        name={pageTitle}
+        description={
+          locale === "fr"
+            ? "Demandez une preuve sur historique ou échangez sur le cadrage de vos arbitrages critiques."
+            : "Request historical proof or discuss how to frame your critical trade-offs."
+        }
+        path={getLocalizedPath(locale, "contact")}
+        breadcrumbs={[
+          {
+            name: locale === "fr" ? "Accueil" : "Home",
+            path: `/${locale}`,
+          },
+          {
+            name: pageTitle,
+            path: getLocalizedPath(locale, "contact"),
+          },
+        ]}
+      />
+      <SectionShell className="pb-0 pt-10 md:pt-12">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <BreadcrumbTrail
+            items={[
+              {
+                label: locale === "fr" ? "Accueil" : "Home",
+                href: `/${locale}`,
+              },
+              { label: pageTitle },
+            ]}
+          />
+        </div>
+      </SectionShell>
+      <ContactPageClient locale={locale} />
+    </>
+  );
 }

@@ -65,8 +65,8 @@ export function HomeFaqCtaSection({ locale }: HomeFaqCtaSectionProps) {
   const isFr = locale === "fr";
   const items = faqs[locale];
 
-  const proofHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
   const deploymentHref = getLocalizedPath(locale, "deployment");
+  const proofHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
 
   return (
     <SectionShell id="home-faq-cta">
@@ -111,19 +111,19 @@ export function HomeFaqCtaSection({ locale }: HomeFaqCtaSectionProps) {
       {/* CTAs */}
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <Link
-          href={proofHref}
+          href={deploymentHref}
           className="btn-primary-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-200 active:scale-[0.98]"
         >
-          {isFr
-            ? "Demander la preuve sur historique"
-            : "Request the historical proof"}
+          {isFr ? "Parler du déploiement" : "Discuss deployment"}
           <ArrowRight size={14} weight="bold" />
         </Link>
         <Link
-          href={deploymentHref}
+          href={proofHref}
           className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors duration-200 hover:bg-neutral-50 active:scale-[0.98]"
         >
-          {isFr ? "Parler du déploiement" : "Discuss deployment"}
+          {isFr
+            ? "Demander la preuve sur historique"
+            : "Request historical proof"}
         </Link>
       </div>
     </SectionShell>

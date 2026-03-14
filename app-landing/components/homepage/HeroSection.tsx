@@ -65,15 +65,15 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
     pillars: hero.bullets,
     ctaPrimary: hero.ctaPrimary,
     ctaSecondary: hero.ctaSecondary,
+    ctaTertiary: hero.ctaTertiary,
     microcopy: hero.ctaMeta,
     trustBadges: hero.trustBadges,
     industriesLabel: isFr ? "Solutions par secteur" : "Solutions by industry",
   };
 
-  const proofHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
-  const secondaryHref = isFr
-    ? getLocalizedPath(locale, "howItWorksPage")
-    : getLocalizedPath(locale, "deployment");
+  const exampleHref = getLocalizedPath(locale, "decisionLogProof");
+  const deploymentHref = getLocalizedPath(locale, "deployment");
+  const proofRequestHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
   const hasManifestoLabel = copy.manifestoLabel.trim().length > 0;
   const heroKickerLabel = copy.kicker;
   const heroSupportLine =
@@ -84,18 +84,18 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
         : "Read-only on your tools · human validation · impact reviewed over time";
   const heroChrome = isFr
     ? {
-        kicker: "Décision multi-sites · arbitrages explicites · preuve ROI",
-        shelfEyebrow: "Ce que le démarrage vous donne",
+        kicker: "Réseaux multi-sites · arbitrages critiques · impact relu",
+        shelfEyebrow: "Ce que Praedixa clarifie d’abord",
       }
     : {
-        kicker: "Multi-site decisions · explicit trade-offs · ROI proof",
-        shelfEyebrow: "What the start gives you",
+        kicker: "Multi-site networks · critical trade-offs · impact reviewed",
+        shelfEyebrow: "What Praedixa clarifies first",
       };
 
   const trustBadges = copy.trustBadges.slice(0, 4);
   const heroManifestoBridge = isFr
-    ? "Cette raison d’être prend une forme concrète: démarrage en lecture seule, arbitrages comparés plus tôt et impact relu dans le temps."
-    : "This mission becomes concrete through a read-only start, earlier trade-off comparisons, and impact reviewed over time.";
+    ? "Praedixa entre par les arbitrages qui coûtent le plus vite: renforcer, réallouer, reporter ou ajuster le niveau de service avant que l’urgence ne décide à votre place."
+    : "Praedixa starts with the trade-offs that get expensive fastest: reinforce, reallocate, postpone, or adjust the service level before urgency decides for you.";
 
   return (
     <>
@@ -115,9 +115,9 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
             poster={heroIndustryMontageMedia.poster}
             src={heroIndustryMontageMedia.mp4Src}
           />
-          <div className="absolute inset-0 bg-[linear-gradient(102deg,rgba(2,6,23,0.92)_6%,rgba(2,6,23,0.74)_32%,rgba(2,6,23,0.34)_58%,rgba(2,6,23,0.72)_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_74%_18%,rgba(38,92,201,0.18),transparent_24%),radial-gradient(circle_at_22%_84%,rgba(244,231,198,0.11),transparent_28%)]" />
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,transparent,rgba(2,6,23,0.56))]" />
+          <div className="absolute inset-0 bg-[linear-gradient(98deg,rgba(10,8,6,0.72)_4%,rgba(10,8,6,0.56)_28%,rgba(10,8,6,0.24)_52%,rgba(10,8,6,0.12)_74%,rgba(10,8,6,0.06)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_84%,rgba(244,231,198,0.08),transparent_28%)]" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,transparent,rgba(10,8,6,0.34))]" />
         </div>
 
         <div className="relative mx-auto flex min-h-[calc(100dvh-var(--header-h))] max-w-7xl items-center px-4 pb-8 pt-14 sm:px-6 md:pb-10 lg:px-8 lg:pb-14">
@@ -160,7 +160,7 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
 
               <div className="mt-8 flex flex-wrap items-center gap-3.5">
                 <Link
-                  href={proofHref}
+                  href={exampleHref}
                   className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-white px-6 py-3 text-sm font-semibold text-neutral-950 no-underline shadow-[0_30px_72px_-42px_rgba(2,6,23,0.82)] transition-all duration-300 [transition-timing-function:var(--ease-snappy)] hover:bg-amber-50 hover:shadow-[0_38px_90px_-48px_rgba(2,6,23,0.9)] active:translate-y-[1px] active:scale-[0.98]"
                 >
                   {copy.ctaPrimary}
@@ -172,10 +172,16 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                   </span>
                 </Link>
                 <Link
-                  href={secondaryHref}
+                  href={deploymentHref}
                   className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/18 bg-white/10 px-6 py-3 text-sm font-semibold text-white no-underline shadow-[0_18px_40px_-34px_rgba(2,6,23,0.72)] backdrop-blur-sm transition-all duration-300 [transition-timing-function:var(--ease-snappy)] hover:border-white/28 hover:bg-white/16 active:translate-y-[1px] active:scale-[0.98]"
                 >
                   {copy.ctaSecondary}
+                </Link>
+                <Link
+                  href={proofRequestHref}
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-[rgba(255,255,255,0.78)] no-underline transition-colors duration-200 hover:text-white"
+                >
+                  {copy.ctaTertiary}
                 </Link>
               </div>
 
@@ -197,11 +203,11 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                     {copy.manifestoLabel}
                   </p>
                 ) : null}
-                <blockquote
+                <p
                   className={`${hasManifestoLabel ? "mt-3" : "mt-0"} max-w-[30ch] text-[1.7rem] font-semibold leading-[1.08] tracking-[-0.03em] text-ink sm:text-[2rem] lg:text-[2.35rem]`}
                 >
-                  “{copy.manifestoQuote}”
-                </blockquote>
+                  {copy.manifestoQuote}
+                </p>
                 <p className="mt-6 max-w-[58ch] text-base leading-relaxed text-neutral-700 md:text-lg">
                   {heroManifestoBridge}
                 </p>

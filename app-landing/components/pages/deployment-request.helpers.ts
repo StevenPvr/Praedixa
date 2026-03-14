@@ -54,8 +54,7 @@ export function getDeploymentRequestPageUi(
       legalJoinB: " et la ",
       unknownError: "Erreur inconnue.",
       networkError: "Erreur réseau. Veuillez réessayer.",
-      protocolHint:
-        "Vous pouvez consulter le protocole de mise en place avant la soumission.",
+      offerHint: "Vous pouvez consulter l’offre publique avant la soumission.",
     };
   }
 
@@ -71,7 +70,7 @@ export function getDeploymentRequestPageUi(
     legalJoinB: " and the ",
     unknownError: "Unknown error.",
     networkError: "Network error. Please try again.",
-    protocolHint: "You can review the deployment protocol before submitting.",
+    offerHint: "You can review the public offer before submitting.",
   };
 }
 

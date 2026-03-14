@@ -79,9 +79,9 @@ describe("navigation menus", () => {
     const { rerender } = render(
       <MobileNav
         locale="fr"
-        primaryCtaHref="/fr/contact?intent=proof"
-        primaryCtaLabel="Demander la preuve sur historique"
-        secondaryCtaHref="/fr/devenir-pilote"
+        primaryCtaHref="/fr/decision-log-preuve-roi"
+        primaryCtaLabel="Voir un exemple concret"
+        secondaryCtaHref="/fr/deploiement"
         secondaryCtaLabel="Parler du déploiement"
       />,
     );
@@ -104,9 +104,9 @@ describe("navigation menus", () => {
     rerender(
       <MobileNav
         locale="fr"
-        primaryCtaHref="/fr/contact?intent=proof"
-        primaryCtaLabel="Demander la preuve sur historique"
-        secondaryCtaHref="/fr/devenir-pilote"
+        primaryCtaHref="/fr/decision-log-preuve-roi"
+        primaryCtaLabel="Voir un exemple concret"
+        secondaryCtaHref="/fr/deploiement"
         secondaryCtaLabel="Parler du déploiement"
       />,
     );

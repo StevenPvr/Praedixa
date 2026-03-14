@@ -19,7 +19,7 @@ interface SectorPageProps {
 
 export function SectorPage({ locale, entry }: SectorPageProps) {
   const pilotHref = getLocalizedPath(locale, "deployment");
-  const protocolHref = getLocalizedPath(locale, "deploymentProtocol");
+  const offerHref = getLocalizedPath(locale, "services");
   const displaySourceLinks = getSectorDisplaySourceLinks(entry);
   const differentiationCards = listSectorDifferentiationCards(locale);
   const canonicalPath =
@@ -130,12 +130,10 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
                     <ArrowRight size={16} weight="bold" />
                   </Link>
                   <Link
-                    href={protocolHref}
+                    href={offerHref}
                     className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white/82 px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors hover:border-neutral-400 hover:bg-white"
                   >
-                    {locale === "fr"
-                      ? "Voir le protocole de mise en place"
-                      : "View the deployment protocol"}
+                    {locale === "fr" ? "Voir l’offre" : "View the offer"}
                   </Link>
                 </div>
               </div>
@@ -343,12 +341,10 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
                   <ArrowRight size={16} weight="bold" />
                 </Link>
                 <Link
-                  href={protocolHref}
+                  href={offerHref}
                   className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white no-underline transition-colors hover:bg-white/[0.1]"
                 >
-                  {locale === "fr"
-                    ? "Voir le protocole de mise en place"
-                    : "View the deployment protocol"}
+                  {locale === "fr" ? "Voir l’offre" : "View the offer"}
                 </Link>
               </div>
 

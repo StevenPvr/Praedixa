@@ -40,11 +40,13 @@ describe("HeroSection", () => {
     render(<HeroSection locale="fr" dict={fr} />);
 
     expect(
-      screen.getByLabelText("Couche de décision pour opérations multi-sites"),
+      screen.getByLabelText(
+        "Pour COO, directions des opérations et responsables réseau",
+      ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Décision multi-sites · arbitrages explicites · preuve ROI",
+        "Réseaux multi-sites · arbitrages critiques · impact relu",
       ),
     ).toBeInTheDocument();
     expect(screen.getByTestId("hero-background-video")).toHaveAttribute(
@@ -64,15 +66,24 @@ describe("HeroSection", () => {
       "text-[var(--brass-400)]",
     );
     expect(
-      screen.getAllByText(
-        "Praedixa aide les organisations multi-sites à arbitrer entre demande, capacité, coût, service et risque à partir des données déjà présentes dans leurs outils. Nous commençons par les décisions de couverture et d’allocation les plus coûteuses.",
-      ).length,
-    ).toBeGreaterThan(0);
+      screen.getByText(
+        /Praedixa aide les réseaux multi-sites à repérer plus tôt/i,
+      ),
+    ).toBeInTheDocument();
     expect(
-      screen.getAllByText(
-        "Point d’entrée resserré · lecture commune Ops / Finance · NDA possible",
-      ).length,
-    ).toBeGreaterThan(0);
+      screen.getByText(
+        "Déploiement Praedixa · lecture seule au départ · NDA possible",
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByText("Lecture seule au démarrage")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Voir un exemple concret" }),
+    ).toHaveAttribute("href", "/fr/decision-log-preuve-roi");
+    expect(
+      screen.getByRole("link", { name: "Parler du déploiement" }),
+    ).toHaveAttribute("href", "/fr/deploiement");
+    expect(
+      screen.getByRole("link", { name: "Demander la preuve sur historique" }),
+    ).toHaveAttribute("href", "/fr/contact?intent=proof");
   });
 });

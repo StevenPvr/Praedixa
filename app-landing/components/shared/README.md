@@ -5,6 +5,7 @@ Shell partage du site et primitives visuelles reutilisables.
 ## Blocs principaux
 
 - `Header.tsx`, `Footer.tsx`: chrome global
+- `BreadcrumbTrail.tsx`: breadcrumb visible partagee pour les pages piliers
 - `DesktopNav.tsx`, `MobileNav.tsx`, `LocaleSwitcher.tsx`: navigation et changement de langue
 - `SectionShell.tsx`, `AnimatedSection.tsx`, `Kicker.tsx`: primitives de mise en page
 - `icons/*`: set SVG editorial partage pour l'iconographie marketing de la landing
@@ -20,14 +21,17 @@ Shell partage du site et primitives visuelles reutilisables.
 ## Tests
 
 - `__tests__/NavigationMenus.test.tsx`
+- `__tests__/BreadcrumbTrail.test.tsx`
 
 ## Conventions
 
 - tout composant de shell global doit rester ici plutot que dans `homepage/`
 - les primitives visuelles doivent etre agnostiques du contenu metier
 - les comportements d'animation repetables vont dans `motion/` pour eviter la duplication
+- `BreadcrumbTrail.tsx` doit rester sobre et semantique; les pages l'utilisent pour exposer la meme hierarchie que le balisage `BreadcrumbList`
 - l'iconographie marketing doit passer par `shared/icons/` plutot que multiplier des glyphes generiques de librairie avec des styles incoherents
 - dans `Header.tsx`, garder un nom accessible explicite pour les CTA responsives et verifier le contraste reel des variantes desktop/mobile au lieu de supposer que les spans caches restent neutres pour l'audit a11y
 - `Footer.tsx` doit reprendre exactement la meme these publique que la homepage; ne pas y reintroduire un wording legacy plus etroit (`charge/capacite`, `coverage`) une fois le message canonique mis a jour
+- `Header.tsx` et `Footer.tsx` doivent partager la meme hierarchie d'entree publique: exemple concret d'abord, deploiement ensuite, preuve sur historique seulement comme qualification secondaire
 - les verticales doivent rester accessibles depuis la navigation globale de la landing, pas seulement depuis la homepage ou le footer
 - les tests de navigation doivent matcher les liens de cartes avec un nom accessible partiel plus le `href`, car le titre et la description sont exposes dans le meme lien

@@ -21,7 +21,7 @@ export const frContentA: Record<
     kicker: "Praedixa",
     title: "À propos",
     description:
-      "Mission, ancrage et positionnement de Praedixa comme couche de décision pour les organisations multi-sites.",
+      "Mission, ancrage et positionnement de Praedixa pour les réseaux multi-sites.",
     lead: "Praedixa aide les organisations multi-sites à arbitrer plus tôt entre demande, capacité, coût, service et risque, puis à prouver l’impact réel des décisions prises.",
     sections: [
       {
@@ -134,7 +134,7 @@ export const frContentA: Record<
       { label: "Dossier ROI", key: "decisionLogProof" },
       { label: "Intégration & données", key: "integrationData" },
     ],
-    ctaLabel: "Demander la preuve sur historique",
+    ctaLabel: "Voir un exemple concret",
   },
 
   productMethod: {
@@ -173,7 +173,7 @@ export const frContentA: Record<
       { label: "Intégration & données", key: "integrationData" },
       { label: "Ressources essentielles", key: "resources" },
     ],
-    ctaLabel: "Demander la preuve sur historique",
+    ctaLabel: "Voir un exemple concret",
   },
 
   howItWorksPage: {
@@ -216,7 +216,7 @@ export const frContentA: Record<
       { label: "Dossier ROI", key: "decisionLogProof" },
       { label: "Intégration & données", key: "integrationData" },
     ],
-    ctaLabel: "Demander la preuve sur historique",
+    ctaLabel: "Voir un exemple concret",
   },
 
   decisionLogProof: {
@@ -224,28 +224,35 @@ export const frContentA: Record<
     kicker: "Preuve",
     title: "Dossier ROI",
     description:
-      "Le format simple pour relier options, actions et gains observes dans le temps.",
-    lead: "Le dossier ROI Praedixa relie chaque arbitrage opérationnel à une lecture simple, structurée et relisible par la direction, la finance et les opérations.",
+      "Un exemple public de la façon dont Praedixa relie options, décision prise et impact relu dans le temps.",
+    lead: "Exemple illustratif, inspiré d’un cas logistique multi-sites: un pic de charge menace le service et pousse trois sites vers des décisions d’urgence trop coûteuses.",
     sections: [
       {
-        title: "Ce qu'il contient",
+        title: "Situation initiale",
         paragraphs: [
-          "Situation de départ, options comparées, arbitrage retenu, hypothèses explicites et résultats observés.",
-          "Le but est de prouver ce qui rapporte réellement, pas d'empiler des tableaux. La relecture s’appuie sur des modèles économétriques pour mieux attribuer l’impact et éviter de confondre changement de contexte et effet réel d’une décision.",
+          "Trois sites logistiques absorbent un pic de charge sur cinq jours. Sans cadre commun, l’équipe risque de mélanger heures supplémentaires mal ciblées, intérim tardif et reports de charge qui déplacent juste le problème.",
+          "Praedixa transforme ce contexte en arbitrage explicite: où renforcer, où réallouer, où accepter un report, et sur quel site protéger le niveau de service en priorité.",
         ],
       },
       {
-        title: "Ce qu'il change",
+        title: "Options comparées",
         paragraphs: [
-          "Les comités ne repartent plus de zéro à chaque réunion.",
-          "Les décisions deviennent plus faciles à défendre, à relire et à corriger.",
+          "L’exemple compare quatre options: heures supplémentaires locales, intérim ciblé, réallocation inter-sites, et ajustement temporaire du niveau de service.",
+          "Chaque option est relue avec les mêmes hypothèses: coût d’action, coût de non-action, niveau de service protégé, risque de propagation vers les autres sites.",
         ],
       },
       {
-        title: "Pourquoi cela compte",
+        title: "Décision retenue et impact relu",
         paragraphs: [
-          "Le dossier ROI ferme la boucle entre lecture, arbitrage, décision et impact relu.",
-          "Il permet à la direction, à la finance et aux opérations de parler enfin du même arbitrage sur une base commune.",
+          "La recommandation retenue combine réallocation inter-sites et renfort intérim ciblé, plutôt qu’un recours massif et uniforme aux heures supplémentaires.",
+          "La relecture avant / recommandé / réel permet ensuite de distinguer ce qui relève du contexte, de la décision prise et de l’impact observé. Les modèles économétriques servent ici à rendre cette attribution plus défendable, pas à maquiller un résultat.",
+        ],
+      },
+      {
+        title: "Ce que Praedixa apporte de plus",
+        paragraphs: [
+          "Un ERP, une BI ou un planning montrent des données utiles, mais laissent souvent l’arbitrage économique dispersé entre plusieurs équipes et plusieurs écrans.",
+          "Praedixa ajoute le cadre qui manque entre ces outils: options comparées, décision documentée, hypothèses explicites et impact relu dans le temps.",
         ],
       },
     ],
@@ -254,7 +261,7 @@ export const frContentA: Record<
       { label: "Comment ça marche", key: "howItWorksPage" },
       { label: "Ressources essentielles", key: "resources" },
     ],
-    ctaLabel: "Demander la preuve sur historique",
+    ctaLabel: "Parler du déploiement",
   },
 
   integrationData: {
@@ -289,6 +296,6 @@ export const frContentA: Record<
       { label: "Sécurité de l'espace Praedixa", key: "security" },
       { label: "Ressources essentielles", key: "resources" },
     ],
-    ctaLabel: "Demander la preuve sur historique",
+    ctaLabel: "Voir un exemple concret",
   },
 };

@@ -2,38 +2,38 @@ import type { Dictionary } from "../types";
 
 export const enCoreOperations: Partial<Dictionary> = {
   howItWorks: {
-    kicker: "Pilot protocol",
-    heading: "A 4-step pilot with clear milestones.",
+    kicker: "How it works",
+    heading: "A simple, decision-first loop. Not another dashboard.",
     subheading:
-      "Free historical audit, proof milestone in week 8, consolidation in 3 months.",
+      "Praedixa reads the useful signals, compares trade-offs, frames the decision, and reviews the impact over time through one concrete operating conflict.",
     steps: [
       {
         number: "01",
-        title: "Framing + free audit",
-        subtitle: "History & starting point",
+        title: "Early read",
+        subtitle: "Useful signals · read-only",
         description:
-          "Month 1: audit your historical data to estimate potential and pick the priority decisions to cover.",
+          "Praedixa starts from the data already present in your tools to surface earlier the sites, teams, or flows that will come under pressure.",
       },
       {
         number: "02",
-        title: "Read-only connection",
-        subtitle: "Your existing exports",
+        title: "Economic trade-off",
+        subtitle: "Cost · inaction · risk",
         description:
-          "Read-only connection via CSV/Excel/APIs. We set up the indicators you need based on your priorities, using forecasting, statistical learning, and constrained optimization to compare the most relevant options.",
+          "Options are compared with explicit assumptions: cost of action, cost of inaction, operational impact, and level of risk. Forecasting, statistical learning, and constrained optimization help teams compare the most relevant scenarios.",
       },
       {
         number: "03",
-        title: "Guided decisions + journal",
-        subtitle: "Options, choices, reasons",
+        title: "Framed decision",
+        subtitle: "Ops · Finance shared frame",
         description:
-          "Compare options with your rules. Each decision is recorded: proposed option, final choice, reason, outcome.",
+          "The team decides from one shared frame instead of scattered reactions: when to reinforce, reallocate, postpone, or adjust the service level.",
       },
       {
         number: "04",
-        title: "Impact proof & governance",
-        subtitle: "Week 8 then month 3",
+        title: "Impact proof",
+        subtitle: "Baseline · recommended · actual",
         description:
-          "Monthly proof, Ops + Finance reviews, multi-site standardization, and scale-up plan. The impact review also uses econometric models to separate what comes from context, from the decision taken, and from the outcome actually observed.",
+          "Decisions and outcomes are reviewed to build an ROI loop that operations and finance can both use. The impact review also uses econometric models to separate context from the decision itself and from the outcome actually observed.",
       },
     ],
   },
@@ -90,38 +90,40 @@ export const enCoreOperations: Partial<Dictionary> = {
   },
 
   deliverables: {
-    kicker: "Economic impact proof",
-    heading: "Differentiator: decision journal + proof.",
-    subheading: "No vague promises: a simple, comparable, repeatable protocol.",
+    kicker: "Concrete example",
+    heading: "Before asking for anything, see what useful proof looks like.",
+    subheading:
+      "A simple example of an operating conflict, compared options, retained decision, and reviewed impact. Public proof should show Praedixa at work, not just describe the protocol.",
     roiFrames: [
       {
-        label: "Baseline (reference)",
-        value: "Your current operating baseline",
-        note: "Stable comparison point: what would happen without Praedixa recommendations.",
-        sourceLabel: "Source: Praedixa pilot protocol",
-        sourceUrl: "/en/deployment-protocol",
+        label: "Starting point",
+        value: "Demand spike across 3 logistics sites",
+        note: "OTIF risk rising, overtime already used, emergency temp staffing considered on two sites.",
+        sourceLabel: "See the public impact proof",
+        sourceUrl: "/en/decision-log-roi-proof",
       },
       {
-        label: "Recommended (potential)",
-        value: "The recommended scenario",
-        note: "Potential under your constraints (cost, service, business rules).",
-        sourceLabel: "Source: Praedixa pilot protocol",
-        sourceUrl: "/en/deployment-protocol",
+        label: "Options compared",
+        value: "Overtime vs temp staffing vs reallocation",
+        note: "Each option is compared on cost, service risk, available capacity, and expected impact on backlog.",
+        sourceLabel: "See the public impact proof",
+        sourceUrl: "/en/decision-log-roi-proof",
       },
       {
-        label: "Actual (field)",
-        value: "What was done, and why",
-        note: "Captures what was executed in the field to attribute net impact.",
-        sourceLabel: "Source: Praedixa pilot protocol",
-        sourceUrl: "/en/deployment-protocol",
+        label: "Impact reviewed",
+        value: "Decision retained and reviewed",
+        note: "The final choice, its limits, and the observed impact are reviewed together to prepare the next trade-off.",
+        sourceLabel: "See the public impact proof",
+        sourceUrl: "/en/decision-log-roi-proof",
       },
     ],
     checklist: [
-      "Decision journal: options, choice, rationale, outcome",
-      "Indicators: operating cost, service level, emergencies, schedule stability",
-      "Baseline / recommended / actual comparison (site + network)",
-      "Monthly Ops + Finance ritual",
-      "Monthly pack usable in exec reviews",
+      "The starting point is described in operating language, not only through KPIs",
+      "The compared options are visible with their assumptions",
+      "The retained decision is explained clearly",
+      "The limit of the example is explicit",
+      "The impact review separates context from decision",
+      "The role of ERP / BI / planning / Excel is made explicit",
     ],
   },
 
@@ -173,69 +175,67 @@ export const enCoreOperations: Partial<Dictionary> = {
   },
 
   pilot: {
-    kicker: "Pilot offer",
-    heading: "Praedixa Signature pilot: free audit, proof in 3 months.",
+    kicker: "Deployment",
+    heading: "Praedixa deployment: software plus a scoped rollout.",
     subheading:
-      "Multi-vertical program for multi-site companies: restaurants, retail, hospitality, dealerships/workshops, logistics, healthcare, industry, call centers.",
-    statusLabels: [
-      "Free audit (M1)",
-      "Proof milestone (S8)",
-      "Consolidation (M3)",
-    ],
+      "Praedixa deployment installs the software on top of your existing data, frames the first perimeter, and sets up impact review without a heavy IT project at the start.",
+    statusLabels: ["Entry point", "Scoped rollout", "Cadence"],
     included: {
-      title: "What you receive",
+      title: "What deployment installs",
       items: [
-        "Free historical audit and potential estimate",
-        "Useful indicators/forecasts (capacity, demand, inventory/supply… as needed)",
-        "Compared decision options (cost, service, business rules)",
-        "Shared decision journal: option, choice, reason, outcome",
-        "Monthly proof: baseline / recommended / actual",
-        "Ops + Finance governance cadence",
+        "A first useful read on your existing data",
+        "Priority trade-offs made visible",
+        "Explicit cost / service / risk assumptions",
+        "One shared frame for Ops, Finance, and Network",
+        "A reusable impact review loop",
       ],
     },
     excluded: {
-      title: "What it does not include",
+      title: "What deployment is not",
       items: [
         "A tool replacement project (ERP/scheduling)",
         "Public predefined quantified outcome guarantee",
-        "Immediate global multi-country deployment",
-        "Unlimited custom development",
+        "A heavy IT project before value is visible",
+        "One more dashboard",
+        "An isolated diagnostic with no operating next step",
       ],
     },
     kpis: {
-      title: "KPIs tracked",
+      title: "What deployment frames",
       items: [
-        "Coverage quality and service-level performance",
-        "Operating cost (emergency usage, reallocations, reinforcement options)",
-        "Rate and reasons for “not following the recommended option” in the journal",
-        "Before / recommended / actual gap by site and network",
+        "Priority tensions",
+        "Economic assumptions",
+        "Compared options",
+        "Decisions taken",
+        "Impact reviewed",
       ],
     },
     governance: {
       title: "Governance",
       items: [
-        "Weekly operations working session",
+        "Named operations lead",
+        "Short weekly review",
         "Monthly Ops + Finance review",
-        "Client-side operations sponsor",
-        "Shared decision journal and monthly proof",
+        "Decisions reviewed on one shared base",
       ],
     },
     selection: {
-      title: "Eligibility criteria",
+      title: "Prerequisites",
       items: [
         "Multi-site organization with demand variability and daily trade-offs",
-        "Available operations and finance sponsors",
-        "Usable exports (demand/workload, capacity, inventory/supply, absences)",
+        "Usable exports or APIs",
+        "Available operations sponsor",
       ],
     },
     upcoming: {
-      title: "Post-pilot path",
+      title: "After the first perimeter",
       description:
-        "Progressive extension to more sites, more decisions, and more KPIs without replacing your existing stack.",
+        "If the proof is there, Praedixa extends progressively to the trade-offs where the most margin can be protected.",
     },
     urgency:
       "Applications reviewed within 48 business hours. Focused-scope kickoff possible.",
-    ctaPrimary: "Apply for the Praedixa Signature pilot",
-    ctaMeta: "Free historical audit · Read-only exports/APIs · Monthly proof",
+    ctaPrimary: "Discuss deployment",
+    ctaMeta:
+      "Software + scoped rollout · read-only start · focused first perimeter",
   },
 };

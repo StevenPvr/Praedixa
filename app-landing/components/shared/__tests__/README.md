@@ -12,6 +12,7 @@ Sous-dossiers :
 
 Fichiers :
 
+- `BreadcrumbTrail.test.tsx`
 - `NavigationMenus.test.tsx`
 
 ## Intégration

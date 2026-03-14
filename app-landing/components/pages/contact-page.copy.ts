@@ -24,7 +24,8 @@ function getFrenchCopy(): ContactPageCopy {
     ],
     pilotHint: "Déjà prêt à cadrer le déploiement ?",
     pilotCta: "Parler du déploiement Praedixa",
-    pilotMeta: "Onboarding fixe déduit si engagement annuel.",
+    pilotMeta:
+      "Mise en place cadrée sur vos données existantes, sans lourdeur inutile au départ.",
     formTitle: "Envoyer une demande",
     formSubtitle:
       "Champs requis : entreprise, email, message. Le reste est optionnel.",
@@ -81,7 +82,8 @@ function getEnglishCopy(): ContactPageCopy {
     ],
     pilotHint: "Already ready to frame deployment?",
     pilotCta: "Discuss Praedixa deployment",
-    pilotMeta: "Fixed onboarding credited on annual commitment.",
+    pilotMeta:
+      "Structured setup on top of your existing data, without unnecessary heaviness at the start.",
     formTitle: "Send a request",
     formSubtitle:
       "Required fields: company, email, message. Everything else is optional.",
@@ -134,7 +136,7 @@ function getProofCopy(locale: Locale, base: ContactPageCopy): ContactPageCopy {
         "Décrivez votre contexte. Nous revenons avec une première lecture claire de vos arbitrages et du potentiel objectivable sur vos données.",
       promiseItems: [
         "Preuve sur historique en lecture seule sur vos données.",
-        "Synthèse simple: arbitrages prioritaires, potentiel de gain, prochain pas recommandé.",
+        "Synthèse simple: arbitrages prioritaires, options comparées, prochain pas recommandé.",
         "Proposition de cadrage 30 min si pertinent.",
       ],
       formTitle: "Demander la preuve",
@@ -149,7 +151,7 @@ function getProofCopy(locale: Locale, base: ContactPageCopy): ContactPageCopy {
       "Share your context. We reply with a clear reading of your trade-offs and the objective potential in your data.",
     promiseItems: [
       "Read-only historical proof on your data.",
-      "Simple synthesis: priority trade-offs, potential gains, recommended next step.",
+      "Simple synthesis: priority trade-offs, compared options, recommended next step.",
       "30-min framing proposal if relevant.",
     ],
     formTitle: "Request the proof",

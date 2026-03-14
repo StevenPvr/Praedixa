@@ -8,10 +8,10 @@ import { ProblemSection } from "../../components/homepage/ProblemSection";
 import { SolutionSection } from "../../components/homepage/SolutionSection";
 import { HowItWorksSection } from "../../components/homepage/HowItWorksSection";
 import { UseCasesSection } from "../../components/homepage/UseCasesSection";
-import { DeliverablesSection } from "../../components/homepage/DeliverablesSection";
+import { RoiProofTeaserSection } from "../../components/homepage/RoiProofTeaserSection";
 import { SecuritySection } from "../../components/homepage/SecuritySection";
-import { PilotSection } from "../../components/homepage/PilotSection";
 import { FaqSection } from "../../components/homepage/FaqSection";
+import { PillarLinksSection } from "../../components/homepage/PillarLinksSection";
 import { ContactCtaSection } from "../../components/homepage/ContactCtaSection";
 import { JsonLd } from "../../components/seo/JsonLd";
 
@@ -52,10 +52,10 @@ export default async function LandingPage({
       <SolutionSection dict={dict} />
       <HowItWorksSection locale={locale} dict={dict} />
       <UseCasesSection locale={locale} dict={dict} />
-      <DeliverablesSection dict={dict} />
+      <RoiProofTeaserSection locale={locale} />
       <SecuritySection dict={dict} />
-      <PilotSection locale={locale} dict={dict} />
       <FaqSection dict={dict} />
+      <PillarLinksSection locale={locale} dict={dict} />
       <ContactCtaSection locale={locale} dict={dict} />
       <JsonLd
         locale={locale}

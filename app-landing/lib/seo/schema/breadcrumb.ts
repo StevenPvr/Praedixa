@@ -8,6 +8,7 @@ export interface BreadcrumbItem {
 export interface BreadcrumbListSchema {
   "@context": "https://schema.org";
   "@type": "BreadcrumbList";
+  "@id"?: string;
   itemListElement: Array<{
     "@type": "ListItem";
     position: number;
@@ -23,10 +24,12 @@ function absoluteUrl(path: string): string {
 
 export function buildBreadcrumbSchema(
   items: BreadcrumbItem[],
+  schemaId?: string,
 ): BreadcrumbListSchema {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
+    ...(schemaId ? { "@id": schemaId } : {}),
     itemListElement: items.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,

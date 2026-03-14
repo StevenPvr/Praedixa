@@ -14,31 +14,36 @@ const enKnowledgeKeys: KnowledgePageKey[] = [
 
 describe("knowledge pages EN messaging", () => {
   it("keeps core annex pages aligned with the simplified value proposition", () => {
-    expect(getKnowledgePage("en", "about").lead).toContain("DecisionOps");
+    expect(getKnowledgePage("en", "about").lead).toContain(
+      "trade-offs that put margin at risk",
+    );
     expect(getKnowledgePage("en", "productMethod").lead).toContain(
-      "without replacing your tools",
+      "without replacing the tools already in place",
     );
     expect(
-      getKnowledgePage("en", "productMethod").sections[2]?.paragraphs[1],
+      getKnowledgePage("en", "productMethod").sections[1]?.paragraphs[1],
     ).toContain("Forecasting");
     expect(
-      getKnowledgePage("en", "productMethod").sections[3]?.paragraphs[1],
+      getKnowledgePage("en", "productMethod").sections[2]?.paragraphs[1],
     ).toContain("Econometric models");
     expect(getKnowledgePage("en", "integrationData").lead).toContain(
-      "systems that matter to a decision",
+      "without requiring a planning or WFM replacement",
     );
     expect(getKnowledgePage("en", "howItWorksPage").lead).toContain(
-      "federate the useful data",
+      "compares trade-offs",
+    );
+    expect(getKnowledgePage("en", "decisionLogProof").lead).toContain(
+      "Illustrative public example",
     );
     expect(
-      getKnowledgePage("en", "decisionLogProof").sections[0]?.paragraphs[1],
+      getKnowledgePage("en", "decisionLogProof").sections[2]?.paragraphs[1],
     ).toContain("Econometric models");
     expect(getKnowledgePage("en", "decisionLogProof").title).toBe("ROI pack");
     expect(en.servicesPage.heading).toBe(
-      "Praedixa Signature Service vs KPI forecasting only.",
+      "Praedixa deployment and historical proof.",
     );
     expect(en.servicesPage.fullPackage.includes).toContain(
-      "Decision journal: option, choice, reason, outcome.",
+      "Software rollout and scoped implementation",
     );
     expect(
       en.faq.items.some(
@@ -49,8 +54,8 @@ describe("knowledge pages EN messaging", () => {
 
   it("uses only the approved English CTAs on annex knowledge pages", () => {
     const allowedCtas = new Set([
-      "Get the free ROI diagnostic",
-      "Apply for the ROI pilot",
+      "See a concrete example",
+      "Discuss deployment",
     ]);
 
     enKnowledgeKeys.forEach((key) => {

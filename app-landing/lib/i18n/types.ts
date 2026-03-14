@@ -30,6 +30,7 @@ export interface Dictionary {
     bullets: { metric: string; text: string }[];
     ctaPrimary: string;
     ctaSecondary: string;
+    ctaTertiary: string;
     previewTitle: string;
     ctaMeta: string;
     trustBadges: string[];

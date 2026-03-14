@@ -28,7 +28,7 @@ export interface DeploymentRequestPageUi {
   legalJoinB: string;
   unknownError: string;
   networkError: string;
-  protocolHint: string;
+  offerHint: string;
 }
 
 export interface DeploymentRequestFormOptions {

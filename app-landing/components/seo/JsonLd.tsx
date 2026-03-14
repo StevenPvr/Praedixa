@@ -26,6 +26,7 @@ function organizationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${PRAEDIXA_BASE_URL}#organization`,
     name: PRAEDIXA_BRAND_NAME,
     url: PRAEDIXA_BASE_URL,
     logo: PRAEDIXA_LOGO_URL,
@@ -42,9 +43,14 @@ function webSiteSchema(locale: Locale) {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": `${PRAEDIXA_BASE_URL}#website`,
     name: PRAEDIXA_BRAND_NAME,
     url: PRAEDIXA_BASE_URL,
     inLanguage: locale,
+    publisher: {
+      "@type": "Organization",
+      "@id": `${PRAEDIXA_BASE_URL}#organization`,
+    },
   };
 }
 
@@ -65,14 +71,14 @@ function softwareApplicationSchema(locale: Locale, dict: Dictionary) {
             "Lecture seule au démarrage sur les outils existants",
             "Décisions documentées avec hypothèses explicites",
             "Preuve ROI relue dans le temps",
-            "Premier wedge sur les arbitrages de couverture et d’allocation",
+            "Premier périmètre sur les arbitrages de couverture et d’allocation",
           ]
         : [
-            "Business-risk anticipation",
-            "Read-only on top of the existing stack",
-            "Staffing, demand, inventory, supply, retention",
-            "First action validated by the teams",
-            "Impact reviewed site by site",
+            "Multi-site trade-offs across cost, service, and risk",
+            "Read-only start on top of the existing tools",
+            "Compared options with explicit assumptions",
+            "Historical proof and impact review over time",
+            "First focus on the costliest coverage and allocation trade-offs",
           ],
   };
 }
@@ -82,14 +88,11 @@ function serviceSchema(locale: Locale) {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
-    name:
-      locale === "fr"
-        ? "Déploiement Praedixa — 3 mois"
-        : "Praedixa pilot — 3 months",
+    name: locale === "fr" ? "Déploiement Praedixa" : "Praedixa deployment",
     serviceType:
       locale === "fr"
-        ? "Pilotage multi-sites des risques business"
-        : "Multi-site business-risk decision pilot",
+        ? "Déploiement logiciel pour arbitrages multi-sites"
+        : "Software deployment for multi-site trade-offs",
     provider: {
       "@type": "Organization",
       name: PRAEDIXA_BRAND_NAME,

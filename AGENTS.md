@@ -74,6 +74,7 @@ Before running repo-wide security scans from the monorepo root, exclude nested G
 Before building or deploying with Dockerfiles that run `pnpm install --frozen-lockfile`, sync `pnpm-lock.yaml` with every changed workspace `package.json`, or release builds will fail on the runner.
 After adding a workspace dependency or package subpath export in the monorepo, run a real `pnpm install` before trusting TypeScript or Vitest resolution; `--lockfile-only` does not refresh workspace links.
 Before wiring a frontend mutation to a typed backend endpoint, verify the submitted JSON matches the shared request contract exactly and cover that exact payload shape in at least one E2E or route-level test.
+Before sending operator-entered JSON from an admin form to a typed mutation, validate the parsed value union and object shape explicitly instead of casting `unknown` to the shared contract.
 Before trusting a PNPM workspace Docker build, verify the image rebuilds workspace links inside the builder; restoring only root `node_modules` can leave internal packages unresolved even when the local build is green.
 Before copying `node_modules` across Docker stages in a PNPM workspace, verify each app keeps its package-local workspace links; copying only the root install is not a safe substitute for a clean builder install.
 Before trusting a Docker build of a TypeScript workspace package, exclude or purge `*.tsbuildinfo` if `dist/` is not copied too, or `tsc` can skip emit and leave the image without the built package even though the command exits green locally.
@@ -82,6 +83,8 @@ Before relying on a Next.js standalone Docker image, ensure every copied runtime
 Before asserting exact accessible names for landing nav card links in tests, remember the link name can include both title and description; prefer partial label matching plus `href` checks.
 Before shipping a Next.js frontend image for `linux/amd64`, validate the full Docker build under the target platform and prefer a glibc-based base image over Alpine when native build binaries fail.
 Before running recursive security scans on a monorepo, exclude nested build artifact directories like `app-*/.next` and `app-*/.open-next`, not just root-level caches.
+When the user asks for a prompt, copy, concept, or creative artifact, the first version you provide must already be the strongest directly usable answer, not a placeholder draft to improve later.
+When writing code, the first implementation you ship should already aim for the strongest clean, production-grade solution you can justify, not a knowingly weak first pass meant to be fixed only after user pushback.
 Before starting a local dynamic API audit or smoke server, bind it to a freshly allocated free port instead of assuming `8000` is available.
 Before adding a global skip-link in a Next.js app shell, verify that every route branch, including auth pages outside the main shell, exposes the target anchor.
 Before shipping a decorative hero video on the landing page, let a static poster carry the initial paint and defer video loading so Lighthouse LCP stays tied to the real content, not the media upgrade.
@@ -99,6 +102,7 @@ Before finalizing a landing hero or above-the-fold support block, scan the first
 Before shipping copy on a dark landing section, do not invent non-standard Tailwind opacity suffixes like `text-white/72`; use a supported token or an explicit arbitrary color and verify the real browser rendering.
 Before using Tailwind opacity modifiers on custom brand colors like `text-amber-400/55`, verify the class actually compiles in the target app; otherwise use an explicit arbitrary color.
 Before changing landing security helpers or CSP-sensitive files, update at least one abuse test under `app-landing/app/api/*/__tests__` so the public-form boundary stays explicitly covered and hook checks do not drift.
+Before claiming the landing is ready for Google sitelinks or stronger branded SEO, make core public pages expose both visible breadcrumbs and matching `WebPage`/`BreadcrumbList` JSON-LD; header/footer links alone are not enough.
 Before repositioning a persistent hero rail or proof strip, anchor it with the section layout (`flex` / `mt-auto`) instead of compensating with ad hoc margins that depend on headline height.
 Before declaring a landing hero block removed, verify the exact JSX branch is gone and recheck the real desktop rendering instead of assuming adjacent cards were the only remaining element.
 Before trimming a landing explanation of the DecisionOps loop, verify the full product sequence still appears explicitly: federate, predict, calculate, trigger, prove.
@@ -146,6 +150,7 @@ Before constraining authenticated actor ids in admin/runtime flows, verify the r
 Before extracting a legacy bootstrap path into a new strict service, remove stale wrapper-only keyword flags in every caller and test the direct service contract instead of preserving obsolete compatibility arguments.
 Before renaming landing offer vocabulary, update the matching knowledge/services tests in the same change so hooks do not keep asserting an older public wording after the copy is approved.
 Before duplicating landing public copy across multiple dictionaries, keep one source of truth and reference it; duplicated marketing strings drift silently and break published wording.
+Before calling a landing positioning refactor done, scan visible pages, legal copy, metadata/snippets, and EN parity for retired offer wording, or the old product identity will stay publicly alive.
 Before adding a new admin page or admin proxy endpoint, register both the page policy and the API policy in `admin-route-policies.ts` in the same change, or middleware, navigation, and direct URL access will drift apart.
 Before returning a rate-limit result from shared auth/security helpers, keep the execution mode (`development-local` vs `distributed-required`) explicit on allowed and blocked paths so tests and observability do not infer it indirectly.
 Before importing a new `lucide-react` icon in a shared component covered by global Vitest mocks, add it to `testing/utils/mocks/icons.ts` in the same change or the full app suite will fail on an incomplete module mock.

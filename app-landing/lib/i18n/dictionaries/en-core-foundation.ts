@@ -2,12 +2,12 @@ import type { Dictionary } from "../types";
 
 export const enCoreFoundation: Partial<Dictionary> = {
   meta: {
-    title: "Praedixa | Business risks and multi-site decisions",
+    title: "Praedixa | Praedixa deployment for multi-site networks",
     description:
-      "Praedixa anticipates the business risks degrading performance and recommends the best decisions to reduce them across staffing, demand, inventory, supply, and customer retention.",
-    ogTitle: "Praedixa | Business risks and multi-site decisions",
+      "Praedixa helps multi-site networks spot earlier the trade-offs that erode margin, compare constrained options, and review the actual impact of the decisions taken.",
+    ogTitle: "Praedixa | Praedixa deployment for multi-site networks",
     ogDescription:
-      "In 5 business days, Praedixa shows which gaps threaten performance and which decisions to launch first to protect margin, service, and growth.",
+      "When a multi-site network sees critical trade-offs too late, margin gets burned in urgency. Praedixa surfaces them earlier, compares the options, and reviews the real impact of the decision.",
   },
 
   nav: {
@@ -19,46 +19,47 @@ export const enCoreFoundation: Partial<Dictionary> = {
     security: "Integration & data",
     faq: "FAQ",
     contact: "Contact",
-    ctaPrimary: "Get the free historical audit",
+    ctaPrimary: "See a concrete example",
     backToSite: "Back to site",
   },
 
   hero: {
-    kicker: "For COO, CFO, and network leadership",
+    kicker: "For COO, operations leaders, and network managers",
     headline: "Anticipate",
-    headlineHighlight: "the business risks eroding margin.",
+    headlineHighlight: "the trade-offs before urgency burns margin.",
     subtitle:
-      "Praedixa detects the gaps threatening your business and recommends the best decisions to take across staffing, demand, inventory, supply, and customer retention. We start with the most costly risk in your perimeter.",
-    manifestoLabel: "Our purpose",
+      "Praedixa helps multi-site networks surface earlier when to reinforce, reallocate, postpone, or adjust service levels, then compare constrained options and review the actual impact of the decisions taken.",
+    manifestoLabel: "Who Praedixa is for",
     manifestoQuote:
-      "See earlier which risks degrade performance, decide what to fix, review what worked.",
+      "COO, operations leaders, and network managers who make high-stakes trade-offs every day.",
     bullets: [
       {
-        metric: "5 days",
-        text: "to surface the signal",
+        metric: "Who it serves",
+        text: "Multi-site operators who need to protect margin and service before the emergency hits.",
       },
       {
-        metric: "Read-only",
-        text: "on your existing data",
+        metric: "Decisions covered",
+        text: "When to reinforce, reallocate, postpone, or adjust service levels.",
       },
       {
-        metric: "From staffing to churn",
-        text: "one decision engine",
+        metric: "What changes",
+        text: "Earlier comparisons, clearer trade-offs, and impact reviewed over time.",
       },
     ],
-    ctaPrimary: "Request the free historical audit",
-    ctaSecondary: "See the proof protocol",
+    ctaPrimary: "See a concrete example",
+    ctaSecondary: "Discuss deployment",
+    ctaTertiary: "Request historical proof",
     previewTitle: "A preview of what awaits you",
-    ctaMeta: "5 business days · read-only · human validation",
+    ctaMeta: "Praedixa deployment · read-only start · NDA available",
     trustBadges: [
-      "Historical proof in 5 business days",
-      "Staffing, demand, inventory, supply, retention",
-      "Read-only on your existing data",
-      "Human validation on every action",
-      "First perimeter scoped around the priority risk",
-      "No tool replacement required",
-      "Impact reviewed site by site",
-      "Hosted in France (Scaleway)",
+      "Read-only start",
+      "Aggregated data only",
+      "Hosted in France",
+      "NDA available from the first discussion",
+      "First focus: the costliest coverage and allocation trade-offs",
+      "Software + scoped rollout on top of your existing data",
+      "Ops first, Finance and IT as secondary reviewers",
+      "Impact reviewed: baseline / recommended / actual",
     ],
   },
 
@@ -67,7 +68,7 @@ export const enCoreFoundation: Partial<Dictionary> = {
     heading: "The Praedixa interface",
     subheading: "See how the decision protocol takes shape in the interface.",
     overlayTitle: "Discover the web app",
-    overlayBody: "Open a public preview (same UI, fictitious data).",
+    overlayBody: "Open a public preview (same UI, fictional data).",
     overlayCta: "Discover the web app",
     overlayBackCta: "Back to video",
     loadingLabel: "Loading preview video...",
@@ -75,13 +76,14 @@ export const enCoreFoundation: Partial<Dictionary> = {
   },
 
   problem: {
-    kicker: "Operational problem",
-    heading: "When business gaps surface too late, performance slips.",
+    kicker: "Why now",
+    heading:
+      "The problem is not a lack of data. It is a lack of decision discipline.",
     subheading:
-      "Across staffing, demand, inventory, supply, or retention, the same problem keeps returning: useful signals do not arrive early enough or in a shared language. The result is reactive cost, fragile service, and late trade-offs.",
-    cta: "Request the free historical audit",
+      "In multi-site operations, critical trade-offs are still taken too late, too fast, and without a solid economic frame. The result is more emergency cost, less room to maneuver, and decisions that are harder to defend.",
+    cta: "See a concrete example",
     ctaHint:
-      "Reply within 48 business hours. Free historical audit. Ops + Finance framing from week 1.",
+      "Public logistics example: options compared, decision retained, and impact reviewed before any form fill.",
     states: {
       loadingTitle: "Reading operational signals",
       loadingBody:
@@ -97,79 +99,79 @@ export const enCoreFoundation: Partial<Dictionary> = {
       {
         title: "Critical signals are scattered",
         description:
-          "Workload, demand, stock, raw-material availability, churn, or coverage all live in different tools and cadences.",
+          "By the time the risk is clearly visible, it is often already more expensive to handle and teams have fewer credible options left.",
         consequence:
-          "The useful signal often shows up when room for action is already limited.",
-        cost: "Corrections cost more than anticipation",
+          "The room to maneuver narrows before the discussion even begins.",
+        cost: "Emergency cost rises faster than decision quality.",
       },
       {
-        title: "Each function arbitrates in its own view",
+        title: "Options are not compared cleanly",
         description:
-          "Operations, finance, supply, commercial, or field teams each see part of the issue, rarely the full trade-off at the right moment.",
-        consequence: "Trade-offs take longer and stay harder to defend.",
-        cost: "Decisions slow down",
+          "Operations, finance, and network leaders often arbitrate under pressure, without one shared frame for cost, service, capacity, and risk.",
+        consequence: "Decisions become harder to explain and harder to repeat.",
+        cost: "Speed wins more often than the best trade-off.",
       },
       {
-        title: "Corrections happen in emergency mode",
+        title: "Impact is rarely reviewed",
         description:
-          "Reinforcement, reallocation, stock adjustment, supply action, or retention moves are launched too late and without a shared read of their impact.",
-        consequence: "Budgets stay debated and priorities drift by site.",
-        cost: "Protected margin remains unclear",
+          "Decisions pile up, but proof of what they actually protected or cost is missing when the same trade-off returns.",
+        consequence:
+          "Meetings restart from scratch and assumptions remain implicit.",
+        cost: "ROI gets described instead of demonstrated.",
       },
     ],
     diagnostic: {
-      title: "Does this sound familiar?",
+      title: "Do you recognize this pattern?",
       signals: [
-        "A local team spots the issue before it becomes visible in a shared read",
-        "Corrections arrive when margin, service, or stock are already under pressure",
-        "Two similar teams do not make the same choice when facing the same signal",
-        "After an action, it is still hard to know what it actually protected",
+        "The same business gap becomes visible locally before it becomes visible in a shared read",
+        "Corrections happen once margin or service are already under pressure",
+        "Two comparable teams do not make the same decision when facing the same signal",
+        "After an action, it is still difficult to know what it really protected",
       ],
     },
   },
 
   solution: {
-    kicker: "Praedixa method",
-    heading:
-      "Anticipate risks. Compare trade-offs. Launch the right first action.",
+    kicker: "Product",
+    heading: "A decision layer above the tools you already use.",
     subheading:
-      "Praedixa does not replace your ERP, scheduling, or BI. It connects the signals that matter, anticipates short-horizon business risks, compares cost / service / risk trade-offs, and documents the result of the decisions taken across staffing, demand, inventory, supply, or retention.",
+      "Praedixa does not replace your ERP, BI, planning tools, or field processes. It adds the frame that helps teams arbitrate earlier, compare options, and review the impact of the decisions taken.",
     principles: [
       {
-        title: "Spot early the gaps threatening performance",
-        subtitle: "Existing data · read-only",
+        title: "See",
+        subtitle: "Tensions and conflicts earlier",
         description:
-          "Exports, APIs, ERP, scheduling, BI, and spreadsheets are linked without a replacement project so the useful gaps surface before they get more expensive.",
+          "Praedixa makes the tensions, drifts, and operational conflicts visible before they become emergency costs.",
       },
       {
-        title: "Compare trade-offs across your operating levers",
-        subtitle: "Cost / service / risk",
+        title: "Compare",
+        subtitle: "Cost · service · risk",
         description:
-          "Praedixa lays the options out, quantifies their expected effects, and keeps your operating guardrails visible before validation, whether the lever is staffing, demand, inventory, supply, or retention.",
+          "Options are laid out with explicit assumptions so teams can arbitrate properly across service level, capacity, cost, and exposure.",
       },
       {
-        title: "Launch a first action, then review the impact",
-        subtitle: "Human validation · impact reviewed",
+        title: "Prove",
+        subtitle: "Decision documented · impact reviewed",
         description:
-          "Your teams keep final authority. Praedixa prepares the first action inside your tools, then reviews baseline, recommended, actual, and assumptions.",
+          "Decisions keep their context, assumptions, and observed impact so the next trade-off can start from evidence instead of memory.",
       },
     ],
     differentiators: {
-      title: "What makes Praedixa credible",
+      title: "What Praedixa actually adds",
       description:
-        "The value is not a category label. It is a simple mechanism: see earlier, compare clearly, act with guardrails, then review the impact.",
+        "Your tools store, report, plan, and execute. Praedixa adds the layer that helps teams arbitrate, compare, justify, and review impact.",
       items: [
         {
-          is: "One engine across multiple business risks",
-          isNot: "A single-purpose tool stuck on one lever",
+          is: "A trade-off layer on top of the existing stack",
+          isNot: "One more planning tool",
         },
         {
-          is: "A first perimeter scoped around the priority risk",
-          isNot: "A vague promise pretending to do everything at once",
+          is: "A focused entry point on the costliest trade-offs first",
+          isNot: "A promise to optimize the whole company in one shot",
         },
         {
-          is: "Validated action + reviewed impact",
-          isNot: "ROI claims with no traceability",
+          is: "A decision framed and reviewed over time",
+          isNot: "An opaque recommendation with no proof afterwards",
         },
       ],
     },

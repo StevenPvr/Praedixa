@@ -5,14 +5,14 @@ export const frCoreOperations: Partial<Dictionary> = {
     kicker: "Comment ça marche",
     heading: "Un cycle simple, orienté décision. Pas un dashboard de plus.",
     subheading:
-      "Praedixa lit les signaux utiles, compare les arbitrages, cadre la décision et relit l’impact dans le temps.",
+      "Praedixa lit les signaux utiles, compare les arbitrages, cadre la décision et relit l’impact dans le temps, à partir d’un conflit économique concret.",
     steps: [
       {
         number: "01",
         title: "Lecture anticipative",
         subtitle: "Signaux utiles · lecture seule",
         description:
-          "Praedixa part des données déjà présentes dans vos outils pour faire remonter les zones de tension avant la casse.",
+          "Praedixa part des données déjà présentes dans vos outils pour faire remonter plus tôt les sites, équipes ou flux qui vont passer sous pression.",
       },
       {
         number: "02",
@@ -26,7 +26,7 @@ export const frCoreOperations: Partial<Dictionary> = {
         title: "Décision cadrée",
         subtitle: "Cadre commun Ops · Finance",
         description:
-          "L’équipe décide avec une base commune plutôt qu’en réaction dispersée, sans remplacer ses outils existants.",
+          "L’équipe décide avec une base commune plutôt qu’en réaction dispersée: quand renforcer, réallouer, reporter ou ajuster le niveau de service.",
       },
       {
         number: "04",
@@ -93,40 +93,41 @@ export const frCoreOperations: Partial<Dictionary> = {
   },
 
   deliverables: {
-    kicker: "Preuve",
-    heading: "Ce que vous obtenez quand Praedixa entre dans la boucle.",
+    kicker: "Exemple concret",
+    heading:
+      "Avant de demander quoi que ce soit, voyez à quoi ressemble une preuve utile.",
     subheading:
-      "Pas un signal de plus. Un cadre exploitable pour décider, expliquer et relire l’impact.",
+      "Un exemple simple de conflit opérationnel, d’options comparées, de décision retenue et d’impact relu. La preuve publique doit montrer Praedixa à l’œuvre, pas seulement le protocole.",
     roiFrames: [
       {
-        label: "Situation de départ",
-        value: "Le conflit économique visible",
-        note: "Tension prioritaire, sites exposés, coûts d’urgence et zones de marge fragilisées.",
-        sourceLabel: "Source: protocole de mise en place Praedixa",
-        sourceUrl: "/fr/protocole-deploiement",
+        label: "Situation initiale",
+        value: "Pic de charge sur 3 sites logistiques",
+        note: "Retard OTIF en hausse, heures supplémentaires déjà consommées, intérim d’urgence envisagé sur deux sites.",
+        sourceLabel: "Voir la preuve d’impact publique",
+        sourceUrl: "/fr/decision-log-preuve-roi",
       },
       {
-        label: "Arbitrage retenu",
-        value: "Les options comparées",
-        note: "Hypothèses explicites, arbitrage choisi, garde-fous et ordre d’action.",
-        sourceLabel: "Source: protocole de mise en place Praedixa",
-        sourceUrl: "/fr/protocole-deploiement",
+        label: "Options comparées",
+        value: "HS vs intérim vs réallocation",
+        note: "Chaque option est comparée selon coût, risque de service, capacité disponible et effet attendu sur le backlog.",
+        sourceLabel: "Voir la preuve d’impact publique",
+        sourceUrl: "/fr/decision-log-preuve-roi",
       },
       {
         label: "Impact relu",
-        value: "Ce qui a vraiment changé",
-        note: "Avant, recommandé, réel, avec hypothèses, limites et prochain pas.",
-        sourceLabel: "Source: protocole de mise en place Praedixa",
-        sourceUrl: "/fr/protocole-deploiement",
+        value: "Décision retenue puis relue",
+        note: "La décision prise, les limites assumées et l’impact observé sont relus ensemble pour préparer le prochain arbitrage.",
+        sourceLabel: "Voir la preuve d’impact publique",
+        sourceUrl: "/fr/decision-log-preuve-roi",
       },
     ],
     checklist: [
-      "Cartographie des tensions prioritaires",
-      "Hypothèses économiques explicites",
-      "Scénarios comparés",
-      "Priorisation par criticité",
-      "Journal de décision partagé",
-      "Relecture avant / après des impacts observés",
+      "La situation de départ est décrite en mots métier, pas seulement en KPI",
+      "Les options comparées sont visibles avec leurs hypothèses",
+      "La décision retenue est expliquée clairement",
+      "La limite de l’exemple est rendue explicite",
+      "L’impact relu distingue contexte et décision",
+      "Le lien avec ERP / BI / planning / Excel est clarifié",
     ],
   },
 
@@ -179,33 +180,33 @@ export const frCoreOperations: Partial<Dictionary> = {
   },
 
   pilot: {
-    kicker: "Pilote",
-    heading: "3 mois pour construire un premier cadre de décision utile.",
+    kicker: "Déploiement",
+    heading: "Déploiement Praedixa: logiciel + mise en place cadrée.",
     subheading:
-      "Le pilote ne vend pas une transformation floue. Il installe une première lecture, calibre les hypothèses, documente les arbitrages et prépare la suite sans lourdeur inutile.",
-    statusLabels: ["Lecture initiale", "Calibration", "Cadence pilote"],
+      "Le déploiement Praedixa installe le logiciel sur vos données existantes, cadre le premier périmètre et met en place la relecture d’impact sans projet SI lourd au départ.",
+    statusLabels: ["Point d’entrée", "Mise en place", "Cadence"],
     included: {
-      title: "Ce que le pilote construit",
+      title: "Ce que le déploiement installe",
       items: [
         "Une première lecture utile sur vos données existantes",
         "Les arbitrages prioritaires rendus visibles",
         "Des hypothèses coût / service / risque explicites",
-        "Un dossier de décision relisible par Ops et Finance",
-        "Une méthode réutilisable pour la suite",
+        "Une base commune pour Ops, Finance et Réseau",
+        "Une boucle de relecture d’impact réutilisable",
       ],
     },
     excluded: {
-      title: "Ce que le pilote n’est pas",
+      title: "Ce que le déploiement n’est pas",
       items: [
         "Une refonte de votre stack",
         "Un projet SI avant la preuve de valeur",
-        "Un audit sans suite opérable",
         "Un tableau de bord de plus",
         "Une promesse d’optimiser toute l’entreprise d’un coup",
+        "Un diagnostic isolé sans suite opérable",
       ],
     },
     kpis: {
-      title: "Ce que le pilote cadre",
+      title: "Ce que le déploiement cadre",
       items: [
         "Tensions prioritaires",
         "Hypothèses économiques",
@@ -220,7 +221,7 @@ export const frCoreOperations: Partial<Dictionary> = {
         "Référent opérationnel identifié",
         "Point court hebdomadaire",
         "Relecture Ops / Finance structurée",
-        "Journal de décision partagé",
+        "Décisions relues sur une base commune",
       ],
     },
     selection: {
@@ -232,13 +233,14 @@ export const frCoreOperations: Partial<Dictionary> = {
       ],
     },
     upcoming: {
-      title: "Après le pilote",
+      title: "Après le premier périmètre",
       description:
         "Si la preuve est là, Praedixa s’étend progressivement aux arbitrages où la marge gagne le plus à être protégée.",
     },
     urgency:
       "Réponse sous 48h ouvrées. Démarrage possible sans intégration SI lourde.",
-    ctaPrimary: "Parler du pilote",
-    ctaMeta: "Référent identifié · rythme hebdomadaire · mise en place cadrée",
+    ctaPrimary: "Parler du déploiement",
+    ctaMeta:
+      "Logiciel + mise en place cadrée · lecture seule au départ · premier périmètre resserré",
   },
 };

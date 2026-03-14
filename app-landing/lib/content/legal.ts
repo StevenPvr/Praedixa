@@ -58,7 +58,7 @@ const fr: Record<LegalPageKey, LegalContent> = {
       {
         title: "Données collectées",
         paragraphs: [
-          "Les données transmises via les formulaires servent à qualifier une demande de contact ou une candidature au Pilote fondateur.",
+          "Les données transmises via les formulaires servent à qualifier une demande de contact, une demande de preuve sur historique ou une demande de déploiement Praedixa.",
         ],
         bullets: [
           "Entreprise",
@@ -76,7 +76,8 @@ const fr: Record<LegalPageKey, LegalContent> = {
       {
         title: "Conservation",
         paragraphs: [
-          "La politique détaillée de rétention est en cours de formalisation. Une suppression peut être demandée via hello@praedixa.com, sous réserve des obligations légales applicables.",
+          "Les données de qualification et de suivi commercial sont conservées pendant la durée nécessaire au traitement de la demande, au suivi de la relation et au respect des obligations légales applicables.",
+          "Une suppression peut être demandée via hello@praedixa.com, sous réserve des obligations légales applicables.",
         ],
       },
       {
@@ -96,7 +97,7 @@ const fr: Record<LegalPageKey, LegalContent> = {
       {
         title: "Objet",
         paragraphs: [
-          "Ces conditions définissent l'accès et l'utilisation du site Praedixa et les échanges liés au Pilote fondateur.",
+          "Ces conditions définissent l'accès et l'utilisation du site Praedixa ainsi que les échanges liés à la preuve sur historique, au déploiement Praedixa et aux demandes de contact associées.",
         ],
       },
       {
@@ -106,9 +107,9 @@ const fr: Record<LegalPageKey, LegalContent> = {
         ],
       },
       {
-        title: "Pilote fondateur",
+        title: "Offres publiques",
         paragraphs: [
-          "Le Pilote fondateur est une phase de co-construction encadrée. Il ne constitue pas une promesse publique de résultat chiffré prédéfini.",
+          "Les contenus publics décrivent les modalités générales de la preuve sur historique et du déploiement Praedixa. Ils ne constituent pas une promesse publique de résultat chiffré prédéfini.",
         ],
       },
       {
@@ -162,7 +163,7 @@ const en: Record<LegalPageKey, LegalContent> = {
       {
         title: "Collected data",
         paragraphs: [
-          "Data shared through forms is used to qualify contact requests and Founding Pilot applications.",
+          "Data shared through forms is used to qualify contact requests, historical proof requests, and Praedixa deployment requests.",
         ],
         bullets: [
           "Company name",
@@ -180,7 +181,8 @@ const en: Record<LegalPageKey, LegalContent> = {
       {
         title: "Retention",
         paragraphs: [
-          "The detailed retention policy is currently being formalized. Deletion can be requested via hello@praedixa.com, subject to applicable legal obligations.",
+          "Qualification and commercial follow-up data is retained for the time needed to process the request, manage the relationship, and comply with applicable legal obligations.",
+          "Deletion can be requested via hello@praedixa.com, subject to applicable legal obligations.",
         ],
       },
       {
@@ -200,7 +202,7 @@ const en: Record<LegalPageKey, LegalContent> = {
       {
         title: "Purpose",
         paragraphs: [
-          "These terms define access and usage conditions for the Praedixa website and exchanges related to the Founding Pilot.",
+          "These terms define access and usage conditions for the Praedixa website and the exchanges related to historical proof, Praedixa deployment, and associated contact requests.",
         ],
       },
       {
@@ -210,9 +212,9 @@ const en: Record<LegalPageKey, LegalContent> = {
         ],
       },
       {
-        title: "Founding Pilot",
+        title: "Public offers",
         paragraphs: [
-          "The Founding Pilot is a structured co-build phase. It is not a public commitment to predefined quantified outcomes.",
+          "Public content describes the general terms of historical proof and Praedixa deployment. It is not a public commitment to predefined quantified outcomes.",
         ],
       },
       {

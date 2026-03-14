@@ -46,14 +46,14 @@ export function DeploymentRequestSuccessState({
   email,
   homeHref,
   locale,
-  protocolHref,
+  offerHref,
 }: {
   companyName: string;
   dict: Dictionary;
   email: string;
   homeHref: string;
   locale: Locale;
-  protocolHref: string;
+  offerHref: string;
 }) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 md:py-24">
@@ -84,7 +84,7 @@ export function DeploymentRequestSuccessState({
             {dict.form.success.backToSite}
           </Link>
           <Link
-            href={protocolHref}
+            href={offerHref}
             className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-all duration-200 [transition-timing-function:var(--ease-snappy)] hover:border-neutral-400 hover:bg-neutral-50 active:-translate-y-[1px] active:scale-[0.99]"
           >
             {dict.form.success.checkEmail}

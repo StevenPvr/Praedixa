@@ -9,7 +9,7 @@ Contenu structure et versionne du landing hors dictionnaires UI.
 - `serp-briefs-fr*.ts`: briefs SEO internes et derives
 - `serp-asset-downloads.ts`: assets telechargeables lies aux ressources
 - `legal.ts`: contenus legaux
-- `pilot-form-options.ts`: options serveur/partagees pour le formulaire pilote
+- `pilot-form-options.ts`: options serveur/partagees pour le formulaire de deploiement
 - `sector-pages.ts`: facade publique des pages verticales HCR, enseignement supérieur, logistique/transport/retail et automobile
 - `sector-pages-data/`: contrats, routes, contenu FR/EN et copy partagee des verticales
 
@@ -31,7 +31,7 @@ Ici vivent les contenus longs, structures ou semi-editorialises que les pages co
 - les contenus knowledge et sectoriels doivent rester alignes sur la promesse publique actuelle: risques business, arbitrages, impact. Ne pas retomber ni dans un jargon de categorie, ni dans quatre verticales qui racontent toutes la meme histoire de staffing.
 - si un contenu mentionne le machine learning ou l'optimisation, l'ancrer dans la qualite de l'arbitrage et la preuve methologique; ne pas le faire glisser vers une promesse de conseil IA generique.
 - si un contenu EN mentionne econometrics, constrained optimization, or forecasting, l'ancrer a l'attribution d'impact et a la decision quality, pas a un discours hype sur AI.
-- quand l'offre publique change de vocabulaire approuve (`preuve sur historique`, `deploiement`, `abonnement`), realigner dans la meme passe les assertions des tests knowledge/services au lieu de laisser un ancien wording DecisionOps ou pilote derivant.
+- quand l'offre publique change de vocabulaire approuve (`exemple concret`, `deploiement`, `preuve sur historique`), realigner dans la meme passe les assertions des tests knowledge/services au lieu de laisser un ancien wording DecisionOps, pilote ou protocole derivant.
 - ne jamais laisser passer de note editoriale interne ou commentaire de travail dans un contenu public versionne; les modules `knowledge-pages*` doivent rester publiables tels quels.
 
 ## Tests

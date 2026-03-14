@@ -13,6 +13,24 @@ function readSchemaTypes(container: HTMLElement): string[] {
   });
 }
 
+function readSchemas(container: HTMLElement): Array<Record<string, unknown>> {
+  return Array.from(
+    container.querySelectorAll('script[type="application/ld+json"]'),
+  ).map(
+    (node) => JSON.parse(node.textContent ?? "{}") as Record<string, unknown>,
+  );
+}
+
+function readRequiredSchemas(
+  container: HTMLElement,
+): [Record<string, unknown>, Record<string, unknown>] {
+  const schemas = readSchemas(container);
+  if (schemas.length < 2) {
+    throw new Error("Expected organization and website schemas");
+  }
+  return [schemas[0]!, schemas[1]!];
+}
+
 describe("JsonLd", () => {
   it("renders only organization and website schemas by default", async () => {
     const dict = await getDictionary("fr");
@@ -21,6 +39,27 @@ describe("JsonLd", () => {
     const schemaTypes = readSchemaTypes(container);
 
     expect(schemaTypes).toEqual(["Organization", "WebSite"]);
+  });
+
+  it("links the website schema to the canonical organization entity", async () => {
+    const dict = await getDictionary("fr");
+    const { container } = render(<JsonLd locale="fr" dict={dict} />);
+
+    const [organization, webSite] = readRequiredSchemas(container) as [
+      {
+        "@id"?: string;
+      },
+      {
+        "@id"?: string;
+        publisher?: { "@id"?: string };
+      },
+    ];
+
+    expect(organization["@id"]).toBe("https://www.praedixa.com#organization");
+    expect(webSite["@id"]).toBe("https://www.praedixa.com#website");
+    expect(webSite.publisher?.["@id"]).toBe(
+      "https://www.praedixa.com#organization",
+    );
   });
 
   it("renders page-level schemas only when explicitly requested", async () => {

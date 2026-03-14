@@ -16,7 +16,7 @@ describe("sitemap()", () => {
     expect(urls).not.toContain("https://www.praedixa.com/");
   });
 
-  it("should include pilot page (locale-prefixed)", () => {
+  it("should include deployment page (locale-prefixed)", () => {
     const urls = result.map((entry) => entry.url);
     expect(urls).toContain("https://www.praedixa.com/fr/deploiement");
     expect(urls).toContain("https://www.praedixa.com/en/deployment");
@@ -128,7 +128,7 @@ describe("sitemap()", () => {
     expect(homepage?.priority).toBe(1);
   });
 
-  it("should set pilot page priority to 0.9", () => {
+  it("should set deployment page priority to 0.9", () => {
     const page = result.find(
       (entry) => entry.url === "https://www.praedixa.com/fr/deploiement",
     );

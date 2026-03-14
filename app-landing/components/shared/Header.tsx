@@ -13,9 +13,9 @@ interface HeaderProps {
 }
 
 export function Header({ locale, dict }: HeaderProps) {
-  const primaryCtaHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
+  const primaryCtaHref = getLocalizedPath(locale, "decisionLogProof");
   const primaryCtaLabel = dict.nav.ctaPrimary;
-  const primaryCtaLabelShort = locale === "fr" ? "Preuve historique" : "Proof";
+  const primaryCtaLabelShort = locale === "fr" ? "Exemple" : "Example";
   const pilotCtaHref = getLocalizedPath(locale, "deployment");
   const pilotCtaLabel =
     locale === "fr" ? "Parler du déploiement" : "Discuss deployment";
