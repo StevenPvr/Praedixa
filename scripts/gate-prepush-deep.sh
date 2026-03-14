@@ -95,7 +95,7 @@ echo "[prepush-deep] Python dependency audit..."
 (
   cd app-api
   uv sync --all-groups --locked >/dev/null
-  uv run pip-audit --skip-editable
+  uv run --extra dev pip-audit --skip-editable
 )
 
 echo "[prepush-deep] OSV scan..."
