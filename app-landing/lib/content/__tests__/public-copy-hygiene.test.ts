@@ -3,6 +3,7 @@ import { fr } from "../../i18n/dictionaries/fr";
 import { en } from "../../i18n/dictionaries/en";
 import { getLegalContent } from "../legal";
 import { getKnowledgePage, type KnowledgePageKey } from "../knowledge-pages";
+import { siteConfig } from "../../config/site";
 
 const knowledgeKeys: KnowledgePageKey[] = [
   "about",
@@ -26,6 +27,7 @@ const forbiddenPublicStrings = [
   "en cours de formalisation",
   "currently being formalized",
   "Onboarding fixe déduit si engagement annuel",
+  "Cloudflare",
 ];
 
 describe("public copy hygiene", () => {
@@ -43,6 +45,7 @@ describe("public copy hygiene", () => {
         privacy: getLegalContent("en", "privacy"),
         terms: getLegalContent("en", "terms"),
       },
+      siteConfig,
       knowledgeFr: knowledgeKeys.map((key) => getKnowledgePage("fr", key)),
       knowledgeEn: knowledgeKeys.map((key) => getKnowledgePage("en", key)),
     });

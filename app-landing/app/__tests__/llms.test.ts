@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { GET as getLlmAlias } from "../llm.txt/route";
 import { GET as getLlms } from "../llms.txt/route";
 import { GET as getLlmsFull } from "../llms-full.txt/route";
 
@@ -19,6 +20,17 @@ describe("llms routes", () => {
   it("should return plain text for /llms-full.txt", async () => {
     const response = await getLlmsFull();
     expect(response.headers.get("content-type")).toContain("text/plain");
+  });
+
+  it("should redirect /llm.txt to the canonical /llms.txt path", async () => {
+    const response = await getLlmAlias(
+      new Request("https://www.praedixa.com/llm.txt"),
+    );
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get("location")).toBe(
+      "https://www.praedixa.com/llms.txt",
+    );
   });
 
   it("should keep /llms.txt focused on canonical live entry points", async () => {
@@ -47,6 +59,8 @@ describe("llms routes", () => {
     expect(body).toContain(
       "[Industry EN: Higher education](https://www.praedixa.com/en/industries/higher-education)",
     );
+    expect(body).not.toContain("historical audit");
+    expect(body).not.toContain("Cloudflare");
 
     for (const retiredUrl of retiredKnowledgeUrls) {
       expect(body).not.toContain(retiredUrl);

@@ -32,6 +32,7 @@ Ici vivent les contenus longs, structures ou semi-editorialises que les pages co
 - si un contenu mentionne le machine learning ou l'optimisation, l'ancrer dans la qualite de l'arbitrage et la preuve methologique; ne pas le faire glisser vers une promesse de conseil IA generique.
 - si un contenu EN mentionne econometrics, constrained optimization, or forecasting, l'ancrer a l'attribution d'impact et a la decision quality, pas a un discours hype sur AI.
 - quand l'offre publique change de vocabulaire approuve (`exemple concret`, `deploiement`, `preuve sur historique`), realigner dans la meme passe les assertions des tests knowledge/services au lieu de laisser un ancien wording DecisionOps, pilote ou protocole derivant.
+- les contenus legaux publics doivent reprendre le fournisseur et la localisation d'hebergement réellement exposes en production; ne pas laisser survivre un ancien provider de preview ou de transition dans `legal.ts`.
 - ne jamais laisser passer de note editoriale interne ou commentaire de travail dans un contenu public versionne; les modules `knowledge-pages*` doivent rester publiables tels quels.
 
 ## Tests

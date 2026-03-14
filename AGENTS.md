@@ -151,6 +151,7 @@ Before extracting a legacy bootstrap path into a new strict service, remove stal
 Before renaming landing offer vocabulary, update the matching knowledge/services tests in the same change so hooks do not keep asserting an older public wording after the copy is approved.
 Before duplicating landing public copy across multiple dictionaries, keep one source of truth and reference it; duplicated marketing strings drift silently and break published wording.
 Before calling a landing positioning refactor done, scan visible pages, legal copy, metadata/snippets, and EN parity for retired offer wording, or the old product identity will stay publicly alive.
+Before publishing landing sovereignty or hosting claims, verify the public legal pages and SEO config both match the actual production delivery stack instead of an old preview or transitional provider.
 Before adding a new admin page or admin proxy endpoint, register both the page policy and the API policy in `admin-route-policies.ts` in the same change, or middleware, navigation, and direct URL access will drift apart.
 Before returning a rate-limit result from shared auth/security helpers, keep the execution mode (`development-local` vs `distributed-required`) explicit on allowed and blocked paths so tests and observability do not infer it indirectly.
 Before importing a new `lucide-react` icon in a shared component covered by global Vitest mocks, add it to `testing/utils/mocks/icons.ts` in the same change or the full app suite will fail on an incomplete module mock.

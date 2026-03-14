@@ -31,7 +31,7 @@ const fr: Record<LegalPageKey, LegalContent> = {
       {
         title: "Hébergement",
         paragraphs: [
-          "Site vitrine et diffusion statique : Cloudflare, Inc. — 101 Townsend St, San Francisco, CA 94107, USA (https://www.cloudflare.com).",
+          "Site public Praedixa, formulaires publics et diffusion applicative : Scaleway, infrastructure localisée à Paris (France).",
           "Données client opérationnelles liées au service : Scaleway, infrastructure localisée à Paris (France). Détails contractuels communiqués en phase de qualification.",
         ],
       },
@@ -69,7 +69,7 @@ const fr: Record<LegalPageKey, LegalContent> = {
       {
         title: "Hébergement et sous-traitants",
         paragraphs: [
-          "Le site vitrine est opéré via Cloudflare.",
+          "Le site public et les formulaires associés sont hébergés sur une infrastructure localisée à Paris (France) via Scaleway.",
           "Les données client opérationnelles liées au service sont hébergées sur une infrastructure localisée à Paris (France) via Scaleway.",
         ],
       },
@@ -136,7 +136,7 @@ const en: Record<LegalPageKey, LegalContent> = {
       {
         title: "Hosting",
         paragraphs: [
-          "Marketing site and static delivery: Cloudflare, Inc. — 101 Townsend St, San Francisco, CA 94107, USA (https://www.cloudflare.com).",
+          "Public website, public forms, and application delivery: Scaleway infrastructure located in Paris (France).",
           "Operational client data tied to the service: Scaleway infrastructure located in Paris (France). Contractual details are shared during qualification.",
         ],
       },
@@ -174,7 +174,7 @@ const en: Record<LegalPageKey, LegalContent> = {
       {
         title: "Hosting and subprocessors",
         paragraphs: [
-          "The marketing site is operated through Cloudflare.",
+          "The public website and associated forms are hosted on infrastructure located in Paris (France) via Scaleway.",
           "Operational client data tied to the service is hosted on infrastructure located in Paris (France) via Scaleway.",
         ],
       },

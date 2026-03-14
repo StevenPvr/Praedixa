@@ -21,7 +21,7 @@ export const siteConfig = {
   },
 
   hosting: {
-    provider: "Cloudflare",
-    location: "Global (edge)",
+    provider: "Scaleway",
+    location: "Paris (France)",
   },
 } as const;

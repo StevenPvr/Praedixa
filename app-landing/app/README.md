@@ -6,7 +6,7 @@ Point d'entree App Router du site public.
 
 - les layouts globaux (`layout.tsx`, `error.tsx`, `global-error.tsx`, `not-found.tsx`)
 - les routes localisees sous `[locale]/`
-- les routes non-localisees de support (`robots.ts`, `sitemap.ts`, `llms.txt`, `rss.xml`)
+- les routes non-localisees de support (`robots.ts`, `sitemap.ts`, `llms.txt`, `llm.txt`, `rss.xml`)
 - les APIs locales sous `api/`
 - des tests Vitest pour le shell global et les routes metadata dans `__tests__/`
 
@@ -19,7 +19,8 @@ Point d'entree App Router du site public.
 - `robots.ts`: politique crawl
 - `sitemap.ts`: sitemap genere depuis routes fixes, blog et ressources SEO
 - `rss.xml/route.ts`: flux RSS blog
-- `llms.txt/route.ts` et `llms-full.txt/route.ts`: sorties texte pour agents/LLMs
+- `llms.txt/route.ts` et `llms-full.txt/route.ts`: sorties texte canoniques pour agents/LLMs
+- `llm.txt/route.ts`: alias de compatibilite qui redirige vers `/llms.txt`
 
 ## Regles utiles
 
