@@ -395,6 +395,60 @@ function ContactSelectField({
   );
 }
 
+function CaptchaUnavailableState({
+  copy,
+  onRetry,
+}: {
+  copy: ContactPageCopy;
+  onRetry: () => Promise<void>;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-neutral-500">{copy.challengeUnavailable}</p>
+      <button
+        type="button"
+        onClick={() => void onRetry()}
+        className="inline-flex rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-ink"
+      >
+        {copy.challengeRetry}
+      </button>
+    </div>
+  );
+}
+
+function CaptchaPrompt({
+  captcha,
+  error,
+  errorId,
+  inputId,
+  onChange,
+  value,
+}: {
+  captcha: ContactChallenge;
+  error?: string;
+  errorId?: string;
+  inputId: string;
+  onChange: (value: string) => void;
+  value: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-neutral-600">
+        {captcha.captchaA} + {captcha.captchaB} = ?
+      </p>
+      <input
+        id={inputId}
+        inputMode="numeric"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={getFieldClass(Boolean(error))}
+        aria-invalid={error ? "true" : "false"}
+        aria-describedby={errorId}
+      />
+    </div>
+  );
+}
+
 function ContactCaptchaField({
   captcha,
   captchaLoading,
@@ -412,41 +466,27 @@ function ContactCaptchaField({
   onRetry: () => Promise<void>;
   value: string;
 }) {
+  const inputId = "contact-captcha";
+  const errorId = error ? "contact-captcha-error" : undefined;
+
   return (
     <div>
-      <label htmlFor="contact-captcha" className={LABEL_CLASS}>
+      <label htmlFor={inputId} className={LABEL_CLASS}>
         {copy.antiSpam}
       </label>
       {captchaLoading ? (
         <p className="text-sm text-neutral-500">{copy.challengeLoading}</p>
       ) : captcha ? (
-        <div className="space-y-2">
-          <p className="text-sm text-neutral-600">
-            {captcha.captchaA} + {captcha.captchaB} = ?
-          </p>
-          <input
-            id="contact-captcha"
-            inputMode="numeric"
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
-            className={getFieldClass(Boolean(error))}
-            aria-invalid={error ? "true" : "false"}
-            aria-describedby={error ? "contact-captcha-error" : undefined}
-          />
-        </div>
+        <CaptchaPrompt
+          captcha={captcha}
+          error={error}
+          errorId={errorId}
+          inputId={inputId}
+          onChange={onChange}
+          value={value}
+        />
       ) : (
-        <div className="space-y-2">
-          <p className="text-sm text-neutral-500">
-            {copy.challengeUnavailable}
-          </p>
-          <button
-            type="button"
-            onClick={() => void onRetry()}
-            className="inline-flex rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-ink"
-          >
-            {copy.challengeRetry}
-          </button>
-        </div>
+        <CaptchaUnavailableState copy={copy} onRetry={onRetry} />
       )}
       {error ? (
         <p id="contact-captcha-error" className={ERROR_CLASS}>

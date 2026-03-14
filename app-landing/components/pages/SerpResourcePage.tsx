@@ -17,6 +17,107 @@ interface SerpResourcePageProps {
   entry: SerpResourceEntry;
 }
 
+function SerpStructuredData({
+  articleJsonLd,
+  breadcrumbJsonLd,
+  slug,
+}: {
+  articleJsonLd: Record<string, unknown>;
+  breadcrumbJsonLd: Record<string, unknown>;
+  slug: string;
+}) {
+  return (
+    <>
+      <script
+        id={`praedixa-breadcrumb-json-ld-${slug}`}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonForScriptTag(breadcrumbJsonLd),
+        }}
+      />
+      <script
+        id={`praedixa-article-json-ld-${slug}`}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonForScriptTag(articleJsonLd),
+        }}
+      />
+    </>
+  );
+}
+
+function SerpResourceSections({ entry }: { entry: SerpResourceEntry }) {
+  return (
+    <div className="mt-12 space-y-10">
+      {entry.sections.map((section) => (
+        <section key={section.title}>
+          <h2 className="text-lg font-semibold tracking-tight text-ink">
+            {section.title}
+          </h2>
+          {section.paragraphs.map((paragraph, paragraphIndex) => (
+            <p
+              key={paragraphIndex}
+              className="mt-3 max-w-[60ch] text-sm leading-relaxed text-neutral-600"
+            >
+              {paragraph}
+            </p>
+          ))}
+          {section.bullets?.length ? (
+            <ul className="mt-3 list-none space-y-2 p-0">
+              {section.bullets.map((bullet) => (
+                <li
+                  key={bullet}
+                  className="m-0 flex items-start gap-2 text-sm text-neutral-600"
+                >
+                  <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300" />
+                  {bullet}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function RelatedSerpResources({
+  locale,
+  relatedResources,
+}: {
+  locale: Locale;
+  relatedResources: ReturnType<typeof getRelatedSerpResources>;
+}) {
+  if (!relatedResources.length) {
+    return null;
+  }
+
+  return (
+    <section className="mt-12 border-t border-border-subtle pt-8">
+      <h2 className="text-lg font-semibold tracking-tight text-ink">
+        {locale === "fr" ? "Ressources associées" : "Related resources"}
+      </h2>
+      <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-neutral-500">
+        {locale === "fr"
+          ? "Poursuivre avec les contenus les plus proches pour cadrer le signal, comparer les options et documenter la décision."
+          : "Continue with the closest resources to frame the signal, compare options, and document the decision."}
+      </p>
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
+        {relatedResources.map((resource) => (
+          <Link
+            key={resource.slug}
+            href={`/fr/ressources/${resource.slug}`}
+            className="rounded-xl border border-border bg-white p-4 text-sm no-underline transition-colors hover:border-amber-300 hover:bg-amber-50/30"
+          >
+            <p className="font-semibold text-ink">{resource.title}</p>
+            <p className="mt-2 text-neutral-500">{resource.description}</p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
   const valueProp = getValuePropContent(locale);
   const deploymentHref = buildContactIntentHref(locale, "deployment");
@@ -84,19 +185,10 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
   return (
     <SectionShell className="py-16 md:py-24">
       <article className="mx-auto max-w-3xl">
-        <script
-          id={`praedixa-breadcrumb-json-ld-${entry.slug}`}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: serializeJsonForScriptTag(breadcrumbJsonLd),
-          }}
-        />
-        <script
-          id={`praedixa-article-json-ld-${entry.slug}`}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: serializeJsonForScriptTag(articleJsonLd),
-          }}
+        <SerpStructuredData
+          articleJsonLd={articleJsonLd}
+          breadcrumbJsonLd={breadcrumbJsonLd}
+          slug={entry.slug}
         />
 
         <nav className="mb-6 text-xs text-neutral-400" aria-label="Breadcrumb">
@@ -143,63 +235,11 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
           </Link>
         </div>
 
-        <div className="mt-12 space-y-10">
-          {entry.sections.map((section) => (
-            <section key={section.title}>
-              <h2 className="text-lg font-semibold tracking-tight text-ink">
-                {section.title}
-              </h2>
-              {section.paragraphs.map((p, i) => (
-                <p
-                  key={i}
-                  className="mt-3 max-w-[60ch] text-sm leading-relaxed text-neutral-600"
-                >
-                  {p}
-                </p>
-              ))}
-              {section.bullets && section.bullets.length > 0 && (
-                <ul className="mt-3 list-none space-y-2 p-0">
-                  {section.bullets.map((bullet) => (
-                    <li
-                      key={bullet}
-                      className="m-0 flex items-start gap-2 text-sm text-neutral-600"
-                    >
-                      <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300" />
-                      {bullet}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          ))}
-        </div>
-
-        {relatedResources.length > 0 ? (
-          <section className="mt-12 border-t border-border-subtle pt-8">
-            <h2 className="text-lg font-semibold tracking-tight text-ink">
-              {locale === "fr" ? "Ressources associées" : "Related resources"}
-            </h2>
-            <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-neutral-500">
-              {locale === "fr"
-                ? "Poursuivre avec les contenus les plus proches pour cadrer le signal, comparer les options et documenter la décision."
-                : "Continue with the closest resources to frame the signal, compare options, and document the decision."}
-            </p>
-            <div className="mt-5 grid gap-4 md:grid-cols-3">
-              {relatedResources.map((resource) => (
-                <Link
-                  key={resource.slug}
-                  href={`/fr/ressources/${resource.slug}`}
-                  className="rounded-xl border border-border bg-white p-4 text-sm no-underline transition-colors hover:border-amber-300 hover:bg-amber-50/30"
-                >
-                  <p className="font-semibold text-ink">{resource.title}</p>
-                  <p className="mt-2 text-neutral-500">
-                    {resource.description}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </section>
-        ) : null}
+        <SerpResourceSections entry={entry} />
+        <RelatedSerpResources
+          locale={locale}
+          relatedResources={relatedResources}
+        />
 
         <div className="mt-12 border-t border-border-subtle pt-8">
           <Link

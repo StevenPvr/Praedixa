@@ -4,6 +4,46 @@ import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
 import { CheckBadgeIcon, CloseBadgeIcon } from "../shared/icons/MarketingIcons";
 
+function QualificationCard({
+  title,
+  items,
+  dark = false,
+}: {
+  title: string;
+  items: string[];
+  dark?: boolean;
+}) {
+  const titleClassName = dark ? "text-amber-100" : "text-brass-700";
+  const itemClassName = dark ? "text-neutral-200" : "text-neutral-700";
+  const iconClassName = dark ? "text-neutral-200" : "text-amber-600";
+  const Icon = dark ? CloseBadgeIcon : CheckBadgeIcon;
+
+  return (
+    <section
+      className={`rounded-[1.7rem] border border-neutral-200/80 p-6 shadow-[0_20px_42px_-34px_rgba(15,23,42,0.22)] ${
+        dark ? "bg-neutral-950" : "bg-white/90"
+      }`}
+    >
+      <h3
+        className={`text-sm font-semibold uppercase tracking-[0.09em] ${titleClassName}`}
+      >
+        {title}
+      </h3>
+      <ul className="mt-4 list-none space-y-3 p-0">
+        {items.map((item) => (
+          <li
+            key={item}
+            className={`m-0 flex items-start gap-2.5 text-sm leading-relaxed ${itemClassName}`}
+          >
+            <Icon size={16} className={`mt-0.5 shrink-0 ${iconClassName}`} />
+            {item}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function QualificationSection({ locale }: { locale: Locale }) {
   const valueProp = getValuePropContent(locale);
 
@@ -27,45 +67,15 @@ export function QualificationSection({ locale }: { locale: Locale }) {
         </div>
 
         <div className="grid gap-4">
-          <section className="rounded-[1.7rem] border border-neutral-200/80 bg-white/90 p-6 shadow-[0_20px_42px_-34px_rgba(15,23,42,0.22)]">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.09em] text-brass-700">
-              {valueProp.fitTitle}
-            </h3>
-            <ul className="mt-4 list-none space-y-3 p-0">
-              {valueProp.fitItems.map((item) => (
-                <li
-                  key={item}
-                  className="m-0 flex items-start gap-2.5 text-sm leading-relaxed text-neutral-700"
-                >
-                  <CheckBadgeIcon
-                    size={16}
-                    className="mt-0.5 shrink-0 text-amber-600"
-                  />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="rounded-[1.7rem] border border-neutral-200/80 bg-neutral-950 p-6 shadow-[0_22px_46px_-38px_rgba(15,23,42,0.42)]">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.09em] text-amber-100">
-              {valueProp.notFitTitle}
-            </h3>
-            <ul className="mt-4 list-none space-y-3 p-0">
-              {valueProp.notFitItems.map((item) => (
-                <li
-                  key={item}
-                  className="m-0 flex items-start gap-2.5 text-sm leading-relaxed text-neutral-200"
-                >
-                  <CloseBadgeIcon
-                    size={16}
-                    className="mt-0.5 shrink-0 text-neutral-200"
-                  />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </section>
+          <QualificationCard
+            title={valueProp.fitTitle}
+            items={valueProp.fitItems}
+          />
+          <QualificationCard
+            title={valueProp.notFitTitle}
+            items={valueProp.notFitItems}
+            dark
+          />
         </div>
       </div>
     </SectionShell>

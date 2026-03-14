@@ -21,6 +21,45 @@ import type { DeploymentRequestFormData } from "./deployment-request.types";
 
 type DeploymentRequestStatus = "idle" | "submitting" | "success" | "error";
 
+function useDeploymentRequestSubmit(
+  form: DeploymentRequestFormData,
+  ui: ReturnType<typeof getDeploymentRequestPageUi>,
+  setErrorMsg: (value: string) => void,
+  setStatus: (value: DeploymentRequestStatus) => void,
+) {
+  return useCallback(
+    async (event: React.FormEvent) => {
+      event.preventDefault();
+      setStatus("submitting");
+      setErrorMsg("");
+
+      try {
+        const response = await fetch("/api/deployment-request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        });
+        const payload = (await response.json()) as {
+          success?: boolean;
+          error?: string;
+        };
+
+        if (!response.ok || payload.error) {
+          setErrorMsg(payload.error ?? ui.unknownError);
+          setStatus("error");
+          return;
+        }
+
+        setStatus("success");
+      } catch {
+        setErrorMsg(ui.networkError);
+        setStatus("error");
+      }
+    },
+    [form, setErrorMsg, setStatus, ui.networkError, ui.unknownError],
+  );
+}
+
 export function DeploymentRequestPageClient({
   locale,
   dict,
@@ -47,37 +86,11 @@ export function DeploymentRequestPageClient({
     },
     [],
   );
-
-  const handleSubmit = useCallback(
-    async (event: React.FormEvent) => {
-      event.preventDefault();
-      setStatus("submitting");
-      setErrorMsg("");
-
-      try {
-        const response = await fetch("/api/deployment-request", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
-
-        const payload = (await response.json()) as {
-          success?: boolean;
-          error?: string;
-        };
-        if (!response.ok || payload.error) {
-          setErrorMsg(payload.error ?? ui.unknownError);
-          setStatus("error");
-          return;
-        }
-
-        setStatus("success");
-      } catch {
-        setErrorMsg(ui.networkError);
-        setStatus("error");
-      }
-    },
-    [form, ui.networkError, ui.unknownError],
+  const handleSubmit = useDeploymentRequestSubmit(
+    form,
+    ui,
+    setErrorMsg,
+    setStatus,
   );
 
   if (!hasDeploymentRequestCoreOptions(options)) {

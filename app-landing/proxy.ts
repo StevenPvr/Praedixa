@@ -50,25 +50,60 @@ function normalizePathname(pathname: string): string {
   return pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
 }
 
+function enforceCanonicalHost(
+  target: URL,
+  requestHost: string,
+  forwardedProto: "http" | "https" | null,
+): boolean {
+  let shouldRedirect = false;
+  const shouldForceHttps =
+    requestHost === "praedixa.com" || forwardedProto === "http";
+  if (shouldForceHttps && target.protocol !== "https:") {
+    target.protocol = "https:";
+    shouldRedirect = true;
+  }
+  if (requestHost === "praedixa.com") {
+    target.hostname = CANONICAL_HOST;
+    target.port = "";
+    shouldRedirect = true;
+  }
+  return shouldRedirect;
+}
+
+function applyLegacyRedirect(target: URL): boolean {
+  const localizedTarget = legacyRedirectMap[target.pathname];
+  if (!localizedTarget || localizedTarget === target.pathname) {
+    return false;
+  }
+
+  const parsedRedirectTarget = new URL(localizedTarget, target);
+  const mergedSearchParams = new URLSearchParams(parsedRedirectTarget.search);
+  for (const [key, value] of target.searchParams.entries()) {
+    if (!mergedSearchParams.has(key)) {
+      mergedSearchParams.append(key, value);
+    }
+  }
+
+  target.pathname = parsedRedirectTarget.pathname;
+  target.search = mergedSearchParams.toString()
+    ? `?${mergedSearchParams.toString()}`
+    : "";
+  target.hash = parsedRedirectTarget.hash;
+  return true;
+}
+
 function resolveCanonicalTarget(request: NextRequest): URL | null {
   const target = request.nextUrl.clone();
+  const requestHost = resolveRequestHost(request);
   let shouldRedirect = false;
 
-  const requestHost = resolveRequestHost(request);
   if (PRODUCTION_HOSTS.has(requestHost)) {
-    const forwardedProto = resolveForwardedProto(request);
-    const shouldForceHttps =
-      requestHost === "praedixa.com" || forwardedProto === "http";
-    if (shouldForceHttps && target.protocol !== "https:") {
-      target.protocol = "https:";
-      shouldRedirect = true;
-    }
-
-    if (requestHost === "praedixa.com") {
-      target.hostname = CANONICAL_HOST;
-      target.port = "";
-      shouldRedirect = true;
-    }
+    shouldRedirect =
+      enforceCanonicalHost(
+        target,
+        requestHost,
+        resolveForwardedProto(request),
+      ) || shouldRedirect;
   }
 
   if (!isApiOrStatic(target.pathname)) {
@@ -81,27 +116,8 @@ function resolveCanonicalTarget(request: NextRequest): URL | null {
     if (target.pathname === "/") {
       target.pathname = "/fr";
       shouldRedirect = true;
-    } else {
-      const localizedTarget = legacyRedirectMap[target.pathname];
-      if (localizedTarget && localizedTarget !== target.pathname) {
-        const parsedRedirectTarget = new URL(localizedTarget, target);
-        const mergedSearchParams = new URLSearchParams(
-          parsedRedirectTarget.search,
-        );
-
-        for (const [key, value] of target.searchParams.entries()) {
-          if (!mergedSearchParams.has(key)) {
-            mergedSearchParams.append(key, value);
-          }
-        }
-
-        target.pathname = parsedRedirectTarget.pathname;
-        target.search = mergedSearchParams.toString()
-          ? `?${mergedSearchParams.toString()}`
-          : "";
-        target.hash = parsedRedirectTarget.hash;
-        shouldRedirect = true;
-      }
+    } else if (applyLegacyRedirect(target)) {
+      shouldRedirect = true;
     }
   }
 

@@ -16,64 +16,97 @@ interface FooterProps {
   dict: Dictionary;
 }
 
+function getFooterLinks(locale: Locale, dict: Dictionary) {
+  return {
+    navLinks: [
+      {
+        label: locale === "fr" ? "Produit & méthode" : "Product and method",
+        href: getLocalizedPath(locale, "productMethod"),
+      },
+      {
+        label: locale === "fr" ? "Comment ça marche" : "How it works",
+        href: getLocalizedPath(locale, "howItWorksPage"),
+      },
+      {
+        label: locale === "fr" ? "Preuve sur historique" : "Historical proof",
+        href: getLocalizedPath(locale, "decisionLogProof"),
+      },
+      {
+        label:
+          locale === "fr" ? "Intégration & données" : "Integration and data",
+        href: getLocalizedPath(locale, "integrationData"),
+      },
+      { label: dict.nav.services, href: getLocalizedPath(locale, "services") },
+      {
+        label: locale === "fr" ? "Ressources" : "Resources",
+        href: getLocalizedPath(locale, "resources"),
+      },
+      { label: "Blog", href: `/${locale}/blog` },
+    ],
+    legalLinks: [
+      { label: dict.nav.contact, href: getLocalizedPath(locale, "contact") },
+      {
+        label: locale === "fr" ? "Mentions légales" : "Legal notice",
+        href: getLocalizedPath(locale, "legal"),
+      },
+      {
+        label: locale === "fr" ? "Confidentialité" : "Privacy",
+        href: getLocalizedPath(locale, "privacy"),
+      },
+      {
+        label: locale === "fr" ? "CGU" : "Terms",
+        href: getLocalizedPath(locale, "terms"),
+      },
+      {
+        label: locale === "fr" ? "À propos" : "About",
+        href: getLocalizedPath(locale, "about"),
+      },
+    ],
+  };
+}
+
+function FooterLinkColumn({
+  emptyLabel,
+  links,
+  title,
+}: {
+  emptyLabel: string;
+  links: { href: string; label: string }[];
+  title: string;
+}) {
+  return (
+    <div className="space-y-3">
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[rgba(255,255,255,0.40)]">
+        {title}
+      </h3>
+      <ul className="list-none divide-y divide-white/[0.08] rounded-2xl border border-white/10 bg-white/[0.04] p-0">
+        {links.length ? (
+          links.map((link) => (
+            <li key={link.href} className="m-0">
+              <Link
+                href={link.href}
+                className="inline-flex w-full items-center justify-between px-4 py-3 text-sm font-medium tracking-[-0.01em] text-neutral-300 no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:bg-white/[0.06] hover:text-white active:-translate-y-[1px] active:scale-[0.99]"
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))
+        ) : (
+          <li className="m-0 px-4 py-3 text-sm text-[rgba(255,255,255,0.30)]">
+            {emptyLabel}
+          </li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
 export function Footer({ locale, dict }: FooterProps) {
   const valueProp = getValuePropContent(locale);
   const primaryCtaHref = buildContactIntentHref(locale, "deployment");
-  const servicesHref = getLocalizedPath(locale, "services");
-  const productHref = getLocalizedPath(locale, "productMethod");
-  const methodHref = getLocalizedPath(locale, "howItWorksPage");
-  const proofHref = getLocalizedPath(locale, "decisionLogProof");
-  const integrationHref = getLocalizedPath(locale, "integrationData");
-  const solutionsHref = getLocalizedPath(locale, "resources");
-  const blogHref = `/${locale}/blog`;
-  const contactHref = getLocalizedPath(locale, "contact");
-  const legalHref = getLocalizedPath(locale, "legal");
-  const privacyHref = getLocalizedPath(locale, "privacy");
-  const termsHref = getLocalizedPath(locale, "terms");
-  const aboutHref = getLocalizedPath(locale, "about");
-
-  const navLinks = [
-    {
-      label: locale === "fr" ? "Produit & méthode" : "Product and method",
-      href: productHref,
-    },
-    {
-      label: locale === "fr" ? "Comment ça marche" : "How it works",
-      href: methodHref,
-    },
-    {
-      label: locale === "fr" ? "Preuve sur historique" : "Historical proof",
-      href: proofHref,
-    },
-    {
-      label: locale === "fr" ? "Intégration & données" : "Integration and data",
-      href: integrationHref,
-    },
-    { label: dict.nav.services, href: servicesHref },
-    {
-      label: locale === "fr" ? "Ressources" : "Resources",
-      href: solutionsHref,
-    },
-    { label: "Blog", href: blogHref },
-  ];
-
-  const legalLinks = [
-    { label: dict.nav.contact, href: contactHref },
-    {
-      label: locale === "fr" ? "Mentions légales" : "Legal notice",
-      href: legalHref,
-    },
-    {
-      label: locale === "fr" ? "Confidentialité" : "Privacy",
-      href: privacyHref,
-    },
-    { label: locale === "fr" ? "CGU" : "Terms", href: termsHref },
-    { label: locale === "fr" ? "À propos" : "About", href: aboutHref },
-  ];
+  const { navLinks, legalLinks } = getFooterLinks(locale, dict);
 
   const badges = valueProp.reassurance.slice(0, 3);
-  const hasNavLinks = navLinks.length > 0;
-  const hasLegalLinks = legalLinks.length > 0;
   const year = new Date().getFullYear();
 
   return (
@@ -150,57 +183,24 @@ export function Footer({ locale, dict }: FooterProps) {
             />
           </div>
 
-          <div className="space-y-3">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[rgba(255,255,255,0.40)]">
-              {dict.footer.navigation}
-            </h3>
-            <ul className="list-none divide-y divide-white/[0.08] rounded-2xl border border-white/10 bg-white/[0.04] p-0">
-              {hasNavLinks ? (
-                navLinks.map((link) => (
-                  <li key={link.href} className="m-0">
-                    <Link
-                      href={link.href}
-                      className="inline-flex w-full items-center justify-between px-4 py-3 text-sm font-medium tracking-[-0.01em] text-neutral-300 no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:bg-white/[0.06] hover:text-white active:-translate-y-[1px] active:scale-[0.99]"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))
-              ) : (
-                <li className="m-0 px-4 py-3 text-sm text-[rgba(255,255,255,0.30)]">
-                  {locale === "fr"
-                    ? "Navigation disponible prochainement."
-                    : "Navigation coming soon."}
-                </li>
-              )}
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[rgba(255,255,255,0.40)]">
-              {dict.footer.legalContact}
-            </h3>
-            <ul className="list-none divide-y divide-white/[0.08] rounded-2xl border border-white/10 bg-white/[0.04] p-0">
-              {hasLegalLinks ? (
-                legalLinks.map((link) => (
-                  <li key={link.href} className="m-0">
-                    <Link
-                      href={link.href}
-                      className="inline-flex w-full items-center justify-between px-4 py-3 text-sm font-medium tracking-[-0.01em] text-neutral-300 no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:bg-white/[0.06] hover:text-white active:-translate-y-[1px] active:scale-[0.99]"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))
-              ) : (
-                <li className="m-0 px-4 py-3 text-sm text-[rgba(255,255,255,0.30)]">
-                  {locale === "fr"
-                    ? "Informations légales indisponibles."
-                    : "Legal information unavailable."}
-                </li>
-              )}
-            </ul>
-          </div>
+          <FooterLinkColumn
+            emptyLabel={
+              locale === "fr"
+                ? "Navigation disponible prochainement."
+                : "Navigation coming soon."
+            }
+            links={navLinks}
+            title={dict.footer.navigation}
+          />
+          <FooterLinkColumn
+            emptyLabel={
+              locale === "fr"
+                ? "Informations légales indisponibles."
+                : "Legal information unavailable."
+            }
+            links={legalLinks}
+            title={dict.footer.legalContact}
+          />
         </div>
 
         <div className="flex flex-col gap-2.5 py-6 text-xs text-[rgba(255,255,255,0.30)] md:flex-row md:items-center md:justify-between">

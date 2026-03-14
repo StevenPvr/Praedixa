@@ -10,6 +10,38 @@ import {
 } from "../shared/icons/MarketingIcons";
 import type { ContactPageCopy } from "./contact-page.types";
 
+function ContactChecklistSection({
+  title,
+  items,
+  className = "rounded-[1.7rem] border border-neutral-200/80 bg-white/90 p-5",
+}: {
+  title: string;
+  items: string[];
+  className?: string;
+}) {
+  return (
+    <section className={className}>
+      <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-neutral-700">
+        {title}
+      </h2>
+      <ul className="mt-4 list-none space-y-2.5 p-0">
+        {items.map((item) => (
+          <li
+            key={item}
+            className="m-0 flex items-start gap-2.5 text-sm text-neutral-700"
+          >
+            <CheckBadgeIcon
+              size={16}
+              className="mt-0.5 shrink-0 text-amber-600"
+            />
+            {item}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function ContactPageAside({
   copy,
   locale,
@@ -34,45 +66,15 @@ export function ContactPageAside({
         </p>
       </div>
 
-      <section className="rounded-[1.7rem] border border-amber-200/80 bg-amber-50/75 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-amber-800">
-          {copy.promiseTitle}
-        </h2>
-        <ul className="mt-4 list-none space-y-2.5 p-0">
-          {copy.promiseItems.map((item) => (
-            <li
-              key={item}
-              className="m-0 flex items-start gap-2.5 text-sm text-neutral-700"
-            >
-              <CheckBadgeIcon
-                size={16}
-                className="mt-0.5 shrink-0 text-amber-600"
-              />
-              {item}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="rounded-[1.7rem] border border-neutral-200/80 bg-white/90 p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-neutral-700">
-          {copy.reassuranceTitle}
-        </h2>
-        <ul className="mt-4 list-none space-y-2.5 p-0">
-          {copy.reassuranceItems.map((item) => (
-            <li
-              key={item}
-              className="m-0 flex items-start gap-2.5 text-sm text-neutral-700"
-            >
-              <CheckBadgeIcon
-                size={16}
-                className="mt-0.5 shrink-0 text-amber-600"
-              />
-              {item}
-            </li>
-          ))}
-        </ul>
-      </section>
+      <ContactChecklistSection
+        title={copy.promiseTitle}
+        items={copy.promiseItems}
+        className="rounded-[1.7rem] border border-amber-200/80 bg-amber-50/75 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]"
+      />
+      <ContactChecklistSection
+        title={copy.reassuranceTitle}
+        items={copy.reassuranceItems}
+      />
 
       <section className="rounded-[1.7rem] border border-neutral-200/80 bg-white/90 p-5">
         <p className="text-sm font-semibold text-ink">

@@ -26,6 +26,39 @@ interface LedgerEntryRow extends QueryResultRow {
   record_json: unknown;
 }
 
+const INSERT_LEDGER_RECORD_SQL = `
+  INSERT INTO decision_ledger_entries (
+    organization_id,
+    ledger_id,
+    revision,
+    recommendation_id,
+    action_id,
+    site_id,
+    contract_id,
+    contract_version,
+    status,
+    validation_status,
+    opened_at,
+    closed_at,
+    record_json
+  )
+  VALUES (
+    $1::uuid,
+    $2::uuid,
+    $3::int,
+    $4::uuid,
+    $5::uuid,
+    $6,
+    $7,
+    $8::int,
+    $9::ledgerruntimestatus,
+    $10::ledgerruntimevalidationstatus,
+    $11::timestamptz,
+    $12::timestamptz,
+    $13::jsonb
+  )
+`;
+
 function asPlainObject<T>(value: unknown, code: string, label: string): T {
   if (value == null || typeof value !== "object" || Array.isArray(value)) {
     throw new PersistenceError(
@@ -85,6 +118,41 @@ function mapLedgerRow(row: LedgerEntryRow): LedgerEntry {
   }
 
   return record;
+}
+
+function toLedgerInsertParams(
+  organizationId: string,
+  ledger: LedgerEntry,
+): [
+  string,
+  string,
+  number,
+  string,
+  string,
+  string | null,
+  string,
+  number,
+  LedgerEntry["status"],
+  LedgerEntry["roi"]["validationStatus"],
+  string,
+  string | null,
+  string,
+] {
+  return [
+    organizationId,
+    ledger.ledgerId,
+    ledger.revision,
+    ledger.recommendationId,
+    ledger.action.actionId,
+    ledger.scope.selector.ids?.[0] ?? null,
+    ledger.contractId,
+    ledger.contractVersion,
+    ledger.status,
+    ledger.roi.validationStatus,
+    ledger.openedAt,
+    ledger.closedAt ?? null,
+    JSON.stringify(ledger),
+  ];
 }
 
 export async function loadActionById(
@@ -239,52 +307,7 @@ export async function insertLedgerRecord(
   ledger: LedgerEntry,
 ): Promise<void> {
   await client.query(
-    `
-      INSERT INTO decision_ledger_entries (
-        organization_id,
-        ledger_id,
-        revision,
-        recommendation_id,
-        action_id,
-        site_id,
-        contract_id,
-        contract_version,
-        status,
-        validation_status,
-        opened_at,
-        closed_at,
-        record_json
-      )
-      VALUES (
-        $1::uuid,
-        $2::uuid,
-        $3::int,
-        $4::uuid,
-        $5::uuid,
-        $6,
-        $7,
-        $8::int,
-        $9::ledgerruntimestatus,
-        $10::ledgerruntimevalidationstatus,
-        $11::timestamptz,
-        $12::timestamptz,
-        $13::jsonb
-      )
-    `,
-    [
-      organizationId,
-      ledger.ledgerId,
-      ledger.revision,
-      ledger.recommendationId,
-      ledger.action.actionId,
-      ledger.scope.selector.ids?.[0] ?? null,
-      ledger.contractId,
-      ledger.contractVersion,
-      ledger.status,
-      ledger.roi.validationStatus,
-      ledger.openedAt,
-      ledger.closedAt ?? null,
-      JSON.stringify(ledger),
-    ],
+    INSERT_LEDGER_RECORD_SQL,
+    toLedgerInsertParams(organizationId, ledger),
   );
 }

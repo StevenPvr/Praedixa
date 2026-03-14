@@ -2,11 +2,66 @@ import type { Locale } from "../../lib/i18n/config";
 import { getValuePropContent } from "../../lib/content/value-prop";
 import type { ContactPageCopy } from "./contact-page.types";
 
-export function getContactPageCopy(
-  locale: Locale,
-  intent: "deployment" | "historical_proof",
-): ContactPageCopy {
-  const copy = getValuePropContent(locale).contact;
+type ContactIntent = "deployment" | "historical_proof";
+
+type SharedContactCopy = Omit<
+  ContactPageCopy,
+  "kicker" | "heading" | "intro" | "promiseItems"
+>;
+
+const SHARED_CONTACT_COPY_KEYS = [
+  "promiseTitle",
+  "reassuranceTitle",
+  "reassuranceItems",
+  "secondaryPanelTitle",
+  "secondaryPanelBody",
+  "secondaryPanelCta",
+  "formTitle",
+  "formSubtitle",
+  "company",
+  "role",
+  "email",
+  "siteCount",
+  "sector",
+  "mainTradeOff",
+  "timeline",
+  "currentStack",
+  "message",
+  "mainTradeOffPlaceholder",
+  "currentStackPlaceholder",
+  "messagePlaceholder",
+  "antiSpam",
+  "consentPrefix",
+  "termsLabel",
+  "consentJoin",
+  "privacyLabel",
+  "send",
+  "sending",
+  "fixErrors",
+  "successTitle",
+  "successBody",
+  "successCta",
+  "unknownError",
+  "networkError",
+  "challengeLoading",
+  "challengeUnavailable",
+  "challengeRetry",
+  "requiredCompany",
+  "requiredRole",
+  "requiredEmail",
+  "invalidEmail",
+  "requiredSiteCount",
+  "requiredSector",
+  "requiredMainTradeOff",
+  "requiredTimeline",
+  "requiredConsent",
+  "requiredCaptcha",
+] as const satisfies readonly (keyof SharedContactCopy)[];
+
+function getIntentSpecificCopy(
+  copy: ReturnType<typeof getValuePropContent>["contact"],
+  intent: ContactIntent,
+) {
   const isProofIntent = intent === "historical_proof";
 
   return {
@@ -15,54 +70,28 @@ export function getContactPageCopy(
       ? copy.proofIntentHeading
       : copy.scopingIntentHeading,
     intro: isProofIntent ? copy.proofIntentIntro : copy.scopingIntentIntro,
-    promiseTitle: copy.promiseTitle,
     promiseItems: isProofIntent
       ? copy.proofIntentPromiseItems
       : copy.scopingIntentPromiseItems,
-    reassuranceTitle: copy.reassuranceTitle,
-    reassuranceItems: copy.reassuranceItems,
-    secondaryPanelTitle: copy.secondaryPanelTitle,
-    secondaryPanelBody: copy.secondaryPanelBody,
-    secondaryPanelCta: copy.secondaryPanelCta,
-    formTitle: copy.formTitle,
-    formSubtitle: copy.formSubtitle,
-    company: copy.company,
-    role: copy.role,
-    email: copy.email,
-    siteCount: copy.siteCount,
-    sector: copy.sector,
-    mainTradeOff: copy.mainTradeOff,
-    timeline: copy.timeline,
-    currentStack: copy.currentStack,
-    message: copy.message,
-    mainTradeOffPlaceholder: copy.mainTradeOffPlaceholder,
-    currentStackPlaceholder: copy.currentStackPlaceholder,
-    messagePlaceholder: copy.messagePlaceholder,
-    antiSpam: copy.antiSpam,
-    consentPrefix: copy.consentPrefix,
-    termsLabel: copy.termsLabel,
-    consentJoin: copy.consentJoin,
-    privacyLabel: copy.privacyLabel,
-    send: copy.send,
-    sending: copy.sending,
-    fixErrors: copy.fixErrors,
-    successTitle: copy.successTitle,
-    successBody: copy.successBody,
-    successCta: copy.successCta,
-    unknownError: copy.unknownError,
-    networkError: copy.networkError,
-    challengeLoading: copy.challengeLoading,
-    challengeUnavailable: copy.challengeUnavailable,
-    challengeRetry: copy.challengeRetry,
-    requiredCompany: copy.requiredCompany,
-    requiredRole: copy.requiredRole,
-    requiredEmail: copy.requiredEmail,
-    invalidEmail: copy.invalidEmail,
-    requiredSiteCount: copy.requiredSiteCount,
-    requiredSector: copy.requiredSector,
-    requiredMainTradeOff: copy.requiredMainTradeOff,
-    requiredTimeline: copy.requiredTimeline,
-    requiredConsent: copy.requiredConsent,
-    requiredCaptcha: copy.requiredCaptcha,
+  };
+}
+
+function getSharedContactPageCopy(
+  copy: ReturnType<typeof getValuePropContent>["contact"],
+): SharedContactCopy {
+  return Object.fromEntries(
+    SHARED_CONTACT_COPY_KEYS.map((key) => [key, copy[key]]),
+  ) as SharedContactCopy;
+}
+
+export function getContactPageCopy(
+  locale: Locale,
+  intent: ContactIntent,
+): ContactPageCopy {
+  const copy = getValuePropContent(locale).contact;
+
+  return {
+    ...getIntentSpecificCopy(copy, intent),
+    ...getSharedContactPageCopy(copy),
   };
 }

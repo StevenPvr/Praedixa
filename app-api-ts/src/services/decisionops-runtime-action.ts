@@ -34,6 +34,17 @@ interface ActionDispatchDecisionInput {
   request: ActionDispatchDecisionRequest;
 }
 
+type TerminalActionOutcome = Extract<
+  ActionDispatchDecisionRequest["outcome"],
+  "dispatched" | "acknowledged" | "failed" | "canceled"
+>;
+
+interface PreparedActionDecision {
+  comment?: string;
+  errorCode: string;
+  errorMessage?: string;
+}
+
 function assertOrganizationId(value: string): void {
   if (!isUuidString(value)) {
     throw new PersistenceError(
@@ -79,17 +90,67 @@ function normalizeOccurredAt(value: string | undefined): string {
   return normalized;
 }
 
+function normalizeActionInput(input: ActionDispatchDecisionInput): {
+  normalizedInput: ActionDispatchDecisionInput;
+  occurredAt: string;
+} {
+  return {
+    normalizedInput: {
+      ...input,
+      actorUserId: normalizeActor(
+        input.actorUserId,
+        "INVALID_ACTION_ACTOR_USER_ID",
+        "actorUserId",
+      ),
+      actorRole: normalizeActor(
+        input.actorRole,
+        "INVALID_ACTION_ACTOR_ROLE",
+        "actorRole",
+      ),
+    },
+    occurredAt: normalizeOccurredAt(input.request.occurredAt),
+  };
+}
+
+function prepareActionDecision(
+  request: ActionDispatchDecisionRequest,
+): PreparedActionDecision {
+  const comment = normalizeOptionalText(request.comment);
+  const reasonCode = request.reasonCode.trim();
+
+  return {
+    comment,
+    errorCode: normalizeOptionalText(request.errorCode) ?? reasonCode,
+    errorMessage: normalizeOptionalText(request.errorMessage) ?? comment,
+  };
+}
+
+function appendDispatchAttempt(
+  record: ActionDispatchRecord,
+  input: ActionDispatchDecisionInput,
+  occurredAt: string,
+  prepared: PreparedActionDecision,
+  outcome: TerminalActionOutcome,
+): ActionDispatchRecord {
+  const canStoreError = outcome === "failed" || outcome === "canceled";
+
+  return appendActionDispatchAttempt(record, {
+    attemptNumber: record.attempts.length + 1,
+    status: outcome,
+    dispatchedAt: occurredAt,
+    latencyMs: input.request.latencyMs,
+    targetReference: normalizeOptionalText(input.request.targetReference),
+    errorCode: canStoreError ? prepared.errorCode : undefined,
+    errorMessage: canStoreError ? prepared.errorMessage : undefined,
+  });
+}
+
 function applyActionDecision(
   record: ActionDispatchRecord,
   input: ActionDispatchDecisionInput,
   occurredAt: string,
 ): ActionDispatchRecord {
-  const comment = normalizeOptionalText(input.request.comment);
-  const reasonCode = input.request.reasonCode.trim();
-  const errorCode =
-    normalizeOptionalText(input.request.errorCode) ?? reasonCode;
-  const errorMessage =
-    normalizeOptionalText(input.request.errorMessage) ?? comment;
+  const prepared = prepareActionDecision(input.request);
 
   try {
     switch (input.request.outcome) {
@@ -97,28 +158,18 @@ function applyActionDecision(
       case "acknowledged":
       case "failed":
       case "canceled":
-        return appendActionDispatchAttempt(record, {
-          attemptNumber: record.attempts.length + 1,
-          status: input.request.outcome,
-          dispatchedAt: occurredAt,
-          latencyMs: input.request.latencyMs,
-          targetReference: normalizeOptionalText(input.request.targetReference),
-          errorCode:
-            input.request.outcome === "failed" ||
-            input.request.outcome === "canceled"
-              ? errorCode
-              : undefined,
-          errorMessage:
-            input.request.outcome === "failed" ||
-            input.request.outcome === "canceled"
-              ? errorMessage
-              : undefined,
-        });
+        return appendDispatchAttempt(
+          record,
+          input,
+          occurredAt,
+          prepared,
+          input.request.outcome,
+        );
       case "retried":
         return appendActionDispatchRetry(record, {
           retriedAt: occurredAt,
-          errorCode,
-          errorMessage,
+          errorCode: prepared.errorCode,
+          errorMessage: prepared.errorMessage,
         });
     }
 
@@ -136,6 +187,45 @@ function applyActionDecision(
       "INVALID_ACTION_DISPATCH_DECISION",
     );
   }
+}
+
+async function syncLatestLedgerForAction(
+  client: Parameters<typeof loadLatestLedgerByRecommendation>[0],
+  organizationId: string,
+  currentAction: ActionDispatchRecord,
+  nextAction: ActionDispatchRecord,
+  occurredAt: string,
+): Promise<LedgerEntry["status"] | null> {
+  const latestLedger = await loadLatestLedgerByRecommendation(
+    client,
+    organizationId,
+    currentAction.recommendationId,
+  );
+  if (!latestLedger) {
+    return null;
+  }
+
+  const syncedLedger = syncLedgerForAction(latestLedger, nextAction);
+  await saveLedgerRecord(client, organizationId, syncedLedger, occurredAt);
+  return syncedLedger.status;
+}
+
+function buildActionDecisionResponse(
+  nextAction: ActionDispatchRecord,
+  occurredAt: string,
+  ledgerStatus: LedgerEntry["status"] | null,
+): ActionDispatchDecisionResponse {
+  return {
+    actionId: nextAction.actionId,
+    recommendationId: nextAction.recommendationId,
+    occurredAt,
+    actionStatus: nextAction.status,
+    latestAttemptStatus:
+      nextAction.attempts[nextAction.attempts.length - 1]?.status ?? null,
+    ledgerStatus,
+    fallbackStatus: nextAction.fallback?.status ?? null,
+    retryEligible: shouldRetryActionDispatch(nextAction),
+  };
 }
 
 function syncLedgerForAction(
@@ -193,22 +283,7 @@ export async function decidePersistentActionDispatch(
 ): Promise<ActionDispatchDecisionResponse> {
   assertOrganizationId(input.organizationId);
   assertActionId(input.actionId);
-  const actorUserId = normalizeActor(
-    input.actorUserId,
-    "INVALID_ACTION_ACTOR_USER_ID",
-    "actorUserId",
-  );
-  const actorRole = normalizeActor(
-    input.actorRole,
-    "INVALID_ACTION_ACTOR_ROLE",
-    "actorRole",
-  );
-  const occurredAt = normalizeOccurredAt(input.request.occurredAt);
-  const normalizedInput: ActionDispatchDecisionInput = {
-    ...input,
-    actorUserId,
-    actorRole,
-  };
+  const { normalizedInput, occurredAt } = normalizeActionInput(input);
 
   try {
     return await withTransaction(async (client) => {
@@ -228,36 +303,14 @@ export async function decidePersistentActionDispatch(
         nextAction,
         occurredAt,
       );
-
-      const latestLedger = await loadLatestLedgerByRecommendation(
+      const ledgerStatus = await syncLatestLedgerForAction(
         client,
         normalizedInput.organizationId,
-        currentAction.recommendationId,
-      );
-
-      let ledgerStatus: LedgerEntry["status"] | null = null;
-      if (latestLedger) {
-        const syncedLedger = syncLedgerForAction(latestLedger, nextAction);
-        ledgerStatus = syncedLedger.status;
-        await saveLedgerRecord(
-          client,
-          normalizedInput.organizationId,
-          syncedLedger,
-          occurredAt,
-        );
-      }
-
-      return {
-        actionId: nextAction.actionId,
-        recommendationId: nextAction.recommendationId,
+        currentAction,
+        nextAction,
         occurredAt,
-        actionStatus: nextAction.status,
-        latestAttemptStatus:
-          nextAction.attempts[nextAction.attempts.length - 1]?.status ?? null,
-        ledgerStatus,
-        fallbackStatus: nextAction.fallback?.status ?? null,
-        retryEligible: shouldRetryActionDispatch(nextAction),
-      };
+      );
+      return buildActionDecisionResponse(nextAction, occurredAt, ledgerStatus);
     });
   } catch (error) {
     throw mapPersistenceError(

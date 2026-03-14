@@ -36,6 +36,11 @@ interface LedgerDecisionInput {
   request: LedgerDecisionRequest;
 }
 
+interface NormalizedLedgerDecision {
+  normalizedInput: LedgerDecisionInput;
+  occurredAt: string;
+}
+
 function assertOrganizationId(value: string): void {
   if (!isUuidString(value)) {
     throw new PersistenceError(
@@ -91,6 +96,27 @@ function normalizeOccurredAt(value: string | undefined): string {
     );
   }
   return normalized;
+}
+
+function normalizeLedgerInput(
+  input: LedgerDecisionInput,
+): NormalizedLedgerDecision {
+  return {
+    normalizedInput: {
+      ...input,
+      actorUserId: normalizeActor(
+        input.actorUserId,
+        "INVALID_LEDGER_ACTOR_USER_ID",
+        "actorUserId",
+      ),
+      actorRole: normalizeActor(
+        input.actorRole,
+        "INVALID_LEDGER_ACTOR_ROLE",
+        "actorRole",
+      ),
+    },
+    occurredAt: normalizeOccurredAt(input.request.occurredAt),
+  };
 }
 
 function buildActualSnapshot(
@@ -222,6 +248,72 @@ function setClosedOrRecalculatedExplanation(
   };
 }
 
+function appendValidationExplanation(
+  entry: LedgerEntry,
+  occurredAt: string,
+  actorUserId: string,
+  actorRole: string,
+  request: Extract<LedgerDecisionRequest, { operation: "validate" }>,
+  reasonCode: string,
+  comment?: string,
+): LedgerEntry {
+  if (entry.status !== "closed" && entry.status !== "recalculated") {
+    throw new PersistenceError(
+      "Only closed or recalculated ledger revisions can be finance-validated.",
+      400,
+      "INVALID_LEDGER_VALIDATION_STATE",
+    );
+  }
+
+  return {
+    ...setLedgerValidationStatus(
+      entry,
+      request.validationStatus,
+      occurredAt,
+      request.validationStatus === "validated" ? actorUserId : undefined,
+    ),
+    explanation: appendLedgerDecisionNote(
+      entry,
+      "validate",
+      occurredAt,
+      actorRole,
+      reasonCode,
+      comment,
+    ),
+  };
+}
+
+function applyLedgerRevision(
+  entry: LedgerEntry,
+  occurredAt: string,
+  actorRole: string,
+  request: Extract<
+    LedgerDecisionRequest,
+    { operation: "close" | "recalculate" }
+  >,
+  reasonCode: string,
+  comment?: string,
+): LedgerEntry {
+  const actual = buildActualSnapshot(entry, request, occurredAt);
+  const roi = buildRoi(entry, request);
+  const nextEntry =
+    request.operation === "close"
+      ? closeLedgerEntry(entry, actual, occurredAt, roi)
+      : recalculateLedgerEntry(entry, actual, occurredAt, roi);
+
+  return {
+    ...nextEntry,
+    explanation: setClosedOrRecalculatedExplanation(
+      nextEntry,
+      request.operation,
+      occurredAt,
+      actorRole,
+      reasonCode,
+      comment,
+    ),
+  };
+}
+
 function applyLedgerDecision(
   entry: LedgerEntry,
   input: LedgerDecisionInput,
@@ -231,63 +323,60 @@ function applyLedgerDecision(
   const comment = normalizeOptionalText(input.request.comment);
 
   if (input.request.operation === "validate") {
-    if (entry.status !== "closed" && entry.status !== "recalculated") {
-      throw new PersistenceError(
-        "Only closed or recalculated ledger revisions can be finance-validated.",
-        400,
-        "INVALID_LEDGER_VALIDATION_STATE",
-      );
-    }
-
-    return {
-      ...setLedgerValidationStatus(
-        entry,
-        input.request.validationStatus,
-        occurredAt,
-        input.request.validationStatus === "validated"
-          ? input.actorUserId
-          : undefined,
-      ),
-      explanation: appendLedgerDecisionNote(
-        entry,
-        "validate",
-        occurredAt,
-        input.actorRole,
-        reasonCode,
-        comment,
-      ),
-    };
-  }
-
-  const actual = buildActualSnapshot(entry, input.request, occurredAt);
-  const roi = buildRoi(entry, input.request);
-
-  if (input.request.operation === "close") {
-    const nextEntry = closeLedgerEntry(entry, actual, occurredAt, roi);
-    return {
-      ...nextEntry,
-      explanation: setClosedOrRecalculatedExplanation(
-        nextEntry,
-        "close",
-        occurredAt,
-        input.actorRole,
-        reasonCode,
-        comment,
-      ),
-    };
-  }
-
-  const recalculated = recalculateLedgerEntry(entry, actual, occurredAt, roi);
-  return {
-    ...recalculated,
-    explanation: setClosedOrRecalculatedExplanation(
-      recalculated,
-      "recalculate",
+    return appendValidationExplanation(
+      entry,
       occurredAt,
+      input.actorUserId,
       input.actorRole,
+      input.request,
       reasonCode,
       comment,
-    ),
+    );
+  }
+
+  return applyLedgerRevision(
+    entry,
+    occurredAt,
+    input.actorRole,
+    input.request,
+    reasonCode,
+    comment,
+  );
+}
+
+async function persistLedgerDecision(
+  client: Parameters<typeof loadLedgerHistoryById>[0],
+  input: LedgerDecisionInput,
+  occurredAt: string,
+): Promise<LedgerDecisionResponse> {
+  const history = await loadLedgerHistoryById(
+    client,
+    input.organizationId,
+    input.ledgerId,
+  );
+  const current = selectLatestLedger(history, input.ledgerId);
+  const next = applyLedgerDecision(current, input, occurredAt);
+
+  if (input.request.operation === "recalculate") {
+    await insertLedgerRecord(client, input.organizationId, next);
+  } else {
+    await saveLedgerRecord(client, input.organizationId, next, occurredAt);
+  }
+
+  const exportReadyFormats = buildLedgerExportReadiness(next)
+    .filter((item) => item.status === "ready")
+    .map((item) => item.format);
+
+  return {
+    ledgerId: next.ledgerId,
+    recommendationId: next.recommendationId,
+    operation: input.request.operation,
+    occurredAt,
+    selectedRevision: next.revision,
+    latestRevision: next.revision,
+    status: next.status,
+    validationStatus: next.roi.validationStatus,
+    exportReadyFormats,
   };
 }
 
@@ -296,60 +385,12 @@ export async function decidePersistentLedger(
 ): Promise<LedgerDecisionResponse> {
   assertOrganizationId(input.organizationId);
   assertLedgerId(input.ledgerId);
-  const actorUserId = normalizeActor(
-    input.actorUserId,
-    "INVALID_LEDGER_ACTOR_USER_ID",
-    "actorUserId",
-  );
-  const actorRole = normalizeActor(
-    input.actorRole,
-    "INVALID_LEDGER_ACTOR_ROLE",
-    "actorRole",
-  );
-  const occurredAt = normalizeOccurredAt(input.request.occurredAt);
-  const normalizedInput: LedgerDecisionInput = {
-    ...input,
-    actorUserId,
-    actorRole,
-  };
+  const { normalizedInput, occurredAt } = normalizeLedgerInput(input);
 
   try {
-    return await withTransaction(async (client) => {
-      const history = await loadLedgerHistoryById(
-        client,
-        normalizedInput.organizationId,
-        normalizedInput.ledgerId,
-      );
-      const current = selectLatestLedger(history, normalizedInput.ledgerId);
-      const next = applyLedgerDecision(current, normalizedInput, occurredAt);
-
-      if (normalizedInput.request.operation === "recalculate") {
-        await insertLedgerRecord(client, normalizedInput.organizationId, next);
-      } else {
-        await saveLedgerRecord(
-          client,
-          normalizedInput.organizationId,
-          next,
-          occurredAt,
-        );
-      }
-
-      const exportReadyFormats = buildLedgerExportReadiness(next)
-        .filter((item) => item.status === "ready")
-        .map((item) => item.format);
-
-      return {
-        ledgerId: next.ledgerId,
-        recommendationId: next.recommendationId,
-        operation: normalizedInput.request.operation,
-        occurredAt,
-        selectedRevision: next.revision,
-        latestRevision: next.revision,
-        status: next.status,
-        validationStatus: next.roi.validationStatus,
-        exportReadyFormats,
-      };
-    });
+    return await withTransaction((client) =>
+      persistLedgerDecision(client, normalizedInput, occurredAt),
+    );
   } catch (error) {
     throw mapPersistenceError(
       error,

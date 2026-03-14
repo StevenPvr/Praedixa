@@ -15,6 +15,33 @@ interface SolutionSectionProps {
   dict: Dictionary;
 }
 
+function SolutionState({
+  body,
+  heading,
+  kicker,
+}: {
+  body: string;
+  heading: string;
+  kicker: string;
+}) {
+  return (
+    <SectionShell
+      id="solution"
+      className="bg-[linear-gradient(180deg,var(--warm-bg-muted)_0%,var(--warm-bg-panel)_100%)]"
+    >
+      <div className="max-w-3xl">
+        <Kicker>{kicker}</Kicker>
+        <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
+          {heading}
+        </h2>
+        <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
+          {body}
+        </p>
+      </div>
+    </SectionShell>
+  );
+}
+
 export function SolutionSection({ dict }: SolutionSectionProps) {
   const solution = dict.solution;
   const principles = Array.isArray(solution.principles)
@@ -27,48 +54,29 @@ export function SolutionSection({ dict }: SolutionSectionProps) {
 
   if (!principles || !differentiators) {
     return (
-      <SectionShell
-        id="solution"
-        className="bg-[linear-gradient(180deg,var(--warm-bg-muted)_0%,var(--warm-bg-panel)_100%)]"
-      >
-        <div className="max-w-3xl">
-          <Kicker>{solution.kicker}</Kicker>
-          <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
-            {isFrench ? "Chargement de la méthode" : "Loading method"}
-          </h2>
-          <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
-            {isFrench
-              ? "Assemblage du cadre de décision en cours."
-              : "Building the decision method framework."}
-          </p>
-          <div className="mt-8 space-y-4">
-            <div className="h-16 animate-pulse rounded-2xl border border-neutral-200 bg-white" />
-            <div className="h-16 animate-pulse rounded-2xl border border-neutral-200 bg-white" />
-            <div className="h-16 animate-pulse rounded-2xl border border-neutral-200 bg-white" />
-          </div>
-        </div>
-      </SectionShell>
+      <SolutionState
+        body={
+          isFrench
+            ? "Assemblage du cadre de décision en cours."
+            : "Building the decision method framework."
+        }
+        heading={isFrench ? "Chargement de la méthode" : "Loading method"}
+        kicker={solution.kicker}
+      />
     );
   }
 
   if (principles.length === 0) {
     return (
-      <SectionShell
-        id="solution"
-        className="bg-[linear-gradient(180deg,var(--warm-bg-muted)_0%,var(--warm-bg-panel)_100%)]"
-      >
-        <div className="max-w-3xl">
-          <Kicker>{solution.kicker}</Kicker>
-          <h2 className="mt-3 text-4xl font-bold leading-[1.04] tracking-tighter text-ink md:text-6xl">
-            {isFrench ? "Méthode en préparation" : "Method in preparation"}
-          </h2>
-          <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
-            {isFrench
-              ? "Ajoutez des principes de décision pour afficher cette section."
-              : "Add decision principles to render this section."}
-          </p>
-        </div>
-      </SectionShell>
+      <SolutionState
+        body={
+          isFrench
+            ? "Ajoutez des principes de décision pour afficher cette section."
+            : "Add decision principles to render this section."
+        }
+        heading={isFrench ? "Méthode en préparation" : "Method in preparation"}
+        kicker={solution.kicker}
+      />
     );
   }
 

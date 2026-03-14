@@ -304,6 +304,95 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
   );
 });
 
+function ContactCtaContent({
+  contact,
+  exampleHref,
+  primaryLabel,
+  scopingHref,
+  secondaryLabel,
+}: {
+  contact: Dictionary["contact"];
+  exampleHref: string;
+  primaryLabel: string;
+  scopingHref: string;
+  secondaryLabel: string;
+}) {
+  return (
+    <>
+      <div className="flex items-center gap-3">
+        <Kicker className="text-amber-100">{contact.kicker}</Kicker>
+        <span className="h-px w-16 bg-amber-200/50" aria-hidden="true" />
+      </div>
+      <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] tracking-tighter text-white md:text-6xl">
+        {contact.heading}
+      </h2>
+      <p className="mt-6 max-w-[65ch] text-base leading-relaxed text-neutral-200">
+        {contact.subheading}
+      </p>
+      <ContactCtaButtons
+        exampleHref={exampleHref}
+        primaryLabel={primaryLabel}
+        scopingHref={scopingHref}
+        secondaryLabel={secondaryLabel}
+      />
+    </>
+  );
+}
+
+function ContactCtaButtons({
+  exampleHref,
+  primaryLabel,
+  scopingHref,
+  secondaryLabel,
+}: {
+  exampleHref: string;
+  primaryLabel: string;
+  scopingHref: string;
+  secondaryLabel: string;
+}) {
+  return (
+    <motion.div
+      variants={ctaGroup}
+      initial="hidden"
+      whileInView="visible"
+      viewport={VP}
+      className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap"
+    >
+      <motion.div variants={ctaItem} layout>
+        <MagneticCtaLink
+          href={scopingHref}
+          label={primaryLabel}
+          icon="arrow"
+          variant="primary"
+        />
+      </motion.div>
+      <motion.div variants={ctaItem} layout>
+        <MagneticCtaLink
+          href={exampleHref}
+          label={secondaryLabel}
+          icon="arrow"
+          variant="secondary"
+        />
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function ContactCtaBackdrop() {
+  return (
+    <>
+      <div
+        className="pointer-events-none absolute -left-28 top-[-7rem] h-72 w-72 rounded-full bg-amber-400/14 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute -right-20 bottom-[-8rem] h-80 w-80 rounded-full bg-amber-300/10 blur-3xl"
+        aria-hidden="true"
+      />
+    </>
+  );
+}
+
 export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
   const valueProp = getValuePropContent(locale);
   const scopingHref = buildContactIntentHref(locale, "deployment");
@@ -312,14 +401,7 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
   return (
     <SectionShell id="contact" className="section-dark overflow-hidden">
       <div className="relative">
-        <div
-          className="pointer-events-none absolute -left-28 top-[-7rem] h-72 w-72 rounded-full bg-amber-400/14 blur-3xl"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute -right-20 bottom-[-8rem] h-80 w-80 rounded-full bg-amber-300/10 blur-3xl"
-          aria-hidden="true"
-        />
+        <ContactCtaBackdrop />
 
         <div className="relative grid grid-cols-1 gap-14 lg:grid-cols-[1.68fr_minmax(290px,1fr)] lg:items-start lg:gap-10">
           <motion.div
@@ -329,41 +411,13 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
             transition={SPRING}
             className="md:pr-16 lg:pr-24"
           >
-            <div className="flex items-center gap-3">
-              <Kicker className="text-amber-100">{dict.contact.kicker}</Kicker>
-              <span className="h-px w-16 bg-amber-200/50" aria-hidden="true" />
-            </div>
-            <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] tracking-tighter text-white md:text-6xl">
-              {dict.contact.heading}
-            </h2>
-            <p className="mt-6 max-w-[65ch] text-base leading-relaxed text-neutral-200">
-              {dict.contact.subheading}
-            </p>
-
-            <motion.div
-              variants={ctaGroup}
-              initial="hidden"
-              whileInView="visible"
-              viewport={VP}
-              className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap"
-            >
-              <motion.div variants={ctaItem} layout>
-                <MagneticCtaLink
-                  href={scopingHref}
-                  label={valueProp.ctaSecondary}
-                  icon="arrow"
-                  variant="primary"
-                />
-              </motion.div>
-              <motion.div variants={ctaItem} layout>
-                <MagneticCtaLink
-                  href={exampleHref}
-                  label={valueProp.ctaPrimary}
-                  icon="arrow"
-                  variant="secondary"
-                />
-              </motion.div>
-            </motion.div>
+            <ContactCtaContent
+              contact={dict.contact}
+              exampleHref={exampleHref}
+              primaryLabel={valueProp.ctaSecondary}
+              scopingHref={scopingHref}
+              secondaryLabel={valueProp.ctaPrimary}
+            />
           </motion.div>
 
           <TrustSignalPanel locale={locale} items={dict.contact.trustItems} />

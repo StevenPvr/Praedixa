@@ -12,8 +12,8 @@ interface PillarLinksSectionProps {
   dict: Dictionary;
 }
 
-export function PillarLinksSection({ locale, dict }: PillarLinksSectionProps) {
-  const pageLinks = [
+function getPageLinks(locale: Locale, dict: Dictionary) {
+  return [
     {
       href: getLocalizedPath(locale, "productMethod"),
       title: getKnowledgePage(locale, "productMethod").title,
@@ -48,6 +48,27 @@ export function PillarLinksSection({ locale, dict }: PillarLinksSectionProps) {
       description: getKnowledgePage(locale, "about").description,
     },
   ];
+}
+
+function getSectionCopy(locale: Locale) {
+  return locale === "fr"
+    ? {
+        kicker: "Pages clés",
+        heading: "Les pages à parcourir pour comprendre Praedixa rapidement.",
+        body: "Chaque page répond à une intention claire: comprendre la méthode, voir les cas d’usage, cadrer un premier périmètre ou vérifier la crédibilité du dispositif.",
+        cta: "Ouvrir la page",
+      }
+    : {
+        kicker: "Key pages",
+        heading: "The pages to browse to understand Praedixa quickly.",
+        body: "Each page answers one clear intent: understand the method, see use cases, frame a first scope, or verify the credibility of the setup.",
+        cta: "Open page",
+      };
+}
+
+export function PillarLinksSection({ locale, dict }: PillarLinksSectionProps) {
+  const pageLinks = getPageLinks(locale, dict);
+  const copy = getSectionCopy(locale);
 
   return (
     <SectionShell
@@ -55,16 +76,12 @@ export function PillarLinksSection({ locale, dict }: PillarLinksSectionProps) {
       className="bg-[linear-gradient(180deg,var(--warm-bg-panel)_0%,var(--warm-bg-muted)_100%)]"
     >
       <div className="max-w-6xl">
-        <Kicker>{locale === "fr" ? "Pages clés" : "Key pages"}</Kicker>
+        <Kicker>{copy.kicker}</Kicker>
         <h2 className="mt-3 max-w-3xl text-4xl font-bold leading-none tracking-tighter text-ink md:text-5xl">
-          {locale === "fr"
-            ? "Les pages à parcourir pour comprendre Praedixa rapidement."
-            : "The pages to browse to understand Praedixa quickly."}
+          {copy.heading}
         </h2>
         <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
-          {locale === "fr"
-            ? "Chaque page répond à une intention claire: comprendre la méthode, voir les cas d’usage, cadrer un premier périmètre ou vérifier la crédibilité du dispositif."
-            : "Each page answers one clear intent: understand the method, see use cases, frame a first scope, or verify the credibility of the setup."}
+          {copy.body}
         </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -81,7 +98,7 @@ export function PillarLinksSection({ locale, dict }: PillarLinksSectionProps) {
                 {link.description}
               </p>
               <p className="mt-4 text-xs font-semibold uppercase tracking-[0.08em] text-brass-700">
-                {locale === "fr" ? "Ouvrir la page" : "Open page"}
+                {copy.cta}
               </p>
             </Link>
           ))}

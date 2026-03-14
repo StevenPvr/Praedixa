@@ -9,22 +9,28 @@ interface RoiProofTeaserSectionProps {
   locale: Locale;
 }
 
+function getRoiProofFrames(locale: Locale) {
+  if (locale === "fr") {
+    return [
+      { label: "Situation", note: "Pic de charge sur 3 sites" },
+      { label: "Options", note: "HS, intérim, réallocation, report" },
+      { label: "Impact relu", note: "Service protégé, surcoût évité" },
+    ];
+  }
+
+  return [
+    { label: "Situation", note: "Demand spike across 3 sites" },
+    { label: "Options", note: "Overtime, temp labor, reallocation, delay" },
+    {
+      label: "Impact review",
+      note: "Service protected, avoidable cost reduced",
+    },
+  ];
+}
+
 export function RoiProofTeaserSection({ locale }: RoiProofTeaserSectionProps) {
   const isFr = locale === "fr";
-  const frames = isFr
-    ? [
-        { label: "Situation", note: "Pic de charge sur 3 sites" },
-        { label: "Options", note: "HS, intérim, réallocation, report" },
-        { label: "Impact relu", note: "Service protégé, surcoût évité" },
-      ]
-    : [
-        { label: "Situation", note: "Demand spike across 3 sites" },
-        { label: "Options", note: "Overtime, temp labor, reallocation, delay" },
-        {
-          label: "Impact review",
-          note: "Service protected, avoidable cost reduced",
-        },
-      ];
+  const frames = getRoiProofFrames(locale);
 
   return (
     <SectionShell id="roi-proof">

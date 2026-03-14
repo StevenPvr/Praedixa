@@ -61,26 +61,37 @@ const faqs: Record<"fr" | "en", FaqItem[]> = {
   ],
 };
 
-export function HomeFaqCtaSection({ locale }: HomeFaqCtaSectionProps) {
-  const isFr = locale === "fr";
-  const valueProp = getValuePropContent(locale);
-  const items = faqs[locale];
+function getHomeFaqCopy(locale: Locale) {
+  return locale === "fr"
+    ? {
+        kicker: "Questions fréquentes",
+        heading: "Les questions avant de démarrer",
+        body: "Des réponses simples sur la preuve sur historique, l'existant, la mise en place et le ROI.",
+        proofCta: "Demander la preuve sur historique",
+      }
+    : {
+        kicker: "FAQ",
+        heading: "What decision-makers ask before getting started",
+        body: "COO, CFO, multi-site managers — the most common objections, answered plainly.",
+        proofCta: "Request historical proof",
+      };
+}
 
+export function HomeFaqCtaSection({ locale }: HomeFaqCtaSectionProps) {
+  const valueProp = getValuePropContent(locale);
+  const copy = getHomeFaqCopy(locale);
+  const items = faqs[locale];
   const deploymentHref = buildContactIntentHref(locale, "deployment");
   const proofHref = buildContactIntentHref(locale, "historical_proof");
 
   return (
     <SectionShell id="home-faq-cta">
-      <Kicker>{isFr ? "Questions fréquentes" : "FAQ"}</Kicker>
+      <Kicker>{copy.kicker}</Kicker>
       <h2 className="mt-3 max-w-2xl text-3xl font-semibold leading-[1.06] tracking-tight text-ink md:text-4xl">
-        {isFr
-          ? "Les questions avant de démarrer"
-          : "What decision-makers ask before getting started"}
+        {copy.heading}
       </h2>
       <p className="mt-3 max-w-[52ch] text-sm leading-relaxed text-neutral-500">
-        {isFr
-          ? "Des réponses simples sur la preuve sur historique, l'existant, la mise en place et le ROI."
-          : "COO, CFO, multi-site managers — the most common objections, answered plainly."}
+        {copy.body}
       </p>
 
       {/* Accordion — <details>/<summary>, no JS, Server Component safe */}
@@ -122,9 +133,7 @@ export function HomeFaqCtaSection({ locale }: HomeFaqCtaSectionProps) {
           href={proofHref}
           className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors duration-200 hover:bg-neutral-50 active:scale-[0.98]"
         >
-          {isFr
-            ? "Demander la preuve sur historique"
-            : "Request historical proof"}
+          {copy.proofCta}
         </Link>
       </div>
     </SectionShell>

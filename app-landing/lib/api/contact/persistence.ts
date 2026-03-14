@@ -9,6 +9,38 @@ import { requestIntentValue } from "./validation";
 const CONTACT_PERSIST_TIMEOUT_MS = 8_000;
 const CONTACT_API_PATH = "/api/v1/public/contact-requests";
 
+function buildContactPersistenceBody(
+  data: ContactPayload,
+  request: Request,
+  ip: string,
+) {
+  return {
+    locale: data.locale,
+    requestType: requestIntentValue(data.intent),
+    companyName: data.companyName,
+    role: data.role,
+    email: data.email,
+    subject: data.subject,
+    message: data.mainTradeOff,
+    consent: data.consent,
+    sourceIp: ip,
+    metadataJson: {
+      source: "landing-contact-form",
+      intent: data.intent,
+      locale: data.locale,
+      siteCount: data.siteCount,
+      sector: data.sector,
+      timeline: data.timeline,
+      currentStack: data.currentStack,
+      mainTradeOff: data.mainTradeOff,
+      message: data.message,
+      userAgent: sanitizeHeaderValue(request.headers.get("user-agent"), 160),
+      referer: sanitizeStoredReferer(request.headers.get("referer")),
+      submittedAt: new Date().toISOString(),
+    },
+  };
+}
+
 export async function persistContactRequest(
   data: ContactPayload,
   request: Request,
@@ -31,34 +63,7 @@ export async function persistContactRequest(
         "X-Contact-Ingest-Token": token,
         "X-Request-ID": requestId,
       },
-      body: JSON.stringify({
-        locale: data.locale,
-        requestType: requestIntentValue(data.intent),
-        companyName: data.companyName,
-        role: data.role,
-        email: data.email,
-        subject: data.subject,
-        message: data.mainTradeOff,
-        consent: data.consent,
-        sourceIp: ip,
-        metadataJson: {
-          source: "landing-contact-form",
-          intent: data.intent,
-          locale: data.locale,
-          siteCount: data.siteCount,
-          sector: data.sector,
-          timeline: data.timeline,
-          currentStack: data.currentStack,
-          mainTradeOff: data.mainTradeOff,
-          message: data.message,
-          userAgent: sanitizeHeaderValue(
-            request.headers.get("user-agent"),
-            160,
-          ),
-          referer: sanitizeStoredReferer(request.headers.get("referer")),
-          submittedAt: new Date().toISOString(),
-        },
-      }),
+      body: JSON.stringify(buildContactPersistenceBody(data, request, ip)),
       signal: controller.signal,
       redirect: "error",
     });

@@ -67,6 +67,33 @@ function HowItWorksBackdrop() {
   );
 }
 
+function HowItWorksStateSection({
+  body,
+  heading,
+  kicker,
+}: {
+  body: string;
+  heading?: string;
+  kicker: string;
+}) {
+  return (
+    <SectionShell id="how-it-works" className="section-dark relative">
+      <HowItWorksBackdrop />
+      <div className="relative max-w-2xl">
+        <Kicker className="text-[rgba(255,255,255,0.84)]">{kicker}</Kicker>
+        {heading ? (
+          <h2 className="mt-3 text-4xl font-semibold tracking-tighter text-white">
+            {heading}
+          </h2>
+        ) : null}
+        <p className="mt-4 text-sm leading-relaxed text-[rgba(255,255,255,0.64)]">
+          {body}
+        </p>
+      </div>
+    </SectionShell>
+  );
+}
+
 export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
   const valueProp = getValuePropContent(locale);
   const copy = sectionCopy[locale];
@@ -107,17 +134,7 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
 
   if (!protocol || hasInvalidShape) {
     return (
-      <SectionShell id="how-it-works" className="section-dark relative">
-        <HowItWorksBackdrop />
-        <div className="relative max-w-2xl">
-          <Kicker className="text-[rgba(255,255,255,0.84)]">
-            {copy.errorTitle}
-          </Kicker>
-          <p className="mt-4 text-sm leading-relaxed text-[rgba(255,255,255,0.64)]">
-            {copy.errorBody}
-          </p>
-        </div>
-      </SectionShell>
+      <HowItWorksStateSection body={copy.errorBody} kicker={copy.errorTitle} />
     );
   }
 
@@ -127,20 +144,11 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
 
   if (steps.length === 0) {
     return (
-      <SectionShell id="how-it-works" className="section-dark relative">
-        <HowItWorksBackdrop />
-        <div className="relative max-w-2xl">
-          <Kicker className="text-[rgba(255,255,255,0.84)]">
-            {protocol.kicker}
-          </Kicker>
-          <h2 className="mt-3 text-4xl font-semibold tracking-tighter text-white">
-            {copy.emptyTitle}
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed text-[rgba(255,255,255,0.64)]">
-            {copy.emptyBody}
-          </p>
-        </div>
-      </SectionShell>
+      <HowItWorksStateSection
+        body={copy.emptyBody}
+        heading={copy.emptyTitle}
+        kicker={protocol.kicker}
+      />
     );
   }
 

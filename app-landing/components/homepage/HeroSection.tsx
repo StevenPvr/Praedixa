@@ -56,6 +56,120 @@ function renderHeadlineWithAccents(
   );
 }
 
+function HeroManifestoPanel({
+  copy,
+  hasManifestoLabel,
+  heroChrome,
+  heroManifestoBridge,
+  trustBadges,
+}: {
+  copy: {
+    manifestoLabel: string;
+    manifestoQuote: string;
+    pillars: Dictionary["hero"]["bullets"];
+  };
+  hasManifestoLabel: boolean;
+  heroChrome: { shelfEyebrow: string };
+  heroManifestoBridge: string;
+  trustBadges: string[];
+}) {
+  const manifestoHeadingClassName = `${hasManifestoLabel ? "mt-3" : "mt-0"} max-w-[30ch] text-[1.7rem] font-semibold leading-[1.08] tracking-[-0.03em] text-ink sm:text-[2rem] lg:text-[2.35rem]`;
+
+  return (
+    <section className="relative z-10 -mt-10 pb-10 md:-mt-14 md:pb-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="overflow-hidden rounded-[2rem] border border-neutral-200/75 bg-[rgba(249,246,239,0.94)] shadow-[0_40px_120px_-64px_rgba(2,6,23,0.72)] backdrop-blur-xl">
+          <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(280px,0.92fr)] lg:gap-10 lg:p-12">
+            <HeroManifestoBody
+              bridge={heroManifestoBridge}
+              copy={copy}
+              hasManifestoLabel={hasManifestoLabel}
+              headingClassName={manifestoHeadingClassName}
+            />
+            <HeroTrustShelf
+              shelfEyebrow={heroChrome.shelfEyebrow}
+              trustBadges={trustBadges}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HeroManifestoBody({
+  bridge,
+  copy,
+  hasManifestoLabel,
+  headingClassName,
+}: {
+  bridge: string;
+  copy: {
+    manifestoLabel: string;
+    manifestoQuote: string;
+    pillars: Dictionary["hero"]["bullets"];
+  };
+  hasManifestoLabel: boolean;
+  headingClassName: string;
+}) {
+  return (
+    <div className="max-w-[60ch]">
+      {hasManifestoLabel ? (
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brass-700">
+          {copy.manifestoLabel}
+        </p>
+      ) : null}
+      <p className={headingClassName}>{copy.manifestoQuote}</p>
+      <p className="mt-6 max-w-[58ch] text-base leading-relaxed text-neutral-700 md:text-lg">
+        {bridge}
+      </p>
+      <ul className="mt-6 grid gap-3 sm:grid-cols-3">
+        {copy.pillars.map((pillar) => (
+          <li
+            key={`${pillar.metric}-${pillar.text}`}
+            className="rounded-[1.35rem] border border-neutral-200/85 bg-white/68 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.88)]"
+          >
+            <p className="text-sm font-semibold tracking-[-0.02em] text-ink">
+              {pillar.metric}
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-neutral-600">
+              {pillar.text}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function HeroTrustShelf({
+  shelfEyebrow,
+  trustBadges,
+}: {
+  shelfEyebrow: string;
+  trustBadges: string[];
+}) {
+  return (
+    <div className="lg:pl-6">
+      <div className="rounded-[1.65rem] border border-neutral-200/85 bg-white/72 p-5 shadow-[0_22px_50px_-38px_rgba(15,23,42,0.24),inset_0_1px_0_rgba(255,255,255,0.9)]">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brass-700">
+          {shelfEyebrow}
+        </p>
+        <ul className="mt-4 divide-y divide-neutral-200/80">
+          {trustBadges.map((badge) => (
+            <li
+              key={badge}
+              className="py-3 text-sm leading-relaxed text-neutral-700 first:pt-0 last:pb-0"
+            >
+              {badge}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 export function HeroSection({ locale, dict }: HeroSectionProps) {
   const isFr = locale === "fr";
   const hero = dict.hero;
@@ -190,62 +304,13 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
         </div>
       </section>
 
-      <section className="relative z-10 -mt-10 pb-10 md:-mt-14 md:pb-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-[2rem] border border-neutral-200/75 bg-[rgba(249,246,239,0.94)] shadow-[0_40px_120px_-64px_rgba(2,6,23,0.72)] backdrop-blur-xl">
-            <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(280px,0.92fr)] lg:gap-10 lg:p-12">
-              <div className="max-w-[60ch]">
-                {hasManifestoLabel ? (
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brass-700">
-                    {copy.manifestoLabel}
-                  </p>
-                ) : null}
-                <p
-                  className={`${hasManifestoLabel ? "mt-3" : "mt-0"} max-w-[30ch] text-[1.7rem] font-semibold leading-[1.08] tracking-[-0.03em] text-ink sm:text-[2rem] lg:text-[2.35rem]`}
-                >
-                  {copy.manifestoQuote}
-                </p>
-                <p className="mt-6 max-w-[58ch] text-base leading-relaxed text-neutral-700 md:text-lg">
-                  {heroManifestoBridge}
-                </p>
-                <ul className="mt-6 grid gap-3 sm:grid-cols-3">
-                  {copy.pillars.map((pillar) => (
-                    <li
-                      key={`${pillar.metric}-${pillar.text}`}
-                      className="rounded-[1.35rem] border border-neutral-200/85 bg-white/68 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.88)]"
-                    >
-                      <p className="text-sm font-semibold tracking-[-0.02em] text-ink">
-                        {pillar.metric}
-                      </p>
-                      <p className="mt-1 text-sm leading-relaxed text-neutral-600">
-                        {pillar.text}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="lg:pl-6">
-                <div className="rounded-[1.65rem] border border-neutral-200/85 bg-white/72 p-5 shadow-[0_22px_50px_-38px_rgba(15,23,42,0.24),inset_0_1px_0_rgba(255,255,255,0.9)]">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brass-700">
-                    {heroChrome.shelfEyebrow}
-                  </p>
-                  <ul className="mt-4 divide-y divide-neutral-200/80">
-                    {trustBadges.map((badge) => (
-                      <li
-                        key={badge}
-                        className="py-3 text-sm leading-relaxed text-neutral-700 first:pt-0 last:pb-0"
-                      >
-                        {badge}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroManifestoPanel
+        copy={copy}
+        hasManifestoLabel={hasManifestoLabel}
+        heroChrome={heroChrome}
+        heroManifestoBridge={heroManifestoBridge}
+        trustBadges={trustBadges}
+      />
     </>
   );
 }
