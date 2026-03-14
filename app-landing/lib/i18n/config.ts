@@ -3,6 +3,8 @@ import type { Locale } from "./locale";
 
 export { defaultLocale, isValidLocale, locales, type Locale } from "./locale";
 
+export type ContactRouteIntent = "deployment" | "historical_proof";
+
 /** Route slugs that differ between locales */
 export const localizedSlugs = {
   deployment: { fr: "deploiement", en: "deployment" },
@@ -32,6 +34,15 @@ const explicitLegacyRedirects = {
   "/protocole-deploiement": "/fr/protocole-deploiement",
   "/deployment-protocol": "/en/deployment-protocol",
   "/logo-preview": "/fr/logo-preview",
+} as const;
+
+const retiredCommercialRedirects = {
+  "/devenir-pilote": buildContactIntentHref("fr", "historical_proof"),
+  "/fr/devenir-pilote": buildContactIntentHref("fr", "historical_proof"),
+  "/pilot-application": buildContactIntentHref("en", "historical_proof"),
+  "/en/pilot-application": buildContactIntentHref("en", "historical_proof"),
+  "/roi-pilot": buildContactIntentHref("en", "historical_proof"),
+  "/en/roi-pilot": buildContactIntentHref("en", "historical_proof"),
 } as const;
 
 const retiredKnowledgeRedirects = {
@@ -96,6 +107,7 @@ export const legacyRedirectMap: Readonly<Record<string, string>> =
       },
       {
         ...explicitLegacyRedirects,
+        ...retiredCommercialRedirects,
         ...retiredKnowledgeRedirects,
         ...getSectorLegacyRedirects(),
       },
@@ -107,4 +119,26 @@ export function getLocalizedPath(
   slug: keyof typeof localizedSlugs,
 ): string {
   return `/${locale}/${localizedSlugs[slug][locale]}`;
+}
+
+export function getContactIntentQueryValue(
+  locale: Locale,
+  intent: ContactRouteIntent,
+): string {
+  if (intent === "historical_proof") {
+    return locale === "fr" ? "historique" : "historical-proof";
+  }
+
+  return locale === "fr" ? "deploiement" : "deployment";
+}
+
+export function buildContactIntentHref(
+  locale: Locale,
+  intent: ContactRouteIntent,
+): string {
+  const search = new URLSearchParams({
+    intent: getContactIntentQueryValue(locale, intent),
+  });
+
+  return `${getLocalizedPath(locale, "contact")}?${search.toString()}`;
 }

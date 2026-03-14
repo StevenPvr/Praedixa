@@ -51,7 +51,7 @@ export const frContentA: Record<
       { label: "Intégration & données", key: "integrationData" },
       { label: "Ressources essentielles", key: "resources" },
     ],
-    ctaLabel: "Parler du déploiement",
+    ctaLabel: "Cadrer un premier périmètre",
   },
 
   security: {
@@ -89,7 +89,7 @@ export const frContentA: Record<
       { label: "À propos de Praedixa", key: "about" },
       { label: "Ressources essentielles", key: "resources" },
     ],
-    ctaLabel: "Parler du déploiement",
+    ctaLabel: "Cadrer un premier périmètre",
   },
 
   resources: {
@@ -103,7 +103,7 @@ export const frContentA: Record<
       {
         title: "À lire en priorité",
         paragraphs: [
-          "Commencez par Produit & méthode, Comment ça marche, Intégration & données et Dossier ROI.",
+          "Commencez par Produit & méthode, Comment ça marche, Intégration & données et Preuve sur historique.",
           "Le parcours est volontairement court: moins de pages, plus de clarté.",
         ],
       },
@@ -131,7 +131,7 @@ export const frContentA: Record<
     links: [
       { label: "Produit & méthode", key: "productMethod" },
       { label: "Comment ça marche", key: "howItWorksPage" },
-      { label: "Dossier ROI", key: "decisionLogProof" },
+      { label: "Preuve sur historique", key: "decisionLogProof" },
       { label: "Intégration & données", key: "integrationData" },
     ],
     ctaLabel: "Voir un exemple concret",
@@ -169,7 +169,7 @@ export const frContentA: Record<
     ],
     links: [
       { label: "Comment ça marche", key: "howItWorksPage" },
-      { label: "Dossier ROI", key: "decisionLogProof" },
+      { label: "Preuve sur historique", key: "decisionLogProof" },
       { label: "Intégration & données", key: "integrationData" },
       { label: "Ressources essentielles", key: "resources" },
     ],
@@ -213,7 +213,7 @@ export const frContentA: Record<
     ],
     links: [
       { label: "Produit & méthode", key: "productMethod" },
-      { label: "Dossier ROI", key: "decisionLogProof" },
+      { label: "Preuve sur historique", key: "decisionLogProof" },
       { label: "Intégration & données", key: "integrationData" },
     ],
     ctaLabel: "Voir un exemple concret",
@@ -222,7 +222,7 @@ export const frContentA: Record<
   decisionLogProof: {
     key: "decisionLogProof",
     kicker: "Preuve",
-    title: "Dossier ROI",
+    title: "Preuve sur historique",
     description:
       "Un exemple public de la façon dont Praedixa relie options, décision prise et impact relu dans le temps.",
     lead: "Exemple illustratif, inspiré d’un cas logistique multi-sites: un pic de charge menace le service et pousse trois sites vers des décisions d’urgence trop coûteuses.",
@@ -261,7 +261,7 @@ export const frContentA: Record<
       { label: "Comment ça marche", key: "howItWorksPage" },
       { label: "Ressources essentielles", key: "resources" },
     ],
-    ctaLabel: "Parler du déploiement",
+    ctaLabel: "Cadrer un premier périmètre",
   },
 
   integrationData: {

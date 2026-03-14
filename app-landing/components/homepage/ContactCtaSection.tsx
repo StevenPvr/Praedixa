@@ -10,9 +10,13 @@ import {
   useTransform,
 } from "framer-motion";
 import { ArrowRight, EnvelopeSimple } from "@phosphor-icons/react";
-import type { Locale } from "../../lib/i18n/config";
-import { getLocalizedPath } from "../../lib/i18n/config";
+import {
+  buildContactIntentHref,
+  getLocalizedPath,
+  type Locale,
+} from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import { getValuePropContent } from "../../lib/content/value-prop";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
 import {
@@ -301,7 +305,8 @@ const TrustSignalPanel = memo(function TrustSignalPanel({
 });
 
 export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
-  const deploymentHref = getLocalizedPath(locale, "deployment");
+  const valueProp = getValuePropContent(locale);
+  const scopingHref = buildContactIntentHref(locale, "deployment");
   const exampleHref = getLocalizedPath(locale, "decisionLogProof");
 
   return (
@@ -344,8 +349,8 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
             >
               <motion.div variants={ctaItem} layout>
                 <MagneticCtaLink
-                  href={deploymentHref}
-                  label={dict.contact.ctaPrimary}
+                  href={scopingHref}
+                  label={valueProp.ctaSecondary}
                   icon="arrow"
                   variant="primary"
                 />
@@ -353,7 +358,7 @@ export function ContactCtaSection({ locale, dict }: ContactCtaSectionProps) {
               <motion.div variants={ctaItem} layout>
                 <MagneticCtaLink
                   href={exampleHref}
-                  label={dict.contact.ctaSecondary}
+                  label={valueProp.ctaPrimary}
                   icon="arrow"
                   variant="secondary"
                 />

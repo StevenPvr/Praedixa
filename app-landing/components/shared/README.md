@@ -32,7 +32,7 @@ Shell partage du site et primitives visuelles reutilisables.
 - l'iconographie marketing doit passer par `shared/icons/` plutot que multiplier des glyphes generiques de librairie avec des styles incoherents
 - dans `Header.tsx`, garder un nom accessible explicite pour les CTA responsives et verifier le contraste reel des variantes desktop/mobile au lieu de supposer que les spans caches restent neutres pour l'audit a11y
 - `Footer.tsx` doit reprendre exactement la meme these publique que la homepage; ne pas y reintroduire un wording legacy plus etroit (`charge/capacite`, `coverage`) une fois le message canonique mis a jour
-- `Header.tsx` et `Footer.tsx` doivent partager la meme hierarchie d'entree publique: exemple concret d'abord, deploiement ensuite, preuve sur historique seulement comme qualification secondaire
+- `Header.tsx` et `Footer.tsx` doivent partager la meme hierarchie d'entree publique: preuve sur historique et cadrage du premier perimetre comme seules CTA globales; ne pas renvoyer vers une ancienne page `/deploiement`
 - garder un seul dropdown `Secteurs`/`Industries` utile dans le header pour les pages ICP exactes; eviter de reintroduire une megamenu large quand le vrai besoin est simplement l'acces direct aux verticales
 - le dropdown sectoriel doit aussi garder une sortie nette vers la page hub `ressources/resources`, pas seulement vers les pages filles
 - les tests de navigation doivent matcher les liens de cartes avec un nom accessible partiel plus le `href`, car le titre et la description sont exposes dans le meme lien

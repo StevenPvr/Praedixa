@@ -171,7 +171,7 @@ export const enCoreOperations: Partial<Dictionary> = {
       tools: ["Scheduling", "ERP", "CRM", "BI", "Excel"],
     },
     honesty:
-      "A KPI forecasting-only mode is available, but our core value is Signature Service: guided decisions + decision journal + monthly proof.",
+      "Kickoff can stay read-only on useful exports and APIs. The core value is a clearer trade-off frame, not a forecasting-only mode.",
   },
 
   pilot: {

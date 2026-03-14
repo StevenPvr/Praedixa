@@ -90,31 +90,30 @@ export const enCoreConversion: Partial<Dictionary> = {
 
   contact: {
     kicker: "Contact",
-    heading:
-      "You already know where margin gets fragile. Let’s decide which trade-off to cover first.",
+    heading: "Let’s frame the first trade-off to objectify.",
     subheading:
-      "Tell us about the network, the trade-offs that come back most often, and the next useful step. Praedixa deployment first, historical proof if it helps objectify the starting point.",
+      "Describe the network, the priority trade-off, and the project horizon. We reply with a clear next step within 48 business hours.",
     trustItems: [
       "Response within 48 business hours",
       "Read-only start",
       "NDA available from the first discussion",
       "Focused first perimeter on the costliest trade-offs",
     ],
-    ctaPrimary: "Discuss deployment",
-    ctaSecondary: "Request historical proof",
+    ctaPrimary: "Frame the first decision scope",
+    ctaSecondary: "See the historical proof",
   },
 
   servicesPage: {
     meta: {
-      title: "Praedixa | Praedixa deployment and historical proof",
+      title: "Praedixa | What you buy: a first decision scope",
       description:
-        "Understand what Praedixa deployment includes, when to start with historical proof, and how to frame a software rollout on top of your existing data.",
-      ogTitle: "Praedixa | Praedixa deployment and historical proof",
+        "Praedixa deployment installs a first decision scope on top of your existing data. If needed, historical proof objectifies the starting trade-off before launch.",
+      ogTitle: "Praedixa | What you buy: a first decision scope",
       ogDescription:
-        "One public offer: Praedixa deployment. Historical proof is used to objectify a first trade-off and frame the rollout.",
+        "Praedixa deployment: a first decision scope framed in 30 days, without a heavy IT project at the start.",
     },
     kicker: "Offer",
-    heading: "Praedixa deployment and historical proof.",
+    heading: "What you buy: a first decision scope, not one more IT project.",
     subheading:
       "One public offer: Praedixa deployment. Historical proof is used to objectify one trade-off on your existing data and decide whether the rollout should be launched.",
     fullPackage: {
@@ -131,7 +130,7 @@ export const enCoreConversion: Partial<Dictionary> = {
         "Impact review: baseline / recommended / actual",
         "Progressive extension to the costliest trade-offs",
       ],
-      cta: "Discuss deployment",
+      cta: "Frame the first decision scope",
     },
     forecastsOnly: {
       badge: "Historical proof",
@@ -150,7 +149,7 @@ export const enCoreConversion: Partial<Dictionary> = {
         "No installed review loop over time",
         "No network-wide extension beyond the first scoped perimeter",
       ],
-      cta: "Request historical proof",
+      cta: "See the historical proof",
     },
     comparison: {
       title: "What actually changes",
@@ -196,20 +195,20 @@ export const enCoreConversion: Partial<Dictionary> = {
 
   footer: {
     tagline:
-      "Multi-site decisions, a decision journal, and monthly impact proof.",
-    badges: ["Decision journal", "Monthly proof"],
+      "Praedixa helps multi-site networks arbitrate earlier the decisions that protect margin and service, without replacing the tools already in place.",
+    badges: ["Framed decisions", "Historical proof"],
     navigation: "Navigation",
     legalContact: "Legal & contact",
     copyright: "Designed and hosted in France",
     ctaBanner: {
       kicker: "Praedixa",
-      heading: "The trade-offs that burn margin are usually seen too late.",
-      cta: "Discuss deployment",
+      heading: "Arbitrate earlier the decisions that protect margin.",
+      cta: "Frame the first decision scope",
     },
   },
 
   stickyCta: {
-    text: "Discuss deployment",
+    text: "Frame the first decision scope",
   },
 
   form: {

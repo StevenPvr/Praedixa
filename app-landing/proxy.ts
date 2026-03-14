@@ -84,7 +84,22 @@ function resolveCanonicalTarget(request: NextRequest): URL | null {
     } else {
       const localizedTarget = legacyRedirectMap[target.pathname];
       if (localizedTarget && localizedTarget !== target.pathname) {
-        target.pathname = localizedTarget;
+        const parsedRedirectTarget = new URL(localizedTarget, target);
+        const mergedSearchParams = new URLSearchParams(
+          parsedRedirectTarget.search,
+        );
+
+        for (const [key, value] of target.searchParams.entries()) {
+          if (!mergedSearchParams.has(key)) {
+            mergedSearchParams.append(key, value);
+          }
+        }
+
+        target.pathname = parsedRedirectTarget.pathname;
+        target.search = mergedSearchParams.toString()
+          ? `?${mergedSearchParams.toString()}`
+          : "";
+        target.hash = parsedRedirectTarget.hash;
         shouldRedirect = true;
       }
     }

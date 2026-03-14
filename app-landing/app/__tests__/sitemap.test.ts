@@ -16,10 +16,10 @@ describe("sitemap()", () => {
     expect(urls).not.toContain("https://www.praedixa.com/");
   });
 
-  it("should include deployment page (locale-prefixed)", () => {
+  it("should exclude retired deployment entry pages", () => {
     const urls = result.map((entry) => entry.url);
-    expect(urls).toContain("https://www.praedixa.com/fr/deploiement");
-    expect(urls).toContain("https://www.praedixa.com/en/deployment");
+    expect(urls).not.toContain("https://www.praedixa.com/fr/deploiement");
+    expect(urls).not.toContain("https://www.praedixa.com/en/deployment");
   });
 
   it("should include legal pages (locale-prefixed)", () => {
@@ -128,11 +128,15 @@ describe("sitemap()", () => {
     expect(homepage?.priority).toBe(1);
   });
 
-  it("should set deployment page priority to 0.9", () => {
-    const page = result.find(
-      (entry) => entry.url === "https://www.praedixa.com/fr/deploiement",
+  it("should keep services page prioritized above contact", () => {
+    const contactPage = result.find(
+      (entry) => entry.url === "https://www.praedixa.com/fr/contact",
     );
-    expect(page?.priority).toBe(0.9);
+    const page = result.find(
+      (entry) => entry.url === "https://www.praedixa.com/fr/services",
+    );
+    expect(page?.priority).toBe(0.8);
+    expect(contactPage?.priority).toBe(0.7);
   });
 
   it("should have changeFrequency on every entry", () => {

@@ -31,10 +31,13 @@ describe("PillarLinksSection", () => {
     expect(
       screen.getByRole("link", { name: /Comment ça marche/i }),
     ).toHaveAttribute("href", "/fr/comment-ca-marche");
-    expect(screen.getByRole("link", { name: /Dossier ROI/i })).toHaveAttribute(
-      "href",
-      "/fr/decision-log-preuve-roi",
-    );
+    expect(
+      screen
+        .getAllByRole("link", { name: /Preuve sur historique/i })
+        .find(
+          (link) => link.getAttribute("href") === "/fr/decision-log-preuve-roi",
+        ),
+    ).toBeDefined();
     expect(
       screen.getByRole("link", { name: /Intégration & données/i }),
     ).toHaveAttribute("href", "/fr/integration-donnees");

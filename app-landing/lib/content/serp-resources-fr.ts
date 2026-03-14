@@ -37,7 +37,7 @@ const SERP_PRIMARY_CTA_BY_ID: Record<number, string> = {
   11: "Lancer le calculateur FTE",
   12: "Telecharger le dataset d'exemple",
   13: "Telecharger le template revue capacite",
-  14: "Telecharger le playbook multi-sites",
+  14: "Telecharger le guide operatoire multi-sites",
   15: "Telecharger la matrice de decision",
   16: "Calculer le cout de l'inaction",
   17: "Telecharger le tableau de couts",
@@ -48,7 +48,7 @@ const SERP_PRIMARY_CTA_BY_ID: Record<number, string> = {
   22: "Telecharger le benchmark turnover",
   23: "Voir le guide masse salariale",
   24: "Calculer le cout de l'inaction",
-  25: "Telecharger le playbook de reponse",
+  25: "Telecharger le guide operatoire de reponse",
   26: "Voir le registre de decision",
   27: "Telecharger le template avant/apres",
   28: "Comparer les logiciels WFM",
@@ -120,8 +120,8 @@ export function getSerpResourceSchemaType(slug: string): SerpSchemaType {
 
 export function getSerpResourcePrimaryCta(slug: string): string {
   const entry = getSerpResourceBySlug(slug);
-  if (!entry) return "Parler du déploiement";
-  return SERP_PRIMARY_CTA_BY_ID[entry.id] ?? "Parler du déploiement";
+  if (!entry) return "Cadrer un premier périmètre";
+  return SERP_PRIMARY_CTA_BY_ID[entry.id] ?? "Cadrer un premier périmètre";
 }
 
 export function getSerpResourceInternalLinks(

@@ -1,20 +1,31 @@
+import type { Metadata } from "next";
 import { permanentRedirect } from "next/navigation";
 import { localizedSlugs } from "../../../lib/i18n/config";
-import { KnowledgePage } from "../../../components/pages/KnowledgePage";
-import {
-  generateKnowledgeMetadata,
-  resolveLocale,
-} from "../../../lib/seo/knowledge";
+import { DecisionProofPage } from "../../../components/pages/DecisionProofPage";
+import { getValuePropContent } from "../../../lib/content/value-prop";
+import { resolveLocale } from "../../../lib/seo/knowledge";
+import { buildLocaleMetadata, localePathMap } from "../../../lib/seo/metadata";
 
-const PAGE_KEY = "decisionLogProof" as const;
 const CURRENT_SLUG = "decision-log-roi-proof";
+const FR_PATH = `/fr/${localizedSlugs.decisionLogProof.fr}`;
+const EN_PATH = `/en/${localizedSlugs.decisionLogProof.en}`;
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
-}) {
-  return generateKnowledgeMetadata(params, PAGE_KEY);
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const content = getValuePropContent(locale);
+
+  return buildLocaleMetadata({
+    locale,
+    paths: localePathMap(FR_PATH, EN_PATH),
+    title: content.proofMeta.title,
+    description: content.proofMeta.description,
+    ogTitle: content.proofMeta.ogTitle,
+    ogDescription: content.proofMeta.ogDescription,
+  });
 }
 
 export default async function KnowledgeRoute({
@@ -23,11 +34,11 @@ export default async function KnowledgeRoute({
   params: Promise<{ locale: string }>;
 }) {
   const locale = await resolveLocale(params);
-  const expectedSlug = localizedSlugs[PAGE_KEY][locale];
+  const expectedSlug = localizedSlugs.decisionLogProof[locale];
 
   if (expectedSlug !== CURRENT_SLUG) {
     permanentRedirect("/" + locale + "/" + expectedSlug);
   }
 
-  return <KnowledgePage locale={locale} pageKey={PAGE_KEY} />;
+  return <DecisionProofPage locale={locale} />;
 }

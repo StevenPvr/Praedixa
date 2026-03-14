@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { Locale } from "../../lib/i18n/config";
-import { getLocalizedPath } from "../../lib/i18n/config";
+import { buildContactIntentHref, type Locale } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import { getValuePropContent } from "../../lib/content/value-prop";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
 import {
@@ -37,7 +37,8 @@ const listItem = {
 };
 
 export function PilotSection({ locale, dict }: PilotSectionProps) {
-  const pilotHref = getLocalizedPath(locale, "deployment");
+  const valueProp = getValuePropContent(locale);
+  const pilotHref = buildContactIntentHref(locale, "deployment");
   const pilot = dict.pilot;
   const statusLabels = Array.isArray(pilot.statusLabels)
     ? pilot.statusLabels
@@ -258,7 +259,7 @@ export function PilotSection({ locale, dict }: PilotSectionProps) {
       >
         <MagneticActionLink
           href={pilotHref}
-          label={pilot.ctaPrimary}
+          label={valueProp.ctaSecondary}
           wrapperClassName="sm:max-w-sm"
           className="border-white/15 bg-white/[0.07] text-white hover:border-white/25 hover:bg-white/[0.12]"
         />

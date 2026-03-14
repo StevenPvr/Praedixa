@@ -86,16 +86,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entries.push(
       localizedEntry(
         locale,
-        `/fr/${localizedSlugs.deployment.fr}`,
-        `/en/${localizedSlugs.deployment.en}`,
-        0.9,
-        "weekly",
-      ),
-    );
-
-    entries.push(
-      localizedEntry(
-        locale,
         `/fr/${localizedSlugs.contact.fr}`,
         `/en/${localizedSlugs.contact.en}`,
         0.7,

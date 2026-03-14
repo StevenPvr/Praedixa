@@ -20,5 +20,5 @@ Ce dossier est consommé par l'application `app-landing` et s'insère dans son f
 
 ## Note de copy
 
-Cette route porte l'offre publique FR: Déploiement Praedixa. La preuve sur historique reste un mecanisme de qualification secondaire, pas l'objet d'achat principal.
-Comme page commerciale coeur, elle expose aussi une breadcrumb visible et un couple `WebPage` + `BreadcrumbList` JSON-LD coherents avec le reste des pages piliers.
+Cette route n'est plus une page d'offre publique autonome.
+Elle sert de redirection permanente vers `contact?intent=deploiement` pour conserver l'intention legacy sans laisser vivre un deuxieme tunnel commercial public.

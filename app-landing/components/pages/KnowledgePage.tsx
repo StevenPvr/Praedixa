@@ -1,10 +1,15 @@
 import Link from "next/link";
-import type { Locale } from "../../lib/i18n/config";
-import { getLocalizedPath, localizedSlugs } from "../../lib/i18n/config";
+import {
+  buildContactIntentHref,
+  getLocalizedPath,
+  localizedSlugs,
+  type Locale,
+} from "../../lib/i18n/config";
 import {
   getKnowledgePage,
   type KnowledgePageKey,
 } from "../../lib/content/knowledge-pages";
+import { getValuePropContent } from "../../lib/content/value-prop";
 import { CorePageJsonLd } from "../seo/CorePageJsonLd";
 import { BreadcrumbTrail } from "../shared/BreadcrumbTrail";
 import { Kicker } from "../shared/Kicker";
@@ -18,9 +23,10 @@ export function KnowledgePage({
   pageKey: KnowledgePageKey;
 }) {
   const page = getKnowledgePage(locale, pageKey);
-  const deploymentHref = getLocalizedPath(locale, "deployment");
+  const valueProp = getValuePropContent(locale);
+  const scopingHref = buildContactIntentHref(locale, "deployment");
   const exampleHref = getLocalizedPath(locale, "decisionLogProof");
-  const proofHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
+  const proofHref = buildContactIntentHref(locale, "historical_proof");
   const exampleFirstPages = new Set<KnowledgePageKey>([
     "productMethod",
     "howItWorksPage",
@@ -172,19 +178,17 @@ export function KnowledgePage({
 
           <div className="mt-12 flex flex-wrap items-center gap-3 border-t border-border-subtle pt-8">
             <Link
-              href={useExamplePrimary ? exampleHref : deploymentHref}
+              href={useExamplePrimary ? exampleHref : scopingHref}
               className="btn-primary-gradient inline-flex items-center rounded-lg px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-150 active:scale-[0.98]"
             >
               {page.ctaLabel}
             </Link>
             {useExamplePrimary ? (
               <Link
-                href={deploymentHref}
+                href={scopingHref}
                 className="inline-flex items-center rounded-lg border border-neutral-300 bg-white px-5 py-3 text-sm font-semibold text-ink no-underline transition-colors duration-150 hover:bg-neutral-50"
               >
-                {locale === "fr"
-                  ? "Parler du déploiement"
-                  : "Discuss deployment"}
+                {valueProp.ctaSecondary}
               </Link>
             ) : null}
             {useProofSecondary ? (

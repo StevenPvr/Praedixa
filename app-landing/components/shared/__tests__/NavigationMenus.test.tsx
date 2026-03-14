@@ -48,8 +48,6 @@ describe("navigation menus", () => {
   });
 
   it("keeps direct links while exposing sector ICP pages in a dropdown", async () => {
-    const user = userEvent.setup();
-
     render(<DesktopNav locale="fr" />);
 
     expect(screen.getByRole("link", { name: "Méthode" })).toHaveAttribute(

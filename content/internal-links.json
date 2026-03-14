@@ -22,9 +22,13 @@
     "maxPerDoc": 1
   },
   {
-    "id": "fr-pilot",
-    "patterns": ["pilote fondateur", "pilote Praedixa", "demander un pilote"],
-    "url": "/fr/devenir-pilote",
+    "id": "fr-historical-proof",
+    "patterns": [
+      "preuve sur historique",
+      "exemple concret",
+      "preuve exploitable"
+    ],
+    "url": "/fr/decision-log-preuve-roi",
     "maxPerDoc": 1
   },
   {
@@ -40,9 +44,9 @@
     "maxPerDoc": 1
   },
   {
-    "id": "en-pilot",
-    "patterns": ["founding pilot", "Praedixa pilot", "request a pilot"],
-    "url": "/en/pilot-application",
+    "id": "en-historical-proof",
+    "patterns": ["historical proof", "concrete example", "proof artifact"],
+    "url": "/en/decision-log-roi-proof",
     "maxPerDoc": 1
   }
 ]

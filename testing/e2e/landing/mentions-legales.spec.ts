@@ -26,8 +26,11 @@ test.describe("Mentions legales page", () => {
     ).toBeVisible();
   });
 
-  test("mentions Cloudflare as host", async ({ page }) => {
+  test("mentions Scaleway as host", async ({ page }) => {
     await page.goto("/fr/mentions-legales");
-    await expect(page.getByText(/Cloudflare/)).toBeVisible();
+    const hostingSection = page.locator("section").filter({
+      has: page.getByRole("heading", { name: /Hébergement/ }),
+    });
+    await expect(hostingSection.getByText(/Scaleway/)).toHaveCount(2);
   });
 });

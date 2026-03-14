@@ -80,7 +80,7 @@ describe("sector pages content", () => {
         body: "Praedixa se branche au-dessus de l'ERP, du planning, de la BI et d'Excel pour relier les systèmes qui comptent pour une décision, sans projet de remplacement.",
       },
       {
-        title: "Decision Journal + première action",
+        title: "Journal de décision + première action",
         body: "Le signal ne reste pas dans un dashboard: le choix est comparé, journalisé, puis la première action utile est enclenchée dans les outils existants.",
       },
       {

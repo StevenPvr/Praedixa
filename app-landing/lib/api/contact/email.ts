@@ -1,7 +1,8 @@
 import { Resend } from "resend";
 import { siteConfig } from "../../config/site";
+import { redactIpForLogs } from "../../security/audit-log";
 import type { ContactPayload } from "./validation";
-import { requestTypeLabel, requestTypeTag } from "./validation";
+import { requestIntentLabel, requestIntentTag } from "./validation";
 
 const DEFAULT_FROM_EMAIL = "Praedixa <noreply@praedixa.com>";
 const EMAIL_COLORS = {
@@ -24,12 +25,12 @@ export async function sendContactEmails(
 
   const adminPrefix = data.locale === "en" ? "New contact" : "Nouveau contact";
   const adminSubject = safeSubject(
-    `[${requestTypeTag(data.requestType)}] ${adminPrefix} - ${data.subject}`,
+    `[${requestIntentTag(data.intent)}] ${adminPrefix} - ${data.subject}`,
   );
   const confirmSubject =
     data.locale === "en"
-      ? "Message received - Praedixa"
-      : "Message reçu - Praedixa";
+      ? "Request received - Praedixa"
+      : "Demande reçue - Praedixa";
 
   const [adminResult, confirmResult] = await Promise.all([
     resend.emails.send({
@@ -55,22 +56,23 @@ export async function sendContactEmails(
 }
 
 function sanitizeContactPayload(data: ContactPayload, ip: string) {
-  const contactName = [data.firstName, data.lastName]
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .join(" ");
-
   return {
     companyName: escapeHtml(data.companyName),
-    requestType: escapeHtml(requestTypeLabel(data.requestType, data.locale)),
+    intent: escapeHtml(requestIntentLabel(data.intent, data.locale)),
     locale: escapeHtml(data.locale.toUpperCase()),
-    contactName: escapeHtml(contactName || "Non renseigné"),
-    role: escapeHtml(data.role || "Non renseigné"),
+    role: escapeHtml(data.role),
     email: escapeHtml(data.email),
-    phone: escapeHtml(data.phone || "Non renseigné"),
+    siteCount: escapeHtml(data.siteCount),
+    sector: escapeHtml(data.sector),
+    mainTradeOff: escapeHtml(data.mainTradeOff).replace(/\n/g, "<br />"),
+    timeline: escapeHtml(data.timeline),
+    currentStack: escapeHtml(data.currentStack || "Non renseigné"),
+    message: escapeHtml(data.message || "Non renseigné").replace(
+      /\n/g,
+      "<br />",
+    ),
+    ip: escapeHtml(redactIpForLogs(ip)),
     subject: escapeHtml(data.subject),
-    message: escapeHtml(data.message).replace(/\n/g, "<br />"),
-    ip: escapeHtml(ip),
   };
 }
 
@@ -79,18 +81,21 @@ function buildAdminHtml(
 ): string {
   return `
     <h2>Nouveau message de contact</h2>
-    <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
-      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Type</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.requestType}</td></tr>
+    <table style="border-collapse: collapse; width: 100%; max-width: 680px;">
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Type</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.intent}</td></tr>
       <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Locale</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.locale}</td></tr>
       <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Entreprise</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.companyName}</td></tr>
-      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Contact</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.contactName}</td></tr>
       <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Fonction</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.role}</td></tr>
       <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Email</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};"><a href="mailto:${data.email}">${data.email}</a></td></tr>
-      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Téléphone</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.phone}</td></tr>
-      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Objet</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.subject}</td></tr>
-      <tr><td style="padding: 10px; font-weight: bold;">Message</td><td style="padding: 10px;">${data.message}</td></tr>
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Nombre de sites</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.siteCount}</td></tr>
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Secteur</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.sector}</td></tr>
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Horizon projet</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.timeline}</td></tr>
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Arbitrage principal</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.mainTradeOff}</td></tr>
+      <tr><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border}; font-weight: bold;">Stack actuelle</td><td style="padding: 10px; border-bottom: 1px solid ${EMAIL_COLORS.border};">${data.currentStack}</td></tr>
+      <tr><td style="padding: 10px; font-weight: bold;">Message libre</td><td style="padding: 10px;">${data.message}</td></tr>
     </table>
-    <p style="margin-top: 14px; color: ${EMAIL_COLORS.subtle}; font-size: 12px;">IP: ${data.ip}</p>
+    <p style="margin-top: 14px; color: ${EMAIL_COLORS.subtle}; font-size: 12px;">Objet interne: ${data.subject}</p>
+    <p style="margin-top: 6px; color: ${EMAIL_COLORS.subtle}; font-size: 12px;">IP pseudonymisée: ${data.ip}</p>
   `;
 }
 
@@ -103,13 +108,12 @@ function buildConfirmHtml(
   if (data.locale === "EN") {
     return `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: ${EMAIL_COLORS.title};">Thanks, your message has been received.</h1>
-        <p style="color: ${EMAIL_COLORS.body}; font-size: 16px; line-height: 1.6;">${data.contactName === "Non renseigné" ? "Hello," : `Hello ${data.contactName},`}</p>
+        <h1 style="color: ${EMAIL_COLORS.title};">Thanks, your request has been received.</h1>
         <p style="color: ${EMAIL_COLORS.body}; font-size: 16px; line-height: 1.6;">
-          We received your request (<strong>${data.requestType}</strong>) with subject <strong>${data.subject}</strong>.
+          We received your request for <strong>${data.intent}</strong>.
         </p>
         <p style="color: ${EMAIL_COLORS.body}; font-size: 16px; line-height: 1.6;">
-          Our team will reply within 48 business hours.
+          Our team will reply within 48 business hours with a concrete next step.
         </p>
         <hr style="border: none; border-top: 1px solid ${EMAIL_COLORS.border}; margin: 24px 0;" />
         <p style="color: ${EMAIL_COLORS.muted}; font-size: 14px;">Praedixa team</p>
@@ -122,13 +126,12 @@ function buildConfirmHtml(
 
   return `
     <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h1 style="color: ${EMAIL_COLORS.title};">Merci, votre message a bien été envoyé.</h1>
-      <p style="color: ${EMAIL_COLORS.body}; font-size: 16px; line-height: 1.6;">${data.contactName === "Non renseigné" ? "Bonjour," : `Bonjour ${data.contactName},`}</p>
+      <h1 style="color: ${EMAIL_COLORS.title};">Merci, votre demande a bien été envoyée.</h1>
       <p style="color: ${EMAIL_COLORS.body}; font-size: 16px; line-height: 1.6;">
-        Nous avons bien reçu votre demande (<strong>${data.requestType}</strong>) avec l'objet <strong>${data.subject}</strong>.
+        Nous avons bien reçu votre demande pour <strong>${data.intent}</strong>.
       </p>
       <p style="color: ${EMAIL_COLORS.body}; font-size: 16px; line-height: 1.6;">
-        Notre équipe vous répond sous 48h ouvrées.
+        Notre équipe vous répond sous 48h ouvrées avec un prochain pas concret.
       </p>
       <hr style="border: none; border-top: 1px solid ${EMAIL_COLORS.border}; margin: 24px 0;" />
       <p style="color: ${EMAIL_COLORS.muted}; font-size: 14px;">L'équipe Praedixa</p>
@@ -140,34 +143,30 @@ function buildConfirmHtml(
 }
 
 function buildConfirmText(data: ContactPayload): string {
-  const typeLabel = requestTypeLabel(data.requestType, data.locale);
-  const name = [data.firstName, data.lastName]
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .join(" ");
+  const typeLabel = requestIntentLabel(data.intent, data.locale);
 
   if (data.locale === "en") {
     return [
-      name ? `Hello ${name},` : "Hello,",
+      "Hello,",
       "",
-      "We received your message.",
+      "We received your request.",
       `Request type: ${typeLabel}`,
-      `Subject: ${data.subject}`,
+      `Company: ${data.companyName}`,
       "",
-      "Our team will reply within 48 business hours.",
+      "Our team will reply within 48 business hours with a concrete next step.",
       "",
       `Contact: ${siteConfig.contact.email}`,
     ].join("\n");
   }
 
   return [
-    name ? `Bonjour ${name},` : "Bonjour,",
+    "Bonjour,",
     "",
-    "Nous avons bien reçu votre message.",
+    "Nous avons bien reçu votre demande.",
     `Type de demande : ${typeLabel}`,
-    `Objet : ${data.subject}`,
+    `Entreprise : ${data.companyName}`,
     "",
-    "Notre équipe vous répond sous 48h ouvrées.",
+    "Notre équipe vous répond sous 48h ouvrées avec un prochain pas concret.",
     "",
     `Contact : ${siteConfig.contact.email}`,
   ].join("\n");

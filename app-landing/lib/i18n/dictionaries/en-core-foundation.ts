@@ -47,8 +47,8 @@ export const enCoreFoundation: Partial<Dictionary> = {
       },
     ],
     ctaPrimary: "See a concrete example",
-    ctaSecondary: "Discuss deployment",
-    ctaTertiary: "Request historical proof",
+    ctaSecondary: "Frame the first decision scope",
+    ctaTertiary: "",
     previewTitle: "A preview of what awaits you",
     ctaMeta: "Praedixa deployment · read-only start · NDA available",
     trustBadges: [

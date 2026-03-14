@@ -20,5 +20,7 @@ Ce dossier est consommé par l'application `app-landing` et s'insère dans son f
 
 ## Note de copy
 
-La page contact doit porter une logique `deploiement d'abord, preuve sur historique si besoin` et ne plus parler de `diagnostic ROI gratuit` ou de protocole legacy.
+La page contact est la porte d'entree commerciale unique pour qualifier soit un premier perimetre de decision, soit une preuve sur historique.
+Le formulaire demande les champs utiles au tri commercial (`entreprise`, `fonction`, `nombre de sites`, `secteur`, `arbitrage principal`, `horizon projet`, `stack` optionnelle) et derive l'intention via `?intent=deploiement|deployment|historique|historical-proof`.
+La page ne doit plus reintroduire `objet`, `sujet`, `diagnostic ROI gratuit`, ni une promesse generique de prise de contact sans qualification.
 Comme page commerciale coeur, elle expose aussi une breadcrumb visible et un couple `WebPage` + `BreadcrumbList` JSON-LD coherents avec le reste des pages piliers.

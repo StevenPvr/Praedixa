@@ -93,7 +93,7 @@ export const serpResourceTargetsFrTail: readonly SerpResourceEntry[] = [
       "Le coût de l'inaction est le différentiel entre risque subi et action préventive correctement calibrée.",
     asset: {
       type: "calculateur",
-      title: "Calculator CFO du coût d'inaction",
+      title: "Calculateur DAF du coût d'inaction",
       description: "Consolidation multi-sites et scénarios de non-décision.",
     },
     sections: [
@@ -116,7 +116,7 @@ export const serpResourceTargetsFrTail: readonly SerpResourceEntry[] = [
     description:
       "Bibliothèque d'actions sous-effectif avec critères de déclenchement, limites et impacts attendus.",
     openingSnippet:
-      "Un playbook efficace évite les réponses improvisées et améliore la cohérence multi-sites.",
+      "Un guide operatoire efficace evite les reponses improvisees et ameliore la coherence multi-sites.",
     asset: {
       type: "playbook",
       title: "Bibliothèque d'actions téléchargeable",
@@ -146,7 +146,7 @@ export const serpResourceTargetsFrTail: readonly SerpResourceEntry[] = [
       "La traçabilité crée de la vitesse: elle évite de redébattre chaque semaine les mêmes décisions.",
     asset: {
       type: "template",
-      title: "Template Decision Log",
+      title: "Template journal de decision",
       description:
         "Format prêt à l'emploi pour tracer contexte, décision, hypothèses et résultat.",
     },
@@ -154,7 +154,7 @@ export const serpResourceTargetsFrTail: readonly SerpResourceEntry[] = [
       {
         title: "Ce qu'un decision log doit contenir",
         paragraphs: [
-          "Contexte, options évaluées, décision retenue, hypothèses, propriétaire, horizon de revue et résultat observé.",
+          "Contexte, options evaluees, decision retenue, hypotheses, proprietaire, horizon de revue et resultat observe.",
         ],
       },
       sharedExecutionSection,
@@ -193,7 +193,7 @@ export const serpResourceTargetsFrTail: readonly SerpResourceEntry[] = [
     title: "Logiciel de planification du personnel logistique: guide d'achat",
     intent: "Achat",
     description:
-      "Buyer guide pour choisir un logiciel de planification du personnel logistique selon besoins réels et niveau de maturité.",
+      "Guide d'achat pour choisir un logiciel de planification du personnel logistique selon besoins reels et niveau de maturite.",
     openingSnippet:
       "La bonne solution n'est pas celle qui promet tout, mais celle qui couvre les usages critiques de votre contexte.",
     asset: {

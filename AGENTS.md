@@ -152,6 +152,8 @@ Before constraining authenticated actor ids in admin/runtime flows, verify the r
 Before extracting a legacy bootstrap path into a new strict service, remove stale wrapper-only keyword flags in every caller and test the direct service contract instead of preserving obsolete compatibility arguments.
 Before renaming landing offer vocabulary, update the matching knowledge/services tests in the same change so hooks do not keep asserting an older public wording after the copy is approved.
 Before duplicating landing public copy across multiple dictionaries, keep one source of truth and reference it; duplicated marketing strings drift silently and break published wording.
+Before leaving a legacy landing route public, verify it still matches the current public offer; if it sells an older positioning, remove it or 301 it instead of keeping two commercial narratives live.
+Before letting a landing server action post lead data to a configurable internal URL, require a production host allowlist and strip spoofable proxy headers or query-bearing referers from persisted metadata.
 Before calling a landing positioning refactor done, scan visible pages, legal copy, metadata/snippets, and EN parity for retired offer wording, or the old product identity will stay publicly alive.
 Before publishing landing sovereignty or hosting claims, verify the public legal pages and SEO config both match the actual production delivery stack instead of an old preview or transitional provider.
 Before adding a new admin page or admin proxy endpoint, register both the page policy and the API policy in `admin-route-policies.ts` in the same change, or middleware, navigation, and direct URL access will drift apart.

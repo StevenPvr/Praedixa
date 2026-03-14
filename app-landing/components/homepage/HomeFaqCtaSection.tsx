@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/ssr";
-import type { Locale } from "../../lib/i18n/config";
-import { getLocalizedPath } from "../../lib/i18n/config";
+import { buildContactIntentHref, type Locale } from "../../lib/i18n/config";
+import { getValuePropContent } from "../../lib/content/value-prop";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
 
@@ -63,10 +63,11 @@ const faqs: Record<"fr" | "en", FaqItem[]> = {
 
 export function HomeFaqCtaSection({ locale }: HomeFaqCtaSectionProps) {
   const isFr = locale === "fr";
+  const valueProp = getValuePropContent(locale);
   const items = faqs[locale];
 
-  const deploymentHref = getLocalizedPath(locale, "deployment");
-  const proofHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
+  const deploymentHref = buildContactIntentHref(locale, "deployment");
+  const proofHref = buildContactIntentHref(locale, "historical_proof");
 
   return (
     <SectionShell id="home-faq-cta">
@@ -114,7 +115,7 @@ export function HomeFaqCtaSection({ locale }: HomeFaqCtaSectionProps) {
           href={deploymentHref}
           className="btn-primary-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white no-underline transition-all duration-200 active:scale-[0.98]"
         >
-          {isFr ? "Parler du déploiement" : "Discuss deployment"}
+          {valueProp.ctaSecondary}
           <ArrowRight size={14} weight="bold" />
         </Link>
         <Link

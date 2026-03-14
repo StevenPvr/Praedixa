@@ -1,6 +1,6 @@
 import Link from "next/link";
-import type { Locale } from "../../lib/i18n/config";
-import { getLocalizedPath } from "../../lib/i18n/config";
+import { buildContactIntentHref, type Locale } from "../../lib/i18n/config";
+import { getValuePropContent } from "../../lib/content/value-prop";
 import {
   getRelatedSerpResources,
   getSerpResourcePrimaryCta,
@@ -18,7 +18,8 @@ interface SerpResourcePageProps {
 }
 
 export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
-  const deploymentHref = getLocalizedPath(locale, "deployment");
+  const valueProp = getValuePropContent(locale);
+  const deploymentHref = buildContactIntentHref(locale, "deployment");
   const trackedDeploymentHref = `${deploymentHref}?${new URLSearchParams({
     source: "seo_resource",
     seo_slug: entry.slug,
@@ -31,7 +32,7 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
   const primaryCtaLabel =
     locale === "fr"
       ? getSerpResourcePrimaryCta(entry.slug)
-      : "Discuss deployment";
+      : valueProp.ctaSecondary;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",

@@ -4,7 +4,7 @@ import {
   PRAEDIXA_LOGO_URL,
   PRAEDIXA_LINKEDIN_URL,
 } from "../../lib/seo/entity";
-import { getLocalizedPath } from "../../lib/i18n/config";
+import { buildContactIntentHref } from "../../lib/i18n/config";
 import type { Locale } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
 import { serializeJsonForScriptTag } from "../../lib/security/json-script";
@@ -84,7 +84,7 @@ function softwareApplicationSchema(locale: Locale, dict: Dictionary) {
 }
 
 function serviceSchema(locale: Locale) {
-  const pilotPath = getLocalizedPath(locale, "deployment");
+  const pilotPath = buildContactIntentHref(locale, "deployment");
   return {
     "@context": "https://schema.org",
     "@type": "Service",

@@ -19,7 +19,12 @@ test.describe("Local booking flow", () => {
     await page.route("**/api/contact", async (route) => {
       const body = route.request().postDataJSON() as Record<string, unknown>;
       expect(body.companyName).toBe("Atlas Logistics");
+      expect(body.role).toBe("COO");
       expect(body.email).toBe("camille@atlas.fr");
+      expect(body.siteCount).toBe("11-30");
+      expect(body.sector).toBe("Logistique / Transport / Retail");
+      expect(body.timeline).toBe("0-3 mois");
+      expect(body.intent).toBe("historical_proof");
       expect(body.captchaAnswer).toBe(5);
 
       await route.fulfill({
@@ -44,10 +49,21 @@ test.describe("Local booking flow", () => {
       });
     });
 
-    await page.goto("/fr/contact?intent=audit");
+    await page.goto("/fr/contact?intent=historique");
 
     await page.getByLabel(/Entreprise/i).fill("Atlas Logistics");
+    await page.getByLabel(/Fonction/i).fill("COO");
     await page.getByLabel(/Email/i).fill("camille@atlas.fr");
+    await page.getByLabel(/Nombre de sites/i).selectOption("11-30");
+    await page
+      .getByLabel(/Secteur/i)
+      .selectOption({ label: "Logistique / Transport / Retail" });
+    await page.getByLabel(/Horizon projet/i).selectOption("0-3 mois");
+    await page
+      .getByLabel(/Arbitrage principal à objectiver/i)
+      .fill(
+        "Comparer réallocation inter-sites et renfort temporaire avant pic de charge.",
+      );
     await page
       .getByLabel(/Message/i)
       .fill(
@@ -62,7 +78,7 @@ test.describe("Local booking flow", () => {
     await submit.click();
 
     await expect(
-      page.getByRole("heading", { name: /Message envoyé/i }),
+      page.getByRole("heading", { name: /Demande envoyée/i }),
     ).toBeVisible();
 
     await expect(

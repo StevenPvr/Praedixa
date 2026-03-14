@@ -38,9 +38,11 @@ describe("knowledge pages EN messaging", () => {
     expect(
       getKnowledgePage("en", "decisionLogProof").sections[2]?.paragraphs[1],
     ).toContain("Econometric models");
-    expect(getKnowledgePage("en", "decisionLogProof").title).toBe("ROI pack");
+    expect(getKnowledgePage("en", "decisionLogProof").title).toBe(
+      "Historical proof",
+    );
     expect(en.servicesPage.heading).toBe(
-      "Praedixa deployment and historical proof.",
+      "What you buy: a first decision scope, not one more IT project.",
     );
     expect(en.servicesPage.fullPackage.includes).toContain(
       "Software rollout and scoped implementation",
@@ -55,7 +57,7 @@ describe("knowledge pages EN messaging", () => {
   it("uses only the approved English CTAs on annex knowledge pages", () => {
     const allowedCtas = new Set([
       "See a concrete example",
-      "Discuss deployment",
+      "Frame the first decision scope",
     ]);
 
     enKnowledgeKeys.forEach((key) => {

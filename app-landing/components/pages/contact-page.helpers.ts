@@ -1,4 +1,4 @@
-import { EMAIL_REGEX, MIN_MESSAGE_LENGTH } from "./contact-page.constants";
+import { EMAIL_REGEX } from "./contact-page.constants";
 import type {
   ContactChallenge,
   ContactFieldErrorKey,
@@ -9,16 +9,24 @@ import type {
 
 const CONTACT_FIELD_IDS: Record<ContactFieldErrorKey, string> = {
   companyName: "contact-companyName",
+  role: "contact-role",
   email: "contact-email",
-  message: "contact-message",
+  siteCount: "contact-siteCount",
+  sector: "contact-sector",
+  mainTradeOff: "contact-mainTradeOff",
+  timeline: "contact-timeline",
   captchaAnswer: "contact-captcha",
   consent: "contact-consent",
 };
 
 const CONTACT_FIELD_ORDER: ContactFieldErrorKey[] = [
   "companyName",
+  "role",
   "email",
-  "message",
+  "siteCount",
+  "sector",
+  "mainTradeOff",
+  "timeline",
   "captchaAnswer",
   "consent",
 ];
@@ -47,6 +55,9 @@ export function validateContactForm(
   if (!form.companyName.trim()) {
     errors.companyName = copy.requiredCompany;
   }
+  if (!form.role.trim()) {
+    errors.role = copy.requiredRole;
+  }
 
   const email = form.email.trim();
   if (!email) {
@@ -55,8 +66,20 @@ export function validateContactForm(
     errors.email = copy.invalidEmail;
   }
 
-  if (form.message.trim().length < MIN_MESSAGE_LENGTH) {
-    errors.message = copy.requiredMessage;
+  if (!form.siteCount.trim()) {
+    errors.siteCount = copy.requiredSiteCount;
+  }
+
+  if (!form.sector.trim()) {
+    errors.sector = copy.requiredSector;
+  }
+
+  if (!form.mainTradeOff.trim()) {
+    errors.mainTradeOff = copy.requiredMainTradeOff;
+  }
+
+  if (!form.timeline.trim()) {
+    errors.timeline = copy.requiredTimeline;
   }
 
   if (!form.challengeToken || captchaLoading || !captcha) {
@@ -96,8 +119,12 @@ export function canSubmitContactForm(
     !captcha ||
     !form.challengeToken ||
     !form.companyName.trim() ||
+    !form.role.trim() ||
     !form.email.trim() ||
-    form.message.trim().length < MIN_MESSAGE_LENGTH ||
+    !form.siteCount.trim() ||
+    !form.sector.trim() ||
+    !form.mainTradeOff.trim() ||
+    !form.timeline.trim() ||
     !form.consent ||
     !form.captchaAnswer.trim()
   );

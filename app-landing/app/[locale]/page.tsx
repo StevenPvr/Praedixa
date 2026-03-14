@@ -4,14 +4,11 @@ import { isValidLocale } from "../../lib/i18n/config";
 import { getDictionary } from "../../lib/i18n/get-dictionary";
 import { buildLocaleMetadata, localePathMap } from "../../lib/seo/metadata";
 import { HeroSection } from "../../components/homepage/HeroSection";
+import { QualificationSection } from "../../components/homepage/QualificationSection";
 import { ProblemSection } from "../../components/homepage/ProblemSection";
-import { SolutionSection } from "../../components/homepage/SolutionSection";
-import { HowItWorksSection } from "../../components/homepage/HowItWorksSection";
 import { DeliverablesSection } from "../../components/homepage/DeliverablesSection";
-import { UseCasesSection } from "../../components/homepage/UseCasesSection";
 import { SecuritySection } from "../../components/homepage/SecuritySection";
 import { PilotSection } from "../../components/homepage/PilotSection";
-import { FaqSection } from "../../components/homepage/FaqSection";
 import { ContactCtaSection } from "../../components/homepage/ContactCtaSection";
 import { JsonLd } from "../../components/seo/JsonLd";
 
@@ -48,14 +45,11 @@ export default async function LandingPage({
   return (
     <>
       <HeroSection locale={locale} dict={dict} />
+      <QualificationSection locale={locale} />
       <ProblemSection locale={locale} dict={dict} />
-      <SolutionSection dict={dict} />
-      <HowItWorksSection locale={locale} dict={dict} />
       <DeliverablesSection dict={dict} />
-      <UseCasesSection locale={locale} dict={dict} />
-      <SecuritySection dict={dict} />
       <PilotSection locale={locale} dict={dict} />
-      <FaqSection dict={dict} />
+      <SecuritySection dict={dict} />
       <ContactCtaSection locale={locale} dict={dict} />
       <JsonLd
         locale={locale}

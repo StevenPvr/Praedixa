@@ -31,3 +31,4 @@ Socle securite du landing.
 
 Toute nouvelle route JSON authentifiee par navigateur doit verifier l'origine et refuser le cross-site par defaut.
 La CSP du landing garde `script-src` strict avec nonce, mais doit tolerer `style-src 'unsafe-inline'` tant que les sections marketing animees reposent sur les styles inline de Framer Motion; verifier la homepage reelle avant de resserrer cette directive.
+Toute sortie serveur vers une URL configurable (`fetch` interne, webhook, ingest) doit exiger une allowlist d'hotes en production; le simple HTTPS ne suffit pas.

@@ -6,25 +6,23 @@ Sections de la homepage et composants marketing relies au message public princip
 
 Construire une homepage modulaire ou chaque section reste lisible seule, reordonnable, et alignee sur un parcours de conversion simple:
 
+- hero centre sur la decision a arbitrer plus tot
+- bloc qualification `pour qui / quelles decisions / quel resultat`
 - conflit economique visible
-- cadre d'arbitrage au-dessus de l'existant
-- methode concrete
-- livrables et preuve riche
-- cas d'usage
-- cadre IT/securite
-- offre publique et cadrage de mise en place
-- FAQ
-- CTA final
+- ce que vous achetez / livrables concrets
+- preuve publique
+- cadre IT / securite
+- CTA final vers le cadrage du premier perimetre
 
 ## Sections principales
 
 - `HeroSection.tsx`: hero principal
 - `HeroBackgroundVideo.tsx`: upgrade video hero au-dessus du poster critique
-- `HeroProofCard.tsx`: carte de preuve ROI dans le hero
-- `ProblemSection.tsx`, `SolutionSection.tsx`: problème et réponse produit
+- `ProblemSection.tsx`: conflit economique et enjeux visibles
+- `QualificationSection.tsx`: profil cible, decisions couvertes, cas hors-scope
 - `HowItWorksSection.tsx`: narration en etapes
 - `DeliverablesSection.tsx`, `UseCasesSection.tsx`: livrables concrets et cas d'usage
-- `SecuritySection.tsx`, `PilotSection.tsx`, `FaqSection.tsx`: confiance, offre et FAQ
+- `SecuritySection.tsx`, `PilotSection.tsx`: confiance, offre et preuve publique
 - `SectorPagesTeaserSection.tsx`, `ClosedLoopTeaserSection.tsx`, `RoiProofTeaserSection.tsx`: teasers reutilisables hors parcours principal si besoin
 - `ContactCtaSection.tsx`, `HomeFaqCtaSection.tsx`: CTA de sortie
 - `how-it-works/*`: micro-composants d'interaction pour la section "how it works"
@@ -47,7 +45,7 @@ Construire une homepage modulaire ou chaque section reste lisible seule, reordon
 ## Convention pratique
 
 Si une section commence a porter de la logique de page complete, la remonter dans `components/pages/` plutot que d'alourdir la homepage.
-La homepage doit garder un message produit unique: Praedixa aide les reseaux multi-sites a reperer plus tot les arbitrages qui fragilisent la marge, a comparer les options sous contraintes, puis a relire l'impact reel des decisions prises.
+La homepage doit garder un message produit unique: Praedixa aide les reseaux multi-sites a arbitrer 3 a 14 jours plus tot les decisions qui protegent marge et service, puis a relire l'impact reel decision par decision.
 Le wedge commercial doit rester net: decisions de couverture et d'allocation les plus couteuses, sans retomber dans une promesse "on optimise tout pour tout le monde".
 Le maillage interne vers les pages piliers doit vivre aussi dans le corps de homepage, pas seulement dans le header/footer, pour que la hierarchie publique reste claire pour les visiteurs et pour Google.
 Dans le bloc editorial secondaire du hero, utiliser la raison d'etre ou une conviction fondatrice distincte; ne pas dupliquer le kicker `Pourquoi maintenant` du bloc probleme juste en dessous.
@@ -58,7 +56,7 @@ Le couple `hero.headline` + `hero.headlineHighlight` doit rester court et net; s
 Dans le hero, `hero.headline` doit rester le mot-ancre principal, et `hero.headlineHighlight` doit vivre dessous dans une taille visiblement plus petite plutot qu'etre une deuxieme ligne geante.
 Sur une hero image ou video sombre, ne pas reutiliser des tokens texte pensés pour fond clair sur `hero.headlineHighlight`; la ligne secondaire doit rester claire et lisible au premier coup d'oeil.
 Le hero FR ne doit plus cacher le `hero.kicker` derriere une liste statique de fonctions; si la promesse cible un persona ou une offre d'entree, afficher la copy du dictionnaire telle quelle.
-Dans le hero actuel, le CTA primaire montre l'exemple concret, le secondaire file vers le deploiement, et le tertiaire garde la preuve sur historique en niveau de lecture inferieur.
+Dans le hero actuel, il ne doit rester que deux CTA publics: la preuve sur historique et le cadrage du premier perimetre.
 Pour les mots accentués du hero, choisir la couleur de marque la plus lisible sur le média réel (`--accent-*` ou `--brass-*`), pas une teinte pâle qui ressemble à un simple halo.
 Le rail de preuves en bas du hero doit etre ancre avec le layout (`flex-1` + `mt-auto`), pas repositionne uniquement au `margin-top`, pour qu'il ne remonte pas quand la copy du hero change.
 Sur la hero actuelle avec video de fond, garder une seule masse editoriale dominante. Ne pas reintroduire de grosse carte laterale si elle concurrence la lecture du message principal.
@@ -66,8 +64,8 @@ Sur un hero video, garder les halos decoratifs tres subtils et sans dominante bl
 Pour proteger le contraste du hero video, preferer un voile neutre chaud ou charbon tres leger plutot qu'un overlay bleu nuit pleine largeur, puis verifier le vrai rendu desktop sur une frame reelle.
 Au-dessus de la ligne de flottaison, preferer le conflit economique concret (`arbitrages vus trop tard -> marge fragilisee`) a une categorie inventee ou a une liste de leviers trop large.
 Dans `HowItWorksSection.tsx` ou `ClosedLoopTeaserSection.tsx`, garder la boucle produit complete: `voir -> comparer -> decider -> prouver`.
-La homepage ne doit pas laisser un bloc `pilote` reconstituer une offre parallele; si une preuve publique ou l'offre change de statut, refondre aussi l'ordre des sections au lieu de garder les anciens blocs par inertie.
-Sur la home principale, preferer un parcours `hero -> probleme -> solution -> methode -> livrables -> cas -> securite -> offre -> FAQ -> CTA` a une accumulation de teasers et hubs qui remontent trop tot dans la lecture.
+La homepage ne doit pas laisser un bloc `pilote` ou un ancien `deploiement` reconstituer une offre parallele; si la preuve publique ou l'offre change de statut, refondre aussi l'ordre des sections au lieu de garder les anciens blocs par inertie.
+Sur la home principale, preferer un parcours `hero -> qualification -> probleme -> livrables -> preuve -> securite -> contact` a une accumulation de teasers et hubs qui remontent trop tot dans la lecture.
 Dans `ClosedLoopTeaserSection.tsx`, eviter les grilles de 5 cartes identiques: preferer une composition asymetrique avec une colonne d'intention et des etapes de tailles variees.
 Dans `ClosedLoopTeaserSection.tsx`, ne pas utiliser de `translate-y` decoratif sur les etapes si cela fragilise la lecture ou le contraste; privilegier un rail vertical compact et stable.
 Dans le rail d'etapes horizontal de `ClosedLoopTeaserSection.tsx`, garder toutes les cartes a hauteur identique et eviter tout contenu additionnel reserve a une seule carte.

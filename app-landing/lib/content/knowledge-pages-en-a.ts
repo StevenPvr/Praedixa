@@ -51,7 +51,7 @@ export const enContentA: Record<
       { label: "Integration and data", key: "integrationData" },
       { label: "Essential resources", key: "resources" },
     ],
-    ctaLabel: "Discuss deployment",
+    ctaLabel: "Frame the first decision scope",
   },
 
   security: {
@@ -89,7 +89,7 @@ export const enContentA: Record<
       { label: "About Praedixa", key: "about" },
       { label: "Essential resources", key: "resources" },
     ],
-    ctaLabel: "Discuss deployment",
+    ctaLabel: "Frame the first decision scope",
   },
 
   resources: {
@@ -103,7 +103,7 @@ export const enContentA: Record<
       {
         title: "Start here",
         paragraphs: [
-          "Begin with Product and method, How it works, Integration and data, and ROI pack.",
+          "Begin with Product and method, How it works, Integration and data, and Historical proof.",
           "The path is intentionally short: fewer pages, more clarity.",
         ],
       },
@@ -131,7 +131,7 @@ export const enContentA: Record<
     links: [
       { label: "Product and method", key: "productMethod" },
       { label: "How it works", key: "howItWorksPage" },
-      { label: "ROI pack", key: "decisionLogProof" },
+      { label: "Historical proof", key: "decisionLogProof" },
       { label: "Integration and data", key: "integrationData" },
     ],
     ctaLabel: "See a concrete example",
@@ -169,7 +169,7 @@ export const enContentA: Record<
     ],
     links: [
       { label: "How it works", key: "howItWorksPage" },
-      { label: "ROI pack", key: "decisionLogProof" },
+      { label: "Historical proof", key: "decisionLogProof" },
       { label: "Integration and data", key: "integrationData" },
       { label: "Essential resources", key: "resources" },
     ],
@@ -213,7 +213,7 @@ export const enContentA: Record<
     ],
     links: [
       { label: "Product and method", key: "productMethod" },
-      { label: "ROI pack", key: "decisionLogProof" },
+      { label: "Historical proof", key: "decisionLogProof" },
       { label: "Integration and data", key: "integrationData" },
     ],
     ctaLabel: "See a concrete example",
@@ -222,7 +222,7 @@ export const enContentA: Record<
   decisionLogProof: {
     key: "decisionLogProof",
     kicker: "Proof",
-    title: "ROI pack",
+    title: "Historical proof",
     description:
       "A public example of how Praedixa links options, chosen decision, and reviewed impact over time.",
     lead: "Illustrative public example inspired by a multi-site logistics case: a demand spike puts service under pressure and pushes three sites toward expensive emergency decisions.",
@@ -261,7 +261,7 @@ export const enContentA: Record<
       { label: "How it works", key: "howItWorksPage" },
       { label: "Essential resources", key: "resources" },
     ],
-    ctaLabel: "Discuss deployment",
+    ctaLabel: "Frame the first decision scope",
   },
 
   integrationData: {

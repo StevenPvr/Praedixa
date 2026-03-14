@@ -51,21 +51,24 @@ describe("Homepage FR messaging", () => {
     expect(screen.getAllByText("Signal").length).toBeGreaterThan(0);
     expect(
       screen.getByRole("heading", {
-        name: "Vous savez déjà où la marge se fragilise. Voyons quelle décision couvrir en premier.",
+        name: "Cadrons le premier arbitrage à objectiver.",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Parlez-nous du réseau, des arbitrages qui reviennent le plus souvent et du prochain pas utile. Déploiement Praedixa d’abord, preuve sur historique si elle aide à objectiver le point de départ.",
+        "Décrivez le réseau, l’arbitrage prioritaire et l’horizon projet. Nous revenons avec un prochain pas clair sous 48h ouvrées.",
       ),
     ).toBeInTheDocument();
     expect(
       screen
-        .getAllByRole("link", { name: "Parler du déploiement" })
-        .every((link) => link.getAttribute("href") === "/fr/deploiement"),
+        .getAllByRole("link", { name: "Cadrer un premier périmètre" })
+        .every(
+          (link) =>
+            link.getAttribute("href") === "/fr/contact?intent=deploiement",
+        ),
     ).toBe(true);
     expect(
-      screen.getByRole("link", { name: "Demander la preuve sur historique" }),
+      screen.getByRole("link", { name: "Voir la preuve sur historique" }),
     ).toHaveAttribute("href", "/fr/decision-log-preuve-roi");
   });
 });

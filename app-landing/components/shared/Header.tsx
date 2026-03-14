@@ -1,8 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
-import type { Locale } from "../../lib/i18n/config";
-import { getLocalizedPath } from "../../lib/i18n/config";
+import {
+  buildContactIntentHref,
+  getLocalizedPath,
+  type Locale,
+} from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import { getValuePropContent } from "../../lib/content/value-prop";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { MobileNav } from "./MobileNav";
 import { DesktopNav } from "./DesktopNav";
@@ -12,13 +16,13 @@ interface HeaderProps {
   dict: Dictionary;
 }
 
-export function Header({ locale, dict }: HeaderProps) {
+export function Header({ locale }: HeaderProps) {
+  const valueProp = getValuePropContent(locale);
   const primaryCtaHref = getLocalizedPath(locale, "decisionLogProof");
-  const primaryCtaLabel = dict.nav.ctaPrimary;
+  const primaryCtaLabel = valueProp.ctaPrimary;
   const primaryCtaLabelShort = locale === "fr" ? "Exemple" : "Example";
-  const pilotCtaHref = getLocalizedPath(locale, "deployment");
-  const pilotCtaLabel =
-    locale === "fr" ? "Parler du déploiement" : "Discuss deployment";
+  const secondaryCtaHref = buildContactIntentHref(locale, "deployment");
+  const secondaryCtaLabel = valueProp.ctaSecondary;
 
   return (
     <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white">
@@ -64,8 +68,8 @@ export function Header({ locale, dict }: HeaderProps) {
             locale={locale}
             primaryCtaHref={primaryCtaHref}
             primaryCtaLabel={primaryCtaLabel}
-            secondaryCtaHref={pilotCtaHref}
-            secondaryCtaLabel={pilotCtaLabel}
+            secondaryCtaHref={secondaryCtaHref}
+            secondaryCtaLabel={secondaryCtaLabel}
           />
         </div>
       </div>

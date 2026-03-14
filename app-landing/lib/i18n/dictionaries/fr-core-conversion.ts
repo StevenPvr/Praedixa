@@ -68,31 +68,32 @@ export const frCoreConversion: Partial<Dictionary> = {
 
   contact: {
     kicker: "Dernier pas",
-    heading:
-      "Vous savez déjà où la marge se fragilise. Voyons quelle décision couvrir en premier.",
+    heading: "Cadrons le premier arbitrage à objectiver.",
     subheading:
-      "Parlez-nous du réseau, des arbitrages qui reviennent le plus souvent et du prochain pas utile. Déploiement Praedixa d’abord, preuve sur historique si elle aide à objectiver le point de départ.",
+      "Décrivez le réseau, l’arbitrage prioritaire et l’horizon projet. Nous revenons avec un prochain pas clair sous 48h ouvrées.",
     trustItems: [
       "Réponse sous 48h ouvrées",
       "Lecture seule au démarrage",
       "NDA possible dès le premier échange",
       "Premier périmètre resserré sur les arbitrages qui coûtent cher",
     ],
-    ctaPrimary: "Parler du déploiement",
-    ctaSecondary: "Demander la preuve sur historique",
+    ctaPrimary: "Cadrer un premier périmètre",
+    ctaSecondary: "Voir la preuve sur historique",
   },
 
   servicesPage: {
     meta: {
-      title: "Praedixa | Déploiement Praedixa et preuve sur historique",
+      title: "Praedixa | Ce que vous achetez: un premier périmètre de décision",
       description:
-        "Comprendre ce qu’inclut Déploiement Praedixa, quand commencer par la preuve sur historique, et comment cadrer une mise en place logicielle sobre sur vos données existantes.",
-      ogTitle: "Praedixa | Déploiement Praedixa et preuve sur historique",
+        "Le déploiement Praedixa installe un premier périmètre de décision sur vos données existantes. Si besoin, la preuve sur historique objectivise l’arbitrage initial avant lancement.",
+      ogTitle:
+        "Praedixa | Ce que vous achetez: un premier périmètre de décision",
       ogDescription:
-        "Une seule offre publique: Déploiement Praedixa. La preuve sur historique sert à objectiver un premier arbitrage et à cadrer la mise en place.",
+        "Déploiement Praedixa: un premier périmètre de décision, cadré en 30 jours, sans projet SI lourd au départ.",
     },
     kicker: "Offre",
-    heading: "Déploiement Praedixa et preuve sur historique.",
+    heading:
+      "Ce que vous achetez: un premier périmètre de décision, pas un projet SI de plus.",
     subheading:
       "Une seule offre publique: Déploiement Praedixa. La preuve sur historique sert à objectiver un premier arbitrage sur vos données existantes et à cadrer la mise en place si le sujet mérite d’aller plus loin.",
     fullPackage: {
@@ -109,7 +110,7 @@ export const frCoreConversion: Partial<Dictionary> = {
         "Relecture d’impact avant / recommandé / réel",
         "Extension progressive aux arbitrages les plus coûteux",
       ],
-      cta: "Parler du déploiement",
+      cta: "Cadrer un premier périmètre",
     },
     forecastsOnly: {
       badge: "Preuve sur historique",
@@ -128,7 +129,7 @@ export const frCoreConversion: Partial<Dictionary> = {
         "Pas de boucle de relecture installée dans le temps",
         "Pas d’extension réseau au-delà du premier périmètre cadré",
       ],
-      cta: "Demander la preuve sur historique",
+      cta: "Voir la preuve sur historique",
     },
     comparison: {
       title: "Ce qui change réellement",
@@ -174,21 +175,20 @@ export const frCoreConversion: Partial<Dictionary> = {
 
   footer: {
     tagline:
-      "Praedixa aide les organisations multi-sites à arbitrer plus tôt entre demande, capacité, coût, service et risque, puis à relire l’impact réel.",
+      "Praedixa aide les réseaux multi-sites à arbitrer plus tôt les décisions qui protègent marge et service, sans remplacer les outils déjà en place.",
     badges: ["Décisions cadrées", "Preuve ROI relisible"],
     navigation: "Navigation",
     legalContact: "Légal & contact",
     copyright: "Conçu et hébergé en France",
     ctaBanner: {
       kicker: "Praedixa",
-      heading:
-        "Les arbitrages qui détruisent la marge sont souvent vus trop tard.",
-      cta: "Parler du déploiement",
+      heading: "Arbitrez plus tôt les décisions qui protègent la marge.",
+      cta: "Cadrer un premier périmètre",
     },
   },
 
   stickyCta: {
-    text: "Parler du déploiement",
+    text: "Cadrer un premier périmètre",
   },
 
   form: {

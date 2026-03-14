@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { permanentRedirect } from "next/navigation";
 import { ServicesPage } from "../../../components/pages/ServicesPage";
-import { getDictionary } from "../../../lib/i18n/get-dictionary";
 import { localizedSlugs } from "../../../lib/i18n/config";
+import { getValuePropContent } from "../../../lib/content/value-prop";
 import { resolveLocale } from "../../../lib/seo/knowledge";
 import { buildLocaleMetadata, localePathMap } from "../../../lib/seo/metadata";
 
@@ -15,15 +15,15 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const locale = await resolveLocale(params);
-  const dict = await getDictionary(locale);
+  const content = getValuePropContent(locale);
 
   return buildLocaleMetadata({
     locale,
     paths: localePathMap(FR_PATH, EN_PATH),
-    title: dict.servicesPage.meta.title,
-    description: dict.servicesPage.meta.description,
-    ogTitle: dict.servicesPage.meta.ogTitle,
-    ogDescription: dict.servicesPage.meta.ogDescription,
+    title: content.servicesMeta.title,
+    description: content.servicesMeta.description,
+    ogTitle: content.servicesMeta.ogTitle,
+    ogDescription: content.servicesMeta.ogDescription,
   });
 }
 
@@ -37,6 +37,5 @@ export default async function ServicesRoute({
     permanentRedirect(`/${locale}/${localizedSlugs.services[locale]}`);
   }
 
-  const dict = await getDictionary(locale);
-  return <ServicesPage locale={locale} dict={dict} />;
+  return <ServicesPage locale={locale} />;
 }

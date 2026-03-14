@@ -20,7 +20,7 @@ test.describe("CGU page", () => {
     await expect(page.getByRole("heading", { name: /Objet/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Usage/ })).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: /Pilote fondateur/ }),
+      page.getByRole("heading", { name: /Offres publiques/ }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: /Contact/ })).toBeVisible();
   });

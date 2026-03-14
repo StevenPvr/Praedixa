@@ -1,54 +1,42 @@
-const MIN_MESSAGE_LENGTH = 30;
 const MAX_MESSAGE_LENGTH = 800;
-const MAX_SUBJECT_LENGTH = 120;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_REGEX = /^[+]?[\d\s().-]{6,30}$/;
 const SUPPORTED_LOCALES = new Set(["fr", "en"]);
-
-const REQUEST_TYPE_LABELS = {
-  deployment_request: {
-    tag: "PILOT",
-    fr: "Déploiement Praedixa",
-    en: "Praedixa deployment",
+const INTENT_LABELS = {
+  deployment: {
+    tag: "SCOPE",
+    fr: "Premier périmètre de décision",
+    en: "First decision scope",
   },
-  product_demo: {
-    tag: "DEMO",
-    fr: "Demonstration produit",
-    en: "Product demo",
-  },
-  partnership: {
-    tag: "PARTNERSHIP",
-    fr: "Partenariat",
-    en: "Partnership",
-  },
-  press_other: {
-    tag: "PRESS-OTHER",
-    fr: "Presse / Autre",
-    en: "Press / Other",
+  historical_proof: {
+    tag: "HISTORICAL-PROOF",
+    fr: "Preuve sur historique",
+    en: "Historical proof",
   },
 } as const;
 
-export type ContactRequestType = keyof typeof REQUEST_TYPE_LABELS;
+export type ContactIntent = keyof typeof INTENT_LABELS;
 
 export type ContactPayload = {
   locale: "fr" | "en";
-  requestType: ContactRequestType;
+  intent: ContactIntent;
   companyName: string;
-  firstName: string;
-  lastName: string;
   role: string;
   email: string;
-  phone: string;
-  subject: string;
+  siteCount: string;
+  sector: string;
+  mainTradeOff: string;
+  timeline: string;
+  currentStack: string;
   message: string;
+  subject: string;
   consent: true;
   website: string;
   captchaAnswer: number;
   challengeToken: string;
 };
 
-const SUPPORTED_REQUEST_TYPES = new Set<ContactRequestType>(
-  Object.keys(REQUEST_TYPE_LABELS) as ContactRequestType[],
+const SUPPORTED_INTENTS = new Set<ContactIntent>(
+  Object.keys(INTENT_LABELS) as ContactIntent[],
 );
 
 export function validateContactBody(
@@ -64,9 +52,9 @@ export function validateContactBody(
     return { valid: false, error: "Locale invalide." };
   }
 
-  const requestType = readRequestType(input);
-  if (!requestType.valid) {
-    return requestType;
+  const intent = readIntent(input);
+  if (!intent.valid) {
+    return intent;
   }
 
   const companyName = readString(input, "companyName", 100, true);
@@ -74,24 +62,9 @@ export function validateContactBody(
     return { valid: false, error: "Entreprise requise." };
   }
 
-  const firstName = readOptionalField(
-    input,
-    "firstName",
-    80,
-    "Prénom invalide.",
-  );
-  if (!firstName.valid) {
-    return firstName;
-  }
-
-  const lastName = readOptionalField(input, "lastName", 80, "Nom invalide.");
-  if (!lastName.valid) {
-    return lastName;
-  }
-
-  const role = readOptionalField(input, "role", 80, "Fonction invalide.");
-  if (!role.valid) {
-    return role;
+  const role = readString(input, "role", 80, true);
+  if (!role) {
+    return { valid: false, error: "Fonction requise." };
   }
 
   const email = readString(input, "email", 254, true);
@@ -99,25 +72,34 @@ export function validateContactBody(
     return { valid: false, error: "Adresse email invalide." };
   }
 
-  const phone = readOptionalField(input, "phone", 30, "Téléphone invalide.");
-  if (!phone.valid) {
-    return phone;
-  }
-  if (phone.value && !PHONE_REGEX.test(phone.value)) {
-    return { valid: false, error: "Téléphone invalide." };
+  const siteCount = readString(input, "siteCount", 40, true);
+  if (!siteCount) {
+    return { valid: false, error: "Nombre de sites requis." };
   }
 
-  const subject = readSubject(input, locale, requestType.value, companyName);
-  if (!subject.valid) {
-    return subject;
+  const sector = readString(input, "sector", 120, true);
+  if (!sector) {
+    return { valid: false, error: "Secteur requis." };
   }
 
-  const message = readString(input, "message", MAX_MESSAGE_LENGTH, true);
-  if (!message || message.length < MIN_MESSAGE_LENGTH) {
-    return {
-      valid: false,
-      error: `Message trop court (min ${MIN_MESSAGE_LENGTH} caractères).`,
-    };
+  const mainTradeOff = readString(input, "mainTradeOff", 400, true);
+  if (!mainTradeOff) {
+    return { valid: false, error: "Arbitrage principal requis." };
+  }
+
+  const timeline = readString(input, "timeline", 80, true);
+  if (!timeline) {
+    return { valid: false, error: "Horizon projet requis." };
+  }
+
+  const currentStack = readString(input, "currentStack", 300, false);
+  if (currentStack === null) {
+    return { valid: false, error: "Stack actuelle invalide." };
+  }
+
+  const message = readString(input, "message", MAX_MESSAGE_LENGTH, false);
+  if (message === null) {
+    return { valid: false, error: "Message invalide." };
   }
 
   if (typeof input.consent !== "boolean" || !input.consent) {
@@ -137,15 +119,17 @@ export function validateContactBody(
     valid: true,
     data: {
       locale,
-      requestType: requestType.value,
+      intent: intent.value,
       companyName,
-      firstName: firstName.value,
-      lastName: lastName.value,
-      role: role.value,
+      role,
       email: email.toLowerCase(),
-      phone: phone.value,
-      subject: subject.value,
+      siteCount,
+      sector,
+      mainTradeOff,
+      timeline,
+      currentStack,
       message,
+      subject: defaultSubjectForRequest(companyName, intent.value, locale),
       consent: true,
       website:
         typeof input.website === "string"
@@ -157,76 +141,43 @@ export function validateContactBody(
   };
 }
 
-export function requestTypeLabel(
-  type: ContactRequestType,
+export function requestIntentLabel(
+  intent: ContactIntent,
   locale: "fr" | "en",
 ): string {
-  return REQUEST_TYPE_LABELS[type][locale];
+  return INTENT_LABELS[intent][locale];
 }
 
-export function requestTypeTag(type: ContactRequestType): string {
-  return REQUEST_TYPE_LABELS[type].tag;
+export function requestIntentTag(intent: ContactIntent): string {
+  return INTENT_LABELS[intent].tag;
 }
 
-function readRequestType(
+export function requestIntentValue(intent: ContactIntent): string {
+  return intent;
+}
+
+function readIntent(
   input: Record<string, unknown>,
-):
-  | { valid: true; value: ContactRequestType }
-  | { valid: false; error: string } {
-  const requestTypeRaw = readString(input, "requestType", 40, false);
-  if (requestTypeRaw === null) {
-    return { valid: false, error: "Type de demande invalide." };
+): { valid: true; value: ContactIntent } | { valid: false; error: string } {
+  const raw = readString(input, "intent", 40, false);
+  if (!raw) {
+    return { valid: true, value: "deployment" };
   }
 
-  if (requestTypeRaw === "") {
-    return { valid: true, value: "deployment_request" };
-  }
-
-  const normalized = requestTypeRaw.trim() as ContactRequestType;
-  if (!SUPPORTED_REQUEST_TYPES.has(normalized)) {
-    return { valid: false, error: "Type de demande invalide." };
+  const normalized = raw.trim() as ContactIntent;
+  if (!SUPPORTED_INTENTS.has(normalized)) {
+    return { valid: false, error: "Intention de contact invalide." };
   }
 
   return { valid: true, value: normalized };
 }
 
-function readSubject(
-  input: Record<string, unknown>,
-  locale: "fr" | "en",
-  requestType: ContactRequestType,
+function defaultSubjectForRequest(
   companyName: string,
-): { valid: true; value: string } | { valid: false; error: string } {
-  const subjectRaw = readString(input, "subject", MAX_SUBJECT_LENGTH, false);
-  if (subjectRaw === null) {
-    return { valid: false, error: "Objet invalide." };
-  }
-
-  if (subjectRaw.trim().length > 0) {
-    return { valid: true, value: subjectRaw };
-  }
-
-  return {
-    valid: true,
-    value: defaultSubjectForRequest({ companyName, locale, requestType }),
-  };
-}
-
-function defaultSubjectForRequest({
-  companyName,
-  locale,
-  requestType,
-}: {
-  companyName: string;
-  locale: "fr" | "en";
-  requestType: ContactRequestType;
-}): string {
-  const prefix =
-    requestType === "deployment_request"
-      ? locale === "en"
-        ? "Historical proof request"
-        : "Preuve sur historique offerte"
-      : requestTypeLabel(requestType, locale);
-
+  intent: ContactIntent,
+  locale: "fr" | "en",
+): string {
+  const prefix = requestIntentLabel(intent, locale);
   return companyName.trim() ? `${prefix} — ${companyName.trim()}` : prefix;
 }
 
@@ -243,54 +194,41 @@ function normalizeLocale(value: string | null): "fr" | "en" | null {
   return normalized as "fr" | "en";
 }
 
-function readOptionalField(
-  input: Record<string, unknown>,
-  key: string,
-  maxLength: number,
-  error: string,
-): { valid: true; value: string } | { valid: false; error: string } {
-  const value = readString(input, key, maxLength, false);
-  return value === null ? { valid: false, error } : { valid: true, value };
-}
-
 function readString(
   input: Record<string, unknown>,
   key: string,
   maxLength: number,
   required = true,
 ): string | null {
-  const raw = input[key];
-  if (raw === undefined || raw === null) {
+  const value = input[key];
+  if (value === undefined || value === null) {
     return required ? null : "";
   }
-  if (typeof raw !== "string") {
+
+  if (typeof value !== "string") {
     return null;
   }
 
-  const value = raw.trim();
-  if (required && value.length === 0) {
+  const trimmed = value.trim();
+  if (required && trimmed.length === 0) {
     return null;
   }
-  if (value.length > maxLength) {
-    return null;
-  }
-  return value;
+
+  return trimmed.slice(0, maxLength);
 }
 
 function readInt(input: Record<string, unknown>, key: string): number | null {
-  const raw = input[key];
-  if (typeof raw === "number" && Number.isInteger(raw)) {
-    return raw;
-  }
-  if (typeof raw !== "string") {
-    return null;
+  const value = input[key];
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.trunc(value);
   }
 
-  const trimmed = raw.trim();
-  if (!/^-?\d+$/.test(trimmed)) {
-    return null;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number.parseInt(value.trim(), 10);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
   }
 
-  const parsed = Number.parseInt(trimmed, 10);
-  return Number.isNaN(parsed) ? null : parsed;
+  return null;
 }

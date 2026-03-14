@@ -31,7 +31,7 @@ const sectorDifferentiationCardsByLocale: Record<
       body: "Praedixa se branche au-dessus de l'ERP, du planning, de la BI et d'Excel pour relier les systèmes qui comptent pour une décision, sans projet de remplacement.",
     },
     {
-      title: "Decision Journal + première action",
+      title: "Journal de décision + première action",
       body: "Le signal ne reste pas dans un dashboard: le choix est comparé, journalisé, puis la première action utile est enclenchée dans les outils existants.",
     },
     {
@@ -45,7 +45,7 @@ const sectorDifferentiationCardsByLocale: Record<
       body: "Praedixa sits above ERP, scheduling, BI, and spreadsheets to connect the systems that matter to a decision, without a replacement project.",
     },
     {
-      title: "Decision Journal + first action",
+      title: "Decision log + first action",
       body: "The signal does not stay in a dashboard: the choice is compared, logged, and the first useful move is triggered inside the existing tools.",
     },
     {

@@ -1,8 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
-import type { Locale } from "../../lib/i18n/config";
-import { getLocalizedPath } from "../../lib/i18n/config";
+import {
+  buildContactIntentHref,
+  getLocalizedPath,
+  type Locale,
+} from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import { getValuePropContent } from "../../lib/content/value-prop";
 import { MagneticActionLink } from "./motion/MagneticActionLink";
 import { PulseDot } from "./motion/PulseDot";
 import { ShimmerTrack } from "./motion/ShimmerTrack";
@@ -13,7 +17,8 @@ interface FooterProps {
 }
 
 export function Footer({ locale, dict }: FooterProps) {
-  const primaryCtaHref = getLocalizedPath(locale, "deployment");
+  const valueProp = getValuePropContent(locale);
+  const primaryCtaHref = buildContactIntentHref(locale, "deployment");
   const servicesHref = getLocalizedPath(locale, "services");
   const productHref = getLocalizedPath(locale, "productMethod");
   const methodHref = getLocalizedPath(locale, "howItWorksPage");
@@ -37,7 +42,7 @@ export function Footer({ locale, dict }: FooterProps) {
       href: methodHref,
     },
     {
-      label: locale === "fr" ? "Dossier ROI" : "Proof example",
+      label: locale === "fr" ? "Preuve sur historique" : "Historical proof",
       href: proofHref,
     },
     {
@@ -45,7 +50,10 @@ export function Footer({ locale, dict }: FooterProps) {
       href: integrationHref,
     },
     { label: dict.nav.services, href: servicesHref },
-    { label: locale === "fr" ? "Solutions" : "Solutions", href: solutionsHref },
+    {
+      label: locale === "fr" ? "Ressources" : "Resources",
+      href: solutionsHref,
+    },
     { label: "Blog", href: blogHref },
   ];
 
@@ -63,7 +71,7 @@ export function Footer({ locale, dict }: FooterProps) {
     { label: locale === "fr" ? "À propos" : "About", href: aboutHref },
   ];
 
-  const badges = Array.isArray(dict.footer.badges) ? dict.footer.badges : null;
+  const badges = valueProp.reassurance.slice(0, 3);
   const hasNavLinks = navLinks.length > 0;
   const hasLegalLinks = legalLinks.length > 0;
   const year = new Date().getFullYear();
@@ -81,7 +89,7 @@ export function Footer({ locale, dict }: FooterProps) {
                 {dict.footer.ctaBanner.heading}
               </p>
               <p className="max-w-[62ch] text-sm leading-relaxed text-neutral-300 md:text-base">
-                {dict.footer.tagline}
+                {valueProp.footerTagline}
               </p>
               <div className="flex flex-wrap gap-2">
                 {badges && badges.length > 0 ? (
@@ -109,7 +117,7 @@ export function Footer({ locale, dict }: FooterProps) {
 
             <MagneticActionLink
               href={primaryCtaHref}
-              label={dict.footer.ctaBanner.cta}
+              label={valueProp.ctaSecondary}
               wrapperClassName="w-full md:max-w-sm md:justify-self-end"
               className="border-white/15 bg-white/[0.06] text-white hover:border-white/25 hover:bg-white/[0.1]"
             />
@@ -134,9 +142,7 @@ export function Footer({ locale, dict }: FooterProps) {
               </span>
             </Link>
             <p className="max-w-[46ch] text-sm leading-relaxed text-neutral-400">
-              {locale === "fr"
-                ? "Praedixa aide les réseaux multi-sites à arbitrer plus tôt entre demande, capacité, coût, service et risque, sans remplacer les outils déjà en place."
-                : "Praedixa helps multi-site networks arbitrate earlier across demand, capacity, cost, service, and risk without replacing the tools they already use."}
+              {valueProp.footerTagline}
             </p>
             <ShimmerTrack
               className="max-w-[16rem] bg-white/10"

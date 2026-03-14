@@ -20,4 +20,5 @@ Ce dossier est consommé par l'application `app-landing` et s'insère dans son f
 
 ## Note de copy
 
-This route carries the core public offer in EN: Praedixa deployment. Historical proof stays a secondary qualification mechanism, not the main thing being sold.
+This route is no longer a standalone public offer page.
+It exists only as a permanent redirect to `contact?intent=deployment` so legacy links keep their intent without reopening a second commercial path.

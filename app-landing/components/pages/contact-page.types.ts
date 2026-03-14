@@ -1,21 +1,18 @@
 import type { Locale } from "../../lib/i18n/config";
 
-export type RequestType =
-  | "deployment_request"
-  | "product_demo"
-  | "partnership"
-  | "press_other";
+export type ContactIntent = "deployment" | "historical_proof";
 
 export interface ContactFormData {
   locale: Locale;
-  requestType: RequestType;
+  intent: ContactIntent;
   companyName: string;
-  firstName: string;
-  lastName: string;
   role: string;
   email: string;
-  phone: string;
-  subject: string;
+  siteCount: string;
+  sector: string;
+  mainTradeOff: string;
+  timeline: string;
+  currentStack: string;
   message: string;
   consent: boolean;
   website: string;
@@ -31,18 +28,16 @@ export interface ContactChallenge {
 
 export type ContactFieldErrorKey =
   | "companyName"
+  | "role"
   | "email"
-  | "message"
+  | "siteCount"
+  | "sector"
+  | "mainTradeOff"
+  | "timeline"
   | "captchaAnswer"
   | "consent";
 
 export type FieldErrors = Partial<Record<ContactFieldErrorKey, string>>;
-
-export interface RequestTypeOption {
-  value: RequestType;
-  fr: string;
-  en: string;
-}
 
 export interface ContactPageCopy {
   kicker: string;
@@ -50,23 +45,25 @@ export interface ContactPageCopy {
   intro: string;
   promiseTitle: string;
   promiseItems: string[];
-  pilotHint: string;
-  pilotCta: string;
-  pilotMeta: string;
+  reassuranceTitle: string;
+  reassuranceItems: string[];
+  secondaryPanelTitle: string;
+  secondaryPanelBody: string;
+  secondaryPanelCta: string;
   formTitle: string;
   formSubtitle: string;
-  requestType: string;
   company: string;
   role: string;
-  firstName: string;
-  lastName: string;
   email: string;
-  phone: string;
-  subject: string;
+  siteCount: string;
+  sector: string;
+  mainTradeOff: string;
+  timeline: string;
+  currentStack: string;
   message: string;
-  messageHint: string;
+  mainTradeOffPlaceholder: string;
+  currentStackPlaceholder: string;
   messagePlaceholder: string;
-  optionalDetails: string;
   antiSpam: string;
   consentPrefix: string;
   termsLabel: string;
@@ -84,9 +81,13 @@ export interface ContactPageCopy {
   challengeUnavailable: string;
   challengeRetry: string;
   requiredCompany: string;
+  requiredRole: string;
   requiredEmail: string;
   invalidEmail: string;
-  requiredMessage: string;
+  requiredSiteCount: string;
+  requiredSector: string;
+  requiredMainTradeOff: string;
+  requiredTimeline: string;
   requiredConsent: string;
   requiredCaptcha: string;
 }

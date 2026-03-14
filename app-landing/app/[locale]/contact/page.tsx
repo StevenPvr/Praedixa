@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { permanentRedirect } from "next/navigation";
 import { getLocalizedPath, localizedSlugs } from "../../../lib/i18n/config";
+import { getValuePropContent } from "../../../lib/content/value-prop";
 import { resolveLocale } from "../../../lib/seo/knowledge";
 import { buildLocaleMetadata, localePathMap } from "../../../lib/seo/metadata";
 import { ContactPageClient } from "../../../components/pages/ContactPageClient";
@@ -17,15 +18,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const locale = await resolveLocale(params);
+  const content = getValuePropContent(locale);
 
   return buildLocaleMetadata({
     locale,
     paths: localePathMap(FR_PATH, EN_PATH),
     title: locale === "fr" ? "Praedixa | Contact" : "Praedixa | Contact",
-    description:
-      locale === "fr"
-        ? "Demandez une preuve sur historique ou echangez sur la facon de cadrer vos arbitrages critiques, les systemes a federer et la mise en place Praedixa."
-        : "Request historical proof or discuss how to frame your critical trade-offs, the systems to federate, and Praedixa deployment.",
+    description: content.contact.intro,
   });
 }
 
@@ -35,6 +34,7 @@ export default async function ContactPage({
   params: Promise<{ locale: string }>;
 }) {
   const locale = await resolveLocale(params);
+  const content = getValuePropContent(locale);
 
   if (localizedSlugs.contact[locale] !== "contact") {
     permanentRedirect(`/${locale}/${localizedSlugs.contact[locale]}`);
@@ -47,11 +47,7 @@ export default async function ContactPage({
       <CorePageJsonLd
         locale={locale}
         name={pageTitle}
-        description={
-          locale === "fr"
-            ? "Demandez une preuve sur historique ou échangez sur le cadrage de vos arbitrages critiques."
-            : "Request historical proof or discuss how to frame your critical trade-offs."
-        }
+        description={content.contact.intro}
         path={getLocalizedPath(locale, "contact")}
         breadcrumbs={[
           {

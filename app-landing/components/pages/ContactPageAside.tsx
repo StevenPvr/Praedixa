@@ -17,7 +17,7 @@ export function ContactPageAside({
   copy: ContactPageCopy;
   locale: Locale;
 }) {
-  const pilotHref = getLocalizedPath(locale, "deployment");
+  const servicesHref = getLocalizedPath(locale, "services");
 
   return (
     <aside className="space-y-6 md:pt-2">
@@ -55,15 +55,39 @@ export function ContactPageAside({
       </section>
 
       <section className="rounded-[1.7rem] border border-neutral-200/80 bg-white/90 p-5">
-        <p className="text-sm text-neutral-600">{copy.pilotHint}</p>
+        <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-neutral-700">
+          {copy.reassuranceTitle}
+        </h2>
+        <ul className="mt-4 list-none space-y-2.5 p-0">
+          {copy.reassuranceItems.map((item) => (
+            <li
+              key={item}
+              className="m-0 flex items-start gap-2.5 text-sm text-neutral-700"
+            >
+              <CheckBadgeIcon
+                size={16}
+                className="mt-0.5 shrink-0 text-amber-600"
+              />
+              {item}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="rounded-[1.7rem] border border-neutral-200/80 bg-white/90 p-5">
+        <p className="text-sm font-semibold text-ink">
+          {copy.secondaryPanelTitle}
+        </p>
+        <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+          {copy.secondaryPanelBody}
+        </p>
         <Link
-          href={pilotHref}
+          href={servicesHref}
           className="mt-3 inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-neutral-400 hover:bg-neutral-50 active:-translate-y-[1px] active:scale-[0.99]"
         >
-          {copy.pilotCta}
+          {copy.secondaryPanelCta}
           <ArrowUpRight size={16} weight="bold" />
         </Link>
-        <p className="mt-2 text-xs text-neutral-500">{copy.pilotMeta}</p>
       </section>
     </aside>
   );

@@ -55,11 +55,10 @@ describe("HeroSection", () => {
     );
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("Décidez plus tôt.");
+    expect(heading).toHaveTextContent("Arbitrez 3 à 14 jours plus tôt");
     const heroSubheadline = screen.getByText(
       (_, element) =>
-        element?.textContent ===
-        "Protégez la marge avant que l’opération ne casse.",
+        element?.textContent === "les décisions qui protègent la marge.",
     );
     expect(heroSubheadline).toBeInTheDocument();
     expect(within(heroSubheadline).getByText("marge").className).toContain(
@@ -67,23 +66,19 @@ describe("HeroSection", () => {
     );
     expect(
       screen.getByText(
-        /Praedixa aide les réseaux multi-sites à repérer plus tôt/i,
+        /Praedixa détecte les tensions multi-sites avant l’urgence/i,
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Déploiement Praedixa · lecture seule au départ · NDA possible",
+        "Lecture seule au départ · Données agrégées · Hébergement France · NDA dès le premier échange",
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText("Lecture seule au démarrage")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Voir un exemple concret" }),
+      screen.getByRole("link", { name: "Voir la preuve sur historique" }),
     ).toHaveAttribute("href", "/fr/decision-log-preuve-roi");
     expect(
-      screen.getByRole("link", { name: "Parler du déploiement" }),
-    ).toHaveAttribute("href", "/fr/deploiement");
-    expect(
-      screen.getByRole("link", { name: "Demander la preuve sur historique" }),
-    ).toHaveAttribute("href", "/fr/contact?intent=proof");
+      screen.getByRole("link", { name: "Cadrer un premier périmètre" }),
+    ).toHaveAttribute("href", "/fr/contact?intent=deploiement");
   });
 });

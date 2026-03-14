@@ -39,8 +39,8 @@ export function PillarLinksSection({ locale, dict }: PillarLinksSectionProps) {
       title: dict.nav.services,
       description:
         locale === "fr"
-          ? "Preuve sur historique, déploiement et cadre d’engagement."
-          : "Historical proof, deployment, and engagement model.",
+          ? "Une offre publique: premier périmètre de décision, preuve sur historique si nécessaire."
+          : "One public offer: first decision scope, with historical proof if needed.",
     },
     {
       href: getLocalizedPath(locale, "about"),
@@ -63,8 +63,8 @@ export function PillarLinksSection({ locale, dict }: PillarLinksSectionProps) {
         </h2>
         <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
           {locale === "fr"
-            ? "Chaque page répond à une intention claire: comprendre la méthode, voir les cas d’usage, cadrer le déploiement ou vérifier la crédibilité du dispositif."
-            : "Each page answers one clear intent: understand the method, see use cases, frame deployment, or verify the credibility of the setup."}
+            ? "Chaque page répond à une intention claire: comprendre la méthode, voir les cas d’usage, cadrer un premier périmètre ou vérifier la crédibilité du dispositif."
+            : "Each page answers one clear intent: understand the method, see use cases, frame a first scope, or verify the credibility of the setup."}
         </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">

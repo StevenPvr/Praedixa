@@ -13,6 +13,7 @@ Sous-dossiers :
 Fichiers :
 
 - `proxy.test.ts`
+- les regressions de redirects legacy avec query string doivent etre couvertes ici
 
 ## Intégration
 

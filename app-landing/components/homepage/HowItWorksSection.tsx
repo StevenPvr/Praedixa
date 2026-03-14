@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { Locale } from "../../lib/i18n/config";
-import { getLocalizedPath } from "../../lib/i18n/config";
+import { buildContactIntentHref, type Locale } from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import { getValuePropContent } from "../../lib/content/value-prop";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
 import { SPRING, VP } from "../../lib/animations/variants";
@@ -68,9 +68,10 @@ function HowItWorksBackdrop() {
 }
 
 export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
+  const valueProp = getValuePropContent(locale);
   const copy = sectionCopy[locale];
   const protocol = dict?.howItWorks;
-  const pilotHref = getLocalizedPath(locale, "deployment");
+  const pilotHref = buildContactIntentHref(locale, "deployment");
 
   const rawSteps = protocol?.steps as
     | Dictionary["howItWorks"]["steps"]
@@ -224,7 +225,7 @@ export function HowItWorksSection({ locale, dict }: HowItWorksSectionProps) {
             <div className="mt-10">
               <MagneticPilotLink
                 href={pilotHref}
-                label={dict.pilot.ctaPrimary}
+                label={valueProp.ctaSecondary}
                 meta={copy.ctaMeta}
               />
             </div>

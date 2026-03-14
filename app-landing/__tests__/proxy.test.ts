@@ -114,6 +114,19 @@ describe("landing proxy", () => {
     );
   });
 
+  it("redirects retired commercial routes to contact while preserving source params", async () => {
+    const req = makeRequest("/devenir-pilote?src=brand", {
+      host: "www.praedixa.com",
+      "x-forwarded-proto": "https",
+    });
+    const result = await proxy(req);
+
+    expect(result.status).toBe(301);
+    expect(result.headers.get("location")).toBe(
+      "http://localhost:3001/fr/contact?intent=historique&src=brand",
+    );
+  });
+
   it("sets CSP header on locale-prefixed pages", async () => {
     const req = makeRequest("/fr");
     const result = await proxy(req);

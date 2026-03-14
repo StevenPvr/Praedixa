@@ -5,6 +5,7 @@ Contenu structure et versionne du landing hors dictionnaires UI.
 ## Zones majeures
 
 - `knowledge-pages*.ts`: pages knowledge/piliers
+- `value-prop/*.ts`: source de verite FR/EN pour la promesse publique, les CTA, la page offre, la page contact et la preuve sur historique
 - `serp-resources-fr*.ts`: ressources SEO FR publiees sous `/fr/ressources/[slug]`
 - `serp-briefs-fr*.ts`: briefs SEO internes et derives
 - `serp-asset-downloads.ts`: assets telechargeables lies aux ressources
@@ -23,6 +24,7 @@ Ici vivent les contenus longs, structures ou semi-editorialises que les pages co
 - garder les cles partagees dans `knowledge-pages-shared.ts`
 - si une page a besoin d'un contrat fort, exporter types + acces centralises depuis ce dossier
 - la facade `sector-pages.ts` sert d'entree unique pour les routes, composants, sitemap et llms
+- la promesse publique canonique doit vivre dans `value-prop/*` et etre referencee par les pages, pas recopidee librement dans plusieurs dictionnaires ou composants
 - les modules `sector-pages*` consomment le contrat `Locale` depuis `lib/i18n/locale.ts`, pas depuis un module de redirects qui reimporte cette facade
 - la copy partagee des verticales reste dans `sector-pages-data/shared.ts`, pas dans `SectorPage.tsx`
 - les pages sectorielles exposent aussi un helper de deduplication des sources affichees pour garder une liste de references propre par URL

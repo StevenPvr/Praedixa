@@ -40,10 +40,10 @@ describe("knowledge pages FR messaging", () => {
       getKnowledgePage("fr", "decisionLogProof").sections[2]?.paragraphs[1],
     ).toContain("modèles économétriques");
     expect(getKnowledgePage("fr", "decisionLogProof").title).toBe(
-      "Dossier ROI",
+      "Preuve sur historique",
     );
     expect(fr.servicesPage.heading).toBe(
-      "Déploiement Praedixa et preuve sur historique.",
+      "Ce que vous achetez: un premier périmètre de décision, pas un projet SI de plus.",
     );
     expect(fr.servicesPage.fullPackage.includes).toContain(
       "Cadre commun Ops / Finance / Réseau",
@@ -63,7 +63,7 @@ describe("knowledge pages FR messaging", () => {
   it("uses only the approved French CTAs on annex knowledge pages", () => {
     const allowedCtas = new Set([
       "Voir un exemple concret",
-      "Parler du déploiement",
+      "Cadrer un premier périmètre",
     ]);
 
     frKnowledgeKeys.forEach((key) => {

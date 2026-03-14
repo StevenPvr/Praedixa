@@ -24,6 +24,8 @@ Infrastructure de localisation du landing.
 - tout nouveau slug traduit doit etre ajoute dans `config.ts`
 - le contrat `Locale` doit vivre dans `locale.ts`, pas dans un module qui importe du contenu ou des redirects
 - les routes legacy a rediriger passent aussi par `legacyRedirectMap`
+- les anciennes routes commerciales (`devenir-pilote`, `pilot-application`, `roi-pilot`, `deploiement`, `deployment`) doivent rediriger vers l'entree publique actuelle (`contact` ou la page sectorielle canonique), jamais continuer a vivre comme doublons de contenu
+- si une cible legacy contient une query string, le proxy doit reconstruire separement `pathname` et `search` pour ne pas encoder `?` dans le chemin ni ecraser les parametres d'origine utiles
 - les anciennes URLs sectorielles sont derivees depuis `lib/content/sector-pages.ts` pour garder une seule source de verite
 - les anciennes pages sectorielles ou variantes SEO retirees doivent rediriger vers la page verticale dediee la plus proche, pas vers une page generique
 - les composants prennent de preference le `dict` deja charge plutot que de recharger eux-memes des modules

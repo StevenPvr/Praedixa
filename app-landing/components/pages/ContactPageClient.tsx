@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import type { Locale } from "../../lib/i18n/config";
+import { getContactIntentQueryValue, type Locale } from "../../lib/i18n/config";
 import { ContactPageAside } from "./ContactPageAside";
 import { ContactPageForm } from "./ContactPageForm";
 import { ContactPageSuccessState } from "./ContactPageSuccessState";
@@ -16,6 +16,7 @@ import {
 } from "./contact-page.helpers";
 import type {
   ContactChallenge,
+  ContactIntent,
   ContactFormData,
   FieldErrors,
 } from "./contact-page.types";
@@ -24,12 +25,12 @@ type ContactStatus = "idle" | "submitting" | "success" | "error";
 
 export function ContactPageClient({ locale }: { locale: Locale }) {
   const searchParams = useSearchParams();
-  const isProofIntent = searchParams.get("intent") === "proof";
-  const copy = getContactPageCopy(locale, isProofIntent);
+  const intent = resolveContactIntent(searchParams.get("intent"));
+  const copy = getContactPageCopy(locale, intent);
   const [captcha, setCaptcha] = useState<ContactChallenge | null>(null);
   const [captchaLoading, setCaptchaLoading] = useState(true);
   const [form, setForm] = useState<ContactFormData>(
-    createInitialContactForm(locale, isProofIntent),
+    createInitialContactForm(locale, intent),
   );
   const [status, setStatus] = useState<ContactStatus>("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -37,13 +38,12 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
 
   useEffect(() => {
     setForm((prev) => ({
-      ...createInitialContactForm(locale, isProofIntent),
+      ...createInitialContactForm(locale, intent),
       ...prev,
       locale,
-      subject:
-        prev.subject || createInitialContactForm(locale, isProofIntent).subject,
+      intent,
     }));
-  }, [isProofIntent, locale]);
+  }, [intent, locale]);
 
   const update = useCallback(
     (key: keyof ContactFormData, value: string | boolean) => {
@@ -182,4 +182,18 @@ export function ContactPageClient({ locale }: { locale: Locale }) {
       </div>
     </div>
   );
+}
+
+function resolveContactIntent(intent: string | null): ContactIntent {
+  const proofIntents = new Set([
+    getContactIntentQueryValue("fr", "historical_proof"),
+    getContactIntentQueryValue("en", "historical_proof"),
+    "proof",
+  ]);
+
+  if (intent && proofIntents.has(intent)) {
+    return "historical_proof";
+  }
+
+  return "deployment";
 }

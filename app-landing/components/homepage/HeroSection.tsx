@@ -1,9 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/ssr";
-import { getLocalizedPath } from "../../lib/i18n/config";
-import type { Locale } from "../../lib/i18n/config";
+import {
+  buildContactIntentHref,
+  getLocalizedPath,
+  type Locale,
+} from "../../lib/i18n/config";
 import type { Dictionary } from "../../lib/i18n/types";
+import { getValuePropContent } from "../../lib/content/value-prop";
 import { heroIndustryMontageMedia } from "../../lib/media/hero-industries";
 import { HeroBackgroundVideo } from "./HeroBackgroundVideo";
 
@@ -55,24 +59,23 @@ function renderHeadlineWithAccents(
 export function HeroSection({ locale, dict }: HeroSectionProps) {
   const isFr = locale === "fr";
   const hero = dict.hero;
+  const valueProp = getValuePropContent(locale);
   const copy = {
-    kicker: hero.kicker,
-    heading: hero.headline,
-    headingHighlight: hero.headlineHighlight,
-    subtitle: hero.subtitle,
+    kicker: valueProp.heroKicker,
+    heading: valueProp.heroHeading,
+    headingHighlight: valueProp.heroHeadingHighlight,
+    subtitle: valueProp.heroSubheading,
     manifestoLabel: hero.manifestoLabel,
     manifestoQuote: hero.manifestoQuote,
     pillars: hero.bullets,
-    ctaPrimary: hero.ctaPrimary,
-    ctaSecondary: hero.ctaSecondary,
-    ctaTertiary: hero.ctaTertiary,
-    microcopy: hero.ctaMeta,
-    trustBadges: hero.trustBadges,
+    ctaPrimary: valueProp.ctaPrimary,
+    ctaSecondary: valueProp.ctaSecondary,
+    microcopy: valueProp.reassurance.join(" · "),
+    trustBadges: valueProp.reassurance,
   };
 
   const exampleHref = getLocalizedPath(locale, "decisionLogProof");
-  const deploymentHref = getLocalizedPath(locale, "deployment");
-  const proofRequestHref = `${getLocalizedPath(locale, "contact")}?intent=proof`;
+  const scopingHref = buildContactIntentHref(locale, "deployment");
   const hasManifestoLabel = copy.manifestoLabel.trim().length > 0;
   const heroKickerLabel = copy.kicker;
   const heroSupportLine =
@@ -171,17 +174,11 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                   </span>
                 </Link>
                 <Link
-                  href={deploymentHref}
+                  href={scopingHref}
                   className="inline-flex items-center gap-2 text-sm font-semibold text-white no-underline transition-colors duration-200 hover:text-amber-50"
                 >
                   {copy.ctaSecondary}
                   <ArrowRight size={14} weight="bold" />
-                </Link>
-                <Link
-                  href={proofRequestHref}
-                  className="inline-flex items-center gap-2 text-sm font-medium text-[rgba(255,255,255,0.68)] no-underline transition-colors duration-200 hover:text-white"
-                >
-                  {copy.ctaTertiary}
                 </Link>
               </div>
 

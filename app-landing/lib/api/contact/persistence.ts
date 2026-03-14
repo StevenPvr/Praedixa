@@ -2,7 +2,9 @@ import {
   assertSafeOutboundUrl,
   collectAllowedHostnames,
 } from "../../security/outbound-url";
+import { siteConfig } from "../../config/site";
 import type { ContactPayload } from "./validation";
+import { requestIntentValue } from "./validation";
 
 const CONTACT_PERSIST_TIMEOUT_MS = 8_000;
 const CONTACT_API_PATH = "/api/v1/public/contact-requests";
@@ -31,25 +33,29 @@ export async function persistContactRequest(
       },
       body: JSON.stringify({
         locale: data.locale,
-        requestType: data.requestType,
+        requestType: requestIntentValue(data.intent),
         companyName: data.companyName,
-        firstName: data.firstName,
-        lastName: data.lastName,
         role: data.role,
         email: data.email,
-        phone: data.phone,
         subject: data.subject,
-        message: data.message,
+        message: data.mainTradeOff,
         consent: data.consent,
         sourceIp: ip,
         metadataJson: {
           source: "landing-contact-form",
-          requestType: data.requestType,
+          intent: data.intent,
           locale: data.locale,
-          userAgent: request.headers.get("user-agent")?.slice(0, 250) ?? "",
-          referer: request.headers.get("referer")?.slice(0, 400) ?? "",
-          forwardedFor:
-            request.headers.get("x-forwarded-for")?.slice(0, 250) ?? "",
+          siteCount: data.siteCount,
+          sector: data.sector,
+          timeline: data.timeline,
+          currentStack: data.currentStack,
+          mainTradeOff: data.mainTradeOff,
+          message: data.message,
+          userAgent: sanitizeHeaderValue(
+            request.headers.get("user-agent"),
+            160,
+          ),
+          referer: sanitizeStoredReferer(request.headers.get("referer")),
           submittedAt: new Date().toISOString(),
         },
       }),
@@ -87,6 +93,9 @@ function readContactApiConfig(): { baseUrl: string; token: string } {
   const isLocalHttp =
     parsedBaseUrl.protocol === "http:" &&
     parsedBaseUrl.hostname === "localhost";
+  const allowedHosts = collectAllowedHostnames(
+    process.env.CONTACT_API_ALLOWED_HOSTS,
+  );
 
   if (parsedBaseUrl.protocol !== "https:" && !isLocalHttp) {
     throw new Error(
@@ -96,14 +105,48 @@ function readContactApiConfig(): { baseUrl: string; token: string } {
   if (parsedBaseUrl.username || parsedBaseUrl.password) {
     throw new Error("CONTACT_API_BASE_URL must not include credentials");
   }
+  if (
+    process.env.NODE_ENV === "production" &&
+    !isLocalHttp &&
+    allowedHosts.size === 0
+  ) {
+    throw new Error(
+      "CONTACT_API_ALLOWED_HOSTS must be configured in production",
+    );
+  }
 
   assertSafeOutboundUrl(parsedBaseUrl, {
-    allowedHosts: collectAllowedHostnames(
-      process.env.CONTACT_API_ALLOWED_HOSTS,
-    ),
+    allowedHosts,
   });
 
   return { baseUrl: parsedBaseUrl.toString(), token };
+}
+
+function sanitizeHeaderValue(value: string | null, maxLength: number): string {
+  if (!value) {
+    return "";
+  }
+
+  return value.trim().slice(0, maxLength);
+}
+
+function sanitizeStoredReferer(value: string | null): string {
+  if (!value) {
+    return "";
+  }
+
+  try {
+    const parsed = new URL(value);
+    const publicOrigin = new URL(siteConfig.url).origin;
+
+    if (parsed.origin === publicOrigin) {
+      return `${parsed.origin}${parsed.pathname}`.slice(0, 300);
+    }
+
+    return parsed.origin.slice(0, 160);
+  } catch {
+    return "";
+  }
 }
 
 async function extractApiErrorMessage(response: Response): Promise<string> {

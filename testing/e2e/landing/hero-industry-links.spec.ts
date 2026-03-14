@@ -1,26 +1,19 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Hero industry links", () => {
-  test("renders the current sector teaser without legacy carousel roles", async ({
+  test("renders the qualification block without legacy carousel roles", async ({
     page,
   }) => {
     await page.goto("/fr");
 
     await expect(
       page.getByRole("heading", {
-        name: "Quatre secteurs. Un même moteur de décision.",
+        name: "Un bon point de départ si…",
       }),
     ).toBeVisible();
-    await expect(page.locator('a[href="/fr/secteurs/hcr"]')).toHaveCount(1);
     await expect(
-      page.locator('a[href="/fr/secteurs/enseignement-superieur"]'),
-    ).toHaveCount(1);
-    await expect(
-      page.locator('a[href="/fr/secteurs/logistique-transport-retail"]'),
-    ).toHaveCount(1);
-    await expect(
-      page.locator('a[href="/fr/secteurs/automobile-concessions-ateliers"]'),
-    ).toHaveCount(1);
+      page.getByRole("heading", { name: "Pas pour vous si…" }),
+    ).toBeVisible();
     await expect(page.getByRole("tab")).toHaveCount(0);
     await expect(page.getByRole("tabpanel")).toHaveCount(0);
   });

@@ -73,3 +73,4 @@ pnpm --filter @praedixa/landing dev:fresh
 
 - Prod principale: Scaleway Serverless Containers via `Dockerfile.scaleway` et scripts racine.
 - Build alternatif: OpenNext Cloudflare (`cf:build`, `preview`, `deploy`) surtout pour preview/dev.
+- `@opennextjs/cloudflare` doit rester un outillage de build/dev, pas une dependance runtime du site public.

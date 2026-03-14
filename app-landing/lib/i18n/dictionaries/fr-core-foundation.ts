@@ -47,8 +47,8 @@ export const frCoreFoundation: Partial<Dictionary> = {
       },
     ],
     ctaPrimary: "Voir un exemple concret",
-    ctaSecondary: "Parler du déploiement",
-    ctaTertiary: "Demander la preuve sur historique",
+    ctaSecondary: "Cadrer un premier périmètre",
+    ctaTertiary: "",
     previewTitle: "Un aperçu de votre lecture business",
     ctaMeta: "Déploiement Praedixa · lecture seule au départ · NDA possible",
     trustBadges: [
