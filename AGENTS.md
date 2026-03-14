@@ -141,6 +141,7 @@ Before attaching supply-chain evidence to a signed release manifest, verify the 
 Before reusing a demo seed pipeline for real tenant provisioning, split the minimal foundation bootstrap from the operational demo data path.
 Before allowing `Sec-Fetch-Site:none` on a cookie-authenticated JSON route, require an explicit navigation opt-in; never accept it by default on session or proxy handlers.
 Before using a Markdown matrix as release-critical inventory, version an equivalent machine-readable source and validate docs and gates against it.
+Before trusting an `uv`-backed dependency audit in `app-api`, resync the package-local environment from `app-api/uv.lock` so stale tool dependencies cannot create false-positive blockers.
 Before signing JSON evidence with HMAC in shell scripts, sign a canonical JSON serialization and require a pre-provisioned key file; never auto-generate a trust root during signing or verification.
 Before accepting restore-drill evidence in a signed manifest, require one evidence artifact plus digest for every mandatory semantic check, not just a summary status string.
 Before spawning workflow or approval records from a user action, carry both the actor id and actor role from the authenticated request context so separation-of-duties and audit records stay complete.

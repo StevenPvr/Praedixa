@@ -106,7 +106,7 @@ Securite/qualite/perf:
 - `grype`
 - `terraform` + `tflint` (si fichiers `.tf`)
 
-Le `pre-push` profond execute aussi `./scripts/gate-quality-static.sh` avec lint ESLint sans warnings, puis la verification des invariants declares (`python3 scripts/check-security-invariants.py --mode full`) avant la verification du rapport signe.
+Le `pre-push` profond execute aussi `./scripts/gate-quality-static.sh` avec lint ESLint sans warnings, resynchronise `app-api/.venv` depuis `app-api/uv.lock` avant `pip-audit`, puis lance la verification des invariants declares (`python3 scripts/check-security-invariants.py --mode full`) avant la verification du rapport signe.
 Le gate exhaustif lance CodeQL `security-extended` sur un snapshot source epure des artefacts generes (`.next`, `.open-next`, `coverage`, `playwright-report`) et des depots imbriques hors scope. Les controles de qualite restent portes par ESLint, TypeScript, Ruff, MyPy, Knip, dependency-cruiser, deptry et les builds/tests.
 Pour la dette Python historique, le gate exhaustif bloque toute nouvelle violation Xenon ou toute aggravation via `scripts/check-python-complexity-baseline.py`, avec baseline versionnee dans `scripts/python-complexity-baseline.json`.
 Pour la dette TypeScript/Next/Node historique, le gate exhaustif bloque aussi toute nouvelle derive de taille/focalisation via `scripts/check-ts-guardrail-baseline.mjs`, avec baseline versionnee dans `scripts/ts-guardrail-baseline.json`.

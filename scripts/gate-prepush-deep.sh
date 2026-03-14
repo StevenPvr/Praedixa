@@ -94,6 +94,7 @@ echo "[prepush-deep] NPM audit..."
 echo "[prepush-deep] Python dependency audit..."
 (
   cd app-api
+  uv sync --all-groups --locked >/dev/null
   uv run pip-audit --skip-editable
 )
 
