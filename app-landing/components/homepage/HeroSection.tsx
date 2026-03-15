@@ -206,21 +206,54 @@ function HeroOfferDescriptor({
 
 function HeroBrandSignature() {
   return (
-    <div className="inline-flex items-center gap-3 rounded-full border border-white/14 bg-[linear-gradient(180deg,rgba(255,255,255,0.14)_0%,rgba(255,255,255,0.07)_100%)] px-4 py-3 shadow-[0_26px_64px_-40px_rgba(2,6,23,0.9),inset_0_1px_0_rgba(255,255,255,0.16)] backdrop-blur-xl">
-      <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/18 bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+    <div className="relative overflow-hidden rounded-[2rem] border border-white/14 bg-[linear-gradient(180deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.08)_100%)] px-8 py-7 shadow-[0_38px_90px_-54px_rgba(2,6,23,0.86),inset_0_1px_0_rgba(255,255,255,0.18)] backdrop-blur-xl">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[radial-gradient(circle_at_28%_24%,rgba(244,231,198,0.2),transparent_36%),radial-gradient(circle_at_74%_78%,rgba(255,255,255,0.08),transparent_42%)]"
+      />
+      <div className="relative inline-flex items-center gap-4">
+        <span className="relative inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/18 bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,rgba(244,231,198,0.16),transparent_68%)]"
+          />
+          <PraedixaLogo
+            size={30}
+            color="rgba(255,255,255,0.98)"
+            className="relative"
+          />
+        </span>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[rgba(244,231,198,0.82)]">
+            Decision intelligence
+          </p>
+          <span className="mt-1 block text-[2rem] font-semibold tracking-[-0.06em] text-white [text-shadow:0_16px_42px_rgba(2,6,23,0.58)]">
+            Praedixa
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroBrandRail() {
+  return (
+    <div className="relative w-full max-w-[25rem] xl:max-w-[27rem]">
+      <div
+        aria-hidden="true"
+        className="absolute -left-10 top-8 h-44 w-44 rounded-full bg-[radial-gradient(circle_at_center,rgba(244,231,198,0.16),transparent_72%)] blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-y-10 left-5 w-px bg-[linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.22),rgba(255,255,255,0))]"
+      />
+      <div className="relative ml-auto flex min-h-[20rem] items-center justify-end pl-8">
         <span
           aria-hidden="true"
-          className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,rgba(244,231,198,0.16),transparent_68%)]"
+          className="absolute right-4 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_74%)] blur-3xl"
         />
-        <PraedixaLogo
-          size={24}
-          color="rgba(255,255,255,0.96)"
-          className="relative"
-        />
-      </span>
-      <span className="text-[1.05rem] font-semibold tracking-[-0.04em] text-white [text-shadow:0_10px_28px_rgba(2,6,23,0.55)] sm:text-[1.18rem]">
-        Praedixa
-      </span>
+        <HeroBrandSignature />
+      </div>
     </div>
   );
 }
@@ -283,14 +316,12 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
           <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,transparent,rgba(10,8,6,0.34))]" />
         </div>
 
-        <div className="relative mx-auto flex min-h-[calc(100dvh-var(--header-h))] max-w-7xl items-center px-4 pb-8 pt-14 sm:px-6 md:pb-10 lg:px-8 lg:pb-14">
-          <div className="flex min-h-full max-w-4xl flex-col justify-center py-4 lg:max-w-[72rem] lg:py-8">
+        <div className="relative mx-auto grid min-h-[calc(100dvh-var(--header-h))] max-w-7xl items-center gap-10 px-4 pb-8 pt-14 sm:px-6 md:pb-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.64fr)] lg:gap-12 lg:px-8 lg:pb-14 xl:grid-cols-[minmax(0,0.96fr)_minmax(320px,0.72fr)] xl:gap-16">
+          <div className="flex min-h-full max-w-3xl flex-col justify-center py-4 lg:py-8">
             <div>
-              <HeroBrandSignature />
-
               <div
                 aria-label={heroKickerLabel}
-                className="mt-5 inline-flex flex-wrap items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[rgba(255,255,255,0.78)] shadow-[0_18px_40px_-34px_rgba(2,6,23,0.8)] backdrop-blur-md"
+                className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[rgba(255,255,255,0.78)] shadow-[0_18px_40px_-34px_rgba(2,6,23,0.8)] backdrop-blur-md"
               >
                 <span
                   className="h-1.5 w-1.5 rounded-full bg-[var(--brass-dark-600)] shadow-[0_0_12px_rgba(244,231,198,0.35)]"
@@ -336,6 +367,10 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                 />
               </div>
             </div>
+          </div>
+
+          <div className="hidden lg:flex lg:min-h-full lg:items-center lg:justify-end">
+            <HeroBrandRail />
           </div>
         </div>
       </section>
