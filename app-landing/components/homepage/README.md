@@ -75,6 +75,7 @@ La homepage ne doit pas laisser un bloc `pilote` ou un ancien `deploiement` reco
 Sur la home principale, preferer un parcours `hero -> qualification -> probleme -> comparatif -> livrables -> offre -> secteurs -> securite -> contact` a une accumulation de teasers et hubs qui remontent trop tot dans la lecture.
 Quand la home reste multi-verticale, ne pas specialiser le hero sur une seule ICP; garder la promesse commune en haut et reporter la largeur sectorielle dans un bloc dedie plus bas.
 Le comparatif homepage doit opposer Praedixa a des categories d'outils ou de pratiques (`ERP`, `BI`, `planning`, `Excel/comites`), jamais a des marques nommees.
+Dans `StackComparisonSection.tsx`, garder la composition comme un assemblage de petits sous-composants de rendu; ne pas laisser la section replonger dans une fonction unique qui casse le guardrail de longueur.
 Dans `ClosedLoopTeaserSection.tsx`, eviter les grilles de 5 cartes identiques: preferer une composition asymetrique avec une colonne d'intention et des etapes de tailles variees.
 Dans `ClosedLoopTeaserSection.tsx`, ne pas utiliser de `translate-y` decoratif sur les etapes si cela fragilise la lecture ou le contraste; privilegier un rail vertical compact et stable.
 Dans le rail d'etapes horizontal de `ClosedLoopTeaserSection.tsx`, garder toutes les cartes a hauteur identique et eviter tout contenu additionnel reserve a une seule carte.
