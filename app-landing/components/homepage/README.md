@@ -63,9 +63,11 @@ Dans le hero, `hero.headline` doit rester le mot-ancre principal, et `hero.headl
 Sur une hero image ou video sombre, ne pas reutiliser des tokens texte pensés pour fond clair sur `hero.headlineHighlight`; la ligne secondaire doit rester claire et lisible au premier coup d'oeil.
 Le hero FR ne doit plus cacher le `hero.kicker` derriere une liste statique de fonctions; si la promesse cible un persona ou une offre d'entree, afficher la copy du dictionnaire telle quelle.
 Dans le hero actuel, il ne doit rester que deux CTA publics: la preuve sur historique et le cadrage du premier perimetre.
+Dans `HeroSection.tsx`, la signature de marque au-dessus de la promesse doit reutiliser `PraedixaLogo` depuis `@praedixa/ui` avec le mot-symbole `Praedixa`, dans un contraste suffisant pour rester lisible sur la video.
 Pour les mots accentués du hero, choisir la couleur de marque la plus lisible sur le média réel (`--accent-*` ou `--brass-*`), pas une teinte pâle qui ressemble à un simple halo.
 Le rail de preuves en bas du hero doit etre ancre avec le layout (`flex-1` + `mt-auto`), pas repositionne uniquement au `margin-top`, pour qu'il ne remonte pas quand la copy du hero change.
 Sur la hero actuelle avec video de fond, garder une seule masse editoriale dominante. Ne pas reintroduire de grosse carte laterale si elle concurrence la lecture du message principal.
+Sur la hero video actuelle, la carte laterale droite ne doit pas revenir si elle concurrence la signature de marque et la lecture du message principal.
 Quand une carte de preuve est affichee a droite du hero video, l'ancrer dans la colonne desktop avec un wrapper `relative` stable et sans gros `translate-y`; elle doit sembler suspendue a droite, pas tombee en bas du viewport.
 Sur un hero video, garder les halos decoratifs tres subtils et sans dominante bleue opaque; si un calque commence a masquer la video, reduire ou supprimer l'effet au lieu de compenser ailleurs.
 Pour proteger le contraste du hero video, preferer un voile neutre chaud ou charbon tres leger plutot qu'un overlay bleu nuit pleine largeur, puis verifier le vrai rendu desktop sur une frame reelle.

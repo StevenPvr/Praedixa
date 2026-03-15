@@ -48,6 +48,7 @@ describe("HeroSection", () => {
       "data-src",
       "/hero-video/hero-industries-montage.mp4",
     );
+    expect(screen.getByText("Praedixa")).toBeInTheDocument();
 
     const heading = screen.getByRole("heading", { level: 1 });
     expect(heading).toHaveTextContent("Arbitrez 3 à 14 jours plus tôt");
@@ -75,6 +76,7 @@ describe("HeroSection", () => {
         "La preuve sur historique sert de point d’entrée quand il faut d’abord objectiver un premier arbitrage.",
       ),
     ).toBeInTheDocument();
+    expect(screen.queryByText("Vue ROI")).not.toBeInTheDocument();
     expect(
       screen.getAllByText("Lecture seule au départ").length,
     ).toBeGreaterThan(0);
