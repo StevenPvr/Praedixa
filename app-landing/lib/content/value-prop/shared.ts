@@ -15,6 +15,20 @@ export interface ProofComparisonRow {
   limitation: string;
 }
 
+export interface HeroOfferDescriptor {
+  badge: string;
+  title: string;
+  body: string;
+  note: string;
+}
+
+export interface StackComparisonRow {
+  category: string;
+  currentCoverage: string;
+  stopsAt: string;
+  praedixaAdd: string;
+}
+
 export interface ValuePropContent {
   icp: string;
   promise: string;
@@ -26,6 +40,7 @@ export interface ValuePropContent {
   heroHeading: string;
   heroHeadingHighlight: string;
   heroSubheading: string;
+  heroOffer: HeroOfferDescriptor;
   footerTagline: string;
   qualificationTitle: string;
   qualificationBody: string;
@@ -33,6 +48,19 @@ export interface ValuePropContent {
   fitItems: string[];
   notFitTitle: string;
   notFitItems: string[];
+  stackComparison: {
+    kicker: string;
+    heading: string;
+    subheading: string;
+    columnLabels: {
+      category: string;
+      currentCoverage: string;
+      stopsAt: string;
+      praedixaAdd: string;
+    };
+    rows: StackComparisonRow[];
+    bottomNote: string;
+  };
   servicesMeta: {
     title: string;
     description: string;

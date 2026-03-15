@@ -91,7 +91,7 @@ export function HeroProofCard({ locale, className }: HeroProofCardProps) {
   return (
     <motion.div
       className={cn(
-        "w-full max-w-[28rem] overflow-hidden rounded-3xl border border-neutral-200/70 bg-white/80 shadow-[0_34px_90px_-70px_rgba(15,23,42,0.55),inset_0_1px_0_rgba(255,255,255,0.85)] backdrop-blur",
+        "relative w-full max-w-[28rem] overflow-hidden rounded-3xl border border-neutral-200/70 bg-white/80 shadow-[0_34px_90px_-70px_rgba(15,23,42,0.55),inset_0_1px_0_rgba(255,255,255,0.85)] backdrop-blur",
         className,
       )}
       {...motionProps}

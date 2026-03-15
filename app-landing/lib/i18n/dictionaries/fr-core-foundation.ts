@@ -29,9 +29,9 @@ export const frCoreFoundation: Partial<Dictionary> = {
     headlineHighlight: "Protégez la marge avant que l’opération ne casse.",
     subtitle:
       "Praedixa aide les réseaux multi-sites à repérer plus tôt quand renforcer, réallouer, reporter ou ajuster le niveau de service, puis à comparer les options sous contraintes et à relire l’impact réel des décisions prises.",
-    manifestoLabel: "Pour qui Praedixa est fait",
+    manifestoLabel: "Le point de départ Praedixa",
     manifestoQuote:
-      "COO, directions des opérations et responsables réseau qui arbitrent tous les jours sous contrainte.",
+      "Des équipes réseau qui ne peuvent plus attendre la casse ou le comité suivant pour arbitrer.",
     bullets: [
       {
         metric: "Pour qui",

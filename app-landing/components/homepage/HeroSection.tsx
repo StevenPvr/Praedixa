@@ -1,6 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight } from "@phosphor-icons/react/ssr";
 import {
   buildContactIntentHref,
   getLocalizedPath,
@@ -9,7 +7,9 @@ import {
 import type { Dictionary } from "../../lib/i18n/types";
 import { getValuePropContent } from "../../lib/content/value-prop";
 import { heroIndustryMontageMedia } from "../../lib/media/hero-industries";
+import { MagneticActionLink } from "../shared/motion/MagneticActionLink";
 import { HeroBackgroundVideo } from "./HeroBackgroundVideo";
+import { HeroProofCard } from "./HeroProofCard";
 
 interface HeroSectionProps {
   locale: Locale;
@@ -170,6 +170,40 @@ function HeroTrustShelf({
   );
 }
 
+function HeroOfferDescriptor({
+  offer,
+}: {
+  offer: {
+    badge: string;
+    title: string;
+    body: string;
+    note: string;
+  };
+}) {
+  return (
+    <div className="mt-8 max-w-[60ch] rounded-[1.7rem] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.09)_0%,rgba(255,255,255,0.05)_100%)] p-4 shadow-[0_28px_72px_-50px_rgba(2,6,23,0.86),inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-xl sm:p-5">
+      <div className="grid gap-4 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:gap-5">
+        <div className="md:pr-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--brass-dark-700)]">
+            {offer.badge}
+          </p>
+          <p className="mt-3 text-lg font-semibold tracking-[-0.03em] text-white sm:text-[1.15rem]">
+            {offer.title}
+          </p>
+        </div>
+        <div className="border-t border-white/10 pt-4 md:border-l md:border-t-0 md:pl-5 md:pt-0">
+          <p className="text-sm leading-relaxed text-[rgba(255,255,255,0.8)]">
+            {offer.body}
+          </p>
+          <p className="mt-3 text-xs leading-relaxed text-[rgba(244,231,198,0.9)]">
+            {offer.note}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function HeroSection({ locale, dict }: HeroSectionProps) {
   const isFr = locale === "fr";
   const hero = dict.hero;
@@ -179,12 +213,12 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
     heading: valueProp.heroHeading,
     headingHighlight: valueProp.heroHeadingHighlight,
     subtitle: valueProp.heroSubheading,
+    offer: valueProp.heroOffer,
     manifestoLabel: hero.manifestoLabel,
     manifestoQuote: hero.manifestoQuote,
     pillars: hero.bullets,
     ctaPrimary: valueProp.ctaPrimary,
     ctaSecondary: valueProp.ctaSecondary,
-    microcopy: valueProp.reassurance.join(" · "),
     trustBadges: valueProp.reassurance,
   };
 
@@ -192,26 +226,18 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
   const scopingHref = buildContactIntentHref(locale, "deployment");
   const hasManifestoLabel = copy.manifestoLabel.trim().length > 0;
   const heroKickerLabel = copy.kicker;
-  const heroSupportLine =
-    copy.microcopy.trim().length > 0
-      ? copy.microcopy
-      : isFr
-        ? "Lecture seule au démarrage · données agrégées · impact relu dans le temps"
-        : "Read-only on your tools · human validation · impact reviewed over time";
   const heroChrome = isFr
     ? {
-        kicker: "Réseaux multi-sites · arbitrages coûteux · impact relu",
         shelfEyebrow: "Ce qu’un acheteur peut vérifier maintenant",
       }
     : {
-        kicker: "Multi-site networks · costly trade-offs · impact reviewed",
         shelfEyebrow: "What a buyer can verify now",
       };
 
-  const trustBadges = copy.trustBadges.slice(0, 4);
+  const heroTrustBadges = copy.trustBadges.slice(0, 4);
   const heroManifestoBridge = isFr
-    ? "Praedixa aide d’abord à cadrer les arbitrages qui coûtent cher quand ils sont vus trop tard: où renforcer, où réallouer, où accepter un report, puis comment relire l’effet réel de la décision sur coût, service et risque."
-    : "Praedixa starts by framing the trade-offs that get expensive when they are seen too late: where to reinforce, where to reallocate, where to accept delay, and then how to review the actual effect on cost, service, and risk.";
+    ? "Praedixa resserre l’entrée sur un premier arbitrage coûteux à objectiver, sur vos données existantes, avec une lecture exploitable par Ops et Finance avant toute montée en charge."
+    : "Praedixa narrows the entry point to one costly trade-off worth objectifying, on top of your existing data, with an Ops-and-Finance-readable frame before any broader rollout.";
 
   return (
     <>
@@ -236,7 +262,7 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
           <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,transparent,rgba(10,8,6,0.34))]" />
         </div>
 
-        <div className="relative mx-auto flex min-h-[calc(100dvh-var(--header-h))] max-w-7xl items-center px-4 pb-8 pt-14 sm:px-6 md:pb-10 lg:px-8 lg:pb-14">
+        <div className="relative mx-auto grid min-h-[calc(100dvh-var(--header-h))] max-w-7xl items-center gap-10 px-4 pb-8 pt-14 sm:px-6 md:pb-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.64fr)] lg:gap-12 lg:px-8 lg:pb-14 xl:grid-cols-[minmax(0,0.96fr)_minmax(320px,0.72fr)] xl:gap-16">
           <div className="flex min-h-full max-w-3xl flex-col justify-center py-4 lg:py-8">
             <div>
               <div
@@ -251,10 +277,6 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                   {copy.kicker}
                 </span>
               </div>
-
-              <p className="mt-7 text-[11px] font-semibold uppercase tracking-[0.18em] text-[rgba(255,255,255,0.52)]">
-                {heroChrome.kicker}
-              </p>
 
               <h1 className="mt-3 max-w-[11ch] text-[3.9rem] font-semibold leading-[0.88] tracking-[-0.065em] text-white sm:text-[5rem] lg:text-[6.3rem]">
                 {copy.heading}
@@ -274,31 +296,39 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
                 {copy.subtitle}
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3.5">
-                <Link
-                  href={exampleHref}
-                  className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-white px-6 py-3 text-sm font-semibold text-neutral-950 no-underline shadow-[0_30px_72px_-42px_rgba(2,6,23,0.82)] transition-all duration-300 [transition-timing-function:var(--ease-snappy)] hover:bg-amber-50 hover:shadow-[0_38px_90px_-48px_rgba(2,6,23,0.9)] active:translate-y-[1px] active:scale-[0.98]"
-                >
-                  {copy.ctaPrimary}
-                  <span
-                    aria-hidden="true"
-                    className="transition-transform duration-200 [transition-timing-function:var(--ease-snappy)] group-hover:translate-x-0.5"
-                  >
-                    <ArrowRight size={16} weight="bold" />
-                  </span>
-                </Link>
-                <Link
-                  href={scopingHref}
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-white no-underline transition-colors duration-200 hover:text-amber-50"
-                >
-                  {copy.ctaSecondary}
-                  <ArrowRight size={14} weight="bold" />
-                </Link>
-              </div>
+              <HeroOfferDescriptor offer={copy.offer} />
 
-              <p className="mt-5 max-w-[56ch] text-sm font-medium tracking-[-0.01em] text-[rgba(255,255,255,0.56)]">
-                {heroSupportLine}
-              </p>
+              <div className="mt-8 flex flex-col gap-3.5 sm:flex-row sm:flex-wrap sm:items-center">
+                <MagneticActionLink
+                  href={exampleHref}
+                  label={copy.ctaPrimary}
+                  wrapperClassName="sm:w-auto"
+                  className="rounded-full border-white/70 bg-white px-6 text-neutral-950 shadow-[0_30px_72px_-42px_rgba(2,6,23,0.82)] hover:border-white hover:bg-amber-50 hover:shadow-[0_38px_90px_-48px_rgba(2,6,23,0.9)] sm:w-auto"
+                />
+                <MagneticActionLink
+                  href={scopingHref}
+                  label={copy.ctaSecondary}
+                  wrapperClassName="sm:w-auto"
+                  className="rounded-full border-white/16 bg-white/[0.05] px-6 text-white hover:border-white/28 hover:bg-white/[0.1] sm:w-auto"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden lg:flex lg:min-h-full lg:items-center lg:justify-end">
+            <div className="relative w-full max-w-[27rem] pt-10 xl:max-w-[29rem] xl:pt-14">
+              <div
+                aria-hidden="true"
+                className="absolute -left-8 top-20 h-40 w-40 rounded-full bg-[radial-gradient(circle_at_center,rgba(244,231,198,0.14),transparent_72%)] blur-3xl"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute inset-y-16 left-3 w-px bg-[linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.18),rgba(255,255,255,0))]"
+              />
+              <HeroProofCard
+                locale={locale}
+                className="ml-auto w-full max-w-[25rem] rotate-[-1.15deg]"
+              />
             </div>
           </div>
         </div>
@@ -309,7 +339,7 @@ export function HeroSection({ locale, dict }: HeroSectionProps) {
         hasManifestoLabel={hasManifestoLabel}
         heroChrome={heroChrome}
         heroManifestoBridge={heroManifestoBridge}
-        trustBadges={trustBadges}
+        trustBadges={heroTrustBadges}
       />
     </>
   );

@@ -41,12 +41,7 @@ describe("HeroSection", () => {
 
     expect(
       screen.getByLabelText(
-        "Pour COO, directions des opérations et responsables réseau",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Réseaux multi-sites · arbitrages coûteux · impact relu",
+        "Pour réseaux multi-sites qui arbitrent sous contrainte",
       ),
     ).toBeInTheDocument();
     expect(screen.getByTestId("hero-background-video")).toHaveAttribute(
@@ -69,11 +64,25 @@ describe("HeroSection", () => {
         /Praedixa détecte les tensions multi-sites avant l’urgence/i,
       ),
     ).toBeInTheDocument();
+    expect(screen.getByText("Déploiement Praedixa")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Lecture seule au départ · Données agrégées · Hébergement France · NDA dès le premier échange",
+        "Logiciel + mise en place cadrée sur vos données existantes, avec démarrage possible en lecture seule.",
       ),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "La preuve sur historique sert de point d’entrée quand il faut d’abord objectiver un premier arbitrage.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText("Lecture seule au départ").length,
+    ).toBeGreaterThan(0);
+    expect(screen.getAllByText("Données agrégées").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Hébergement France").length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText("NDA dès le premier échange").length,
+    ).toBeGreaterThan(0);
     expect(
       screen.getByRole("link", { name: "Voir la preuve sur historique" }),
     ).toHaveAttribute("href", "/fr/decision-log-preuve-roi");

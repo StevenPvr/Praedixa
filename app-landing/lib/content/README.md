@@ -5,7 +5,7 @@ Contenu structure et versionne du landing hors dictionnaires UI.
 ## Zones majeures
 
 - `knowledge-pages*.ts`: pages knowledge/piliers
-- `value-prop/*.ts`: source de verite FR/EN pour la promesse publique, les CTA, la page offre, la page contact et la preuve sur historique
+- `value-prop/*.ts`: source de verite FR/EN pour la promesse publique, les CTA, le descripteur d'offre dans la hero, le comparatif homepage, la page offre, la page contact et la preuve sur historique
 - `serp-resources-fr*.ts`: ressources SEO FR publiees sous `/fr/ressources/[slug]`
 - `serp-briefs-fr*.ts`: briefs SEO internes et derives
 - `serp-asset-downloads.ts`: assets telechargeables lies aux ressources

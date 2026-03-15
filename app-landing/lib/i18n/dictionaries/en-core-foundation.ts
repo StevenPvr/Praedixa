@@ -29,9 +29,9 @@ export const enCoreFoundation: Partial<Dictionary> = {
     headlineHighlight: "the trade-offs before urgency burns margin.",
     subtitle:
       "Praedixa helps multi-site networks surface earlier when to reinforce, reallocate, postpone, or adjust service levels, then compare constrained options and review the actual impact of the decisions taken.",
-    manifestoLabel: "Who Praedixa is for",
+    manifestoLabel: "Where Praedixa starts",
     manifestoQuote:
-      "COO, operations leaders, and network managers who make high-stakes trade-offs every day.",
+      "Network teams that cannot wait for the next review or the next failure to arbitrate.",
     bullets: [
       {
         metric: "Who it serves",

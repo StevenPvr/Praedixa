@@ -14,11 +14,17 @@ export const coreValuePropEn: ValuePropContent = {
   ],
   ctaPrimary: "See the historical proof",
   ctaSecondary: "Frame the first decision scope",
-  heroKicker: "For COOs, operations leaders, and network managers",
+  heroKicker: "For multi-site networks making constrained trade-offs",
   heroHeading: "Arbitrate 3 to 14 days earlier",
   heroHeadingHighlight: "the decisions that protect margin.",
   heroSubheading:
     "Praedixa surfaces multi-site tensions before urgency hits, compares reinforcement, reallocation, postponement, or service adjustment on a cost / service / risk basis, then reviews the real impact decision by decision.",
+  heroOffer: {
+    badge: "What you buy",
+    title: "Praedixa Deployment",
+    body: "Software plus a framed setup on top of your existing data, with a read-only start when needed.",
+    note: "Historical proof remains the entry point when a first trade-off needs to be objectified before deployment.",
+  },
   footerTagline:
     "Praedixa helps multi-site networks arbitrate earlier the decisions that protect margin and service, without replacing the tools already in place.",
   qualificationTitle: "Who it is for, which decisions, what changes",
@@ -36,6 +42,68 @@ export const coreValuePropEn: ValuePropContent = {
     "no operations sponsor can frame the first scope",
     "no usable export or API is available at the start",
   ],
+  stackComparison: {
+    kicker: "Comparison",
+    heading:
+      "Your stack shows data. It does not arbitrate the economic trade-off.",
+    subheading:
+      "ERP, BI, planning, and spreadsheets stay useful. The gap appears when the cost / service / risk trade-off stays split across tools, teams, and meetings. Praedixa adds the missing decision frame.",
+    columnLabels: {
+      category: "Current layer",
+      currentCoverage: "What it already covers",
+      stopsAt: "Where it stops for trade-offs",
+      praedixaAdd: "What Praedixa adds",
+    },
+    rows: [
+      {
+        category: "ERP",
+        currentCoverage:
+          "Transactions, inventory, orders, costs, and operational events.",
+        stopsAt:
+          "Does not cleanly compare several action options on a cost / service / risk basis that a review committee can use.",
+        praedixaAdd:
+          "Turns those signals into compared options, a retained decision, and a baseline / recommended / actual review.",
+      },
+      {
+        category: "BI / reporting",
+        currentCoverage:
+          "KPIs, drifts, trends, and consolidated visibility on what is happening.",
+        stopsAt:
+          "Surfaces the drift, but leaves the action choice and assumptions scattered across decks, chats, and meetings.",
+        praedixaAdd:
+          "Frames the economic conflict, makes assumptions explicit, and documents the decision that gets taken.",
+      },
+      {
+        category: "Planning / WFM",
+        currentCoverage:
+          "Local coverage, capacity, schedules, and execution close to the field.",
+        stopsAt:
+          "Helps plan execution, but not compare several multi-site scenarios in a shared Ops / Finance language.",
+        praedixaAdd:
+          "Compares reinforcement, reallocation, postponement, or service adjustment before launching the first useful move.",
+      },
+      {
+        category: "Spreadsheets / committees",
+        currentCoverage:
+          "Business flexibility to frame a priority topic quickly.",
+        stopsAt:
+          "Stays manual, fragmented, hard to replay, and weak on impact proof after the decision.",
+        praedixaAdd:
+          "Keeps the assumptions, retained decision, and observed effect in one place to prepare the next trade-off.",
+      },
+      {
+        category: "Praedixa",
+        currentCoverage:
+          "A decision layer sitting on top of the existing stack to objectify one high-stakes trade-off first.",
+        stopsAt:
+          "Does not replace ERP, BI, or planning. It depends on them to start fast from the right signals.",
+        praedixaAdd:
+          "Installs a reusable frame to see, compare, decide, and prove over time.",
+      },
+    ],
+    bottomNote:
+      "Praedixa sits above the current stack. The goal is not to replace your tools, but to keep an expensive trade-off from staying fragmented across them.",
+  },
   servicesMeta: {
     title: "Praedixa | What you buy: a first decision scope",
     description:

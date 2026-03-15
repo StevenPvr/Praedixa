@@ -14,11 +14,17 @@ export const coreValuePropFr: ValuePropContent = {
   ],
   ctaPrimary: "Voir la preuve sur historique",
   ctaSecondary: "Cadrer un premier périmètre",
-  heroKicker: "Pour COO, directions des opérations et responsables réseau",
+  heroKicker: "Pour réseaux multi-sites qui arbitrent sous contrainte",
   heroHeading: "Arbitrez 3 à 14 jours plus tôt",
   heroHeadingHighlight: "les décisions qui protègent la marge.",
   heroSubheading:
     "Praedixa détecte les tensions multi-sites avant l’urgence, compare renfort, réallocation, report ou ajustement de service sur une base coût / service / risque, puis relit l’impact réel décision par décision.",
+  heroOffer: {
+    badge: "Ce que vous achetez",
+    title: "Déploiement Praedixa",
+    body: "Logiciel + mise en place cadrée sur vos données existantes, avec démarrage possible en lecture seule.",
+    note: "La preuve sur historique sert de point d’entrée quand il faut d’abord objectiver un premier arbitrage.",
+  },
   footerTagline:
     "Praedixa aide les réseaux multi-sites à arbitrer plus tôt les décisions qui protègent marge et service, sans remplacer les outils déjà en place.",
   qualificationTitle: "Pour qui, quelles décisions, quel résultat",
@@ -36,6 +42,68 @@ export const coreValuePropFr: ValuePropContent = {
     "aucun sponsor opérations ne peut cadrer le premier périmètre",
     "aucun export ni API exploitable n’est disponible au démarrage",
   ],
+  stackComparison: {
+    kicker: "Comparatif",
+    heading:
+      "Votre stack montre des données. Elle n’arbitre pas le conflit économique.",
+    subheading:
+      "ERP, BI, planning et Excel restent utiles. Le problème commence quand l’arbitrage coût / service / risque se disperse entre plusieurs outils, équipes et réunions. Praedixa ajoute le cadre décisionnel qui manque.",
+    columnLabels: {
+      category: "Brique actuelle",
+      currentCoverage: "Ce qu’elle couvre déjà",
+      stopsAt: "Là où elle s’arrête pour arbitrer",
+      praedixaAdd: "Ce que Praedixa ajoute",
+    },
+    rows: [
+      {
+        category: "ERP",
+        currentCoverage:
+          "Transactions, stocks, commandes, coûts et événements d’exploitation.",
+        stopsAt:
+          "Ne compare pas proprement plusieurs options d’action sur une base coût / service / risque partageable en comité.",
+        praedixaAdd:
+          "Transforme ces signaux en options comparées, décision retenue et relecture avant / recommandé / réel.",
+      },
+      {
+        category: "BI / reporting",
+        currentCoverage:
+          "KPIs, écarts, tendances et vues consolidées pour comprendre ce qui se passe.",
+        stopsAt:
+          "Montre la dérive, mais laisse le choix d’action et ses hypothèses dispersés entre slides, messages et réunions.",
+        praedixaAdd:
+          "Cadre le conflit économique, explicite les hypothèses et documente la décision prise.",
+      },
+      {
+        category: "Planning / WFM",
+        currentCoverage:
+          "Couverture locale, capacités, horaires et exécution au plus près du terrain.",
+        stopsAt:
+          "Aide à planifier, mais pas à arbitrer plusieurs scénarios multi-sites avec un langage commun Ops / Finance.",
+        praedixaAdd:
+          "Compare renfort, réallocation, report ou ajustement de service avant d’engager la première action utile.",
+      },
+      {
+        category: "Excel / comités",
+        currentCoverage:
+          "Souplesse métier pour cadrer rapidement un sujet prioritaire.",
+        stopsAt:
+          "Reste manuel, fragmenté, difficile à rejouer et pauvre en preuve d’impact après la décision.",
+        praedixaAdd:
+          "Garde une trace des hypothèses, de la décision retenue et de l’effet observé pour préparer le prochain arbitrage.",
+      },
+      {
+        category: "Praedixa",
+        currentCoverage:
+          "Une couche de décision branchée au-dessus de l’existant pour objectiver un premier arbitrage.",
+        stopsAt:
+          "Ne remplace ni ERP, ni BI, ni planning. S’appuie sur eux pour partir vite sur les bons signaux.",
+        praedixaAdd:
+          "Installe un cadre réutilisable pour voir, comparer, décider et prouver dans le temps.",
+      },
+    ],
+    bottomNote:
+      "Praedixa se branche au-dessus de l’existant. Le but n’est pas de remplacer vos outils, mais d’éviter qu’un arbitrage coûteux reste dispersé entre eux.",
+  },
   servicesMeta: {
     title: "Praedixa | Ce que vous achetez: un premier périmètre de décision",
     description:

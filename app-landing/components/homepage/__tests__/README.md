@@ -15,6 +15,7 @@ Fichiers :
 - `HeroBackgroundVideo.test.tsx`
 - `HeroSection.test.tsx`
 - `HomepageMessaging.test.tsx`
+- `StackComparisonSection.test.tsx`
 - `SectorPagesTeaserSection.test.tsx`
 
 ## Intégration

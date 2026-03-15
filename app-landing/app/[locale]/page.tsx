@@ -6,9 +6,11 @@ import { buildLocaleMetadata, localePathMap } from "../../lib/seo/metadata";
 import { HeroSection } from "../../components/homepage/HeroSection";
 import { QualificationSection } from "../../components/homepage/QualificationSection";
 import { ProblemSection } from "../../components/homepage/ProblemSection";
+import { StackComparisonSection } from "../../components/homepage/StackComparisonSection";
 import { DeliverablesSection } from "../../components/homepage/DeliverablesSection";
 import { SecuritySection } from "../../components/homepage/SecuritySection";
 import { PilotSection } from "../../components/homepage/PilotSection";
+import { SectorPagesTeaserSection } from "../../components/homepage/SectorPagesTeaserSection";
 import { ContactCtaSection } from "../../components/homepage/ContactCtaSection";
 import { JsonLd } from "../../components/seo/JsonLd";
 
@@ -47,8 +49,10 @@ export default async function LandingPage({
       <HeroSection locale={locale} dict={dict} />
       <QualificationSection locale={locale} />
       <ProblemSection locale={locale} dict={dict} />
+      <StackComparisonSection locale={locale} />
       <DeliverablesSection dict={dict} />
       <PilotSection locale={locale} dict={dict} />
+      <SectorPagesTeaserSection locale={locale} />
       <SecuritySection dict={dict} />
       <ContactCtaSection locale={locale} dict={dict} />
       <JsonLd

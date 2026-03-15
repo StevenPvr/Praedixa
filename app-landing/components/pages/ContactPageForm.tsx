@@ -3,14 +3,8 @@
 import Link from "next/link";
 import { PaperPlaneRight, SpinnerGap } from "@phosphor-icons/react";
 import { AlertDiamondIcon } from "../shared/icons/MarketingIcons";
-import type { Locale } from "../../lib/i18n/config";
-import { getLocalizedPath } from "../../lib/i18n/config";
-import type {
-  ContactChallenge,
-  ContactFormData,
-  ContactPageCopy,
-  FieldErrors,
-} from "./contact-page.types";
+import { getLocalizedPath, type Locale } from "../../lib/i18n/config";
+import type { ContactChallenge, ContactFormData, ContactPageCopy, FieldErrors } from "./contact-page.types";
 
 const SITE_COUNTS = ["1-3", "4-10", "11-30", "31+"] as const;
 const CONTACT_SECTORS = {

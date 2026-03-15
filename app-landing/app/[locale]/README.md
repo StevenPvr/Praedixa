@@ -14,7 +14,7 @@ Ce sous-arbre porte les pages visibles par les visiteurs. Le layout localise val
 
 ## Pages majeures
 
-- `page.tsx`: homepage composee autour du parcours principal `hero -> qualification -> probleme -> livrables -> preuve publique -> reassurance IT -> contact`
+- `page.tsx`: homepage composee autour du parcours principal `hero -> qualification -> probleme -> comparatif stack -> livrables -> offre -> teaser secteurs -> reassurance IT -> contact`
 - `services/page.tsx`: page d'offre publique centree sur `ce que vous achetez`, le rythme des 30 jours et les prerequis du premier perimetre
 - `secteurs/[slug]/page.tsx` et `industries/[slug]/page.tsx`: pages verticales FR/EN pour HCR, enseignement supérieur, logistique/transport/retail et automobile
 - `contact/page.tsx`: page contact oriente qualification avec intents `deploiement/deployment` et `historique/historical-proof`
