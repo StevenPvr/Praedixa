@@ -1,0 +1,10 @@
+{
+  "service": "landing",
+  "dockerfile": "app-landing/Dockerfile.scaleway",
+  "region": "fr-par",
+  "image_ref": "rg.fr-par.scw.cloud/funcscwlandingprodudkuskg8/landing:rel-landing-20260317-ef3244f",
+  "digest": "sha256:d37370afec05c37afe7c4fdeb8e4b5bf4bd3ef68efdcfe624eaf755d0465b2a3",
+  "registry_image": "rg.fr-par.scw.cloud/funcscwlandingprodudkuskg8/landing:rel-landing-20260317-ef3244f@sha256:d37370afec05c37afe7c4fdeb8e4b5bf4bd3ef68efdcfe624eaf755d0465b2a3",
+  "commit_sha": "ef3244fee20849cc0b3ddc3f9ccd30e4b582f139",
+  "built_at": "2026-03-17T19:47:41Z"
+}
