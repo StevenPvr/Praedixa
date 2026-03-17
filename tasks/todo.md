@@ -1,5 +1,27 @@
 # PRD continuation work
 
+## Current Pass - 2026-03-17 - Next Security Patch For Push Gate
+
+### Plan
+
+- [x] Investigate the blocked `pre-push` hook and identify the dependency versions rejected by the OSV gate
+- [x] Bump all shipped Next apps from `16.1.5` to `16.1.7` and refresh `pnpm-lock.yaml` with a real install
+- [x] Re-run targeted Next app verification before retrying the push
+
+### Review
+
+- Root cause:
+  - the blocking `pre-push` hook rejected `next@16.1.5` across `app-landing`, `app-webapp`, and `app-admin` because OSV reported five fixable vulnerabilities with `16.1.7` as the patched version.
+- Fix delivered:
+  - bumped `next` to `16.1.7` in the three shipped Next apps and regenerated the root lockfile via a real `pnpm install`.
+  - added a monorepo guardrail in `AGENTS.md` and the matching lesson in `tasks/lessons.md` so future pushes do not leave one shipped app behind on a vulnerable Next patch.
+- Verification completed after the bump:
+  - `pnpm --dir app-admin exec tsc -p tsconfig.json --noEmit`
+  - `pnpm --dir app-admin test -- 'app/(admin)/clients/[orgId]/equipe/__tests__/page.test.tsx'`
+  - `pnpm --dir app-webapp exec tsc -p tsconfig.json --noEmit`
+  - `pnpm --dir app-webapp test -- 'app/(auth)/login/__tests__/page.test.tsx' 'app/auth/callback/__tests__/route.test.ts' 'lib/auth/__tests__/oidc.test.ts'`
+  - `pnpm build:landing`
+
 ## Current Pass - 2026-03-17 - Production-First Guardrail
 
 ### Plan

@@ -6,3 +6,4 @@
 - Quand un script ops local a besoin d'un secret deja present dans les `.env.local` standard du repo, verifier et autocharger ces fichiers avant de demander a l'utilisateur de reexporter la variable a la main.
 - Quand un utilisateur demande de supprimer des comptes fake/demo, ne pas s'arreter au fait de fermer le chemin de creation: inventorier et purger aussi les identites deja presentes en live, ou expliciter tout de suite le blocage restant.
 - Quand l'utilisateur demande si "ca fonctionne", repondre d'abord depuis la realite de production; un flux seulement valide en local ou dans le worktree n'est pas une reponse suffisante.
+- Quand un hook pre-push remonte une CVE patchable sur `next`, traiter le bump de patch dans toutes les apps Next du monorepo avant de pousser, au lieu d'essayer de contourner le gate.

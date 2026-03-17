@@ -160,6 +160,7 @@ Before enforcing strict complexity grades on a legacy service, version an explic
 Before documenting bootstrap or admin credentials, use placeholders plus the secret-manager path, never a realistic example password.
 Before serializing runtime config or secrets from shell into JSON, never pass secret values through CLI flags such as `jq --arg`; write them from process environment or `stdin` so they never appear in `argv`.
 Before aggregating Vitest projects in the monorepo root, do not mix broad top-level `include` globs with project-specific `include` patterns, or tests can leak across aliases and hang the runner.
+Before pushing a monorepo change that ships Next.js apps, keep every shipped `next` dependency on a patch version accepted by the OSV/security gate across `app-landing`, `app-webapp`, and `app-admin`; do not leave one app behind on a vulnerable patch.
 After replacing a homepage interaction pattern, update or remove the matching E2E spec in the same change so hooks do not keep asserting deleted ARIA roles or landmarks.
 Before asking for a manual re-export of a local ops secret, check the repo's standard `.env.local` files and teach the helper script to auto-load them when that keeps the secret local-only and out of git.
 Before trusting a shell `jq` role-priority selector in Keycloak tooling, replay it against a user whose expected role is not the first priority entry, or the helper can silently promote every account to the top role.
