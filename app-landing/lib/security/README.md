@@ -8,6 +8,7 @@ Socle securite du landing.
 - audit securite local (`audit-log.ts`)
 - verification d'origine et de requete JSON (`request-origin.ts`, `json-request.ts`, `request-body.ts`)
 - challenge anti-spam contact (`contact-challenge.ts`)
+- validation semantique partagee des emails marketing (`email-address.ts`)
 - rate limit et tokens one-shot via store partage (`security-store.ts`, `redis-security-store.ts`, `security-store.types.ts`)
 - sanitation d'URL / JSON script (`outbound-url.ts`, `json-script.ts`)
 - headers additionnels (`headers.ts`)
@@ -18,12 +19,14 @@ Socle securite du landing.
 - `security-store.types.ts` porte les contrats partages pour eviter une dependance circulaire entre orchestrateur et backend Redis
 - les formulaires publics reutilisent ce dossier via `lib/api/form-route.ts`
 - `contact-challenge.ts` protege le formulaire contact contre rejeu et automatisation
+- `email-address.ts` est la source de verite partagee pour les emails saisis sur `/contact`, le parcours de demande de deploiement et le call de cadrage; ne pas reintroduire de regex locale divergente dans les composants ou routes.
 - `proxy.ts` consomme la CSP issue de ce dossier a chaque requete
 
 ## Tests
 
 - `__tests__/contact-challenge.test.ts`
 - `__tests__/csp.test.ts`
+- `__tests__/email-address.test.ts`
 - `__tests__/outbound-url.test.ts`
 - `__tests__/security-store.test.ts`
 

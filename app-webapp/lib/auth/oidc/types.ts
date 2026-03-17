@@ -74,6 +74,13 @@ export const FORBIDDEN_OBJECT_KEYS = new Set([
 ]);
 
 export type JwtPayload = Record<string, unknown>;
+export type AccessTokenClaimsIssue =
+  | "invalid_payload"
+  | "missing_sub"
+  | "missing_email"
+  | "missing_role"
+  | "invalid_role"
+  | "missing_exp";
 export type ApiAccessTokenCompatibilityReason =
   | "invalid_claims"
   | "missing_api_audience"

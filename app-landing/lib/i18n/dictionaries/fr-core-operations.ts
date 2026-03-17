@@ -3,225 +3,221 @@ import type { Dictionary } from "../types";
 export const frCoreOperations: Partial<Dictionary> = {
   howItWorks: {
     kicker: "Comment ça marche",
-    heading: "Un cycle simple, orienté décision. Pas un dashboard de plus.",
+    heading: "Un cycle simple, orienté résultat.",
     subheading:
-      "Praedixa lit les signaux utiles, compare les arbitrages, cadre la décision et relit l’impact dans le temps, à partir d’un conflit économique concret.",
+      "Praedixa détecte, compare, aide à décider et mesure l\u2019impact. Automatiquement.",
     steps: [
       {
         number: "01",
-        title: "Lecture anticipative",
-        subtitle: "Signaux utiles · lecture seule",
+        title: "Détection anticipée",
+        subtitle: "Signaux utiles",
         description:
-          "Praedixa part des données déjà présentes dans vos outils pour faire remonter plus tôt les sites, équipes ou flux qui vont passer sous pression.",
+          "Praedixa analyse vos données existantes et fait remonter les risques avant qu\u2019ils ne coûtent cher.",
       },
       {
         number: "02",
-        title: "Arbitrage économique",
-        subtitle: "Coût · non-action · risque",
+        title: "Comparaison des options",
+        subtitle: "Coût · impact · risque",
         description:
-          "Les options sont comparées avec des hypothèses explicites: coût d’action, coût de non-action, impact opérationnel et niveau de risque. Les comparaisons s’appuient sur des modèles de prévision, d’apprentissage statistique et d’optimisation sous contrainte adaptés au contexte métier.",
+          "Les scénarios sont chiffrés et comparés pour que vous choisissiez la meilleure option.",
       },
       {
         number: "03",
-        title: "Décision cadrée",
-        subtitle: "Cadre commun Ops · Finance",
+        title: "Décision éclairée",
+        subtitle: "Cadre commun",
         description:
-          "L’équipe décide avec une base commune plutôt qu’en réaction dispersée: quand renforcer, réallouer, reporter ou ajuster le niveau de service.",
+          "L\u2019équipe décide sur une base partagée plutôt que dans l\u2019urgence.",
       },
       {
         number: "04",
-        title: "Preuve d’impact",
-        subtitle: "Avant · recommandé · réel",
+        title: "Preuve de ROI",
+        subtitle: "Avant · après",
         description:
-          "Les décisions et leurs effets sont relus pour construire une boucle ROI exploitable par les opérations et la finance. La relecture mobilise des modèles économétriques pour distinguer plus proprement ce qui relève du contexte, de la décision prise et de l’impact réellement observé.",
+          "Les décisions et leurs effets sont mesurés pour prouver le ROI réel.",
       },
     ],
   },
 
   useCases: {
-    kicker: "Cas d’usage",
-    heading: "Des arbitrages concrets, pas des promesses vagues.",
+    kicker: "Cas d\u2019usage",
+    heading: "Des cas concrets, pas des promesses.",
     subheading:
-      "Praedixa rend visibles les décisions récurrentes qui détruisent la marge quand elles sont prises trop tard ou sans cadre partagé.",
+      "Praedixa s\u2019applique aux décisions qui coûtent le plus quand elles sont prises trop tard.",
     labels: {
       context: "Ce qui bloque",
-      action: "Ce que Praedixa structure",
+      action: "Ce que Praedixa apporte",
       impact: "Ce que cela change",
     },
     cases: [
       {
         id: "volatilite",
-        title: "Volatilité de charge",
+        title: "Pics d\u2019activité",
         context:
-          "Identifier trop tard les sites qui vont absorber un pic finit en surcharge locale, coûts d’urgence et promesse de service dégradée.",
+          "Un pic de charge identifié trop tard entraîne des surcoûts et un service dégradé.",
         action:
-          "Praedixa compare les options disponibles site par site avant la dernière minute, avec des hypothèses visibles par Ops et Finance.",
+          "Praedixa anticipe les pics et compare les options site par site avant la dernière minute.",
         result:
-          "Moins d’urgence, plus de marge de manœuvre et des arbitrages défendables.",
+          "Moins d\u2019urgence, plus de marge de manœuvre et des décisions défendables.",
       },
       {
         id: "couverture",
-        title: "Dérive de couverture",
+        title: "Sous-couverture",
         context:
-          "Des zones structurellement fragiles glissent jusqu’au moment où le recours d’urgence devient la seule option.",
+          "Des zones fragiles dérivent jusqu\u2019au moment où le recours d\u2019urgence devient la seule option.",
         action:
-          "Praedixa repère plus tôt les dérives et met les scénarios sur une même base coût / service / risque.",
+          "Praedixa détecte les dérives et compare les scénarios sur une base commune\u00a0: coût, impact, risque.",
         result:
-          "Les décisions ne reposent plus seulement sur l’intuition locale.",
+          "Les décisions reposent sur des données, pas seulement sur l\u2019intuition.",
       },
       {
         id: "intersite",
-        title: "Arbitrages inter-sites",
+        title: "Répartition des ressources",
         context:
-          "Déplacer la pression d’un site à l’autre peut donner l’illusion d’une solution sans réduire le coût global.",
+          "Déplacer la pression d\u2019un site à l\u2019autre donne l\u2019illusion d\u2019une solution sans réduire le coût global.",
         action:
-          "Praedixa compare proprement plusieurs options d’allocation ou de renfort avant de déplacer la contrainte.",
+          "Praedixa compare les options de répartition et de renfort avant de déplacer la contrainte.",
         result:
-          "Les renforts deviennent comparables, justifiables et relisibles.",
+          "Les décisions de répartition deviennent comparables et justifiables.",
       },
       {
         id: "roi",
-        title: "Boucle ROI opérationnelle",
+        title: "Mesure du ROI",
         context:
-          "Après la décision, il reste souvent impossible de dire ce qu’elle a réellement protégé ou coûté.",
+          "Après la décision, personne ne sait ce qu\u2019elle a réellement coûté ou protégé.",
         action:
-          "Praedixa documente le raisonnement, la décision prise et les écarts observés ensuite.",
-        result:
-          "Ops et Finance peuvent enfin relire les arbitrages sur une base commune.",
+          "Praedixa documente chaque décision et mesure ses effets réels.",
+        result: "Le ROI est prouvé, pas estimé.",
       },
     ],
   },
 
   deliverables: {
     kicker: "Exemple concret",
-    heading:
-      "Avant de demander quoi que ce soit, voyez à quoi ressemble une preuve utile.",
+    heading: "Voyez à quoi ressemble une décision optimisée de bout en bout.",
     subheading:
-      "Un exemple simple de conflit opérationnel, d’options comparées, de décision retenue et d’impact relu. La preuve publique doit montrer Praedixa à l’œuvre, pas seulement le protocole.",
+      "Un exemple simple\u00a0: un problème détecté, des options comparées, une décision prise et un impact mesuré.",
     roiFrames: [
       {
         label: "Situation initiale",
-        value: "Pic de charge sur 3 sites logistiques",
-        note: "Retard OTIF en hausse, heures supplémentaires déjà consommées, intérim d’urgence envisagé sur deux sites.",
-        sourceLabel: "Voir la preuve d’impact publique",
+        value: "Pic de charge sur 3 sites",
+        note: "Retards en hausse, heures supplémentaires déjà consommées, renfort d\u2019urgence envisagé.",
+        sourceLabel: "Voir la preuve d\u2019impact",
         sourceUrl: "/fr/decision-log-preuve-roi",
       },
       {
         label: "Options comparées",
-        value: "HS vs intérim vs réallocation",
-        note: "Chaque option est comparée selon coût, risque de service, capacité disponible et effet attendu sur le backlog.",
-        sourceLabel: "Voir la preuve d’impact publique",
+        value: "Heures sup vs renfort vs réallocation",
+        note: "Chaque option est comparée selon coût, impact sur le service et capacité disponible.",
+        sourceLabel: "Voir la preuve d\u2019impact",
         sourceUrl: "/fr/decision-log-preuve-roi",
       },
       {
-        label: "Impact relu",
-        value: "Décision retenue puis relue",
-        note: "La décision prise, les limites assumées et l’impact observé sont relus ensemble pour préparer le prochain arbitrage.",
-        sourceLabel: "Voir la preuve d’impact publique",
+        label: "Impact mesuré",
+        value: "Décision retenue et résultat vérifié",
+        note: "La décision, ses limites et son impact réel sont mesurés pour améliorer les suivantes.",
+        sourceLabel: "Voir la preuve d\u2019impact",
         sourceUrl: "/fr/decision-log-preuve-roi",
       },
     ],
     checklist: [
-      "La situation de départ est décrite en mots métier, pas seulement en KPI",
-      "Les options comparées sont visibles avec leurs hypothèses",
+      "La situation de départ est décrite simplement",
+      "Les options sont comparées avec leurs hypothèses",
       "La décision retenue est expliquée clairement",
-      "La limite de l’exemple est rendue explicite",
-      "L’impact relu distingue contexte et décision",
-      "Le lien avec ERP / BI / planning / Excel est clarifié",
+      "Les limites de l\u2019exemple sont rendues explicites",
+      "L\u2019impact est mesuré après coup",
+      "Le lien avec vos outils existants est clarifié",
     ],
   },
 
   security: {
     kicker: "Sécurité & IT",
-    heading:
-      "Déploiement sobre au départ, compatible avec une revue IT sérieuse.",
+    heading: "Sécurisé, souverain, non intrusif.",
     subheading:
-      "Praedixa commence en lecture seule sur vos exports, API ou outils existants. L’objectif est de créer vite une première lecture utile sans ouvrir un chantier SI lourd avant la preuve d’intérêt.",
+      "Praedixa démarre en lecture seule sur vos données existantes, sans projet IT lourd.",
     tiles: [
       {
-        title: "Connexion à l’existant",
+        title: "Connexion à l\u2019existant",
         description:
-          "Le premier périmètre se branche sur l’existant pour objectiver les arbitrages avant toute intégration plus poussée.",
+          "Praedixa se branche sur vos outils actuels sans les remplacer.",
       },
       {
         title: "Données agrégées",
         description:
-          "Le démarrage présenté ici travaille au niveau site, équipe ou activité, pas au niveau individuel.",
+          "Le démarrage travaille au niveau site, équipe ou activité, pas au niveau individuel.",
       },
       {
         title: "Exports CSV / Excel ou API",
         description:
-          "Praedixa démarre sur ce que vous avez déjà, sans exiger un remplacement d’outil ou une refonte de process.",
+          "Praedixa démarre sur ce que vous avez déjà, sans refonte de process.",
       },
       {
         title: "Cadre de sécurité clair",
         description:
-          "Chiffrement, contrôle d’accès et journalisation sont pensés pour entrer dans une discussion IT sérieuse sans lourdeur inutile.",
+          "Chiffrement, contrôle d\u2019accès et journalisation intégrés.",
       },
       {
         title: "Hébergement France",
-        description:
-          "La plateforme et les données sont hébergées en France sur Scaleway.",
+        description: "Plateforme et données hébergées en France sur Scaleway.",
       },
       {
         title: "Montée en charge progressive",
         description:
-          "L’intégration s’élargit seulement quand la valeur business est prouvée et que le contexte le justifie.",
+          "L\u2019intégration s\u2019élargit seulement quand la valeur est prouvée.",
       },
     ],
     compatibility: {
       title: "Compatible avec votre stack actuelle",
       description:
-        "Praedixa se branche au-dessus de l’existant pour structurer la décision, pas pour imposer un remplacement.",
+        "Praedixa se branche sur l\u2019existant pour ajouter l\u2019intelligence, pas pour imposer un remplacement.",
       tools: ["ERP", "Planning", "CRM", "BI", "Excel"],
     },
     honesty:
-      "L’intégration doit rassurer la revue IT, pas monopoliser la conversation avant que la valeur business soit prouvée.",
+      "L\u2019intégration doit rassurer la revue IT, pas monopoliser la conversation avant que la valeur soit prouvée.",
   },
 
   pilot: {
     kicker: "Déploiement",
-    heading: "Déploiement Praedixa: logiciel + mise en place cadrée.",
+    heading: "Opérationnel en 30 jours.",
     subheading:
-      "Le déploiement Praedixa installe le logiciel sur vos données existantes, cadre le premier périmètre et met en place la relecture d’impact sans projet SI lourd au départ.",
-    statusLabels: ["Point d’entrée", "Mise en place", "Cadence"],
+      "Un démarrage simple\u00a0: un sponsor opérations, vos données existantes, des résultats mesurables.",
+    statusLabels: ["Point d\u2019entrée", "Mise en place", "Cadence"],
     included: {
       title: "Ce que le déploiement installe",
       items: [
         "Une première lecture utile sur vos données existantes",
-        "Les arbitrages prioritaires rendus visibles",
-        "Des hypothèses coût / service / risque explicites",
-        "Une base commune pour Ops, Finance et Réseau",
-        "Une boucle de relecture d’impact réutilisable",
+        "Les décisions prioritaires identifiées",
+        "Des options comparées avec leur coût et leur impact",
+        "Une base commune pour vos équipes",
+        "Une mesure du ROI réutilisable",
       ],
     },
     excluded: {
-      title: "Ce que le déploiement n’est pas",
+      title: "Ce que le déploiement n\u2019est pas",
       items: [
         "Une refonte de votre stack",
-        "Un projet SI avant la preuve de valeur",
+        "Un projet IT avant la preuve de valeur",
         "Un tableau de bord de plus",
-        "Une promesse d’optimiser toute l’entreprise d’un coup",
+        "Une promesse sans résultat mesurable",
         "Un diagnostic isolé sans suite opérable",
       ],
     },
     kpis: {
       title: "Ce que le déploiement cadre",
       items: [
-        "Tensions prioritaires",
-        "Hypothèses économiques",
-        "Options comparées",
+        "Risques prioritaires",
+        "Options chiffrées",
         "Décisions prises",
-        "Impacts relus",
+        "Résultats mesurés",
+        "ROI prouvé",
       ],
     },
     governance: {
       title: "Rythme de travail",
       items: [
-        "Référent opérationnel identifié",
-        "Point court hebdomadaire",
-        "Relecture Ops / Finance structurée",
-        "Décisions relues sur une base commune",
+        "Un sponsor opérationnel identifié",
+        "Un point court hebdomadaire",
+        "Une revue structurée des résultats",
+        "Des décisions mesurées dans le temps",
       ],
     },
     selection: {
@@ -235,12 +231,11 @@ export const frCoreOperations: Partial<Dictionary> = {
     upcoming: {
       title: "Après le premier périmètre",
       description:
-        "Si la preuve est là, Praedixa s’étend progressivement aux arbitrages où la marge gagne le plus à être protégée.",
+        "Si les résultats sont là, Praedixa s\u2019étend progressivement aux décisions qui ont le plus d\u2019impact.",
     },
-    urgency:
-      "Réponse sous 48h ouvrées. Démarrage possible sans intégration SI lourde.",
-    ctaPrimary: "Parler du déploiement",
+    urgency: "Réponse sous 48h. Démarrage possible sans projet IT.",
+    ctaPrimary: "Nous contacter",
     ctaMeta:
-      "Logiciel + mise en place cadrée · lecture seule au départ · premier périmètre resserré",
+      "Logiciel + mise en place cadrée · lecture seule au départ · résultats en 30 jours",
   },
 };

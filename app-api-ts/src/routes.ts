@@ -2353,6 +2353,7 @@ export const routes: RouteDefinition[] = [
       }
 
       const role = payload.role;
+      const siteId = normalizeOptionalText(payload.site_id);
       if (!isUserRole(role) || role === "super_admin") {
         if (service.hasDatabase()) {
           try {
@@ -2394,6 +2395,7 @@ export const routes: RouteDefinition[] = [
               organizationId: orgId,
               userId,
               role,
+              siteId,
               actorUserId: ctx.user?.userId ?? "",
               requestId: ctx.requestId,
               clientIp: ctx.clientIp,
@@ -2493,6 +2495,7 @@ export const routes: RouteDefinition[] = [
       }
 
       const role = normalizeAdminRole(payload.role);
+      const siteId = normalizeOptionalText(payload.site_id);
       if (!role) {
         if (service.hasDatabase()) {
           try {
@@ -2532,6 +2535,7 @@ export const routes: RouteDefinition[] = [
               organizationId: orgId,
               email,
               role,
+              siteId,
               actorUserId: ctx.user?.userId ?? "",
               actorEmail: ctx.user?.email ?? null,
               requestId: ctx.requestId,
@@ -2541,7 +2545,7 @@ export const routes: RouteDefinition[] = [
               routeTemplate: "/api/v1/admin/organizations/:orgId/users/invite",
             }),
             ctx.requestId,
-            "User invited",
+            "User provisioned",
             201,
           );
         } catch (error) {

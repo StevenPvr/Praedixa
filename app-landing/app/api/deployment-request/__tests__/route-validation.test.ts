@@ -67,6 +67,14 @@ describe("POST /api/deployment-request validation", () => {
       expect(res.body).toEqual({ error: "Adresse email invalide." });
     });
 
+    it("rejects an email with a reserved placeholder domain", async () => {
+      const res = await POST(
+        makeRequest(validBody({ email: "jean@example.com" })),
+      );
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({ error: "Adresse email invalide." });
+    });
+
     it("rejects an email longer than 254 characters", async () => {
       const longEmail = `${"a".repeat(246)}@test.com`;
       const res = await POST(makeRequest(validBody({ email: longEmail })));

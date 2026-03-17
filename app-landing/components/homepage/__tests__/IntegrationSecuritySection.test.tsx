@@ -17,7 +17,7 @@ describe("IntegrationSecuritySection", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: /Branché au-dessus de l.existant, pas à la place/,
+        name: /Sécurisé, souverain, non intrusif/,
       }),
     ).toBeInTheDocument();
   });
@@ -41,8 +41,8 @@ describe("IntegrationSecuritySection", () => {
     expect(screen.getByText("Lecture seule")).toBeInTheDocument();
     expect(screen.getByText("Données agrégées")).toBeInTheDocument();
     expect(screen.getByText("Hébergement France")).toBeInTheDocument();
-    expect(screen.getByText("NDA dès J1")).toBeInTheDocument();
-    expect(screen.getByText("Audit trail complet")).toBeInTheDocument();
+    expect(screen.getByText("NDA dès le premier échange")).toBeInTheDocument();
+    expect(screen.getByText("Traçabilité complète")).toBeInTheDocument();
     expect(screen.getByText("Connecteurs standards")).toBeInTheDocument();
   });
 

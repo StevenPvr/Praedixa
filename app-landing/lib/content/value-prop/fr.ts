@@ -4,188 +4,181 @@ import { valuePropFrSections } from "./fr-sections";
 export const coreValuePropFr: ValuePropContent = {
   icp: "COO, directions des opérations et responsables réseau de réseaux multi-sites",
   promise:
-    "Praedixa aide les réseaux multi-sites à arbitrer 3 à 14 jours plus tôt les décisions qui protègent marge et service.",
+    "Praedixa anticipe vos besoins opérationnels et prouve votre ROI, sans remplacer vos outils.",
   mechanism:
-    "Praedixa détecte les tensions, compare renfort, réallocation, report ou ajustement de service sur une base coût / service / risque, puis relit l’impact réel décision par décision.",
+    "L\u2019IA détecte les risques, compare vos options et mesure l\u2019impact réel de chaque décision.",
   reassurance: [
-    "Lecture seule au départ",
-    "Données agrégées",
+    "Lecture seule au démarrage",
+    "Données agrégées uniquement",
     "Hébergement France",
-    "NDA dès le premier échange",
+    "NDA possible",
   ],
   ctaPrimary: "Voir la preuve sur historique",
-  ctaSecondary: "Cadrer un premier périmètre",
-  heroKicker: "Pour réseaux multi-sites qui arbitrent sous contrainte",
-  heroHeading: "Prédisez 3 à 14 jours plus tôt",
-  heroHeadingHighlight: "les décisions qui protègent la marge.",
+  ctaSecondary: "Parler à un expert",
+  heroKicker: "Pour les réseaux multi-sites",
+  heroHeading: "Anticipez.",
+  heroHeadingHighlight: "Optimisez. Prouvez le ROI.",
   heroSubheading:
-    "Praedixa détecte les tensions multi-sites, compare les options et relit l’impact réel décision par décision.",
+    "Praedixa anticipe vos besoins opérationnels et optimise vos décisions grâce à l\u2019IA. La priorité\u00a0: votre ROI.",
   heroOffer: {
-    badge: "Ce que vous achetez",
-    title: "Déploiement Praedixa",
-    body: "Logiciel + mise en place cadrée sur vos données existantes, avec démarrage possible en lecture seule.",
-    note: "La preuve sur historique sert de point d’entrée quand il faut d’abord objectiver un premier arbitrage.",
+    badge: "Notre promesse",
+    title: "Des résultats en 30\u00a0jours",
+    body: "Un logiciel qui s\u2019installe sur vos données existantes, sans remplacer vos outils.",
+    note: "Lecture seule au démarrage. NDA possible dès le premier échange.",
   },
   socialProof: {
     eyebrow: "Confiance entreprise",
     statValue: "30j",
-    statLabel: "Premier arbitrage objectivé, sur vos données existantes",
+    statLabel: "Premiers résultats mesurables, sur vos données existantes",
     logosAlt: "Entreprises qui nous font confiance",
-    marqueeLabel: "Soyez parmi les premiers réseaux à arbitrer plus tôt",
+    marqueeLabel: "Soyez parmi les premiers réseaux à anticiper plus tôt",
   },
   product: {
-    kicker: "La preuve en action",
-    heading: "Un arbitrage, objectivé et relu.",
+    kicker: "Le produit",
+    heading: "L\u2019IA qui anticipe, optimise et prouve.",
     subheading:
-      "Le tableau de décision compare les options, chiffre le coût d’action et d’inaction, et relit l’impact réel après coup.",
+      "Praedixa détecte les risques avant qu\u2019ils ne deviennent des urgences, compare vos options et mesure l\u2019impact réel de chaque décision.",
   },
   footerTagline:
-    "Praedixa aide les réseaux multi-sites à arbitrer plus tôt les décisions qui protègent marge et service, sans remplacer les outils déjà en place.",
-  qualificationTitle: "Pour qui, quelles décisions, quel résultat",
+    "Praedixa anticipe vos besoins opérationnels et prouve votre ROI, sans remplacer vos outils.",
+  qualificationTitle: "Est-ce que Praedixa est fait pour vous\u00a0?",
   qualificationBody:
-    "Praedixa s’adresse aux réseaux multi-sites qui doivent décider plus tôt où renforcer, réallouer, reporter ou ajuster le service avant que la marge ne parte en urgence.",
-  fitTitle: "Un bon point de départ si…",
+    "Praedixa s\u2019adresse aux réseaux multi-sites qui veulent anticiper leurs besoins, comparer leurs options et prouver leurs résultats.",
+  fitTitle: "Un bon point de départ si\u2026",
   fitItems: [
-    "plusieurs sites arbitrent sous les mêmes contraintes coût / service / risque",
-    "un sponsor opérations porte le sujet et veut objectiver un premier arbitrage",
-    "des exports ou API permettent déjà une première lecture utile",
+    "vous gérez plusieurs sites avec des décisions récurrentes",
+    "un responsable opérations veut mesurer l\u2019impact de ses décisions",
+    "des données existantes (exports, API) sont disponibles au démarrage",
   ],
-  notFitTitle: "Pas pour vous si…",
+  notFitTitle: "Pas pour vous si\u2026",
   notFitItems: [
-    "vous opérez en mono-site sans arbitrage réseau à coordonner",
-    "aucun sponsor opérations ne peut cadrer le premier périmètre",
-    "aucun export ni API exploitable n’est disponible au démarrage",
+    "vous opérez un seul site sans enjeu réseau",
+    "aucun responsable opérations ne peut porter le sujet",
+    "aucune donnée exploitable n\u2019est disponible au démarrage",
   ],
   stackComparison: {
-    kicker: "Comparatif",
-    heading:
-      "Votre stack montre des données. Elle n’arbitre pas le conflit économique.",
+    kicker: "Compatibilité",
+    heading: "Praedixa s\u2019ajoute à vos outils. Il ne les remplace pas.",
     subheading:
-      "ERP, BI, planning et Excel restent utiles. Le problème commence quand l’arbitrage coût / service / risque se disperse entre plusieurs outils, équipes et réunions. Praedixa ajoute le cadre décisionnel qui manque.",
+      "ERP, BI, planning, Excel\u00a0: tout reste en place. Praedixa ajoute l\u2019intelligence de décision qui manque.",
     columnLabels: {
-      category: "Brique actuelle",
-      currentCoverage: "Ce qu’elle couvre déjà",
-      stopsAt: "Là où elle s’arrête pour arbitrer",
+      category: "Outil",
+      currentCoverage: "Ce qu\u2019il fait",
+      stopsAt: "Ce qui manque",
       praedixaAdd: "Ce que Praedixa ajoute",
     },
     rows: [
       {
         category: "ERP",
-        currentCoverage:
-          "Transactions, stocks, commandes, coûts et événements d’exploitation.",
-        stopsAt:
-          "Ne compare pas proprement plusieurs options d’action sur une base coût / service / risque partageable en comité.",
+        currentCoverage: "Gère les transactions, les stocks et les coûts.",
+        stopsAt: "Ne compare pas les options de décision entre elles.",
         praedixaAdd:
-          "Transforme ces signaux en options comparées, décision retenue et relecture avant / recommandé / réel.",
+          "Compare les options et mesure l\u2019impact de la décision retenue.",
       },
       {
         category: "BI / reporting",
-        currentCoverage:
-          "KPIs, écarts, tendances et vues consolidées pour comprendre ce qui se passe.",
-        stopsAt:
-          "Montre la dérive, mais laisse le choix d’action et ses hypothèses dispersés entre slides, messages et réunions.",
+        currentCoverage: "Montre les KPIs, les écarts et les tendances.",
+        stopsAt: "Montre le problème, mais ne propose pas d\u2019action.",
         praedixaAdd:
-          "Cadre le conflit économique, explicite les hypothèses et documente la décision prise.",
+          "Propose des options concrètes et trace la décision prise.",
       },
       {
         category: "Planning / WFM",
-        currentCoverage:
-          "Couverture locale, capacités, horaires et exécution au plus près du terrain.",
-        stopsAt:
-          "Aide à planifier, mais pas à arbitrer plusieurs scénarios multi-sites avec un langage commun Ops / Finance.",
+        currentCoverage: "Planifie les capacités et les horaires par site.",
+        stopsAt: "Planifie, mais ne compare pas les scénarios entre sites.",
         praedixaAdd:
-          "Compare renfort, réallocation, report ou ajustement de service avant d’engager la première action utile.",
+          "Compare les scénarios multi-sites et recommande la meilleure option.",
       },
       {
         category: "Excel / comités",
-        currentCoverage:
-          "Souplesse métier pour cadrer rapidement un sujet prioritaire.",
+        currentCoverage: "Permet de cadrer rapidement un sujet prioritaire.",
         stopsAt:
-          "Reste manuel, fragmenté, difficile à rejouer et pauvre en preuve d’impact après la décision.",
-        praedixaAdd:
-          "Garde une trace des hypothèses, de la décision retenue et de l’effet observé pour préparer le prochain arbitrage.",
+          "Reste manuel, difficile à rejouer et sans preuve d\u2019impact.",
+        praedixaAdd: "Garde la trace des décisions et de leur impact réel.",
       },
       {
         category: "Praedixa",
         currentCoverage:
-          "Une couche de décision branchée au-dessus de l’existant pour objectiver un premier arbitrage.",
+          "S\u2019ajoute à vos outils existants pour anticiper et décider.",
         stopsAt:
-          "Ne remplace ni ERP, ni BI, ni planning. S’appuie sur eux pour partir vite sur les bons signaux.",
+          "Ne remplace ni ERP, ni BI, ni planning. S\u2019appuie sur eux.",
         praedixaAdd:
-          "Installe un cadre réutilisable pour voir, comparer, décider et prouver dans le temps.",
+          "Anticiper, comparer, décider et prouver le ROI dans le temps.",
       },
     ],
     bottomNote:
-      "Praedixa se branche au-dessus de l’existant. Le but n’est pas de remplacer vos outils, mais d’éviter qu’un arbitrage coûteux reste dispersé entre eux.",
+      "Compatible avec votre stack actuelle. Aucune migration nécessaire.",
   },
   servicesMeta: {
-    title: "Praedixa | Ce que vous achetez: un premier périmètre de décision",
+    title:
+      "Praedixa | Ce que vous achetez\u00a0: des résultats en 30\u00a0jours",
     description:
-      "Le déploiement Praedixa installe un premier périmètre de décision sur vos données existantes. Si besoin, la preuve sur historique objectivise l’arbitrage initial avant lancement.",
-    ogTitle: "Praedixa | Ce que vous achetez: un premier périmètre de décision",
+      "Le déploiement Praedixa s\u2019installe sur vos données existantes et livre des résultats mesurables en 30\u00a0jours, sans remplacer vos outils.",
+    ogTitle:
+      "Praedixa | Ce que vous achetez\u00a0: des résultats en 30\u00a0jours",
     ogDescription:
-      "Déploiement Praedixa: un premier périmètre de décision, cadré en 30 jours, sans projet SI lourd au départ.",
+      "Déploiement Praedixa\u00a0: des résultats mesurables en 30\u00a0jours, sans projet IT lourd.",
   },
   services: {
     kicker: "Offre",
     heading:
-      "Ce que vous achetez: un premier périmètre de décision, pas un projet SI de plus.",
+      "Ce que vous achetez\u00a0: des résultats en 30\u00a0jours, pas un projet IT de plus.",
     subheading:
-      "Le déploiement Praedixa installe un cadre de décision sur vos données existantes. Si besoin, une preuve sur historique permet d’objectiver le premier arbitrage avant lancement.",
-    timelineTitle: "En 30 jours",
+      "Le déploiement Praedixa s\u2019installe sur vos données existantes. Si besoin, une preuve sur historique démontre les résultats avant le lancement.",
+    timelineTitle: "En 30\u00a0jours",
     timeline: [
       {
         title: "Semaine 1",
-        body: "Cadrage de l’arbitrage prioritaire, des sources de données et du sponsor opérationnel.",
+        body: "Cadrage de l\u2019enjeu prioritaire, des sources de données et du sponsor opérationnel.",
       },
       {
         title: "Semaine 2",
-        body: "Première lecture utile avec options comparées sur base coût / service / risque.",
+        body: "Première analyse avec options comparées à partir des données existantes.",
       },
       {
         title: "Semaine 3",
-        body: "Hypothèses explicites, décision cadrée et comité court de validation Ops / Finance.",
+        body: "Décision recommandée et validation avec les parties prenantes.",
       },
       {
         title: "Semaine 4",
-        body: "Revue avant / recommandé / réel et proposition de montée en charge sur le prochain arbitrage.",
+        body: "Mesure de l\u2019impact réel et plan pour la suite.",
       },
     ],
     deliveredTitle: "Ce qui est livré",
     delivered: [
-      "Un premier arbitrage multi-sites objectivé sur vos données existantes",
-      "Des options comparées avec hypothèses explicites",
-      "Une recommandation cadrée pour Ops, Finance et Réseau",
-      "Une base de relecture avant / recommandé / réel",
+      "Une première décision multi-sites optimisée sur vos données existantes",
+      "Des options comparées avec des hypothèses explicites",
+      "Une recommandation claire pour les opérations et la finance",
+      "Une mesure de l\u2019impact réel de la décision prise",
     ],
-    notDeliveredTitle: "Ce qui n’est pas livré",
+    notDeliveredTitle: "Ce qui n\u2019est pas livré",
     notDelivered: [
-      "Une refonte de votre stack ou un remplacement ERP / BI / planning",
-      "Une promesse floue d’optimiser toute l’entreprise d’un coup",
-      "Une couche de reporting supplémentaire sans arbitrage exploitable",
+      "Un remplacement de vos outils existants (ERP, BI, planning)",
+      "Une promesse vague sans résultat mesurable",
+      "Du reporting supplémentaire sans aide à la décision",
     ],
-    clientNeedsTitle: "Ce qu’il faut côté client",
+    clientNeedsTitle: "Ce qu\u2019il faut côté client",
     clientNeeds: [
       "Un sponsor opérations disponible",
       "Des exports ou API exploitables dès le départ",
-      "Un premier arbitrage à objectiver sur un périmètre resserré",
+      "Un enjeu opérationnel concret à traiter en priorité",
     ],
     participantsTitle: "Qui participe",
     participants: [
       "Sponsor opérations / réseau",
-      "Référent data ou BI pour les accès utiles",
-      "Finance pour la lecture coût / service / risque",
+      "Référent data ou BI pour les accès",
+      "Finance pour valider l\u2019impact économique",
     ],
     reviewTitle: "Quel comité de revue",
     reviewItems: [
       "Point court hebdomadaire de cadrage",
-      "Revue Ops / Finance sur la décision recommandée",
-      "Synthèse finale avant / recommandé / réel",
+      "Revue de la recommandation avec opérations et finance",
+      "Synthèse finale avec mesure de l\u2019impact",
     ],
-    primaryCtaLabel: "Cadrer un premier périmètre",
+    primaryCtaLabel: "Parler à un expert",
     secondaryCtaLabel: "Voir la preuve sur historique",
     bottomNote:
-      "La preuve sur historique n’est pas une seconde offre. C’est un point d’entrée pour objectiver le premier arbitrage avant le déploiement.",
+      "La preuve sur historique permet de démontrer les résultats sur vos propres données avant de lancer le déploiement.",
   },
   ...valuePropFrSections,
 };

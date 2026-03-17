@@ -35,6 +35,7 @@ Shell partage du site et primitives visuelles reutilisables.
 - dans `Header.tsx`, garder un nom accessible explicite pour les CTA responsives et verifier le contraste reel des variantes desktop/mobile au lieu de supposer que les spans caches restent neutres pour l'audit a11y
 - `Footer.tsx` doit reprendre exactement la meme these publique que la homepage; ne pas y reintroduire un wording legacy plus etroit (`charge/capacite`, `coverage`) une fois le message canonique mis a jour
 - `Header.tsx` et `Footer.tsx` doivent partager la meme hierarchie d'entree publique: preuve sur historique et cadrage du premier perimetre comme seules CTA globales; ne pas renvoyer vers une ancienne page `/deploiement`
+- le mini-parcours `ScopingCallRequestPanel` doit reutiliser la meme validation semantique d'email que les autres formulaires LP via `lib/security/email-address.ts`
 - quand le header doit disparaitre au scroll, le faire uniquement par `transform` et `opacity`, avec un seuil de direction stable; ne pas animer la hauteur ni reintroduire des listeners de scroll disperses dans `Header.tsx`, `DesktopNav.tsx` ou `MobileNav.tsx`
 - garder un seul dropdown `Secteurs`/`Industries` utile dans le header pour les pages ICP exactes; eviter de reintroduire une megamenu large quand le vrai besoin est simplement l'acces direct aux verticales
 - le dropdown sectoriel doit aussi garder une sortie nette vers la page hub `ressources/resources`, pas seulement vers les pages filles

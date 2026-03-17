@@ -23,17 +23,15 @@ describe("Homepage FR messaging", () => {
     expect(screen.getByText("01")).toBeInTheDocument();
     expect(screen.getByText("02")).toBeInTheDocument();
     expect(screen.getByText("03")).toBeInTheDocument();
-    expect(screen.getByText(/arbitrage reste dispers/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Les signaux arrivent trop tard/),
+    ).toBeInTheDocument();
   });
 
   it("renders the final CTA section with heading and promise items", () => {
     render(<FinalCtaSection locale="fr" />);
 
-    expect(
-      screen.getByText(/Cadrons le premier arbitrage/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Retour qualifié sous 48h ouvrées/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Parlons de votre ROI/)).toBeInTheDocument();
+    expect(screen.getByText(/Réponse en 48h/)).toBeInTheDocument();
   });
 });

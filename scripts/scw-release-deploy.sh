@@ -70,6 +70,35 @@ resolve_services() {
   jq -r --arg env "$ENVIRONMENT" '.targets[$env] | keys[]' "$MANIFEST_PATH"
 }
 
+DEPLOY_LAST_RC=0
+
+deploy_container_image() {
+  local container_id="$1"
+  local region="$2"
+  local image_ref="$3"
+  local output
+
+  set +e
+  output="$(
+    scw container container update \
+      "$container_id" \
+      region="$region" \
+      registry-image="$image_ref" \
+      redeploy=true \
+      -w \
+      -o json
+  )"
+  DEPLOY_LAST_RC=$?
+  set -e
+
+  printf '%s' "$output"
+}
+
+extract_scw_error_message() {
+  local response_json="$1"
+  printf '%s' "$response_json" | jq -r '.error.message // .message // ""'
+}
+
 while IFS= read -r service || [[ -n "$service" ]]; do
   if [[ -z "$service" ]]; then
     continue
@@ -96,19 +125,28 @@ while IFS= read -r service || [[ -n "$service" ]]; do
   fi
 
   echo "[release-deploy] ${service} -> ${container_name} (${registry_image})"
-  update_output="$(
-    scw container container update \
-    "$container_id" \
-    region="$region" \
-    registry-image="$registry_image" \
-    redeploy=true \
-    -w \
-    -o json
-  )"
+  deploy_image_ref="$registry_image"
+  update_output="$(deploy_container_image "$container_id" "$region" "$deploy_image_ref")"
 
-  if ! printf '%s' "$update_output" | jq -e '(.error? // null) == null' >/dev/null; then
-    printf '%s\n' "$update_output" >&2
-    exit 1
+  if [[ "$DEPLOY_LAST_RC" -ne 0 ]] ||
+    ! printf '%s' "$update_output" | jq -e '(.error? // null) == null' >/dev/null; then
+    error_message="$(extract_scw_error_message "$update_output")"
+
+    if [[ "$registry_image" == *@sha256:* ]]; then
+      deploy_image_ref="${registry_image%@*}"
+      if [[ -n "$error_message" ]]; then
+        echo "[release-deploy] ${service}: digest-qualified ref failed (${error_message}); retrying with signed tag ${deploy_image_ref}" >&2
+      else
+        echo "[release-deploy] ${service}: digest-qualified ref failed; retrying with signed tag ${deploy_image_ref}" >&2
+      fi
+      update_output="$(deploy_container_image "$container_id" "$region" "$deploy_image_ref")"
+    fi
+
+    if [[ "$DEPLOY_LAST_RC" -ne 0 ]] ||
+      ! printf '%s' "$update_output" | jq -e '(.error? // null) == null' >/dev/null; then
+      printf '%s\n' "$update_output" >&2
+      exit 1
+    fi
   fi
 done < <(resolve_services)
 

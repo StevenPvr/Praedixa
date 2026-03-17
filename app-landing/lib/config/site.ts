@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: "Praedixa",
   description:
-    "Praedixa aide les réseaux multi-sites à repérer plus tôt les arbitrages qui fragilisent la marge, à comparer les options, puis à relire l’impact réel.",
+    "Praedixa anticipe vos besoins, optimise vos décisions et prouve votre ROI. Opérationnel en 30 jours.",
   url: "https://www.praedixa.com",
 
   contact: {

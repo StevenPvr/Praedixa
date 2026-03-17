@@ -11,7 +11,7 @@ test.describe("Hero industry links", () => {
     await expect(sectorSection).toBeVisible();
     await expect(
       sectorSection.getByRole("heading", {
-        name: "Les mêmes arbitrages, déclinés par secteur.",
+        name: "Une solution adaptée à votre secteur.",
       }),
     ).toBeVisible();
 

@@ -35,7 +35,14 @@ vi.mock("../../client-context", () => ({
     orgName: "Test Org",
     selectedSiteId: null,
     setSelectedSiteId: vi.fn(),
-    hierarchy: [],
+    hierarchy: [
+      {
+        id: "site-lyon",
+        name: "Lyon",
+        city: "Lyon",
+        departments: [],
+      },
+    ],
   }),
 }));
 
@@ -138,7 +145,7 @@ describe("EquipePage", () => {
     await user.click(screen.getByRole("button", { name: "Creer" }));
 
     await waitFor(() => expect(mutate).toHaveBeenCalled());
-    expect(mockToastSuccess).toHaveBeenCalledWith("Compte cree");
+    expect(mockToastSuccess).toHaveBeenCalledWith("Invitation envoyee");
   });
 
   it("shows error toast when invite fails", async () => {
@@ -162,8 +169,37 @@ describe("EquipePage", () => {
 
     await waitFor(() =>
       expect(mockToastError).toHaveBeenCalledWith(
-        "Impossible de creer le compte",
+        "Impossible de provisionner le compte",
       ),
+    );
+  });
+
+  it("requires a site-scoped payload for manager invitations", async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn(async () => ({ success: true }));
+    mockUseApiPost.mockReturnValue({
+      mutate,
+      loading: false,
+      error: null,
+      data: null,
+      reset: vi.fn(),
+    });
+
+    render(<EquipePage />);
+    await user.click(screen.getByRole("button", { name: /Creer un compte/i }));
+    await user.type(
+      screen.getByPlaceholderText("nom@entreprise.com"),
+      "manager@acme.com",
+    );
+    await user.selectOptions(screen.getByDisplayValue("Lecteur"), "manager");
+    await user.click(screen.getByRole("button", { name: "Creer" }));
+
+    await waitFor(() =>
+      expect(mutate).toHaveBeenCalledWith({
+        email: "manager@acme.com",
+        role: "manager",
+        site_id: "site-lyon",
+      }),
     );
   });
 

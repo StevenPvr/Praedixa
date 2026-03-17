@@ -153,6 +153,17 @@ describe("POST /api/contact", () => {
     expect(response.body).toEqual({ error: "Test anti-spam invalide." });
   });
 
+  it("returns 400 when email uses a placeholder domain", async () => {
+    const request = makeRequest(validBody({ email: "jean@example.com" }), {
+      origin: "http://localhost:3000",
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Adresse email invalide." });
+  });
+
   it("returns 400 when form was submitted too quickly", async () => {
     const challenge = createContactChallenge(Date.now() - 100);
     if (!challenge) throw new Error("Unable to create fast challenge");

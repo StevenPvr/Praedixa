@@ -1,5 +1,204 @@
 # PRD continuation work
 
+## Current Pass - 2026-03-17 - Production-First Guardrail
+
+### Plan
+
+- [x] Verify whether the admin user-provisioning flow is actually in production, not just present in the local worktree
+- [x] Add an explicit prod-first / long-term / scale guardrail to `AGENTS.md`
+- [x] Record the correction in `tasks/lessons.md` and answer from the deployed-state truth
+
+### Review
+
+- Production truth on `2026-03-17`:
+  - the admin-provisioning changes for `app-admin` / `app-api-ts` are still only present in the local worktree and untracked/modified files; they are not part of `origin/main`, which is still at commit `93c835c`.
+  - as a consequence, the new "create real Keycloak user from admin" lifecycle cannot be claimed as production-ready yet from this machine state.
+- Guardrail updated:
+  - `AGENTS.md` now states explicitly that answers and delivery must default to production truth, not local behavior, and that local-only success is not enough.
+  - `tasks/lessons.md` now records the same correction pattern so future answers do not conflate local readiness with production reality.
+
+## Current Pass - 2026-03-17 - Bootstrap Real Super Admin
+
+### Plan
+
+- [x] Bootstrap `admin@praedixa.com` as the real `super_admin` in the live `praedixa` realm after the fake-account purge
+- [x] Reuse the locally managed `KEYCLOAK_ADMIN_PASSWORD` from the standard `.env.local` path as the initial password for that admin account, per the current operator decision
+- [x] Verify role mapping, canonical token attributes, and `CONFIGURE_TOTP`, then record the operational outcome
+
+### Review
+
+- Real admin bootstrap completed:
+  - `scripts/keycloak-ensure-super-admin.sh` created `admin@praedixa.com` in the live `praedixa` realm and enforced the `super_admin` realm role.
+  - the script also set the canonical token attributes `role=super_admin` and `permissions=admin:console:access`, and enforced the Keycloak required action `CONFIGURE_TOTP`.
+  - verification at `2026-03-17 19:32:59 CET` confirmed the user exists, is enabled, is email-verified, carries `CONFIGURE_TOTP`, and has realm roles `default-roles-praedixa` + `super_admin`.
+- Operator decision applied as requested:
+  - the initial password of `admin@praedixa.com` was set from the locally managed `KEYCLOAK_ADMIN_PASSWORD` loaded from the standard `.env.local` path.
+- Resulting realm state:
+  - after the previous fake-account purge, the `praedixa` realm now contains only the real `admin@praedixa.com` app user.
+- Security follow-up to keep visible:
+  - the bootstrap admin API password and the user-facing `super_admin` password are temporarily identical by explicit operator choice in this pass; they should be separated and rotated on the next hardening pass.
+
+## Current Pass - 2026-03-17 - Live Fake Account Cleanup
+
+### Plan
+
+- [x] Reconnect to the live Keycloak admin realm and inventory the remaining fake/demo app users before deleting anything
+- [x] Remove the explicitly fake `ops.*` users from the live `praedixa` realm with a targeted backup-first cleanup
+- [x] Verify the realm no longer exposes those accounts and confirm that the accessible persistence layer does not still reference them
+- [x] Record the operational outcome and the bootstrap consequence for the next real admin provisioning step
+
+### Review
+
+- Live identity cleanup completed:
+  - the only remaining app-realm users in `praedixa` were `ops.admin@praedixa.com` and `ops.client@praedixa.com`
+  - both users were exported to a temporary safety snapshot under `/tmp/praedixa-keycloak-cleanup-Z4JNEV/` and then deleted from Keycloak by explicit user id
+  - post-delete verification at `2026-03-17 19:20:48 CET` returned an empty `kcadm get users -r praedixa`, so the fake accounts are no longer usable for OIDC login
+- Persistence verification completed from the data plane reachable on this machine:
+  - the accessible local PostgreSQL (`localhost:5433/praedixa`) had `0` rows matching those emails or Keycloak user ids, so there was no linked local `users.auth_user_id` record to clean up after the realm deletion
+- Important operational consequence:
+  - the `praedixa` realm now has no remaining app users, so `app-admin` cannot be used until a real super admin is bootstrapped again through `scripts/keycloak-ensure-super-admin.sh` or an equivalent controlled provisioning path
+
+## Current Pass - 2026-03-17 - Admin-Driven Account Provisioning Without Fake Client Accounts
+
+### Plan
+
+- [x] Inventory every fake/demo client-account dependency and every admin user lifecycle touchpoint across UI, API TS, Python legacy paths, docs, and live auth helpers
+- [x] Replace the fake `pending-*` account creation path with a production-grade admin provisioning flow that creates the IdP identity first, then persists the linked app user record
+- [x] Require `site_id` for site-scoped roles in the admin account-creation flow and keep DB/IAM role state aligned on later user mutations
+- [x] Remove documented fake client-account references and update the admin/runtime/deployment docs plus tests around the new account lifecycle
+
+### Review
+
+- Lifecycle change delivered:
+  - `app-api-ts/src/services/keycloak-admin-identity.ts` now provisions the real Keycloak user, synchronizes `role` / `organization_id` / `site_id`, assigns the realm role, sends `UPDATE_PASSWORD`, and deletes the Keycloak user again if the downstream DB write fails.
+  - `app-api-ts/src/services/admin-backoffice.ts` no longer writes `pending-*` into `users.auth_user_id`; it now persists the real Keycloak user id and also resynchronizes Keycloak on role changes and deactivate/reactivate mutations.
+  - `app-admin/app/(admin)/clients/[orgId]/equipe/page.tsx` now requires a site for `manager` / `hr_manager`, blocks invalid submissions client-side, and frames the action as an invitation/provisioning flow instead of a fake local account create.
+- Fake/demo account paths removed or closed:
+  - the documented `ops.client` / `ops.admin` fake-account recipes were removed from `README.md` and replaced with admin-driven lifecycle guidance plus generic break-glass placeholders only.
+  - the legacy Python `app-api/app/services/admin_users.py` invite path now fails closed instead of minting placeholder `pending-*` identities.
+  - the admin route contract fixture email in `app-api-ts/src/__tests__/routes.contracts.test.ts` now uses a generic client email instead of `ops.client@praedixa.com`.
+- Runtime ops aligned:
+  - `scripts/scw-configure-api-env.sh`, `docs/deployment/scaleway-container.md`, `docs/deployment/environment-secrets-owners-matrix.md`, and `docs/deployment/runtime-secrets-inventory.json` now declare and synchronize `KEYCLOAK_ADMIN_USERNAME` / `KEYCLOAK_ADMIN_PASSWORD` for API-side account provisioning.
+- Verification completed:
+  - `pnpm --dir app-api-ts test -- src/__tests__/keycloak-admin-identity.test.ts src/__tests__/admin-backoffice-users.test.ts`
+  - `pnpm --dir app-api-ts exec tsc -p tsconfig.json --noEmit`
+  - `pnpm --dir app-admin test -- 'app/(admin)/clients/[orgId]/equipe/__tests__/page.test.tsx'`
+  - `pnpm --dir app-admin exec tsc -p tsconfig.json --noEmit`
+  - `bash -n scripts/scw-configure-api-env.sh`
+  - `node ./scripts/validate-runtime-secret-inventory.mjs`
+  - `python3 -m py_compile app-api/app/services/admin_users.py`
+- Remaining operational cleanup:
+  - the repo/runtime path no longer recreates fake client accounts, but deleting already-existing live fake users remains a separate targeted cleanup because it requires deleting both the IdP identity and the linked DB row safely.
+
+## Current Pass - 2026-03-17 - Keycloak Local Secret Autoload And Mapper Drift
+
+### Plan
+
+- [x] Record the user correction about local `.env.local` secret storage in repo lessons and guardrails
+- [x] Centralize the Keycloak admin password autoload so the local helper scripts stop requiring manual shell re-export
+- [x] Align the versioned realm mapper config with the live Keycloak mapper contract and rerun reconciliation
+- [x] Verify the shell helpers, live Keycloak convergence, and the remaining login path outcome
+
+### Review
+
+- `scripts/lib/local-env.sh` centralise maintenant le chargement des `.env.local` standards du repo pour `KEYCLOAK_ADMIN_PASSWORD`, et les scripts Keycloak/Scaleway shell ne demandent plus de reexport manuel quand le secret local est deja en place.
+- `infra/auth/realm-praedixa.json` a ete aligne sur le contrat live exact des protocol mappers (`userinfo.token.claim=false` et `introspection.token.claim=true` la ou Keycloak les attend), ce qui a permis de faire converger le live sans faux drift.
+- Le run live `env -u KEYCLOAK_ADMIN_PASSWORD -u KC_BOOTSTRAP_ADMIN_PASSWORD ./scripts/keycloak-ensure-api-access-contract.sh` recharge maintenant le secret depuis `app-landing/.env.local` et a cree/realigne `claim-role` sur `praedixa-webapp` et `praedixa-admin`.
+- Le selector `jq` de derivation du role canonique a aussi ete corrige pour ne plus promouvoir a tort tous les users sur la premiere priorite (`super_admin`).
+
+## Current Pass - 2026-03-17 - Landing Contact Email Semantic Validation
+
+### Plan
+
+- [x] Inventory every landing-page contact surface that collects an email address and compare the current validation paths
+- [x] Replace the duplicated regex checks with one shared semantic email validator reused by client helpers and server routes
+- [x] Cover the tightened behavior with targeted tests on the landing routes and security helper
+- [x] Rebuild the landing app and update the distributed docs / guardrails that describe the public-form boundary
+
+### Review
+
+- Security change delivered:
+  - added `app-landing/lib/security/email-address.ts` as the shared semantic validator for landing emails
+  - the validator now rejects malformed addresses, placeholder locals like `test` / `noreply`, reserved domains such as `example.com` / `.local`, and disposable domains like `mailinator.com`
+- Surfaces aligned on the same rule:
+  - `/contact` client validation and `POST /api/contact`
+  - deployment-request client gating and `POST /api/deployment-request`
+  - scoping-call client validation and `POST /api/scoping-call`
+  - `POST /api/v1/public/contact-requests`
+- Docs/guardrails updated:
+  - `app-landing/lib/security/README.md`, `app-landing/lib/api/README.md`, `app-landing/lib/api/contact/README.md`, `app-landing/lib/api/deployment-request/README.md`, `app-landing/lib/api/scoping-call/README.md`, `app-landing/components/pages/README.md`, and `app-landing/components/shared/README.md`
+  - new prevention rule added to `AGENTS.md` so landing form email checks stay centralized instead of drifting into parallel regexes
+- Verification completed:
+  - `pnpm --dir app-landing test -- 'lib/security/__tests__/email-address.test.ts' 'app/api/contact/__tests__/route.test.ts' 'app/api/deployment-request/__tests__/route-validation.test.ts' 'app/api/scoping-call/__tests__/route.test.ts' 'app/api/v1/public/contact-requests/__tests__/route.test.ts'`
+  - `pnpm build:landing`
+
+## Current Pass - 2026-03-17 - Webapp OIDC Claims Drift Recovery
+
+### Plan
+
+- [x] Reproduce the `auth_claims_invalid` path from the webapp logs and trace the exact strict-claims boundary in the OIDC callback
+- [x] Compare the strict webapp/admin token contract with the live-convergence scripts and provisioning docs to isolate the drift
+- [x] Fix the Keycloak convergence/provisioning scripts so they enforce the full canonical token contract instead of a partial subset
+- [x] Update the impacted docs and login UX so the next auth drift is both less likely and faster to diagnose
+- [ ] Re-run targeted verification and, if the local cloud credentials allow it, apply the Keycloak contract alignment live and re-check local login
+
+### Review
+
+- Root cause identified from the local webapp loop:
+  - `/auth/callback` redirects to `/login?error=auth_claims_invalid` before API compatibility checks whenever `userFromAccessToken(...)` cannot extract the canonical top-level claims.
+  - The webapp intentionally rejects legacy aliases and requires `sub`, `email`, `role`, `organization_id` and `site_id` according to role scope.
+- Structural drifts fixed in the repo:
+  - `scripts/keycloak-ensure-api-access-contract.sh` previously converged only `audience`, `organization_id` and `site_id`; it now reconciles protocol mappers directly from `infra/auth/realm-praedixa.json`, including `claim-role` and admin-only `claim-permissions`.
+  - The same script can now sync a target user's canonical `role`, `organization_id`, `site_id`, and optional `permissions`, deriving `role` from the highest-priority known realm role when `TARGET_ROLE` is not supplied.
+  - `scripts/keycloak-ensure-super-admin.sh` now also provisions the canonical user attributes `role=super_admin` and `permissions=admin:console:access`, instead of relying on a realm role alone.
+- Diagnostics/UX fixed:
+  - the webapp login page now explains `auth_claims_invalid` explicitly and mentions the canonical claims contract instead of falling back to the generic "La connexion a echoue" message.
+  - the callback now appends a minimal `token_reason` (`missing_role`, `missing_email`, `missing_exp`, etc.) when it rejects a token as `auth_claims_invalid`, and the login page displays that detail without exposing the bearer token.
+- Docs updated in the same pass:
+  - `README.md`, `scripts/README.md`, `infra/auth/README.md`, and `docs/deployment/scaleway-container.md` now describe the canonical-claims requirement and the updated convergence/provisioning path.
+- Verification completed:
+  - `bash -n scripts/keycloak-ensure-api-access-contract.sh`
+  - `bash -n scripts/keycloak-ensure-super-admin.sh`
+  - `pnpm --dir app-webapp test -- 'app/(auth)/login/__tests__/page.test.tsx' 'lib/auth/__tests__/oidc.test.ts' 'app/auth/callback/__tests__/route.test.ts'`
+  - `pnpm --dir app-admin test -- 'lib/auth/__tests__/oidc.test.ts' 'app/auth/callback/__tests__/route.test.ts'`
+- Live-apply blocker:
+  - the local Scaleway context can list the `auth-prod` namespace in project `d86bdb89-bef6-4239-92e2-35e869c9ef38`, but `scw secret secret list` still returns no `KC_BOOTSTRAP_ADMIN_PASSWORD` under the documented path `/praedixa/prod/auth-prod/runtime`, so the Keycloak convergence script could not be executed safely against production from this machine context.
+
+## Current Pass - 2026-03-17 - Deploy Landing Prod Scaleway
+
+### Plan
+
+- [x] Re-read the Scaleway landing deployment path, release constraints, and production safety rules
+- [x] Validate the local release prerequisites and preflight checks for landing production
+- [x] Build the immutable landing image, create the signed release manifest, and deploy `landing` to Scaleway prod
+- [x] Run the post-deploy smoke checks and verify the production landing response
+- [x] Record the deployment result, release artifacts, and operational notes in this file
+
+### Review
+
+- Deployment target: Scaleway prod container `landing-web` in region `fr-par`.
+- Release artifacts:
+  - image tag `rel-landing-20260317-93c835c`
+  - image digest `sha256:f948ad592906243833fd4f277d6bfc7863943877908ad200c088711599ea5f66`
+  - signed manifest `.release/rel-landing-20260317-93c835c/manifest.json`
+- Verification completed before release:
+  - fresh gate report regenerated for `93c835cb038f51bff80615651c4422dd0b7de8a0`
+  - supply-chain evidence regenerated at `.git/gate-reports/artifacts/supply-chain-evidence.json`
+  - manifest verification passed via `pnpm release:manifest:verify --manifest .release/rel-landing-20260317-93c835c/manifest.json`
+- Production rollout result:
+  - `pnpm release:deploy --manifest .release/rel-landing-20260317-93c835c/manifest.json --env prod --services landing`
+  - `./scripts/scw-post-deploy-smoke.sh --env prod --services landing --landing-url https://www.praedixa.com/fr`
+  - smoke passed with `HTTP 200 -> https://www.praedixa.com/fr`
+- Release-flow defect fixed during this pass:
+  - `scripts/scw-release-deploy.sh` now retries with the signed tag derived from the manifest when the Scaleway Container API rejects a digest-qualified `registry-image@sha256` reference
+  - supporting docs updated in `scripts/README.md`, `docs/release-runner.md`, and `docs/deployment/scaleway-container.md`
+- Important runtime caveats still present on prod landing:
+  - `https://www.praedixa.com/api/contact/challenge` still returns `503`
+  - `landing-web` is missing `RATE_LIMIT_STORAGE_URI` and `CONTACT_FORM_CHALLENGE_SECRET`, so the public anti-abuse/contact flow is not yet production-complete even though the landing page itself is now deployed and serving
+- Gate note for this SHA:
+  - `.git/gate-reports/93c835cb038f51bff80615651c4422dd0b7de8a0.json` exists and proves `blocking_failed_checks=0`
+  - the gate summary still reports `status=fail` because of three `low` severity checks (`architecture:knip`, `architecture:ts-guardrails`, `performance:frontend-audits`)
+
 ## Current Pass - 2026-03-17 - Commit, Fix, Push
 
 ### Plan

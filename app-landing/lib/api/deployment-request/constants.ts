@@ -19,7 +19,6 @@ export const MAX_STACK_LENGTH = 300;
 export const MAX_PAIN_POINT_LENGTH = 1_200;
 export const MAX_REQUEST_BODY_LENGTH = 2_000;
 
-export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const PHONE_REGEX = /^[0-9+\-() ]+$/;
 
 export const ALLOWED_EMPLOYEE_RANGES = new Set([

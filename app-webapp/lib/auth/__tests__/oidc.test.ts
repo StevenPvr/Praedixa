@@ -4,6 +4,7 @@ import {
   buildSessionData,
   doesSessionMatchAccessToken,
   doesSessionMatchRefreshToken,
+  getAccessTokenClaimsIssue,
   getOidcEnv,
   getApiAccessTokenCompatibilityReason,
   sanitizeNextPath,
@@ -72,6 +73,7 @@ describe("webapp OIDC helpers", () => {
     });
 
     expect(userFromAccessToken(token, "web-client")).toBeNull();
+    expect(getAccessTokenClaimsIssue(token)).toBe("missing_role");
     expect(getApiAccessTokenCompatibilityReason(token, "web-client")).toBe(
       "invalid_claims",
     );
@@ -87,6 +89,7 @@ describe("webapp OIDC helpers", () => {
     });
 
     expect(userFromAccessToken(token, "web-client")).toBeNull();
+    expect(getAccessTokenClaimsIssue(token)).toBe("invalid_role");
     expect(getApiAccessTokenCompatibilityReason(token, "web-client")).toBe(
       "invalid_claims",
     );
@@ -109,6 +112,7 @@ describe("webapp OIDC helpers", () => {
     });
 
     expect(userFromAccessToken(token, "web-client")).toBeNull();
+    expect(getAccessTokenClaimsIssue(token)).toBe("missing_email");
     expect(getApiAccessTokenCompatibilityReason(token, "web-client")).toBe(
       "invalid_claims",
     );

@@ -175,20 +175,20 @@ export const frCoreConversion: Partial<Dictionary> = {
 
   footer: {
     tagline:
-      "Praedixa aide les réseaux multi-sites à arbitrer plus tôt les décisions qui protègent marge et service, sans remplacer les outils déjà en place.",
-    badges: ["Décisions cadrées", "Preuve ROI relisible"],
+      "Praedixa anticipe vos besoins opérationnels et prouve votre ROI, sans remplacer vos outils.",
+    badges: ["Décisions optimisées", "ROI prouvé"],
     navigation: "Navigation",
     legalContact: "Légal & contact",
     copyright: "Conçu et hébergé en France",
     ctaBanner: {
       kicker: "Praedixa",
-      heading: "Arbitrez plus tôt les décisions qui protègent la marge.",
-      cta: "Cadrer un premier périmètre",
+      heading: "Prêt à optimiser vos opérations\u00a0?",
+      cta: "Nous contacter",
     },
   },
 
   stickyCta: {
-    text: "Cadrer un premier périmètre",
+    text: "Voir une démo",
   },
 
   form: {

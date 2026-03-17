@@ -38,7 +38,7 @@ describe("llms routes", () => {
 
     expect(body).toContain("# Praedixa");
     expect(body).toContain(
-      "> Praedixa helps multi-site networks spot the trade-offs that threaten margin earlier",
+      "> Praedixa anticipates operational needs, optimizes decisions, and proves ROI for multi-site networks.",
     );
     expect(body).toContain(
       "[llms-full.txt](https://www.praedixa.com/llms-full.txt)",

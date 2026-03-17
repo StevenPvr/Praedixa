@@ -69,6 +69,21 @@ describe("LoginPage", () => {
     expect(screen.getByText(/La connexion a echoue\./)).toBeInTheDocument();
   });
 
+  it("renders explicit invalid claims banner", () => {
+    mockSearchParams = new URLSearchParams(
+      "error=auth_claims_invalid&token_reason=missing_role",
+    );
+    render(<LoginPage />);
+
+    expect(
+      screen.getByText(
+        /token d'acces ne porte pas encore le contrat canonique/,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/`role`/)).toBeInTheDocument();
+    expect(screen.getByText(/missing_role/)).toBeInTheDocument();
+  });
+
   it("renders explicit missing OIDC config banner", () => {
     mockSearchParams = new URLSearchParams("error=oidc_config_missing");
     render(<LoginPage />);

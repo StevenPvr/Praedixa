@@ -55,14 +55,14 @@ describe("ProofBlockSection", () => {
   it("renders the kicker, heading, and body text", () => {
     render(<ProofBlockSection locale="fr" />);
 
-    expect(screen.getByText("Preuve en action")).toBeInTheDocument();
+    expect(screen.getByText("Preuve")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Un dossier de preuve, pas un dashboard de plus.",
+        name: "Des résultats concrets, pas des promesses.",
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Chaque décision génère un dossier structuré/),
+      screen.getByText(/Chaque décision est tracée et son impact mesuré/),
     ).toBeInTheDocument();
   });
 
@@ -72,14 +72,12 @@ describe("ProofBlockSection", () => {
     const tabs = screen.getAllByRole("tab");
     expect(tabs).toHaveLength(3);
 
-    expect(
-      screen.getByRole("tab", { name: "Situation initiale" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Situation" })).toBeInTheDocument();
     expect(
       screen.getByRole("tab", { name: "Options comparées" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("tab", { name: "Impact relu" }),
+      screen.getByRole("tab", { name: "Impact mesuré" }),
     ).toBeInTheDocument();
   });
 
@@ -87,7 +85,7 @@ describe("ProofBlockSection", () => {
     render(<ProofBlockSection locale="fr" />);
 
     expect(
-      screen.getByText(/Trois sites logistiques absorbent un pic de charge/),
+      screen.getByText(/Trois sites font face à un pic d.activité/),
     ).toBeInTheDocument();
   });
 
@@ -97,15 +95,13 @@ describe("ProofBlockSection", () => {
 
     await user.click(screen.getByRole("tab", { name: "Options comparées" }));
 
-    expect(
-      screen.getByText(/Heures supplémentaires locales \(base 100\)/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Trois options chiffrées/)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("tab", { name: "Impact relu" }));
+    await user.click(screen.getByRole("tab", { name: "Impact mesuré" }));
 
     expect(
       screen.getByText(
-        /La réallocation inter-sites a réduit le coût d.urgence/,
+        /La réallocation entre sites a réduit les coûts d.urgence/,
       ),
     ).toBeInTheDocument();
   });
@@ -119,8 +115,8 @@ describe("ProofBlockSection", () => {
       screen.getAllByText("Options comparées").length,
     ).toBeGreaterThanOrEqual(2);
 
-    expect(screen.getByText("−12%")).toBeInTheDocument();
-    expect(screen.getByText(/Coût d.urgence/)).toBeInTheDocument();
+    expect(screen.getByText(/−12/)).toBeInTheDocument();
+    expect(screen.getByText(/Coûts d.urgence/)).toBeInTheDocument();
 
     expect(screen.getByText("8j")).toBeInTheDocument();
     expect(screen.getByText("Anticipation")).toBeInTheDocument();
@@ -140,7 +136,7 @@ describe("ProofBlockSection", () => {
     render(<ProofBlockSection locale="fr" />);
 
     const firstTab = screen.getByRole("tab", {
-      name: "Situation initiale",
+      name: "Situation",
     });
     expect(firstTab).toHaveAttribute("aria-selected", "true");
 

@@ -6,6 +6,7 @@ import {
   buildSessionData,
   clearAuthCookies,
   exchangeCodeForTokens,
+  getAccessTokenClaimsIssue,
   getApiAccessTokenCompatibilityReason,
   getOidcEnv,
   getTokenExp,
@@ -127,8 +128,11 @@ export async function GET(request: NextRequest) {
     const user = userFromAccessToken(tokenPayload.access_token, clientId);
     const exp = getTokenExp(tokenPayload.access_token);
     if (!user || !exp) {
+      const tokenReason =
+        getAccessTokenClaimsIssue(tokenPayload.access_token) ??
+        "invalid_claims";
       const redirect = noStoreRedirect(
-        `${appOrigin}/login?error=auth_claims_invalid`,
+        `${appOrigin}/login?error=auth_claims_invalid&token_reason=${encodeURIComponent(tokenReason)}`,
       );
       applyRateLimitHeaders(redirect, maxAttempts, rate);
       clearAuthCookies(redirect);

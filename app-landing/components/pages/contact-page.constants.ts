@@ -1,8 +1,6 @@
 import type { Locale } from "../../lib/i18n/config";
 import type { ContactFormData, ContactIntent } from "./contact-page.types";
 
-export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export function createInitialContactForm(
   locale: Locale,
   intent: ContactIntent,

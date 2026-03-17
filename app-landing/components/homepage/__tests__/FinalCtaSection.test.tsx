@@ -16,7 +16,7 @@ describe("FinalCtaSection", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: "Cadrons le premier arbitrage à objectiver.",
+        name: "Parlons de votre ROI.",
       }),
     ).toBeInTheDocument();
   });
@@ -24,16 +24,16 @@ describe("FinalCtaSection", () => {
   it("renders the label kicker", () => {
     render(<FinalCtaSection locale="fr" />);
 
-    expect(screen.getByText("Prêt à objectiver")).toBeInTheDocument();
+    expect(screen.getByText(/Prêt à commencer/)).toBeInTheDocument();
   });
 
   it("renders all 3 promise items", () => {
     render(<FinalCtaSection locale="fr" />);
 
     const promiseItems = [
-      "Retour qualifié sous 48h ouvrées",
-      "Orientation preuve sur historique ou cadrage déploiement",
-      "Prochain pas concret, adapté à votre périmètre",
+      "Réponse en 48h",
+      "Diagnostic personnalisé",
+      "Plan d\u2019action concret",
     ];
 
     for (const item of promiseItems) {
@@ -41,11 +41,11 @@ describe("FinalCtaSection", () => {
     }
   });
 
-  it("renders step 1 form fields (Type de réseau, Arbitrage prioritaire, Horizon projet)", () => {
+  it("renders step 1 form fields (Type de réseau, Principal enjeu, Horizon projet)", () => {
     render(<FinalCtaSection locale="fr" />);
 
     expect(screen.getByText("Type de réseau")).toBeInTheDocument();
-    expect(screen.getByText("Arbitrage prioritaire")).toBeInTheDocument();
+    expect(screen.getByText("Principal enjeu")).toBeInTheDocument();
     expect(screen.getByText("Horizon projet")).toBeInTheDocument();
   });
 

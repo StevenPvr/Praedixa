@@ -195,20 +195,20 @@ export const enCoreConversion: Partial<Dictionary> = {
 
   footer: {
     tagline:
-      "Praedixa helps multi-site networks arbitrate earlier the decisions that protect margin and service, without replacing the tools already in place.",
-    badges: ["Framed decisions", "Historical proof"],
+      "Praedixa anticipates your operational needs and proves your ROI, without replacing your tools.",
+    badges: ["Optimized decisions", "Proven ROI"],
     navigation: "Navigation",
     legalContact: "Legal & contact",
     copyright: "Designed and hosted in France",
     ctaBanner: {
       kicker: "Praedixa",
-      heading: "Arbitrate earlier the decisions that protect margin.",
-      cta: "Frame the first decision scope",
+      heading: "Ready to optimize your operations?",
+      cta: "Contact us",
     },
   },
 
   stickyCta: {
-    text: "Frame the first decision scope",
+    text: "See a demo",
   },
 
   form: {

@@ -5,6 +5,8 @@ import { AdminBackofficeService } from "../services/admin-backoffice.js";
 const ORGANIZATION_ID = "44444444-4444-4444-4444-444444444444";
 const ADMIN_USER_ID = "55555555-5555-5555-5555-555555555555";
 const TARGET_USER_ID = "66666666-6666-6666-6666-666666666666";
+const TARGET_AUTH_USER_ID = "kc-user-123";
+const TARGET_SITE_ID = "77777777-7777-7777-7777-777777777777";
 
 type QueryCall = {
   sql: string;
@@ -19,9 +21,11 @@ function createDbUserRow(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     id: TARGET_USER_ID,
     organization_id: ORGANIZATION_ID,
+    auth_user_id: TARGET_AUTH_USER_ID,
     email: "member@praedixa.com",
     role: "manager",
     status: "active",
+    site_id: TARGET_SITE_ID,
     site_name: "Lyon",
     last_login_at: null,
     created_at: new Date("2026-03-01T08:00:00.000Z"),
@@ -36,6 +40,11 @@ function createTransactionalService(
     params: unknown[] | undefined,
   ) => Promise<QueryResult>,
 ) {
+  const identityService = {
+    provisionUser: vi.fn(async () => ({ authUserId: TARGET_AUTH_USER_ID })),
+    syncUser: vi.fn(async () => undefined),
+    deleteProvisionedUser: vi.fn(async () => undefined),
+  };
   const calls: QueryCall[] = [];
   const client = {
     query: vi.fn(async (sql: string, params?: unknown[]) => {
@@ -45,6 +54,10 @@ function createTransactionalService(
     release: vi.fn(),
   };
   const pool = {
+    query: vi.fn(async (sql: string, params?: unknown[]) => {
+      calls.push({ sql, params });
+      return queryHandler(sql, params);
+    }),
     connect: vi.fn(async () => client),
   };
   const service = new AdminBackofficeService(null);
@@ -53,7 +66,12 @@ function createTransactionalService(
     "pool",
     pool as unknown,
   );
-  return { service, pool, client, calls };
+  Reflect.set(
+    service as unknown as Record<string, unknown>,
+    "identityService",
+    identityService as unknown,
+  );
+  return { service, pool, client, calls, identityService };
 }
 
 function findAuditCall(calls: QueryCall[]): QueryCall {
@@ -103,8 +121,8 @@ describe("admin backoffice organization users", () => {
   });
 
   it("writes append-only audit metadata for organization user invites", async () => {
-    const { service, client, calls } = createTransactionalService(
-      async (sql, params) => {
+    const { service, client, calls, identityService } =
+      createTransactionalService(async (sql, params) => {
         if (
           sql === "BEGIN" ||
           sql === "COMMIT" ||
@@ -112,6 +130,20 @@ describe("admin backoffice organization users", () => {
           sql.includes("INSERT INTO admin_audit_log")
         ) {
           return { rows: [] };
+        }
+
+        if (
+          sql.includes(
+            "SELECT id::text FROM organizations WHERE id = $1::uuid LIMIT 1",
+          )
+        ) {
+          expect(params).toEqual([ORGANIZATION_ID]);
+          return { rows: [{ id: ORGANIZATION_ID }] };
+        }
+
+        if (sql.includes("FROM sites") && sql.includes("AND id = $2::uuid")) {
+          expect(params).toEqual([ORGANIZATION_ID, TARGET_SITE_ID]);
+          return { rows: [{ id: TARGET_SITE_ID }] };
         }
 
         if (
@@ -125,22 +157,24 @@ describe("admin backoffice organization users", () => {
           return {
             rows: [
               createDbUserRow({
+                auth_user_id: TARGET_AUTH_USER_ID,
                 email: "new.manager@praedixa.com",
                 role: "manager",
                 status: "pending",
+                site_id: TARGET_SITE_ID,
               }),
             ],
           };
         }
 
         throw new Error(`Unexpected SQL in invite test: ${sql}`);
-      },
-    );
+      });
 
     const result = await service.inviteOrganizationUser({
       organizationId: ORGANIZATION_ID,
       email: "New.Manager@Praedixa.com",
       role: "manager",
+      siteId: TARGET_SITE_ID,
       actorUserId: ADMIN_USER_ID,
       actorEmail: "admin@praedixa.com",
       requestId: "req-invite",
@@ -152,11 +186,20 @@ describe("admin backoffice organization users", () => {
 
     expect(result.status).toBe("pending_invite");
     expect(result.email).toBe("new.manager@praedixa.com");
+    expect(result.siteId).toBe(TARGET_SITE_ID);
+    expect(identityService.provisionUser).toHaveBeenCalledWith({
+      email: "new.manager@praedixa.com",
+      organizationId: ORGANIZATION_ID,
+      role: "manager",
+      siteId: TARGET_SITE_ID,
+    });
 
     const metadata = readAuditMetadata(calls);
     expect(metadata).toMatchObject({
+      authUserId: TARGET_AUTH_USER_ID,
       email: "new.manager@praedixa.com",
       role: "manager",
+      siteId: TARGET_SITE_ID,
       invitedByEmail: "admin@praedixa.com",
       targetStatus: "pending",
       targetUserId: TARGET_USER_ID,
@@ -177,8 +220,8 @@ describe("admin backoffice organization users", () => {
   });
 
   it("writes append-only audit metadata for organization role changes", async () => {
-    const { service, client, calls } = createTransactionalService(
-      async (sql) => {
+    const { service, client, calls, identityService } =
+      createTransactionalService(async (sql) => {
         if (
           sql === "BEGIN" ||
           sql === "COMMIT" ||
@@ -210,14 +253,15 @@ describe("admin backoffice organization users", () => {
                 email: "member@praedixa.com",
                 role: "org_admin",
                 status: "active",
+                site_id: null,
+                site_name: null,
               }),
             ],
           };
         }
 
         throw new Error(`Unexpected SQL in role change test: ${sql}`);
-      },
-    );
+      });
 
     const result = await service.changeOrganizationUserRole({
       organizationId: ORGANIZATION_ID,
@@ -232,11 +276,22 @@ describe("admin backoffice organization users", () => {
     });
 
     expect(result.role).toBe("org_admin");
+    expect(result.siteId).toBeNull();
+    expect(identityService.syncUser).toHaveBeenCalledWith({
+      authUserId: TARGET_AUTH_USER_ID,
+      organizationId: ORGANIZATION_ID,
+      role: "org_admin",
+      siteId: null,
+      enabled: true,
+    });
 
     const metadata = readAuditMetadata(calls);
     expect(metadata).toMatchObject({
+      authUserId: TARGET_AUTH_USER_ID,
       beforeRole: "manager",
       afterRole: "org_admin",
+      beforeSiteId: TARGET_SITE_ID,
+      afterSiteId: null,
       beforeStatus: "active",
       afterStatus: "active",
       email: "member@praedixa.com",
@@ -258,7 +313,7 @@ describe("admin backoffice organization users", () => {
   });
 
   it("audits duplicate invite attempts before rethrowing the conflict", async () => {
-    const { service, calls } = createTransactionalService(
+    const { service, calls, identityService } = createTransactionalService(
       async (sql, params) => {
         if (
           sql === "BEGIN" ||
@@ -267,6 +322,20 @@ describe("admin backoffice organization users", () => {
           sql.includes("INSERT INTO admin_audit_log")
         ) {
           return { rows: [] };
+        }
+
+        if (
+          sql.includes(
+            "SELECT id::text FROM organizations WHERE id = $1::uuid LIMIT 1",
+          )
+        ) {
+          expect(params).toEqual([ORGANIZATION_ID]);
+          return { rows: [{ id: ORGANIZATION_ID }] };
+        }
+
+        if (sql.includes("FROM sites") && sql.includes("AND id = $2::uuid")) {
+          expect(params).toEqual([ORGANIZATION_ID, TARGET_SITE_ID]);
+          return { rows: [{ id: TARGET_SITE_ID }] };
         }
 
         if (
@@ -285,6 +354,7 @@ describe("admin backoffice organization users", () => {
         organizationId: ORGANIZATION_ID,
         email: "member@praedixa.com",
         role: "manager",
+        siteId: TARGET_SITE_ID,
         actorUserId: ADMIN_USER_ID,
         actorEmail: "admin@praedixa.com",
         requestId: "req-invite-conflict",
@@ -298,6 +368,7 @@ describe("admin backoffice organization users", () => {
       statusCode: 409,
     });
 
+    expect(identityService.provisionUser).not.toHaveBeenCalled();
     expect(readAuditMetadata(calls)).toMatchObject({
       email: "member@praedixa.com",
       role: "manager",
@@ -356,6 +427,94 @@ describe("admin backoffice organization users", () => {
       errorCode: "NOT_FOUND",
     });
     expect(readAuditSeverity(calls)).toBe("WARN");
+  });
+
+  it("rejects manager invitations without a site_id before provisioning identity", async () => {
+    const { service, identityService } = createTransactionalService(
+      async (sql, params) => {
+        if (
+          sql.includes(
+            "SELECT id::text FROM organizations WHERE id = $1::uuid LIMIT 1",
+          )
+        ) {
+          expect(params).toEqual([ORGANIZATION_ID]);
+          return { rows: [{ id: ORGANIZATION_ID }] };
+        }
+
+        throw new Error(
+          `Unexpected SQL in manager site validation test: ${sql}`,
+        );
+      },
+    );
+
+    await expect(
+      service.inviteOrganizationUser({
+        organizationId: ORGANIZATION_ID,
+        email: "manager.without.site@praedixa.com",
+        role: "manager",
+        actorUserId: ADMIN_USER_ID,
+        actorEmail: "admin@praedixa.com",
+        requestId: "req-missing-site",
+        clientIp: "127.0.0.1",
+        userAgent: "vitest",
+      }),
+    ).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+      statusCode: 422,
+    });
+
+    expect(identityService.provisionUser).not.toHaveBeenCalled();
+  });
+
+  it("syncs identity enablement when deactivating a user", async () => {
+    const { service, identityService } = createTransactionalService(
+      async (sql) => {
+        if (sql === "BEGIN" || sql === "COMMIT" || sql === "ROLLBACK") {
+          return { rows: [] };
+        }
+
+        if (sql.includes("INSERT INTO admin_audit_log")) {
+          return { rows: [] };
+        }
+
+        if (
+          sql.includes("FROM users u") &&
+          sql.includes("AND u.id = $2::uuid")
+        ) {
+          return { rows: [createDbUserRow()] };
+        }
+
+        if (sql.includes("UPDATE users") && sql.includes("SET status = $3")) {
+          return {
+            rows: [
+              createDbUserRow({
+                status: "inactive",
+              }),
+            ],
+          };
+        }
+
+        throw new Error(`Unexpected SQL in deactivate user test: ${sql}`);
+      },
+    );
+
+    const result = await service.deactivateOrganizationUser({
+      organizationId: ORGANIZATION_ID,
+      userId: TARGET_USER_ID,
+      actorUserId: ADMIN_USER_ID,
+      requestId: "req-deactivate",
+      clientIp: "127.0.0.1",
+      userAgent: "vitest",
+    });
+
+    expect(result.status).toBe("deactivated");
+    expect(identityService.syncUser).toHaveBeenCalledWith({
+      authUserId: TARGET_AUTH_USER_ID,
+      organizationId: ORGANIZATION_ID,
+      role: "manager",
+      siteId: TARGET_SITE_ID,
+      enabled: false,
+    });
   });
 
   it("writes append-only audit metadata for rejected invite attempts", async () => {

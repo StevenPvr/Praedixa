@@ -2,10 +2,12 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 KCADM_BIN="${KCADM_BIN:-$SCRIPT_DIR/kcadm}"
 POLICY_PATH="${POLICY_PATH:-$SCRIPT_DIR/../infra/auth/admin-mfa-browser-flow-policy.json}"
 source "$SCRIPT_DIR/lib/keycloak.sh"
 source "$SCRIPT_DIR/lib/json-log.sh"
+source "$SCRIPT_DIR/lib/local-env.sh"
 SCRIPT_SERVICE="auth"
 
 KEYCLOAK_SERVER_URL="${KEYCLOAK_SERVER_URL:-https://auth.praedixa.com}"
@@ -43,6 +45,7 @@ if [ ! -f "$POLICY_PATH" ]; then
   exit 1
 fi
 
+autofill_keycloak_admin_password_from_local_env "$REPO_ROOT"
 require_non_empty "$KEYCLOAK_ADMIN_PASSWORD" "KEYCLOAK_ADMIN_PASSWORD"
 
 json_log::emit \

@@ -30,6 +30,7 @@ Composants orientes pages ou parcours metier.
 ## Conventions
 
 - laisser les validations serveur dans `lib/api/*`; garder ici seulement la logique d'UI
+- les parcours `contact` et `deploiement` doivent reutiliser la meme validation semantique d'email via `lib/security/email-address.ts`; ne pas laisser repartir chacun sur sa propre regex
 - ne pas dupliquer les listes d'options si elles existent deja dans `lib/content`
 - les pages knowledge doivent lire le contenu depuis `lib/content/knowledge-pages*.ts`
 - les pages knowledge, services et contact qui servent de pages piliers doivent afficher une breadcrumb visible et emettre un `WebPage` + `BreadcrumbList` JSON-LD coherents

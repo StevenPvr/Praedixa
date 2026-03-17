@@ -2,8 +2,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 KCADM_BIN="${KCADM_BIN:-$SCRIPT_DIR/kcadm}"
 source "$SCRIPT_DIR/lib/keycloak.sh"
+source "$SCRIPT_DIR/lib/local-env.sh"
 
 KEYCLOAK_SERVER_URL="${KEYCLOAK_SERVER_URL:-https://auth.praedixa.com}"
 KEYCLOAK_ADMIN_REALM="${KEYCLOAK_ADMIN_REALM:-master}"
@@ -16,6 +18,7 @@ SUPER_ADMIN_PASSWORD="${SUPER_ADMIN_PASSWORD:-}"
 SUPER_ADMIN_FIRST_NAME="${SUPER_ADMIN_FIRST_NAME:-Praedixa}"
 SUPER_ADMIN_LAST_NAME="${SUPER_ADMIN_LAST_NAME:-Admin}"
 SUPER_ADMIN_ROLE="${SUPER_ADMIN_ROLE:-super_admin}"
+SUPER_ADMIN_PERMISSIONS="${SUPER_ADMIN_PERMISSIONS:-admin:console:access}"
 SUPER_ADMIN_REQUIRE_TOTP="${SUPER_ADMIN_REQUIRE_TOTP:-true}"
 
 require_cmd() {
@@ -41,6 +44,7 @@ if [ ! -x "$KCADM_BIN" ]; then
   exit 1
 fi
 
+autofill_keycloak_admin_password_from_local_env "$REPO_ROOT"
 require_non_empty "$KEYCLOAK_ADMIN_PASSWORD" "KEYCLOAK_ADMIN_PASSWORD"
 require_non_empty "$SUPER_ADMIN_PASSWORD" "SUPER_ADMIN_PASSWORD"
 require_non_empty "$SUPER_ADMIN_EMAIL" "SUPER_ADMIN_EMAIL"
@@ -65,6 +69,44 @@ lookup_user_id() {
         )
         | .[0].id // empty
       '
+}
+
+permissions_json_from_csv() {
+  printf '%s' "$SUPER_ADMIN_PERMISSIONS" \
+    | jq -R '
+        split(",")
+        | map(ascii_downcase | gsub("^\\s+|\\s+$"; ""))
+        | map(select(length > 0))
+        | unique
+      '
+}
+
+ensure_user_token_attributes() {
+  local user_id="$1"
+  local permissions_json tmp_payload
+
+  permissions_json="$(permissions_json_from_csv)"
+  tmp_payload="$(mktemp)"
+
+  "$KCADM_BIN" get "users/${user_id}" -r "$KEYCLOAK_REALM" \
+    | jq \
+      --arg role "$SUPER_ADMIN_ROLE" \
+      --argjson permissions "$permissions_json" '
+        .attributes = (.attributes // {})
+        | .attributes.role = [$role]
+        | .attributes.permissions = $permissions
+      ' >"$tmp_payload"
+
+  "$KCADM_BIN" update "users/${user_id}" -r "$KEYCLOAK_REALM" -f "$tmp_payload" >/dev/null
+  rm -f "$tmp_payload"
+
+  "$KCADM_BIN" get "users/${user_id}" -r "$KEYCLOAK_REALM" \
+    | jq -e \
+      --arg role "$SUPER_ADMIN_ROLE" \
+      --argjson permissions "$permissions_json" '
+        (.attributes.role // []) == [$role]
+        and (.attributes.permissions // []) == $permissions
+      ' >/dev/null
 }
 
 ensure_user_required_action() {
@@ -149,6 +191,9 @@ if [ "$role_count" -lt 1 ]; then
   echo "Role assignment verification failed for ${SUPER_ADMIN_EMAIL}" >&2
   exit 1
 fi
+
+echo "[update] Enforcing canonical token attributes on ${SUPER_ADMIN_EMAIL}"
+ensure_user_token_attributes "$user_id"
 
 if [ "$SUPER_ADMIN_REQUIRE_TOTP" = "true" ]; then
   echo "[update] Enforcing required action CONFIGURE_TOTP on ${SUPER_ADMIN_EMAIL}"

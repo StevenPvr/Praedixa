@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { isSemanticallyValidEmailAddress } from "../../../../../lib/security/email-address";
 import {
   RequestBodyTooLargeError,
   readTextBodyWithLimit,
@@ -89,6 +90,10 @@ function hasValidIngestPayload(payload: Record<string, unknown>): boolean {
       maxLength: 128,
     })
   ) {
+    return false;
+  }
+
+  if (!isSemanticallyValidEmailAddress(String(payload.email))) {
     return false;
   }
 

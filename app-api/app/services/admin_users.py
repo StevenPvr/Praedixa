@@ -15,11 +15,9 @@ import uuid
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import ConflictError, ForbiddenError, NotFoundError
+from app.core.exceptions import ForbiddenError, NotFoundError
 from app.core.pagination import normalize_page_window
-from app.models.organization import Organization
 from app.models.user import User, UserRole, UserStatus
-from app.services.site_scope import validate_site_belongs_to_org
 
 
 async def list_org_users(
@@ -56,49 +54,15 @@ async def invite_user(
     invited_by: str,
     site_id: uuid.UUID | None = None,
 ) -> User:
-    """Create a new user record (invite).
+    """Fail closed: account provisioning belongs to the TypeScript admin API.
 
-    Security:
-    - Rejects super_admin role assignment (defense-in-depth).
-    - Checks email uniqueness.
-    - Sets status=PENDING (user must verify email to activate).
+    The data-plane Python service must not create placeholder auth identities or
+    local-only account records for end-user/operator access.
     """
-    # Defense-in-depth: block super_admin assignment at service layer
-    if role == UserRole.SUPER_ADMIN:
-        raise ForbiddenError("Cannot assign super_admin role via invitation")
-
-    # Verify the target organization exists (prevents orphaned user records)
-    org_result = await session.execute(
-        select(Organization.id).where(Organization.id == org_id)
+    del session, org_id, email, role, invited_by, site_id
+    raise ForbiddenError(
+        "User provisioning is handled by the TypeScript admin API and Keycloak lifecycle; the Python data-plane service must not create placeholder auth identities."
     )
-    if org_result.scalar_one_or_none() is None:
-        raise NotFoundError("Organization", str(org_id))
-
-    # Check email uniqueness
-    existing = await session.execute(select(User.id).where(User.email == email.lower()))
-    if existing.scalar_one_or_none() is not None:
-        raise ConflictError("User with email already exists")
-
-    validated_site_id: uuid.UUID | None = None
-    if site_id is not None:
-        validated_site_id = await validate_site_belongs_to_org(
-            session,
-            org_id,
-            str(site_id),
-        )
-
-    user = User(
-        organization_id=org_id,
-        email=email.lower(),
-        role=role,
-        status=UserStatus.PENDING,
-        # auth_user_id will be replaced at first successful IdP sign-in.
-        auth_user_id=f"pending-{uuid.uuid4()}",
-        site_id=validated_site_id,
-    )
-    session.add(user)
-    await session.flush()
-    return user
 
 
 async def _get_org_user(

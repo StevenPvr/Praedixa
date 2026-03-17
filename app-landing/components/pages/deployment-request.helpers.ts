@@ -1,3 +1,4 @@
+import { isSemanticallyValidEmailAddress } from "../../lib/security/email-address";
 import type { Locale } from "../../lib/i18n/config";
 import type {
   DeploymentRequestFormData,
@@ -83,7 +84,7 @@ export function canSubmitDeploymentRequestForm(
     form.companyName.trim().length === 0 ||
     form.sector.length === 0 ||
     form.employeeRange.length === 0 ||
-    form.email.trim().length === 0 ||
+    !isSemanticallyValidEmailAddress(form.email) ||
     !form.consent
   );
 }

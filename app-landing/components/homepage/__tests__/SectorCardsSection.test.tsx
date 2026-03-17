@@ -45,7 +45,7 @@ describe("SectorCardsSection", () => {
     expect(screen.getByText("Secteurs")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Les mêmes arbitrages, déclinés par secteur.",
+        name: "Une solution adaptée à votre secteur.",
       }),
     ).toBeInTheDocument();
   });
@@ -84,22 +84,22 @@ describe("SectorCardsSection", () => {
 
     expect(
       screen.getByText(
-        "Arbitrez demande, couverture et service avant que la marge ne glisse.",
+        /Anticipez les pics d.activité et optimisez vos ressources/,
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Sécurisez admissions, examens et continuité campus sans laisser dériver budget et couverture.",
+        /Anticipez la charge campus et sécurisez la continuité de service/,
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Arbitrez demande, capacité et promesse client au rythme réel du réseau.",
+        /Optimisez vos flux et tenez votre promesse client en temps réel/,
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Arbitrez charge atelier, pièces et compétences avant que le délai client ne dérive.",
+        /Anticipez la charge atelier et réduisez les délais clients/,
       ),
     ).toBeInTheDocument();
   });

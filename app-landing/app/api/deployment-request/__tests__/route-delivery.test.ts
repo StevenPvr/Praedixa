@@ -50,9 +50,9 @@ describe("POST /api/deployment-request delivery flow", () => {
     });
 
     it("sends the confirmation email to the applicant", async () => {
-      await POST(makeRequest(validBody({ email: "test@example.com" })));
+      await POST(makeRequest(validBody({ email: "marie@acme.fr" })));
       const confirmCall = mockEmailsSend.mock.calls[1]![0];
-      expect(confirmCall.to).toEqual(["test@example.com"]);
+      expect(confirmCall.to).toEqual(["marie@acme.fr"]);
       expect(confirmCall.subject).toContain("Demande de déploiement reçue");
       expect(confirmCall.replyTo).toBe("admin@praedixa.com");
       expect(confirmCall.text).toContain(
@@ -91,7 +91,7 @@ describe("POST /api/deployment-request delivery flow", () => {
     });
 
     it("escapes quotes in the email body", async () => {
-      await POST(makeRequest(validBody({ email: 'user"inject@test.com' })));
+      await POST(makeRequest(validBody({ companyName: 'ACME "Quoted" Corp' })));
       const adminCall = mockEmailsSend.mock.calls[0]![0];
       expect(adminCall.html).toContain("&quot;");
     });

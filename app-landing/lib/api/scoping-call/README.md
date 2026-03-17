@@ -18,3 +18,4 @@ Fichiers :
 ## Intégration
 
 Ce dossier est consommé par l'application `app-landing` et s'insère dans son flux runtime, build ou test.
+`validation.ts` reutilise la validation semantique partagee `lib/security/email-address.ts`, pour garder la meme barre de qualite email que `/contact` et la demande de deploiement.

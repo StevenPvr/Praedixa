@@ -17,3 +17,7 @@ Fichiers :
 ## Intégration
 
 Ce dossier est consommé par l'application `app-admin` et s'insère dans son flux runtime, build ou test.
+
+## Notes locales
+
+- Les tests couvrent maintenant le payload site-scope du formulaire (`site_id` obligatoire pour `manager` / `hr_manager`) afin d'eviter qu'un compte invalide soit cree depuis le backoffice.

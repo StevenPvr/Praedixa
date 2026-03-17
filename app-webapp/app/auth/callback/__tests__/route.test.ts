@@ -6,6 +6,7 @@ const mockJson = vi.fn();
 const mockClearAuthCookies = vi.fn();
 const mockBuildSessionData = vi.fn();
 const mockExchangeCodeForTokens = vi.fn();
+const mockGetAccessTokenClaimsIssue = vi.fn();
 const mockGetApiAccessTokenCompatibilityReason = vi.fn();
 const mockGetOidcEnv = vi.fn();
 const mockGetTokenExp = vi.fn();
@@ -32,6 +33,8 @@ vi.mock("@/lib/auth/oidc", () => ({
   clearAuthCookies: (...args: unknown[]) => mockClearAuthCookies(...args),
   exchangeCodeForTokens: (...args: unknown[]) =>
     mockExchangeCodeForTokens(...args),
+  getAccessTokenClaimsIssue: (...args: unknown[]) =>
+    mockGetAccessTokenClaimsIssue(...args),
   getApiAccessTokenCompatibilityReason: (...args: unknown[]) =>
     mockGetApiAccessTokenCompatibilityReason(...args),
   getOidcEnv: (...args: unknown[]) => mockGetOidcEnv(...args),
@@ -138,6 +141,7 @@ describe("GET /auth/callback (webapp)", () => {
       expires_in: 900,
       refresh_expires_in: 7200,
     });
+    mockGetAccessTokenClaimsIssue.mockReturnValue("missing_role");
     mockConsumeRateLimit.mockResolvedValue({
       allowed: true,
       retryAfterSeconds: 0,
@@ -308,7 +312,7 @@ describe("GET /auth/callback (webapp)", () => {
     )) as { redirectUrl: string };
 
     expect(response.redirectUrl).toBe(
-      "https://app.praedixa.com/login?error=auth_claims_invalid",
+      "https://app.praedixa.com/login?error=auth_claims_invalid&token_reason=missing_role",
     );
   });
 

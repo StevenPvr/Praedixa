@@ -141,7 +141,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     ctaBody:
       "On part de vos données existantes, on remonte les signaux à court horizon et on montre où la demande, la couverture ou la promesse de service dégradent trop vite la marge.",
     homepageHook:
-      "Arbitrez demande, couverture et service avant que la marge ne glisse.",
+      "Anticipez les pics d\u2019activité et optimisez vos ressources.",
     homepageStat:
       "336 850 projets de recrutement, 50,2 % difficiles, 56,5 % saisonniers.",
     homepageProblem:
@@ -295,7 +295,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     ctaBody:
       "Praedixa montre où la charge va monter, quelles ressources sont réellement mobilisables et quel arbitrage protège le mieux budget, continuité de service et qualité étudiante.",
     homepageHook:
-      "Sécurisez admissions, examens et continuité campus sans laisser dériver budget et couverture.",
+      "Anticipez la charge campus et sécurisez la continuité de service.",
     homepageStat:
       "3,04 M d'étudiants, 945 500 candidats Parcoursup, 21 080 enseignants contractuels.",
     homepageProblem:
@@ -457,7 +457,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     ctaBody:
       "On part des volumes, de la capacité, du stock et des coûts pour identifier où agir d'abord, avec quel levier et quel ROI attendre sur chaque site.",
     homepageHook:
-      "Arbitrez demande, capacité et promesse client au rythme réel du réseau.",
+      "Optimisez vos flux et tenez votre promesse client en temps réel.",
     homepageStat:
       "175,3 Md€ e-commerce, 183 760 recrutements retail, 90 380 en transport-entreposage.",
     homepageProblem:
@@ -610,8 +610,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     ctaTitle: "Voir comment Praedixa aiderait vos ateliers les plus tendus.",
     ctaBody:
       "On part des rendez-vous, des compétences, des pièces et des coûts pour identifier où la charge risque de casser le délai client et quelle décision protège le mieux l'atelier.",
-    homepageHook:
-      "Arbitrez charge atelier, pièces et compétences avant que le délai client ne dérive.",
+    homepageHook: "Anticipez la charge atelier et réduisez les délais clients.",
     homepageStat:
       "33 900 recrutements projetés, 69,7 % difficiles, 17 820 offres non pourvues en 2024.",
     homepageProblem:

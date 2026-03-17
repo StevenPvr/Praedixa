@@ -79,4 +79,14 @@ describe("POST /api/scoping-call", () => {
     expect(response.body).toEqual({ success: true });
     expect(response.headers.get("Cache-Control")).toBe("no-store");
   });
+
+  it("rejects placeholder email domains", async () => {
+    const response = await POST(
+      makeRequest(validBody({ email: "jean@example.com" })),
+    );
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Adresse email invalide." });
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+  });
 });

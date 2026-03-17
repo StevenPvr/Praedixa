@@ -25,10 +25,10 @@ describe("DeploymentTimelineSection", () => {
 
     expect(screen.getByText(/Déploiement/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      /En production en 30 jours/,
+      /Opérationnel en 30/,
     );
     expect(
-      screen.getByText(/Un cadrage resserré, un sponsor opérations/),
+      screen.getByText(/Un démarrage simple, un sponsor opérations/),
     ).toBeInTheDocument();
   });
 
@@ -46,33 +46,33 @@ describe("DeploymentTimelineSection", () => {
 
     expect(screen.getAllByText("Cadrage").length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(/Première lecture/).length,
+      screen.getAllByText(/Première analyse/).length,
     ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Décision/).length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(/Décision cadrée/).length,
+      screen.getAllByText(/Mesure d.impact/).length,
     ).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/Revue d.impact/).length).toBeGreaterThanOrEqual(
-      1,
-    );
-    expect(
-      screen.getAllByText(/Montée en charge/).length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Extension/).length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders notItems", () => {
     render(<DeploymentTimelineSection locale="fr" />);
 
-    expect(screen.getByText(/Pas de refonte SI/)).toBeInTheDocument();
-    expect(screen.getByText(/Pas de promesse floue/)).toBeInTheDocument();
-    expect(screen.getByText(/Pas de couche de reporting/)).toBeInTheDocument();
-    expect(screen.getByText(/Pas de projet à 6 mois/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Pas de remplacement de vos outils/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Pas de projet IT lourd/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Pas de reporting supplémentaire/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Pas de promesse sans preuve/)).toBeInTheDocument();
   });
 
   it("renders CTA link with deployment intent href", () => {
     render(<DeploymentTimelineSection locale="fr" />);
 
     const ctaLink = screen.getByRole("link", {
-      name: /Cadrer un premier périmètre/,
+      name: /Parler à un expert/,
     });
     expect(ctaLink).toHaveAttribute("href", "/fr/contact?intent=deploiement");
   });

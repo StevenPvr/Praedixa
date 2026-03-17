@@ -36,3 +36,4 @@ Ce dossier est consommé par l'application `app-admin` et s'insère dans son flu
 ## Notes locales
 
 - `read-only-detail.tsx` harmonise les headers et les cartes d'etat `empty / degraded` des vues read-only branchees sous `actions/` et `rapports/`.
+- `equipe/` est maintenant la voie normale de creation des comptes client: l'admin y provisionne l'identite Keycloak et ne depend plus d'un seed `ops.*` ou d'un utilisateur fake documente.

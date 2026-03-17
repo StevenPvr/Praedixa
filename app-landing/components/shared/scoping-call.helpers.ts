@@ -1,3 +1,4 @@
+import { isSemanticallyValidEmailAddress } from "../../lib/security/email-address";
 import type { Locale } from "../../lib/i18n/config";
 import type {
   ScopingCallCopy,
@@ -5,7 +6,6 @@ import type {
   ScopingFieldErrors,
 } from "./scoping-call.types";
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SLOT_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 export function createScopingCallCopy(locale: Locale): ScopingCallCopy {
@@ -103,7 +103,7 @@ export function validateScopingCallForm(
   }
 
   const email = form.email.trim();
-  if (!email || !EMAIL_REGEX.test(email)) {
+  if (!email || !isSemanticallyValidEmailAddress(email)) {
     errors.email = copy.invalidEmail;
   }
 

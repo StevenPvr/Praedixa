@@ -47,6 +47,12 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
 - `admin-backoffice.ts`
   - service agrege pour organisations, utilisateurs, onboarding, billing, conversations, alerts et datasets admin
   - expose un point d'entree unique cote handlers admin
+  - le lifecycle `invite/change_role/deactivate/reactivate` synchronise maintenant aussi Keycloak pour garder `users.auth_user_id`, `role`, `organization_id`, `site_id` et l'etat `enabled` coherents
+
+- `keycloak-admin-identity.ts`
+  - client REST sortant strict vers Keycloak admin API
+  - creation des comptes client depuis le backoffice, sync des attributs canoniques et du realm role, envoi de l'email `UPDATE_PASSWORD`
+  - compensation explicite par suppression du user Keycloak si la persistence DB echoue apres le provisioning IAM
 
 - `decisionops-runtime.ts`
   - persistance read-model pour `Approval`, `ActionDispatch` et `LedgerEntry`
@@ -84,6 +90,7 @@ Ce dossier concentre les acces SQL et les transformations de donnees consommees 
 - `DATABASE_URL` pour toute persistance.
 - `DecisionConfigService` initialise au demarrage via `src/index.ts`.
 - `app-connectors` pour les appels admin integrations, hors de ce dossier.
+- `KEYCLOAK_ADMIN_USERNAME` + `KEYCLOAK_ADMIN_PASSWORD` pour les mutations admin de lifecycle utilisateur qui doivent provisionner l'identite reelle.
 
 ## Quand modifier quoi
 

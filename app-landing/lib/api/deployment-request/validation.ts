@@ -1,3 +1,4 @@
+import { validateSemanticEmailAddress } from "../../security/email-address";
 import {
   MAX_COMPANY_NAME_LENGTH,
   MAX_EMAIL_LENGTH,
@@ -6,7 +7,6 @@ import {
   MAX_ROLE_LENGTH,
   MAX_STACK_LENGTH,
   MAX_PAIN_POINT_LENGTH,
-  EMAIL_REGEX,
   PHONE_REGEX,
   ALLOWED_EMPLOYEE_RANGES,
   ALLOWED_SECTORS,
@@ -123,8 +123,8 @@ export function validateRequestBody(
     "Adresse email trop longue.",
   );
   if (!r2.valid) return r2;
-  const email = r2.value.toLowerCase();
-  if (!EMAIL_REGEX.test(email)) {
+  const validatedEmail = validateSemanticEmailAddress(r2.value);
+  if (!validatedEmail.valid) {
     return { valid: false, error: "Adresse email invalide." };
   }
 
@@ -230,7 +230,7 @@ export function validateRequestBody(
     valid: true,
     data: {
       companyName: r1.value,
-      email,
+      email: validatedEmail.normalized,
       phone,
       employeeRange: r3.value,
       sector: r4.value,

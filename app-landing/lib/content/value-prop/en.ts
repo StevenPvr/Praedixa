@@ -4,187 +4,175 @@ import { valuePropEnSections } from "./en-sections";
 export const coreValuePropEn: ValuePropContent = {
   icp: "COOs, operations leaders, and network managers running multi-site networks",
   promise:
-    "Praedixa helps multi-site networks arbitrate 3 to 14 days earlier the decisions that protect margin and service.",
+    "Praedixa anticipates your operational needs and proves your ROI, without replacing your tools.",
   mechanism:
-    "Praedixa surfaces tensions, compares reinforcement, reallocation, postponement, or service adjustment on a cost / service / risk basis, then reviews the real impact decision by decision.",
+    "AI detects risks, compares your options, and measures the real impact of each decision.",
   reassurance: [
     "Read-only at the start",
-    "Aggregated data",
+    "Aggregated data only",
     "Hosted in France",
-    "NDA from the first discussion",
+    "NDA available",
   ],
   ctaPrimary: "See the historical proof",
-  ctaSecondary: "Frame the first decision scope",
-  heroKicker: "For multi-site networks making constrained trade-offs",
-  heroHeading: "Arbitrate 3 to 14 days earlier",
-  heroHeadingHighlight: "the decisions that protect margin.",
+  ctaSecondary: "Talk to an expert",
+  heroKicker: "For multi-site networks",
+  heroHeading: "Anticipate.",
+  heroHeadingHighlight: "Optimize. Prove the ROI.",
   heroSubheading:
-    "Praedixa detects multi-site tensions, compares options, and reviews the real impact decision by decision.",
+    "Praedixa anticipates your operational needs and optimizes your decisions with AI. The priority: your ROI.",
   heroOffer: {
-    badge: "What you buy",
-    title: "Praedixa Deployment",
-    body: "Software plus a framed setup on top of your existing data, with a read-only start when needed.",
-    note: "Historical proof remains the entry point when a first trade-off needs to be objectified before deployment.",
+    badge: "Our promise",
+    title: "Results in 30 days",
+    body: "Software that installs on your existing data, without replacing your tools.",
+    note: "Read-only start. NDA available from day one.",
   },
   socialProof: {
     eyebrow: "Enterprise trust",
     statValue: "30d",
-    statLabel: "First trade-off objectified, on your existing data",
+    statLabel: "First measurable results, on your existing data",
     logosAlt: "Companies that trust us",
-    marqueeLabel: "Be among the first networks to arbitrate earlier",
+    marqueeLabel: "Be among the first networks to anticipate sooner",
   },
   product: {
-    kicker: "Proof in action",
-    heading: "One trade-off, objectified and reviewed.",
+    kicker: "The product",
+    heading: "AI that anticipates, optimizes, and proves.",
     subheading:
-      "The decision table compares options, costs action and inaction, and reviews the real impact after the fact.",
+      "Praedixa detects risks before they become emergencies, compares your options, and measures the real impact of each decision.",
   },
   footerTagline:
-    "Praedixa helps multi-site networks arbitrate earlier the decisions that protect margin and service, without replacing the tools already in place.",
-  qualificationTitle: "Who it is for, which decisions, what changes",
+    "Praedixa anticipates your operational needs and proves your ROI, without replacing your tools.",
+  qualificationTitle: "Is Praedixa right for you?",
   qualificationBody:
-    "Praedixa is built for multi-site operators who need to decide earlier where to reinforce, reallocate, postpone, or adjust service before urgency burns margin.",
-  fitTitle: "A strong fit if…",
+    "Praedixa is built for multi-site networks that want to anticipate their needs, compare their options, and prove their results.",
+  fitTitle: "A good starting point if\u2026",
   fitItems: [
-    "several sites arbitrate under the same cost / service / risk constraints",
-    "an operations sponsor wants to objectify one high-stakes trade-off first",
-    "usable exports or APIs already exist for a first read",
+    "you manage multiple sites with recurring decisions",
+    "an operations leader wants to measure the impact of their decisions",
+    "existing data (exports, APIs) is available at the start",
   ],
-  notFitTitle: "Not for you if…",
+  notFitTitle: "Not for you if\u2026",
   notFitItems: [
-    "you operate a single site with no network-wide trade-off to coordinate",
-    "no operations sponsor can frame the first scope",
-    "no usable export or API is available at the start",
+    "you operate a single site with no network-level challenge",
+    "no operations leader can own the topic",
+    "no usable data is available at the start",
   ],
   stackComparison: {
-    kicker: "Comparison",
-    heading:
-      "Your stack shows data. It does not arbitrate the economic trade-off.",
+    kicker: "Compatibility",
+    heading: "Praedixa adds to your tools. It does not replace them.",
     subheading:
-      "ERP, BI, planning, and spreadsheets stay useful. The gap appears when the cost / service / risk trade-off stays split across tools, teams, and meetings. Praedixa adds the missing decision frame.",
+      "ERP, BI, planning, Excel: everything stays in place. Praedixa adds the missing decision intelligence.",
     columnLabels: {
-      category: "Current layer",
-      currentCoverage: "What it already covers",
-      stopsAt: "Where it stops for trade-offs",
+      category: "Tool",
+      currentCoverage: "What it does",
+      stopsAt: "What is missing",
       praedixaAdd: "What Praedixa adds",
     },
     rows: [
       {
         category: "ERP",
-        currentCoverage:
-          "Transactions, inventory, orders, costs, and operational events.",
-        stopsAt:
-          "Does not cleanly compare several action options on a cost / service / risk basis that a review committee can use.",
+        currentCoverage: "Manages transactions, inventory, and costs.",
+        stopsAt: "Does not compare decision options against each other.",
         praedixaAdd:
-          "Turns those signals into compared options, a retained decision, and a baseline / recommended / actual review.",
+          "Compares options and measures the impact of the chosen decision.",
       },
       {
         category: "BI / reporting",
-        currentCoverage:
-          "KPIs, drifts, trends, and consolidated visibility on what is happening.",
-        stopsAt:
-          "Surfaces the drift, but leaves the action choice and assumptions scattered across decks, chats, and meetings.",
-        praedixaAdd:
-          "Frames the economic conflict, makes assumptions explicit, and documents the decision that gets taken.",
+        currentCoverage: "Shows KPIs, gaps, and trends.",
+        stopsAt: "Shows the problem, but does not suggest an action.",
+        praedixaAdd: "Suggests concrete options and tracks the decision taken.",
       },
       {
         category: "Planning / WFM",
-        currentCoverage:
-          "Local coverage, capacity, schedules, and execution close to the field.",
-        stopsAt:
-          "Helps plan execution, but not compare several multi-site scenarios in a shared Ops / Finance language.",
+        currentCoverage: "Plans capacity and schedules by site.",
+        stopsAt: "Plans, but does not compare scenarios across sites.",
         praedixaAdd:
-          "Compares reinforcement, reallocation, postponement, or service adjustment before launching the first useful move.",
+          "Compares multi-site scenarios and recommends the best option.",
       },
       {
         category: "Spreadsheets / committees",
-        currentCoverage:
-          "Business flexibility to frame a priority topic quickly.",
-        stopsAt:
-          "Stays manual, fragmented, hard to replay, and weak on impact proof after the decision.",
-        praedixaAdd:
-          "Keeps the assumptions, retained decision, and observed effect in one place to prepare the next trade-off.",
+        currentCoverage: "Lets teams frame a priority topic quickly.",
+        stopsAt: "Stays manual, hard to replay, and with no impact proof.",
+        praedixaAdd: "Keeps track of decisions and their real impact.",
       },
       {
         category: "Praedixa",
         currentCoverage:
-          "A decision layer sitting on top of the existing stack to objectify one high-stakes trade-off first.",
+          "Adds to your existing tools to anticipate and decide.",
         stopsAt:
-          "Does not replace ERP, BI, or planning. It depends on them to start fast from the right signals.",
+          "Does not replace ERP, BI, or planning. Builds on top of them.",
         praedixaAdd:
-          "Installs a reusable frame to see, compare, decide, and prove over time.",
+          "Anticipate, compare, decide, and prove the ROI over time.",
       },
     ],
-    bottomNote:
-      "Praedixa sits above the current stack. The goal is not to replace your tools, but to keep an expensive trade-off from staying fragmented across them.",
+    bottomNote: "Compatible with your current stack. No migration required.",
   },
   servicesMeta: {
-    title: "Praedixa | What you buy: a first decision scope",
+    title: "Praedixa | What you buy: results in 30 days",
     description:
-      "Praedixa deployment installs a first decision scope on top of your existing data. If needed, historical proof objectifies the starting trade-off before launch.",
-    ogTitle: "Praedixa | What you buy: a first decision scope",
+      "Praedixa deployment installs on your existing data and delivers measurable results in 30 days, without replacing your tools.",
+    ogTitle: "Praedixa | What you buy: results in 30 days",
     ogDescription:
-      "Praedixa deployment: a first decision scope framed in 30 days, without a heavy IT project at the start.",
+      "Praedixa deployment: measurable results in 30 days, without a heavy IT project.",
   },
   services: {
     kicker: "Offer",
-    heading: "What you buy: a first decision scope, not one more IT project.",
+    heading: "What you buy: results in 30 days, not one more IT project.",
     subheading:
-      "Praedixa deployment installs a decision frame on top of your existing data. If needed, historical proof objectifies the first trade-off before launch.",
+      "Praedixa deployment installs on your existing data. If needed, a historical proof demonstrates results before launch.",
     timelineTitle: "In 30 days",
     timeline: [
       {
         title: "Week 1",
-        body: "Frame the priority trade-off, data sources, and operations sponsor.",
+        body: "Frame the priority challenge, data sources, and operations sponsor.",
       },
       {
         title: "Week 2",
-        body: "Build the first useful read with compared options on a cost / service / risk basis.",
+        body: "First analysis with compared options from existing data.",
       },
       {
         title: "Week 3",
-        body: "Make assumptions explicit, frame the decision, and run a short Ops / Finance review.",
+        body: "Recommended decision and validation with stakeholders.",
       },
       {
         title: "Week 4",
-        body: "Review baseline / recommended / actual and define the next scale-up trade-off.",
+        body: "Measure the real impact and plan for what comes next.",
       },
     ],
     deliveredTitle: "What is delivered",
     delivered: [
-      "A first multi-site trade-off objectified on your existing data",
+      "A first multi-site decision optimized on your existing data",
       "Compared options with explicit assumptions",
-      "A framed recommendation for Ops, Finance, and Network leaders",
-      "A reusable baseline / recommended / actual review base",
+      "A clear recommendation for operations and finance",
+      "A measure of the real impact of the decision taken",
     ],
     notDeliveredTitle: "What is not delivered",
     notDelivered: [
-      "A stack rebuild or ERP / BI / planning replacement",
-      "A vague promise to optimize the whole company at once",
-      "An extra reporting layer with no usable trade-off",
+      "A replacement of your existing tools (ERP, BI, planning)",
+      "A vague promise with no measurable result",
+      "Extra reporting with no decision support",
     ],
     clientNeedsTitle: "What the client needs to provide",
     clientNeeds: [
       "An available operations sponsor",
       "Usable exports or APIs from the start",
-      "One priority trade-off on a focused perimeter",
+      "A concrete operational challenge to tackle first",
     ],
     participantsTitle: "Who joins",
     participants: [
-      "Operations or network sponsor",
-      "Data or BI lead for the useful access",
-      "Finance for the cost / service / risk read",
+      "Operations / network sponsor",
+      "Data or BI lead for access",
+      "Finance to validate economic impact",
     ],
     reviewTitle: "Review cadence",
     reviewItems: [
       "Short weekly framing checkpoint",
-      "Ops / Finance review of the recommended decision",
-      "Final baseline / recommended / actual synthesis",
+      "Recommendation review with operations and finance",
+      "Final summary with impact measurement",
     ],
-    primaryCtaLabel: "Frame the first decision scope",
+    primaryCtaLabel: "Talk to an expert",
     secondaryCtaLabel: "See the historical proof",
     bottomNote:
-      "Historical proof is not a second offer. It is an entry point used to objectify the first trade-off before deployment.",
+      "The historical proof demonstrates results on your own data before launching deployment.",
   },
   ...valuePropEnSections,
 };

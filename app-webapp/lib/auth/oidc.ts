@@ -15,6 +15,7 @@ export {
 } from "./oidc/types";
 export {
   decodeJwtPayload,
+  getAccessTokenClaimsIssue,
   getApiAccessTokenCompatibilityReason,
   getTokenExp,
   isTokenExpired,

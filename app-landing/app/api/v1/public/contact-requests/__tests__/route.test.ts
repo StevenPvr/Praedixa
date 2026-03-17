@@ -98,6 +98,21 @@ describe("POST /api/v1/public/contact-requests", () => {
     expect(response.body).toEqual({ error: "Invalid payload." });
   });
 
+  it("rejects emails with reserved placeholder domains", async () => {
+    vi.stubEnv("CONTACT_API_INGEST_TOKEN", "test-token");
+    const { POST } = await import("../route");
+
+    const response = (await POST(
+      makeRequest({ ...validPayload(), email: "jean@example.com" }),
+    )) as unknown as {
+      status: number;
+      body: { error: string };
+    };
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "Invalid payload." });
+  });
+
   it("rejects invalid ingest tokens", async () => {
     vi.stubEnv("CONTACT_API_INGEST_TOKEN", "expected-token");
     const { POST } = await import("../route");

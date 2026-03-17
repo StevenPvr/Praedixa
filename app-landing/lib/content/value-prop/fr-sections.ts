@@ -19,7 +19,7 @@ export const valuePropFrSections: ValuePropFrSections = {
   contact: {
     heading: "Cadrons le premier arbitrage à objectiver.",
     intro:
-      "Décrivez le premier arbitrage à traiter, le réseau concerné et l’horizon projet. Nous revenons avec un prochain pas clair sous 48h ouvrées.",
+      "Décrivez le premier arbitrage à traiter, le réseau concerné et l\u2019horizon projet. Nous revenons avec un prochain pas clair sous 48h ouvrées.",
     promiseTitle: "Ce que vous recevez",
     promiseItems: [
       "Un retour qualifié sous 48h ouvrées",
@@ -29,7 +29,7 @@ export const valuePropFrSections: ValuePropFrSections = {
     proofIntentKicker: "Preuve sur historique",
     proofIntentHeading: "Demander la preuve sur historique.",
     proofIntentIntro:
-      "Décrivez l’arbitrage à objectiver. Nous revenons avec une première lecture utile et la meilleure façon de cadrer la suite.",
+      "Décrivez l\u2019arbitrage à objectiver. Nous revenons avec une première lecture utile et la meilleure façon de cadrer la suite.",
     proofIntentPromiseItems: [
       "Lecture en lecture seule sur vos données existantes",
       "Options comparées sur base coût / service / risque",
@@ -38,7 +38,7 @@ export const valuePropFrSections: ValuePropFrSections = {
     scopingIntentKicker: "Premier périmètre",
     scopingIntentHeading: "Cadrer un premier périmètre de décision.",
     scopingIntentIntro:
-      "Décrivez le réseau, l’arbitrage prioritaire et l’horizon projet. Nous revenons avec un cadrage simple du premier périmètre.",
+      "Décrivez le réseau, l\u2019arbitrage prioritaire et l\u2019horizon projet. Nous revenons avec un cadrage simple du premier périmètre.",
     scopingIntentPromiseItems: [
       "Qualification du périmètre prioritaire",
       "Lecture des prérequis data et sponsor",
@@ -50,10 +50,11 @@ export const valuePropFrSections: ValuePropFrSections = {
       "NDA possible",
       "Réponse sous 48h ouvrées",
     ],
-    secondaryPanelTitle: "Besoin d’aligner l’offre avant l’échange ?",
+    secondaryPanelTitle:
+      "Besoin d\u2019aligner l\u2019offre avant l\u2019échange\u00a0?",
     secondaryPanelBody:
-      "La page offre détaille ce qui est livré, ce qui ne l’est pas et le rythme des 30 premiers jours.",
-    secondaryPanelCta: "Voir l’offre publique",
+      "La page offre détaille ce qui est livré, ce qui ne l\u2019est pas et le rythme des 30 premiers jours.",
+    secondaryPanelCta: "Voir l\u2019offre publique",
     formTitle: "Décrire votre contexte",
     formSubtitle:
       "Les champs utiles pour qualifier le sujet sont requis. Le message libre reste optionnel.",
@@ -67,17 +68,17 @@ export const valuePropFrSections: ValuePropFrSections = {
     currentStack: "Stack actuelle",
     message: "Message libre",
     mainTradeOffPlaceholder:
-      "Ex : renfort vs réallocation sur 12 sites logistiques avant pic de charge.",
-    currentStackPlaceholder: "Ex : ERP + WFM + BI + exports Excel",
+      "Ex\u00a0: renfort vs réallocation sur 12 sites logistiques avant pic de charge.",
+    currentStackPlaceholder: "Ex\u00a0: ERP + WFM + BI + exports Excel",
     messagePlaceholder:
       "Contexte additionnel, comité à convaincre, contraintes IT ou gouvernance déjà connues.",
     send: "Envoyer la demande",
-    sending: "Envoi en cours…",
+    sending: "Envoi en cours\u2026",
     successTitle: "Demande envoyée",
     successBody:
       "Nous revenons vers vous sous 48h ouvrées avec un prochain pas concret.",
     successCta: "Retour au site",
-    fixErrors: "Complétez les champs requis avant d’envoyer.",
+    fixErrors: "Complétez les champs requis avant d\u2019envoyer.",
     unknownError: "Erreur inconnue.",
     networkError: "Erreur réseau. Veuillez réessayer.",
     requiredCompany: "Entreprise requise.",
@@ -89,13 +90,13 @@ export const valuePropFrSections: ValuePropFrSections = {
     requiredMainTradeOff: "Arbitrage principal requis.",
     requiredTimeline: "Horizon projet requis.",
     antiSpam: "Vérification",
-    challengeLoading: "Chargement de la vérification anti-spam…",
+    challengeLoading: "Chargement de la vérification anti-spam\u2026",
     challengeUnavailable:
       "Vérification anti-spam indisponible. Rechargez le challenge.",
     challengeRetry: "Recharger la vérification",
     requiredConsent: "Vous devez accepter les conditions.",
     requiredCaptcha: "Veuillez répondre à la vérification.",
-    consentPrefix: "J’accepte les ",
+    consentPrefix: "J\u2019accepte les ",
     termsLabel: "CGU",
     consentJoin: " et la ",
     privacyLabel: "politique de confidentialité",
@@ -112,30 +113,30 @@ export const valuePropFrSections: ValuePropFrSections = {
     kicker: "Preuve sur historique",
     title:
       "Une preuve exploitable en comité, pas un commentaire sur la preuve.",
-    lead: "Exemple public inspiré d’un cas logistique multi-sites: un pic de charge met sous tension trois sites et force un arbitrage entre renfort local, réallocation inter-sites et ajustement temporaire de service.",
+    lead: "Exemple public inspiré d\u2019un cas logistique multi-sites\u00a0: un pic de charge met sous tension trois sites et force un arbitrage entre renfort local, réallocation inter-sites et ajustement temporaire de service.",
     situationTitle: "Situation initiale",
     situationBody: [
-      "Trois sites logistiques absorbent un pic de charge sur cinq jours. Le backlog augmente, les heures supplémentaires sont déjà entamées et le recours à l’intérim risque d’arriver trop tard.",
-      "Le sujet n’est pas seulement de prédire un pic. Il faut décider où renforcer, où réallouer et où accepter un report sans déplacer le coût vers la semaine suivante.",
+      "Trois sites logistiques absorbent un pic de charge sur cinq jours. Le backlog augmente, les heures supplémentaires sont déjà entamées et le recours à l\u2019intérim risque d\u2019arriver trop tard.",
+      "Le sujet n\u2019est pas seulement de prédire un pic. Il faut décider où renforcer, où réallouer et où accepter un report sans déplacer le coût vers la semaine suivante.",
     ],
     optionsTitle: "Options comparées",
     optionsBody: [
-      "La preuve compare trois options lisibles en comité: heures supplémentaires locales, intérim ciblé et réallocation inter-sites.",
-      "Chaque option est relue avec la même base: coût d’action, coût de non-action, risque de service, capacité disponible et limites d’interprétation.",
+      "La preuve compare trois options lisibles en comité\u00a0: heures supplémentaires locales, intérim ciblé et réallocation inter-sites.",
+      "Chaque option est relue avec la même base\u00a0: coût d\u2019action, coût de non-action, risque de service, capacité disponible et limites d\u2019interprétation.",
     ],
     decisionTitle: "Décision retenue",
     decisionBody: [
-      "La décision retenue combine réallocation inter-sites et renfort ciblé plutôt qu’un recours uniforme aux heures supplémentaires.",
+      "La décision retenue combine réallocation inter-sites et renfort ciblé plutôt qu\u2019un recours uniforme aux heures supplémentaires.",
       "Le choix est justifié par une meilleure protection du service à coût total plus défendable, malgré un effort de coordination inter-sites plus élevé.",
     ],
     impactTitle: "Impact observé",
     impactBody: [
-      "La revue avant / recommandé / réel montre une meilleure protection du backlog critique et une réduction du coût d’urgence par rapport au scénario local-only.",
+      "La revue avant / recommandé / réel montre une meilleure protection du backlog critique et une réduction du coût d\u2019urgence par rapport au scénario local-only.",
       "La relecture sert surtout à préparer le prochain arbitrage avec des hypothèses plus propres, pas à fabriquer une certitude artificielle.",
     ],
     limitsTitle: "Limites de la preuve",
     limitsBody: [
-      "Il s’agit d’un exemple public en base 100, pas d’un engagement chiffré universel.",
+      "Il s\u2019agit d\u2019un exemple public en base 100, pas d\u2019un engagement chiffré universel.",
       "La preuve ne remplace ni le cadrage métier ni la revue des données nécessaires avant déploiement.",
     ],
     dataTitle: "Données mobilisées",
@@ -145,18 +146,18 @@ export const valuePropFrSections: ValuePropFrSections = {
     ],
     nextTitle: "Prochain arbitrage rendu possible",
     nextBody: [
-      "Une fois cette preuve structurée, le réseau peut réutiliser le même cadre pour les prochains arbitrages de couverture, de réallocation ou d’ajustement de service.",
-      "C’est ce passage de l’exemple à la cadence de décision qui justifie le déploiement Praedixa.",
+      "Une fois cette preuve structurée, le réseau peut réutiliser le même cadre pour les prochains arbitrages de couverture, de réallocation ou d\u2019ajustement de service.",
+      "C\u2019est ce passage de l\u2019exemple à la cadence de décision qui justifie le déploiement Praedixa.",
     ],
     tableTitle: "Synthèse comparée",
     tableColumns: {
       option: "Option",
-      actionCost: "Coût d’action",
+      actionCost: "Coût d\u2019action",
       inactionCost: "Coût de non-action",
       serviceRisk: "Risque service",
       decision: "Décision retenue",
       observedEffect: "Effet observé",
-      limitation: "Ce qu’on ne peut pas conclure",
+      limitation: "Ce qu\u2019on ne peut pas conclure",
     },
     rows: [
       {
@@ -166,7 +167,8 @@ export const valuePropFrSections: ValuePropFrSections = {
         serviceRisk: "Moyen à élevé",
         decision: "Non retenue seule",
         observedEffect: "Soulage un site mais propage le backlog",
-        limitation: "N’isole pas l’effet du manque de capacité inter-sites",
+        limitation:
+          "N\u2019isole pas l\u2019effet du manque de capacité inter-sites",
       },
       {
         option: "Intérim ciblé",
@@ -184,23 +186,22 @@ export const valuePropFrSections: ValuePropFrSections = {
         serviceRisk: "Faible à moyen",
         decision: "Retenue",
         observedEffect:
-          "Réduit le coût d’urgence et stabilise le backlog critique",
+          "Réduit le coût d\u2019urgence et stabilise le backlog critique",
         limitation: "Suppose une coordination réseau effective",
       },
     ],
     primaryCtaLabel: "Cadrer un premier périmètre",
-    secondaryCtaLabel: "Voir l’offre publique",
+    secondaryCtaLabel: "Voir l\u2019offre publique",
   },
   credibilityRibbon: {
     stackLabel: "Stack couverte",
     stackChips: ["ERP", "WFM", "BI", "Planning", "Excel", "API / CSV"],
     rolesLabel: "Décideurs concernés",
     roleChips: ["COO", "Dir. Ops", "Dir. Réseau", "Finance", "DSI"],
-    rolesMicrocopy:
-      "L’arbitrage coût / service / risque passe par ces fonctions.",
+    rolesMicrocopy: "Les fonctions qui prennent les décisions clés.",
     trustLabel: "Engagements",
     trustMarkers: [
-      "Lecture seule au départ",
+      "Lecture seule au démarrage",
       "Hébergement France",
       "NDA dès le premier échange",
       "Données agrégées",
@@ -209,165 +210,161 @@ export const valuePropFrSections: ValuePropFrSections = {
   problemCards: [
     {
       number: "01",
-      title: "L’arbitrage reste dispersé",
+      title: "Les signaux arrivent trop tard",
       consequence:
-        "Le choix entre renfort, réallocation et ajustement de service se disperse entre Excel, BI et réunions. Personne ne voit l’arbitrage complet.",
+        "Quand l\u2019information arrive, il est déjà trop tard pour agir au meilleur coût.",
     },
     {
       number: "02",
-      title: "La décision arrive trop tard",
+      title: "Les options ne sont pas comparées",
       consequence:
-        "Sans lecture anticipée, l’urgence décide à la place du réseau. Le coût de l’inaction dépasse celui de l’action, sans que personne ne le mesure.",
+        "Sous pression, on choisit la vitesse plutôt que la meilleure option.",
     },
     {
       number: "03",
-      title: "L’impact n’est jamais relu",
+      title: "L\u2019impact n\u2019est jamais mesuré",
       consequence:
-        "Après la décision, personne ne compare ce qui était recommandé à ce qui s’est passé. Le prochain arbitrage repart sans preuve.",
+        "Impossible de savoir si la décision prise était la bonne. Le même problème revient.",
     },
   ],
   method: {
     kicker: "Comment ça marche",
-    heading: "Voir, comparer, décider, prouver.",
+    heading: "Quatre étapes. Un résultat mesurable.",
     steps: [
       {
         id: "voir",
         number: "01",
-        verb: "Fédérer & voir",
+        verb: "Anticiper",
         title:
-          "Détectez les tensions avant qu’elles ne deviennent des urgences",
-        body: "Praedixa fédère les signaux existants (ERP, WFM, BI, exports) et prédit les tensions multi-sites à court horizon pour déclencher un arbitrage avant l’urgence.",
+          "L\u2019IA détecte les risques avant qu\u2019ils ne deviennent des urgences",
+        body: "Praedixa se connecte à vos données existantes et identifie les risques opérationnels avant qu\u2019ils n\u2019impactent vos coûts ou votre service.",
         bullets: [
-          "Connecteurs lecture seule sur vos sources existantes",
-          "Prédiction de charge et détection de tension à J+3 / J+7 / J+14",
-          "Alerte proactive quand un arbitrage s’impose",
+          "Connexion en lecture seule à vos sources existantes",
+          "Détection automatique des risques à venir",
+          "Alerte proactive quand une action s\u2019impose",
         ],
-        microproof: "Tension détectée 8 jours avant le pic sur 3 sites",
+        microproof: "Risque détecté 8\u00a0jours avant l\u2019impact",
       },
       {
         id: "comparer",
         number: "02",
-        verb: "Calculer & comparer",
-        title: "Comparez les options sur une base coût / service / risque",
-        body: "Le moteur calcule le coût d’action, le coût de non-action et le risque de service pour chaque option. Le résultat est un tableau décisionnel lisible en comité.",
+        verb: "Comparer",
+        title: "Comparez vos options en un clic",
+        body: "Pour chaque risque détecté, Praedixa calcule le coût et l\u2019impact de chaque option. Vous voyez en un coup d\u2019\u0153il la meilleure décision.",
         bullets: [
-          "Renfort local, réallocation inter-sites, report, ajustement de service",
-          "Chiffrage comparable sur une base commune",
-          "Hypothèses explicites, pas de boîte noire",
+          "Plusieurs scénarios chiffrés et comparés",
+          "Coût d\u2019action vs coût de non-action",
+          "Hypothèses transparentes, pas de boîte noire",
         ],
-        microproof:
-          "4 options comparées en 12 secondes, prêtes pour le comité Ops / Finance",
+        microproof: "4 options comparées en 12\u00a0secondes",
       },
       {
         id: "decider",
         number: "03",
-        verb: "Déclencher & décider",
-        title: "Déclenchez l’action retenue avec un workflow auditable",
-        body: "La décision retenue est documentée avec ses hypothèses, validée par le bon rôle et déclenchée dans un workflow traçable.",
+        verb: "Décider",
+        title: "Prenez la bonne décision, tracée et justifiée",
+        body: "La décision retenue est documentée avec ses hypothèses et validée par les bonnes personnes. Tout est traçable.",
         bullets: [
-          "Validation par rôle (Ops, Finance, Réseau)",
-          "Trace complète : qui a décidé, quand, sur quelles hypothèses",
-          "Workflow d’exécution intégré",
+          "Validation par les parties prenantes (opérations, finance)",
+          "Trace complète\u00a0: qui a décidé, quand, pourquoi",
+          "Exécution suivie de bout en bout",
         ],
-        microproof: "Décision retenue et exécutée en 4h au lieu de 3 jours",
+        microproof: "Décision prise en 4h au lieu de 3\u00a0jours",
       },
       {
         id: "prouver",
         number: "04",
         verb: "Prouver",
-        title: "Relisez l’impact réel pour améliorer le prochain arbitrage",
-        body: "Après exécution, Praedixa compare le scénario de base, la recommandation et le réel observé. La relecture alimente le prochain cycle de décision.",
+        title: "Mesurez le ROI réel de chaque décision",
+        body: "Après exécution, Praedixa compare ce qui était prévu à ce qui s\u2019est passé. Vous pouvez prouver votre ROI en comité.",
         bullets: [
-          "Revue avant / recommandé / réel automatique",
+          "Comparaison automatique prévu vs réel",
           "Preuve structurée, exploitable en comité",
-          "Hypothèses recalibrées pour le prochain arbitrage",
+          "Chaque décision améliore la suivante",
         ],
-        microproof: "Écart recommandé vs réel : -12% sur le coût d’urgence",
+        microproof: "\u221212\u00a0% sur les coûts d\u2019urgence",
       },
     ],
   },
   proofPreview: {
-    kicker: "Preuve en action",
-    heading: "Un dossier de preuve, pas un dashboard de plus.",
-    body: "Chaque décision génère un dossier structuré : situation initiale, options comparées, décision retenue, impact observé. Le comité relit, pas la machine.",
+    kicker: "Preuve",
+    heading: "Des résultats concrets, pas des promesses.",
+    body: "Chaque décision est tracée et son impact mesuré. Vous pouvez prouver votre ROI en comité.",
     tabs: [
       {
-        label: "Situation initiale",
+        label: "Situation",
         content:
-          "Trois sites logistiques absorbent un pic de charge sur cinq jours. Le backlog augmente, les heures supplémentaires sont entamées et le recours intérim risque d’arriver trop tard.",
+          "Trois sites font face à un pic d\u2019activité. Les coûts d\u2019urgence augmentent et les options se réduisent de jour en jour.",
       },
       {
         label: "Options comparées",
         content:
-          "Heures supplémentaires locales (base 100), intérim ciblé (base 118) et réallocation inter-sites (base 92). Chaque option est relue sur la même base coût / service / risque.",
+          "Trois options chiffrées\u00a0: renfort local, intérim ciblé et réallocation entre sites. Chaque option est évaluée sur le même critère\u00a0: coût, risque et impact sur le service.",
       },
       {
-        label: "Impact relu",
+        label: "Impact mesuré",
         content:
-          "La réallocation inter-sites a réduit le coût d’urgence de 12% par rapport au scénario local-only, tout en stabilisant le backlog critique sur les trois sites.",
+          "La réallocation entre sites a réduit les coûts d\u2019urgence de 12\u00a0% tout en maintenant le niveau de service sur les trois sites.",
       },
     ],
     metrics: [
       { value: "3", label: "Options comparées" },
-      { value: "−12%", label: "Coût d’urgence" },
+      { value: "\u221212\u00a0%", label: "Coûts d\u2019urgence" },
       { value: "8j", label: "Anticipation" },
     ],
   },
   deployment: {
     kicker: "Déploiement",
-    heading: "En production en 30 jours, pas en 6 mois.",
+    heading: "Opérationnel en 30\u00a0jours.",
     subheading:
-      "Un cadrage resserré, un sponsor opérations, des données existantes. Le premier arbitrage objectivé arrive en 30 jours.",
+      "Un démarrage simple, un sponsor opérations, vos données existantes.",
     steps: [
       {
         marker: "S1",
         title: "Cadrage",
         description:
-          "Arbitrage prioritaire, sources de données et sponsor opérations identifiés.",
+          "Identification de l\u2019enjeu prioritaire, des sources de données et du sponsor.",
       },
       {
         marker: "S2",
-        title: "Première lecture",
-        description:
-          "Options comparées sur base coût / service / risque à partir des données existantes.",
+        title: "Première analyse",
+        description: "Options comparées à partir de vos données existantes.",
       },
       {
         marker: "S3",
-        title: "Décision cadrée",
+        title: "Décision",
         description:
-          "Hypothèses explicites, décision recommandée et comité court Ops / Finance.",
+          "Recommandation validée avec les opérations et la finance.",
       },
       {
         marker: "S4",
-        title: "Revue d’impact",
-        description:
-          "Comparaison avant / recommandé / réel et calibration du prochain arbitrage.",
+        title: "Mesure d\u2019impact",
+        description: "Comparaison prévu vs réel et plan pour la suite.",
       },
       {
-        marker: "→",
-        title: "Montée en charge",
-        description:
-          "Extension au prochain périmètre : nouveaux sites, nouvelles décisions.",
+        marker: "\u2192",
+        title: "Extension",
+        description: "Nouveaux sites, nouvelles décisions, même méthode.",
       },
     ],
     notItems: [
-      "Pas de refonte SI ni de remplacement ERP / BI / planning",
-      "Pas de promesse floue d’optimiser toute l’entreprise d’un coup",
-      "Pas de couche de reporting supplémentaire sans arbitrage exploitable",
-      "Pas de projet à 6 mois avant la première valeur",
+      "Pas de remplacement de vos outils",
+      "Pas de projet IT lourd",
+      "Pas de reporting supplémentaire",
+      "Pas de promesse sans preuve",
     ],
     ctaMicrocopy: "Retour qualifié sous 48h ouvrées",
   },
   integrationSecurity: {
     kicker: "Intégration & sécurité",
-    heading: "Branché au-dessus de l’existant, pas à la place.",
+    heading: "Sécurisé, souverain, non intrusif.",
     subheading:
-      "Praedixa se connecte en lecture seule à vos sources. Les données restent agrégées, hébergées en France, protégées par NDA.",
+      "Lecture seule. Données hébergées en France. NDA dès le premier échange.",
     controls: [
       {
         badge: "Contrôle actif",
         title: "Lecture seule",
-        body: "Aucune écriture dans vos systèmes sources. Praedixa lit, compare et documente.",
+        body: "Aucune écriture dans vos systèmes. Praedixa lit, compare et documente.",
       },
       {
         badge: "Contrôle actif",
@@ -381,18 +378,18 @@ export const valuePropFrSections: ValuePropFrSections = {
       },
       {
         badge: "Contrôle actif",
-        title: "NDA dès J1",
+        title: "NDA dès le premier échange",
         body: "Accord de confidentialité signé avant le premier échange de données.",
       },
       {
         badge: "Contrôle actif",
-        title: "Audit trail complet",
-        body: "Chaque décision, validation et relecture est tracée avec horodatage et rôle.",
+        title: "Traçabilité complète",
+        body: "Chaque décision et chaque validation est tracée avec horodatage et auteur.",
       },
       {
         badge: "Contrôle actif",
         title: "Connecteurs standards",
-        body: "API REST, exports CSV, connecteurs ERP et WFM. Pas d’intégration invasive.",
+        body: "API REST, exports CSV, connecteurs ERP et WFM. Pas d\u2019intégration invasive.",
       },
     ],
     stackItems: ["Planning", "ERP", "CRM", "BI", "Excel", "CSV", "API REST"],
@@ -401,49 +398,48 @@ export const valuePropFrSections: ValuePropFrSections = {
     heading: "Questions fréquentes",
     items: [
       {
-        question: "Faut-il remplacer nos outils actuels ?",
+        question: "Faut-il remplacer nos outils actuels\u00a0?",
         answer:
-          "Non. Praedixa se branche au-dessus de l’existant en lecture seule. ERP, BI, planning et Excel restent en place.",
+          "Non. Praedixa se connecte en lecture seule à vos outils existants. ERP, BI, planning et Excel restent en place.",
       },
       {
-        question: "Quel est le délai avant le premier arbitrage objectivé ?",
+        question: "En combien de temps voit-on les premiers résultats\u00a0?",
         answer:
-          "30 jours. Le cadrage commence en semaine 1, la première lecture utile arrive en semaine 2.",
+          "30\u00a0jours. Le cadrage commence en semaine\u00a01, les premières options comparées arrivent en semaine\u00a02.",
       },
       {
-        question: "Quelles données sont nécessaires au démarrage ?",
+        question: "Quelles données sont nécessaires au démarrage\u00a0?",
         answer:
-          "Des exports ou API existants suffisent : charge prévisionnelle, capacité, backlog, coûts d’urgence. Le démarrage peut rester en lecture seule.",
+          "Vos exports ou API existants suffisent. Praedixa démarre en lecture seule, sans migration de données.",
       },
       {
-        question: "Qui est le sponsor idéal côté client ?",
+        question: "Qui doit porter le projet côté client\u00a0?",
         answer:
-          "Un responsable opérations ou réseau qui porte un arbitrage concret à objectiver. Le sponsor cadre le périmètre et valide les hypothèses.",
+          "Un responsable opérations ou réseau qui a un enjeu concret à traiter. Il cadre le périmètre et valide les résultats.",
       },
       {
-        question:
-          "Comment Praedixa se distingue d’un outil de BI ou de prévision ?",
+        question: "Quelle est la différence avec un outil de BI\u00a0?",
         answer:
-          "La BI montre ce qui se passe. La prévision anticipe. Praedixa ajoute le cadre décisionnel qui manque : comparer les options, retenir une décision, puis relire l’impact réel.",
+          "La BI montre ce qui se passe. Praedixa va plus loin\u00a0: il anticipe les risques, compare les options et mesure l\u2019impact réel de chaque décision.",
       },
       {
-        question: "Que se passe-t-il après les 30 premiers jours ?",
+        question: "Que se passe-t-il après les 30 premiers jours\u00a0?",
         answer:
-          "Le cadre est réutilisable. Le réseau peut étendre à de nouveaux sites, de nouvelles décisions ou de nouveaux horizons sans repartir de zéro.",
+          "La méthode est réutilisable. Vous pouvez étendre à de nouveaux sites ou de nouvelles décisions sans repartir de zéro.",
       },
     ],
-    contactCta: "Une question spécifique ?",
+    contactCta: "Une question spécifique\u00a0?",
     contactBody:
       "Décrivez votre contexte et nous revenons avec une réponse qualifiée sous 48h ouvrées.",
   },
   finalCta: {
-    label: "Prêt à objectiver",
-    heading: "Cadrons le premier arbitrage à objectiver.",
-    body: "Décrivez votre réseau et l’arbitrage prioritaire. Nous revenons avec un prochain pas clair sous 48h ouvrées.",
+    label: "Prêt à commencer\u00a0?",
+    heading: "Parlons de votre ROI.",
+    body: "Décrivez votre contexte. On revient avec un plan d\u2019action en 48h.",
     promiseItems: [
-      "Retour qualifié sous 48h ouvrées",
-      "Orientation preuve sur historique ou cadrage déploiement",
-      "Prochain pas concret, adapté à votre périmètre",
+      "Réponse en 48h",
+      "Diagnostic personnalisé",
+      "Plan d\u2019action concret",
     ],
     step1Fields: [
       {
@@ -459,11 +455,11 @@ export const valuePropFrSections: ValuePropFrSections = {
           "Autre",
         ],
       },
-      { name: "Arbitrage prioritaire", type: "text" },
+      { name: "Principal enjeu", type: "text" },
       {
         name: "Horizon projet",
         type: "select",
-        options: ["< 1 mois", "1–3 mois", "3–6 mois", "> 6 mois"],
+        options: ["< 1 mois", "1\u20133 mois", "3\u20136 mois", "> 6 mois"],
       },
     ],
     step2Fields: [

@@ -199,7 +199,7 @@ function makeContext(
     body: null,
     user: {
       userId: "user-test",
-      email: "ops.client@praedixa.com",
+      email: "viewer@client.example",
       organizationId: PRODUCT_ORG_ID,
       role: "viewer",
       siteIds: ["site-lyon"],

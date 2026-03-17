@@ -36,6 +36,7 @@ Le webapp utilise OIDC Authorization Code + PKCE avec cookies httpOnly et sessio
 - Les refreshs sont faits cote serveur ou via `/auth/session`.
 - Les parseurs JWT et la session signee n'acceptent plus que les claims top-level canoniques `sub`, `email`, `role`, `organization_id` et `site_id` pour les roles scopes.
 - Les aliases legacy (`preferred_username`, `org_id`, `organizationId`, `siteId`, `site_ids`, `roles`, `groups`, `realm_access`, `resource_access`, `app_metadata`) sont rejetes explicitement.
+- `jwt.ts` expose aussi un diagnostic de claim minimal pour remonter un `token_reason` explorable quand le callback finit en `auth_claims_invalid`, sans journaliser le bearer token.
 - Hors developpement, le rate limit auth doit avoir un store distribue et un `AUTH_RATE_LIMIT_KEY_SALT` explicites; aucune degradation implicite vers un mode local plus faible n'est acceptee.
 - Le middleware fail-close pour tout chemin app inconnu: seuls les paths declares dans `route-policy.ts` sont traites comme surface webapp valide.
 - Les prefixes `/auth/*` et `/api/*` restent des frontieres speciales et ne sont pas bloques par la policy des pages app.

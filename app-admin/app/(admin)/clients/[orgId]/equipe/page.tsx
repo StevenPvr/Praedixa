@@ -24,6 +24,7 @@ interface UserItem {
   email: string;
   role: string;
   status: string;
+  siteId?: string | null;
   siteName?: string;
   lastLoginAt?: string;
 }
@@ -47,15 +48,19 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export default function EquipePage() {
-  const { orgId } = useClientContext();
+  const { orgId, hierarchy, selectedSiteId } = useClientContext();
   const currentUser = useCurrentUser();
   const toast = useToast();
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("viewer");
+  const [inviteSiteId, setInviteSiteId] = useState("");
   const canManageUsers = hasAnyPermission(currentUser?.permissions, [
     "admin:users:write",
   ]);
+  const siteScopedInviteRole =
+    inviteRole === "manager" || inviteRole === "hr_manager";
+  const hasAvailableSites = hierarchy.length > 0;
 
   const {
     data: users,
@@ -65,7 +70,7 @@ export default function EquipePage() {
   } = useApiGet<UserItem[]>(ADMIN_ENDPOINTS.orgUsers(orgId));
 
   const { mutate: invite, loading: inviteLoading } = useApiPost<
-    { email: string; role: string },
+    { email: string; role: string; site_id?: string },
     unknown
   >(ADMIN_ENDPOINTS.orgUserInvite(orgId));
 
@@ -75,14 +80,25 @@ export default function EquipePage() {
       return;
     }
     if (!inviteEmail) return;
-    const result = await invite({ email: inviteEmail, role: inviteRole });
+    if (siteScopedInviteRole && !inviteSiteId) {
+      toast.error("Selectionne un site pour ce role");
+      return;
+    }
+
+    const result = await invite({
+      email: inviteEmail,
+      role: inviteRole,
+      ...(siteScopedInviteRole ? { site_id: inviteSiteId } : {}),
+    });
     if (result) {
-      toast.success("Compte cree");
+      toast.success("Invitation envoyee");
       setInviteEmail("");
+      setInviteSiteId("");
+      setInviteRole("viewer");
       setShowInviteForm(false);
       refetch();
     } else {
-      toast.error("Impossible de creer le compte");
+      toast.error("Impossible de provisionner le compte");
     }
   }
 
@@ -191,7 +207,17 @@ export default function EquipePage() {
               </label>
               <select
                 value={inviteRole}
-                onChange={(e) => setInviteRole(e.target.value)}
+                onChange={(e) => {
+                  const nextRole = e.target.value;
+                  setInviteRole(nextRole);
+                  if (nextRole === "manager" || nextRole === "hr_manager") {
+                    setInviteSiteId(
+                      selectedSiteId || hierarchy[0]?.id || inviteSiteId,
+                    );
+                  } else {
+                    setInviteSiteId("");
+                  }
+                }}
                 className="rounded-lg border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <option value="viewer">Lecteur</option>
@@ -201,10 +227,40 @@ export default function EquipePage() {
                 <option value="org_admin">Admin Org</option>
               </select>
             </div>
+            {siteScopedInviteRole ? (
+              <div>
+                <label className="mb-1 block text-xs font-medium text-ink-tertiary">
+                  Site
+                </label>
+                <select
+                  value={inviteSiteId}
+                  onChange={(e) => setInviteSiteId(e.target.value)}
+                  className="rounded-lg border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">Selectionner un site</option>
+                  {hierarchy.map((site) => (
+                    <option key={site.id} value={site.id}>
+                      {site.city ? `${site.name} - ${site.city}` : site.name}
+                    </option>
+                  ))}
+                </select>
+                {!hasAvailableSites ? (
+                  <p className="mt-1 text-xs text-danger">
+                    Cree d&apos;abord un site pour provisionner un Manager ou un
+                    compte RH.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
             <Button
               size="sm"
               onClick={handleInvite}
-              disabled={!canManageUsers || inviteLoading || !inviteEmail}
+              disabled={
+                !canManageUsers ||
+                inviteLoading ||
+                !inviteEmail ||
+                (siteScopedInviteRole && !inviteSiteId)
+              }
             >
               Creer
             </Button>

@@ -16,7 +16,7 @@ services:
       - "5433:5432"
     environment:
       POSTGRES_USER: praedixa
-      POSTGRES_PASSWORD: changeme
+      POSTGRES_PASSWORD: praedixa_local_dev_pg_2026
       POSTGRES_DB: praedixa
     volumes:
       - pgdata:/var/lib/postgresql/data

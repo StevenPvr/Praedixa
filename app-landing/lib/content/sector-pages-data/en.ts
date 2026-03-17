@@ -139,8 +139,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     ctaTitle: "See what Praedixa would do on your most exposed services.",
     ctaBody:
       "We start from your existing data, surface short-horizon signals, and show where demand, coverage, or the service promise are eroding margin too quickly.",
-    homepageHook:
-      "Arbitrate demand, coverage, and service before margin slips.",
+    homepageHook: "Anticipate demand peaks and optimize your resources.",
     homepageStat: "336,850 planned hires, 50.2% difficult, 56.5% seasonal.",
     homepageProblem:
       "The hospitality challenge: protect service levels without letting demand shocks, temp labor, and overtime swallow margin.",
@@ -291,8 +290,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     ctaTitle: "Frame your next campus peaks on a shared decision baseline.",
     ctaBody:
       "Praedixa shows where demand will rise, what capacity is truly available, and which decision best protects budget, service continuity, and the student experience.",
-    homepageHook:
-      "Secure admissions, exams, and campus continuity without letting budget and coverage drift.",
+    homepageHook: "Anticipate campus workload and secure service continuity.",
     homepageStat:
       "3.04M students, 945,500 Parcoursup candidates, 21,080 contract teachers.",
     homepageProblem:
@@ -453,7 +451,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     ctaBody:
       "We start from demand, available capacity, inventory, and cost to show where to act first, with which lever, and what ROI to expect by site.",
     homepageHook:
-      "Arbitrate demand, capacity, and customer promise at the speed of the network.",
+      "Optimize your flows and meet your customer promise in real time.",
     homepageStat:
       "€175.3B e-commerce, 183,760 retail hires, 90,380 transport / warehousing hires.",
     homepageProblem:
@@ -605,8 +603,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     ctaTitle: "See how Praedixa would help your most exposed workshops.",
     ctaBody:
       "We start from bookings, skills, parts, and cost to show where load is likely to break customer delay and which decision best protects the workshop.",
-    homepageHook:
-      "Arbitrate workshop load, parts, and skills before customer delays drift.",
+    homepageHook: "Anticipate workshop load and reduce customer delays.",
     homepageStat:
       "33,900 planned hires, 69.7% difficult, 17,820 unfilled postings in 2024.",
     homepageProblem:

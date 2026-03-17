@@ -32,9 +32,7 @@ describe("CredibilityRibbonSection", () => {
     render(<CredibilityRibbonSection locale="fr" />);
 
     expect(
-      screen.getByText(
-        /arbitrage co.t \/ service \/ risque passe par ces fonctions/,
-      ),
+      screen.getByText("Les fonctions qui prennent les décisions clés."),
     ).toBeInTheDocument();
   });
 
@@ -43,7 +41,7 @@ describe("CredibilityRibbonSection", () => {
 
     expect(screen.getByText("Engagements")).toBeInTheDocument();
     for (const marker of [
-      "Lecture seule au départ",
+      "Lecture seule au démarrage",
       "Hébergement France",
       "NDA dès le premier échange",
       "Données agrégées",

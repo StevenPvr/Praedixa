@@ -10,11 +10,11 @@ interface ProblemBlockSectionProps {
 export function ProblemBlockSection({ locale }: ProblemBlockSectionProps) {
   const vp = getValuePropContent(locale);
   const cards = vp.problemCards;
-  const kicker = locale === "fr" ? "Le problème" : "The problem";
+  const kicker = locale === "fr" ? "Le constat" : "The reality";
   const heading =
     locale === "fr"
-      ? "Les données sont là. Le cadre de décision manque."
-      : "The data is there. The decision frame is missing.";
+      ? "Vous avez les données. Il vous manque un cadre pour décider vite."
+      : "You have the data. You need a framework to decide fast.";
 
   return (
     <SectionShellV2 id="probleme">

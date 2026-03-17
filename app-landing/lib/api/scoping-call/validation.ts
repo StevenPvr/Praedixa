@@ -1,9 +1,10 @@
+import { validateSemanticEmailAddress } from "../../security/email-address";
+
 const MAX_NOTES_LENGTH = 800;
 const MAX_COMPANY_LENGTH = 100;
 const MAX_SOURCE_LENGTH = 60;
 const MAX_TIMEZONE_LENGTH = 64;
 const MAX_SLOT_COUNT = 3;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SLOT_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 export const MAX_REQUEST_BODY_LENGTH = 12_000;
@@ -33,7 +34,10 @@ export function validateScopingCallBody(
   }
 
   const email = readString(input, "email", 254, true);
-  if (!email || !EMAIL_REGEX.test(email)) {
+  const validatedEmail = email
+    ? validateSemanticEmailAddress(email)
+    : { valid: false as const };
+  if (!email || !validatedEmail.valid) {
     return {
       valid: false,
       error: localize(
@@ -94,7 +98,7 @@ export function validateScopingCallBody(
     valid: true,
     data: {
       locale,
-      email: email.toLowerCase(),
+      email: validatedEmail.normalized,
       companyName,
       timezone,
       slots: slots.value,

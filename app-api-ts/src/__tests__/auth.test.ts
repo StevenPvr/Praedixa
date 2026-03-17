@@ -372,4 +372,25 @@ describe("public OpenAPI auth contract", () => {
       expect(publicPaths.has(template)).toBe(false);
     }
   });
+
+  it("keeps admin user-management routes internal and tenant-scoped", () => {
+    const document = loadPublicOpenApiDocument();
+    const publicPaths = new Set(Object.keys(document.paths ?? {}));
+    const internalAdminRoutes = [
+      "/api/v1/admin/organizations/:orgId/users",
+      "/api/v1/admin/organizations/:orgId/users/:userId",
+      "/api/v1/admin/organizations/:orgId/users/:userId/role",
+      "/api/v1/admin/organizations/:orgId/users/invite",
+      "/api/v1/admin/organizations/:orgId/users/:userId/deactivate",
+      "/api/v1/admin/organizations/:orgId/users/:userId/reactivate",
+    ] as const;
+
+    for (const template of internalAdminRoutes) {
+      const route = routes.find((entry) => entry.template === template);
+      expect(route).toBeDefined();
+      expect(route?.authRequired).toBe(true);
+      expect(route?.template).toContain(":orgId");
+      expect(publicPaths.has(template)).toBe(false);
+    }
+  });
 });

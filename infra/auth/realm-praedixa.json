@@ -85,7 +85,8 @@
             "included.client.audience": "praedixa-api",
             "id.token.claim": "false",
             "access.token.claim": "true",
-            "introspection.token.claim": "true"
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "false"
           }
         },
         {
@@ -99,6 +100,7 @@
             "jsonType.label": "String",
             "access.token.claim": "true",
             "id.token.claim": "false",
+            "introspection.token.claim": "true",
             "userinfo.token.claim": "false"
           }
         },
@@ -113,6 +115,7 @@
             "jsonType.label": "String",
             "access.token.claim": "true",
             "id.token.claim": "false",
+            "introspection.token.claim": "true",
             "userinfo.token.claim": "false"
           }
         },
@@ -127,6 +130,7 @@
             "jsonType.label": "String",
             "access.token.claim": "true",
             "id.token.claim": "false",
+            "introspection.token.claim": "true",
             "userinfo.token.claim": "false"
           }
         }
@@ -165,7 +169,8 @@
             "included.client.audience": "praedixa-api",
             "id.token.claim": "false",
             "access.token.claim": "true",
-            "introspection.token.claim": "true"
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "false"
           }
         },
         {
@@ -179,6 +184,7 @@
             "jsonType.label": "String",
             "access.token.claim": "true",
             "id.token.claim": "false",
+            "introspection.token.claim": "true",
             "userinfo.token.claim": "false"
           }
         },
@@ -193,6 +199,7 @@
             "jsonType.label": "String",
             "access.token.claim": "true",
             "id.token.claim": "false",
+            "introspection.token.claim": "true",
             "userinfo.token.claim": "false"
           }
         },
@@ -207,6 +214,7 @@
             "jsonType.label": "String",
             "access.token.claim": "true",
             "id.token.claim": "false",
+            "introspection.token.claim": "true",
             "userinfo.token.claim": "false"
           }
         },
@@ -222,6 +230,7 @@
             "multivalued": "true",
             "access.token.claim": "true",
             "id.token.claim": "false",
+            "introspection.token.claim": "true",
             "userinfo.token.claim": "false"
           }
         }

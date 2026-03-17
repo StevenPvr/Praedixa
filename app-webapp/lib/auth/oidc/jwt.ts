@@ -1,4 +1,5 @@
 import {
+  type AccessTokenClaimsIssue,
   DEFAULT_API_AUDIENCE,
   DEFAULT_ROLE,
   FORBIDDEN_OBJECT_KEYS,
@@ -84,6 +85,38 @@ export function getTokenExp(token: string): number | null {
   const payload = decodeJwtPayload(token);
   const exp = payload?.exp;
   return typeof exp === "number" ? exp : null;
+}
+
+export function getAccessTokenClaimsIssue(
+  token: string,
+): AccessTokenClaimsIssue | null {
+  const payload = decodeJwtPayload(token);
+  if (!payload) {
+    return "invalid_payload";
+  }
+
+  if (!getString(payload, "sub")) {
+    return "missing_sub";
+  }
+
+  if (!getString(payload, "email")) {
+    return "missing_email";
+  }
+
+  const rawRole = getString(payload, "role");
+  if (!rawRole) {
+    return "missing_role";
+  }
+
+  if (!normalizeRole(rawRole)) {
+    return "invalid_role";
+  }
+
+  if (typeof payload.exp !== "number") {
+    return "missing_exp";
+  }
+
+  return null;
 }
 
 export function isTokenExpired(token: string, minTtlSeconds = 0): boolean {

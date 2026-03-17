@@ -139,7 +139,7 @@ export const fitnessSectorPageFr: SectorPageEntry = {
   ctaBody:
     "On part des check-ins, des cours, du staffing et du churn pour montrer où la capacité va casser et quelle décision protège le mieux expérience membre, rétention et revenu récurrent.",
   homepageHook:
-    "Arbitrez remplissage club, coaching et rétention avant que la capacité ne sature.",
+    "Optimisez le remplissage club et améliorez la rétention membre.",
   homepageStat:
     "11 % de pratique en structures commerciales, 39,1 % d'équipements urbains en salles de sport, 25 240 recrutements projetés.",
   homepageProblem:
@@ -299,8 +299,7 @@ export const fitnessSectorPageEn: SectorPageEntry = {
   ctaTitle: "See how Praedixa would protect your most exposed clubs.",
   ctaBody:
     "We start from check-ins, classes, staffing, and churn to show where capacity is likely to break and which decision best protects experience, retention, and recurring revenue.",
-  homepageHook:
-    "Arbitrate club occupancy, coaching, and retention before capacity saturates.",
+  homepageHook: "Optimize club occupancy and improve member retention.",
   homepageStat:
     "11% use commercial fitness structures, 39.1% urban sports halls, 25,240 planned hires.",
   homepageProblem:

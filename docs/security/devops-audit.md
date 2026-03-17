@@ -92,13 +92,13 @@ The exhaustive gate covers:
 
 ## 3. Container and Runtime Hardening
 
-| Area                         | Status     | Notes                                                           |
-| ---------------------------- | ---------- | --------------------------------------------------------------- |
-| API image hardening          | OK         | non-root user, multi-stage build, healthcheck                   |
-| Local compose security       | OK         | `no-new-privileges:true` on API service                         |
-| Secret defaults in local env | ACCEPTABLE | `changeme` remains dev-only; must never be reused outside local |
-| Frontend containerization    | OK         | dedicated Scaleway Dockerfiles per app                          |
-| Entrypoint discipline        | OK         | migrations/startup flow controlled in scripts                   |
+| Area                         | Status     | Notes                                                                                                                           |
+| ---------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| API image hardening          | OK         | non-root user, multi-stage build, healthcheck                                                                                   |
+| Local compose security       | OK         | `no-new-privileges:true` on API service                                                                                         |
+| Secret defaults in local env | ACCEPTABLE | local compose now uses a non-placeholder dev password; these credentials remain dev-only and must never be reused outside local |
+| Frontend containerization    | OK         | dedicated Scaleway Dockerfiles per app                                                                                          |
+| Entrypoint discipline        | OK         | migrations/startup flow controlled in scripts                                                                                   |
 
 Residual improvement:
 

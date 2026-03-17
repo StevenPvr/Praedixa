@@ -6,7 +6,7 @@ describe("ProblemBlockSection", () => {
   it("renders the kicker text", () => {
     render(<ProblemBlockSection locale="fr" />);
 
-    expect(screen.getByText("Le problème")).toBeInTheDocument();
+    expect(screen.getByText("Le constat")).toBeInTheDocument();
   });
 
   it("renders the section heading", () => {
@@ -15,7 +15,7 @@ describe("ProblemBlockSection", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: "Les données sont là. Le cadre de décision manque.",
+        name: "Vous avez les données. Il vous manque un cadre pour décider vite.",
       }),
     ).toBeInTheDocument();
   });
@@ -38,12 +38,13 @@ describe("ProblemBlockSection", () => {
   it("renders each problem card title", () => {
     render(<ProblemBlockSection locale="fr" />);
 
-    // Content uses curly apostrophe U+2019 — match with regex
-    expect(screen.getByText(/arbitrage reste dispersé/)).toBeInTheDocument();
     expect(
-      screen.getByText(/La décision arrive trop tard/),
+      screen.getByText(/Les signaux arrivent trop tard/),
     ).toBeInTheDocument();
-    expect(screen.getByText(/impact n.est jamais relu/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Les options ne sont pas comparées/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/impact n.est jamais mesuré/)).toBeInTheDocument();
   });
 
   it("renders each problem card consequence text", () => {
@@ -51,17 +52,17 @@ describe("ProblemBlockSection", () => {
 
     expect(
       screen.getByText(
-        /Le choix entre renfort, réallocation et ajustement de service se disperse/,
+        /Quand l.information arrive, il est déjà trop tard pour agir au meilleur coût/,
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        /Sans lecture anticipée, l.urgence décide à la place du réseau/,
+        /Sous pression, on choisit la vitesse plutôt que la meilleure option/,
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        /Après la décision, personne ne compare ce qui était recommandé/,
+        /Impossible de savoir si la décision prise était la bonne/,
       ),
     ).toBeInTheDocument();
   });

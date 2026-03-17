@@ -23,6 +23,7 @@ Ce dossier contient tout le runtime Node de l'API exposee aux apps web Praedixa.
 - `app-admin` appelle la surface `/api/v1/admin/*`.
 - `app-connectors` est appele pour les flux integrations admin.
 - `app-api/` alimente les tables et jeux de donnees consommes ici, mais ne sert pas les requetes front directement.
+- Le lifecycle des comptes client/backoffice passe maintenant ici pour la creation admin: l'API TS provisionne l'identite Keycloak, puis ecrit `users.auth_user_id` sans placeholder `pending-*`.
 - `contracts/openapi/public.yaml` porte le contrat public non-admin versionne.
 - `packages/shared-types/src/api/public-contract.ts` porte le catalogue type partage des operations publiques et la politique de compatibilite ascendante.
 - `packages/telemetry` porte l'enveloppe runtime commune des logs structures pour `request_id`, `trace_id` et les champs de correlation associes.
@@ -54,6 +55,7 @@ Routes admin:
 ## Appels internes sensibles
 
 - `admin-integrations.ts` envoie un bearer token vers `app-connectors`.
+- `services/keycloak-admin-identity.ts` appelle aussi l'admin REST Keycloak pour creer un compte, synchroniser les claims canoniques et envoyer l'email `UPDATE_PASSWORD` lors d'une invitation backoffice.
 - `config.ts` bloque donc les `CONNECTORS_RUNTIME_URL` avec credentials, query ou fragment.
 - Hors developpement, le runtime connecteurs doit etre en `https` et son host doit appartenir a `CONNECTORS_RUNTIME_ALLOWED_HOSTS`.
 

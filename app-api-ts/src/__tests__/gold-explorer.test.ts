@@ -118,4 +118,28 @@ describe("gold explorer persistence helpers", () => {
     expect(sql).toContain("AND FALSE");
     expect(values).toEqual([ORGANIZATION_ID, "2026-03-01", "2026-03-31"]);
   });
+
+  it("constrains non-org-wide reads to the accessible site allowlist when no site is requested", async () => {
+    mockedQueryRows.mockResolvedValueOnce([] as never);
+
+    await listPersistentGoldRows({
+      organizationId: ORGANIZATION_ID,
+      scope: {
+        orgWide: false,
+        accessibleSiteIds: ["site-lyon", "site-paris"],
+        requestedSiteId: null,
+      },
+      dateFrom: "2026-03-01",
+      dateTo: "2026-03-31",
+    });
+
+    const [sql, values] = mockedQueryRows.mock.calls[0] ?? [];
+    expect(sql).toContain("cr.site_id = ANY($2::text[])");
+    expect(values).toEqual([
+      ORGANIZATION_ID,
+      ["site-lyon", "site-paris"],
+      "2026-03-01",
+      "2026-03-31",
+    ]);
+  });
 });

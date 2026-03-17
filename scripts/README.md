@@ -31,6 +31,21 @@ pnpm dev:admin
 pnpm dev:landing
 ```
 
+Auth / Keycloak:
+
+```bash
+pnpm auth:keycloak:ensure-api-contract
+
+SUPER_ADMIN_PASSWORD='<mot-de-passe-super-admin>' \
+./scripts/keycloak-ensure-super-admin.sh
+```
+
+`keycloak-ensure-api-access-contract.sh` recale maintenant les protocol mappers live sur le realm export versionne (`claim-role`, `claim-organization-id`, `claim-site-id`, `claim-permissions` admin) pour eviter les drifts entre Keycloak et les callbacks Next stricts.
+Si un utilisateur cible est fourni, le script synchronise aussi ses attributs canoniques `role`, `organization_id`, `site_id` et, si besoin, `permissions`.
+`keycloak-ensure-super-admin.sh` provisionne aussi les attributs canoniques `role=super_admin` et `permissions=admin:console:access`, en plus du realm role et de `CONFIGURE_TOTP`.
+Ces scripts relisent automatiquement `KEYCLOAK_ADMIN_PASSWORD` ou `KC_BOOTSTRAP_ADMIN_PASSWORD` depuis `app-landing/.env.local`, `app-webapp/.env.local`, `app-admin/.env.local`, puis `.env.local` a la racine si la variable n'est pas deja exportee dans le shell.
+Le runtime `app-api-ts` utilise maintenant `KEYCLOAK_ADMIN_USERNAME` + `KEYCLOAK_ADMIN_PASSWORD` pour provisionner depuis le backoffice les comptes client dans Keycloak avant d'ecrire `users.auth_user_id`; `scw-configure-api-env.sh` doit donc aussi synchroniser cette creden­tial runtime.
+
 Gates:
 
 ```bash
@@ -68,7 +83,7 @@ Le `cleanup` termine maintenant aussi l'arbre de process complet du serveur API 
 `scw-release-deploy.sh` doit traiter aussi le dernier service quand `--services` contient un seul item sans retour ligne final, sinon un `--services landing` peut etre ignore silencieusement.
 `scw-release-manifest-create.sh` exige maintenant un `--gate-report` reel et versionne son `path + sha256` dans le manifest signe; une release sans preuve de gate signee et reverifiable ne doit plus etre materialisee.
 `gate-report-sign.sh`, `verify-gate-report.sh`, `release-manifest-sign.sh` et `release-manifest-verify.sh` exigent une cle HMAC deja provisionnee sur disque; ils ne doivent jamais generer une nouvelle racine de confiance a chaud ni passer la cle en argument CLI.
-`scw-release-deploy.sh` doit deployer exactement l'image `registry-image@sha256:...` du manifest, jamais un tag mutable reconstruit a partir du digest.
+`scw-release-deploy.sh` doit utiliser la reference signee `registry-image@sha256:...` du manifest comme source de verite; si l'API Scaleway Container refuse encore cette syntaxe, le script peut seulement retomber sur le tag deja signe derive de cette meme reference et doit journaliser explicitement ce fallback fournisseur.
 Les scripts `scw-configure-*.sh` doivent passer les variables d'environnement et secrets via des fichiers JSON temporaires et `scw-apply-container-config.sh`, pas via des arguments CLI contenant les secrets en clair.
 Les scripts `scw-configure-landing-env.sh`, `scw-configure-frontend-env.sh`, `scw-configure-api-env.sh` et `scw-configure-auth-env.sh` doivent aussi synchroniser leurs secrets vers Scaleway Secret Manager sous `/praedixa/<env>/<container>/runtime` avant application au container.
 `validate-runtime-secret-inventory.mjs` verifie que `docs/deployment/runtime-secrets-inventory.json` reste aligne avec `docs/deployment/environment-secrets-owners-matrix.md`; `scw-preflight-deploy.sh` execute ce validateur avant tout controle cloud et lit ensuite depuis cet inventaire les secrets runtime `preflight_required` a imposer sur chaque container.

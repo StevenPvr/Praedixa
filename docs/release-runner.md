@@ -86,7 +86,7 @@ Ce repo contient maintenant un squelette de release immuable orienté runner Sca
 ## Notes
 
 - Le manifest contient les digests; staging et prod doivent consommer exactement les mêmes images.
-- Le deploy Scaleway Container doit consommer exactement la reference `registry_image@sha256:...` signee dans le manifest, jamais un tag mutable rederive.
+- Le manifest reste la source de verite via `registry_image@sha256:...`; si l'API Scaleway Container refuse encore cette syntaxe, `scw-release-deploy.sh` retombe sur le tag deja signe derive de cette meme reference et journalise explicitement ce fallback fournisseur.
 - La clé HMAC par défaut vit hors repo: `${HOME}/.praedixa/release-manifest.key`.
 - Cette clé doit être préprovisionnée hors repo avant signature ou vérification; aucun script ne doit créer une nouvelle racine de confiance à la volée.
 - Pour `landing`, ce flow remplace définitivement le legacy `scw-deploy-landing.sh`.

@@ -2,71 +2,67 @@ import type { Dictionary } from "../types";
 
 export const enCoreFoundation: Partial<Dictionary> = {
   meta: {
-    title: "Praedixa | Praedixa deployment for multi-site networks",
+    title: "Praedixa | AI for your operational decisions",
     description:
-      "Praedixa helps multi-site networks spot earlier the trade-offs that erode margin, compare constrained options, and review the actual impact of the decisions taken.",
-    ogTitle: "Praedixa | Praedixa deployment for multi-site networks",
+      "Praedixa anticipates your needs, optimizes your decisions, and proves your ROI. Operational in 30 days.",
+    ogTitle: "Praedixa | AI for your operational decisions",
     ogDescription:
-      "When a multi-site network sees critical trade-offs too late, margin gets burned in urgency. Praedixa surfaces them earlier, compares the options, and reviews the real impact of the decision.",
+      "Praedixa anticipates your needs, optimizes your decisions, and proves your ROI. Operational in 30 days.",
   },
 
   nav: {
     problem: "Problem",
     method: "Method",
-    services: "Services",
+    services: "Offer",
     howItWorks: "How it works",
-    useCases: "Decisions covered",
-    security: "Integration & data",
+    useCases: "Use cases",
+    security: "Security",
     faq: "FAQ",
     contact: "Contact",
-    ctaPrimary: "See a concrete example",
+    ctaPrimary: "See a demo",
     backToSite: "Back to site",
   },
 
   hero: {
-    kicker: "For COO, operations leaders, and network managers",
-    headline: "Anticipate",
-    headlineHighlight: "the trade-offs before urgency burns margin.",
+    kicker: "For operations decision-makers",
+    headline: "Anticipate. Optimize.",
+    headlineHighlight: "Prove your ROI.",
     subtitle:
-      "Praedixa helps multi-site networks surface earlier when to reinforce, reallocate, postpone, or adjust service levels, then compare constrained options and review the actual impact of the decisions taken.",
-    manifestoLabel: "Where Praedixa starts",
+      "AI for your operational decisions. Measurable results, not promises.",
+    manifestoLabel: "The starting point",
     manifestoQuote:
-      "Network teams that cannot wait for the next review or the next failure to arbitrate.",
+      "Operations teams that want to anticipate rather than react.",
     bullets: [
       {
         metric: "Who it serves",
-        text: "Multi-site operators who need to protect margin and service before the emergency hits.",
+        text: "Multi-site networks, all industries.",
       },
       {
-        metric: "Decisions covered",
-        text: "When to reinforce, reallocate, postpone, or adjust service levels.",
+        metric: "How",
+        text: "AI anticipates and optimizes your daily decisions.",
       },
       {
-        metric: "What changes",
-        text: "Earlier comparisons, clearer trade-offs, and impact reviewed over time.",
+        metric: "Result",
+        text: "A measured and proven ROI.",
       },
     ],
-    ctaPrimary: "See a concrete example",
-    ctaSecondary: "Frame the first decision scope",
+    ctaPrimary: "See a demo",
+    ctaSecondary: "Contact us",
     ctaTertiary: "",
-    previewTitle: "A preview of what awaits you",
-    ctaMeta: "Praedixa deployment · read-only start · NDA available",
+    previewTitle: "A preview of your business view",
+    ctaMeta: "Deployment in 30 days \u00b7 read-only \u00b7 NDA available",
     trustBadges: [
-      "Read-only start",
+      "Read-only at the start",
       "Aggregated data only",
       "Hosted in France",
       "NDA available from the first discussion",
-      "First focus: the costliest coverage and allocation trade-offs",
-      "Software + scoped rollout on top of your existing data",
-      "Ops first, Finance and IT as secondary reviewers",
-      "Impact reviewed: baseline / recommended / actual",
     ],
   },
 
   preview: {
     kicker: "A preview",
     heading: "The Praedixa interface",
-    subheading: "See how the decision protocol takes shape in the interface.",
+    subheading: "See how Praedixa structures your daily decisions.",
     overlayTitle: "Discover the web app",
     overlayBody: "Open a public preview (same UI, fictional data).",
     overlayCta: "Discover the web app",
@@ -76,102 +72,97 @@ export const enCoreFoundation: Partial<Dictionary> = {
   },
 
   problem: {
-    kicker: "Why now",
-    heading:
-      "The problem is not a lack of data. It is a lack of decision discipline.",
+    kicker: "The problem",
+    heading: "You have the data. You are missing a framework to decide fast.",
     subheading:
-      "In multi-site operations, critical trade-offs are still taken too late, too fast, and without a solid economic frame. The result is more emergency cost, less room to maneuver, and decisions that are harder to defend.",
-    cta: "See a concrete example",
-    ctaHint:
-      "Public logistics example: options compared, decision retained, and impact reviewed before any form fill.",
+      "In multi-site operations, critical decisions often come too late. The result: avoidable costs and missed opportunities.",
+    cta: "See a demo",
+    ctaHint: "Concrete example: an end-to-end optimized decision.",
     states: {
-      loadingTitle: "Reading operational signals",
-      loadingBody:
-        "We are structuring your friction points before cost/service arbitration.",
-      emptyTitle: "No signal available",
+      loadingTitle: "Reading signals",
+      loadingBody: "We are structuring signals before the critical decisions.",
+      emptyTitle: "No signal structured",
       emptyBody:
-        "Add operational cases to prioritize and build the arbitration log.",
+        "Add the business situations to prioritize to build this view.",
       errorTitle: "Section unavailable",
-      errorBody:
-        "The operational problem framing cannot be displayed right now.",
+      errorBody: "The problem framing cannot be displayed right now.",
     },
     pains: [
       {
-        title: "Critical signals are scattered",
+        title: "Signals arrive too late",
         description:
-          "By the time the risk is clearly visible, it is often already more expensive to handle and teams have fewer credible options left.",
+          "When the risk becomes visible, it is already more expensive to handle.",
         consequence:
-          "The room to maneuver narrows before the discussion even begins.",
-        cost: "Emergency cost rises faster than decision quality.",
+          "The room to act narrows before the discussion even begins.",
+        cost: "Emergency costs rise faster than decision quality.",
       },
       {
-        title: "Options are not compared cleanly",
+        title: "Options are not compared",
         description:
-          "Operations, finance, and network leaders often arbitrate under pressure, without one shared frame for cost, service, capacity, and risk.",
-        consequence: "Decisions become harder to explain and harder to repeat.",
-        cost: "Speed wins more often than the best trade-off.",
+          "Teams decide under pressure, without a shared basis to compare scenarios.",
+        consequence: "Decisions become hard to explain and hard to reproduce.",
+        cost: "Speed wins over the best option.",
       },
       {
-        title: "Impact is rarely reviewed",
+        title: "Impact is never measured",
         description:
-          "Decisions pile up, but proof of what they actually protected or cost is missing when the same trade-off returns.",
-        consequence:
-          "Meetings restart from scratch and assumptions remain implicit.",
-        cost: "ROI gets described instead of demonstrated.",
+          "Decisions pile up, but no one knows what they actually cost or protected.",
+        consequence: "Meetings start from scratch every time.",
+        cost: "ROI is estimated, never proven.",
       },
     ],
     diagnostic: {
       title: "Do you recognize this pattern?",
       signals: [
-        "The same business gap becomes visible locally before it becomes visible in a shared read",
-        "Corrections happen once margin or service are already under pressure",
-        "Two comparable teams do not make the same decision when facing the same signal",
-        "After an action, it is still difficult to know what it really protected",
+        "A problem is visible on the ground long before it shows up in dashboards",
+        "Corrections come when the cost is already committed",
+        "Two comparable teams make different decisions facing the same problem",
+        "After an action, no one knows what it actually changed",
       ],
     },
   },
 
   solution: {
-    kicker: "Product",
-    heading: "A decision layer above the tools you already use.",
+    kicker: "Our approach",
+    heading: "AI that anticipates, compares, and proves.",
     subheading:
-      "Praedixa does not replace your ERP, BI, planning tools, or field processes. It adds the frame that helps teams arbitrate earlier, compare options, and review the impact of the decisions taken.",
+      "Praedixa does not replace your tools. It adds the missing intelligence to decide faster and better.",
     principles: [
       {
-        title: "See",
-        subtitle: "Tensions and conflicts earlier",
+        title: "Anticipate",
+        subtitle: "Risks and opportunities",
         description:
-          "Praedixa makes the tensions, drifts, and operational conflicts visible before they become emergency costs.",
+          "Praedixa detects important signals before they become costly emergencies.",
       },
       {
         title: "Compare",
-        subtitle: "Cost · service · risk",
+        subtitle: "Cost \u00b7 impact \u00b7 risk",
         description:
-          "Options are laid out with explicit assumptions so teams can arbitrate properly across service level, capacity, cost, and exposure.",
+          "Each option is quantified so you can choose with full knowledge.",
       },
       {
         title: "Prove",
-        subtitle: "Decision documented · impact reviewed",
+        subtitle: "Measured ROI",
         description:
-          "Decisions keep their context, assumptions, and observed impact so the next trade-off can start from evidence instead of memory.",
+          "Each decision keeps its trace and real impact to build a true performance record.",
       },
     ],
     differentiators: {
-      title: "What Praedixa actually adds",
+      title: "What Praedixa adds",
       description:
-        "Your tools store, report, plan, and execute. Praedixa adds the layer that helps teams arbitrate, compare, justify, and review impact.",
+        "Your tools store and report. Praedixa adds anticipation, comparison, and proof.",
       items: [
         {
-          is: "A trade-off layer on top of the existing stack",
-          isNot: "One more planning tool",
+          is: "An intelligence layer on top of what you have",
+          isNot: "One more tool",
         },
         {
-          is: "A focused entry point on the costliest trade-offs first",
-          isNot: "A promise to optimize the whole company in one shot",
+          is: "A focus on what costs the most",
+          isNot: "A promise to optimize everything at once",
         },
         {
-          is: "A decision framed and reviewed over time",
-          isNot: "An opaque recommendation with no proof afterwards",
+          is: "An ROI measured over time",
+          isNot: "A recommendation without proof",
         },
       ],
     },

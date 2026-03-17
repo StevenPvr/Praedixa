@@ -23,9 +23,9 @@ describe("StackComparisonV2Section", () => {
   it("renders heading and kicker", () => {
     render(<StackComparisonV2Section locale="fr" />);
 
-    expect(screen.getByText("Comparatif")).toBeInTheDocument();
+    expect(screen.getByText("Compatibilité")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      /Votre stack montre des données/,
+      /Praedixa s.ajoute à vos outils/,
     );
   });
 
@@ -49,19 +49,17 @@ describe("StackComparisonV2Section", () => {
     render(<StackComparisonV2Section locale="fr" />);
 
     expect(
-      screen.getByText(/Praedixa se branche au-dessus de l.existant/),
+      screen.getByText(/Compatible avec votre stack actuelle/),
     ).toBeInTheDocument();
   });
 
   it("renders column labels", () => {
     render(<StackComparisonV2Section locale="fr" />);
 
-    expect(
-      screen.getAllByText(/Brique actuelle/).length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText(/Ce qu.elle couvre déjà/).length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Outil/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Ce qu.il fait/).length).toBeGreaterThanOrEqual(
+      1,
+    );
     expect(
       screen.getAllByText(/Ce que Praedixa ajoute/).length,
     ).toBeGreaterThanOrEqual(1);

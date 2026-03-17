@@ -49,17 +49,15 @@ describe("HeroV2Section", () => {
     render(<HeroV2Section locale="fr" />);
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("Prédisez 3 à 14 jours plus tôt");
-    expect(heading).toHaveTextContent("les décisions qui protègent la marge.");
+    expect(heading).toHaveTextContent("Anticipez.");
+    expect(heading).toHaveTextContent("Optimisez. Prouvez le ROI.");
   });
 
   it("renders the kicker eyebrow text", () => {
     render(<HeroV2Section locale="fr" />);
 
     expect(
-      screen.getByText(
-        "Pour réseaux multi-sites qui arbitrent sous contrainte",
-      ),
+      screen.getByText("Pour les réseaux multi-sites"),
     ).toBeInTheDocument();
   });
 
@@ -68,7 +66,7 @@ describe("HeroV2Section", () => {
 
     expect(
       screen.getByText(
-        /Praedixa détecte les tensions multi-sites, compare les options/,
+        /Praedixa anticipe vos besoins opérationnels et optimise vos décisions/,
       ),
     ).toBeInTheDocument();
   });
@@ -82,7 +80,7 @@ describe("HeroV2Section", () => {
     expect(primaryCta).toHaveAttribute("href", "/fr/decision-log-preuve-roi");
 
     const secondaryCta = screen.getByRole("link", {
-      name: "Cadrer un premier périmètre",
+      name: "Parler à un expert",
     });
     expect(secondaryCta).toHaveAttribute(
       "href",
@@ -93,10 +91,10 @@ describe("HeroV2Section", () => {
   it("renders reassurance proof chips", () => {
     render(<HeroV2Section locale="fr" />);
 
-    expect(screen.getByText("Lecture seule au départ")).toBeInTheDocument();
-    expect(screen.getByText("Données agrégées")).toBeInTheDocument();
+    expect(screen.getByText("Lecture seule au démarrage")).toBeInTheDocument();
+    expect(screen.getByText("Données agrégées uniquement")).toBeInTheDocument();
     expect(screen.getByText("Hébergement France")).toBeInTheDocument();
-    expect(screen.getByText("NDA dès le premier échange")).toBeInTheDocument();
+    expect(screen.getByText("NDA possible")).toBeInTheDocument();
   });
 
   it("renders the HeroV2Client mock with poster and video src", () => {

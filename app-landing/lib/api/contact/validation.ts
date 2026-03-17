@@ -1,5 +1,6 @@
+import { validateSemanticEmailAddress } from "../../security/email-address";
+
 const MAX_MESSAGE_LENGTH = 800;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SUPPORTED_LOCALES = new Set(["fr", "en"]);
 const INTENT_LABELS = {
   deployment: {
@@ -68,7 +69,10 @@ export function validateContactBody(
   }
 
   const email = readString(input, "email", 254, true);
-  if (!email || !EMAIL_REGEX.test(email)) {
+  const validatedEmail = email
+    ? validateSemanticEmailAddress(email)
+    : { valid: false as const };
+  if (!email || !validatedEmail.valid) {
     return { valid: false, error: "Adresse email invalide." };
   }
 
@@ -122,7 +126,7 @@ export function validateContactBody(
       intent: intent.value,
       companyName,
       role,
-      email: email.toLowerCase(),
+      email: validatedEmail.normalized,
       siteCount,
       sector,
       mainTradeOff,

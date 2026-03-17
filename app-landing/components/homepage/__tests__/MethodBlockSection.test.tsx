@@ -27,22 +27,16 @@ describe("MethodBlockSection", () => {
 
     expect(screen.getByText(/Comment ça marche/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      /Voir, comparer, décider, prouver/,
+      /Quatre étapes\. Un résultat mesurable/,
     );
   });
 
   it("renders the 4 verb labels (product sequence)", () => {
     render(<MethodBlockSection locale="fr" />);
 
-    expect(screen.getAllByText(/Fédérer & voir/).length).toBeGreaterThanOrEqual(
-      1,
-    );
-    expect(
-      screen.getAllByText(/Calculer & comparer/).length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText(/Déclencher & décider/).length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Anticiper/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Comparer/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Décider/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/Prouver/).length).toBeGreaterThanOrEqual(1);
   });
 
@@ -59,16 +53,16 @@ describe("MethodBlockSection", () => {
     render(<MethodBlockSection locale="fr" />);
 
     expect(
-      screen.getAllByText(/Tension détectée 8 jours/).length,
+      screen.getAllByText(/Risque détecté 8/).length,
     ).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(/4 options comparées en 12 secondes/).length,
+      screen.getAllByText(/4 options comparées en 12/).length,
     ).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(/Décision retenue et exécutée en 4h/).length,
+      screen.getAllByText(/Décision prise en 4h/).length,
     ).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(/cart recommandé vs réel/).length,
+      screen.getAllByText(/12.*% sur les coûts d.urgence/).length,
     ).toBeGreaterThanOrEqual(1);
   });
 

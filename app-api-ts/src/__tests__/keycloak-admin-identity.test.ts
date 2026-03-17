@@ -1,0 +1,192 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import {
+  KeycloakAdminIdentityError,
+  KeycloakAdminIdentityService,
+  getKeycloakAdminIdentityServiceFromEnv,
+} from "../services/keycloak-admin-identity.js";
+
+function jsonResponse(body: unknown, init?: ResponseInit): Response {
+  return new Response(JSON.stringify(body), {
+    headers: { "content-type": "application/json" },
+    ...init,
+  });
+}
+
+describe("keycloak admin identity service", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("returns null when runtime provisioning credentials are missing", () => {
+    expect(
+      getKeycloakAdminIdentityServiceFromEnv({
+        AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
+      }),
+    ).toBeNull();
+  });
+
+  it("provisions a Keycloak user, syncs canonical attributes, and sends the setup email", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ access_token: "token" }))
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 201,
+          headers: {
+            location:
+              "https://auth.praedixa.com/admin/realms/praedixa/users/user-1",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          id: "user-1",
+          email: "manager@praedixa.com",
+          enabled: true,
+          requiredActions: ["UPDATE_PASSWORD"],
+          attributes: {
+            locale: ["fr"],
+            permissions: ["admin:console:access"],
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ id: "role-org-admin", name: "org_admin" }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ id: "role-hr-manager", name: "hr_manager" }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ id: "role-manager", name: "manager" }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ id: "role-employee", name: "employee" }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ id: "role-viewer", name: "viewer" }),
+      )
+      .mockResolvedValueOnce(jsonResponse([]))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const service = new KeycloakAdminIdentityService({
+      adminRealm: "master",
+      appRealm: "praedixa",
+      baseUrl: "https://auth.praedixa.com",
+      adminUsername: "kcadmin",
+      adminPassword: "secret",
+    });
+
+    const result = await service.provisionUser({
+      email: "manager@praedixa.com",
+      organizationId: "44444444-4444-4444-4444-444444444444",
+      role: "manager",
+      siteId: "77777777-7777-7777-7777-777777777777",
+    });
+
+    expect(result).toEqual({ authUserId: "user-1" });
+
+    const updateCall = fetchMock.mock.calls[9];
+    const updateInit = updateCall?.[1] as RequestInit | undefined;
+    expect(String(updateCall?.[0])).toContain(
+      "/admin/realms/praedixa/users/user-1",
+    );
+    expect(JSON.parse(String(updateInit?.body))).toMatchObject({
+      enabled: true,
+      requiredActions: ["UPDATE_PASSWORD"],
+      attributes: {
+        locale: ["fr"],
+        role: ["manager"],
+        organization_id: ["44444444-4444-4444-4444-444444444444"],
+        site_id: ["77777777-7777-7777-7777-777777777777"],
+      },
+    });
+
+    const roleMappingCall = fetchMock.mock.calls[10];
+    const roleMappingInit = roleMappingCall?.[1] as RequestInit | undefined;
+    expect(JSON.parse(String(roleMappingInit?.body))).toEqual([
+      { id: "role-manager", name: "manager" },
+    ]);
+
+    const inviteCall = fetchMock.mock.calls[11];
+    expect(String(inviteCall?.[0])).toContain("execute-actions-email");
+    const inviteInit = inviteCall?.[1] as RequestInit | undefined;
+    expect(JSON.parse(String(inviteInit?.body))).toEqual(["UPDATE_PASSWORD"]);
+  });
+
+  it("deletes the created Keycloak user when the setup email fails", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ access_token: "token" }))
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 201,
+          headers: {
+            location:
+              "https://auth.praedixa.com/admin/realms/praedixa/users/user-2",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          id: "user-2",
+          email: "viewer@praedixa.com",
+          enabled: true,
+          requiredActions: ["UPDATE_PASSWORD"],
+          attributes: {},
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ id: "role-org-admin", name: "org_admin" }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ id: "role-hr-manager", name: "hr_manager" }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ id: "role-manager", name: "manager" }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ id: "role-employee", name: "employee" }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ id: "role-viewer", name: "viewer" }),
+      )
+      .mockResolvedValueOnce(jsonResponse([]))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(
+        jsonResponse({ errorMessage: "smtp unavailable" }, { status: 500 }),
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const service = new KeycloakAdminIdentityService({
+      adminRealm: "master",
+      appRealm: "praedixa",
+      baseUrl: "https://auth.praedixa.com",
+      adminUsername: "kcadmin",
+      adminPassword: "secret",
+    });
+
+    await expect(
+      service.provisionUser({
+        email: "viewer@praedixa.com",
+        organizationId: "44444444-4444-4444-4444-444444444444",
+        role: "viewer",
+        siteId: null,
+      }),
+    ).rejects.toBeInstanceOf(KeycloakAdminIdentityError);
+
+    const cleanupCall = fetchMock.mock.calls.at(-1);
+    expect(String(cleanupCall?.[0])).toContain(
+      "/admin/realms/praedixa/users/user-2",
+    );
+    const cleanupInit = cleanupCall?.[1] as RequestInit | undefined;
+    expect(cleanupInit?.method).toBe("DELETE");
+  });
+});

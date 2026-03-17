@@ -17,8 +17,8 @@ export function SectorCardsSection({ locale }: SectorCardsSectionProps) {
   const kicker = locale === "fr" ? "Secteurs" : "Industries";
   const heading =
     locale === "fr"
-      ? "Les mêmes arbitrages, déclinés par secteur."
-      : "The same trade-offs, adapted per industry.";
+      ? "Une solution adaptée à votre secteur."
+      : "A solution tailored to your industry.";
 
   return (
     <SectionShellV2 id="secteurs">

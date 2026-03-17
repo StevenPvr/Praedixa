@@ -107,6 +107,7 @@ Contrat OpenAPI backend TS: `contracts/openapi/public.yaml`.
 ### Migrer la base de donnees
 
 ```bash
+docker compose -f infra/docker-compose.yml up -d postgres
 cd app-api
 uv run --active alembic upgrade head
 ```
@@ -145,49 +146,44 @@ scripts/kcadm config credentials \
 scripts/kcadm get users -r praedixa --fields id,username,email,enabled,emailVerified --format csv
 
 # 3) Voir un compte par email
-scripts/kcadm get users -r praedixa -q email=ops.client@praedixa.com
+scripts/kcadm get users -r praedixa -q email='<utilisateur@client.com>'
 
 # 4) Voir les roles realm d'un utilisateur
 scripts/kcadm get users/<USER_ID>/role-mappings/realm -r praedixa
 
-# 5) Creer un compte client (org_admin)
-scripts/kcadm create users -r praedixa \
-  -s username=ops.client@praedixa.com \
-  -s email=ops.client@praedixa.com \
-  -s firstName=Ops \
-  -s lastName=Client \
-  -s enabled=true \
-  -s emailVerified=true
-scripts/kcadm set-password -r praedixa --username ops.client@praedixa.com --new-password "praedixa2026!"
-scripts/kcadm add-roles -r praedixa --uusername ops.client@praedixa.com --rolename org_admin
+# 5) Recaler les claims canoniques d'un compte client cree depuis app-admin
+TARGET_USER_EMAIL='<utilisateur@client.com>' \
+TARGET_ROLE='org_admin' \
+TARGET_ORGANIZATION_ID='<uuid-organisation>' \
+pnpm auth:keycloak:ensure-api-contract
 
-# 6) Reset mot de passe
-scripts/kcadm set-password -r praedixa --username ops.client@praedixa.com --new-password "praedixa2026!"
+# 6) Recaler un compte scope site
+TARGET_USER_EMAIL='<manager@client.com>' \
+TARGET_ROLE='manager' \
+TARGET_ORGANIZATION_ID='<uuid-organisation>' \
+TARGET_SITE_ID='<uuid-site>' \
+pnpm auth:keycloak:ensure-api-contract
 
-# 7) Creer un compte back-office (super_admin)
-scripts/kcadm create users -r praedixa \
-  -s username=ops.admin@praedixa.com \
-  -s email=ops.admin@praedixa.com \
-  -s firstName=Ops \
-  -s lastName=Admin \
-  -s enabled=true \
-  -s emailVerified=true
-scripts/kcadm set-password -r praedixa --username ops.admin@praedixa.com --new-password "praedixa2026!"
-scripts/kcadm add-roles -r praedixa --uusername ops.admin@praedixa.com --rolename super_admin
+# 7) Provisionner le super admin back-office
+SUPER_ADMIN_EMAIL='admin@praedixa.com' \
+SUPER_ADMIN_PASSWORD='<mot-de-passe-super-admin>' \
+./scripts/keycloak-ensure-super-admin.sh
 
-# 8) Garantir l'audience API dans les access tokens frontend (idempotent)
-scripts/keycloak-ensure-api-audience-mapper.sh
+# 8) Recaler le contrat OIDC canonique des clients frontend/admin (idempotent)
+pnpm auth:keycloak:ensure-api-contract
 
 # 9) Verifier le mapper d'audience pour le client webapp
 WEBAPP_CLIENT_ID="$(scripts/kcadm get clients -r praedixa -q clientId=praedixa-webapp | jq -r '.[0].id')"
 scripts/kcadm get "clients/${WEBAPP_CLIENT_ID}/protocol-mappers/models" -r praedixa \
-  | jq '.[] | select(.name=="audience-praedixa-api") | {name, protocolMapper, config}'
+  | jq '.[] | select(.name=="claim-role" or .name=="audience-praedixa-api") | {name, protocolMapper, config}'
 ```
 
 Notes:
 
-- Compte client fake (demo): `ops.client@praedixa.com` / `praedixa2026!`
-- Compte admin fake (demo): `ops.admin@praedixa.com` / `praedixa2026!`
+- Les comptes client ne doivent plus etre seeds ou documentes comme des comptes fake: la creation normale passe par `app-admin` -> `Clients` -> `Equipe`, ce qui provisionne l'identite Keycloak et le lien DB ensemble.
+- Les comptes `manager` et `hr_manager` doivent etre crees avec un `site_id` explicite; le backoffice refuse maintenant toute invitation site-scopee sans site.
+- Les scripts Keycloak relisent automatiquement `KEYCLOAK_ADMIN_PASSWORD` ou `KC_BOOTSTRAP_ADMIN_PASSWORD` depuis `app-landing/.env.local`, `app-webapp/.env.local`, `app-admin/.env.local`, puis `.env.local` racine si la variable n'est pas deja exportee.
+- L'assignation d'un realm role seule ne suffit plus pour les apps Next strictes: synchroniser aussi les attributs utilisateur canoniques (`role`, `organization_id`, `site_id`, et `permissions` admin) via `pnpm auth:keycloak:ensure-api-contract` ou `./scripts/keycloak-ensure-super-admin.sh`.
 - `super_admin` doit se connecter sur `app-admin` (pas sur `app-webapp`).
 - `org_admin`/`manager` se connectent sur `app-webapp`.
 - `manager`/`hr_manager` doivent avoir un `site_id` dans le token OIDC (sinon acces API refuse en `403`).

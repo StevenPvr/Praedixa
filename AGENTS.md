@@ -80,6 +80,12 @@ Use TypeScript/ESM for frontend and Node services, Python 3.12 for `app-api`. Pr
 - Zero context switching required from the user
 - Go fix failing CI tests without being told how
 
+#### 7. Production-First Delivery
+
+- Default to production truth, not local comfort: unless the user explicitly asks about local/dev, answer whether something works from the production deployment state
+- A feature is not "done" when it only works in the worktree or on localhost; verify the deployed/runtime path or state clearly that prod is not there yet
+- Design and implement with long-term production operation, security, and scale in mind; avoid solutions that only survive a local happy path
+
 ### Task Management
 
 1. **Plan First**: Write plan to `tasks/todo.md` with checkable items
@@ -133,9 +139,12 @@ Never store a live password or API secret in repo docs; document the secret mana
 Before exposing mock or fixture API data, fail closed outside explicit `DEMO_MODE` instead of silently serving demo responses.
 Before applying auth page middleware in a Next admin app, exempt `/api/*` routes so JSON handlers keep control of auth failures and response shape.
 Before relying on Keycloak user-attribute token mappers, declare those attributes in the realm user profile contract so Keycloak persists them.
+Before trusting a Keycloak convergence or provisioning script, make it reconcile the full canonical token contract (`role`, `organization_id`, `site_id`, and admin `permissions`) instead of only one mapper or realm role, or strict Next auth callbacks will drift from the live realm.
 Before treating Keycloak required actions or app-side `amr` checks as sufficient admin MFA proof, version and verify the bound browser flow policy too.
 When seeding a demo tenant, align the Keycloak demo user email and JWT subject with the seeded `users.auth_user_id` record before debugging tenant data access.
 When a seeded demo tenant uses a fixed UUID, keep every duplicated UUID validator compatible with that seeded format.
+Before creating or mutating a client account from admin lifecycle code, provision or resync the real IdP identity first and require `site_id` for `manager` / `hr_manager`; never persist a placeholder `pending-*` `auth_user_id` on a production path.
+Before declaring a fake/demo account cleanup finished, inventory and purge the already-provisioned live IdP users created by that path, or explicitly record the remaining bootstrap accounts and their risk.
 Before letting a requested `site_id` narrow persistent SQL reads, verify it belongs to the caller's `accessibleSiteIds` or fail closed.
 Before trusting `X-Forwarded-For` for rate limiting or audit logs in Node services, gate it behind an explicit trusted-proxy setting.
 Before shipping auth rate limiting outside development, require an explicit distributed store and `AUTH_RATE_LIMIT_KEY_SALT`; never derive the salt from `AUTH_SESSION_SECRET` or silently fall back to local memory.
@@ -152,6 +161,8 @@ Before documenting bootstrap or admin credentials, use placeholders plus the sec
 Before serializing runtime config or secrets from shell into JSON, never pass secret values through CLI flags such as `jq --arg`; write them from process environment or `stdin` so they never appear in `argv`.
 Before aggregating Vitest projects in the monorepo root, do not mix broad top-level `include` globs with project-specific `include` patterns, or tests can leak across aliases and hang the runner.
 After replacing a homepage interaction pattern, update or remove the matching E2E spec in the same change so hooks do not keep asserting deleted ARIA roles or landmarks.
+Before asking for a manual re-export of a local ops secret, check the repo's standard `.env.local` files and teach the helper script to auto-load them when that keeps the secret local-only and out of git.
+Before trusting a shell `jq` role-priority selector in Keycloak tooling, replay it against a user whose expected role is not the first priority entry, or the helper can silently promote every account to the top role.
 Before forcing a client-side reauth redirect after a 401, navigate to the explicit `/login?reauth=1...` URL before awaiting logout side effects, or middleware races can silently drop the reauth query.
 Before wiring E2E OIDC defaults into Next auth apps, keep `AUTH_SESSION_SECRET` compliant with the same 32+ character validation as production, or server routes will reject the test session before cookie checks run.
 Before running repo-wide security scans from the monorepo root, exclude nested Git repositories in the workspace so unrelated external projects cannot block the main repo gate.
@@ -192,6 +203,7 @@ Before reusing a text accent token inside the landing hero, verify it stays read
 Before shipping French landing copy, do one explicit pass for missing accents and natural French typography on every user-visible string you changed.
 Before publishing a landing knowledge or ROI page, strip any internal editorial note or workflow comment from the structured content source so no drafting note can leak to production.
 Before tightening the landing CSP `style-src`, verify the live page does not rely on Framer Motion inline transforms; otherwise production will log CSP violations and silently lose motion behavior.
+Before changing a landing public form that collects email, keep the semantic email validation in one shared helper reused by contact, deployment, scoping, and ingest routes; parallel regexes will drift and reopen abuse gaps.
 Before shipping French public landing copy, remove leftover English positioning labels when a natural French equivalent exists; do not leave hybrids like `Decision layer`, `wedge`, or `Cycle decision` in user-facing text.
 Before finalizing landing mission copy, verify the hero support quote and the `/a-propos` mission section match the approved raison d'être, and do not reuse `Pourquoi maintenant` in both places.
 Before finalizing a landing hero or above-the-fold support block, scan the first viewport for literal duplicate sentences; do not paste the same subtitle or reassurance copy into stacked cards.

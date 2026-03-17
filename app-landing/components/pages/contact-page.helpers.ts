@@ -1,4 +1,4 @@
-import { EMAIL_REGEX } from "./contact-page.constants";
+import { isSemanticallyValidEmailAddress } from "../../lib/security/email-address";
 import type {
   ContactChallenge,
   ContactFieldErrorKey,
@@ -62,7 +62,7 @@ export function validateContactForm(
   const email = form.email.trim();
   if (!email) {
     errors.email = copy.requiredEmail;
-  } else if (!EMAIL_REGEX.test(email)) {
+  } else if (!isSemanticallyValidEmailAddress(email)) {
     errors.email = copy.invalidEmail;
   }
 
@@ -120,7 +120,7 @@ export function canSubmitContactForm(
     !form.challengeToken ||
     !form.companyName.trim() ||
     !form.role.trim() ||
-    !form.email.trim() ||
+    !isSemanticallyValidEmailAddress(form.email) ||
     !form.siteCount.trim() ||
     !form.sector.trim() ||
     !form.mainTradeOff.trim() ||

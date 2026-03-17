@@ -3,239 +3,234 @@ import type { Dictionary } from "../types";
 export const enCoreOperations: Partial<Dictionary> = {
   howItWorks: {
     kicker: "How it works",
-    heading: "A simple, decision-first loop. Not another dashboard.",
+    heading: "A simple cycle, focused on results.",
     subheading:
-      "Praedixa reads the useful signals, compares trade-offs, frames the decision, and reviews the impact over time through one concrete operating conflict.",
+      "Praedixa detects, compares, helps decide, and measures the impact. Automatically.",
     steps: [
       {
         number: "01",
-        title: "Early read",
-        subtitle: "Useful signals · read-only",
+        title: "Early detection",
+        subtitle: "Useful signals",
         description:
-          "Praedixa starts from the data already present in your tools to surface earlier the sites, teams, or flows that will come under pressure.",
+          "Praedixa analyzes your existing data and surfaces risks before they become expensive.",
       },
       {
         number: "02",
-        title: "Economic trade-off",
-        subtitle: "Cost · inaction · risk",
+        title: "Option comparison",
+        subtitle: "Cost \u00b7 impact \u00b7 risk",
         description:
-          "Options are compared with explicit assumptions: cost of action, cost of inaction, operational impact, and level of risk. Forecasting, statistical learning, and constrained optimization help teams compare the most relevant scenarios.",
+          "Scenarios are quantified and compared so you can choose the best option.",
       },
       {
         number: "03",
-        title: "Framed decision",
-        subtitle: "Ops · Finance shared frame",
+        title: "Informed decision",
+        subtitle: "Shared framework",
         description:
-          "The team decides from one shared frame instead of scattered reactions: when to reinforce, reallocate, postpone, or adjust the service level.",
+          "The team decides on a shared basis instead of under pressure.",
       },
       {
         number: "04",
-        title: "Impact proof",
-        subtitle: "Baseline · recommended · actual",
+        title: "ROI proof",
+        subtitle: "Before \u00b7 after",
         description:
-          "Decisions and outcomes are reviewed to build an ROI loop that operations and finance can both use. The impact review also uses econometric models to separate context from the decision itself and from the outcome actually observed.",
+          "Decisions and their effects are measured to prove the real ROI.",
       },
     ],
   },
 
   useCases: {
-    kicker: "Decisions covered",
-    heading: "One engine, many decisions.",
+    kicker: "Use cases",
+    heading: "Concrete cases, not promises.",
     subheading:
-      "One protocol across multi-site verticals: restaurants, retail, hospitality, dealerships/workshops, logistics, healthcare, industry, call centers.",
+      "Praedixa applies to the decisions that cost the most when they are taken too late.",
     labels: {
-      context: "Context",
-      action: "Decision lever",
-      impact: "Expected proof",
+      context: "What is blocking",
+      action: "What Praedixa brings",
+      impact: "What it changes",
     },
     cases: [
       {
         id: "volatility",
-        title: "Multi-site demand peaks",
-        context: "Rush periods and volume swings destabilize field capacity.",
+        title: "Demand peaks",
+        context:
+          "A demand spike identified too late leads to extra costs and degraded service.",
         action:
-          "Forecasts, standardized options, documented cost/service/risk trade-offs.",
-        result: "Less last-minute urgency and more stable service levels.",
+          "Praedixa anticipates peaks and compares options site by site before the last minute.",
+        result: "Less urgency, more room to act, and defensible decisions.",
       },
       {
         id: "absenteeism",
-        title: "Rare skills and absences",
+        title: "Under-coverage",
         context:
-          "Operational fragility from critical absences and workshop/clinical/maintenance dependencies.",
+          "Weak spots drift until emergency staffing becomes the only option.",
         action:
-          "Criticality-based prioritization, alternative action options, recorded choices.",
-        result: "More robust continuity and reduced emergency mode.",
-        callout: "No individual data — only team/site-level steering.",
+          "Praedixa detects drifts and compares scenarios on a shared basis: cost, impact, risk.",
+        result: "Decisions are based on data, not just intuition.",
       },
       {
         id: "crosssite",
-        title: "Cross-site capacity arbitrage",
-        context: "Limited resources must be allocated across competing sites.",
+        title: "Resource allocation",
+        context:
+          "Shifting pressure from one site to another gives the illusion of a solution without reducing overall cost.",
         action:
-          "Compare options across sites with local constraints and network-level goals.",
-        result:
-          "Comparable decisions, standardized governance, defensible executive trade-offs.",
-        callout:
-          "Praedixa structures the decision. The company keeps final decision authority.",
+          "Praedixa compares allocation and reinforcement options before moving the constraint.",
+        result: "Allocation decisions become comparable and justifiable.",
       },
       {
         id: "roi",
-        title: "Monthly Ops/Finance review",
-        context: "Hard to connect field decisions to real economic impact.",
+        title: "ROI measurement",
+        context:
+          "After the decision, no one knows what it actually cost or protected.",
         action:
-          "Decision journal + before / recommended / actual comparison protocol.",
-        result: "A monthly pack usable for priorities, budgets, and renewal.",
+          "Praedixa documents each decision and measures its real effects.",
+        result: "ROI is proven, not estimated.",
       },
     ],
   },
 
   deliverables: {
     kicker: "Concrete example",
-    heading: "Before asking for anything, see what useful proof looks like.",
+    heading: "See what an end-to-end optimized decision looks like.",
     subheading:
-      "A simple example of an operating conflict, compared options, retained decision, and reviewed impact. Public proof should show Praedixa at work, not just describe the protocol.",
+      "A simple example: a detected problem, compared options, a decision taken, and an impact measured.",
     roiFrames: [
       {
         label: "Starting point",
-        value: "Demand spike across 3 logistics sites",
-        note: "OTIF risk rising, overtime already used, emergency temp staffing considered on two sites.",
-        sourceLabel: "See the public impact proof",
+        value: "Demand spike across 3 sites",
+        note: "Delays rising, overtime already consumed, emergency reinforcement considered.",
+        sourceLabel: "See the impact proof",
         sourceUrl: "/en/decision-log-roi-proof",
       },
       {
         label: "Options compared",
-        value: "Overtime vs temp staffing vs reallocation",
-        note: "Each option is compared on cost, service risk, available capacity, and expected impact on backlog.",
-        sourceLabel: "See the public impact proof",
+        value: "Overtime vs reinforcement vs reallocation",
+        note: "Each option is compared on cost, service impact, and available capacity.",
+        sourceLabel: "See the impact proof",
         sourceUrl: "/en/decision-log-roi-proof",
       },
       {
-        label: "Impact reviewed",
-        value: "Decision retained and reviewed",
-        note: "The final choice, its limits, and the observed impact are reviewed together to prepare the next trade-off.",
-        sourceLabel: "See the public impact proof",
+        label: "Impact measured",
+        value: "Decision retained and result verified",
+        note: "The decision, its limits, and its real impact are measured to improve future ones.",
+        sourceLabel: "See the impact proof",
         sourceUrl: "/en/decision-log-roi-proof",
       },
     ],
     checklist: [
-      "The starting point is described in operating language, not only through KPIs",
-      "The compared options are visible with their assumptions",
+      "The starting point is described simply",
+      "Options are compared with their assumptions",
       "The retained decision is explained clearly",
-      "The limit of the example is explicit",
-      "The impact review separates context from decision",
-      "The role of ERP / BI / planning / Excel is made explicit",
+      "The limits of the example are made explicit",
+      "Impact is measured after the fact",
+      "The link with your existing tools is clarified",
     ],
   },
 
   security: {
-    kicker: "Integration & data",
-    heading: "Read-only setup, fast launch, clear governance.",
+    kicker: "Security & IT",
+    heading: "Secure, sovereign, non-intrusive.",
     subheading:
-      "Praedixa sits on top of your existing systems: read-only connection first, then standardized decisions and impact measurement across sites.",
+      "Praedixa starts read-only on your existing data, without a heavy IT project.",
     tiles: [
       {
-        title: "Read-only via exports",
+        title: "Connects to your existing tools",
         description:
-          "Kickoff with existing CSV/Excel/APIs. Praedixa does not replace your existing tools.",
+          "Praedixa plugs into your current tools without replacing them.",
       },
       {
-        title: "Only the indicators you need",
+        title: "Aggregated data",
         description:
-          "Capacity, demand, inventory/supply… based on your priorities.",
+          "Startup works at the site, team, or activity level, not at the individual level.",
       },
       {
-        title: "Aggregated data (team/site)",
+        title: "CSV / Excel exports or API",
         description:
-          "No individual prediction. Team/site-level steering to reduce exposure and simplify governance.",
+          "Praedixa starts on what you already have, with no process overhaul.",
       },
       {
-        title: "Encryption & access control",
-        description:
-          "Encryption in transit and at rest. Role-based access control (RBAC). Activity logs.",
+        title: "Clear security framework",
+        description: "Encryption, access control, and logging built in.",
       },
       {
-        title: "Comparable multi-site governance",
-        description:
-          "Common reference to compare decisions and impact across sites, workshops, or networks.",
+        title: "Hosted in France",
+        description: "Platform and data hosted in France on Scaleway.",
       },
       {
-        title: "Hosted in France (Scaleway)",
-        description:
-          "Platform and data hosted in France (Paris), with a transparent security posture for qualification.",
+        title: "Progressive scale-up",
+        description: "Integration expands only when the value is proven.",
       },
     ],
     compatibility: {
-      title: "Compatible with your stack",
+      title: "Compatible with your current stack",
       description:
-        "Praedixa complements your tools and adds a decision + proof protocol for Ops and Finance.",
-      tools: ["Scheduling", "ERP", "CRM", "BI", "Excel"],
+        "Praedixa plugs into your existing tools to add intelligence, not to force a replacement.",
+      tools: ["ERP", "Planning", "CRM", "BI", "Excel"],
     },
     honesty:
-      "Kickoff can stay read-only on useful exports and APIs. The core value is a clearer trade-off frame, not a forecasting-only mode.",
+      "Integration should reassure the IT review, not monopolize the conversation before value is proven.",
   },
 
   pilot: {
     kicker: "Deployment",
-    heading: "Praedixa deployment: software plus a scoped rollout.",
+    heading: "Operational in 30 days.",
     subheading:
-      "Praedixa deployment installs the software on top of your existing data, frames the first perimeter, and sets up impact review without a heavy IT project at the start.",
-    statusLabels: ["Entry point", "Scoped rollout", "Cadence"],
+      "A simple start: an operations sponsor, your existing data, measurable results.",
+    statusLabels: ["Entry point", "Setup", "Cadence"],
     included: {
       title: "What deployment installs",
       items: [
-        "A first useful read on your existing data",
-        "Priority trade-offs made visible",
-        "Explicit cost / service / risk assumptions",
-        "One shared frame for Ops, Finance, and Network",
-        "A reusable impact review loop",
+        "A first useful analysis on your existing data",
+        "Priority decisions identified",
+        "Compared options with their cost and impact",
+        "A shared framework for your teams",
+        "A reusable ROI measurement",
       ],
     },
     excluded: {
       title: "What deployment is not",
       items: [
-        "A tool replacement project (ERP/scheduling)",
-        "Public predefined quantified outcome guarantee",
-        "A heavy IT project before value is visible",
+        "A stack overhaul",
+        "An IT project before proof of value",
         "One more dashboard",
-        "An isolated diagnostic with no operating next step",
+        "A promise with no measurable result",
+        "An isolated diagnostic with no operational follow-up",
       ],
     },
     kpis: {
       title: "What deployment frames",
       items: [
-        "Priority tensions",
-        "Economic assumptions",
-        "Compared options",
+        "Priority risks",
+        "Quantified options",
         "Decisions taken",
-        "Impact reviewed",
+        "Results measured",
+        "ROI proven",
       ],
     },
     governance: {
-      title: "Governance",
+      title: "Working rhythm",
       items: [
-        "Named operations lead",
-        "Short weekly review",
-        "Monthly Ops + Finance review",
-        "Decisions reviewed on one shared base",
+        "An identified operations sponsor",
+        "A short weekly checkpoint",
+        "A structured results review",
+        "Decisions measured over time",
       ],
     },
     selection: {
       title: "Prerequisites",
       items: [
-        "Multi-site organization with demand variability and daily trade-offs",
+        "Multi-site organization",
         "Usable exports or APIs",
         "Available operations sponsor",
       ],
     },
     upcoming: {
-      title: "After the first perimeter",
+      title: "After the first scope",
       description:
-        "If the proof is there, Praedixa extends progressively to the trade-offs where the most margin can be protected.",
+        "If results are there, Praedixa progressively extends to the decisions with the most impact.",
     },
-    urgency:
-      "Applications reviewed within 48 business hours. Focused-scope kickoff possible.",
-    ctaPrimary: "Discuss deployment",
+    urgency: "Reply within 48h. Startup possible without an IT project.",
+    ctaPrimary: "Contact us",
     ctaMeta:
-      "Software + scoped rollout · read-only start · focused first perimeter",
+      "Software + framed setup \u00b7 read-only at the start \u00b7 results in 30 days",
   },
 };

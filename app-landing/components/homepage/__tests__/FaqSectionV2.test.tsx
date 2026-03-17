@@ -41,10 +41,10 @@ describe("FaqSectionV2", () => {
 
     const questions = [
       /Faut-il remplacer nos outils actuels/,
-      /Quel est le délai avant le premier arbitrage objectivé/,
+      /En combien de temps voit-on les premiers résultats/,
       /Quelles données sont nécessaires au démarrage/,
-      /Qui est le sponsor idéal côté client/,
-      /Comment Praedixa se distingue d.un outil de BI ou de prévision/,
+      /Qui doit porter le projet côté client/,
+      /Quelle est la différence avec un outil de BI/,
       /Que se passe-t-il après les 30 premiers jours/,
     ];
 

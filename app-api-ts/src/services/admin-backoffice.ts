@@ -1,13 +1,15 @@
 import { randomUUID } from "node:crypto";
 
 import { Pool, type PoolClient } from "pg";
+import {
+  KeycloakAdminIdentityError,
+  KeycloakAdminIdentityService,
+  getKeycloakAdminIdentityServiceFromEnv,
+  type ManagedAdminUserRole,
+} from "./keycloak-admin-identity.js";
 
-type AssignableRole =
-  | "org_admin"
-  | "hr_manager"
-  | "manager"
-  | "employee"
-  | "viewer";
+type AssignableRole = ManagedAdminUserRole;
+type DbQueryable = Pick<Pool, "query"> | Pick<PoolClient, "query">;
 
 type BillingPlan = "free" | "starter" | "professional" | "enterprise";
 
@@ -18,6 +20,7 @@ export interface AdminUserRecord {
   email: string;
   role: AssignableRole;
   status: "pending_invite" | "active" | "deactivated";
+  siteId: string | null;
   siteName: string | null;
   lastLoginAt: string | null;
   invitedAt: string;
@@ -155,9 +158,11 @@ class AdminBackofficeError extends Error {
 type DbUserRow = {
   id: string;
   organization_id: string;
+  auth_user_id: string;
   email: string;
   role: string;
   status: string;
+  site_id: string | null;
   site_name: string | null;
   last_login_at: string | Date | null;
   created_at: string | Date;
@@ -241,6 +246,11 @@ function ensureAssignableRole(role: string): asserts role is AssignableRole {
   }
 }
 
+function assertManagedAssignableRole(role: string): AssignableRole {
+  ensureAssignableRole(role);
+  return role;
+}
+
 function ensureBillingPlan(plan: string): asserts plan is BillingPlan {
   if (!BILLING_PLAN_SET.has(plan as BillingPlan)) {
     throw new AdminBackofficeError(
@@ -270,6 +280,14 @@ function buildDefaultFullName(email: string): string {
     .join(" ");
 }
 
+function requiresSiteScope(role: AssignableRole): boolean {
+  return role === "hr_manager" || role === "manager";
+}
+
+function isIdentityEnabledForStatus(status: string): boolean {
+  return status === "active" || status === "pending";
+}
+
 function mapUserStatus(status: string): AdminUserRecord["status"] {
   if (status === "active") return "active";
   if (status === "pending") return "pending_invite";
@@ -284,6 +302,7 @@ function mapUserRow(row: DbUserRow): AdminUserRecord {
     email: row.email,
     role: row.role as AssignableRole,
     status: mapUserStatus(row.status),
+    siteId: row.site_id,
     siteName: row.site_name,
     lastLoginAt: row.last_login_at == null ? null : toIso(row.last_login_at),
     invitedAt: toIso(row.created_at),
@@ -364,15 +383,24 @@ function nextBillingDate(): string {
 
 export class AdminBackofficeService {
   private readonly pool: Pool | null;
+  private readonly identityService: KeycloakAdminIdentityService | null;
 
-  constructor(databaseUrl: string | null) {
+  constructor(
+    databaseUrl: string | null,
+    identityService: KeycloakAdminIdentityService | null = null,
+  ) {
     this.pool = databaseUrl
       ? new Pool({ connectionString: databaseUrl })
       : null;
+    this.identityService = identityService;
   }
 
   hasDatabase(): boolean {
     return this.pool != null;
+  }
+
+  hasIdentityProvisioning(): boolean {
+    return this.identityService != null;
   }
 
   private getPool(): Pool {
@@ -384,6 +412,149 @@ export class AdminBackofficeService {
       );
     }
     return this.pool;
+  }
+
+  private requireIdentityProvisioning(): KeycloakAdminIdentityService {
+    if (!this.identityService) {
+      throw new AdminBackofficeError(
+        "Identity provisioning is unavailable until Keycloak admin runtime credentials are configured",
+        503,
+        "IDENTITY_PROVISIONING_UNAVAILABLE",
+      );
+    }
+    return this.identityService;
+  }
+
+  private async ensureOrganizationExists(
+    queryable: DbQueryable,
+    organizationId: string,
+  ): Promise<void> {
+    const result = await queryable.query<{ id: string }>(
+      "SELECT id::text FROM organizations WHERE id = $1::uuid LIMIT 1",
+      [organizationId],
+    );
+    if (!result.rows[0]) {
+      throw new AdminBackofficeError(
+        "Organization not found",
+        404,
+        "NOT_FOUND",
+        { organizationId },
+      );
+    }
+  }
+
+  private async ensureEmailAvailable(
+    queryable: DbQueryable,
+    email: string,
+    excludeUserId?: string,
+  ): Promise<void> {
+    const result = await queryable.query<{ id: string }>(
+      excludeUserId
+        ? "SELECT id::text FROM users WHERE email = $1 AND id <> $2::uuid LIMIT 1"
+        : "SELECT id::text FROM users WHERE email = $1 LIMIT 1",
+      excludeUserId ? [email, excludeUserId] : [email],
+    );
+
+    if (result.rows[0]) {
+      throw new AdminBackofficeError(
+        "A user with this email already exists",
+        409,
+        "CONFLICT",
+        { email },
+      );
+    }
+  }
+
+  private async resolveValidatedSiteId(
+    queryable: DbQueryable,
+    organizationId: string,
+    role: AssignableRole,
+    siteId: string | null | undefined,
+  ): Promise<string | null> {
+    const normalizedSiteId = siteId?.trim() || null;
+
+    if (requiresSiteScope(role) && !normalizedSiteId) {
+      throw new AdminBackofficeError(
+        "site_id is required for manager and hr_manager accounts",
+        422,
+        "VALIDATION_ERROR",
+        { role, siteId: normalizedSiteId },
+      );
+    }
+
+    if (!requiresSiteScope(role) && normalizedSiteId) {
+      throw new AdminBackofficeError(
+        "site_id is only allowed for manager and hr_manager accounts",
+        422,
+        "VALIDATION_ERROR",
+        { role, siteId: normalizedSiteId },
+      );
+    }
+
+    if (!normalizedSiteId) {
+      return null;
+    }
+
+    const result = await queryable.query<{ id: string }>(
+      `
+      SELECT id::text
+      FROM sites
+      WHERE organization_id = $1::uuid
+        AND id = $2::uuid
+      LIMIT 1
+      `,
+      [organizationId, normalizedSiteId],
+    );
+
+    if (!result.rows[0]) {
+      throw new AdminBackofficeError(
+        "site_id does not belong to the target organization",
+        404,
+        "NOT_FOUND",
+        { organizationId, siteId: normalizedSiteId },
+      );
+    }
+
+    return normalizedSiteId;
+  }
+
+  private async getOrganizationUserRow(
+    queryable: DbQueryable,
+    organizationId: string,
+    userId: string,
+  ): Promise<DbUserRow> {
+    const current = await queryable.query<DbUserRow>(
+      `
+      SELECT
+        u.id::text,
+        u.organization_id::text,
+        u.auth_user_id,
+        u.email,
+        u.role::text,
+        u.status::text,
+        u.site_id::text,
+        s.name AS site_name,
+        u.last_login_at,
+        u.created_at,
+        u.updated_at
+      FROM users u
+      LEFT JOIN sites s ON s.id = u.site_id
+      WHERE u.organization_id = $1::uuid
+        AND u.id = $2::uuid
+      LIMIT 1
+      `,
+      [organizationId, userId],
+    );
+    const row = current.rows[0];
+    if (!row) {
+      throw new AdminBackofficeError(
+        "User not found for this organization",
+        404,
+        "NOT_FOUND",
+        { organizationId, userId },
+      );
+    }
+    return row;
   }
 
   private async withTransaction<T>(
@@ -527,9 +698,11 @@ export class AdminBackofficeService {
       SELECT
         u.id::text,
         u.organization_id::text,
+        u.auth_user_id,
         u.email,
         u.role::text,
         u.status::text,
+        u.site_id::text,
         s.name AS site_name,
         u.last_login_at,
         u.created_at,
@@ -555,9 +728,11 @@ export class AdminBackofficeService {
       SELECT
         u.id::text,
         u.organization_id::text,
+        u.auth_user_id,
         u.email,
         u.role::text,
         u.status::text,
+        u.site_id::text,
         s.name AS site_name,
         u.last_login_at,
         u.created_at,
@@ -577,6 +752,7 @@ export class AdminBackofficeService {
     organizationId: string;
     email: string;
     role: string;
+    siteId?: string | null;
     actorUserId: string;
     actorEmail: string | null;
     requestId: string;
@@ -599,20 +775,30 @@ export class AdminBackofficeService {
       );
     }
 
+    const identityService = this.requireIdentityProvisioning();
+    const pool = this.getPool();
+    let siteId: string | null = null;
+    let provisionedAuthUserId: string | null = null;
     try {
+      await this.ensureOrganizationExists(pool, input.organizationId);
+      siteId = await this.resolveValidatedSiteId(
+        pool,
+        input.organizationId,
+        input.role,
+        input.siteId,
+      );
+      await this.ensureEmailAvailable(pool, email);
+
+      const provisioned = await identityService.provisionUser({
+        email,
+        organizationId: input.organizationId,
+        role: input.role,
+        siteId,
+      });
+      provisionedAuthUserId = provisioned.authUserId;
+
       return await this.withTransaction(async (client) => {
-        const existing = await client.query<{ id: string }>(
-          "SELECT id::text FROM users WHERE email = $1 LIMIT 1",
-          [email],
-        );
-        if (existing.rows[0]) {
-          throw new AdminBackofficeError(
-            "A user with this email already exists in this organization",
-            409,
-            "CONFLICT",
-            { organizationId: input.organizationId, email },
-          );
-        }
+        await this.ensureEmailAvailable(client, email);
 
         const inserted = await client.query<DbUserRow>(
           `
@@ -623,6 +809,7 @@ export class AdminBackofficeService {
             email,
             email_verified,
             role,
+            site_id,
             status,
             created_at,
             updated_at
@@ -634,6 +821,7 @@ export class AdminBackofficeService {
             $4,
             false,
             $5,
+            $6::uuid,
             'pending',
             NOW(),
             NOW()
@@ -641,9 +829,11 @@ export class AdminBackofficeService {
           RETURNING
             id::text,
             organization_id::text,
+            auth_user_id,
             email,
             role::text,
             status::text,
+            site_id::text,
             (SELECT name FROM sites WHERE id = users.site_id) AS site_name,
             last_login_at,
             created_at,
@@ -652,28 +842,39 @@ export class AdminBackofficeService {
           [
             randomUUID(),
             input.organizationId,
-            `pending-${randomUUID()}`,
+            provisioned.authUserId,
             email,
             input.role,
+            siteId,
           ],
         );
 
         const row = inserted.rows[0];
+        if (!row) {
+          throw new AdminBackofficeError(
+            "Unable to create user",
+            500,
+            "INTERNAL_ERROR",
+          );
+        }
+
         await this.writeAudit(client, {
           action: "invite_user",
           actorUserId: input.actorUserId,
           targetOrgId: input.organizationId,
           resourceType: "user",
-          resourceId: row?.id ?? null,
+          resourceId: row.id,
           requestId: input.requestId,
           ipAddress: input.clientIp,
           userAgent: input.userAgent,
           metadata: {
+            authUserId: provisioned.authUserId,
             email,
             role: input.role,
+            siteId,
             invitedByEmail: input.actorEmail,
-            targetStatus: row?.status ?? null,
-            targetUserId: row?.id ?? null,
+            targetStatus: row.status,
+            targetUserId: row.id,
             permissionUsed: input.permissionUsed ?? null,
             routeTemplate: input.routeTemplate ?? null,
             operation: "invite_user",
@@ -681,24 +882,33 @@ export class AdminBackofficeService {
           },
         });
 
-        if (!row) {
-          throw new AdminBackofficeError(
-            "Unable to create user invite",
-            500,
-            "INTERNAL_ERROR",
-          );
-        }
         return mapUserRow(row);
       });
     } catch (error) {
       const normalized =
         error instanceof AdminBackofficeError
           ? error
-          : new AdminBackofficeError(
-              "Unable to create user invite",
-              500,
-              "INTERNAL_ERROR",
-            );
+          : error instanceof KeycloakAdminIdentityError
+            ? new AdminBackofficeError(
+                error.message,
+                error.statusCode,
+                error.code,
+                error.details,
+              )
+            : new AdminBackofficeError(
+                "Unable to create user",
+                500,
+                "INTERNAL_ERROR",
+              );
+
+      if (provisionedAuthUserId) {
+        try {
+          await identityService.deleteProvisionedUser(provisionedAuthUserId);
+        } catch {
+          // Preserve the original DB or Keycloak provisioning error.
+        }
+      }
+
       await this.safeRecordPrivilegedUserAttempt({
         actorUserId: input.actorUserId,
         targetOrgId: input.organizationId,
@@ -714,12 +924,13 @@ export class AdminBackofficeService {
         metadata: {
           email,
           role: input.role,
+          siteId,
           invitedByEmail: input.actorEmail,
           errorCode: normalized.code,
           failureStatusCode: normalized.statusCode,
         },
       });
-      throw error;
+      throw normalized;
     }
   }
 
@@ -727,6 +938,7 @@ export class AdminBackofficeService {
     organizationId: string;
     userId: string;
     role: string;
+    siteId?: string | null;
     actorUserId: string;
     requestId: string;
     clientIp: string | null;
@@ -739,56 +951,64 @@ export class AdminBackofficeService {
     ensureUuid(input.actorUserId, "actorUserId");
     ensureAssignableRole(input.role);
 
+    const identityService = this.requireIdentityProvisioning();
+    const pool = this.getPool();
+    let current: DbUserRow | null = null;
+    let siteId: string | null = null;
     try {
-      return await this.withTransaction(async (client) => {
-        const current = await client.query<DbUserRow>(
-          `
-          SELECT
-            u.id::text,
-            u.organization_id::text,
-            u.email,
-            u.role::text,
-            u.status::text,
-            s.name AS site_name,
-            u.last_login_at,
-            u.created_at,
-            u.updated_at
-          FROM users u
-          LEFT JOIN sites s ON s.id = u.site_id
-          WHERE u.organization_id = $1::uuid
-            AND u.id = $2::uuid
-          LIMIT 1
-          `,
-          [input.organizationId, input.userId],
+      current = await this.getOrganizationUserRow(
+        pool,
+        input.organizationId,
+        input.userId,
+      );
+      if (!ASSIGNABLE_ROLE_SET.has(current.role as AssignableRole)) {
+        throw new AdminBackofficeError(
+          "This user cannot be managed from organization user lifecycle routes",
+          403,
+          "FORBIDDEN",
+          { userId: input.userId, currentRole: current.role },
         );
-        const row = current.rows[0];
-        if (!row) {
-          throw new AdminBackofficeError(
-            "User not found for this organization",
-            404,
-            "NOT_FOUND",
-            { organizationId: input.organizationId, userId: input.userId },
-          );
-        }
+      }
 
+      siteId = await this.resolveValidatedSiteId(
+        pool,
+        input.organizationId,
+        input.role,
+        requiresSiteScope(input.role)
+          ? (input.siteId ?? current.site_id)
+          : null,
+      );
+      const currentRow = current;
+
+      await identityService.syncUser({
+        authUserId: currentRow.auth_user_id,
+        organizationId: input.organizationId,
+        role: input.role,
+        siteId,
+        enabled: isIdentityEnabledForStatus(currentRow.status),
+      });
+
+      return await this.withTransaction(async (client) => {
         const updated = await client.query<DbUserRow>(
           `
           UPDATE users
-          SET role = $3, updated_at = NOW()
+          SET role = $3, site_id = $4::uuid, updated_at = NOW()
           WHERE organization_id = $1::uuid
             AND id = $2::uuid
           RETURNING
             id::text,
             organization_id::text,
+            auth_user_id,
             email,
             role::text,
             status::text,
+            site_id::text,
             (SELECT name FROM sites WHERE id = users.site_id) AS site_name,
             last_login_at,
             created_at,
             updated_at
           `,
-          [input.organizationId, input.userId, input.role],
+          [input.organizationId, input.userId, input.role, siteId],
         );
         const next = updated.rows[0];
         if (!next) {
@@ -809,11 +1029,14 @@ export class AdminBackofficeService {
           ipAddress: input.clientIp,
           userAgent: input.userAgent,
           metadata: {
-            beforeRole: row.role,
+            authUserId: currentRow.auth_user_id,
+            beforeRole: currentRow.role,
             afterRole: next.role,
-            beforeStatus: row.status,
+            beforeSiteId: currentRow.site_id,
+            afterSiteId: next.site_id,
+            beforeStatus: currentRow.status,
             afterStatus: next.status,
-            email: row.email,
+            email: currentRow.email,
             targetUserId: input.userId,
             permissionUsed: input.permissionUsed ?? null,
             routeTemplate: input.routeTemplate ?? null,
@@ -828,11 +1051,33 @@ export class AdminBackofficeService {
       const normalized =
         error instanceof AdminBackofficeError
           ? error
-          : new AdminBackofficeError(
-              "Unable to update user role",
-              500,
-              "INTERNAL_ERROR",
-            );
+          : error instanceof KeycloakAdminIdentityError
+            ? new AdminBackofficeError(
+                error.message,
+                error.statusCode,
+                error.code,
+                error.details,
+              )
+            : new AdminBackofficeError(
+                "Unable to update user role",
+                500,
+                "INTERNAL_ERROR",
+              );
+
+      if (current && normalized.code !== "NOT_FOUND") {
+        try {
+          await identityService.syncUser({
+            authUserId: current.auth_user_id,
+            organizationId: current.organization_id,
+            role: assertManagedAssignableRole(current.role),
+            siteId: current.site_id,
+            enabled: isIdentityEnabledForStatus(current.status),
+          });
+        } catch {
+          // Preserve the original mutation error.
+        }
+      }
+
       await this.safeRecordPrivilegedUserAttempt({
         actorUserId: input.actorUserId,
         targetOrgId: input.organizationId,
@@ -847,13 +1092,15 @@ export class AdminBackofficeService {
         operation: "change_role",
         outcome: normalized.statusCode >= 500 ? "failed" : "rejected",
         metadata: {
+          authUserId: current?.auth_user_id ?? null,
           targetUserId: input.userId,
           targetRole: input.role,
+          siteId,
           errorCode: normalized.code,
           failureStatusCode: normalized.statusCode,
         },
       });
-      throw error;
+      throw normalized;
     }
   }
 
@@ -901,83 +1148,114 @@ export class AdminBackofficeService {
     ensureUuid(input.userId, "userId");
     ensureUuid(input.actorUserId, "actorUserId");
 
-    return await this.withTransaction(async (client) => {
-      const current = await client.query<DbUserRow>(
-        `
-        SELECT
-          u.id::text,
-          u.organization_id::text,
-          u.email,
-          u.role::text,
-          u.status::text,
-          s.name AS site_name,
-          u.last_login_at,
-          u.created_at,
-          u.updated_at
-        FROM users u
-        LEFT JOIN sites s ON s.id = u.site_id
-        WHERE u.organization_id = $1::uuid
-          AND u.id = $2::uuid
-        LIMIT 1
-        `,
-        [input.organizationId, input.userId],
+    const identityService = this.requireIdentityProvisioning();
+    const pool = this.getPool();
+    const current = await this.getOrganizationUserRow(
+      pool,
+      input.organizationId,
+      input.userId,
+    );
+    if (!ASSIGNABLE_ROLE_SET.has(current.role as AssignableRole)) {
+      throw new AdminBackofficeError(
+        "This user cannot be managed from organization user lifecycle routes",
+        403,
+        "FORBIDDEN",
+        { userId: input.userId, currentRole: current.role },
       );
-      const row = current.rows[0];
-      if (!row) {
-        throw new AdminBackofficeError(
-          "User not found for this organization",
-          404,
-          "NOT_FOUND",
-          { organizationId: input.organizationId, userId: input.userId },
-        );
-      }
+    }
 
-      const updated = await client.query<DbUserRow>(
-        `
-        UPDATE users
-        SET status = $3, updated_at = NOW()
-        WHERE organization_id = $1::uuid
-          AND id = $2::uuid
-        RETURNING
-          id::text,
-          organization_id::text,
-          email,
-          role::text,
-          status::text,
-          NULL::text AS site_name,
-          last_login_at,
-          created_at,
-          updated_at
-        `,
-        [input.organizationId, input.userId, input.nextStatus],
-      );
-      const next = updated.rows[0];
-      if (!next) {
-        throw new AdminBackofficeError(
-          "Unable to update user status",
-          500,
-          "INTERNAL_ERROR",
-        );
-      }
-
-      await this.writeAudit(client, {
-        action: input.auditAction,
-        actorUserId: input.actorUserId,
-        targetOrgId: input.organizationId,
-        resourceType: "user",
-        resourceId: input.userId,
-        requestId: input.requestId,
-        ipAddress: input.clientIp,
-        userAgent: input.userAgent,
-        metadata: {
-          beforeStatus: row.status,
-          afterStatus: next.status,
-          email: row.email,
-        },
+    try {
+      await identityService.syncUser({
+        authUserId: current.auth_user_id,
+        organizationId: current.organization_id,
+        role: assertManagedAssignableRole(current.role),
+        siteId: current.site_id,
+        enabled: input.nextStatus === "active",
       });
 
-      return mapUserRow(next);
-    });
+      return await this.withTransaction(async (client) => {
+        const updated = await client.query<DbUserRow>(
+          `
+          UPDATE users
+          SET status = $3, updated_at = NOW()
+          WHERE organization_id = $1::uuid
+            AND id = $2::uuid
+          RETURNING
+            id::text,
+            organization_id::text,
+            auth_user_id,
+            email,
+            role::text,
+            status::text,
+            site_id::text,
+            (SELECT name FROM sites WHERE id = users.site_id) AS site_name,
+            last_login_at,
+            created_at,
+            updated_at
+          `,
+          [input.organizationId, input.userId, input.nextStatus],
+        );
+        const next = updated.rows[0];
+        if (!next) {
+          throw new AdminBackofficeError(
+            "Unable to update user status",
+            500,
+            "INTERNAL_ERROR",
+          );
+        }
+
+        await this.writeAudit(client, {
+          action: input.auditAction,
+          actorUserId: input.actorUserId,
+          targetOrgId: input.organizationId,
+          resourceType: "user",
+          resourceId: input.userId,
+          requestId: input.requestId,
+          ipAddress: input.clientIp,
+          userAgent: input.userAgent,
+          metadata: {
+            authUserId: current.auth_user_id,
+            beforeStatus: current.status,
+            afterStatus: next.status,
+            email: current.email,
+          },
+        });
+
+        return mapUserRow(next);
+      });
+    } catch (error) {
+      const normalized =
+        error instanceof AdminBackofficeError
+          ? error
+          : error instanceof KeycloakAdminIdentityError
+            ? new AdminBackofficeError(
+                error.message,
+                error.statusCode,
+                error.code,
+                error.details,
+              )
+            : new AdminBackofficeError(
+                "Unable to update user status",
+                500,
+                "INTERNAL_ERROR",
+              );
+
+      if (normalized.code !== "NOT_FOUND") {
+        try {
+          await identityService.syncUser({
+            authUserId: current.auth_user_id,
+            organizationId: current.organization_id,
+            role: assertManagedAssignableRole(current.role),
+            siteId: current.site_id,
+            enabled: isIdentityEnabledForStatus(current.status),
+          });
+        } catch {
+          // Preserve the original mutation error.
+        }
+      }
+
+      throw normalized;
+    }
   }
 
   async getBillingInfo(organizationId: string): Promise<BillingInfo> {
@@ -1407,6 +1685,7 @@ export function getAdminBackofficeService(): AdminBackofficeService {
   if (!singleton) {
     singleton = new AdminBackofficeService(
       process.env.DATABASE_URL?.trim() || null,
+      getKeycloakAdminIdentityServiceFromEnv(process.env),
     );
   }
   return singleton;

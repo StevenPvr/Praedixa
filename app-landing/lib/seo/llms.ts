@@ -36,12 +36,12 @@ function buildPrimaryLinks() {
     link(
       "Homepage FR",
       "/fr",
-      "Canonical French overview of the trade-offs Praedixa helps multi-site networks frame earlier.",
+      "Canonical French overview: AI-powered operational decisions with measurable ROI for multi-site networks.",
     ),
     link(
       "Homepage EN",
       "/en",
-      "Canonical English overview of the trade-offs Praedixa helps multi-site networks frame earlier.",
+      "Canonical English overview: AI-powered operational decisions with measurable ROI for multi-site networks.",
     ),
     link(
       "Deployment FR",
@@ -180,18 +180,18 @@ export function buildLlmsTxt(): string {
   return [
     "# Praedixa",
     "",
-    "> Praedixa helps multi-site networks spot the trade-offs that threaten margin earlier, compare constrained options, and review the real impact of the decisions taken.",
+    "> Praedixa anticipates operational needs, optimizes decisions, and proves ROI for multi-site networks. Operational in 30 days.",
     "",
     "Canonical domain: https://www.praedixa.com",
     "Primary market language: French, with English parity on core product pages.",
     "",
     section("Canonical Positioning", [
       "- Primary audience: COO, operations leaders, and network managers in multi-site organizations.",
-      "- Praedixa starts with the most costly coverage and allocation trade-offs in the customer perimeter.",
-      "- Read-only overlay on existing exports and APIs before any deeper integration.",
+      "- Praedixa anticipates operational needs, compares options, and proves ROI on every decision.",
+      "- Read-only overlay on existing data and tools before any deeper integration.",
       "- Human in the loop: managers remain decision-makers.",
       "- Not a scheduling, WFM, ERP, BI, or generic data-platform replacement project.",
-      "- Best fit: multi-site networks that need clearer cost/service/risk trade-offs and an impact review their teams can reread later.",
+      "- Best fit: multi-site networks that need AI-powered anticipation, option comparison, and measurable ROI.",
     ]),
     section("Primary Entry Points", buildPrimaryLinks()),
     section("Core Knowledge", buildCoreKnowledgeLinks()),

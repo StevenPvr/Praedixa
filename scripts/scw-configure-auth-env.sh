@@ -2,7 +2,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 source "$SCRIPT_DIR/lib/json-env.sh"
+source "$SCRIPT_DIR/lib/local-env.sh"
 
 REGION="fr-par"
 CONTAINER_NAME="auth-prod"
@@ -39,6 +41,7 @@ require_non_empty "$KC_DB_URL_PORT" "KC_DB_URL_PORT"
 require_non_empty "$KC_DB_URL_DATABASE" "KC_DB_URL_DATABASE"
 require_non_empty "$KC_DB_USERNAME" "KC_DB_USERNAME"
 require_non_empty "$KC_DB_PASSWORD" "KC_DB_PASSWORD"
+autofill_keycloak_admin_password_from_local_env "$REPO_ROOT"
 require_non_empty "$KEYCLOAK_ADMIN_PASSWORD" "KEYCLOAK_ADMIN_PASSWORD"
 
 container_id="$(scw container container list region="$REGION" -o json | jq -r --arg n "$CONTAINER_NAME" '.[] | select(.name==$n) | .id' | head -n1)"

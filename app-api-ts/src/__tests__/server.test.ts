@@ -99,6 +99,10 @@ describe("api transport and authorization guards", () => {
         permission: "admin:users:write",
       },
       {
+        template: "/api/v1/admin/organizations/:orgId/users/:userId",
+        permission: "admin:users:read",
+      },
+      {
         template: "/api/v1/admin/organizations/:orgId/users/invite",
         permission: "admin:users:write",
       },

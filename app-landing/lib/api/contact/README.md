@@ -24,6 +24,7 @@ Ce dossier est consommé par l'application `app-landing` et s'insère dans son f
 
 Le payload public attend maintenant une intention explicite (`deployment` ou `historical_proof`) et des champs de qualification metier (`siteCount`, `sector`, `mainTradeOff`, `timeline`, `currentStack` optionnel).
 `validation.ts` reste la source de verite du schema, `email.ts` transforme ces champs en resume lisible pour l'equipe, et `persistence.ts` mappe l'intention vers le contrat d'ingestion historique sans perdre les nouveaux champs, qui restent stockes dans `metadataJson`.
+L'adresse email est maintenant validee semantiquement via `lib/security/email-address.ts`; un placeholder comme `example.com`, un domaine jetable ou un local-part `noreply/test` doit etre refuse avant l'envoi.
 
 ## Contraintes de securite
 

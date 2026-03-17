@@ -14,6 +14,7 @@ Fichiers :
 
 - `contact-challenge.test.ts`
 - `csp.test.ts`
+- `email-address.test.ts`
 - `outbound-url.test.ts`
 - `security-store.test.ts`
 

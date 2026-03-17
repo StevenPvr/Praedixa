@@ -284,7 +284,7 @@ services:
       - "5433:5432" # Port 5433 externe pour eviter conflits
     environment:
       POSTGRES_USER: praedixa
-      POSTGRES_PASSWORD: changeme
+      POSTGRES_PASSWORD: praedixa_local_dev_pg_2026
       POSTGRES_DB: praedixa
 ```
 
@@ -292,7 +292,7 @@ services:
 
 ```
 # Developpement
-DATABASE_URL=postgresql+asyncpg://praedixa:changeme@localhost:5433/praedixa
+DATABASE_URL=postgresql+asyncpg://praedixa:praedixa_local_dev_pg_2026@localhost:5433/praedixa
 
 # Production (Scaleway Managed PostgreSQL)
 DATABASE_URL=postgresql+asyncpg://user:pass@host:5432/praedixa?sslmode=require

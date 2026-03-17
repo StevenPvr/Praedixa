@@ -19,6 +19,9 @@ function toLoginErrorMessage(error: string | null): string | null {
   if (error === "rate_limited") {
     return "Trop de tentatives de connexion. Patientez quelques instants puis reessayez.";
   }
+  if (error === "auth_claims_invalid") {
+    return "Le fournisseur d'identite a bien authentifie la session, mais le token d'acces ne porte pas encore le contrat canonique attendu par Praedixa. Verifiez les claims top-level `sub`, `email`, `role`, `organization_id` et `site_id` selon le role utilisateur, ainsi que les attributs utilisateur et protocol mappers Keycloak associes.";
+  }
   if (error === "auth_token_incompatible") {
     return "Le fournisseur d'identite a bien authentifie la session, mais le token d'acces ne contient pas les claims requis par l'API Praedixa. Verifiez l'audience `praedixa-api` ainsi que les claims `organization_id` et `site_id` selon le role utilisateur.";
   }
@@ -109,12 +112,14 @@ function LoginForm() {
         {errorMessage && (
           <div className="rounded-lg border border-danger-light bg-danger-light/50 px-4 py-3 text-body-sm text-danger-text">
             <p>{errorMessage}</p>
-            {error === "auth_token_incompatible" && tokenReason && (
-              <p className="mt-2 text-xs">
-                Detail technique:{" "}
-                <span className="font-semibold">{tokenReason}</span>
-              </p>
-            )}
+            {(error === "auth_token_incompatible" ||
+              error === "auth_claims_invalid") &&
+              tokenReason && (
+                <p className="mt-2 text-xs">
+                  Detail technique:{" "}
+                  <span className="font-semibold">{tokenReason}</span>
+                </p>
+              )}
           </div>
         )}
 
