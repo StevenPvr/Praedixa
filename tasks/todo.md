@@ -1,5 +1,55 @@
 # PRD continuation work
 
+## Current Pass - 2026-03-17 - Admin Login Root Cause (amr contract)
+
+### Plan
+
+- [x] Reproduire et distinguer un probleme de droits admin d'un probleme de contrat OIDC/MFA
+- [x] Aligner la source de verite Keycloak admin sur un claim `amr` explicite pour `praedixa-admin`
+- [x] Recaler le client live `praedixa-admin` et verifier localement le validateur MFA
+
+### Review
+
+- Cause racine etablie:
+  - `admin@praedixa.com` avait bien les attributs `role=super_admin` et `permissions=admin:console:access`; le compte n'etait donc pas prive de droits admin.
+  - le callback `app-admin` exige un claim access token `amr` compatible avec `AUTH_ADMIN_REQUIRED_AMR`, mais le client Keycloak live `praedixa-admin` n'exposait pas ce claim.
+  - le realm/versioned export et le script de recale `keycloak-ensure-api-access-contract.sh` couvraient `role`, `organization_id`, `site_id` et `permissions`, mais pas `amr`, ce qui laissait le drift revenir.
+- Correctif applique:
+  - ajout du mapper versionne `claim-amr` (`oidc-amr-mapper`) dans `infra/auth/realm-praedixa.json`
+  - extension du script `scripts/keycloak-ensure-api-access-contract.sh` pour recaler aussi `claim-amr` sur `praedixa-admin`
+  - durcissement du validateur `scripts/verify-admin-mfa-readiness-lib.mjs` et de son test pour exiger ce mapper
+  - recale live execute avec `KEYCLOAK_CLIENT_IDS=praedixa-admin ./scripts/keycloak-ensure-api-access-contract.sh`
+- Verification:
+  - `node --test scripts/__tests__/verify-admin-mfa-readiness.test.mjs`
+  - `node scripts/verify-admin-mfa-readiness.mjs`
+  - lecture live des protocol mappers Keycloak: `claim-role`, `claim-permissions` et `claim-amr` sont presents sur `praedixa-admin`
+- Reserve restante a garder visible:
+  - depuis cette machine, la surface publique `https://admin.praedixa.com/login` ne ressort pas saine au niveau HTTP/TLS; cela est distinct du probleme de droits/claims et peut encore bloquer un acces via le domaine public selon le chemin teste.
+
+## Current Pass - 2026-03-17 - Deploy Landing Prod Scaleway (ef3244f)
+
+### Plan
+
+- [x] Valider le preflight prod, les clefs de signature et le gate report du SHA courant avant tout deploy
+- [x] Construire l'image immutable `landing`, creer le manifest signe pour `ef3244f`, puis deployer `landing` en prod
+- [x] Executer le smoke post-deploy sur l'URL publique landing et consigner le resultat avec l'image active
+
+### Review
+
+- Release et deploy prod termines:
+  - image construite et poussee: `rg.fr-par.scw.cloud/funcscwlandingprodudkuskg8/landing:rel-landing-20260317-ef3244f@sha256:d37370afec05c37afe7c4fdeb8e4b5bf4bd3ef68efdcfe624eaf755d0465b2a3`
+  - manifest signe genere et verifie: `.release/rel-landing-20260317-ef3244f/manifest.json`
+  - container prod mis a jour: `landing-web` (`2588461d-1fdb-40f3-9e2c-84a8e969979c`) avec image active `rg.fr-par.scw.cloud/funcscwlandingprodudkuskg8/landing:rel-landing-20260317-ef3244f`
+- Verification production reelle:
+  - `./scripts/scw-post-deploy-smoke.sh --env prod --services landing --landing-url https://www.praedixa.com/fr`
+  - smoke public vert avec `GET /fr -> 200` sur `https://www.praedixa.com/fr`
+- Reserve explicite conservee:
+  - `./scripts/scw-preflight-deploy.sh prod` n'a pas pu lister les records DNS de `praedixa.com` depuis le contexte CLI courant, donc le preflight DNS reste incomplet meme si le deploy container et le smoke public sont OK.
+- Etat du gate attache au release:
+  - report: `.git/gate-reports/ef3244fee20849cc0b3ddc3f9ccd30e4b582f139.json`
+  - synthese: `26` checks, `3` echec `low`, `0` echec bloquant
+  - checks `low` restants: `architecture:knip`, `architecture:ts-guardrails`, `performance:frontend-audits`
+
 ## Current Pass - 2026-03-17 - Next Security Patch For Push Gate
 
 ### Plan

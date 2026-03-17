@@ -203,6 +203,7 @@ get_required_mapper_names() {
 
   if [ "$client_id" = "praedixa-admin" ]; then
     printf '%s\n' "claim-permissions"
+    printf '%s\n' "claim-amr"
   fi
 }
 

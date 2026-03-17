@@ -20,6 +20,17 @@ export function findClient(realmExport, clientId) {
   );
 }
 
+function clientHasProtocolMapper(client, mapperName, protocolMapper) {
+  return (
+    client?.protocolMappers?.some(
+      (entry) =>
+        entry?.name === mapperName &&
+        entry?.protocolMapper === protocolMapper &&
+        entry?.config?.["access.token.claim"] === "true",
+    ) ?? false
+  );
+}
+
 export function findRequiredAction(realmExport, alias) {
   return (
     realmExport?.requiredActions?.find((entry) => entry?.alias === alias) ??
@@ -247,6 +258,10 @@ export function validateAdminMfaReadiness(realmExport, policy) {
   const adminClient = findClient(realmExport, "praedixa-admin");
   if (adminClient == null || adminClient.enabled !== true) {
     errors.push("praedixa-admin client must exist and stay enabled");
+  } else if (!clientHasProtocolMapper(adminClient, "claim-amr", "oidc-amr-mapper")) {
+    errors.push(
+      "praedixa-admin client must expose claim-amr via oidc-amr-mapper on the access token",
+    );
   }
 
   if (findRealmRole(realmExport, "super_admin") == null) {

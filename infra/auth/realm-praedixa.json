@@ -233,6 +233,18 @@
             "introspection.token.claim": "true",
             "userinfo.token.claim": "false"
           }
+        },
+        {
+          "name": "claim-amr",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-amr-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "false"
+          }
         }
       ]
     },

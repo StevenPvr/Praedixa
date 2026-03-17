@@ -40,7 +40,7 @@ SUPER_ADMIN_PASSWORD='<mot-de-passe-super-admin>' \
 ./scripts/keycloak-ensure-super-admin.sh
 ```
 
-`keycloak-ensure-api-access-contract.sh` recale maintenant les protocol mappers live sur le realm export versionne (`claim-role`, `claim-organization-id`, `claim-site-id`, `claim-permissions` admin) pour eviter les drifts entre Keycloak et les callbacks Next stricts.
+`keycloak-ensure-api-access-contract.sh` recale maintenant les protocol mappers live sur le realm export versionne (`claim-role`, `claim-organization-id`, `claim-site-id`, `claim-permissions` admin, `claim-amr` admin) pour eviter les drifts entre Keycloak et les callbacks Next stricts.
 Si un utilisateur cible est fourni, le script synchronise aussi ses attributs canoniques `role`, `organization_id`, `site_id` et, si besoin, `permissions`.
 `keycloak-ensure-super-admin.sh` provisionne aussi les attributs canoniques `role=super_admin` et `permissions=admin:console:access`, en plus du realm role et de `CONFIGURE_TOTP`.
 Ces scripts relisent automatiquement `KEYCLOAK_ADMIN_PASSWORD` ou `KC_BOOTSTRAP_ADMIN_PASSWORD` depuis `app-landing/.env.local`, `app-webapp/.env.local`, `app-admin/.env.local`, puis `.env.local` a la racine si la variable n'est pas deja exportee dans le shell.

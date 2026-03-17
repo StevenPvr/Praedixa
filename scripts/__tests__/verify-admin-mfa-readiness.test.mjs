@@ -85,6 +85,23 @@ test("admin MFA readiness rejects weakened OTP policy", () => {
   assert.match(output, /otpPolicyCodeReusable/);
 });
 
+test("admin MFA readiness rejects admin clients without amr mapper", () => {
+  const realmExport = loadRealmExport(realmPath);
+  const policy = loadBrowserFlowPolicy(policyPath);
+  const adminClient = realmExport.clients.find(
+    (entry) => entry.clientId === "praedixa-admin",
+  );
+
+  adminClient.protocolMappers = adminClient.protocolMappers.filter(
+    (entry) => entry.name !== "claim-amr",
+  );
+
+  assert.match(
+    validateAdminMfaReadiness(realmExport, policy).join("\n"),
+    /claim-amr/,
+  );
+});
+
 test("admin MFA readiness rejects browser flow alias drift in realm export", () => {
   const realmExport = loadRealmExport(realmPath);
   const policy = loadBrowserFlowPolicy(policyPath);
