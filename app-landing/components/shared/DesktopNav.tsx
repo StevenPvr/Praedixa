@@ -79,7 +79,7 @@ export function DesktopNav({ locale }: DesktopNavProps) {
         }
       }}
     >
-      <ul className="flex items-center gap-0.5 rounded-full border border-neutral-200 bg-white p-1 shadow-[0_14px_30px_-24px_rgba(15,23,42,0.72)]">
+      <ul className="hdr-nav-pill flex items-center gap-0.5 rounded-full border border-neutral-200 bg-white p-1 shadow-[0_14px_30px_-24px_rgba(15,23,42,0.72)] transition-all duration-300">
         {navGroups.map((group) => {
           const menuItems = group.items ?? [];
           const hasMenu = menuItems.length > 0;
@@ -117,7 +117,7 @@ export function DesktopNav({ locale }: DesktopNavProps) {
               {hasMenu ? (
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[13px] font-medium tracking-[-0.01em] text-neutral-700 transition-all duration-200 [transition-timing-function:var(--ease-snappy)] hover:bg-neutral-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-navy-300 focus-visible:outline-none"
+                  className="hdr-nav-link inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[13px] font-medium tracking-[-0.01em] text-neutral-700 transition-all duration-300 [transition-timing-function:var(--ease-snappy)] hover:bg-neutral-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-proof-500 focus-visible:outline-none"
                   aria-expanded={isOpen}
                   aria-haspopup="true"
                   aria-controls={`desktop-menu-${group.key}`}
@@ -140,7 +140,7 @@ export function DesktopNav({ locale }: DesktopNavProps) {
               ) : (
                 <Link
                   href={group.href ?? `/${locale}`}
-                  className="inline-flex rounded-full px-3 py-1.5 text-[13px] font-medium tracking-[-0.01em] text-neutral-700 no-underline transition-all duration-200 [transition-timing-function:var(--ease-snappy)] hover:bg-neutral-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-navy-300 focus-visible:outline-none"
+                  className="hdr-nav-link inline-flex rounded-full px-3 py-1.5 text-[13px] font-medium tracking-[-0.01em] text-neutral-700 no-underline transition-all duration-300 [transition-timing-function:var(--ease-snappy)] hover:bg-neutral-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-proof-500 focus-visible:outline-none"
                 >
                   {group.label}
                 </Link>
@@ -184,7 +184,7 @@ export function DesktopNav({ locale }: DesktopNavProps) {
                             href={item.href}
                             className={`group flex h-full flex-col justify-between rounded-xl border px-3 py-3 no-underline transition-all duration-200 [transition-timing-function:var(--ease-snappy)] ${
                               item.primary
-                                ? "border-navy-200 bg-navy-50 text-ink hover:border-navy-300 hover:bg-navy-100"
+                                ? "border-proof-100 bg-proof-100 text-ink hover:border-v2-border-300 hover:bg-proof-100/70"
                                 : "border-transparent text-neutral-700 hover:border-neutral-200 hover:bg-neutral-50"
                             }`}
                           >
@@ -197,7 +197,7 @@ export function DesktopNav({ locale }: DesktopNavProps) {
                                 weight="bold"
                                 className={`mt-0.5 shrink-0 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 ${
                                   item.primary
-                                    ? "text-navy-700"
+                                    ? "text-proof-500"
                                     : "text-neutral-400"
                                 }`}
                               />

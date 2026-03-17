@@ -42,6 +42,7 @@ pnpm architecture:ts-guardrails
 pnpm gate:prepush
 pnpm gate:exhaustive
 pnpm gate:verify
+pnpm performance:validate-budgets
 ./scripts/gate-sensitive-security-tests.sh
 ./scripts/gate-quality-static.sh
 ```
@@ -59,6 +60,7 @@ pnpm gate:verify
 `run-api-dynamic-audits.sh` demarre l'API TS sur un port libre dedie et en mode `tsx` simple, sans `watch`, pour eviter les collisions avec une API locale deja ouverte pendant les gates. Le script vide explicitement `DATABASE_URL` pour auditer le profil stateless/fail-close de l'API publique au lieu d'heriter d'une base locale partiellement configuree.
 Le scan Schemathesis du gate passe par `scripts/ci-python-tool.sh schemathesis` pour pinner la version de l'outil, tourne en mode positif et deterministe sur le profil public stateless, active `--continue-on-failure` pour separer les warnings schema/auth attendus des vraies regressions bloquantes, et ecrit un rapport NDJSON dans `.git/gate-reports/artifacts/schemathesis/` afin de rendre chaque echec ou warning reproductible apres coup.
 `gate-prepush-deep.sh` resynchronise d'abord `app-api/.venv` avec `uv sync --all-groups --locked`, puis lance `pip-audit` via `uv run --extra dev`, pour auditer le graphe verrouille du sous-projet sans dependre d'un environnement local stale ni perdre l'outil declare dans l'extra `dev`.
+Les gates `gate:prepush` et `gate:exhaustive` rejouent aussi `pnpm performance:validate-budgets`, afin de bloquer tout drift entre les budgets performance documentes et leurs baselines JSON versionnees.
 Les fuzzings negatifs complets sur endpoints authentifies ne doivent pas etre greffes dans ce hook sans harness d'auth et de persistance dedie; sinon on bloque le push sur des requetes volontairement invalides qui n'exercent pas le contrat applicatif cible.
 Le script impose aussi des timeouts explicites sur l'attente de sante, le scan Schemathesis et le smoke `k6`, pour qu'un service degrade ou un client bloque ne puisse pas figer indefiniment les hooks Git.
 Le `cleanup` termine maintenant aussi l'arbre de process complet du serveur API de fond apres un court delai si `pnpm exec tsx src/index.ts` ne descend pas tout seul, afin d'eviter les `pre-push` pendus sur un `wait` laisse par des enfants `pnpm` ou `tsx`.

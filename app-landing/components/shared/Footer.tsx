@@ -79,7 +79,7 @@ function FooterLinkColumn({
       <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[rgba(255,255,255,0.40)]">
         {title}
       </h3>
-      <ul className="list-none divide-y divide-white/[0.08] rounded-2xl border border-white/10 bg-white/[0.04] p-0">
+      <ul className="list-none divide-y divide-white/[0.07] rounded-2xl border border-white/[0.12] bg-white/[0.04] p-0">
         {links.length ? (
           links.map((link) => (
             <li key={link.href} className="m-0">
@@ -110,12 +110,12 @@ export function Footer({ locale, dict }: FooterProps) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-white/[0.08] bg-navy-900">
+    <footer className="border-t border-white/[0.08] bg-ink-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="py-14 md:py-16">
           <div className="grid grid-cols-1 gap-10 md:grid-cols-[1.62fr_1fr] md:items-end md:gap-12">
             <div className="space-y-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-300/80">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-signal-500">
                 {dict.footer.ctaBanner.kicker}
               </p>
               <p className="max-w-3xl text-3xl font-semibold tracking-[-0.03em] text-white md:text-5xl md:leading-[1.03]">
@@ -133,13 +133,13 @@ export function Footer({ locale, dict }: FooterProps) {
                         index % 2 === 1 ? "translate-y-[1px]" : ""
                       }`}
                     >
-                      <PulseDot className="h-1.5 w-1.5 bg-amber-400" />
+                      <PulseDot className="h-1.5 w-1.5 bg-signal-500" />
                       {badge}
                     </span>
                   ))
                 ) : (
                   <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-neutral-400">
-                    <PulseDot className="h-1.5 w-1.5 bg-amber-400" />
+                    <PulseDot className="h-1.5 w-1.5 bg-signal-500" />
                     {locale === "fr"
                       ? "Signal opératoire continu"
                       : "Continuous operational signal"}
@@ -152,7 +152,7 @@ export function Footer({ locale, dict }: FooterProps) {
               href={primaryCtaHref}
               label={valueProp.ctaSecondary}
               wrapperClassName="w-full md:max-w-sm md:justify-self-end"
-              className="border-white/15 bg-white/[0.06] text-white hover:border-white/25 hover:bg-white/[0.1]"
+              className="btn-primary-gradient border-ink-800 text-white shadow-[0_20px_48px_-24px_rgba(2,6,23,0.6)]"
             />
           </div>
         </div>
@@ -179,7 +179,7 @@ export function Footer({ locale, dict }: FooterProps) {
             </p>
             <ShimmerTrack
               className="max-w-[16rem] bg-white/10"
-              indicatorClassName="via-amber-400/45"
+              indicatorClassName="via-signal-500/45"
             />
           </div>
 
@@ -209,8 +209,8 @@ export function Footer({ locale, dict }: FooterProps) {
           </p>
           <p className="text-[rgba(255,255,255,0.20)]">
             {locale === "fr"
-              ? "Disponible en français et en anglais."
-              : "Available in French and English."}
+              ? "Conçu et hébergé en France"
+              : "Designed and hosted in France"}
           </p>
         </div>
       </div>

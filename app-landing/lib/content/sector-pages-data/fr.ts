@@ -5,6 +5,7 @@ import {
   FlowNetworkIcon,
   StorefrontLineIcon,
 } from "../../../components/shared/icons/MarketingIcons";
+import { fitnessSectorPageFr } from "./fitness";
 import { praedixaMethodSources } from "./shared";
 import { sectorRoutes } from "./routes";
 
@@ -15,6 +16,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     groupLabel: "HCR",
     slug: sectorRoutes.fr.slugs.hcr,
     shortLabel: "HCR",
+    brandLabel: "Praedixa HCR",
     title: "HCR",
     metaTitle:
       "Praedixa | HCR: arbitrer demande, couverture et service avant que la marge ne glisse",
@@ -166,6 +168,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     groupLabel: "Enseignement supérieur",
     slug: sectorRoutes.fr.slugs["higher-education"],
     shortLabel: "Enseignement supérieur",
+    brandLabel: "Praedixa Éducation",
     title: "Enseignement supérieur",
     metaTitle:
       "Praedixa | Enseignement supérieur: sécuriser admissions, examens et continuité campus sans laisser dériver budget et couverture",
@@ -327,6 +330,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     groupLabel: "Logistique / Transport / Retail",
     slug: sectorRoutes.fr.slugs["logistics-transport-retail"],
     shortLabel: "Logistique / Transport / Retail",
+    brandLabel: "Praedixa Opération",
     title: "Logistique / Transport / Retail",
     metaTitle:
       "Praedixa | Logistique, transport, retail: arbitrer demande, capacité et promesse client au rythme réel du réseau",
@@ -484,6 +488,7 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
     groupLabel: "Automobile / concessions / ateliers",
     slug: sectorRoutes.fr.slugs.automotive,
     shortLabel: "Automobile / concessions / ateliers",
+    brandLabel: "Praedixa Automobile",
     title: "Automobile / concessions / ateliers",
     metaTitle:
       "Praedixa | Automobile: arbitrer charge atelier, disponibilité pièces et compétences rares avant que les délais ne glissent",
@@ -627,4 +632,5 @@ export const sectorPagesFr: readonly SectorPageEntry[] = [
       },
     ],
   },
+  fitnessSectorPageFr,
 ] as const;

@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-
 import type {
   ActionDispatchAttempt,
   ActionDispatchRecord,
@@ -9,7 +7,6 @@ import type {
   ActionDispatchDetailDedupeInsight,
   ActionDispatchDetailFallbackSummary,
   ActionDispatchDetailPayloadRef,
-  ActionDispatchDetailPayloadRefSource,
   ActionDispatchDetailRequest,
   ActionDispatchDetailResponse,
   ActionDispatchDetailRetryBlocker,
@@ -22,6 +19,7 @@ import type {
 } from "@praedixa/shared-types/api";
 
 import { shouldRetryActionDispatch } from "./action-mesh.js";
+import { buildPayloadRef } from "./action-dispatch-detail-payload.js";
 
 export type {
   ActionDispatchDetailAttemptView as ActionDispatchDetailAttempt,
@@ -97,83 +95,6 @@ function buildAttemptViews(
   }));
 }
 
-function getPayloadKind(value: unknown): string {
-  if (value == null) {
-    return "null";
-  }
-  if (Array.isArray(value)) {
-    return "array";
-  }
-  return typeof value === "object" ? "object" : typeof value;
-}
-
-function collectPayloadShape(
-  value: unknown,
-  path: string,
-  fieldPaths: Set<string>,
-  descriptors: Set<string>,
-): void {
-  const kind = getPayloadKind(value);
-  const descriptorPath = path.length > 0 ? path : "$";
-  descriptors.add(`${descriptorPath}:${kind}`);
-
-  if (path.length > 0) {
-    fieldPaths.add(path);
-  }
-
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      collectPayloadShape(item, `${path}[]`, fieldPaths, descriptors);
-    }
-    return;
-  }
-
-  if (kind !== "object") {
-    return;
-  }
-
-  for (const key of Object.keys(value as Record<string, unknown>).sort()) {
-    const childPath = path.length > 0 ? `${path}.${key}` : key;
-    collectPayloadShape(
-      (value as Record<string, unknown>)[key],
-      childPath,
-      fieldPaths,
-      descriptors,
-    );
-  }
-}
-
-function buildPayloadRef(
-  source: ActionDispatchDetailPayloadRefSource,
-  payload?: Record<string, unknown>,
-): ActionDispatchDetailPayloadRef {
-  if (payload == null) {
-    return {
-      source,
-      available: false,
-      fieldCount: 0,
-      fieldPaths: [],
-    };
-  }
-
-  const fieldPaths = new Set<string>();
-  const descriptors = new Set<string>();
-  collectPayloadShape(payload, "", fieldPaths, descriptors);
-  const sortedPaths = sortUnique([...fieldPaths]);
-  const fingerprint = createHash("sha256")
-    .update(sortUnique([...descriptors]).join("\n"))
-    .digest("hex")
-    .slice(0, 16);
-
-  return {
-    source,
-    available: true,
-    fingerprint,
-    fieldCount: sortedPaths.length,
-    fieldPaths: sortedPaths,
-  };
-}
-
 export function buildActionDispatchDedupeInsight(
   records: readonly ActionDispatchRecord[],
   record: ActionDispatchRecord,
@@ -203,6 +124,21 @@ function hasActiveFallback(record: ActionDispatchRecord): boolean {
   return (
     record.fallback?.status === "prepared" ||
     record.fallback?.status === "executed"
+  );
+}
+
+function canPrepareHumanFallback(record: ActionDispatchRecord): boolean {
+  if (record.status !== "failed" && record.status !== "retried") {
+    return false;
+  }
+
+  if (record.status === "retried") {
+    return true;
+  }
+
+  return (
+    record.destination.capabilities.requiresHumanFallbackOnFailure === true ||
+    !shouldRetryActionDispatch(record)
   );
 }
 
@@ -262,10 +198,7 @@ export function buildActionDispatchFallbackSummary(
       supported: true,
       status: "not_needed",
       humanRequired: false,
-      nextStep:
-        record.status === "failed" || record.status === "retried"
-          ? "prepare"
-          : "none",
+      nextStep: canPrepareHumanFallback(record) ? "prepare" : "none",
     };
   }
 
@@ -545,6 +478,10 @@ export function resolveActionDispatchDetail(
       targetResourceId: record.destination.targetResourceId,
       sandbox: record.destination.sandbox ?? false,
       capabilities: record.destination.capabilities,
+    },
+    permissions: {
+      allowedByContract: record.permissionsContext.allowedByContract,
+      permissionKeys: [...record.permissionsContext.permissionKeys],
     },
     idempotency: buildActionDispatchDedupeInsight(records, record),
     attempts: buildAttemptViews(record),

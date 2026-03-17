@@ -77,7 +77,7 @@ function MagneticActionLinkInner({
       <Link
         href={href}
         className={cn(
-          "group inline-flex w-full items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold tracking-[-0.01em] no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] active:-translate-y-[1px] active:scale-[0.98]",
+          "group inline-flex w-full items-center justify-between rounded-full border px-5 py-3.5 text-sm font-semibold tracking-[-0.01em] no-underline transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] active:scale-[0.98]",
           className,
         )}
       >

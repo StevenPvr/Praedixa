@@ -38,6 +38,7 @@ describe("action-dispatch-detail API types", () => {
 
   it("exposes detail facets needed by a dispatch drill-down", () => {
     expectTypeOf<ActionDispatchDetailResponse>().toHaveProperty("destination");
+    expectTypeOf<ActionDispatchDetailResponse>().toHaveProperty("permissions");
     expectTypeOf<ActionDispatchDetailResponse>().toHaveProperty("idempotency");
     expectTypeOf<ActionDispatchDetailResponse>().toHaveProperty("attempts");
     expectTypeOf<ActionDispatchDetailResponse>().toHaveProperty("retryPolicy");

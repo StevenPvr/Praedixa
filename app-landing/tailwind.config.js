@@ -14,21 +14,67 @@ export default {
       colors: {
         cream: "var(--page-bg)",
         charcoal: "var(--ink)",
-        ink: "var(--ink)",
+        ink: {
+          DEFAULT: "var(--ink-950)",
+          950: "var(--ink-950)",
+          900: "var(--ink-900)",
+          800: "var(--ink-800)",
+          700: "var(--ink-700)",
+          600: "var(--ink-600)",
+        },
         paper: "var(--card-bg)",
         stone: "var(--surface-sunken)",
 
+        surface: {
+          0: "var(--surface-0)",
+          50: "var(--surface-50)",
+          75: "var(--surface-75)",
+          100: "var(--surface-100)",
+          dark: "var(--surface-dark)",
+        },
+
+        "v2-border": {
+          100: "var(--border-100)",
+          200: "var(--border-200)",
+          300: "var(--border-300)",
+        },
+
+        signal: {
+          500: "var(--signal-500)",
+          100: "var(--signal-100)",
+        },
+
+        proof: {
+          500: "var(--proof-500)",
+          100: "var(--proof-100)",
+        },
+
+        risk: {
+          500: "var(--risk-500)",
+          100: "var(--risk-100)",
+        },
+
+        danger: {
+          500: "var(--danger-500)",
+        },
+
+        "v2-success": {
+          500: "var(--success-500)",
+        },
+
+        /* Backward compat with existing code referencing neutral-*, brass-* */
         neutral: {
-          50: "var(--warm-neutral-50)",
-          100: "var(--warm-neutral-100)",
-          200: "var(--warm-neutral-200)",
-          300: "var(--warm-neutral-300)",
-          400: "var(--warm-neutral-400)",
-          500: "var(--warm-neutral-500)",
-          600: "var(--warm-neutral-600)",
-          700: "var(--warm-neutral-700)",
-          800: "var(--warm-neutral-800)",
-          900: "var(--warm-neutral-900)",
+          50: "var(--surface-50)",
+          100: "var(--surface-100)",
+          200: "var(--border-100)",
+          300: "var(--border-200)",
+          400: "var(--ink-600)",
+          500: "var(--ink-600)",
+          600: "var(--ink-700)",
+          700: "var(--ink-700)",
+          800: "var(--ink-800)",
+          900: "var(--ink-900)",
+          950: "var(--ink-950)",
         },
 
         brass: {
@@ -52,19 +98,8 @@ export default {
       },
 
       fontFamily: {
-        sans: [
-          "var(--font-geist-sans)",
-          "ui-sans-serif",
-          "system-ui",
-          "-apple-system",
-          "sans-serif",
-        ],
-        mono: [
-          "var(--font-geist-mono)",
-          "ui-monospace",
-          "SFMono-Regular",
-          "monospace",
-        ],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        mono: ["var(--font-ibm-plex-mono)", "ui-monospace", "monospace"],
       },
 
       fontSize: {
@@ -92,20 +127,33 @@ export default {
         md: "0.625rem",
         lg: "0.75rem",
         xl: "1rem",
+        chip: "999px",
+        input: "16px",
+        card: "24px",
+        panel: "28px",
       },
 
       boxShadow: {
-        xs: "var(--shadow-warm-xs)",
-        sm: "var(--shadow-warm-sm)",
-        md: "var(--shadow-warm-md)",
-        lg: "var(--shadow-warm-lg)",
-        "navy-glow": "var(--shadow-navy-glow)",
-        "amber-glow": "var(--shadow-amber-glow)",
+        1: "var(--shadow-1)",
+        2: "var(--shadow-2)",
+        3: "var(--shadow-3)",
+        xs: "var(--shadow-1)",
+        sm: "var(--shadow-1)",
+        md: "var(--shadow-2)",
+        lg: "var(--shadow-3)",
+        "navy-glow": "0 0 20px rgba(91, 115, 255, 0.25)",
+        "amber-glow": "0 0 20px rgba(240, 179, 93, 0.25)",
       },
 
       transitionTimingFunction: {
         "out-expo": "cubic-bezier(0.16, 1, 0.3, 1)",
         spring: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        entry: "cubic-bezier(0.22, 1, 0.36, 1)",
+      },
+
+      maxWidth: {
+        content: "var(--content-max)",
+        text: "var(--text-max)",
       },
     },
   },

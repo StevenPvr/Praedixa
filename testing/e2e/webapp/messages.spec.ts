@@ -19,11 +19,18 @@ test.describe("Messages page", () => {
     await mockUnreadCount(page);
     await page.goto("/messages");
 
+    const headerSection = page
+      .locator("section")
+      .filter({
+        has: page.getByRole("heading", { name: "Messagerie support" }),
+      })
+      .first();
+
     await expect(
       page.getByRole("heading", { name: "Messagerie support" }),
     ).toBeVisible();
     await expect(
-      page.getByText(
+      headerSection.getByText(
         "Un sujet par conversation. Posez votre question et suivez la reponse ici.",
       ),
     ).toBeVisible();
@@ -48,9 +55,18 @@ test.describe("Messages page", () => {
     await mockUnreadCount(page);
     await page.goto("/messages");
 
-    await expect(
-      page.getByText("Selectionnez une conversation", { exact: true }),
-    ).toBeVisible();
+    const emptyStateTitle = page
+      .locator("p:visible")
+      .filter({ hasText: /^Selectionnez une conversation$/ });
+    const emptyStateBody = page.locator("p:visible").filter({
+      hasText:
+        /^Choisissez une conversation dans la liste ou creez-en une nouvelle$/,
+    });
+
+    await expect(emptyStateTitle).toHaveCount(1);
+    await expect(emptyStateTitle).toBeVisible();
+    await expect(emptyStateBody).toHaveCount(1);
+    await expect(emptyStateBody).toBeVisible();
   });
 
   test("shows messages when conversation selected", async ({ page }) => {

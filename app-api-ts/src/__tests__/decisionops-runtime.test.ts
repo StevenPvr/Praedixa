@@ -308,17 +308,60 @@ describe("decisionops runtime persistence", () => {
       notes: "Escalade terrain",
     });
 
-    expect(query).toHaveBeenCalledTimes(4);
-    expect(query.mock.calls[0]?.[0]).toContain(
-      "INSERT INTO decision_approvals",
-    );
+    expect(query).toHaveBeenCalledTimes(5);
+    expect(query.mock.calls[0]?.[0]).toContain("FROM action_dispatches");
     expect(query.mock.calls[1]?.[0]).toContain(
       "INSERT INTO decision_approvals",
     );
-    expect(query.mock.calls[2]?.[0]).toContain("INSERT INTO action_dispatches");
-    expect(query.mock.calls[3]?.[0]).toContain(
+    expect(query.mock.calls[2]?.[0]).toContain(
+      "INSERT INTO decision_approvals",
+    );
+    expect(query.mock.calls[3]?.[0]).toContain("INSERT INTO action_dispatches");
+    expect(query.mock.calls[4]?.[0]).toContain(
       "INSERT INTO decision_ledger_entries",
     );
+  });
+
+  it("fails closed when a dispatch idempotency key already exists", async () => {
+    const existing = buildActionDispatchRecord();
+    const query = vi.fn().mockResolvedValueOnce({
+      rows: [
+        {
+          action_id: existing.actionId,
+          status: existing.status,
+          dispatch_mode: existing.dispatchMode,
+          contract_id: existing.contractId,
+          contract_version: existing.contractVersion,
+          record_json: existing,
+        },
+      ],
+    });
+
+    await expect(
+      initializePersistentDecisionOpsRuntime(buildFakeClient(query), {
+        organizationId: ORGANIZATION_ID,
+        recommendationId: RECOMMENDATION_ID,
+        siteId: "site-lyon",
+        decisionDate: "2026-03-13",
+        requestedAt: "2026-03-13T10:00:00.000Z",
+        horizon: "j7",
+        gapHours: 6,
+        predictedImpactEur: 920,
+        chosenOptionId: "77777777-7777-4777-8777-777777777777",
+        chosenOptionLabel: "Shift adjustment",
+        chosenOptionType: "hs",
+        chosenCostEur: 320,
+        chosenServicePct: 0.95,
+        requestedByActorId: "88888888-8888-4888-8888-888888888888",
+        requestedByActorRole: "manager",
+      }),
+    ).rejects.toMatchObject({
+      code: "ACTION_DISPATCH_IDEMPOTENCY_CONFLICT",
+      statusCode: 409,
+    });
+
+    expect(query).toHaveBeenCalledTimes(1);
+    expect(query.mock.calls[0]?.[0]).toContain("FROM action_dispatches");
   });
 
   it("builds an approval inbox from persisted approval records", async () => {

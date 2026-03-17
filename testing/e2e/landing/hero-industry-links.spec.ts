@@ -1,20 +1,37 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Hero industry links", () => {
-  test("renders the qualification block without legacy carousel roles", async ({
+  test("renders the homepage sector cards section with the published sector links", async ({
     page,
   }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/fr");
 
+    const sectorSection = page.locator("#secteurs");
+    await expect(sectorSection).toBeVisible();
     await expect(
-      page.getByRole("heading", {
-        name: "Un bon point de départ si…",
+      sectorSection.getByRole("heading", {
+        name: "Les mêmes arbitrages, déclinés par secteur.",
       }),
     ).toBeVisible();
+
+    const sectorLinks = sectorSection.locator("a[href^='/fr/secteurs/']");
+    await expect(sectorLinks).toHaveCount(4);
     await expect(
-      page.getByRole("heading", { name: "Pas pour vous si…" }),
+      sectorSection.locator("a[href='/fr/secteurs/hcr']"),
     ).toBeVisible();
-    await expect(page.getByRole("tab")).toHaveCount(0);
-    await expect(page.getByRole("tabpanel")).toHaveCount(0);
+    await expect(
+      sectorSection.locator("a[href='/fr/secteurs/enseignement-superieur']"),
+    ).toBeVisible();
+    await expect(
+      sectorSection.locator(
+        "a[href='/fr/secteurs/logistique-transport-retail']",
+      ),
+    ).toBeVisible();
+    await expect(
+      sectorSection.locator(
+        "a[href='/fr/secteurs/automobile-concessions-ateliers']",
+      ),
+    ).toBeVisible();
   });
 });

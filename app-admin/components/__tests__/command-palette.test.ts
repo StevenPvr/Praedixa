@@ -29,6 +29,9 @@ describe("command palette workspace links", () => {
       "/clients/org-acme/config",
     );
     expect(items.map((item) => item.href)).toContain(
+      "/clients/org-acme/contrats",
+    );
+    expect(items.map((item) => item.href)).toContain(
       "/clients/org-acme/messages",
     );
     expect(

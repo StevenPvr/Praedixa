@@ -21,6 +21,48 @@ test.describe("Landing navigation", () => {
     expect(count).toBeGreaterThan(0);
   });
 
+  test("navbar hides on downward scroll and reappears on upward scroll", async ({
+    page,
+  }) => {
+    await page.goto("/fr");
+    await page.evaluate(() => {
+      document.documentElement.style.scrollBehavior = "auto";
+      window.scrollTo(0, 0);
+    });
+
+    const banner = page.getByRole("banner");
+    await expect(banner).toHaveAttribute("data-scroll-state", "visible");
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.scrollHeight))
+      .toBeGreaterThan(2400);
+    await page.waitForTimeout(250);
+
+    await page.evaluate(() => {
+      window.scrollTo(0, 1200);
+    });
+    await expect
+      .poll(() => page.evaluate(() => Math.round(window.scrollY)))
+      .toBeGreaterThanOrEqual(1000);
+
+    await expect
+      .poll(() => banner.getAttribute("data-scroll-state"))
+      .toBe("hidden");
+
+    await page.evaluate(() => {
+      window.scrollBy(0, -420);
+    });
+    await expect
+      .poll(() => page.evaluate(() => Math.round(window.scrollY)))
+      .toBeLessThanOrEqual(820);
+
+    await expect
+      .poll(() => banner.getAttribute("data-scroll-state"))
+      .toBe("visible");
+    await expect
+      .poll(() => banner.getAttribute("data-scroll-surface"))
+      .toBe("elevated");
+  });
+
   test("CTA button is visible", async ({ page }) => {
     await page.goto("/fr");
     const cta = page.getByRole("link", {

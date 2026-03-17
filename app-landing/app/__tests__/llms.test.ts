@@ -59,6 +59,9 @@ describe("llms routes", () => {
     expect(body).toContain(
       "[Industry EN: Higher education](https://www.praedixa.com/en/industries/higher-education)",
     );
+    expect(body).toContain(
+      "[Sector FR: Fitness](https://www.praedixa.com/fr/secteurs/fitness-reseaux-clubs)",
+    );
     expect(body).not.toContain("historical audit");
     expect(body).not.toContain("Cloudflare");
 
@@ -81,6 +84,9 @@ describe("llms routes", () => {
     expect(body).toContain("https://www.praedixa.com/fr/secteurs/hcr");
     expect(body).toContain(
       "https://www.praedixa.com/en/industries/logistics-transport-retail",
+    );
+    expect(body).toContain(
+      "https://www.praedixa.com/en/industries/fitness-club-networks",
     );
 
     for (const retiredUrl of retiredKnowledgeUrls) {

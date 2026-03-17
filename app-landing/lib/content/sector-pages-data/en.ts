@@ -5,6 +5,7 @@ import {
   FlowNetworkIcon,
   StorefrontLineIcon,
 } from "../../../components/shared/icons/MarketingIcons";
+import { fitnessSectorPageEn } from "./fitness";
 import { praedixaMethodSources } from "./shared";
 import { sectorRoutes } from "./routes";
 
@@ -15,6 +16,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     groupLabel: "Hospitality / Food service",
     slug: sectorRoutes.en.slugs.hcr,
     shortLabel: "Hospitality / Food service",
+    brandLabel: "Praedixa HCR",
     title: "Hospitality / Food service",
     metaTitle:
       "Praedixa | Hospitality: arbitrate demand, coverage, and service before margin slips",
@@ -164,6 +166,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     groupLabel: "Higher education",
     slug: sectorRoutes.en.slugs["higher-education"],
     shortLabel: "Higher education",
+    brandLabel: "Praedixa Education",
     title: "Higher education",
     metaTitle:
       "Praedixa | Higher education: secure admissions, exams, and campus continuity without letting budget and coverage drift",
@@ -324,6 +327,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     groupLabel: "Logistics / Transport / Retail",
     slug: sectorRoutes.en.slugs["logistics-transport-retail"],
     shortLabel: "Logistics / Transport / Retail",
+    brandLabel: "Praedixa Operations",
     title: "Logistics / Transport / Retail",
     metaTitle:
       "Praedixa | Logistics, transport, retail: arbitrate demand, capacity, and customer promise at network speed",
@@ -480,6 +484,7 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
     groupLabel: "Automotive / dealerships / workshops",
     slug: sectorRoutes.en.slugs.automotive,
     shortLabel: "Automotive / dealerships / workshops",
+    brandLabel: "Praedixa Automotive",
     title: "Automotive / dealerships / workshops",
     metaTitle:
       "Praedixa | Automotive: arbitrate workshop load, parts availability, and scarce skills before delays slip",
@@ -622,4 +627,5 @@ export const sectorPagesEn: readonly SectorPageEntry[] = [
       },
     ],
   },
+  fitnessSectorPageEn,
 ] as const;

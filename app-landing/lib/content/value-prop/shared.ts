@@ -29,6 +29,82 @@ export interface StackComparisonRow {
   praedixaAdd: string;
 }
 
+export interface CredibilityRibbonContent {
+  stackChips: string[];
+  roleChips: string[];
+  trustMarkers: string[];
+  stackLabel: string;
+  rolesLabel: string;
+  rolesMicrocopy: string;
+  trustLabel: string;
+}
+
+export interface MethodStep {
+  id: "voir" | "comparer" | "decider" | "prouver";
+  number: string;
+  verb: string;
+  title: string;
+  body: string;
+  bullets: string[];
+  microproof: string;
+}
+
+export interface DeploymentStep {
+  marker: string;
+  title: string;
+  description: string;
+}
+export interface IntegrationControl {
+  badge: string;
+  title: string;
+  body: string;
+}
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface FinalCtaContent {
+  label: string;
+  heading: string;
+  body: string;
+  promiseItems: string[];
+  step1Fields: { name: string; type: "select" | "text"; options?: string[] }[];
+  step2Fields: { name: string; type: "text" | "email" | "textarea" }[];
+  step1Cta: string;
+  step2Cta: string;
+  successTitle: string;
+  successBody: string;
+}
+
+export interface ProblemCard {
+  number: string;
+  title: string;
+  consequence: string;
+}
+export interface ProofPreviewTab {
+  label: string;
+  content: string;
+}
+export interface ProofPreviewMetric {
+  value: string;
+  label: string;
+}
+
+export interface SocialProofContent {
+  eyebrow: string;
+  statValue: string;
+  statLabel: string;
+  logosAlt: string;
+  marqueeLabel: string;
+}
+
+export interface ProductPreviewContent {
+  kicker: string;
+  heading: string;
+  subheading: string;
+}
+
 export interface ValuePropContent {
   icp: string;
   promise: string;
@@ -41,6 +117,8 @@ export interface ValuePropContent {
   heroHeadingHighlight: string;
   heroSubheading: string;
   heroOffer: HeroOfferDescriptor;
+  socialProof: SocialProofContent;
+  product: ProductPreviewContent;
   footerTagline: string;
   qualificationTitle: string;
   qualificationBody: string;
@@ -184,6 +262,43 @@ export interface ValuePropContent {
     primaryCtaLabel: string;
     secondaryCtaLabel: string;
   };
+  // V2 sections
+  credibilityRibbon: CredibilityRibbonContent;
+  problemCards: ProblemCard[];
+  method: {
+    kicker: string;
+    heading: string;
+    steps: MethodStep[];
+  };
+  proofPreview: {
+    kicker: string;
+    heading: string;
+    body: string;
+    tabs: ProofPreviewTab[];
+    metrics: ProofPreviewMetric[];
+  };
+  deployment: {
+    kicker: string;
+    heading: string;
+    subheading: string;
+    steps: DeploymentStep[];
+    notItems: string[];
+    ctaMicrocopy: string;
+  };
+  integrationSecurity: {
+    kicker: string;
+    heading: string;
+    subheading: string;
+    controls: IntegrationControl[];
+    stackItems: string[];
+  };
+  faqV2: {
+    heading: string;
+    items: FaqItem[];
+    contactCta: string;
+    contactBody: string;
+  };
+  finalCta: FinalCtaContent;
 }
 
 export type ValuePropByLocale = Record<Locale, ValuePropContent>;

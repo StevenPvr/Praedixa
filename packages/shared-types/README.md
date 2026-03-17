@@ -220,7 +220,7 @@ Les modules `src/api/` couvrent a la fois le contrat public versionne et les con
 
 Le catalogue versionne des operations publiques non-admin vit dans `src/api/public-contract.ts`. Il decrit pour chaque `operationId` le `method`, le `path`, l'enveloppe de reponse et le type partage attendu, afin de garder une source de verite explicite entre `contracts/openapi/public.yaml` et les consumers TypeScript.
 Les payloads write publics nommes vivent dans `src/api/requests.ts` et sont references directement par les composants schemas OpenAPI, ce qui evite les `object` generiques permissifs.
-Les contrats DecisionOps/admin internes typent aussi les surfaces persistantes non-publiques, par exemple `src/api/approval-inbox.ts`, `src/api/action-dispatch-detail.ts`, `src/api/ledger-detail.ts` et `src/api/approval-decision.ts`.
+Les contrats DecisionOps/admin internes typent aussi les surfaces persistantes non-publiques, par exemple `src/api/approval-inbox.ts`, `src/api/action-dispatch-detail.ts`, `src/api/action-dispatch-fallback.ts`, `src/api/ledger-detail.ts`, `src/api/approval-decision.ts` et `src/api/decision-contract-studio.ts` pour le Contract Studio runtime.
 Le helper Node `@praedixa/shared-types/public-contract-node` sert uniquement aux tests et audits de contrat; il parse `contracts/openapi/public.yaml` de maniere structurelle sans tirer `fs` ou `yaml` dans les exports browser du package.
 
 #### `responses.ts` -- Enveloppes de reponse
@@ -245,18 +245,18 @@ Le helper Node `@praedixa/shared-types/public-contract-node` sert uniquement aux
 
 #### `requests.ts` -- Payloads de requete
 
-| Categorie       | Types                                                                                                                       |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Absences        | `ListAbsencesRequest`, `CreateAbsenceRequest`, `UpdateAbsenceRequest`, `AbsenceDecisionRequest`, `BulkAbsenceImportRequest` |
-| Employes        | `ListEmployeesRequest`, `CreateEmployeeRequest`, `UpdateEmployeeRequest`                                                    |
-| Utilisateurs    | `CreateUserRequest`, `UpdateUserRequest`, `LoginRequest`, `RegisterRequest`                                                 |
-| Previsions      | `RequestForecastRequest`, `ListForecastsRequest`, `WhatIfScenarioRequest`                                                   |
-| Decisions       | `ListDecisionsRequest`, `ReviewDecisionRequest`, `ValidateArbitrageRequest`, `RecordDecisionOutcomeRequest`                 |
-| DecisionOps     | `ActionDispatchDecisionRequest`, `ActionDispatchDecisionResponse`, `LedgerDecisionRequest`, `LedgerDecisionResponse`         |
-| Organisation    | `UpdateOrganizationSettingsRequest`, `UpdateWorkingDaysConfigRequest`                                                       |
-| Datasets        | `ListDatasetsRequest`, `GetDatasetDataRequest`                                                                              |
-| Export/Import   | `ExportRequest`, `ImportRequest`                                                                                            |
-| Filtres communs | `BaseFilterParams`, `DateRangeFilter`                                                                                       |
+| Categorie       | Types                                                                                                                                                                                   |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Absences        | `ListAbsencesRequest`, `CreateAbsenceRequest`, `UpdateAbsenceRequest`, `AbsenceDecisionRequest`, `BulkAbsenceImportRequest`                                                             |
+| Employes        | `ListEmployeesRequest`, `CreateEmployeeRequest`, `UpdateEmployeeRequest`                                                                                                                |
+| Utilisateurs    | `CreateUserRequest`, `UpdateUserRequest`, `LoginRequest`, `RegisterRequest`                                                                                                             |
+| Previsions      | `RequestForecastRequest`, `ListForecastsRequest`, `WhatIfScenarioRequest`                                                                                                               |
+| Decisions       | `ListDecisionsRequest`, `ReviewDecisionRequest`, `ValidateArbitrageRequest`, `RecordDecisionOutcomeRequest`                                                                             |
+| DecisionOps     | `ActionDispatchDecisionRequest`, `ActionDispatchDecisionResponse`, `ActionDispatchFallbackRequest`, `ActionDispatchFallbackResponse`, `LedgerDecisionRequest`, `LedgerDecisionResponse` |
+| Organisation    | `UpdateOrganizationSettingsRequest`, `UpdateWorkingDaysConfigRequest`                                                                                                                   |
+| Datasets        | `ListDatasetsRequest`, `GetDatasetDataRequest`                                                                                                                                          |
+| Export/Import   | `ExportRequest`, `ImportRequest`                                                                                                                                                        |
+| Filtres communs | `BaseFilterParams`, `DateRangeFilter`                                                                                                                                                   |
 
 #### `errors.ts` -- Codes d'erreur standardises
 

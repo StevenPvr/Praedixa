@@ -141,6 +141,11 @@ export interface ActionDispatchDetailPayloadRef {
   fieldPaths: readonly string[];
 }
 
+export interface ActionDispatchDetailPermissionSummary {
+  allowedByContract: boolean;
+  permissionKeys: readonly string[];
+}
+
 export interface ActionDispatchDetailResponse {
   kind: "ActionDispatchDetail";
   actionId: UUID;
@@ -153,6 +158,7 @@ export interface ActionDispatchDetailResponse {
   createdAt: ISODateTimeString;
   updatedAt: ISODateTimeString;
   destination: ActionDispatchDetailDestination;
+  permissions: ActionDispatchDetailPermissionSummary;
   idempotency: ActionDispatchDetailDedupeInsight;
   attempts: readonly ActionDispatchDetailAttempt[];
   retryPolicy: ActionDispatchDetailRetryPolicySummary;

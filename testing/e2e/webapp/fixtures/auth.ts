@@ -1,6 +1,11 @@
 import type { Page } from "@playwright/test";
 import { E2E_AUTH_SESSION_SECRET } from "../../fixtures/oidc-config";
 import { applyOidcAuthCookies } from "../../fixtures/oidc-auth";
+import {
+  mockCanonicalQuality,
+  mockDashboardSummary,
+  mockUserPreferences,
+} from "./api-mocks";
 
 const WEBAPP_BASE_URL = "http://localhost:3001";
 const WEBAPP_CLIENT_ID = "praedixa-webapp";
@@ -64,6 +69,10 @@ async function installShellApiDefaults(
       }),
     }),
   );
+
+  await mockUserPreferences(page);
+  await mockDashboardSummary(page);
+  await mockCanonicalQuality(page);
 }
 
 type WebappRole =

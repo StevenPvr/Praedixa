@@ -105,7 +105,7 @@ export function DeploymentRequestForm({
             type="checkbox"
             checked={form.consent}
             onChange={(event) => update("consent", event.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-neutral-300 text-brass accent-brass"
+            className="mt-1 h-4 w-4 rounded border-neutral-300 text-proof-500 accent-brass"
           />
           <label
             htmlFor="deployment-consent"
@@ -114,14 +114,14 @@ export function DeploymentRequestForm({
             {ui.legalJoinA}
             <Link
               href={termsHref}
-              className="text-brass-700 no-underline hover:text-brass-800"
+              className="text-ink-800 no-underline hover:text-ink-950"
             >
               {dict.form.cguLabel}
             </Link>
             {ui.legalJoinB}
             <Link
               href={privacyHref}
-              className="text-brass-700 no-underline hover:text-brass-800"
+              className="text-ink-800 no-underline hover:text-ink-950"
             >
               {dict.form.privacyLabel}
             </Link>

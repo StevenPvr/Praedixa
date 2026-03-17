@@ -21,11 +21,8 @@ vi.mock("next/headers", () => ({
 }));
 
 vi.mock("next/font/google", () => ({
-  Manrope: () => ({ variable: "font-sans-mock" }),
-}));
-
-vi.mock("geist/font/sans", () => ({
-  GeistSans: { variable: "geist-sans-mock" },
+  Inter: () => ({ variable: "font-inter-mock" }),
+  IBM_Plex_Mono: () => ({ variable: "font-ibm-plex-mono-mock" }),
 }));
 
 vi.mock("../../components/seo/JsonLd", () => ({

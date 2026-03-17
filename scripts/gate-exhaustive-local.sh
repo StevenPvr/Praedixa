@@ -251,6 +251,7 @@ run_manual_exhaustive_layer() {
   run_check "layer-b:prepush-deep" "security" "high" "./scripts/gate-prepush-deep.sh"
 
   run_check "quality:static-monorepo" "quality" "low" "./scripts/gate-quality-static.sh"
+  run_check "performance:budget-baselines" "quality" "medium" "pnpm performance:validate-budgets"
   run_check "tests:vitest-coverage" "quality" "low" "pnpm test:coverage"
   run_check "tests:api-ts" "quality" "low" "pnpm --filter @praedixa/api-ts test"
   run_check "tests:pytest-data" "quality" "low" "cd app-api && uv run pytest tests/"

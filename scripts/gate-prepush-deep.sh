@@ -113,6 +113,9 @@ python3 scripts/check-prod-security-config.py --mode full
 echo "[prepush-deep] Workspace static quality gates..."
 ./scripts/gate-quality-static.sh
 
+echo "[prepush-deep] Performance budget baselines..."
+pnpm performance:validate-budgets
+
 echo "[prepush-deep] Targeted API + connectors security tests..."
 ./scripts/gate-sensitive-security-tests.sh
 

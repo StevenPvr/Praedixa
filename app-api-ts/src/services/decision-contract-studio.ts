@@ -1,5 +1,6 @@
 import type { DecisionContract } from "@praedixa/shared-types/domain";
 import type {
+  DecisionContractStudioAuditEntryResponse,
   DecisionContractStudioBadge,
   DecisionContractStudioChangeSummary,
   DecisionContractStudioChecklistItem,
@@ -24,6 +25,7 @@ import {
 } from "./decision-contracts.js";
 
 export type {
+  DecisionContractStudioAuditEntryResponse,
   DecisionContractStudioBadge,
   DecisionContractStudioChangeSummary,
   DecisionContractStudioDetailRequest,
@@ -341,6 +343,7 @@ export function buildDecisionContractStudioListResponse(
 export function buildDecisionContractStudioDetailResponse(
   contract: DecisionContract,
   compareTo?: DecisionContract | null,
+  history: readonly DecisionContractStudioAuditEntryResponse[] = [],
 ): DecisionContractStudioDetailResponse {
   return {
     contract,
@@ -352,12 +355,14 @@ export function buildDecisionContractStudioDetailResponse(
       compareTo == null
         ? undefined
         : buildDecisionContractStudioChangeSummary(contract, compareTo),
+    history,
   };
 }
 
 export function buildDecisionContractStudioForkDraftResponse(
   contract: DecisionContract,
   request: DecisionContractStudioForkDraftRequest,
+  targetContractVersion?: number,
 ): DecisionContractStudioForkDraftResponse {
   const draftContract = forkDecisionContractVersion(contract, {
     actor: request.actor,
@@ -368,6 +373,7 @@ export function buildDecisionContractStudioForkDraftResponse(
   return {
     sourceContractId: contract.contractId,
     sourceContractVersion: contract.contractVersion,
+    targetContractVersion,
     draftContract,
     badge: buildBadge(draftContract),
     validation: buildDecisionContractStudioValidationSummary(draftContract),

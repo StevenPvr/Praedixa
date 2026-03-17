@@ -4,7 +4,12 @@ import Link from "next/link";
 import { PaperPlaneRight, SpinnerGap } from "@phosphor-icons/react";
 import { AlertDiamondIcon } from "../shared/icons/MarketingIcons";
 import { getLocalizedPath, type Locale } from "../../lib/i18n/config";
-import type { ContactChallenge, ContactFormData, ContactPageCopy, FieldErrors } from "./contact-page.types";
+import type {
+  ContactChallenge,
+  ContactFormData,
+  ContactPageCopy,
+  FieldErrors,
+} from "./contact-page.types";
 
 const SITE_COUNTS = ["1-3", "4-10", "11-30", "31+"] as const;
 const CONTACT_SECTORS = {
@@ -227,7 +232,7 @@ export function ContactPageForm({
             type="checkbox"
             checked={form.consent}
             onChange={(event) => update("consent", event.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-neutral-300 text-brass accent-brass"
+            className="mt-1 h-4 w-4 rounded border-neutral-300 text-proof-500 accent-brass"
             aria-invalid={fieldErrors.consent ? "true" : "false"}
             aria-describedby={
               fieldErrors.consent ? "contact-consent-error" : undefined
@@ -240,14 +245,14 @@ export function ContactPageForm({
             {copy.consentPrefix}
             <Link
               href={termsHref}
-              className="text-brass-700 no-underline hover:text-brass-800"
+              className="text-ink-800 no-underline hover:text-ink-950"
             >
               {copy.termsLabel}
             </Link>
             {copy.consentJoin}
             <Link
               href={privacyHref}
-              className="text-brass-700 no-underline hover:text-brass-800"
+              className="text-ink-800 no-underline hover:text-ink-950"
             >
               {copy.privacyLabel}
             </Link>

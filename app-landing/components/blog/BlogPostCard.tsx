@@ -25,10 +25,7 @@ export function BlogPostCard({ locale, post }: BlogPostCardProps) {
       </div>
 
       <h2 className="mt-3 text-xl font-semibold tracking-tight text-ink">
-        <Link
-          href={href}
-          className="text-ink no-underline hover:text-brass-700"
-        >
+        <Link href={href} className="text-ink no-underline hover:text-ink-800">
           {post.title}
         </Link>
       </h2>

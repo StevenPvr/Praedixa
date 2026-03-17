@@ -70,7 +70,9 @@ export function getClientIp(request: Request): string {
   const cfIp = normalizeIp(request.headers.get("cf-connecting-ip"));
   if (cfIp) return cfIp;
 
-  const forwardedIp = resolveForwardedForIp(request.headers.get("x-forwarded-for"));
+  const forwardedIp = resolveForwardedForIp(
+    request.headers.get("x-forwarded-for"),
+  );
   if (forwardedIp) return forwardedIp;
 
   const realIp = normalizeIp(request.headers.get("x-real-ip"));

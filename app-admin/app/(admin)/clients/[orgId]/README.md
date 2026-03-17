@@ -12,6 +12,7 @@ Sous-dossiers :
 - `actions`
 - `alertes`
 - `config`
+- `contrats`
 - `dashboard`
 - `donnees`
 - `equipe`

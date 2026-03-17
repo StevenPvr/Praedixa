@@ -1,6 +1,7 @@
 import type {
-  ActionDispatchDecisionRequest,
   ActionDispatchDecisionResponse,
+  ActionDispatchFallbackRequest,
+  ActionDispatchFallbackResponse,
 } from "@praedixa/shared-types/api";
 import type {
   ActionDispatchRecord,
@@ -8,8 +9,9 @@ import type {
 } from "@praedixa/shared-types/domain";
 
 import {
-  appendActionDispatchAttempt,
+  activateHumanFallback,
   appendActionDispatchRetry,
+  executePreparedFallback,
   shouldRetryActionDispatch,
 } from "./action-mesh.js";
 import {
@@ -20,137 +22,31 @@ import {
 } from "./decisionops-runtime-store.js";
 import {
   PersistenceError,
-  isUuidString,
   mapPersistenceError,
-  toIsoDateTime,
   withTransaction,
 } from "./persistence.js";
-
-interface ActionDispatchDecisionInput {
-  organizationId: string;
-  actionId: string;
-  actorUserId: string;
-  actorRole: string;
-  request: ActionDispatchDecisionRequest;
-}
-
-type TerminalActionOutcome = Extract<
-  ActionDispatchDecisionRequest["outcome"],
-  "dispatched" | "acknowledged" | "failed" | "canceled"
->;
-
-interface PreparedActionDecision {
-  comment?: string;
-  errorCode: string;
-  errorMessage?: string;
-}
-
-function assertOrganizationId(value: string): void {
-  if (!isUuidString(value)) {
-    throw new PersistenceError(
-      "organizationId must be a UUID.",
-      400,
-      "INVALID_ORGANIZATION_ID",
-    );
-  }
-}
-
-function assertActionId(value: string): void {
-  if (!isUuidString(value)) {
-    throw new PersistenceError(
-      "actionId must be a UUID.",
-      400,
-      "INVALID_ACTION_ID",
-    );
-  }
-}
-
-function normalizeActor(value: string, code: string, label: string): string {
-  const normalized = value.trim();
-  if (normalized.length === 0) {
-    throw new PersistenceError(`${label} is required.`, 400, code);
-  }
-  return normalized;
-}
-
-function normalizeOptionalText(value: string | undefined): string | undefined {
-  const normalized = value?.trim();
-  return normalized && normalized.length > 0 ? normalized : undefined;
-}
-
-function normalizeOccurredAt(value: string | undefined): string {
-  const normalized = toIsoDateTime(value ?? new Date().toISOString());
-  if (!normalized) {
-    throw new PersistenceError(
-      "occurredAt must be a valid ISO datetime.",
-      400,
-      "INVALID_ACTION_OCCURRED_AT",
-    );
-  }
-  return normalized;
-}
-
-function normalizeActionInput(input: ActionDispatchDecisionInput): {
-  normalizedInput: ActionDispatchDecisionInput;
-  occurredAt: string;
-} {
-  return {
-    normalizedInput: {
-      ...input,
-      actorUserId: normalizeActor(
-        input.actorUserId,
-        "INVALID_ACTION_ACTOR_USER_ID",
-        "actorUserId",
-      ),
-      actorRole: normalizeActor(
-        input.actorRole,
-        "INVALID_ACTION_ACTOR_ROLE",
-        "actorRole",
-      ),
-    },
-    occurredAt: normalizeOccurredAt(input.request.occurredAt),
-  };
-}
-
-function prepareActionDecision(
-  request: ActionDispatchDecisionRequest,
-): PreparedActionDecision {
-  const comment = normalizeOptionalText(request.comment);
-  const reasonCode = request.reasonCode.trim();
-
-  return {
-    comment,
-    errorCode: normalizeOptionalText(request.errorCode) ?? reasonCode,
-    errorMessage: normalizeOptionalText(request.errorMessage) ?? comment,
-  };
-}
-
-function appendDispatchAttempt(
-  record: ActionDispatchRecord,
-  input: ActionDispatchDecisionInput,
-  occurredAt: string,
-  prepared: PreparedActionDecision,
-  outcome: TerminalActionOutcome,
-): ActionDispatchRecord {
-  const canStoreError = outcome === "failed" || outcome === "canceled";
-
-  return appendActionDispatchAttempt(record, {
-    attemptNumber: record.attempts.length + 1,
-    status: outcome,
-    dispatchedAt: occurredAt,
-    latencyMs: input.request.latencyMs,
-    targetReference: normalizeOptionalText(input.request.targetReference),
-    errorCode: canStoreError ? prepared.errorCode : undefined,
-    errorMessage: canStoreError ? prepared.errorMessage : undefined,
-  });
-}
+import {
+  appendDispatchAttempt,
+  assertActionId,
+  assertActionWritebackAuthorized,
+  assertOrganizationId,
+  buildActionDecisionResponse,
+  buildActionFallbackResponse,
+  normalizeActionFallbackInput,
+  normalizeActionInput,
+  normalizeOptionalText,
+  normalizeReasonCode,
+  prepareActionDecisionFields,
+  type ActionDispatchDecisionInput,
+  type ActionDispatchFallbackInput,
+} from "./decisionops-runtime-action-support.js";
 
 function applyActionDecision(
   record: ActionDispatchRecord,
   input: ActionDispatchDecisionInput,
   occurredAt: string,
 ): ActionDispatchRecord {
-  const prepared = prepareActionDecision(input.request);
+  const prepared = prepareActionDecisionFields(input.request);
 
   try {
     switch (input.request.outcome) {
@@ -162,7 +58,6 @@ function applyActionDecision(
           record,
           input,
           occurredAt,
-          prepared,
           input.request.outcome,
         );
       case "retried":
@@ -189,6 +84,56 @@ function applyActionDecision(
   }
 }
 
+function buildFallbackActivationReason(
+  request: ActionDispatchFallbackRequest,
+): string {
+  const reasonCode = normalizeReasonCode(
+    request.reasonCode,
+    "INVALID_ACTION_FALLBACK_REASON_CODE",
+  );
+  const comment = normalizeOptionalText(request.comment);
+  return comment ? `${reasonCode}: ${comment}` : reasonCode;
+}
+
+function applyActionFallback(
+  record: ActionDispatchRecord,
+  input: ActionDispatchFallbackInput,
+  occurredAt: string,
+): ActionDispatchRecord {
+  try {
+    switch (input.request.operation) {
+      case "prepare":
+        return activateHumanFallback(record, {
+          channel: input.request.channel,
+          preparedAt: occurredAt,
+          activatedBy: "human",
+          activationReason: buildFallbackActivationReason(input.request),
+          reference: normalizeOptionalText(input.request.reference),
+        });
+      case "execute":
+        normalizeReasonCode(
+          input.request.reasonCode,
+          "INVALID_ACTION_FALLBACK_REASON_CODE",
+        );
+        return executePreparedFallback(record, occurredAt);
+    }
+
+    throw new PersistenceError(
+      "Action dispatch fallback operation is invalid.",
+      400,
+      "INVALID_ACTION_DISPATCH_FALLBACK",
+    );
+  } catch (error) {
+    throw new PersistenceError(
+      error instanceof Error
+        ? error.message
+        : "Action dispatch fallback is invalid.",
+      400,
+      "INVALID_ACTION_DISPATCH_FALLBACK",
+    );
+  }
+}
+
 async function syncLatestLedgerForAction(
   client: Parameters<typeof loadLatestLedgerByRecommendation>[0],
   organizationId: string,
@@ -210,22 +155,15 @@ async function syncLatestLedgerForAction(
   return syncedLedger.status;
 }
 
-function buildActionDecisionResponse(
-  nextAction: ActionDispatchRecord,
-  occurredAt: string,
-  ledgerStatus: LedgerEntry["status"] | null,
-): ActionDispatchDecisionResponse {
-  return {
-    actionId: nextAction.actionId,
-    recommendationId: nextAction.recommendationId,
-    occurredAt,
-    actionStatus: nextAction.status,
-    latestAttemptStatus:
-      nextAction.attempts[nextAction.attempts.length - 1]?.status ?? null,
-    ledgerStatus,
-    fallbackStatus: nextAction.fallback?.status ?? null,
-    retryEligible: shouldRetryActionDispatch(nextAction),
-  };
+function canRetryAction(action: ActionDispatchRecord): boolean {
+  if (
+    action.fallback?.status === "prepared" ||
+    action.fallback?.status === "executed"
+  ) {
+    return false;
+  }
+
+  return shouldRetryActionDispatch(action);
 }
 
 function syncLedgerForAction(
@@ -292,6 +230,7 @@ export async function decidePersistentActionDispatch(
         normalizedInput.organizationId,
         normalizedInput.actionId,
       );
+      assertActionWritebackAuthorized(currentAction, normalizedInput);
       const nextAction = applyActionDecision(
         currentAction,
         normalizedInput,
@@ -310,13 +249,67 @@ export async function decidePersistentActionDispatch(
         nextAction,
         occurredAt,
       );
-      return buildActionDecisionResponse(nextAction, occurredAt, ledgerStatus);
+      return buildActionDecisionResponse(
+        nextAction,
+        occurredAt,
+        ledgerStatus,
+        canRetryAction(nextAction),
+      );
     });
   } catch (error) {
     throw mapPersistenceError(
       error,
       "ACTION_DISPATCH_DECISION_FAILED",
       "Action dispatch decision persistence failed.",
+    );
+  }
+}
+
+export async function decidePersistentActionFallback(
+  input: ActionDispatchFallbackInput,
+): Promise<ActionDispatchFallbackResponse> {
+  assertOrganizationId(input.organizationId);
+  assertActionId(input.actionId);
+  const { normalizedInput, occurredAt } = normalizeActionFallbackInput(input);
+
+  try {
+    return await withTransaction(async (client) => {
+      const currentAction = await loadActionById(
+        client,
+        normalizedInput.organizationId,
+        normalizedInput.actionId,
+      );
+      assertActionWritebackAuthorized(currentAction, normalizedInput);
+      const nextAction = applyActionFallback(
+        currentAction,
+        normalizedInput,
+        occurredAt,
+      );
+      await saveActionRecord(
+        client,
+        normalizedInput.organizationId,
+        nextAction,
+        occurredAt,
+      );
+      const ledgerStatus = await syncLatestLedgerForAction(
+        client,
+        normalizedInput.organizationId,
+        currentAction,
+        nextAction,
+        occurredAt,
+      );
+      return buildActionFallbackResponse(
+        nextAction,
+        occurredAt,
+        ledgerStatus,
+        canRetryAction(nextAction),
+      );
+    });
+  } catch (error) {
+    throw mapPersistenceError(
+      error,
+      "ACTION_DISPATCH_FALLBACK_FAILED",
+      "Action dispatch fallback persistence failed.",
     );
   }
 }

@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 const mockUseApiGet = vi.fn();
+const mockApiPost = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
@@ -10,6 +11,16 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
+}));
+
+vi.mock("@/lib/api/client", () => ({
+  apiPost: (...args: unknown[]) => mockApiPost(...args),
+  ApiError: class ApiError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "ApiError";
+    }
+  },
 }));
 
 vi.mock("@/lib/auth/client", () => ({
@@ -146,7 +157,27 @@ const mockIntegrationConnections = [
     authorizationState: "authorized",
     authMode: "oauth2",
     sourceObjects: ["Account"],
+    lastSuccessfulSyncAt: "2026-03-06T09:30:00Z",
+    nextScheduledSyncAt: "2026-03-06T12:00:00Z",
     updatedAt: "2026-03-06T10:00:00Z",
+  },
+];
+
+const mockIntegrationSyncRuns = [
+  {
+    id: "run-1",
+    triggerType: "manual",
+    status: "success",
+    forceFullSync: false,
+    sourceWindowStart: null,
+    sourceWindowEnd: null,
+    recordsFetched: 24,
+    recordsWritten: 24,
+    errorClass: null,
+    errorMessage: null,
+    startedAt: "2026-03-06T09:00:00Z",
+    endedAt: "2026-03-06T09:02:00Z",
+    createdAt: "2026-03-06T08:59:00Z",
   },
 ];
 
@@ -226,6 +257,14 @@ function setupApiGetMocks(options?: SetupOptions) {
         refetch: vi.fn(),
       };
     }
+    if (url.includes("/integrations/sync-runs")) {
+      return {
+        data: mockIntegrationSyncRuns,
+        loading,
+        error: null,
+        refetch: vi.fn(),
+      };
+    }
     if (
       url.includes("/integrations/connections/") &&
       url.includes("/ingest-credentials")
@@ -270,6 +309,7 @@ describe("ConfigPage", () => {
     vi.clearAllMocks();
     mockContext.selectedSiteId = null;
     setupApiGetMocks();
+    mockApiPost.mockResolvedValue({ data: null });
   });
 
   it("renders heading and cost parameters table", () => {
@@ -330,5 +370,69 @@ describe("ConfigPage", () => {
     setupApiGetMocks({ proofDownloadUrl: null });
     render(<ConfigPage />);
     expect(screen.queryByText("PDF")).not.toBeInTheDocument();
+  });
+
+  it("renders connector operations and sync runs", () => {
+    render(<ConfigPage />);
+    expect(screen.getByText("Operations connecteur")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Tester la connexion" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Lancer manual" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Runs de sync")).toBeInTheDocument();
+    expect(screen.getByText("success")).toBeInTheDocument();
+  });
+
+  it("triggers a replay sync from the config page", async () => {
+    mockApiPost.mockResolvedValueOnce({
+      data: {
+        id: "run-2",
+        triggerType: "replay",
+        status: "queued",
+        forceFullSync: true,
+        sourceWindowStart: "2026-03-01T08:00:00.000Z",
+        sourceWindowEnd: "2026-03-01T10:00:00.000Z",
+        recordsFetched: 0,
+        recordsWritten: 0,
+        errorClass: null,
+        errorMessage: null,
+        startedAt: null,
+        endedAt: null,
+        createdAt: "2026-03-06T10:00:00.000Z",
+      },
+    });
+
+    render(<ConfigPage />);
+
+    fireEvent.change(screen.getByDisplayValue("manual"), {
+      target: { value: "replay" },
+    });
+    fireEvent.change(screen.getByLabelText("Fenetre source debut"), {
+      target: { value: "2026-03-01T09:00" },
+    });
+    fireEvent.change(screen.getByLabelText("Fenetre source fin"), {
+      target: { value: "2026-03-01T11:00" },
+    });
+    fireEvent.click(screen.getByLabelText("Forcer une full sync sur ce run"));
+    fireEvent.click(screen.getByRole("button", { name: "Lancer replay" }));
+
+    await waitFor(() => {
+      expect(mockApiPost).toHaveBeenCalledWith(
+        "/api/v1/admin/organizations/org-1/integrations/connections/conn-1/sync",
+        {
+          triggerType: "replay",
+          forceFullSync: true,
+          sourceWindowStart: new Date("2026-03-01T09:00").toISOString(),
+          sourceWindowEnd: new Date("2026-03-01T11:00").toISOString(),
+        },
+        expect.any(Function),
+      );
+    });
+
+    expect(
+      await screen.findByText(/Run replay queued cree le/i),
+    ).toBeInTheDocument();
   });
 });

@@ -151,6 +151,23 @@ describe("operational data persistence helpers", () => {
     ]);
   });
 
+  it("fails closed for proof records when the requested site is outside the caller scope", async () => {
+    mockedQueryRows.mockResolvedValueOnce([] as never);
+
+    await listPersistentProofRecords({
+      organizationId: ORGANIZATION_ID,
+      scope: {
+        orgWide: false,
+        accessibleSiteIds: ["site-lyon"],
+        requestedSiteId: "site-paris",
+      },
+    });
+
+    const [sql, values] = mockedQueryRows.mock.calls[0] ?? [];
+    expect(sql).toContain("AND FALSE");
+    expect(values).toEqual([ORGANIZATION_ID]);
+  });
+
   it("scopes forecast runs by accessible site ids when live reads are not org-wide", async () => {
     mockedQueryRows.mockResolvedValueOnce([
       {

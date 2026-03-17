@@ -9,11 +9,11 @@ Spécification produit détaillée pour une plateforme souveraine de
 fédération de données, d’anticipation, de simulation et d’optimisation
 des décisions opérationnelles.
 
-| **Version**   | v1.1                                                        |
+| **Version**   | v1.6                                                        |
 | ------------- | ----------------------------------------------------------- |
-| **Date**      | 13 mars 2026                                                |
+| **Date**      | 16 mars 2026                                                |
 | **Auteur**    | CEO & Lead Product brief consolidé par ChatGPT              |
-| **Statut**    | PRD cible + état réel du socle build-ready au 13 mars 2026  |
+| **Statut**    | PRD cible + état réel du socle build-ready au 16 mars 2026  |
 | **Périmètre** | Core platform + 3 packs métier (Coverage, Flow, Allocation) |
 
 <table>
@@ -456,29 +456,50 @@ l’identité du produit.</p></th>
 </tbody>
 </table>
 
-## **4.6 État réel du socle au 13 mars 2026**
+## **4.6 État réel du socle au 16 mars 2026**
 
 Ce PRD reste la cible produit. En parallèle, le repo porte désormais un
 socle réel qu’il faut distinguer clairement de la vision complète pour
 éviter de sur-vendre l’existant.
 
-| **Brique**                                              | **État réel dans le repo**                                                                                                                                                                                                                         | **Lecture produit correcte**                                                                                                                          |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Webapp auth et shell de prod                            | Auth OIDC webapp durcie pour la prod: origine publique explicite, pas de fallback implicite en production, tests et docs à jour. Le build `app-webapp`, l’image `linux/amd64` standalone et le smoke conteneurisé `/login` sont désormais validés. | Le shell webapp est crédible pour un vrai usage opérateur, mais la boucle DecisionOps complète n’est pas encore fermée.                               |
-| Operational decisions                                   | `GET/POST /api/v1/operational-decisions` et `override-stats` sont branchés sur une persistance réelle.                                                                                                                                             | Les décisions coverage existantes ne sont plus des faux succès frontend.                                                                              |
-| Live scenarios / decision workspace                     | `GET /live/scenarios/alert/:alertId` et `GET /live/decision-workspace/:alertId` lisent déjà `coverage_alerts` + `scenario_options` persistants.                                                                                                    | Le produit peut déjà afficher une vérité de scénarios coverage existante, mais la génération de nouveaux runs n’est pas encore industrialisée.        |
-| Approval / action / ledger UI                           | L’approval inbox admin est maintenant actionnable (`approve/reject`) et synchronise l’état interne `approval/action/ledger`; les surfaces `action dispatch detail` et `ledger detail` restent surtout orientées lecture/exploitation.              | La boucle commence à être opérable côté validation, mais il reste à fermer le runtime complet (`dispatch -> acknowledge/retry -> close/recalculate`). |
-| Decision Contracts / Graph / Ledger / Action / Approval | Les primitives de domaine, schémas et surfaces typées existent déjà comme fondations versionnées et testées.                                                                                                                                       | Le socle logiciel est en place; la gouvernance et le runtime complet restent à brancher.                                                              |
-| Mapping Studio                                          | Fondation typée posée, mais pas encore de studio admin complet pilotable en production.                                                                                                                                                            | La brique reste ouverte côté UI/API opérable.                                                                                                         |
-| Data plane Gold / medallion                             | Le Gold live et le pipeline medallion rejettent désormais fail-close les datasets et colonnes runtime legacy `mock_*`. La résolution client/site Gold est stricte: pas d’alias demo, pas d’heuristique d’overlap, pas de site hors allowlist.      | Le socle data-plane est plus crédible pour une boucle de simulation quasi-prod; il faut encore finir le mapping studio et l’activation connecteurs.   |
-| Action Mesh runtime                                     | Connectors et templates existent, mais pas encore un lifecycle de dispatch complet, persistant et idempotent de bout en bout.                                                                                                                      | Le produit n’a pas encore son write-back DecisionOps complet.                                                                                         |
-| Ledger finance-grade                                    | Fondations et lecture admin existent, et le Gold live fail-close maintenant sans inputs BAU / optimized explicites en exposant des états de preuve versionnés (`proved`, `cannot_prove_yet`).                                                      | Le ROI finance-grade progresse, mais l’entry complète par décision avec baseline / recommended / actual / validation finance reste encore à finir.    |
+| **Brique**                            | **État réel dans le repo**                                                                                                                                                                                                                                                      | **Lecture produit correcte**                                                                                                                                    |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Webapp auth et shell de prod          | Auth OIDC webapp durcie pour la prod: origine publique explicite, pas de fallback implicite en production, tests et docs à jour. Le build `app-webapp`, l’image `linux/amd64` standalone et le smoke conteneurisé `/login` sont validés.                                        | Le shell webapp est crédible pour un vrai usage opérateur, mais la boucle DecisionOps complète n’est pas encore fermée.                                         |
+| Control plane trust                   | Le repo a déjà des guards role-based, du scoping tenant/site, une MFA admin bloquante, une politique de break-glass et une fondation append-only typée; mais le nettoyage demo/legacy complet, l’audit append-only étendu et la fermeture des accès implicites restent ouverts. | La confiance du control plane progresse nettement, mais le `trust gate` n’est pas encore assez fermé pour considérer tous les chemins critiques comme durcis.   |
+| Operational decisions                 | `GET/POST /api/v1/operational-decisions` et `override-stats` sont branchés sur une persistance réelle.                                                                                                                                                                          | Les décisions coverage existantes ne sont plus des faux succès frontend.                                                                                        |
+| Live scenarios / decision workspace   | `GET /live/scenarios/alert/:alertId` et `GET /live/decision-workspace/:alertId` lisent déjà `coverage_alerts` + `scenario_options` persistants.                                                                                                                                 | Le produit sait déjà relire une vérité scenario coverage existante, mais la génération persistante, versionnée et explicable reste encore à fermer.             |
+| Approval / action / ledger UI         | L’approval inbox admin est actionnable (`approve/reject`); `action dispatch detail` est désormais actionnable sur le lifecycle et le fallback humain avec garde-fous de permissions; `ledger detail` est branché sur une persistance réelle.                                    | La boucle est plus opérable côté validation et exploitation, mais la matrice d’approbation configurable et la fermeture finance-grade restent encore ouvertes.  |
+| Decision Contracts                    | Un runtime persistant `DecisionContract` existe avec versioning, transition, fork, rollback, audit append-only, templates de pack et routes admin org-scoped.                                                                                                                   | Le contrat devient une vraie primitive gouvernée du produit; restent ouverts les hooks de policy globaux et la compatibilité transverse complète.               |
+| Decision Graph / scenario foundations | Les fondations typées `DecisionGraph`, les helpers de compatibilité et les surfaces read-only existent déjà, mais pas encore le vrai graph sémantique versionné ni le runtime scenario complet associé.                                                                         | Le socle logiciel existe, mais le noyau `graph + scenario runtime` reste le principal trou fonctionnel du PRD V1.                                               |
+| Mapping Studio / connecteurs          | Les fondations typées existent; replay/backfill est désormais opérable via surface admin/API; mais le mapping studio complet, la quarantaine et la vue dataset health unifiée ne sont pas encore fermés.                                                                        | L’activation connecteur progresse vers un vrai self-service, mais n’est pas encore suffisamment fermée pour promettre un onboarding sans intervention dev.      |
+| Data plane Gold / medallion           | Le Gold live et le pipeline medallion rejettent fail-close les datasets et colonnes runtime legacy `mock_*`. La résolution client/site Gold est stricte: pas d’alias demo, pas d’heuristique d’overlap, pas de site hors allowlist.                                             | Le socle data-plane est plus crédible pour une boucle de simulation quasi-prod; il faut encore finir le pilotage du mapping, de la quarantaine et de la health. |
+| Action Mesh runtime                   | Le lifecycle principal `dry-run -> dispatch -> acknowledged -> failed -> retried -> canceled` est posé et persisté, avec permissions de write-back, fallback humain explicite et premiers garde-fous d’idempotence.                                                             | Le write-back DecisionOps n’est plus théorique, mais il reste à fermer la sandbox, les actions composites et la prévention des doublons de bout en bout.        |
+| Ledger finance-grade                  | Les fondations `baseline / recommended / actual`, la méthode contrefactuelle, la validation finance et le recalcul versionné sont déjà présentes; `ledger detail` est persistant et le Gold live fail-close sans inputs BAU / optimized valides.                                | Le ROI finance-grade progresse nettement, mais les exports mensuels, le drill-down KPI et les tests de cohérence restent à fermer.                              |
 
-Conséquence de cadrage: Praedixa dispose maintenant d’un socle DecisionOps
-réel et d’une webapp de prod crédible, mais la V1 PRD n’est pas encore
-atteinte tant que le runtime `approval -> dispatch -> ledger`, le
-Decision Graph sémantique complet, le lifecycle de contrat et le mapping
-studio opérable ne sont pas fermés.
+Conséquence de cadrage: Praedixa dispose maintenant d’un socle
+DecisionOps réel, de contrats gouvernés persistants et d’un write-back
+plus crédible, mais la V1 PRD n’est pas encore atteinte tant que le
+`DecisionGraph` sémantique versionné, le runtime scenario persistant et
+explicable, le mapping studio opérable et la clôture ledger
+finance-grade ne sont pas fermés.
+
+## **4.7 Lecture du PRD et artefacts vivants au 16 mars 2026**
+
+| **Artefact**                                              | **Rôle**                                                               | **Quand le lire**                                                                                                             |
+| --------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `docs/prd/TODO.md`                                        | Checklist structurelle build-ready                                     | Quand il faut savoir ce qui reste ouvert et ce qui est vraiment prouvé dans le repo                                           |
+| `docs/prd/coverage-v1-thin-slice-spec.md`                 | Boucle Coverage V1 canonique                                           | Quand il faut lire le produit comme une seule tranche end-to-end                                                              |
+| `docs/prd/connector-activation-and-dataset-trust-spec.md` | Activation connecteur + dataset trust                                  | Quand le sujet touche onboarding, mapping, replay, quarantaine ou freshness                                                   |
+| `docs/prd/decision-contract-governed-publish-spec.md`     | Lifecycle et gouvernance du contrat                                    | Quand le sujet touche publish, SoD, rollback, permissions et lien vers approval/action/ledger                                 |
+| `docs/prd/decision-graph-and-scenario-runtime-spec.md`    | Noyau `DecisionGraph` + runtime scenario                               | Quand le sujet touche semantic query API, generation scenario, explicabilite ou compatibilite transverse                      |
+| `docs/prd/decision-ledger-and-roi-proof-spec.md`          | Ledger finance-grade et preuve ROI                                     | Quand le sujet touche source de verite economique, revisions, drill-down, exports ou frontiere avec les proof packs           |
+| `docs/prd/control-plane-trust-gate-spec.md`               | Trust gate control plane                                               | Quand le sujet touche demo/legacy cleanup, auth/RBAC/tenant safety, audit append-only, break-glass ou support least-privilege |
+| `docs/prd/ux-and-e2e-trust-paths-spec.md`                 | Shells et parcours critiques                                           | Quand le sujet touche page models, etats degrades, fetch/retry patterns, neutralite multi-pack ou E2E critiques               |
+| `docs/prd/approval-and-action-mesh-governance-spec.md`    | Gouvernance d'execution                                                | Quand le sujet touche matrice d'approbation, justification structuree, SoD critique, idempotence, composites ou sandbox       |
+| `docs/prd/decisionops-operating-loop-spec.md`             | Runtime quotidien `signal -> compare -> approve -> dispatch -> ledger` | Quand le sujet touche UX operationnelle, etats degrades ou preuves E2E critiques                                              |
+| `docs/prd/build-release-sre-readiness-spec.md`            | Merge/release/SRE                                                      | Quand le sujet touche CI, rollback, restore, observabilite ou exit gate                                                       |
+| `docs/prd/decisionops-v1-execution-backbone.md`           | Ordre de fermeture                                                     | Quand il faut prioriser les streams avant de creer du backlog                                                                 |
+| `docs/prd/matrice-verification-parcours-confiance.md`     | Preuves merge/release                                                  | Quand il faut lier une exigence produit a une evidence de test, smoke ou observabilite                                        |
 
 # **5. Architecture produit et principes de build**
 
@@ -1159,6 +1180,14 @@ l’exécution.
 > **Critère d’acceptation:** Les pilotes peuvent être testés sans
 > impacter la prod métier.
 
+Etat actuel du repo au 16 mars 2026: le lifecycle principal du dispatch,
+les permissions de write-back, le fallback humain et la lecture
+persistente des details d'action existent deja. En revanche, la matrice
+d'approbation configurable, la justification structuree de bout en bout,
+l'idempotence complete, les actions composites et la sandbox restent
+encore des fermetures a realiser pour une couche d'execution
+completement gouvernee.
+
 ## **6.8 Decision Ledger & ROI Engine**
 
 Objectif: fermer la boucle économique du produit. Sans ledger et sans
@@ -1229,6 +1258,13 @@ une machine à standardiser les bonnes décisions.
 >
 > **Critère d’acceptation:** Utile pour les comptes matures et les
 > environnements régulés.
+
+Etat actuel du repo au 16 mars 2026: `Ledger Detail` est deja branche
+sur une persistance reelle et les fondations `baseline / recommended /
+actual`, methode contrefactuelle, validation finance et recalcul
+versionne existent deja. En revanche, le cockpit ROI complet, les
+exports mensuels defendables, le drill-down consolide et la separation
+totale entre proof packs et ledger economique restent encore a fermer.
 
 **EXEMPLE D’ENTRÉE DE LEDGER**
 
@@ -1425,14 +1461,15 @@ la démo.
 
 ## **7.3 États métier standardisés**
 
-| **Objet**      | **États V1**                                                    |
-| -------------- | --------------------------------------------------------------- |
-| Connector      | draft, auth_pending, syncing, healthy, degraded, failed, paused |
-| Contract       | draft, testing, approved, published, archived                   |
-| ScenarioRun    | queued, running, completed, failed, timed_out, expired          |
-| Recommendation | created, viewed, approved, rejected, acted, monitored, closed   |
-| Action         | pending, dispatched, acknowledged, failed, retried, canceled    |
-| LedgerEntry    | open, measuring, closed, recalculated, disputed                 |
+| **Objet**      | **États V1**                                                          |
+| -------------- | --------------------------------------------------------------------- |
+| Connector      | draft, auth_pending, syncing, healthy, degraded, failed, paused       |
+| Contract       | draft, testing, approved, published, archived                         |
+| ScenarioRun    | queued, running, completed, failed, timed_out, expired                |
+| Recommendation | created, viewed, approved, rejected, acted, monitored, closed         |
+| Approval       | requested, approved, rejected, canceled                               |
+| Action         | dry-run, pending, dispatched, acknowledged, failed, retried, canceled |
+| LedgerEntry    | open, measuring, closed, recalculated, disputed                       |
 
 ## **7.4 Event schema**
 
@@ -1450,8 +1487,13 @@ l’observabilité, au ledger et à l’analytique produit.
 | scenario.completed         | run_id, recommendation_ids, best_score, status          | Scenario engine     |
 | approval.requested         | approval_id, recommendation_id, approver_role, deadline | Workflow engine     |
 | approval.granted           | approval_id, actor, decision, comment                   | Workflow engine     |
+| approval.rejected          | approval_id, actor, reason_code, comment                | Workflow engine     |
 | action.dispatched          | action_id, destination, idempotency_key, status         | Action mesh         |
+| action.retry_requested     | action_id, actor_or_system, reason, retry_count         | Action mesh         |
+| action.fallback.executed   | action_id, actor, fallback_type, status                 | Action mesh         |
 | action.completed           | action_id, status, target_ref, latency_ms               | Action mesh         |
+| contract.rolled_back       | contract_id, version, rollback_to, actor                | Contract engine     |
+| ledger.recalculated        | ledger_id, previous_revision, current_revision, status  | Ledger engine       |
 | ledger.closed              | ledger_id, realized_roi, validation_status              | Ledger engine       |
 
 ## **7.5 Règles de temps et snapshots**
@@ -1508,6 +1550,17 @@ signal, comparer des scénarios, approuver, agir, relire le résultat.
 | ROI Cockpit             | COO / DAF             | Vues par contrat/site/région/période, drill-down, exports                                   |
 | Admin & Policies        | Org admin             | RBAC, seuils, policies globales, feature flags, audit access                                |
 
+Au 16 mars 2026, `Approval Queue`, `Action Dispatch Detail`, `Ledger
+Detail` et le `Contract Studio` sont déjà adossés à des surfaces
+persistantes crédibles dans le repo. `Mapping Studio`, `Decision Graph
+Explorer` et le `ROI Cockpit` complet restent encore des surfaces cibles
+à fermer opérationnellement, en particulier pour le drill-down consolide
+et les exports mensuels finance-grade.
+
+Le prochain niveau de fermeture UX reste la convergence explicite entre
+`app-webapp` et `app-admin`: memes page models, memes etats degrades,
+memes patterns de retry et parcours E2E critiques vraiment prouves.
+
 ## **8.2 Workflow: onboarding d’un nouveau client**
 
 28. Créer le workspace, définir la résidence des données, configurer SSO
@@ -1540,6 +1593,16 @@ signal, comparer des scénarios, approuver, agir, relire le résultat.
 | Approuver ou rejeter           | Approver           | Explication, payload d’action, impact attendu, justification |
 | Envoyer l’action               | Système            | Dispatch robuste avec feedback de statut                     |
 | Observer le résultat           | Operator / finance | Ledger detail puis cockpit ROI                               |
+
+Au 16 mars 2026, la lecture signal/compare coverage existe déjà en
+partie et la validation admin est actionnable. En revanche, la
+génération persistante de scénarios, la matrice d’approbation
+configurable et la clôture ledger finance-grade restent encore à
+fermer.
+
+Le repo doit aussi encore fermer la lisibilite inter-shell de ce
+parcours: un operator, un approver et un support ne doivent pas voir des
+versions divergentes du meme etat produit selon l'app utilisee.
 
 ## **8.4 Règles UX non négociables**
 
@@ -1628,6 +1691,11 @@ gouvernent pas seuls.</p></th>
 
 - Préférer un mix solver exact + heuristiques plutôt qu’un moteur
   “intelligent” opaque.
+
+État actuel du repo au 16 mars 2026: les lectures coverage persistantes
+existent déjà pour `live scenarios` et `decision workspace`, mais le
+produit ne sait pas encore lancer partout un runtime de génération
+versionné et explicable avec ses états dégradés complets.
 
 ## **9.4 Explicabilité minimum requise**
 
@@ -1731,6 +1799,12 @@ exigeante devra être définie commercialement et techniquement.
 | Accès support  | Just-in-time ou journalisé, principe de moindre privilège                    |
 | Isolation      | Séparation stricte tenants, environnements et données brutes/harmonisées     |
 
+Au 16 mars 2026, le repo a déjà une bonne partie de ce socle de
+confiance, mais le trust gate n’est pas encore totalement fermé tant que
+les chemins demo/legacy restants, l’audit append-only étendu et les
+accès privilégiés implicites ne sont pas éliminés ou explicitement
+encadrés.
+
 ## **10.3 RGPD et minimisation**
 
 - Ne traiter que les données nécessaires à la décision visée par le pack
@@ -1798,6 +1872,19 @@ ledger doivent être manipulables via API.
 | GET /ledger/{id}             | Lire l’entrée complète de ledger                |
 | GET /roi/report              | Exporter un rapport consolidé                   |
 
+Au 16 mars 2026, le repo matérialise déjà une partie de cette surface
+via des routes admin réelles pour:
+
+- le runtime org-scoped des `DecisionContract`;
+- l’approval inbox et la mutation de décision;
+- le détail dispatch et ses mutations de lifecycle/fallback;
+- le `Ledger Detail`;
+- les tests de connexion, sync triggers et replay/backfill connecteurs.
+
+La lecture detaillee du ledger est donc bien plus avancee que la couche
+d'export et de revue mensuelle finance-grade, qui reste encore une
+partie cible de la V1.
+
 ## **11.2 Webhooks sortants**
 
 - scenario.completed
@@ -1820,6 +1907,9 @@ ledger doivent être manipulables via API.
 | Ledger      | time-to-close, delta attendu/réalisé, contestation                       |
 | UI          | page load, action completion, approval turnaround, dead clicks           |
 
+Les corrélations minimales attendues doivent inclure `request_id`,
+`run_id`, `contract_version`, `connector_run_id` et `action_id`.
+
 ## **11.4 Stratégie de tests**
 
 - Tests unitaires sur le DSL de contrat, les policies et les fonctions
@@ -1833,7 +1923,12 @@ ledger doivent être manipulables via API.
 - Golden datasets pour vérifier que la recommandation ne dérive pas
   silencieusement après modification.
 
+- Tests de cohérence sur `ROI / ledger / proof packs / decisions`.
+
 - Tests de charge sur sync, calcul scénario et dispatch action.
+
+- Tests E2E sur les parcours critiques avec etats degrades visibles et
+  sources persistentes reelles.
 
 - Shadow mode avant write-back sur chaque nouveau client ou contrat
   critique.
@@ -1843,7 +1938,7 @@ ledger doivent être manipulables via API.
 
 ## **11.5 Supportability**
 
-- Chaque incident client doit être corrélable à un run_id,
+- Chaque incident client doit être corrélable à un request_id, run_id,
   contract_version, connector_run_id et action_id.
 
 - Les exports de support doivent pouvoir être produits sans exposer plus
@@ -1882,6 +1977,11 @@ ledger doivent être manipulables via API.
 | 19-20       | Flow Pack bêta, performance tuning, feature flags, export finance                                |
 | 21-22       | Stabilisation pilote, sécurité, tests de charge, améliorations explainability                    |
 | 23-24       | Go-live design partners, revue KPI, backlog V1.5, packaging commercial                           |
+
+Ce plan reste utile comme cible produit, mais l’ordre d’exécution réel
+du repo est désormais piloté par `docs/prd/TODO.md`,
+`docs/prd/decisionops-v1-execution-backbone.md` et
+`docs/prd/matrice-verification-parcours-confiance.md`.
 
 ## **12.3 Jalons produit à ne pas rater**
 
@@ -1924,15 +2024,16 @@ ledger doivent être manipulables via API.
 
 ## **13.1 Risques majeurs**
 
-| **Risque**               | **Pourquoi c’est dangereux**                                 | **Mitigation**                                                                    |
-| ------------------------ | ------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| Scope trop large         | Le produit se dilue entre data platform, BI, IA et workflow  | Tenir le wedge Coverage/Flow/Allocation et refuser le “tout l’entreprise” en V1   |
-| Dette d’intégration      | Chaque client devient un projet spécifique                   | Framework de connecteurs + mapping studio + templates par pack                    |
-| Produit trop analytique  | On voit bien le problème mais rien ne se déclenche           | Action Mesh et ledger traités comme cœur produit, pas comme extension             |
-| Produit trop autonome    | Rejet par les métiers et la conformité                       | Approval matrix, explicabilité, overrides et policies by design                   |
-| ROI non crédible         | Le DAF ne suit pas, le deal se fragilise                     | Méthode contrefactuelle explicite, validation finance, distinction estimé/réalisé |
-| Performance insuffisante | L’outil n’entre pas dans le rythme opérationnel              | Budgets temps, fallback heuristiques, shadow mode                                 |
-| Équipe trop orientée LLM | Le produit vend du vernis au lieu d’une boucle décisionnelle | LLM limité à mapping, synthèse et NLQ assisté                                     |
+| **Risque**               | **Pourquoi c’est dangereux**                                                                              | **Mitigation**                                                                                        |
+| ------------------------ | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Scope trop large         | Le produit se dilue entre data platform, BI, IA et workflow                                               | Tenir le wedge Coverage/Flow/Allocation et refuser le “tout l’entreprise” en V1                       |
+| Dette d’intégration      | Chaque client devient un projet spécifique                                                                | Framework de connecteurs + mapping studio + templates par pack                                        |
+| Produit trop analytique  | On voit bien le problème mais rien ne se déclenche                                                        | Action Mesh et ledger traités comme cœur produit, pas comme extension                                 |
+| Produit trop autonome    | Rejet par les métiers et la conformité                                                                    | Approval matrix, explicabilité, overrides et policies by design                                       |
+| ROI non crédible         | Le DAF ne suit pas, le deal se fragilise                                                                  | Méthode contrefactuelle explicite, validation finance, distinction estimé/réalisé                     |
+| Performance insuffisante | L’outil n’entre pas dans le rythme opérationnel                                                           | Budgets temps, fallback heuristiques, shadow mode                                                     |
+| Équipe trop orientée LLM | Le produit vend du vernis au lieu d’une boucle décisionnelle                                              | LLM limité à mapping, synthèse et NLQ assisté                                                         |
+| Sur-promesse du socle    | Le produit et la doc laissent croire que la boucle est fermée alors que certains runtimes restent ouverts | Tenir le PRD principal synchronisé avec les specs vivantes et ne cocher `TODO.md` qu’avec preuve repo |
 
 ## **13.2 Arbitrages structurants à trancher immédiatement**
 

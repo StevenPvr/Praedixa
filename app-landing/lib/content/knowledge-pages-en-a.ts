@@ -111,7 +111,7 @@ export const enContentA: Record<
         title: "Covered contexts",
         paragraphs: [
           "Praedixa is built for multi-site companies that need to align HR, finance, operations, and supply chain decisions.",
-          "Dedicated industry pages now cover hospitality, higher education, logistics / transport / retail, and automotive / dealerships / workshops with proof points and value propositions tailored to each context.",
+          "Dedicated industry pages now cover hospitality, higher education, logistics / transport / retail, automotive / dealerships / workshops, and fitness with proof points and value propositions tailored to each context.",
         ],
         bullets: [
           "Workload and staffing variability",

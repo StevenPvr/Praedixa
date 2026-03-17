@@ -81,6 +81,10 @@ describe("route access helpers", () => {
       "admin:onboarding:write",
       "admin:monitoring:read",
     ]);
+    expect(getRequiredPermissionsForPath("/clients/org-1/contrats")).toEqual([
+      "admin:org:write",
+      "admin:billing:read",
+    ]);
     expect(getRequiredPermissionsForPath("/clients/org-1/config")).toEqual([
       "admin:org:write",
       "admin:billing:read",
@@ -106,9 +110,46 @@ describe("route access helpers", () => {
       ["GET", ADMIN_ENDPOINTS.platformKPIs],
       ["GET", ADMIN_ENDPOINTS.organizations],
       ["GET", ADMIN_ENDPOINTS.auditLog],
+      ["GET", ADMIN_ENDPOINTS.decisionContractTemplates],
+      ["POST", ADMIN_ENDPOINTS.decisionContractTemplatePreview],
+      ["POST", ADMIN_ENDPOINTS.decisionCompatibilityEvaluate],
       ["GET", ADMIN_ENDPOINTS.onboardingList],
       ["POST", ADMIN_ENDPOINTS.onboardingStart],
       ["GET", ADMIN_ENDPOINTS.orgDecisionConfigResolved("org-1")],
+      ["GET", ADMIN_ENDPOINTS.orgDecisionContracts("org-1")],
+      ["POST", ADMIN_ENDPOINTS.orgDecisionContracts("org-1")],
+      [
+        "GET",
+        ADMIN_ENDPOINTS.orgDecisionContractDetail("org-1", "coverage-core", 2),
+      ],
+      [
+        "POST",
+        ADMIN_ENDPOINTS.orgDecisionContractTransition(
+          "org-1",
+          "coverage-core",
+          2,
+        ),
+      ],
+      [
+        "POST",
+        ADMIN_ENDPOINTS.orgDecisionContractFork("org-1", "coverage-core", 2),
+      ],
+      [
+        "GET",
+        ADMIN_ENDPOINTS.orgDecisionContractRollbackCandidates(
+          "org-1",
+          "coverage-core",
+          2,
+        ),
+      ],
+      [
+        "POST",
+        ADMIN_ENDPOINTS.orgDecisionContractRollback(
+          "org-1",
+          "coverage-core",
+          2,
+        ),
+      ],
       ["GET", ADMIN_ENDPOINTS.orgApprovalsInbox("org-1")],
       [
         "POST",
@@ -125,13 +166,40 @@ describe("route access helpers", () => {
         ),
       ],
       [
+        "POST",
+        ADMIN_ENDPOINTS.orgActionDispatchDecision(
+          "org-1",
+          "11111111-1111-4111-8111-111111111111",
+        ),
+      ],
+      [
+        "POST",
+        ADMIN_ENDPOINTS.orgActionDispatchFallback(
+          "org-1",
+          "11111111-1111-4111-8111-111111111111",
+        ),
+      ],
+      [
         "GET",
         ADMIN_ENDPOINTS.orgLedgerDetail(
           "org-1",
           "11111111-1111-4111-8111-111111111111",
         ),
       ],
+      [
+        "POST",
+        ADMIN_ENDPOINTS.orgLedgerDecision(
+          "org-1",
+          "11111111-1111-4111-8111-111111111111",
+        ),
+      ],
       ["GET", ADMIN_ENDPOINTS.orgIntegrationConnections("org-1")],
+      [
+        "POST",
+        ADMIN_ENDPOINTS.orgIntegrationConnectionTest("org-1", "connection-1"),
+      ],
+      ["POST", ADMIN_ENDPOINTS.orgIntegrationSync("org-1", "connection-1")],
+      ["GET", ADMIN_ENDPOINTS.orgIntegrationSyncRuns("org-1")],
       [
         "POST",
         ADMIN_ENDPOINTS.orgIntegrationIngestCredentials(

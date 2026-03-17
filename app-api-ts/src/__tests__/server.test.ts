@@ -18,6 +18,7 @@ import {
 import type { RouteContext } from "../types.js";
 
 const TEST_ORGANIZATION_ID = "11111111-1111-4111-8111-111111111111";
+const nativeFetch = globalThis.fetch.bind(globalThis);
 
 function buildRouteContext(
   overrides: Partial<RouteContext> = {},
@@ -112,6 +113,53 @@ describe("api transport and authorization guards", () => {
     ] as const;
 
     for (const { template, permission } of privilegedUserRoutes) {
+      const route = routes.find((entry) => entry.template === template);
+      expect(route).toBeDefined();
+      expect(route?.authRequired).toBe(true);
+      expect(route?.allowedRoles).toEqual(["super_admin"]);
+      expect(route?.requiredPermissions).toContain(permission);
+    }
+  });
+
+  it("keeps decision contract and action dispatch admin routes fail-closed against org privilege drift", () => {
+    const guardedAdminRoutes = [
+      {
+        template: "/api/v1/admin/organizations/:orgId/decision-contracts",
+        permission: "admin:org:read",
+      },
+      {
+        template:
+          "/api/v1/admin/organizations/:orgId/decision-contracts/:contractId/versions/:contractVersion",
+        permission: "admin:org:read",
+      },
+      {
+        template:
+          "/api/v1/admin/organizations/:orgId/decision-contracts/:contractId/versions/:contractVersion/transition",
+        permission: "admin:org:write",
+      },
+      {
+        template:
+          "/api/v1/admin/organizations/:orgId/decision-contracts/:contractId/versions/:contractVersion/fork",
+        permission: "admin:org:write",
+      },
+      {
+        template:
+          "/api/v1/admin/organizations/:orgId/action-dispatches/:actionId",
+        permission: "admin:org:read",
+      },
+      {
+        template:
+          "/api/v1/admin/organizations/:orgId/action-dispatches/:actionId/decision",
+        permission: "admin:org:write",
+      },
+      {
+        template:
+          "/api/v1/admin/organizations/:orgId/action-dispatches/:actionId/fallback",
+        permission: "admin:org:write",
+      },
+    ] as const;
+
+    for (const { template, permission } of guardedAdminRoutes) {
       const route = routes.find((entry) => entry.template === template);
       expect(route).toBeDefined();
       expect(route?.authRequired).toBe(true);
@@ -329,12 +377,15 @@ describe("api transport and authorization guards", () => {
         address != null && typeof address === "object" ? address.port : null;
       expect(typeof port).toBe("number");
 
-      const response = await fetch(`http://127.0.0.1:${port}/api/v1/health`, {
-        headers: {
-          "X-Request-ID": "req-health-123",
-          "X-Trace-ID": "trace-health-123",
+      const response = await nativeFetch(
+        `http://127.0.0.1:${port}/api/v1/health`,
+        {
+          headers: {
+            "X-Request-ID": "req-health-123",
+            "X-Trace-ID": "trace-health-123",
+          },
         },
-      });
+      );
 
       expect(response.status).toBe(200);
       expect(response.headers.get("x-request-id")).toBe("req-health-123");

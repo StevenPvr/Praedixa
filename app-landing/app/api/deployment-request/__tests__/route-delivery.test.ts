@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { loadPostRoute, makeRequest, mockEmailsSend, validBody } from "./route-test-helpers";
+import {
+  loadPostRoute,
+  makeRequest,
+  mockEmailsSend,
+  validBody,
+} from "./route-test-helpers";
 
 describe("POST /api/deployment-request delivery flow", () => {
   let POST: (request: Request) => Promise<{ status: number; body: unknown }>;
@@ -10,7 +15,9 @@ describe("POST /api/deployment-request delivery flow", () => {
 
   describe("honeypot", () => {
     it("returns success silently when the website field is filled", async () => {
-      const res = await POST(makeRequest(validBody({ website: "http://spam.com" })));
+      const res = await POST(
+        makeRequest(validBody({ website: "http://spam.com" })),
+      );
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ success: true });
       expect(mockEmailsSend).not.toHaveBeenCalled();
@@ -48,7 +55,9 @@ describe("POST /api/deployment-request delivery flow", () => {
       expect(confirmCall.to).toEqual(["test@example.com"]);
       expect(confirmCall.subject).toContain("Demande de déploiement reçue");
       expect(confirmCall.replyTo).toBe("admin@praedixa.com");
-      expect(confirmCall.text).toContain("Nous confirmons la bonne réception de votre demande");
+      expect(confirmCall.text).toContain(
+        "Nous confirmons la bonne réception de votre demande",
+      );
     });
 
     it("includes acquisition context in the admin email when present", async () => {
@@ -71,7 +80,11 @@ describe("POST /api/deployment-request delivery flow", () => {
 
   describe("HTML escaping", () => {
     it("escapes HTML entities in the company name", async () => {
-      await POST(makeRequest(validBody({ companyName: '<script>alert("xss")</script>' })));
+      await POST(
+        makeRequest(
+          validBody({ companyName: '<script>alert("xss")</script>' }),
+        ),
+      );
       const adminCall = mockEmailsSend.mock.calls[0]![0];
       expect(adminCall.html).not.toContain("<script>");
       expect(adminCall.html).toContain("&lt;script&gt;");
@@ -84,7 +97,11 @@ describe("POST /api/deployment-request delivery flow", () => {
     });
 
     it("strips newlines from the email subject", async () => {
-      await POST(makeRequest(validBody({ companyName: "Company\r\nBcc: spam@evil.com" })));
+      await POST(
+        makeRequest(
+          validBody({ companyName: "Company\r\nBcc: spam@evil.com" }),
+        ),
+      );
       const adminCall = mockEmailsSend.mock.calls[0]![0];
       expect(adminCall.subject).not.toContain("\r");
       expect(adminCall.subject).not.toContain("\n");

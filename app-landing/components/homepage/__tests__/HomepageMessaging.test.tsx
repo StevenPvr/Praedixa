@@ -1,9 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { fr } from "../../../lib/i18n/dictionaries/fr";
-import { HowItWorksSection } from "../HowItWorksSection";
-import { UseCasesSection } from "../UseCasesSection";
-import { ContactCtaSection } from "../ContactCtaSection";
+import { ProblemBlockSection } from "../ProblemBlockSection";
+import { FinalCtaSection } from "../FinalCtaSection";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -18,57 +16,24 @@ vi.mock("next/link", () => ({
 }));
 
 describe("Homepage FR messaging", () => {
-  it("keeps the homepage sections aligned with the French positioning", () => {
-    render(
-      <>
-        <HowItWorksSection locale="fr" dict={fr} />
-        <UseCasesSection locale="fr" dict={fr} />
-        <ContactCtaSection locale="fr" dict={fr} />
-      </>,
-    );
+  it("renders the problem section with 3 tension cards", () => {
+    render(<ProblemBlockSection locale="fr" />);
+
+    expect(screen.getByRole("heading", { level: 2 })).toBeInTheDocument();
+    expect(screen.getByText("01")).toBeInTheDocument();
+    expect(screen.getByText("02")).toBeInTheDocument();
+    expect(screen.getByText("03")).toBeInTheDocument();
+    expect(screen.getByText(/arbitrage reste dispers/)).toBeInTheDocument();
+  });
+
+  it("renders the final CTA section with heading and promise items", () => {
+    render(<FinalCtaSection locale="fr" />);
 
     expect(
-      screen.getByRole("heading", {
-        name: "Un cycle simple, orienté décision. Pas un dashboard de plus.",
-      }),
+      screen.getByText(/Cadrons le premier arbitrage/),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "Praedixa lit les signaux utiles, compare les arbitrages, cadre la décision et relit l’impact dans le temps, à partir d’un conflit économique concret.",
-      ),
+      screen.getByText(/Retour qualifié sous 48h ouvrées/),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        /optimisation sous contrainte adaptés au contexte métier/i,
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        /modèles économétriques pour distinguer plus proprement/i,
-      ),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Arbitrages inter-sites")).toBeInTheDocument();
-    expect(screen.getAllByText("Signal").length).toBeGreaterThan(0);
-    expect(
-      screen.getByRole("heading", {
-        name: "Cadrons le premier arbitrage à objectiver.",
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Décrivez le réseau, l’arbitrage prioritaire et l’horizon projet. Nous revenons avec un prochain pas clair sous 48h ouvrées.",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen
-        .getAllByRole("link", { name: "Cadrer un premier périmètre" })
-        .every(
-          (link) =>
-            link.getAttribute("href") === "/fr/contact?intent=deploiement",
-        ),
-    ).toBe(true);
-    expect(
-      screen.getByRole("link", { name: "Voir la preuve sur historique" }),
-    ).toHaveAttribute("href", "/fr/decision-log-preuve-roi");
   });
 });

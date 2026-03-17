@@ -13,6 +13,7 @@ export const sectorRoutes: Record<Locale, SectorRouteConfig> = {
       "higher-education": "enseignement-superieur",
       "logistics-transport-retail": "logistique-transport-retail",
       automotive: "automobile-concessions-ateliers",
+      fitness: "fitness-reseaux-clubs",
     },
   },
   en: {
@@ -22,6 +23,7 @@ export const sectorRoutes: Record<Locale, SectorRouteConfig> = {
       "higher-education": "higher-education",
       "logistics-transport-retail": "logistics-transport-retail",
       automotive: "automotive-dealerships-workshops",
+      fitness: "fitness-club-networks",
     },
   },
 };
@@ -74,5 +76,9 @@ export const sectorLegacyAliases: Record<
       "/praedixa-auto-dealerships-workshops",
       "/en/praedixa-auto-dealerships-workshops",
     ],
+  },
+  fitness: {
+    fr: ["/praedixa-fitness", "/fr/praedixa-fitness"],
+    en: ["/praedixa-fitness-clubs", "/en/praedixa-fitness-clubs"],
   },
 };

@@ -15,7 +15,10 @@ import type {
   LedgerEntry,
 } from "@praedixa/shared-types/domain";
 
-import { decidePersistentActionDispatch } from "../services/decisionops-runtime-action.js";
+import {
+  decidePersistentActionDispatch,
+  decidePersistentActionFallback,
+} from "../services/decisionops-runtime-action.js";
 import { withTransaction } from "../services/persistence.js";
 
 const ORGANIZATION_ID = "11111111-1111-4111-8111-111111111111";
@@ -72,14 +75,7 @@ function buildActionRecord(
     idempotencyKey: "coverage-core:222:wfm.shift",
     payloadPreview: { site_code: "site-lyon" },
     attempts: [],
-    fallback: {
-      status: "prepared",
-      channel: "task_copy",
-      preparedAt: "2026-03-13T10:59:00.000Z",
-      activatedBy: "system",
-      activationReason: "awaiting_dispatch",
-      humanRequired: true,
-    },
+    fallback: undefined,
     createdAt: "2026-03-13T10:58:00.000Z",
     updatedAt: "2026-03-13T10:59:00.000Z",
     ...overrides,
@@ -200,6 +196,7 @@ describe("decidePersistentActionDispatch", () => {
       actionId: ACTION_ID,
       actorUserId: "admin-1",
       actorRole: "super_admin",
+      actorPermissions: ["shift.write"],
       request: {
         outcome: "acknowledged",
         reasonCode: "connector_ack",
@@ -231,6 +228,7 @@ describe("decidePersistentActionDispatch", () => {
       actionId: ACTION_ID,
       actorUserId: "admin-1",
       actorRole: "super_admin",
+      actorPermissions: ["shift.write"],
       request: {
         outcome: "failed",
         reasonCode: "connector_timeout",
@@ -259,6 +257,7 @@ describe("decidePersistentActionDispatch", () => {
         actionId: ACTION_ID,
         actorUserId: "admin-1",
         actorRole: "super_admin",
+        actorPermissions: ["shift.write"],
         request: {
           outcome: "acknowledged",
           reasonCode: "connector_ack",
@@ -267,6 +266,231 @@ describe("decidePersistentActionDispatch", () => {
     ).rejects.toMatchObject({
       code: "INVALID_ACTION_DISPATCH_DECISION",
       statusCode: 400,
+    });
+  });
+
+  it("fails closed when destination write-back permissions are missing", async () => {
+    const pending = buildActionRecord();
+    const client = createClientWithResponses([
+      { rows: [buildActionRow(pending)] },
+    ]);
+    mockedWithTransaction.mockImplementation(async (fn) => await fn(client));
+
+    await expect(
+      decidePersistentActionDispatch({
+        organizationId: ORGANIZATION_ID,
+        actionId: ACTION_ID,
+        actorUserId: "admin-1",
+        actorRole: "super_admin",
+        actorPermissions: ["admin:org:write"],
+        request: {
+          outcome: "dispatched",
+          reasonCode: "connector_write_started",
+        },
+      }),
+    ).rejects.toMatchObject({
+      code: "ACTION_DISPATCH_PERMISSION_DENIED",
+      statusCode: 403,
+    });
+  });
+});
+
+describe("decidePersistentActionFallback", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("prepares a human fallback only after a failed dispatch", async () => {
+    const failed = buildActionRecord({
+      status: "failed",
+      attempts: [
+        {
+          attemptNumber: 1,
+          status: "failed",
+          dispatchedAt: "2026-03-13T11:00:00.000Z",
+          errorCode: "MANUAL_REVIEW",
+          errorMessage: "Manual review required",
+        },
+      ],
+      retryPolicy: {
+        maxAttempts: 1,
+        retryableErrorCodes: ["UKG_TIMEOUT"],
+        backoffStrategy: "fixed",
+        initialDelayMs: 1000,
+      },
+      fallback: undefined,
+    });
+    const ledger = buildLedger("open");
+    const client = createClientWithResponses([
+      { rows: [buildActionRow(failed)] },
+      {},
+      { rows: [buildLedgerRow(ledger)] },
+      {},
+    ]);
+    mockedWithTransaction.mockImplementation(async (fn) => await fn(client));
+
+    const result = await decidePersistentActionFallback({
+      organizationId: ORGANIZATION_ID,
+      actionId: ACTION_ID,
+      actorUserId: "admin-1",
+      actorRole: "super_admin",
+      actorPermissions: ["shift.write"],
+      request: {
+        operation: "prepare",
+        reasonCode: "manual_handoff_required",
+        channel: "task_copy",
+        reference: "ops-task-42",
+        occurredAt: "2026-03-13T11:05:00.000Z",
+      },
+    });
+
+    expect(result.actionStatus).toBe("failed");
+    expect(result.fallbackStatus).toBe("prepared");
+    expect(result.fallbackPreparedAt).toBe("2026-03-13T11:05:00.000Z");
+    expect(result.ledgerStatus).toBe("open");
+    expect(result.retryEligible).toBe(false);
+  });
+
+  it("marks a prepared human fallback as executed", async () => {
+    const failedWithPreparedFallback = buildActionRecord({
+      status: "failed",
+      attempts: [
+        {
+          attemptNumber: 1,
+          status: "failed",
+          dispatchedAt: "2026-03-13T11:00:00.000Z",
+          errorCode: "MANUAL_REVIEW",
+          errorMessage: "Manual review required",
+        },
+      ],
+      retryPolicy: {
+        maxAttempts: 1,
+        retryableErrorCodes: ["UKG_TIMEOUT"],
+        backoffStrategy: "fixed",
+        initialDelayMs: 1000,
+      },
+      fallback: {
+        status: "prepared",
+        channel: "task_copy",
+        preparedAt: "2026-03-13T11:05:00.000Z",
+        activatedBy: "human",
+        activationReason: "manual_handoff_required",
+        humanRequired: true,
+      },
+      updatedAt: "2026-03-13T11:05:00.000Z",
+    });
+    const ledger = buildLedger("open");
+    const client = createClientWithResponses([
+      { rows: [buildActionRow(failedWithPreparedFallback)] },
+      {},
+      { rows: [buildLedgerRow(ledger)] },
+      {},
+    ]);
+    mockedWithTransaction.mockImplementation(async (fn) => await fn(client));
+
+    const result = await decidePersistentActionFallback({
+      organizationId: ORGANIZATION_ID,
+      actionId: ACTION_ID,
+      actorUserId: "admin-1",
+      actorRole: "super_admin",
+      actorPermissions: ["shift.write"],
+      request: {
+        operation: "execute",
+        reasonCode: "human_action_completed",
+        occurredAt: "2026-03-13T11:09:00.000Z",
+      },
+    });
+
+    expect(result.actionStatus).toBe("failed");
+    expect(result.fallbackStatus).toBe("executed");
+    expect(result.fallbackPreparedAt).toBe("2026-03-13T11:05:00.000Z");
+    expect(result.fallbackExecutedAt).toBe("2026-03-13T11:09:00.000Z");
+    expect(result.retryEligible).toBe(false);
+  });
+
+  it("fails closed when fallback is prepared before retry exhaustion", async () => {
+    const failed = buildActionRecord({
+      status: "failed",
+      attempts: [
+        {
+          attemptNumber: 1,
+          status: "failed",
+          dispatchedAt: "2026-03-13T11:00:00.000Z",
+          errorCode: "UKG_TIMEOUT",
+          errorMessage: "Timeout",
+        },
+      ],
+      fallback: undefined,
+    });
+    const client = createClientWithResponses([
+      { rows: [buildActionRow(failed)] },
+    ]);
+    mockedWithTransaction.mockImplementation(async (fn) => await fn(client));
+
+    await expect(
+      decidePersistentActionFallback({
+        organizationId: ORGANIZATION_ID,
+        actionId: ACTION_ID,
+        actorUserId: "admin-1",
+        actorRole: "super_admin",
+        actorPermissions: ["shift.write"],
+        request: {
+          operation: "prepare",
+          reasonCode: "manual_handoff_required",
+          channel: "task_copy",
+        },
+      }),
+    ).rejects.toMatchObject({
+      code: "INVALID_ACTION_DISPATCH_FALLBACK",
+      statusCode: 400,
+    });
+  });
+
+  it("fails closed on fallback mutation when contract write-back is blocked", async () => {
+    const failed = buildActionRecord({
+      status: "failed",
+      permissionsContext: {
+        allowedByContract: false,
+        permissionKeys: ["shift.write"],
+      },
+      attempts: [
+        {
+          attemptNumber: 1,
+          status: "failed",
+          dispatchedAt: "2026-03-13T11:00:00.000Z",
+          errorCode: "MANUAL_REVIEW",
+          errorMessage: "Manual review required",
+        },
+      ],
+      retryPolicy: {
+        maxAttempts: 1,
+        retryableErrorCodes: ["UKG_TIMEOUT"],
+        backoffStrategy: "fixed",
+        initialDelayMs: 1000,
+      },
+      fallback: undefined,
+    });
+    const client = createClientWithResponses([
+      { rows: [buildActionRow(failed)] },
+    ]);
+    mockedWithTransaction.mockImplementation(async (fn) => await fn(client));
+
+    await expect(
+      decidePersistentActionFallback({
+        organizationId: ORGANIZATION_ID,
+        actionId: ACTION_ID,
+        actorUserId: "admin-1",
+        actorRole: "super_admin",
+        actorPermissions: ["shift.write"],
+        request: {
+          operation: "prepare",
+          reasonCode: "manual_handoff_required",
+          channel: "task_copy",
+        },
+      }),
+    ).rejects.toMatchObject({
+      code: "ACTION_DISPATCH_PERMISSION_DENIED",
+      statusCode: 403,
     });
   });
 });

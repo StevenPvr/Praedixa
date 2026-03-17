@@ -122,6 +122,21 @@ export function CarServiceIcon(props: MarketingIconProps) {
   );
 }
 
+export function FitnessClubIcon(props: MarketingIconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M4.8 10.4h3.1" />
+      <path d="M16.1 10.4h3.1" />
+      <path d="M7.9 8v4.8" />
+      <path d="M16.1 8v4.8" />
+      <path d="M9.1 9.2h5.8v2.4H9.1z" />
+      <path d="M6.6 8.7 7.9 8v4.8l-1.3-.7" />
+      <path d="M17.4 8.7 16.1 8v4.8l1.3-.7" />
+      <path d="M8.1 16.8c1-.8 2.3-1.2 3.9-1.2s2.9.4 3.9 1.2" />
+    </IconBase>
+  );
+}
+
 export function CheckBadgeIcon(props: MarketingIconProps) {
   return (
     <IconBase {...props}>

@@ -125,7 +125,7 @@ function KnowledgeRelatedContent({
             <li key={link.label} className="m-0">
               <Link
                 href={href}
-                className="text-sm font-medium text-brass no-underline hover:text-brass-600"
+                className="text-sm font-medium text-proof-500 no-underline hover:text-proof-500/80"
               >
                 {link.label}
               </Link>

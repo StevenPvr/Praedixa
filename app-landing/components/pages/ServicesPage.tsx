@@ -56,7 +56,7 @@ export function ServicesPage({ locale }: { locale: Locale }) {
           </div>
 
           <div className="rounded-[1.7rem] border border-amber-200/80 bg-amber-50/70 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.11em] text-brass-700">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.11em] text-ink-800">
               {copy.timelineTitle}
             </p>
             <ol className="mt-4 list-none space-y-3 p-0">

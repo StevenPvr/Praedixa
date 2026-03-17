@@ -56,6 +56,7 @@ describe("ClientTabsNav", () => {
     expect(screen.getByText("Alertes")).toBeInTheDocument();
     expect(screen.getByText("Rapports")).toBeInTheDocument();
     expect(screen.getByText("Onboarding")).toBeInTheDocument();
+    expect(screen.getByText("Contrats")).toBeInTheDocument();
     expect(screen.getByText("Config")).toBeInTheDocument();
     expect(screen.getByText("Equipe")).toBeInTheDocument();
     expect(screen.getByText("Messages")).toBeInTheDocument();
@@ -83,6 +84,7 @@ describe("ClientTabsNav", () => {
     expect(hrefs).toContain("/clients/org-1/vue-client");
     expect(hrefs).toContain("/clients/org-1/actions");
     expect(hrefs).toContain("/clients/org-1/rapports");
+    expect(hrefs).toContain("/clients/org-1/contrats");
     expect(hrefs).toContain("/clients/org-1/donnees");
     expect(hrefs).toContain("/clients/org-1/messages");
   });
@@ -96,6 +98,7 @@ describe("ClientTabsNav", () => {
 
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByText("Donnees")).toBeInTheDocument();
+    expect(screen.queryByText("Contrats")).not.toBeInTheDocument();
     expect(screen.queryByText("Config")).not.toBeInTheDocument();
     expect(screen.queryByText("Messages")).not.toBeInTheDocument();
   });

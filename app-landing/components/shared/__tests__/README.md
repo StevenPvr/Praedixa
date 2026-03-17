@@ -13,8 +13,10 @@ Sous-dossiers :
 Fichiers :
 
 - `BreadcrumbTrail.test.tsx`
+- `HeaderScrollState.test.ts`
 - `NavigationMenus.test.tsx`
 
 ## Intégration
 
 Ce dossier est consommé par l'application `app-landing` et s'insère dans son flux runtime, build ou test.
+Quand un comportement de scroll du shell global change, preferer un test unitaire sur le calcul d'etat (`visible` / `hidden` / `elevated`) avant de dupliquer une simulation DOM fragile du scroll dans chaque suite.

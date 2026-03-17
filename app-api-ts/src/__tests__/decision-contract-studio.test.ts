@@ -163,8 +163,23 @@ describe("decision-contract studio service", () => {
       ],
     };
 
-    const detail = buildDecisionContractStudioDetailResponse(current, previous);
+    const detail = buildDecisionContractStudioDetailResponse(
+      current,
+      previous,
+      [
+        {
+          auditId: "audit-1",
+          action: "decision_contract_transition_approve",
+          actorUserId: "11111111-1111-1111-1111-111111111111",
+          targetContractVersion: 2,
+          reason: "approved_for_publish",
+          createdAt: "2026-03-14T07:30:00.000Z",
+          metadata: {},
+        },
+      ],
+    );
     expect(detail.changeSummary?.decisionVariables.added).toBe(1);
+    expect(detail.history).toHaveLength(1);
 
     const fork = buildDecisionContractStudioForkDraftResponse(previous, {
       contractId: previous.contractId,
@@ -178,6 +193,7 @@ describe("decision-contract studio service", () => {
     });
     expect(fork.draftContract.status).toBe("draft");
     expect(fork.draftContract.contractVersion).toBe(2);
+    expect(fork.targetContractVersion).toBeUndefined();
   });
 
   it("builds rollback candidates ordered by nearest prior version", () => {

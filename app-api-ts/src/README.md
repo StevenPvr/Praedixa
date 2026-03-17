@@ -13,6 +13,7 @@ Ce dossier contient tout le runtime Node de l'API exposee aux apps web Praedixa.
 - `router.ts` : matching de routes minimaliste et typage des handlers.
 - `response.ts` : helpers `success` / `failure`.
 - `routes.ts` : table de routes produit + admin.
+- `routes/` : slices de routes admin volumineuses extraites de `routes.ts` pour garder les handlers reviewables par domaine.
 - `admin-integrations.ts` : pont vers le runtime `app-connectors`.
 - `types.ts` : types runtime partages entre config, auth et server, dont le contexte telemetry propage aux handlers.
 
@@ -35,6 +36,7 @@ Routes live / produit:
 Routes admin:
 
 - organisations, utilisateurs, billing, onboarding, monitoring, audit log, contact requests, canonical/datasets, proof packs, decision config, integrations.
+- gouvernance `DecisionContract` (`decision-contract-templates`, `instantiate-preview`, `decision-compatibility/evaluate`) et runtime org-scoped du Contract Studio (`decision-contracts`, `transition`, `fork`, `rollback-candidates`, `rollback`).
 
 ## Auth et autorisation
 
@@ -67,6 +69,15 @@ Routes admin:
 - La creation d'une `operational_decision` initialise maintenant la persistance DecisionOps read-model (`decision_approvals`, `action_dispatches`, `decision_ledger_entries`) dans la meme transaction.
 - Les endpoints admin read-only `approval-inbox`, `action-dispatches/:actionId` et `ledgers/:ledgerId` lisent maintenant la persistance DecisionOps reelle; ils ne tombent plus sur un 404 implicite ni sur un faux succes.
 - L'inbox d'approbation expose aussi une mutation persistante `POST /api/v1/admin/organizations/:orgId/approvals/:approvalId/decision`; elle met a jour l'approbation, annule les approbations soeurs encore ouvertes en cas de rejet, et synchronise l'etat interne action/ledger sans simuler un dispatch externe.
+- Le detail de dispatch expose aussi une mutation persistante `POST /api/v1/admin/organizations/:orgId/action-dispatches/:actionId/decision`; elle fait progresser le lifecycle `pending/dispatched/failed/retried/canceled/acknowledged` et resynchronise le ledger le plus recent de la recommendation.
+- Le detail de dispatch expose aussi `POST /api/v1/admin/organizations/:orgId/action-dispatches/:actionId/fallback`; elle prepare ou execute explicitement le fallback humain persistant quand le write-back live ne peut pas aller au bout.
+- Les mutations de dispatch et de fallback ne se contentent plus de `admin:org:write`: elles verifient aussi que le contrat autorise le write-back et que les permission keys de destination presentes dans `ActionDispatch.permissionsContext` sont bien dans le jeton admin courant.
+- Le detail ledger expose aussi une mutation persistante `POST /api/v1/admin/organizations/:orgId/ledgers/:ledgerId/decision`; elle permet la cloture, le recalcul revisionne et la validation finance d'un ledger persistant.
+- L'initialisation persistante du read-model DecisionOps ajoute maintenant un garde-fou d'idempotence sur `action_dispatches` pour bloquer les doublons silencieux par `organization_id + idempotency_key`.
+- La gouvernance `DecisionContract` expose maintenant un catalogue admin des templates par pack, une previsualisation d'instanciation non persistante et une evaluation explicite de compatibilite `contract <-> graph` sans dependre de la base.
+- Le runtime `DecisionContract` est maintenant persistant et distinct du simple `decision-config`: le Contract Studio org-scoped permet creation de draft depuis template, lecture liste/detail, transitions de lifecycle, fork, rollback candidates et rollback en nouveau draft versionne, avec audit dedie.
+- Les slices de routes admin DecisionOps et DecisionContract propagent aussi maintenant les vraies `PersistenceError` (`PERSISTENCE_UNAVAILABLE`, `statusCode`, `details`) au lieu de les ecraser en `400`, afin que les surfaces admin restent strictement fail-close quand la persistance manque.
+- Le `Contract Studio` ne doit plus accepter un body `{}` deguisant une mutation de save/create: les unions de schema route exigent des objets reels sur la branche `contract`, pour eviter qu'un `z.custom()` trop permissif avale la mauvaise forme de payload.
 
 ## Lecture conseillee pour un nouvel arrivant
 

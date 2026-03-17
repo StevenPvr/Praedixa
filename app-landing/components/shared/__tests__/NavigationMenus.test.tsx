@@ -89,6 +89,10 @@ describe("navigation menus", () => {
         name: /Automobile \/ concessions \/ ateliers/i,
       }),
     ).toHaveAttribute("href", "/fr/secteurs/automobile-concessions-ateliers");
+    expect(screen.getByRole("link", { name: /Fitness/i })).toHaveAttribute(
+      "href",
+      "/fr/secteurs/fitness-reseaux-clubs",
+    );
     expect(
       screen.getByRole("link", { name: /Voir la page ressources/i }),
     ).toHaveAttribute("href", "/fr/ressources");
@@ -131,6 +135,10 @@ describe("navigation menus", () => {
         name: /Automobile \/ concessions \/ ateliers/i,
       }),
     ).toHaveAttribute("href", "/fr/secteurs/automobile-concessions-ateliers");
+    expect(screen.getByRole("link", { name: /Fitness/i })).toHaveAttribute(
+      "href",
+      "/fr/secteurs/fitness-reseaux-clubs",
+    );
 
     mockPathname = "/fr/produit-methode";
     rerender(

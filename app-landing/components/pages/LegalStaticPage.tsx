@@ -55,7 +55,7 @@ export function LegalStaticPage({ locale, pageKey }: LegalStaticPageProps) {
         <div className="mt-10 border-t border-border-subtle pt-6">
           <Link
             href={`/${locale}`}
-            className="text-sm font-medium text-brass no-underline hover:text-brass-600"
+            className="text-sm font-medium text-proof-500 no-underline hover:text-proof-500/80"
           >
             {locale === "fr" ? "Retour à l'accueil" : "Back to home"}
           </Link>

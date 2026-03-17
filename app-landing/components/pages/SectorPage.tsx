@@ -114,7 +114,7 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
             <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
               <div className="px-6 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
                 <Kicker>{entry.heroKicker}</Kicker>
-                <div className="mt-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-200 bg-white/82 text-brass shadow-[0_16px_35px_-25px_rgba(120,87,18,0.45)]">
+                <div className="mt-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-200 bg-white/82 text-proof-500 shadow-[0_16px_35px_-25px_rgba(120,87,18,0.45)]">
                   <Icon size={28} />
                 </div>
                 <h1 className="mt-6 max-w-[14ch] text-4xl font-semibold leading-[0.96] tracking-[-0.05em] text-ink sm:text-5xl lg:text-[4.2rem]">
@@ -171,7 +171,7 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
                         href={proof.sourceUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-brass no-underline hover:text-brass-700"
+                        className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-proof-500 no-underline hover:text-ink-800"
                       >
                         {proof.sourceLabel}
                         <ArrowUpRight size={14} weight="bold" />

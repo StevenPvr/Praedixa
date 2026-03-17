@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 const mockUseApiGet = vi.fn();
+const mockUseApiPost = vi.fn();
+const mockDecisionMutate = vi.fn();
+const mockFallbackMutate = vi.fn();
+const mockUseCurrentUser = vi.fn();
 const mockParams = { actionId: "33333333-3333-4333-8333-333333333333" };
 
 vi.mock("next/navigation", () => ({
@@ -11,11 +15,13 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
+  useApiPost: (...args: unknown[]) => mockUseApiPost(...args),
 }));
 
 vi.mock("@/lib/auth/client", () => ({
   getValidAccessToken: vi.fn(() => Promise.resolve("token")),
   clearAuthSession: vi.fn(),
+  useCurrentUser: () => mockUseCurrentUser(),
 }));
 
 const mockContext = {
@@ -68,6 +74,10 @@ const mockDispatchDetail = {
       supportsIdempotencyKeys: true,
       supportsHumanFallback: true,
     },
+  },
+  permissions: {
+    allowedByContract: true,
+    permissionKeys: ["shift.write"],
   },
   idempotency: {
     key: "dedupe-1",
@@ -148,11 +158,45 @@ describe("ActionDispatchDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockParams.actionId = "33333333-3333-4333-8333-333333333333";
+    mockUseCurrentUser.mockReturnValue({
+      id: "admin-1",
+      permissions: ["admin:org:write", "shift.write"],
+    });
     mockUseApiGet.mockReturnValue({
       data: mockDispatchDetail,
       loading: false,
       error: null,
       refetch: vi.fn(),
+    });
+    mockUseApiPost.mockImplementation((url: string) => ({
+      mutate: url.includes("/fallback")
+        ? mockFallbackMutate
+        : mockDecisionMutate,
+      loading: false,
+      error: null,
+      data: null,
+      reset: vi.fn(),
+    }));
+    mockDecisionMutate.mockResolvedValue({
+      actionId: mockParams.actionId,
+      recommendationId: mockDispatchDetail.recommendationId,
+      occurredAt: "2026-03-13T10:05:00.000Z",
+      actionStatus: "retried",
+      latestAttemptStatus: "retried",
+      ledgerStatus: "open",
+      fallbackStatus: "prepared",
+      retryEligible: false,
+    });
+    mockFallbackMutate.mockResolvedValue({
+      actionId: mockParams.actionId,
+      recommendationId: mockDispatchDetail.recommendationId,
+      occurredAt: "2026-03-13T10:06:00.000Z",
+      actionStatus: "failed",
+      fallbackStatus: "executed",
+      fallbackPreparedAt: "2026-03-13T10:00:00.000Z",
+      fallbackExecutedAt: "2026-03-13T10:06:00.000Z",
+      ledgerStatus: "open",
+      retryEligible: false,
     });
   });
 
@@ -176,6 +220,12 @@ describe("ActionDispatchDetailPage", () => {
     expect(screen.getByText("Attempt 1 failed")).toBeInTheDocument();
     expect(mockUseApiGet).toHaveBeenCalledWith(
       "/api/v1/admin/organizations/org-1/action-dispatches/33333333-3333-4333-8333-333333333333",
+    );
+    expect(mockUseApiPost).toHaveBeenCalledWith(
+      "/api/v1/admin/organizations/org-1/action-dispatches/33333333-3333-4333-8333-333333333333/decision",
+    );
+    expect(mockUseApiPost).toHaveBeenCalledWith(
+      "/api/v1/admin/organizations/org-1/action-dispatches/33333333-3333-4333-8333-333333333333/fallback",
     );
   });
 
@@ -226,5 +276,96 @@ describe("ActionDispatchDetailPage", () => {
     expect(screen.getByText("Lecture partielle")).toBeInTheDocument();
     expect(screen.getByText("Timeline indisponible")).toBeInTheDocument();
     expect(screen.getByText("Payload indisponible")).toBeInTheDocument();
+  });
+
+  it("submits a dispatch lifecycle decision and refreshes the detail", async () => {
+    const refetch = vi.fn();
+    mockUseApiGet.mockReturnValue({
+      data: mockDispatchDetail,
+      loading: false,
+      error: null,
+      refetch,
+    });
+
+    renderPage();
+
+    fireEvent.click(screen.getByRole("button", { name: "Relancer" }));
+
+    await waitFor(() => {
+      expect(mockDecisionMutate).toHaveBeenCalledWith({
+        outcome: "retried",
+        reasonCode: "dispatch_retried",
+        comment: undefined,
+        errorCode: undefined,
+      });
+    });
+    await waitFor(() => {
+      expect(refetch).toHaveBeenCalled();
+    });
+    expect(screen.getByText("Statut applique: retried")).toBeInTheDocument();
+  });
+
+  it("submits a human fallback execution and refreshes the detail", async () => {
+    const refetch = vi.fn();
+    mockUseApiGet.mockReturnValue({
+      data: mockDispatchDetail,
+      loading: false,
+      error: null,
+      refetch,
+    });
+
+    renderPage();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Marquer fallback execute" }),
+    );
+
+    await waitFor(() => {
+      expect(mockFallbackMutate).toHaveBeenCalledWith({
+        operation: "execute",
+        reasonCode: "human_fallback_executed",
+        comment: undefined,
+      });
+    });
+    await waitFor(() => {
+      expect(refetch).toHaveBeenCalled();
+    });
+    expect(screen.getByText("Fallback applique: executed")).toBeInTheDocument();
+  });
+
+  it("shows a warning when the admin lacks write permission", () => {
+    mockUseCurrentUser.mockReturnValue({
+      id: "viewer-1",
+      permissions: ["admin:org:read"],
+    });
+
+    renderPage();
+
+    expect(screen.getByText("Action restreinte")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Relancer" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Marquer fallback execute" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a write-back warning when destination permissions are missing", () => {
+    mockUseCurrentUser.mockReturnValue({
+      id: "admin-1",
+      permissions: ["admin:org:write"],
+    });
+
+    renderPage();
+
+    expect(
+      screen.getAllByText("Permissions de write-back manquantes").length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.queryByRole("button", { name: "Relancer" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Marquer fallback execute" }),
+    ).not.toBeInTheDocument();
   });
 });

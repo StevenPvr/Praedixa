@@ -111,9 +111,7 @@ export function ScopeSection() {
                 {extension.forecast}
               </p>
               <p className="mt-2 text-sm leading-relaxed text-steel">
-                <span className="font-medium text-ink">
-                  Action priorisee:
-                </span>{" "}
+                <span className="font-medium text-ink">Action priorisee:</span>{" "}
                 {extension.optimize}
               </p>
             </motion.article>

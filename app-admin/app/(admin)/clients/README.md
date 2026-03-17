@@ -21,6 +21,7 @@ Zone multi-tenant principale du back-office.
 | `/clients/[orgId]/actions`    | `[orgId]/actions/page.tsx`    |
 | `/clients/[orgId]/alertes`    | `[orgId]/alertes/page.tsx`    |
 | `/clients/[orgId]/rapports`   | `[orgId]/rapports/page.tsx`   |
+| `/clients/[orgId]/contrats`   | `[orgId]/contrats/page.tsx`   |
 | `/clients/[orgId]/config`     | `[orgId]/config/page.tsx`     |
 | `/clients/[orgId]/equipe`     | `[orgId]/equipe/page.tsx`     |
 | `/clients/[orgId]/messages`   | `[orgId]/messages/page.tsx`   |

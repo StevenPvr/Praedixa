@@ -2,7 +2,10 @@ import type { ISODateTimeString, UUID } from "../utils/common.js";
 import type {
   DecisionContract,
   DecisionContractActor,
+  DecisionEntityType,
+  DecisionSelectorMode,
   DecisionContractStatus,
+  DecisionContractTransition,
   DecisionContractValidationSummary,
   DecisionPack,
 } from "../domain/decision-contract.js";
@@ -127,6 +130,7 @@ export interface DecisionContractStudioDetailResponse {
   publishReadiness: DecisionContractStudioPublishReadinessResponse;
   lineage: DecisionContractStudioVersionLineageDisplay;
   changeSummary?: DecisionContractStudioChangeSummary;
+  history: readonly DecisionContractStudioAuditEntryResponse[];
 }
 
 export interface DecisionContractStudioForkDraftRequest {
@@ -140,6 +144,7 @@ export interface DecisionContractStudioForkDraftRequest {
 export interface DecisionContractStudioForkDraftResponse {
   sourceContractId: string;
   sourceContractVersion: number;
+  targetContractVersion?: number;
   draftContract: DecisionContract;
   badge: DecisionContractStudioBadge;
   validation: DecisionContractStudioValidationSummaryResponse;
@@ -167,4 +172,62 @@ export interface DecisionContractStudioRollbackCandidateResponse {
   contractId: string;
   contractVersion: number;
   candidates: readonly DecisionContractStudioRollbackCandidateItemResponse[];
+}
+
+export interface DecisionContractStudioAuditEntryResponse {
+  auditId: string;
+  action: string;
+  actorUserId?: UUID | null;
+  targetContractVersion?: number | null;
+  reason: string;
+  createdAt: ISODateTimeString;
+  metadata: Record<string, unknown>;
+}
+
+export interface DecisionContractStudioSaveRequest {
+  contract: DecisionContract;
+}
+
+export interface DecisionContractStudioCreateRequest {
+  templateId: string;
+  templateVersion?: number;
+  pack?: DecisionPack;
+  contractId: string;
+  name: string;
+  description?: string;
+  reason: string;
+  notes?: string;
+  workspaceId?: UUID;
+  scopeOverrides?: {
+    entityType?: DecisionEntityType;
+    selector?: {
+      mode?: DecisionSelectorMode;
+      ids?: readonly string[];
+      query?: string;
+    };
+    horizonId?: string;
+    dimensions?: Record<string, string>;
+  };
+  tags?: readonly string[];
+}
+
+export interface DecisionContractStudioTransitionRequest {
+  transition: DecisionContractTransition;
+  reason: string;
+  notes?: string;
+}
+
+export interface DecisionContractStudioForkMutationRequest {
+  reason: string;
+  notes?: string;
+  name?: string;
+  description?: string;
+}
+
+export interface DecisionContractStudioRollbackRequest {
+  targetVersion: number;
+  reason: string;
+  notes?: string;
+  name?: string;
+  description?: string;
 }

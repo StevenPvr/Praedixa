@@ -11,6 +11,7 @@ Ce dossier contient les pipelines GitHub Actions versionnés avec le monorepo.
 
 - Les workflows sélectionnent un périmètre précis plutôt qu'un pipeline unique géant.
 - Les contrôles profonds de sécurité et de qualité existent aussi en local via `scripts/gate-*`.
+- `CI - API` et `CI - Admin` rejouent aussi `pnpm performance:validate-budgets` pour que les baselines performance versionnees soient bloquees a distance, pas seulement documentees.
 
 ## Références utiles
 

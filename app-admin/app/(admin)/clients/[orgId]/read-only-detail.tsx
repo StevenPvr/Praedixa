@@ -14,7 +14,7 @@ interface ReadOnlyStateCardProps {
   title: string;
   message: string;
   tone?: ReadOnlyStateTone;
-  details?: string[];
+  details?: readonly string[];
 }
 
 const toneStyles: Record<

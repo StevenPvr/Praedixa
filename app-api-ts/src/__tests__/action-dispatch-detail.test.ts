@@ -190,6 +190,10 @@ describe("action-dispatch-detail service", () => {
       status: "acknowledged",
     });
     expect(detail.retryPolicy.eligibility.eligible).toBe(false);
+    expect(detail.permissions).toEqual({
+      allowedByContract: true,
+      permissionKeys: ["shift.write"],
+    });
     expect(detail.payloadRefs).toEqual([
       expect.objectContaining({
         source: "payloadPreview",
@@ -219,6 +223,10 @@ describe("action-dispatch-detail service", () => {
       nextAttemptNumber: 2,
       blockedBy: [],
       retryableErrorCode: "timeout",
+    });
+    expect(detail.fallback).toMatchObject({
+      status: "not_needed",
+      nextStep: "none",
     });
     expect(detail.terminalReason).toMatchObject({
       terminal: false,

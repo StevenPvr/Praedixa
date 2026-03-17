@@ -32,7 +32,8 @@ export function MethodSection() {
             <p className="mt-4 text-sm leading-relaxed text-steel">
               La plateforme n'a pas besoin d'en faire plus au depart. Elle doit
               simplement relier le bon signal, le bon arbitrage et la bonne
-              preuve de maniere assez claire pour etre lisible en comite mensuel.
+              preuve de maniere assez claire pour etre lisible en comite
+              mensuel.
             </p>
             <div className="mt-6 rounded-[1.5rem] border border-ink/5 bg-chalk/80 p-4">
               <div className="flex items-center gap-3">
@@ -89,9 +90,7 @@ export function MethodSection() {
             className="shrink-0 text-skolae-soft"
             weight="duotone"
           />
-          <p className="text-sm leading-relaxed text-chalk/80">
-            {loop.footer}
-          </p>
+          <p className="text-sm leading-relaxed text-chalk/80">{loop.footer}</p>
         </div>
       </div>
     </section>

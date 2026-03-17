@@ -1,26 +1,10 @@
 import { z } from "zod";
-
-import {
-  completeIntegrationAuthorization,
-  IntegrationInputError,
-  createIntegrationConnection,
-  getIntegrationConnection,
-  getIntegrationRawEventPayload,
-  issueIntegrationIngestCredential,
-  listIntegrationAuditEvents,
-  listIntegrationCatalog,
-  listIntegrationConnections,
-  listIntegrationIngestCredentials,
-  listIntegrationRawEvents,
-  listIntegrationSyncRuns,
-  revokeIntegrationIngestCredential,
-  startIntegrationAuthorization,
-  testIntegrationConnection,
-  triggerIntegrationSync,
-  updateIntegrationConnection,
-} from "./admin-integrations.js";
+import type { DecisionScope } from "@praedixa/shared-types/domain";
 import { failure, paginated, success } from "./response.js";
 import { route } from "./router.js";
+import { ADMIN_DECISION_CONTRACT_ROUTES } from "./routes/admin-decision-contract-routes.js";
+import { ADMIN_DECISION_RUNTIME_ROUTES } from "./routes/admin-decision-runtime-routes.js";
+import { ADMIN_INTEGRATION_ROUTES } from "./routes/admin-integration-routes.js";
 import {
   getDecisionConfigService,
   getDefaultHorizon,
@@ -54,12 +38,11 @@ import {
   getPersistentOperationalDecisionOverrideStats,
   listPersistentOperationalDecisions,
 } from "./services/operational-decisions.js";
+import { evaluateDecisionCompatibility } from "./services/decision-compatibility.js";
 import {
-  getPersistentActionDispatchDetail,
-  getPersistentLedgerDetail,
-  listPersistentApprovalInbox,
-} from "./services/decisionops-runtime.js";
-import { decidePersistentApproval } from "./services/decisionops-runtime-approval.js";
+  instantiateDecisionContractTemplate,
+  listDecisionContractTemplates,
+} from "./services/decision-contract-templates.js";
 import {
   getPersistentDecisionWorkspace,
   getPersistentParetoFrontierForAlert,
@@ -114,6 +97,18 @@ const CONTACT_REQUEST_TYPES = [
   "partnership",
   "press_other",
 ] as const;
+const DECISION_PACKS = ["coverage", "flow", "allocation", "core"] as const;
+const DECISION_ENTITY_TYPES = [
+  "organization",
+  "site",
+  "team",
+  "flow",
+  "route",
+  "order_aggregate",
+  "stock_node",
+  "period",
+] as const;
+const DECISION_SELECTOR_MODES = ["all", "ids", "query"] as const;
 const publicContactRateLimit: RouteRateLimit = {
   maxRequests: 5,
   scope: "ip",
@@ -150,12 +145,85 @@ const contactRequestSchema = z
     website: z.string().trim().max(200).optional().default(""),
   })
   .passthrough();
-const approvalDecisionSchema = z.object({
-  outcome: z.enum(["granted", "rejected"]),
-  reasonCode: z.string().trim().min(1).max(120),
-  comment: z.string().trim().max(1_000).optional(),
-  decidedAt: z.string().datetime().optional(),
+const decisionContractTemplateListQuerySchema = z.object({
+  pack: z.enum(DECISION_PACKS).optional(),
+  includeDeprecated: z.boolean().optional(),
+  search: z.string().trim().min(1).max(160).optional(),
+  tags: z.array(z.string().trim().min(1).max(80)).optional(),
 });
+const decisionContractTemplatePreviewSchema = z.object({
+  templateId: z.string().trim().min(1).max(160),
+  templateVersion: z.number().int().positive().optional(),
+  contractId: z.string().trim().min(1).max(160),
+  name: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(1_000).optional(),
+  scopeOverrides: z
+    .object({
+      entityType: z.enum(DECISION_ENTITY_TYPES).optional(),
+      selector: z
+        .object({
+          mode: z.enum(DECISION_SELECTOR_MODES).optional(),
+          ids: z.array(z.string().trim().min(1).max(120)).optional(),
+          query: z.string().trim().min(1).max(300).optional(),
+        })
+        .partial()
+        .optional(),
+      horizonId: z.string().trim().min(1).max(80).optional(),
+      dimensions: z.record(z.string().trim().min(1).max(120)).optional(),
+    })
+    .partial()
+    .optional(),
+  tags: z.array(z.string().trim().min(1).max(80)).optional(),
+});
+const decisionCompatibilityRequestSchema = z.object({
+  contract: z.unknown(),
+  graph: z.unknown(),
+  versionAssumptions: z
+    .object({
+      expectedGraphVersion: z.number().int().positive().optional(),
+      expectedCanonicalModelVersion: z
+        .string()
+        .trim()
+        .min(1)
+        .max(80)
+        .optional(),
+      allowBackwardCompatibleGraphVersion: z.boolean().optional(),
+    })
+    .optional(),
+  eventAssumptions: z
+    .object({
+      requiredSourceSystems: z
+        .array(z.string().trim().min(1).max(80))
+        .optional(),
+    })
+    .optional(),
+});
+
+function normalizeDecisionScopeOverrides(
+  scopeOverrides: z.infer<
+    typeof decisionContractTemplatePreviewSchema
+  >["scopeOverrides"],
+): Partial<DecisionScope> | undefined {
+  if (!scopeOverrides) {
+    return undefined;
+  }
+
+  const selector =
+    scopeOverrides.selector?.mode == null
+      ? undefined
+      : {
+          mode: scopeOverrides.selector.mode,
+          ids: scopeOverrides.selector.ids,
+          query: scopeOverrides.selector.query,
+        };
+
+  return {
+    entityType: scopeOverrides.entityType,
+    selector,
+    horizonId: scopeOverrides.horizonId,
+    dimensions: scopeOverrides.dimensions,
+  };
+}
 
 function isoDateOffset(days: number): string {
   return new Date(NOW.getTime() + days * DAY_MS).toISOString().slice(0, 10);
@@ -653,33 +721,6 @@ const adminSupportWrite = {
   ...adminOnly,
   requiredPermissions: ["admin:support:write"] as const,
 };
-const adminIntegrationsRead = {
-  ...adminOnly,
-  requiredPermissions: ["admin:integrations:read"] as const,
-};
-const adminIntegrationsWrite = {
-  ...adminOnly,
-  requiredPermissions: ["admin:integrations:write"] as const,
-};
-
-function integrationFailureResponse(
-  error: unknown,
-  requestId: string,
-  fallbackCode: string,
-  fallbackMessage: string,
-) {
-  if (error instanceof IntegrationInputError) {
-    return failure(
-      fallbackCode,
-      error.message,
-      requestId,
-      error.statusCode,
-      error.details,
-    );
-  }
-
-  return failure(fallbackCode, fallbackMessage, requestId, 400);
-}
 
 function backofficeFailureResponse(
   error: unknown,
@@ -1868,342 +1909,133 @@ export const routes: RouteDefinition[] = [
   ),
   route(
     "GET",
-    "/api/v1/admin/integrations/catalog",
-    async (ctx) => success(await listIntegrationCatalog(), ctx.requestId),
-    adminIntegrationsRead,
-  ),
-  route(
-    "GET",
-    "/api/v1/admin/organizations/:orgId/integrations/connections",
-    async (ctx) =>
-      success(
-        await listIntegrationConnections(
-          ctx.params.orgId ?? "",
-          ctx.query.get("vendor"),
-        ),
-        ctx.requestId,
-      ),
-    adminIntegrationsRead,
-  ),
-  route(
-    "GET",
-    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId",
+    "/api/v1/admin/decision-contract-templates",
     async (ctx) => {
-      try {
-        const connection = await getIntegrationConnection(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-        );
-        return success(connection, ctx.requestId);
-      } catch (error) {
-        return integrationFailureResponse(
-          error,
+      const pack = normalizeOptionalText(ctx.query.get("pack")) ?? undefined;
+      const includeDeprecated = parseOptionalBooleanQuery(
+        ctx.query.get("includeDeprecated"),
+        "includeDeprecated",
+      );
+      const search =
+        normalizeOptionalText(ctx.query.get("search")) ?? undefined;
+      const tags = [
+        ...ctx.query.getAll("tag"),
+        ...(ctx.query.get("tags")?.split(",") ?? []),
+      ]
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0);
+
+      const parsed = decisionContractTemplateListQuerySchema.safeParse({
+        pack,
+        includeDeprecated,
+        search,
+        tags: tags.length > 0 ? tags : undefined,
+      });
+      if (!parsed.success) {
+        return failure(
+          "INVALID_DECISION_CONTRACT_TEMPLATE_QUERY",
+          parsed.error.issues[0]?.message ??
+            "Decision contract template query is invalid.",
           ctx.requestId,
-          "NOT_FOUND",
-          "Unable to load integration connection",
+          400,
         );
       }
+
+      return success(listDecisionContractTemplates(parsed.data), ctx.requestId);
     },
-    adminIntegrationsRead,
+    adminConsoleAccess,
   ),
   route(
     "POST",
-    "/api/v1/admin/organizations/:orgId/integrations/connections",
+    "/api/v1/admin/decision-contract-templates/instantiate-preview",
     async (ctx) => {
-      try {
-        const created = await createIntegrationConnection(
-          ctx.params.orgId ?? "",
-          ctx.body,
-          ctx.user?.userId ?? null,
+      const parsed = decisionContractTemplatePreviewSchema.safeParse(ctx.body);
+      if (!parsed.success) {
+        return failure(
+          "INVALID_DECISION_CONTRACT_TEMPLATE_PREVIEW_BODY",
+          parsed.error.issues[0]?.message ??
+            "Decision contract template preview body is invalid.",
+          ctx.requestId,
+          400,
         );
+      }
+
+      const actorUserId = ctx.user?.userId ?? "";
+      if (actorUserId.length === 0) {
+        return failure(
+          "DECISION_CONTRACT_TEMPLATE_ACTOR_CONTEXT_REQUIRED",
+          "Authenticated admin actor context is required.",
+          ctx.requestId,
+          403,
+        );
+      }
+
+      try {
         return success(
-          created,
+          instantiateDecisionContractTemplate({
+            ...parsed.data,
+            scopeOverrides: normalizeDecisionScopeOverrides(
+              parsed.data.scopeOverrides,
+            ),
+            actor: {
+              userId: actorUserId,
+              decidedAt: new Date().toISOString(),
+              reason: "admin_template_preview",
+            },
+          }),
           ctx.requestId,
-          "Integration connection created",
-          201,
         );
       } catch (error) {
-        return integrationFailureResponse(
-          error,
+        return failure(
+          "DECISION_CONTRACT_TEMPLATE_PREVIEW_FAILED",
+          error instanceof Error
+            ? error.message
+            : "Unable to instantiate decision contract template preview.",
           ctx.requestId,
-          "INTEGRATION_CREATE_FAILED",
-          "Unable to create integration connection",
+          400,
         );
       }
     },
-    adminIntegrationsWrite,
+    adminConsoleAccess,
   ),
   route(
-    "PATCH",
-    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId",
+    "POST",
+    "/api/v1/admin/decision-compatibility/evaluate",
     async (ctx) => {
-      try {
-        const updated = await updateIntegrationConnection(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-          ctx.body,
-          ctx.user?.userId ?? null,
+      const parsed = decisionCompatibilityRequestSchema.safeParse(ctx.body);
+      if (!parsed.success) {
+        return failure(
+          "INVALID_DECISION_COMPATIBILITY_BODY",
+          parsed.error.issues[0]?.message ??
+            "Decision compatibility body is invalid.",
+          ctx.requestId,
+          400,
         );
+      }
+
+      try {
         return success(
-          updated,
+          evaluateDecisionCompatibility(
+            parsed.data as unknown as Parameters<
+              typeof evaluateDecisionCompatibility
+            >[0],
+          ),
           ctx.requestId,
-          "Integration connection updated",
         );
       } catch (error) {
-        return integrationFailureResponse(
-          error,
+        return failure(
+          "DECISION_COMPATIBILITY_EVALUATION_FAILED",
+          error instanceof Error
+            ? error.message
+            : "Unable to evaluate decision compatibility.",
           ctx.requestId,
-          "INTEGRATION_UPDATE_FAILED",
-          "Unable to update integration connection",
+          400,
         );
       }
     },
-    adminIntegrationsWrite,
+    adminConsoleAccess,
   ),
-  route(
-    "POST",
-    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/authorize/start",
-    async (ctx) => {
-      try {
-        const started = await startIntegrationAuthorization(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-          ctx.body,
-          ctx.user?.userId ?? null,
-        );
-        return success(
-          started,
-          ctx.requestId,
-          "Integration authorization started",
-        );
-      } catch (error) {
-        return integrationFailureResponse(
-          error,
-          ctx.requestId,
-          "AUTHORIZATION_START_FAILED",
-          "Unable to start integration authorization",
-        );
-      }
-    },
-    adminIntegrationsWrite,
-  ),
-  route(
-    "POST",
-    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/authorize/complete",
-    async (ctx) => {
-      try {
-        const completed = await completeIntegrationAuthorization(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-          ctx.body,
-          ctx.user?.userId ?? null,
-        );
-        return success(
-          completed,
-          ctx.requestId,
-          "Integration authorization completed",
-        );
-      } catch (error) {
-        return integrationFailureResponse(
-          error,
-          ctx.requestId,
-          "AUTHORIZATION_COMPLETE_FAILED",
-          "Unable to complete integration authorization",
-        );
-      }
-    },
-    adminIntegrationsWrite,
-  ),
-  route(
-    "POST",
-    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/test",
-    async (ctx) => {
-      try {
-        const result = await testIntegrationConnection(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-          ctx.user?.userId ?? null,
-        );
-        return success(result, ctx.requestId);
-      } catch (error) {
-        return integrationFailureResponse(
-          error,
-          ctx.requestId,
-          "CONNECTION_TEST_FAILED",
-          "Unable to test integration connection",
-        );
-      }
-    },
-    adminIntegrationsWrite,
-  ),
-  route(
-    "GET",
-    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/ingest-credentials",
-    async (ctx) => {
-      try {
-        const credentials = await listIntegrationIngestCredentials(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-        );
-        return success(credentials, ctx.requestId);
-      } catch (error) {
-        return integrationFailureResponse(
-          error,
-          ctx.requestId,
-          "INGEST_CREDENTIALS_LIST_FAILED",
-          "Unable to list integration ingest credentials",
-        );
-      }
-    },
-    adminIntegrationsRead,
-  ),
-  route(
-    "POST",
-    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/ingest-credentials",
-    async (ctx) => {
-      try {
-        const issued = await issueIntegrationIngestCredential(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-          ctx.body,
-          ctx.user?.userId ?? null,
-        );
-        return success(
-          issued,
-          ctx.requestId,
-          "Integration ingest credential issued",
-          201,
-        );
-      } catch (error) {
-        return integrationFailureResponse(
-          error,
-          ctx.requestId,
-          "INGEST_CREDENTIAL_ISSUE_FAILED",
-          "Unable to issue integration ingest credential",
-        );
-      }
-    },
-    adminIntegrationsWrite,
-  ),
-  route(
-    "POST",
-    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/ingest-credentials/:credentialId/revoke",
-    async (ctx) => {
-      try {
-        const revoked = await revokeIntegrationIngestCredential(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-          ctx.params.credentialId ?? "",
-          ctx.user?.userId ?? null,
-        );
-        return success(
-          revoked,
-          ctx.requestId,
-          "Integration ingest credential revoked",
-        );
-      } catch (error) {
-        return integrationFailureResponse(
-          error,
-          ctx.requestId,
-          "INGEST_CREDENTIAL_REVOKE_FAILED",
-          "Unable to revoke integration ingest credential",
-        );
-      }
-    },
-    adminIntegrationsWrite,
-  ),
-  route(
-    "GET",
-    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/raw-events",
-    async (ctx) => {
-      try {
-        const rawEvents = await listIntegrationRawEvents(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-        );
-        return success(rawEvents, ctx.requestId);
-      } catch (error) {
-        return integrationFailureResponse(
-          error,
-          ctx.requestId,
-          "RAW_EVENTS_LIST_FAILED",
-          "Unable to list integration raw events",
-        );
-      }
-    },
-    adminIntegrationsRead,
-  ),
-  route(
-    "GET",
-    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/raw-events/:eventId/payload",
-    async (ctx) => {
-      try {
-        const payload = await getIntegrationRawEventPayload(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-          ctx.params.eventId ?? "",
-        );
-        return success(payload, ctx.requestId);
-      } catch (error) {
-        return integrationFailureResponse(
-          error,
-          ctx.requestId,
-          "RAW_EVENT_PAYLOAD_FAILED",
-          "Unable to load integration raw event payload",
-        );
-      }
-    },
-    adminIntegrationsRead,
-  ),
-  route(
-    "POST",
-    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/sync",
-    async (ctx) => {
-      try {
-        const run = await triggerIntegrationSync(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-          ctx.body,
-          ctx.user?.userId ?? null,
-        );
-        return success(run, ctx.requestId, "Integration sync run created", 202);
-      } catch (error) {
-        return integrationFailureResponse(
-          error,
-          ctx.requestId,
-          "SYNC_TRIGGER_FAILED",
-          "Unable to trigger integration sync",
-        );
-      }
-    },
-    adminIntegrationsWrite,
-  ),
-  route(
-    "GET",
-    "/api/v1/admin/organizations/:orgId/integrations/sync-runs",
-    async (ctx) =>
-      success(
-        await listIntegrationSyncRuns(
-          ctx.params.orgId ?? "",
-          ctx.query.get("connectionId"),
-        ),
-        ctx.requestId,
-      ),
-    adminIntegrationsRead,
-  ),
-  route(
-    "GET",
-    "/api/v1/admin/organizations/:orgId/integrations/audit",
-    async (ctx) =>
-      success(
-        await listIntegrationAuditEvents(
-          ctx.params.orgId ?? "",
-          ctx.query.get("connectionId"),
-        ),
-        ctx.requestId,
-      ),
-    adminAuditRead,
-  ),
+  ...ADMIN_INTEGRATION_ROUTES,
   route(
     "GET",
     "/api/v1/admin/monitoring/platform",
@@ -3553,177 +3385,8 @@ export const routes: RouteDefinition[] = [
     },
     adminOrgWrite,
   ),
-  route(
-    "GET",
-    "/api/v1/admin/organizations/:orgId/approval-inbox",
-    async (ctx) => {
-      try {
-        return success(
-          await listPersistentApprovalInbox({
-            organizationId: ctx.params.orgId ?? "",
-          }),
-          ctx.requestId,
-        );
-      } catch (error) {
-        return operationalFailureResponse(
-          error,
-          ctx.requestId,
-          "APPROVAL_INBOX_FAILED",
-          "Unable to load admin approval inbox",
-        );
-      }
-    },
-    adminOrgRead,
-  ),
-  route(
-    "POST",
-    "/api/v1/admin/organizations/:orgId/approvals/:approvalId/decision",
-    async (ctx) => {
-      const organizationId = ctx.params.orgId ?? "";
-      const approvalId = ctx.params.approvalId ?? "";
-
-      if (!isUuidString(approvalId)) {
-        return failure(
-          "INVALID_APPROVAL_ID",
-          "Approval id must be a UUID.",
-          ctx.requestId,
-          400,
-          { approvalId },
-        );
-      }
-
-      const parsed = approvalDecisionSchema.safeParse(ctx.body);
-      if (!parsed.success) {
-        return failure(
-          "INVALID_APPROVAL_DECISION_BODY",
-          parsed.error.issues[0]?.message ??
-            "Approval decision body is invalid.",
-          ctx.requestId,
-          400,
-        );
-      }
-
-      const actorUserId = ctx.user?.userId ?? "";
-      const actorRole = ctx.user?.role?.trim() ?? "";
-      if (actorUserId.length === 0 || actorRole.length === 0) {
-        return failure(
-          "APPROVAL_ACTOR_CONTEXT_REQUIRED",
-          "Authenticated admin actor context is required.",
-          ctx.requestId,
-          403,
-        );
-      }
-
-      try {
-        return success(
-          await decidePersistentApproval({
-            organizationId,
-            approvalId,
-            actorUserId,
-            actorRole,
-            request: parsed.data,
-          }),
-          ctx.requestId,
-          "Approval decision persisted",
-        );
-      } catch (error) {
-        return operationalFailureResponse(
-          error,
-          ctx.requestId,
-          "APPROVAL_DECISION_FAILED",
-          "Unable to persist approval decision",
-        );
-      }
-    },
-    { ...adminOrgWrite, rateLimit: adminUsersWriteRateLimit },
-  ),
-  route(
-    "GET",
-    "/api/v1/admin/organizations/:orgId/action-dispatches/:actionId",
-    async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
-      const actionId = ctx.params.actionId ?? "";
-
-      if (!isUuidString(actionId)) {
-        return failure(
-          "INVALID_ACTION_ID",
-          "Action id must be a UUID.",
-          ctx.requestId,
-          400,
-          { actionId },
-        );
-      }
-
-      try {
-        return success(
-          await getPersistentActionDispatchDetail({
-            organizationId: orgId,
-            actionId,
-          }),
-          ctx.requestId,
-        );
-      } catch (error) {
-        return operationalFailureResponse(
-          error,
-          ctx.requestId,
-          "ACTION_DISPATCH_DETAIL_FAILED",
-          "Unable to load admin action dispatch detail",
-        );
-      }
-    },
-    adminOrgRead,
-  ),
-  route(
-    "GET",
-    "/api/v1/admin/organizations/:orgId/ledgers/:ledgerId",
-    async (ctx) => {
-      const orgId = ctx.params.orgId ?? "";
-      const ledgerId = ctx.params.ledgerId ?? "";
-      const revision = normalizeOptionalText(ctx.query.get("revision"));
-
-      if (!isUuidString(ledgerId)) {
-        return failure(
-          "INVALID_LEDGER_ID",
-          "Ledger id must be a UUID.",
-          ctx.requestId,
-          400,
-          { ledgerId },
-        );
-      }
-
-      if (revision != null && !/^[1-9]\d*$/.test(revision)) {
-        return failure(
-          "INVALID_LEDGER_REVISION",
-          "Ledger revision must be a positive integer.",
-          ctx.requestId,
-          400,
-          { revision },
-        );
-      }
-
-      try {
-        return success(
-          await getPersistentLedgerDetail({
-            organizationId: orgId,
-            request: {
-              ledgerId,
-              revision:
-                revision == null ? undefined : Number.parseInt(revision, 10),
-            },
-          }),
-          ctx.requestId,
-        );
-      } catch (error) {
-        return operationalFailureResponse(
-          error,
-          ctx.requestId,
-          "LEDGER_DETAIL_FAILED",
-          "Unable to load admin ledger detail",
-        );
-      }
-    },
-    adminOrgRead,
-  ),
+  ...ADMIN_DECISION_CONTRACT_ROUTES,
+  ...ADMIN_DECISION_RUNTIME_ROUTES,
   route(
     "POST",
     "/api/v1/admin/organizations/:orgId/alerts/:alertId/scenarios/recompute",

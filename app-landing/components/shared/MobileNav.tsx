@@ -70,7 +70,7 @@ export function MobileNav({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="relative z-50 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white text-ink shadow-[0_10px_20px_-16px_rgba(2,6,23,0.8)] transition-all duration-200 hover:border-neutral-300 hover:bg-neutral-50 lg:hidden"
+        className="hdr-hamburger relative z-50 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white text-ink shadow-[0_10px_20px_-16px_rgba(2,6,23,0.8)] transition-all duration-300 hover:border-neutral-300 hover:bg-neutral-50 lg:hidden"
         aria-label={
           locale === "fr"
             ? open
@@ -201,7 +201,7 @@ export function MobileNav({
                                       href={item.href}
                                       className={`block rounded-lg border px-3 py-2 text-sm no-underline transition-colors duration-200 ${
                                         item.primary
-                                          ? "border-navy-200 bg-navy-50 text-ink"
+                                          ? "border-proof-100 bg-proof-100 text-ink"
                                           : "border-transparent text-neutral-700 hover:border-neutral-200 hover:bg-neutral-50"
                                       }`}
                                     >

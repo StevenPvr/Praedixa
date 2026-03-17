@@ -7,9 +7,11 @@ Ce dossier fait partie du périmètre `app-landing` et regroupe des fichiers li�
 ## Contenu immédiat
 
 Sous-dossiers :
+
 - `__tests__`
 
 Fichiers :
+
 - `constants.ts`
 - `email.ts`
 - `rate-limit.ts`

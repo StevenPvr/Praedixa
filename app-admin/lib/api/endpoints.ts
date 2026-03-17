@@ -56,6 +56,9 @@ export const ADMIN_ENDPOINTS = {
 
   // Audit
   auditLog: `${V1}/audit-log`,
+  decisionContractTemplates: `${V1}/decision-contract-templates`,
+  decisionContractTemplatePreview: `${V1}/decision-contract-templates/instantiate-preview`,
+  decisionCompatibilityEvaluate: `${V1}/decision-compatibility/evaluate`,
 
   // Onboarding
   onboardingList: `${V1}/onboarding`,
@@ -81,6 +84,38 @@ export const ADMIN_ENDPOINTS = {
     `${V1}/organizations/${encodeURIComponent(orgId)}/canonical/quality`,
   orgCostParams: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/cost-params`,
+  orgDecisionContracts: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/decision-contracts`,
+  orgDecisionContractDetail: (
+    orgId: string,
+    contractId: string,
+    contractVersion: number,
+  ) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/decision-contracts/${encodeURIComponent(contractId)}/versions/${encodeURIComponent(String(contractVersion))}`,
+  orgDecisionContractTransition: (
+    orgId: string,
+    contractId: string,
+    contractVersion: number,
+  ) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/decision-contracts/${encodeURIComponent(contractId)}/versions/${encodeURIComponent(String(contractVersion))}/transition`,
+  orgDecisionContractFork: (
+    orgId: string,
+    contractId: string,
+    contractVersion: number,
+  ) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/decision-contracts/${encodeURIComponent(contractId)}/versions/${encodeURIComponent(String(contractVersion))}/fork`,
+  orgDecisionContractRollbackCandidates: (
+    orgId: string,
+    contractId: string,
+    contractVersion: number,
+  ) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/decision-contracts/${encodeURIComponent(contractId)}/versions/${encodeURIComponent(String(contractVersion))}/rollback-candidates`,
+  orgDecisionContractRollback: (
+    orgId: string,
+    contractId: string,
+    contractVersion: number,
+  ) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/decision-contracts/${encodeURIComponent(contractId)}/versions/${encodeURIComponent(String(contractVersion))}/rollback`,
   orgDecisionConfigResolved: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/decision-config/resolved`,
   orgDecisionConfigVersions: (orgId: string) =>
@@ -101,8 +136,14 @@ export const ADMIN_ENDPOINTS = {
     `${V1}/organizations/${encodeURIComponent(orgId)}/approvals/${encodeURIComponent(approvalId)}/decision`,
   orgActionDispatchDetail: (orgId: string, actionId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/action-dispatches/${encodeURIComponent(actionId)}`,
+  orgActionDispatchDecision: (orgId: string, actionId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/action-dispatches/${encodeURIComponent(actionId)}/decision`,
+  orgActionDispatchFallback: (orgId: string, actionId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/action-dispatches/${encodeURIComponent(actionId)}/fallback`,
   orgLedgerDetail: (orgId: string, ledgerId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/ledgers/${encodeURIComponent(ledgerId)}`,
+  orgLedgerDecision: (orgId: string, ledgerId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/ledgers/${encodeURIComponent(ledgerId)}/decision`,
   orgMlMonitoringSummary: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/ml-monitoring/summary`,
   orgMlMonitoringDrift: (orgId: string) =>
@@ -125,6 +166,10 @@ export const ADMIN_ENDPOINTS = {
     `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections`,
   orgIntegrationConnection: (orgId: string, connectionId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}`,
+  orgIntegrationConnectionTest: (orgId: string, connectionId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}/test`,
+  orgIntegrationSync: (orgId: string, connectionId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}/sync`,
   orgIntegrationIngestCredentials: (orgId: string, connectionId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}/ingest-credentials`,
   orgIntegrationIngestCredentialRevoke: (
@@ -141,6 +186,8 @@ export const ADMIN_ENDPOINTS = {
     eventId: string,
   ) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}/raw-events/${encodeURIComponent(eventId)}/payload`,
+  orgIntegrationSyncRuns: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/sync-runs`,
 
   // Conversations (admin)
   conversations: `${V1}/conversations`,

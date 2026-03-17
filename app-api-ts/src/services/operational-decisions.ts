@@ -3,6 +3,7 @@ import type { PoolClient, QueryResultRow } from "pg";
 import type {
   OperationalDecision,
   OverrideStatistics,
+  ScenarioOptionType,
 } from "@praedixa/shared-types/domain";
 
 import type { SiteAccessScope } from "./operational-data.js";
@@ -70,7 +71,7 @@ interface DbScenarioOptionContextRow extends QueryResultRow {
   id: string;
   coverage_alert_id: string;
   is_recommended: boolean;
-  option_type: string;
+  option_type: ScenarioOptionType;
   label: string;
   cout_total_eur: string | number;
   service_attendu_pct: string | number | null;

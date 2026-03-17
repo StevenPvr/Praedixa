@@ -1,5 +1,16 @@
 # Repository Guidelines
 
+## Reading Order
+
+Read this file in this order:
+
+1. `Operating Model`: how to work in this repo.
+2. `Project Structure`, `Architecture Boundary`, `Build/Test Commands`, `Coding Style`: repo context.
+3. `Thematic Guardrails`: the rule catalog. Apply the most specific relevant rule.
+4. `Testing Guidelines`, `Commit & Pull Request Guidelines`, `Security & Configuration Tips`: finish and delivery rules.
+
+If multiple rules apply, obey all of them. If a specific rule conflicts with a generic one, follow the specific rule.
+
 ## Project Structure & Module Organization
 
 Praedixa is a PNPM/Turbo monorepo. Product apps live in `app-landing`, `app-webapp`, `app-admin`, `app-api-ts`, `app-api`, and `app-connectors`. Shared packages live in `packages/` (`shared-types`, `ui`, `remotion-preview`). End-to-end tests live in `testing/e2e/`. Infra and deployment scripts are in `infra/` and `scripts/`. Product, security, and release docs live in `docs/`.
@@ -23,17 +34,84 @@ Use `TypeScript`, `Next.js`, and `Node.js` for everything that communicates with
 
 Use TypeScript/ESM for frontend and Node services, Python 3.12 for `app-api`. Prettier and ESLint govern JS/TS formatting; Ruff and MyPy govern Python quality. Prefer 2-space indentation in TS/JS and 4 spaces in Python. Use `PascalCase` for React components, `camelCase` for functions/variables, and `snake_case` only where Python or database naming requires it.
 
-## Development Guardrails
+## Operating Model
+
+### Workflow Orchestration
+
+#### 1. Plan Mode Default
+
+- Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions)
+- If something goes sideways, STOP and re-plan immediately - don't keep pushing
+- Use plan mode for verification steps, not just building
+- Write detailed specs upfront to reduce ambiguity
+
+#### 2. Subagent Strategy
+
+- Use subagents liberally to keep main context window clean
+- Offload research, exploration, and parallel analysis to subagents
+- For complex problems, throw more compute at it via subagents
+- One tack per subagent for focused execution
+
+#### 3. Self-Improvement Loop
+
+- After ANY correction from the user: update `tasks/lessons.md` with the pattern
+- Write rules for yourself that prevent the same mistake
+- Ruthlessly iterate on these lessons until mistake rate drops
+- Review lessons at session start for relevant project
+
+#### 4. Verification Before Done
+
+- Never mark a task complete without proving it works
+- Diff behavior between main and your changes when relevant
+- Ask yourself: "Would a staff engineer approve this?"
+- Run tests, check logs, demonstrate correctness
+
+#### 5. Demand Elegance (Balanced)
+
+- For non-trivial changes: pause and ask "is there a more elegant way?"
+- If a fix feels hacky: "knowing everything I know now, implement the elegant solution"
+- Skip this for simple, obvious fixes - don't over-engineer
+- Challenge your own work before presenting it
+
+#### 6. Autonomous Bug Fixing
+
+- When given a bug report: just fix it. Don't ask for hand-holding
+- Point at logs, errors, failing tests - then resolve them
+- Zero context switching required from the user
+- Go fix failing CI tests without being told how
+
+### Task Management
+
+1. **Plan First**: Write plan to `tasks/todo.md` with checkable items
+2. **Verify Plan**: Check in before starting implementation
+3. **Track Progress**: Mark items complete as you go
+4. **Explain Changes**: High-level summary at each step
+5. **Document Results**: Add review section to `tasks/todo.md`
+6. **Capture Lessons**: Update `tasks/lessons.md` after corrections
+
+### Core Principles
+
+- **Simplicity First**: Make every change as simple as possible. Impact minimal code.
+- **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
+- **Minimal Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
+
+## Thematic Guardrails
+
+### Global Development Rules
 
 Keep modules small and easy to review. As a default rule, avoid source files over 500 lines and functions over 50 lines; split logic into helpers or services before crossing those limits. Strict typing is mandatory: no silent `any`, no loose payload shapes, and no bypassing TypeScript, Pyright, or MyPy errors without a documented reason. Write code that follows KISS, DRY, and SOLID: prefer simple flows, extract duplicated business logic, and keep components or services focused on one responsibility. Put reusable domain logic in `packages/shared-types` or service modules, not page components.
 Each time a development mistake causes a bug, add one short prevention rule to this `AGENTS.md` so the same error is less likely to happen again.
 After every code change, update the documentation in the affected directories and files within the same change so the distributed doc stays current with the codebase.
 Because the repo is not in production yet, do not preserve legacy aliases, compatibility shims, or transitional fallbacks; remove or replace them with the target contract as soon as they are discovered.
 When a review, audit, or implementation pass uncovers a real defect or structural risk, treat it in the same change unless the user explicitly chooses to defer it; do not leave known problems behind as "out of scope".
+
+### Next.js, React, and Frontend Runtime
+
 After deleting or renaming Next.js routes or pages in `app-landing`, clear `.next` before restarting Turbopack so the dev cache cannot crash on stale task data.
 Before finalizing a hook-backed commit in a Next.js app, verify `next-env.d.ts` was not dirtied by `next dev` or Playwright web servers, or the commit can fail after the checks themselves pass.
 Before adding a new nested Next.js route page, verify the relative import depth from the route file to shared modules with `tsc` before considering the route done.
 Before adding non-standard React DOM props, verify they are supported by typed HTML attributes or pass them explicitly as intentional lowercase custom attributes.
+Before wiring ARIA ids inside a motion-heavy Next.js client component, derive them from stable locale/data keys instead of generated ids so hydration cannot drift between server and client.
 For Safari/WebKit media bugs, validate real playback state in WebKit before assuming DOM autoplay attributes are sufficient.
 When mocking `next/image` in tests, strip Next-only props like `fill` and `priority` before rendering a native `img`.
 For third-party wordmark logos, use a visually verified official asset at the actual display size instead of assuming the SVG variant will stay legible in the UI.
@@ -43,6 +121,9 @@ Do not remove or rewrite user-approved brand or mission copy unless the user exp
 After changing hero claim layouts, verify the real desktop browser rendering before considering the task done.
 When updating landing hero positioning copy, verify the combined headline length (`headline` + `headlineHighlight`) stays short enough before trying to solve the issue with layout tweaks.
 Before debugging repeated local `/api/v1/*` proxy 502s in Next apps, verify the expected backend is actually listening on `NEXT_PUBLIC_API_URL`.
+
+### Auth, Security, Authorization, and Tenant Safety
+
 Before creating or refreshing a webapp session from an OIDC access token, verify the token is compatible with the API contract instead of assuming login success implies API access.
 Before shipping a cookie-authenticated JSON route in Next.js, reject browser requests whose `Origin` or `Sec-Fetch-Site` is not same-origin, even for GET handlers that can refresh or proxy session state.
 Before relying on admin navigation or tab visibility for authorization, enforce the same route-level permission check server-side for direct URL access.
@@ -60,6 +141,9 @@ Before trusting `X-Forwarded-For` for rate limiting or audit logs in Node servic
 Before shipping auth rate limiting outside development, require an explicit distributed store and `AUTH_RATE_LIMIT_KEY_SALT`; never derive the salt from `AUTH_SESSION_SECRET` or silently fall back to local memory.
 Before attributing a human action through an internal HTTP header, verify the user identity comes from a trusted server-side boundary; never trust a caller-supplied user-id header for audit logs.
 Before sending bearer tokens to an internal service from config, validate the base URL scheme and allowlisted host instead of trusting the raw env value.
+
+### Tooling, Shell, Hooks, and Monorepo Hygiene
+
 When iterating over newline-delimited shell output, handle the final line even if it has no trailing newline, or single-item deploy selectors can be skipped silently.
 Before relying on commit message conventions in a repo, declare and install a real `commit-msg` hook in the versioned hook config instead of assuming an old local hook is still present.
 Before pointing monorepo SAST tools at repo root, exclude nested repositories and generated report folders so scans stay limited to in-scope source code.
@@ -71,10 +155,14 @@ After replacing a homepage interaction pattern, update or remove the matching E2
 Before forcing a client-side reauth redirect after a 401, navigate to the explicit `/login?reauth=1...` URL before awaiting logout side effects, or middleware races can silently drop the reauth query.
 Before wiring E2E OIDC defaults into Next auth apps, keep `AUTH_SESSION_SECRET` compliant with the same 32+ character validation as production, or server routes will reject the test session before cookie checks run.
 Before running repo-wide security scans from the monorepo root, exclude nested Git repositories in the workspace so unrelated external projects cannot block the main repo gate.
+
+### Workspace, Packages, Docker, and Build Integrity
+
 Before building or deploying with Dockerfiles that run `pnpm install --frozen-lockfile`, sync `pnpm-lock.yaml` with every changed workspace `package.json`, or release builds will fail on the runner.
 After adding a workspace dependency or package subpath export in the monorepo, run a real `pnpm install` before trusting TypeScript or Vitest resolution; `--lockfile-only` does not refresh workspace links.
 Before wiring a frontend mutation to a typed backend endpoint, verify the submitted JSON matches the shared request contract exactly and cover that exact payload shape in at least one E2E or route-level test.
 Before sending operator-entered JSON from an admin form to a typed mutation, validate the parsed value union and object shape explicitly instead of casting `unknown` to the shared contract.
+Before using `z.custom()` inside a unioned route body schema, give it an explicit predicate; the bare form accepts `undefined` and can silently swallow a sibling payload branch.
 Before trusting a PNPM workspace Docker build, verify the image rebuilds workspace links inside the builder; restoring only root `node_modules` can leave internal packages unresolved even when the local build is green.
 Before copying `node_modules` across Docker stages in a PNPM workspace, verify each app keeps its package-local workspace links; copying only the root install is not a safe substitute for a clean builder install.
 Before trusting a Docker build of a TypeScript workspace package, exclude or purge `*.tsbuildinfo` if `dist/` is not copied too, or `tsc` can skip emit and leave the image without the built package even though the command exits green locally.
@@ -83,9 +171,15 @@ Before relying on a Next.js standalone Docker image, ensure every copied runtime
 Before asserting exact accessible names for landing nav card links in tests, remember the link name can include both title and description; prefer partial label matching plus `href` checks.
 Before shipping a Next.js frontend image for `linux/amd64`, validate the full Docker build under the target platform and prefer a glibc-based base image over Alpine when native build binaries fail.
 Before running recursive security scans on a monorepo, exclude nested build artifact directories like `app-*/.next` and `app-*/.open-next`, not just root-level caches.
+
+### Output Quality and Review Standards
+
 When the user asks for a prompt, copy, concept, or creative artifact, the first version you provide must already be the strongest directly usable answer, not a placeholder draft to improve later.
 When writing code, the first implementation you ship should already aim for the strongest clean, production-grade solution you can justify, not a knowingly weak first pass meant to be fixed only after user pushback.
 Before starting a local dynamic API audit or smoke server, bind it to a freshly allocated free port instead of assuming `8000` is available.
+
+### Landing UX, Brand, Copy, and Public SEO
+
 Before adding a global skip-link in a Next.js app shell, verify that every route branch, including auth pages outside the main shell, exposes the target anchor.
 Before shipping a decorative hero video on the landing page, let a static poster carry the initial paint and defer video loading so Lighthouse LCP stays tied to the real content, not the media upgrade.
 Before calling a decorative hero video "progressive", verify it can still mount automatically without a user gesture, or the homepage can look broken on first visit.
@@ -103,6 +197,9 @@ Before finalizing landing mission copy, verify the hero support quote and the `/
 Before finalizing a landing hero or above-the-fold support block, scan the first viewport for literal duplicate sentences; do not paste the same subtitle or reassurance copy into stacked cards.
 Before shipping copy on a dark landing section, do not invent non-standard Tailwind opacity suffixes like `text-white/72`; use a supported token or an explicit arbitrary color and verify the real browser rendering.
 Before using Tailwind opacity modifiers on custom brand colors like `text-amber-400/55`, verify the class actually compiles in the target app; otherwise use an explicit arbitrary color.
+Before calling a landing section "plein ecran" or full-screen, remove any outer section padding and verify the real desktop viewport shows the whole section without extra scroll beyond `100dvh`.
+Before assuming a `SectionShell` spacing override is done in the landing, check the inherited responsive paddings too; `py-0` does not cancel `md:py-28`, so breakpoint-specific gaps can survive and create visible seams between sections.
+Before calling two adjacent landing sections visually flush, inspect borders as well as spacing; a 1px `border-top` on the second section can read like a white gap even when the DOM gap is zero.
 Before changing landing security helpers or CSP-sensitive files, update at least one abuse test under `app-landing/app/api/*/__tests__` so the public-form boundary stays explicitly covered and hook checks do not drift.
 Before claiming the landing is ready for Google sitelinks or stronger branded SEO, make core public pages expose both visible breadcrumbs and matching `WebPage`/`BreadcrumbList` JSON-LD; header/footer links alone are not enough.
 Before repositioning a persistent hero rail or proof strip, anchor it with the section layout (`flex` / `mt-auto`) instead of compensating with ad hoc margins that depend on headline height.
@@ -111,6 +208,9 @@ Before trimming a landing explanation of the DecisionOps loop, verify the full p
 Before offsetting landing content blocks with decorative `translate-y` or staggered heights, verify the real desktop rendering and contrast so the composition does not create clipped or low-visibility copy.
 Before relaxing fixed-height constraints in a static slide deck, recheck that peer cards on the same slide still keep a uniform visual height.
 Before reusing Praedixa short-horizon messaging on a new vertical, verify the real decision lead times; sectors that must book capacity weeks ahead should not be framed as J+3/J+7/J+14 only.
+
+### E2E, CI, Release, and Deployment Integrity
+
 Before running `pa11y-ci` from a transient `pnpm dlx` install, point it to the repo's Playwright Chromium instead of relying on a Puppeteer postinstall download.
 Before trusting a versioned manual gate report in `pre-push`, allow the verifier to regenerate a same-SHA report when the existing one is stale or failed, or the hook can stay falsely red after fixes.
 After replacing the homepage sector navigation, update the matching landing E2E spec in the same diff so hooks do not keep asserting removed links or counts.
@@ -145,6 +245,9 @@ Before using a Markdown matrix as release-critical inventory, version an equival
 Before trusting an `uv`-backed dependency audit in `app-api`, resync the package-local environment from `app-api/uv.lock` so stale tool dependencies cannot create false-positive blockers.
 Before signing JSON evidence with HMAC in shell scripts, sign a canonical JSON serialization and require a pre-provisioned key file; never auto-generate a trust root during signing or verification.
 Before accepting restore-drill evidence in a signed manifest, require one evidence artifact plus digest for every mandatory semantic check, not just a summary status string.
+
+### Runtime Workflows and Gold Data
+
 Before spawning workflow or approval records from a user action, carry both the actor id and actor role from the authenticated request context so separation-of-duties and audit records stay complete.
 Before seeding or persisting a retryable action dispatch, do not mark human fallback as `prepared` before a real failure or explicit escalation, or retry eligibility will be blocked from the start.
 Before reading Gold runtime data or medallion features, reject legacy `mock_*` dataset and column names explicitly instead of silently canonicalizing them.
@@ -152,12 +255,18 @@ Before resolving a Gold client or site scope, require an explicit canonical slug
 Before computing scenario blueprints or Gold proof states, require explicit cost and BAU inputs; never substitute silent zero defaults for missing configuration.
 Before constraining authenticated actor ids in admin/runtime flows, verify the repo treats them as guaranteed UUIDs; if the contract only guarantees opaque auth ids, validate non-empty identity instead of inventing a stricter format.
 Before extracting a legacy bootstrap path into a new strict service, remove stale wrapper-only keyword flags in every caller and test the direct service contract instead of preserving obsolete compatibility arguments.
+
+### Landing Positioning, Public Routes, and Legal Consistency
+
 Before renaming landing offer vocabulary, update the matching knowledge/services tests in the same change so hooks do not keep asserting an older public wording after the copy is approved.
 Before duplicating landing public copy across multiple dictionaries, keep one source of truth and reference it; duplicated marketing strings drift silently and break published wording.
 Before leaving a legacy landing route public, verify it still matches the current public offer; if it sells an older positioning, remove it or 301 it instead of keeping two commercial narratives live.
 Before letting a landing server action post lead data to a configurable internal URL, require a production host allowlist and strip spoofable proxy headers or query-bearing referers from persisted metadata.
 Before calling a landing positioning refactor done, scan visible pages, legal copy, metadata/snippets, and EN parity for retired offer wording, or the old product identity will stay publicly alive.
 Before publishing landing sovereignty or hosting claims, verify the public legal pages and SEO config both match the actual production delivery stack instead of an old preview or transitional provider.
+
+### Admin Policies, Shared Helpers, and Test Fixtures
+
 Before adding a new admin page or admin proxy endpoint, register both the page policy and the API policy in `admin-route-policies.ts` in the same change, or middleware, navigation, and direct URL access will drift apart.
 Before returning a rate-limit result from shared auth/security helpers, keep the execution mode (`development-local` vs `distributed-required`) explicit on allowed and blocked paths so tests and observability do not infer it indirectly.
 Before importing a new `lucide-react` icon in a shared component covered by global Vitest mocks, add it to `testing/utils/mocks/icons.ts` in the same change or the full app suite will fail on an incomplete module mock.

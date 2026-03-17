@@ -30,7 +30,7 @@ export function DeploymentRequestAside({
   return (
     <aside className="space-y-6 md:pt-2">
       <div>
-        <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-brass-700">
+        <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink-800">
           <DecisionGraphIcon size={14} />
           {ui.formKicker}
         </span>

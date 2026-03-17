@@ -32,7 +32,7 @@ Commande de validation locale:
 pnpm performance:validate-budgets
 ```
 
-Ce validateur est maintenant rejoue par `pnpm gate:prepush` et `pnpm gate:exhaustive`, ce qui bloque les derives structurelles entre la prose et les blocs JSON versionnes.
+Ce validateur est maintenant rejoue par `pnpm gate:prepush`, `pnpm gate:exhaustive`, `CI - API` et `CI - Admin`, ce qui bloque les derives structurelles entre la prose et les blocs JSON versionnes en local comme a distance.
 
 Le validateur:
 

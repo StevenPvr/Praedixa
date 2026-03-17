@@ -15,6 +15,13 @@ Definition retenue de "build-ready":
 Sources de verite utilisees pour cette checklist:
 
 - `docs/prd/Praedixa_PRD_DecisionOps_PRD_final.md`
+- `docs/prd/coverage-v1-thin-slice-spec.md`
+- `docs/prd/decision-contract-governed-publish-spec.md`
+- `docs/prd/decision-graph-and-scenario-runtime-spec.md`
+- `docs/prd/decision-ledger-and-roi-proof-spec.md`
+- `docs/prd/control-plane-trust-gate-spec.md`
+- `docs/prd/ux-and-e2e-trust-paths-spec.md`
+- `docs/prd/approval-and-action-mesh-governance-spec.md`
 - `docs/ARCHITECTURE.md`
 - `docs/DATABASE.md`
 - `docs/TESTING.md`
@@ -22,6 +29,32 @@ Sources de verite utilisees pour cette checklist:
 - `docs/runbooks/`
 - `scripts/README.md`
 - l'etat reel des apps/packages/services du monorepo
+
+Regle d'interpretation pour les sections encore ouvertes:
+
+- les sections 4 a 12 qui touchent le chemin `connector -> contract -> signal -> compare -> approve -> dispatch -> ledger` doivent etre lues a travers `docs/prd/coverage-v1-thin-slice-spec.md`, qui sert de tranche canonique V1 avant l'expansion multi-pack
+- la section 4 doit etre lue a travers `docs/prd/connector-activation-and-dataset-trust-spec.md`
+- les sections 1 et 3, ainsi que les parties de la 12 et de la 15 qui touchent les chemins demo/legacy/fallback, l'auth/RBAC/tenant safety, l'audit append-only et les acces privilegies, doivent etre lues a travers `docs/prd/control-plane-trust-gate-spec.md`
+- les sections 2, 5, 7 et 8 qui touchent le lifecycle du contrat, la publication, les policies, les permissions de write-back et la preuve ledger doivent etre lues a travers `docs/prd/decision-contract-governed-publish-spec.md`
+- les sections 5 et 6, ainsi que les parties de la 9 et de la 12 qui touchent le `DecisionGraph`, la semantic query API, le runtime scenario, les etats degrades et les preuves de regression, doivent etre lues a travers `docs/prd/decision-graph-and-scenario-runtime-spec.md`
+- la section 8, ainsi que les parties des sections 7, 9, 11 et 12 qui touchent le `Decision Ledger`, le ROI, les revisions, les exports mensuels et la frontiere avec les proof packs, doivent etre lues a travers `docs/prd/decision-ledger-and-roi-proof-spec.md`
+- la section 9, ainsi que les parties des sections 10, 12 et 15 qui touchent les page models, les etats degrades, la neutralite multi-pack des shells et les E2E critiques, doivent etre lues a travers `docs/prd/ux-and-e2e-trust-paths-spec.md`
+- la section 7, ainsi que les parties des sections 5, 8, 9 et 12 qui touchent la matrice d'approbation, la justification structuree, la SoD critique, l'idempotence, les composites et la sandbox, doivent etre lues a travers `docs/prd/approval-and-action-mesh-governance-spec.md`
+- les sections 6, 7, 8, 9 et une partie de la 12 doivent etre lues a travers `docs/prd/decisionops-operating-loop-spec.md`
+- les sections 10, 11, 12, 13 et 15 doivent etre lues a travers `docs/prd/build-release-sre-readiness-spec.md`
+
+Cartographie rapide des artefacts de fermeture:
+
+| Sections `TODO.md` | Artefact principal                                                                                                                  |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 1 et 3             | `control-plane-trust-gate-spec.md`                                                                                                  |
+| 4                  | `connector-activation-and-dataset-trust-spec.md`                                                                                    |
+| 5                  | `decision-contract-governed-publish-spec.md` + `decision-graph-and-scenario-runtime-spec.md`                                        |
+| 6                  | `decision-graph-and-scenario-runtime-spec.md` + `decisionops-operating-loop-spec.md`                                                |
+| 7                  | `approval-and-action-mesh-governance-spec.md` + `decision-contract-governed-publish-spec.md` + `decisionops-operating-loop-spec.md` |
+| 8                  | `decision-ledger-and-roi-proof-spec.md` + `decisionops-operating-loop-spec.md`                                                      |
+| 9                  | `ux-and-e2e-trust-paths-spec.md` + `decisionops-operating-loop-spec.md` + `coverage-v1-thin-slice-spec.md`                          |
+| 10 a 13, 15        | `build-release-sre-readiness-spec.md`                                                                                               |
 
 ## 1. Architecture repo et frontieres de responsabilite
 
@@ -93,7 +126,7 @@ Sources de verite utilisees pour cette checklist:
 - [x] Un moteur de mapping de colonnes existe deja cote Python
 - [ ] Ajouter un vrai mapping studio admin UI/API avec preview, validation humaine et persistance des mappings
 - [ ] Ajouter un flux de quarantaine de records invalides avec motifs, compteur et relance
-- [ ] Ajouter replay/backfill par connecteur sans reconstruction manuelle
+- [x] Ajouter replay/backfill par connecteur sans reconstruction manuelle
 - [ ] Exposer dataset freshness, lineage, volume traite, taux d'erreur et last successful run dans une surface unique
 - [x] Poser une fondation typée unique pour freshness, lineage, volume, error-rate et last-success des datasets
 - [x] Poser une fondation Mapping Studio typée avec preview stable, couverture et validation de publication
@@ -121,10 +154,10 @@ Sources de verite utilisees pour cette checklist:
 - [x] Poser une surface Graph Explorer typée pour requête, lineage, impact et debug de `DecisionGraph`
 - [x] Poser une lecture de compatibilite typée entre `DecisionContract` et `DecisionGraph`
 - [x] Exposer des routes admin read-only pour templates de contrats et check de compatibilite contrat/graphe
-- [ ] Faire de `DecisionContract` un objet logiciel de premier rang, distinct du simple `decision-config`
-- [ ] Definir le cycle de vie complet `draft -> testing -> approved -> published -> archived`
-- [ ] Ajouter versioning, auteur, motif de changement, rollback et audit pour les contrats
-- [ ] Ajouter des templates de contrats par pack (`Coverage`, `Flow`, `Allocation`)
+- [x] Faire de `DecisionContract` un objet logiciel de premier rang, distinct du simple `decision-config`
+- [x] Definir le cycle de vie complet `draft -> testing -> approved -> published -> archived`
+- [x] Ajouter versioning, auteur, motif de changement, rollback et audit pour les contrats
+- [x] Ajouter des templates de contrats par pack (`Coverage`, `Flow`, `Allocation`)
 - [ ] Ajouter des hooks de policy globaux relies aux contrats plutot que dupliques dans chaque surface
 - [ ] Construire un vrai `DecisionGraph` semantique versionne au-dessus du canonique et du Gold
 - [ ] Exposer une API stable de requete semantique pour scenarios, UI et ROI
@@ -177,10 +210,10 @@ Sources de verite utilisees pour cette checklist:
 - [ ] Imposer la separation des roles pour publication de contrats et approbations critiques
 - [x] Introduire des templates d'action versionnes par destination
 - [x] Exposer une route admin read-only pour le catalogue de templates d'action
-- [ ] Ajouter un vrai lifecycle `dry-run -> dispatch -> acknowledged -> failed -> retried -> canceled`
+- [x] Ajouter un vrai lifecycle `dry-run -> dispatch -> acknowledged -> failed -> retried -> canceled`
 - [ ] Garantir l'idempotence et la prevention des doublons de bout en bout pour chaque write-back
-- [ ] Ajouter les permissions de write-back par contrat et par destination
-- [ ] Ajouter un fallback humain explicite quand l'ecriture cible echoue
+- [x] Ajouter les permissions de write-back par contrat et par destination
+- [x] Ajouter un fallback humain explicite quand l'ecriture cible echoue
 - [ ] Ajouter des actions composites orchestrees pour les cas critiques
 - [ ] Ajouter une sandbox ou un mode test pour les destinations sensibles
 - [x] Poser une surface typée de detail d'action (timeline, retry eligibility, fallback, payload refs)
@@ -204,10 +237,10 @@ Sources de verite utilisees pour cette checklist:
 - [x] Brancher `Ledger Detail` sur une persistance runtime reelle (`decision_ledger_entries`)
 - [x] Faire echouer la preuve Gold live sans inputs BAU/optimized explicites et versionner les etats `proved` / `cannot_prove_yet`
 - [ ] Promouvoir l'existant vers un vrai `Decision Ledger` avec entree complete par decision
-- [ ] Distinguer systematiquement `baseline`, `recommended`, `actual`
-- [ ] Persister la methode contrefactuelle utilisee pour chaque calcul de ROI
-- [ ] Ajouter un statut de validation finance (`estimated`, `validated`, `contested`)
-- [ ] Ajouter recalcul versionne des entries quand les donnees reelles arrivent plus tard
+- [x] Distinguer systematiquement `baseline`, `recommended`, `actual`
+- [x] Persister la methode contrefactuelle utilisee pour chaque calcul de ROI
+- [x] Ajouter un statut de validation finance (`estimated`, `validated`, `contested`)
+- [x] Ajouter recalcul versionne des entries quand les donnees reelles arrivent plus tard
 - [ ] Ajouter drill-down depuis les KPI consolides vers les decisions sous-jacentes
 - [ ] Ajouter exports mensuels finance-grade CSV/PDF/JSON
 - [ ] Ajouter tests de coherence ROI / ledger / proof packs / decisions
@@ -256,7 +289,7 @@ Sources de verite utilisees pour cette checklist:
 - [x] Ajouter des checks de contrat OpenAPI / types partages dans la CI distante
 - [x] Ajouter des checks de dependances/architecture (`dep-cruiser`, `knip`, equivalents Python) explicitement bloquants si absents
 - [ ] Ajouter des suites de charge et de regression scenario/ledger/action dans le pipeline officiel
-- [ ] Versionner et durcir une politique de budgets perf/scalabilite/outils sans echappatoire manuelle
+- [x] Versionner et durcir une politique de budgets perf/scalabilite/outils sans echappatoire manuelle
 - [x] Documenter la matrice unique "ce qui bloque un merge" vs "ce qui bloque une release"
 
 **Definition of done**

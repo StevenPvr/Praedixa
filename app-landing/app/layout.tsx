@@ -1,7 +1,20 @@
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
+import { Inter, IBM_Plex_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  weight: ["400", "500"],
+  subsets: ["latin"],
+  variable: "--font-ibm-plex-mono",
+  display: "swap",
+});
 import { defaultLocale, isValidLocale } from "../lib/i18n/config";
 
 const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION;
@@ -49,7 +62,7 @@ export default async function RootLayout({
   return (
     <html
       lang={htmlLang}
-      className={GeistSans.variable}
+      className={`${inter.variable} ${ibmPlexMono.variable}`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >

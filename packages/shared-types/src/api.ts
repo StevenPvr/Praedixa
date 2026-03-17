@@ -4,6 +4,7 @@ export * from "./api/public-contract.js";
 export * from "./api/action-templates.js";
 export * from "./api/action-dispatch-decision.js";
 export * from "./api/action-dispatch-detail.js";
+export * from "./api/action-dispatch-fallback.js";
 export * from "./api/approval-decision.js";
 export * from "./api/approval-inbox.js";
 export * from "./api/dataset-health.js";

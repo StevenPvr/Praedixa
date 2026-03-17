@@ -15,6 +15,7 @@ import {
   normalizeJwtClaims,
   parseBearerToken,
 } from "../auth.js";
+import { routes } from "../routes.js";
 
 const JWT_CONFIG = {
   issuerUrl: "https://auth.praedixa.com/realms/praedixa",
@@ -349,5 +350,26 @@ describe("public OpenAPI auth contract", () => {
             "#/components/responses/ForbiddenError",
       ),
     ).toBe(true);
+  });
+
+  it("keeps decision contract and action dispatch admin routes internal and org-scoped", () => {
+    const document = loadPublicOpenApiDocument();
+    const publicPaths = new Set(Object.keys(document.paths ?? {}));
+    const internalAdminRoutes = [
+      "/api/v1/admin/organizations/:orgId/decision-contracts",
+      "/api/v1/admin/organizations/:orgId/decision-contracts/:contractId/versions/:contractVersion",
+      "/api/v1/admin/organizations/:orgId/decision-contracts/:contractId/versions/:contractVersion/transition",
+      "/api/v1/admin/organizations/:orgId/action-dispatches/:actionId",
+      "/api/v1/admin/organizations/:orgId/action-dispatches/:actionId/decision",
+      "/api/v1/admin/organizations/:orgId/action-dispatches/:actionId/fallback",
+    ] as const;
+
+    for (const template of internalAdminRoutes) {
+      const route = routes.find((entry) => entry.template === template);
+      expect(route).toBeDefined();
+      expect(route?.authRequired).toBe(true);
+      expect(route?.template).toContain(":orgId");
+      expect(publicPaths.has(template)).toBe(false);
+    }
   });
 });

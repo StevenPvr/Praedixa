@@ -5,7 +5,8 @@ export type SectorPageId =
   | "hcr"
   | "higher-education"
   | "logistics-transport-retail"
-  | "automotive";
+  | "automotive"
+  | "fitness";
 
 export interface SectorProof {
   value: string;
@@ -41,6 +42,7 @@ export interface SectorPageEntry {
   groupLabel: string;
   slug: string;
   shortLabel: string;
+  brandLabel: string;
   title: string;
   metaTitle: string;
   metaDescription: string;

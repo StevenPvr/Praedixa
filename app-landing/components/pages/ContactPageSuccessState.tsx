@@ -41,7 +41,7 @@ export function ContactPageSuccessState({
         <div className="text-center">
           <Link
             href={`/${locale}`}
-            className="inline-flex items-center gap-2 rounded-xl border border-brass-300 bg-white/80 px-4 py-2.5 text-sm font-semibold text-brass-800 no-underline transition-all duration-200 [transition-timing-function:var(--ease-snappy)] hover:border-brass-400 hover:bg-white active:-translate-y-[1px] active:scale-[0.99]"
+            className="inline-flex items-center gap-2 rounded-xl border border-v2-border-300 bg-white/80 px-4 py-2.5 text-sm font-semibold text-ink-950 no-underline transition-all duration-200 [transition-timing-function:var(--ease-snappy)] hover:border-proof-500 hover:bg-white active:-translate-y-[1px] active:scale-[0.99]"
           >
             <ArrowLeft size={16} />
             {copy.successCta}

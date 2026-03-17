@@ -3,15 +3,18 @@ import { notFound } from "next/navigation";
 import { isValidLocale } from "../../lib/i18n/config";
 import { getDictionary } from "../../lib/i18n/get-dictionary";
 import { buildLocaleMetadata, localePathMap } from "../../lib/seo/metadata";
-import { HeroSection } from "../../components/homepage/HeroSection";
-import { QualificationSection } from "../../components/homepage/QualificationSection";
-import { ProblemSection } from "../../components/homepage/ProblemSection";
-import { StackComparisonSection } from "../../components/homepage/StackComparisonSection";
-import { DeliverablesSection } from "../../components/homepage/DeliverablesSection";
-import { SecuritySection } from "../../components/homepage/SecuritySection";
-import { PilotSection } from "../../components/homepage/PilotSection";
-import { SectorPagesTeaserSection } from "../../components/homepage/SectorPagesTeaserSection";
-import { ContactCtaSection } from "../../components/homepage/ContactCtaSection";
+import { HeroV2Section } from "../../components/homepage/HeroV2Section";
+import { CredibilityRibbonSection } from "../../components/homepage/CredibilityRibbonSection";
+import { ProblemBlockSection } from "../../components/homepage/ProblemBlockSection";
+import { MethodBlockSection } from "../../components/homepage/MethodBlockSection";
+import { StackComparisonV2Section } from "../../components/homepage/StackComparisonV2Section";
+import { ProofBlockSection } from "../../components/homepage/ProofBlockSection";
+import { DeploymentTimelineSection } from "../../components/homepage/DeploymentTimelineSection";
+import { SectorCardsSection } from "../../components/homepage/SectorCardsSection";
+import { IntegrationSecuritySection } from "../../components/homepage/IntegrationSecuritySection";
+import { FaqSectionV2 } from "../../components/homepage/FaqSectionV2";
+import { FinalCtaSection } from "../../components/homepage/FinalCtaSection";
+import { TrustBarSection } from "../../components/homepage/TrustBarSection";
 import { JsonLd } from "../../components/seo/JsonLd";
 
 export async function generateMetadata({
@@ -46,15 +49,18 @@ export default async function LandingPage({
 
   return (
     <>
-      <HeroSection locale={locale} dict={dict} />
-      <QualificationSection locale={locale} />
-      <ProblemSection locale={locale} dict={dict} />
-      <StackComparisonSection locale={locale} />
-      <DeliverablesSection dict={dict} />
-      <PilotSection locale={locale} dict={dict} />
-      <SectorPagesTeaserSection locale={locale} />
-      <SecuritySection dict={dict} />
-      <ContactCtaSection locale={locale} dict={dict} />
+      <HeroV2Section locale={locale} />
+      <TrustBarSection locale={locale} />
+      <CredibilityRibbonSection locale={locale} />
+      <ProblemBlockSection locale={locale} />
+      <MethodBlockSection locale={locale} />
+      <StackComparisonV2Section locale={locale} />
+      <ProofBlockSection locale={locale} />
+      <DeploymentTimelineSection locale={locale} />
+      <SectorCardsSection locale={locale} />
+      <IntegrationSecuritySection locale={locale} />
+      <FaqSectionV2 locale={locale} />
+      <FinalCtaSection locale={locale} />
       <JsonLd
         locale={locale}
         dict={dict}

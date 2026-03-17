@@ -10,6 +10,15 @@ describe("ADMIN_ENDPOINTS", () => {
     expect(ADMIN_ENDPOINTS.errors).toBe("/api/v1/admin/monitoring/errors");
     expect(ADMIN_ENDPOINTS.organizations).toBe("/api/v1/admin/organizations");
     expect(ADMIN_ENDPOINTS.auditLog).toBe("/api/v1/admin/audit-log");
+    expect(ADMIN_ENDPOINTS.decisionContractTemplates).toBe(
+      "/api/v1/admin/decision-contract-templates",
+    );
+    expect(ADMIN_ENDPOINTS.decisionContractTemplatePreview).toBe(
+      "/api/v1/admin/decision-contract-templates/instantiate-preview",
+    );
+    expect(ADMIN_ENDPOINTS.decisionCompatibilityEvaluate).toBe(
+      "/api/v1/admin/decision-compatibility/evaluate",
+    );
     expect(ADMIN_ENDPOINTS.onboardingList).toBe("/api/v1/admin/onboarding");
     expect(ADMIN_ENDPOINTS.onboardingStart).toBe("/api/v1/admin/onboarding");
     expect(ADMIN_ENDPOINTS.contactRequests).toBe(
@@ -63,6 +72,30 @@ describe("ADMIN_ENDPOINTS", () => {
       "canonical/quality",
     );
     expect(ADMIN_ENDPOINTS.orgCostParams(orgId)).toContain("cost-params");
+    expect(ADMIN_ENDPOINTS.orgDecisionContracts(orgId)).toContain(
+      "decision-contracts",
+    );
+    expect(
+      ADMIN_ENDPOINTS.orgDecisionContractDetail(orgId, "coverage/core", 2),
+    ).toContain("decision-contracts/coverage%2Fcore/versions/2");
+    expect(
+      ADMIN_ENDPOINTS.orgDecisionContractTransition(orgId, "coverage/core", 2),
+    ).toContain("decision-contracts/coverage%2Fcore/versions/2/transition");
+    expect(
+      ADMIN_ENDPOINTS.orgDecisionContractFork(orgId, "coverage/core", 2),
+    ).toContain("decision-contracts/coverage%2Fcore/versions/2/fork");
+    expect(
+      ADMIN_ENDPOINTS.orgDecisionContractRollbackCandidates(
+        orgId,
+        "coverage/core",
+        2,
+      ),
+    ).toContain(
+      "decision-contracts/coverage%2Fcore/versions/2/rollback-candidates",
+    );
+    expect(
+      ADMIN_ENDPOINTS.orgDecisionContractRollback(orgId, "coverage/core", 2),
+    ).toContain("decision-contracts/coverage%2Fcore/versions/2/rollback");
     expect(ADMIN_ENDPOINTS.orgAlerts(orgId)).toContain("alerts");
     expect(ADMIN_ENDPOINTS.orgScenarios(orgId)).toContain("scenarios");
     expect(ADMIN_ENDPOINTS.orgApprovalsInbox(orgId)).toContain(
@@ -74,8 +107,17 @@ describe("ADMIN_ENDPOINTS", () => {
     expect(ADMIN_ENDPOINTS.orgActionDispatchDetail(orgId, actionId)).toContain(
       "action-dispatches/action%2F42",
     );
+    expect(
+      ADMIN_ENDPOINTS.orgActionDispatchDecision(orgId, actionId),
+    ).toContain("action-dispatches/action%2F42/decision");
+    expect(
+      ADMIN_ENDPOINTS.orgActionDispatchFallback(orgId, actionId),
+    ).toContain("action-dispatches/action%2F42/fallback");
     expect(ADMIN_ENDPOINTS.orgLedgerDetail(orgId, ledgerId)).toContain(
       "ledgers/ledger%2F7",
+    );
+    expect(ADMIN_ENDPOINTS.orgLedgerDecision(orgId, ledgerId)).toContain(
+      "ledgers/ledger%2F7/decision",
     );
     expect(ADMIN_ENDPOINTS.orgProofPacks(orgId)).toContain("proof-packs");
     expect(ADMIN_ENDPOINTS.orgIngestionLog(orgId)).toContain("ingestion-log");
@@ -84,6 +126,15 @@ describe("ADMIN_ENDPOINTS", () => {
     );
     expect(ADMIN_ENDPOINTS.orgDatasetFeatures(orgId, datasetId)).toContain(
       "datasets/dataset%2F01/features",
+    );
+    expect(
+      ADMIN_ENDPOINTS.orgIntegrationConnectionTest(orgId, "connection/1"),
+    ).toContain("integrations/connections/connection%2F1/test");
+    expect(ADMIN_ENDPOINTS.orgIntegrationSync(orgId, "connection/1")).toContain(
+      "integrations/connections/connection%2F1/sync",
+    );
+    expect(ADMIN_ENDPOINTS.orgIntegrationSyncRuns(orgId)).toContain(
+      "integrations/sync-runs",
     );
 
     expect(ADMIN_ENDPOINTS.contactRequestStatus(orgId)).toContain(

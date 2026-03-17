@@ -229,7 +229,7 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
           </p>
           <Link
             href={assetHref}
-            className="mt-4 inline-flex text-sm font-semibold text-brass no-underline hover:text-brass-600"
+            className="mt-4 inline-flex text-sm font-semibold text-proof-500 no-underline hover:text-proof-500/80"
           >
             {locale === "fr" ? "Télécharger l'asset" : "Download asset"}
           </Link>

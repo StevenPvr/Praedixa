@@ -54,10 +54,16 @@ describe("sitemap()", () => {
       "https://www.praedixa.com/fr/secteurs/automobile-concessions-ateliers",
     );
     expect(urls).toContain(
+      "https://www.praedixa.com/fr/secteurs/fitness-reseaux-clubs",
+    );
+    expect(urls).toContain(
       "https://www.praedixa.com/en/industries/hospitality-food-service",
     );
     expect(urls).toContain(
       "https://www.praedixa.com/en/industries/higher-education",
+    );
+    expect(urls).toContain(
+      "https://www.praedixa.com/en/industries/fitness-club-networks",
     );
   });
 

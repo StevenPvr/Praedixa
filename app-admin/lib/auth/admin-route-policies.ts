@@ -1,129 +1,36 @@
 import { hasAnyPermission } from "@/lib/auth/permissions";
+import {
+  CONFIG_ACCESS,
+  JOURNAL_ACCESS,
+  MESSAGES_ACCESS,
+  MONITORING_READ,
+  ONBOARDING_ACCESS,
+  ORG_READ,
+  SETTINGS_ACCESS,
+  SUPPORT_ACCESS,
+  USERS_ACCESS,
+  createPagePolicy,
+} from "./admin-route-policy-shared";
+import { ADMIN_API_COLLABORATION_POLICIES } from "./admin-route-policies-api-collaboration";
+import { ADMIN_API_CORE_POLICIES } from "./admin-route-policies-api-core";
+import type {
+  AdminApiPolicy,
+  AdminGlobalNavItemDefinition,
+  AdminHttpMethod,
+  AdminPagePolicy,
+  AdminRouteNavigation,
+  WorkspaceTabDefinition,
+} from "./admin-route-policy-shared";
 
-export type AdminHttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
-export type AdminNavGroup = "pilotage" | "operations" | "gouvernance";
-export type AdminNavIcon =
-  | "home"
-  | "clients"
-  | "contact"
-  | "journal"
-  | "settings"
-  | "dashboard"
-  | "client-overview"
-  | "data"
-  | "forecasts"
-  | "actions"
-  | "alerts"
-  | "reports"
-  | "onboarding"
-  | "team"
-  | "messages";
-
-interface AdminRouteNavigation {
-  scope: "global" | "workspace";
-  label: string;
-  order: number;
-  icon: AdminNavIcon;
-  keywords?: readonly string[];
-  shortcut?: string;
-  group?: AdminNavGroup;
-}
-
-export interface AdminPagePolicy {
-  id: string;
-  pattern: string;
-  title: string;
-  requiredPermissions: string[];
-  navigation?: AdminRouteNavigation;
-}
-
-export interface AdminApiPolicy {
-  id: string;
-  pattern: string;
-  methods: readonly AdminHttpMethod[];
-  requiredPermissions: string[];
-  public?: boolean;
-}
-
-export interface WorkspaceTabDefinition {
-  icon: AdminNavIcon;
-  href: string;
-  keywords: readonly string[];
-  label: string;
-  requiredPermissions: string[];
-  title: string;
-}
-
-export interface AdminGlobalNavItemDefinition {
-  group: AdminNavGroup;
-  href: string;
-  icon: AdminNavIcon;
-  id: string;
-  keywords: readonly string[];
-  label: string;
-  requiredPermissions: string[];
-  shortcut?: string;
-}
-
-const MONITORING_READ = ["admin:monitoring:read"] as const;
-const ORG_READ = ["admin:org:read"] as const;
-const ORG_WRITE = ["admin:org:write"] as const;
-const USERS_ACCESS = ["admin:users:read", "admin:users:write"] as const;
-const USERS_WRITE = ["admin:users:write"] as const;
-const BILLING_READ = ["admin:billing:read"] as const;
-const BILLING_WRITE = ["admin:billing:write"] as const;
-const AUDIT_READ = ["admin:audit:read"] as const;
-const ONBOARDING_ACCESS = [
-  "admin:onboarding:read",
-  "admin:onboarding:write",
-] as const;
-const ONBOARDING_WRITE = ["admin:onboarding:write"] as const;
-const SUPPORT_ACCESS = ["admin:support:read", "admin:support:write"] as const;
-const SUPPORT_WRITE = ["admin:support:write"] as const;
-const MESSAGES_ACCESS = [
-  "admin:messages:read",
-  "admin:messages:write",
-] as const;
-const MESSAGES_WRITE = ["admin:messages:write"] as const;
-const CONFIG_ACCESS = ["admin:org:write", "admin:billing:read"] as const;
-const CONFIG_WRITE = ["admin:org:write"] as const;
-const INTEGRATIONS_READ = ["admin:integrations:read"] as const;
-const INTEGRATIONS_WRITE = ["admin:integrations:write"] as const;
-const SETTINGS_ACCESS = [...ONBOARDING_ACCESS, ...MONITORING_READ] as const;
-const JOURNAL_ACCESS = [
-  ...AUDIT_READ,
-  ...ORG_WRITE,
-  ...BILLING_WRITE,
-  ...SUPPORT_WRITE,
-] as const;
-
-function dedupePermissions(permissions: readonly string[]): string[] {
-  return Array.from(
-    new Set(permissions.map((permission) => permission.trim()).filter(Boolean)),
-  );
-}
-
-function createPagePolicy(
-  policy: Omit<AdminPagePolicy, "requiredPermissions"> & {
-    requiredPermissions: readonly string[];
-  },
-): AdminPagePolicy {
-  return {
-    ...policy,
-    requiredPermissions: dedupePermissions(policy.requiredPermissions),
-  };
-}
-
-function createApiPolicy(
-  policy: Omit<AdminApiPolicy, "requiredPermissions"> & {
-    requiredPermissions?: readonly string[];
-  },
-): AdminApiPolicy {
-  return {
-    ...policy,
-    requiredPermissions: dedupePermissions(policy.requiredPermissions ?? []),
-  };
-}
+export type {
+  AdminApiPolicy,
+  AdminGlobalNavItemDefinition,
+  AdminHttpMethod,
+  AdminNavGroup,
+  AdminNavIcon,
+  AdminPagePolicy,
+  WorkspaceTabDefinition,
+} from "./admin-route-policy-shared";
 
 export const ADMIN_PAGE_POLICIES: readonly AdminPagePolicy[] = [
   createPagePolicy({
@@ -334,6 +241,19 @@ export const ADMIN_PAGE_POLICIES: readonly AdminPagePolicy[] = [
     },
   }),
   createPagePolicy({
+    id: "client-contracts",
+    pattern: "/clients/[orgId]/contrats",
+    title: "Workspace client - Contrats",
+    requiredPermissions: CONFIG_ACCESS,
+    navigation: {
+      scope: "workspace",
+      label: "Contrats",
+      order: 85,
+      icon: "settings",
+      keywords: ["workspace", "contrats", "decision contract", "studio"],
+    },
+  }),
+  createPagePolicy({
     id: "client-config",
     pattern: "/clients/[orgId]/config",
     title: "Workspace client - Configuration",
@@ -374,382 +294,9 @@ export const ADMIN_PAGE_POLICIES: readonly AdminPagePolicy[] = [
   }),
 ] as const;
 
-const WORKSPACE_HEADER_ACCESS = dedupePermissions(
-  ADMIN_PAGE_POLICIES.filter((policy) =>
-    policy.pattern.startsWith("/clients/[orgId]"),
-  ).flatMap((policy) => policy.requiredPermissions),
-);
-const PROOF_PACK_ACCESS = dedupePermissions([...ORG_READ, ...CONFIG_ACCESS]);
-
 export const ADMIN_API_POLICIES: readonly AdminApiPolicy[] = [
-  createApiPolicy({
-    id: "health",
-    pattern: "/api/v1/health",
-    methods: ["GET"],
-    public: true,
-  }),
-  ...[
-    "/api/v1/admin/monitoring/platform",
-    "/api/v1/admin/monitoring/trends",
-    "/api/v1/admin/monitoring/errors",
-    "/api/v1/admin/monitoring/alerts/summary",
-    "/api/v1/admin/monitoring/alerts/by-org",
-    "/api/v1/admin/monitoring/scenarios/summary",
-    "/api/v1/admin/monitoring/decisions/summary",
-    "/api/v1/admin/monitoring/decisions/overrides",
-    "/api/v1/admin/monitoring/decisions/adoption",
-    "/api/v1/admin/monitoring/proof-packs/summary",
-    "/api/v1/admin/monitoring/canonical-coverage",
-    "/api/v1/admin/monitoring/cost-params/missing",
-    "/api/v1/admin/monitoring/roi/by-org",
-  ].map((pattern, index) =>
-    createApiPolicy({
-      id: `monitoring-${index}`,
-      pattern,
-      methods: ["GET"],
-      requiredPermissions: MONITORING_READ,
-    }),
-  ),
-  createApiPolicy({
-    id: "organizations",
-    pattern: "/api/v1/admin/organizations",
-    methods: ["GET"],
-    requiredPermissions: ORG_READ,
-  }),
-  createApiPolicy({
-    id: "org-monitoring",
-    pattern: "/api/v1/admin/monitoring/organizations/[orgId]",
-    methods: ["GET"],
-    requiredPermissions: MONITORING_READ,
-  }),
-  createApiPolicy({
-    id: "org-mirror",
-    pattern: "/api/v1/admin/monitoring/organizations/[orgId]/mirror",
-    methods: ["GET"],
-    requiredPermissions: ORG_READ,
-  }),
-  createApiPolicy({
-    id: "organization",
-    pattern: "/api/v1/admin/organizations/[orgId]",
-    methods: ["GET"],
-    requiredPermissions: WORKSPACE_HEADER_ACCESS,
-  }),
-  createApiPolicy({
-    id: "org-overview",
-    pattern: "/api/v1/admin/organizations/[orgId]/overview",
-    methods: ["GET"],
-    requiredPermissions: ORG_READ,
-  }),
-  createApiPolicy({
-    id: "org-hierarchy",
-    pattern: "/api/v1/admin/organizations/[orgId]/hierarchy",
-    methods: ["GET"],
-    requiredPermissions: ORG_READ,
-  }),
-  createApiPolicy({
-    id: "integrations-catalog",
-    pattern: "/api/v1/admin/integrations/catalog",
-    methods: ["GET"],
-    requiredPermissions: INTEGRATIONS_READ,
-  }),
-  ...[
-    "/api/v1/admin/organizations/[orgId]/suspend",
-    "/api/v1/admin/organizations/[orgId]/reactivate",
-    "/api/v1/admin/organizations/[orgId]/churn",
-  ].map((pattern, index) =>
-    createApiPolicy({
-      id: `org-write-${index}`,
-      pattern,
-      methods: ["POST"],
-      requiredPermissions: ORG_WRITE,
-    }),
-  ),
-  createApiPolicy({
-    id: "org-users",
-    pattern: "/api/v1/admin/organizations/[orgId]/users",
-    methods: ["GET"],
-    requiredPermissions: USERS_ACCESS,
-  }),
-  createApiPolicy({
-    id: "org-user",
-    pattern: "/api/v1/admin/organizations/[orgId]/users/[userId]",
-    methods: ["GET"],
-    requiredPermissions: USERS_ACCESS,
-  }),
-  createApiPolicy({
-    id: "org-user-role",
-    pattern: "/api/v1/admin/organizations/[orgId]/users/[userId]/role",
-    methods: ["PATCH"],
-    requiredPermissions: USERS_WRITE,
-  }),
-  createApiPolicy({
-    id: "org-user-invite",
-    pattern: "/api/v1/admin/organizations/[orgId]/users/invite",
-    methods: ["POST"],
-    requiredPermissions: USERS_WRITE,
-  }),
-  ...[
-    "/api/v1/admin/organizations/[orgId]/users/[userId]/deactivate",
-    "/api/v1/admin/organizations/[orgId]/users/[userId]/reactivate",
-  ].map((pattern, index) =>
-    createApiPolicy({
-      id: `org-user-write-${index}`,
-      pattern,
-      methods: ["POST"],
-      requiredPermissions: USERS_WRITE,
-    }),
-  ),
-  createApiPolicy({
-    id: "org-billing",
-    pattern: "/api/v1/admin/billing/organizations/[orgId]",
-    methods: ["GET"],
-    requiredPermissions: BILLING_READ,
-  }),
-  createApiPolicy({
-    id: "org-change-plan",
-    pattern: "/api/v1/admin/billing/organizations/[orgId]/change-plan",
-    methods: ["POST"],
-    requiredPermissions: BILLING_WRITE,
-  }),
-  createApiPolicy({
-    id: "org-plan-history",
-    pattern: "/api/v1/admin/billing/organizations/[orgId]/history",
-    methods: ["GET"],
-    requiredPermissions: BILLING_READ,
-  }),
-  createApiPolicy({
-    id: "audit-log",
-    pattern: "/api/v1/admin/audit-log",
-    methods: ["GET"],
-    requiredPermissions: AUDIT_READ,
-  }),
-  createApiPolicy({
-    id: "onboarding-list",
-    pattern: "/api/v1/admin/onboarding",
-    methods: ["GET"],
-    requiredPermissions: ONBOARDING_ACCESS,
-  }),
-  createApiPolicy({
-    id: "onboarding-start",
-    pattern: "/api/v1/admin/onboarding",
-    methods: ["POST"],
-    requiredPermissions: ONBOARDING_WRITE,
-  }),
-  createApiPolicy({
-    id: "onboarding-step",
-    pattern: "/api/v1/admin/onboarding/[onboardingId]/step/[step]",
-    methods: ["PATCH"],
-    requiredPermissions: ONBOARDING_WRITE,
-  }),
-  ...[
-    "/api/v1/admin/organizations/[orgId]/canonical",
-    "/api/v1/admin/organizations/[orgId]/canonical/quality",
-    "/api/v1/admin/organizations/[orgId]/alerts",
-    "/api/v1/admin/organizations/[orgId]/scenarios",
-    "/api/v1/admin/organizations/[orgId]/ml-monitoring/summary",
-    "/api/v1/admin/organizations/[orgId]/ml-monitoring/drift",
-    "/api/v1/admin/organizations/[orgId]/ingestion-log",
-    "/api/v1/admin/organizations/[orgId]/medallion-quality-report",
-    "/api/v1/admin/organizations/[orgId]/datasets",
-    "/api/v1/admin/organizations/[orgId]/datasets/[datasetId]/data",
-    "/api/v1/admin/organizations/[orgId]/datasets/[datasetId]/features",
-  ].map((pattern, index) =>
-    createApiPolicy({
-      id: `org-read-${index}`,
-      pattern,
-      methods: ["GET"],
-      requiredPermissions: ORG_READ,
-    }),
-  ),
-  createApiPolicy({
-    id: "org-cost-params",
-    pattern: "/api/v1/admin/organizations/[orgId]/cost-params",
-    methods: ["GET"],
-    requiredPermissions: CONFIG_ACCESS,
-  }),
-  createApiPolicy({
-    id: "org-decision-config-resolved",
-    pattern: "/api/v1/admin/organizations/[orgId]/decision-config/resolved",
-    methods: ["GET"],
-    requiredPermissions: CONFIG_ACCESS,
-  }),
-  createApiPolicy({
-    id: "org-decision-config-versions-get",
-    pattern: "/api/v1/admin/organizations/[orgId]/decision-config/versions",
-    methods: ["GET"],
-    requiredPermissions: CONFIG_ACCESS,
-  }),
-  createApiPolicy({
-    id: "org-decision-config-versions-post",
-    pattern: "/api/v1/admin/organizations/[orgId]/decision-config/versions",
-    methods: ["POST"],
-    requiredPermissions: CONFIG_WRITE,
-  }),
-  ...[
-    "/api/v1/admin/organizations/[orgId]/decision-config/versions/[versionId]/cancel",
-    "/api/v1/admin/organizations/[orgId]/decision-config/versions/[versionId]/rollback",
-    "/api/v1/admin/organizations/[orgId]/alerts/[alertId]/scenarios/recompute",
-  ].map((pattern, index) =>
-    createApiPolicy({
-      id: `org-decision-config-write-${index}`,
-      pattern,
-      methods: ["POST"],
-      requiredPermissions: CONFIG_WRITE,
-    }),
-  ),
-  createApiPolicy({
-    id: "org-proof-packs",
-    pattern: "/api/v1/admin/organizations/[orgId]/proof-packs",
-    methods: ["GET"],
-    requiredPermissions: PROOF_PACK_ACCESS,
-  }),
-  createApiPolicy({
-    id: "org-approval-inbox",
-    pattern: "/api/v1/admin/organizations/[orgId]/approval-inbox",
-    methods: ["GET"],
-    requiredPermissions: ORG_READ,
-  }),
-  createApiPolicy({
-    id: "org-approval-decision",
-    pattern:
-      "/api/v1/admin/organizations/[orgId]/approvals/[approvalId]/decision",
-    methods: ["POST"],
-    requiredPermissions: ORG_WRITE,
-  }),
-  createApiPolicy({
-    id: "org-action-dispatch-detail",
-    pattern: "/api/v1/admin/organizations/[orgId]/action-dispatches/[actionId]",
-    methods: ["GET"],
-    requiredPermissions: ORG_READ,
-  }),
-  createApiPolicy({
-    id: "org-ledger-detail",
-    pattern: "/api/v1/admin/organizations/[orgId]/ledgers/[ledgerId]",
-    methods: ["GET"],
-    requiredPermissions: ORG_READ,
-  }),
-  createApiPolicy({
-    id: "org-proof-pack-share-link",
-    pattern:
-      "/api/v1/admin/organizations/[orgId]/proof-packs/[proofPackId]/share-link",
-    methods: ["POST"],
-    requiredPermissions: PROOF_PACK_ACCESS,
-  }),
-  createApiPolicy({
-    id: "org-integrations-get",
-    pattern: "/api/v1/admin/organizations/[orgId]/integrations/connections",
-    methods: ["GET"],
-    requiredPermissions: INTEGRATIONS_READ,
-  }),
-  createApiPolicy({
-    id: "org-integrations-post",
-    pattern: "/api/v1/admin/organizations/[orgId]/integrations/connections",
-    methods: ["POST"],
-    requiredPermissions: INTEGRATIONS_WRITE,
-  }),
-  createApiPolicy({
-    id: "org-integration-connection-get",
-    pattern:
-      "/api/v1/admin/organizations/[orgId]/integrations/connections/[connectionId]",
-    methods: ["GET"],
-    requiredPermissions: INTEGRATIONS_READ,
-  }),
-  createApiPolicy({
-    id: "org-integration-connection-patch",
-    pattern:
-      "/api/v1/admin/organizations/[orgId]/integrations/connections/[connectionId]",
-    methods: ["PATCH"],
-    requiredPermissions: INTEGRATIONS_WRITE,
-  }),
-  createApiPolicy({
-    id: "org-integration-ingest-credentials-get",
-    pattern:
-      "/api/v1/admin/organizations/[orgId]/integrations/connections/[connectionId]/ingest-credentials",
-    methods: ["GET"],
-    requiredPermissions: INTEGRATIONS_READ,
-  }),
-  createApiPolicy({
-    id: "org-integration-ingest-credentials-post",
-    pattern:
-      "/api/v1/admin/organizations/[orgId]/integrations/connections/[connectionId]/ingest-credentials",
-    methods: ["POST"],
-    requiredPermissions: INTEGRATIONS_WRITE,
-  }),
-  createApiPolicy({
-    id: "org-integration-ingest-credential-revoke",
-    pattern:
-      "/api/v1/admin/organizations/[orgId]/integrations/connections/[connectionId]/ingest-credentials/[credentialId]/revoke",
-    methods: ["POST"],
-    requiredPermissions: INTEGRATIONS_WRITE,
-  }),
-  createApiPolicy({
-    id: "org-integration-raw-events",
-    pattern:
-      "/api/v1/admin/organizations/[orgId]/integrations/connections/[connectionId]/raw-events",
-    methods: ["GET"],
-    requiredPermissions: INTEGRATIONS_READ,
-  }),
-  createApiPolicy({
-    id: "org-integration-raw-event-payload",
-    pattern:
-      "/api/v1/admin/organizations/[orgId]/integrations/connections/[connectionId]/raw-events/[eventId]/payload",
-    methods: ["GET"],
-    requiredPermissions: INTEGRATIONS_READ,
-  }),
-  createApiPolicy({
-    id: "conversations",
-    pattern: "/api/v1/admin/conversations",
-    methods: ["GET"],
-    requiredPermissions: MESSAGES_ACCESS,
-  }),
-  createApiPolicy({
-    id: "org-conversations",
-    pattern: "/api/v1/admin/organizations/[orgId]/conversations",
-    methods: ["GET"],
-    requiredPermissions: MESSAGES_ACCESS,
-  }),
-  createApiPolicy({
-    id: "conversation-messages-get",
-    pattern: "/api/v1/admin/conversations/[conversationId]/messages",
-    methods: ["GET"],
-    requiredPermissions: MESSAGES_ACCESS,
-  }),
-  createApiPolicy({
-    id: "conversation-messages-post",
-    pattern: "/api/v1/admin/conversations/[conversationId]/messages",
-    methods: ["POST"],
-    requiredPermissions: MESSAGES_WRITE,
-  }),
-  createApiPolicy({
-    id: "conversation-status-get",
-    pattern: "/api/v1/admin/conversations/[conversationId]",
-    methods: ["GET"],
-    requiredPermissions: MESSAGES_ACCESS,
-  }),
-  createApiPolicy({
-    id: "conversation-status-patch",
-    pattern: "/api/v1/admin/conversations/[conversationId]",
-    methods: ["PATCH"],
-    requiredPermissions: MESSAGES_WRITE,
-  }),
-  createApiPolicy({
-    id: "conversations-unread",
-    pattern: "/api/v1/admin/conversations/unread-count",
-    methods: ["GET"],
-    requiredPermissions: MESSAGES_ACCESS,
-  }),
-  createApiPolicy({
-    id: "contact-requests",
-    pattern: "/api/v1/admin/contact-requests",
-    methods: ["GET"],
-    requiredPermissions: SUPPORT_ACCESS,
-  }),
-  createApiPolicy({
-    id: "contact-request-status",
-    pattern: "/api/v1/admin/contact-requests/[requestId]/status",
-    methods: ["PATCH"],
-    requiredPermissions: SUPPORT_WRITE,
-  }),
+  ...ADMIN_API_CORE_POLICIES,
+  ...ADMIN_API_COLLABORATION_POLICIES,
 ] as const;
 
 function normalizePathname(pathname: string): string {

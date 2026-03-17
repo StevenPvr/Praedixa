@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 const mockUseApiGet = vi.fn();
+const mockUseApiPost = vi.fn();
+const mockMutate = vi.fn();
+const mockUseCurrentUser = vi.fn();
 const mockParams = { ledgerId: "66666666-6666-4666-8666-666666666666" };
 
 vi.mock("next/navigation", () => ({
@@ -12,11 +15,13 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/hooks/use-api", () => ({
   useApiGet: (...args: unknown[]) => mockUseApiGet(...args),
+  useApiPost: (...args: unknown[]) => mockUseApiPost(...args),
 }));
 
 vi.mock("@/lib/auth/client", () => ({
   getValidAccessToken: vi.fn(() => Promise.resolve("token")),
   clearAuthSession: vi.fn(),
+  useCurrentUser: () => mockUseCurrentUser(),
 }));
 
 const mockContext = {
@@ -151,11 +156,33 @@ describe("LedgerDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockParams.ledgerId = "66666666-6666-4666-8666-666666666666";
+    mockUseCurrentUser.mockReturnValue({
+      id: "finance-1",
+      permissions: ["admin:org:write"],
+    });
     mockUseApiGet.mockReturnValue({
       data: mockLedgerDetail,
       loading: false,
       error: null,
       refetch: vi.fn(),
+    });
+    mockUseApiPost.mockReturnValue({
+      mutate: mockMutate,
+      loading: false,
+      error: null,
+      data: null,
+      reset: vi.fn(),
+    });
+    mockMutate.mockResolvedValue({
+      ledgerId: mockParams.ledgerId,
+      recommendationId: mockLedgerDetail.recommendationId,
+      operation: "validate",
+      occurredAt: "2026-03-13T13:00:00.000Z",
+      selectedRevision: 2,
+      latestRevision: 2,
+      status: "closed",
+      validationStatus: "validated",
+      exportReadyFormats: ["json"],
     });
   });
 
@@ -174,10 +201,16 @@ describe("LedgerDetailPage", () => {
     expect(
       screen.getByText("ROI is validated and export-ready."),
     ).toBeInTheDocument();
+    expect(screen.getByText("Baseline")).toBeInTheDocument();
+    expect(screen.getByText("Recommended")).toBeInTheDocument();
+    expect(screen.getByText("Actual")).toBeInTheDocument();
     expect(screen.getByText("Labor delta")).toBeInTheDocument();
     expect(screen.getByText("Revision 2 · selectionnee")).toBeInTheDocument();
     expect(mockUseApiGet).toHaveBeenCalledWith(
       "/api/v1/admin/organizations/org-1/ledgers/66666666-6666-4666-8666-666666666666?revision=2",
+    );
+    expect(mockUseApiPost).toHaveBeenCalledWith(
+      "/api/v1/admin/organizations/org-1/ledgers/66666666-6666-4666-8666-666666666666/decision",
     );
   });
 
@@ -232,5 +265,48 @@ describe("LedgerDetailPage", () => {
     expect(screen.getByText("Aucun composant ROI")).toBeInTheDocument();
     expect(screen.getByText("Aucun export disponible")).toBeInTheDocument();
     expect(screen.getByText("Lineage indisponible")).toBeInTheDocument();
+  });
+
+  it("submits a finance validation decision and refreshes the detail", async () => {
+    const refetch = vi.fn();
+    mockUseApiGet.mockReturnValue({
+      data: mockLedgerDetail,
+      loading: false,
+      error: null,
+      refetch,
+    });
+
+    renderPage();
+
+    fireEvent.click(screen.getByRole("button", { name: "Valider finance" }));
+
+    await waitFor(() => {
+      expect(mockMutate).toHaveBeenCalledWith({
+        operation: "validate",
+        reasonCode: "finance_validation_update",
+        comment: undefined,
+        validationStatus: "validated",
+      });
+    });
+    await waitFor(() => {
+      expect(refetch).toHaveBeenCalled();
+    });
+    expect(
+      screen.getByText("Operation appliquee: validate -> closed"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a warning when the admin lacks write permission", () => {
+    mockUseCurrentUser.mockReturnValue({
+      id: "viewer-1",
+      permissions: ["admin:org:read"],
+    });
+
+    renderPage();
+
+    expect(screen.getByText("Action restreinte")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Valider finance" }),
+    ).not.toBeInTheDocument();
   });
 });

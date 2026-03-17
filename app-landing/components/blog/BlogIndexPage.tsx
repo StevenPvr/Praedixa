@@ -50,7 +50,7 @@ export function BlogIndexPage({ locale, search, result }: BlogIndexPageProps) {
             href={`/${locale}/blog`}
             className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-semibold no-underline transition-colors ${
               !selectedTag
-                ? "border-brass-500 bg-brass-500 text-white"
+                ? "border-proof-500 bg-proof-500 text-white"
                 : "border-border-subtle bg-white text-neutral-700 hover:bg-neutral-50"
             }`}
           >
@@ -67,7 +67,7 @@ export function BlogIndexPage({ locale, search, result }: BlogIndexPageProps) {
                 href={href}
                 className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-semibold no-underline transition-colors ${
                   isActive
-                    ? "border-brass-500 bg-brass-500 text-white"
+                    ? "border-proof-500 bg-proof-500 text-white"
                     : "border-border-subtle bg-white text-neutral-700 hover:bg-neutral-50"
                 }`}
               >
