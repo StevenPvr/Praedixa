@@ -61,7 +61,9 @@ async def invite_user(
     """
     del session, org_id, email, role, invited_by, site_id
     raise ForbiddenError(
-        "User provisioning is handled by the TypeScript admin API and Keycloak lifecycle; the Python data-plane service must not create placeholder auth identities."
+        "User provisioning is handled by the TypeScript admin API and "
+        "Keycloak lifecycle; the Python data-plane service must not create "
+        "placeholder auth identities."
     )
 
 
