@@ -28,7 +28,7 @@ pnpm dev:api
 pnpm dev:admin
 ```
 
-Un utilisateur OIDC avec acces `super_admin` / `admin:console:access` est requis pour les flux reels.
+Un utilisateur OIDC `super_admin` avec `admin:console:access` et les permissions de page/admin associees est requis pour les flux reels. `admin:console:access` seul ne suffit pas a ouvrir `/`.
 
 ## Variables d'environnement utiles
 

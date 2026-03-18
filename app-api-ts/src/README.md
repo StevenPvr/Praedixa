@@ -43,6 +43,7 @@ Routes admin:
 
 - JWT OIDC verifies dans `auth.ts`.
 - `auth.ts` ne lit plus que le contrat top-level canonique `sub`, `email`, `role`, `organization_id`, `site_id`, `permissions`.
+- Pour garder le contrat admin stable, `super_admin` herite de la taxonomie de permissions admin versionnee et d'un `organization_id` synthetique quand le token IdP n'en porte pas encore.
 - Aucun fallback legacy n'est accepte depuis `preferred_username`, `org_id`, `organizationId`, `siteId`, `site_ids`, `roles`, `groups`, `realm_access`, `resource_access` ou `app_metadata`.
 - Les roles doivent utiliser les valeurs canoniques exactes (`super_admin`, `org_admin`, `hr_manager`, `manager`, `employee`, `viewer`).
 - Rattachement org/site, roles et permissions explicites propagés au `RouteContext`.

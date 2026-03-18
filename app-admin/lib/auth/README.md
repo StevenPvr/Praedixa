@@ -25,6 +25,7 @@ Le back-office n'est pas seulement protege par un role; il applique aussi des pe
 - Les operations connecteurs visibles depuis `/clients/[orgId]/config` (`connections/:connectionId/test`, `connections/:connectionId/sync`, `integrations/sync-runs`) doivent rester synchronisees ici avec leurs permissions `admin:integrations:*`.
 - Tout chemin admin ou proxy admin sans policy explicite est refuse par defaut.
 - Les JWT admin n'acceptent plus que les claims top-level canoniques `sub`, `email`, `role`, `organization_id`, `site_id` et `permissions`; aucune permission n'est derivee depuis `profiles` ou `roles`.
+- Les sessions `super_admin` et les tokens admin normalisent maintenant la taxonomie complete des permissions via `@praedixa/shared-types`; un vieux cookie signe sans ce jeu complet doit repartir en reauth forcee plutot qu'atterrir durablement sur `/unauthorized`.
 - En production, le callback admin exige aussi un claim `amr` conforme a `AUTH_ADMIN_REQUIRED_AMR` avant de creer la session console.
 
 ## Tests

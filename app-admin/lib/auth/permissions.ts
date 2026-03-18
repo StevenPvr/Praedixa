@@ -1,3 +1,5 @@
+import { ADMIN_PERMISSION_NAMES } from "@praedixa/shared-types";
+
 export const ADMIN_CONSOLE_PERMISSION = "admin:console:access";
 
 export function normalizePermission(permission: string): string {
@@ -25,7 +27,16 @@ export function resolveAdminPermissions(input: {
   explicitPermissions: readonly string[] | null | undefined;
   profiles: readonly string[] | null | undefined;
 }): string[] {
-  return normalizePermissions(input.explicitPermissions);
+  const explicitPermissions = normalizePermissions(input.explicitPermissions);
+
+  if (input.role === "super_admin") {
+    return normalizePermissions([
+      ...ADMIN_PERMISSION_NAMES,
+      ...explicitPermissions,
+    ]);
+  }
+
+  return explicitPermissions;
 }
 
 export function hasPermission(

@@ -42,7 +42,7 @@ SUPER_ADMIN_PASSWORD='<mot-de-passe-super-admin>' \
 
 `keycloak-ensure-api-access-contract.sh` recale maintenant les protocol mappers live sur le realm export versionne (`claim-role`, `claim-organization-id`, `claim-site-id`, `claim-permissions` admin, `claim-amr` admin) pour eviter les drifts entre Keycloak et les callbacks Next stricts.
 Si un utilisateur cible est fourni, le script synchronise aussi ses attributs canoniques `role`, `organization_id`, `site_id` et, si besoin, `permissions`.
-`keycloak-ensure-super-admin.sh` provisionne aussi les attributs canoniques `role=super_admin` et `permissions=admin:console:access`, en plus du realm role et de `CONFIGURE_TOTP`.
+`keycloak-ensure-super-admin.sh` provisionne aussi les attributs canoniques `role=super_admin` et, par defaut, toute la taxonomie `contracts/admin/permission-taxonomy.v1.json`, en plus du realm role et de `CONFIGURE_TOTP`.
 Ces scripts relisent automatiquement `KEYCLOAK_ADMIN_PASSWORD` ou `KC_BOOTSTRAP_ADMIN_PASSWORD` depuis `app-landing/.env.local`, `app-webapp/.env.local`, `app-admin/.env.local`, puis `.env.local` a la racine si la variable n'est pas deja exportee dans le shell.
 Le runtime `app-api-ts` utilise maintenant `KEYCLOAK_ADMIN_USERNAME` + `KEYCLOAK_ADMIN_PASSWORD` pour provisionner depuis le backoffice les comptes client dans Keycloak avant d'ecrire `users.auth_user_id`; `scw-configure-api-env.sh` doit donc aussi synchroniser cette creden­tial runtime.
 

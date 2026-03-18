@@ -130,6 +130,7 @@ describe("updateSession (admin)", () => {
       ok: true,
       session: {
         ...createSession(),
+        role: "org_admin",
         permissions: ["admin:console:access", "admin:audit:read"],
       },
       accessToken: "server-only-token",
@@ -168,6 +169,7 @@ describe("updateSession (admin)", () => {
       ok: true,
       session: {
         ...createSession(),
+        role: "org_admin",
         permissions: ["admin:console:access", "admin:monitoring:read"],
       },
       accessToken: "server-only-token",
@@ -181,6 +183,26 @@ describe("updateSession (admin)", () => {
       "https://admin.praedixa.com/unauthorized",
     );
     expect(mockClearAuthCookies).not.toHaveBeenCalled();
+  });
+
+  it("forces reauth for stale super_admin sessions missing an explicit page permission", async () => {
+    mockResolveRequestSession.mockResolvedValue({
+      ok: true,
+      session: {
+        ...createSession(),
+        permissions: ["admin:console:access"],
+      },
+      accessToken: "server-only-token",
+      refreshToken: "refresh-token",
+      cookieUpdate: null,
+    });
+
+    const result = await updateSession(createMockRequest("/"));
+
+    expect((result as { redirectUrl: string }).redirectUrl).toBe(
+      "https://admin.praedixa.com/login?reauth=1&next=%2F",
+    );
+    expect(mockClearAuthCookies).toHaveBeenCalled();
   });
 
   it("fails closed on unknown admin paths", async () => {
@@ -204,6 +226,7 @@ describe("updateSession (admin)", () => {
       ok: true,
       session: {
         ...createSession(),
+        role: "org_admin",
         permissions: ["admin:console:access", "admin:org:read"],
       },
       accessToken: "server-only-token",

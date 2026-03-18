@@ -19,6 +19,15 @@ function redirectTo(
   return response;
 }
 
+function buildForcedReauthPath(request: NextRequest): string {
+  const loginUrl = new URL("/login", request.url);
+  const nextSearch = request.nextUrl.search ?? "";
+  const nextPath = `${request.nextUrl.pathname}${nextSearch}`;
+  loginUrl.searchParams.set("reauth", "1");
+  loginUrl.searchParams.set("next", nextPath);
+  return `${loginUrl.pathname}${loginUrl.search}`;
+}
+
 export async function updateSession(
   request: NextRequest,
   requestHeaders?: Headers,
@@ -52,6 +61,11 @@ export async function updateSession(
 
   const session = resolved.ok ? resolved.session : null;
   const userRole = session?.role;
+  const hasPagePolicy = hasExplicitAdminPagePolicy(pathname);
+  const canAccessCurrentPath =
+    session != null && hasPagePolicy
+      ? canAccessPath(pathname, session.permissions)
+      : false;
 
   if (!resolved.ok && !isLoginRoute) {
     return redirectTo(request, "/login", resolved.clearCookies);
@@ -68,8 +82,17 @@ export async function updateSession(
   if (
     session &&
     !isLoginRoute &&
-    (!hasExplicitAdminPagePolicy(pathname) ||
-      !canAccessPath(pathname, session.permissions))
+    userRole === "super_admin" &&
+    hasPagePolicy &&
+    !canAccessCurrentPath
+  ) {
+    return redirectTo(request, buildForcedReauthPath(request), true);
+  }
+
+  if (
+    session &&
+    !isLoginRoute &&
+    (!hasPagePolicy || !canAccessCurrentPath)
   ) {
     return redirectTo(request, "/unauthorized");
   }

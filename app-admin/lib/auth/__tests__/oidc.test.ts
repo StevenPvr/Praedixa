@@ -33,7 +33,11 @@ describe("admin OIDC role parsing", () => {
       id: "u-1",
       email: "admin@praedixa.com",
       role: "super_admin",
-      permissions: ["admin:console:access"],
+      permissions: expect.arrayContaining([
+        "admin:console:access",
+        "admin:monitoring:read",
+        "admin:org:read",
+      ]),
       organizationId: "global-super-admin",
       siteId: null,
     });

@@ -8,6 +8,7 @@ Source de verite des types partages Praedixa.
 - `api/public-contract.ts` reste le point d'entree du manifeste public partage; les sous-modules `api/public-contract/*` gardent ce contrat decoupe par responsabilite pour rester dans les guardrails du socle.
 - `api/requests.ts` porte les payloads write publics nommes, reutilises a la fois par la spec OpenAPI et par le registre type partage.
 - `api/approval-decision.ts` porte le contrat interne admin pour une decision d'approbation persistante (`granted` / `rejected`) et son retour de synchronisation runtime.
+- `admin-permissions.ts` porte la taxonomie admin versionnee partagee entre parsing OIDC admin, garde-fous API et scripts de provisionnement.
 - `domain/` contient les modeles metier reutilises dans plusieurs apps.
 - `utils/` contient les helpers de typage ou de manipulation de donnees partages.
 - `__tests__/` couvre les invariants de types, transformations et helpers exposes.

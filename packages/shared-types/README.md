@@ -32,6 +32,7 @@ Des sous-chemins d'import sont disponibles pour limiter le scope :
 ```typescript
 import type { ApiResponse } from "@praedixa/shared-types/api";
 import type { Organization } from "@praedixa/shared-types/domain";
+import { ADMIN_PERMISSION_NAMES } from "@praedixa/shared-types";
 ```
 
 **Ordre de build** : `shared-types` est le premier package builde. Toutes les autres cibles en dependent. Le build utilise `tsc --build --force` pour regenerer `dist/` proprement a chaque passe critique.
@@ -222,6 +223,11 @@ Le catalogue versionne des operations publiques non-admin vit dans `src/api/publ
 Les payloads write publics nommes vivent dans `src/api/requests.ts` et sont references directement par les composants schemas OpenAPI, ce qui evite les `object` generiques permissifs.
 Les contrats DecisionOps/admin internes typent aussi les surfaces persistantes non-publiques, par exemple `src/api/approval-inbox.ts`, `src/api/action-dispatch-detail.ts`, `src/api/action-dispatch-fallback.ts`, `src/api/ledger-detail.ts`, `src/api/approval-decision.ts` et `src/api/decision-contract-studio.ts` pour le Contract Studio runtime.
 Le helper Node `@praedixa/shared-types/public-contract-node` sert uniquement aux tests et audits de contrat; il parse `contracts/openapi/public.yaml` de maniere structurelle sans tirer `fs` ou `yaml` dans les exports browser du package.
+
+### Helpers transverses racine
+
+- `src/admin-permissions.ts` expose `ADMIN_PERMISSION_NAMES`, la taxonomie admin versionnee partagee entre `app-admin`, `app-api-ts` et les scripts d'alignement IdP.
+- Tout nouvel export ajoute a l'entree racine `@praedixa/shared-types` doit etre suivi d'un rebuild du package pour que `dist/index.*` reste aligne avec `src/index.ts`.
 
 #### `responses.ts` -- Enveloppes de reponse
 

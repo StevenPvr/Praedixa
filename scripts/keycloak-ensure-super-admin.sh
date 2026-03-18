@@ -6,6 +6,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 KCADM_BIN="${KCADM_BIN:-$SCRIPT_DIR/kcadm}"
 source "$SCRIPT_DIR/lib/keycloak.sh"
 source "$SCRIPT_DIR/lib/local-env.sh"
+ADMIN_PERMISSION_TAXONOMY_PATH="${ADMIN_PERMISSION_TAXONOMY_PATH:-$SCRIPT_DIR/../contracts/admin/permission-taxonomy.v1.json}"
 
 KEYCLOAK_SERVER_URL="${KEYCLOAK_SERVER_URL:-https://auth.praedixa.com}"
 KEYCLOAK_ADMIN_REALM="${KEYCLOAK_ADMIN_REALM:-master}"
@@ -18,7 +19,7 @@ SUPER_ADMIN_PASSWORD="${SUPER_ADMIN_PASSWORD:-}"
 SUPER_ADMIN_FIRST_NAME="${SUPER_ADMIN_FIRST_NAME:-Praedixa}"
 SUPER_ADMIN_LAST_NAME="${SUPER_ADMIN_LAST_NAME:-Admin}"
 SUPER_ADMIN_ROLE="${SUPER_ADMIN_ROLE:-super_admin}"
-SUPER_ADMIN_PERMISSIONS="${SUPER_ADMIN_PERMISSIONS:-admin:console:access}"
+SUPER_ADMIN_PERMISSIONS="${SUPER_ADMIN_PERMISSIONS:-}"
 SUPER_ADMIN_REQUIRE_TOTP="${SUPER_ADMIN_REQUIRE_TOTP:-true}"
 
 require_cmd() {
@@ -41,6 +42,11 @@ require_cmd jq
 
 if [ ! -x "$KCADM_BIN" ]; then
   echo "kcadm wrapper is missing or not executable: $KCADM_BIN" >&2
+  exit 1
+fi
+
+if [ ! -f "$ADMIN_PERMISSION_TAXONOMY_PATH" ]; then
+  echo "Admin permission taxonomy is missing: $ADMIN_PERMISSION_TAXONOMY_PATH" >&2
   exit 1
 fi
 
@@ -71,6 +77,16 @@ lookup_user_id() {
       '
 }
 
+default_super_admin_permissions_csv() {
+  jq -r '
+    .permissions
+    | map(.name)
+    | map(select(type == "string" and length > 0))
+    | unique
+    | join(",")
+  ' "$ADMIN_PERMISSION_TAXONOMY_PATH"
+}
+
 permissions_json_from_csv() {
   printf '%s' "$SUPER_ADMIN_PERMISSIONS" \
     | jq -R '
@@ -80,6 +96,10 @@ permissions_json_from_csv() {
         | unique
       '
 }
+
+if [ -z "$SUPER_ADMIN_PERMISSIONS" ]; then
+  SUPER_ADMIN_PERMISSIONS="$(default_super_admin_permissions_csv)"
+fi
 
 ensure_user_token_attributes() {
   local user_id="$1"

@@ -19,14 +19,14 @@ describe("auth permissions helpers", () => {
     ).toEqual(["admin:org:read"]);
   });
 
-  it("does not derive permissions from role or profile fallbacks", () => {
+  it("expands super_admin to the full admin permission set", () => {
     expect(
       resolveAdminPermissions({
         role: "super_admin",
         explicitPermissions: [],
         profiles: ["admin_compliance"],
       }),
-    ).toEqual([]);
+    ).toContain("admin:monitoring:read");
   });
 
   it("requires explicit console access permission", () => {

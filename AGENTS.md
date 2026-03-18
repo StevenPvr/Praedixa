@@ -247,6 +247,7 @@ Before considering a webapp E2E shell fixture complete, mock provider bootstrap 
 When a public landing funnel changes slug, endpoint, or canonical heading, update the matching Playwright spec in the same diff so hooks stay aligned with the real published journey.
 Before introducing a shared API contract registry in `packages/shared-types`, split it by domain or concern so the typed catalog stays under the repo guardrail limits instead of landing as one monolithic file.
 Before relying on a new contract file under `packages/shared-types/src/api`, export it from the matching barrel such as `src/api.ts` before consuming it through `@praedixa/shared-types/api`.
+Before consuming a new root export from `@praedixa/shared-types`, rebuild the package so `dist/index.*` includes it; app/admin/runtime checks resolve the workspace export, not the unbuilt source file.
 Before declaring a contract or shared-types guardrail covered by remote CI, verify that `contracts/` and `packages/shared-types/` changes trigger the same runtime/package checks remotely, not only architecture-only jobs.
 Before trusting path-scoped required workflows, route gate, release, smoke, and CI helper script changes through the same remote required checks as application-impacting code.
 Before shipping a CLI flag that overrides a default list or path, cover the explicit override order with a regression test; cloned defaults and parse order are not reliable state.

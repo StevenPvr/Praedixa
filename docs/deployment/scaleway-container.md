@@ -314,6 +314,7 @@ Notes:
 
 - `KEYCLOAK_ADMIN_USERNAME` est `kcadmin` par defaut (surcharge possible en variable d'environnement).
 - Le script cree le compte s'il n'existe pas, force le mot de passe et garantit le role `super_admin`.
+- Par defaut, il synchronise aussi toutes les permissions admin versionnees dans `contracts/admin/permission-taxonomy.v1.json`; `admin:console:access` seul n'est pas suffisant pour ouvrir la home admin `/`.
 - Le mot de passe du super admin doit provenir d'un secret hors repo; ne documentez jamais une valeur realiste dans `docs/`.
 
 ### Mot de passe admin Keycloak: source de verite et rotation

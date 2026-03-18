@@ -164,6 +164,9 @@ importers:
 
   app-api-ts:
     dependencies:
+      '@praedixa/shared-types':
+        specifier: workspace:*
+        version: link:../packages/shared-types
       '@praedixa/telemetry':
         specifier: workspace:*
         version: link:../packages/telemetry
@@ -177,9 +180,6 @@ importers:
         specifier: ^3.24.0
         version: 3.25.76
     devDependencies:
-      '@praedixa/shared-types':
-        specifier: workspace:*
-        version: link:../packages/shared-types
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.7

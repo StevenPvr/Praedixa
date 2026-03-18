@@ -1,5 +1,40 @@
 # PRD continuation work
 
+## Current Pass - 2026-03-18 - Admin Super Admin Session Recovery
+
+### Plan
+
+- [x] Identifier pourquoi `admin@praedixa.com` retombe encore sur `http://localhost:3002/unauthorized` apres un login pourtant accepte par Keycloak
+- [x] Aligner la normalisation `super_admin` entre `app-admin`, `app-api-ts` et `@praedixa/shared-types`
+- [x] Eviter qu'une ancienne session locale `super_admin` reste bloquee sur `/unauthorized` au lieu de forcer une reauth propre
+- [x] Rejouer les tests auth/session/types cibles et consigner la marche locale
+
+### Review
+
+- Cause racine etablie:
+  - le login OIDC n'etait plus bloque par `missing_role`; la vraie chute vers `/unauthorized` venait de la policy de page `/` qui exige `admin:monitoring:read`.
+  - les nouveaux tokens/session `super_admin` devaient donc injecter toute la taxonomie admin, mais ce calcul n'etait pas encore aligne entre `app-admin` et `app-api-ts`.
+  - pour l'API TS, un deuxieme drift existait: un `super_admin` sans `organization_id` top-level etait encore rejete alors que le compte live n'emet pas toujours ce claim.
+  - pendant la verification, les apps consommatrices resolvaient un `@praedixa/shared-types` stale: le nouvel export racine `ADMIN_PERMISSION_NAMES` etait bien dans `src/`, mais pas encore dans `dist/index.*`.
+- Correctif applique:
+  - ajout d'une taxonomie admin versionnee partagee `packages/shared-types/src/admin-permissions.ts`, exportee a la racine du package
+  - `app-admin/lib/auth/permissions.ts` et `app-api-ts/src/auth.ts` normalisent maintenant un `super_admin` vers toutes les permissions admin connues
+  - `app-api-ts/src/auth.ts` mappe aussi un `super_admin` sans `organization_id` vers l'organisation admin synthetique attendue par le runtime
+  - `app-admin/lib/auth/middleware.ts` force maintenant une reauth (`/login?reauth=1&next=...`) au lieu d'un `/unauthorized` sec quand un vieux cookie `super_admin` ne porte pas encore les permissions explicites de la page demandee
+  - `@praedixa/shared-types` a ete rebuilde pour re-synchroniser `dist/index.*` avec le nouvel export racine
+- Verification:
+  - `pnpm --filter @praedixa/shared-types build`
+  - `pnpm --dir packages/shared-types exec vitest run src/__tests__/admin-permissions.test.ts`
+  - `pnpm --dir app-admin test -- 'lib/auth/__tests__/permissions.test.ts' 'lib/auth/__tests__/oidc.test.ts'`
+  - `pnpm --dir app-admin test -- 'app/auth/callback/__tests__/route.test.ts'`
+  - `pnpm --dir app-admin test -- 'lib/auth/__tests__/middleware.test.ts'`
+  - `pnpm --dir app-admin exec tsc -p tsconfig.json --noEmit`
+  - `pnpm --dir app-api-ts test -- 'src/__tests__/auth.test.ts'`
+  - `pnpm --dir app-api-ts exec tsc -p tsconfig.json --noEmit`
+- Marche locale a retenir:
+  - si un vieux cookie admin etait deja pose avant le correctif, la prochaine navigation protegee force maintenant une reauth propre vers `/login?reauth=1`.
+  - a defaut, supprimer les cookies `prx_admin_*` ou ouvrir directement `http://localhost:3002/login?reauth=1` reconstruit aussi la session avec le contrat `super_admin` corrige.
+
 ## Current Pass - 2026-03-17 - Admin Login Root Cause (amr contract)
 
 ### Plan

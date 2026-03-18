@@ -1,3 +1,4 @@
+import { ADMIN_PERMISSION_NAMES } from "@praedixa/shared-types";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod";
 
@@ -13,6 +14,7 @@ const roles: readonly UserRole[] = [
 ] as const;
 
 const roleSet = new Set<UserRole>(roles);
+const SUPER_ADMIN_ORGANIZATION_ID = "11111111-1111-1111-1111-111111111111";
 
 const claimSchema = z.object({
   sub: z.string().optional(),
@@ -90,14 +92,25 @@ function normalizePermission(permission: string): string {
   return permission.trim().toLowerCase();
 }
 
-function normalizePermissions(permissions: readonly string[]): string[] {
-  return Array.from(
+function normalizePermissions(
+  permissions: readonly string[],
+  role?: UserRole | null,
+): string[] {
+  const explicitPermissions = Array.from(
     new Set(
       permissions
         .map((permission) => normalizePermission(permission))
         .filter((permission) => permission.length > 0),
     ),
   );
+
+  if (role === "super_admin") {
+    return Array.from(
+      new Set([...ADMIN_PERMISSION_NAMES, ...explicitPermissions]),
+    );
+  }
+
+  return explicitPermissions;
 }
 
 function requiresSiteId(role: UserRole): boolean {
@@ -168,7 +181,7 @@ function explainInvalidClaims(unknownPayload: unknown): JwtDecodeFailure {
     reason = "JWT role must use a canonical top-level value";
   } else if (!hasValidJwtLifetime(payload)) {
     reason = "JWT is missing a valid exp/iat lifetime";
-  } else if (organizationId == null) {
+  } else if (role !== "super_admin" && organizationId == null) {
     reason = "JWT is missing organization_id";
   } else if (requiresSiteId(role) && siteIds.length === 0) {
     reason = "JWT is missing site_id for a scoped manager role";
@@ -239,7 +252,7 @@ export function normalizeJwtClaims(unknownPayload: unknown): JWTPayload | null {
     return null;
   }
 
-  if (organizationId == null) {
+  if (organizationId == null && role !== "super_admin") {
     return null;
   }
 
@@ -251,9 +264,9 @@ export function normalizeJwtClaims(unknownPayload: unknown): JWTPayload | null {
     userId,
     email,
     role,
-    organizationId,
+    organizationId: organizationId ?? SUPER_ADMIN_ORGANIZATION_ID,
     siteIds,
-    permissions: normalizePermissions(payload.permissions ?? []),
+    permissions: normalizePermissions(payload.permissions ?? [], role),
   };
 }
 

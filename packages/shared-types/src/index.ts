@@ -22,6 +22,7 @@ export * from "./domain/integration.js";
 // API types
 export * from "./api/responses.js";
 export * from "./api/requests.js";
+export * from "./admin-permissions.js";
 
 // Utility types
 export * from "./utils/common.js";

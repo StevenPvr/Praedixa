@@ -157,16 +157,28 @@ describe("normalizeJwtClaims", () => {
     ).toBeNull();
   });
 
-  it("rejects JWTs without organization_id", () => {
+  it("maps super_admin JWTs without organization_id to the synthetic admin organization and full admin permissions", () => {
     expect(
       normalizeJwtClaims(
         withRequiredJwtClaims({
           sub: "user-7",
           email: "admin@praedixa.com",
           role: "super_admin",
+          permissions: ["admin:console:access"],
         }),
       ),
-    ).toBeNull();
+    ).toEqual({
+      userId: "user-7",
+      email: "admin@praedixa.com",
+      organizationId: "11111111-1111-1111-1111-111111111111",
+      role: "super_admin",
+      siteIds: [],
+      permissions: expect.arrayContaining([
+        "admin:console:access",
+        "admin:monitoring:read",
+        "admin:org:read",
+      ]),
+    });
   });
 
   it("rejects JWTs without exp and iat claims", () => {
