@@ -24,17 +24,23 @@ vi.mock("next/image", () => ({
   }: Record<string, unknown>) => <img {...props} />,
 }));
 
-vi.mock("framer-motion", () => ({
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
-  motion: {
-    div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-      <div {...props}>{children}</div>
+/* eslint-disable @typescript-eslint/no-explicit-any */
+vi.mock("framer-motion", () => {
+  const React = require("react");
+  const forwardMotion = (tag: string) =>
+    React.forwardRef((props: any, ref: any) => {
+      const { variants, initial, animate, exit, whileInView, viewport, transition, ...rest } = props;
+      return React.createElement(tag, { ...rest, ref });
+    });
+  return {
+    motion: new Proxy(
+      {},
+      { get: (_t: any, prop: string) => forwardMotion(prop) },
     ),
-  },
-  useReducedMotion: () => false,
-}));
+    AnimatePresence: ({ children }: any) => children,
+    useReducedMotion: () => false,
+  };
+});
 
 describe("ProofBlockSection", () => {
   it("renders the section with id='preuve'", () => {
@@ -109,7 +115,10 @@ describe("ProofBlockSection", () => {
   it("renders 3 metrics", () => {
     render(<ProofBlockSection locale="fr" />);
 
-    expect(screen.getByText("3")).toBeInTheDocument();
+    // "3" appears in both step indicator and metric — check metric via font-mono class
+    const threeElements = screen.getAllByText("3");
+    expect(threeElements.length).toBeGreaterThanOrEqual(2);
+
     // "Options comparées" appears as both a tab label and a metric label
     expect(
       screen.getAllByText("Options comparées").length,

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { isValidLocale } from "../../lib/i18n/config";
 import { getDictionary } from "../../lib/i18n/get-dictionary";
 import { buildLocaleMetadata, localePathMap } from "../../lib/seo/metadata";
-import { HeroV2Section } from "../../components/homepage/HeroV2Section";
+import { HeroPulsorSection } from "../../components/homepage/HeroPulsorSection";
 import { CredibilityRibbonSection } from "../../components/homepage/CredibilityRibbonSection";
 import { ProblemBlockSection } from "../../components/homepage/ProblemBlockSection";
 import { MethodBlockSection } from "../../components/homepage/MethodBlockSection";
@@ -14,7 +14,6 @@ import { SectorCardsSection } from "../../components/homepage/SectorCardsSection
 import { IntegrationSecuritySection } from "../../components/homepage/IntegrationSecuritySection";
 import { FaqSectionV2 } from "../../components/homepage/FaqSectionV2";
 import { FinalCtaSection } from "../../components/homepage/FinalCtaSection";
-import { TrustBarSection } from "../../components/homepage/TrustBarSection";
 import { JsonLd } from "../../components/seo/JsonLd";
 
 export async function generateMetadata({
@@ -49,8 +48,7 @@ export default async function LandingPage({
 
   return (
     <>
-      <HeroV2Section locale={locale} />
-      <TrustBarSection locale={locale} />
+      <HeroPulsorSection locale={locale} />
       <CredibilityRibbonSection locale={locale} />
       <ProblemBlockSection locale={locale} />
       <MethodBlockSection locale={locale} />

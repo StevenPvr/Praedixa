@@ -8,18 +8,24 @@ export const coreValuePropEn: ValuePropContent = {
   mechanism:
     "AI detects risks, compares your options, and measures the real impact of each decision.",
   reassurance: [
-    "Read-only at the start",
-    "Aggregated data only",
+    "Read-only",
+    "Aggregated data",
     "Hosted in France",
-    "NDA available",
+    "NDA on request",
   ],
   ctaPrimary: "See the historical proof",
   ctaSecondary: "Talk to an expert",
   heroKicker: "For multi-site networks",
-  heroHeading: "Anticipate.",
-  heroHeadingHighlight: "Optimize. Prove the ROI.",
+  heroHeading: "AI that anticipates, optimizes",
+  heroHeadingHighlight: "and proves your ROI.",
   heroSubheading:
-    "Praedixa anticipates your operational needs and optimizes your decisions with AI. The priority: your ROI.",
+    "Praedixa connects your existing data, detects risks sooner, compares options and documents the real impact of every decision.",
+  heroBadgeText: "DECISION AI",
+  heroProofBlockText:
+    "For COOs, operations directors, finance and CIOs.",
+  heroProofRoles: ["COO", "OPS DIR.", "FINANCE", "CIO"],
+  heroProofMicropill: "Traced decisions\u00a0|\u00a0Provable ROI",
+  heroLogoCaption: "They trust us",
   heroOffer: {
     badge: "Our promise",
     title: "Results in 30 days",

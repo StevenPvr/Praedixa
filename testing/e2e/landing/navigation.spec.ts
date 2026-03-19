@@ -66,7 +66,7 @@ test.describe("Landing navigation", () => {
   test("CTA button is visible", async ({ page }) => {
     await page.goto("/fr");
     const cta = page.getByRole("link", {
-      name: /audit|pilote|demo|contact|diagnostic/i,
+      name: /audit|pilote|demo|contact|diagnostic|expert|preuve/i,
     });
     await expect(cta.first()).toBeVisible();
   });

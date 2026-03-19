@@ -50,17 +50,16 @@ describe("SectorCardsSection", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders 4 sector cards (first 4 from listSectorPages)", () => {
+  it("renders all 5 sector cards", () => {
     render(<SectorCardsSection locale="fr" />);
 
     const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(4);
+    expect(links).toHaveLength(5);
   });
 
   it("renders the correct sector card titles", () => {
     render(<SectorCardsSection locale="fr" />);
 
-    // shortLabel for each of the first 4 sectors
     expect(screen.getByRole("heading", { name: "HCR" })).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
@@ -76,6 +75,9 @@ describe("SectorCardsSection", () => {
       screen.getByRole("heading", {
         name: "Automobile / concessions / ateliers",
       }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Fitness" }),
     ).toBeInTheDocument();
   });
 
@@ -122,6 +124,7 @@ describe("SectorCardsSection", () => {
       "href",
       "/fr/secteurs/automobile-concessions-ateliers",
     );
+    expect(links[4]).toHaveAttribute("href", "/fr/secteurs/fitness-reseaux-clubs");
   });
 
   it("renders the homepageStat when available", () => {
@@ -142,6 +145,6 @@ describe("SectorCardsSection", () => {
     render(<SectorCardsSection locale="fr" />);
 
     const explorLabels = screen.getAllByText("Explorer");
-    expect(explorLabels).toHaveLength(4);
+    expect(explorLabels).toHaveLength(5);
   });
 });

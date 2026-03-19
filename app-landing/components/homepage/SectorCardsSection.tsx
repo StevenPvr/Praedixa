@@ -13,7 +13,7 @@ interface SectorCardsSectionProps {
 }
 
 export function SectorCardsSection({ locale }: SectorCardsSectionProps) {
-  const sectors = listSectorPages(locale).slice(0, 4);
+  const sectors = listSectorPages(locale);
   const kicker = locale === "fr" ? "Secteurs" : "Industries";
   const heading =
     locale === "fr"
@@ -27,7 +27,7 @@ export function SectorCardsSection({ locale }: SectorCardsSectionProps) {
         {heading}
       </h2>
 
-      <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {sectors.map((sector) => (
           <Link
             key={sector.id}

@@ -116,6 +116,11 @@ export interface ValuePropContent {
   heroHeading: string;
   heroHeadingHighlight: string;
   heroSubheading: string;
+  heroBadgeText?: string;
+  heroProofBlockText?: string;
+  heroProofRoles?: string[];
+  heroProofMicropill?: string;
+  heroLogoCaption?: string;
   heroOffer: HeroOfferDescriptor;
   socialProof: SocialProofContent;
   product: ProductPreviewContent;

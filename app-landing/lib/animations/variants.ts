@@ -188,6 +188,45 @@ export const cardHover = {
   transition: { type: "spring" as const, stiffness: 200, damping: 24 },
 };
 
+/** Hero Pulsor H1 — upward drift + fade, 650ms ease-entry */
+export const heroPulsorHeadline: Variants = {
+  hidden: { opacity: 0, y: 14 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+/** Hero Pulsor badge — spring scale after headline */
+export const heroPulsorBadge: Variants = {
+  hidden: { opacity: 0, scale: 0.94 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { type: "spring", stiffness: 200, damping: 22, delay: 0.12 },
+  },
+};
+
+/** Hero Pulsor CTA — fade + slight upward drift, 500ms */
+export const heroPulsorCta: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+/** Hero Pulsor logos — simple fade, 400ms */
+export const heroPulsorLogos: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.3 },
+  },
+};
+
 /** Hero headline: cinematic blur-reveal with subtle scale — more impact than standard reveal */
 export const heroHeadlineReveal: Variants = {
   hidden: { opacity: 0, y: 32, filter: "blur(10px)", scale: 0.98 },

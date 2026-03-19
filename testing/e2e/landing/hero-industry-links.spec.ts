@@ -16,7 +16,7 @@ test.describe("Hero industry links", () => {
     ).toBeVisible();
 
     const sectorLinks = sectorSection.locator("a[href^='/fr/secteurs/']");
-    await expect(sectorLinks).toHaveCount(4);
+    await expect(sectorLinks).toHaveCount(5);
     await expect(
       sectorSection.locator("a[href='/fr/secteurs/hcr']"),
     ).toBeVisible();
@@ -32,6 +32,9 @@ test.describe("Hero industry links", () => {
       sectorSection.locator(
         "a[href='/fr/secteurs/automobile-concessions-ateliers']",
       ),
+    ).toBeVisible();
+    await expect(
+      sectorSection.locator("a[href='/fr/secteurs/fitness-reseaux-clubs']"),
     ).toBeVisible();
   });
 });

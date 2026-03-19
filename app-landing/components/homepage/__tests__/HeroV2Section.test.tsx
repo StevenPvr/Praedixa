@@ -49,8 +49,8 @@ describe("HeroV2Section", () => {
     render(<HeroV2Section locale="fr" />);
 
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("Anticipez.");
-    expect(heading).toHaveTextContent("Optimisez. Prouvez le ROI.");
+    expect(heading).toHaveTextContent("L\u2019IA qui anticipe, optimise");
+    expect(heading).toHaveTextContent("et prouve votre ROI.");
   });
 
   it("renders the kicker eyebrow text", () => {
@@ -66,7 +66,7 @@ describe("HeroV2Section", () => {
 
     expect(
       screen.getByText(
-        /Praedixa anticipe vos besoins opérationnels et optimise vos décisions/,
+        /Praedixa connecte vos données existantes/,
       ),
     ).toBeInTheDocument();
   });
@@ -91,10 +91,10 @@ describe("HeroV2Section", () => {
   it("renders reassurance proof chips", () => {
     render(<HeroV2Section locale="fr" />);
 
-    expect(screen.getByText("Lecture seule au démarrage")).toBeInTheDocument();
-    expect(screen.getByText("Données agrégées uniquement")).toBeInTheDocument();
+    expect(screen.getByText("Lecture seule")).toBeInTheDocument();
+    expect(screen.getByText("Données agrégées")).toBeInTheDocument();
     expect(screen.getByText("Hébergement France")).toBeInTheDocument();
-    expect(screen.getByText("NDA possible")).toBeInTheDocument();
+    expect(screen.getByText("NDA sur demande")).toBeInTheDocument();
   });
 
   it("renders the HeroV2Client mock with poster and video src", () => {
