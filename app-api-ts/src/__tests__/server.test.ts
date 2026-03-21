@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { resolveApiExposurePolicy } from "../exposure-policy.js";
 import { routes } from "../routes.js";
 import { compileRoutes, matchRoute } from "../router.js";
 import {
@@ -68,6 +69,7 @@ describe("api transport and authorization guards", () => {
         "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
+      "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet",
       "Referrer-Policy": "no-referrer",
       "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
       "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
@@ -194,6 +196,44 @@ describe("api transport and authorization guards", () => {
       "/api/v1/health",
       "/api/v1/public/contact-requests",
     ]);
+  });
+
+  it("assigns an exposure policy to every API route template", () => {
+    const unresolved = routes
+      .map((entry) => entry.template)
+      .filter((template) => resolveApiExposurePolicy(template) == null);
+
+    expect(unresolved).toEqual([]);
+  });
+
+  it("keeps only health public-sacrificial and contact ingest public-restricted", () => {
+    expect(resolveApiExposurePolicy("/api/v1/health")).toMatchObject({
+      classification: "P3",
+      audience: "internal_automation",
+      access: "public",
+    });
+    expect(
+      resolveApiExposurePolicy("/api/v1/public/contact-requests"),
+    ).toMatchObject({
+      classification: "P1",
+      audience: "internal_automation",
+      access: "restricted",
+    });
+    expect(resolveApiExposurePolicy("/api/v1/admin")).toMatchObject({
+      classification: "P0",
+      audience: "admin",
+      access: "restricted",
+    });
+  });
+
+  it("does not expose raw event payload detail on the admin HTTP surface", () => {
+    expect(
+      routes.some(
+        (entry) =>
+          entry.template ===
+          "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/raw-events/:eventId/payload",
+      ),
+    ).toBe(false);
   });
 
   it("normalizes valid origin header values", () => {
@@ -370,6 +410,21 @@ describe("api transport and authorization guards", () => {
         jwksUrl:
           "https://auth.praedixa.com/realms/praedixa/protocol/openid-connect/certs",
         algorithms: ["RS256"],
+      },
+      camunda: {
+        enabled: true,
+        baseUrl: "https://camunda.praedixa.internal/v2",
+        authMode: "basic",
+        basicUsername: "demo",
+        basicPassword: "demo",
+        oauthTokenUrl: null,
+        oauthClientId: null,
+        oauthClientSecret: null,
+        oauthAudience: null,
+        oauthScope: null,
+        processTenantId: null,
+        deployOnStartup: true,
+        requestTimeoutMs: 10_000,
       },
     });
 

@@ -19,6 +19,9 @@ function toLoginErrorMessage(error: string | null): string | null {
   if (error === "rate_limited") {
     return "Trop de tentatives de connexion. Patientez quelques instants puis reessayez.";
   }
+  if (error === "wrong_role") {
+    return "Ce compte super admin doit utiliser la console admin Praedixa. Ouvrez l'application admin puis reconnectez-vous avec le meme fournisseur d'identite.";
+  }
   if (error === "auth_claims_invalid") {
     return "Le fournisseur d'identite a bien authentifie la session, mais le token d'acces ne porte pas encore le contrat canonique attendu par Praedixa. Verifiez les claims top-level `sub`, `email`, `role`, `organization_id` et `site_id` selon le role utilisateur, ainsi que les attributs utilisateur et protocol mappers Keycloak associes.";
   }

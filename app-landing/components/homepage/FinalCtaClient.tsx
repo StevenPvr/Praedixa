@@ -38,13 +38,20 @@ function FinalCtaField({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const fieldId = createFinalCtaFieldId(field.name);
+
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-ink-950">
+      <label
+        htmlFor={fieldId}
+        className="mb-1.5 block text-sm font-medium text-ink-950"
+      >
         {field.name}
       </label>
       {field.type === "select" && "options" in field && field.options ? (
         <select
+          id={fieldId}
+          name={fieldId}
           className="h-14 w-full rounded-input border border-v2-border-200 bg-surface-0 px-4 text-sm text-ink-950 transition-colors focus:border-proof-500 focus:outline-none focus:ring-2 focus:ring-proof-500/20"
           value={value}
           onChange={(event) => onChange(event.target.value)}
@@ -58,6 +65,8 @@ function FinalCtaField({
         </select>
       ) : field.type === "textarea" ? (
         <textarea
+          id={fieldId}
+          name={fieldId}
           rows={3}
           className="w-full rounded-input border border-v2-border-200 bg-surface-0 px-4 py-3 text-sm text-ink-950 transition-colors focus:border-proof-500 focus:outline-none focus:ring-2 focus:ring-proof-500/20"
           value={value}
@@ -65,6 +74,8 @@ function FinalCtaField({
         />
       ) : (
         <input
+          id={fieldId}
+          name={fieldId}
           type={field.type}
           className="h-14 w-full rounded-input border border-v2-border-200 bg-surface-0 px-4 text-sm text-ink-950 transition-colors focus:border-proof-500 focus:outline-none focus:ring-2 focus:ring-proof-500/20"
           value={value}
@@ -73,6 +84,15 @@ function FinalCtaField({
       )}
     </div>
   );
+}
+
+function createFinalCtaFieldId(fieldName: string) {
+  return `final-cta-${fieldName
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")}`;
 }
 
 function StepIndicators({ step }: { step: Exclude<FormStep, "success"> }) {

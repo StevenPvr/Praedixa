@@ -164,6 +164,25 @@ describe("updateSession (admin)", () => {
     expect(forced.status).toBe(200);
   });
 
+  it("redirects authenticated admins away from /login to their first accessible page", async () => {
+    mockResolveRequestSession.mockResolvedValue({
+      ok: true,
+      session: {
+        ...createSession(),
+        role: "org_admin",
+        permissions: ["admin:console:access", "admin:org:read"],
+      },
+      accessToken: "server-only-token",
+      refreshToken: "refresh-token",
+      cookieUpdate: null,
+    });
+
+    const redirected = await updateSession(createMockRequest("/login"));
+    expect((redirected as { redirectUrl: string }).redirectUrl).toBe(
+      "https://admin.praedixa.com/clients",
+    );
+  });
+
   it("redirects authenticated admins without route permission to /unauthorized", async () => {
     mockResolveRequestSession.mockResolvedValue({
       ok: true,
@@ -181,6 +200,27 @@ describe("updateSession (admin)", () => {
 
     expect((result as { redirectUrl: string }).redirectUrl).toBe(
       "https://admin.praedixa.com/unauthorized",
+    );
+    expect(mockClearAuthCookies).not.toHaveBeenCalled();
+  });
+
+  it("redirects authenticated admins from / to their first accessible page when home is forbidden", async () => {
+    mockResolveRequestSession.mockResolvedValue({
+      ok: true,
+      session: {
+        ...createSession(),
+        role: "org_admin",
+        permissions: ["admin:console:access", "admin:org:read"],
+      },
+      accessToken: "server-only-token",
+      refreshToken: "refresh-token",
+      cookieUpdate: null,
+    });
+
+    const result = await updateSession(createMockRequest("/"));
+
+    expect((result as { redirectUrl: string }).redirectUrl).toBe(
+      "https://admin.praedixa.com/clients",
     );
     expect(mockClearAuthCookies).not.toHaveBeenCalled();
   });

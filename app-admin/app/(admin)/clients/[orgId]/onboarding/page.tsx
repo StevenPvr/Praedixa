@@ -1,219 +1,520 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useClientContext } from "../client-context";
-import { useApiGet, useApiGetPaginated, useApiPost } from "@/hooks/use-api";
-import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
+import { useEffect, useState } from "react";
 import {
-  Card,
-  CardContent,
-  Button,
-  StatCard,
-  SkeletonCard,
-} from "@praedixa/ui";
-import {
-  OnboardingStatusBadge,
-  type OnboardingStatus,
-} from "@/components/onboarding-status-badge";
+  AlertTriangle,
+  ClipboardList,
+  ShieldCheck,
+  Workflow,
+} from "lucide-react";
+import type {
+  CompleteOnboardingCaseTaskRequest,
+  CreateOnboardingCaseRequest,
+  OnboardingCaseLifecycleRequest,
+  OnboardingCaseBundle,
+  OnboardingCaseDetail,
+  OnboardingCaseSummary,
+} from "@praedixa/shared-types/api";
+import { Button, SkeletonCard, StatCard } from "@praedixa/ui";
+
 import { ErrorFallback } from "@/components/error-fallback";
+import { useApiGet, useApiGetPaginated, useApiPost } from "@/hooks/use-api";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, ClipboardList, Rocket, Workflow } from "lucide-react";
-
-interface OrgDetail {
-  id: string;
-  name: string;
-  slug: string;
-  contactEmail: string;
-  plan?: string;
-}
-
-interface OnboardingListItem {
-  id: string;
-  organizationId: string;
-  status: OnboardingStatus;
-  currentStep: number;
-  stepsCompleted: unknown[];
-  initiatedBy: string;
-  createdAt: string;
-  completedAt: string | null;
-}
-
-const TOTAL_STEPS = 5;
-
-function normalizePlan(plan: string | undefined): string {
-  if (!plan) return "starter";
-  if (plan === "pro" || plan === "professional") return "professional";
-  if (plan === "enterprise") return "enterprise";
-  if (plan === "pilot") return "starter";
-  return "starter";
-}
+import { ApiError, apiPost } from "@/lib/api/client";
+import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
+import { useCurrentUserState, getValidAccessToken } from "@/lib/auth/client";
+import {
+  USERS_ACCESS,
+  USERS_WRITE,
+} from "@/lib/auth/admin-route-policy-shared";
+import { hasAnyPermission } from "@/lib/auth/permissions";
+import { readAccessInviteRecipients } from "./access-model-task-fields";
+import { CaseListCard } from "./case-list-card";
+import { CaseWorkspaceCard } from "./case-workspace-card";
+import { CreateCaseCard } from "./create-case-card";
+import {
+  DEFAULT_FORM_STATE,
+  type OnboardingFormState,
+  type OrgUserItem,
+  normalizeIsoDate,
+  statsSourceFromCases,
+} from "./page-model";
+import { useClientContext } from "../client-context";
 
 export default function OnboardingPage() {
-  const { orgId } = useClientContext();
+  const { orgId, orgName, hierarchy } = useClientContext();
   const toast = useToast();
+  const { user: currentUser, loading: currentUserLoading } =
+    useCurrentUserState();
   const [page, setPage] = useState(1);
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
+  const [form, setForm] = useState<OnboardingFormState>(DEFAULT_FORM_STATE);
+  const canReadOrgUsers = hasAnyPermission(
+    currentUser?.permissions,
+    USERS_ACCESS,
+  );
+  const canInviteOrgUsers = hasAnyPermission(
+    currentUser?.permissions,
+    USERS_WRITE,
+  );
 
   const {
-    data: org,
-    loading: orgLoading,
-    error: orgError,
-    refetch: orgRefetch,
-  } = useApiGet<OrgDetail>(ADMIN_ENDPOINTS.organization(orgId));
-
-  const {
-    data: onboardingEntries,
+    data: cases,
     total,
-    loading: onboardingLoading,
-    error: onboardingError,
-    refetch: onboardingRefetch,
-  } = useApiGetPaginated<OnboardingListItem>(
-    ADMIN_ENDPOINTS.onboardingList,
+    loading: casesLoading,
+    error: casesError,
+    refetch: refetchCases,
+  } = useApiGetPaginated<OnboardingCaseSummary>(
+    ADMIN_ENDPOINTS.orgOnboardingCases(orgId),
     page,
     20,
   );
 
-  const startOnboarding = useApiPost<
-    { orgName: string; orgSlug: string; contactEmail: string; plan: string },
-    OnboardingListItem
-  >(ADMIN_ENDPOINTS.onboardingStart);
-
-  const orgEntries = useMemo(
-    () =>
-      (onboardingEntries ?? []).filter(
-        (entry) => entry.organizationId === orgId,
-      ),
-    [onboardingEntries, orgId],
+  const {
+    data: users,
+    loading: usersLoading,
+    error: usersError,
+  } = useApiGet<OrgUserItem[]>(
+    canReadOrgUsers ? ADMIN_ENDPOINTS.orgUsers(orgId) : null,
   );
 
-  const latestEntry = orgEntries[0] ?? null;
+  const {
+    data: caseBundle,
+    loading: caseDetailLoading,
+    error: caseDetailError,
+    refetch: refetchCaseDetail,
+  } = useApiGet<OnboardingCaseBundle>(
+    selectedCaseId
+      ? ADMIN_ENDPOINTS.orgOnboardingCase(orgId, selectedCaseId)
+      : null,
+  );
 
-  async function handleStart() {
-    if (!org) return;
-    const created = await startOnboarding.mutate({
-      orgName: org.name,
-      orgSlug: org.slug,
-      contactEmail: org.contactEmail,
-      plan: normalizePlan(org.plan),
-    });
+  const createCase = useApiPost<
+    CreateOnboardingCaseRequest,
+    OnboardingCaseDetail
+  >(ADMIN_ENDPOINTS.orgOnboardingCases(orgId));
+  const [lifecycleAction, setLifecycleAction] = useState<string | null>(null);
+  const [savingTaskId, setSavingTaskId] = useState<string | null>(null);
+  const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
+  const [sendingInviteTaskId, setSendingInviteTaskId] = useState<string | null>(
+    null,
+  );
 
-    if (created) {
-      toast.success("Onboarding demarre");
-      onboardingRefetch();
+  type InvitedUserResponse = {
+    id: string;
+    email: string;
+    role: string;
+    status: string;
+    siteId?: string | null;
+    siteName?: string | null;
+    invitedAt: string;
+  };
+
+  useEffect(() => {
+    if (createCase.error) {
+      toast.error(createCase.error);
+    }
+  }, [createCase.error, toast]);
+
+  useEffect(() => {
+    if (cases.length === 0) {
+      if (selectedCaseId != null) {
+        setSelectedCaseId(null);
+      }
       return;
     }
 
-    toast.error(startOnboarding.error ?? "Impossible de demarrer l'onboarding");
+    const selectedStillExists = cases.some(
+      (item) => item.id === selectedCaseId,
+    );
+    if (!selectedStillExists) {
+      setSelectedCaseId(cases[0]?.id ?? null);
+    }
+  }, [cases, selectedCaseId]);
+
+  const statsSource = statsSourceFromCases(caseBundle ?? null, cases);
+  const effectiveUsersLoading =
+    currentUserLoading || (canReadOrgUsers && usersLoading);
+  const effectiveUsersError =
+    !currentUserLoading && !canReadOrgUsers
+      ? "Le profil courant ne peut pas charger les comptes client. Owner, sponsor et invitations restent masques tant que `admin:users:*` n'est pas accorde."
+      : usersError;
+
+  async function handleCreateCase() {
+    if (form.sourceModes.length === 0) {
+      toast.error("Selectionne au moins une source critique.");
+      return;
+    }
+    if (form.subscriptionModules.length === 0) {
+      toast.error("Selectionne au moins un module souscrit.");
+      return;
+    }
+    if (form.selectedPacks.length === 0) {
+      toast.error("Selectionne au moins un pack DecisionOps.");
+      return;
+    }
+
+    const created = await createCase.mutate({
+      ownerUserId: form.ownerUserId || null,
+      sponsorUserId: form.sponsorUserId || null,
+      activationMode: form.activationMode,
+      environmentTarget: form.environmentTarget,
+      dataResidencyRegion: form.dataResidencyRegion,
+      subscriptionModules: form.subscriptionModules,
+      selectedPacks: form.selectedPacks,
+      sourceModes: form.sourceModes,
+      targetGoLiveAt: normalizeIsoDate(form.targetGoLiveAt),
+      metadataJson: {
+        createdFrom: "client-onboarding-workspace",
+      },
+    });
+
+    if (!created) {
+      return;
+    }
+
+    setForm(DEFAULT_FORM_STATE);
+    setSelectedCaseId(created.id);
+    toast.success("Case onboarding cree");
+    refetchCases();
+    refetchCaseDetail();
   }
 
-  if (orgError) {
-    return <ErrorFallback message={orgError} onRetry={orgRefetch} />;
+  async function handleSaveTask(
+    taskId: string,
+    payloadJson: Record<string, unknown>,
+    note: string | null,
+  ) {
+    if (!selectedCaseId) {
+      return;
+    }
+
+    setSavingTaskId(taskId);
+    try {
+      await apiPost<OnboardingCaseBundle>(
+        ADMIN_ENDPOINTS.orgOnboardingTaskSave(orgId, selectedCaseId, taskId),
+        { note, payloadJson },
+        async () => getValidAccessToken(),
+      );
+      toast.success("Brouillon onboarding enregistre");
+      refetchCaseDetail();
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : "Impossible d'enregistrer le brouillon onboarding",
+      );
+    } finally {
+      setSavingTaskId(null);
+    }
+  }
+
+  async function handleCompleteTask(
+    taskId: string,
+    payloadJson: Record<string, unknown>,
+    note: string | null,
+  ) {
+    if (!selectedCaseId) {
+      return;
+    }
+
+    setCompletingTaskId(taskId);
+    try {
+      await apiPost<OnboardingCaseBundle>(
+        ADMIN_ENDPOINTS.orgOnboardingTaskComplete(
+          orgId,
+          selectedCaseId,
+          taskId,
+        ),
+        { note, payloadJson } satisfies CompleteOnboardingCaseTaskRequest,
+        async () => getValidAccessToken(),
+      );
+      toast.success("Tache onboarding completee");
+      refetchCases();
+      refetchCaseDetail();
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : "Impossible de completer la tache onboarding",
+      );
+    } finally {
+      setCompletingTaskId(null);
+    }
+  }
+
+  async function handleSendSecureInvites(
+    taskId: string,
+    payloadJson: Record<string, unknown>,
+    note: string | null,
+  ) {
+    if (!selectedCaseId) {
+      return;
+    }
+    if (!canInviteOrgUsers) {
+      toast.error(
+        "Le profil courant ne peut pas envoyer d'invitations securisees.",
+      );
+      return;
+    }
+
+    const recipients = readAccessInviteRecipients(payloadJson);
+    if (recipients.length === 0) {
+      toast.error("Ajoute au moins un compte client avant l'envoi.");
+      return;
+    }
+
+    setSendingInviteTaskId(taskId);
+    try {
+      const nextRecipients = [];
+      for (const recipient of recipients) {
+        if (recipient.status === "sent") {
+          nextRecipients.push(recipient);
+          continue;
+        }
+
+        try {
+          const invited = await apiPost<InvitedUserResponse>(
+            ADMIN_ENDPOINTS.orgUserInvite(orgId),
+            {
+              email: recipient.email,
+              role: recipient.role,
+              ...(recipient.siteId ? { site_id: recipient.siteId } : {}),
+            },
+            async () => getValidAccessToken(),
+          );
+
+          nextRecipients.push({
+            ...recipient,
+            status: "sent" as const,
+            siteName: invited.data.siteName ?? recipient.siteName ?? null,
+            invitedAt: invited.data.invitedAt ?? new Date().toISOString(),
+            invitedUserId: invited.data.id,
+            errorMessage: null,
+          });
+        } catch (error) {
+          nextRecipients.push({
+            ...recipient,
+            status: "failed" as const,
+            errorMessage:
+              error instanceof ApiError
+                ? error.message
+                : "Impossible d'envoyer l'invitation securisee",
+          });
+        }
+      }
+
+      const nextPayload = {
+        ...payloadJson,
+        invitationDelivery: "activation_link" as const,
+        invitationChannel: "keycloak_execute_actions_email" as const,
+        passwordHandling: "client_sets_password" as const,
+        inviteRecipients: nextRecipients,
+        invitationsReady:
+          nextRecipients.length > 0 &&
+          nextRecipients.every((recipient) => recipient.status === "sent"),
+        invitedRecipientCount: nextRecipients.filter(
+          (recipient) => recipient.status === "sent",
+        ).length,
+      };
+
+      await apiPost<OnboardingCaseBundle>(
+        ADMIN_ENDPOINTS.orgOnboardingTaskSave(orgId, selectedCaseId, taskId),
+        { note, payloadJson: nextPayload },
+        async () => getValidAccessToken(),
+      );
+
+      const failedCount = nextRecipients.filter(
+        (recipient) => recipient.status === "failed",
+      ).length;
+      if (failedCount > 0) {
+        toast.error(
+          `${failedCount} invitation(s) n'ont pas pu etre envoyees. Le brouillon onboarding a ete mis a jour.`,
+        );
+      } else {
+        toast.success("Invitations securisees envoyees");
+      }
+      refetchCases();
+      refetchCaseDetail();
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : "Impossible d'enregistrer les invitations securisees dans l'onboarding",
+      );
+    } finally {
+      setSendingInviteTaskId(null);
+    }
+  }
+
+  async function handleRecomputeReadiness() {
+    if (!selectedCaseId) {
+      return;
+    }
+
+    setLifecycleAction("recompute");
+    try {
+      await apiPost<OnboardingCaseBundle>(
+        ADMIN_ENDPOINTS.orgOnboardingCaseRecompute(orgId, selectedCaseId),
+        {},
+        async () => getValidAccessToken(),
+      );
+      toast.success("Readiness onboarding recalculee");
+      refetchCases();
+      refetchCaseDetail();
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : "Impossible de recalculer la readiness onboarding",
+      );
+    } finally {
+      setLifecycleAction(null);
+    }
+  }
+
+  async function handleCancelCase() {
+    if (!selectedCaseId) {
+      return;
+    }
+
+    setLifecycleAction("cancel");
+    try {
+      await apiPost<OnboardingCaseBundle>(
+        ADMIN_ENDPOINTS.orgOnboardingCaseCancel(orgId, selectedCaseId),
+        {
+          reason: "Cancelled from admin onboarding workspace",
+        } satisfies OnboardingCaseLifecycleRequest,
+        async () => getValidAccessToken(),
+      );
+      toast.success("Case onboarding annule");
+      refetchCases();
+      refetchCaseDetail();
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : "Impossible d'annuler le case onboarding",
+      );
+    } finally {
+      setLifecycleAction(null);
+    }
+  }
+
+  async function handleReopenCase() {
+    if (!selectedCaseId) {
+      return;
+    }
+
+    setLifecycleAction("reopen");
+    try {
+      const response = await apiPost<OnboardingCaseDetail>(
+        ADMIN_ENDPOINTS.orgOnboardingCaseReopen(orgId, selectedCaseId),
+        {
+          reason: "Reopened from admin onboarding workspace",
+        } satisfies OnboardingCaseLifecycleRequest,
+        async () => getValidAccessToken(),
+      );
+      setSelectedCaseId(response.data.id);
+      toast.success("Nouveau case onboarding cree depuis la reouverture");
+      refetchCases();
+      refetchCaseDetail();
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : "Impossible de rouvrir le case onboarding",
+      );
+    } finally {
+      setLifecycleAction(null);
+    }
+  }
+
+  if (casesError) {
+    return <ErrorFallback message={casesError} onRetry={refetchCases} />;
   }
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="font-serif text-lg font-semibold text-ink">
-          Onboarding
+          Onboarding BPM
         </h2>
         <p className="text-sm text-ink-tertiary">
-          Suivi de readiness et orchestration des etapes de mise en service
-          client.
+          Control plane d&apos;activation pour {orgName}: scope, sources,
+          readiness, blockers et preparation go-live.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Sessions onboarding"
-          value={String(orgEntries.length)}
+          label="Cases ouverts"
+          value={String(total)}
           icon={<ClipboardList className="h-4 w-4" />}
         />
         <StatCard
-          label="Etape actuelle"
-          value={String(latestEntry?.currentStep ?? 0)}
+          label="Readiness"
+          value={statsSource?.lastReadinessStatus ?? "absent"}
+          icon={<ShieldCheck className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Taches ouvertes"
+          value={String(statsSource?.openTaskCount ?? 0)}
           icon={<Workflow className="h-4 w-4" />}
         />
         <StatCard
-          label="Statut"
-          value={latestEntry?.status ?? "absent"}
-          icon={<CheckCircle2 className="h-4 w-4" />}
-        />
-        <StatCard
-          label="Total entrees"
-          value={String(total)}
-          icon={<Rocket className="h-4 w-4" />}
+          label="Blockers ouverts"
+          value={String(statsSource?.openBlockerCount ?? 0)}
+          icon={<AlertTriangle className="h-4 w-4" />}
         />
       </div>
 
-      {orgLoading || onboardingLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2">
+      {casesLoading || effectiveUsersLoading ? (
+        <div className="grid gap-4 lg:grid-cols-2">
           <SkeletonCard />
           <SkeletonCard />
         </div>
       ) : null}
 
-      {onboardingError ? (
-        <ErrorFallback message={onboardingError} onRetry={onboardingRefetch} />
-      ) : (
-        <Card className="rounded-2xl shadow-soft">
-          <CardContent className="space-y-4 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 className="text-sm font-medium text-ink-secondary">
-                  Dernier onboarding pour {org?.name ?? orgId}
-                </h3>
-                <p className="text-xs text-ink-tertiary">
-                  Suivi centralise des etapes (objectif {TOTAL_STEPS} etapes)
-                </p>
-              </div>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+        <CreateCaseCard
+          form={form}
+          users={users ?? []}
+          usersError={effectiveUsersError}
+          disabled={createCase.loading || casesLoading || effectiveUsersLoading}
+          onCreate={handleCreateCase}
+          onChange={setForm}
+        />
 
-              <Button
-                size="sm"
-                onClick={handleStart}
-                disabled={startOnboarding.loading || !org}
-              >
-                <Rocket className="mr-1.5 h-3.5 w-3.5" />
-                {startOnboarding.loading
-                  ? "Demarrage..."
-                  : "Demarrer un onboarding"}
-              </Button>
-            </div>
+        <div className="space-y-6">
+          <CaseListCard
+            cases={cases}
+            selectedCaseId={selectedCaseId}
+            onSelect={setSelectedCaseId}
+          />
 
-            {latestEntry ? (
-              <div className="space-y-3 rounded-xl border border-border bg-surface-sunken/60 p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <OnboardingStatusBadge status={latestEntry.status} />
-                  <span className="text-xs text-ink-tertiary">
-                    Cree le{" "}
-                    {new Date(latestEntry.createdAt).toLocaleDateString(
-                      "fr-FR",
-                    )}
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all"
-                      style={{
-                        width: `${(latestEntry.currentStep / TOTAL_STEPS) * 100}%`,
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs text-ink-tertiary">
-                    Etape {latestEntry.currentStep}/{TOTAL_STEPS}
-                    {latestEntry.completedAt
-                      ? ` - Termine le ${new Date(latestEntry.completedAt).toLocaleDateString("fr-FR")}`
-                      : " - En cours"}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <p className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-ink-tertiary">
-                Aucun onboarding actif pour cette organisation.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
+          {caseDetailLoading ? <SkeletonCard /> : null}
+          <CaseWorkspaceCard
+            orgId={orgId}
+            hierarchy={hierarchy}
+            bundle={caseBundle ?? null}
+            loading={caseDetailLoading}
+            error={caseDetailError}
+            onRetry={refetchCaseDetail}
+            onRecomputeReadiness={handleRecomputeReadiness}
+            onCancelCase={handleCancelCase}
+            onReopenCase={handleReopenCase}
+            onSaveTask={handleSaveTask}
+            lifecycleAction={lifecycleAction}
+            completingTaskId={completingTaskId}
+            savingTaskId={savingTaskId}
+            sendingInviteTaskId={sendingInviteTaskId}
+            canSendSecureInvites={canInviteOrgUsers}
+            onCompleteTask={handleCompleteTask}
+            onSendSecureInvites={handleSendSecureInvites}
+          />
+        </div>
+      </div>
 
       {total > 20 ? (
         <div className="flex items-center justify-end gap-2">

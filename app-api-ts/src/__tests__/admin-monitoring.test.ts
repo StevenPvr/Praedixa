@@ -100,6 +100,14 @@ describe("admin monitoring persistence helpers", () => {
 
     const result = await getPersistentAdminOrgMirror(ORGANIZATION_ID);
 
+    expect(mockedQueryRows).toHaveBeenCalledWith(
+      expect.stringContaining("FROM users u"),
+      [ORGANIZATION_ID],
+    );
+    expect(mockedQueryRows).toHaveBeenCalledWith(
+      expect.not.stringContaining("FROM employees e"),
+      [ORGANIZATION_ID],
+    );
     expect(result).toMatchObject({
       orgId: ORGANIZATION_ID,
       totalEmployees: 120,

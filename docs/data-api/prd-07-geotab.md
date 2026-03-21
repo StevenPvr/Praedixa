@@ -1,6 +1,6 @@
 # PRD Connecteur - Geotab (Telematics)
 
-- Statut: `Ready for build`
+- Statut: `L2 core delivered`
 - Priorite: `P1`
 - Verticales ciblees: logistique, transport
 - Dependance: compte MyGeotab client + acces API lecture
@@ -59,7 +59,7 @@ Recuperer les signaux telematics (vehicule, trajet, conduite, incidents) pour en
 ## 6. Plan d'implementation
 
 1. Client JSON-RPC Geotab avec gestion session.
-2. Extractors `Device`, `Trip`, `LogRecord`, `FaultData`.
+2. Extractors `Device`, `Trip`, `StatusData`, `FaultData`.
 3. Pipeline de normalisation geospatial.
 4. Agrégations ETA / performance flotte.
 5. Alerting derivee securite (fault spikes).

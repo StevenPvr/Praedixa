@@ -93,6 +93,7 @@ export const INTEGRATIONS_WRITE = ["admin:integrations:write"] as const;
 export const SETTINGS_ACCESS = [
   ...ONBOARDING_ACCESS,
   ...MONITORING_READ,
+  ...ORG_WRITE,
 ] as const;
 export const JOURNAL_ACCESS = [
   ...AUDIT_READ,

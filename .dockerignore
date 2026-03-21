@@ -4,6 +4,10 @@
 **/.next
 **/.turbo
 **/.open-next
+**/.venv
+**/.mypy_cache
+**/.pytest_cache
+**/.ruff_cache
 **/coverage
 **/dist
 **/build

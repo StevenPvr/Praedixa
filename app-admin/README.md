@@ -28,6 +28,8 @@ pnpm dev:api
 pnpm dev:admin
 ```
 
+`pnpm dev:api` et `pnpm dev:admin` restent maintenant attaches au terminal local pour afficher les logs runtime en direct. Si un mode background est prefere, utiliser `pnpm dev:api:bg` ou `pnpm dev:admin:bg`, puis `pnpm dev:api:logs` / `pnpm dev:admin:logs`.
+
 Un utilisateur OIDC `super_admin` avec `admin:console:access` et les permissions de page/admin associees est requis pour les flux reels. `admin:console:access` seul ne suffit pas a ouvrir `/`.
 
 ## Variables d'environnement utiles

@@ -14,6 +14,8 @@ const SENSITIVE_KEYS = [
   "secret",
   "token",
   "password",
+  "session_id",
+  "sessionid",
   "api_key",
   "client_secret",
   "private_key",
@@ -22,13 +24,40 @@ const SENSITIVE_KEYS = [
   "authorization_code",
   "passphrase",
 ] as const;
+const PREVIEW_PII_MARKERS = [
+  "email",
+  "phone",
+  "mobile",
+  "message",
+  "comment",
+  "note",
+  "body",
+] as const;
+const PREVIEW_PII_EXACT_KEYS = new Set([
+  "firstname",
+  "first_name",
+  "lastname",
+  "last_name",
+  "fullname",
+  "full_name",
+  "prenom",
+  "nom",
+  "telephone",
+  "portable",
+  "mail",
+  "courriel",
+]);
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function normalizeSensitiveKey(key: string): string {
+  return key.toLowerCase().replace(/-/g, "_");
+}
+
 function shouldRedact(key: string): boolean {
-  const normalized = key.toLowerCase().replace(/-/g, "_");
+  const normalized = normalizeSensitiveKey(key);
   if (
     (normalized.includes("endpoint") || normalized.endsWith("url")) &&
     (normalized.includes("token") || normalized.includes("authorization"))
@@ -80,6 +109,45 @@ export function redactSensitive<T>(payload: T): T {
       continue;
     }
     next[key] = redactSensitive(value);
+  }
+  return next as T;
+}
+
+function shouldMaskPreviewPii(key: string): boolean {
+  const normalized = normalizeSensitiveKey(key);
+  if (PREVIEW_PII_EXACT_KEYS.has(normalized)) {
+    return true;
+  }
+  return PREVIEW_PII_MARKERS.some((marker) => normalized.includes(marker));
+}
+
+function maskPreviewValue(value: unknown): unknown {
+  if (typeof value === "string") {
+    return maskSecret(value);
+  }
+  return "***REDACTED***";
+}
+
+export function redactPreviewPayload<T>(payload: T): T {
+  if (Array.isArray(payload)) {
+    return payload.map((item) => redactPreviewPayload(item)) as T;
+  }
+
+  if (!isObject(payload)) {
+    return payload;
+  }
+
+  const next: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(payload)) {
+    if (shouldRedact(key)) {
+      next[key] = "***REDACTED***";
+      continue;
+    }
+    if (shouldMaskPreviewPii(key)) {
+      next[key] = maskPreviewValue(value);
+      continue;
+    }
+    next[key] = redactPreviewPayload(value);
   }
   return next as T;
 }

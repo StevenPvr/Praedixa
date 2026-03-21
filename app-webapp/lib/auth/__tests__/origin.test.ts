@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { secureCookie } from "../oidc";
-import { isAllowedSameOriginRequest, resolveAuthAppOrigin } from "../origin";
+import {
+  isAllowedSameOriginRequest,
+  resolveAdminAppOrigin,
+  resolveAuthAppOrigin,
+} from "../origin";
 import { isSameOriginBrowserRequest } from "@/lib/security/same-origin";
 
 function makeRequest(
@@ -26,11 +30,16 @@ function makeRequest(
 describe("webapp auth origin resolution", () => {
   const originalNodeEnv = process.env.NODE_ENV;
   const originalAuthAppOrigin = process.env.AUTH_APP_ORIGIN;
+  const originalAuthAdminAppOrigin = process.env.AUTH_ADMIN_APP_ORIGIN;
   const originalNextPublicAppOrigin = process.env.NEXT_PUBLIC_APP_ORIGIN;
+  const originalNextPublicAdminAppOrigin =
+    process.env.NEXT_PUBLIC_ADMIN_APP_ORIGIN;
 
   beforeEach(() => {
     delete process.env.AUTH_APP_ORIGIN;
+    delete process.env.AUTH_ADMIN_APP_ORIGIN;
     delete process.env.NEXT_PUBLIC_APP_ORIGIN;
+    delete process.env.NEXT_PUBLIC_ADMIN_APP_ORIGIN;
   });
 
   afterEach(() => {
@@ -40,10 +49,21 @@ describe("webapp auth origin resolution", () => {
     } else {
       process.env.AUTH_APP_ORIGIN = originalAuthAppOrigin;
     }
+    if (originalAuthAdminAppOrigin === undefined) {
+      delete process.env.AUTH_ADMIN_APP_ORIGIN;
+    } else {
+      process.env.AUTH_ADMIN_APP_ORIGIN = originalAuthAdminAppOrigin;
+    }
     if (originalNextPublicAppOrigin === undefined) {
       delete process.env.NEXT_PUBLIC_APP_ORIGIN;
     } else {
       process.env.NEXT_PUBLIC_APP_ORIGIN = originalNextPublicAppOrigin;
+    }
+    if (originalNextPublicAdminAppOrigin === undefined) {
+      delete process.env.NEXT_PUBLIC_ADMIN_APP_ORIGIN;
+    } else {
+      process.env.NEXT_PUBLIC_ADMIN_APP_ORIGIN =
+        originalNextPublicAdminAppOrigin;
     }
     vi.unstubAllEnvs();
   });
@@ -109,6 +129,44 @@ describe("webapp auth origin resolution", () => {
     ).toBe("http://localhost:3001");
   });
 
+  it("uses AUTH_ADMIN_APP_ORIGIN when configured", () => {
+    process.env.NODE_ENV = "production";
+    process.env.AUTH_ADMIN_APP_ORIGIN = "https://admin.praedixa.com";
+
+    expect(resolveAdminAppOrigin(makeRequest("https://app.praedixa.com"))).toBe(
+      "https://admin.praedixa.com",
+    );
+  });
+
+  it("derives the admin origin from the configured webapp origin", () => {
+    process.env.NODE_ENV = "production";
+    process.env.AUTH_APP_ORIGIN = "https://staging-app.praedixa.com";
+
+    expect(
+      resolveAdminAppOrigin(makeRequest("https://staging-app.praedixa.com")),
+    ).toBe("https://staging-admin.praedixa.com");
+  });
+
+  it("defaults admin handoff to localhost in development", () => {
+    process.env.NODE_ENV = "development";
+
+    expect(
+      resolveAdminAppOrigin(makeRequest("http://internal-webapp:3001")),
+    ).toBe("http://localhost:3002");
+  });
+
+  it("throws when configured admin origins differ", () => {
+    process.env.NODE_ENV = "production";
+    process.env.AUTH_ADMIN_APP_ORIGIN = "https://admin-a.praedixa.com";
+    process.env.NEXT_PUBLIC_ADMIN_APP_ORIGIN = "https://admin-b.praedixa.com";
+
+    expect(() =>
+      resolveAdminAppOrigin(makeRequest("https://app.praedixa.com")),
+    ).toThrow(
+      /AUTH_ADMIN_APP_ORIGIN and NEXT_PUBLIC_ADMIN_APP_ORIGIN must match/,
+    );
+  });
+
   it("marks auth cookies as secure when AUTH_APP_ORIGIN is https", () => {
     process.env.NODE_ENV = "production";
     process.env.AUTH_APP_ORIGIN = "https://app.praedixa.com";
@@ -170,6 +228,36 @@ describe("webapp auth origin resolution", () => {
         makeRequest("https://app.praedixa.com", {
           "sec-fetch-site": "none",
         }),
+      ),
+    ).toBe(false);
+  });
+
+  it("rejects requests when sec-fetch-site is cross-site even if origin matches", () => {
+    process.env.NODE_ENV = "production";
+    process.env.AUTH_APP_ORIGIN = "https://app.praedixa.com";
+
+    expect(
+      isAllowedSameOriginRequest(
+        makeRequest("https://app.praedixa.com", {
+          origin: "https://app.praedixa.com",
+          "sec-fetch-site": "cross-site",
+        }),
+        "https://app.praedixa.com",
+      ),
+    ).toBe(false);
+  });
+
+  it("rejects same-site requests because sibling origins are not same-origin", () => {
+    process.env.NODE_ENV = "production";
+    process.env.AUTH_APP_ORIGIN = "https://app.praedixa.com";
+
+    expect(
+      isAllowedSameOriginRequest(
+        makeRequest("https://app.praedixa.com", {
+          origin: "https://app.praedixa.com",
+          "sec-fetch-site": "same-site",
+        }),
+        "https://app.praedixa.com",
       ),
     ).toBe(false);
   });

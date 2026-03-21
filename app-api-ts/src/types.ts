@@ -124,4 +124,19 @@ export interface AppConfig {
     jwksUrl: string;
     algorithms: readonly string[];
   };
+  camunda: {
+    enabled: boolean;
+    baseUrl: string | null;
+    authMode: "none" | "basic" | "oidc";
+    basicUsername: string | null;
+    basicPassword: string | null;
+    oauthTokenUrl: string | null;
+    oauthClientId: string | null;
+    oauthClientSecret: string | null;
+    oauthAudience: string | null;
+    oauthScope: string | null;
+    processTenantId: string | null;
+    deployOnStartup: boolean;
+    requestTimeoutMs: number;
+  };
 }

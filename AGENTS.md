@@ -26,9 +26,10 @@ Use `TypeScript`, `Next.js`, and `Node.js` for everything that communicates with
 - `pnpm build` builds the full monorepo; use `pnpm build:admin` or `pnpm build:api` for targeted builds.
 - `pnpm lint` runs ESLint across TS packages.
 - `pnpm typecheck` runs the workspace TypeScript build.
-- `pnpm test` runs Vitest unit tests.
-- `pnpm test:e2e`, `pnpm test:e2e:landing`, `pnpm test:e2e:admin` run Playwright suites.
-- `cd app-api && pytest -q` runs Python tests for the data/ML engine.
+- `pnpm test` runs the root Vitest suites plus the `app-api-ts` and `app-connectors` package tests.
+- `pnpm test:e2e`, `pnpm test:e2e:landing`, `pnpm test:e2e:admin` run Playwright suites; `test:e2e:admin` starts both `admin` and `webapp` because it includes the cross-app session isolation check.
+- `pnpm test:e2e:admin:cross-app` runs the admin/webapp session-isolation spec with both apps started.
+- `cd app-api && uv run pytest -q` runs Python tests for the data/ML engine.
 
 ## Coding Style & Naming Conventions
 
@@ -106,10 +107,13 @@ Use TypeScript/ESM for frontend and Node services, Python 3.12 for `app-api`. Pr
 ### Global Development Rules
 
 Keep modules small and easy to review. As a default rule, avoid source files over 500 lines and functions over 50 lines; split logic into helpers or services before crossing those limits. Strict typing is mandatory: no silent `any`, no loose payload shapes, and no bypassing TypeScript, Pyright, or MyPy errors without a documented reason. Write code that follows KISS, DRY, and SOLID: prefer simple flows, extract duplicated business logic, and keep components or services focused on one responsibility. Put reusable domain logic in `packages/shared-types` or service modules, not page components.
+Before wiring a new Python provider adapter into `integration_runtime_worker.py`, keep cross-module references type-only or behind a local import boundary so provider dispatch cannot create a circular import at module load.
 Each time a development mistake causes a bug, add one short prevention rule to this `AGENTS.md` so the same error is less likely to happen again.
 After every code change, update the documentation in the affected directories and files within the same change so the distributed doc stays current with the codebase.
+Before writing a new admin audit action from Node/TS services, match the exact persisted `adminauditaction` enum value and cover that literal in a transaction-level test so the mutation cannot roll back on a typo.
 Because the repo is not in production yet, do not preserve legacy aliases, compatibility shims, or transitional fallbacks; remove or replace them with the target contract as soon as they are discovered.
 When a review, audit, or implementation pass uncovers a real defect or structural risk, treat it in the same change unless the user explicitly chooses to defer it; do not leave known problems behind as "out of scope".
+Before calling a connector sync path operational, verify a worker can actually claim and close `sync_runs`; a queued run alone is not proof that runtime execution exists.
 
 ### Next.js, React, and Frontend Runtime
 
@@ -119,6 +123,8 @@ Before adding a new nested Next.js route page, verify the relative import depth 
 Before adding non-standard React DOM props, verify they are supported by typed HTML attributes or pass them explicitly as intentional lowercase custom attributes.
 Before wiring ARIA ids inside a motion-heavy Next.js client component, derive them from stable locale/data keys instead of generated ids so hydration cannot drift between server and client.
 For Safari/WebKit media bugs, validate real playback state in WebKit before assuming DOM autoplay attributes are sufficient.
+Before mounting an admin page against a route that is still stubbed or a local optional runtime that is not configured, gate the fetch up front and render an explicit fail-close notice instead of auto-spamming guaranteed `503` or `500` requests in the browser console.
+Before reopening one admin data surface after industrializing its backend route, split the workspace feature gates by endpoint so only the newly persistent panel comes back and sibling stub panels stay fail-close.
 When mocking `next/image` in tests, strip Next-only props like `fill` and `priority` before rendering a native `img`.
 For third-party wordmark logos, use a visually verified official asset at the actual display size instead of assuming the SVG variant will stay legible in the UI.
 If a brand asset has already been visually approved, do not swap it for a recolored or reconstructed variant without rechecking the exact rendered wordmark.
@@ -131,10 +137,14 @@ Before debugging repeated local `/api/v1/*` proxy 502s in Next apps, verify the 
 ### Auth, Security, Authorization, and Tenant Safety
 
 Before creating or refreshing a webapp session from an OIDC access token, verify the token is compatible with the API contract instead of assuming login success implies API access.
+Before rejecting a valid Praedixa user for landing in the wrong app, hand the identity off to the correct Praedixa app when a canonical companion login exists instead of trapping the user on a generic role error.
 Before shipping a cookie-authenticated JSON route in Next.js, reject browser requests whose `Origin` or `Sec-Fetch-Site` is not same-origin, even for GET handlers that can refresh or proxy session state.
+Before trusting a cookie-authenticated JSON request as same-origin, let any explicit `Sec-Fetch-Site=cross-site` or `Sec-Fetch-Site=same-site` veto the request even if the `Origin` header looks correct.
 Before relying on admin navigation or tab visibility for authorization, enforce the same route-level permission check server-side for direct URL access.
 Before deriving OIDC redirect URLs or cookie-origin checks in a Next auth app, prefer the configured public origin (`AUTH_APP_ORIGIN` or `NEXT_PUBLIC_APP_ORIGIN`) over `request.nextUrl.origin` in production.
 Before relying on admin route permissions in the UI, enforce the same pathname permission check in middleware or server code before rendering the page.
+Before a workspace page auto-fetches auxiliary admin endpoints like `/users` or shared org metadata, verify the current route permission set authorizes those endpoints too, or gate and degrade the fetch instead of emitting guaranteed `403` requests.
+Before defaulting a signed-in admin to `/` or sending a CTA to another guarded admin page, resolve a permission-allowed landing path first instead of assuming the dashboard or settings page is reachable for every admin session.
 Never store a live password or API secret in repo docs; document the secret manager path and rotation procedure instead.
 Before exposing mock or fixture API data, fail closed outside explicit `DEMO_MODE` instead of silently serving demo responses.
 Before applying auth page middleware in a Next admin app, exempt `/api/*` routes so JSON handlers keep control of auth failures and response shape.
@@ -144,12 +154,23 @@ Before treating Keycloak required actions or app-side `amr` checks as sufficient
 When seeding a demo tenant, align the Keycloak demo user email and JWT subject with the seeded `users.auth_user_id` record before debugging tenant data access.
 When a seeded demo tenant uses a fixed UUID, keep every duplicated UUID validator compatible with that seeded format.
 Before creating or mutating a client account from admin lifecycle code, provision or resync the real IdP identity first and require `site_id` for `manager` / `hr_manager`; never persist a placeholder `pending-*` `auth_user_id` on a production path.
+Before allowing a destructive admin organization deletion, require a persisted tenant flag such as `isTest` plus exact typed confirmations server-side; never infer deletability from naming conventions like slug or email alone.
 Before declaring a fake/demo account cleanup finished, inventory and purge the already-provisioned live IdP users created by that path, or explicitly record the remaining bootstrap accounts and their risk.
 Before letting a requested `site_id` narrow persistent SQL reads, verify it belongs to the caller's `accessibleSiteIds` or fail closed.
 Before trusting `X-Forwarded-For` for rate limiting or audit logs in Node services, gate it behind an explicit trusted-proxy setting.
 Before shipping auth rate limiting outside development, require an explicit distributed store and `AUTH_RATE_LIMIT_KEY_SALT`; never derive the salt from `AUTH_SESSION_SECRET` or silently fall back to local memory.
 Before attributing a human action through an internal HTTP header, verify the user identity comes from a trusted server-side boundary; never trust a caller-supplied user-id header for audit logs.
 Before sending bearer tokens to an internal service from config, validate the base URL scheme and allowlisted host instead of trusting the raw env value.
+Before exposing worker-only connector sync routes that can return decrypted credentials or mutate claimed run state, protect them with a dedicated runtime capability instead of the generic operator `sync:*` capability.
+Before exposing worker-only connector queue routes that claim or mutate internal `raw_events`, keep them behind a dedicated runtime capability instead of the generic `raw_events:*` capability.
+Before calling a tabular upload allowlist strict, reject extensionless files too; do not let `format_hint` widen the accepted file surface beyond the explicit `.csv` / `.tsv` / `.xlsx` policy.
+Before persisting an authenticated actor id into a UUID foreign key on a workflow or audit table, verify it is really a DB UUID; if the auth contract only guarantees an opaque subject, keep the FK nullable and persist the opaque id separately in metadata.
+Before marking the onboarding `access-model` step ready, require persisted evidence of real secure invitations or SSO setup; a manual `invitationsReady` flag alone is not sufficient proof that client access is operational.
+Before calling an admin "create client" flow operable, verify it provisions the first real client identity or invitation in the same backend path; creating only the organization shell is not enough.
+Before declaring a test-client deletion flow complete, purge the provisioned IdP identities tied to that tenant in the same operation or explicitly fail closed if IAM cleanup cannot run.
+Before declaring a test-client deletion flow complete, purge not only the linked `auth_user_id` identities but also any IdP users still discoverable by the tenant emails and canonical `organization_id` attribute, or tenant recreation can still fail on a stale email conflict.
+Before treating a Keycloak `POST /users` `409` as an email-conflict cleanup case, verify whether the collision is on `email`, `username`, or a legacy user without canonical attributes, and cover that exact shape in tests before claiming the recreation path is fixed.
+Before putting a deletable entity behind an append-only audit trail, do not keep a live `ON DELETE SET NULL` foreign key from the audit table to that entity; keep a historical identifier instead so tenant deletion cannot be blocked by audit immutability.
 
 ### Tooling, Shell, Hooks, and Monorepo Hygiene
 
@@ -157,16 +178,25 @@ When iterating over newline-delimited shell output, handle the final line even i
 Before relying on commit message conventions in a repo, declare and install a real `commit-msg` hook in the versioned hook config instead of assuming an old local hook is still present.
 Before pointing monorepo SAST tools at repo root, exclude nested repositories and generated report folders so scans stay limited to in-scope source code.
 Before enforcing strict complexity grades on a legacy service, version an explicit baseline and block regressions; a permanently failing gate is not a real guardrail.
+Before relying on Keycloak `--import-realm` in a container image, copy realm exports under a `*-realm.json` filename in `/opt/keycloak/data/import/`, or the startup import can be skipped silently.
+Before making a default local `dev:*` entrypoint run in background, keep an attached-terminal command as the default and move logfile/PID behavior behind an explicit `:bg` script.
+Before trusting a local `dev:*:status` script or a proxy `502`, verify the target port is actually listening; a surviving `pnpm` or `tsx` PID alone is not evidence that the HTTP server is up.
 Before documenting bootstrap or admin credentials, use placeholders plus the secret-manager path, never a realistic example password.
 Before serializing runtime config or secrets from shell into JSON, never pass secret values through CLI flags such as `jq --arg`; write them from process environment or `stdin` so they never appear in `argv`.
+Before parallelizing Keycloak admin CLI (`kcadm`) calls, give each workflow its own `--config` file; the shared default `~/.keycloak/kcadm.config` is not concurrency-safe.
 Before aggregating Vitest projects in the monorepo root, do not mix broad top-level `include` globs with project-specific `include` patterns, or tests can leak across aliases and hang the runner.
+Before chaining a new Alembic migration, copy the real previous `revision` value from the migration header; never infer `down_revision` from the filename.
+Before finalizing a named Alembic migration, keep the `revision` identifier short enough for the `alembic_version.version_num` column; overly long human-readable ids can make `upgrade head` fail after the DDL already ran.
 Before pushing a monorepo change that ships Next.js apps, keep every shipped `next` dependency on a patch version accepted by the OSV/security gate across `app-landing`, `app-webapp`, and `app-admin`; do not leave one app behind on a vulnerable patch.
 After replacing a homepage interaction pattern, update or remove the matching E2E spec in the same change so hooks do not keep asserting deleted ARIA roles or landmarks.
 Before asking for a manual re-export of a local ops secret, check the repo's standard `.env.local` files and teach the helper script to auto-load them when that keeps the secret local-only and out of git.
+Before starting `app-api-ts` from repo-level dev scripts, auto-load `DATABASE_URL` from the local API env sources (`app-api-ts/.env.local`, `app-api/.env.local`, `app-api/.env`, `.env.local`) instead of assuming the shell already exported it.
+Before relying on local admin lifecycle or invitation flows against `app-api-ts`, auto-load the Keycloak admin runtime credentials (`KEYCLOAK_ADMIN_USERNAME`, `KEYCLOAK_ADMIN_PASSWORD`) in the same repo-level `dev:api` path, or the API will boot without the identity provisioning capability it needs.
 Before trusting a shell `jq` role-priority selector in Keycloak tooling, replay it against a user whose expected role is not the first priority entry, or the helper can silently promote every account to the top role.
 Before forcing a client-side reauth redirect after a 401, navigate to the explicit `/login?reauth=1...` URL before awaiting logout side effects, or middleware races can silently drop the reauth query.
 Before wiring E2E OIDC defaults into Next auth apps, keep `AUTH_SESSION_SECRET` compliant with the same 32+ character validation as production, or server routes will reject the test session before cookie checks run.
 Before running repo-wide security scans from the monorepo root, exclude nested Git repositories in the workspace so unrelated external projects cannot block the main repo gate.
+When the user clearly wants an end-to-end execution pass, do not stop to ask for confirmation at each obvious next step; continue through the remaining concrete actions until a real blocker, hidden-risk decision, or final result is reached.
 
 ### Workspace, Packages, Docker, and Build Integrity
 
@@ -175,11 +205,15 @@ After adding a workspace dependency or package subpath export in the monorepo, r
 Before wiring a frontend mutation to a typed backend endpoint, verify the submitted JSON matches the shared request contract exactly and cover that exact payload shape in at least one E2E or route-level test.
 Before sending operator-entered JSON from an admin form to a typed mutation, validate the parsed value union and object shape explicitly instead of casting `unknown` to the shared contract.
 Before using `z.custom()` inside a unioned route body schema, give it an explicit predicate; the bare form accepts `undefined` and can silently swallow a sibling payload branch.
+Before declaring an onboarding control plane "operable", inventory the concrete routes, forms, and commands exposed against the blueprint; task labels and a generic `Completer` button do not count as full workflow coverage.
+Before parallelizing PostgreSQL reads in Node, verify they do not share the same `pg` `PoolClient`; run them sequentially or with separate clients instead of `Promise.all` on one transaction client.
+Before joining Postgres columns across admin queries, verify the real column types and table names in the live schema; do not assume a legacy table like `employees` still exists or that a `varchar` site id can be compared directly to a `uuid`.
 Before trusting a PNPM workspace Docker build, verify the image rebuilds workspace links inside the builder; restoring only root `node_modules` can leave internal packages unresolved even when the local build is green.
 Before copying `node_modules` across Docker stages in a PNPM workspace, verify each app keeps its package-local workspace links; copying only the root install is not a safe substitute for a clean builder install.
 Before trusting a Docker build of a TypeScript workspace package, exclude or purge `*.tsbuildinfo` if `dist/` is not copied too, or `tsc` can skip emit and leave the image without the built package even though the command exits green locally.
 Before exporting an internal ESM package from `dist/`, keep relative imports in source files on explicit `.js` specifiers, or a clean builder can produce artifacts that compile but fail at runtime/package resolution.
 Before relying on a Next.js standalone Docker image, ensure every copied runtime path actually exists in the repo or builder output, even if it is only an empty `public/` directory.
+Before importing a repo-local shared package into a standalone prospect app, verify its isolated deploy build context includes that package; otherwise vendor the approved asset locally before shipping.
 Before asserting exact accessible names for landing nav card links in tests, remember the link name can include both title and description; prefer partial label matching plus `href` checks.
 Before shipping a Next.js frontend image for `linux/amd64`, validate the full Docker build under the target platform and prefer a glibc-based base image over Alpine when native build binaries fail.
 Before running recursive security scans on a monorepo, exclude nested build artifact directories like `app-*/.next` and `app-*/.open-next`, not just root-level caches.
@@ -188,6 +222,7 @@ Before running recursive security scans on a monorepo, exclude nested build arti
 
 When the user asks for a prompt, copy, concept, or creative artifact, the first version you provide must already be the strongest directly usable answer, not a placeholder draft to improve later.
 When writing code, the first implementation you ship should already aim for the strongest clean, production-grade solution you can justify, not a knowingly weak first pass meant to be fixed only after user pushback.
+Before claiming an implementation matches a repo-owned spec exactly, perform a full spec-to-code conformity sweep and close the concrete gaps first; do not ship partial alignment and rely on iterative follow-up to reach the stated contract.
 Before starting a local dynamic API audit or smoke server, bind it to a freshly allocated free port instead of assuming `8000` is available.
 
 ### Landing UX, Brand, Copy, and Public SEO
@@ -204,6 +239,7 @@ Before reusing a text accent token inside the landing hero, verify it stays read
 Before shipping French landing copy, do one explicit pass for missing accents and natural French typography on every user-visible string you changed.
 Before publishing a landing knowledge or ROI page, strip any internal editorial note or workflow comment from the structured content source so no drafting note can leak to production.
 Before tightening the landing CSP `style-src`, verify the live page does not rely on Framer Motion inline transforms; otherwise production will log CSP violations and silently lose motion behavior.
+Before enforcing nonce-based CSP in a Next.js app that uses `next-themes` or another inline bootstrap provider, propagate the request nonce from the root layout into that provider or the first page load will block its own inline script.
 Before changing a landing public form that collects email, keep the semantic email validation in one shared helper reused by contact, deployment, scoping, and ingest routes; parallel regexes will drift and reopen abuse gaps.
 Before shipping French public landing copy, remove leftover English positioning labels when a natural French equivalent exists; do not leave hybrids like `Decision layer`, `wedge`, or `Cycle decision` in user-facing text.
 Before finalizing landing mission copy, verify the hero support quote and the `/a-propos` mission section match the approved raison d'être, and do not reuse `Pourquoi maintenant` in both places.
@@ -215,6 +251,7 @@ Before assuming a `SectionShell` spacing override is done in the landing, check 
 Before calling two adjacent landing sections visually flush, inspect borders as well as spacing; a 1px `border-top` on the second section can read like a white gap even when the DOM gap is zero.
 Before changing landing security helpers or CSP-sensitive files, update at least one abuse test under `app-landing/app/api/*/__tests__` so the public-form boundary stays explicitly covered and hook checks do not drift.
 Before claiming the landing is ready for Google sitelinks or stronger branded SEO, make core public pages expose both visible breadcrumbs and matching `WebPage`/`BreadcrumbList` JSON-LD; header/footer links alone are not enough.
+Before durcifying landing crawl policy, confirm whether the public GEO corpus is intentionally allowed for LLM search and training; do not equate anti-scraping with blocking compliant AI crawlers on sacrificial public pages.
 Before repositioning a persistent hero rail or proof strip, anchor it with the section layout (`flex` / `mt-auto`) instead of compensating with ad hoc margins that depend on headline height.
 Before declaring a landing hero block removed, verify the exact JSX branch is gone and recheck the real desktop rendering instead of assuming adjacent cards were the only remaining element.
 Before trimming a landing explanation of the DecisionOps loop, verify the full product sequence still appears explicitly: federate, predict, calculate, trigger, prove.
@@ -237,6 +274,7 @@ Before importing a library from shipped runtime code in a workspace package, dec
 Before reading versioned repo contracts from a test or Node helper, resolve them from the repo root explicitly instead of assuming `process.cwd()` sits inside the package directory tree.
 When a workspace-local Vitest project needs a repo-level fixture or contract file, resolve it from `import.meta.url` (or another file-relative path), not from `process.cwd()`, because package-level test runners often change the working directory.
 Before using a Node-only contract helper repeatedly in coverage gates, cache parsed repo specs like `contracts/openapi/public.yaml` per process instead of reparsing them in every assertion.
+Before shipping a repo-wide local coverage or E2E entrypoint, default it to a conservative single-worker setting and require an explicit env override to increase parallelism, or a gate run can saturate the developer machine.
 Before wiring Schemathesis into a blocking gate, pin the CLI version through the repo helper and keep `--continue-on-failure` plus a machine-readable report enabled, or schema/auth warnings can flap the hook without leaving reproducible evidence.
 Before using Schemathesis in a stateless pre-push gate without real auth fixtures, keep the run in positive deterministic mode; broad negative fuzzing belongs to a dedicated authenticated harness, not to a hook that is supposed to validate the published contract.
 Before defining Playwright `webServer` commands for hook-backed E2E gates, launch Next apps from the app-local binary with a dedicated `cwd` instead of a `pnpm` wrapper, or teardown can miss the real server process and stall the hook.
@@ -248,6 +286,7 @@ When a public landing funnel changes slug, endpoint, or canonical heading, updat
 Before introducing a shared API contract registry in `packages/shared-types`, split it by domain or concern so the typed catalog stays under the repo guardrail limits instead of landing as one monolithic file.
 Before relying on a new contract file under `packages/shared-types/src/api`, export it from the matching barrel such as `src/api.ts` before consuming it through `@praedixa/shared-types/api`.
 Before consuming a new root export from `@praedixa/shared-types`, rebuild the package so `dist/index.*` includes it; app/admin/runtime checks resolve the workspace export, not the unbuilt source file.
+Before wiring an admin page to a new `/api/v1/admin/*` endpoint, verify the matching route is already backed by a persistent service instead of `liveFallbackFailure` or `noDemoFallbackResponse`, or the UI will ship a guaranteed 503.
 Before declaring a contract or shared-types guardrail covered by remote CI, verify that `contracts/` and `packages/shared-types/` changes trigger the same runtime/package checks remotely, not only architecture-only jobs.
 Before trusting path-scoped required workflows, route gate, release, smoke, and CI helper script changes through the same remote required checks as application-impacting code.
 Before shipping a CLI flag that overrides a default list or path, cover the explicit override order with a regression test; cloned defaults and parse order are not reliable state.
@@ -282,6 +321,8 @@ Before publishing landing sovereignty or hosting claims, verify the public legal
 ### Admin Policies, Shared Helpers, and Test Fixtures
 
 Before adding a new admin page or admin proxy endpoint, register both the page policy and the API policy in `admin-route-policies.ts` in the same change, or middleware, navigation, and direct URL access will drift apart.
+Before declaring an admin operations table wired, verify both its read route and its first required mutation route are persistently implemented together; fixing only the listing still leaves the page broken on first operator action.
+Before shipping a read-only admin compliance or observability page, add a route contract test proving its backing endpoint no longer points at `liveFallbackFailure`, or the UI can stay green locally while every real request still returns 503.
 Before returning a rate-limit result from shared auth/security helpers, keep the execution mode (`development-local` vs `distributed-required`) explicit on allowed and blocked paths so tests and observability do not infer it indirectly.
 Before importing a new `lucide-react` icon in a shared component covered by global Vitest mocks, add it to `testing/utils/mocks/icons.ts` in the same change or the full app suite will fail on an incomplete module mock.
 Before reusing Playwright admin fixture data across files, export the shared dataset from `testing/e2e/admin/fixtures/api-mocks.ts` first; do not import named symbols that the source mock module does not actually export.

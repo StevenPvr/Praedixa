@@ -634,7 +634,7 @@ export async function getPersistentAdminOrgMirror(orgId: string): Promise<{
   const rows = await queryRows<DbOrgMirrorRow>(
     `
       SELECT
-        (SELECT COUNT(*) FROM employees e WHERE e.organization_id = $1::uuid) AS total_employees,
+        (SELECT COUNT(*) FROM users u WHERE u.organization_id = $1::uuid) AS total_employees,
         (SELECT COUNT(*) FROM sites s WHERE s.organization_id = $1::uuid) AS total_sites,
         (
           SELECT COUNT(*)

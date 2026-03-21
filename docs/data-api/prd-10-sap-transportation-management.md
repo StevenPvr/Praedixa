@@ -1,6 +1,6 @@
 # PRD Connecteur - SAP Transportation Management (SAP TM)
 
-- Statut: `Ready for build`
+- Statut: `L2 core delivered`
 - Priorite: `P2`
 - Verticales ciblees: logistique, transport
 - Dependance: API SAP TM (OData/REST) + utilisateur integration

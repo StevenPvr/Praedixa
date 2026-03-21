@@ -34,6 +34,8 @@ Ici vivent les contenus longs, structures ou semi-editorialises que les pages co
 - si un contenu mentionne le machine learning ou l'optimisation, l'ancrer dans la qualite de l'arbitrage et la preuve methologique; ne pas le faire glisser vers une promesse de conseil IA generique.
 - si un contenu EN mentionne econometrics, constrained optimization, or forecasting, l'ancrer a l'attribution d'impact et a la decision quality, pas a un discours hype sur AI.
 - quand l'offre publique change de vocabulaire approuve (`exemple concret`, `deploiement`, `preuve sur historique`), realigner dans la meme passe les assertions des tests knowledge/services au lieu de laisser un ancien wording DecisionOps, pilote ou protocole derivant.
+- sur la homepage FR visible, preferer `preuve de ROI` dans les CTA et blocs preuve; garder `preuve sur historique` pour la page de detail et les flux qui qualifient cette lecture.
+- quand la copy homepage compare Praedixa a un ERP, expliciter la difference de methode (`Data Science + Machine Learning + IA` cote Praedixa, regles / historiques / moyennes cote ERP) plutot que de rester sur une promesse vague d'IA.
 - les contenus legaux publics doivent reprendre le fournisseur et la localisation d'hebergement réellement exposes en production; ne pas laisser survivre un ancien provider de preview ou de transition dans `legal.ts`.
 - ne jamais laisser passer de note editoriale interne ou commentaire de travail dans un contenu public versionne; les modules `knowledge-pages*` doivent rester publiables tels quels.
 

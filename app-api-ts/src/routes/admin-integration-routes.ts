@@ -3,7 +3,6 @@ import {
   IntegrationInputError,
   createIntegrationConnection,
   getIntegrationConnection,
-  getIntegrationRawEventPayload,
   issueIntegrationIngestCredential,
   listIntegrationAuditEvents,
   listIntegrationCatalog,
@@ -64,20 +63,41 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
   route(
     "GET",
     "/api/v1/admin/integrations/catalog",
-    async (ctx) => success(await listIntegrationCatalog(), ctx.requestId),
+    async (ctx) => {
+      try {
+        return success(await listIntegrationCatalog(), ctx.requestId);
+      } catch (error) {
+        return integrationFailureResponse(
+          error,
+          ctx.requestId,
+          "INTEGRATION_CATALOG_FAILED",
+          "Unable to load integration catalog",
+        );
+      }
+    },
     adminIntegrationsRead,
   ),
   route(
     "GET",
     "/api/v1/admin/organizations/:orgId/integrations/connections",
-    async (ctx) =>
-      success(
-        await listIntegrationConnections(
-          ctx.params.orgId ?? "",
-          ctx.query.get("vendor"),
-        ),
-        ctx.requestId,
-      ),
+    async (ctx) => {
+      try {
+        return success(
+          await listIntegrationConnections(
+            ctx.params.orgId ?? "",
+            ctx.query.get("vendor"),
+          ),
+          ctx.requestId,
+        );
+      } catch (error) {
+        return integrationFailureResponse(
+          error,
+          ctx.requestId,
+          "INTEGRATION_CONNECTIONS_FAILED",
+          "Unable to load integration connections",
+        );
+      }
+    },
     adminIntegrationsRead,
   ),
   route(
@@ -329,28 +349,6 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
     adminIntegrationsRead,
   ),
   route(
-    "GET",
-    "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/raw-events/:eventId/payload",
-    async (ctx) => {
-      try {
-        const payload = await getIntegrationRawEventPayload(
-          ctx.params.orgId ?? "",
-          ctx.params.connectionId ?? "",
-          ctx.params.eventId ?? "",
-        );
-        return success(payload, ctx.requestId);
-      } catch (error) {
-        return integrationFailureResponse(
-          error,
-          ctx.requestId,
-          "RAW_EVENT_PAYLOAD_FAILED",
-          "Unable to load integration raw event payload",
-        );
-      }
-    },
-    adminIntegrationsRead,
-  ),
-  route(
     "POST",
     "/api/v1/admin/organizations/:orgId/integrations/connections/:connectionId/sync",
     async (ctx) => {
@@ -376,27 +374,47 @@ export const ADMIN_INTEGRATION_ROUTES: RouteDefinition[] = [
   route(
     "GET",
     "/api/v1/admin/organizations/:orgId/integrations/sync-runs",
-    async (ctx) =>
-      success(
-        await listIntegrationSyncRuns(
-          ctx.params.orgId ?? "",
-          ctx.query.get("connectionId"),
-        ),
-        ctx.requestId,
-      ),
+    async (ctx) => {
+      try {
+        return success(
+          await listIntegrationSyncRuns(
+            ctx.params.orgId ?? "",
+            ctx.query.get("connectionId"),
+          ),
+          ctx.requestId,
+        );
+      } catch (error) {
+        return integrationFailureResponse(
+          error,
+          ctx.requestId,
+          "SYNC_RUNS_LIST_FAILED",
+          "Unable to load integration sync runs",
+        );
+      }
+    },
     adminIntegrationsRead,
   ),
   route(
     "GET",
     "/api/v1/admin/organizations/:orgId/integrations/audit",
-    async (ctx) =>
-      success(
-        await listIntegrationAuditEvents(
-          ctx.params.orgId ?? "",
-          ctx.query.get("connectionId"),
-        ),
-        ctx.requestId,
-      ),
+    async (ctx) => {
+      try {
+        return success(
+          await listIntegrationAuditEvents(
+            ctx.params.orgId ?? "",
+            ctx.query.get("connectionId"),
+          ),
+          ctx.requestId,
+        );
+      } catch (error) {
+        return integrationFailureResponse(
+          error,
+          ctx.requestId,
+          "INTEGRATION_AUDIT_FAILED",
+          "Unable to load integration audit events",
+        );
+      }
+    },
     adminAuditRead,
   ),
 ];

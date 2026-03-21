@@ -7,9 +7,14 @@
   "registrationEmailAsUsername": false,
   "rememberMe": true,
   "verifyEmail": false,
+  "emailTheme": "praedixa",
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
+  "smtpServer": {
+    "from": "hello@praedixa.com",
+    "fromDisplayName": "Praedixa"
+  },
   "browserFlow": "browser",
   "otpPolicyType": "totp",
   "otpPolicyAlgorithm": "HmacSHA1",

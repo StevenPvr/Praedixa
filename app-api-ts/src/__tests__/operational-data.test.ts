@@ -212,6 +212,46 @@ describe("operational data persistence helpers", () => {
     });
   });
 
+  it("scopes forecast runs by the requested site when it stays inside the caller scope", async () => {
+    mockedQueryRows.mockResolvedValueOnce([
+      {
+        id: "fr-2",
+        organization_id: ORGANIZATION_ID,
+        model_type: "xgboost",
+        model_version: "v2",
+        horizon_days: 14,
+        status: "running",
+        started_at: "2026-03-08T06:00:00.000Z",
+        completed_at: null,
+        accuracy_score: null,
+        created_at: "2026-03-08T05:59:00.000Z",
+      },
+    ] as never);
+
+    const result = await listPersistentForecastRuns({
+      organizationId: ORGANIZATION_ID,
+      scope: {
+        orgWide: false,
+        accessibleSiteIds: ["site-lyon", "site-paris"],
+        requestedSiteId: "site-paris",
+      },
+      status: "running",
+    });
+
+    expect(mockedQueryRows).toHaveBeenCalledTimes(1);
+    const [sql, values] = mockedQueryRows.mock.calls[0] ?? [];
+    expect(sql).toContain("d_run.site_id::text = $2");
+    expect(sql).toContain("d_scope.site_id::text = $2");
+    expect(sql).toContain("fr.status::text = $3");
+    expect(values).toEqual([ORGANIZATION_ID, "site-paris", "running"]);
+    expect(result[0]).toMatchObject({
+      id: "fr-2",
+      organizationId: ORGANIZATION_ID,
+      status: "running",
+      horizonDays: 14,
+    });
+  });
+
   it("summarizes proof packs deterministically", () => {
     const summary = summarizePersistentProofRecords([
       {

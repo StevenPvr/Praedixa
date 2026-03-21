@@ -9,11 +9,11 @@ Arborescence Next.js du back-office. Ce dossier assemble 4 surfaces distinctes:
 
 ## Fichiers racine
 
-| Fichier       | Role reel                        |
-| ------------- | -------------------------------- |
-| `layout.tsx`  | root layout et providers globaux |
-| `globals.css` | styles globaux admin             |
-| `robots.ts`   | robots de l'admin                |
+| Fichier       | Role reel                                                                            |
+| ------------- | ------------------------------------------------------------------------------------ |
+| `layout.tsx`  | root layout, providers globaux et propagation du nonce CSP vers les providers client |
+| `globals.css` | styles globaux admin                                                                 |
+| `robots.ts`   | robots de l'admin                                                                    |
 
 Il n'y a pas de `page.tsx` racine hors groupes: l'accueil produit du back-office vit dans `app/(admin)/page.tsx`.
 
@@ -30,3 +30,8 @@ Il n'y a pas de `page.tsx` racine hors groupes: l'accueil produit du back-office
 ## Regle de verite
 
 Pour la console authentifiee, la verite des chemins et permissions reste `lib/auth/admin-route-policies.ts`.
+
+## CSP et providers
+
+- `app/layout.tsx` lit `x-nonce` via `next/headers` et le transmet aux providers client qui injectent des scripts inline.
+- `components/theme-provider.tsx` doit continuer a forwarder ce nonce a `next-themes`, sinon `/login` et les shells admin retombent en violation `script-src`.

@@ -32,3 +32,6 @@ Source de verite Python sur la structure Postgres du domaine Praedixa.
 - Alembic versionne ces modeles.
 - Les services Python lisent/ecrivent ces tables.
 - `app-api-ts` interroge surtout les tables exposees aux apps web.
+- `admin.py` ne doit plus supposer qu'un acteur admin OIDC existe toujours dans `users.id`; l'audit admin et l'historique de plan peuvent maintenant stocker aussi l'identite auth opaque separement du FK local.
+- `admin.py` versionne aussi maintenant l'action d'audit `delete_org`, necessaire pour tracer la suppression definitive reservee aux clients test.
+- `admin.py` garde maintenant `admin_audit_log.target_org_id` comme reference historique simple, sans FK vers `organizations`, afin que la suppression d'un tenant ne tente plus de muter un journal append-only.

@@ -73,13 +73,15 @@ describe("sitemap()", () => {
     expect(urls).toContain("https://www.praedixa.com/en/blog");
   });
 
-  it("should not include blog article pages when blog is empty", () => {
+  it("should include published blog article pages in the sitemap", () => {
     const urls = result.map((entry) => entry.url);
     const blogArticleUrls = urls.filter((url) =>
       /^https:\/\/www\.praedixa\.com\/(?:fr|en)\/blog\/[^/?#]+$/.test(url),
     );
 
-    expect(blogArticleUrls).toEqual([]);
+    expect(blogArticleUrls).toEqual([
+      "https://www.praedixa.com/fr/blog/decision-log-ops-daf-template",
+    ]);
   });
 
   it("should keep the sitemap focused on the reduced core IA", () => {

@@ -11,6 +11,7 @@ import { ApiError, apiPatch } from "@/lib/api/client";
 import { getValidAccessToken, useCurrentUser } from "@/lib/auth/client";
 import { hasAnyPermission } from "@/lib/auth/permissions";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
+import { buildCsvDocument } from "@/lib/security/csv";
 import { buildMailtoHref } from "@/lib/security/navigation";
 
 type ContactRequestStatus = "new" | "in_progress" | "closed";
@@ -153,24 +154,20 @@ export default function ContactRequestsPage() {
       "phone",
       "subject",
     ];
-    const body = rows.map((row) =>
-      [
-        row.id,
-        row.createdAt,
-        row.requestType,
-        row.status,
-        row.companyName,
-        row.firstName,
-        row.lastName,
-        row.email,
-        row.phone,
-        row.subject,
-      ]
-        .map((value) => `"${String(value).replaceAll('"', '""')}"`)
-        .join(","),
-    );
+    const body = rows.map((row) => [
+      row.id,
+      row.createdAt,
+      row.requestType,
+      row.status,
+      row.companyName,
+      row.firstName,
+      row.lastName,
+      row.email,
+      row.phone,
+      row.subject,
+    ]);
 
-    const csv = [header.join(","), ...body].join("\n");
+    const csv = buildCsvDocument(header, body);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");

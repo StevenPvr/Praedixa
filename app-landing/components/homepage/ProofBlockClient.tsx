@@ -48,9 +48,7 @@ export function ProofBlockClient({ tabs, metrics }: ProofBlockClientProps) {
             >
               {i + 1}
             </span>
-            {i < tabs.length - 1 && (
-              <div className="h-px w-8 bg-border-200" />
-            )}
+            {i < tabs.length - 1 && <div className="h-px w-8 bg-border-200" />}
           </div>
         ))}
       </div>

@@ -14,6 +14,14 @@ export interface BlogFrontmatter {
   readingTime?: number;
   lang?: Locale;
   disableAutoLinks?: boolean;
+  answerSummary?: string;
+  keyPoints?: string[];
+  sources?: BlogSourceReference[];
+}
+
+export interface BlogSourceReference {
+  label: string;
+  url: string;
 }
 
 export interface BlogPost {
@@ -32,6 +40,9 @@ export interface BlogPost {
   authors: string[];
   readingTimeMinutes: number;
   disableAutoLinks: boolean;
+  answerSummary?: string;
+  keyPoints: string[];
+  sources: BlogSourceReference[];
   body: string;
   sourcePath: string;
 }

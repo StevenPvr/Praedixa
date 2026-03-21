@@ -13,6 +13,7 @@ import type {
   BlogFrontmatter,
   BlogListSearchParams,
   BlogPost,
+  BlogSourceReference,
   BlogSiblingPosts,
   PaginatedBlogPosts,
 } from "./types";
@@ -89,6 +90,64 @@ function resolveStringArray(
   }
 
   return values;
+}
+
+function resolveOptionalNonEmptyStringArray(
+  value: unknown,
+  fieldName: string,
+  sourcePath: string,
+): string[] {
+  if (value === undefined || value === null) {
+    return [];
+  }
+
+  return resolveStringArray(value, fieldName, sourcePath, {
+    required: false,
+  });
+}
+
+function resolveOptionalSourceArray(
+  value: unknown,
+  fieldName: string,
+  sourcePath: string,
+): BlogSourceReference[] {
+  if (value === undefined || value === null) {
+    return [];
+  }
+
+  if (!Array.isArray(value)) {
+    throw new Error(
+      `${sourcePath}: frontmatter field '${fieldName}' must be an array of { label, url }.`,
+    );
+  }
+
+  return value.map((entry, index) => {
+    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
+      throw new Error(
+        `${sourcePath}: frontmatter field '${fieldName}' entry #${index + 1} must be an object.`,
+      );
+    }
+
+    const candidate = entry as Record<string, unknown>;
+    const label = resolveRawString(
+      candidate.label,
+      `${fieldName}[${index}].label`,
+      sourcePath,
+    );
+    const url = resolveRawString(
+      candidate.url,
+      `${fieldName}[${index}].url`,
+      sourcePath,
+    );
+
+    if (!/^https?:\/\//.test(url)) {
+      throw new Error(
+        `${sourcePath}: frontmatter field '${fieldName}' entry #${index + 1} url must be absolute http(s).`,
+      );
+    }
+
+    return { label, url };
+  });
 }
 
 function resolveBoolean(
@@ -242,6 +301,21 @@ function parseFrontmatter(sourcePath: string, source: string): BlogPost {
         "disableAutoLinks",
         sourcePath,
       ) ?? false,
+    answerSummary: resolveOptionalString(
+      frontmatter.answerSummary,
+      "answerSummary",
+      sourcePath,
+    ),
+    keyPoints: resolveOptionalNonEmptyStringArray(
+      frontmatter.keyPoints,
+      "keyPoints",
+      sourcePath,
+    ),
+    sources: resolveOptionalSourceArray(
+      frontmatter.sources,
+      "sources",
+      sourcePath,
+    ),
     body: parsed.content,
     sourcePath,
   };

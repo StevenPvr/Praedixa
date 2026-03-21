@@ -37,6 +37,8 @@ Le webapp attend une API Praedixa disponible sur `NEXT_PUBLIC_API_URL`.
 | `NEXT_PUBLIC_API_URL`                                   | requise                                     | URL publique de l'API backend ou de la pile sandbox externe; HTTPS requis hors local, jamais loopback en staging/prod |
 | `AUTH_APP_ORIGIN`                                       | recommandee en local, requise en production | origin publique pour les redirects OIDC et les controles same-origin                                                  |
 | `NEXT_PUBLIC_APP_ORIGIN`                                | recommandee en local, requise en production | miroir public de l'origin webapp cote navigateur; meme valeur HTTPS que `AUTH_APP_ORIGIN` en staging/prod             |
+| `AUTH_ADMIN_APP_ORIGIN`                                 | optionnelle                                 | override serveur de l'origin admin ciblee quand un `super_admin` doit etre reoriente depuis le webapp                 |
+| `NEXT_PUBLIC_ADMIN_APP_ORIGIN`                          | optionnelle                                 | miroir public de l'origin admin; doit matcher `AUTH_ADMIN_APP_ORIGIN` si les deux sont renseignes                     |
 | `AUTH_OIDC_ISSUER_URL`                                  | requise                                     | issuer OIDC                                                                                                           |
 | `AUTH_OIDC_CLIENT_ID`                                   | requise                                     | client OIDC du webapp                                                                                                 |
 | `AUTH_OIDC_CLIENT_SECRET`                               | optionnelle                                 | secret OIDC si client confidentiel                                                                                    |
@@ -64,6 +66,7 @@ Le chemin container de production passe par `app-webapp/Dockerfile.scaleway`.
 Contrat runtime a respecter pour staging/prod:
 
 - `AUTH_APP_ORIGIN` et `NEXT_PUBLIC_APP_ORIGIN` doivent etre renseignes avec l'origin HTTPS publique reelle du webapp
+- pour le handoff `super_admin`, le webapp derive par defaut l'origine admin canonique (`app` -> `admin`, `staging-app` -> `staging-admin`, local `3001` -> `3002`); `AUTH_ADMIN_APP_ORIGIN`/`NEXT_PUBLIC_ADMIN_APP_ORIGIN` permettent de surcharger ce mapping si besoin
 - `NEXT_PUBLIC_API_URL` doit pointer vers une API HTTPS reachable depuis l'exterieur; pour une boucle complete avec CRM/Salesforce sandbox, on pointe vers la pile sandbox cible, pas vers `localhost`
 - `AUTH_RATE_LIMIT_REDIS_URL` et `AUTH_RATE_LIMIT_KEY_SALT` restent obligatoires hors developpement
 

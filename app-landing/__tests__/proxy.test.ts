@@ -5,9 +5,12 @@ vi.mock("next/server", () => ({
     status: number;
     headers: Headers;
 
-    constructor(_: unknown = null, init?: { status?: number }) {
+    constructor(
+      _: unknown = null,
+      init?: { status?: number; headers?: HeadersInit },
+    ) {
       this.status = init?.status ?? 200;
-      this.headers = new Headers();
+      this.headers = new Headers(init?.headers);
     }
 
     static next() {
@@ -135,6 +138,23 @@ describe("landing proxy", () => {
     expect(result.headers.get("Content-Security-Policy")).toContain(
       "nonce-dGVzdC1ub25jZQ==",
     );
+  });
+
+  it("allows LLM crawlers on GEO teaser pages", async () => {
+    const req = makeRequest("/fr", { "user-agent": "GPTBot/1.0" });
+    const result = await proxy(req);
+
+    expect(result.status).toBe(200);
+  });
+
+  it("blocks AI crawlers on technical routes even when training is allowed publicly", async () => {
+    const req = makeRequest("/api/resource-asset", {
+      "user-agent": "Googlebot/2.1",
+    });
+    const result = await proxy(req);
+
+    expect(result.status).toBe(403);
+    expect(result.headers.get("X-Robots-Tag")).toContain("noindex");
   });
 
   it("exports matcher config", () => {

@@ -427,6 +427,26 @@ export function canAccessPath(
   return hasAnyPermission(permissions, policy.requiredPermissions);
 }
 
+export function resolveAccessibleAdminPath(
+  permissions: readonly string[] | null | undefined,
+  preferredPath?: string | null,
+): string | null {
+  const rawPreferred =
+    typeof preferredPath === "string" ? preferredPath.trim() : "";
+  const normalizedPreferred =
+    rawPreferred.length > 0 ? normalizePathname(rawPreferred) : null;
+
+  if (normalizedPreferred && canAccessPath(normalizedPreferred, permissions)) {
+    return rawPreferred;
+  }
+
+  const firstAccessible = ADMIN_GLOBAL_NAV_ITEMS.find((item) =>
+    canAccessPath(item.href, permissions),
+  );
+
+  return firstAccessible?.href ?? null;
+}
+
 export function resolveAdminApiPolicy(
   pathname: string,
   method: string,

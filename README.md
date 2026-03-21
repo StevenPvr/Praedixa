@@ -33,6 +33,7 @@ Points d'entrée utiles :
 
 - `docs/README.md` pour la documentation longue durée ;
 - `scripts/README.md` pour l'automatisation ;
+- `ticket.md` pour le format exact des tickets Linear executables par Symphony ;
 - `testing/README.md` pour les tests partagés ;
 - `infra/README.md` pour les artefacts d'infrastructure ;
 - `contracts/README.md` pour les contrats techniques ;
@@ -44,6 +45,7 @@ Points d'entrée utiles :
 
 ## Prerequis
 
+- `.nvmrc` epingle Node 22 pour les shells compatibles `nvm`.
 - Node.js 22+
 - pnpm 9+
 - Python 3.12+ et [uv](https://docs.astral.sh/uv/)
@@ -55,6 +57,16 @@ Points d'entrée utiles :
 ```bash
 pnpm install
 ```
+
+## Qualite
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+```
+
+`pnpm test` couvre maintenant les suites unitaires/frontend racine ainsi que les runtimes `app-symphony`, `app-api-ts` et `app-connectors`, pour eviter un faux vert monorepo quand un backend casse hors du radar de la commande canonique.
 
 ## Developpement
 
@@ -219,12 +231,29 @@ pnpm dev:api
 pnpm --filter @praedixa/api-ts dev
 ```
 
+### Symphony automation service (port 7788 par defaut)
+
+```bash
+pnpm dev:symphony
+```
+
+Prerequis locaux pour un demarrage utile:
+
+- renseigner `LINEAR_API_KEY` et `LINEAR_PROJECT_SLUG` dans `app-symphony/.env.local` ou `app-symphony/.env`
+- verifier que `WORKFLOW.md` a la racine du repo pointe vers le bon projet Linear
+- `pnpm dev:symphony` passe explicitement `../WORKFLOW.md` au runtime pour respecter le contrat de path precedence du spec
+
+Surface HTTP locale:
+
+- `http://127.0.0.1:7788/`
+- `http://127.0.0.1:7788/api/v1/state`
+
 ## Tests
 
 ### Tests unitaires frontend (Vitest)
 
 ```bash
-# Lancer tous les tests (landing + webapp + admin + packages)
+# Lancer les suites web Vitest puis les packages backend TypeScript critiques
 pnpm test
 
 # Mode watch (re-execute a chaque modification)
@@ -272,8 +301,11 @@ pnpm test:e2e:landing
 # Lance uniquement les tests webapp
 pnpm test:e2e:webapp
 
-# Lance uniquement les tests admin (avec 1 worker pour éviter les crashs mémoire)
+# Lance la suite admin officielle (inclut aussi la vérification cross-app admin/webapp)
 PW_WORKERS=1 pnpm test:e2e:admin
+
+# Lance uniquement la spec cross-app admin/webapp
+pnpm test:e2e:admin:cross-app
 
 # Lancer toute la suite E2E (peut nécessiter beaucoup de RAM/CPU)
 pnpm test:e2e

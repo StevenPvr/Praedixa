@@ -4,6 +4,10 @@ import { useClientContext } from "../client-context";
 import { useApiGet } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import {
+  ADMIN_WORKSPACE_FEATURE_GATES,
+  featureUnavailableMessage,
+} from "@/lib/runtime/admin-workspace-feature-gates";
+import {
   Card,
   CardContent,
   DataTable,
@@ -69,13 +73,16 @@ const DRIFT_COLUMNS: DataTableColumn<MlDriftPoint>[] = [
 
 export default function PrevisionsPage() {
   const { orgId } = useClientContext();
+  const forecastingEnabled = ADMIN_WORKSPACE_FEATURE_GATES.forecastingWorkspace;
 
   const {
     data: scenarios,
     loading: scenariosLoading,
     error: scenariosError,
     refetch: scenariosRefetch,
-  } = useApiGet<ScenarioItem[]>(ADMIN_ENDPOINTS.orgScenarios(orgId));
+  } = useApiGet<ScenarioItem[]>(
+    forecastingEnabled ? ADMIN_ENDPOINTS.orgScenarios(orgId) : null,
+  );
 
   const {
     data: summary,
@@ -83,7 +90,7 @@ export default function PrevisionsPage() {
     error: summaryError,
     refetch: summaryRefetch,
   } = useApiGet<MlMonitoringSummary>(
-    ADMIN_ENDPOINTS.orgMlMonitoringSummary(orgId),
+    forecastingEnabled ? ADMIN_ENDPOINTS.orgMlMonitoringSummary(orgId) : null,
   );
 
   const {
@@ -91,7 +98,24 @@ export default function PrevisionsPage() {
     loading: driftLoading,
     error: driftError,
     refetch: driftRefetch,
-  } = useApiGet<MlDriftPoint[]>(ADMIN_ENDPOINTS.orgMlMonitoringDrift(orgId));
+  } = useApiGet<MlDriftPoint[]>(
+    forecastingEnabled ? ADMIN_ENDPOINTS.orgMlMonitoringDrift(orgId) : null,
+  );
+
+  if (!forecastingEnabled) {
+    return (
+      <div className="space-y-6">
+        <h2 className="font-serif text-lg font-semibold text-ink">
+          Previsions
+        </h2>
+        <ErrorFallback
+          message={featureUnavailableMessage(
+            "Le workspace previsions et ML monitoring",
+          )}
+        />
+      </div>
+    );
+  }
 
   const scenarioColumns: DataTableColumn<ScenarioItem>[] = [
     {

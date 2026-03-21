@@ -66,7 +66,9 @@ describe("LoginPage", () => {
     mockSearchParams = new URLSearchParams("error=wrong_role");
     render(<LoginPage />);
 
-    expect(screen.getByText(/La connexion a echoue\./)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Ce compte super admin doit utiliser la console admin/),
+    ).toBeInTheDocument();
   });
 
   it("renders explicit invalid claims banner", () => {

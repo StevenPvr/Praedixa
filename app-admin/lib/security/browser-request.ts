@@ -37,18 +37,26 @@ export function isSameOriginBrowserRequest(
     return false;
   }
 
+  const fetchSite = request.headers.get("sec-fetch-site")?.toLowerCase();
+  if (fetchSite) {
+    if (fetchSite === "cross-site" || fetchSite === "same-site") {
+      return false;
+    }
+    if (fetchSite === "none" && options.allowNavigate !== true) {
+      return false;
+    }
+  }
+
   const origin = normalizeOrigin(request.headers.get("origin"));
   if (origin) {
     return origin === normalizedExpectedOrigin;
   }
 
-  const fetchSite = request.headers.get("sec-fetch-site")?.toLowerCase();
-  if (fetchSite) {
-    if (fetchSite === "same-origin") return true;
-    if (fetchSite === "cross-site") return false;
-    if (fetchSite === "none") {
-      return options.allowNavigate === true;
-    }
+  if (fetchSite === "same-origin") {
+    return true;
+  }
+  if (fetchSite === "none") {
+    return options.allowNavigate === true;
   }
 
   if (options.allowNavigate === true) {

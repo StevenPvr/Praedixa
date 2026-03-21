@@ -25,8 +25,11 @@ describe("StackComparisonV2Section", () => {
 
     expect(screen.getByText("Compatibilité")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      /Praedixa s.ajoute à vos outils/,
+      /Praedixa s.ajoute à vos outils. Il va au-delà des moyennes/,
     );
+    expect(
+      screen.getByText(/Là où les ERP pilotent surtout par règles et moyennes/),
+    ).toBeInTheDocument();
   });
 
   it("renders 5 comparison row categories", () => {
@@ -51,6 +54,20 @@ describe("StackComparisonV2Section", () => {
     expect(
       screen.getByText(/Compatible avec votre stack actuelle/),
     ).toBeInTheDocument();
+  });
+
+  it("explains the ERP limitation against averages", () => {
+    render(<StackComparisonV2Section locale="fr" />);
+
+    expect(
+      screen.getAllByText(
+        /Travaille surtout à partir de règles, d.historique et de moyennes/,
+      ).length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText(/Utilise Data Science, Machine Learning et IA/)
+        .length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it("renders column labels", () => {

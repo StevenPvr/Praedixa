@@ -85,13 +85,6 @@ export const ADMIN_API_COLLABORATION_POLICIES: readonly AdminApiPolicy[] = [
     requiredPermissions: INTEGRATIONS_READ,
   }),
   createApiPolicy({
-    id: "org-integration-raw-event-payload",
-    pattern:
-      "/api/v1/admin/organizations/[orgId]/integrations/connections/[connectionId]/raw-events/[eventId]/payload",
-    methods: ["GET"],
-    requiredPermissions: INTEGRATIONS_READ,
-  }),
-  createApiPolicy({
     id: "conversations",
     pattern: "/api/v1/admin/conversations",
     methods: ["GET"],

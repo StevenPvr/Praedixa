@@ -13,6 +13,7 @@ Sous-dossiers :
 Fichiers :
 
 - `page.test.tsx`
+  - verrouille le fail-close local des surfaces `scenarios`, `ml-monitoring/summary` et `ml-monitoring/drift` tant qu'elles restent non industrialisees.
 
 ## Intégration
 

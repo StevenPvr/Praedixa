@@ -1,6 +1,6 @@
 # PRD Connecteur - Blue Yonder (TMS/WMS Planning)
 
-- Statut: `Ready for build`
+- Statut: `L2 core delivered`
 - Priorite: `P2`
 - Verticales ciblees: logistique, transport
 - Dependance: acces APIs Blue Yonder modules clients

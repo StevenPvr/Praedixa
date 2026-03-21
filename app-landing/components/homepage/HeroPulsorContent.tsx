@@ -61,7 +61,8 @@ export function HeroPulsorContent({
           variants={heroPulsorBadge}
           className="hero-float absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 rounded-xl px-3.5 py-2 text-[13px] font-bold uppercase tracking-wide text-white md:translate-x-6 lg:translate-x-10"
           style={{
-            background: "linear-gradient(135deg, #3D8FFF 0%, #2F80FF 50%, #1A6FFF 100%)",
+            background:
+              "linear-gradient(135deg, #3D8FFF 0%, #2F80FF 50%, #1A6FFF 100%)",
             boxShadow:
               "0 4px 8px rgba(47,128,255,0.20), 0 12px 24px rgba(47,128,255,0.18), 0 24px 48px rgba(47,128,255,0.12)",
             animation: reduced ? "none" : "hero-float 4s ease-in-out infinite",
@@ -118,7 +119,10 @@ export function HeroPulsorContent({
             aria-hidden="true"
           />
           <span className="relative">{vp.ctaSecondary}</span>
-          <ArrowUpRight className="relative h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
+          <ArrowUpRight
+            className="relative h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            aria-hidden="true"
+          />
         </Link>
 
         {/* Secondary: glass pill with depth → proof */}
@@ -145,7 +149,10 @@ export function HeroPulsorContent({
             el.style.background = "var(--hero-glass)";
           }}
         >
-          <BarChart3 className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
+          <BarChart3
+            className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110"
+            aria-hidden="true"
+          />
           <span>{vp.ctaPrimary}</span>
         </Link>
       </motion.div>

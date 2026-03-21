@@ -5,7 +5,10 @@ describe("blog post route", () => {
   it("generates static params for published posts", () => {
     const params = generateStaticParams();
 
-    expect(params).toEqual([]);
+    expect(params).toContainEqual({
+      locale: "fr",
+      slug: "decision-log-ops-daf-template",
+    });
   });
 
   it("returns empty metadata when the blog post does not exist", async () => {
@@ -17,5 +20,24 @@ describe("blog post route", () => {
     });
 
     expect(metadata).toEqual({});
+  });
+
+  it("returns metadata for the published decision log article", async () => {
+    const metadata = await generateMetadata({
+      params: Promise.resolve({
+        locale: "fr",
+        slug: "decision-log-ops-daf-template",
+      }),
+    });
+
+    expect(metadata.title).toBe(
+      "Decision Log Ops/DAF : template simple pour décider sans biais inutile",
+    );
+    expect(metadata.keywords).toEqual([
+      "ops-finance",
+      "decision-intelligence",
+      "roi",
+    ]);
+    expect(metadata.authors).toEqual([{ name: "Praedixa" }]);
   });
 });

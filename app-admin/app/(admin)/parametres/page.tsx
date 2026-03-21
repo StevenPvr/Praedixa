@@ -1,34 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
-  Settings,
   AlertCircle,
-  CheckCircle,
   Building2,
+  CheckCircle,
   Rocket,
+  Settings,
 } from "lucide-react";
+import type {
+  AdminOrganizationSummary,
+  CreateAdminOrganizationRequest,
+  OnboardingCaseSummary,
+} from "@praedixa/shared-types/api";
 import {
-  StatCard,
-  SkeletonCard,
   DataTable,
+  SkeletonCard,
+  StatCard,
   type DataTableColumn,
 } from "@praedixa/ui";
-import { useApiGet, useApiGetPaginated, useApiPost } from "@/hooks/use-api";
-import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
-import { ErrorFallback } from "@/components/error-fallback";
-import { ApiError, apiPatch } from "@/lib/api/client";
-import { getValidAccessToken, useCurrentUser } from "@/lib/auth/client";
-import { hasAnyPermission } from "@/lib/auth/permissions";
-import { useToast } from "@/hooks/use-toast";
-import {
-  OnboardingStatusBadge,
-  type OnboardingStatus,
-} from "@/components/onboarding-status-badge";
 
-/* ────────────────────────────────────────────── */
-/*  Types                                         */
-/* ────────────────────────────────────────────── */
+import { ErrorFallback } from "@/components/error-fallback";
+import { OnboardingStatusBadge } from "@/components/onboarding-status-badge";
+import { useApiGet, useApiGetPaginated, useApiPost } from "@/hooks/use-api";
+import { useToast } from "@/hooks/use-toast";
+import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
+import { useCurrentUser } from "@/lib/auth/client";
+import { hasAnyPermission } from "@/lib/auth/permissions";
+import {
+  CreateClientCard,
+  DEFAULT_CREATE_CLIENT_FORM_STATE,
+  type CreateClientFormState,
+} from "./create-client-card";
 
 interface OrgMissingConfig {
   organizationId: string;
@@ -49,19 +53,6 @@ interface MissingCostParams {
   }>;
 }
 
-interface OnboardingListItem {
-  id: string;
-  organizationId: string;
-  status: OnboardingStatus;
-  currentStep: number;
-  stepsCompleted: unknown[];
-  initiatedBy: string;
-  createdAt: string;
-  completedAt: string | null;
-}
-
-const TOTAL_STEPS = 5;
-
 const TYPE_LABELS: Record<string, string> = {
   c_int: "Cout interne",
   maj_hs: "Majoration heures sup.",
@@ -74,52 +65,45 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 type Section = "onboarding" | "config";
+const CLIENT_SLUG_PATTERN = /^[a-z][a-z0-9-]{2,34}$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/* ────────────────────────────────────────────── */
-/*  Component                                     */
-/* ────────────────────────────────────────────── */
+function formatReadiness(caseItem: OnboardingCaseSummary): string {
+  return `${caseItem.lastReadinessStatus} (${caseItem.lastReadinessScore}/100)`;
+}
 
 export default function ParametresPage() {
+  const router = useRouter();
   const currentUser = useCurrentUser();
   const toast = useToast();
   const canReadOnboarding = hasAnyPermission(currentUser?.permissions, [
     "admin:onboarding:read",
     "admin:onboarding:write",
   ]);
-  const canManageOnboarding = hasAnyPermission(currentUser?.permissions, [
-    "admin:onboarding:write",
-  ]);
   const canReadConfigHealth = hasAnyPermission(currentUser?.permissions, [
     "admin:monitoring:read",
+  ]);
+  const canCreateClient = hasAnyPermission(currentUser?.permissions, [
+    "admin:org:write",
   ]);
   const [section, setSection] = useState<Section>(
     canReadOnboarding ? "onboarding" : "config",
   );
-
-  // Onboarding state
   const [obPage, setObPage] = useState(1);
-  const [orgName, setOrgName] = useState("");
-  const [orgSlug, setOrgSlug] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [plan, setPlan] = useState("starter");
-  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [createClientForm, setCreateClientForm] =
+    useState<CreateClientFormState>(DEFAULT_CREATE_CLIENT_FORM_STATE);
 
   const {
     data: obData,
     total: obTotal,
     error: obError,
     refetch: obRefetch,
-  } = useApiGetPaginated<OnboardingListItem>(
+  } = useApiGetPaginated<OnboardingCaseSummary>(
     canReadOnboarding ? ADMIN_ENDPOINTS.onboardingList : null,
     obPage,
     20,
   );
-  const startOnboardingMutation = useApiPost<
-    { orgName: string; orgSlug: string; contactEmail: string; plan: string },
-    OnboardingListItem
-  >(ADMIN_ENDPOINTS.onboardingStart);
 
-  // Cost params state
   const {
     data: costData,
     loading: costLoading,
@@ -128,65 +112,77 @@ export default function ParametresPage() {
   } = useApiGet<MissingCostParams>(
     canReadConfigHealth ? ADMIN_ENDPOINTS.monitoringCostParamsMissing : null,
   );
+  const createOrganization = useApiPost<
+    CreateAdminOrganizationRequest,
+    AdminOrganizationSummary
+  >(ADMIN_ENDPOINTS.organizations);
 
-  async function handleStartOnboarding() {
-    if (!canManageOnboarding) {
-      toast.error("Permission requise: admin:onboarding:write");
-      return;
+  useEffect(() => {
+    if (createOrganization.error) {
+      toast.error(createOrganization.error);
     }
-    if (!orgName || !orgSlug || !contactEmail) return;
-    const created = await startOnboardingMutation.mutate({
-      orgName,
-      orgSlug,
-      contactEmail,
-      plan,
-    });
-    if (created) {
-      setOrgName("");
-      setOrgSlug("");
-      setContactEmail("");
-      toast.success("Onboarding demarre");
-      obRefetch();
-      return;
-    }
-    if (startOnboardingMutation.error) {
-      toast.error(startOnboardingMutation.error);
-    }
-  }
+  }, [createOrganization.error, toast]);
 
-  async function handleNextStep(row: OnboardingListItem) {
-    if (!canManageOnboarding) {
-      toast.error("Permission requise: admin:onboarding:write");
+  async function handleCreateClient() {
+    if (!canCreateClient) {
+      toast.error("Permission requise: admin:org:write");
       return;
     }
-    if (row.currentStep >= TOTAL_STEPS || row.status === "completed") return;
-    const nextStep = Math.min(row.currentStep + 1, TOTAL_STEPS);
-    setActionLoadingId(row.id);
-    try {
-      await apiPatch(
-        ADMIN_ENDPOINTS.onboardingStep(row.id, nextStep),
-        { data: { source: "admin_console" } },
-        getValidAccessToken,
-      );
-      toast.success(`Etape ${nextStep} validee`);
-      obRefetch();
-    } catch (err) {
+
+    const name = createClientForm.name.trim();
+    const slug = createClientForm.slug.trim().toLowerCase();
+    const contactEmail = createClientForm.contactEmail.trim().toLowerCase();
+
+    if (name.length < 2) {
+      toast.error("Renseigne le nom du client.");
+      return;
+    }
+
+    if (!CLIENT_SLUG_PATTERN.test(slug)) {
       toast.error(
-        err instanceof ApiError ? err.message : "Impossible de valider l'etape",
+        "Le slug doit commencer par une lettre et n'utiliser que des lettres minuscules, chiffres ou tirets.",
       );
-    } finally {
-      setActionLoadingId(null);
+      return;
     }
+
+    if (!EMAIL_PATTERN.test(contactEmail)) {
+      toast.error("Renseigne un email contact valide.");
+      return;
+    }
+
+    const created = await createOrganization.mutate({
+      name,
+      slug,
+      contactEmail,
+      isTest: createClientForm.isTest,
+    });
+
+    if (!created) {
+      return;
+    }
+
+    setCreateClientForm(DEFAULT_CREATE_CLIENT_FORM_STATE);
+    toast.success(
+      created.isTest
+        ? "Client test cree, invitation envoyee et ouverture de l'onboarding"
+        : "Client cree, invitation envoyee et ouverture de l'onboarding",
+    );
+    router.push(`/clients/${created.id}/onboarding`);
   }
 
-  const obColumns: DataTableColumn<OnboardingListItem>[] = [
+  const onboardingColumns: DataTableColumn<OnboardingCaseSummary>[] = [
     {
-      key: "organizationId",
+      key: "organizationName",
       label: "Organisation",
       render: (row) => (
-        <span className="font-mono text-xs text-ink-tertiary">
-          {row.organizationId.substring(0, 8)}...
-        </span>
+        <div>
+          <p className="font-medium text-ink">
+            {row.organizationName ?? row.organizationSlug ?? row.organizationId}
+          </p>
+          <p className="text-xs text-ink-tertiary">
+            {row.organizationSlug ?? row.organizationId}
+          </p>
+        </div>
       ),
     },
     {
@@ -195,68 +191,59 @@ export default function ParametresPage() {
       render: (row) => <OnboardingStatusBadge status={row.status} />,
     },
     {
-      key: "currentStep",
-      label: "Progression",
+      key: "phase",
+      label: "Phase",
       render: (row) => (
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-24 overflow-hidden rounded-full bg-surface-sunken">
-            <div
-              className="h-full rounded-full bg-primary transition-all"
-              style={{
-                width: `${(row.currentStep / TOTAL_STEPS) * 100}%`,
-              }}
-            />
-          </div>
-          <span className="text-xs text-ink-tertiary">
-            {row.currentStep}/{TOTAL_STEPS}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "createdAt",
-      label: "Demarre le",
-      render: (row) => (
-        <span className="text-sm text-ink-tertiary">
-          {new Date(row.createdAt).toLocaleDateString("fr-FR")}
+        <span className="text-sm text-ink-secondary">
+          {typeof row.phase === "string"
+            ? row.phase.replaceAll("_", " ")
+            : "Non renseignée"}
         </span>
       ),
     },
     {
-      key: "completedAt",
-      label: "Termine le",
-      render: (row) =>
-        row.completedAt ? (
-          <span className="text-sm text-ink-tertiary">
-            {new Date(row.completedAt).toLocaleDateString("fr-FR")}
-          </span>
-        ) : (
-          <span className="text-sm text-ink-placeholder">En cours</span>
-        ),
+      key: "readiness",
+      label: "Readiness",
+      render: (row) => (
+        <span className="text-sm text-ink-secondary">
+          {formatReadiness(row)}
+        </span>
+      ),
     },
     {
-      key: "actions",
+      key: "workload",
+      label: "Charge ouverte",
+      render: (row) => (
+        <span className="text-xs text-ink-tertiary">
+          {row.openTaskCount} taches / {row.openBlockerCount} blockers
+        </span>
+      ),
+    },
+    {
+      key: "startedAt",
+      label: "Ouvert le",
+      render: (row) => (
+        <span className="text-sm text-ink-tertiary">
+          {new Date(row.startedAt).toLocaleDateString("fr-FR")}
+        </span>
+      ),
+    },
+    {
+      key: "action",
       label: "Action",
       render: (row) => (
         <button
-          onClick={() => void handleNextStep(row)}
-          disabled={
-            !canManageOnboarding ||
-            row.currentStep >= TOTAL_STEPS ||
-            row.status === "completed" ||
-            actionLoadingId === row.id
+          onClick={() =>
+            router.push(`/clients/${row.organizationId}/onboarding`)
           }
-          className="rounded border border-border px-2 py-1 text-xs text-charcoal hover:bg-surface-sunken disabled:opacity-50"
+          className="rounded border border-border px-2 py-1 text-xs text-charcoal hover:bg-surface-sunken"
         >
-          {row.currentStep >= TOTAL_STEPS || row.status === "completed"
-            ? "Termine"
-            : "Valider etape"}
+          Ouvrir
         </button>
       ),
     },
   ];
 
-  // Cost params derived values
   const orgs = costData?.orgs ?? costData?.missing ?? [];
   const totalOrgsWithMissing =
     costData?.totalOrgsWithMissing ??
@@ -273,11 +260,20 @@ export default function ParametresPage() {
       <div>
         <h1 className="font-serif text-2xl font-bold text-ink">Parametres</h1>
         <p className="mt-1 text-sm text-ink-tertiary">
-          Onboarding et configuration systeme
+          Supervision de l&apos;onboarding admin et hygiene de configuration
+          systeme.
         </p>
       </div>
 
-      {/* Section tabs */}
+      {canCreateClient ? (
+        <CreateClientCard
+          form={createClientForm}
+          disabled={createOrganization.loading}
+          onChange={setCreateClientForm}
+          onCreate={handleCreateClient}
+        />
+      ) : null}
+
       <div className="flex gap-1 border-b border-border-subtle">
         <button
           onClick={() => setSection("onboarding")}
@@ -290,9 +286,9 @@ export default function ParametresPage() {
         >
           <Rocket className="mr-1.5 inline-block h-4 w-4" />
           Onboarding ({obTotal})
-          {section === "onboarding" && (
+          {section === "onboarding" ? (
             <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary" />
-          )}
+          ) : null}
         </button>
         <button
           onClick={() => setSection("config")}
@@ -304,14 +300,13 @@ export default function ParametresPage() {
         >
           <Settings className="mr-1.5 inline-block h-4 w-4" />
           Configuration
-          {section === "config" && (
+          {section === "config" ? (
             <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary" />
-          )}
+          ) : null}
         </button>
       </div>
 
-      {/* Onboarding section */}
-      {section === "onboarding" && (
+      {section === "onboarding" ? (
         <div className="space-y-4">
           {!canReadOnboarding ? (
             <div className="rounded-xl border border-border-subtle bg-card px-4 py-3 text-sm text-ink-tertiary">
@@ -321,67 +316,45 @@ export default function ParametresPage() {
               </span>
             </div>
           ) : null}
+
+          <div className="grid gap-4 lg:grid-cols-3">
+            <StatCard
+              label="Cases visibles"
+              value={String(obTotal)}
+              icon={<Rocket className="h-4 w-4" />}
+            />
+            <StatCard
+              label="Cases bloques"
+              value={String(
+                obData.filter((item) => item.status === "blocked").length,
+              )}
+              icon={<AlertCircle className="h-4 w-4" />}
+            />
+            <StatCard
+              label="Activation full"
+              value={String(
+                obData.filter((item) => item.status === "active_full").length,
+              )}
+              icon={<CheckCircle className="h-4 w-4" />}
+            />
+          </div>
+
           <div className="rounded-2xl border border-border-subtle bg-card p-5 shadow-soft">
-            <h2 className="mb-3 text-sm font-medium text-ink-tertiary">
-              Demarrer un onboarding
+            <h2 className="mb-2 text-sm font-medium text-ink-tertiary">
+              Supervision cross-org
             </h2>
-            <div className="grid gap-3 md:grid-cols-4">
-              <input
-                value={orgName}
-                onChange={(event) => setOrgName(event.target.value)}
-                placeholder="Nom organisation"
-                disabled={!canManageOnboarding}
-                className="min-h-[44px] rounded-lg border border-border px-3 py-2 text-sm text-charcoal placeholder:text-ink-placeholder focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-              <input
-                value={orgSlug}
-                onChange={(event) => setOrgSlug(event.target.value)}
-                placeholder="slug"
-                disabled={!canManageOnboarding}
-                className="min-h-[44px] rounded-lg border border-border px-3 py-2 text-sm text-charcoal placeholder:text-ink-placeholder focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-              <input
-                type="email"
-                value={contactEmail}
-                onChange={(event) => setContactEmail(event.target.value)}
-                placeholder="email contact"
-                disabled={!canManageOnboarding}
-                className="min-h-[44px] rounded-lg border border-border px-3 py-2 text-sm text-charcoal placeholder:text-ink-placeholder focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-              <div className="flex gap-2">
-                <select
-                  value={plan}
-                  onChange={(event) => setPlan(event.target.value)}
-                  disabled={!canManageOnboarding}
-                  className="min-h-[44px] flex-1 rounded-lg border border-border px-3 py-2 text-sm text-charcoal focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="free">free</option>
-                  <option value="starter">starter</option>
-                  <option value="professional">professional</option>
-                  <option value="enterprise">enterprise</option>
-                </select>
-                <button
-                  onClick={() => void handleStartOnboarding()}
-                  disabled={
-                    !canManageOnboarding ||
-                    startOnboardingMutation.loading ||
-                    !orgName ||
-                    !orgSlug ||
-                    !contactEmail
-                  }
-                  className="inline-flex min-h-[44px] items-center rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-600 disabled:opacity-50"
-                >
-                  Lancer
-                </button>
-              </div>
-            </div>
+            <p className="text-sm text-ink-secondary">
+              Les nouveaux cases se demarrent depuis le workspace client dedie.
+              Cette vue sert a surveiller les phases, blockers et readiness de
+              bout en bout.
+            </p>
           </div>
 
           {obError ? (
             <ErrorFallback message={obError} onRetry={obRefetch} />
           ) : (
             <DataTable
-              columns={obColumns}
+              columns={onboardingColumns}
               data={obData}
               getRowKey={(row) => row.id}
               pagination={{
@@ -393,10 +366,7 @@ export default function ParametresPage() {
             />
           )}
         </div>
-      )}
-
-      {/* Config section */}
-      {section === "config" && (
+      ) : (
         <div className="space-y-4">
           {!canReadConfigHealth ? (
             <div className="rounded-xl border border-border-subtle bg-card px-4 py-3 text-sm text-ink-tertiary">
@@ -407,8 +377,8 @@ export default function ParametresPage() {
             </div>
           ) : costLoading ? (
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <SkeletonCard key={`param-skel-${i}`} />
+              {Array.from({ length: 3 }).map((_, index) => (
+                <SkeletonCard key={`param-skel-${index}`} />
               ))}
             </div>
           ) : costError ? (
@@ -419,83 +389,96 @@ export default function ParametresPage() {
                 <StatCard
                   label="Organisations avec manques"
                   value={String(totalOrgsWithMissing)}
-                  icon={<Building2 className="h-5 w-5" />}
+                  icon={<Building2 className="h-4 w-4" />}
                 />
                 <StatCard
                   label="Parametres manquants"
                   value={String(totalMissingParams)}
-                  icon={<Settings className="h-5 w-5" />}
+                  icon={<AlertCircle className="h-4 w-4" />}
                 />
                 <StatCard
-                  label="Statut global"
-                  value={allConfigured ? "Complet" : "Incomplet"}
+                  label="Etat global"
+                  value={allConfigured ? "OK" : "A corriger"}
                   icon={
                     allConfigured ? (
-                      <CheckCircle className="h-5 w-5" />
+                      <CheckCircle className="h-4 w-4" />
                     ) : (
-                      <AlertCircle className="h-5 w-5" />
+                      <AlertCircle className="h-4 w-4" />
                     )
                   }
                 />
               </div>
 
-              {allConfigured ? (
-                <div className="rounded-lg border border-success bg-success-light px-4 py-3 text-sm text-success-text">
-                  Toutes les organisations ont leurs parametres de cout
-                  configures.
-                </div>
-              ) : (
-                <div className="rounded-lg border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-700">
-                  {totalOrgsWithMissing} organisation
-                  {totalOrgsWithMissing > 1 ? "s" : ""} avec des parametres
-                  manquants.
-                </div>
-              )}
-
-              {orgs.length > 0 && (
-                <div className="rounded-2xl border border-border-subtle bg-card p-5 shadow-soft">
-                  <h2 className="mb-4 text-sm font-medium text-ink-tertiary">
-                    Configurations manquantes par organisation
-                  </h2>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-border-subtle text-xs text-ink-placeholder">
-                          <th className="pb-2 font-medium">Organisation</th>
-                          <th className="pb-2 text-right font-medium">
-                            Manquants
-                          </th>
-                          <th className="pb-2 font-medium">Types manquants</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {orgs.map((org) => (
-                          <tr key={org.organizationId}>
-                            <td className="py-2 font-mono text-xs text-ink-secondary">
-                              {org.organizationId.slice(0, 8)}...
-                            </td>
-                            <td className="py-2 text-right text-charcoal">
-                              {org.totalMissing}
-                            </td>
-                            <td className="py-2">
-                              <div className="flex flex-wrap gap-1">
-                                {org.missingTypes.map((type) => (
-                                  <span
-                                    key={type}
-                                    className="rounded bg-primary-100 px-1.5 py-0.5 text-xs text-primary-700"
-                                  >
-                                    {TYPE_LABELS[type] ?? type}
-                                  </span>
-                                ))}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              <div className="rounded-2xl border border-border-subtle bg-card p-5 shadow-soft">
+                {allConfigured ? (
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="mt-0.5 h-5 w-5 text-success" />
+                    <div>
+                      <h2 className="text-sm font-medium text-ink-secondary">
+                        Configuration saine
+                      </h2>
+                      <p className="mt-1 text-sm text-ink-tertiary">
+                        Toutes les organisations ont leurs parametres de cout
+                        configures.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="mt-0.5 h-5 w-5 text-warning" />
+                      <div>
+                        <h2 className="text-sm font-medium text-ink-secondary">
+                          Hygiene incomplete
+                        </h2>
+                        <p className="mt-1 text-sm text-ink-tertiary">
+                          {totalOrgsWithMissing} organisation
+                          {totalOrgsWithMissing > 1 ? "s" : ""} avec des
+                          parametres manquants.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {orgs.map((org) => (
+                        <div
+                          key={org.organizationId}
+                          className="rounded-xl border border-border-subtle bg-surface-sunken/40 p-4"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="font-medium text-ink">
+                                {"name" in org &&
+                                typeof org.name === "string" &&
+                                org.name.length > 0
+                                  ? org.name
+                                  : org.organizationId}
+                              </p>
+                              <p className="text-xs text-ink-tertiary">
+                                {org.organizationId}
+                              </p>
+                            </div>
+                            <span className="rounded-full bg-warning-light px-2.5 py-1 text-xs font-medium text-warning-text">
+                              {org.totalMissing} manque
+                              {org.totalMissing > 1 ? "s" : ""}
+                            </span>
+                          </div>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {org.missingTypes.map((type) => (
+                              <span
+                                key={type}
+                                className="rounded-full bg-card px-2.5 py-1 text-xs text-ink-secondary"
+                              >
+                                {TYPE_LABELS[type] ?? type}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>

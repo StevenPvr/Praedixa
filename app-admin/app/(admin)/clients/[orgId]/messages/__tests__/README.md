@@ -13,6 +13,7 @@ Sous-dossiers :
 Fichiers :
 
 - `page.test.tsx`
+  - verrouille le fail-close local de la page quand la surface conversations/messages n'est pas encore branchee sur une route persistante admin.
 
 ## Intégration
 

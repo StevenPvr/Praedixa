@@ -1,0 +1,1 @@
+"""Manhattan Associates provider adapter."""

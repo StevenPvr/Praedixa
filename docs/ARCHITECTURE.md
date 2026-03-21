@@ -223,6 +223,12 @@ Le moteur Python reste dedie aux workflows Data/ML :
 - orchestration (`app-api/scripts/medallion_orchestrator.py`)
 - inference jobs (`app-api/scripts/run_inference_job.py`)
 
+Le plan d'automation agentique interne vit maintenant dans un runtime TypeScript dedie :
+
+- service Symphony (`app-symphony/`)
+- contrat repo-owned `WORKFLOW.md`
+- orchestration d'issues Linear, workspaces isoles, harness git worktree et integration `codex app-server`
+
 ## Packages partages
 
 ### `@praedixa/shared-types`

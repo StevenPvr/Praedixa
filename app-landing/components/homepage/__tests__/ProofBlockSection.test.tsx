@@ -29,8 +29,15 @@ vi.mock("framer-motion", () => {
   const React = require("react");
   const forwardMotion = (tag: string) =>
     React.forwardRef((props: any, ref: any) => {
-      const { variants, initial, animate, exit, whileInView, viewport, transition, ...rest } = props;
-      return React.createElement(tag, { ...rest, ref });
+      const passthroughProps = { ...props };
+      delete passthroughProps.variants;
+      delete passthroughProps.initial;
+      delete passthroughProps.animate;
+      delete passthroughProps.exit;
+      delete passthroughProps.whileInView;
+      delete passthroughProps.viewport;
+      delete passthroughProps.transition;
+      return React.createElement(tag, { ...passthroughProps, ref });
     });
   return {
     motion: new Proxy(
@@ -61,14 +68,16 @@ describe("ProofBlockSection", () => {
   it("renders the kicker, heading, and body text", () => {
     render(<ProofBlockSection locale="fr" />);
 
-    expect(screen.getByText("Preuve")).toBeInTheDocument();
+    expect(screen.getByText("Preuve de ROI")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Des résultats concrets, pas des promesses.",
+        name: "Des résultats concrets, pas des moyennes.",
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Chaque décision est tracée et son impact mesuré/),
+      screen.getByText(
+        /Chaque décision est tracée, reliée à son impact économique/,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -101,7 +110,9 @@ describe("ProofBlockSection", () => {
 
     await user.click(screen.getByRole("tab", { name: "Options comparées" }));
 
-    expect(screen.getByText(/Trois options chiffrées/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Chaque option est évaluée sur la même base/),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: "Impact mesuré" }));
 
@@ -135,7 +146,7 @@ describe("ProofBlockSection", () => {
     render(<ProofBlockSection locale="fr" />);
 
     const ctaLink = screen.getByRole("link", {
-      name: /Voir la preuve sur historique/,
+      name: /Voir la preuve de ROI/,
     });
     expect(ctaLink).toBeInTheDocument();
     expect(ctaLink).toHaveAttribute("href", "/fr/decision-log-preuve-roi");

@@ -1,6 +1,6 @@
 # PRD Connecteur - CDK (DMS/CRM Concessionnaire)
 
-- Statut: `Ready for build` (implementation), `Blocked by vendor` (acces partenaire)
+- Statut: `L2 core delivered` (provider pull `service_account`), `Blocked by vendor` (acces partenaire / fallback `sftp`)
 - Priorite: `P1`
 - Verticales ciblees: concessionnaire auto
 - Dependance: programme partenaire CDK + autorisation concession
@@ -34,7 +34,7 @@ Capter les flux DMS/CRM CDK (ventes, atelier, stock vehicules) pour modeliser ca
 
 ### 3.3 Extraction
 
-- V1: API REST partenaire si disponible
+- V1: API REST partenaire avec endpoints configures par objet et credentials `clientId` / `clientSecret`
 - V1 fallback: depots fichiers `SFTP CSV` (daily + intraday)
 - incremental par `updated_at` ou watermark fichier
 
@@ -72,7 +72,7 @@ Capter les flux DMS/CRM CDK (ventes, atelier, stock vehicules) pour modeliser ca
 
 ## 8. Definition of Done
 
-- Connecteur operationnel en mode API et mode fallback batch.
+- Connecteur operationnel en mode API `service_account`; fallback batch `sftp` restant a certifier selon acces partenaire.
 - Donnees ventes + atelier + stock disponibles en canonical.
 - Runbook incident "CDK unavailable" livre.
 

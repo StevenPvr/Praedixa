@@ -5,6 +5,8 @@ Ce dossier regroupe la base documentaire securite build-ready de Praedixa.
 ## Priorites control plane
 
 - `control-plane-hardening.md` : garde-fous minimaux pour le plan de controle admin, IAM, secrets et metadonnees critiques.
+- `anti-scraping-program.md` : classification d'exposition, arbitrage GEO/training vs protection, assets signes et garde-fous runtime contre l'extraction utile.
+- `scaleway-fortress-control-matrix.md` : traduction execution / preuves du PRD cybersecurite "porte blindee" sur Scaleway.
 - `control-plane-metadata-inventory.json` : inventaire machine-readable des checks de restore semantique du control plane a garder aligne avec les runbooks et la verification de manifest.
 - `break-glass-admin-governance.md` : gouvernance de l'acces admin d'urgence, avec journalisation obligatoire.
 - `stride-threat-model.md` : menaces et abus a couvrir.
@@ -23,6 +25,7 @@ Ce dossier regroupe la base documentaire securite build-ready de Praedixa.
 ## Pont avec deployment et reprise
 
 - `docs/deployment/environment-secrets-owners-matrix.md` est la matrice canonique env/secrets/owners pour les surfaces deployees.
+- `docs/prd/scaleway-fortress-security-prd.md` fixe la cible securite produit/infra a atteindre sur Scaleway.
 - `docs/runbooks/post-deploy-smoke-baseline.md` definit le smoke CLI minimal a conserver comme evidence apres deploy ou rollback, avec validation stricte du host et de l'URL effective.
 - `docs/runbooks/backup-restore-evidence-baseline.md` definit la preuve minimale attendue pour les backups, restores et drills de reprise, en s'appuyant sur `control-plane-metadata-inventory.json` pour les checks semantiques obligatoires.
 

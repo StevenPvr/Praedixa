@@ -1,6 +1,6 @@
 # PRD Connecteur - Oracle Transportation Management (OTM)
 
-- Statut: `Ready for build`
+- Statut: `L2 core delivered`
 - Priorite: `P2`
 - Verticales ciblees: logistique, transport
 - Dependance: acces OTM Cloud/API + role integration

@@ -11,7 +11,7 @@ Valider le control plane connecteurs sans passer par les frontends.
 - `routes.test.ts` : validation des handlers HTTP et reponses.
 - `server.test.ts` : auth service token, CORS, surface serveur et confiance proxy/IP.
 - `activation-readiness.test.ts` : prerequis d'activation standardises par vendor/auth mode, sans intervention dev.
-- `service.test.ts` : logique metier de `ConnectorService`, OAuth, validation des URLs sortantes et separation stricte `production` / `sandbox`.
+- `service.test.ts` : logique metier de `ConnectorService`, OAuth, validation des URLs sortantes, queue runtime `sync_runs` et chemins internes `provider access-context` / `provider-events`.
 - `persistent-store.test.ts` : persistance Postgres du control plane.
 
 ## Commande

@@ -4,6 +4,11 @@ import { useCallback, useState } from "react";
 import { MessageSquare } from "lucide-react";
 import { useApiGet } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
+import { ErrorFallback } from "@/components/error-fallback";
+import {
+  ADMIN_WORKSPACE_FEATURE_GATES,
+  featureUnavailableMessage,
+} from "@/lib/runtime/admin-workspace-feature-gates";
 import { useClientContext } from "../client-context";
 import { ConversationList } from "@/components/chat/conversation-list";
 import { MessageThread } from "@/components/chat/message-thread";
@@ -12,17 +17,27 @@ import type { Conversation } from "@/components/chat/conversation-list";
 export default function MessagesPage() {
   const { orgId } = useClientContext();
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
+  const messagingEnabled = ADMIN_WORKSPACE_FEATURE_GATES.messagesWorkspace;
 
   const { data: conversations, refetch } = useApiGet<Conversation[]>(
-    ADMIN_ENDPOINTS.orgConversations(orgId),
+    messagingEnabled ? ADMIN_ENDPOINTS.orgConversations(orgId) : null,
   );
-
-  const selectedConv =
-    conversations?.find((c) => c.id === selectedConvId) ?? null;
 
   const handleStatusChange = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  const selectedConv =
+    conversations?.find((conversation) => conversation.id === selectedConvId) ??
+    null;
+
+  if (!messagingEnabled) {
+    return (
+      <ErrorFallback
+        message={featureUnavailableMessage("La messagerie client")}
+      />
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-220px)] gap-0 overflow-hidden rounded-2xl border border-border-subtle bg-card shadow-soft">

@@ -26,6 +26,7 @@ Ce sous-arbre porte les pages visibles par les visiteurs. Le layout localise val
 - `integration-donnees/page.tsx` et `integration-data/page.tsx`: integration et donnees
 - `ressources/page.tsx` et `resources/page.tsx`: hub de ressources
 - `ressources/[slug]/page.tsx`: pages SEO FR generees depuis `lib/content`
+- `ressources/[slug]/asset/route.ts`: telechargement d'asset teaser uniquement via signature courte delivree par `GET /api/resource-asset`
 - `blog/page.tsx` et `blog/[slug]/page.tsx`: listing et detail blog
 - `a-propos|about`, `securite|security`, `mentions-legales|legal-notice`, `confidentialite|privacy-policy`, `cgu|terms`: pages corporate et legales
 - `logo-preview/*`: page interne de verification visuelle de logo
@@ -45,6 +46,7 @@ Ce sous-arbre porte les pages visibles par les visiteurs. Le layout localise val
 - les pages legales partagent `components/pages/LegalStaticPage.tsx`
 - les pages formulaire doivent reutiliser les composants de `components/pages/` ou `components/shared/`
 - les pages publiques a forte intention (`services`, `contact`, `deploiement`, pages knowledge) doivent exposer une breadcrumb visible et un balisage `WebPage`/`BreadcrumbList` coherent
+- les pages `ressources/[slug]` ne doivent jamais pointer vers un asset a URL stable directe; passer par le gateway `GET /api/resource-asset` puis une signature courte sur `ressources/[slug]/asset`
 - les seules entrees publiques globales doivent rester la preuve sur historique et le cadrage du premier perimetre; ne pas rouvrir une route commerciale autonome type `deploiement`, `pilote` ou `diagnostic ROI`
 
 ## Tests associes

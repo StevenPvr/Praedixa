@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getPublishedBlogPosts } from "../../../lib/blog/posts";
 import { GET } from "../route";
 
 describe("rss.xml route", () => {
@@ -11,6 +12,7 @@ describe("rss.xml route", () => {
 
     const body = await response.text();
     expect(body).toContain("<rss");
-    expect(body).not.toContain("<item>");
+    expect(body).toContain("<channel>");
+    expect(body.match(/<item>/g)).toHaveLength(getPublishedBlogPosts().length);
   });
 });

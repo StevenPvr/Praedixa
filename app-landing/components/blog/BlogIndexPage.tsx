@@ -6,6 +6,9 @@ import type {
   PaginatedBlogPosts,
 } from "../../lib/blog/types";
 import { formatTagLabel } from "../../lib/blog/format";
+import { CorePageJsonLd } from "../seo/CorePageJsonLd";
+import { BreadcrumbTrail } from "../shared/BreadcrumbTrail";
+import { GeoSummaryPanel } from "../shared/GeoSummaryPanel";
 import { SectionShell } from "../shared/SectionShell";
 import { BlogPostCard } from "./BlogPostCard";
 
@@ -26,6 +29,22 @@ function buildPaginationHref(
   });
 }
 
+function buildBlogSummary(locale: Locale, selectedTag?: string): string {
+  if (locale === "fr") {
+    if (selectedTag) {
+      return `Articles Praedixa pour le tag ${formatTagLabel(selectedTag)}: décision opérationnelle multi-sites, arbitrages Ops/Finance et preuve d'impact économique.`;
+    }
+
+    return "Le blog Praedixa explique comment anticiper les risques opérationnels, comparer les options et relire l'impact réel des décisions multi-sites.";
+  }
+
+  if (selectedTag) {
+    return `Praedixa articles tagged ${formatTagLabel(selectedTag)}: multi-site operational decisions, Ops/Finance trade-offs, and impact proof.`;
+  }
+
+  return "The Praedixa blog explains how to anticipate operational risks, compare options, and review the real impact of multi-site decisions.";
+}
+
 export function BlogIndexPage({ locale, search, result }: BlogIndexPageProps) {
   const title = locale === "fr" ? "Blog Praedixa" : "Praedixa Blog";
   const subtitle =
@@ -34,16 +53,58 @@ export function BlogIndexPage({ locale, search, result }: BlogIndexPageProps) {
       : "Operational analysis, Ops/Finance decision-making, and impact proof.";
 
   const selectedTag = result.selectedTag;
+  const currentPath = buildBlogIndexPath(locale, {
+    page: search.page,
+    tag: search.tag,
+  });
+  const summary = buildBlogSummary(locale, selectedTag);
+  const breadcrumbItems = [
+    { label: locale === "fr" ? "Accueil" : "Home", href: `/${locale}` },
+    { label: title },
+  ] as const;
 
   return (
     <SectionShell className="py-16 md:py-24">
       <div className="mx-auto max-w-4xl">
+        <CorePageJsonLd
+          locale={locale}
+          name={
+            selectedTag ? `${title} | ${formatTagLabel(selectedTag)}` : title
+          }
+          description={summary}
+          path={currentPath}
+          breadcrumbs={[
+            {
+              name: locale === "fr" ? "Accueil" : "Home",
+              path: `/${locale}`,
+            },
+            {
+              name: title,
+              path: currentPath,
+            },
+          ]}
+        />
+        <BreadcrumbTrail items={breadcrumbItems} />
         <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
           {title}
         </h1>
-        <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-neutral-600">
-          {subtitle}
-        </p>
+        <GeoSummaryPanel
+          locale={locale}
+          summary={summary}
+          takeaways={[
+            subtitle,
+            locale === "fr"
+              ? "Chaque article relie signal, option comparée et impact relu."
+              : "Each article connects signal, compared option, and reviewed impact.",
+            selectedTag
+              ? locale === "fr"
+                ? `Filtre actif: ${formatTagLabel(selectedTag)}.`
+                : `Active filter: ${formatTagLabel(selectedTag)}.`
+              : locale === "fr"
+                ? "Hub canonique pour découvrir le corpus éditorial public."
+                : "Canonical hub to discover the public editorial corpus.",
+          ]}
+        />
 
         <div className="mt-8 flex flex-wrap gap-2">
           <Link

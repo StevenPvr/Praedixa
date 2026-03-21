@@ -19,6 +19,7 @@ Ce dossier regroupe les documents de cadrage produit et les checklists de fermet
 - `build-release-sre-readiness-spec.md` : spec de fermeture des gates qualite, release, observabilite, performance et exit gate build-ready
 - `decisionops-v1-execution-backbone.md` : epine dorsale d'execution V1 qui ordonne les streams, gates et cartes de travail a fermer
 - `matrice-verification-parcours-confiance.md` : matrice de preuve merge/release pour les deux parcours critiques du produit
+- `scaleway-fortress-security-prd.md` : PRD securite cible "porte blindee" pour la plateforme SaaS sur Scaleway, avec relais execution vers `docs/security/`
 
 ## Regles de travail
 
@@ -37,6 +38,7 @@ Ce dossier regroupe les documents de cadrage produit et les checklists de fermet
 - Utiliser `build-release-sre-readiness-spec.md` pour cadrer ce qui rend le monorepo effectivement mergeable, releasable, observable et build-ready
 - Utiliser `decisionops-v1-execution-backbone.md` pour transformer le PRD cible en ordre d'execution concret avant de creer du backlog
 - Utiliser `matrice-verification-parcours-confiance.md` pour lier chaque chantier critique a une preuve merge/release explicite
+- Utiliser `scaleway-fortress-security-prd.md` pour cadrer la cible securite infra/auth/secrets/ingestion/logs/restore sur Scaleway, puis fermer les ecarts via `docs/security/scaleway-fortress-control-matrix.md`
 
 ## Integration avec le reste de la doc
 
@@ -53,5 +55,6 @@ Ce dossier regroupe les documents de cadrage produit et les checklists de fermet
 - La readiness merge/release/SRE vient du spec build-release
 - L'ordre de fermeture prioritaire vient du backbone d'execution
 - Les preuves de parcours critiques viennent de la matrice de verification
+- La cible securite plateforme Scaleway vient du PRD cybersecurite "porte blindee" et de sa matrice d'execution cote `docs/security`
 - Les preuves techniques viennent du code, des runbooks, des docs architecture/database/testing/security et des scripts versionnes
 - Une case de `TODO.md` ne doit etre cochee que si elle est appuyee par une source verifiable dans le repo

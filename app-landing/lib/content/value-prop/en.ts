@@ -21,8 +21,7 @@ export const coreValuePropEn: ValuePropContent = {
   heroSubheading:
     "Praedixa connects your existing data, detects risks sooner, compares options and documents the real impact of every decision.",
   heroBadgeText: "DECISION AI",
-  heroProofBlockText:
-    "For COOs, operations directors, finance and CIOs.",
+  heroProofBlockText: "For COOs, operations directors, finance and CIOs.",
   heroProofRoles: ["COO", "OPS DIR.", "FINANCE", "CIO"],
   heroProofMicropill: "Traced decisions\u00a0|\u00a0Provable ROI",
   heroLogoCaption: "They trust us",

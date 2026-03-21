@@ -14,6 +14,7 @@ Boite a outils operationnelle du repo.
 - Gates et securite: `gate-*`, `verify-gate-report.sh`, `audit-ultra-strict-local.sh`, `run-*-audit.sh`, `check-*.py`, `gate.config.yaml`, `security-*.yaml`
 - Release et deploiement Scaleway: `scw-*`, `release-manifest-*`, `scw-release-*`, `smoke-test-production.sh`, `scw-post-deploy-smoke.sh`
 - Auth / Keycloak: `keycloak-*`
+- Camunda local: `camunda-dev.sh`
 - SQL utilitaire: `freeze_client_schema.sql`, `unfreeze_client_schema.sql`, `verify_*sql`
 - Data / generation de donnees: `build_data_sante_simulation_dataset.py`, `fetch_data_sante_nhs_history.py`, `generate_fake_data_files.py`
 - Documentation distribuee: `generate-directory-readmes.mjs`
@@ -25,26 +26,57 @@ Boite a outils operationnelle du repo.
 Developpement local:
 
 ```bash
+pnpm dev:symphony
 pnpm dev:api
 pnpm dev:webapp
 pnpm dev:admin
 pnpm dev:landing
 ```
 
+`pnpm dev:api` passe maintenant par `scripts/dev-api-run.sh`, qui recharge automatiquement `DATABASE_URL` depuis `app-api-ts/.env.local`, `app-api/.env.local`, `app-api/.env`, puis `.env.local` a la racine quand la variable n'est pas deja exportee dans le shell. Le meme wrapper recharge aussi `KEYCLOAK_ADMIN_USERNAME` (ou le force a `kcadmin` par defaut) et `KEYCLOAK_ADMIN_PASSWORD` / `KC_BOOTSTRAP_ADMIN_PASSWORD` depuis les env locaux standards, afin que les flux admin de provisionnement identite ne tombent pas en fail-close des le demarrage local.
+`pnpm dev:api` et `pnpm dev:admin` restent maintenant attaches au terminal local pour que les logs runtime soient visibles en direct pendant le debug. Les variantes explicites `pnpm dev:api:bg` et `pnpm dev:admin:bg` conservent le comportement background avec PID + fichiers `.tools/dev-logs/*.log`.
+Les scripts `dev-*-start|stop|status` verifient maintenant aussi l'ecoute reelle du port cible et terminent l'arbre complet `pnpm -> tsx/next`, pour eviter les faux positifs "running" avec un watcher mort ou un upstream absent.
+`pnpm dev:symphony` lance le runtime d'automation agentique interne `app-symphony`. Il lit `WORKFLOW.md`, poll Linear, cree un workspace isole par issue et pilote `codex app-server` dans ce workspace.
+Le runtime Symphony recharge automatiquement `app-symphony/.env.local`, puis `app-symphony/.env`, puis `.env.local` a la racine. Preferer `app-symphony/.env.local` pour les secrets locaux; `app-symphony/.env` ne doit rester qu'un fallback local non versionne.
+
 Auth / Keycloak:
 
 ```bash
 pnpm auth:keycloak:ensure-api-contract
+
+KEYCLOAK_SMTP_FROM='hello@praedixa.com' \
+KEYCLOAK_SMTP_FROM_DISPLAY_NAME='Praedixa' \
+./scripts/keycloak-ensure-email-config.sh
+
+./scripts/keycloak-ensure-email-theme.sh
 
 SUPER_ADMIN_PASSWORD='<mot-de-passe-super-admin>' \
 ./scripts/keycloak-ensure-super-admin.sh
 ```
 
 `keycloak-ensure-api-access-contract.sh` recale maintenant les protocol mappers live sur le realm export versionne (`claim-role`, `claim-organization-id`, `claim-site-id`, `claim-permissions` admin, `claim-amr` admin) pour eviter les drifts entre Keycloak et les callbacks Next stricts.
+`keycloak-ensure-email-config.sh` recale maintenant la configuration email du realm (`smtpServer.from`, `fromDisplayName`, plus le bloc SMTP complet, y compris le secret) via l'admin REST Keycloak pour que `execute-actions-email` ne tombe ni en `Invalid sender address 'null'` ni en sender SMTP incomplet.
+`keycloak-ensure-email-theme.sh` recale maintenant le `emailTheme` du realm sur le theme `praedixa`, qui rend l'email client `Update Password` plus clair que le wording Keycloak par defaut grace aux templates `html/` et `text/` versionnes sous `infra/auth/themes/praedixa/email/`.
 Si un utilisateur cible est fourni, le script synchronise aussi ses attributs canoniques `role`, `organization_id`, `site_id` et, si besoin, `permissions`.
 `keycloak-ensure-super-admin.sh` provisionne aussi les attributs canoniques `role=super_admin` et, par defaut, toute la taxonomie `contracts/admin/permission-taxonomy.v1.json`, en plus du realm role et de `CONFIGURE_TOTP`.
-Ces scripts relisent automatiquement `KEYCLOAK_ADMIN_PASSWORD` ou `KC_BOOTSTRAP_ADMIN_PASSWORD` depuis `app-landing/.env.local`, `app-webapp/.env.local`, `app-admin/.env.local`, puis `.env.local` a la racine si la variable n'est pas deja exportee dans le shell.
+Ces scripts relisent automatiquement `KEYCLOAK_ADMIN_PASSWORD` ou `KC_BOOTSTRAP_ADMIN_PASSWORD` depuis `app-api-ts/.env.local`, `app-api/.env.local`, `app-api/.env`, `app-landing/.env.local`, `app-webapp/.env.local`, `app-admin/.env.local`, puis `.env.local` a la racine si la variable n'est pas deja exportee dans le shell. Si `KEYCLOAK_ADMIN_USERNAME` n'est pas fourni par l'environnement local, le helper shell commun retombe explicitement sur `kcadmin`.
+Les scripts de reconciliation email utilisent maintenant un fichier `kcadm --config` isole par execution pour eviter les locks et collisions de session sur `~/.keycloak/kcadm.config`.
+`scw-configure-auth-env.sh` sait maintenant aussi cabler un realm SMTP Resend de facon concrete: par defaut `smtp.resend.com:587`, `user=resend`, `from=hello@praedixa.com`, `starttls=true`, `ssl=false`, avec fallback sur `RESEND_API_KEY`, `RESEND_FROM_EMAIL` et `RESEND_REPLY_TO_EMAIL` quand ces valeurs existent deja dans les `.env.local`. Le script pousse ces valeurs dans la config du container `auth-prod`, puis reconcile le realm live via `keycloak-ensure-email-config.sh` et `keycloak-ensure-email-theme.sh`.
 Le runtime `app-api-ts` utilise maintenant `KEYCLOAK_ADMIN_USERNAME` + `KEYCLOAK_ADMIN_PASSWORD` pour provisionner depuis le backoffice les comptes client dans Keycloak avant d'ecrire `users.auth_user_id`; `scw-configure-api-env.sh` doit donc aussi synchroniser cette creden­tial runtime.
+
+Camunda local:
+
+```bash
+pnpm camunda:download
+pnpm camunda:up
+pnpm camunda:status
+pnpm test:camunda:onboarding
+pnpm camunda:logs
+pnpm camunda:down
+```
+
+`camunda-dev.sh` telecharge l'artefact officiel `docker-compose-<version>.zip` depuis `camunda/camunda-distributions`, l'extrait dans `.tools/camunda/`, puis pilote le stack lightweight par defaut ou le stack full avec `--full`. Le lightweight expose `http://127.0.0.1:8088/v2` sans auth API par defaut; le full reste en OAuth via Keycloak local.
+`pnpm test:camunda:onboarding` est la verification canonique de cette pile locale: il cree une organisation ephemere, demarre un `onboarding_case` via Camunda, synchronise la projection SQL et complete la premiere user task.
 
 Gates:
 
@@ -80,12 +112,14 @@ Les fuzzings negatifs complets sur endpoints authentifies ne doivent pas etre gr
 Le script impose aussi des timeouts explicites sur l'attente de sante, le scan Schemathesis et le smoke `k6`, pour qu'un service degrade ou un client bloque ne puisse pas figer indefiniment les hooks Git.
 Le `cleanup` termine maintenant aussi l'arbre de process complet du serveur API de fond apres un court delai si `pnpm exec tsx src/index.ts` ne descend pas tout seul, afin d'eviter les `pre-push` pendus sur un `wait` laisse par des enfants `pnpm` ou `tsx`.
 `run-frontend-audits.sh` reutilise explicitement le Chromium Playwright deja valide par les hooks pour `pa11y-ci`, et demarre les frontends via leurs serveurs standalone `node .next/standalone/<app>/server.js` plutot que `pnpm ... next start`, avec logs absolus, `exec` direct, capture de PID dans le shell courant, et cleanup non reentrant pour que le gate n'attende pas indefiniment des shells zombies ou des wrappers.
+`audit-ultra-strict-local.sh` ignore maintenant uniquement les fichiers `.env`, `.env.local` et `.env.*.local` deja exclus par Git, afin de continuer a bloquer les secrets commitables tout en laissant vivre les secrets locaux non versionnes necessaires aux runtimes de dev.
 `scw-release-deploy.sh` doit traiter aussi le dernier service quand `--services` contient un seul item sans retour ligne final, sinon un `--services landing` peut etre ignore silencieusement.
 `scw-release-manifest-create.sh` exige maintenant un `--gate-report` reel et versionne son `path + sha256` dans le manifest signe; une release sans preuve de gate signee et reverifiable ne doit plus etre materialisee.
 `gate-report-sign.sh`, `verify-gate-report.sh`, `release-manifest-sign.sh` et `release-manifest-verify.sh` exigent une cle HMAC deja provisionnee sur disque; ils ne doivent jamais generer une nouvelle racine de confiance a chaud ni passer la cle en argument CLI.
 `scw-release-deploy.sh` doit utiliser la reference signee `registry-image@sha256:...` du manifest comme source de verite; si l'API Scaleway Container refuse encore cette syntaxe, le script peut seulement retomber sur le tag deja signe derive de cette meme reference et doit journaliser explicitement ce fallback fournisseur.
 Les scripts `scw-configure-*.sh` doivent passer les variables d'environnement et secrets via des fichiers JSON temporaires et `scw-apply-container-config.sh`, pas via des arguments CLI contenant les secrets en clair.
 Les scripts `scw-configure-landing-env.sh`, `scw-configure-frontend-env.sh`, `scw-configure-api-env.sh` et `scw-configure-auth-env.sh` doivent aussi synchroniser leurs secrets vers Scaleway Secret Manager sous `/praedixa/<env>/<container>/runtime` avant application au container.
+Le profil landing inclut maintenant aussi `LANDING_ASSET_SIGNING_SECRET`; un deploy landing sans ce secret reouvre immediatement un chemin de telechargement a URL stable et doit rester bloque au preflight.
 `validate-runtime-secret-inventory.mjs` verifie que `docs/deployment/runtime-secrets-inventory.json` reste aligne avec `docs/deployment/environment-secrets-owners-matrix.md`; `scw-preflight-deploy.sh` execute ce validateur avant tout controle cloud et lit ensuite depuis cet inventaire les secrets runtime `preflight_required` a imposer sur chaque container.
 Les preflights `scw-preflight-staging.sh` et `scw-preflight-deploy.sh` sont maintenant alimentes par l'inventaire versionne des secrets runtime; pour les frontends, cela impose `AUTH_SESSION_SECRET`, `AUTH_RATE_LIMIT_KEY_SALT` et au moins une cle de store distribue (`AUTH_RATE_LIMIT_REDIS_URL` ou `RATE_LIMIT_STORAGE_URI`) sans warning de degradation locale. Le wrapper `pnpm run scw:preflight:staging` delegue maintenant au chemin strict `./scripts/scw-preflight-deploy.sh staging`.
 `scw-configure-frontend-env.sh` exige maintenant une origine publique explicite pour `webapp` et `admin`: `AUTH_APP_ORIGIN` doit correspondre exactement au host canonique versionne pour la surface cible, et `NEXT_PUBLIC_APP_ORIGIN` reste un miroir strict de cette meme origin quand il est expose.
@@ -126,16 +160,20 @@ pnpm run scw:bootstrap:centaurus
 pnpm run scw:configure:centaurus
 pnpm run scw:deploy:centaurus
 
+pnpm run scw:bootstrap:greekia
+pnpm run scw:configure:greekia
+pnpm run scw:deploy:greekia
+
 pnpm run scw:bootstrap:skolae
 pnpm run scw:configure:skolae
 pnpm run scw:deploy:skolae
 ```
 
-Les bootstraps `scw-bootstrap-centaurus.sh` et `scw-bootstrap-skolae.sh` sont maintenant fail-close sur le bind domaine + DNS:
+Les bootstraps `scw-bootstrap-centaurus.sh`, `scw-bootstrap-greekia.sh` et `scw-bootstrap-skolae.sh` pilotent le bind domaine + DNS de facon explicite:
 
-- mode par defaut `SCW_BOOTSTRAP_DNS_MODE=scaleway-managed`: le script cree/met a jour le CNAME dans la zone Scaleway, puis verifie le binding container, le record Scaleway et la resolution publique effective
-- mode explicite `SCW_BOOTSTRAP_DNS_MODE=external-verified`: le script n'ecrit pas le DNS, mais exige que le CNAME public existe deja et pointe vers la cible attendue avant de reussir
-- aucune creation DNS manuelle "a finir plus tard" n'est toleree silencieusement; un bootstrap incomplet doit sortir en erreur
+- mode `SCW_BOOTSTRAP_DNS_MODE=scaleway-managed`: le script cree/met a jour le CNAME dans la zone Scaleway, puis verifie le binding container, le record Scaleway et la resolution publique effective
+- mode `SCW_BOOTSTRAP_DNS_MODE=external-verified`: le script n'ecrit pas le DNS, mais exige que le CNAME public existe deja et pointe vers la cible attendue avant de reussir
+- mode `SCW_BOOTSTRAP_DNS_MODE=external-pending`: le script cree le binding container, affiche la cible CNAME attendue et laisse explicitement la pose du record au provider DNS externe
 - les fenetres d'attente sont pilotables par `SCW_BOOTSTRAP_VERIFY_ATTEMPTS` et `SCW_BOOTSTRAP_VERIFY_SLEEP_SECONDS`
 
 ## Conventions

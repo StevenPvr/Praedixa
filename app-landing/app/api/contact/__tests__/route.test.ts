@@ -113,6 +113,21 @@ describe("POST /api/contact", () => {
     expect(response.headers.get("Cache-Control")).toBe("no-store");
   });
 
+  it("returns 403 when a production origin uses an insecure protocol", async () => {
+    const request = makeRequest(validBody(), {
+      host: "www.praedixa.com",
+      origin: "http://www.praedixa.com",
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({
+      error: "Origine de requête non autorisée.",
+    });
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+  });
+
   it("returns 403 when source headers are missing", async () => {
     const request = makeRequest(validBody());
 

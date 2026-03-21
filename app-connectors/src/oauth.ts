@@ -144,6 +144,9 @@ export async function exchangeClientCredentials(
   tokenEndpoint: string,
   clientCredentials: OAuthClientCredentials,
   scopes: string[],
+  options?: {
+    audience?: string | null;
+  },
 ): Promise<OAuthTokenBundle> {
   const body = new URLSearchParams({
     grant_type: "client_credentials",
@@ -152,6 +155,10 @@ export async function exchangeClientCredentials(
   });
   if (scopes.length > 0) {
     body.set("scope", scopes.join(" "));
+  }
+  const audience = options?.audience?.trim() ?? "";
+  if (audience.length > 0) {
+    body.set("audience", audience);
   }
   return await fetchToken(tokenEndpoint, body);
 }

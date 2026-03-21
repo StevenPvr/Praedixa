@@ -25,6 +25,10 @@ describe("connectors transport and auth surface", () => {
     clearRateLimitBuckets();
   });
 
+  function getRoute(template: string) {
+    return routes.find((entry) => entry.template === template);
+  }
+
   it("keeps transport security headers enabled", () => {
     expect(SECURITY_HEADERS).toEqual({
       "Content-Security-Policy":
@@ -171,9 +175,7 @@ describe("connectors transport and auth surface", () => {
   });
 
   it("rate-limits the public ingest endpoint by client IP", () => {
-    const ingestRoute = routes.find(
-      (entry) => entry.template === "/v1/ingest/:orgId/:connectionId/events",
-    );
+    const ingestRoute = getRoute("/v1/ingest/:orgId/:connectionId/events");
 
     expect(resolveRateLimitPolicy(ingestRoute!)).toEqual({
       maxRequests: 120,
@@ -187,6 +189,36 @@ describe("connectors transport and auth surface", () => {
 
     expect(first).toMatchObject({ allowed: true });
     expect(second).toMatchObject({ allowed: true });
+  });
+
+  it("keeps secret-bearing sync runtime routes behind dedicated runtime capabilities", () => {
+    const claimRoute = getRoute("/v1/runtime/sync-runs/claim");
+    const executionPlanRoute = getRoute(
+      "/v1/organizations/:orgId/sync-runs/:runId/execution-plan",
+    );
+    const syncStateRoute = getRoute(
+      "/v1/organizations/:orgId/sync-runs/:runId/sync-state",
+    );
+    const rawEventPayloadRoute = getRoute(
+      "/v1/organizations/:orgId/connections/:connectionId/raw-events/:eventId/payload",
+    );
+    const rawEventsClaimRoute = getRoute(
+      "/v1/organizations/:orgId/connections/:connectionId/raw-events/claim",
+    );
+
+    expect(claimRoute?.requiredCapabilities).toEqual(["sync_runtime:write"]);
+    expect(executionPlanRoute?.requiredCapabilities).toEqual([
+      "sync_runtime:write",
+    ]);
+    expect(syncStateRoute?.requiredCapabilities).toEqual([
+      "sync_runtime:write",
+    ]);
+    expect(rawEventPayloadRoute?.requiredCapabilities).toEqual([
+      "raw_events_runtime:write",
+    ]);
+    expect(rawEventsClaimRoute?.requiredCapabilities).toEqual([
+      "raw_events_runtime:write",
+    ]);
   });
 
   it("builds structured request lifecycle logs with stable correlation fields", () => {

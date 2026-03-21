@@ -52,7 +52,7 @@ La regression comportementale du verdict d'activation vit dans `app-connectors/s
 | `olo`         | `pos`        | `api_key`                    | `credential_submission`, `push_api`                            | `15 min`   | `30 j`        | oui    | oui      |
 | `cdk`         | `dms`        | `service_account`, `sftp`    | `managed_service_account`, `credential_submission`, `push_api` | `60 min`   | `30 j`        | oui    | oui      |
 | `reynolds`    | `dms`        | `service_account`, `sftp`    | `managed_service_account`, `credential_submission`, `push_api` | `60 min`   | `30 j`        | oui    | oui      |
-| `geotab`      | `telematics` | `api_key`, `oauth2`          | `credential_submission`, `push_api`                            | `10 min`   | `30 j`        | oui    | oui      |
+| `geotab`      | `telematics` | `session`                    | `credential_submission`, `push_api`                            | `10 min`   | `30 j`        | oui    | oui      |
 | `fourth`      | `wfm`        | `api_key`, `sftp`            | `credential_submission`, `push_api`                            | `30 min`   | `30 j`        | oui    | oui      |
 | `oracle_tm`   | `tms`        | `oauth2`, `service_account`  | `credential_submission`, `managed_service_account`, `push_api` | `30 min`   | `30 j`        | oui    | oui      |
 | `sap_tm`      | `tms`        | `oauth2`, `service_account`  | `credential_submission`, `managed_service_account`, `push_api` | `30 min`   | `30 j`        | oui    | oui      |

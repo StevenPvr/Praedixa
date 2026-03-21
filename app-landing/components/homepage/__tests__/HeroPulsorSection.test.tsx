@@ -33,8 +33,14 @@ vi.mock("framer-motion", () => {
   const React = require("react");
   const forwardMotion = (tag: string) =>
     React.forwardRef((props: any, ref: any) => {
-      const { variants, initial, animate, whileInView, viewport, transition, ...rest } = props;
-      return React.createElement(tag, { ...rest, ref });
+      const passthroughProps = { ...props };
+      delete passthroughProps.variants;
+      delete passthroughProps.initial;
+      delete passthroughProps.animate;
+      delete passthroughProps.whileInView;
+      delete passthroughProps.viewport;
+      delete passthroughProps.transition;
+      return React.createElement(tag, { ...passthroughProps, ref });
     });
   return {
     motion: new Proxy(
@@ -66,7 +72,7 @@ describe("HeroPulsorSection", () => {
   it("renders the blue badge text", () => {
     render(<HeroPulsorSection locale="fr" />);
 
-    expect(screen.getByText("IA DÉCISIONNELLE")).toBeInTheDocument();
+    expect(screen.getByText("DATA SCIENCE + ML + IA")).toBeInTheDocument();
   });
 
   it("renders the subheading paragraph", () => {
@@ -74,7 +80,7 @@ describe("HeroPulsorSection", () => {
 
     expect(
       screen.getByText(
-        /Praedixa connecte vos données existantes/,
+        /Praedixa connecte vos données existantes et couple Data Science, Machine Learning et IA/,
       ),
     ).toBeInTheDocument();
   });
@@ -93,7 +99,7 @@ describe("HeroPulsorSection", () => {
 
     // Secondary CTA (glass pill) → proof
     const proofCta = screen.getByRole("link", {
-      name: /Voir la preuve sur historique/,
+      name: /Voir la preuve de ROI/,
     });
     expect(proofCta).toHaveAttribute("href", "/fr/decision-log-preuve-roi");
   });
@@ -119,17 +125,13 @@ describe("HeroPulsorSection", () => {
   it("renders the micro-pill", () => {
     render(<HeroPulsorSection locale="fr" />);
 
-    expect(
-      screen.getByText(/Décisions tracées/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Preuve de ROI/)).toBeInTheDocument();
   });
 
   it("renders the logo rail caption", () => {
     render(<HeroPulsorSection locale="fr" />);
 
-    expect(
-      screen.getByText("Ils nous font confiance"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Ils nous font confiance")).toBeInTheDocument();
   });
 
   it("renders correctly for the English locale", () => {

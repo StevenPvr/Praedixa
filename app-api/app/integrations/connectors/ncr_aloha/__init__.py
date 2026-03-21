@@ -1,0 +1,1 @@
+"""NCR Aloha provider adapter."""

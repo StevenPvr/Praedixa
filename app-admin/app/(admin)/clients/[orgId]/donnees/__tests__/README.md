@@ -13,6 +13,7 @@ Sous-dossiers :
 Fichiers :
 
 - `page.test.tsx`
+  - couvre maintenant l'ouverture persistante du `journal d'ingestion` admin tout en gardant `medallion-quality-report` et `datasets` en fail-close local.
 
 ## Intégration
 

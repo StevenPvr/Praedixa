@@ -10,6 +10,7 @@ import {
   createTelemetryLogger,
 } from "@praedixa/telemetry";
 import { decodeJwtPayloadDetailed, parseBearerToken } from "./auth.js";
+import { resolveApiExposurePolicy } from "./exposure-policy.js";
 import { failure } from "./response.js";
 import { compileRoutes, matchRoute } from "./router.js";
 import { routes } from "./routes.js";
@@ -32,6 +33,7 @@ export const SECURITY_HEADERS = {
     "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
+  "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet",
   "Referrer-Policy": "no-referrer",
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
   "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
@@ -644,6 +646,9 @@ export function createAppServer(config: AppConfig) {
     let role: string | null = null;
     let organizationId: string | null = null;
     let siteId: string | null = null;
+    let exposurePolicyId: string | null = null;
+    let exposureClassification: string | null = null;
+    let exposureAudience: string | null = null;
 
     response.setHeader("X-Request-ID", requestId);
     response.setHeader("X-Trace-ID", traceId ?? requestId);
@@ -665,6 +670,9 @@ export function createAppServer(config: AppConfig) {
           role,
           organizationId,
           siteId,
+          exposurePolicyId,
+          exposureClassification,
+          exposureAudience,
           status:
             statusCode >= 500
               ? "failed"
@@ -685,6 +693,9 @@ export function createAppServer(config: AppConfig) {
       origin: requestOrigin,
       clientIp,
       user_agent: userAgent,
+      exposurePolicyId,
+      exposureClassification,
+      exposureAudience,
       status: "started",
     });
 
@@ -757,6 +768,36 @@ export function createAppServer(config: AppConfig) {
       return;
     }
     routeTemplate = matched.route.template;
+
+    const exposurePolicy = resolveApiExposurePolicy(matched.route.template);
+    if (exposurePolicy == null) {
+      logStructuredEvent("error", "http.exposure_policy_missing", {
+        requestId,
+        traceId,
+        method,
+        path: requestUrl.pathname,
+        routeTemplate,
+        clientIp,
+        user_agent: userAgent,
+        status: "failed",
+        statusCode: 500,
+      });
+      sendResult(
+        response,
+        failure(
+          "EXPOSURE_POLICY_MISSING",
+          "Route exposure policy is missing",
+          requestId,
+          500,
+          { routeTemplate: matched.route.template },
+        ),
+        corsHeaders,
+      );
+      return;
+    }
+    exposurePolicyId = exposurePolicy.id;
+    exposureClassification = exposurePolicy.classification;
+    exposureAudience = exposurePolicy.audience;
 
     const rateLimitPolicy = resolveRateLimitPolicy(matched.route);
 

@@ -31,6 +31,8 @@ export const ADMIN_ENDPOINTS = {
     `${V1}/organizations/${encodeURIComponent(orgId)}/reactivate`,
   orgChurn: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/churn`,
+  orgDelete: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/delete`,
 
   // Users
   orgUsers: (orgId: string) =>
@@ -63,8 +65,20 @@ export const ADMIN_ENDPOINTS = {
   // Onboarding
   onboardingList: `${V1}/onboarding`,
   onboardingStart: `${V1}/onboarding`,
-  onboardingStep: (onboardingId: string, step: number) =>
-    `${V1}/onboarding/${encodeURIComponent(onboardingId)}/step/${encodeURIComponent(String(step))}`,
+  orgOnboardingCases: (orgId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/onboarding/cases`,
+  orgOnboardingCase: (orgId: string, caseId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/onboarding/cases/${encodeURIComponent(caseId)}`,
+  orgOnboardingCaseRecompute: (orgId: string, caseId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/onboarding/cases/${encodeURIComponent(caseId)}/readiness/recompute`,
+  orgOnboardingCaseCancel: (orgId: string, caseId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/onboarding/cases/${encodeURIComponent(caseId)}/cancel`,
+  orgOnboardingCaseReopen: (orgId: string, caseId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/onboarding/cases/${encodeURIComponent(caseId)}/reopen`,
+  orgOnboardingTaskSave: (orgId: string, caseId: string, taskId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/onboarding/cases/${encodeURIComponent(caseId)}/tasks/${encodeURIComponent(taskId)}/save`,
+  orgOnboardingTaskComplete: (orgId: string, caseId: string, taskId: string) =>
+    `${V1}/organizations/${encodeURIComponent(orgId)}/onboarding/cases/${encodeURIComponent(caseId)}/tasks/${encodeURIComponent(taskId)}/complete`,
   // Monitoring (operational)
   monitoringAlertsSummary: `${V1}/monitoring/alerts/summary`,
   monitoringAlertsByOrg: `${V1}/monitoring/alerts/by-org`,
@@ -180,12 +194,6 @@ export const ADMIN_ENDPOINTS = {
     `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}/ingest-credentials/${encodeURIComponent(credentialId)}/revoke`,
   orgIntegrationRawEvents: (orgId: string, connectionId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}/raw-events`,
-  orgIntegrationRawEventPayload: (
-    orgId: string,
-    connectionId: string,
-    eventId: string,
-  ) =>
-    `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/connections/${encodeURIComponent(connectionId)}/raw-events/${encodeURIComponent(eventId)}/payload`,
   orgIntegrationSyncRuns: (orgId: string) =>
     `${V1}/organizations/${encodeURIComponent(orgId)}/integrations/sync-runs`,
 

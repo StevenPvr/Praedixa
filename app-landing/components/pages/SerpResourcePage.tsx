@@ -9,12 +9,36 @@ import {
 } from "../../lib/content/serp-resources-fr";
 import { PRAEDIXA_BASE_URL } from "../../lib/seo/entity";
 import { serializeJsonForScriptTag } from "../../lib/security/json-script";
+import { GeoSummaryPanel } from "../shared/GeoSummaryPanel";
 import { SectionShell } from "../shared/SectionShell";
 import { Kicker } from "../shared/Kicker";
 
 interface SerpResourcePageProps {
   locale: Locale;
   entry: SerpResourceEntry;
+}
+
+function buildSerpResourceTakeaways(entry: SerpResourceEntry): string[] {
+  const seen = new Set<string>();
+
+  return [entry.description, entry.asset.description]
+    .concat(
+      entry.sections.flatMap((section) => [
+        ...(section.bullets ?? []),
+        ...section.paragraphs,
+      ]),
+    )
+    .map((item) => item.replace(/\s+/g, " ").trim())
+    .filter((item) => item.length > 0 && item !== entry.openingSnippet)
+    .filter((item) => {
+      const normalized = item.toLowerCase();
+      if (seen.has(normalized)) {
+        return false;
+      }
+      seen.add(normalized);
+      return true;
+    })
+    .slice(0, 3);
 }
 
 function SerpStructuredData({
@@ -125,7 +149,10 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
     source: "seo_resource",
     seo_slug: entry.slug,
   }).toString()}`;
-  const assetHref = `/${locale}/ressources/${entry.slug}/asset`;
+  const assetHref = `/api/resource-asset?${new URLSearchParams({
+    locale,
+    slug: entry.slug,
+  }).toString()}`;
   const canonicalPath = `/${locale}/ressources/${entry.slug}`;
   const canonicalUrl = `${PRAEDIXA_BASE_URL}${canonicalPath}`;
   const relatedResources = getRelatedSerpResources(entry.slug, 3);
@@ -134,10 +161,16 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
     locale === "fr"
       ? getSerpResourcePrimaryCta(entry.slug)
       : valueProp.ctaSecondary;
+  const breadcrumbSchemaId = `${canonicalUrl}#breadcrumb`;
+  const pageSchemaId =
+    schemaType === "Article"
+      ? `${canonicalUrl}#article`
+      : `${canonicalUrl}#webpage`;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
+    "@id": breadcrumbSchemaId,
     itemListElement: [
       {
         "@type": "ListItem",
@@ -163,10 +196,23 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": schemaType,
+    "@id": pageSchemaId,
     headline: entry.title,
     description: entry.description,
     inLanguage: locale,
     mainEntityOfPage: canonicalUrl,
+    isPartOf: {
+      "@type": "WebSite",
+      "@id": `${PRAEDIXA_BASE_URL}#website`,
+    },
+    about: {
+      "@type": "Organization",
+      "@id": `${PRAEDIXA_BASE_URL}#organization`,
+    },
+    breadcrumb: {
+      "@id": breadcrumbSchemaId,
+    },
+    keywords: [entry.query, entry.intent, entry.asset.type],
     author: {
       "@type": "Organization",
       name: "Praedixa",
@@ -213,9 +259,12 @@ export function SerpResourcePage({ locale, entry }: SerpResourcePageProps) {
         <h1 className="mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl md:text-4xl">
           {entry.title}
         </h1>
-        <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-neutral-500">
-          {entry.openingSnippet}
-        </p>
+        <GeoSummaryPanel
+          locale={locale}
+          summary={entry.openingSnippet}
+          takeaways={buildSerpResourceTakeaways(entry)}
+          eyebrow={locale === "fr" ? "Réponse directe" : "Direct answer"}
+        />
 
         <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50/50 p-5">
           <span className="text-xs font-semibold uppercase tracking-[0.08em] text-amber-600">

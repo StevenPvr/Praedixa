@@ -18,3 +18,6 @@ Composants UI du blog marketing.
 ## Convention
 
 La logique de lecture disque, de frontmatter et de RSS doit rester dans `lib/blog/`; ce dossier ne doit contenir que la composition UI.
+`BlogIndexPage.tsx` doit rester une vraie page pilier GEO: breadcrumb visible, resume canonique court et `WebPage`/`BreadcrumbList` JSON-LD coherents sur le hub principal.
+`BlogPostPage.tsx` doit garder le meme niveau d'exigence: breadcrumb visible, bloc `answer-first` derive du post lui-meme et `BlogPosting`/`BreadcrumbList` relies au site et a l'organisation canoniques.
+Quand un post fournit `answerSummary`, `keyPoints` ou `sources` via le frontmatter, la page detail doit les privilegier sur les fallbacks derives du corps MDX.

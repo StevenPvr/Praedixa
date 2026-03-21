@@ -44,9 +44,15 @@ describe("FinalCtaSection", () => {
   it("renders step 1 form fields (Type de réseau, Principal enjeu, Horizon projet)", () => {
     render(<FinalCtaSection locale="fr" />);
 
-    expect(screen.getByText("Type de réseau")).toBeInTheDocument();
-    expect(screen.getByText("Principal enjeu")).toBeInTheDocument();
-    expect(screen.getByText("Horizon projet")).toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", { name: "Type de réseau" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: "Principal enjeu" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", { name: "Horizon projet" }),
+    ).toBeInTheDocument();
   });
 
   it("renders a select for 'Type de réseau' with correct options", () => {

@@ -1,6 +1,6 @@
 # PRD Connecteur - Manhattan (WMS/TMS)
 
-- Statut: `Ready for build`
+- Statut: `L2 core delivered`
 - Priorite: `P2`
 - Verticales ciblees: logistique, transport
 - Dependance: acces Manhattan Active API ou export securise

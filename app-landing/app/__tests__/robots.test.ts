@@ -34,6 +34,8 @@ describe("robots()", () => {
 
   it("should explicitly allow major AI crawlers while keeping private paths blocked", () => {
     const targetedBots = [
+      "Googlebot",
+      "Google-Extended",
       "OAI-SearchBot",
       "GPTBot",
       "ChatGPT-User",
@@ -42,6 +44,7 @@ describe("robots()", () => {
       "Claude-User",
       "PerplexityBot",
       "Perplexity-User",
+      "MistralAI-User",
     ];
 
     for (const bot of targetedBots) {

@@ -4,6 +4,7 @@ import { CONNECTOR_CATALOG } from "./catalog.js";
 import { makeIdempotencyKey } from "./security.js";
 import type {
   AuthorizationSession,
+  ConnectionSyncState,
   ConnectorAuditEvent,
   ConnectorConnection,
   CreateConnectionInput,
@@ -25,11 +26,26 @@ type RunUpdate = {
   errorMessage?: string | null;
   startedAt?: string | null;
   endedAt?: string | null;
+  availableAt?: string;
+  attempts?: number;
+  maxAttempts?: number;
+  priority?: number;
+  lockedBy?: string | null;
+  leaseExpiresAt?: string | null;
+};
+
+type SyncStateUpdate = {
+  watermarkText?: string | null;
+  watermarkAt?: string | null;
+  cursorJson?: Record<string, unknown>;
+  lastRunId?: string | null;
+  updatedByWorker?: string | null;
 };
 
 export class InMemoryConnectorStore {
   protected readonly connections = new Map<string, ConnectorConnection>();
   protected readonly runs = new Map<string, SyncRun>();
+  protected readonly syncStates = new Map<string, ConnectionSyncState>();
   protected readonly syncReplayIndex = new Map<string, string>();
   protected readonly secretsByRef = new Map<string, StoredSecretRecord>();
   protected readonly latestSecretRefByConnection = new Map<string, string>();
@@ -488,6 +504,8 @@ export class InMemoryConnectorStore {
       attempts: 0,
       maxAttempts: 8,
       priority: 50,
+      lockedBy: null,
+      leaseExpiresAt: null,
       createdAt: now,
       ...patch,
     };
@@ -497,6 +515,84 @@ export class InMemoryConnectorStore {
       created: true,
       run,
     };
+  }
+
+  private makeSyncStateKey(connectionId: string, sourceObject: string): string {
+    return `${connectionId}::${sourceObject}`;
+  }
+
+  getSyncState(
+    organizationId: string,
+    connectionId: string,
+    sourceObject: string,
+  ): ConnectionSyncState | null {
+    const row = this.syncStates.get(
+      this.makeSyncStateKey(connectionId, sourceObject),
+    );
+    if (
+      row == null ||
+      row.organizationId !== organizationId ||
+      row.connectionId !== connectionId
+    ) {
+      return null;
+    }
+    return row;
+  }
+
+  listSyncStates(
+    organizationId: string,
+    connectionId: string,
+  ): ConnectionSyncState[] {
+    return Array.from(this.syncStates.values())
+      .filter((state) => {
+        return (
+          state.organizationId === organizationId &&
+          state.connectionId === connectionId
+        );
+      })
+      .sort((left, right) =>
+        left.sourceObject.localeCompare(right.sourceObject),
+      );
+  }
+
+  upsertSyncState(
+    organizationId: string,
+    connectionId: string,
+    sourceObject: string,
+    patch: SyncStateUpdate,
+  ): ConnectionSyncState {
+    const now = new Date().toISOString();
+    const key = this.makeSyncStateKey(connectionId, sourceObject);
+    const previous = this.syncStates.get(key);
+    const next: ConnectionSyncState = {
+      organizationId,
+      connectionId,
+      sourceObject,
+      watermarkText:
+        patch.watermarkText !== undefined
+          ? patch.watermarkText
+          : (previous?.watermarkText ?? null),
+      watermarkAt:
+        patch.watermarkAt !== undefined
+          ? patch.watermarkAt
+          : (previous?.watermarkAt ?? null),
+      cursorJson:
+        patch.cursorJson !== undefined
+          ? { ...patch.cursorJson }
+          : { ...(previous?.cursorJson ?? {}) },
+      lastRunId:
+        patch.lastRunId !== undefined
+          ? patch.lastRunId
+          : (previous?.lastRunId ?? null),
+      updatedByWorker:
+        patch.updatedByWorker !== undefined
+          ? patch.updatedByWorker
+          : (previous?.updatedByWorker ?? null),
+      createdAt: previous?.createdAt ?? now,
+      updatedAt: now,
+    };
+    this.syncStates.set(key, next);
+    return next;
   }
 
   updateSyncRun(
@@ -517,9 +613,73 @@ export class InMemoryConnectorStore {
       errorMessage: patch.errorMessage ?? previous.errorMessage,
       startedAt: patch.startedAt ?? previous.startedAt,
       endedAt: patch.endedAt ?? previous.endedAt,
+      availableAt: patch.availableAt ?? previous.availableAt,
+      attempts: patch.attempts ?? previous.attempts,
+      maxAttempts: patch.maxAttempts ?? previous.maxAttempts,
+      priority: patch.priority ?? previous.priority,
+      lockedBy:
+        patch.lockedBy !== undefined ? patch.lockedBy : previous.lockedBy,
+      leaseExpiresAt:
+        patch.leaseExpiresAt !== undefined
+          ? patch.leaseExpiresAt
+          : previous.leaseExpiresAt,
     };
     this.runs.set(runId, next);
     return next;
+  }
+
+  claimSyncRuns(
+    organizationIds: readonly string[],
+    workerId: string,
+    limit: number,
+    leaseSeconds: number,
+  ): SyncRun[] {
+    if (organizationIds.length === 0 || limit < 1) {
+      return [];
+    }
+
+    const allowedOrganizations = new Set(organizationIds);
+    const nowMs = Date.now();
+    const claimedAt = new Date(nowMs).toISOString();
+    const leaseExpiresAt = new Date(nowMs + leaseSeconds * 1000).toISOString();
+
+    const candidates = Array.from(this.runs.values())
+      .filter((run) => {
+        if (!allowedOrganizations.has(run.organizationId)) {
+          return false;
+        }
+        if (run.status !== "queued") {
+          return false;
+        }
+        return Date.parse(run.availableAt) <= nowMs;
+      })
+      .sort((left, right) => {
+        if (left.priority !== right.priority) {
+          return left.priority - right.priority;
+        }
+        if (left.availableAt !== right.availableAt) {
+          return left.availableAt.localeCompare(right.availableAt);
+        }
+        return left.createdAt.localeCompare(right.createdAt);
+      })
+      .slice(0, limit);
+
+    return candidates
+      .map((run) =>
+        this.updateSyncRun(run.organizationId, run.id, {
+          status: "running",
+          recordsFetched: 0,
+          recordsWritten: 0,
+          errorClass: null,
+          errorMessage: null,
+          startedAt: claimedAt,
+          endedAt: null,
+          attempts: run.attempts + 1,
+          lockedBy: workerId,
+          leaseExpiresAt,
+        }),
+      )
+      .filter((run): run is SyncRun => run != null);
   }
 
   getSyncRun(organizationId: string, runId: string): SyncRun | null {

@@ -21,6 +21,7 @@ interface OrgDetail {
   status: OrgStatus;
   plan: PlanTier;
   contactEmail: string;
+  isTest: boolean;
   sites: SiteHierarchy[];
 }
 
@@ -67,7 +68,12 @@ export default function ClientWorkspaceLayout({
       hierarchy={sites}
     >
       <div className="-m-4 sm:-m-6">
-        <OrgHeader name={data.name} plan={data.plan} status={data.status} />
+        <OrgHeader
+          name={data.name}
+          plan={data.plan}
+          status={data.status}
+          isTest={data.isTest}
+        />
         <ClientTabsNav basePath={basePath} />
 
         <div className="flex">

@@ -19,13 +19,15 @@ Point d'entree App Router du site public.
 - `robots.ts`: politique crawl
 - `sitemap.ts`: sitemap genere depuis routes fixes, blog et ressources SEO
 - `rss.xml/route.ts`: flux RSS blog
-- `llms.txt/route.ts` et `llms-full.txt/route.ts`: sorties texte canoniques pour agents/LLMs
+- `llms.txt/route.ts`: politique GEO/training canonique et principaux points d'entree publics
+- `llms-full.txt/route.ts`: inventaire GEO riche des pages publiques canoniques
 - `llm.txt/route.ts`: alias de compatibilite qui redirige vers `/llms.txt`
 
 ## Regles utiles
 
 - Une nouvelle page marketing doit presque toujours vivre sous `app/[locale]/...`.
 - Une route non localisee n'est justifiee que pour metadata, assets speciaux ou endpoints techniques.
+- Toute nouvelle route publique ou technique doit etre couverte par `lib/security/exposure-policy.ts`; le filtrage anti-extraction doit distinguer les surfaces GEO volontairement ouvertes a l'indexation, a la citation et au training des APIs, assets signes et routes techniques non sacrificielles.
 - Toute suppression/renommage de route dans `app-landing` doit s'accompagner d'un nettoyage `.next` avant redemarrage Turbopack.
 - `layout.tsx` doit garder le chargement de police critique minimal pour la landing; ne pas ajouter une fonte secondaire globale si elle ne porte pas le hero ou le premier viewport.
 

@@ -15,6 +15,7 @@ describe("llms routes", () => {
   it("should return plain text for /llms.txt", async () => {
     const response = await getLlms();
     expect(response.headers.get("content-type")).toContain("text/plain");
+    expect(response.headers.get("cache-control")).toBe("public, max-age=3600");
   });
 
   it("should return plain text for /llms-full.txt", async () => {
@@ -39,6 +40,12 @@ describe("llms routes", () => {
     expect(body).toContain("# Praedixa");
     expect(body).toContain(
       "> Praedixa anticipates operational needs, optimizes decisions, and proves ROI for multi-site networks.",
+    );
+    expect(body).toContain("## Machine Consumption Policy");
+    expect(body).toContain("used for model training by compliant AI providers");
+    expect(body).toContain("long-term model memory");
+    expect(body).toContain(
+      "Do not crawl or rely on `/api/`, `/app/`, `/admin/`",
     );
     expect(body).toContain(
       "[llms-full.txt](https://www.praedixa.com/llms-full.txt)",
@@ -74,6 +81,7 @@ describe("llms routes", () => {
     const body = await (await getLlmsFull()).text();
 
     expect(body).toContain("# Praedixa full content index");
+    expect(body).toContain("## Machine Consumption Policy");
     expect(body).toContain("## Core FR");
     expect(body).toContain("## Core EN");
     expect(body).toContain("## French SERP Resource Library");

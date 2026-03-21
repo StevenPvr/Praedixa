@@ -21,6 +21,7 @@ const WORKSPACE_HEADER_ACCESS = dedupePermissions([
   ...ORG_READ,
   ...USERS_ACCESS,
   ...CONFIG_ACCESS,
+  ...ONBOARDING_ACCESS,
 ]);
 const PROOF_PACK_ACCESS = dedupePermissions([...ORG_READ, ...CONFIG_ACCESS]);
 
@@ -72,10 +73,16 @@ export const ADMIN_API_CORE_POLICIES: readonly AdminApiPolicy[] = [
     }),
   ),
   createApiPolicy({
-    id: "organizations",
+    id: "organizations-list",
     pattern: "/api/v1/admin/organizations",
     methods: ["GET"],
     requiredPermissions: ORG_READ,
+  }),
+  createApiPolicy({
+    id: "organizations-create",
+    pattern: "/api/v1/admin/organizations",
+    methods: ["POST"],
+    requiredPermissions: ORG_WRITE,
   }),
   createApiPolicy({
     id: "org-monitoring",
@@ -117,6 +124,7 @@ export const ADMIN_API_CORE_POLICIES: readonly AdminApiPolicy[] = [
     "/api/v1/admin/organizations/[orgId]/suspend",
     "/api/v1/admin/organizations/[orgId]/reactivate",
     "/api/v1/admin/organizations/[orgId]/churn",
+    "/api/v1/admin/organizations/[orgId]/delete",
   ].map((pattern, index) =>
     createApiPolicy({
       id: `org-write-${index}`,
@@ -197,9 +205,56 @@ export const ADMIN_API_CORE_POLICIES: readonly AdminApiPolicy[] = [
     requiredPermissions: ONBOARDING_WRITE,
   }),
   createApiPolicy({
-    id: "onboarding-step",
-    pattern: "/api/v1/admin/onboarding/[onboardingId]/step/[step]",
-    methods: ["PATCH"],
+    id: "org-onboarding-cases",
+    pattern: "/api/v1/admin/organizations/[orgId]/onboarding/cases",
+    methods: ["GET"],
+    requiredPermissions: ONBOARDING_ACCESS,
+  }),
+  createApiPolicy({
+    id: "org-onboarding-case-create",
+    pattern: "/api/v1/admin/organizations/[orgId]/onboarding/cases",
+    methods: ["POST"],
+    requiredPermissions: ONBOARDING_WRITE,
+  }),
+  createApiPolicy({
+    id: "org-onboarding-case-detail",
+    pattern: "/api/v1/admin/organizations/[orgId]/onboarding/cases/[caseId]",
+    methods: ["GET"],
+    requiredPermissions: ONBOARDING_ACCESS,
+  }),
+  createApiPolicy({
+    id: "org-onboarding-case-recompute",
+    pattern:
+      "/api/v1/admin/organizations/[orgId]/onboarding/cases/[caseId]/readiness/recompute",
+    methods: ["POST"],
+    requiredPermissions: ONBOARDING_WRITE,
+  }),
+  createApiPolicy({
+    id: "org-onboarding-case-cancel",
+    pattern:
+      "/api/v1/admin/organizations/[orgId]/onboarding/cases/[caseId]/cancel",
+    methods: ["POST"],
+    requiredPermissions: ONBOARDING_WRITE,
+  }),
+  createApiPolicy({
+    id: "org-onboarding-case-reopen",
+    pattern:
+      "/api/v1/admin/organizations/[orgId]/onboarding/cases/[caseId]/reopen",
+    methods: ["POST"],
+    requiredPermissions: ONBOARDING_WRITE,
+  }),
+  createApiPolicy({
+    id: "org-onboarding-task-save",
+    pattern:
+      "/api/v1/admin/organizations/[orgId]/onboarding/cases/[caseId]/tasks/[taskId]/save",
+    methods: ["POST"],
+    requiredPermissions: ONBOARDING_WRITE,
+  }),
+  createApiPolicy({
+    id: "org-onboarding-task-complete",
+    pattern:
+      "/api/v1/admin/organizations/[orgId]/onboarding/cases/[caseId]/tasks/[taskId]/complete",
+    methods: ["POST"],
     requiredPermissions: ONBOARDING_WRITE,
   }),
   ...[

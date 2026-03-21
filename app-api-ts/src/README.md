@@ -10,6 +10,7 @@ Ce dossier contient tout le runtime Node de l'API exposee aux apps web Praedixa.
 - `config.ts` : parsing/validation stricte des variables d'environnement.
 - `server.ts` : serveur HTTP, CORS, auth, request id / trace id, reponses et middleware transverses.
 - `auth.ts` : verification JWT, roles et contexte utilisateur.
+- `exposure-policy.ts` : classification anti-scraping des familles de routes (`P0/P1/P2/P3`, audience, budget, owner).
 - `router.ts` : matching de routes minimaliste et typage des handlers.
 - `response.ts` : helpers `success` / `failure`.
 - `routes.ts` : table de routes produit + admin.
@@ -37,6 +38,15 @@ Routes live / produit:
 Routes admin:
 
 - organisations, utilisateurs, billing, onboarding, monitoring, audit log, contact requests, canonical/datasets, proof packs, decision config, integrations.
+- l'onboarding admin n'est plus seulement un `onboarding_states` thin-slice: `GET /api/v1/admin/onboarding` expose la supervision cross-org des `onboarding_cases`, et les endpoints org-scopes `GET/POST /api/v1/admin/organizations/:orgId/onboarding/cases`, `GET /api/v1/admin/organizations/:orgId/onboarding/cases/:caseId` et `POST /api/v1/admin/organizations/:orgId/onboarding/cases/:caseId/tasks/:taskId/complete` alimentent le workspace client BPM avec detail, taches, blockers, evenements et completion reelle des user tasks Camunda.
+- la surface admin organisations est maintenant operable de bout en bout: `GET /api/v1/admin/organizations` reste persistante et paginee avec filtres `search`, `status` et `plan`, `POST /api/v1/admin/organizations` cree l'organisation persistante puis provisionne automatiquement le premier compte client `org_admin` sur `contactEmail`, en purgeant/reessayant si un ancien compte Keycloak orphelin de tenant test bloque encore le login sur `email` ou `username`, `GET /api/v1/admin/organizations/:orgId` renvoie le detail org + hiérarchie sites/departements, et `/overview` fournit le payload composite du dashboard client admin.
+- la creation admin d'organisation persiste aussi le flag `isTest` dans `organizations.settings`, et `POST /api/v1/admin/organizations/:orgId/delete` n'accepte plus la suppression definitive que pour ces seuls clients test, avec validations `slug + SUPPRIMER` et purge des identites Keycloak encore rattachees a ce tenant, y compris les comptes orphelins retrouvables par login exact et `organization_id`.
+- le journal `admin_audit_log` conserve maintenant `target_org_id` comme reference historique non contrainte; supprimer un client test ne doit plus essayer de muter un audit append-only via une FK `SET NULL`.
+- `GET /api/v1/admin/organizations/:orgId/ingestion-log` est maintenant branche sur la persistance reelle (`ingestion_log` + `client_datasets`) pour rouvrir le journal d'ingestion sans rallumer les autres surfaces datasets encore en stub.
+- `GET /api/v1/admin/conversations/unread-count` est maintenant branche sur la persistance reelle (`messages`, `conversations`, `organizations`) pour alimenter l'accueil admin sans `503` de stub.
+- `/api/v1/admin/contact-requests` est maintenant persistante et paginee avec filtres `search`, `status` et `request_type`, et `PATCH /api/v1/admin/contact-requests/:requestId/status` met a jour le statut reel d'une demande entrante.
+- `/api/v1/admin/audit-log` est maintenant persistante et paginee avec filtre `action`, ce qui alimente directement la surface `/journal` sans payload demo/stub.
+- les mutations admin qui auditent un acteur OIDC cross-org ne supposent plus que `sub` == `users.id`: `admin_audit_log` et `plan_change_history` gardent maintenant l'identite auth opaque dans une colonne dediee quand aucun user row local n'existe, ce qui evite les rollbacks `500` sur `POST /api/v1/admin/organizations`.
 - gouvernance `DecisionContract` (`decision-contract-templates`, `instantiate-preview`, `decision-compatibility/evaluate`) et runtime org-scoped du Contract Studio (`decision-contracts`, `transition`, `fork`, `rollback-candidates`, `rollback`).
 
 ## Auth et autorisation
@@ -50,15 +60,27 @@ Routes admin:
 - `RouteContext` transporte aussi un contexte `telemetry` pret a enrichir si un handler rattache ensuite un `contract_version`, un `run_id` ou un `action_id`.
 - Guards admin appliques sur la surface `/api/v1/admin/*`.
 - Les appels sensibles restent couples a la persistance PostgreSQL quand disponible.
+- `server.ts` verifie aussi qu'une route matchée possede une policy d'exposition resolvable; un nouveau groupe de surface non classe echoue fail-close avant handler.
 - Un `site_id` demande par query ne doit jamais elargir le scope: la persistance doit le refuser s'il n'appartient pas a `accessibleSiteIds`.
 - Les lectures live persistantes reconstruisent toujours un `SiteAccessScope` complet avant la requete SQL, y compris pour `/api/v1/live/forecasts`.
 
 ## Appels internes sensibles
 
 - `admin-integrations.ts` envoie un bearer token vers `app-connectors`.
-- `services/keycloak-admin-identity.ts` appelle aussi l'admin REST Keycloak pour creer un compte, synchroniser les claims canoniques et envoyer l'email `UPDATE_PASSWORD` lors d'une invitation backoffice.
+- `admin-integrations.ts` ne doit pas relayer aveuglement les DTO runtime `raw-events` vers le navigateur admin: le listing remonte un resume metadata-only, et le payload brut n'est plus expose sur la surface HTTP admin.
+- Les slices de routes integrations admin doivent attraper les erreurs runtime et les transformer en `failure(...)` explicites; en local, un `CONNECTORS_RUNTIME_TOKEN` manquant ne doit plus remonter comme exception non geree.
+- `services/admin-onboarding-camunda.ts` appelle l'Orchestration Cluster REST API Camunda 8 pour deployer `client-onboarding-v1`, demarrer les process et completer les user tasks.
+- `services/keycloak-admin-identity.ts` appelle aussi l'admin REST Keycloak pour creer un compte, synchroniser les claims canoniques, distinguer les conflits `email` vs `username`, et envoyer l'email `UPDATE_PASSWORD` lors d'une invitation backoffice.
 - `config.ts` bloque donc les `CONNECTORS_RUNTIME_URL` avec credentials, query ou fragment.
 - Hors developpement, le runtime connecteurs doit etre en `https` et son host doit appartenir a `CONNECTORS_RUNTIME_ALLOWED_HOSTS`.
+
+## Runtime onboarding Camunda
+
+- `CAMUNDA_ENABLED`, `CAMUNDA_BASE_URL` et `CAMUNDA_AUTH_MODE` sont maintenant des prerequis du runtime onboarding admin.
+- Le mode local par defaut est le quickstart lightweight `http://127.0.0.1:8088/v2` sans auth API.
+- Hors developpement, `CAMUNDA_AUTH_MODE=none` est refuse au parsing config.
+- Si Camunda ne repond pas au boot, `index.ts` journalise maintenant un warning de demarrage concis (`baseUrl`, `cause`, next step local) mais laisse monter l'API HTTP; seules les routes onboarding continueront ensuite a echouer ferme sur le runtime Camunda.
+- La commande repo de verification est `pnpm test:camunda:onboarding`; elle prouve un cycle reel `create case -> projection SQL -> complete task`.
 
 ## Persistance et contrat fail-close
 

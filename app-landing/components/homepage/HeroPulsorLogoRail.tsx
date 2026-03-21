@@ -42,8 +42,14 @@ function LogoItemCard({ item }: { item: LogoItem }) {
   }
 
   return (
-    <div className="flex h-[38px] items-center justify-center rounded-lg border border-dashed px-4" style={{ borderColor: "var(--hero-border-soft)" }}>
-      <p className="text-[11px] font-medium" style={{ color: "var(--hero-muted)" }}>
+    <div
+      className="flex h-[38px] items-center justify-center rounded-lg border border-dashed px-4"
+      style={{ borderColor: "var(--hero-border-soft)" }}
+    >
+      <p
+        className="text-[11px] font-medium"
+        style={{ color: "var(--hero-muted)" }}
+      >
         {item.name}
       </p>
     </div>
@@ -52,10 +58,13 @@ function LogoItemCard({ item }: { item: LogoItem }) {
 
 export function HeroPulsorLogoRail({ locale }: HeroPulsorLogoRailProps) {
   const vp = getValuePropContent(locale);
-  const caption = vp.heroLogoCaption ?? (locale === "fr" ? "Ils nous font confiance" : "They trust us");
-  const placeholderText = locale === "fr"
-    ? "Soyez les premiers à optimiser votre ROI"
-    : "Be the first to optimize your ROI";
+  const caption =
+    vp.heroLogoCaption ??
+    (locale === "fr" ? "Ils nous font confiance" : "They trust us");
+  const placeholderText =
+    locale === "fr"
+      ? "Soyez les premiers à optimiser votre ROI"
+      : "Be the first to optimize your ROI";
   const items = getLogoItems(placeholderText);
 
   return (

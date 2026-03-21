@@ -1,8 +1,11 @@
 import type { NextRequest } from "next/server";
 
 const DEFAULT_DEV_AUTH_ORIGIN = "http://localhost:3001";
+const DEFAULT_DEV_ADMIN_ORIGIN = "http://localhost:3002";
 const MISSING_PUBLIC_AUTH_ORIGIN_ERROR =
   "Missing AUTH_APP_ORIGIN (or NEXT_PUBLIC_APP_ORIGIN) for production auth redirects";
+const MISSING_PUBLIC_ADMIN_ORIGIN_ERROR =
+  "Missing AUTH_ADMIN_APP_ORIGIN (or NEXT_PUBLIC_ADMIN_APP_ORIGIN) for super_admin handoff redirects";
 
 export interface SameOriginRequestOptions {
   allowNavigate?: boolean;
@@ -31,8 +34,8 @@ export function normalizeHttpOrigin(
   }
 }
 
-function normalizeConfiguredAuthOrigin(
-  variableName: "AUTH_APP_ORIGIN" | "NEXT_PUBLIC_APP_ORIGIN",
+function normalizeConfiguredOrigin(
+  variableName: string,
   origin: string,
 ): string {
   const trimmedOrigin = origin.trim();
@@ -56,36 +59,35 @@ function normalizeConfiguredAuthOrigin(
   return normalizedOrigin;
 }
 
-function getConfiguredAuthAppOriginState(): ConfiguredAuthOriginState {
-  const authOriginRaw = process.env.AUTH_APP_ORIGIN?.trim() ?? "";
-  const nextPublicOriginRaw = process.env.NEXT_PUBLIC_APP_ORIGIN?.trim() ?? "";
+function getConfiguredOriginState(
+  serverVariableName: string,
+  publicVariableName: string,
+): ConfiguredAuthOriginState {
+  const serverOriginRaw = process.env[serverVariableName]?.trim() ?? "";
+  const publicOriginRaw = process.env[publicVariableName]?.trim() ?? "";
 
-  if (!authOriginRaw && !nextPublicOriginRaw) {
+  if (!serverOriginRaw && !publicOriginRaw) {
     return { error: null, origin: null };
   }
 
   try {
-    const authOrigin = authOriginRaw
-      ? normalizeConfiguredAuthOrigin("AUTH_APP_ORIGIN", authOriginRaw)
+    const serverOrigin = serverOriginRaw
+      ? normalizeConfiguredOrigin(serverVariableName, serverOriginRaw)
       : null;
-    const nextPublicOrigin = nextPublicOriginRaw
-      ? normalizeConfiguredAuthOrigin(
-          "NEXT_PUBLIC_APP_ORIGIN",
-          nextPublicOriginRaw,
-        )
+    const publicOrigin = publicOriginRaw
+      ? normalizeConfiguredOrigin(publicVariableName, publicOriginRaw)
       : null;
 
-    if (authOrigin && nextPublicOrigin && authOrigin !== nextPublicOrigin) {
+    if (serverOrigin && publicOrigin && serverOrigin !== publicOrigin) {
       return {
-        error:
-          "Invalid auth app origin configuration: AUTH_APP_ORIGIN and NEXT_PUBLIC_APP_ORIGIN must match when both are set",
+        error: `Invalid origin configuration: ${serverVariableName} and ${publicVariableName} must match when both are set`,
         origin: null,
       };
     }
 
     return {
       error: null,
-      origin: authOrigin ?? nextPublicOrigin,
+      origin: serverOrigin ?? publicOrigin,
     };
   } catch (error) {
     return {
@@ -95,8 +97,49 @@ function getConfiguredAuthAppOriginState(): ConfiguredAuthOriginState {
   }
 }
 
+function getConfiguredAuthAppOriginState(): ConfiguredAuthOriginState {
+  return getConfiguredOriginState("AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN");
+}
+
+function getConfiguredAdminAppOriginState(): ConfiguredAuthOriginState {
+  return getConfiguredOriginState(
+    "AUTH_ADMIN_APP_ORIGIN",
+    "NEXT_PUBLIC_ADMIN_APP_ORIGIN",
+  );
+}
+
+function deriveAdminOrigin(authOrigin: string): string | null {
+  const parsed = new URL(authOrigin);
+
+  if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
+    parsed.port = "3002";
+    return parsed.origin;
+  }
+
+  const labels = parsed.hostname.split(".");
+  const subdomain = labels[0];
+
+  if (subdomain === "app") {
+    labels[0] = "admin";
+    parsed.hostname = labels.join(".");
+    return parsed.origin;
+  }
+
+  if (subdomain.endsWith("-app")) {
+    labels[0] = `${subdomain.slice(0, -4)}-admin`;
+    parsed.hostname = labels.join(".");
+    return parsed.origin;
+  }
+
+  return null;
+}
+
 export function getConfiguredAuthAppOrigin(): string | null {
   return getConfiguredAuthAppOriginState().origin;
+}
+
+export function getConfiguredAdminAppOrigin(): string | null {
+  return getConfiguredAdminAppOriginState().origin;
 }
 
 export function getConfiguredAuthAppOriginError(): string | null {
@@ -119,6 +162,27 @@ export function resolveAuthAppOrigin(_request: NextRequest): string {
   throw new Error(MISSING_PUBLIC_AUTH_ORIGIN_ERROR);
 }
 
+export function resolveAdminAppOrigin(request: NextRequest): string {
+  const { error, origin } = getConfiguredAdminAppOriginState();
+  if (error) {
+    throw new Error(error);
+  }
+  if (origin) {
+    return origin;
+  }
+
+  const derivedOrigin = deriveAdminOrigin(resolveAuthAppOrigin(request));
+  if (derivedOrigin) {
+    return derivedOrigin;
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    return DEFAULT_DEV_ADMIN_ORIGIN;
+  }
+
+  throw new Error(MISSING_PUBLIC_ADMIN_ORIGIN_ERROR);
+}
+
 export function isAllowedSameOriginRequest(
   request: NextRequest,
   expectedOrigin: string | null | undefined = getConfiguredAuthAppOrigin(),
@@ -132,22 +196,26 @@ export function isAllowedSameOriginRequest(
     return false;
   }
 
+  const fetchSite = request.headers.get("sec-fetch-site")?.toLowerCase();
+  if (fetchSite) {
+    if (fetchSite === "cross-site" || fetchSite === "same-site") {
+      return false;
+    }
+    if (fetchSite === "none" && options.allowNavigate !== true) {
+      return false;
+    }
+  }
+
   const origin = request.headers.get("origin");
   if (origin) {
     return normalizeHttpOrigin(origin) === normalizedExpectedOrigin;
   }
 
-  const fetchSite = request.headers.get("sec-fetch-site")?.toLowerCase();
-  if (fetchSite) {
-    if (fetchSite === "same-origin") {
-      return true;
-    }
-    if (fetchSite === "cross-site") {
-      return false;
-    }
-    if (fetchSite === "none") {
-      return options.allowNavigate === true;
-    }
+  if (fetchSite === "same-origin") {
+    return true;
+  }
+  if (fetchSite === "none") {
+    return options.allowNavigate === true;
   }
 
   if (options.allowNavigate === true) {

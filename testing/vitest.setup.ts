@@ -46,6 +46,43 @@ global.ResizeObserver = class ResizeObserver {
 global.IntersectionObserver =
   MockIntersectionObserver as unknown as typeof IntersectionObserver;
 
+function createCanvas2DContextMock(canvas: HTMLCanvasElement) {
+  return {
+    canvas,
+    setTransform: vi.fn(),
+    clearRect: vi.fn(),
+    beginPath: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    stroke: vi.fn(),
+    fillRect: vi.fn(),
+    fill: vi.fn(),
+    arc: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
+    translate: vi.fn(),
+    scale: vi.fn(),
+    rotate: vi.fn(),
+    closePath: vi.fn(),
+    createRadialGradient: vi.fn(() => ({
+      addColorStop: vi.fn(),
+    })),
+  } as unknown as CanvasRenderingContext2D;
+}
+
+const originalCanvasGetContext = HTMLCanvasElement.prototype.getContext;
+HTMLCanvasElement.prototype.getContext = function getContext(
+  this: HTMLCanvasElement,
+  contextId: string,
+  options?: unknown,
+) {
+  if (contextId === "2d") {
+    return createCanvas2DContextMock(this);
+  }
+
+  return originalCanvasGetContext.call(this, contextId, options);
+};
+
 // JSDOM does not implement full document navigation.
 // Prevent default anchor navigation during tests to avoid noisy console errors.
 document.addEventListener(

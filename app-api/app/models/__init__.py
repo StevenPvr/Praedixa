@@ -93,6 +93,12 @@ from app.models.mlops import (
     ModelRegistry,
     ModelRegistryStatus,
 )
+from app.models.onboarding_case import (
+    OnboardingCase,
+    OnboardingCaseBlocker,
+    OnboardingCaseEvent,
+    OnboardingCaseTask,
+)
 from app.models.operational import (
     CanonicalRecord,
     CostParameter,
@@ -163,6 +169,11 @@ __all__ = [
     "DataLineageEvent",
     "DailyForecast",
     "ForecastDimension",
+    # Onboarding BPM
+    "OnboardingCase",
+    "OnboardingCaseTask",
+    "OnboardingCaseBlocker",
+    "OnboardingCaseEvent",
     # Decision
     "Decision",
     "DecisionType",

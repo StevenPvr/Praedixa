@@ -2,6 +2,13 @@ import { type NextRequest, NextResponse } from "next/server";
 import { generateNonce, buildCspHeader } from "./lib/security/csp";
 import { legacyRedirectMap } from "./lib/i18n/config";
 import { resolveLocaleFromPathname } from "./lib/i18n/request-locale";
+import {
+  buildLandingRobotsTag,
+  resolveLandingExposurePolicy,
+  shouldBlockLandingAiCrawler,
+  type LandingExposurePolicyRule,
+} from "./lib/security/exposure-policy";
+import { logSecurityEvent } from "./lib/security/audit-log";
 
 const CANONICAL_HOST = "www.praedixa.com";
 const PRODUCTION_HOSTS = new Set(["praedixa.com", CANONICAL_HOST]);
@@ -128,6 +135,7 @@ function buildRequestHeaders(
   request: NextRequest,
   nonce: string,
   cspHeader: string,
+  exposurePolicy: LandingExposurePolicyRule | null,
 ): Headers {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
@@ -140,16 +148,40 @@ function buildRequestHeaders(
     "x-request-pathname",
     normalizePathname(request.nextUrl.pathname),
   );
+  if (exposurePolicy) {
+    requestHeaders.set("x-exposure-policy-id", exposurePolicy.id);
+    requestHeaders.set(
+      "x-exposure-classification",
+      exposurePolicy.classification,
+    );
+    requestHeaders.set("x-exposure-audience", exposurePolicy.audience);
+  }
   return requestHeaders;
+}
+
+function applyExposureHeaders(
+  response: NextResponse,
+  exposurePolicy: LandingExposurePolicyRule | null,
+): void {
+  const robotsTag = buildLandingRobotsTag(exposurePolicy);
+  if (robotsTag && !response.headers.has("X-Robots-Tag")) {
+    response.headers.set("X-Robots-Tag", robotsTag);
+  }
 }
 
 function addCsp(
   request: NextRequest,
+  exposurePolicy: LandingExposurePolicyRule | null,
   response: NextResponse | null = null,
 ): NextResponse {
   const nonce = generateNonce();
   const cspHeader = buildCspHeader(nonce);
-  const requestHeaders = buildRequestHeaders(request, nonce, cspHeader);
+  const requestHeaders = buildRequestHeaders(
+    request,
+    nonce,
+    cspHeader,
+    exposurePolicy,
+  );
 
   const nextResponse =
     response ??
@@ -158,16 +190,44 @@ function addCsp(
     });
 
   nextResponse.headers.set("Content-Security-Policy", cspHeader);
+  applyExposureHeaders(nextResponse, exposurePolicy);
   return nextResponse;
 }
 
 export async function proxy(request: NextRequest) {
-  const canonicalTarget = resolveCanonicalTarget(request);
-  if (canonicalTarget) {
-    return addCsp(request, NextResponse.redirect(canonicalTarget, 301));
+  const exposurePolicy = resolveLandingExposurePolicy(request.nextUrl.pathname);
+  const aiCrawlerDecision = shouldBlockLandingAiCrawler(
+    request.nextUrl.pathname,
+    request.headers.get("user-agent"),
+  );
+  if (aiCrawlerDecision.blocked) {
+    logSecurityEvent("exposure.ai_crawler_blocked", {
+      path: request.nextUrl.pathname,
+      policyId: aiCrawlerDecision.policy?.id ?? "unknown",
+      classification: aiCrawlerDecision.policy?.classification ?? "unknown",
+      userAgent: request.headers.get("user-agent") ?? "",
+    });
+    const blockedResponse = new NextResponse("Forbidden", {
+      status: 403,
+      headers: {
+        "Cache-Control": "no-store",
+        Vary: "User-Agent",
+        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet",
+      },
+    });
+    return addCsp(request, aiCrawlerDecision.policy, blockedResponse);
   }
 
-  return addCsp(request);
+  const canonicalTarget = resolveCanonicalTarget(request);
+  if (canonicalTarget) {
+    return addCsp(
+      request,
+      exposurePolicy,
+      NextResponse.redirect(canonicalTarget, 301),
+    );
+  }
+
+  return addCsp(request, exposurePolicy);
 }
 
 export const config = {

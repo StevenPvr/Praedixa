@@ -142,7 +142,11 @@ describe("GET /auth/callback (admin)", () => {
       sub: "admin-1",
       email: "admin@praedixa.com",
       role: "super_admin",
-      permissions: ["admin:console:access"],
+      permissions: [
+        "admin:console:access",
+        "admin:monitoring:read",
+        "admin:org:read",
+      ],
       organizationId: "org-1",
       siteId: "site-1",
       accessTokenExp: 2000000000,
@@ -155,7 +159,11 @@ describe("GET /auth/callback (admin)", () => {
       id: "admin-1",
       email: "admin@praedixa.com",
       role: "super_admin",
-      permissions: ["admin:console:access"],
+      permissions: [
+        "admin:console:access",
+        "admin:monitoring:read",
+        "admin:org:read",
+      ],
       organizationId: "org-1",
       siteId: "site-1",
     });
@@ -329,7 +337,7 @@ describe("GET /auth/callback (admin)", () => {
       id: "u2",
       email: "delegate@praedixa.com",
       role: "viewer",
-      permissions: ["admin:console:access"],
+      permissions: ["admin:console:access", "admin:org:read"],
       organizationId: "org-1",
       siteId: "site-1",
     });
@@ -341,6 +349,33 @@ describe("GET /auth/callback (admin)", () => {
           prx_admin_state: "state-123",
           prx_admin_verifier: "verifier-123",
           prx_admin_next: "/clients",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe("https://admin.praedixa.com/clients");
+    expect(
+      (response as { headers: { set: ReturnType<typeof vi.fn> } }).headers.set,
+    ).toHaveBeenCalledWith("Cache-Control", "no-store");
+  });
+
+  it("falls back to the first accessible admin page when the requested path is forbidden", async () => {
+    mockUserFromAccessToken.mockReturnValueOnce({
+      id: "u3",
+      email: "ops@praedixa.com",
+      role: "org_admin",
+      permissions: ["admin:console:access", "admin:org:read"],
+      organizationId: "org-1",
+      siteId: "site-1",
+    });
+
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-123" },
+        {
+          prx_admin_state: "state-123",
+          prx_admin_verifier: "verifier-123",
+          prx_admin_next: "/",
         },
       ),
     )) as { redirectUrl: string };

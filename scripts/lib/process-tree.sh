@@ -11,6 +11,23 @@ is_process_alive() {
   return 0
 }
 
+is_tcp_port_open() {
+  local port="$1"
+  local host="${2:-127.0.0.1}"
+
+  python3 - "$host" "$port" <<'PY'
+import socket
+import sys
+
+host = sys.argv[1]
+port = int(sys.argv[2])
+
+with socket.socket() as sock:
+    sock.settimeout(0.5)
+    raise SystemExit(0 if sock.connect_ex((host, port)) == 0 else 1)
+PY
+}
+
 terminate_process_tree() {
   local pid="$1"
   local signal="${2:-TERM}"

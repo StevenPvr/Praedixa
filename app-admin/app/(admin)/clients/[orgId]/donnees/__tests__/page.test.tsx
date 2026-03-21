@@ -79,12 +79,12 @@ const mockQuality = {
 
 const mockIngestion = [
   {
-    id: "i-1",
-    fileName: "absences.csv",
+    id: "ing-1",
+    fileName: "absences-mars.csv",
     status: "completed",
-    rowsProcessed: 500,
-    rowsRejected: 2,
-    createdAt: "2026-01-10T10:00:00Z",
+    rowsProcessed: 120,
+    rowsRejected: 4,
+    createdAt: "2026-03-19T07:30:00.000Z",
   },
 ];
 
@@ -112,8 +112,16 @@ describe("DonneesPage", () => {
           refetch: vi.fn(),
         };
       }
+      if (idx === 2) {
+        return {
+          data: mockIngestion,
+          loading: false,
+          error: null,
+          refetch: vi.fn(),
+        };
+      }
       return {
-        data: mockIngestion,
+        data: null,
         loading: false,
         error: null,
         refetch: vi.fn(),
@@ -139,10 +147,21 @@ describe("DonneesPage", () => {
     expect(screen.getByText("Lyon")).toBeInTheDocument();
   });
 
-  it("renders ingestion log table", () => {
+  it("renders the ingestion log while keeping other dataset surfaces fail-close", () => {
     render(<DonneesPage />);
-    expect(screen.getByText("absences.csv")).toBeInTheDocument();
+    expect(screen.getByText("absences-mars.csv")).toBeInTheDocument();
     expect(screen.getByText("completed")).toBeInTheDocument();
+    expect(screen.getByText("120")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /L'explorateur Gold, les datasets et les features admin n'est pas encore industrialise/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Le rapport imputation\/outliers et le medallion quality report n'est pas encore industrialise/i,
+      ),
+    ).toBeInTheDocument();
   });
 
   it("shows loading skeletons", () => {
@@ -174,59 +193,17 @@ describe("DonneesPage", () => {
     expect(screen.getByText("Canonical error")).toBeInTheDocument();
   });
 
-  it("shows ingestion error fallback", () => {
-    mockUseApiGet.mockImplementation((url: string | null) => {
-      if (url?.includes("/ingestion-log")) {
-        return {
-          data: null,
-          loading: false,
-          error: "Ingestion error",
-          refetch: vi.fn(),
-        };
-      }
-      if (url?.includes("/canonical/quality")) {
-        return {
-          data: mockQuality,
-          loading: false,
-          error: null,
-          refetch: vi.fn(),
-        };
-      }
-      if (url?.includes("/canonical")) {
-        return {
-          data: mockCanonical,
-          loading: false,
-          error: null,
-          refetch: vi.fn(),
-        };
-      }
-      if (
-        url?.includes("/datasets") &&
-        !url?.includes("/data") &&
-        !url?.includes("/features")
-      ) {
-        return { data: [], loading: false, error: null, refetch: vi.fn() };
-      }
-      if (url?.includes("/datasets/") && url?.endsWith("/data")) {
-        return {
-          data: { datasetId: "dataset-1", rows: [] },
-          loading: false,
-          error: null,
-          refetch: vi.fn(),
-        };
-      }
-      if (url?.includes("/datasets/") && url?.endsWith("/features")) {
-        return {
-          data: { datasetId: "dataset-1", features: [] },
-          loading: false,
-          error: null,
-          refetch: vi.fn(),
-        };
-      }
-      return { data: null, loading: false, error: null, refetch: vi.fn() };
-    });
+  it("calls the ingestion endpoint while dataset explorer endpoints stay disabled", () => {
     render(<DonneesPage />);
-    expect(screen.getByText("Ingestion error")).toBeInTheDocument();
+    const calledUrls = mockUseApiGet.mock.calls.map((call) => call[0]);
+    expect(
+      calledUrls.some(
+        (url) =>
+          typeof url === "string" &&
+          url.includes("/organizations/org-1/ingestion-log"),
+      ),
+    ).toBe(true);
+    expect(calledUrls).toContain(null);
   });
 
   it("passes site_id filter when selectedSiteId is set", () => {

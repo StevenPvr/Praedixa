@@ -17,7 +17,9 @@ test.describe("Parametres page", () => {
       page.getByRole("heading", { name: "Parametres" }),
     ).toBeVisible();
     await expect(
-      page.getByText("Onboarding et configuration systeme"),
+      page.getByText(
+        "Supervision de l'onboarding admin et hygiene de configuration systeme.",
+      ),
     ).toBeVisible();
   });
 
@@ -25,61 +27,81 @@ test.describe("Parametres page", () => {
     await mockParametresApis(page);
     await page.goto("/parametres");
     await expect(
-      page.getByRole("button", { name: /^Onboarding/ }),
+      page.getByRole("button", { name: "Onboarding (2)" }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Configuration" }),
     ).toBeVisible();
   });
 
-  test("default tab Onboarding shows form", async ({ page }) => {
+  test("default tab Onboarding shows create client controls", async ({
+    page,
+  }) => {
     await mockParametresApis(page);
     await page.goto("/parametres");
-    await expect(page.getByPlaceholder("Nom organisation")).toBeVisible();
-    await expect(page.getByPlaceholder("slug")).toBeVisible();
-    await expect(page.getByPlaceholder("email contact")).toBeVisible();
+    await expect(page.getByText("Creer un client")).toBeVisible();
+    await expect(page.getByLabel("Nom")).toBeVisible();
+    await expect(page.getByLabel("Slug")).toBeVisible();
+    await expect(page.getByLabel("Email contact")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Creer le client" }),
+    ).toBeVisible();
   });
 
-  test("Lancer button disabled when fields empty", async ({ page }) => {
+  test("Onboarding tab shows current case counters", async ({ page }) => {
     await mockParametresApis(page);
     await page.goto("/parametres");
-    const lancerBtn = page.getByRole("button", { name: "Lancer" });
-    await expect(lancerBtn).toBeVisible();
-    await expect(lancerBtn).toBeDisabled();
+    await expect(page.getByText("Cases visibles")).toBeVisible();
+    await expect(page.getByText("Cases bloques")).toBeVisible();
+    await expect(page.getByText("Activation full")).toBeVisible();
   });
 
-  test("DataTable with onboarding entries", async ({ page }) => {
+  test("DataTable with onboarding cases", async ({ page }) => {
     await mockParametresApis(page);
     await page.goto("/parametres");
-    // Column headers
-    await expect(page.getByText("Organisation")).toBeVisible();
-    await expect(page.getByText("Statut")).toBeVisible();
-    await expect(page.getByText("Progression")).toBeVisible();
-    await expect(page.getByText("Demarre le")).toBeVisible();
-    await expect(page.getByText("Termine le")).toBeVisible();
-    await expect(page.getByText("Action")).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Organisation" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Statut" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Phase" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Readiness" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Charge ouverte" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Ouvert le" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Action" }),
+    ).toBeVisible();
+    await expect(page.getByText("Acme Logistique")).toBeVisible();
+    await expect(page.getByText("source activation")).toBeVisible();
   });
 
   test("Configuration tab shows 3 StatCards", async ({ page }) => {
     await mockParametresApis(page);
     await page.goto("/parametres");
-    // Click Configuration tab
     await page.getByRole("button", { name: "Configuration" }).click();
-    // 3 StatCards
     await expect(page.getByText("Organisations avec manques")).toBeVisible();
     await expect(
       page.getByText("Parametres manquants", { exact: true }),
     ).toBeVisible();
-    await expect(page.getByText("Statut global")).toBeVisible();
+    await expect(page.getByText("Etat global")).toBeVisible();
   });
 
-  test("Configuration tab shows missing config table", async ({ page }) => {
+  test("Configuration tab shows missing config details", async ({ page }) => {
     await mockParametresApis(page);
     await page.goto("/parametres");
     await page.getByRole("button", { name: "Configuration" }).click();
-    await expect(
-      page.getByText("Configurations manquantes par organisation"),
-    ).toBeVisible();
+    await expect(page.getByText("Hygiene incomplete")).toBeVisible();
+    await expect(page.getByText("Global Freight")).toBeVisible();
+    await expect(page.getByText("Cout interne")).toBeVisible();
   });
 
   test("shows error state", async ({ page }) => {

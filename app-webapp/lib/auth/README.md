@@ -4,17 +4,17 @@ Le webapp utilise OIDC Authorization Code + PKCE avec cookies httpOnly et sessio
 
 ## Fichiers principaux
 
-| Fichier              | Role                                                                                                                                                            |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `middleware.ts`      | Garde d'entree du webapp, refresh et redirections                                                                                                               |
-| `route-policy.ts`    | Source de verite explicite des routes webapp acceptees par le middleware (`/`, pages app, `/login`, `/auth/*`, `/api/*`)                                        |
-| `request-session.ts` | Resolution centralisee de la session a partir de la requete                                                                                                     |
-| `server.ts`          | Helpers serveur pour lire l'utilisateur courant                                                                                                                 |
-| `client.ts`          | Hook client pour recuperer l'utilisateur via `/auth/session`                                                                                                    |
-| `roles.ts`           | Mapping des roles pour la navigation client                                                                                                                     |
-| `origin.ts`          | Resolution de l'origine publique pour OIDC/same-origin, avec rejet fail-closed des JSON routes sans metadata d'origine et opt-in explicite pour les navigations |
-| `rate-limit.ts`      | Facade de rate limit pour les endpoints auth                                                                                                                    |
-| `oidc.ts`            | Barrel export du sous-systeme OIDC                                                                                                                              |
+| Fichier              | Role                                                                                                                                                                                   |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `middleware.ts`      | Garde d'entree du webapp, refresh et redirections                                                                                                                                      |
+| `route-policy.ts`    | Source de verite explicite des routes webapp acceptees par le middleware (`/`, pages app, `/login`, `/auth/*`, `/api/*`)                                                               |
+| `request-session.ts` | Resolution centralisee de la session a partir de la requete                                                                                                                            |
+| `server.ts`          | Helpers serveur pour lire l'utilisateur courant                                                                                                                                        |
+| `client.ts`          | Hook client pour recuperer l'utilisateur via `/auth/session`                                                                                                                           |
+| `roles.ts`           | Mapping des roles pour la navigation client                                                                                                                                            |
+| `origin.ts`          | Resolution de l'origine publique pour OIDC/same-origin, avec rejet fail-closed des JSON routes sans metadata d'origine, et veto explicite des signaux `Sec-Fetch-Site` non same-origin |
+| `rate-limit.ts`      | Facade de rate limit pour les endpoints auth                                                                                                                                           |
+| `oidc.ts`            | Barrel export du sous-systeme OIDC                                                                                                                                                     |
 
 ## Sous-dossier `oidc/`
 
@@ -31,7 +31,7 @@ Le webapp utilise OIDC Authorization Code + PKCE avec cookies httpOnly et sessio
 
 ## Regles produit
 
-- `super_admin` n'utilise pas le webapp et est redirige vers le login.
+- `super_admin` n'utilise pas le webapp: le callback fait un handoff vers le flow de connexion `app-admin`, avec override possible via `AUTH_ADMIN_APP_ORIGIN` ou `NEXT_PUBLIC_ADMIN_APP_ORIGIN`.
 - Les composants n'accedent jamais directement au bearer token.
 - Les refreshs sont faits cote serveur ou via `/auth/session`.
 - Les parseurs JWT et la session signee n'acceptent plus que les claims top-level canoniques `sub`, `email`, `role`, `organization_id` et `site_id` pour les roles scopes.
@@ -41,8 +41,10 @@ Le webapp utilise OIDC Authorization Code + PKCE avec cookies httpOnly et sessio
 - Le middleware fail-close pour tout chemin app inconnu: seuls les paths declares dans `route-policy.ts` sont traites comme surface webapp valide.
 - Les prefixes `/auth/*` et `/api/*` restent des frontieres speciales et ne sont pas bloques par la policy des pages app.
 - `Sec-Fetch-Site: none` n'est jamais accepte par defaut sur les routes JSON cookie-authentifiees; un handler doit l'ouvrir explicitement pour une navigation de confiance comme `/auth/logout`.
+- si `Sec-Fetch-Site` annonce `cross-site` ou `same-site`, ce veto l'emporte sur un `Origin` coherent et la requete browser JSON est rejetee.
 - En production, `AUTH_APP_ORIGIN` ou `NEXT_PUBLIC_APP_ORIGIN` doit etre defini explicitement pour les redirects OIDC; aucun fallback implicite vers `request.nextUrl.origin` n'est accepte.
 - Si `AUTH_APP_ORIGIN` et `NEXT_PUBLIC_APP_ORIGIN` sont tous deux definis, ils doivent etre strictement identiques et representer une origine nue sans path, query, fragment ni credentials.
+- Pour le handoff `super_admin`, `AUTH_ADMIN_APP_ORIGIN` ou `NEXT_PUBLIC_ADMIN_APP_ORIGIN` peut surcharger l'origine admin; sinon le webapp derive l'origine admin canonique a partir de son origine publique (`app` -> `admin`, `staging-app` -> `staging-admin`, local `3001` -> `3002`).
 
 ## Tests
 

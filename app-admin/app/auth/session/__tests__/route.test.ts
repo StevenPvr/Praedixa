@@ -113,6 +113,19 @@ describe("GET /auth/session", () => {
     expect(mockResolveRequestSession).not.toHaveBeenCalled();
   });
 
+  it("rejects contradictory browser metadata when sec-fetch-site is cross-site", async () => {
+    const response = (await GET(
+      createRequest({
+        origin: "https://admin.praedixa.com",
+        fetchSite: "cross-site",
+      }),
+    )) as { body: { error: string }; status: number };
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({ error: "csrf_failed" });
+    expect(mockResolveRequestSession).not.toHaveBeenCalled();
+  });
+
   it("allows same-origin browser requests", async () => {
     const response = (await GET(
       createRequest({

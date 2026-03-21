@@ -1,6 +1,6 @@
 # PRD Connecteur - NCR Aloha (POS Restaurant)
 
-- Statut: `Ready for build` (implementation), `Blocked by vendor` (selon edition)
+- Statut: `L2 core delivered` pour le chemin `api_key`, `Blocked by vendor` (selon edition/on-prem) pour les variantes hors API cloud
 - Priorite: `P2`
 - Verticales ciblees: franchise fast food
 - Dependance: edition Aloha (cloud/on-prem) + acces API/export

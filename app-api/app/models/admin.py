@@ -39,6 +39,7 @@ class AdminAuditAction(str, enum.Enum):
     VIEW_ORG = "view_org"
     UPDATE_ORG = "update_org"
     CREATE_ORG = "create_org"
+    DELETE_ORG = "delete_org"
     SUSPEND_ORG = "suspend_org"
     REACTIVATE_ORG = "reactivate_org"
     CHURN_ORG = "churn_org"
@@ -133,15 +134,15 @@ class AdminAuditLog(TimestampMixin, Base):
         primary_key=True,
         default=uuid.uuid4,
     )
-    admin_user_id: Mapped[uuid.UUID] = mapped_column(
+    admin_user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
         index=True,
     )
+    admin_auth_user_id: Mapped[str | None] = mapped_column(String(64))
     target_org_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("organizations.id", ondelete="SET NULL"),
         nullable=True,
     )
     action: Mapped[AdminAuditAction] = mapped_column(
@@ -277,11 +278,12 @@ class PlanChangeHistory(TimestampMixin, Base):
         ForeignKey("organizations.id", ondelete="CASCADE"),
         nullable=False,
     )
-    changed_by: Mapped[uuid.UUID] = mapped_column(
+    changed_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
     )
+    changed_by_auth_user_id: Mapped[str | None] = mapped_column(String(64))
     old_plan: Mapped[SubscriptionPlan] = mapped_column(
         sa_enum(SubscriptionPlan),
         nullable=False,

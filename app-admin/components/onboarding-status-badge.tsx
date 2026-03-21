@@ -9,9 +9,15 @@ const ONBOARDING_MAP: Record<
   string,
   { variant: StatusBadgeProps["variant"]; label: string }
 > = {
+  draft: { variant: "neutral", label: "Brouillon" },
   in_progress: { variant: "info", label: "En cours" },
+  blocked: { variant: "danger", label: "Bloque" },
+  ready_limited: { variant: "warning", label: "Pret pilote" },
+  ready_full: { variant: "success", label: "Pret complet" },
+  active_limited: { variant: "info", label: "Actif pilote" },
+  active_full: { variant: "success", label: "Actif complet" },
   completed: { variant: "success", label: "Termine" },
-  abandoned: { variant: "danger", label: "Abandonne" },
+  cancelled: { variant: "danger", label: "Annule" },
 };
 
 export type OnboardingStatus = keyof typeof ONBOARDING_MAP;

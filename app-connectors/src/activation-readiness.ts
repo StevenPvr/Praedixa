@@ -12,6 +12,7 @@ type EvaluateConnectionActivationReadinessInput = {
   missingCredentialFields: string[];
   hasStoredCredentials: boolean;
   hasOauthEndpoints: boolean;
+  hasLiveProbeStrategy: boolean;
   hasProbeTarget: boolean;
   hasValidEndpointConfiguration: boolean;
 };
@@ -48,6 +49,8 @@ function buildRecommendedNextStep(
       return "Store the connector credentials before activation.";
     case "missing_oauth_endpoints":
       return "Configure OAuth authorization/token endpoints or rely on catalog defaults for this vendor.";
+    case "missing_live_probe_strategy":
+      return "Do not promote this connection yet: implement a live probe strategy for this auth mode first.";
     case "authorization_required":
       return "Complete the OAuth authorization flow before testing the connection.";
     case "authorization_pending":
@@ -115,6 +118,15 @@ export function evaluateConnectionActivationReadiness(
     );
   }
 
+  if (!input.hasLiveProbeStrategy) {
+    blockingIssues.push(
+      blockingIssue(
+        "missing_live_probe_strategy",
+        `Auth mode "${input.connection.authMode}" does not have a live runtime probe strategy yet.`,
+      ),
+    );
+  }
+
   const authorizationReady =
     input.connection.authMode !== "oauth2" ||
     input.connection.authorizationState === "authorized";
@@ -154,6 +166,7 @@ export function evaluateConnectionActivationReadiness(
     "missing_required_config",
     "missing_stored_credentials",
     "missing_oauth_endpoints",
+    "missing_live_probe_strategy",
     "authorization_required",
     "authorization_pending",
     "missing_probe_target",

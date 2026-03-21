@@ -15,6 +15,7 @@ const mockSetAuthCookies = vi.fn();
 const mockSignSession = vi.fn();
 const mockTimingSafeEqual = vi.fn();
 const mockUserFromAccessToken = vi.fn();
+const mockResolveAdminAppOrigin = vi.fn();
 const mockResolveAuthAppOrigin = vi.fn();
 const mockConsumeRateLimit = vi.fn();
 
@@ -47,6 +48,8 @@ vi.mock("@/lib/auth/oidc", () => ({
 }));
 
 vi.mock("@/lib/auth/origin", () => ({
+  resolveAdminAppOrigin: (...args: unknown[]) =>
+    mockResolveAdminAppOrigin(...args),
   resolveAuthAppOrigin: (...args: unknown[]) =>
     mockResolveAuthAppOrigin(...args),
 }));
@@ -122,6 +125,7 @@ describe("GET /auth/callback (webapp)", () => {
       sessionSecret: "session-secret",
     });
     mockResolveAuthAppOrigin.mockReturnValue("https://app.praedixa.com");
+    mockResolveAdminAppOrigin.mockReturnValue("https://admin.praedixa.com");
 
     mockSanitizeNextPath.mockImplementation(
       (next: string | null | undefined, fallback: string) => {
@@ -272,7 +276,35 @@ describe("GET /auth/callback (webapp)", () => {
     );
   });
 
-  it("rejects super_admin with wrong_role", async () => {
+  it("hands super_admin off to the admin app login flow", async () => {
+    mockUserFromAccessToken.mockReturnValueOnce({
+      id: "admin-1",
+      email: "admin@praedixa.com",
+      role: "super_admin",
+      organizationId: "org-1",
+      siteId: "site-1",
+    });
+
+    const response = (await GET(
+      createMockRequest(
+        { code: "valid-code", state: "state-123" },
+        {
+          prx_web_state: "state-123",
+          prx_web_verifier: "verifier-123",
+          prx_web_next: "/dashboard",
+        },
+      ),
+    )) as { redirectUrl: string };
+
+    expect(response.redirectUrl).toBe(
+      "https://admin.praedixa.com/auth/login?next=%2Fclients",
+    );
+  });
+
+  it("falls back to wrong_role when the admin app origin cannot be resolved", async () => {
+    mockResolveAdminAppOrigin.mockImplementationOnce(() => {
+      throw new Error("missing admin origin");
+    });
     mockUserFromAccessToken.mockReturnValueOnce({
       id: "admin-1",
       email: "admin@praedixa.com",

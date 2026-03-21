@@ -34,6 +34,8 @@ Composants orientes pages ou parcours metier.
 - ne pas dupliquer les listes d'options si elles existent deja dans `lib/content`
 - les pages knowledge doivent lire le contenu depuis `lib/content/knowledge-pages*.ts`
 - les pages knowledge, services et contact qui servent de pages piliers doivent afficher une breadcrumb visible et emettre un `WebPage` + `BreadcrumbList` JSON-LD coherents
+- les pages publiques knowledge, secteurs et ressources doivent aussi exposer un bloc visible `answer-first` court et canonique avant les sections longues, pour produire des passages citables sans dupliquer une autre promesse commerciale
+- `SerpResourcePage.tsx` doit conserver un lien de telechargement via `GET /api/resource-asset`; ne pas repointer un asset SEO vers `/:locale/ressources/:slug/asset` sans signature courte
 - `ServicesPage.tsx`, `DecisionProofPage.tsx` et le parcours contact doivent relire la meme promesse canonique via `lib/content/value-prop/*`, pas reconstituer chacun leur propre vocabulaire commercial
 - les pages sectorielles lisent leur contenu, leurs sources et leurs cartes partagees depuis `lib/content/sector-pages.ts`
 - pour l'affichage, les sources sectorielles sont dedupliquees par URL avant rendu pour eviter les collisions React et la redondance visuelle

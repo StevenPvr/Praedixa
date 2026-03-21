@@ -6,7 +6,8 @@ Ce dossier regroupe les protections techniques complementaires a l'auth OIDC: CS
 
 | Fichier              | Role                                                                                                                                                          |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `browser-request.ts` | Resolution d'origine attendue et verifications same-origin fail-closed, sans fallback implicite a `request.nextUrl.origin` en cas de misconfiguration         |
+| `browser-request.ts` | Resolution d'origine attendue et verifications same-origin fail-closed, avec priorite au signal `Sec-Fetch-Site` quand il contredit une requete browser JSON  |
+| `csv.ts`             | Neutralisation des cellules CSV dangereuses (`=`, `+`, `-`, `@`, caracteres de controle`) pour les exports operateur                                          |
 | `csp.ts`             | Construction de la Content Security Policy                                                                                                                    |
 | `headers.ts`         | Headers de securite pour `next.config.ts`                                                                                                                     |
 | `navigation.ts`      | Sanitize des liens externes et `mailto:`                                                                                                                      |
@@ -15,12 +16,16 @@ Ce dossier regroupe les protections techniques complementaires a l'auth OIDC: CS
 ## Usage
 
 - `proxy.ts` utilise `csp.ts`.
+- `app/layout.tsx` consomme `x-nonce` et le propage aux providers client qui emettent un bootstrap inline.
 - `app/auth/session/route.ts`, `app/auth/logout/route.ts` et `app/api/v1/[...path]/route.ts` utilisent `browser-request.ts`.
+- Les exports CSV browser-facing reutilisent `csv.ts` pour neutraliser les cellules interpretees comme formules par Excel/LibreOffice.
 - Les pages admin reutilisent `navigation.ts` pour ouvrir des liens ou emails sans prendre de raccourci.
+- Les routes JSON admin refusent toute requete dont `Sec-Fetch-Site` annonce `cross-site` ou `same-site`, meme si un header `Origin` parait legitime.
 
 ## Tests
 
 - `__tests__/csp.test.ts`
+- `__tests__/csv.test.ts`
 - `__tests__/navigation.test.ts`
 - `__tests__/browser-request.test.ts`
 - `__tests__/rate-limit.test.ts`

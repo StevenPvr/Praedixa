@@ -33,6 +33,7 @@ Ce dossier centralise les chemins et le client HTTP utilises par la console supe
   - `.../integrations/connections/:connectionId/test`
   - `.../integrations/connections/:connectionId/sync`
   - `.../integrations/sync-runs`
+  - `.../integrations/connections/:connectionId/raw-events` ne doit remonter qu'un resume metadata-only; le payload brut n'est plus expose sur la surface admin
 
 ## Tests
 

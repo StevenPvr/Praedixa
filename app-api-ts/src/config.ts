@@ -25,6 +25,7 @@ const JWT_ALGORITHM_ALLOWLIST = new Set([
 ]);
 const CONNECTORS_RUNTIME_HOST_PATTERN =
   /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/;
+const CAMUNDA_AUTH_MODES = new Set(["none", "basic", "oidc"]);
 
 function parseAbsoluteUrl(
   value: string,
@@ -317,6 +318,48 @@ function parseConnectorsRuntimeUrl(
   return parsed.toString().replace(/\/$/, "");
 }
 
+function parseCamundaBaseUrl(
+  rawValue: string | undefined,
+  nodeEnv: AppConfig["nodeEnv"],
+  enabled: boolean,
+): string | null {
+  const value = rawValue?.trim();
+  if (!enabled) {
+    return value ? parseAbsoluteUrl(value, "CAMUNDA_BASE_URL", nodeEnv) : null;
+  }
+
+  const fallback =
+    !value && nodeEnv === "development" ? "http://127.0.0.1:8088/v2" : value;
+  if (!fallback) {
+    throw new Error("CAMUNDA_BASE_URL is required when Camunda is enabled");
+  }
+
+  return parseAbsoluteUrl(fallback, "CAMUNDA_BASE_URL", nodeEnv);
+}
+
+function parseCamundaAuthMode(
+  rawValue: string | undefined,
+  nodeEnv: AppConfig["nodeEnv"],
+  enabled: boolean,
+): AppConfig["camunda"]["authMode"] {
+  const normalized = rawValue?.trim().toLowerCase();
+  const fallback = enabled
+    ? nodeEnv === "development"
+      ? "none"
+      : "oidc"
+    : "none";
+  const mode = normalized?.length ? normalized : fallback;
+  if (!CAMUNDA_AUTH_MODES.has(mode)) {
+    throw new Error(
+      'CAMUNDA_AUTH_MODE must be one of "none", "basic", or "oidc"',
+    );
+  }
+  if (enabled && nodeEnv !== "development" && mode === "none") {
+    throw new Error("CAMUNDA_AUTH_MODE=none is forbidden outside development");
+  }
+  return mode as AppConfig["camunda"]["authMode"];
+}
+
 const envSchema = z.object({
   PORT: z
     .string()
@@ -339,6 +382,19 @@ const envSchema = z.object({
   CONNECTORS_RUNTIME_ALLOWED_HOSTS: z.string().optional(),
   CONNECTORS_RUNTIME_TOKEN: z.string().optional(),
   CONNECTORS_INTERNAL_TOKEN: z.string().optional(),
+  CAMUNDA_ENABLED: z.string().optional(),
+  CAMUNDA_BASE_URL: z.string().optional(),
+  CAMUNDA_AUTH_MODE: z.string().optional(),
+  CAMUNDA_BASIC_USERNAME: z.string().optional(),
+  CAMUNDA_BASIC_PASSWORD: z.string().optional(),
+  CAMUNDA_OAUTH_TOKEN_URL: z.string().optional(),
+  CAMUNDA_OAUTH_CLIENT_ID: z.string().optional(),
+  CAMUNDA_OAUTH_CLIENT_SECRET: z.string().optional(),
+  CAMUNDA_OAUTH_AUDIENCE: z.string().optional(),
+  CAMUNDA_OAUTH_SCOPE: z.string().optional(),
+  CAMUNDA_PROCESS_TENANT_ID: z.string().optional(),
+  CAMUNDA_DEPLOY_ON_STARTUP: z.string().optional(),
+  CAMUNDA_REQUEST_TIMEOUT_MS: z.string().optional(),
 });
 
 function rejectLegacyConnectorsRuntimeToken(
@@ -371,6 +427,23 @@ function parseBooleanEnv(
   }
 
   throw new Error(`${label} must be either "true" or "false"`);
+}
+
+function parsePositiveIntEnv(
+  rawValue: string | undefined,
+  label: string,
+  fallback: number,
+): number {
+  const value = rawValue?.trim();
+  if (!value) {
+    return fallback;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`${label} must be a positive integer`);
+  }
+  return parsed;
 }
 
 function parseDatabaseUrl(rawValue: string | undefined): string | null {
@@ -471,6 +544,68 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
   if (parsed.NODE_ENV !== "development" && connectorsRuntimeToken == null) {
     throw new Error("CONNECTORS_RUNTIME_TOKEN is required outside development");
   }
+  const camundaEnabled = parseBooleanEnv(
+    parsed.CAMUNDA_ENABLED,
+    "CAMUNDA_ENABLED",
+    true,
+  );
+  const camundaAuthMode = parseCamundaAuthMode(
+    parsed.CAMUNDA_AUTH_MODE,
+    parsed.NODE_ENV,
+    camundaEnabled,
+  );
+  const camundaBaseUrl = parseCamundaBaseUrl(
+    parsed.CAMUNDA_BASE_URL,
+    parsed.NODE_ENV,
+    camundaEnabled,
+  );
+  const camundaBasicUsername = parsed.CAMUNDA_BASIC_USERNAME?.trim() || null;
+  const camundaBasicPassword = parsed.CAMUNDA_BASIC_PASSWORD?.trim() || null;
+  const camundaOauthTokenUrl = parsed.CAMUNDA_OAUTH_TOKEN_URL?.trim() || null;
+  const camundaOauthClientId = parsed.CAMUNDA_OAUTH_CLIENT_ID?.trim() || null;
+  const camundaOauthClientSecret =
+    parsed.CAMUNDA_OAUTH_CLIENT_SECRET?.trim() || null;
+  const camundaOauthAudience = parsed.CAMUNDA_OAUTH_AUDIENCE?.trim() || null;
+  const camundaOauthScope = parsed.CAMUNDA_OAUTH_SCOPE?.trim() || null;
+  const camundaProcessTenantId =
+    parsed.CAMUNDA_PROCESS_TENANT_ID?.trim() || null;
+  const camundaDeployOnStartup = parseBooleanEnv(
+    parsed.CAMUNDA_DEPLOY_ON_STARTUP,
+    "CAMUNDA_DEPLOY_ON_STARTUP",
+    camundaEnabled,
+  );
+  const camundaRequestTimeoutMs = parsePositiveIntEnv(
+    parsed.CAMUNDA_REQUEST_TIMEOUT_MS,
+    "CAMUNDA_REQUEST_TIMEOUT_MS",
+    10_000,
+  );
+  if (camundaEnabled && camundaBaseUrl == null) {
+    throw new Error("CAMUNDA_BASE_URL is required when Camunda is enabled");
+  }
+  if (camundaEnabled && camundaAuthMode === "basic") {
+    if (!camundaBasicUsername || !camundaBasicPassword) {
+      throw new Error(
+        "CAMUNDA_BASIC_USERNAME and CAMUNDA_BASIC_PASSWORD are required for CAMUNDA_AUTH_MODE=basic",
+      );
+    }
+  }
+  if (camundaEnabled && camundaAuthMode === "oidc") {
+    if (!camundaOauthTokenUrl) {
+      throw new Error(
+        "CAMUNDA_OAUTH_TOKEN_URL is required for CAMUNDA_AUTH_MODE=oidc",
+      );
+    }
+    if (!camundaOauthClientId || !camundaOauthClientSecret) {
+      throw new Error(
+        "CAMUNDA_OAUTH_CLIENT_ID and CAMUNDA_OAUTH_CLIENT_SECRET are required for CAMUNDA_AUTH_MODE=oidc",
+      );
+    }
+    parseAbsoluteUrl(
+      camundaOauthTokenUrl,
+      "CAMUNDA_OAUTH_TOKEN_URL",
+      parsed.NODE_ENV,
+    );
+  }
 
   return {
     port: parsed.PORT,
@@ -488,6 +623,21 @@ export function loadConfig(rawEnv: NodeJS.ProcessEnv): AppConfig {
       audience,
       jwksUrl,
       algorithms: parseJwtAlgorithms(parsed.AUTH_JWT_ALGORITHMS),
+    },
+    camunda: {
+      enabled: camundaEnabled,
+      baseUrl: camundaBaseUrl,
+      authMode: camundaAuthMode,
+      basicUsername: camundaBasicUsername,
+      basicPassword: camundaBasicPassword,
+      oauthTokenUrl: camundaOauthTokenUrl,
+      oauthClientId: camundaOauthClientId,
+      oauthClientSecret: camundaOauthClientSecret,
+      oauthAudience: camundaOauthAudience,
+      oauthScope: camundaOauthScope,
+      processTenantId: camundaProcessTenantId,
+      deployOnStartup: camundaDeployOnStartup,
+      requestTimeoutMs: camundaRequestTimeoutMs,
     },
   };
 }

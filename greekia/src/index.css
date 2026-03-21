@@ -1,0 +1,67 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 28 58% 95%;
+    --foreground: 232 84% 17%;
+    --card: 31 62% 97%;
+    --muted: 31 46% 90%;
+    --muted-foreground: 226 18% 37%;
+    --border: 226 24% 82%;
+    --input: 226 24% 82%;
+    --ring: 38 88% 60%;
+
+    --ink: 232 91% 28%;
+    --limestone: 32 72% 94%;
+    --steel: 226 19% 38%;
+    --sand: 31 62% 91%;
+    --oxide: 38 90% 63%;
+    --oxide-soft: 35 92% 73%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Manrope", system-ui, sans-serif;
+    min-width: 320px;
+    background-image: linear-gradient(180deg, rgba(247, 239, 228, 0.98) 0%, rgba(250, 244, 237, 0.98) 100%);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(246, 180, 76, 0.1), transparent 22%),
+      radial-gradient(circle at 84% 16%, rgba(6, 22, 138, 0.08), transparent 24%),
+      radial-gradient(circle at 56% 100%, rgba(6, 22, 138, 0.05), transparent 28%);
+    z-index: 0;
+  }
+
+  ::selection {
+    background: rgba(246, 180, 76, 0.28);
+    color: rgb(6 22 138);
+  }
+}
+
+@layer components {
+  .section-shell {
+    @apply relative px-4 py-20 sm:px-6 lg:px-8 lg:py-28;
+  }
+
+  .section-inner {
+    @apply mx-auto max-w-[1400px];
+  }
+}

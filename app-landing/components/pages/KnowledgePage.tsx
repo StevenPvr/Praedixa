@@ -11,6 +11,7 @@ import {
 import { getValuePropContent } from "../../lib/content/value-prop";
 import { CorePageJsonLd } from "../seo/CorePageJsonLd";
 import { BreadcrumbTrail } from "../shared/BreadcrumbTrail";
+import { GeoSummaryPanel } from "../shared/GeoSummaryPanel";
 import { Kicker } from "../shared/Kicker";
 import { SectionShell } from "../shared/SectionShell";
 
@@ -25,6 +26,24 @@ function buildSectionAnchors(page: ReturnType<typeof getKnowledgePage>) {
 
     return { id: id.length > 0 ? id : "section", title: section.title };
   });
+}
+
+function buildKnowledgeTakeaways(page: ReturnType<typeof getKnowledgePage>) {
+  const seen = new Set<string>();
+
+  return page.sections
+    .flatMap((section) => [...(section.bullets ?? []), ...section.paragraphs])
+    .map((item) => item.replace(/\s+/g, " ").trim())
+    .filter((item) => item.length > 0 && item !== page.lead)
+    .filter((item) => {
+      const normalized = item.toLowerCase();
+      if (seen.has(normalized)) {
+        return false;
+      }
+      seen.add(normalized);
+      return true;
+    })
+    .slice(0, 3);
 }
 
 function KnowledgePageSideNav({
@@ -254,9 +273,11 @@ export function KnowledgePage({
           <h1 className="mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl md:text-4xl">
             {page.title}
           </h1>
-          <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-neutral-500">
-            {page.lead}
-          </p>
+          <GeoSummaryPanel
+            locale={locale}
+            summary={page.lead}
+            takeaways={buildKnowledgeTakeaways(page)}
+          />
 
           <KnowledgeSections anchors={sectionAnchors} page={page} />
           <KnowledgeRelatedContent links={page.links ?? []} locale={locale} />

@@ -17,6 +17,13 @@ from app.services.integration_event_ingestor import (
     ConnectorPayloadLoader,
     ingest_raw_events_to_dataset,
 )
+from app.services.integration_sftp_runtime_worker import (
+    RuntimeConnectionSyncState,
+    RuntimeSyncRunExecutionPlan,
+    finalize_sftp_file_import,
+    prepare_sftp_file_import,
+    uses_sftp_file_pull,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,6 +36,9 @@ _RUNTIME_ERROR_INVALID_INPUT = "invalid_mapping_or_payload"
 _RUNTIME_ERROR_HTTP = "connectors_runtime_http_error"
 _RUNTIME_ERROR_UNREACHABLE = "connectors_runtime_unreachable"
 _RUNTIME_ERROR_GENERIC = "connector_ingestion_failed"
+_HTTP_STATUS_RETRYABLE = {408, 425, 429}
+_HTTP_STATUS_SERVER_ERROR_MIN = 500
+_MAX_SYNC_RETRY_DELAY_SECONDS = 3600
 IPAddress = ipaddress.IPv4Address | ipaddress.IPv6Address
 
 
@@ -48,6 +58,56 @@ class RuntimeDrainResult:
     processed: int
     failed: int
     dataset_name: str | None = None
+
+
+@dataclass(frozen=True)
+class RuntimeClaimedSyncRun:
+    """Claimed sync-run metadata returned by connectors runtime."""
+
+    id: str
+    organization_id: str
+    connection_id: str
+    trigger_type: str
+    attempts: int
+    max_attempts: int
+    source_window_start: str | None = None
+    source_window_end: str | None = None
+    force_full_sync: bool = False
+
+
+@dataclass(frozen=True)
+class RuntimeSyncRunResult:
+    """Summary of one claimed sync-run execution."""
+
+    run_id: str
+    organization_id: str
+    connection_id: str
+    status: str
+    claimed: int
+    processed: int
+    failed: int
+    dataset_name: str | None = None
+    error_class: str | None = None
+    error_message: str | None = None
+    retryable: bool = False
+
+
+@dataclass(frozen=True)
+class RuntimeProviderAccessContext:
+    """Resolved provider access context returned by connectors runtime."""
+
+    organization_id: str
+    connection_id: str
+    vendor: str
+    auth_mode: str
+    runtime_environment: str
+    base_url: str
+    source_objects: tuple[str, ...]
+    header_name: str
+    header_value: str
+    scopes: tuple[str, ...]
+    additional_headers: tuple[tuple[str, str], ...] = ()
+    credential_fields: tuple[tuple[str, str], ...] = ()
 
 
 class ConnectorsRuntimeClient:
@@ -117,6 +177,194 @@ class ConnectorsRuntimeClient:
         if not isinstance(data, dict):
             raise TypeError("connection payload must be an object")
         return cast("dict[str, Any]", data)
+
+    async def claim_sync_runs(
+        self,
+        worker_id: str,
+        *,
+        limit: int,
+        lease_seconds: int,
+    ) -> list[RuntimeClaimedSyncRun]:
+        data = await self._request_json(
+            "POST",
+            "/v1/runtime/sync-runs/claim",
+            json_body={
+                "workerId": worker_id,
+                "limit": limit,
+                "leaseSeconds": lease_seconds,
+            },
+        )
+        if not isinstance(data, list):
+            raise TypeError("claimed sync runs payload must be a list")
+        runs: list[RuntimeClaimedSyncRun] = []
+        for item in data:
+            if not isinstance(item, dict):
+                raise TypeError("each claimed sync run must be an object")
+            runs.append(
+                RuntimeClaimedSyncRun(
+                    id=str(item["id"]),
+                    organization_id=str(item["organizationId"]),
+                    connection_id=str(item["connectionId"]),
+                    trigger_type=str(item["triggerType"]),
+                    source_window_start=cast(
+                        "str | None",
+                        item.get("sourceWindowStart"),
+                    ),
+                    source_window_end=cast(
+                        "str | None",
+                        item.get("sourceWindowEnd"),
+                    ),
+                    force_full_sync=bool(item.get("forceFullSync", False)),
+                    attempts=int(item["attempts"]),
+                    max_attempts=int(item["maxAttempts"]),
+                )
+            )
+        return runs
+
+    async def get_sync_run_execution_plan(
+        self,
+        organization_id: str,
+        run_id: str,
+        worker_id: str,
+    ) -> RuntimeSyncRunExecutionPlan:
+        data = await self._request_json(
+            "POST",
+            f"/v1/organizations/{organization_id}/sync-runs/{run_id}/execution-plan",
+            json_body={"workerId": worker_id},
+        )
+        if not isinstance(data, dict):
+            raise TypeError("sync run execution plan payload must be an object")
+        run_payload = data.get("run")
+        connection_payload = data.get("connection")
+        credentials_payload = data.get("credentials")
+        sync_states_payload = data.get("syncStates")
+        if not isinstance(run_payload, dict):
+            raise TypeError("sync run execution plan.run must be an object")
+        if not isinstance(connection_payload, dict):
+            raise TypeError("sync run execution plan.connection must be an object")
+        if not isinstance(credentials_payload, dict):
+            raise TypeError("sync run execution plan.credentials must be an object")
+        if not isinstance(sync_states_payload, list):
+            raise TypeError("sync run execution plan.syncStates must be a list")
+
+        config = connection_payload.get("config", {})
+        if not isinstance(config, dict):
+            raise TypeError(
+                "sync run execution plan.connection.config must be an object"
+            )
+        source_objects = connection_payload.get("sourceObjects", [])
+        if not isinstance(source_objects, list):
+            raise TypeError(
+                "sync run execution plan.connection.sourceObjects must be a list"
+            )
+
+        sync_states: list[RuntimeConnectionSyncState] = []
+        for item in sync_states_payload:
+            if not isinstance(item, dict):
+                raise TypeError("each sync state must be an object")
+            cursor_json = item.get("cursorJson", {})
+            if not isinstance(cursor_json, dict):
+                raise TypeError("sync state cursorJson must be an object")
+            sync_states.append(
+                RuntimeConnectionSyncState(
+                    source_object=str(item["sourceObject"]),
+                    watermark_text=(
+                        str(item["watermarkText"])
+                        if item.get("watermarkText") is not None
+                        else None
+                    ),
+                    watermark_at=(
+                        str(item["watermarkAt"])
+                        if item.get("watermarkAt") is not None
+                        else None
+                    ),
+                    cursor_json=cast("dict[str, Any]", cursor_json),
+                    last_run_id=(
+                        str(item["lastRunId"])
+                        if item.get("lastRunId") is not None
+                        else None
+                    ),
+                    updated_by_worker=(
+                        str(item["updatedByWorker"])
+                        if item.get("updatedByWorker") is not None
+                        else None
+                    ),
+                )
+            )
+
+        return RuntimeSyncRunExecutionPlan(
+            run_id=str(run_payload["id"]),
+            organization_id=str(run_payload["organizationId"]),
+            connection_id=str(connection_payload["id"]),
+            vendor=str(connection_payload["vendor"]),
+            auth_mode=str(connection_payload["authMode"]),
+            config=cast("dict[str, Any]", config),
+            source_objects=tuple(str(item) for item in source_objects),
+            credentials=cast("dict[str, Any]", credentials_payload),
+            sync_states=tuple(sync_states),
+        )
+
+    async def get_provider_access_context(
+        self,
+        organization_id: str,
+        connection_id: str,
+    ) -> RuntimeProviderAccessContext:
+        data = await self._request_json(
+            "GET",
+            f"/v1/runtime/organizations/{organization_id}/connections/{connection_id}/access-context",
+        )
+        if not isinstance(data, dict):
+            raise TypeError("provider access context payload must be an object")
+        authorization = data.get("authorization")
+        if not isinstance(authorization, dict):
+            raise TypeError("provider access authorization payload must be an object")
+        raw_source_objects = data.get("sourceObjects")
+        if not isinstance(raw_source_objects, list):
+            raise TypeError("provider access sourceObjects must be a list")
+        raw_scopes = authorization.get("scopes")
+        if raw_scopes is None:
+            scopes: tuple[str, ...] = ()
+        elif isinstance(raw_scopes, list):
+            scopes = tuple(str(scope) for scope in raw_scopes)
+        else:
+            raise TypeError("provider access scopes must be a list or null")
+        raw_additional_headers = authorization.get("additionalHeaders")
+        if raw_additional_headers is None:
+            additional_headers: tuple[tuple[str, str], ...] = ()
+        elif isinstance(raw_additional_headers, dict):
+            additional_headers = tuple(
+                (str(name), str(value))
+                for name, value in raw_additional_headers.items()
+            )
+        else:
+            raise TypeError(
+                "provider access additionalHeaders must be an object or null"
+            )
+        raw_credential_fields = authorization.get("credentialFields")
+        if raw_credential_fields is None:
+            credential_fields: tuple[tuple[str, str], ...] = ()
+        elif isinstance(raw_credential_fields, dict):
+            credential_fields = tuple(
+                (str(name), str(value)) for name, value in raw_credential_fields.items()
+            )
+        else:
+            raise TypeError(
+                "provider access credentialFields must be an object or null"
+            )
+        return RuntimeProviderAccessContext(
+            organization_id=str(data["organizationId"]),
+            connection_id=str(data["connectionId"]),
+            vendor=str(data["vendor"]),
+            auth_mode=str(data["authMode"]),
+            runtime_environment=str(data["runtimeEnvironment"]),
+            base_url=str(data["baseUrl"]),
+            source_objects=tuple(str(item) for item in raw_source_objects),
+            header_name=str(authorization["headerName"]),
+            header_value=str(authorization["headerValue"]),
+            scopes=scopes,
+            additional_headers=additional_headers,
+            credential_fields=credential_fields,
+        )
 
     async def claim_raw_events(
         self,
@@ -188,6 +436,101 @@ class ConnectorsRuntimeClient:
                 "errorMessage": error_message[:400],
             },
         )
+
+    async def mark_sync_run_completed(
+        self,
+        organization_id: str,
+        run_id: str,
+        worker_id: str,
+        *,
+        records_fetched: int,
+        records_written: int,
+    ) -> None:
+        await self._request_json(
+            "POST",
+            f"/v1/organizations/{organization_id}/sync-runs/{run_id}/completed",
+            json_body={
+                "workerId": worker_id,
+                "recordsFetched": records_fetched,
+                "recordsWritten": records_written,
+            },
+        )
+
+    async def mark_sync_run_failed(
+        self,
+        organization_id: str,
+        run_id: str,
+        worker_id: str,
+        error_message: str,
+        *,
+        error_class: str | None = None,
+        retryable: bool = False,
+        retry_delay_seconds: int | None = None,
+    ) -> None:
+        body: dict[str, Any] = {
+            "workerId": worker_id,
+            "errorMessage": error_message[:400],
+            "retryable": retryable,
+        }
+        if error_class is not None:
+            body["errorClass"] = error_class
+        if retry_delay_seconds is not None:
+            body["retryDelaySeconds"] = retry_delay_seconds
+        await self._request_json(
+            "POST",
+            f"/v1/organizations/{organization_id}/sync-runs/{run_id}/failed",
+            json_body=body,
+        )
+
+    async def upsert_sync_run_state(
+        self,
+        organization_id: str,
+        run_id: str,
+        worker_id: str,
+        *,
+        source_object: str,
+        watermark_text: str | None,
+        watermark_at: str | None,
+        cursor_json: dict[str, Any],
+    ) -> None:
+        body: dict[str, Any] = {
+            "workerId": worker_id,
+            "sourceObject": source_object,
+            "cursorJson": cursor_json,
+        }
+        if watermark_text is not None:
+            body["watermarkText"] = watermark_text
+        if watermark_at is not None:
+            body["watermarkAt"] = watermark_at
+        await self._request_json(
+            "POST",
+            f"/v1/organizations/{organization_id}/sync-runs/{run_id}/sync-state",
+            json_body=body,
+        )
+
+    async def ingest_provider_events(
+        self,
+        organization_id: str,
+        connection_id: str,
+        *,
+        sync_run_id: str,
+        worker_id: str,
+        schema_version: str,
+        events: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        data = await self._request_json(
+            "POST",
+            f"/v1/runtime/organizations/{organization_id}/connections/{connection_id}/provider-events",
+            json_body={
+                "syncRunId": sync_run_id,
+                "workerId": worker_id,
+                "schemaVersion": schema_version,
+                "events": events,
+            },
+        )
+        if not isinstance(data, dict):
+            raise TypeError("provider ingest payload must be an object")
+        return cast("dict[str, Any]", data)
 
 
 def _parse_allowed_hosts(raw_value: str) -> tuple[str, ...]:
@@ -272,6 +615,27 @@ def _sanitize_runtime_error(exc: Exception) -> str:
     if isinstance(exc, httpx.HTTPError):
         return _RUNTIME_ERROR_UNREACHABLE
     return _RUNTIME_ERROR_GENERIC
+
+
+def _classify_sync_run_failure(exc: Exception) -> tuple[str, bool]:
+    if isinstance(exc, (ValueError, TypeError)):
+        return ("mapping", False)
+    if isinstance(exc, httpx.HTTPStatusError):
+        status_code = exc.response.status_code
+        if (
+            status_code in _HTTP_STATUS_RETRYABLE
+            or status_code >= _HTTP_STATUS_SERVER_ERROR_MIN
+        ):
+            return ("transient", True)
+        return ("provider", False)
+    if isinstance(exc, httpx.HTTPError):
+        return ("transient", True)
+    return ("system", False)
+
+
+def _compute_sync_retry_delay_seconds(attempts: int) -> int:
+    safe_attempts = max(1, attempts)
+    return int(min(_MAX_SYNC_RETRY_DELAY_SECONDS, 30 * (2 ** (safe_attempts - 1))))
 
 
 def build_default_runtime_client() -> ConnectorsRuntimeClient:
@@ -463,6 +827,256 @@ async def drain_connector_connection(
                 sanitized_error,
             )
         raise
+
+
+async def _process_sftp_sync_run(
+    tenant: TenantFilter,
+    session: AsyncSession,
+    runtime_client: ConnectorsRuntimeClient,
+    claimed_run: RuntimeClaimedSyncRun,
+    execution_plan: RuntimeSyncRunExecutionPlan,
+    *,
+    worker_id: str,
+    request_id: str | None,
+    run_id: str | None,
+    trace_id: str | None,
+) -> RuntimeSyncRunResult:
+    telemetry = logger.bind(
+        **TelemetryContext(
+            request_id=request_id,
+            run_id=run_id,
+            connector_run_id=claimed_run.id,
+            organization_id=claimed_run.organization_id,
+            trace_id=trace_id,
+        ).as_log_fields()
+    )
+    prepared_import = await prepare_sftp_file_import(
+        tenant,
+        session,
+        execution_plan,
+        worker_id=worker_id,
+        request_id=request_id,
+    )
+    await session.commit()
+
+    finalized = await finalize_sftp_file_import(
+        runtime_client,
+        execution_plan,
+        prepared_import,
+        worker_id=worker_id,
+    )
+    archive_guarantees_idempotency = (
+        len(prepared_import.archive_operations) > 0
+        and len(finalized.archive_errors) == 0
+    )
+    if not finalized.sync_state_persisted and not archive_guarantees_idempotency:
+        raise RuntimeError(
+            finalized.sync_state_error
+            or "SFTP sync state could not be persisted after data import"
+        )
+
+    await runtime_client.mark_sync_run_completed(
+        claimed_run.organization_id,
+        claimed_run.id,
+        worker_id,
+        records_fetched=prepared_import.rows_received,
+        records_written=prepared_import.rows_inserted,
+    )
+    telemetry.info(
+        "Connector SFTP sync run completed",
+        event="connector.runtime.sync_run.completed",
+        status="success",
+        connection_id=claimed_run.connection_id,
+        worker_id=worker_id,
+        claimed_count=prepared_import.rows_received,
+        processed_count=prepared_import.rows_inserted,
+        failed_count=0,
+        dataset_name=prepared_import.dataset_name,
+        sync_state_persisted=finalized.sync_state_persisted,
+        archive_error_count=len(finalized.archive_errors),
+    )
+    return RuntimeSyncRunResult(
+        run_id=claimed_run.id,
+        organization_id=claimed_run.organization_id,
+        connection_id=claimed_run.connection_id,
+        status="success",
+        claimed=prepared_import.rows_received,
+        processed=prepared_import.rows_inserted,
+        failed=0,
+        dataset_name=prepared_import.dataset_name,
+    )
+
+
+async def pull_provider_events_for_sync_run(
+    runtime_client: ConnectorsRuntimeClient,
+    claimed_run: RuntimeClaimedSyncRun,
+    *,
+    worker_id: str,
+    execution_plan: RuntimeSyncRunExecutionPlan | None = None,
+) -> Any:
+    from app.integrations.provider_sync import (
+        pull_provider_events_for_sync_run as provider_pull_dispatch,
+    )
+
+    return await provider_pull_dispatch(
+        runtime_client,
+        claimed_run,
+        worker_id=worker_id,
+        execution_plan=execution_plan,
+    )
+
+
+async def process_claimed_sync_run(
+    tenant: TenantFilter,
+    session: AsyncSession,
+    runtime_client: ConnectorsRuntimeClient,
+    claimed_run: RuntimeClaimedSyncRun,
+    *,
+    worker_id: str,
+    limit: int = 50,
+    request_id: str | None = None,
+    run_id: str | None = None,
+    trace_id: str | None = None,
+) -> RuntimeSyncRunResult:
+    """Execute one claimed sync run and update its runtime status."""
+
+    telemetry_context = TelemetryContext(
+        request_id=request_id,
+        run_id=run_id,
+        connector_run_id=claimed_run.id,
+        organization_id=claimed_run.organization_id,
+        trace_id=trace_id,
+    )
+    telemetry = logger.bind(**telemetry_context.as_log_fields())
+    bound_runtime_client = _bind_runtime_client_telemetry(
+        runtime_client,
+        telemetry_context,
+    )
+
+    try:
+        execution_plan = await bound_runtime_client.get_sync_run_execution_plan(
+            claimed_run.organization_id,
+            claimed_run.id,
+            worker_id,
+        )
+        if uses_sftp_file_pull(execution_plan):
+            return await _process_sftp_sync_run(
+                tenant,
+                session,
+                bound_runtime_client,
+                claimed_run,
+                execution_plan,
+                worker_id=worker_id,
+                request_id=request_id,
+                run_id=run_id,
+                trace_id=trace_id,
+            )
+        pull_result = await pull_provider_events_for_sync_run(
+            bound_runtime_client,
+            claimed_run,
+            worker_id=worker_id,
+            execution_plan=execution_plan,
+        )
+        total_claimed = 0
+        total_processed = 0
+        total_failed = 0
+        dataset_name: str | None = None
+        while True:
+            drain_result = await drain_connector_connection(
+                tenant,
+                session,
+                bound_runtime_client,
+                organization_id=claimed_run.organization_id,
+                connection_id=claimed_run.connection_id,
+                worker_id=worker_id,
+                limit=limit,
+                request_id=request_id,
+                run_id=run_id,
+                connector_run_id=claimed_run.id,
+                trace_id=trace_id,
+            )
+            total_claimed += drain_result.claimed
+            total_processed += drain_result.processed
+            total_failed += drain_result.failed
+            if drain_result.dataset_name is not None:
+                dataset_name = drain_result.dataset_name
+            if drain_result.claimed == 0:
+                break
+
+        await session.commit()
+        await bound_runtime_client.mark_sync_run_completed(
+            claimed_run.organization_id,
+            claimed_run.id,
+            worker_id,
+            records_fetched=max(total_claimed, pull_result.fetched_records),
+            records_written=total_processed,
+        )
+        telemetry.info(
+            "Connector sync run completed",
+            event="connector.runtime.sync_run.completed",
+            status="success",
+            connection_id=claimed_run.connection_id,
+            worker_id=worker_id,
+            claimed_count=total_claimed,
+            processed_count=total_processed,
+            failed_count=total_failed,
+            dataset_name=dataset_name,
+            fetched_count=pull_result.fetched_records,
+            ingested_count=pull_result.accepted_events,
+            duplicate_count=pull_result.duplicate_events,
+        )
+        return RuntimeSyncRunResult(
+            run_id=claimed_run.id,
+            organization_id=claimed_run.organization_id,
+            connection_id=claimed_run.connection_id,
+            status="success",
+            claimed=total_claimed,
+            processed=total_processed,
+            failed=total_failed,
+            dataset_name=dataset_name,
+        )
+    except Exception as exc:
+        await session.rollback()
+        error_class, retryable = _classify_sync_run_failure(exc)
+        retry_delay_seconds = (
+            _compute_sync_retry_delay_seconds(claimed_run.attempts)
+            if retryable
+            else None
+        )
+        error_message = str(exc)[:400] or _sanitize_runtime_error(exc)
+        await bound_runtime_client.mark_sync_run_failed(
+            claimed_run.organization_id,
+            claimed_run.id,
+            worker_id,
+            error_message,
+            error_class=error_class,
+            retryable=retryable,
+            retry_delay_seconds=retry_delay_seconds,
+        )
+        telemetry.exception(
+            "Connector sync run failed",
+            event="connector.runtime.sync_run.failed",
+            status="failed",
+            connection_id=claimed_run.connection_id,
+            worker_id=worker_id,
+            error_code=_sanitize_runtime_error(exc),
+            sync_error_class=error_class,
+            retryable=retryable,
+            retry_delay_seconds=retry_delay_seconds,
+        )
+        return RuntimeSyncRunResult(
+            run_id=claimed_run.id,
+            organization_id=claimed_run.organization_id,
+            connection_id=claimed_run.connection_id,
+            status="queued" if retryable else "failed",
+            claimed=0,
+            processed=0,
+            failed=1,
+            dataset_name=None,
+            error_class=error_class,
+            error_message=error_message,
+            retryable=retryable,
+        )
 
 
 def _bind_runtime_client_telemetry(

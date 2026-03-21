@@ -32,9 +32,15 @@ describe("OnboardingStatusBadge", () => {
     variant: string;
     label: string;
   }[] = [
+    { status: "draft", variant: "neutral", label: "Brouillon" },
     { status: "in_progress", variant: "info", label: "En cours" },
+    { status: "blocked", variant: "danger", label: "Bloque" },
+    { status: "ready_limited", variant: "warning", label: "Pret pilote" },
+    { status: "ready_full", variant: "success", label: "Pret complet" },
+    { status: "active_limited", variant: "info", label: "Actif pilote" },
+    { status: "active_full", variant: "success", label: "Actif complet" },
     { status: "completed", variant: "success", label: "Termine" },
-    { status: "abandoned", variant: "danger", label: "Abandonne" },
+    { status: "cancelled", variant: "danger", label: "Annule" },
   ];
 
   it.each(statuses)(

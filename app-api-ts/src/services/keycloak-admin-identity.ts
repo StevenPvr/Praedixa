@@ -22,6 +22,16 @@ export interface KeycloakSyncUserInput {
   enabled: boolean;
 }
 
+export interface KeycloakManagedUserRecord {
+  authUserId: string;
+  username: string | null;
+  email: string | null;
+  organizationId: string | null;
+  role: ManagedAdminUserRole | null;
+  siteId: string | null;
+  enabled: boolean | null;
+}
+
 interface KeycloakServiceConfig {
   adminRealm: string;
   appRealm: string;
@@ -58,6 +68,7 @@ const MANAGED_ADMIN_USER_ROLES: readonly ManagedAdminUserRole[] = [
 ];
 
 const INVITE_REQUIRED_ACTIONS = ["UPDATE_PASSWORD"] as const;
+const NULL_SENDER_ERROR_PATTERN = /Invalid sender address 'null'/i;
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === "object" && !Array.isArray(value);
@@ -105,6 +116,10 @@ function extractErrorMessage(payload: unknown): string | null {
   }
 
   return null;
+}
+
+function isMissingRealmEmailSenderError(message: string): boolean {
+  return NULL_SENDER_ERROR_PATTERN.test(message);
 }
 
 function extractRealmFromIssuer(issuerUrl: string): {
@@ -177,6 +192,42 @@ function normalizeRequiredActions(requiredActions: unknown): string[] {
   );
 }
 
+function isManagedAdminUserRole(value: string): value is ManagedAdminUserRole {
+  return MANAGED_ADMIN_USER_ROLES.includes(value as ManagedAdminUserRole);
+}
+
+function mapManagedUserRecord(
+  user: KeycloakUserRepresentation,
+): KeycloakManagedUserRecord | null {
+  const authUserId = user.id?.trim() ?? "";
+  if (!authUserId) {
+    return null;
+  }
+
+  const attributes = normalizeAttributes(user.attributes);
+  const roleValue = attributes.role?.[0]?.trim() ?? "";
+
+  return {
+    authUserId,
+    username: user.username?.trim().toLowerCase() || null,
+    email: user.email?.trim().toLowerCase() || null,
+    organizationId: attributes.organization_id?.[0]?.trim() || null,
+    role: isManagedAdminUserRole(roleValue) ? roleValue : null,
+    siteId: attributes.site_id?.[0]?.trim() || null,
+    enabled: typeof user.enabled === "boolean" ? user.enabled : null,
+  };
+}
+
+function dedupeManagedUsers(
+  users: KeycloakManagedUserRecord[],
+): KeycloakManagedUserRecord[] {
+  const unique = new Map<string, KeycloakManagedUserRecord>();
+  for (const user of users) {
+    unique.set(user.authUserId, user);
+  }
+  return Array.from(unique.values());
+}
+
 export class KeycloakAdminIdentityError extends Error {
   constructor(
     message: string,
@@ -226,6 +277,20 @@ export class KeycloakAdminIdentityService {
   async deleteProvisionedUser(authUserId: string): Promise<void> {
     const accessToken = await this.getAccessToken();
     await this.deleteUser(accessToken, authUserId);
+  }
+
+  async findManagedUsersByEmail(
+    email: string,
+  ): Promise<KeycloakManagedUserRecord[]> {
+    const accessToken = await this.getAccessToken();
+    return await this.findUsersByEmail(accessToken, email);
+  }
+
+  async findManagedUsersByUsername(
+    username: string,
+  ): Promise<KeycloakManagedUserRecord[]> {
+    const accessToken = await this.getAccessToken();
+    return await this.findUsersByUsername(accessToken, username);
   }
 
   private async getAccessToken(): Promise<string> {
@@ -288,11 +353,35 @@ export class KeycloakAdminIdentityService {
     );
 
     if (response.status === 409) {
+      const [emailMatches, usernameMatches] = await Promise.all([
+        this.findUsersByEmail(accessToken, input.email).catch(() => []),
+        this.findUsersByUsername(accessToken, input.email).catch(() => []),
+      ]);
+      const conflictUsers = dedupeManagedUsers([
+        ...emailMatches,
+        ...usernameMatches,
+      ]);
+      const conflictField =
+        emailMatches.length > 0
+          ? "email"
+          : usernameMatches.length > 0
+            ? "username"
+            : "login";
+
       throw new KeycloakAdminIdentityError(
-        "A Keycloak user with this email already exists",
+        conflictField === "username"
+          ? "A Keycloak user with this username already exists"
+          : conflictField === "email"
+            ? "A Keycloak user with this email already exists"
+            : "A Keycloak user with this login already exists",
         409,
         "CONFLICT",
-        { email: input.email },
+        {
+          email: input.email,
+          username: input.email,
+          conflictField,
+          conflictUsers,
+        },
       );
     }
 
@@ -590,10 +679,33 @@ export class KeycloakAdminIdentityService {
     accessToken: string,
     email: string,
   ): Promise<string | null> {
+    const users = await this.findUsersByEmail(accessToken, email);
+    return users[0]?.authUserId ?? null;
+  }
+
+  private async findUsersByEmail(
+    accessToken: string,
+    email: string,
+  ): Promise<KeycloakManagedUserRecord[]> {
+    return await this.findUsersByQuery(accessToken, "email", email);
+  }
+
+  private async findUsersByUsername(
+    accessToken: string,
+    username: string,
+  ): Promise<KeycloakManagedUserRecord[]> {
+    return await this.findUsersByQuery(accessToken, "username", username);
+  }
+
+  private async findUsersByQuery(
+    accessToken: string,
+    key: "email" | "username",
+    value: string,
+  ): Promise<KeycloakManagedUserRecord[]> {
     const url = this.buildUrl(
       `admin/realms/${encodeURIComponent(this.config.appRealm)}/users`,
     );
-    url.searchParams.set("email", email);
+    url.searchParams.set(key, value);
     url.searchParams.set("exact", "true");
 
     const response = await this.fetchWithTimeout(
@@ -613,10 +725,15 @@ export class KeycloakAdminIdentityService {
     }
 
     const users = (await response.json()) as KeycloakUserRepresentation[];
-    const exactUser = users.find(
-      (user) => (user.email ?? "").trim().toLowerCase() === email,
-    );
-    return exactUser?.id?.trim() || null;
+    const exactValue = value.trim().toLowerCase();
+    return users
+      .filter((user) =>
+        key === "email"
+          ? (user.email ?? "").trim().toLowerCase() === exactValue
+          : (user.username ?? "").trim().toLowerCase() === exactValue,
+      )
+      .map(mapManagedUserRecord)
+      .filter((user): user is KeycloakManagedUserRecord => user != null);
   }
 
   private buildJsonHeaders(accessToken: string): Record<string, string> {
@@ -672,7 +789,17 @@ export class KeycloakAdminIdentityService {
     fallbackMessage: string,
   ): Promise<KeycloakAdminIdentityError> {
     const payload = (await response.json().catch(() => null)) as unknown;
-    const message = extractErrorMessage(payload) ?? fallbackMessage;
+    const rawMessage = extractErrorMessage(payload) ?? fallbackMessage;
+    if (isMissingRealmEmailSenderError(rawMessage)) {
+      return new KeycloakAdminIdentityError(
+        "Keycloak realm email sender is not configured. Set smtpServer.from before sending execute-actions-email.",
+        503,
+        "IDENTITY_EMAIL_NOT_CONFIGURED",
+        { cause: rawMessage },
+      );
+    }
+
+    const message = rawMessage;
     const code =
       response.status === 404
         ? "NOT_FOUND"

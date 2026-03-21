@@ -1,10 +1,15 @@
 import { z } from "zod";
+import type {
+  CreateAdminOrganizationRequest,
+  DeleteAdminOrganizationRequest,
+} from "@praedixa/shared-types/api";
 import type { DecisionScope } from "@praedixa/shared-types/domain";
 import { failure, paginated, success } from "./response.js";
 import { route } from "./router.js";
 import { ADMIN_DECISION_CONTRACT_ROUTES } from "./routes/admin-decision-contract-routes.js";
 import { ADMIN_DECISION_RUNTIME_ROUTES } from "./routes/admin-decision-runtime-routes.js";
 import { ADMIN_INTEGRATION_ROUTES } from "./routes/admin-integration-routes.js";
+import { ADMIN_ONBOARDING_ROUTES } from "./routes/admin-onboarding-routes.js";
 import {
   getDecisionConfigService,
   getDefaultHorizon,
@@ -24,7 +29,6 @@ import {
   listPersistentCoverageAlerts,
   listPersistentForecastRuns,
   listPersistentLatestDailyForecasts,
-  listPersistentOnboardings,
   listPersistentProofRecords,
   mapAdminAlertItem,
   mapAdminCanonicalItem,
@@ -96,6 +100,12 @@ const CONTACT_REQUEST_TYPES = [
   "product_demo",
   "partnership",
   "press_other",
+] as const;
+const ORGANIZATION_PLAN_VALUES = [
+  "free",
+  "starter",
+  "professional",
+  "enterprise",
 ] as const;
 const DECISION_PACKS = ["coverage", "flow", "allocation", "core"] as const;
 const DECISION_ENTITY_TYPES = [
@@ -697,14 +707,6 @@ const adminAuditRead = {
   ...adminOnly,
   requiredPermissions: ["admin:audit:read"] as const,
 };
-const adminOnboardingRead = {
-  ...adminOnly,
-  requiredPermissions: ["admin:onboarding:read"] as const,
-};
-const adminOnboardingWrite = {
-  ...adminOnly,
-  requiredPermissions: ["admin:onboarding:write"] as const,
-};
 const adminMessagesRead = {
   ...adminOnly,
   requiredPermissions: ["admin:messages:read"] as const,
@@ -738,7 +740,7 @@ function backofficeFailureResponse(
     );
   }
 
-  return failure(fallbackCode, fallbackMessage, requestId, 400);
+  return failure(fallbackCode, fallbackMessage, requestId, 500);
 }
 
 function operationalFailureResponse(
@@ -771,6 +773,19 @@ const ADMIN_ASSIGNABLE_ROLES = [
 type AdminAssignableRole = (typeof ADMIN_ASSIGNABLE_ROLES)[number];
 
 const ADMIN_ASSIGNABLE_ROLE_SET = new Set<string>(ADMIN_ASSIGNABLE_ROLES);
+const createAdminOrganizationSchema = z.object({
+  name: z.string().trim().min(2).max(255),
+  slug: z.string().trim().min(3).max(35),
+  contactEmail: z.string().trim().email().max(320),
+  isTest: z.boolean().optional(),
+  plan: z.enum(ORGANIZATION_PLAN_VALUES).optional(),
+});
+
+const deleteAdminOrganizationSchema = z.object({
+  organizationSlug: z.string().trim().min(3).max(35),
+  confirmationText: z.literal("SUPPRIMER"),
+  acknowledgeTestDeletion: z.literal(true),
+});
 
 function normalizeOptionalText(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -2170,35 +2185,226 @@ export const routes: RouteDefinition[] = [
   route(
     "GET",
     "/api/v1/admin/organizations",
-    (ctx) => liveFallbackFailure(ctx, "Admin organizations list"),
+    async (ctx) => {
+      const service = getAdminBackofficeService();
+      if (service.hasDatabase()) {
+        try {
+          const { page, pageSize } = pageQuery(ctx);
+          const result = await service.listOrganizations({
+            page,
+            pageSize,
+            search: normalizeOptionalText(ctx.query.get("search")),
+            status: normalizeOptionalText(ctx.query.get("status")),
+            plan: normalizeOptionalText(ctx.query.get("plan")),
+          });
+          return paginated(
+            result.items,
+            page,
+            pageSize,
+            result.total,
+            ctx.requestId,
+          );
+        } catch (error) {
+          return backofficeFailureResponse(
+            error,
+            ctx.requestId,
+            "ORGANIZATIONS_LIST_FAILED",
+            "Unable to load organizations",
+          );
+        }
+      }
+      return liveFallbackFailure(ctx, "Admin organizations list");
+    },
     adminOrgRead,
   ),
   route(
     "POST",
     "/api/v1/admin/organizations",
-    (ctx) => liveFallbackFailure(ctx, "Admin organization creation"),
+    async (ctx) => {
+      const service = getAdminBackofficeService();
+      if (!service.hasDatabase()) {
+        return liveFallbackFailure(ctx, "Admin organization creation");
+      }
+
+      const parsed = createAdminOrganizationSchema.safeParse(ctx.body);
+      if (!parsed.success) {
+        return failure(
+          "INVALID_ORGANIZATION_BODY",
+          parsed.error.issues[0]?.message ??
+            "Organization creation payload is invalid.",
+          ctx.requestId,
+          400,
+        );
+      }
+
+      const actorUserId = normalizeOptionalText(ctx.user?.userId);
+      if (actorUserId == null) {
+        return failure(
+          "ACTOR_CONTEXT_REQUIRED",
+          "Authenticated admin actor context is required.",
+          ctx.requestId,
+          403,
+        );
+      }
+
+      try {
+        return success(
+          await service.createOrganization({
+            ...(parsed.data satisfies CreateAdminOrganizationRequest),
+            actorUserId,
+            requestId: ctx.requestId,
+            clientIp: ctx.clientIp,
+            userAgent: ctx.userAgent,
+          }),
+          ctx.requestId,
+          "Organization created",
+          201,
+        );
+      } catch (error) {
+        return backofficeFailureResponse(
+          error,
+          ctx.requestId,
+          "ORGANIZATION_CREATE_FAILED",
+          "Unable to create organization",
+        );
+      }
+    },
     adminOrgWrite,
   ),
   route(
     "GET",
     "/api/v1/admin/organizations/:orgId",
-    (ctx) =>
-      noDemoFallbackResponse(
+    async (ctx) => {
+      const orgId = ctx.params.orgId ?? "";
+      const service = getAdminBackofficeService();
+      if (service.hasDatabase()) {
+        try {
+          return success(
+            await service.getOrganizationDetail(orgId),
+            ctx.requestId,
+          );
+        } catch (error) {
+          return backofficeFailureResponse(
+            error,
+            ctx.requestId,
+            "ORGANIZATION_GET_FAILED",
+            "Unable to load organization details",
+          );
+        }
+      }
+      return noDemoFallbackResponse(
         ctx.requestId,
         "Admin organization details",
-        ctx.params.orgId ?? undefined,
-      ),
+        orgId,
+      );
+    },
     adminOrgRead,
+  ),
+  route(
+    "POST",
+    "/api/v1/admin/organizations/:orgId/delete",
+    async (ctx) => {
+      const orgId = ctx.params.orgId ?? "";
+      const service = getAdminBackofficeService();
+      if (!service.hasDatabase()) {
+        return liveFallbackFailure(ctx, "Admin organization deletion");
+      }
+
+      const parsed = deleteAdminOrganizationSchema.safeParse(ctx.body);
+      if (!parsed.success) {
+        return failure(
+          "INVALID_ORGANIZATION_DELETE_BODY",
+          parsed.error.issues[0]?.message ??
+            "Organization deletion payload is invalid.",
+          ctx.requestId,
+          400,
+        );
+      }
+
+      const actorUserId = normalizeOptionalText(ctx.user?.userId);
+      if (actorUserId == null) {
+        return failure(
+          "ACTOR_CONTEXT_REQUIRED",
+          "Authenticated admin actor context is required.",
+          ctx.requestId,
+          403,
+        );
+      }
+
+      try {
+        return success(
+          await service.deleteOrganization({
+            organizationId: orgId,
+            ...(parsed.data satisfies DeleteAdminOrganizationRequest),
+            actorUserId,
+            requestId: ctx.requestId,
+            clientIp: ctx.clientIp,
+            userAgent: ctx.userAgent,
+          }),
+          ctx.requestId,
+          "Organization deleted",
+        );
+      } catch (error) {
+        return backofficeFailureResponse(
+          error,
+          ctx.requestId,
+          "ORGANIZATION_DELETE_FAILED",
+          "Unable to delete organization",
+        );
+      }
+    },
+    adminOrgWrite,
   ),
   route(
     "GET",
     "/api/v1/admin/organizations/:orgId/overview",
-    (ctx) =>
-      noDemoFallbackResponse(
+    async (ctx) => {
+      const orgId = ctx.params.orgId ?? "";
+      const service = getAdminBackofficeService();
+      if (service.hasDatabase()) {
+        try {
+          const [organization, mirror, billing, alerts, scenarios] =
+            await Promise.all([
+              service.getOrganizationDetail(orgId),
+              getPersistentAdminOrgMirror(orgId),
+              service.getBillingInfo(orgId),
+              service.listOrganizationAlertSummaries(orgId),
+              service.listOrganizationScenarioSummaries(orgId),
+            ]);
+
+          return success(
+            {
+              organization,
+              mirror,
+              billing,
+              alerts,
+              scenarios,
+            },
+            ctx.requestId,
+          );
+        } catch (error) {
+          if (error instanceof PersistenceError) {
+            return operationalFailureResponse(
+              error,
+              ctx.requestId,
+              "ORGANIZATION_OVERVIEW_FAILED",
+              "Unable to load organization overview",
+            );
+          }
+          return backofficeFailureResponse(
+            error,
+            ctx.requestId,
+            "ORGANIZATION_OVERVIEW_FAILED",
+            "Unable to load organization overview",
+          );
+        }
+      }
+      return noDemoFallbackResponse(
         ctx.requestId,
         "Admin organization overview",
-        ctx.params.orgId ?? undefined,
-      ),
+        orgId,
+      );
+    },
     adminOrgRead,
   ),
   route(
@@ -2751,21 +2957,15 @@ export const routes: RouteDefinition[] = [
   route(
     "GET",
     "/api/v1/admin/audit-log",
-    (ctx) => liveFallbackFailure(ctx, "Admin audit log"),
-    adminAuditRead,
-  ),
-
-  route(
-    "GET",
-    "/api/v1/admin/onboarding",
     async (ctx) => {
-      if (hasPersistentDatabase()) {
+      const service = getAdminBackofficeService();
+      if (service.hasDatabase()) {
         try {
           const { page, pageSize } = pageQuery(ctx);
-          const result = await listPersistentOnboardings({
-            status: normalizeOptionalText(ctx.query.get("status")),
+          const result = await service.listAuditLog({
             page,
             pageSize,
+            action: normalizeOptionalText(ctx.query.get("action")),
           });
           return paginated(
             result.items,
@@ -2775,38 +2975,20 @@ export const routes: RouteDefinition[] = [
             ctx.requestId,
           );
         } catch (error) {
-          return operationalFailureResponse(
+          return backofficeFailureResponse(
             error,
             ctx.requestId,
-            "ADMIN_ONBOARDING_LIST_FAILED",
-            "Unable to load onboarding sessions",
+            "AUDIT_LOG_LIST_FAILED",
+            "Unable to load audit log",
           );
         }
       }
+      return liveFallbackFailure(ctx, "Admin audit log");
+    },
+    adminAuditRead,
+  ),
 
-      return noDemoFallbackResponse(ctx.requestId, "Admin onboarding list");
-    },
-    adminOnboardingRead,
-  ),
-  route(
-    "POST",
-    "/api/v1/admin/onboarding",
-    (ctx) => {
-      return noDemoFallbackResponse(ctx.requestId, "Admin onboarding creation");
-    },
-    adminOnboardingWrite,
-  ),
-  route(
-    "PATCH",
-    "/api/v1/admin/onboarding/:onboardingId/step/:step",
-    (ctx) => {
-      return noDemoFallbackResponse(
-        ctx.requestId,
-        "Admin onboarding step update",
-      );
-    },
-    adminOnboardingWrite,
-  ),
+  ...ADMIN_ONBOARDING_ROUTES,
 
   route(
     "GET",
@@ -3577,12 +3759,31 @@ export const routes: RouteDefinition[] = [
   route(
     "GET",
     "/api/v1/admin/organizations/:orgId/ingestion-log",
-    (ctx) =>
-      noDemoFallbackResponse(
+    async (ctx) => {
+      const orgId = ctx.params.orgId ?? "";
+      const service = getAdminBackofficeService();
+      if (service.hasDatabase()) {
+        try {
+          return success(
+            await service.listOrganizationIngestionLog(orgId),
+            ctx.requestId,
+          );
+        } catch (error) {
+          return backofficeFailureResponse(
+            error,
+            ctx.requestId,
+            "INGESTION_LOG_FAILED",
+            "Unable to load organization ingestion log",
+          );
+        }
+      }
+
+      return noDemoFallbackResponse(
         ctx.requestId,
         "Admin ingestion log",
         ctx.params.orgId ?? undefined,
-      ),
+      );
+    },
     adminOrgRead,
   ),
   route(
@@ -3656,7 +3857,26 @@ export const routes: RouteDefinition[] = [
   route(
     "GET",
     "/api/v1/admin/conversations/unread-count",
-    (ctx) => liveFallbackFailure(ctx, "Admin conversation unread count"),
+    async (ctx) => {
+      const service = getAdminBackofficeService();
+      if (!service.hasDatabase()) {
+        return liveFallbackFailure(ctx, "Admin conversation unread count");
+      }
+
+      try {
+        return success(
+          await service.getConversationUnreadCount(),
+          ctx.requestId,
+        );
+      } catch (error) {
+        return backofficeFailureResponse(
+          error,
+          ctx.requestId,
+          "ADMIN_CONVERSATION_UNREAD_FAILED",
+          "Unable to load unread admin conversations",
+        );
+      }
+    },
     adminMessagesRead,
   ),
   route(
@@ -3680,13 +3900,82 @@ export const routes: RouteDefinition[] = [
   route(
     "GET",
     "/api/v1/admin/contact-requests",
-    (ctx) => liveFallbackFailure(ctx, "Admin contact requests"),
+    async (ctx) => {
+      const service = getAdminBackofficeService();
+      if (service.hasDatabase()) {
+        try {
+          const { page, pageSize } = pageQuery(ctx);
+          const result = await service.listContactRequests({
+            page,
+            pageSize,
+            search: normalizeOptionalText(ctx.query.get("search")),
+            status: normalizeOptionalText(ctx.query.get("status")),
+            requestType: normalizeOptionalText(ctx.query.get("request_type")),
+          });
+          return paginated(
+            result.items,
+            page,
+            pageSize,
+            result.total,
+            ctx.requestId,
+          );
+        } catch (error) {
+          return backofficeFailureResponse(
+            error,
+            ctx.requestId,
+            "CONTACT_REQUESTS_LIST_FAILED",
+            "Unable to load contact requests",
+          );
+        }
+      }
+      return liveFallbackFailure(ctx, "Admin contact requests");
+    },
     adminSupportRead,
   ),
   route(
     "PATCH",
     "/api/v1/admin/contact-requests/:requestId/status",
-    (ctx) => liveFallbackFailure(ctx, "Admin contact request status update"),
+    async (ctx) => {
+      const requestId = ctx.params.requestId ?? "";
+      const payload = parseJsonObject(ctx.body);
+      if (!payload) {
+        return failure(
+          "VALIDATION_ERROR",
+          "Body must be a JSON object",
+          ctx.requestId,
+          422,
+        );
+      }
+
+      const status = normalizeOptionalText(payload.status);
+      if (!status) {
+        return failure(
+          "VALIDATION_ERROR",
+          "status is required",
+          ctx.requestId,
+          422,
+        );
+      }
+
+      const service = getAdminBackofficeService();
+      if (service.hasDatabase()) {
+        try {
+          return success(
+            await service.updateContactRequestStatus(requestId, status),
+            ctx.requestId,
+            "Contact request status updated",
+          );
+        } catch (error) {
+          return backofficeFailureResponse(
+            error,
+            ctx.requestId,
+            "CONTACT_REQUEST_STATUS_UPDATE_FAILED",
+            "Unable to update contact request status",
+          );
+        }
+      }
+      return liveFallbackFailure(ctx, "Admin contact request status update");
+    },
     adminSupportWrite,
   ),
 ];

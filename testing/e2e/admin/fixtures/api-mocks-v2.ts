@@ -321,17 +321,90 @@ export async function mockJournalApisError(page: Page): Promise<void> {
 // Parametres page mocks
 // ─────────────────────────────────────────────────
 
-import {
-  MOCK_ONBOARDING_LIST as _MOCK_ONBOARDING_LIST,
-  MOCK_COST_PARAMS_MISSING as _MOCK_COST_PARAMS_MISSING,
-} from "./api-mocks";
+import { MOCK_COST_PARAMS_MISSING as _MOCK_COST_PARAMS_MISSING } from "./api-mocks";
+
+const MOCK_PARAMETRES_ONBOARDING_CASES = [
+  {
+    id: "case-001",
+    organizationId: "org-001",
+    organizationName: "Acme Logistique",
+    organizationSlug: "acme-logistique",
+    status: "blocked",
+    phase: "source_activation",
+    activationMode: "shadow",
+    environmentTarget: "sandbox",
+    dataResidencyRegion: "fr-par",
+    subscriptionModules: ["connectors"],
+    selectedPacks: ["coverage"],
+    sourceModes: ["api"],
+    lastReadinessStatus: "blocked",
+    lastReadinessScore: 0,
+    openTaskCount: 4,
+    openBlockerCount: 2,
+    ownerUserId: null,
+    sponsorUserId: null,
+    startedAt: "2026-02-06T08:00:00Z",
+    targetGoLiveAt: null,
+    closedAt: null,
+    process: {
+      workflowProvider: "camunda",
+      processDefinitionKey: "client-onboarding-v1",
+      processDefinitionVersion: 1,
+      processInstanceKey: "proc-001",
+    },
+  },
+  {
+    id: "case-002",
+    organizationId: "org-002",
+    organizationName: "Express Transport",
+    organizationSlug: "express-transport",
+    status: "active_full",
+    phase: "activation",
+    activationMode: "full",
+    environmentTarget: "production",
+    dataResidencyRegion: "fr-par",
+    subscriptionModules: ["connectors", "forecasting"],
+    selectedPacks: ["coverage", "workforce"],
+    sourceModes: ["api", "file"],
+    lastReadinessStatus: "ready",
+    lastReadinessScore: 92,
+    openTaskCount: 1,
+    openBlockerCount: 0,
+    ownerUserId: null,
+    sponsorUserId: null,
+    startedAt: "2026-02-01T08:00:00Z",
+    targetGoLiveAt: "2026-02-10T08:00:00Z",
+    closedAt: null,
+    process: {
+      workflowProvider: "camunda",
+      processDefinitionKey: "client-onboarding-v1",
+      processDefinitionVersion: 2,
+      processInstanceKey: "proc-002",
+    },
+  },
+] as const;
+
+const MOCK_PARAMETRES_COST_PARAMS = {
+  ..._MOCK_COST_PARAMS_MISSING,
+  orgs: [
+    {
+      organizationId: "org-003",
+      name: "Global Freight",
+      missingTypes: ["c_int", "c_interim"],
+      totalMissing: 2,
+    },
+  ],
+} as const;
 
 export async function mockParametresApis(page: Page): Promise<void> {
   await page.route("**/api/v1/admin/onboarding*", (route) =>
-    fulfill(route, paginatedResponse(_MOCK_ONBOARDING_LIST, { total: 2 })),
+    fulfill(
+      route,
+      paginatedResponse([...MOCK_PARAMETRES_ONBOARDING_CASES], { total: 2 }),
+    ),
   );
   await page.route("**/api/v1/admin/monitoring/cost-params/missing*", (route) =>
-    fulfill(route, apiResponse(_MOCK_COST_PARAMS_MISSING)),
+    fulfill(route, apiResponse(MOCK_PARAMETRES_COST_PARAMS)),
   );
 }
 

@@ -13,12 +13,28 @@ import {
 import { getValuePropContent } from "../../lib/content/value-prop";
 import { PRAEDIXA_BASE_URL } from "../../lib/seo/entity";
 import { serializeJsonForScriptTag } from "../../lib/security/json-script";
+import { GeoSummaryPanel } from "../shared/GeoSummaryPanel";
 import { Kicker } from "../shared/Kicker";
 import { SectionShell } from "../shared/SectionShell";
 
 interface SectorPageProps {
   locale: Locale;
   entry: SectorPageEntry;
+}
+
+function buildSectorTakeaways(entry: SectorPageEntry): string[] {
+  const proofTakeaways = entry.proofs
+    .slice(0, 3)
+    .map((proof) => `${proof.value} — ${proof.label}`);
+
+  if (proofTakeaways.length > 0) {
+    return proofTakeaways;
+  }
+
+  return [entry.challengeBody, entry.valuePropBody, entry.loopIntro].slice(
+    0,
+    3,
+  );
 }
 
 export function SectorPage({ locale, entry }: SectorPageProps) {
@@ -32,9 +48,12 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
       ? `/fr/secteurs/${entry.slug}`
       : `/en/industries/${entry.slug}`;
   const canonicalUrl = `${PRAEDIXA_BASE_URL}${canonicalPath}`;
+  const breadcrumbSchemaId = `${canonicalUrl}#breadcrumb`;
+  const webPageSchemaId = `${canonicalUrl}#webpage`;
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
+    "@id": breadcrumbSchemaId,
     itemListElement: [
       {
         "@type": "ListItem",
@@ -62,10 +81,22 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
   const webPageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
+    "@id": webPageSchemaId,
     name: entry.metaTitle,
     description: entry.metaDescription,
     url: canonicalUrl,
     inLanguage: locale,
+    isPartOf: {
+      "@type": "WebSite",
+      "@id": `${PRAEDIXA_BASE_URL}#website`,
+    },
+    about: {
+      "@type": "Organization",
+      "@id": `${PRAEDIXA_BASE_URL}#organization`,
+    },
+    breadcrumb: {
+      "@id": breadcrumbSchemaId,
+    },
     mainEntity: {
       "@type": "Service",
       name: `Praedixa — ${entry.title}`,
@@ -181,6 +212,17 @@ export function SectorPage({ locale, entry }: SectorPageProps) {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="mx-auto mt-8 max-w-4xl">
+            <GeoSummaryPanel
+              locale={locale}
+              summary={entry.metaDescription}
+              takeaways={buildSectorTakeaways(entry)}
+              eyebrow={
+                locale === "fr" ? "Lecture sectorielle" : "Sector summary"
+              }
+            />
           </div>
         </article>
       </SectionShell>

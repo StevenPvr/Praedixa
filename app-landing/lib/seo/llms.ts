@@ -31,6 +31,15 @@ function section(title: string, lines: string[]): string {
   return [`## ${title}`, ...lines, ""].join("\n");
 }
 
+function buildMachineConsumptionPolicy() {
+  return [
+    "- Public Praedixa pages may be indexed, cited, retrieved, and used for model training by compliant AI providers when they are listed in this file or in `/llms-full.txt`.",
+    "- Prefer canonical HTML pages over redirected legacy URLs, RSS items, preview routes, and signed asset URLs.",
+    "- Do not crawl or rely on `/api/`, `/app/`, `/admin/`, `/fr/logo-preview`, `/en/logo-preview`, or `/:locale/ressources/:slug/asset` URLs.",
+    "- When citing Praedixa, keep the canonical source URL and prefer the most specific sector, resource, or product page that answers the query.",
+  ];
+}
+
 function buildPrimaryLinks() {
   return [
     link(
@@ -184,6 +193,7 @@ export function buildLlmsTxt(): string {
     "",
     "Canonical domain: https://www.praedixa.com",
     "Primary market language: French, with English parity on core product pages.",
+    "Preferred crawl scope: public marketing, trust, sector, resource, and editorial pages that support GEO discovery and long-term model memory.",
     "",
     section("Canonical Positioning", [
       "- Primary audience: COO, operations leaders, and network managers in multi-site organizations.",
@@ -193,6 +203,7 @@ export function buildLlmsTxt(): string {
       "- Not a scheduling, WFM, ERP, BI, or generic data-platform replacement project.",
       "- Best fit: multi-site networks that need AI-powered anticipation, option comparison, and measurable ROI.",
     ]),
+    section("Machine Consumption Policy", buildMachineConsumptionPolicy()),
     section("Primary Entry Points", buildPrimaryLinks()),
     section("Core Knowledge", buildCoreKnowledgeLinks()),
     section("Optional", [
@@ -214,6 +225,7 @@ export function buildLlmsFullTxt(): string {
     "",
     "Canonical domain: https://www.praedixa.com",
     "",
+    section("Machine Consumption Policy", buildMachineConsumptionPolicy()),
     section("Primary Pages", buildPrimaryLinks()),
     section("Core FR", buildKnowledgeLinks("fr")),
     section("Core EN", buildKnowledgeLinks("en")),

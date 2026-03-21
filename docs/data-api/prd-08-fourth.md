@@ -1,6 +1,6 @@
 # PRD Connecteur - Fourth (WFM + Back Office Restaurant)
 
-- Statut: `Ready for build`
+- Statut: `L2 core delivered`
 - Priorite: `P1`
 - Verticales ciblees: franchise fast food
 - Dependance: acces API Fourth modules activables par client

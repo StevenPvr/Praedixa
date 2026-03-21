@@ -10,6 +10,10 @@ export type ServiceTokenCapability =
   | "catalog:read"
   | "connections:read"
   | "connections:write"
+  | "provider_runtime:read"
+  | "provider_runtime:write"
+  | "sync_runtime:write"
+  | "raw_events_runtime:write"
   | "ingest_credentials:read"
   | "ingest_credentials:write"
   | "raw_events:read"
@@ -123,6 +127,7 @@ export type ConnectorDomain =
 export type ConnectorAuthMode =
   | "oauth2"
   | "api_key"
+  | "session"
   | "service_account"
   | "sftp";
 
@@ -139,6 +144,7 @@ export type ConnectorActivationReadinessIssueCode =
   | "missing_required_config"
   | "missing_stored_credentials"
   | "missing_oauth_endpoints"
+  | "missing_live_probe_strategy"
   | "authorization_required"
   | "authorization_pending"
   | "missing_probe_target"
@@ -175,6 +181,7 @@ export type SecretKind =
   | "oauth2_client"
   | "oauth2_token"
   | "api_key"
+  | "session"
   | "service_account"
   | "sftp"
   | "ingest_client";
@@ -271,12 +278,34 @@ export interface SyncRun {
   attempts: number;
   maxAttempts: number;
   priority: number;
+  lockedBy: string | null;
+  leaseExpiresAt: string | null;
   createdAt: string;
+}
+
+export interface ConnectionSyncState {
+  organizationId: string;
+  connectionId: string;
+  sourceObject: string;
+  watermarkText: string | null;
+  watermarkAt: string | null;
+  cursorJson: Record<string, unknown>;
+  lastRunId: string | null;
+  updatedByWorker: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SyncDispatchResult {
   created: boolean;
   run: SyncRun;
+}
+
+export interface SyncRunExecutionPlan {
+  run: SyncRun;
+  connection: ConnectorConnection;
+  credentials: CredentialInput;
+  syncStates: ConnectionSyncState[];
 }
 
 export interface ConnectorAuditEvent {
@@ -425,10 +454,54 @@ export interface IngestRawEvent {
   receivedAt: string;
 }
 
+export interface IngestRawEventSummary {
+  id: string;
+  credentialId: string;
+  eventId: string;
+  sourceObject: string;
+  sourceRecordId: string;
+  schemaVersion: string;
+  objectStoreKey: string;
+  sizeBytes: number;
+  processingStatus: "pending" | "processing" | "processed" | "failed";
+  receivedAt: string;
+}
+
 export interface IngestEventsResult {
   accepted: number;
   duplicates: number;
   runId: string;
+  receivedAt: string;
+  events: IngestRawEvent[];
+}
+
+export interface ProviderRuntimeAccessContext {
+  organizationId: string;
+  connectionId: string;
+  vendor: ConnectorVendor;
+  authMode: ConnectorAuthMode;
+  runtimeEnvironment: ConnectorRuntimeEnvironment;
+  baseUrl: string;
+  sourceObjects: string[];
+  authorization: {
+    headerName: string;
+    headerValue: string;
+    scopes: string[] | null;
+    additionalHeaders: Record<string, string> | null;
+    credentialFields: Record<string, string> | null;
+  };
+}
+
+export interface ProviderEventsIngestInput {
+  syncRunId: string;
+  workerId: string;
+  schemaVersion: string;
+  events: IngestEventInput[];
+}
+
+export interface ProviderEventsIngestResult {
+  accepted: number;
+  duplicates: number;
   receivedAt: string;
   events: IngestRawEvent[];
 }
@@ -505,6 +578,38 @@ export interface TriggerSyncInput {
   forceFullSync: boolean;
   sourceWindowStart: string | null;
   sourceWindowEnd: string | null;
+}
+
+export interface ClaimSyncRunsInput {
+  workerId: string;
+  limit?: number;
+  leaseSeconds?: number;
+}
+
+export interface GetSyncRunExecutionPlanInput {
+  workerId: string;
+}
+
+export interface CompleteSyncRunInput {
+  workerId: string;
+  recordsFetched: number;
+  recordsWritten: number;
+}
+
+export interface FailSyncRunInput {
+  workerId: string;
+  errorMessage: string;
+  errorClass?: string | null;
+  retryable?: boolean;
+  retryDelaySeconds?: number | null;
+}
+
+export interface UpsertSyncStateInput {
+  workerId: string;
+  sourceObject: string;
+  watermarkText?: string | null;
+  watermarkAt?: string | null;
+  cursorJson?: Record<string, unknown> | null;
 }
 
 export interface TestConnectionResult {

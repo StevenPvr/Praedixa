@@ -4,6 +4,7 @@ import { isValidLocale } from "../../lib/i18n/config";
 import { getDictionary } from "../../lib/i18n/get-dictionary";
 import { buildLocaleMetadata, localePathMap } from "../../lib/seo/metadata";
 import { HeroPulsorSection } from "../../components/homepage/HeroPulsorSection";
+import { HomeGeoSummarySection } from "../../components/homepage/HomeGeoSummarySection";
 import { CredibilityRibbonSection } from "../../components/homepage/CredibilityRibbonSection";
 import { ProblemBlockSection } from "../../components/homepage/ProblemBlockSection";
 import { MethodBlockSection } from "../../components/homepage/MethodBlockSection";
@@ -49,6 +50,7 @@ export default async function LandingPage({
   return (
     <>
       <HeroPulsorSection locale={locale} />
+      <HomeGeoSummarySection locale={locale} />
       <CredibilityRibbonSection locale={locale} />
       <ProblemBlockSection locale={locale} />
       <MethodBlockSection locale={locale} />

@@ -16,6 +16,9 @@ import { ErrorFallback } from "@/components/error-fallback";
 import { PlanBadge, type PlanTier } from "@/components/plan-badge";
 import { OrgStatusBadge, type OrgStatus } from "@/components/org-status-badge";
 import { SkeletonOrgList } from "@/components/skeletons/skeleton-org-list";
+import { useCurrentUser } from "@/lib/auth/client";
+import { hasAnyPermission } from "@/lib/auth/permissions";
+import { buildCsvDocument } from "@/lib/security/csv";
 
 interface OrgListItem {
   id: string;
@@ -24,6 +27,7 @@ interface OrgListItem {
   status: OrgStatus;
   plan: PlanTier;
   contactEmail: string;
+  isTest: boolean;
   userCount: number;
   siteCount: number;
   createdAt: string;
@@ -54,6 +58,9 @@ const STATIC_COLUMNS: DataTableColumn<OrgListItem>[] = [
       <div>
         <p className="font-medium text-charcoal">{row.name}</p>
         <p className="text-xs text-ink-placeholder">{row.slug}</p>
+        {row.isTest ? (
+          <p className="mt-1 text-xs font-medium text-amber-700">Client test</p>
+        ) : null}
       </div>
     ),
   },
@@ -90,6 +97,10 @@ const STATIC_COLUMNS: DataTableColumn<OrgListItem>[] = [
 
 export default function ClientsPage() {
   const router = useRouter();
+  const currentUser = useCurrentUser();
+  const canCreateClient = hasAnyPermission(currentUser?.permissions, [
+    "admin:org:write",
+  ]);
   const [page, setPage] = useState(1);
   const [selectedKeys, setSelectedKeys] = useState<Set<string | number>>(
     new Set(),
@@ -124,12 +135,15 @@ export default function ClientsPage() {
       "plan",
       "contact_email",
     ];
-    const body = rows.map((row) =>
-      [row.id, row.name, row.slug, row.status, row.plan, row.contactEmail]
-        .map((value) => `"${String(value).replaceAll('"', '""')}"`)
-        .join(","),
-    );
-    const csv = [header.join(","), ...body].join("\n");
+    const body = rows.map((row) => [
+      row.id,
+      row.name,
+      row.slug,
+      row.status,
+      row.plan,
+      row.contactEmail,
+    ]);
+    const csv = buildCsvDocument(header, body);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -181,13 +195,15 @@ export default function ClientsPage() {
             {total} client{total !== 1 ? "s" : ""} au total
           </p>
         </div>
-        <button
-          onClick={() => router.push("/parametres")}
-          className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600"
-        >
-          <Plus className="h-4 w-4" />
-          Nouveau client
-        </button>
+        {canCreateClient ? (
+          <button
+            onClick={() => router.push("/parametres")}
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-600"
+          >
+            <Plus className="h-4 w-4" />
+            Nouveau client
+          </button>
+        ) : null}
       </div>
 
       {/* Filters */}

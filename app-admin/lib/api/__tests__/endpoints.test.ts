@@ -43,6 +43,7 @@ describe("ADMIN_ENDPOINTS", () => {
     expect(ADMIN_ENDPOINTS.orgSuspend(orgId)).toContain("org%2Fa%20b");
     expect(ADMIN_ENDPOINTS.orgReactivate(orgId)).toContain("org%2Fa%20b");
     expect(ADMIN_ENDPOINTS.orgChurn(orgId)).toContain("org%2Fa%20b");
+    expect(ADMIN_ENDPOINTS.orgDelete(orgId)).toContain("org%2Fa%20b/delete");
 
     expect(ADMIN_ENDPOINTS.orgUsers(orgId)).toContain("org%2Fa%20b");
     expect(ADMIN_ENDPOINTS.orgUser(orgId, userId)).toContain("users/user%2Bid");
@@ -63,8 +64,16 @@ describe("ADMIN_ENDPOINTS", () => {
     expect(ADMIN_ENDPOINTS.orgChangePlan(orgId)).toContain("change-plan");
     expect(ADMIN_ENDPOINTS.orgPlanHistory(orgId)).toContain("history");
 
-    expect(ADMIN_ENDPOINTS.onboardingStep("ob-1", 3)).toBe(
-      "/api/v1/admin/onboarding/ob-1/step/3",
+    expect(ADMIN_ENDPOINTS.orgOnboardingCases(orgId)).toContain(
+      "organizations/org%2Fa%20b/onboarding/cases",
+    );
+    expect(ADMIN_ENDPOINTS.orgOnboardingCase(orgId, "case/3")).toBe(
+      "/api/v1/admin/organizations/org%2Fa%20b/onboarding/cases/case%2F3",
+    );
+    expect(
+      ADMIN_ENDPOINTS.orgOnboardingTaskComplete(orgId, "case/3", "task/8"),
+    ).toBe(
+      "/api/v1/admin/organizations/org%2Fa%20b/onboarding/cases/case%2F3/tasks/task%2F8/complete",
     );
 
     expect(ADMIN_ENDPOINTS.orgCanonical(orgId)).toContain("canonical");

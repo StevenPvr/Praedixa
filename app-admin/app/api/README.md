@@ -22,4 +22,5 @@ Comme le webapp, l'admin passe par un proxy Next.js same-origin pour appeler l'A
 
 - `NEXT_PUBLIC_API_URL` est validee strictement avant usage.
 - Le proxy s'appuie sur `resolveExpectedOrigin()` pour les controles CSRF/same-origin.
+- Si `Sec-Fetch-Site` annonce `cross-site` ou `same-site`, le proxy echoue ferme avant toute resolution de session, meme si `Origin` semble valide.
 - Les chemins reels consommes par la console sont centralises dans `lib/api/endpoints.ts`.

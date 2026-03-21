@@ -14,6 +14,8 @@ import {
   PRAEDIXA_BRAND_NAME,
   PRAEDIXA_LOGO_URL,
 } from "../../lib/seo/entity";
+import { BreadcrumbTrail } from "../shared/BreadcrumbTrail";
+import { GeoSummaryPanel } from "../shared/GeoSummaryPanel";
 import { SectionShell } from "../shared/SectionShell";
 
 interface BlogPostPageProps {
@@ -32,6 +34,38 @@ function resolveAuthor(post: BlogPost): string {
   return PRAEDIXA_BRAND_NAME;
 }
 
+function stripMarkdown(raw: string): string {
+  return raw
+    .replace(/^#+\s+/gm, "")
+    .replace(/^[*-]\s+/gm, "")
+    .replace(/\[(.*?)\]\((.*?)\)/g, "$1")
+    .replace(/[`*_>~]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildPostTakeaways(post: BlogPost): string[] {
+  if (post.keyPoints.length > 0) {
+    return post.keyPoints.slice(0, 3);
+  }
+
+  const seen = new Set<string>();
+
+  return post.body
+    .split(/\n{2,}/)
+    .map((chunk) => stripMarkdown(chunk))
+    .filter((chunk) => chunk.length >= 40 && chunk !== post.description)
+    .filter((chunk) => {
+      const normalized = chunk.toLowerCase();
+      if (seen.has(normalized)) {
+        return false;
+      }
+      seen.add(normalized);
+      return true;
+    })
+    .slice(0, 3);
+}
+
 export function BlogPostPage({
   locale,
   post,
@@ -40,15 +74,19 @@ export function BlogPostPage({
   Content,
 }: BlogPostPageProps) {
   const blogIndexPath = `/${locale}/blog`;
+  const summary = post.answerSummary ?? post.description;
   const imageUrl =
     typeof post.image === "string" && post.image.startsWith("http")
       ? post.image
       : post.image
         ? `${PRAEDIXA_BASE_URL}${post.image.startsWith("/") ? post.image : `/${post.image}`}`
         : `${PRAEDIXA_BASE_URL}/og-image.png`;
+  const breadcrumbSchemaId = `${canonicalUrl}#breadcrumb`;
+  const postingSchemaId = `${canonicalUrl}#blogposting`;
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
+    "@id": breadcrumbSchemaId,
     itemListElement: [
       {
         "@type": "ListItem",
@@ -74,12 +112,24 @@ export function BlogPostPage({
   const blogPostingJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
+    "@id": postingSchemaId,
     headline: post.title,
     description: post.description,
     datePublished: `${post.dateIso}T00:00:00.000Z`,
     dateModified: `${post.dateIso}T00:00:00.000Z`,
     mainEntityOfPage: canonicalUrl,
     inLanguage: locale,
+    isPartOf: {
+      "@type": "WebSite",
+      "@id": `${PRAEDIXA_BASE_URL}#website`,
+    },
+    about: {
+      "@type": "Organization",
+      "@id": `${PRAEDIXA_BASE_URL}#organization`,
+    },
+    breadcrumb: {
+      "@id": breadcrumbSchemaId,
+    },
     author: {
       "@type": "Person",
       name: resolveAuthor(post),
@@ -94,6 +144,7 @@ export function BlogPostPage({
     },
     image: [imageUrl],
     keywords: post.tags,
+    citation: post.sources.map((source) => source.url),
   };
 
   return (
@@ -114,31 +165,31 @@ export function BlogPostPage({
           }}
         />
 
-        <nav className="text-xs text-neutral-500" aria-label="Breadcrumb">
-          <Link
-            href={`/${locale}`}
-            className="text-neutral-500 no-underline hover:text-ink"
-          >
-            Praedixa
-          </Link>
-          {" / "}
-          <Link
-            href={blogIndexPath}
-            className="text-neutral-500 no-underline hover:text-ink"
-          >
-            {locale === "fr" ? "Blog" : "Blog"}
-          </Link>
-          {" / "}
-          <span className="text-neutral-700">{post.title}</span>
-        </nav>
+        <BreadcrumbTrail
+          items={[
+            {
+              label: locale === "fr" ? "Accueil" : "Home",
+              href: `/${locale}`,
+            },
+            {
+              label: locale === "fr" ? "Blog" : "Blog",
+              href: blogIndexPath,
+            },
+            {
+              label: post.title,
+            },
+          ]}
+        />
 
-        <header className="mt-6">
+        <header>
           <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
             {post.title}
           </h1>
-          <p className="mt-4 text-base leading-relaxed text-neutral-600">
-            {post.description}
-          </p>
+          <GeoSummaryPanel
+            locale={locale}
+            summary={summary}
+            takeaways={buildPostTakeaways(post)}
+          />
 
           <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500">
             <time dateTime={post.dateIso}>
@@ -167,6 +218,28 @@ export function BlogPostPage({
         <div className="blog-prose mt-10">
           <Content />
         </div>
+
+        {post.sources.length > 0 ? (
+          <section className="mt-12 rounded-2xl border border-border-subtle bg-neutral-50/70 p-6">
+            <h2 className="text-lg font-semibold tracking-tight text-ink">
+              {locale === "fr" ? "Sources citees" : "Cited sources"}
+            </h2>
+            <ul className="mt-4 list-none space-y-2 p-0">
+              {post.sources.map((source) => (
+                <li key={`${source.label}:${source.url}`} className="m-0">
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm font-medium text-proof-500 no-underline hover:text-proof-500/80"
+                  >
+                    {source.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <nav className="mt-12 grid gap-4 border-t border-border-subtle pt-8 sm:grid-cols-2">
           {siblingPosts.previous ? (

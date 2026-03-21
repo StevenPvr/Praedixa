@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { resolveAccessibleAdminPath } from "@/lib/auth/route-access";
 import { canAccessAdminConsole } from "@/lib/auth/permissions";
 import {
   LOGIN_NEXT_COOKIE,
@@ -176,7 +177,9 @@ export async function GET(request: NextRequest) {
       sessionSecret,
     );
 
-    const redirect = createNoStoreRedirect(`${appOrigin}${safeNext}`);
+    const nextPath =
+      resolveAccessibleAdminPath(user.permissions, safeNext) ?? "/unauthorized";
+    const redirect = createNoStoreRedirect(`${appOrigin}${nextPath}`);
     setAuthCookies(redirect, request, {
       accessToken,
       refreshToken: tokenPayload.refresh_token ?? null,

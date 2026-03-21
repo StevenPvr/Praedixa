@@ -65,9 +65,7 @@ describe("HeroV2Section", () => {
     render(<HeroV2Section locale="fr" />);
 
     expect(
-      screen.getByText(
-        /Praedixa connecte vos données existantes/,
-      ),
+      screen.getByText(/Praedixa connecte vos données existantes/),
     ).toBeInTheDocument();
   });
 
@@ -75,7 +73,7 @@ describe("HeroV2Section", () => {
     render(<HeroV2Section locale="fr" />);
 
     const primaryCta = screen.getByRole("link", {
-      name: "Voir la preuve sur historique",
+      name: "Voir la preuve de ROI",
     });
     expect(primaryCta).toHaveAttribute("href", "/fr/decision-log-preuve-roi");
 

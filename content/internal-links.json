@@ -32,6 +32,16 @@
     "maxPerDoc": 1
   },
   {
+    "id": "fr-decision-log-template",
+    "patterns": [
+      "Decision Log Ops/DAF",
+      "decision log ops/daf",
+      "template decision log"
+    ],
+    "url": "/fr/blog/decision-log-ops-daf-template",
+    "maxPerDoc": 1
+  },
+  {
     "id": "en-workforce-planning",
     "patterns": ["workforce planning", "coverage gap", "WFM"],
     "url": "/en/resources",

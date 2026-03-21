@@ -8,16 +8,18 @@ const PUBLIC_PATHS_ONLY = [
   "/en/logo-preview",
 ] as const;
 
-const AI_CRAWLERS = [
+const AI_DISCOVERY_AND_USER_CRAWLERS = [
+  "Googlebot",
   "OAI-SearchBot",
-  "GPTBot",
   "ChatGPT-User",
-  "ClaudeBot",
   "Claude-SearchBot",
   "Claude-User",
   "PerplexityBot",
   "Perplexity-User",
+  "MistralAI-User",
 ] as const;
+
+const AI_TRAINING_TOKENS = ["GPTBot", "ClaudeBot", "Google-Extended"] as const;
 
 function allowPublicSite(userAgent: string) {
   return {
@@ -31,7 +33,10 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       allowPublicSite("*"),
-      ...AI_CRAWLERS.map((userAgent) => allowPublicSite(userAgent)),
+      ...AI_DISCOVERY_AND_USER_CRAWLERS.map((userAgent) =>
+        allowPublicSite(userAgent),
+      ),
+      ...AI_TRAINING_TOKENS.map((userAgent) => allowPublicSite(userAgent)),
       {
         userAgent: "AdsBot-Google",
         allow: "/",

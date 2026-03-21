@@ -34,7 +34,7 @@ const faqs: Record<"fr" | "en", FaqItem[]> = {
     {
       question: "Quand voit-on les premiers résultats ?",
       answer:
-        "En 5 jours ouvrés, la preuve sur historique montre si un gain mesurable est réaliste. Ensuite, Praedixa cadre la mise en place pour suivre les décisions lancées et leur impact dans le temps.",
+        "En 5 jours ouvrés, la preuve de ROI montre si un gain mesurable est réaliste. Ensuite, Praedixa cadre la mise en place pour suivre les décisions lancées et leur impact dans le temps.",
     },
   ],
   en: [
@@ -66,8 +66,8 @@ function getHomeFaqCopy(locale: Locale) {
     ? {
         kicker: "Questions fréquentes",
         heading: "Les questions avant de démarrer",
-        body: "Des réponses simples sur la preuve sur historique, l'existant, la mise en place et le ROI.",
-        proofCta: "Demander la preuve sur historique",
+        body: "Des réponses simples sur la preuve de ROI, l'existant, la mise en place et le ROI.",
+        proofCta: "Demander la preuve de ROI",
       }
     : {
         kicker: "FAQ",

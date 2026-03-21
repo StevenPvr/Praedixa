@@ -2,9 +2,14 @@
 
 Artefacts d'infrastructure et d'exploitation versionnes.
 
+## Plans internes d'automation
+
+Le service d'automation agentique interne Symphony n'expose pas de traffic produit public. Son contrat versionne est `WORKFLOW.md` a la racine du repo et son runtime TypeScript dedie vit dans `app-symphony/`.
+
 ## Ce qui vit ici
 
 - `docker-compose.yml` pour la pile locale Docker minimale.
+- `camunda/` pour le runtime Camunda 8 local/self-managed epingle et sa procedure d'usage.
 - `auth/` pour les artefacts Keycloak/Scaleway lies a l'authentification.
 - `systemd/` pour les services systemes lies a la data platform Python.
 
@@ -29,4 +34,5 @@ docker compose -f infra/docker-compose.yml down
 ## Lire ensuite
 
 - `infra/auth/README.md`
+- `infra/camunda/README.md`
 - `infra/systemd/README.md`

@@ -11,6 +11,7 @@ Ce dossier contient les plans, cadrages et notes de conception actives ou récen
 
 - `2026-02-19-webapp-live-audit-gold-integrity-plan.md` : plan lié à l'intégrité Gold côté webapp.
 - `2026-03-05-praedixa-landing-audit-refonte.md` : refonte et audit de la landing.
+- `2026-03-18-admin-onboarding-bpm-blueprint.md` : blueprint d'architecture BPM state-of-the-art pour l'onboarding admin Praedixa.
 
 ## Règle
 

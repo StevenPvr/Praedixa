@@ -12,6 +12,26 @@ const mockToastSuccess = vi.fn();
 const mockToastError = vi.fn();
 const mockApiPatch = vi.fn();
 const mockApiPost = vi.fn();
+let mockCurrentUser = {
+  id: "admin-123",
+  email: "admin@praedixa.com",
+  role: "super_admin",
+  permissions: [
+    "admin:console:access",
+    "admin:audit:read",
+    "admin:monitoring:read",
+    "admin:org:read",
+    "admin:onboarding:read",
+    "admin:onboarding:write",
+    "admin:org:write",
+    "admin:billing:read",
+    "admin:users:read",
+    "admin:messages:read",
+    "admin:support:read",
+    "admin:integrations:read",
+    "admin:support:write",
+  ],
+};
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace }),
@@ -31,26 +51,7 @@ vi.mock("@/hooks/use-toast", () => ({
 
 vi.mock("@/lib/auth/client", () => ({
   getValidAccessToken: vi.fn(() => Promise.resolve("token")),
-  useCurrentUser: () => ({
-    id: "admin-123",
-    email: "admin@praedixa.com",
-    role: "super_admin",
-    permissions: [
-      "admin:console:access",
-      "admin:audit:read",
-      "admin:monitoring:read",
-      "admin:org:read",
-      "admin:onboarding:read",
-      "admin:onboarding:write",
-      "admin:org:write",
-      "admin:billing:read",
-      "admin:users:read",
-      "admin:messages:read",
-      "admin:support:read",
-      "admin:integrations:read",
-      "admin:support:write",
-    ],
-  }),
+  useCurrentUser: () => mockCurrentUser,
 }));
 
 vi.mock("@/lib/api/client", () => ({
@@ -127,9 +128,30 @@ const baseRow = {
   requestId: "request-id-123456",
   severity: "low",
   organizationId: "org-1",
-  currentStep: 1,
-  stepsCompleted: [],
-  initiatedBy: "admin",
+  organizationName: "Org Name",
+  organizationSlug: "org-name",
+  phase: "source_activation",
+  activationMode: "shadow",
+  environmentTarget: "sandbox",
+  dataResidencyRegion: "fr-par",
+  subscriptionModules: ["connectors"],
+  selectedPacks: ["coverage"],
+  sourceModes: ["api"],
+  lastReadinessStatus: "blocked",
+  lastReadinessScore: 0,
+  openTaskCount: 4,
+  openBlockerCount: 2,
+  ownerUserId: null,
+  sponsorUserId: null,
+  process: {
+    workflowProvider: "camunda",
+    processDefinitionKey: "client-onboarding-v1",
+    processDefinitionVersion: 1,
+    processInstanceKey: "proc-1",
+  },
+  startedAt: "2026-01-01T00:00:00.000Z",
+  targetGoLiveAt: null,
+  closedAt: null,
   createdAt: "2026-01-01T00:00:00.000Z",
   completedAt: null,
 };
@@ -137,6 +159,26 @@ const baseRow = {
 describe("restructured admin pages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCurrentUser = {
+      id: "admin-123",
+      email: "admin@praedixa.com",
+      role: "super_admin",
+      permissions: [
+        "admin:console:access",
+        "admin:audit:read",
+        "admin:monitoring:read",
+        "admin:org:read",
+        "admin:onboarding:read",
+        "admin:onboarding:write",
+        "admin:org:write",
+        "admin:billing:read",
+        "admin:users:read",
+        "admin:messages:read",
+        "admin:support:read",
+        "admin:integrations:read",
+        "admin:support:write",
+      ],
+    };
     mockApiPatch.mockResolvedValue({ success: true });
     mockApiPost.mockResolvedValue({ success: true });
 
@@ -219,6 +261,23 @@ describe("restructured admin pages", () => {
     await user.click(screen.getByRole("button", { name: "Voir le client" }));
 
     expect(mockPush).toHaveBeenCalledWith("/clients/id-1/dashboard");
+  });
+
+  it("ClientsPage hides the create CTA without admin:org:write", () => {
+    mockCurrentUser = {
+      ...mockCurrentUser,
+      permissions: [
+        "admin:console:access",
+        "admin:org:read",
+        "admin:monitoring:read",
+      ],
+    };
+
+    render(<ClientsPage />);
+
+    expect(
+      screen.queryByRole("button", { name: "Nouveau client" }),
+    ).not.toBeInTheDocument();
   });
 
   it("ClientsPage renders error fallback and clears selection", async () => {
@@ -481,97 +540,27 @@ describe("restructured admin pages", () => {
 
   /* ────────── Parametres Page ────────── */
 
-  it("ParametresPage renders onboarding section by default", () => {
+  it("ParametresPage renders onboarding overview by default", () => {
     render(<ParametresPage />);
     expect(screen.getByText("Parametres")).toBeInTheDocument();
-    expect(screen.getByText("Demarrer un onboarding")).toBeInTheDocument();
+    expect(screen.getByText("Supervision cross-org")).toBeInTheDocument();
   });
 
-  it("ParametresPage starts onboarding flow", async () => {
-    const user = userEvent.setup();
-    const mutate = vi.fn(async () => ({ ...baseRow, id: "ob-1" }));
-    mockUseApiPost.mockReturnValue({
-      mutate,
-      loading: false,
-      error: null,
-      data: null,
-      reset: vi.fn(),
-    });
-
-    render(<ParametresPage />);
-    await user.type(screen.getByPlaceholderText("Nom organisation"), "Org X");
-    await user.type(screen.getByPlaceholderText("slug"), "org-x");
-    await user.type(
-      screen.getByPlaceholderText("email contact"),
-      "ops@org.com",
-    );
-    await user.click(screen.getByRole("button", { name: "Lancer" }));
-    await waitFor(() => expect(mutate).toHaveBeenCalled());
-    expect(mockToastSuccess).toHaveBeenCalledWith("Onboarding demarre");
-  });
-
-  it("ParametresPage handles start failure", async () => {
-    const user = userEvent.setup();
-    const mutate = vi.fn(async () => null);
-    mockUseApiPost.mockReturnValue({
-      mutate,
-      loading: false,
-      error: "Onboarding failed",
-      data: null,
-      reset: vi.fn(),
-    });
-
-    render(<ParametresPage />);
-    await user.type(screen.getByPlaceholderText("Nom organisation"), "Org Y");
-    await user.type(screen.getByPlaceholderText("slug"), "org-y");
-    await user.type(
-      screen.getByPlaceholderText("email contact"),
-      "ops@org-y.com",
-    );
-    await user.click(screen.getByRole("button", { name: "Lancer" }));
-    await waitFor(() =>
-      expect(mockToastError).toHaveBeenCalledWith("Onboarding failed"),
-    );
-  });
-
-  it("ParametresPage validates next step", async () => {
+  it("ParametresPage opens an onboarding workspace", async () => {
     const user = userEvent.setup();
     render(<ParametresPage />);
-    await user.click(screen.getByRole("button", { name: "Valider etape" }));
-    await waitFor(() => expect(mockApiPatch).toHaveBeenCalled());
+    await user.click(screen.getByRole("button", { name: "Ouvrir" }));
+    expect(mockPush).toHaveBeenCalledWith("/clients/org-1/onboarding");
   });
 
-  it("ParametresPage handles step API failure", async () => {
-    const user = userEvent.setup();
-    mockApiPatch.mockRejectedValueOnce(new Error("Patch failed"));
-    render(<ParametresPage />);
-    await user.click(screen.getByRole("button", { name: "Valider etape" }));
-    await waitFor(() =>
-      expect(mockToastError).toHaveBeenCalledWith(
-        "Impossible de valider l'etape",
-      ),
-    );
-  });
-
-  it("ParametresPage handles ApiError message", async () => {
-    const user = userEvent.setup();
-    const { ApiError } = await import("@/lib/api/client");
-    mockApiPatch.mockRejectedValueOnce(new ApiError("Patch api error"));
-    render(<ParametresPage />);
-    await user.click(screen.getByRole("button", { name: "Valider etape" }));
-    await waitFor(() =>
-      expect(mockToastError).toHaveBeenCalledWith("Patch api error"),
-    );
-  });
-
-  it("ParametresPage shows completed step as disabled", () => {
+  it("ParametresPage renders onboarding statuses and metrics", () => {
     mockUseApiGetPaginated.mockReturnValue({
       data: [
         {
           ...baseRow,
-          currentStep: 5,
-          status: "completed",
-          completedAt: "2026-01-02T00:00:00.000Z",
+          status: "blocked",
+          openTaskCount: 7,
+          openBlockerCount: 3,
         },
       ],
       total: 1,
@@ -588,7 +577,9 @@ describe("restructured admin pages", () => {
       },
     });
     render(<ParametresPage />);
-    expect(screen.getByRole("button", { name: "Termine" })).toBeDisabled();
+    expect(screen.getByText("Cases bloques")).toBeInTheDocument();
+    expect(screen.getAllByText("Bloque").length).toBeGreaterThan(0);
+    expect(screen.getByText("7 taches / 3 blockers")).toBeInTheDocument();
   });
 
   it("ParametresPage shows onboarding list error", () => {
@@ -612,9 +603,11 @@ describe("restructured admin pages", () => {
     expect(screen.getByText("Onboarding list failed")).toBeInTheDocument();
   });
 
-  it("ParametresPage renders onboarding dates", () => {
+  it("ParametresPage renders onboarding readiness", () => {
     mockUseApiGetPaginated.mockReturnValue({
-      data: [{ ...baseRow, completedAt: null }],
+      data: [
+        { ...baseRow, lastReadinessStatus: "warning", lastReadinessScore: 62 },
+      ],
       total: 1,
       loading: false,
       error: null,
@@ -629,7 +622,7 @@ describe("restructured admin pages", () => {
       },
     });
     render(<ParametresPage />);
-    expect(screen.getByText("En cours")).toBeInTheDocument();
+    expect(screen.getByText("warning (62/100)")).toBeInTheDocument();
   });
 
   it("ParametresPage switches to config section and shows all-configured", async () => {

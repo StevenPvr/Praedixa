@@ -196,6 +196,7 @@ Variables shell requises:
 - `RESEND_API_KEY`
 - `RATE_LIMIT_STORAGE_URI`
 - `CONTACT_FORM_CHALLENGE_SECRET`
+- `LANDING_ASSET_SIGNING_SECRET`
 
 Variables optionnelles:
 

@@ -69,6 +69,7 @@ Variables importantes chargees par `src/config.ts`:
 La config refuse les URLs non absolues, les wildcards CORS et les schemas non `http(s)`/`postgres`.
 Hors developpement, `DATABASE_URL` est obligatoire et `DEMO_MODE` est refuse pour eviter tout fallback applicatif implicite.
 Sur toutes les vraies routes produit/admin, le runtime fail-close des qu'une implementation persistante manque: aucun payload demo/stub ne doit etre servi comme mode normal.
+Si Camunda onboarding est indisponible au boot local, l'API HTTP monte quand meme maintenant; seules les routes onboarding concernees echouent ensuite explicitement jusqu'au retour du runtime Camunda. Le bootstrap journalise un warning concis avec `baseUrl`, `cause` et le next step local attendu (`pnpm camunda:up` ou `CAMUNDA_ENABLED=false`), sans deverser toute la stack dans le terminal de dev.
 Hors developpement, `CONNECTORS_RUNTIME_URL` doit etre explicite.
 Hors developpement, `CONNECTORS_RUNTIME_URL` doit aussi etre en `https`, sans credentials/query/fragment, et son host doit appartenir a `CONNECTORS_RUNTIME_ALLOWED_HOSTS`.
 Hors developpement, `CONNECTORS_RUNTIME_TOKEN` est aussi obligatoire et l'ancien alias `CONNECTORS_INTERNAL_TOKEN` est refuse.
@@ -84,12 +85,17 @@ pnpm --filter @praedixa/api-ts lint
 pnpm --filter @praedixa/api-ts typecheck
 ```
 
+Depuis la racine du monorepo, preferer `pnpm dev:api`: ce wrapper autocharge `DATABASE_URL` depuis les fichiers locaux standards (`app-api-ts/.env.local`, `app-api/.env.local`, `app-api/.env`, `.env.local`) quand la variable n'est pas deja exportee, recharge aussi `KEYCLOAK_ADMIN_USERNAME` / `KEYCLOAK_ADMIN_PASSWORD` pour les mutations admin qui provisionnent des identites, et garde les logs attaches au terminal pour le debug local. Si aucun username n'est fourni localement, le wrapper force `kcadmin` pour rester aligne avec le runtime Keycloak repo. Si Camunda local manque, le runtime garde maintenant le boot HTTP et remonte un warning de demarrage actionnable plutot qu'une stack brute. Si un lancement en arriere-plan est vraiment voulu, utiliser `pnpm dev:api:bg`; le process ecrit alors aussi dans `.tools/dev-logs/api.log`.
+
 Build:
 
 ```bash
 pnpm --filter @praedixa/api-ts build
 pnpm --filter @praedixa/api-ts start
+docker build -f app-api-ts/Dockerfile .
 ```
+
+Le Dockerfile versionne reconstruit maintenant explicitement les packages workspace requis (`@praedixa/shared-types`, `@praedixa/telemetry`) avant de builder `@praedixa/api-ts`, puis copie leurs artefacts runtime dans l'image finale pour garder un build reproductible hors du workspace local.
 
 Verification contractuelle et dynamique depuis la racine:
 

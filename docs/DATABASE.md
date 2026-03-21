@@ -13,7 +13,7 @@ La base de donnees utilise deux types de schemas :
 
 ### Schema public
 
-Contient les 28 tables gerees par Alembic. Toutes les entites metier vivent ici : organisations, utilisateurs, previsions, decisions, alertes, audit, etc.
+Contient les 32 tables gerees par Alembic. Toutes les entites metier vivent ici : organisations, utilisateurs, previsions, decisions, alertes, audit, onboarding BPM, etc.
 
 ### Schemas par client (`{org_slug}_data`)
 
@@ -132,11 +132,15 @@ erDiagram
 
 #### Admin
 
-| Modele              | Table                 | Mixin            | Colonnes cles                                                                                     |
-| ------------------- | --------------------- | ---------------- | ------------------------------------------------------------------------------------------------- |
-| `AdminAuditLog`     | `admin_audit_log`     | `TimestampMixin` | id, admin_user_id, target_org_id, action, ip_address, user_agent, metadata_json (JSONB), severity |
-| `PlanChangeHistory` | `plan_change_history` | `TimestampMixin` | id, organization_id, changed_by, old_plan, new_plan, reason, effective_at                         |
-| `OnboardingState`   | `onboarding_states`   | `TimestampMixin` | id, organization_id (UNIQUE), initiated_by, status, current_step, steps_completed (JSONB)         |
+| Modele              | Table                      | Mixin            | Colonnes cles                                                                                                                                        |
+| ------------------- | -------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AdminAuditLog`     | `admin_audit_log`          | `TimestampMixin` | id, admin_user_id, target_org_id, action, ip_address, user_agent, metadata_json (JSONB), severity                                                    |
+| `PlanChangeHistory` | `plan_change_history`      | `TimestampMixin` | id, organization_id, changed_by, old_plan, new_plan, reason, effective_at                                                                            |
+| `OnboardingState`   | `onboarding_states`        | `TimestampMixin` | id, organization_id (UNIQUE), initiated_by, status, current_step, steps_completed (JSONB)                                                            |
+| `OnboardingCase`    | `onboarding_cases`         | `TimestampMixin` | id, organization_id, status, phase, activation_mode, environment_target, workflow_provider=`camunda`, process_instance_key, readiness, metadata_json |
+| `OnboardingTask`    | `onboarding_case_tasks`    | `TimestampMixin` | id, case_id, task_key, domain, task_type, status, assignee_user_id, sort_order, details_json                                                         |
+| `OnboardingBlocker` | `onboarding_case_blockers` | aucun            | id, case_id, blocker_key, domain, severity, status, details_json, opened_at, resolved_at                                                             |
+| `OnboardingEvent`   | `onboarding_case_events`   | aucun            | id, case_id, actor_user_id, event_type, message, payload_json, occurred_at                                                                           |
 
 #### Autre
 
@@ -236,6 +240,8 @@ class TenantMixin(TimestampMixin):
 | 017 | `017_conversations.py`                   | Tables messagerie : conversations, messages                                                                                              |
 | 018 | `018_daily_forecast_capacity_curves.py`  | Champs capacity curves sur daily_forecasts (capacity_planned_current, capacity_planned_predicted, capacity_optimal_predicted)            |
 | 027 | `027_decisionops_runtime_persistence.py` | Persistance DecisionOps read-model : decision_approvals, action_dispatches, decision_ledger_entries + RLS                                |
+| 028 | `028_onboarding_bpm_foundation.py`       | Fondations persistantes du control plane onboarding BPM : cases, tasks, blockers, events + RLS direct/indirect                           |
+| 029 | `029_onboarding_camunda_only.py`         | Verrouille `onboarding_cases.workflow_provider` sur `camunda` et migre les anciennes lignes `local_projection`                           |
 
 ## Politiques RLS
 

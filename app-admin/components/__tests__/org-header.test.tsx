@@ -44,6 +44,11 @@ describe("OrgHeader", () => {
     expect(screen.getByTestId("status-badge")).toHaveTextContent("active");
   });
 
+  it("renders the test client badge when requested", () => {
+    render(<OrgHeader name="Acme Corp" isTest />);
+    expect(screen.getByText("Client test")).toBeInTheDocument();
+  });
+
   it("shows suspend button for active orgs", () => {
     render(<OrgHeader name="Acme Corp" status="active" onSuspend={vi.fn()} />);
     expect(

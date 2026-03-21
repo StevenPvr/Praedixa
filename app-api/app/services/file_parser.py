@@ -52,6 +52,8 @@ _ENCODING_NORMALIZATION: Final[dict[str, str]] = {
 _XLSX_MAGIC: Final[bytes] = b"PK"
 _MAX_XLSX_ARCHIVE_MEMBERS: Final[int] = 200
 _MAX_XLSX_UNCOMPRESSED_BYTES: Final[int] = 100 * 1024 * 1024
+_BLOCKED_OFFICE_EXTENSIONS: Final[frozenset[str]] = frozenset({"xls", "xlsm", "xlsb"})
+_ALLOWED_FILE_EXTENSIONS: Final[frozenset[str]] = frozenset({"csv", "tsv", "xlsx"})
 
 # Delimiter detection priority order (French CSV convention: semicolon first).
 _DELIMITER_CANDIDATES: Final[tuple[str, ...]] = (";", ",", "\t")
@@ -194,20 +196,19 @@ def parse_file(
     ext = _extract_extension(filename)
     warnings: list[str] = []
 
-    if ext == "xlsx" or format_hint == "xlsx":
+    _validate_supported_file_type(ext, format_hint)
+
+    parse_as_xlsx = ext == "xlsx"
+
+    if parse_as_xlsx:
         _validate_xlsx_magic(content)
         _validate_xlsx_archive(content)
         rows, columns = _parse_xlsx(content, sheet_name=sheet_name, max_rows=max_rows)
         encoding = "utf-8"
-    elif ext == "csv" or format_hint in ("csv", "lucca", "payfit") or ext == "":
+    else:
         encoding = _detect_encoding(content)
         text = _decode_content(content, encoding)
         rows, columns = _parse_csv(text, max_rows=max_rows)
-    else:
-        raise FileParseError(
-            f"Unsupported file extension: .{ext}",
-            code="UNSUPPORTED_FORMAT",
-        )
 
     if not columns:
         raise FileParseError(
@@ -249,6 +250,37 @@ def _extract_extension(filename: str) -> str:
     if "." in name:
         return name.rsplit(".", 1)[-1].lower()
     return ""
+
+
+def _validate_supported_file_type(ext: str, format_hint: str | None) -> None:
+    """Reject blocked spreadsheet formats and dangerous hint/extension mismatches."""
+    if ext == "":
+        raise FileParseError(
+            "File extension is required. Only .csv, .tsv and .xlsx are allowed.",
+            code="UNSUPPORTED_FORMAT",
+        )
+
+    if ext in _BLOCKED_OFFICE_EXTENSIONS:
+        raise FileParseError(
+            (
+                f"Unsupported spreadsheet format: .{ext}. "
+                "Only .csv, .tsv and .xlsx are allowed; legacy and macro-enabled "
+                "Excel formats are rejected."
+            ),
+            code="UNSUPPORTED_FORMAT",
+        )
+
+    if ext not in _ALLOWED_FILE_EXTENSIONS:
+        raise FileParseError(
+            f"Unsupported file extension: .{ext}",
+            code="UNSUPPORTED_FORMAT",
+        )
+
+    if format_hint == "xlsx" and ext != "xlsx":
+        raise FileParseError(
+            "format_hint='xlsx' requires a .xlsx file",
+            code="FORMAT_HINT_MISMATCH",
+        )
 
 
 def _validate_xlsx_magic(content: bytes) -> None:
@@ -565,7 +597,7 @@ def _detect_format(
     1. format_hint if provided and valid
     2. Lucca detection (>= 3 indicator columns)
     3. PayFit detection (>= 3 indicator columns)
-    4. Extension-based ("xlsx" or "csv")
+    4. Extension-based ("xlsx" or delimited text)
     """
     if format_hint in ("lucca", "payfit", "csv", "xlsx"):
         return format_hint

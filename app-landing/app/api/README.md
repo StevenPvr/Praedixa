@@ -5,11 +5,13 @@ APIs locales exposees par le site marketing.
 ## Objectif
 
 Servir les formulaires publics, les checks de sante et un endpoint d'ingest public controle. La logique HTTP reste mince: validation du protocole, rate limit, verification d'origine, parsing JSON, puis delegation vers `lib/api/*` et `lib/security/*`.
+Le sous-ensemble non indexable et a plus forte valeur de reexploitation doit rester derriere une policy d'exposition explicite: pas d'asset public stable, pas de JSON riche indexable, pas de route technique non classee.
 
 ## Routes presentes
 
 - `GET /api/health`: sante simple pour probes et diagnostic local
 - `GET /api/contact/challenge`: challenge anti-spam signe et non cache
+- `GET /api/resource-asset`: gateway meme-origine qui delivre une redirection asset signee courte
 - `POST /api/contact`: formulaire contact
 - `POST /api/deployment-request`: formulaire demande de déploiement
 - `POST /api/scoping-call`: demande de call de cadrage
@@ -25,8 +27,9 @@ Presque toutes les routes formulaire appliquent, dans cet ordre:
 4. verification `Content-Type`
 5. honeypot `website`
 6. validation metier
-7. envoi email via Resend
-8. audit / persistence optionnelle
+7. signature courte ou challenge selon la route
+8. envoi email via Resend
+9. audit / persistence optionnelle
 
 ## Dependances internes clefs
 

@@ -134,16 +134,31 @@ test.describe("Landing SEO", () => {
     expect(pilotHref).toContain("seo_slug=cout-sous-couverture");
 
     const assetLink = page.locator(
-      'a[href="/fr/ressources/cout-sous-couverture/asset"]',
+      'a[href="/api/resource-asset?locale=fr&slug=cout-sous-couverture"]',
     );
     await expect(assetLink).toBeVisible();
     const assetHref = await assetLink.getAttribute("href");
-    expect(assetHref).toBe("/fr/ressources/cout-sous-couverture/asset");
+    expect(assetHref).toBe(
+      "/api/resource-asset?locale=fr&slug=cout-sous-couverture",
+    );
 
-    const assetResponse = await request.get(assetHref ?? "");
+    const gatewayResponse = await request.get(assetHref ?? "", {
+      headers: {
+        referer: "http://localhost:3000/fr/ressources/cout-sous-couverture",
+      },
+      maxRedirects: 0,
+    });
+    expect(gatewayResponse.status()).toBe(307);
+    const signedLocation = gatewayResponse.headers()["location"] ?? "";
+    expect(signedLocation).toContain(
+      "/fr/ressources/cout-sous-couverture/asset?exp=",
+    );
+    expect(signedLocation).toContain("&sig=");
+
+    const assetResponse = await request.get(signedLocation);
     expect(assetResponse.status()).toBe(200);
-    expect(assetResponse.headers()["content-disposition"]).toContain(
-      "attachment",
+    expect(assetResponse.headers()["content-disposition"] ?? "").toContain(
+      "attachment;",
     );
   });
 

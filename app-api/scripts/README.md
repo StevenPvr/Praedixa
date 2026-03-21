@@ -17,6 +17,12 @@ Ce dossier regroupe les points d'entree batch du moteur Python.
   - lock mono-instance
   - retries, heartbeat, alerting webhook
 
+- `integration_sync_worker.py`
+  - claim des `sync runs` queues depuis `app-connectors`
+  - ouvre une session DB isolee par tenant, choisit le chemin `provider/raw events` ou `sftpPull`, puis marque le run `completed` / `failed` / `retry_scheduled`
+  - les chemins `provider/raw events` reellement cables sont maintenant `Salesforce`, `UKG`, `Toast`, `Geotab`, `Olo`, `Fourth`, `Oracle TM`, `SAP TM`, `Manhattan`, `Blue Yonder`, `NCR Aloha`, `CDK` et `Reynolds`, via `app/integrations/connectors/<vendor>/`
+  - supporte `--once` et `--watch`
+
 - `medallion_quarantine.py`
   - inventaire des payloads mis en quarantaine
   - lecture des manifests append-only `data-ready/quarantine/_manifests/*.json`
@@ -55,6 +61,8 @@ cd app-api
 uv run python -m scripts.medallion_pipeline --force-rebuild
 uv run python -m scripts.medallion_pipeline --watch --poll-seconds 30
 uv run python -m scripts.medallion_orchestrator --config config/medallion/orchestrator.json
+uv run python -m scripts.integration_sync_worker --once
+uv run python -m scripts.integration_sync_worker --watch --poll-seconds 30
 uv run python -m scripts.medallion_quarantine --json
 uv run python -m scripts.medallion_replay --client-slug acme --dataset workforce_daily
 uv run python -m scripts.medallion_backfill --client-slug acme --start-date 2026-03-01 --end-date 2026-03-31
@@ -68,3 +76,4 @@ uv run python -m scripts.seed_full_demo
 - quarantaine: `data-ready/quarantine`, `data-ready/quarantine/_manifests/*.json`
 - etat: `data-ready/.medallion_state.json`
 - observabilite: `data-ready/reports/*`, `data-ready/reports/reprocessing/*.json`
+- connectors runtime: `CONNECTORS_RUNTIME_URL`, `CONNECTORS_RUNTIME_TOKEN`, `CONNECTORS_RUNTIME_ALLOWED_HOSTS`

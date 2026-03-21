@@ -237,7 +237,7 @@ export const valuePropFrSections: ValuePropFrSections = {
         verb: "Anticiper",
         title:
           "L\u2019IA détecte les risques avant qu\u2019ils ne deviennent des urgences",
-        body: "Praedixa se connecte à vos données existantes et identifie les risques opérationnels avant qu\u2019ils n\u2019impactent vos coûts ou votre service.",
+        body: "Praedixa se connecte à vos données existantes et combine Data Science, Machine Learning et IA pour identifier les risques opérationnels avant qu\u2019ils n\u2019impactent vos coûts ou votre service.",
         bullets: [
           "Connexion en lecture seule à vos sources existantes",
           "Détection automatique des risques à venir",
@@ -287,9 +287,9 @@ export const valuePropFrSections: ValuePropFrSections = {
     ],
   },
   proofPreview: {
-    kicker: "Preuve",
-    heading: "Des résultats concrets, pas des promesses.",
-    body: "Chaque décision est tracée et son impact mesuré. Vous pouvez prouver votre ROI en comité.",
+    kicker: "Preuve de ROI",
+    heading: "Des résultats concrets, pas des moyennes.",
+    body: "Chaque décision est tracée, reliée à son impact économique et relue en comité. Vous obtenez une preuve de ROI exploitable, pas une simple estimation.",
     tabs: [
       {
         label: "Situation",
@@ -299,7 +299,7 @@ export const valuePropFrSections: ValuePropFrSections = {
       {
         label: "Options comparées",
         content:
-          "Trois options chiffrées\u00a0: renfort local, intérim ciblé et réallocation entre sites. Chaque option est évaluée sur le même critère\u00a0: coût, risque et impact sur le service.",
+          "Trois options chiffrées\u00a0: renfort local, intérim ciblé et réallocation entre sites. Chaque option est évaluée sur la même base\u00a0: coût, risque et impact sur le service, pas sur une moyenne générique.",
       },
       {
         label: "Impact mesuré",
@@ -420,7 +420,7 @@ export const valuePropFrSections: ValuePropFrSections = {
       {
         question: "Quelle est la différence avec un outil de BI\u00a0?",
         answer:
-          "La BI montre ce qui se passe. Praedixa va plus loin\u00a0: il anticipe les risques, compare les options et mesure l\u2019impact réel de chaque décision.",
+          "La BI et l\u2019ERP montrent l\u2019existant et pilotent souvent à partir de règles ou de moyennes. Praedixa ajoute Data Science, Machine Learning et IA pour anticiper les risques, comparer les options et mesurer l\u2019impact réel de chaque décision.",
       },
       {
         question: "Que se passe-t-il après les 30 premiers jours\u00a0?",

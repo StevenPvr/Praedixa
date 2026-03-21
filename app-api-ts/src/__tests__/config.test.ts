@@ -2,10 +2,15 @@ import { describe, expect, it } from "vitest";
 
 import { loadConfig } from "../config.js";
 
+const productionCamundaDisabled = {
+  CAMUNDA_ENABLED: "false",
+} as const;
+
 describe("loadConfig", () => {
   it("accepts a hardened production configuration", () => {
     expect(
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "production",
         PORT: "8000",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
@@ -82,6 +87,7 @@ describe("loadConfig", () => {
   it("rejects wildcard CORS origins", () => {
     expect(() =>
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "production",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
         AUTH_AUDIENCE: "praedixa-api",
@@ -97,6 +103,7 @@ describe("loadConfig", () => {
   it("rejects insecure connectors runtime URLs outside development", () => {
     expect(() =>
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "production",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
         AUTH_AUDIENCE: "praedixa-api",
@@ -110,6 +117,7 @@ describe("loadConfig", () => {
   it("requires explicit connectors runtime URLs outside development", () => {
     expect(() =>
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "production",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
         AUTH_AUDIENCE: "praedixa-api",
@@ -124,6 +132,7 @@ describe("loadConfig", () => {
   it("rejects localhost CORS origins outside development", () => {
     expect(() =>
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "production",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
         AUTH_AUDIENCE: "praedixa-api",
@@ -139,6 +148,7 @@ describe("loadConfig", () => {
   it("requires a database outside development", () => {
     expect(() =>
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "production",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
         AUTH_AUDIENCE: "praedixa-api",
@@ -153,6 +163,7 @@ describe("loadConfig", () => {
   it("rejects demo mode outside development", () => {
     expect(() =>
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "staging",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
         AUTH_AUDIENCE: "praedixa-api",
@@ -168,6 +179,7 @@ describe("loadConfig", () => {
   it("rejects connectors runtime URLs with credentials", () => {
     expect(() =>
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "production",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
         AUTH_AUDIENCE: "praedixa-api",
@@ -184,6 +196,7 @@ describe("loadConfig", () => {
   it("rejects connectors runtime URLs with queries or fragments", () => {
     expect(() =>
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "production",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
         AUTH_AUDIENCE: "praedixa-api",
@@ -200,6 +213,7 @@ describe("loadConfig", () => {
   it("requires connectors runtime host allowlists outside development", () => {
     expect(() =>
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "production",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
         AUTH_AUDIENCE: "praedixa-api",
@@ -214,6 +228,7 @@ describe("loadConfig", () => {
   it("rejects connectors runtime hosts that are not on the allowlist", () => {
     expect(() =>
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "production",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
         AUTH_AUDIENCE: "praedixa-api",
@@ -229,6 +244,7 @@ describe("loadConfig", () => {
   it("accepts connectors runtime subdomains that match the allowlist", () => {
     expect(
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "production",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
         AUTH_AUDIENCE: "praedixa-api",
@@ -249,6 +265,7 @@ describe("loadConfig", () => {
   it("requires CONNECTORS_RUNTIME_TOKEN outside development", () => {
     expect(() =>
       loadConfig({
+        ...productionCamundaDisabled,
         NODE_ENV: "production",
         AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
         AUTH_AUDIENCE: "praedixa-api",

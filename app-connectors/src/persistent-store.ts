@@ -3,6 +3,7 @@ import { Pool } from "pg";
 import { InMemoryConnectorStore } from "./store.js";
 import type {
   AuthorizationSession,
+  ConnectionSyncState,
   ConnectorAuditEvent,
   ConnectorConnection,
   IngestCredential,
@@ -20,6 +21,7 @@ type PersistedSnapshot = {
   rawEventIndex: Array<[string, string]>;
   rawEvents: IngestRawEvent[];
   runs: SyncRun[];
+  syncStates: ConnectionSyncState[];
   syncReplayIndex: Array<[string, string]>;
 };
 
@@ -92,6 +94,7 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
       rawEventIndex: asArray<[string, string]>(payload.rawEventIndex),
       rawEvents: asArray<IngestRawEvent>(payload.rawEvents),
       runs: asArray<SyncRun>(payload.runs),
+      syncStates: asArray<ConnectionSyncState>(payload.syncStates),
       syncReplayIndex: asArray<[string, string]>(payload.syncReplayIndex),
     });
 
@@ -116,6 +119,14 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
     this.runs.clear();
     for (const run of snapshot.runs) {
       this.runs.set(run.id, run);
+    }
+
+    this.syncStates.clear();
+    for (const state of snapshot.syncStates) {
+      this.syncStates.set(
+        `${state.connectionId}::${state.sourceObject}`,
+        state,
+      );
     }
 
     this.syncReplayIndex.clear();
@@ -165,6 +176,7 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
       rawEventIndex: Array.from(this.rawEventIndex.entries()),
       rawEvents: Array.from(this.rawEvents.values()),
       runs: Array.from(this.runs.values()),
+      syncStates: Array.from(this.syncStates.values()),
       syncReplayIndex: Array.from(this.syncReplayIndex.entries()),
     };
   }
@@ -353,6 +365,24 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
     return result;
   }
 
+  override claimSyncRuns(
+    organizationIds: readonly string[],
+    workerId: string,
+    limit: number,
+    leaseSeconds: number,
+  ): SyncRun[] {
+    const claimed = super.claimSyncRuns(
+      organizationIds,
+      workerId,
+      limit,
+      leaseSeconds,
+    );
+    if (claimed.length > 0) {
+      this.scheduleFlush();
+    }
+    return claimed;
+  }
+
   override updateSyncRun(
     organizationId: string,
     runId: string,
@@ -363,5 +393,21 @@ export class PostgresBackedConnectorStore extends InMemoryConnectorStore {
       this.scheduleFlush();
     }
     return updated;
+  }
+
+  override upsertSyncState(
+    organizationId: string,
+    connectionId: string,
+    sourceObject: string,
+    patch: Parameters<InMemoryConnectorStore["upsertSyncState"]>[3],
+  ): ConnectionSyncState {
+    const state = super.upsertSyncState(
+      organizationId,
+      connectionId,
+      sourceObject,
+      patch,
+    );
+    this.scheduleFlush();
+    return state;
   }
 }

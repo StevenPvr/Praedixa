@@ -8,6 +8,8 @@ Le positioning de production doit rester coherent avec ces points:
 
 - Praedixa est une couche de decision pour organisations multi-sites, pas un WFM, pas un ERP, pas une data platform generique.
 - Entree commerciale actuelle: preuve sur historique en lecture seule pour objectiver les arbitrages les plus couteux.
+- Sur la homepage FR visible, privilegier le wording `preuve de ROI`; garder `preuve sur historique` pour la page detaillee et les flux de qualification qui pointent vers cette lecture.
+- Quand la homepage compare Praedixa a l'existant, expliciter la difference de methode: `Data Science + Machine Learning + IA` cote Praedixa, contre un pilotage surtout par regles et moyennes cote ERP.
 - Boucle produit: voir plus tot -> comparer les options -> cadrer la decision -> prouver l'impact.
 - Le manager reste decisionnaire.
 - Le produit ne remplace pas un WFM / planning.
@@ -65,6 +67,7 @@ pnpm --filter @praedixa/landing dev:fresh
 
 - Les routes publiques vivent sous `app/[locale]` avec slug FR/EN derives de `lib/i18n/config.ts`.
 - Les formulaires publics passent toujours par `app/api/*` et reutilisent `lib/api/form-route.ts`.
+- Le programme anti-scraping du landing est porte par `lib/security/exposure-policy.ts` et `proxy.ts`: classification P0/P1/P2/P3, ouverture explicite des surfaces GEO sacrifiables aux crawlers LLM de search et de training, `X-Robots-Tag` sur les surfaces non indexables et assets teaser servis uniquement via URL signee courte.
 - Les pages de contenu doivent tirer leur metadata via `lib/seo/metadata.ts` et leur copy via dictionnaire ou modules `lib/content/*`.
 - Le proxy `proxy.ts` gere canonical host, redirections legacy, nonce CSP et headers de requete.
 - Les tests unitaires sont proches des zones sensibles: routes API, SEO, blog, i18n, media, securite.

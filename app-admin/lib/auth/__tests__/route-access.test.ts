@@ -4,11 +4,13 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   ADMIN_PAGE_POLICIES,
+  canAccessAdminApiPath,
   canAccessPath,
   getAdminPageTitle,
   getRequiredPermissionsForPath,
   hasExplicitAdminApiPolicy,
   hasExplicitAdminPagePolicy,
+  resolveAccessibleAdminPath,
   resolveAdminApiPolicy,
 } from "../route-access";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
@@ -80,6 +82,7 @@ describe("route access helpers", () => {
       "admin:onboarding:read",
       "admin:onboarding:write",
       "admin:monitoring:read",
+      "admin:org:write",
     ]);
     expect(getRequiredPermissionsForPath("/clients/org-1/contrats")).toEqual([
       "admin:org:write",
@@ -105,16 +108,41 @@ describe("route access helpers", () => {
     expect(policyPatterns).toEqual(discoveredPatterns);
   });
 
+  it("resolves the first accessible admin landing path when the preferred path is forbidden", () => {
+    expect(
+      resolveAccessibleAdminPath(
+        ["admin:console:access", "admin:org:read"],
+        "/",
+      ),
+    ).toBe("/clients");
+    expect(
+      resolveAccessibleAdminPath(
+        ["admin:console:access", "admin:org:read"],
+        "/parametres",
+      ),
+    ).toBe("/clients");
+    expect(
+      resolveAccessibleAdminPath(
+        ["admin:console:access", "admin:org:read"],
+        "/clients/org-1/dashboard",
+      ),
+    ).toBe("/clients/org-1/dashboard");
+  });
+
   it("matches explicit admin API policies for guarded proxy paths", () => {
     const apiCases = [
       ["GET", ADMIN_ENDPOINTS.platformKPIs],
       ["GET", ADMIN_ENDPOINTS.organizations],
+      ["POST", ADMIN_ENDPOINTS.organizations],
       ["GET", ADMIN_ENDPOINTS.auditLog],
       ["GET", ADMIN_ENDPOINTS.decisionContractTemplates],
       ["POST", ADMIN_ENDPOINTS.decisionContractTemplatePreview],
       ["POST", ADMIN_ENDPOINTS.decisionCompatibilityEvaluate],
       ["GET", ADMIN_ENDPOINTS.onboardingList],
       ["POST", ADMIN_ENDPOINTS.onboardingStart],
+      ["GET", ADMIN_ENDPOINTS.orgOnboardingCases("org-1")],
+      ["POST", ADMIN_ENDPOINTS.orgOnboardingCases("org-1")],
+      ["GET", ADMIN_ENDPOINTS.orgOnboardingCase("org-1", "case-1")],
       ["GET", ADMIN_ENDPOINTS.orgDecisionConfigResolved("org-1")],
       ["GET", ADMIN_ENDPOINTS.orgDecisionContracts("org-1")],
       ["POST", ADMIN_ENDPOINTS.orgDecisionContracts("org-1")],
@@ -215,5 +243,13 @@ describe("route access helpers", () => {
       expect(hasExplicitAdminApiPolicy(pathname, method)).toBe(true);
       expect(resolveAdminApiPolicy(pathname, method)).not.toBeNull();
     }
+  });
+
+  it("allows onboarding-only profiles to load the shared org workspace header endpoint", () => {
+    expect(
+      canAccessAdminApiPath(ADMIN_ENDPOINTS.organization("org-1"), "GET", [
+        "admin:onboarding:read",
+      ]),
+    ).toBe(true);
   });
 });

@@ -11,6 +11,11 @@ test.describe("Cross-app session isolation", () => {
   test("webapp session activity does not disconnect admin workspace", async ({
     page,
   }) => {
+    test.skip(
+      !(process.env.PW_SERVER_TARGETS ?? "").split(",").includes("webapp"),
+      "This cross-app check requires the webapp server; run `pnpm test:e2e:admin:cross-app`.",
+    );
+
     await setupAdminAuth(page);
     await mockCatchAll(page);
     await mockVueClientApis(page);

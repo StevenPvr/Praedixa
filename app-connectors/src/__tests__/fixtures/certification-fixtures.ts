@@ -7,12 +7,14 @@ import type {
 type ConnectorSecretKind =
   | "oauth2_client"
   | "api_key"
+  | "session"
   | "service_account"
   | "sftp";
 
 type ConnectorProbeKind =
   | "oauth_smoke_read"
   | "api_key_smoke_read"
+  | "session_rpc_smoke_read"
   | "service_account_smoke_read"
   | "sftp_directory_probe";
 
@@ -161,6 +163,7 @@ function fixture(
 const SECRET_KIND_BY_MODE = {
   oauth2: "oauth2_client",
   api_key: "api_key",
+  session: "session",
   service_account: "service_account",
   sftp: "sftp",
 } as const satisfies Record<ConnectorAuthMode, ConnectorSecretKind>;
@@ -168,6 +171,7 @@ const SECRET_KIND_BY_MODE = {
 const PROBE_KIND_BY_MODE = {
   oauth2: "oauth_smoke_read",
   api_key: "api_key_smoke_read",
+  session: "session_rpc_smoke_read",
   service_account: "service_account_smoke_read",
   sftp: "sftp_directory_probe",
 } as const satisfies Record<ConnectorAuthMode, ConnectorProbeKind>;
@@ -196,8 +200,18 @@ export const CONNECTOR_CERTIFICATION_FIXTURES = {
       authExpectation("oauth2", ["clientId", "clientSecret"]),
       authExpectation("api_key", ["apiKey"]),
     ],
-    activationReadinessExpectation("oauth2", ["tokenEndpoint", "baseUrl"]),
-    probeExpectation("oauth2", "Employees", ["tokenEndpoint", "baseUrl"]),
+    activationReadinessExpectation("oauth2", [
+      "tokenEndpoint",
+      "baseUrl",
+      "globalTenantId",
+      "ukgEndpoints",
+    ]),
+    probeExpectation("oauth2", "Employees", [
+      "tokenEndpoint",
+      "baseUrl",
+      "globalTenantId",
+      "ukgEndpoints",
+    ]),
     replayExpectation(72),
   ),
   toast: fixture(
@@ -207,16 +221,26 @@ export const CONNECTOR_CERTIFICATION_FIXTURES = {
       authExpectation("oauth2", ["clientId", "clientSecret"]),
       authExpectation("api_key", ["apiKey"]),
     ],
-    activationReadinessExpectation("api_key", ["tokenEndpoint", "baseUrl"]),
-    probeExpectation("api_key", "Orders", ["tokenEndpoint", "baseUrl"]),
+    activationReadinessExpectation("api_key", [
+      "tokenEndpoint",
+      "baseUrl",
+      "toastRestaurantExternalId",
+      "toastEndpoints",
+    ]),
+    probeExpectation("api_key", "Orders", [
+      "tokenEndpoint",
+      "baseUrl",
+      "toastRestaurantExternalId",
+      "toastEndpoints",
+    ]),
     replayExpectation(72),
   ),
   olo: fixture(
     "olo",
     ["credential_submission", "push_api"],
     [authExpectation("api_key", ["apiKey"])],
-    activationReadinessExpectation("api_key", ["baseUrl"]),
-    probeExpectation("api_key", "Orders", ["baseUrl"]),
+    activationReadinessExpectation("api_key", ["baseUrl", "oloEndpoints"]),
+    probeExpectation("api_key", "Orders", ["baseUrl", "oloEndpoints"]),
     replayExpectation(72),
   ),
   cdk: fixture(
@@ -229,10 +253,16 @@ export const CONNECTOR_CERTIFICATION_FIXTURES = {
         "clientEmail",
         "privateKey",
       ]),
-      authExpectation("sftp", ["host", "username", "password|privateKey"]),
+      authExpectation("sftp", ["host", "username", "privateKey"]),
     ],
-    activationReadinessExpectation("service_account", ["baseUrl"]),
-    probeExpectation("service_account", "ServiceOrders", ["baseUrl"]),
+    activationReadinessExpectation("service_account", [
+      "baseUrl",
+      "cdkEndpoints",
+    ]),
+    probeExpectation("service_account", "ServiceOrders", [
+      "baseUrl",
+      "cdkEndpoints",
+    ]),
     replayExpectation(336),
   ),
   reynolds: fixture(
@@ -245,21 +275,24 @@ export const CONNECTOR_CERTIFICATION_FIXTURES = {
         "clientEmail",
         "privateKey",
       ]),
-      authExpectation("sftp", ["host", "username", "password|privateKey"]),
+      authExpectation("sftp", ["host", "username", "privateKey"]),
     ],
-    activationReadinessExpectation("sftp", ["baseUrl"]),
-    probeExpectation("sftp", "RepairOrder", ["baseUrl"]),
+    activationReadinessExpectation("service_account", [
+      "baseUrl",
+      "reynoldsEndpoints",
+    ]),
+    probeExpectation("service_account", "RepairOrder", [
+      "baseUrl",
+      "reynoldsEndpoints",
+    ]),
     replayExpectation(336),
   ),
   geotab: fixture(
     "geotab",
     ["credential_submission", "push_api"],
-    [
-      authExpectation("api_key", ["apiKey"]),
-      authExpectation("oauth2", ["clientId", "clientSecret"]),
-    ],
-    activationReadinessExpectation("oauth2", ["baseUrl"]),
-    probeExpectation("oauth2", "Trip", ["baseUrl"]),
+    [authExpectation("session", ["database", "username", "password"])],
+    activationReadinessExpectation("session", ["baseUrl", "geotabFeeds"]),
+    probeExpectation("session", "Trip", ["baseUrl", "geotabFeeds"]),
     replayExpectation(48),
   ),
   fourth: fixture(
@@ -267,10 +300,10 @@ export const CONNECTOR_CERTIFICATION_FIXTURES = {
     ["credential_submission", "push_api"],
     [
       authExpectation("api_key", ["apiKey"]),
-      authExpectation("sftp", ["host", "username", "password|privateKey"]),
+      authExpectation("sftp", ["host", "username", "privateKey"]),
     ],
-    activationReadinessExpectation("sftp", ["baseUrl"]),
-    probeExpectation("sftp", "Employees", ["baseUrl"]),
+    activationReadinessExpectation("api_key", ["baseUrl", "fourthEndpoints"]),
+    probeExpectation("api_key", "Employees", ["baseUrl", "fourthEndpoints"]),
     replayExpectation(168),
   ),
   oracle_tm: fixture(
@@ -285,8 +318,16 @@ export const CONNECTOR_CERTIFICATION_FIXTURES = {
         "privateKey",
       ]),
     ],
-    activationReadinessExpectation("oauth2", ["tokenEndpoint", "baseUrl"]),
-    probeExpectation("oauth2", "Shipment", ["tokenEndpoint", "baseUrl"]),
+    activationReadinessExpectation("oauth2", [
+      "tokenEndpoint",
+      "baseUrl",
+      "oracleTmEndpoints",
+    ]),
+    probeExpectation("oauth2", "Shipment", [
+      "tokenEndpoint",
+      "baseUrl",
+      "oracleTmEndpoints",
+    ]),
     replayExpectation(168),
   ),
   sap_tm: fixture(
@@ -301,13 +342,15 @@ export const CONNECTOR_CERTIFICATION_FIXTURES = {
         "privateKey",
       ]),
     ],
-    activationReadinessExpectation("service_account", [
+    activationReadinessExpectation("oauth2", [
       "tokenEndpoint",
       "baseUrl",
+      "sapTmEndpoints",
     ]),
-    probeExpectation("service_account", "FreightOrder", [
+    probeExpectation("oauth2", "FreightOrder", [
       "tokenEndpoint",
       "baseUrl",
+      "sapTmEndpoints",
     ]),
     replayExpectation(168),
   ),
@@ -323,8 +366,14 @@ export const CONNECTOR_CERTIFICATION_FIXTURES = {
         "privateKey",
       ]),
     ],
-    activationReadinessExpectation("service_account", ["baseUrl"]),
-    probeExpectation("service_account", "DemandPlan", ["baseUrl"]),
+    activationReadinessExpectation("api_key", [
+      "baseUrl",
+      "blueYonderEndpoints",
+    ]),
+    probeExpectation("api_key", "DemandPlan", [
+      "baseUrl",
+      "blueYonderEndpoints",
+    ]),
     replayExpectation(336),
   ),
   manhattan: fixture(
@@ -339,8 +388,11 @@ export const CONNECTOR_CERTIFICATION_FIXTURES = {
         "privateKey",
       ]),
     ],
-    activationReadinessExpectation("api_key", ["baseUrl"]),
-    probeExpectation("api_key", "Wave", ["baseUrl"]),
+    activationReadinessExpectation("api_key", [
+      "baseUrl",
+      "manhattanEndpoints",
+    ]),
+    probeExpectation("api_key", "Wave", ["baseUrl", "manhattanEndpoints"]),
     replayExpectation(168),
   ),
   ncr_aloha: fixture(
@@ -348,10 +400,10 @@ export const CONNECTOR_CERTIFICATION_FIXTURES = {
     ["credential_submission", "push_api"],
     [
       authExpectation("api_key", ["apiKey"]),
-      authExpectation("sftp", ["host", "username", "password|privateKey"]),
+      authExpectation("sftp", ["host", "username", "privateKey"]),
     ],
-    activationReadinessExpectation("api_key", ["baseUrl"]),
-    probeExpectation("api_key", "Check", ["baseUrl"]),
+    activationReadinessExpectation("api_key", ["baseUrl", "alohaEndpoints"]),
+    probeExpectation("api_key", "Check", ["baseUrl", "alohaEndpoints"]),
     replayExpectation(72),
   ),
 } as const satisfies Record<ConnectorVendor, ConnectorCertificationFixture>;

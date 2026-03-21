@@ -61,6 +61,14 @@ function resolveAlternateLanguageUrls(
   return languageUrls;
 }
 
+function resolveMetadataAuthors(post: BlogPost) {
+  if (post.authors.length > 0) {
+    return post.authors.map((name) => ({ name }));
+  }
+
+  return [{ name: "Praedixa" }];
+}
+
 export function generateStaticParams() {
   return getPublishedBlogPosts().map((post) => ({
     locale: post.locale,
@@ -107,6 +115,8 @@ export async function generateMetadata({
   return {
     title: post.title,
     description: post.description,
+    authors: resolveMetadataAuthors(post),
+    keywords: post.tags,
     alternates: {
       canonical: canonicalUrl,
       languages: languageAlternates,
@@ -121,6 +131,8 @@ export async function generateMetadata({
       locale: locale === "fr" ? "fr_FR" : "en_US",
       alternateLocale: locale === "fr" ? "en_US" : "fr_FR",
       publishedTime: `${post.dateIso}T00:00:00.000Z`,
+      modifiedTime: `${post.dateIso}T00:00:00.000Z`,
+      authors: post.authors.length > 0 ? post.authors : ["Praedixa"],
       images: [
         {
           url: post.image ?? "/og-image.png",

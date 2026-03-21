@@ -11,6 +11,7 @@ export {
   hasExplicitAdminPagePolicy,
   isPublicAdminProxyPath,
   resolveAdminApiPolicy,
+  resolveAccessibleAdminPath,
   resolveAdminPagePolicy,
   resolveWorkspaceBasePath,
 } from "./admin-route-policies";

@@ -35,6 +35,7 @@ import { POST } from "../route";
 function createRequest(options?: {
   origin?: string | null;
   referer?: string | null;
+  fetchSite?: string | null;
   requestOrigin?: string;
   accessToken?: string;
   refreshToken?: string;
@@ -45,6 +46,9 @@ function createRequest(options?: {
   }
   if (options?.referer !== undefined && options.referer !== null) {
     headers.set("referer", options.referer);
+  }
+  if (options?.fetchSite !== undefined && options.fetchSite !== null) {
+    headers.set("sec-fetch-site", options.fetchSite);
   }
 
   const cookieValues: Record<string, string | undefined> = {
@@ -91,6 +95,22 @@ describe("POST /auth/logout", () => {
     expect(response.body).toEqual({ error: "csrf_failed" });
     expect(mockRevokeTokens).not.toHaveBeenCalled();
     expect(mockClearAuthCookies).not.toHaveBeenCalled();
+  });
+
+  it("rejects logout requests when sec-fetch-site is cross-site even if origin matches", async () => {
+    const response = (await POST(
+      createRequest({
+        origin: "https://admin.praedixa.com",
+        fetchSite: "cross-site",
+      }) as never,
+    )) as {
+      body: { success?: boolean; error?: string };
+      status: number;
+    };
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({ error: "csrf_failed" });
+    expect(mockRevokeTokens).not.toHaveBeenCalled();
   });
 
   it("revokes tokens and clears cookies for trusted same-origin requests", async () => {

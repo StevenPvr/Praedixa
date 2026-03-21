@@ -94,6 +94,22 @@ describe("GET /api/v1/[...path]", () => {
     expect(mockResolveRequestSession).not.toHaveBeenCalled();
   });
 
+  it("rejects contradictory authenticated proxy requests when sec-fetch-site is cross-site", async () => {
+    const response = (await GET(
+      createRequest({
+        origin: "https://admin.praedixa.com",
+        fetchSite: "cross-site",
+      }),
+      {
+        params: Promise.resolve({ path: ["organizations"] }),
+      },
+    )) as { body: { error: string }; status: number };
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({ error: "csrf_failed" });
+    expect(mockResolveRequestSession).not.toHaveBeenCalled();
+  });
+
   it("fails closed when the configured public admin origin is missing", async () => {
     mockResolveAuthAppOrigin.mockImplementationOnce(() => {
       throw new Error("Missing AUTH_APP_ORIGIN");

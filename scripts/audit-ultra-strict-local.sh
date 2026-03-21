@@ -94,6 +94,11 @@ detect_terraform() {
   fi
 }
 
+collect_ignored_local_env_files() {
+  git ls-files --others --ignored --exclude-standard |
+    grep -E '(^|/)\.env($|\.local$|\.[^/]+\.local$)' || true
+}
+
 collect_tf_dirs() {
   python3 - <<'PY'
 from pathlib import Path
@@ -146,6 +151,12 @@ for d in "${scan_dirs[@]}"; do
   skip_dir_args+=(--skip-dirs "$d")
 done
 
+skip_file_args=()
+while IFS= read -r env_file; do
+  [[ -z "$env_file" ]] && continue
+  skip_file_args+=(--skip-files "$env_file")
+done < <(collect_ignored_local_env_files)
+
 echo "[audit-ultra-strict] Detecting project layout..."
 detect_terraform
 
@@ -160,7 +171,7 @@ echo "[audit-ultra-strict] Semgrep..."
 run_semgrep --error --config scripts/semgrep/custom-critical-rules.yml .
 
 echo "[audit-ultra-strict] Trivy secrets..."
-trivy fs "${skip_dir_args[@]}" \
+trivy fs "${skip_dir_args[@]}" "${skip_file_args[@]}" \
   --scanners secret \
   --skip-version-check \
   --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \

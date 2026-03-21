@@ -405,4 +405,24 @@ describe("public OpenAPI auth contract", () => {
       expect(publicPaths.has(template)).toBe(false);
     }
   });
+
+  it("keeps admin onboarding routes internal and organization-scoped", () => {
+    const document = loadPublicOpenApiDocument();
+    const publicPaths = new Set(Object.keys(document.paths ?? {}));
+    const internalAdminRoutes = [
+      "/api/v1/admin/organizations/:orgId/onboarding/cases",
+      "/api/v1/admin/organizations/:orgId/onboarding/cases/:caseId",
+      "/api/v1/admin/organizations/:orgId/onboarding/cases/:caseId/readiness/recompute",
+      "/api/v1/admin/organizations/:orgId/onboarding/cases/:caseId/tasks/:taskId/save",
+      "/api/v1/admin/organizations/:orgId/onboarding/cases/:caseId/tasks/:taskId/complete",
+    ] as const;
+
+    for (const template of internalAdminRoutes) {
+      const route = routes.find((entry) => entry.template === template);
+      expect(route).toBeDefined();
+      expect(route?.authRequired).toBe(true);
+      expect(route?.template).toContain(":orgId");
+      expect(publicPaths.has(template)).toBe(false);
+    }
+  });
 });

@@ -8,7 +8,7 @@ test.describe("Sidebar navigation", () => {
     await mockAdminShellApis(page);
   });
 
-  test("sidebar has 4 nav items", async ({ page }) => {
+  test("sidebar exposes the current global navigation", async ({ page }) => {
     await page.goto("/");
     const nav = page.locator('nav[aria-label="Navigation admin"]');
     await expect(
@@ -16,6 +16,9 @@ test.describe("Sidebar navigation", () => {
     ).toBeVisible();
     await expect(
       nav.getByRole("link", { name: "Clients", exact: true }).first(),
+    ).toBeVisible();
+    await expect(
+      nav.getByRole("link", { name: "Demandes contact", exact: true }).first(),
     ).toBeVisible();
     await expect(
       nav.getByRole("link", { name: "Journal", exact: true }).first(),

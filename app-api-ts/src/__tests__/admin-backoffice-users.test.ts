@@ -46,9 +46,22 @@ function createTransactionalService(
     deleteProvisionedUser: vi.fn(async () => undefined),
   };
   const calls: QueryCall[] = [];
+  const resolveActorLookup = (params: unknown[] | undefined): QueryResult => {
+    const actorUserId = params?.[0];
+    return {
+      rows: typeof actorUserId === "string" ? [{ id: actorUserId }] : [],
+    };
+  };
   const client = {
     query: vi.fn(async (sql: string, params?: unknown[]) => {
       calls.push({ sql, params });
+      if (
+        sql.includes(
+          "SELECT id::text\n      FROM users\n      WHERE id::text = $1 OR auth_user_id = $1",
+        )
+      ) {
+        return resolveActorLookup(params);
+      }
       return queryHandler(sql, params);
     }),
     release: vi.fn(),
@@ -56,6 +69,13 @@ function createTransactionalService(
   const pool = {
     query: vi.fn(async (sql: string, params?: unknown[]) => {
       calls.push({ sql, params });
+      if (
+        sql.includes(
+          "SELECT id::text\n      FROM users\n      WHERE id::text = $1 OR auth_user_id = $1",
+        )
+      ) {
+        return resolveActorLookup(params);
+      }
       return queryHandler(sql, params);
     }),
     connect: vi.fn(async () => client),
@@ -86,7 +106,7 @@ function findAuditCall(calls: QueryCall[]): QueryCall {
 
 function readAuditMetadata(calls: QueryCall[]): Record<string, unknown> {
   const auditCall = findAuditCall(calls);
-  const metadata = auditCall.params?.[9];
+  const metadata = auditCall.params?.[10];
   if (typeof metadata !== "string") {
     throw new Error("expected serialized audit metadata");
   }
@@ -95,7 +115,7 @@ function readAuditMetadata(calls: QueryCall[]): Record<string, unknown> {
 
 function readAuditSeverity(calls: QueryCall[]): string {
   const auditCall = findAuditCall(calls);
-  const severity = auditCall.params?.[10];
+  const severity = auditCall.params?.[11];
   if (typeof severity !== "string") {
     throw new Error("expected audit severity");
   }
@@ -127,6 +147,9 @@ describe("admin backoffice organization users", () => {
           sql === "BEGIN" ||
           sql === "COMMIT" ||
           sql === "ROLLBACK" ||
+          sql.includes(
+            "SELECT id::text\n      FROM users\n      WHERE id::text = $1 OR auth_user_id = $1",
+          ) ||
           sql.includes("INSERT INTO admin_audit_log")
         ) {
           return { rows: [] };
@@ -226,6 +249,9 @@ describe("admin backoffice organization users", () => {
           sql === "BEGIN" ||
           sql === "COMMIT" ||
           sql === "ROLLBACK" ||
+          sql.includes(
+            "SELECT id::text\n      FROM users\n      WHERE id::text = $1 OR auth_user_id = $1",
+          ) ||
           sql.includes("INSERT INTO admin_audit_log")
         ) {
           return { rows: [] };
@@ -319,6 +345,9 @@ describe("admin backoffice organization users", () => {
           sql === "BEGIN" ||
           sql === "COMMIT" ||
           sql === "ROLLBACK" ||
+          sql.includes(
+            "SELECT id::text\n      FROM users\n      WHERE id::text = $1 OR auth_user_id = $1",
+          ) ||
           sql.includes("INSERT INTO admin_audit_log")
         ) {
           return { rows: [] };
@@ -388,6 +417,9 @@ describe("admin backoffice organization users", () => {
         sql === "BEGIN" ||
         sql === "COMMIT" ||
         sql === "ROLLBACK" ||
+        sql.includes(
+          "SELECT id::text\n      FROM users\n      WHERE id::text = $1 OR auth_user_id = $1",
+        ) ||
         sql.includes("INSERT INTO admin_audit_log")
       ) {
         return { rows: [] };

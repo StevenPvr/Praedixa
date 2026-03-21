@@ -36,6 +36,30 @@ describe("admin browser request origin guards", () => {
     ).toBe(true);
   });
 
+  it("rejects requests when sec-fetch-site explicitly says cross-site even if origin matches", () => {
+    expect(
+      isSameOriginBrowserRequest(
+        makeRequest({
+          origin: "https://admin.praedixa.com",
+          "sec-fetch-site": "cross-site",
+        }),
+        "https://admin.praedixa.com",
+      ),
+    ).toBe(false);
+  });
+
+  it("rejects same-site browser requests because sibling origins are not same-origin", () => {
+    expect(
+      isSameOriginBrowserRequest(
+        makeRequest({
+          origin: "https://admin.praedixa.com",
+          "sec-fetch-site": "same-site",
+        }),
+        "https://admin.praedixa.com",
+      ),
+    ).toBe(false);
+  });
+
   it("allows explicit browser navigations only when navigation fallback is enabled", () => {
     expect(
       isSameOriginBrowserRequest(

@@ -1,20 +1,18 @@
 import { defineConfig, devices } from "@playwright/test";
-import os from "node:os";
 import { E2E_AUTH_SESSION_SECRET } from "./testing/e2e/fixtures/oidc-config";
 
 const COVERAGE_ENABLED = process.env.COVERAGE === "1";
 const SERVER_TARGETS = ["landing", "webapp", "admin"] as const;
 type ServerTarget = (typeof SERVER_TARGETS)[number];
-const CPU_COUNT =
-  typeof os.availableParallelism === "function"
-    ? os.availableParallelism()
-    : os.cpus().length;
-const LOCAL_WORKERS = Number(process.env.PW_WORKERS ?? String(CPU_COUNT));
+const DEFAULT_LOCAL_WORKERS = 1;
+const LOCAL_WORKERS = Number(
+  process.env.PW_WORKERS ?? String(DEFAULT_LOCAL_WORKERS),
+);
 const WORKERS = process.env.CI
   ? 1
   : Number.isFinite(LOCAL_WORKERS) && LOCAL_WORKERS > 0
     ? LOCAL_WORKERS
-    : CPU_COUNT;
+    : DEFAULT_LOCAL_WORKERS;
 const TEST_TIMEOUT_MS = process.env.CI ? 60_000 : 45_000;
 const EXPECT_TIMEOUT_MS = process.env.CI ? 12_000 : 10_000;
 const ACTION_TIMEOUT_MS = 10_000;

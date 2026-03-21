@@ -7,7 +7,7 @@ Ce dossier regroupe les briques de test partagees du monorepo: setup Vitest, hel
 - `e2e/` contient les specs Playwright par produit (`landing`, `webapp`, `admin`) et les fixtures partagees.
 - `utils/` contient les helpers et mocks reutilises par les tests unitaires/integration frontend.
 - `performance/` contient les checks k6 versionnes.
-- `vitest.setup.ts` est charge par les suites Vitest du repo.
+- `vitest.setup.ts` est charge par les suites Vitest du repo et stabilise aussi les APIs navigateur absentes de JSDOM, dont `canvas`.
 - `global-mocks.d.ts` declare les types globaux utilises par les mocks.
 
 ## Commandes utiles
@@ -21,7 +21,11 @@ pnpm test:e2e
 pnpm test:e2e:landing
 pnpm test:e2e:webapp
 pnpm test:e2e:admin
+pnpm test:e2e:admin:cross-app
 ```
+
+Par defaut, les commandes locales lourdes tournent maintenant en mono-worker pour eviter qu'un gate ou une couverture repo-wide ne sature la machine.
+Si tu veux accelerer explicitement une passe locale, surcharge `VITEST_MAX_WORKERS` ou `PW_WORKERS` toi-meme avant la commande.
 
 ## Conventions
 

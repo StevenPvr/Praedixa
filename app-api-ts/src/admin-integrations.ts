@@ -20,6 +20,7 @@ export type IntegrationVendor =
 export type IntegrationAuthMode =
   | "oauth2"
   | "api_key"
+  | "session"
   | "service_account"
   | "sftp";
 export type IntegrationConnectionStatus =
@@ -179,6 +180,19 @@ export type IntegrationIssueIngestCredentialResult = {
 };
 
 export type IntegrationRawEvent = {
+  id: string;
+  credentialId: string;
+  eventId: string;
+  sourceObject: string;
+  sourceRecordId: string;
+  schemaVersion: string;
+  objectStoreKey: string;
+  sizeBytes: number;
+  processingStatus: "pending" | "processing" | "processed" | "failed";
+  receivedAt: string;
+};
+
+type ConnectorsRuntimeIntegrationRawEvent = {
   id: string;
   organizationId: string;
   connectionId: string;
@@ -557,20 +571,20 @@ export async function listIntegrationRawEvents(
   organizationId: string,
   connectionId: string,
 ): Promise<IntegrationRawEvent[]> {
-  return await callConnectorsRuntime<IntegrationRawEvent[]>(
-    `${buildConnectionPath(organizationId, connectionId)}/raw-events`,
-  );
-}
+  const rawEvents = await callConnectorsRuntime<
+    ConnectorsRuntimeIntegrationRawEvent[]
+  >(`${buildConnectionPath(organizationId, connectionId)}/raw-events`);
 
-export async function getIntegrationRawEventPayload(
-  organizationId: string,
-  connectionId: string,
-  eventId: string,
-): Promise<Record<string, unknown>> {
-  return await callConnectorsRuntime<Record<string, unknown>>(
-    `${buildConnectionPath(
-      organizationId,
-      connectionId,
-    )}/raw-events/${encodePathSegment("eventId", eventId)}/payload`,
-  );
+  return rawEvents.map((event) => ({
+    id: event.id,
+    credentialId: event.credentialId,
+    eventId: event.eventId,
+    sourceObject: event.sourceObject,
+    sourceRecordId: event.sourceRecordId,
+    schemaVersion: event.schemaVersion,
+    objectStoreKey: event.objectStoreKey,
+    sizeBytes: event.sizeBytes,
+    processingStatus: event.processingStatus,
+    receivedAt: event.receivedAt,
+  }));
 }

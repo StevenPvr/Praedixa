@@ -5,6 +5,10 @@ import { useClientContext } from "../client-context";
 import { useApiGet } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import {
+  ADMIN_WORKSPACE_FEATURE_GATES,
+  featureUnavailableMessage,
+} from "@/lib/runtime/admin-workspace-feature-gates";
+import {
   Card,
   CardContent,
   DataTable,
@@ -154,6 +158,9 @@ const INGESTION_COLUMNS: DataTableColumn<IngestionLogEntry>[] = [
 
 export default function DonneesPage() {
   const { orgId, selectedSiteId } = useClientContext();
+  const datasetsEnabled = ADMIN_WORKSPACE_FEATURE_GATES.datasetsWorkspace;
+  const ingestionLogEnabled =
+    ADMIN_WORKSPACE_FEATURE_GATES.ingestionLogWorkspace;
 
   const canonicalUrl = selectedSiteId
     ? `${ADMIN_ENDPOINTS.orgCanonical(orgId)}?site_id=${encodeURIComponent(selectedSiteId)}`
@@ -177,21 +184,25 @@ export default function DonneesPage() {
     loading: ingestionLoading,
     error: ingestionError,
     refetch: ingestionRefetch,
-  } = useApiGet<IngestionLogEntry[]>(ADMIN_ENDPOINTS.orgIngestionLog(orgId));
+  } = useApiGet<IngestionLogEntry[]>(
+    ingestionLogEnabled ? ADMIN_ENDPOINTS.orgIngestionLog(orgId) : null,
+  );
 
   const {
     data: medallionReport,
     loading: medallionLoading,
     error: medallionError,
   } = useApiGet<MedallionQualityReport>(
-    ADMIN_ENDPOINTS.orgMedallionQualityReport(orgId),
+    datasetsEnabled ? ADMIN_ENDPOINTS.orgMedallionQualityReport(orgId) : null,
   );
 
   const {
     data: datasets,
     loading: datasetsLoading,
     error: datasetsError,
-  } = useApiGet<AdminDatasetSummary[]>(ADMIN_ENDPOINTS.orgDatasets(orgId));
+  } = useApiGet<AdminDatasetSummary[]>(
+    datasetsEnabled ? ADMIN_ENDPOINTS.orgDatasets(orgId) : null,
+  );
 
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(
     null,
@@ -207,7 +218,7 @@ export default function DonneesPage() {
     loading: datasetDataLoading,
     error: datasetDataError,
   } = useApiGet<AdminDatasetDataResponse>(
-    effectiveDatasetId
+    datasetsEnabled && effectiveDatasetId
       ? ADMIN_ENDPOINTS.orgDatasetData(orgId, effectiveDatasetId)
       : null,
   );
@@ -217,7 +228,7 @@ export default function DonneesPage() {
     loading: datasetFeaturesLoading,
     error: datasetFeaturesError,
   } = useApiGet<AdminDatasetFeaturesResponse>(
-    effectiveDatasetId
+    datasetsEnabled && effectiveDatasetId
       ? ADMIN_ENDPOINTS.orgDatasetFeatures(orgId, effectiveDatasetId)
       : null,
   );
@@ -258,6 +269,12 @@ export default function DonneesPage() {
         </h3>
         {medallionLoading ? (
           <SkeletonCard />
+        ) : !datasetsEnabled ? (
+          <p className="text-sm text-ink-tertiary">
+            {featureUnavailableMessage(
+              "Le rapport imputation/outliers et le medallion quality report",
+            )}
+          </p>
         ) : medallionError ? (
           <p className="text-sm text-ink-tertiary">{medallionError}</p>
         ) : medallionReport ? (
@@ -358,6 +375,12 @@ export default function DonneesPage() {
           <CardContent className="space-y-4 p-4">
             {datasetsLoading ? (
               <SkeletonCard />
+            ) : !datasetsEnabled ? (
+              <p className="text-sm text-ink-tertiary">
+                {featureUnavailableMessage(
+                  "L'explorateur Gold, les datasets et les features admin",
+                )}
+              </p>
             ) : datasetsError ? (
               <p className="text-sm text-ink-tertiary">{datasetsError}</p>
             ) : (
@@ -479,6 +502,10 @@ export default function DonneesPage() {
         </h3>
         {ingestionLoading ? (
           <SkeletonCard />
+        ) : !ingestionLogEnabled ? (
+          <ErrorFallback
+            message={featureUnavailableMessage("Le journal d'ingestion admin")}
+          />
         ) : ingestionError ? (
           <ErrorFallback message={ingestionError} onRetry={ingestionRefetch} />
         ) : (

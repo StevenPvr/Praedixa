@@ -7,7 +7,7 @@ Outils partages pour les tests Vitest et React Testing Library.
 - `render.tsx` expose un `render` partage et re-exporte les helpers RTL.
 - `mocks/` centralise les mocks Next.js, UI, icones, observateurs navigateur et services externes.
 
-`testing/vitest.setup.ts` consomme ces helpers pour preparer un environnement JSDOM stable dans l'ensemble du repo.
+`testing/vitest.setup.ts` consomme ces helpers pour preparer un environnement JSDOM stable dans l'ensemble du repo, y compris le polyfill `canvas` partage.
 
 ## Usage typique
 

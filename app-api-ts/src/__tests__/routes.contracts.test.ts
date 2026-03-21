@@ -6,6 +6,7 @@ import type {
 } from "@praedixa/shared-types/api";
 
 import { routes } from "../routes.js";
+import { getAdminBackofficeService } from "../services/admin-backoffice.js";
 import { closeDecisionContractRuntimeService } from "../services/decision-contract-runtime.js";
 import type { RouteContext, RouteDefinition } from "../types.js";
 
@@ -748,6 +749,11 @@ describe("route contracts", () => {
       },
       {
         method: "GET" as const,
+        template: "/api/v1/admin/contact-requests",
+        context: makeAdminContext("GET", "/api/v1/admin/contact-requests"),
+      },
+      {
+        method: "GET" as const,
         template: "/api/v1/admin/organizations/:orgId/scenarios",
         context: scenariosContext,
       },
@@ -762,6 +768,944 @@ describe("route contracts", () => {
         throw new Error("expected error payload");
       }
       expect(result.payload.error.code).toBe("PERSISTENCE_UNAVAILABLE");
+    }
+  });
+
+  it("returns a paginated admin organizations list when backoffice persistence is configured", async () => {
+    const route = findRoute("GET", "/api/v1/admin/organizations");
+    const service = getAdminBackofficeService();
+    const originalPool = Reflect.get(
+      service as unknown as Record<string, unknown>,
+      "pool",
+    );
+
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [{ total: "1" }] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: TARGET_ORG_ID,
+            name: "Acme Logistics",
+            slug: "acme-logistics",
+            status: "active",
+            plan: "free",
+            contact_email: "ops@acme.fr",
+            settings: { adminBackoffice: { isTest: false } },
+            user_count: "12",
+            site_count: "3",
+            created_at: new Date("2026-03-01T08:00:00.000Z"),
+          },
+        ],
+      });
+
+    Reflect.set(service as unknown as Record<string, unknown>, "pool", {
+      query,
+    } as unknown);
+
+    try {
+      const result = await route.handler(
+        makeAdminContext(
+          "GET",
+          "/api/v1/admin/organizations",
+          "search=acme&status=active&plan=free&page=1&page_size=20",
+        ),
+      );
+
+      expect(result.statusCode).toBe(200);
+      expect(result.payload.success).toBe(true);
+      if (!result.payload.success) {
+        throw new Error("expected success payload");
+      }
+      expect(result.payload.data).toEqual([
+        {
+          id: TARGET_ORG_ID,
+          name: "Acme Logistics",
+          slug: "acme-logistics",
+          status: "active",
+          plan: "free",
+          contactEmail: "ops@acme.fr",
+          isTest: false,
+          userCount: 12,
+          siteCount: 3,
+          createdAt: "2026-03-01T08:00:00.000Z",
+        },
+      ]);
+      expect("pagination" in result.payload).toBe(true);
+      if (!("pagination" in result.payload)) {
+        throw new Error("expected paginated payload");
+      }
+      expect(result.payload.pagination).toMatchObject({
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      });
+    } finally {
+      Reflect.set(
+        service as unknown as Record<string, unknown>,
+        "pool",
+        originalPool,
+      );
+    }
+  });
+
+  it("creates an admin organization when backoffice persistence is configured", async () => {
+    const route = findRoute("POST", "/api/v1/admin/organizations");
+    const service = getAdminBackofficeService();
+    const originalPool = Reflect.get(
+      service as unknown as Record<string, unknown>,
+      "pool",
+    );
+    const originalIdentityService = Reflect.get(
+      service as unknown as Record<string, unknown>,
+      "identityService",
+    );
+    const actorUserId = "11111111-1111-4111-8111-111111111111";
+
+    const provisionUser = vi.fn().mockResolvedValue({
+      authUserId: "keycloak-user-1",
+    });
+    const client = {
+      query: vi.fn(async (sql: string, params?: unknown[]) => {
+        if (sql === "BEGIN" || sql === "COMMIT") {
+          return { rows: [] };
+        }
+
+        if (sql === "ROLLBACK") {
+          throw new Error("ROLLBACK should not be called");
+        }
+
+        if (sql.includes("SELECT id::text FROM organizations WHERE slug")) {
+          expect(params).toEqual(["nouvel-acteur"]);
+          return { rows: [] };
+        }
+
+        if (sql.includes("INSERT INTO organizations")) {
+          expect(params?.[5]).toBe('{"adminBackoffice":{"isTest":true}}');
+          return {
+            rows: [
+              {
+                id: TARGET_ORG_ID,
+                name: "Nouvel acteur",
+                slug: "nouvel-acteur",
+                status: "trial",
+                plan: "free",
+                contact_email: "ops@nouvel-acteur.fr",
+                settings: { adminBackoffice: { isTest: true } },
+                user_count: "0",
+                site_count: "0",
+                created_at: new Date("2026-03-18T11:00:00.000Z"),
+              },
+            ],
+          };
+        }
+
+        if (sql === "SELECT id::text FROM users WHERE email = $1 LIMIT 1") {
+          expect(params).toEqual(["ops@nouvel-acteur.fr"]);
+          return { rows: [] };
+        }
+
+        if (sql.includes("INSERT INTO users (")) {
+          expect(params).toEqual([
+            expect.any(String),
+            TARGET_ORG_ID,
+            "keycloak-user-1",
+            "ops@nouvel-acteur.fr",
+          ]);
+          return {
+            rows: [
+              {
+                id: "55555555-5555-4555-8555-555555555555",
+                organization_id: TARGET_ORG_ID,
+                auth_user_id: "keycloak-user-1",
+                email: "ops@nouvel-acteur.fr",
+                role: "org_admin",
+                status: "pending",
+                site_id: null,
+                site_name: null,
+                last_login_at: null,
+                created_at: new Date("2026-03-18T11:00:00.000Z"),
+                updated_at: new Date("2026-03-18T11:00:00.000Z"),
+              },
+            ],
+          };
+        }
+
+        if (
+          sql.includes("FROM users") &&
+          sql.includes("auth_user_id = $1") &&
+          sql.includes("ORDER BY CASE WHEN id::text = $1")
+        ) {
+          expect(params).toEqual([actorUserId]);
+          return { rows: [] };
+        }
+
+        if (sql.includes("INSERT INTO admin_audit_log")) {
+          expect(params?.[2]).toBe(actorUserId);
+          return { rows: [] };
+        }
+
+        throw new Error(
+          `Unexpected SQL in organization create route test: ${sql}`,
+        );
+      }),
+      release: vi.fn(),
+    };
+
+    Reflect.set(service as unknown as Record<string, unknown>, "pool", {
+      connect: vi.fn().mockResolvedValue(client),
+    } as unknown);
+    Reflect.set(
+      service as unknown as Record<string, unknown>,
+      "identityService",
+      {
+        provisionUser,
+      } as unknown,
+    );
+
+    try {
+      const context = makeAdminContext("POST", "/api/v1/admin/organizations");
+      context.user = {
+        ...(context.user ?? {
+          email: "admin@praedixa.com",
+          organizationId: ADMIN_HOME_ORG_ID,
+          role: "super_admin",
+          siteIds: [],
+          permissions: ["admin:org:write"],
+        }),
+        userId: actorUserId,
+      };
+      context.body = {
+        name: "Nouvel acteur",
+        slug: "nouvel-acteur",
+        contactEmail: "ops@nouvel-acteur.fr",
+        isTest: true,
+      };
+
+      const result = await route.handler(context);
+
+      expect(result.statusCode).toBe(201);
+      expect(result.payload.success).toBe(true);
+      if (!result.payload.success) {
+        throw new Error("expected success payload");
+      }
+      expect(result.payload.data).toEqual({
+        id: TARGET_ORG_ID,
+        name: "Nouvel acteur",
+        slug: "nouvel-acteur",
+        status: "trial",
+        plan: "free",
+        contactEmail: "ops@nouvel-acteur.fr",
+        isTest: true,
+        userCount: 1,
+        siteCount: 0,
+        createdAt: "2026-03-18T11:00:00.000Z",
+      });
+      expect(provisionUser).toHaveBeenCalledWith({
+        email: "ops@nouvel-acteur.fr",
+        organizationId: TARGET_ORG_ID,
+        role: "org_admin",
+        siteId: null,
+      });
+    } finally {
+      Reflect.set(
+        service as unknown as Record<string, unknown>,
+        "pool",
+        originalPool,
+      );
+      Reflect.set(
+        service as unknown as Record<string, unknown>,
+        "identityService",
+        originalIdentityService,
+      );
+    }
+  });
+
+  it("deletes a test admin organization when confirmations are valid", async () => {
+    const route = findRoute(
+      "POST",
+      "/api/v1/admin/organizations/:orgId/delete",
+    );
+    const service = getAdminBackofficeService();
+    const originalPool = Reflect.get(
+      service as unknown as Record<string, unknown>,
+      "pool",
+    );
+    const actorUserId = "11111111-1111-4111-8111-111111111111";
+    const originalIdentityService = Reflect.get(
+      service as unknown as Record<string, unknown>,
+      "identityService",
+    );
+    const deleteProvisionedUser = vi.fn().mockResolvedValue(undefined);
+    const findManagedUsersByEmail = vi.fn().mockResolvedValue([
+      {
+        authUserId: "keycloak-user-1",
+        username: "ops@test.fr",
+        email: "ops@test.fr",
+        organizationId: TARGET_ORG_ID,
+        role: "org_admin",
+        siteId: null,
+        enabled: true,
+      },
+    ]);
+    const findManagedUsersByUsername = vi.fn().mockResolvedValue([
+      {
+        authUserId: "orphan-keycloak-user-2",
+        username: "ops@test.fr",
+        email: null,
+        organizationId: TARGET_ORG_ID,
+        role: null,
+        siteId: null,
+        enabled: true,
+      },
+    ]);
+
+    const client = {
+      query: vi.fn(async (sql: string, params?: unknown[]) => {
+        if (sql === "BEGIN" || sql === "COMMIT") {
+          return { rows: [] };
+        }
+
+        if (sql === "ROLLBACK") {
+          throw new Error("ROLLBACK should not be called");
+        }
+
+        if (
+          sql.includes("FROM organizations o") &&
+          sql.includes("FOR UPDATE")
+        ) {
+          expect(params).toEqual([TARGET_ORG_ID]);
+          return {
+            rows: [
+              {
+                id: TARGET_ORG_ID,
+                name: "Client test",
+                slug: "client-test",
+                contact_email: "ops@test.fr",
+                settings: { adminBackoffice: { isTest: true } },
+              },
+            ],
+          };
+        }
+
+        if (
+          sql.includes("FROM users") &&
+          sql.includes("auth_user_id = $1") &&
+          sql.includes("ORDER BY CASE WHEN id::text = $1")
+        ) {
+          expect(params).toEqual([actorUserId]);
+          return { rows: [] };
+        }
+
+        if (
+          sql.includes("FROM users u") &&
+          sql.includes(
+            "LEFT JOIN organizations o ON o.id = u.organization_id",
+          ) &&
+          sql.includes("WHERE u.auth_user_id = $1")
+        ) {
+          if (params?.[0] === "keycloak-user-1") {
+            return {
+              rows: [
+                {
+                  organization_id: TARGET_ORG_ID,
+                  settings: { adminBackoffice: { isTest: true } },
+                },
+              ],
+            };
+          }
+          if (params?.[0] === "orphan-keycloak-user-2") {
+            return { rows: [] };
+          }
+        }
+
+        if (
+          sql.includes("FROM users u") &&
+          sql.includes("u.organization_id = $1::uuid") &&
+          sql.includes("u.auth_user_id IS NOT NULL")
+        ) {
+          expect(params).toEqual([TARGET_ORG_ID]);
+          return {
+            rows: [
+              {
+                id: "55555555-5555-4555-8555-555555555555",
+                auth_user_id: "keycloak-user-1",
+                email: "ops@test.fr",
+              },
+            ],
+          };
+        }
+
+        if (sql.includes("INSERT INTO admin_audit_log")) {
+          expect(params).toEqual([
+            expect.any(String),
+            null,
+            actorUserId,
+            expect.any(String),
+            "delete_org",
+            "organization",
+            TARGET_ORG_ID,
+            "127.0.0.1",
+            "vitest",
+            "req-test",
+            expect.stringContaining('"slug":"client-test"'),
+            "INFO",
+          ]);
+          return { rows: [] };
+        }
+
+        if (sql.includes("DELETE FROM organizations")) {
+          expect(params).toEqual([TARGET_ORG_ID]);
+          return { rows: [] };
+        }
+
+        throw new Error(
+          `Unexpected SQL in organization delete route test: ${sql}`,
+        );
+      }),
+      release: vi.fn(),
+    };
+
+    Reflect.set(service as unknown as Record<string, unknown>, "pool", {
+      connect: vi.fn().mockResolvedValue(client),
+    } as unknown);
+    Reflect.set(
+      service as unknown as Record<string, unknown>,
+      "identityService",
+      {
+        deleteProvisionedUser,
+        findManagedUsersByEmail,
+        findManagedUsersByUsername,
+      } as unknown,
+    );
+
+    try {
+      const context = makeAdminContext(
+        "POST",
+        `/api/v1/admin/organizations/${TARGET_ORG_ID}/delete`,
+      );
+      context.params = { orgId: TARGET_ORG_ID };
+      context.user = {
+        ...(context.user ?? {
+          email: "admin@praedixa.com",
+          organizationId: ADMIN_HOME_ORG_ID,
+          role: "super_admin",
+          siteIds: [],
+          permissions: ["admin:org:write"],
+        }),
+        userId: actorUserId,
+      };
+      context.body = {
+        organizationSlug: "client-test",
+        confirmationText: "SUPPRIMER",
+        acknowledgeTestDeletion: true,
+      };
+
+      const result = await route.handler(context);
+
+      expect(result.statusCode).toBe(200);
+      expect(result.payload.success).toBe(true);
+      if (!result.payload.success) {
+        throw new Error("expected success payload");
+      }
+      expect(result.payload.data).toEqual({
+        organizationId: TARGET_ORG_ID,
+        slug: "client-test",
+        deleted: true,
+      });
+      expect(deleteProvisionedUser).toHaveBeenCalledWith("keycloak-user-1");
+      expect(deleteProvisionedUser).toHaveBeenCalledWith(
+        "orphan-keycloak-user-2",
+      );
+      expect(findManagedUsersByEmail).toHaveBeenCalledWith("ops@test.fr");
+      expect(findManagedUsersByUsername).toHaveBeenCalledWith("ops@test.fr");
+    } finally {
+      Reflect.set(
+        service as unknown as Record<string, unknown>,
+        "pool",
+        originalPool,
+      );
+      Reflect.set(
+        service as unknown as Record<string, unknown>,
+        "identityService",
+        originalIdentityService,
+      );
+    }
+  });
+
+  it("returns admin unread counts when backoffice persistence is configured", async () => {
+    const route = findRoute("GET", "/api/v1/admin/conversations/unread-count");
+    const service = getAdminBackofficeService();
+    const originalPool = Reflect.get(
+      service as unknown as Record<string, unknown>,
+      "pool",
+    );
+
+    const query = vi.fn(async (sql: string) => {
+      if (sql.includes("SELECT COUNT(m.id)::text AS total")) {
+        return { rows: [{ total: "8" }] };
+      }
+
+      if (sql.includes("GROUP BY c.organization_id, o.name")) {
+        return {
+          rows: [
+            {
+              org_id: TARGET_ORG_ID,
+              org_name: "Acme Logistics",
+              unread_count: "6",
+            },
+          ],
+        };
+      }
+
+      throw new Error(`Unexpected SQL in unread count route test: ${sql}`);
+    });
+
+    Reflect.set(service as unknown as Record<string, unknown>, "pool", {
+      query,
+    } as unknown);
+
+    try {
+      const result = await route.handler(
+        makeAdminContext("GET", "/api/v1/admin/conversations/unread-count"),
+      );
+
+      expect(result.statusCode).toBe(200);
+      expect(result.payload.success).toBe(true);
+      if (!result.payload.success) {
+        throw new Error("expected success payload");
+      }
+      expect(result.payload.data).toEqual({
+        total: 8,
+        byOrg: [
+          {
+            orgId: TARGET_ORG_ID,
+            orgName: "Acme Logistics",
+            count: 6,
+          },
+        ],
+      });
+    } finally {
+      Reflect.set(
+        service as unknown as Record<string, unknown>,
+        "pool",
+        originalPool,
+      );
+    }
+  });
+
+  it("returns organization detail when backoffice persistence is configured", async () => {
+    const route = findRoute("GET", "/api/v1/admin/organizations/:orgId");
+    const service = getAdminBackofficeService();
+    const originalPool = Reflect.get(
+      service as unknown as Record<string, unknown>,
+      "pool",
+    );
+
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: TARGET_ORG_ID,
+            name: "Acme Logistics",
+            slug: "acme-logistics",
+            status: "active",
+            plan: "professional",
+            contact_email: "ops@acme.fr",
+            settings: { adminBackoffice: { isTest: false } },
+            sector: "logistics",
+            size: "mid_market",
+            user_count: "12",
+            site_count: "1",
+            created_at: new Date("2026-03-01T08:00:00.000Z"),
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            site_id: "77777777-7777-4777-8777-777777777777",
+            site_name: "Lyon",
+            site_city: "Lyon",
+            department_id: "88888888-8888-4888-8888-888888888888",
+            department_name: "Exploitants",
+            department_headcount: "14",
+          },
+        ],
+      });
+
+    Reflect.set(service as unknown as Record<string, unknown>, "pool", {
+      query,
+    } as unknown);
+
+    try {
+      const context = makeAdminContext(
+        "GET",
+        `/api/v1/admin/organizations/${TARGET_ORG_ID}`,
+      );
+      context.params = { orgId: TARGET_ORG_ID };
+
+      const result = await route.handler(context);
+
+      expect(result.statusCode).toBe(200);
+      expect(result.payload.success).toBe(true);
+      if (!result.payload.success) {
+        throw new Error("expected success payload");
+      }
+      expect(result.payload.data).toEqual({
+        id: TARGET_ORG_ID,
+        name: "Acme Logistics",
+        slug: "acme-logistics",
+        status: "active",
+        plan: "professional",
+        contactEmail: "ops@acme.fr",
+        isTest: false,
+        sector: "logistics",
+        size: "mid_market",
+        userCount: 12,
+        siteCount: 1,
+        createdAt: "2026-03-01T08:00:00.000Z",
+        sites: [
+          {
+            id: "77777777-7777-4777-8777-777777777777",
+            name: "Lyon",
+            city: "Lyon",
+            departments: [
+              {
+                id: "88888888-8888-4888-8888-888888888888",
+                name: "Exploitants",
+                employeeCount: 14,
+              },
+            ],
+          },
+        ],
+      });
+    } finally {
+      Reflect.set(
+        service as unknown as Record<string, unknown>,
+        "pool",
+        originalPool,
+      );
+    }
+  });
+
+  it("returns the persistent admin ingestion log when backoffice persistence is configured", async () => {
+    const route = findRoute(
+      "GET",
+      "/api/v1/admin/organizations/:orgId/ingestion-log",
+    );
+    const service = getAdminBackofficeService();
+    const originalPool = Reflect.get(
+      service as unknown as Record<string, unknown>,
+      "pool",
+    );
+
+    const query = vi.fn().mockResolvedValueOnce({
+      rows: [
+        {
+          id: "12121212-1212-4212-8212-121212121212",
+          dataset_id: "34343434-3434-4434-8434-343434343434",
+          dataset_name: "Absences bronze",
+          file_name: "absences-2026-03.csv",
+          status: "failed",
+          rows_received: "124",
+          rows_transformed: "120",
+          started_at: new Date("2026-03-19T07:30:00.000Z"),
+          completed_at: new Date("2026-03-19T07:31:00.000Z"),
+          mode: "manual_upload",
+          triggered_by: "ops@acme.fr",
+        },
+      ],
+    });
+
+    Reflect.set(service as unknown as Record<string, unknown>, "pool", {
+      query,
+    } as unknown);
+
+    try {
+      const context = makeAdminContext(
+        "GET",
+        `/api/v1/admin/organizations/${TARGET_ORG_ID}/ingestion-log`,
+      );
+      context.params = { orgId: TARGET_ORG_ID };
+
+      const result = await route.handler(context);
+
+      expect(result.statusCode).toBe(200);
+      expect(result.payload.success).toBe(true);
+      if (!result.payload.success) {
+        throw new Error("expected success payload");
+      }
+      expect(result.payload.data).toEqual([
+        {
+          id: "12121212-1212-4212-8212-121212121212",
+          datasetId: "34343434-3434-4434-8434-343434343434",
+          datasetName: "Absences bronze",
+          fileName: "absences-2026-03.csv",
+          status: "failed",
+          rowsProcessed: 120,
+          rowsRejected: 4,
+          createdAt: "2026-03-19T07:30:00.000Z",
+          completedAt: "2026-03-19T07:31:00.000Z",
+          mode: "manual_upload",
+          triggeredBy: "ops@acme.fr",
+        },
+      ]);
+    } finally {
+      Reflect.set(
+        service as unknown as Record<string, unknown>,
+        "pool",
+        originalPool,
+      );
+    }
+  });
+
+  it("returns a paginated admin contact requests list when backoffice persistence is configured", async () => {
+    const route = findRoute("GET", "/api/v1/admin/contact-requests");
+    const service = getAdminBackofficeService();
+    const originalPool = Reflect.get(
+      service as unknown as Record<string, unknown>,
+      "pool",
+    );
+
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [{ total: "1" }] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: "55555555-5555-4555-8555-555555555555",
+            created_at: new Date("2026-03-18T08:00:00.000Z"),
+            updated_at: new Date("2026-03-18T09:00:00.000Z"),
+            locale: "fr",
+            request_type: "product_demo",
+            company_name: "Acme Logistics",
+            first_name: "Alice",
+            last_name: "Martin",
+            role: "Operations Director",
+            email: "alice@acme.fr",
+            phone: "+33102030405",
+            subject: "Demo produit",
+            message: "Nous souhaitons une demo.",
+            status: "new",
+            consent: true,
+            metadata_json: { source: "landing" },
+          },
+        ],
+      });
+
+    Reflect.set(service as unknown as Record<string, unknown>, "pool", {
+      query,
+    } as unknown);
+
+    try {
+      const result = await route.handler(
+        makeAdminContext(
+          "GET",
+          "/api/v1/admin/contact-requests",
+          "search=acme&status=new&request_type=product_demo&page=1&page_size=20",
+        ),
+      );
+
+      expect(result.statusCode).toBe(200);
+      expect(result.payload.success).toBe(true);
+      if (!result.payload.success) {
+        throw new Error("expected success payload");
+      }
+      expect(result.payload.data).toEqual([
+        {
+          id: "55555555-5555-4555-8555-555555555555",
+          createdAt: "2026-03-18T08:00:00.000Z",
+          updatedAt: "2026-03-18T09:00:00.000Z",
+          locale: "fr",
+          requestType: "product_demo",
+          companyName: "Acme Logistics",
+          firstName: "Alice",
+          lastName: "Martin",
+          role: "Operations Director",
+          email: "alice@acme.fr",
+          phone: "+33102030405",
+          subject: "Demo produit",
+          message: "Nous souhaitons une demo.",
+          status: "new",
+          consent: true,
+          metadataJson: { source: "landing" },
+        },
+      ]);
+      expect("pagination" in result.payload).toBe(true);
+      if (!("pagination" in result.payload)) {
+        throw new Error("expected paginated payload");
+      }
+      expect(result.payload.pagination).toMatchObject({
+        total: 1,
+        page: 1,
+        pageSize: 20,
+      });
+    } finally {
+      Reflect.set(
+        service as unknown as Record<string, unknown>,
+        "pool",
+        originalPool,
+      );
+    }
+  });
+
+  it("returns a paginated admin audit log when backoffice persistence is configured", async () => {
+    const route = findRoute("GET", "/api/v1/admin/audit-log");
+    const service = getAdminBackofficeService();
+    const originalPool = Reflect.get(
+      service as unknown as Record<string, unknown>,
+      "pool",
+    );
+
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [{ total: "1" }] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: "66666666-6666-4666-8666-666666666666",
+            admin_user_id: "11111111-1111-4111-8111-111111111111",
+            target_org_id: "33333333-3333-4333-8333-333333333333",
+            action: "change_role",
+            resource_type: "user",
+            resource_id: "77777777-7777-4777-8777-777777777777",
+            ip_address: "127.0.0.1",
+            user_agent: "vitest",
+            request_id: "req-audit",
+            metadata_json: { targetRole: "manager" },
+            severity: "INFO",
+            created_at: new Date("2026-03-18T11:00:00.000Z"),
+          },
+        ],
+      });
+
+    Reflect.set(service as unknown as Record<string, unknown>, "pool", {
+      query,
+    } as unknown);
+
+    try {
+      const result = await route.handler(
+        makeAdminContext(
+          "GET",
+          "/api/v1/admin/audit-log",
+          "action=change_role&page=1&page_size=30",
+        ),
+      );
+
+      expect(result.statusCode).toBe(200);
+      expect(result.payload.success).toBe(true);
+      if (!result.payload.success) {
+        throw new Error("expected success payload");
+      }
+      expect(result.payload.data).toEqual([
+        {
+          id: "66666666-6666-4666-8666-666666666666",
+          adminUserId: "11111111-1111-4111-8111-111111111111",
+          targetOrgId: "33333333-3333-4333-8333-333333333333",
+          action: "change_role",
+          resourceType: "user",
+          resourceId: "77777777-7777-4777-8777-777777777777",
+          ipAddress: "127.0.0.1",
+          userAgent: "vitest",
+          requestId: "req-audit",
+          metadataJson: { targetRole: "manager" },
+          severity: "INFO",
+          createdAt: "2026-03-18T11:00:00.000Z",
+        },
+      ]);
+      expect("pagination" in result.payload).toBe(true);
+      if (!("pagination" in result.payload)) {
+        throw new Error("expected paginated payload");
+      }
+      expect(result.payload.pagination).toMatchObject({
+        total: 1,
+        page: 1,
+        pageSize: 30,
+      });
+    } finally {
+      Reflect.set(
+        service as unknown as Record<string, unknown>,
+        "pool",
+        originalPool,
+      );
+    }
+  });
+
+  it("updates admin contact request status when backoffice persistence is configured", async () => {
+    const route = findRoute(
+      "PATCH",
+      "/api/v1/admin/contact-requests/:requestId/status",
+    );
+    const service = getAdminBackofficeService();
+    const originalPool = Reflect.get(
+      service as unknown as Record<string, unknown>,
+      "pool",
+    );
+
+    const query = vi.fn().mockResolvedValueOnce({
+      rows: [
+        {
+          id: "55555555-5555-4555-8555-555555555555",
+          created_at: new Date("2026-03-18T08:00:00.000Z"),
+          updated_at: new Date("2026-03-18T10:00:00.000Z"),
+          locale: "fr",
+          request_type: "product_demo",
+          company_name: "Acme Logistics",
+          first_name: "Alice",
+          last_name: "Martin",
+          role: "Operations Director",
+          email: "alice@acme.fr",
+          phone: "+33102030405",
+          subject: "Demo produit",
+          message: "Nous souhaitons une demo.",
+          status: "closed",
+          consent: true,
+          metadata_json: { source: "landing" },
+        },
+      ],
+    });
+
+    Reflect.set(service as unknown as Record<string, unknown>, "pool", {
+      query,
+    } as unknown);
+
+    try {
+      const context = makeAdminContext(
+        "PATCH",
+        "/api/v1/admin/contact-requests/55555555-5555-4555-8555-555555555555/status",
+      );
+      context.params = {
+        requestId: "55555555-5555-4555-8555-555555555555",
+      };
+      if (!context.user) {
+        throw new Error("expected admin context user");
+      }
+      context.user.permissions = ["admin:support:write"];
+      context.body = { status: "closed" };
+
+      const result = await route.handler(context);
+
+      expect(result.statusCode).toBe(200);
+      expect(result.payload.success).toBe(true);
+      if (!result.payload.success) {
+        throw new Error("expected success payload");
+      }
+      expect(result.payload.data).toMatchObject({
+        id: "55555555-5555-4555-8555-555555555555",
+        status: "closed",
+        requestType: "product_demo",
+      });
+    } finally {
+      Reflect.set(
+        service as unknown as Record<string, unknown>,
+        "pool",
+        originalPool,
+      );
     }
   });
 

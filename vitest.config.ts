@@ -2,6 +2,15 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
+const DEFAULT_VITEST_MAX_WORKERS = 1;
+const rawVitestMaxWorkers = Number(
+  process.env.VITEST_MAX_WORKERS ?? String(DEFAULT_VITEST_MAX_WORKERS),
+);
+const VITEST_MAX_WORKERS =
+  Number.isFinite(rawVitestMaxWorkers) && rawVitestMaxWorkers > 0
+    ? rawVitestMaxWorkers
+    : DEFAULT_VITEST_MAX_WORKERS;
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -13,6 +22,9 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./testing/vitest.setup.ts"],
+    maxWorkers: VITEST_MAX_WORKERS,
+    minWorkers: 1,
+    fileParallelism: false,
     exclude: [
       "**/node_modules/**",
       "**/dist/**",

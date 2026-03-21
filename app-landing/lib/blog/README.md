@@ -25,6 +25,7 @@ Moteur de blog du landing.
 - le frontmatter est strictement valide
 - les drafts ne doivent pas sortir en prod
 - un meme slug peut exister en FR et EN
+- les champs editoriaux optionnels `answerSummary`, `keyPoints` et `sources` servent a sortir des articles plus facilement citables par les moteurs generatifs sans dupliquer une autre promesse que celle de l'article
 
 ## Tests
 

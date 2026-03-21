@@ -1,6 +1,6 @@
 # PRD Connecteur - Reynolds & Reynolds (DMS)
 
-- Statut: `Ready for build` (implementation), `Blocked by vendor` (acces partenaire)
+- Statut: `L2 core delivered` (provider pull `service_account`), `Blocked by vendor` (acces partenaire / fallback `sftp`)
 - Priorite: `P1`
 - Verticales ciblees: concessionnaire auto
 - Dependance: programme integration Reynolds + autorisation dealer
@@ -34,7 +34,7 @@ Connecter Reynolds pour capter ventes, service et parts afin de piloter producti
 
 ### 3.3 Extraction
 
-- API prioritaire si acces direct autorise
+- API prioritaire avec endpoints configures par objet et credentials `clientId` / `clientSecret` si acces direct autorise
 - fallback batch fichiers securises si API limitee
 - incremental par timestamp de mise a jour
 
@@ -72,7 +72,7 @@ Connecter Reynolds pour capter ventes, service et parts afin de piloter producti
 
 ## 8. Definition of Done
 
-- Flux ventes, service, pieces integres.
+- Flux ventes, service, pieces integres en mode API `service_account`; fallback batch `sftp` restant a certifier selon acces partenaire.
 - Backfill historique + incremental stables.
 - Dashboard concession alimente automatiquement.
 

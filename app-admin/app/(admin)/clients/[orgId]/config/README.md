@@ -26,6 +26,10 @@ La section integrations ne se limite plus aux credentials et raw events:
 
 Les mutations integrations doivent etre gardees par `admin:integrations:write`, pas par le simple droit `admin:org:write`.
 
+Le listing admin des `raw events` doit rester un resume metadata-only. Les apercus de payload et le contenu brut ne doivent pas transiter dans cette table, et la surface HTTP admin n'expose plus de route de payload brut pour ces evenements.
+
+En developpement local, `integrations-section.tsx` reste maintenant fail-close par defaut tant que `NEXT_PUBLIC_ADMIN_INTEGRATIONS_WORKSPACE=1` n'est pas active en meme temps qu'un runtime connecteurs vraiment configure. Cela evite de spammer des `500` garantis sur `/integrations/connections` quand `CONNECTORS_RUNTIME_TOKEN` manque encore.
+
 ## Tests
 
 - `__tests__/page.test.tsx`

@@ -6,6 +6,10 @@ import { SkeletonCard } from "@praedixa/ui";
 import { ErrorFallback } from "@/components/error-fallback";
 import { useApiGet } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
+import {
+  ADMIN_WORKSPACE_FEATURE_GATES,
+  integrationsUnavailableMessage,
+} from "@/lib/runtime/admin-workspace-feature-gates";
 
 import { ConfigReadonlyNotice } from "./config-readonly-notice";
 import { createIntegrationOperations } from "./config-operations";
@@ -32,7 +36,7 @@ function useIntegrationConnections(
   canReadIntegrations: boolean,
 ) {
   return useApiGet<IntegrationConnection[]>(
-    canReadIntegrations
+    canReadIntegrations && ADMIN_WORKSPACE_FEATURE_GATES.integrationsWorkspace
       ? ADMIN_ENDPOINTS.orgIntegrationConnections(orgId)
       : null,
   );
@@ -182,6 +186,10 @@ function IntegrationsSectionState({
         permission="admin:integrations:read"
       />
     );
+  }
+
+  if (!ADMIN_WORKSPACE_FEATURE_GATES.integrationsWorkspace) {
+    return <ErrorFallback message={integrationsUnavailableMessage()} />;
   }
 
   if (model.connections.loading) return <SkeletonCard />;

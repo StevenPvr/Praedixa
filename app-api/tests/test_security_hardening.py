@@ -76,6 +76,32 @@ def test_parse_file_rejects_xlsx_zip_bomb_like_archive(
         parse_file(archive_buffer.getvalue(), "sample.xlsx", format_hint="xlsx")
 
 
+def test_parse_file_rejects_macro_enabled_or_legacy_excel_extensions() -> None:
+    for filename in ("sample.xls", "sample.xlsm", "sample.xlsb"):
+        with pytest.raises(
+            FileParseError,
+            match=r"Only \.csv, \.tsv and \.xlsx are allowed",
+        ):
+            parse_file(b"PK\x03\x04fake", filename, format_hint="xlsx")
+
+
+def test_parse_file_rejects_files_without_extension() -> None:
+    with pytest.raises(FileParseError, match="File extension is required"):
+        parse_file(b"nom,valeur\nAlice,42\n", "sample", format_hint="csv")
+
+
+def test_parse_file_supports_tsv_extension() -> None:
+    result = parse_file(
+        b"nom\tvaleur\nAlice\t42\n",
+        "sample.tsv",
+    )
+
+    assert result.detected_format == "csv"
+    assert result.source_columns == ["nom", "valeur"]
+    assert result.row_count == 1
+    assert result.rows[0] == {"nom": "Alice", "valeur": "42"}
+
+
 def test_csv_formula_sanitization_strips_minus_formulas() -> None:
     assert _sanitize_cell_value("-1+2") == "1+2"
     assert _sanitize_cell_value("-2*cmd|' /C calc'!A0") == "2*cmd|' /C calc'!A0"

@@ -15,7 +15,9 @@ Handlers Next.js server-side du flow OIDC de la console super-admin.
 
 - les reponses de session renvoient `permissions` en plus du role
 - le callback exige l'acces `admin:console:access`
+- apres login, le callback ne conserve `next` que si la page est autorisee; sinon il bascule vers la premiere page admin accessible a la session
 - en production, le callback refuse aussi tout token admin sans preuve MFA compatible avec `AUTH_ADMIN_REQUIRED_AMR`
 - `/auth/session` est no-store et same-origin only
+- `/auth/session` et `/auth/logout` refusent aussi toute requete browser dont `Sec-Fetch-Site` annonce `cross-site` ou `same-site`, meme si un header `Origin` semble legitime
 - `/auth/session` renvoie `403` sur echec CSRF, `401` si la session ne peut pas etre resolue et `429` si le rate limit refuse
 - le rate limit auth est fail-close hors developpement: sans store distribue explicite ou sans `AUTH_RATE_LIMIT_KEY_SALT`, les handlers refusent

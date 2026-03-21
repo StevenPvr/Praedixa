@@ -5,6 +5,8 @@ Objectif: prolonger le post pilier "Sous/sureffectif multi-sites: decider a J+3/
 
 ## 1) Decision Log Ops/DAF: template et regles anti-biais
 
+Statut: publie le 2026-03-20 sous `decision-log-ops-daf-template.mdx`.
+
 Intent: template + checklist.
 Angle: une decision defendable = 1 contexte + 2 options + 2 hypotheses + 1 mesure.
 Liens internes: /fr/pilot-protocol, /fr/decision-log-preuve-roi, /fr/services, /fr/devenir-pilote.

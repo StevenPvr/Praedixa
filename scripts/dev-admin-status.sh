@@ -2,14 +2,23 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${ROOT_DIR}/scripts/lib/process-tree.sh"
 PID_FILE="${ROOT_DIR}/.tools/dev-logs/admin.pid"
+PORT="3002"
 
 if [[ -f "${PID_FILE}" ]]; then
   pid="$(cat "${PID_FILE}" 2>/dev/null || true)"
-  if [[ -n "${pid}" ]] && kill -0 "${pid}" 2>/dev/null; then
-    echo "[dev:admin] running (pid ${pid}) on http://localhost:3002"
+  if [[ -n "${pid}" ]] && is_process_alive "${pid}" && is_tcp_port_open "${PORT}"; then
+    echo "[dev:admin] running (pid ${pid}) on http://localhost:${PORT}"
     exit 0
   fi
+
+  rm -f "${PID_FILE}"
+fi
+
+if is_tcp_port_open "${PORT}"; then
+  echo "[dev:admin] running on http://localhost:${PORT} (unmanaged process)"
+  exit 0
 fi
 
 echo "[dev:admin] not running"

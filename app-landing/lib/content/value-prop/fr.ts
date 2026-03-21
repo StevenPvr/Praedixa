@@ -4,27 +4,26 @@ import { valuePropFrSections } from "./fr-sections";
 export const coreValuePropFr: ValuePropContent = {
   icp: "COO, directions des opérations et responsables réseau de réseaux multi-sites",
   promise:
-    "Praedixa anticipe vos besoins opérationnels et prouve votre ROI, sans remplacer vos outils.",
+    "Praedixa couple Data Science, Machine Learning et IA pour anticiper vos besoins opérationnels et prouver votre ROI, sans remplacer vos outils.",
   mechanism:
-    "L\u2019IA détecte les risques, compare vos options et mesure l\u2019impact réel de chaque décision.",
+    "Data Science, Machine Learning et IA détectent les risques, comparent vos options et mesurent l\u2019impact réel de chaque décision.",
   reassurance: [
     "Lecture seule",
     "Données agrégées",
     "Hébergement France",
     "NDA sur demande",
   ],
-  ctaPrimary: "Voir la preuve sur historique",
+  ctaPrimary: "Voir la preuve de ROI",
   ctaSecondary: "Parler à un expert",
   heroKicker: "Pour les réseaux multi-sites",
   heroHeading: "L\u2019IA qui anticipe, optimise",
   heroHeadingHighlight: "et prouve votre ROI.",
   heroSubheading:
-    "Praedixa connecte vos données existantes, détecte les risques plus tôt, compare les options et documente l\u2019impact réel de chaque décision.",
-  heroBadgeText: "IA DÉCISIONNELLE",
-  heroProofBlockText:
-    "Pour COO, direction des opérations, finance et DSI.",
+    "Praedixa connecte vos données existantes et couple Data Science, Machine Learning et IA pour détecter les risques plus tôt, comparer les scénarios et prouver le ROI. Là où les ERP pilotent souvent à la moyenne, Praedixa arbitre décision par décision.",
+  heroBadgeText: "DATA SCIENCE + ML + IA",
+  heroProofBlockText: "Pour COO, direction des opérations, finance et DSI.",
   heroProofRoles: ["COO", "DIR. OPS", "FINANCE", "DSI"],
-  heroProofMicropill: "Décisions tracées\u00a0|\u00a0ROI prouvable",
+  heroProofMicropill: "Décisions tracées\u00a0|\u00a0Preuve de ROI",
   heroLogoCaption: "Ils nous font confiance",
   heroOffer: {
     badge: "Notre promesse",
@@ -46,7 +45,7 @@ export const coreValuePropFr: ValuePropContent = {
       "Praedixa détecte les risques avant qu\u2019ils ne deviennent des urgences, compare vos options et mesure l\u2019impact réel de chaque décision.",
   },
   footerTagline:
-    "Praedixa anticipe vos besoins opérationnels et prouve votre ROI, sans remplacer vos outils.",
+    "Praedixa couple Data Science, Machine Learning et IA pour prouver votre ROI, sans remplacer vos outils.",
   qualificationTitle: "Est-ce que Praedixa est fait pour vous\u00a0?",
   qualificationBody:
     "Praedixa s\u2019adresse aux réseaux multi-sites qui veulent anticiper leurs besoins, comparer leurs options et prouver leurs résultats.",
@@ -64,9 +63,9 @@ export const coreValuePropFr: ValuePropContent = {
   ],
   stackComparison: {
     kicker: "Compatibilité",
-    heading: "Praedixa s\u2019ajoute à vos outils. Il ne les remplace pas.",
+    heading: "Praedixa s\u2019ajoute à vos outils. Il va au-delà des moyennes.",
     subheading:
-      "ERP, BI, planning, Excel\u00a0: tout reste en place. Praedixa ajoute l\u2019intelligence de décision qui manque.",
+      "ERP, BI, planning, Excel\u00a0: tout reste en place. Là où les ERP pilotent surtout par règles et moyennes, Praedixa ajoute Data Science, Machine Learning et IA pour anticiper, comparer et prouver.",
     columnLabels: {
       category: "Outil",
       currentCoverage: "Ce qu\u2019il fait",
@@ -77,9 +76,10 @@ export const coreValuePropFr: ValuePropContent = {
       {
         category: "ERP",
         currentCoverage: "Gère les transactions, les stocks et les coûts.",
-        stopsAt: "Ne compare pas les options de décision entre elles.",
+        stopsAt:
+          "Travaille surtout à partir de règles, d\u2019historique et de moyennes.",
         praedixaAdd:
-          "Compare les options et mesure l\u2019impact de la décision retenue.",
+          "Utilise Data Science, Machine Learning et IA pour détecter les écarts, comparer les scénarios et mesurer le ROI.",
       },
       {
         category: "BI / reporting",
@@ -105,11 +105,11 @@ export const coreValuePropFr: ValuePropContent = {
       {
         category: "Praedixa",
         currentCoverage:
-          "S\u2019ajoute à vos outils existants pour anticiper et décider.",
+          "Ajoute une couche de décision à vos outils existants pour anticiper et arbitrer.",
         stopsAt:
           "Ne remplace ni ERP, ni BI, ni planning. S\u2019appuie sur eux.",
         praedixaAdd:
-          "Anticiper, comparer, décider et prouver le ROI dans le temps.",
+          "Anticiper, comparer, décider et prouver le ROI, site par site.",
       },
     ],
     bottomNote:

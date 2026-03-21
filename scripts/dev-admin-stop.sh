@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${ROOT_DIR}/scripts/lib/process-tree.sh"
 PID_FILE="${ROOT_DIR}/.tools/dev-logs/admin.pid"
 
 if [[ ! -f "${PID_FILE}" ]]; then
@@ -16,11 +17,11 @@ if [[ -z "${pid}" ]]; then
   exit 0
 fi
 
-if kill -0 "${pid}" 2>/dev/null; then
-  kill "${pid}" 2>/dev/null || true
-  sleep 1
-  if kill -0 "${pid}" 2>/dev/null; then
-    kill -9 "${pid}" 2>/dev/null || true
+if is_process_alive "${pid}"; then
+  terminate_process_tree "${pid}" TERM
+  if ! wait_for_pid_exit "${pid}" 10; then
+    terminate_process_tree "${pid}" KILL
+    wait_for_pid_exit "${pid}" 5 || true
   fi
   echo "[dev:admin] stopped pid ${pid}"
 else

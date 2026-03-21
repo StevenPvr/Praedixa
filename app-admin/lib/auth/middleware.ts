@@ -5,6 +5,7 @@ import { resolveRequestSession } from "@/lib/auth/request-session";
 import {
   canAccessPath,
   hasExplicitAdminPagePolicy,
+  resolveAccessibleAdminPath,
 } from "@/lib/auth/route-access";
 
 function redirectTo(
@@ -89,11 +90,22 @@ export async function updateSession(
     return redirectTo(request, buildForcedReauthPath(request), true);
   }
 
+  const fallbackPath =
+    session && pathname === "/"
+      ? resolveAccessibleAdminPath(session.permissions, pathname)
+      : null;
   if (
     session &&
     !isLoginRoute &&
-    (!hasPagePolicy || !canAccessCurrentPath)
+    pathname === "/" &&
+    !canAccessCurrentPath &&
+    fallbackPath &&
+    fallbackPath !== pathname
   ) {
+    return redirectTo(request, fallbackPath);
+  }
+
+  if (session && !isLoginRoute && (!hasPagePolicy || !canAccessCurrentPath)) {
     return redirectTo(request, "/unauthorized");
   }
 
@@ -106,7 +118,10 @@ export async function updateSession(
     !isForcedReauth &&
     canAccessAdminConsole(userRole, session.permissions)
   ) {
-    return redirectTo(request, "/");
+    return redirectTo(
+      request,
+      resolveAccessibleAdminPath(session.permissions, "/") ?? "/unauthorized",
+    );
   }
 
   return response;

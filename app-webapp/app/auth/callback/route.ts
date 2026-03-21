@@ -16,7 +16,7 @@ import {
   timingSafeEqual,
   userFromAccessToken,
 } from "@/lib/auth/oidc";
-import { resolveAuthAppOrigin } from "@/lib/auth/origin";
+import { resolveAdminAppOrigin, resolveAuthAppOrigin } from "@/lib/auth/origin";
 import { consumeRateLimit } from "@/lib/auth/rate-limit";
 
 type RateLimitSnapshot = Awaited<ReturnType<typeof consumeRateLimit>>;
@@ -154,13 +154,26 @@ export async function GET(request: NextRequest) {
       return redirect;
     }
 
-    // super_admin users must stay on admin app, not webapp.
+    // super_admin users must authenticate against the admin app client.
     if (user.role === "super_admin") {
-      const redirect = noStoreRedirect(`${appOrigin}/login?error=wrong_role`);
-      applyRateLimitHeaders(redirect, maxAttempts, rate);
-      clearAuthCookies(redirect);
-      clearLoginFlowCookies(redirect);
-      return redirect;
+      try {
+        const adminLoginUrl = new URL(
+          "/auth/login",
+          resolveAdminAppOrigin(request),
+        );
+        adminLoginUrl.searchParams.set("next", "/clients");
+        const redirect = noStoreRedirect(adminLoginUrl.toString());
+        applyRateLimitHeaders(redirect, maxAttempts, rate);
+        clearAuthCookies(redirect);
+        clearLoginFlowCookies(redirect);
+        return redirect;
+      } catch {
+        const redirect = noStoreRedirect(`${appOrigin}/login?error=wrong_role`);
+        applyRateLimitHeaders(redirect, maxAttempts, rate);
+        clearAuthCookies(redirect);
+        clearLoginFlowCookies(redirect);
+        return redirect;
+      }
     }
 
     const sessionToken = await signSession(

@@ -149,13 +149,16 @@ export function HeroPulsorDepthLayers() {
           if (dist > 0 && dist < MOUSE_ATTRACT_RADIUS) {
             if (dist < MOUSE_REPEL_RADIUS) {
               // Inner zone: repel (creates the halo ring)
-              const strength = ((MOUSE_REPEL_RADIUS - dist) / MOUSE_REPEL_RADIUS) * 0.06;
+              const strength =
+                ((MOUSE_REPEL_RADIUS - dist) / MOUSE_REPEL_RADIUS) * 0.06;
               p.vx += (dx / dist) * strength;
               p.vy += (dy / dist) * strength;
             } else {
               // Outer zone: gentle attraction
               const strength =
-                ((dist - MOUSE_REPEL_RADIUS) / (MOUSE_ATTRACT_RADIUS - MOUSE_REPEL_RADIUS)) * 0.008;
+                ((dist - MOUSE_REPEL_RADIUS) /
+                  (MOUSE_ATTRACT_RADIUS - MOUSE_REPEL_RADIUS)) *
+                0.008;
               p.vx -= (dx / dist) * strength;
               p.vy -= (dy / dist) * strength;
             }
@@ -258,8 +261,12 @@ export function HeroPulsorDepthLayers() {
           ctx.beginPath();
           ctx.arc(p.x, p.y, drawR * 2.5, 0, Math.PI * 2);
           const grad = ctx.createRadialGradient(
-            p.x, p.y, 0,
-            p.x, p.y, drawR * 2.5,
+            p.x,
+            p.y,
+            0,
+            p.x,
+            p.y,
+            drawR * 2.5,
           );
           grad.addColorStop(0, `rgba(${p.color},${drawAlpha * 0.25})`);
           grad.addColorStop(1, `rgba(${p.color},0)`);
@@ -286,8 +293,7 @@ export function HeroPulsorDepthLayers() {
       const rect = container.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      const inside =
-        x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
+      const inside = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
 
       rawMouseRef.current = { x, y, active: inside };
     };
@@ -305,11 +311,7 @@ export function HeroPulsorDepthLayers() {
   }, [reduced, setupCanvas]);
 
   return (
-    <div
-      ref={containerRef}
-      className="absolute inset-0"
-      aria-hidden="true"
-    >
+    <div ref={containerRef} className="absolute inset-0" aria-hidden="true">
       {/* Orbs removed — clean network only */}
 
       {/* ── Canvas particle network ── */}

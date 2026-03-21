@@ -23,6 +23,7 @@ import {
   payloadSha256,
   openSecretPayload,
   redactSensitive,
+  redactPreviewPayload,
   safeEqualSecret,
   verifyHmacSha256,
   sealSecretPayload,
@@ -34,11 +35,16 @@ import type {
   AuthorizationSession,
   AuthorizationStartInput,
   AuthorizationStartResult,
+  ClaimSyncRunsInput,
+  ConnectionSyncState,
+  CompleteSyncRunInput,
   ConnectorActivationReadiness,
   ConnectorAuditEvent,
   ConnectorCatalogItem,
   ConnectorConnection,
   ConnectorVendor,
+  FailSyncRunInput,
+  GetSyncRunExecutionPlanInput,
   CreateConnectionInput,
   CredentialInput,
   IngestAuthContext,
@@ -47,15 +53,21 @@ import type {
   IngestEventsInput,
   IngestEventsResult,
   IngestRawEvent,
+  IngestRawEventSummary,
   IssueIngestCredentialInput,
   IssueIngestCredentialResult,
+  ProviderEventsIngestInput,
+  ProviderEventsIngestResult,
+  ProviderRuntimeAccessContext,
   SecretKind,
   StoredSecretRecord,
   SyncDispatchResult,
   SyncRun,
+  SyncRunExecutionPlan,
   TestConnectionResult,
   ConnectorRuntimeEnvironment,
   TriggerSyncInput,
+  UpsertSyncStateInput,
   UpdateConnectionInput,
 } from "./types.js";
 
@@ -85,6 +97,35 @@ type IngestClientSecretPayload = {
   keyId: string;
 };
 
+type SessionSecretPayload = {
+  database: string;
+  username: string;
+  password: string;
+};
+
+type NormalizedJsonValue =
+  | null
+  | string
+  | number
+  | boolean
+  | NormalizedJsonValue[]
+  | { [key: string]: NormalizedJsonValue };
+
+const _MIN_SYNC_LEASE_SECONDS = 30;
+const _MAX_SYNC_LEASE_SECONDS = 900;
+const _DEFAULT_SYNC_LEASE_SECONDS = 120;
+const _MIN_SYNC_RETRY_DELAY_SECONDS = 5;
+const _MAX_SYNC_RETRY_DELAY_SECONDS = 3600;
+const _MAX_CURSOR_JSON_DEPTH = 8;
+const _MAX_CURSOR_JSON_ARRAY_ENTRIES = 1024;
+const _MAX_CURSOR_JSON_OBJECT_ENTRIES = 1024;
+const _MAX_CURSOR_JSON_BYTES = 256 * 1024;
+const _RESERVED_CURSOR_JSON_KEYS = new Set([
+  "__proto__",
+  "constructor",
+  "prototype",
+]);
+
 export class IngestAuthenticationError extends Error {
   readonly reason: string;
 
@@ -105,6 +146,37 @@ function asTrimmedString(value: unknown): string | null {
   }
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeHeaderMap(
+  value: unknown,
+  field: string,
+): Record<string, string> | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const entries = Object.entries(value);
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const normalized: Record<string, string> = {};
+  for (const [rawKey, rawValue] of entries) {
+    const key = rawKey.trim();
+    const headerValue = asTrimmedString(rawValue);
+    if (!/^[A-Za-z0-9-]{1,120}$/.test(key)) {
+      throw new Error(`${field} contains an invalid header name "${rawKey}"`);
+    }
+    if (headerValue == null || headerValue.length > 512) {
+      throw new Error(
+        `${field}.${key} must be a non-empty string up to 512 characters`,
+      );
+    }
+    normalized[key] = headerValue;
+  }
+
+  return Object.keys(normalized).length > 0 ? normalized : null;
 }
 
 function parseIsoDate(value: string | null): string | null {
@@ -132,6 +204,114 @@ function normalizeStringArray(value: unknown): string[] | null {
   );
 
   return normalized.length > 0 ? normalized : null;
+}
+
+function normalizePositiveInteger(
+  value: number,
+  {
+    min,
+    max,
+    field,
+  }: {
+    min: number;
+    max: number;
+    field: string;
+  },
+): number {
+  if (!Number.isInteger(value) || value < min || value > max) {
+    throw new Error(`${field} must be an integer between ${min} and ${max}`);
+  }
+  return value;
+}
+
+function normalizeJsonValue(
+  value: unknown,
+  fieldPath: string,
+  depth: number,
+): NormalizedJsonValue {
+  if (depth > _MAX_CURSOR_JSON_DEPTH) {
+    throw new Error(
+      `${fieldPath} exceeds the maximum supported depth of ${_MAX_CURSOR_JSON_DEPTH}`,
+    );
+  }
+
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "boolean"
+  ) {
+    return value;
+  }
+
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) {
+      throw new Error(`${fieldPath} must contain only finite numbers`);
+    }
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    if (value.length > _MAX_CURSOR_JSON_ARRAY_ENTRIES) {
+      throw new Error(
+        `${fieldPath} exceeds the maximum array size of ${_MAX_CURSOR_JSON_ARRAY_ENTRIES}`,
+      );
+    }
+    return value.map((entry, index) =>
+      normalizeJsonValue(entry, `${fieldPath}[${index}]`, depth + 1),
+    );
+  }
+
+  if (!isRecord(value)) {
+    throw new Error(`${fieldPath} must contain only JSON-serializable values`);
+  }
+
+  const entries = Object.entries(value);
+  if (entries.length > _MAX_CURSOR_JSON_OBJECT_ENTRIES) {
+    throw new Error(
+      `${fieldPath} exceeds the maximum object size of ${_MAX_CURSOR_JSON_OBJECT_ENTRIES}`,
+    );
+  }
+
+  const normalized: { [key: string]: NormalizedJsonValue } = {};
+  for (const [key, entryValue] of entries) {
+    if (_RESERVED_CURSOR_JSON_KEYS.has(key)) {
+      throw new Error(`${fieldPath} contains a reserved key "${key}"`);
+    }
+    normalized[key] = normalizeJsonValue(
+      entryValue,
+      `${fieldPath}.${key}`,
+      depth + 1,
+    );
+  }
+  return normalized;
+}
+
+function normalizeCursorJson(
+  value: unknown,
+): Record<string, unknown> | undefined {
+  if (value == null) {
+    return undefined;
+  }
+  if (!isRecord(value)) {
+    throw new Error("cursorJson must be an object");
+  }
+
+  const normalized = normalizeJsonValue(value, "cursorJson", 0);
+  if (!isRecord(normalized)) {
+    throw new Error("cursorJson must be an object");
+  }
+
+  const serialized = JSON.stringify(normalized);
+  if (
+    serialized == null ||
+    Buffer.byteLength(serialized, "utf8") > _MAX_CURSOR_JSON_BYTES
+  ) {
+    throw new Error(
+      `cursorJson must not exceed ${_MAX_CURSOR_JSON_BYTES} bytes once serialized`,
+    );
+  }
+
+  return normalized;
 }
 
 function isExpired(expiresAt: string | null, skewSeconds = 60): boolean {
@@ -166,6 +346,26 @@ function normalizeApiKeyCredentials(
   return { apiKey };
 }
 
+function normalizeSessionCredentials(
+  credentials: CredentialInput,
+): CredentialInput {
+  const database = asTrimmedString(credentials.database);
+  const username = asTrimmedString(credentials.username);
+  const password = asTrimmedString(credentials.password);
+
+  if (database == null || username == null || password == null) {
+    throw new Error(
+      "session credentials require database, username and password",
+    );
+  }
+
+  return {
+    database,
+    username,
+    password,
+  };
+}
+
 function normalizeServiceAccountCredentials(
   credentials: CredentialInput,
 ): CredentialInput {
@@ -183,11 +383,19 @@ function normalizeServiceAccountCredentials(
     return { clientEmail, privateKey };
   }
   if (username != null && password != null) {
-    return { username, password };
+    throw new Error(
+      "service_account username/password authentication is forbidden; provide clientId/clientSecret or clientEmail/privateKey",
+    );
+  }
+
+  if (username != null || password != null) {
+    throw new Error(
+      "service_account credentials require both clientId/clientSecret or clientEmail/privateKey; username/password is not supported",
+    );
   }
 
   throw new Error(
-    "service_account credentials require clientId/clientSecret, clientEmail/privateKey or username/password",
+    "service_account credentials require clientId/clientSecret or clientEmail/privateKey",
   );
 }
 
@@ -205,10 +413,14 @@ function normalizeSftpCredentials(
         ? Number(credentials.port)
         : 22;
 
-  if (host == null || username == null || (!password && !privateKey)) {
+  if (password != null) {
     throw new Error(
-      "sftp credentials require host, username and password or privateKey",
+      "sftp password authentication is forbidden; provide host, username and privateKey only",
     );
+  }
+
+  if (host == null || username == null || privateKey == null) {
+    throw new Error("sftp credentials require host, username and privateKey");
   }
   if (!Number.isInteger(port) || port <= 0 || port > 65535) {
     throw new Error("sftp port must be a valid TCP port");
@@ -217,8 +429,7 @@ function normalizeSftpCredentials(
   return {
     host,
     username,
-    ...(password ? { password } : {}),
-    ...(privateKey ? { privateKey } : {}),
+    privateKey,
     port,
   };
 }
@@ -237,6 +448,11 @@ function normalizeCredentialPayload(
       return {
         kind: "api_key",
         payload: normalizeApiKeyCredentials(credentials),
+      };
+    case "session":
+      return {
+        kind: "session",
+        payload: normalizeSessionCredentials(credentials),
       };
     case "service_account":
       return {
@@ -330,6 +546,26 @@ export class ConnectorService {
     connectionId?: string | null,
   ): IngestRawEvent[] {
     return this.store.listRawEvents(organizationId, connectionId);
+  }
+
+  listRawEventSummaries(
+    organizationId: string,
+    connectionId?: string | null,
+  ): IngestRawEventSummary[] {
+    return this.store
+      .listRawEvents(organizationId, connectionId)
+      .map((event) => ({
+        id: event.id,
+        credentialId: event.credentialId,
+        eventId: event.eventId,
+        sourceObject: event.sourceObject,
+        sourceRecordId: event.sourceRecordId,
+        schemaVersion: event.schemaVersion,
+        objectStoreKey: event.objectStoreKey,
+        sizeBytes: event.sizeBytes,
+        processingStatus: event.processingStatus,
+        receivedAt: event.receivedAt,
+      }));
   }
 
   claimRawEvents(
@@ -442,6 +678,291 @@ export class ConnectorService {
     return event;
   }
 
+  claimSyncRuns(
+    organizationIds: readonly string[],
+    input: ClaimSyncRunsInput,
+    context: AuditContext,
+  ): SyncRun[] {
+    const allowedOrganizations = Array.from(
+      new Set(
+        organizationIds
+          .map((organizationId) => organizationId.trim())
+          .filter((organizationId) => organizationId.length > 0),
+      ),
+    );
+    if (allowedOrganizations.length === 0) {
+      return [];
+    }
+
+    const workerId = input.workerId.trim();
+    if (workerId.length < 3) {
+      throw new Error("workerId must be at least 3 characters");
+    }
+
+    const limit = normalizePositiveInteger(input.limit ?? 25, {
+      min: 1,
+      max: 200,
+      field: "limit",
+    });
+    const leaseSeconds = normalizePositiveInteger(
+      input.leaseSeconds ?? _DEFAULT_SYNC_LEASE_SECONDS,
+      {
+        min: _MIN_SYNC_LEASE_SECONDS,
+        max: _MAX_SYNC_LEASE_SECONDS,
+        field: "leaseSeconds",
+      },
+    );
+
+    const claimedRuns = this.store.claimSyncRuns(
+      allowedOrganizations,
+      workerId,
+      limit,
+      leaseSeconds,
+    );
+    for (const run of claimedRuns) {
+      this.recordAuditEvent(
+        run.organizationId,
+        run.connectionId,
+        "connectors.sync.claimed",
+        {
+          runId: run.id,
+          workerId,
+          attempts: run.attempts,
+          leaseExpiresAt: run.leaseExpiresAt,
+          triggerType: run.triggerType,
+        },
+        context,
+      );
+    }
+    return claimedRuns;
+  }
+
+  getSyncRunExecutionPlan(
+    organizationId: string,
+    runId: string,
+    input: GetSyncRunExecutionPlanInput,
+    context: AuditContext,
+  ): SyncRunExecutionPlan {
+    const run = this.getSyncRunOrThrow(organizationId, runId);
+    const workerId = input.workerId.trim();
+    if (workerId.length < 3) {
+      throw new Error("workerId must be at least 3 characters");
+    }
+    this.assertSyncRunOwnedByWorker(run, workerId);
+
+    const connection = this.getConnectionOrThrow(
+      organizationId,
+      run.connectionId,
+    );
+    const { payload } =
+      this.getLatestSecretPayload<Record<string, unknown>>(connection);
+    const syncStates = this.store.listSyncStates(organizationId, connection.id);
+
+    this.recordAuditEvent(
+      organizationId,
+      connection.id,
+      "connectors.sync.execution_plan.read",
+      {
+        runId,
+        workerId,
+        authMode: connection.authMode,
+        syncStateCount: syncStates.length,
+      },
+      context,
+    );
+
+    return {
+      run,
+      connection,
+      credentials: payload,
+      syncStates,
+    };
+  }
+
+  upsertSyncStateForRun(
+    organizationId: string,
+    runId: string,
+    input: UpsertSyncStateInput,
+    context: AuditContext,
+  ): ConnectionSyncState {
+    const run = this.getSyncRunOrThrow(organizationId, runId);
+    const workerId = input.workerId.trim();
+    if (workerId.length < 3) {
+      throw new Error("workerId must be at least 3 characters");
+    }
+    this.assertSyncRunOwnedByWorker(run, workerId);
+
+    const connection = this.getConnectionOrThrow(
+      organizationId,
+      run.connectionId,
+    );
+    const sourceObject = input.sourceObject.trim();
+    if (sourceObject.length === 0) {
+      throw new Error("sourceObject must be provided");
+    }
+    if (!connection.sourceObjects.includes(sourceObject)) {
+      throw new Error(
+        `Unsupported source object "${sourceObject}" for this connection`,
+      );
+    }
+
+    const cursorJson = normalizeCursorJson(input.cursorJson);
+    const state = this.store.upsertSyncState(
+      organizationId,
+      connection.id,
+      sourceObject,
+      {
+        watermarkText: asTrimmedString(input.watermarkText) ?? null,
+        watermarkAt: parseIsoDate(input.watermarkAt ?? null),
+        cursorJson,
+        lastRunId: run.id,
+        updatedByWorker: workerId,
+      },
+    );
+
+    this.recordAuditEvent(
+      organizationId,
+      connection.id,
+      "connectors.sync.state.updated",
+      {
+        runId,
+        workerId,
+        sourceObject,
+        watermarkAt: state.watermarkAt,
+      },
+      context,
+    );
+
+    return state;
+  }
+
+  markSyncRunCompleted(
+    organizationId: string,
+    runId: string,
+    input: CompleteSyncRunInput,
+    context: AuditContext,
+  ): SyncRun {
+    const run = this.getSyncRunOrThrow(organizationId, runId);
+    const workerId = input.workerId.trim();
+    if (workerId.length < 3) {
+      throw new Error("workerId must be at least 3 characters");
+    }
+    this.assertSyncRunOwnedByWorker(run, workerId);
+
+    const recordsFetched = normalizePositiveInteger(input.recordsFetched, {
+      min: 0,
+      max: 1_000_000,
+      field: "recordsFetched",
+    });
+    const recordsWritten = normalizePositiveInteger(input.recordsWritten, {
+      min: 0,
+      max: 1_000_000,
+      field: "recordsWritten",
+    });
+    const completedAt = new Date().toISOString();
+    const updated = this.store.updateSyncRun(organizationId, runId, {
+      status: "success",
+      recordsFetched,
+      recordsWritten,
+      errorClass: null,
+      errorMessage: null,
+      endedAt: completedAt,
+      availableAt: completedAt,
+      lockedBy: null,
+      leaseExpiresAt: null,
+    });
+    if (updated == null) {
+      throw new Error("Sync run not found");
+    }
+
+    this.store.updateConnection(organizationId, updated.connectionId, {
+      status: "active",
+      lastSuccessfulSyncAt: completedAt,
+    });
+    this.recordAuditEvent(
+      organizationId,
+      updated.connectionId,
+      "connectors.sync.completed",
+      {
+        runId,
+        workerId,
+        recordsFetched,
+        recordsWritten,
+      },
+      context,
+    );
+    return updated;
+  }
+
+  markSyncRunFailed(
+    organizationId: string,
+    runId: string,
+    input: FailSyncRunInput,
+    context: AuditContext,
+  ): SyncRun {
+    const run = this.getSyncRunOrThrow(organizationId, runId);
+    const workerId = input.workerId.trim();
+    if (workerId.length < 3) {
+      throw new Error("workerId must be at least 3 characters");
+    }
+    this.assertSyncRunOwnedByWorker(run, workerId);
+
+    const errorMessage = input.errorMessage.trim();
+    if (errorMessage.length < 3) {
+      throw new Error("errorMessage must be at least 3 characters");
+    }
+
+    const retryDelaySeconds =
+      input.retryable === true
+        ? normalizePositiveInteger(
+            input.retryDelaySeconds ??
+              this.computeRetryDelaySeconds(run.attempts),
+            {
+              min: _MIN_SYNC_RETRY_DELAY_SECONDS,
+              max: _MAX_SYNC_RETRY_DELAY_SECONDS,
+              field: "retryDelaySeconds",
+            },
+          )
+        : null;
+    const willRetry =
+      input.retryable === true &&
+      retryDelaySeconds != null &&
+      run.attempts < run.maxAttempts;
+    const failedAt = new Date().toISOString();
+    const nextAvailableAt =
+      willRetry && retryDelaySeconds != null
+        ? new Date(Date.now() + retryDelaySeconds * 1000).toISOString()
+        : failedAt;
+    const updated = this.store.updateSyncRun(organizationId, runId, {
+      status: willRetry ? "queued" : "failed",
+      errorClass: asTrimmedString(input.errorClass) ?? run.errorClass,
+      errorMessage: errorMessage.slice(0, 400),
+      endedAt: failedAt,
+      availableAt: nextAvailableAt,
+      lockedBy: null,
+      leaseExpiresAt: null,
+    });
+    if (updated == null) {
+      throw new Error("Sync run not found");
+    }
+
+    this.recordAuditEvent(
+      organizationId,
+      updated.connectionId,
+      willRetry ? "connectors.sync.retry_scheduled" : "connectors.sync.failed",
+      {
+        runId,
+        workerId,
+        retryDelaySeconds,
+        attempts: updated.attempts,
+        maxAttempts: updated.maxAttempts,
+        errorClass: updated.errorClass,
+      },
+      context,
+    );
+    return updated;
+  }
+
   async getRawEventPayload(
     organizationId: string,
     connectionId: string,
@@ -465,6 +986,31 @@ export class ConnectorService {
       throw new Error("Connection not found");
     }
     return connection;
+  }
+
+  private getSyncRunOrThrow(organizationId: string, runId: string): SyncRun {
+    const run = this.store.getSyncRun(organizationId, runId);
+    if (run == null) {
+      throw new Error("Sync run not found");
+    }
+    return run;
+  }
+
+  private assertSyncRunOwnedByWorker(run: SyncRun, workerId: string): void {
+    if (run.status !== "running") {
+      throw new Error("Sync run is not currently running");
+    }
+    if (run.lockedBy == null || run.lockedBy !== workerId) {
+      throw new Error("Sync run is not locked by this worker");
+    }
+  }
+
+  private computeRetryDelaySeconds(attempts: number): number {
+    const safeAttempts = Math.max(1, attempts);
+    return Math.min(
+      _MAX_SYNC_RETRY_DELAY_SECONDS,
+      30 * 2 ** (safeAttempts - 1),
+    );
   }
 
   private getCatalogOAuthDefaults(
@@ -777,7 +1323,17 @@ export class ConnectorService {
       if (field === "baseUrl") {
         return asTrimmedString(connection.baseUrl) == null;
       }
-      return getConfigUrl(connection.config, field) == null;
+      const rawValue = connection.config[field];
+      if (typeof rawValue === "string") {
+        return asTrimmedString(rawValue) == null;
+      }
+      if (Array.isArray(rawValue)) {
+        return rawValue.length === 0;
+      }
+      if (isRecord(rawValue)) {
+        return Object.keys(rawValue).length === 0;
+      }
+      return rawValue == null;
     });
   }
 
@@ -858,10 +1414,19 @@ export class ConnectorService {
       hasStoredCredentials:
         connection.secretRef != null && connection.secretRef.length > 0,
       hasOauthEndpoints: this.hasOAuthEndpoints(connection, catalogItem),
+      hasLiveProbeStrategy: this.hasLiveProbeStrategy(connection),
       hasProbeTarget: this.hasProbeTarget(connection),
       hasValidEndpointConfiguration:
         this.hasValidEndpointConfiguration(connection),
     });
+  }
+
+  private hasLiveProbeStrategy(connection: ConnectorConnection): boolean {
+    return (
+      connection.authMode === "oauth2" ||
+      connection.authMode === "api_key" ||
+      connection.authMode === "session"
+    );
   }
 
   private assertReadyForConnectionTest(connection: ConnectorConnection): void {
@@ -980,10 +1545,16 @@ export class ConnectorService {
 
     const client = payload as OAuthClientSecretPayload;
     const scopes = connection.oauthScopes ?? [];
+    const audience =
+      asTrimmedString(connection.config.oauthAudience) ??
+      asTrimmedString(connection.config.audience);
     const token = await exchangeClientCredentials(
       validatedTokenEndpoint,
       client,
       scopes,
+      {
+        audience,
+      },
     );
     this.storeSecret(
       connection,
@@ -1008,6 +1579,124 @@ export class ConnectorService {
       expiresAt: token.expiresAt,
       scopes: token.scope,
     };
+  }
+
+  private getProviderRuntimeAdditionalHeaders(
+    connection: ConnectorConnection,
+  ): Record<string, string> | null {
+    const additionalHeaders = {
+      ...(normalizeHeaderMap(
+        connection.config.providerHeaders,
+        "config.providerHeaders",
+      ) ?? {}),
+    };
+
+    if (connection.vendor === "ukg") {
+      const globalTenantId = asTrimmedString(connection.config.globalTenantId);
+      if (globalTenantId == null) {
+        throw new Error(
+          "UKG provider runtime access requires config.globalTenantId",
+        );
+      }
+      additionalHeaders["global-tenant-id"] = globalTenantId;
+    }
+
+    if (connection.vendor === "toast") {
+      const restaurantExternalId = asTrimmedString(
+        connection.config.toastRestaurantExternalId,
+      );
+      if (restaurantExternalId == null) {
+        throw new Error(
+          "Toast provider runtime access requires config.toastRestaurantExternalId",
+        );
+      }
+      additionalHeaders["Toast-Restaurant-External-ID"] = restaurantExternalId;
+    }
+
+    return Object.keys(additionalHeaders).length > 0 ? additionalHeaders : null;
+  }
+
+  private getProviderRuntimeCredentialFields(
+    connection: ConnectorConnection,
+  ): Record<string, string> | null {
+    if (connection.authMode === "session" && connection.vendor === "geotab") {
+      const { payload } =
+        this.getLatestSecretPayload<SessionSecretPayload>(connection);
+      return {
+        database: payload.database,
+        userName: payload.username,
+        password: payload.password,
+      };
+    }
+
+    if (connection.authMode === "service_account") {
+      const { payload } =
+        this.getLatestSecretPayload<CredentialInput>(connection);
+      const credentialFields: Record<string, string> = {};
+      const clientId = asTrimmedString(payload.clientId);
+      const clientSecret = asTrimmedString(payload.clientSecret);
+      const clientEmail = asTrimmedString(payload.clientEmail);
+      const privateKey = asTrimmedString(payload.privateKey);
+
+      if (clientId != null && clientSecret != null) {
+        credentialFields.clientId = clientId;
+        credentialFields.clientSecret = clientSecret;
+      }
+      if (clientEmail != null && privateKey != null) {
+        credentialFields.clientEmail = clientEmail;
+        credentialFields.privateKey = privateKey;
+      }
+
+      return Object.keys(credentialFields).length > 0 ? credentialFields : null;
+    }
+
+    return null;
+  }
+
+  private async authenticateGeotabSession(
+    connection: ConnectorConnection,
+  ): Promise<string> {
+    const baseUrl = asTrimmedString(connection.baseUrl);
+    if (baseUrl == null) {
+      throw new Error("Geotab session auth requires connection.baseUrl");
+    }
+    const validatedBaseUrl = this.validateOutboundUrl(
+      baseUrl,
+      "baseUrl",
+      connection.runtimeEnvironment,
+    );
+    const { payload } =
+      this.getLatestSecretPayload<SessionSecretPayload>(connection);
+    const response = await fetch(validatedBaseUrl, {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        method: "Authenticate",
+        params: {
+          database: payload.database,
+          password: payload.password,
+          userName: payload.username,
+        },
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Geotab authenticate returned HTTP ${response.status}`);
+    }
+    const result = (await response.json()) as {
+      result?: {
+        credentials?: {
+          sessionId?: string;
+        };
+      };
+    };
+    const sessionId = asTrimmedString(result.result?.credentials?.sessionId);
+    if (sessionId == null) {
+      throw new Error("Geotab authenticate did not return a sessionId");
+    }
+    return sessionId;
   }
 
   private async probeConnection(connection: ConnectorConnection): Promise<{
@@ -1095,14 +1784,23 @@ export class ConnectorService {
       };
     }
 
-    warnings.push(
-      "No live probe strategy is configured for this auth mode; structural validation only.",
+    if (connection.authMode === "session") {
+      if (connection.vendor !== "geotab") {
+        throw new Error(
+          `No live probe strategy is configured for vendor "${connection.vendor}"`,
+        );
+      }
+      await this.authenticateGeotabSession(connection);
+      return {
+        checkedScopes: ["session"],
+        warnings,
+        latencyMs: Date.now() - started,
+      };
+    }
+
+    throw new Error(
+      `No live probe strategy is configured for auth mode "${connection.authMode}"`,
     );
-    return {
-      checkedScopes: ["credentials"],
-      warnings,
-      latencyMs: Date.now() - started,
-    };
   }
 
   private normalizeIngestAllowedSourceObjects(
@@ -1365,6 +2063,89 @@ export class ConnectorService {
     return credential;
   }
 
+  private async persistRawEvents(
+    connection: ConnectorConnection,
+    input: {
+      schemaVersion: string;
+      events: IngestEventsInput["events"];
+    },
+    options: {
+      credentialId: string;
+      idempotencyKey: string;
+    },
+  ): Promise<{
+    acceptedEvents: IngestRawEvent[];
+    duplicates: number;
+    receivedAt: string;
+  }> {
+    const allowedSourceObjects = new Set(connection.sourceObjects);
+    const acceptedEvents: IngestRawEvent[] = [];
+    const payloadStore = this.requirePayloadStore();
+    let duplicates = 0;
+    const receivedAt = new Date().toISOString();
+
+    for (const event of input.events) {
+      if (!allowedSourceObjects.has(event.sourceObject)) {
+        throw new Error(
+          `Source object "${event.sourceObject}" is not allowed for this connection`,
+        );
+      }
+
+      const preview = redactPreviewPayload(event.payload);
+      const rawPayload = JSON.stringify(event.payload);
+      const payloadHash = payloadSha256(rawPayload);
+      const eventId =
+        asTrimmedString(event.eventId) ??
+        payloadSha256(
+          `${event.sourceObject}|${event.sourceRecordId}|${event.sourceUpdatedAt ?? ""}|${payloadHash}`,
+        );
+      const payloadObject = await payloadStore.putJson(
+        connection.organizationId,
+        connection.id,
+        eventId,
+        event.payload,
+      );
+
+      const rawEvent: IngestRawEvent = {
+        id: randomUUID(),
+        organizationId: connection.organizationId,
+        connectionId: connection.id,
+        credentialId: options.credentialId,
+        eventId,
+        sourceObject: event.sourceObject,
+        sourceRecordId: event.sourceRecordId,
+        sourceUpdatedAt: parseIsoDate(event.sourceUpdatedAt ?? null),
+        schemaVersion: input.schemaVersion,
+        contentType:
+          asTrimmedString(event.contentType) ?? payloadObject.contentType,
+        payloadSha256: payloadHash,
+        payloadPreview: preview,
+        objectStoreKey: payloadObject.key,
+        sizeBytes: payloadObject.sizeBytes,
+        idempotencyKey: options.idempotencyKey,
+        processingStatus: "pending",
+        claimedAt: null,
+        claimedBy: null,
+        processedAt: null,
+        errorMessage: null,
+        receivedAt,
+      };
+
+      const stored = this.store.createRawEvent(rawEvent);
+      if (!stored.created) {
+        duplicates += 1;
+        continue;
+      }
+      acceptedEvents.push(stored.event);
+    }
+
+    return {
+      acceptedEvents,
+      duplicates,
+      receivedAt,
+    };
+  }
+
   async ingestEvents(
     organizationId: string,
     connectionId: string,
@@ -1415,65 +2196,23 @@ export class ConnectorService {
     const allowedSourceObjects = new Set(
       credential.allowedSourceObjects ?? connection.sourceObjects,
     );
-    const acceptedEvents: IngestRawEvent[] = [];
-    const payloadStore = this.requirePayloadStore();
-    let duplicates = 0;
-    const receivedAt = new Date().toISOString();
-
-    for (const event of input.events) {
-      if (!allowedSourceObjects.has(event.sourceObject)) {
-        throw new Error(
-          `Source object "${event.sourceObject}" is not allowed for this credential`,
-        );
-      }
-
-      const preview = redactSensitive(event.payload);
-      const rawPayload = JSON.stringify(event.payload);
-      const payloadHash = payloadSha256(rawPayload);
-      const eventId =
-        asTrimmedString(event.eventId) ??
-        payloadSha256(
-          `${event.sourceObject}|${event.sourceRecordId}|${event.sourceUpdatedAt ?? ""}|${payloadHash}`,
-        );
-      const payloadObject = await payloadStore.putJson(
-        organizationId,
-        connectionId,
-        eventId,
-        event.payload,
-      );
-
-      const rawEvent: IngestRawEvent = {
-        id: randomUUID(),
-        organizationId,
-        connectionId,
+    const filteredInput: IngestEventsInput = {
+      schemaVersion: input.schemaVersion,
+      sentAt: input.sentAt ?? null,
+      events: input.events.filter((event) => {
+        if (!allowedSourceObjects.has(event.sourceObject)) {
+          throw new Error(
+            `Source object "${event.sourceObject}" is not allowed for this credential`,
+          );
+        }
+        return true;
+      }),
+    };
+    const { acceptedEvents, duplicates, receivedAt } =
+      await this.persistRawEvents(connection, filteredInput, {
         credentialId: credential.id,
-        eventId,
-        sourceObject: event.sourceObject,
-        sourceRecordId: event.sourceRecordId,
-        sourceUpdatedAt: parseIsoDate(event.sourceUpdatedAt ?? null),
-        schemaVersion: input.schemaVersion,
-        contentType:
-          asTrimmedString(event.contentType) ?? payloadObject.contentType,
-        payloadSha256: payloadHash,
-        payloadPreview: preview,
-        objectStoreKey: payloadObject.key,
-        sizeBytes: payloadObject.sizeBytes,
         idempotencyKey,
-        processingStatus: "pending",
-        claimedAt: null,
-        claimedBy: null,
-        processedAt: null,
-        errorMessage: null,
-        receivedAt,
-      };
-
-      const stored = this.store.createRawEvent(rawEvent);
-      if (!stored.created) {
-        duplicates += 1;
-        continue;
-      }
-      acceptedEvents.push(stored.event);
-    }
+      });
 
     this.store.updateIngestCredential(
       organizationId,
@@ -1516,6 +2255,179 @@ export class ConnectorService {
       accepted: acceptedEvents.length,
       duplicates,
       runId: dispatch.run.id,
+      receivedAt,
+      events: acceptedEvents,
+    };
+  }
+
+  async getProviderRuntimeAccessContext(
+    organizationId: string,
+    connectionId: string,
+  ): Promise<ProviderRuntimeAccessContext> {
+    const connection = this.getConnectionOrThrow(organizationId, connectionId);
+    if (connection.status === "disabled") {
+      throw new Error("Connection is disabled");
+    }
+    const baseUrl = asTrimmedString(connection.baseUrl);
+    if (baseUrl == null) {
+      throw new Error(
+        "Connection baseUrl is required for provider runtime access",
+      );
+    }
+
+    if (connection.authMode === "oauth2") {
+      const token = await this.ensureOAuthAccessToken(connection);
+      const additionalHeaders =
+        this.getProviderRuntimeAdditionalHeaders(connection);
+      return {
+        organizationId,
+        connectionId,
+        vendor: connection.vendor,
+        authMode: connection.authMode,
+        runtimeEnvironment: connection.runtimeEnvironment,
+        baseUrl,
+        sourceObjects: [...connection.sourceObjects],
+        authorization: {
+          headerName: "authorization",
+          headerValue: `Bearer ${token.accessToken}`,
+          scopes: token.scopes,
+          additionalHeaders,
+          credentialFields: null,
+        },
+      };
+    }
+
+    if (connection.authMode === "api_key") {
+      const { payload } = this.getLatestSecretPayload<{ apiKey: string }>(
+        connection,
+      );
+      const headerName =
+        asTrimmedString(connection.config.authHeaderName) ?? "x-api-key";
+      const headerPrefix = asTrimmedString(connection.config.authHeaderPrefix);
+      const additionalHeaders =
+        this.getProviderRuntimeAdditionalHeaders(connection);
+      return {
+        organizationId,
+        connectionId,
+        vendor: connection.vendor,
+        authMode: connection.authMode,
+        runtimeEnvironment: connection.runtimeEnvironment,
+        baseUrl,
+        sourceObjects: [...connection.sourceObjects],
+        authorization: {
+          headerName,
+          headerValue:
+            headerPrefix != null
+              ? `${headerPrefix} ${payload.apiKey}`
+              : payload.apiKey,
+          scopes: null,
+          additionalHeaders,
+          credentialFields: null,
+        },
+      };
+    }
+
+    if (connection.authMode === "session") {
+      const additionalHeaders =
+        this.getProviderRuntimeAdditionalHeaders(connection);
+      return {
+        organizationId,
+        connectionId,
+        vendor: connection.vendor,
+        authMode: connection.authMode,
+        runtimeEnvironment: connection.runtimeEnvironment,
+        baseUrl,
+        sourceObjects: [...connection.sourceObjects],
+        authorization: {
+          headerName: "",
+          headerValue: "",
+          scopes: null,
+          additionalHeaders,
+          credentialFields: this.getProviderRuntimeCredentialFields(connection),
+        },
+      };
+    }
+
+    if (connection.authMode === "service_account") {
+      const additionalHeaders =
+        this.getProviderRuntimeAdditionalHeaders(connection);
+      return {
+        organizationId,
+        connectionId,
+        vendor: connection.vendor,
+        authMode: connection.authMode,
+        runtimeEnvironment: connection.runtimeEnvironment,
+        baseUrl,
+        sourceObjects: [...connection.sourceObjects],
+        authorization: {
+          headerName: "",
+          headerValue: "",
+          scopes: null,
+          additionalHeaders,
+          credentialFields: this.getProviderRuntimeCredentialFields(connection),
+        },
+      };
+    }
+
+    throw new Error(
+      `Provider runtime access is not supported for auth mode "${connection.authMode}"`,
+    );
+  }
+
+  async ingestProviderEvents(
+    organizationId: string,
+    connectionId: string,
+    input: ProviderEventsIngestInput,
+    context: AuditContext,
+  ): Promise<ProviderEventsIngestResult> {
+    const connection = this.getConnectionOrThrow(organizationId, connectionId);
+    if (connection.status === "disabled") {
+      throw new Error("Connection is disabled");
+    }
+    if (input.events.length === 0) {
+      throw new Error("At least one provider event is required");
+    }
+
+    const run = this.getSyncRunOrThrow(organizationId, input.syncRunId);
+    if (run.connectionId !== connectionId) {
+      throw new Error("Sync run does not belong to this connection");
+    }
+    const workerId = input.workerId.trim();
+    if (workerId.length < 3) {
+      throw new Error("workerId must be at least 3 characters");
+    }
+    this.assertSyncRunOwnedByWorker(run, workerId);
+
+    const { acceptedEvents, duplicates, receivedAt } =
+      await this.persistRawEvents(
+        connection,
+        {
+          schemaVersion: input.schemaVersion,
+          events: input.events,
+        },
+        {
+          credentialId: `runtime-sync:${run.id}`,
+          idempotencyKey: `runtime-sync:${run.id}`,
+        },
+      );
+
+    this.recordAuditEvent(
+      organizationId,
+      connectionId,
+      "connectors.provider_events.accepted",
+      {
+        runId: run.id,
+        workerId,
+        accepted: acceptedEvents.length,
+        duplicates,
+        schemaVersion: input.schemaVersion,
+      },
+      context,
+    );
+
+    return {
+      accepted: acceptedEvents.length,
+      duplicates,
       receivedAt,
       events: acceptedEvents,
     };

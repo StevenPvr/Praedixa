@@ -42,35 +42,6 @@ vi.mock("@praedixa/ui", async () => {
 
 import PrevisionsPage from "../page";
 
-const summary = {
-  modelVersion: "v1.3",
-  mape: 4.2,
-  mae: 3.4,
-  driftScore: 0.17,
-  status: "watch",
-  lastTrainingAt: "2026-01-20T10:00:00Z",
-};
-
-const drift = [
-  {
-    id: "d-1",
-    feature: "absence_rate",
-    driftScore: 0.14,
-    pValue: 0.0021,
-    detectedAt: "2026-01-20T10:00:00Z",
-  },
-];
-
-const scenarios = [
-  {
-    id: "s-1",
-    name: "Scenario A",
-    type: "baseline",
-    status: "completed",
-    createdAt: "2026-01-20T10:00:00Z",
-  },
-];
-
 function setupMocks(options?: {
   summaryLoading?: boolean;
   summaryError?: string | null;
@@ -80,34 +51,21 @@ function setupMocks(options?: {
   scenariosError?: string | null;
 }) {
   mockUseApiGet.mockImplementation((url: string | null) => {
-    if (url?.includes("/ml-monitoring/summary")) {
-      return {
-        data: options?.summaryError ? null : summary,
-        loading: options?.summaryLoading ?? false,
-        error: options?.summaryError ?? null,
-        refetch: vi.fn(),
-      };
-    }
-
-    if (url?.includes("/ml-monitoring/drift")) {
-      return {
-        data: options?.driftError ? null : drift,
-        loading: options?.driftLoading ?? false,
-        error: options?.driftError ?? null,
-        refetch: vi.fn(),
-      };
-    }
-
-    if (url?.includes("/scenarios")) {
-      return {
-        data: options?.scenariosError ? null : scenarios,
-        loading: options?.scenariosLoading ?? false,
-        error: options?.scenariosError ?? null,
-        refetch: vi.fn(),
-      };
-    }
-
-    return { data: null, loading: false, error: null, refetch: vi.fn() };
+    return {
+      data: null,
+      loading:
+        options?.summaryLoading ??
+        options?.driftLoading ??
+        options?.scenariosLoading ??
+        false,
+      error:
+        options?.summaryError ??
+        options?.driftError ??
+        options?.scenariosError ??
+        null,
+      refetch: vi.fn(),
+      url,
+    };
   });
 }
 
@@ -117,39 +75,22 @@ describe("PrevisionsPage", () => {
     setupMocks();
   });
 
-  it("renders heading, summary, drift and scenario rows", () => {
+  it("renders the fail-close fallback while forecasting workspace is disabled", () => {
     render(<PrevisionsPage />);
 
     expect(screen.getByText("Previsions")).toBeInTheDocument();
-    expect(screen.getByText("v1.3")).toBeInTheDocument();
-    expect(screen.getByText("4.2%")).toBeInTheDocument();
-    expect(screen.getByText("absence_rate")).toBeInTheDocument();
-    expect(screen.getByText("Scenario A")).toBeInTheDocument();
-    expect(screen.getByText("baseline")).toBeInTheDocument();
-  });
-
-  it("shows loading skeletons", () => {
-    setupMocks({
-      summaryLoading: true,
-      driftLoading: true,
-      scenariosLoading: true,
-    });
-    render(<PrevisionsPage />);
-
-    expect(screen.getAllByTestId("skeleton-card").length).toBeGreaterThan(0);
-  });
-
-  it("shows global fallback when all sections are in error", () => {
-    setupMocks({
-      summaryError: "summary failed",
-      driftError: "drift failed",
-      scenariosError: "scenarios failed",
-    });
-
-    render(<PrevisionsPage />);
-
     expect(
-      screen.getByText("Impossible de charger la supervision previsionnelle"),
+      screen.getByText(
+        /Le workspace previsions et ML monitoring n'est pas encore industrialise/i,
+      ),
     ).toBeInTheDocument();
+  });
+
+  it("does not call forecasting endpoints while disabled", () => {
+    render(<PrevisionsPage />);
+
+    expect(mockUseApiGet).toHaveBeenNthCalledWith(1, null);
+    expect(mockUseApiGet).toHaveBeenNthCalledWith(2, null);
+    expect(mockUseApiGet).toHaveBeenNthCalledWith(3, null);
   });
 });

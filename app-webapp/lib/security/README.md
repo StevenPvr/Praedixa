@@ -4,11 +4,11 @@ Ce dossier regroupe les protections transverses du webapp hors auth OIDC stricte
 
 ## Fichiers
 
-| Fichier          | Role                                                                                                                                                                                                            |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `csp.ts`         | Generation du nonce CSP et de l'en-tete CSP                                                                                                                                                                     |
-| `headers.ts`     | Headers de securite statiques pour `next.config.ts`                                                                                                                                                             |
-| `same-origin.ts` | Verification des requetes browser same-origin sur les routes JSON sensibles, avec rejet fail-closed si `Origin` et `Sec-Fetch-Site` sont absents et opt-in explicite pour les navigations `Sec-Fetch-Site:none` |
+| Fichier          | Role                                                                                                                                                                                                                                |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `csp.ts`         | Generation du nonce CSP et de l'en-tete CSP                                                                                                                                                                                         |
+| `headers.ts`     | Headers de securite statiques pour `next.config.ts`                                                                                                                                                                                 |
+| `same-origin.ts` | Verification des requetes browser same-origin sur les routes JSON sensibles, avec rejet fail-closed si `Origin` et `Sec-Fetch-Site` sont absents, et priorite au veto `Sec-Fetch-Site` quand il annonce `cross-site` ou `same-site` |
 
 ## Usage
 

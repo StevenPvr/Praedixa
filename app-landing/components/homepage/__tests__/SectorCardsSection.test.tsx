@@ -124,7 +124,10 @@ describe("SectorCardsSection", () => {
       "href",
       "/fr/secteurs/automobile-concessions-ateliers",
     );
-    expect(links[4]).toHaveAttribute("href", "/fr/secteurs/fitness-reseaux-clubs");
+    expect(links[4]).toHaveAttribute(
+      "href",
+      "/fr/secteurs/fitness-reseaux-clubs",
+    );
   });
 
   it("renders the homepageStat when available", () => {

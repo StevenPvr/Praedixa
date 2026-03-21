@@ -2,13 +2,14 @@ import type { ConnectorCatalogItem } from "./types.js";
 
 const OAUTH_CLIENT_HINTS = ["clientId", "clientSecret"] as const;
 const API_KEY_HINTS = ["apiKey"] as const;
+const SESSION_HINTS = ["database", "username", "password"] as const;
 const SERVICE_ACCOUNT_HINTS = [
   "clientId",
   "clientSecret",
   "clientEmail",
   "privateKey",
 ] as const;
-const SFTP_HINTS = ["host", "username", "password|privateKey"] as const;
+const SFTP_HINTS = ["host", "username", "privateKey"] as const;
 
 export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
   {
@@ -55,7 +56,12 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     recommendedSyncMinutes: 30,
     medallionTargets: ["bronze", "silver", "gold"],
     onboardingModes: ["credential_submission", "push_api"],
-    requiredConfigFields: ["tokenEndpoint", "baseUrl"],
+    requiredConfigFields: [
+      "tokenEndpoint",
+      "baseUrl",
+      "globalTenantId",
+      "ukgEndpoints",
+    ],
     credentialFieldHints: {
       oauth2: OAUTH_CLIENT_HINTS,
       api_key: API_KEY_HINTS,
@@ -70,7 +76,12 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     recommendedSyncMinutes: 15,
     medallionTargets: ["bronze", "silver", "gold"],
     onboardingModes: ["credential_submission", "push_api"],
-    requiredConfigFields: ["tokenEndpoint", "baseUrl"],
+    requiredConfigFields: [
+      "tokenEndpoint",
+      "baseUrl",
+      "toastRestaurantExternalId",
+      "toastEndpoints",
+    ],
     credentialFieldHints: {
       oauth2: OAUTH_CLIENT_HINTS,
       api_key: API_KEY_HINTS,
@@ -85,7 +96,7 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     recommendedSyncMinutes: 15,
     medallionTargets: ["bronze", "silver", "gold"],
     onboardingModes: ["credential_submission", "push_api"],
-    requiredConfigFields: ["baseUrl"],
+    requiredConfigFields: ["baseUrl", "oloEndpoints"],
     credentialFieldHints: {
       api_key: API_KEY_HINTS,
     },
@@ -103,7 +114,7 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
       "credential_submission",
       "push_api",
     ],
-    requiredConfigFields: ["baseUrl"],
+    requiredConfigFields: ["baseUrl", "cdkEndpoints"],
     credentialFieldHints: {
       service_account: SERVICE_ACCOUNT_HINTS,
       sftp: SFTP_HINTS,
@@ -122,7 +133,7 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
       "credential_submission",
       "push_api",
     ],
-    requiredConfigFields: ["baseUrl"],
+    requiredConfigFields: ["baseUrl", "reynoldsEndpoints"],
     credentialFieldHints: {
       service_account: SERVICE_ACCOUNT_HINTS,
       sftp: SFTP_HINTS,
@@ -132,15 +143,14 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     vendor: "geotab",
     label: "Geotab Telematics",
     domain: "telematics",
-    authModes: ["api_key", "oauth2"],
+    authModes: ["session"],
     sourceObjects: ["Trip", "Device", "FaultData", "StatusData"],
     recommendedSyncMinutes: 10,
     medallionTargets: ["bronze", "silver", "gold"],
     onboardingModes: ["credential_submission", "push_api"],
-    requiredConfigFields: ["baseUrl"],
+    requiredConfigFields: ["baseUrl", "geotabFeeds"],
     credentialFieldHints: {
-      oauth2: OAUTH_CLIENT_HINTS,
-      api_key: API_KEY_HINTS,
+      session: SESSION_HINTS,
     },
   },
   {
@@ -152,7 +162,7 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     recommendedSyncMinutes: 30,
     medallionTargets: ["bronze", "silver", "gold"],
     onboardingModes: ["credential_submission", "push_api"],
-    requiredConfigFields: ["baseUrl"],
+    requiredConfigFields: ["baseUrl", "fourthEndpoints"],
     credentialFieldHints: {
       api_key: API_KEY_HINTS,
       sftp: SFTP_HINTS,
@@ -171,7 +181,7 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
       "managed_service_account",
       "push_api",
     ],
-    requiredConfigFields: ["tokenEndpoint", "baseUrl"],
+    requiredConfigFields: ["tokenEndpoint", "baseUrl", "oracleTmEndpoints"],
     credentialFieldHints: {
       oauth2: OAUTH_CLIENT_HINTS,
       service_account: SERVICE_ACCOUNT_HINTS,
@@ -190,7 +200,7 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
       "managed_service_account",
       "push_api",
     ],
-    requiredConfigFields: ["tokenEndpoint", "baseUrl"],
+    requiredConfigFields: ["tokenEndpoint", "baseUrl", "sapTmEndpoints"],
     credentialFieldHints: {
       oauth2: OAUTH_CLIENT_HINTS,
       service_account: SERVICE_ACCOUNT_HINTS,
@@ -209,7 +219,7 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
       "managed_service_account",
       "push_api",
     ],
-    requiredConfigFields: ["baseUrl"],
+    requiredConfigFields: ["baseUrl", "blueYonderEndpoints"],
     credentialFieldHints: {
       api_key: API_KEY_HINTS,
       service_account: SERVICE_ACCOUNT_HINTS,
@@ -228,7 +238,7 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
       "managed_service_account",
       "push_api",
     ],
-    requiredConfigFields: ["baseUrl"],
+    requiredConfigFields: ["baseUrl", "manhattanEndpoints"],
     credentialFieldHints: {
       api_key: API_KEY_HINTS,
       service_account: SERVICE_ACCOUNT_HINTS,
@@ -243,7 +253,7 @@ export const CONNECTOR_CATALOG: ConnectorCatalogItem[] = [
     recommendedSyncMinutes: 15,
     medallionTargets: ["bronze", "silver", "gold"],
     onboardingModes: ["credential_submission", "push_api"],
-    requiredConfigFields: ["baseUrl"],
+    requiredConfigFields: ["baseUrl", "alohaEndpoints"],
     credentialFieldHints: {
       api_key: API_KEY_HINTS,
       sftp: SFTP_HINTS,

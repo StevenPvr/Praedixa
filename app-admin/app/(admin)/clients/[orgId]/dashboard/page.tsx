@@ -1,6 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import type {
+  DeleteAdminOrganizationRequest,
+  DeleteAdminOrganizationResponse,
+} from "@praedixa/shared-types/api";
 import { useClientContext } from "../client-context";
 import { useApiGet, useApiPost } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
@@ -19,6 +24,10 @@ import { ErrorFallback } from "@/components/error-fallback";
 import { PlanBadge, type PlanTier } from "@/components/plan-badge";
 import { OrgStatusBadge, type OrgStatus } from "@/components/org-status-badge";
 import { useToast } from "@/hooks/use-toast";
+import {
+  TestClientDeletionCard,
+  type TestClientDeletionFormState,
+} from "./test-client-deletion-card";
 import {
   Building2,
   Mail,
@@ -39,6 +48,7 @@ interface OrgDetail {
   status: OrgStatus;
   plan: PlanTier;
   contactEmail: string;
+  isTest: boolean;
   sector?: string;
   userCount?: number;
   siteCount?: number;
@@ -116,9 +126,15 @@ const SCENARIO_COLUMNS: DataTableColumn<ScenarioItem>[] = [
 ];
 
 export default function ClientDashboardPage() {
+  const router = useRouter();
   const { orgId, selectedSiteId } = useClientContext();
   const currentUser = useCurrentUser();
   const toast = useToast();
+  const [deleteForm, setDeleteForm] = useState<TestClientDeletionFormState>({
+    organizationSlug: "",
+    confirmationText: "",
+    acknowledgeTestDeletion: false,
+  });
 
   const {
     data: overview,
@@ -136,6 +152,10 @@ export default function ClientDashboardPage() {
     Record<string, never>,
     unknown
   >(ADMIN_ENDPOINTS.orgReactivate(orgId));
+  const { mutate: deleteOrganization, loading: deleteLoading } = useApiPost<
+    DeleteAdminOrganizationRequest,
+    DeleteAdminOrganizationResponse
+  >(ADMIN_ENDPOINTS.orgDelete(orgId));
 
   async function handleSuspend() {
     if (!canManageLifecycle) {
@@ -171,6 +191,10 @@ export default function ClientDashboardPage() {
   const canManageLifecycle = hasAnyPermission(currentUser?.permissions, [
     "admin:org:write",
   ]);
+  const canDeleteTestClient =
+    canManageLifecycle &&
+    currentUser?.role === "super_admin" &&
+    org?.isTest === true;
 
   const topAlerts = useMemo(() => {
     const alerts = overview?.alerts ?? [];
@@ -203,6 +227,45 @@ export default function ClientDashboardPage() {
     );
   }
 
+  async function handleDeleteOrganization() {
+    if (!canDeleteTestClient) {
+      toast.error("Seul le super admin peut supprimer un client test");
+      return;
+    }
+
+    const organizationSlug = deleteForm.organizationSlug.trim().toLowerCase();
+    const confirmationText = deleteForm.confirmationText.trim().toUpperCase();
+
+    if (!deleteForm.acknowledgeTestDeletion) {
+      toast.error("Confirme d'abord qu'il s'agit bien d'un client test");
+      return;
+    }
+
+    if (organizationSlug !== org.slug) {
+      toast.error("Le slug retape ne correspond pas au client courant");
+      return;
+    }
+
+    if (confirmationText !== "SUPPRIMER") {
+      toast.error("Retape SUPPRIMER pour confirmer la suppression");
+      return;
+    }
+
+    const deleted = await deleteOrganization({
+      organizationSlug,
+      confirmationText: "SUPPRIMER",
+      acknowledgeTestDeletion: true,
+    });
+
+    if (!deleted) {
+      toast.error("Impossible de supprimer le client test");
+      return;
+    }
+
+    toast.success("Client test supprime");
+    router.push("/clients");
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
@@ -231,6 +294,9 @@ export default function ClientDashboardPage() {
               {org.name}
             </p>
             <p className="text-xs text-ink-tertiary">{org.slug}</p>
+            {org.isTest ? (
+              <p className="text-xs font-medium text-amber-700">Client test</p>
+            ) : null}
           </div>
           <div className="space-y-1">
             <p className="text-xs uppercase tracking-wider text-ink-placeholder">
@@ -411,6 +477,22 @@ export default function ClientDashboardPage() {
           Donnees billing incompletes pour cette organisation.
         </p>
       )}
+
+      {org.isTest ? (
+        <TestClientDeletionCard
+          organizationSlug={org.slug}
+          form={deleteForm}
+          loading={deleteLoading}
+          disabled={
+            !canDeleteTestClient ||
+            !deleteForm.acknowledgeTestDeletion ||
+            deleteForm.organizationSlug.trim().toLowerCase() !== org.slug ||
+            deleteForm.confirmationText.trim().toUpperCase() !== "SUPPRIMER"
+          }
+          onChange={setDeleteForm}
+          onDelete={handleDeleteOrganization}
+        />
+      ) : null}
     </div>
   );
 }

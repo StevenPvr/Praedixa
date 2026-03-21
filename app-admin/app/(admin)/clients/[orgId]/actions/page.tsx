@@ -5,6 +5,10 @@ import { useClientContext } from "../client-context";
 import { useApiGet } from "@/hooks/use-api";
 import { ADMIN_ENDPOINTS } from "@/lib/api/endpoints";
 import {
+  ADMIN_WORKSPACE_FEATURE_GATES,
+  featureUnavailableMessage,
+} from "@/lib/runtime/admin-workspace-feature-gates";
+import {
   Card,
   CardContent,
   DataTable,
@@ -67,6 +71,7 @@ const SCENARIO_COLUMNS: DataTableColumn<ScenarioItem>[] = [
 
 export default function ActionsPage() {
   const { orgId, selectedSiteId } = useClientContext();
+  const forecastingEnabled = ADMIN_WORKSPACE_FEATURE_GATES.forecastingWorkspace;
 
   const alertsUrl = selectedSiteId
     ? `${ADMIN_ENDPOINTS.orgAlerts(orgId)}?site_id=${encodeURIComponent(selectedSiteId)}`
@@ -84,9 +89,12 @@ export default function ActionsPage() {
     loading: scenariosLoading,
     error: scenariosError,
     refetch: scenariosRefetch,
-  } = useApiGet<ScenarioItem[]>(ADMIN_ENDPOINTS.orgScenarios(orgId), {
-    pollInterval: 30_000,
-  });
+  } = useApiGet<ScenarioItem[]>(
+    forecastingEnabled ? ADMIN_ENDPOINTS.orgScenarios(orgId) : null,
+    {
+      pollInterval: 30_000,
+    },
+  );
 
   const alertList = alerts ?? [];
   const scenarioList = scenarios ?? [];
@@ -167,6 +175,10 @@ export default function ActionsPage() {
           </h3>
           {scenariosLoading ? (
             <SkeletonCard />
+          ) : !forecastingEnabled ? (
+            <ErrorFallback
+              message={featureUnavailableMessage("Les scenarios admin")}
+            />
           ) : scenariosError ? (
             <ErrorFallback
               message={scenariosError}

@@ -35,6 +35,7 @@ pnpm --filter @praedixa/landing blog:audit-links
 ---
 title: "Titre article"
 description: "Resume SEO (150-160 caracteres idealement)"
+answerSummary: "Reponse courte et directement citable" # optionnel mais recommande
 date: "2026-03-01"
 tags: ["workforce-planning", "roi", "ops"]
 draft: false
@@ -46,8 +47,16 @@ lang: "fr" # optionnel: fr | en (defaut: fr)
 disableAutoLinks: false # optionnel
 rssVersion: 1 # optionnel, incrementer pour forcer une republication RSS sans changer l'URL
 translationKey: "retail-workforce-planning-guide" # optionnel mais requis si FR/EN n'utilisent pas le meme slug
+keyPoints: # optionnel mais recommande
+  - "Point cle 1"
+  - "Point cle 2"
+sources: # optionnel mais recommande pour les posts methode / comparatif / benchmark
+  - label: "Nom de la source"
+    url: "https://example.com/source"
 ---
 ```
+
+Un modele de depart est disponible dans `content/blog/article-template.mdx`.
 
 ## 3) Règles de slug
 
@@ -77,6 +86,9 @@ Bonnes pratiques:
 
 - [ ] `title` clair et specifique
 - [ ] `description` utile et non dupliquee
+- [ ] `answerSummary` vraiment answer-first et citable
+- [ ] `keyPoints` lisibles hors contexte
+- [ ] `sources` ajoutees si l'article cite une methode, un benchmark ou une donnee externe
 - [ ] 1 CTA clair dans l'article
 - [ ] 3 liens internes contextuels (auto ou manuels)
 - [ ] Tags pertinents et coherents

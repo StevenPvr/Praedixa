@@ -108,6 +108,7 @@ Securite/qualite/perf:
 
 Le `pre-push` profond execute aussi `./scripts/gate-quality-static.sh` avec lint ESLint sans warnings, resynchronise `app-api/.venv` depuis `app-api/uv.lock`, lance `pip-audit` via l'extra `dev` du sous-projet, puis verifie les invariants declares (`python3 scripts/check-security-invariants.py --mode full`) avant la verification du rapport signe.
 Le `pre-push` et le gate exhaustif rejouent aussi `pnpm performance:validate-budgets`, pour que les baselines performance versionnees restent effectivement bloquantes au niveau local.
+Le scan Trivy secrets du gate profond ignore uniquement les fichiers `.env`, `.env.local` et `.env.*.local` deja exclus par Git, afin de ne pas confondre secrets locaux non versionnes et fuite commitable.
 Le gate exhaustif lance CodeQL `security-extended` sur un snapshot source epure des artefacts generes (`.next`, `.open-next`, `coverage`, `playwright-report`) et des depots imbriques hors scope. Les controles de qualite restent portes par ESLint, TypeScript, Ruff, MyPy, Knip, dependency-cruiser, deptry et les builds/tests.
 Pour la dette Python historique, le gate exhaustif bloque toute nouvelle violation Xenon ou toute aggravation via `scripts/check-python-complexity-baseline.py`, avec baseline versionnee dans `scripts/python-complexity-baseline.json`.
 Pour la dette TypeScript/Next/Node historique, le gate exhaustif bloque aussi toute nouvelle derive de taille/focalisation via `scripts/check-ts-guardrail-baseline.mjs`, avec baseline versionnee dans `scripts/ts-guardrail-baseline.json`.

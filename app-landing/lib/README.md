@@ -10,7 +10,7 @@ Logique non-UI du site marketing.
 - `content/sector-pages.ts`: verticales marche avec preuves chiffrées et proposition de valeur par secteur
 - `i18n/`: locales, slugs, dictionnaires, resolution de langue
 - `media/`: selection de media hero
-- `security/`: CSP, origine, rate limit, challenge anti-spam, audit
+- `security/`: CSP, origine, rate limit, challenge anti-spam, audit, policy d'exposition anti-scraping, signatures courtes pour assets
 - `seo/`: metadata, entites SEO, breadcrumb schema
 - `analytics/`: evenements analytics
 - `animations/`: variants partages

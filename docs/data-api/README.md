@@ -35,6 +35,7 @@ Ces PRD sont alignes avec l'architecture medaillon Praedixa:
 
 - Socle commun d'integration: `prd-00-integration-platform.md`
 - Matrice de certification standard: `connector-certification-matrix.md`
+- Audit API fournisseur vs implementation repo: `connector-api-implementation-audit.md`
 - Politique runtime sandbox/prod: `sandbox-runtime-policy.md`
 - Fondation replay/backfill/quarantine medaillon: `medallion-reprocessing-foundation.md`
 
