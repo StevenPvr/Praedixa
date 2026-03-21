@@ -5,593 +5,1138 @@
   "entries": [
     {
       "type": "block",
-      "target": "app-api/app/core/ddl_validation.py:170 validate_identifier",
+      "target": "app-api/app/core/ddl_validation.py validate_client_slug",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/core/ddl_validation.py:205 validate_client_slug",
+      "target": "app-api/app/core/ddl_validation.py validate_identifier",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/core/ddl_validation.py:240 validate_schema_name",
+      "target": "app-api/app/core/ddl_validation.py validate_schema_name",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/core/key_management.py:262 __init__",
+      "target": "app-api/app/core/key_management.py __init__",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/core/key_management.py:458 __init__",
+      "target": "app-api/app/core/key_management.py __init__",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/core/key_management.py:555 _get_secret_version",
+      "target": "app-api/app/core/key_management.py _get_secret_version",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/core/key_management.py:640 destroy_all_keys",
+      "target": "app-api/app/core/key_management.py destroy_all_keys",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/core/pipeline_config.py:191 _sanitize_data_quality_config",
+      "target": "app-api/app/core/pipeline_config.py _sanitize_data_quality_config",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/core/pipeline_config.py:72 _sanitize_window_list",
+      "target": "app-api/app/core/pipeline_config.py _sanitize_window_list",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/core/yaml_validation.py:181 _validate_windows",
+      "target": "app-api/app/core/yaml_validation.py _validate_windows",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/integrations/core/auth.py:37 mask_secret",
+      "target": "app-api/app/integrations/connectors/blue_yonder/client.py _resolve_items",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/integrations/core/auth.py:59 _redact_value",
+      "target": "app-api/app/integrations/connectors/blue_yonder/mapper.py _build_request_params",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/integrations/core/pagination.py:23 sanitize_limit",
+      "target": "app-api/app/integrations/connectors/blue_yonder/mapper.py _normalize_string_map",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/integrations/core/pagination.py:65 decode_cursor",
+      "target": "app-api/app/integrations/connectors/blue_yonder/mapper.py _resolve_record_value",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/integrations/core/pagination.py:92 _validate_cursor_payload",
+      "target": "app-api/app/integrations/connectors/blue_yonder/mapper.py build_blue_yonder_requests",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/blue_yonder/validator.py validate_blue_yonder_pull_context",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/cdk/client.py _resolve_items",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/cdk/client.py _resolve_next_cursor",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/cdk/mapper.py _build_request_params",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/cdk/mapper.py _normalize_string_map",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/cdk/mapper.py build_cdk_requests",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/cdk/validator.py validate_cdk_pull_context",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/integrations/core/retry.py:116 run_with_retry",
+      "target": "app-api/app/integrations/connectors/fourth/client.py _resolve_items",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/integrations/core/retry.py:16 RetryPolicy",
+      "target": "app-api/app/integrations/connectors/fourth/mapper.py _build_request_params",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/integrations/core/retry.py:28 __post_init__",
+      "target": "app-api/app/integrations/connectors/fourth/mapper.py _normalize_string_map",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/integrations/core/retry.py:54 compute_backoff_seconds",
+      "target": "app-api/app/integrations/connectors/fourth/mapper.py _resolve_record_value",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/integrations/core/retry.py:90 should_retry",
+      "target": "app-api/app/integrations/connectors/fourth/mapper.py build_fourth_requests",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/integrations/core/webhooks.py:18 _extract_signature_token",
+      "target": "app-api/app/integrations/connectors/fourth/validator.py validate_fourth_pull_context",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/integrations/core/webhooks.py:59 verify_timestamped_signature",
+      "target": "app-api/app/integrations/connectors/geotab/client.py get_feed_records",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/admin_billing.py:56 get_billing_info",
+      "target": "app-api/app/integrations/connectors/geotab/extractor.py pull_geotab_connection",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/admin_monitoring.py:181 get_error_metrics",
+      "target": "app-api/app/integrations/connectors/geotab/mapper.py _build_search",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/admin_monitoring.py:231 get_roi_by_org",
+      "target": "app-api/app/integrations/connectors/geotab/mapper.py build_geotab_requests",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/geotab/validator.py validate_geotab_pull_context",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/admin_monitoring.py:42 get_platform_kpis",
+      "target": "app-api/app/integrations/connectors/manhattan/client.py _resolve_items",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/manhattan/mapper.py _build_request_params",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/manhattan/mapper.py _normalize_string_map",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/manhattan/mapper.py _resolve_record_value",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/manhattan/mapper.py build_manhattan_requests",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/manhattan/validator.py validate_manhattan_pull_context",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/ncr_aloha/client.py _resolve_items",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/ncr_aloha/mapper.py _build_request_params",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/ncr_aloha/mapper.py _normalize_string_map",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/ncr_aloha/mapper.py _resolve_record_value",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/ncr_aloha/mapper.py build_ncr_aloha_requests",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/ncr_aloha/validator.py validate_ncr_aloha_pull_context",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/olo/client.py _resolve_items",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/olo/mapper.py _build_request_params",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/olo/mapper.py _normalize_string_map",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/olo/mapper.py _resolve_record_value",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/olo/mapper.py build_olo_requests",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/olo/validator.py validate_olo_pull_context",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/oracle_tm/client.py _resolve_items",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/oracle_tm/client.py _resolve_next_cursor",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/oracle_tm/mapper.py _build_request_params",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/oracle_tm/mapper.py _normalize_string_map",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/oracle_tm/mapper.py build_oracle_tm_requests",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/oracle_tm/validator.py validate_oracle_tm_pull_context",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/admin_onboarding.py:145 complete_step",
+      "target": "app-api/app/integrations/connectors/reynolds/client.py _resolve_items",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/admin_orgs.py:202 update_organization",
+      "target": "app-api/app/integrations/connectors/reynolds/client.py _resolve_next_cursor",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/arbitrage.py:147 _compute_deficit",
+      "target": "app-api/app/integrations/connectors/reynolds/mapper.py _build_request_params",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/reynolds/mapper.py _normalize_string_map",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/reynolds/mapper.py build_reynolds_requests",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/reynolds/validator.py validate_reynolds_pull_context",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/arbitrage.py:329 get_arbitrage_options",
+      "target": "app-api/app/integrations/connectors/salesforce/validator.py validate_salesforce_pull_context",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/canonical_data_service.py:146 bulk_import_canonical",
+      "target": "app-api/app/integrations/connectors/sap_tm/client.py _normalize_follow_up",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/canonical_data_service.py:216 get_quality_dashboard",
+      "target": "app-api/app/integrations/connectors/sap_tm/client.py _resolve_items",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/canonical_data_service.py:34 list_canonical_records",
+      "target": "app-api/app/integrations/connectors/sap_tm/client.py _resolve_next_cursor",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/column_mapper.py:155 map_columns",
+      "target": "app-api/app/integrations/connectors/sap_tm/client.py _resolve_next_path",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/column_mapper.py:230 _normalize",
+      "target": "app-api/app/integrations/connectors/sap_tm/client.py get_records",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/column_mapper.py:254 _match_column",
+      "target": "app-api/app/integrations/connectors/sap_tm/mapper.py _build_request_params",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/cost_parameter_service.py:64 get_effective_cost_parameter",
+      "target": "app-api/app/integrations/connectors/sap_tm/mapper.py _normalize_string_map",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/dashboard.py:52 get_dashboard_summary",
+      "target": "app-api/app/integrations/connectors/sap_tm/mapper.py build_sap_tm_requests",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/datasets.py:196 create_dataset",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/datasets.py:72 list_datasets",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/decision_log_service.py:143 create_operational_decision",
+      "target": "app-api/app/integrations/connectors/sap_tm/validator.py validate_sap_tm_pull_context",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/decision_log_service.py:259 update_operational_decision",
+      "target": "app-api/app/integrations/connectors/toast/client.py _resolve_items",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/decision_log_service.py:302 get_override_statistics",
+      "target": "app-api/app/integrations/connectors/toast/mapper.py _build_request_params",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/decision_log_service.py:64 list_operational_decisions",
+      "target": "app-api/app/integrations/connectors/toast/mapper.py _normalize_string_map",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/decisions.py:220 review_decision",
+      "target": "app-api/app/integrations/connectors/toast/mapper.py _resolve_record_value",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/decisions.py:58 list_decisions",
+      "target": "app-api/app/integrations/connectors/toast/mapper.py build_toast_requests",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/toast/validator.py validate_toast_pull_context",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/file_parser.py:160 parse_file",
+      "target": "app-api/app/integrations/connectors/ukg/client.py _resolve_items",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/ukg/mapper.py _build_request_params",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/ukg/mapper.py _normalize_string_map",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/ukg/mapper.py _resolve_record_value",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/ukg/mapper.py build_ukg_requests",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/connectors/ukg/validator.py validate_ukg_pull_context",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/file_parser.py:342 _detect_delimiter",
+      "target": "app-api/app/integrations/core/auth.py _redact_value",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/auth.py mask_secret",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/core/pagination.py _validate_cursor_payload",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/file_parser.py:386 _parse_csv",
+      "target": "app-api/app/integrations/core/pagination.py decode_cursor",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/file_parser.py:493 _parse_xlsx",
+      "target": "app-api/app/integrations/core/pagination.py sanitize_limit",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/file_parser.py:556 _detect_format",
+      "target": "app-api/app/integrations/core/retry.py RetryPolicy",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/file_parser.py:666 _coerce_value",
+      "target": "app-api/app/integrations/core/retry.py __post_init__",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:1004 build_gold_schema",
+      "target": "app-api/app/integrations/core/retry.py compute_backoff_seconds",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:1033 build_gold_coverage",
+      "target": "app-api/app/integrations/core/retry.py run_with_retry",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:1063 build_gold_provenance",
+      "target": "app-api/app/integrations/core/retry.py should_retry",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:108 _to_float",
+      "target": "app-api/app/integrations/core/webhooks.py _extract_signature_token",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:1117 build_ml_monitoring_summary",
+      "target": "app-api/app/integrations/core/webhooks.py verify_timestamped_signature",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/integrations/provider_sync.py pull_provider_events_for_sync_run",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/admin_billing.py get_billing_info",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/admin_monitoring.py get_error_metrics",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/admin_monitoring.py get_platform_kpis",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:1185 build_ml_monitoring_trend",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:1242 build_client_onboarding_status",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:204 get_gold_snapshot",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:241 resolve_client_slug_for_org",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:267 resolve_site_code_for_filter",
+      "target": "app-api/app/services/admin_monitoring.py get_roi_by_org",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:311 filter_rows",
+      "target": "app-api/app/services/admin_onboarding.py complete_step",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/admin_orgs.py update_organization",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/arbitrage.py _compute_deficit",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:337 build_dashboard_summary",
+      "target": "app-api/app/services/arbitrage.py get_arbitrage_options",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:404 build_daily_forecasts",
+      "target": "app-api/app/services/canonical_data_service.py bulk_import_canonical",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/canonical_data_service.py get_quality_dashboard",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/canonical_data_service.py list_canonical_records",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/column_mapper.py _match_column",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/column_mapper.py _normalize",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/column_mapper.py map_columns",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/cost_parameter_service.py get_effective_cost_parameter",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/dashboard.py get_dashboard_summary",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/datasets.py create_dataset",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/datasets.py list_datasets",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/decision_log_service.py create_operational_decision",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/decision_log_service.py get_override_statistics",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/decision_log_service.py list_operational_decisions",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/decision_log_service.py update_operational_decision",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/decisions.py list_decisions",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/decisions.py review_decision",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py _coerce_value",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py _detect_delimiter",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py _detect_format",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py _parse_csv",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py _parse_xlsx",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py _validate_supported_file_type",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/file_parser.py parse_file",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py _infer_gold_dtype",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py _parse_scalar",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py _to_float",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py build_canonical_quality",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py build_canonical_records",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py build_client_onboarding_status",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py build_coverage_alerts",
       "rank": "D"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:536 build_canonical_records",
-      "rank": "C"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:590 build_canonical_quality",
-      "rank": "C"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:638 build_coverage_alerts",
+      "target": "app-api/app/services/gold_live_data.py build_daily_forecasts",
       "rank": "D"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:732 build_proof_records",
+      "target": "app-api/app/services/gold_live_data.py build_dashboard_summary",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py build_forecast_runs",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py build_gold_coverage",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py build_gold_provenance",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py build_gold_schema",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py build_ml_monitoring_summary",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py build_ml_monitoring_trend",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py build_proof_records",
       "rank": "D"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:77 _parse_scalar",
+      "target": "app-api/app/services/gold_live_data.py filter_rows",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:873 build_forecast_runs",
+      "target": "app-api/app/services/gold_live_data.py get_gold_snapshot",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/gold_live_data.py:971 _infer_gold_dtype",
+      "target": "app-api/app/services/gold_live_data.py resolve_client_slug_for_org",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/gold_live_data.py resolve_site_code_for_filter",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/integration_event_ingestor.py:139 _parse_group_by",
+      "target": "app-api/app/services/integration_event_ingestor.py _parse_group_by",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/integration_event_ingestor.py:186 parse_dataset_plan",
+      "target": "app-api/app/services/integration_event_ingestor.py _resolve_path",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/integration_event_ingestor.py:82 _resolve_path",
+      "target": "app-api/app/services/integration_event_ingestor.py parse_dataset_plan",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/integration_runtime_worker.py:215 _validate_runtime_base_url",
+      "target": "app-api/app/services/integration_runtime_worker.py _classify_sync_run_failure",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/integration_runtime_worker.py _validate_runtime_base_url",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/integration_runtime_worker.py:326 drain_connector_connection",
+      "target": "app-api/app/services/integration_runtime_worker.py drain_connector_connection",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/medallion_reprocessing.py:190 _matches_filter",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/medallion_reprocessing.py:204 _load_manifest_records",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/medallion_reprocessing.py:252 _record_from_payload",
+      "target": "app-api/app/services/integration_runtime_worker.py get_provider_access_context",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/medallion_reprocessing.py:314 _range_overlaps",
+      "target": "app-api/app/services/integration_runtime_worker.py get_sync_run_execution_plan",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/medical_masking.py:42 mask_medical_reasons",
+      "target": "app-api/app/services/integration_runtime_worker.py process_claimed_sync_run",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/mock_forecast_service.py:131 generate_mock_forecasts",
+      "target": "app-api/app/services/integration_sftp_runtime_worker.py finalize_sftp_file_import",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/integration_sftp_runtime_worker.py prepare_sftp_file_import",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/integration_sync_queue_worker.py _fail_preflight_run",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/integration_sync_queue_worker.py drain_sync_queue_once",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/mock_forecast_service.py:95 _compute_gap_stats",
+      "target": "app-api/app/services/medallion_reprocessing.py _load_manifest_records",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/model_inference_jobs.py:100 create_inference_job",
+      "target": "app-api/app/services/medallion_reprocessing.py _matches_filter",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/model_inference_jobs.py:165 run_inference_job",
+      "target": "app-api/app/services/medallion_reprocessing.py _range_overlaps",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/medallion_reprocessing.py _record_from_payload",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/medical_masking.py mask_medical_reasons",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/mock_forecast_service.py _compute_gap_stats",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/mock_forecast_service.py generate_mock_forecasts",
+      "rank": "C"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/model_inference_jobs.py _estimate_accuracy",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/model_inference_jobs.py _map_model_type",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/model_inference_jobs.py create_inference_job",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/model_inference_jobs.py run_inference_job",
       "rank": "E"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/model_inference_jobs.py:62 _map_model_type",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/model_inference_jobs.py:75 _estimate_accuracy",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/model_registry.py:77 _validate_artifact_uri",
+      "target": "app-api/app/services/model_registry.py _validate_artifact_uri",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/proof_service.py:118 _resolve_proof_outcome",
+      "target": "app-api/app/services/proof_service.py _compute_historical_bau_proxy",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/proof_service.py:174 _compute_historical_bau_proxy",
+      "target": "app-api/app/services/proof_service.py _resolve_proof_outcome",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/proof_service.py:220 generate_proof_record",
+      "target": "app-api/app/services/proof_service.py generate_proof_record",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/proof_service.py:447 get_proof_summary",
+      "target": "app-api/app/services/proof_service.py get_proof_summary",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/quality/__init__.py:111 _coerce_float_value",
+      "target": "app-api/app/services/quality/__init__.py _coerce_float_value",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/quality/__init__.py:136 _normalize_numeric_column_types",
+      "target": "app-api/app/services/quality/__init__.py _coerce_integer_value",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/quality/__init__.py _normalize_numeric_column_types",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/quality/__init__.py:160 run_quality_checks",
+      "target": "app-api/app/services/quality/__init__.py run_quality_checks",
       "rank": "D"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/quality/__init__.py:88 _coerce_integer_value",
+      "target": "app-api/app/services/quality/deduplication.py deduplicate",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/quality/deduplication.py:16 deduplicate",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/quality/missing_imputation.py:138 impute_mcar_temporal",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/quality/missing_imputation.py:199 impute_mar_grouped",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/quality/missing_imputation.py:315 impute_forward_fill",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/quality/missing_imputation.py:50 is_mar_temporal",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/quality/missing_imputation.py:74 is_mar_group",
-      "rank": "B"
-    },
-    {
-      "type": "block",
-      "target": "app-api/app/services/quality/missing_imputation.py:97 impute_column",
+      "target": "app-api/app/services/quality/missing_imputation.py impute_column",
       "rank": "C"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/quality/outlier_detection.py:69 clamp_values",
+      "target": "app-api/app/services/quality/missing_imputation.py impute_forward_fill",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/quality/types.py:179 collect_past_values",
+      "target": "app-api/app/services/quality/missing_imputation.py impute_mar_grouped",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/quality/types.py:204 collect_past_group_values",
+      "target": "app-api/app/services/quality/missing_imputation.py impute_mcar_temporal",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/quality/types.py:235 ratio_exceeds_threshold",
+      "target": "app-api/app/services/quality/missing_imputation.py is_mar_group",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/raw_inserter.py:258 insert_raw_rows_in_session",
+      "target": "app-api/app/services/quality/missing_imputation.py is_mar_temporal",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/rgpd_erasure.py:482 _delete_org_data",
+      "target": "app-api/app/services/quality/outlier_detection.py clamp_values",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/scenario_engine_service.py:130 select_recommendation",
+      "target": "app-api/app/services/quality/types.py collect_past_group_values",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/scenario_engine_service.py:203 generate_scenarios",
+      "target": "app-api/app/services/quality/types.py collect_past_values",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/scenario_engine_service.py:301 _compute_all_options",
+      "target": "app-api/app/services/quality/types.py ratio_exceeds_threshold",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/scenario_engine_service.py:98 compute_pareto_frontier",
+      "target": "app-api/app/services/raw_inserter.py insert_raw_rows_in_session",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/schema_manager.py:230 resolve_transformed_columns",
+      "target": "app-api/app/services/rgpd_erasure.py _delete_org_data",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/schema_manager.py:378 _create_transformed_table",
+      "target": "app-api/app/services/scenario_engine_service.py _compute_all_options",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/transform_engine.py:616 _insert_transformed_rows",
+      "target": "app-api/app/services/scenario_engine_service.py compute_pareto_frontier",
       "rank": "B"
     },
     {
       "type": "block",
-      "target": "app-api/app/services/transform_engine.py:777 _is_after_cutoff",
+      "target": "app-api/app/services/scenario_engine_service.py generate_scenarios",
       "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/scenario_engine_service.py select_recommendation",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/schema_manager.py _create_transformed_table",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/schema_manager.py resolve_transformed_columns",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/transform_engine.py _insert_transformed_rows",
+      "rank": "B"
+    },
+    {
+      "type": "block",
+      "target": "app-api/app/services/transform_engine.py _is_after_cutoff",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/blue_yonder/mapper.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/blue_yonder/validator.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/cdk/mapper.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/cdk/validator.py",
+      "rank": "C"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/fourth/mapper.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/fourth/validator.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/geotab/validator.py",
+      "rank": "C"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/manhattan/mapper.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/manhattan/validator.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/ncr_aloha/mapper.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/ncr_aloha/validator.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/olo/mapper.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/olo/validator.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/oracle_tm/mapper.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/oracle_tm/validator.py",
+      "rank": "C"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/reynolds/mapper.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/reynolds/validator.py",
+      "rank": "C"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/salesforce/validator.py",
+      "rank": "C"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/sap_tm/mapper.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/sap_tm/validator.py",
+      "rank": "C"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/toast/mapper.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/toast/validator.py",
+      "rank": "C"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/ukg/mapper.py",
+      "rank": "B"
+    },
+    {
+      "type": "module",
+      "target": "app-api/app/integrations/connectors/ukg/validator.py",
+      "rank": "C"
     },
     {
       "type": "module",

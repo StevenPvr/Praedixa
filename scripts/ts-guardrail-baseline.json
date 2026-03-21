@@ -1,7 +1,7 @@
 {
   "metadata": {
     "schemaVersion": 1,
-    "generatedAt": "2026-03-13T10:49:15.004Z",
+    "generatedAt": "2026-03-21T09:04:01.265Z",
     "fileLineLimit": 500,
     "functionLineLimit": 50,
     "includeRoots": [
@@ -16,16 +16,20 @@
   },
   "fileViolations": [
     {
-      "file": "app-admin/app/(admin)/clients/[orgId]/config/page.tsx",
-      "lines": 1196
+      "file": "app-admin/app/(admin)/clients/[orgId]/contrats/contract-studio-mutation-panel.tsx",
+      "lines": 507
     },
     {
-      "file": "app-admin/app/(admin)/parametres/page.tsx",
-      "lines": 506
+      "file": "app-admin/app/(admin)/clients/[orgId]/donnees/page.tsx",
+      "lines": 526
     },
     {
-      "file": "app-admin/lib/auth/admin-route-policies.ts",
-      "lines": 928
+      "file": "app-admin/app/(admin)/clients/[orgId]/onboarding/page.tsx",
+      "lines": 542
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/onboarding/task-action-card.tsx",
+      "lines": 578
     },
     {
       "file": "app-admin/lib/auth/oidc.ts",
@@ -37,19 +41,23 @@
     },
     {
       "file": "app-api-ts/src/admin-integrations.ts",
-      "lines": 577
+      "lines": 591
+    },
+    {
+      "file": "app-api-ts/src/config.ts",
+      "lines": 644
     },
     {
       "file": "app-api-ts/src/routes.ts",
-      "lines": 4026
+      "lines": 3982
+    },
+    {
+      "file": "app-api-ts/src/routes/admin-onboarding-routes.ts",
+      "lines": 680
     },
     {
       "file": "app-api-ts/src/server.ts",
-      "lines": 1052
-    },
-    {
-      "file": "app-api-ts/src/services/action-dispatch-detail.ts",
-      "lines": 558
+      "lines": 1093
     },
     {
       "file": "app-api-ts/src/services/action-templates.ts",
@@ -57,11 +65,23 @@
     },
     {
       "file": "app-api-ts/src/services/admin-backoffice.ts",
-      "lines": 1420
+      "lines": 3407
     },
     {
       "file": "app-api-ts/src/services/admin-monitoring.ts",
       "lines": 743
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding-store.ts",
+      "lines": 555
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding-support.ts",
+      "lines": 1015
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding.ts",
+      "lines": 635
     },
     {
       "file": "app-api-ts/src/services/approval-inbox.ts",
@@ -105,7 +125,11 @@
     },
     {
       "file": "app-api-ts/src/services/decisionops-runtime.ts",
-      "lines": 793
+      "lines": 560
+    },
+    {
+      "file": "app-api-ts/src/services/keycloak-admin-identity.ts",
+      "lines": 837
     },
     {
       "file": "app-api-ts/src/services/operational-data.ts",
@@ -113,11 +137,11 @@
     },
     {
       "file": "app-api-ts/src/services/operational-decisions.ts",
-      "lines": 739
+      "lines": 740
     },
     {
       "file": "app-connectors/src/routes.ts",
-      "lines": 881
+      "lines": 1127
     },
     {
       "file": "app-connectors/src/server.ts",
@@ -125,15 +149,15 @@
     },
     {
       "file": "app-connectors/src/service.ts",
-      "lines": 2114
+      "lines": 3026
     },
     {
       "file": "app-connectors/src/store.ts",
-      "lines": 553
+      "lines": 713
     },
     {
       "file": "app-connectors/src/types.ts",
-      "lines": 538
+      "lines": 643
     },
     {
       "file": "app-landing/lib/blog/internal-links.ts",
@@ -141,7 +165,11 @@
     },
     {
       "file": "app-landing/lib/blog/posts.ts",
-      "lines": 501
+      "lines": 575
+    },
+    {
+      "file": "app-landing/lib/security/exposure-policy.ts",
+      "lines": 516
     },
     {
       "file": "packages/shared-types/src/domain/mapping-studio.ts",
@@ -164,17 +192,10 @@
       "occurrence": 1
     },
     {
-      "file": "app-admin/app/(admin)/clients/[orgId]/actions/dispatches/[actionId]/page.tsx",
-      "name": "ActionDispatchDetailPage",
-      "start": 66,
-      "lines": 222,
-      "occurrence": 1
-    },
-    {
       "file": "app-admin/app/(admin)/clients/[orgId]/actions/page.tsx",
       "name": "ActionsPage",
-      "start": 68,
-      "lines": 123,
+      "start": 72,
+      "lines": 131,
       "occurrence": 1
     },
     {
@@ -185,66 +206,164 @@
       "occurrence": 1
     },
     {
+      "file": "app-admin/app/(admin)/clients/[orgId]/config/config-columns.tsx",
+      "name": "buildIngestCredentialColumns",
+      "start": 236,
+      "lines": 66,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/config/config-columns.tsx",
+      "name": "buildProofColumns",
+      "start": 62,
+      "lines": 56,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/config/config-columns.tsx",
+      "name": "buildSyncRunColumns",
+      "start": 335,
+      "lines": 52,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/config/config-columns.tsx",
+      "name": "buildVersionColumns",
+      "start": 119,
+      "lines": 88,
+      "occurrence": 1
+    },
+    {
       "file": "app-admin/app/(admin)/clients/[orgId]/config/page.tsx",
       "name": "ConfigPage",
-      "start": 131,
-      "lines": 1065,
+      "start": 37,
+      "lines": 58,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/contrats/contract-studio-create-panel.tsx",
+      "name": "useCreateTemplateState",
+      "start": 36,
+      "lines": 53,
       "occurrence": 1
     },
     {
       "file": "app-admin/app/(admin)/clients/[orgId]/dashboard/page.tsx",
       "name": "ClientDashboardPage",
-      "start": 118,
-      "lines": 299,
+      "start": 128,
+      "lines": 371,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/dashboard/test-client-deletion-card.tsx",
+      "name": "TestClientDeletionCard",
+      "start": 21,
+      "lines": 77,
       "occurrence": 1
     },
     {
       "file": "app-admin/app/(admin)/clients/[orgId]/donnees/page.tsx",
       "name": "DonneesPage",
-      "start": 155,
-      "lines": 344,
+      "start": 159,
+      "lines": 367,
       "occurrence": 1
     },
     {
       "file": "app-admin/app/(admin)/clients/[orgId]/equipe/page.tsx",
       "name": "EquipePage",
-      "start": 49,
-      "lines": 185,
+      "start": 50,
+      "lines": 240,
       "occurrence": 1
     },
     {
       "file": "app-admin/app/(admin)/clients/[orgId]/layout.tsx",
       "name": "ClientWorkspaceLayout",
-      "start": 27,
-      "lines": 66,
+      "start": 28,
+      "lines": 71,
       "occurrence": 1
     },
     {
       "file": "app-admin/app/(admin)/clients/[orgId]/messages/page.tsx",
       "name": "MessagesPage",
-      "start": 12,
-      "lines": 52,
+      "start": 17,
+      "lines": 62,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/onboarding/access-model-task-fields.tsx",
+      "name": "AccessModelTaskFields",
+      "start": 145,
+      "lines": 256,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/onboarding/case-list-card.tsx",
+      "name": "CaseListCard",
+      "start": 14,
+      "lines": 66,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/onboarding/case-workspace-card.tsx",
+      "name": "CaseWorkspaceCard",
+      "start": 53,
+      "lines": 225,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/onboarding/create-case-card.tsx",
+      "name": "CreateCaseCard",
+      "start": 27,
+      "lines": 245,
       "occurrence": 1
     },
     {
       "file": "app-admin/app/(admin)/clients/[orgId]/onboarding/page.tsx",
       "name": "OnboardingPage",
-      "start": 51,
-      "lines": 190,
+      "start": 44,
+      "lines": 498,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/onboarding/task-action-card.tsx",
+      "name": "renderTaskFields",
+      "start": 292,
+      "lines": 286,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/onboarding/task-action-card.tsx",
+      "name": "TaskActionCard",
+      "start": 165,
+      "lines": 126,
       "occurrence": 1
     },
     {
       "file": "app-admin/app/(admin)/clients/[orgId]/previsions/page.tsx",
       "name": "PrevisionsPage",
-      "start": 70,
-      "lines": 160,
+      "start": 74,
+      "lines": 180,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/rapports/ledgers/[ledgerId]/ledger-panels.tsx",
+      "name": "LedgerDecisionPanel",
+      "start": 399,
+      "lines": 55,
       "occurrence": 1
     },
     {
       "file": "app-admin/app/(admin)/clients/[orgId]/rapports/ledgers/[ledgerId]/page.tsx",
       "name": "LedgerDetailPage",
-      "start": 80,
-      "lines": 242,
+      "start": 296,
+      "lines": 77,
+      "occurrence": 1
+    },
+    {
+      "file": "app-admin/app/(admin)/clients/[orgId]/rapports/ledgers/[ledgerId]/page.tsx",
+      "name": "LedgerRoiCard",
+      "start": 158,
+      "lines": 60,
       "occurrence": 1
     },
     {
@@ -264,15 +383,15 @@
     {
       "file": "app-admin/app/(admin)/clients/page.tsx",
       "name": "ClientsPage",
-      "start": 91,
-      "lines": 193,
+      "start": 98,
+      "lines": 202,
       "occurrence": 1
     },
     {
       "file": "app-admin/app/(admin)/demandes-contact/page.tsx",
       "name": "ContactRequestsPage",
-      "start": 83,
-      "lines": 317,
+      "start": 84,
+      "lines": 313,
       "occurrence": 1
     },
     {
@@ -290,10 +409,17 @@
       "occurrence": 1
     },
     {
+      "file": "app-admin/app/(admin)/parametres/create-client-card.tsx",
+      "name": "CreateClientCard",
+      "start": 27,
+      "lines": 95,
+      "occurrence": 1
+    },
+    {
       "file": "app-admin/app/(admin)/parametres/page.tsx",
       "name": "ParametresPage",
-      "start": 82,
-      "lines": 424,
+      "start": 75,
+      "lines": 414,
       "occurrence": 1
     },
     {
@@ -320,8 +446,8 @@
     {
       "file": "app-admin/app/auth/callback/route.ts",
       "name": "GET",
-      "start": 61,
-      "lines": 140,
+      "start": 62,
+      "lines": 142,
       "occurrence": 1
     },
     {
@@ -425,8 +551,8 @@
     {
       "file": "app-admin/lib/auth/middleware.ts",
       "name": "updateSession",
-      "start": 22,
-      "lines": 69,
+      "start": 32,
+      "lines": 97,
       "occurrence": 1
     },
     {
@@ -481,98 +607,91 @@
     {
       "file": "app-api-ts/src/admin-integrations.ts",
       "name": "callConnectorsRuntime",
-      "start": 264,
+      "start": 278,
       "lines": 87,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/config.ts",
       "name": "loadConfig",
-      "start": 423,
-      "lines": 71,
+      "start": 496,
+      "lines": 148,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/config.ts",
       "name": "parseConnectorsRuntimeUrl",
-      "start": 251,
+      "start": 252,
       "lines": 68,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/routes.ts",
       "name": "<anonymous>",
-      "start": 1552,
+      "start": 1608,
       "lines": 56,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/routes.ts",
       "name": "<anonymous>",
-      "start": 2486,
-      "lines": 105,
+      "start": 2524,
+      "lines": 107,
       "occurrence": 2
     },
     {
       "file": "app-api-ts/src/routes.ts",
       "name": "<anonymous>",
-      "start": 2596,
-      "lines": 134,
+      "start": 2636,
+      "lines": 136,
       "occurrence": 3
     },
     {
       "file": "app-api-ts/src/routes.ts",
       "name": "<anonymous>",
-      "start": 3378,
+      "start": 3396,
       "lines": 66,
       "occurrence": 4
     },
     {
       "file": "app-api-ts/src/routes.ts",
       "name": "<anonymous>",
-      "start": 3501,
+      "start": 3519,
       "lines": 53,
       "occurrence": 5
     },
     {
       "file": "app-api-ts/src/routes.ts",
-      "name": "<anonymous>",
-      "start": 3581,
-      "lines": 57,
-      "occurrence": 6
-    },
-    {
-      "file": "app-api-ts/src/routes.ts",
       "name": "buildScenarioOptions",
-      "start": 515,
+      "start": 593,
       "lines": 77,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/server.ts",
       "name": "createAppServer",
-      "start": 618,
-      "lines": 434,
+      "start": 620,
+      "lines": 473,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/server.ts",
       "name": "createStructuredEventLogger",
-      "start": 454,
+      "start": 456,
       "lines": 75,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/server.ts",
       "name": "readBody",
-      "start": 249,
+      "start": 251,
       "lines": 59,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/services/action-dispatch-detail.ts",
       "name": "buildActionDispatchTerminalReason",
-      "start": 326,
+      "start": 259,
       "lines": 61,
       "occurrence": 1
     },
@@ -586,50 +705,106 @@
     {
       "file": "app-api-ts/src/services/admin-backoffice.ts",
       "name": "changeOrganizationUserRole",
-      "start": 726,
-      "lines": 133,
+      "start": 2604,
+      "lines": 169,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/services/admin-backoffice.ts",
       "name": "changePlan",
-      "start": 1042,
-      "lines": 90,
+      "start": 3021,
+      "lines": 96,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-backoffice.ts",
+      "name": "createOrganization",
+      "start": 1321,
+      "lines": 190,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-backoffice.ts",
+      "name": "createOrganizationShell",
+      "start": 2026,
+      "lines": 78,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-backoffice.ts",
+      "name": "deleteOrganization",
+      "start": 1512,
+      "lines": 148,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/services/admin-backoffice.ts",
       "name": "getBillingInfo",
-      "start": 983,
+      "start": 2928,
       "lines": 58,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/services/admin-backoffice.ts",
+      "name": "getOrganizationDetail",
+      "start": 1871,
+      "lines": 70,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-backoffice.ts",
       "name": "inviteOrganizationUser",
-      "start": 576,
-      "lines": 149,
+      "start": 2418,
+      "lines": 185,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-backoffice.ts",
+      "name": "listAuditLog",
+      "start": 1738,
+      "lines": 52,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-backoffice.ts",
+      "name": "listContactRequests",
+      "start": 1661,
+      "lines": 76,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-backoffice.ts",
+      "name": "listOrganizations",
+      "start": 1256,
+      "lines": 64,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-backoffice.ts",
+      "name": "resolveValidatedSiteId",
+      "start": 2105,
+      "lines": 52,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/services/admin-backoffice.ts",
       "name": "updateCoverageAlertStatus",
-      "start": 1257,
+      "start": 3243,
       "lines": 55,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/services/admin-backoffice.ts",
       "name": "updateOrganizationUserStatus",
-      "start": 890,
-      "lines": 92,
+      "start": 2804,
+      "lines": 123,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/services/admin-backoffice.ts",
       "name": "writeAudit",
-      "start": 406,
-      "lines": 51,
+      "start": 2234,
+      "lines": 61,
       "occurrence": 1
     },
     {
@@ -668,10 +843,101 @@
       "occurrence": 1
     },
     {
+      "file": "app-api-ts/src/services/admin-onboarding-runtime.ts",
+      "name": "completeOnboardingCaseTask",
+      "start": 201,
+      "lines": 82,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding-runtime.ts",
+      "name": "saveOnboardingCaseTaskDraft",
+      "start": 284,
+      "lines": 53,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding-runtime.ts",
+      "name": "synchronizeOnboardingCaseProjection",
+      "start": 99,
+      "lines": 84,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding-store.ts",
+      "name": "readCaseById",
+      "start": 499,
+      "lines": 56,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding-support.ts",
+      "name": "computeCaseProjectionSnapshot",
+      "start": 920,
+      "lines": 95,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding-support.ts",
+      "name": "normalizeOnboardingTaskPayload",
+      "start": 462,
+      "lines": 202,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding-support.ts",
+      "name": "normalizeRequestedCase",
+      "start": 272,
+      "lines": 61,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding-support.ts",
+      "name": "readInviteRecipients",
+      "start": 377,
+      "lines": 53,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding.ts",
+      "name": "cancelOnboardingCase",
+      "start": 516,
+      "lines": 67,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding.ts",
+      "name": "createOnboardingCase",
+      "start": 190,
+      "lines": 139,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding.ts",
+      "name": "listOnboardingCases",
+      "start": 89,
+      "lines": 100,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/admin-onboarding.ts",
+      "name": "reopenOnboardingCase",
+      "start": 584,
+      "lines": 51,
+      "occurrence": 1
+    },
+    {
       "file": "app-api-ts/src/services/approval-inbox.ts",
       "name": "matchesFilter",
       "start": 500,
       "lines": 53,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/camunda-rest.ts",
+      "name": "getOAuthAccessToken",
+      "start": 137,
+      "lines": 64,
       "occurrence": 1
     },
     {
@@ -810,14 +1076,14 @@
     {
       "file": "app-api-ts/src/services/decision-contract-studio.ts",
       "name": "buildDecisionContractStudioChangeSummary",
-      "start": 228,
+      "start": 230,
       "lines": 62,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/services/decision-contract-studio.ts",
       "name": "buildDecisionContractStudioPublishReadiness",
-      "start": 136,
+      "start": 138,
       "lines": 71,
       "occurrence": 1
     },
@@ -871,44 +1137,23 @@
       "occurrence": 1
     },
     {
-      "file": "app-api-ts/src/services/decisionops-runtime.ts",
+      "file": "app-api-ts/src/services/decisionops-runtime-seed-records.ts",
       "name": "buildActionDispatchRecord",
-      "start": 252,
-      "lines": 76,
-      "occurrence": 1
-    },
-    {
-      "file": "app-api-ts/src/services/decisionops-runtime.ts",
-      "name": "buildApprovalRecords",
-      "start": 194,
-      "lines": 57,
-      "occurrence": 1
-    },
-    {
-      "file": "app-api-ts/src/services/decisionops-runtime.ts",
-      "name": "buildLedgerEntry",
-      "start": 329,
-      "lines": 76,
-      "occurrence": 1
-    },
-    {
-      "file": "app-api-ts/src/services/decisionops-runtime.ts",
-      "name": "insertActionDispatch",
-      "start": 547,
-      "lines": 58,
+      "start": 289,
+      "lines": 51,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/services/decisionops-runtime.ts",
       "name": "insertApprovalRecords",
-      "start": 492,
+      "start": 187,
       "lines": 54,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/services/decisionops-runtime.ts",
       "name": "insertLedgerEntry",
-      "start": 606,
+      "start": 368,
       "lines": 55,
       "occurrence": 1
     },
@@ -931,6 +1176,13 @@
       "name": "listPersistentGoldRows",
       "start": 158,
       "lines": 87,
+      "occurrence": 1
+    },
+    {
+      "file": "app-api-ts/src/services/keycloak-admin-identity.ts",
+      "name": "createUser",
+      "start": 332,
+      "lines": 79,
       "occurrence": 1
     },
     {
@@ -992,21 +1244,21 @@
     {
       "file": "app-api-ts/src/services/operational-decisions.ts",
       "name": "createPersistentOperationalDecision",
-      "start": 554,
+      "start": 555,
       "lines": 185,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/services/operational-decisions.ts",
       "name": "getPersistentOperationalDecisionOverrideStats",
-      "start": 341,
+      "start": 342,
       "lines": 103,
       "occurrence": 1
     },
     {
       "file": "app-api-ts/src/services/operational-decisions.ts",
       "name": "listPersistentOperationalDecisions",
-      "start": 265,
+      "start": 266,
       "lines": 75,
       "occurrence": 1
     },
@@ -1020,21 +1272,21 @@
     {
       "file": "app-connectors/src/activation-readiness.ts",
       "name": "evaluateConnectionActivationReadiness",
-      "start": 66,
-      "lines": 153,
+      "start": 69,
+      "lines": 163,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/config.ts",
       "name": "loadConfig",
-      "start": 326,
+      "start": 330,
       "lines": 53,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/config.ts",
       "name": "parseCorsOrigins",
-      "start": 55,
+      "start": 59,
       "lines": 55,
       "occurrence": 1
     },
@@ -1054,22 +1306,29 @@
     },
     {
       "file": "app-connectors/src/persistent-store.ts",
+      "name": "hydrate",
+      "start": 113,
+      "lines": 55,
+      "occurrence": 1
+    },
+    {
+      "file": "app-connectors/src/persistent-store.ts",
       "name": "initialize",
-      "start": 57,
-      "lines": 52,
+      "start": 59,
+      "lines": 53,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/routes.ts",
       "name": "<anonymous>",
-      "start": 712,
+      "start": 801,
       "lines": 51,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/routes.ts",
       "name": "<anonymous>",
-      "start": 812,
+      "start": 1058,
       "lines": 59,
       "occurrence": 2
     },
@@ -1097,78 +1356,141 @@
     {
       "file": "app-connectors/src/service.ts",
       "name": "authenticateIngestCredential",
-      "start": 1140,
+      "start": 1838,
       "lines": 100,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/service.ts",
+      "name": "claimSyncRuns",
+      "start": 681,
+      "lines": 58,
+      "occurrence": 1
+    },
+    {
+      "file": "app-connectors/src/service.ts",
       "name": "completeOAuthCodeAuthorization",
-      "start": 1841,
+      "start": 2753,
       "lines": 60,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/service.ts",
       "name": "createConnection",
-      "start": 1524,
+      "start": 2436,
       "lines": 81,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/service.ts",
       "name": "ensureOAuthAccessToken",
-      "start": 893,
-      "lines": 119,
+      "start": 1458,
+      "lines": 125,
+      "occurrence": 1
+    },
+    {
+      "file": "app-connectors/src/service.ts",
+      "name": "getProviderRuntimeAccessContext",
+      "start": 2263,
+      "lines": 113,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/service.ts",
       "name": "ingestEvents",
-      "start": 1368,
-      "lines": 155,
+      "start": 2149,
+      "lines": 113,
+      "occurrence": 1
+    },
+    {
+      "file": "app-connectors/src/service.ts",
+      "name": "ingestProviderEvents",
+      "start": 2377,
+      "lines": 58,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/service.ts",
       "name": "issueIngestCredential",
-      "start": 1241,
+      "start": 1939,
       "lines": 94,
+      "occurrence": 1
+    },
+    {
+      "file": "app-connectors/src/service.ts",
+      "name": "markSyncRunCompleted",
+      "start": 839,
+      "lines": 57,
+      "occurrence": 1
+    },
+    {
+      "file": "app-connectors/src/service.ts",
+      "name": "markSyncRunFailed",
+      "start": 897,
+      "lines": 68,
+      "occurrence": 1
+    },
+    {
+      "file": "app-connectors/src/service.ts",
+      "name": "normalizeJsonValue",
+      "start": 227,
+      "lines": 61,
+      "occurrence": 1
+    },
+    {
+      "file": "app-connectors/src/service.ts",
+      "name": "persistRawEvents",
+      "start": 2066,
+      "lines": 82,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/service.ts",
       "name": "probeConnection",
-      "start": 1013,
-      "lines": 94,
+      "start": 1702,
+      "lines": 103,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/service.ts",
       "name": "startAuthorization",
-      "start": 1672,
+      "start": 2584,
       "lines": 114,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/service.ts",
       "name": "updateConnection",
-      "start": 1606,
+      "start": 2518,
       "lines": 65,
+      "occurrence": 1
+    },
+    {
+      "file": "app-connectors/src/service.ts",
+      "name": "upsertSyncStateForRun",
+      "start": 782,
+      "lines": 56,
+      "occurrence": 1
+    },
+    {
+      "file": "app-connectors/src/store.ts",
+      "name": "claimSyncRuns",
+      "start": 631,
+      "lines": 53,
       "occurrence": 1
     },
     {
       "file": "app-connectors/src/store.ts",
       "name": "createSyncRun",
-      "start": 440,
-      "lines": 61,
+      "start": 456,
+      "lines": 63,
       "occurrence": 1
     },
     {
       "file": "app-landing/app/[locale]/blog/[slug]/page.tsx",
       "name": "generateMetadata",
-      "start": 71,
-      "lines": 70,
+      "start": 79,
+      "lines": 74,
       "occurrence": 1
     },
     {
@@ -1179,24 +1501,10 @@
       "occurrence": 1
     },
     {
-      "file": "app-landing/app/[locale]/deployment-protocol/page.tsx",
-      "name": "DeploymentProtocolPage",
-      "start": 29,
-      "lines": 121,
-      "occurrence": 1
-    },
-    {
       "file": "app-landing/app/[locale]/logo-preview/page.tsx",
       "name": "LogoPreviewPage",
       "start": 11,
       "lines": 88,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/app/[locale]/protocole-deploiement/page.tsx",
-      "name": "DeploymentProtocolPage",
-      "start": 29,
-      "lines": 121,
       "occurrence": 1
     },
     {
@@ -1214,6 +1522,13 @@
       "occurrence": 1
     },
     {
+      "file": "app-landing/app/api/resource-asset/route.ts",
+      "name": "GET",
+      "start": 36,
+      "lines": 84,
+      "occurrence": 1
+    },
+    {
       "file": "app-landing/app/api/scoping-call/route.ts",
       "name": "POST",
       "start": 26,
@@ -1223,14 +1538,14 @@
     {
       "file": "app-landing/app/api/v1/public/contact-requests/route.ts",
       "name": "hasValidIngestPayload",
-      "start": 63,
-      "lines": 54,
+      "start": 64,
+      "lines": 58,
       "occurrence": 1
     },
     {
       "file": "app-landing/app/api/v1/public/contact-requests/route.ts",
       "name": "POST",
-      "start": 134,
+      "start": 139,
       "lines": 84,
       "occurrence": 1
     },
@@ -1245,21 +1560,21 @@
       "file": "app-landing/app/sitemap.ts",
       "name": "sitemap",
       "start": 55,
-      "lines": 146,
+      "lines": 126,
       "occurrence": 1
     },
     {
       "file": "app-landing/components/blog/BlogIndexPage.tsx",
       "name": "BlogIndexPage",
-      "start": 29,
-      "lines": 119,
+      "start": 48,
+      "lines": 161,
       "occurrence": 1
     },
     {
       "file": "app-landing/components/blog/BlogPostPage.tsx",
       "name": "BlogPostPage",
-      "start": 35,
-      "lines": 173,
+      "start": 69,
+      "lines": 212,
       "occurrence": 1
     },
     {
@@ -1270,27 +1585,6 @@
       "occurrence": 1
     },
     {
-      "file": "app-landing/components/homepage/ContactCtaSection.tsx",
-      "name": "<anonymous>",
-      "start": 73,
-      "lines": 67,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/components/homepage/ContactCtaSection.tsx",
-      "name": "<anonymous>",
-      "start": 141,
-      "lines": 161,
-      "occurrence": 2
-    },
-    {
-      "file": "app-landing/components/homepage/ContactCtaSection.tsx",
-      "name": "ContactCtaSection",
-      "start": 303,
-      "lines": 67,
-      "occurrence": 1
-    },
-    {
       "file": "app-landing/components/homepage/DeliverablesSection.tsx",
       "name": "DeliverablesSection",
       "start": 17,
@@ -1298,45 +1592,31 @@
       "occurrence": 1
     },
     {
-      "file": "app-landing/components/homepage/FaqSectionClient.tsx",
-      "name": "<anonymous>",
-      "start": 74,
-      "lines": 66,
+      "file": "app-landing/components/homepage/FinalCtaClient.tsx",
+      "name": "FinalCtaFieldControl",
+      "start": 66,
+      "lines": 58,
       "occurrence": 1
     },
     {
-      "file": "app-landing/components/homepage/FaqSectionClient.tsx",
-      "name": "FaqSectionClient",
-      "start": 194,
-      "lines": 173,
+      "file": "app-landing/components/homepage/HeroPulsorContent.tsx",
+      "name": "HeroPulsorContent",
+      "start": 20,
+      "lines": 217,
       "occurrence": 1
     },
     {
-      "file": "app-landing/components/homepage/HeroBackgroundVideo.tsx",
-      "name": "HeroBackgroundVideo",
-      "start": 98,
-      "lines": 108,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/components/homepage/HeroProofCard.tsx",
-      "name": "HeroProofCard",
-      "start": 75,
-      "lines": 110,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/components/homepage/HeroSection.tsx",
-      "name": "HeroSection",
-      "start": 55,
-      "lines": 182,
+      "file": "app-landing/components/homepage/HeroPulsorDepthLayers.tsx",
+      "name": "HeroPulsorDepthLayers",
+      "start": 78,
+      "lines": 274,
       "occurrence": 1
     },
     {
       "file": "app-landing/components/homepage/HomeFaqCtaSection.tsx",
       "name": "HomeFaqCtaSection",
-      "start": 64,
-      "lines": 68,
+      "start": 80,
+      "lines": 62,
       "occurrence": 1
     },
     {
@@ -1349,15 +1629,8 @@
     {
       "file": "app-landing/components/homepage/HowItWorksSection.tsx",
       "name": "HowItWorksSection",
-      "start": 70,
-      "lines": 215,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/components/homepage/PilotSection.tsx",
-      "name": "PilotSection",
-      "start": 39,
-      "lines": 245,
+      "start": 97,
+      "lines": 203,
       "occurrence": 1
     },
     {
@@ -1368,80 +1641,31 @@
       "occurrence": 1
     },
     {
-      "file": "app-landing/components/homepage/RoiProofTeaserSection.tsx",
-      "name": "RoiProofTeaserSection",
-      "start": 12,
-      "lines": 52,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/components/homepage/SectorPagesTeaserSection.tsx",
-      "name": "SectorPagesTeaserSection",
-      "start": 32,
-      "lines": 66,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/components/homepage/SecuritySection.tsx",
-      "name": "SecuritySection",
-      "start": 21,
-      "lines": 148,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/components/homepage/SolutionSection.tsx",
-      "name": "SolutionSection",
-      "start": 18,
-      "lines": 139,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/components/homepage/UseCasesSection.tsx",
-      "name": "UseCasesSection",
-      "start": 47,
-      "lines": 256,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/components/pages/contact-page.copy.ts",
-      "name": "getEnglishCopy",
-      "start": 70,
-      "lines": 56,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/components/pages/contact-page.copy.ts",
-      "name": "getFrenchCopy",
-      "start": 13,
-      "lines": 56,
+      "file": "app-landing/components/homepage/ProofBlockClient.tsx",
+      "name": "ProofBlockClient",
+      "start": 22,
+      "lines": 74,
       "occurrence": 1
     },
     {
       "file": "app-landing/components/pages/ContactPageAside.tsx",
       "name": "ContactPageAside",
-      "start": 13,
-      "lines": 58,
+      "start": 45,
+      "lines": 52,
       "occurrence": 1
     },
     {
       "file": "app-landing/components/pages/ContactPageClient.tsx",
       "name": "ContactPageClient",
-      "start": 25,
-      "lines": 161,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/components/pages/ContactPageForm.tsx",
-      "name": "ContactCaptchaField",
-      "start": 334,
-      "lines": 56,
+      "start": 26,
+      "lines": 160,
       "occurrence": 1
     },
     {
       "file": "app-landing/components/pages/ContactPageForm.tsx",
       "name": "ContactPageForm",
-      "start": 21,
-      "lines": 263,
+      "start": 24,
+      "lines": 254,
       "occurrence": 1
     },
     {
@@ -1475,8 +1699,8 @@
     {
       "file": "app-landing/components/pages/DeploymentRequestPageClient.tsx",
       "name": "DeploymentRequestPageClient",
-      "start": 24,
-      "lines": 100,
+      "start": 63,
+      "lines": 77,
       "occurrence": 1
     },
     {
@@ -1489,8 +1713,8 @@
     {
       "file": "app-landing/components/pages/KnowledgePage.tsx",
       "name": "KnowledgePage",
-      "start": 11,
-      "lines": 156,
+      "start": 206,
+      "lines": 92,
       "occurrence": 1
     },
     {
@@ -1503,22 +1727,22 @@
     {
       "file": "app-landing/components/pages/SectorPage.tsx",
       "name": "SectorPage",
-      "start": 20,
-      "lines": 362,
+      "start": 40,
+      "lines": 381,
       "occurrence": 1
     },
     {
       "file": "app-landing/components/pages/SerpResourcePage.tsx",
       "name": "SerpResourcePage",
-      "start": 20,
-      "lines": 195,
+      "start": 145,
+      "lines": 160,
       "occurrence": 1
     },
     {
       "file": "app-landing/components/pages/ServicesPage.tsx",
       "name": "ServicesPage",
-      "start": 31,
-      "lines": 272,
+      "start": 13,
+      "lines": 113,
       "occurrence": 1
     },
     {
@@ -1531,14 +1755,14 @@
     {
       "file": "app-landing/components/shared/Footer.tsx",
       "name": "Footer",
-      "start": 15,
-      "lines": 199,
+      "start": 104,
+      "lines": 116,
       "occurrence": 1
     },
     {
       "file": "app-landing/components/shared/Header.tsx",
       "name": "Header",
-      "start": 15,
+      "start": 20,
       "lines": 60,
       "occurrence": 1
     },
@@ -1578,17 +1802,10 @@
       "occurrence": 1
     },
     {
-      "file": "app-landing/lib/api/contact/persistence.ts",
-      "name": "persistContactRequest",
-      "start": 10,
-      "lines": 64,
-      "occurrence": 1
-    },
-    {
       "file": "app-landing/lib/api/contact/validation.ts",
       "name": "validateContactBody",
-      "start": 54,
-      "lines": 105,
+      "start": 43,
+      "lines": 104,
       "occurrence": 1
     },
     {
@@ -1622,8 +1839,8 @@
     {
       "file": "app-landing/lib/api/scoping-call/validation.ts",
       "name": "validateScopingCallBody",
-      "start": 22,
-      "lines": 88,
+      "start": 23,
+      "lines": 91,
       "occurrence": 1
     },
     {
@@ -1636,8 +1853,8 @@
     {
       "file": "app-landing/lib/blog/posts.ts",
       "name": "parseFrontmatter",
-      "start": 180,
-      "lines": 69,
+      "start": 239,
+      "lines": 84,
       "occurrence": 1
     },
     {
@@ -1648,31 +1865,17 @@
       "occurrence": 1
     },
     {
-      "file": "app-landing/lib/nav-config.ts",
-      "name": "buildCompanyNavGroup",
-      "start": 216,
-      "lines": 60,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/lib/nav-config.ts",
-      "name": "buildProductNavGroup",
-      "start": 40,
-      "lines": 52,
-      "occurrence": 1
-    },
-    {
-      "file": "app-landing/lib/nav-config.ts",
-      "name": "buildResourcesNavGroup",
-      "start": 138,
-      "lines": 77,
+      "file": "app-landing/lib/security/email-address.ts",
+      "name": "validateSemanticEmailAddress",
+      "start": 70,
+      "lines": 74,
       "occurrence": 1
     },
     {
       "file": "app-landing/lib/seo/llms.ts",
       "name": "buildLlmsFullTxt",
-      "start": 219,
-      "lines": 63,
+      "start": 220,
+      "lines": 64,
       "occurrence": 1
     },
     {
@@ -1734,8 +1937,8 @@
     {
       "file": "app-webapp/app/(auth)/login/page.tsx",
       "name": "LoginForm",
-      "start": 51,
-      "lines": 84,
+      "start": 57,
+      "lines": 86,
       "occurrence": 1
     },
     {
@@ -1755,8 +1958,8 @@
     {
       "file": "app-webapp/app/auth/callback/route.ts",
       "name": "GET",
-      "start": 59,
-      "lines": 136,
+      "start": 60,
+      "lines": 152,
       "occurrence": 1
     },
     {

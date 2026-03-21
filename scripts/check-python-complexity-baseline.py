@@ -30,6 +30,7 @@ XENON_COMMAND = [
 VIOLATION_PATTERN = re.compile(
     r"ERROR:xenon:(block|module) [\"'](.+?)[\"'] has a rank of ([A-F])$"
 )
+BLOCK_TARGET_LINE_PATTERN = re.compile(r"^(.+?\.py):\d+( .+)$")
 RANK_ORDER = {rank: index for index, rank in enumerate(["A", "B", "C", "D", "E", "F"], start=1)}
 
 
@@ -46,6 +47,15 @@ class Violation:
 
 def _sort_violations(violations: list[Violation]) -> list[Violation]:
     return sorted(violations, key=lambda violation: (violation.type, violation.target))
+
+
+def _normalize_target(violation_type: str, target: str) -> str:
+    if violation_type != "block":
+        return target
+    match = BLOCK_TARGET_LINE_PATTERN.match(target)
+    if match is None:
+        return target
+    return f"{match.group(1)}{match.group(2)}"
 
 
 def _run_xenon() -> tuple[int, list[Violation], str]:
@@ -65,7 +75,11 @@ def _run_xenon() -> tuple[int, list[Violation], str]:
         if match is None:
             continue
         violations.append(
-            Violation(type=match.group(1), target=match.group(2), rank=match.group(3))
+            Violation(
+                type=match.group(1),
+                target=_normalize_target(match.group(1), match.group(2)),
+                rank=match.group(3),
+            )
         )
     return completed.returncode, violations, output
 
@@ -82,7 +96,7 @@ def _load_baseline(path: Path) -> dict[tuple[str, str], Violation]:
             raise ValueError("Baseline entries must be objects")
         violation = Violation(
             type=str(item["type"]),
-            target=str(item["target"]),
+            target=_normalize_target(str(item["type"]), str(item["target"])),
             rank=str(item["rank"]),
         )
         if violation.rank not in RANK_ORDER:

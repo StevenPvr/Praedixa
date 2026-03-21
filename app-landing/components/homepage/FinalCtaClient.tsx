@@ -39,6 +39,10 @@ function FinalCtaField({
   onChange: (value: string) => void;
 }) {
   const fieldId = createFinalCtaFieldId(field.name);
+  const controlClassName =
+    field.type === "textarea"
+      ? "w-full rounded-input border border-v2-border-200 bg-surface-0 px-4 py-3 text-sm text-ink-950 transition-colors focus:border-proof-500 focus:outline-none focus:ring-2 focus:ring-proof-500/20"
+      : "h-14 w-full rounded-input border border-v2-border-200 bg-surface-0 px-4 text-sm text-ink-950 transition-colors focus:border-proof-500 focus:outline-none focus:ring-2 focus:ring-proof-500/20";
 
   return (
     <div>
@@ -48,41 +52,73 @@ function FinalCtaField({
       >
         {field.name}
       </label>
-      {field.type === "select" && "options" in field && field.options ? (
-        <select
-          id={fieldId}
-          name={fieldId}
-          className="h-14 w-full rounded-input border border-v2-border-200 bg-surface-0 px-4 text-sm text-ink-950 transition-colors focus:border-proof-500 focus:outline-none focus:ring-2 focus:ring-proof-500/20"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-        >
-          <option value="">—</option>
-          {field.options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      ) : field.type === "textarea" ? (
-        <textarea
-          id={fieldId}
-          name={fieldId}
-          rows={3}
-          className="w-full rounded-input border border-v2-border-200 bg-surface-0 px-4 py-3 text-sm text-ink-950 transition-colors focus:border-proof-500 focus:outline-none focus:ring-2 focus:ring-proof-500/20"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-        />
-      ) : (
-        <input
-          id={fieldId}
-          name={fieldId}
-          type={field.type}
-          className="h-14 w-full rounded-input border border-v2-border-200 bg-surface-0 px-4 text-sm text-ink-950 transition-colors focus:border-proof-500 focus:outline-none focus:ring-2 focus:ring-proof-500/20"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-        />
-      )}
+      <FinalCtaFieldControl
+        field={field}
+        fieldId={fieldId}
+        value={value}
+        className={controlClassName}
+        onChange={onChange}
+      />
     </div>
+  );
+}
+
+function FinalCtaFieldControl({
+  className,
+  field,
+  fieldId,
+  value,
+  onChange,
+}: {
+  className: string;
+  field:
+    | FinalCtaContent["step1Fields"][number]
+    | FinalCtaContent["step2Fields"][number];
+  fieldId: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  if (field.type === "select" && "options" in field && field.options) {
+    return (
+      <select
+        id={fieldId}
+        name={fieldId}
+        className={className}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        <option value="">—</option>
+        {field.options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  if (field.type === "textarea") {
+    return (
+      <textarea
+        id={fieldId}
+        name={fieldId}
+        rows={3}
+        className={className}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    );
+  }
+
+  return (
+    <input
+      id={fieldId}
+      name={fieldId}
+      type={field.type}
+      className={className}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    />
   );
 }
 

@@ -4,38 +4,17 @@ import Link from "next/link";
 import { PaperPlaneRight, SpinnerGap } from "@phosphor-icons/react";
 import { AlertDiamondIcon } from "../shared/icons/MarketingIcons";
 import { getLocalizedPath, type Locale } from "../../lib/i18n/config";
+import {
+  CONTACT_SECTORS,
+  CONTACT_TIMELINES,
+  SITE_COUNTS,
+} from "./contact-page.constants";
 import type {
   ContactChallenge,
   ContactFormData,
   ContactPageCopy,
   FieldErrors,
 } from "./contact-page.types";
-
-const SITE_COUNTS = ["1-3", "4-10", "11-30", "31+"] as const;
-const CONTACT_SECTORS = {
-  fr: [
-    "HCR",
-    "Enseignement supérieur",
-    "Logistique / Transport / Retail",
-    "Automobile / concessions / ateliers",
-    "BTP",
-    "Services",
-    "Autre",
-  ],
-  en: [
-    "Hospitality / Food service",
-    "Higher education",
-    "Logistics / Transport / Retail",
-    "Automotive / dealerships / workshops",
-    "Construction",
-    "Services",
-    "Other",
-  ],
-} as const;
-const CONTACT_TIMELINES = {
-  fr: ["0-3 mois", "3-6 mois", "6-12 mois", "Exploration"],
-  en: ["0-3 months", "3-6 months", "6-12 months", "Exploration"],
-} as const;
 
 const FIELD_BASE_CLASS =
   "w-full rounded-xl border bg-white/95 px-3 py-2.5 text-sm text-ink transition-all duration-200 [transition-timing-function:var(--ease-snappy)] placeholder:text-neutral-400 focus:border-brass focus:ring-1 focus:ring-brass";
