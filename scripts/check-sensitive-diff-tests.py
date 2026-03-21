@@ -49,6 +49,7 @@ SECURITY_TEST_PATTERNS = (
     "app-admin/**/__tests__/*.test.tsx",
     "app-landing/**/__tests__/*.test.ts",
     "app-landing/**/__tests__/*.test.tsx",
+    "scripts/__tests__/*.test.mjs",
     "testing/e2e/**/*.spec.ts",
 )
 

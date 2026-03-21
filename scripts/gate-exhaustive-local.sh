@@ -306,13 +306,13 @@ case "$MODE" in
     ;;
 esac
 
-SUMMARY_STATUS="pass"
-if ((FAILED_COUNT > 0)); then
-  SUMMARY_STATUS="fail"
-fi
-
 BLOCKING_FAILED_COUNT="$(jq -s '[.[] | select(.status == "fail") | select(.severity_floor == "critical" or .severity_floor == "high" or .severity_floor == "medium")] | length' "$CHECKS_FILE")"
 LOW_FAILED_COUNT="$(jq -s '[.[] | select(.status == "fail" and .severity_floor == "low")] | length' "$CHECKS_FILE")"
+
+SUMMARY_STATUS="pass"
+if ((BLOCKING_FAILED_COUNT > 0)); then
+  SUMMARY_STATUS="fail"
+fi
 
 TOOL_VERSIONS_JSON="$(jq -n \
   --arg node "$(tool_version node)" \
@@ -400,6 +400,11 @@ echo "[gate] report: $REPORT_PATH"
 if [[ "$SUMMARY_STATUS" == "fail" ]]; then
   echo "[gate] FAIL (${FAILED_COUNT}/${TOTAL_COUNT} checks failed; blocking=${BLOCKING_FAILED_COUNT})" >&2
   exit 1
+fi
+
+if ((LOW_FAILED_COUNT > 0)); then
+  echo "[gate] PASS with warnings (${LOW_FAILED_COUNT} low-severity check(s) failed; blocking=${BLOCKING_FAILED_COUNT})"
+  exit 0
 fi
 
 echo "[gate] PASS (${TOTAL_COUNT} checks)"

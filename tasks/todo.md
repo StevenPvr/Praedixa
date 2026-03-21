@@ -17,6 +17,7 @@
   - decoupage du rendu de `FinalCtaField` pour supprimer un depassement de fonction gratuit sur la homepage.
   - durcissement de `scripts/check-python-complexity-baseline.py` pour comparer des cibles Xenon stables sans bruit sur les seuls decalages de lignes.
   - regeneration controlee des baselines `scripts/python-complexity-baseline.json` et `scripts/ts-guardrail-baseline.json` apres revue, afin que les hooks rebloquent les prochaines regressions au lieu de rester rouges en permanence sur une dette deja absorbee par la branche.
+  - realignement de `gate-exhaustive-local.sh` avec sa propre matrice de severite: les eches `low` restent visibles dans le rapport signe et la sortie `PASS with warnings`, mais seuls les eches `critical` / `high` / `medium` cassent desormais le `pre-push`.
   - documentation de la regle de rebaseline volontaire/revue dans `scripts/README.md` et `docs/runbooks/local-gate-exhaustive.md`.
 - Verification reussie:
   - `pnpm install`
@@ -25,6 +26,7 @@
   - `python3 scripts/check-python-complexity-baseline.py`
   - `pnpm --filter @praedixa/landing lint`
   - `pnpm --filter @praedixa/landing test -- --run components/homepage/__tests__/FinalCtaSection.test.tsx`
+  - `node --test scripts/__tests__/gate-report-signing.test.mjs`
 
 # Current Pass - 2026-03-21 - Monorepo Todo Closure Sweep
 

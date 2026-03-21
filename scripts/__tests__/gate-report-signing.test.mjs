@@ -127,3 +127,64 @@ test("gate report verification rejects a tampered signed report", () => {
     rmSync(tempRoot, { recursive: true, force: true });
   }
 });
+
+test("gate report verification allows low-severity warnings without blocking failures", () => {
+  const tempRoot = mkdtempSync(path.join(os.tmpdir(), "gate-low-warning-"));
+
+  try {
+    const reportPath = path.join(tempRoot, "report.json");
+    const keyPath = path.join(tempRoot, "gate-signing.key");
+    const commitSha = spawnSync("git", ["rev-parse", "HEAD"], {
+      cwd: repoRoot,
+      encoding: "utf8",
+    }).stdout.trim();
+
+    writeFileSync(keyPath, "gate-report-test-key\n");
+    writeFileSync(
+      reportPath,
+      JSON.stringify(
+        {
+          schema_version: "2",
+          commit_sha: commitSha,
+          timestamp_epoch: Math.floor(Date.now() / 1000),
+          dry_run: false,
+          summary: {
+            status: "fail",
+            blocking_failed_checks: 0,
+            low_failed_checks: 1,
+          },
+          policy: {
+            version: "test",
+          },
+          residual_risk_notice: "none",
+        },
+        null,
+        2,
+      ),
+    );
+
+    const signResult = runScript(signScriptPath, [
+      "--unsigned",
+      reportPath,
+      "--output",
+      reportPath,
+      "--key-file",
+      keyPath,
+    ]);
+    assert.equal(signResult.status, 0, signResult.stderr || signResult.stdout);
+
+    const verifyResult = runScript(verifyScriptPath, [
+      "--report-path",
+      reportPath,
+      "--key-file",
+      keyPath,
+    ]);
+    assert.equal(verifyResult.status, 0, verifyResult.stderr || verifyResult.stdout);
+    assert.match(
+      verifyResult.stdout,
+      /Allowing report with low-severity warnings only/,
+    );
+  } finally {
+    rmSync(tempRoot, { recursive: true, force: true });
+  }
+});

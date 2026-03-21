@@ -98,25 +98,30 @@ if ((AGE < 0 || AGE > MAX_AGE_SECONDS)); then
 fi
 
 REPORT_STATUS="$(jq -r '.summary.status // empty' "$REPORT_PATH")"
-if [[ "$REPORT_STATUS" != "pass" ]]; then
-  if [[ "$RUN_IF_MISSING" == "1" ]]; then
-    rerun_gate_and_reverify
-  fi
-  echo "[gate-verify] Report status is not pass: ${REPORT_STATUS:-<empty>}" >&2
-  exit 1
-fi
-
 BLOCKING_FAILED="$(jq -r '.summary.blocking_failed_checks // empty' "$REPORT_PATH")"
 if [[ -z "$BLOCKING_FAILED" ]]; then
   echo "[gate-verify] Missing summary.blocking_failed_checks" >&2
   exit 1
 fi
+LOW_FAILED="$(jq -r '.summary.low_failed_checks // 0' "$REPORT_PATH")"
 if [[ "$BLOCKING_FAILED" != "0" ]]; then
   if [[ "$RUN_IF_MISSING" == "1" ]]; then
     rerun_gate_and_reverify
   fi
   echo "[gate-verify] Blocking checks are non-zero: ${BLOCKING_FAILED}" >&2
   exit 1
+fi
+
+if [[ "$REPORT_STATUS" != "pass" ]]; then
+  if [[ "$REPORT_STATUS" == "fail" && "$LOW_FAILED" != "0" ]]; then
+    echo "[gate-verify] Allowing report with low-severity warnings only (${LOW_FAILED})"
+  else
+    if [[ "$RUN_IF_MISSING" == "1" ]]; then
+      rerun_gate_and_reverify
+    fi
+    echo "[gate-verify] Report status is not pass: ${REPORT_STATUS:-<empty>}" >&2
+    exit 1
+  fi
 fi
 
 REPORT_DRY_RUN="$(jq -r '.dry_run // false' "$REPORT_PATH")"
