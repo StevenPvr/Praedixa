@@ -162,7 +162,7 @@ Regle pratique:
 - `DecisionConfigService` initialise au demarrage via `src/index.ts`.
 - `CAMUNDA_BASE_URL` + auth associee pour le domaine onboarding BPM reel.
 - `app-connectors` pour les appels admin integrations, hors de ce dossier.
-- `KEYCLOAK_ADMIN_USERNAME` + `KEYCLOAK_ADMIN_PASSWORD` pour les mutations admin de lifecycle utilisateur qui doivent provisionner l'identite reelle.
+- un principal Keycloak de provisioning: `KEYCLOAK_ADMIN_CLIENT_ID` + `KEYCLOAK_ADMIN_CLIENT_SECRET` en cible, avec repli transitoire `KEYCLOAK_ADMIN_USERNAME` + `KEYCLOAK_ADMIN_PASSWORD` tant que la migration runtime n'est pas terminee.
 - Un realm Keycloak avec `smtpServer.from` configure si les invitations `execute-actions-email` doivent etre operables.
 - `RESEND_WEBHOOK_SECRET` si l'on veut prouver la livraison provider-side au lieu de s'arreter au simple `204` Keycloak.
 

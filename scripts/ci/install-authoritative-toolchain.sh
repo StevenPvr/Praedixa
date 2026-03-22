@@ -9,6 +9,8 @@ GITLEAKS_VERSION="${GITLEAKS_VERSION:-8.24.2}"
 GRYPE_VERSION="${GRYPE_VERSION:-0.80.1}"
 OSV_SCANNER_VERSION="${OSV_SCANNER_VERSION:-2.1.0}"
 SYFT_VERSION="${SYFT_VERSION:-1.20.0}"
+TERRAFORM_VERSION="${TERRAFORM_VERSION:-1.6.6}"
+TFLINT_VERSION="${TFLINT_VERSION:-0.50.3}"
 
 mkdir -p "${BIN_DIR}" "${TMP_DIR}"
 
@@ -105,10 +107,24 @@ install_tar_binary \
   "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_${OSV_SCANNER_VERSION}_linux_amd64.tar.gz" \
   "osv-scanner"
 
+install_zip_binary \
+  "terraform" \
+  "${TERRAFORM_VERSION}" \
+  "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" \
+  "terraform"
+
+install_zip_binary \
+  "tflint" \
+  "${TFLINT_VERSION}" \
+  "https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/tflint_linux_amd64.zip" \
+  "tflint"
+
 echo "[ci-toolchain] Ready:"
 printf '  - %s\n' \
   "$(command -v checkov)" \
   "$(command -v gitleaks)" \
   "$(command -v syft)" \
   "$(command -v grype)" \
-  "$(command -v osv-scanner)"
+  "$(command -v osv-scanner)" \
+  "$(command -v terraform)" \
+  "$(command -v tflint)"

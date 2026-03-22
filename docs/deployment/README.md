@@ -12,6 +12,7 @@ Ce dossier documente l'installation et les déploiements d'infrastructure applic
 - `environment-secrets-owners-matrix.md` : résumé humain des surfaces, paths secrets et owners à garder aligné avec l'inventaire versionné.
 - `../../infra/opentofu/platform-topology.json` : topologie déclarative canonique des namespaces, containers, réseaux privés et cibles plateforme que les scripts `scw-*` doivent désormais consommer.
 - `runtime-env-contracts.generated.json` : contrat runtime généré depuis l'inventaire des secrets, l'inventaire des variables runtime non secretes et la topologie OpenTofu, utilisé comme artefact versionné de validation CI.
+- les workflows GitHub Actions `release-platform.yml` et `resilience-evidence.yml` : release nominale et preuves periodiques de resilience.
 
 ## Quand lire ce dossier
 
@@ -29,3 +30,5 @@ Ce dossier documente l'installation et les déploiements d'infrastructure applic
 - Avant de changer un secret runtime, une variable runtime non secrete, une origine publique frontend ou une cible plateforme, regénérer puis revalider `runtime-env-contracts.generated.json` via `pnpm docs:generate:runtime-env-contracts` puis `pnpm docs:validate:runtime-env-contracts`, afin que la CI échoue si la vérité dérivée n'est plus alignée.
 - Avant de modifier un namespace, un nom de container, un host public ou un réseau privé Scaleway, mettre d'abord à jour `infra/opentofu/platform-topology.json`; les scripts `scw-*` ne doivent plus porter leur propre vérité parallèle.
 - Avant de considérer un rollback comme reproductible, vérifier aussi `docs/deployment/rollback-targets.json` et utiliser `./scripts/scw/scw-rollback-plan.sh` au lieu d'assembler une commande `scw container update` à la main.
+- Le merge vers `main` doit etre protege par `Autorite - Required`; les hooks locaux restent un preflight, pas l'autorite finale.
+- Le deploiement prod nominal doit passer par le workflow GitHub Actions `Release - Platform`; un laptop operateur ne doit plus etre requis hors break-glass, et le workflow doit builder le SHA du run sans inputs libres qui changent `ref`, `services`, `tag` ou la promotion.

@@ -7024,3 +7024,37 @@
 - `pnpm --dir app-admin exec vitest run '__tests__/middleware.test.ts' 'app/(auth)/login/__tests__/page.test.tsx'`
 - `bash -n scripts/dev/run-next-standalone.sh scripts/run-frontend-audits.sh`
 - `pnpm test:e2e:critical`
+
+## Current Pass - 2026-03-22 - No-Go Closure: CI Release, IaC State And Runtime Contracts
+
+### Review
+
+- Durci `CI - Admin` en supprimant `--passWithNoTests` et en ajoutant un garde-fou explicite sur la presence de tests critiques.
+- Ajoute un chemin GitHub Actions nominal pour la release et les preuves de resilience via `.github/workflows/release-platform.yml` et `.github/workflows/resilience-evidence.yml`.
+- Etend `infra/opentofu` avec des states `staging` / `prod` machine-readable, puis fait converger `scripts/lib/scw-topology.sh` vers des outputs state-backed quand un backend est configure.
+- Industrialise davantage le contrat runtime API avec un mode `KEYCLOAK_ADMIN_AUTH_MODE=password|client_credentials`, plus les inventories runtime/env/secrets associes.
+- Aligne la doc racine, CI, infra, release et runtime sur une meme doctrine: hooks locaux = accelerateurs, GitHub Actions = autorite finale, release prod = workflow CI.
+
+### Verification
+
+- `bash -n scripts/lib/iac-state.sh scripts/lib/scw-topology.sh scripts/scw/scw-iac-validate.sh scripts/scw/scw-iac-plan.sh scripts/scw/scw-iac-output.sh scripts/scw/scw-configure-api-env.sh scripts/ci/install-authoritative-toolchain.sh scripts/scw/scw-release-build.sh scripts/scw/scw-release-deploy.sh scripts/scw/scw-release-promote.sh`
+- `python3 - <<'PY' ... yaml.safe_load(...) ... PY` sur `.github/workflows/release-platform.yml` et `.github/workflows/resilience-evidence.yml`
+- `pnpm docs:generate:runtime-env-contracts`
+- `pnpm infra:validate`
+- `node scripts/validate-runtime-env-inventory.mjs && node scripts/validate-runtime-env-contracts.mjs && node scripts/validate-runtime-secret-inventory.mjs`
+- `pnpm --dir app-api-ts exec vitest run src/__tests__/keycloak-admin-identity.test.ts`
+- `node --test scripts/__tests__/runtime-env-contracts.test.mjs scripts/__tests__/validate-runtime-env-inventory.test.mjs scripts/__tests__/validate-runtime-secret-inventory.test.mjs scripts/__tests__/scw-release-deploy.test.mjs`
+- `pnpm --dir app-api-ts build`
+- `./scripts/gates/gate-quality-static.sh`
+
+## Current Pass - 2026-03-22 - Release Workflow Authority Closure
+
+### Review
+
+- Cause racine:
+  - `Release - Platform` etait deja proche d'un control plane CI propre, mais il exposait encore des `workflow_dispatch.inputs` (`ref`, `services`, `tag`, `database_impact`, `promote_to_prod`) capables de modifier la sortie du build. Le gate Checkov `CKV_GHA_7` bloquait donc justement le `push`.
+- Correctifs appliques:
+  - `.github/workflows/release-platform.yml` n'accepte plus aucun input libre; il build depuis le SHA du run GitHub et derive un tag deterministe `rel-<run_id>-<sha12>`.
+  - la liste des services est maintenant versionnee dans le workflow (`RELEASE_BUILD_SERVICES`, `RELEASE_STAGING_SERVICES`, `RELEASE_PROD_SERVICES`) au lieu d'etre injectee au declenchement.
+  - la promotion prod ne depend plus d'un booleen `promote_to_prod`; elle passe par le job `promote_prod` sous environnement GitHub `prod`, ce qui garde l'approbation humaine au bon niveau sans laisser un parametre build-time piloter la release.
+  - la doc racine, CI et deploiement precise maintenant explicitement que le workflow de release ne doit plus accepter d'inputs capables de modifier `ref`, `services`, `tag` ou la promotion.

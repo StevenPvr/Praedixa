@@ -409,23 +409,25 @@ Le `pre-push` bloque si le rapport signe du commit courant est absent, stale, in
 
 ### Verification bloquante
 
-- Les verifications bloquantes sont locales (hooks `pre-commit` + `pre-push`).
-- Les workflows GitHub de verification generaliste (`ci.yml`, `audit.yml`) ne sont plus la source d'autorite.
+- Les hooks locaux (`pre-commit` + `pre-push`) restent les accelerateurs developpeur.
+- `CI - Autorite` et son job `Autorite - Required` sont la source de verite finale pour le merge.
+- Le merge sur `main` doit etre protege par `Autorite - Required`; toute autre CI par surface reste du feedback rapide, pas le juge final.
 
 ### Deploiement production
 
-- Non automatise par GitHub Actions.
-- Deploiement local via scripts `scw:*`.
+- Le chemin nominal de release est maintenant GitHub Actions via `Release - Platform`.
+- Ce workflow de release doit partir du SHA du run GitHub, sans `workflow_dispatch.inputs` capables de changer `ref`, `services`, `tag` ou la promotion.
+- Les scripts `scw:*` restent des wrappers versionnes pour preflight, bootstrap, debug local et break-glass, pas le control plane de production.
 
 ### Deploiement
 
-| Service              | Hebergement actuel                       | URL principale                          | Config / scripts                                                   |
-| -------------------- | ---------------------------------------- | --------------------------------------- | ------------------------------------------------------------------ |
-| Landing              | Scaleway Serverless Container (`fr-par`) | `praedixa.com` (cutover DNS en attente) | `app-landing/Dockerfile.scaleway`, `pnpm run scw:deploy:landing:*` |
-| Web app client       | Scaleway Serverless Container (`fr-par`) | `app.praedixa.com`                      | `app-webapp/Dockerfile.scaleway`, `pnpm run scw:deploy:webapp:*`   |
-| Admin back-office    | Scaleway Serverless Container (`fr-par`) | `admin.praedixa.com`                    | `app-admin/Dockerfile.scaleway`, `pnpm run scw:deploy:admin:*`     |
-| API backend          | Scaleway Serverless Container (`fr-par`) | `api.praedixa.com`                      | `app-api-ts/Dockerfile`, `pnpm run scw:deploy:api:*`               |
-| Auth OIDC (Keycloak) | Scaleway Serverless Container (`fr-par`) | `auth.praedixa.com`                     | configuration manuelle + env secrets                               |
+| Service              | Hebergement actuel                       | URL principale                          | Config / scripts                                                 |
+| -------------------- | ---------------------------------------- | --------------------------------------- | ---------------------------------------------------------------- |
+| Landing              | Scaleway Serverless Container (`fr-par`) | `praedixa.com` (cutover DNS en attente) | `app-landing/Dockerfile.scaleway`, workflow `Release - Platform` |
+| Web app client       | Scaleway Serverless Container (`fr-par`) | `app.praedixa.com`                      | `app-webapp/Dockerfile.scaleway`, workflow `Release - Platform`  |
+| Admin back-office    | Scaleway Serverless Container (`fr-par`) | `admin.praedixa.com`                    | `app-admin/Dockerfile.scaleway`, workflow `Release - Platform`   |
+| API backend          | Scaleway Serverless Container (`fr-par`) | `api.praedixa.com`                      | `app-api-ts/Dockerfile`, workflow `Release - Platform`           |
+| Auth OIDC (Keycloak) | Scaleway Serverless Container (`fr-par`) | `auth.praedixa.com`                     | `infra/auth/Dockerfile.scaleway`, workflow `Release - Platform`  |
 
 Preflight complet sans deploy:
 

@@ -136,19 +136,115 @@
       "service_id": "api-staging",
       "environment": "staging",
       "service": "api",
-      "env_groups": []
+      "env_groups": [
+        {
+          "mode": "all_of",
+          "required_in_runtime": true,
+          "keys": [
+            "ENVIRONMENT",
+            "LOG_LEVEL",
+            "KEY_PROVIDER",
+            "AUTH_JWKS_URL",
+            "AUTH_ISSUER_URL",
+            "AUTH_AUDIENCE",
+            "AUTH_ALLOWED_JWKS_HOSTS",
+            "CORS_ORIGINS",
+            "SCW_DEFAULT_PROJECT_ID",
+            "KEYCLOAK_ADMIN_AUTH_MODE"
+          ],
+          "purpose": "api auth, CORS, key provider and provisioning principal bootstrap"
+        },
+        {
+          "mode": "all_of",
+          "required_in_runtime": false,
+          "keys": [
+            "DEBUG",
+            "KEYCLOAK_ADMIN_REALM",
+            "KEYCLOAK_ADMIN_USERNAME",
+            "KEYCLOAK_ADMIN_CLIENT_ID"
+          ],
+          "purpose": "api optional diagnostics and provisioning principal selector"
+        }
+      ]
     },
     {
       "service_id": "api-prod",
       "environment": "prod",
       "service": "api",
-      "env_groups": []
+      "env_groups": [
+        {
+          "mode": "all_of",
+          "required_in_runtime": true,
+          "keys": [
+            "ENVIRONMENT",
+            "LOG_LEVEL",
+            "KEY_PROVIDER",
+            "AUTH_JWKS_URL",
+            "AUTH_ISSUER_URL",
+            "AUTH_AUDIENCE",
+            "AUTH_ALLOWED_JWKS_HOSTS",
+            "CORS_ORIGINS",
+            "SCW_DEFAULT_PROJECT_ID",
+            "KEYCLOAK_ADMIN_AUTH_MODE"
+          ],
+          "purpose": "api auth, CORS, key provider and provisioning principal bootstrap"
+        },
+        {
+          "mode": "all_of",
+          "required_in_runtime": false,
+          "keys": [
+            "DEBUG",
+            "KEYCLOAK_ADMIN_REALM",
+            "KEYCLOAK_ADMIN_USERNAME",
+            "KEYCLOAK_ADMIN_CLIENT_ID"
+          ],
+          "purpose": "api optional diagnostics and provisioning principal selector"
+        }
+      ]
     },
     {
       "service_id": "auth-prod",
       "environment": "prod",
       "service": "auth",
-      "env_groups": []
+      "env_groups": [
+        {
+          "mode": "all_of",
+          "required_in_runtime": true,
+          "keys": [
+            "KC_DB",
+            "KC_DB_URL_HOST",
+            "KC_DB_URL_PORT",
+            "KC_DB_URL_DATABASE",
+            "KC_DB_USERNAME",
+            "KC_HEALTH_ENABLED",
+            "KC_METRICS_ENABLED",
+            "KC_LOG_LEVEL",
+            "KC_PROXY_HEADERS",
+            "KC_HTTP_ENABLED",
+            "KC_HOSTNAME",
+            "KC_BOOTSTRAP_ADMIN_USERNAME",
+            "KEYCLOAK_SMTP_FROM",
+            "KEYCLOAK_SMTP_HOST",
+            "KEYCLOAK_SMTP_PORT",
+            "KEYCLOAK_SMTP_USER",
+            "KEYCLOAK_SMTP_AUTH",
+            "KEYCLOAK_SMTP_STARTTLS",
+            "KEYCLOAK_SMTP_SSL",
+            "SUPER_ADMIN_EMAIL"
+          ],
+          "purpose": "auth runtime database, bootstrap admin and SMTP baseline"
+        },
+        {
+          "mode": "all_of",
+          "required_in_runtime": false,
+          "keys": [
+            "KEYCLOAK_SMTP_FROM_DISPLAY_NAME",
+            "KEYCLOAK_SMTP_REPLY_TO",
+            "KEYCLOAK_SMTP_REPLY_TO_DISPLAY_NAME"
+          ],
+          "purpose": "auth optional SMTP presentation fields"
+        }
+      ]
     }
   ]
 }

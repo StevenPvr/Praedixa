@@ -34,9 +34,22 @@ test("runtime env contracts include topology metadata for API runtime", () => {
   assert.equal(apiProd.topology.container_name, "api-prod");
   assert.equal(apiProd.topology.private_network_name, "praedixa-prd-pn");
   assert.equal(apiProd.topology.rdb_instance_name, "praedixa-api-prod");
+  assert.deepEqual(apiProd.runtime_contract.required_env_keys, [
+    "AUTH_ALLOWED_JWKS_HOSTS",
+    "AUTH_AUDIENCE",
+    "AUTH_ISSUER_URL",
+    "AUTH_JWKS_URL",
+    "CORS_ORIGINS",
+    "ENVIRONMENT",
+    "KEY_PROVIDER",
+    "KEYCLOAK_ADMIN_AUTH_MODE",
+    "LOG_LEVEL",
+    "SCW_DEFAULT_PROJECT_ID",
+  ]);
   assert.deepEqual(apiProd.runtime_contract.required_secret_keys, [
     "CONTACT_API_INGEST_TOKEN",
     "DATABASE_URL",
+    "KEYCLOAK_ADMIN_CLIENT_SECRET",
     "KEYCLOAK_ADMIN_PASSWORD",
     "RATE_LIMIT_STORAGE_URI",
     "RESEND_WEBHOOK_SECRET",

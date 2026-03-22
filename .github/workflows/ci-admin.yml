@@ -141,8 +141,11 @@ jobs:
       - name: Build workspace packages
         run: pnpm --filter @praedixa/shared-types build && pnpm --filter @praedixa/ui build
 
+      - name: Guard critical test presence
+        run: pnpm workspaces:check:critical-tests
+
       - name: Run tests
-        run: pnpm --filter @praedixa/admin test -- --passWithNoTests
+        run: pnpm --filter @praedixa/admin test
 
   build:
     name: Admin - Build

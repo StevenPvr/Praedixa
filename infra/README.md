@@ -11,10 +11,10 @@ Le service d'automation agentique interne Symphony n'expose pas de traffic produ
 - `docker-compose.yml` pour la pile locale Docker (PostgreSQL, API, auth Keycloak locale).
 - `camunda/` pour le runtime Camunda 8 local/self-managed epingle et sa procedure d'usage.
 - `auth/` pour les artefacts Keycloak/Scaleway lies a l'authentification.
-- `opentofu/` pour le catalogue declaratif de topologie Scaleway/OpenTofu qui sert maintenant de point d'entree versionne pour namespaces, containers, reseaux prives et cibles runtime.
+- `opentofu/` pour le socle declaratif Scaleway/OpenTofu, sa topologie canonique et ses states d'environnement (`staging`, `prod`) qui doivent devenir la source de verite des cibles runtime.
 - `systemd/` pour les services systemes lies a la data platform Python.
 
-Le deploiement applicatif reste orchestre par les scripts de `scripts/`, mais ils doivent maintenant lire la topologie canonique dans `infra/opentofu/platform-topology.json` au lieu de reencoder localement les noms de namespaces/containers. Le but est de converger vers un vrai socle IaC/OpenTofu pilote par cette source de verite.
+Le deploiement applicatif reste orchestre par les workflows GitHub Actions et les scripts de `scripts/`, mais leurs identifiants plateforme doivent desormais converger vers les outputs state-backed d'`infra/opentofu/environments/*`. Le catalogue `platform-topology.json` reste l'entree canonique versionnee; les states `staging` et `prod` en derivent les contrats de service consommes par la CI et les wrappers `scw-*`.
 
 ## Workflows utiles
 

@@ -35,33 +35,33 @@ Reference complementaire a garder a cote:
 
 ## Scripts de reference
 
-| Commande                                                            | Role                                                                                     |
-| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `pnpm run scw:bootstrap:frontends`                                  | Cree namespaces/containers frontends + buckets frontends                                 |
-| `pnpm run scw:bootstrap:api`                                        | Cree namespaces/containers API                                                           |
-| `pnpm run scw:configure:landing:staging`                            | Injecte env vars/secrets landing staging                                                 |
-| `pnpm run scw:configure:landing:prod`                               | Injecte env vars/secrets landing prod                                                    |
-| `pnpm run scw:configure:webapp:staging`                             | Injecte env vars/secrets webapp staging                                                  |
-| `pnpm run scw:configure:webapp:prod`                                | Injecte env vars/secrets webapp prod                                                     |
-| `pnpm run scw:configure:admin:staging`                              | Injecte env vars/secrets admin staging                                                   |
-| `pnpm run scw:configure:admin:prod`                                 | Injecte env vars/secrets admin prod                                                      |
-| `pnpm run scw:configure:api:staging`                                | Injecte env vars/secrets API staging                                                     |
-| `pnpm run scw:configure:api:prod`                                   | Injecte env vars/secrets API prod                                                        |
-| `./scripts/scw/scw-preflight-deploy.sh all`                         | Controle readiness globale staging+prod+landing (sans deploy)                            |
-| `./scripts/scw/scw-preflight-deploy.sh prod`                        | Controle readiness prod+landing (sans deploy)                                            |
-| `./scripts/scw/scw-preflight-deploy.sh staging`                     | Controle readiness infra + DNS staging (sans deploy)                                     |
-| `pnpm release:build -- --service <service> ...`                     | Build/push image immuable par digest                                                     |
-| `pnpm release:manifest:create -- ...`                               | Cree un manifest signe pour la release multi-service                                     |
-| `pnpm release:deploy -- --manifest ... --env <env>`                 | Deploie depuis un manifest signe, avec fallback tag journalise si l'API refuse le digest |
-| `./scripts/scw/scw-rollback-plan.sh --current-manifest ...`         | Selectionne et verifie le manifest precedent pour rollback                               |
-| `./scripts/scw/scw-rollback-execute.sh --current-manifest ...`      | Redeploie le manifest precedent et peut enchainer le smoke                               |
-| `./scripts/scw/scw-post-deploy-smoke.sh --env <env> --services ...` | Smoke CLI canonique post-deploy ou post-rollback                                         |
+| Commande                                                            | Role                                                                            |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `pnpm run scw:bootstrap:frontends`                                  | Cree namespaces/containers frontends + buckets frontends                        |
+| `pnpm run scw:bootstrap:api`                                        | Cree namespaces/containers API                                                  |
+| `pnpm run scw:configure:landing:staging`                            | Injecte env vars/secrets landing staging                                        |
+| `pnpm run scw:configure:landing:prod`                               | Injecte env vars/secrets landing prod                                           |
+| `pnpm run scw:configure:webapp:staging`                             | Injecte env vars/secrets webapp staging                                         |
+| `pnpm run scw:configure:webapp:prod`                                | Injecte env vars/secrets webapp prod                                            |
+| `pnpm run scw:configure:admin:staging`                              | Injecte env vars/secrets admin staging                                          |
+| `pnpm run scw:configure:admin:prod`                                 | Injecte env vars/secrets admin prod                                             |
+| `pnpm run scw:configure:api:staging`                                | Injecte env vars/secrets API staging                                            |
+| `pnpm run scw:configure:api:prod`                                   | Injecte env vars/secrets API prod                                               |
+| `./scripts/scw/scw-preflight-deploy.sh all`                         | Controle readiness globale staging+prod+landing (sans deploy)                   |
+| `./scripts/scw/scw-preflight-deploy.sh prod`                        | Controle readiness prod+landing (sans deploy)                                   |
+| `./scripts/scw/scw-preflight-deploy.sh staging`                     | Controle readiness infra + DNS staging (sans deploy)                            |
+| `pnpm release:build -- --service <service> ...`                     | Build/push image immuable par digest                                            |
+| `pnpm release:manifest:create -- ...`                               | Cree un manifest signe pour la release multi-service                            |
+| `pnpm release:deploy -- --manifest ... --env <env>`                 | Deploie depuis un manifest signe; un digest refuse doit faire echouer le deploy |
+| `./scripts/scw/scw-rollback-plan.sh --current-manifest ...`         | Selectionne et verifie le manifest precedent pour rollback                      |
+| `./scripts/scw/scw-rollback-execute.sh --current-manifest ...`      | Redeploie le manifest precedent et peut enchainer le smoke                      |
+| `./scripts/scw/scw-post-deploy-smoke.sh --env <env> --services ...` | Smoke CLI canonique post-deploy ou post-rollback                                |
 
 Regle d'exploitation:
 
-- le chemin de release build-ready est `release:build` -> `release:manifest:create` -> `release:deploy` / `release:promote`;
+- le chemin de release build-ready est maintenant le workflow GitHub Actions `Release - Platform`, qui orchestre `release:build` -> `release:manifest:create` -> `release:deploy` / `release:promote` depuis le SHA du run, sans `workflow_dispatch.inputs` modifiant le build;
 - les wrappers `scw:deploy:webapp:*`, `scw:deploy:admin:*`, `scw:deploy:api:*` et `scw:deploy:auth:prod` ne sont pas le chemin de release evidencable de reference;
-- `scw-release-deploy.sh` prend toujours la reference `tag@sha256` signee du manifest comme source de verite; si l'API Scaleway Container refuse encore cette syntaxe, il retombe sur le tag deja signe derive de cette meme reference et journalise explicitement ce fallback fournisseur;
+- `scw-release-deploy.sh` prend toujours la reference `tag@sha256` signee du manifest comme source de verite; si l'API Scaleway Container refuse cette syntaxe, le deploy doit echouer et ne pas retomber sur un tag mutable;
 - les scripts `scw:configure:*` synchronisent maintenant aussi les secrets runtime vers Scaleway Secret Manager sous `/praedixa/<env>/<container>/runtime`.
 - `scw-preflight-deploy.sh` valide d'abord l'inventaire machine-readable `runtime-secrets-inventory.json`, puis controle sur les containers les cles marquees `preflight_required` dans cet inventaire.
 - le chemin rollback standard est maintenant `scw-rollback-plan.sh` puis `scw-rollback-execute.sh`; un rollback image ne doit plus etre reconstruit a la main depuis `scw container update`.
@@ -228,18 +228,28 @@ Variables shell requises:
 - `CORS_ORIGINS`
 - `RATE_LIMIT_STORAGE_URI`
 - `CONTACT_API_INGEST_TOKEN`
-- `KEYCLOAK_ADMIN_PASSWORD`
+- `KEYCLOAK_ADMIN_AUTH_MODE`
 - `SCW_SECRET_KEY`
 - `SCW_DEFAULT_PROJECT_ID`
+
+Variables shell requises si `KEYCLOAK_ADMIN_AUTH_MODE=password`:
+
+- `KEYCLOAK_ADMIN_PASSWORD`
+
+Variables shell requises si `KEYCLOAK_ADMIN_AUTH_MODE=client_credentials`:
+
+- `KEYCLOAK_ADMIN_CLIENT_ID`
+- `KEYCLOAK_ADMIN_CLIENT_SECRET`
 
 Variables optionnelles:
 
 - `KEYCLOAK_ADMIN_USERNAME` (defaut: `kcadmin`)
+- `KEYCLOAK_ADMIN_REALM` (defaut: `master`)
 
 Regle d'exploitation:
 
 - les secrets API runtime sont synchronises sous `/praedixa/<env>/<container>/runtime` avant application au container;
-- l'API TS utilise maintenant `KEYCLOAK_ADMIN_USERNAME` + `KEYCLOAK_ADMIN_PASSWORD` pour provisionner les comptes client depuis le backoffice avant d'ecrire `users.auth_user_id`;
+- l'API TS doit preferer un principal technique dedie (`client_credentials`) pour provisionner les comptes client depuis le backoffice avant d'ecrire `users.auth_user_id`; le couple `KEYCLOAK_ADMIN_USERNAME` + `KEYCLOAK_ADMIN_PASSWORD` ne reste qu'un chemin transitoire ou local;
 - la generation des JSON temporaires ne passe plus aucune valeur secrete dans `argv`.
 
 ### Auth (`scw-configure-auth-env.sh`)

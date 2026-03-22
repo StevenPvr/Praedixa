@@ -44,6 +44,9 @@ node scripts/validate-runtime-secret-inventory.mjs
 node scripts/validate-runtime-env-inventory.mjs
 node scripts/validate-runtime-env-contracts.mjs
 
+echo "[gate-quality-static] Declarative IaC contract..."
+pnpm infra:validate
+
 echo "[gate-quality-static] Python static analysis..."
 (
   cd app-api

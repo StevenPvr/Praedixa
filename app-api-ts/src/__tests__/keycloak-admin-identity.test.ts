@@ -26,6 +26,36 @@ describe("keycloak admin identity service", () => {
     ).toBeNull();
   });
 
+  it("prefers client credentials when a dedicated provisioning principal is configured", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ access_token: "svc-token" }))
+      .mockResolvedValueOnce(jsonResponse([]));
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const service = getKeycloakAdminIdentityServiceFromEnv({
+      AUTH_ISSUER_URL: "https://auth.praedixa.com/realms/praedixa",
+      KEYCLOAK_ADMIN_AUTH_MODE: "client_credentials",
+      KEYCLOAK_ADMIN_CLIENT_ID: "praedixa-admin-provisioner",
+      KEYCLOAK_ADMIN_CLIENT_SECRET: "svc-secret",
+      KEYCLOAK_ADMIN_USERNAME: "kcadmin",
+      KEYCLOAK_ADMIN_PASSWORD: "legacy-secret",
+    });
+
+    expect(service).not.toBeNull();
+
+    await service?.findManagedUsersByEmail("ops@test.fr");
+
+    const tokenCall = fetchMock.mock.calls[0];
+    const tokenInit = tokenCall?.[1] as RequestInit | undefined;
+    const body = tokenInit?.body as URLSearchParams;
+    expect(body.get("grant_type")).toBe("client_credentials");
+    expect(body.get("client_id")).toBe("praedixa-admin-provisioner");
+    expect(body.get("client_secret")).toBe("svc-secret");
+    expect(body.get("username")).toBeNull();
+  });
+
   it("provisions a Keycloak user, syncs canonical attributes, and sends the setup email", async () => {
     const fetchMock = vi
       .fn()

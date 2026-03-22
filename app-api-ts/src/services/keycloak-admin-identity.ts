@@ -36,8 +36,11 @@ interface KeycloakServiceConfig {
   adminRealm: string;
   appRealm: string;
   baseUrl: string;
-  adminUsername: string;
-  adminPassword: string;
+  authMode?: "password" | "client_credentials";
+  adminUsername?: string;
+  adminPassword?: string;
+  adminClientId?: string;
+  adminClientSecret?: string;
 }
 
 interface KeycloakTokenResponse {
@@ -294,6 +297,21 @@ export class KeycloakAdminIdentityService {
   }
 
   private async getAccessToken(): Promise<string> {
+    const authMode = this.config.authMode ?? "password";
+    const formBody =
+      authMode === "client_credentials"
+        ? new URLSearchParams({
+            client_id: this.config.adminClientId ?? "",
+            client_secret: this.config.adminClientSecret ?? "",
+            grant_type: "client_credentials",
+          })
+        : new URLSearchParams({
+            client_id: "admin-cli",
+            grant_type: "password",
+            username: this.config.adminUsername ?? "",
+            password: this.config.adminPassword ?? "",
+          });
+
     const response = await this.fetchWithTimeout(
       this.buildUrl(
         `realms/${encodeURIComponent(this.config.adminRealm)}/protocol/openid-connect/token`,
@@ -304,12 +322,7 @@ export class KeycloakAdminIdentityService {
           "content-type": "application/x-www-form-urlencoded",
           accept: "application/json",
         },
-        body: new URLSearchParams({
-          client_id: "admin-cli",
-          grant_type: "password",
-          username: this.config.adminUsername,
-          password: this.config.adminPassword,
-        }),
+        body: formBody,
       },
       "authenticate against Keycloak admin API",
     );
@@ -817,10 +830,36 @@ export function getKeycloakAdminIdentityServiceFromEnv(
   env: NodeJS.ProcessEnv,
 ): KeycloakAdminIdentityService | null {
   const issuerUrl = env["AUTH_ISSUER_URL"]?.trim() ?? "";
+  const configuredMode = env["KEYCLOAK_ADMIN_AUTH_MODE"]?.trim() ?? "";
   const adminUsername = env["KEYCLOAK_ADMIN_USERNAME"]?.trim() ?? "";
   const adminPassword = env["KEYCLOAK_ADMIN_PASSWORD"]?.trim() ?? "";
+  const adminClientId = env["KEYCLOAK_ADMIN_CLIENT_ID"]?.trim() ?? "";
+  const adminClientSecret = env["KEYCLOAK_ADMIN_CLIENT_SECRET"]?.trim() ?? "";
 
-  if (!issuerUrl || !adminUsername || !adminPassword) {
+  if (!issuerUrl) {
+    return null;
+  }
+
+  const hasPasswordGrant = adminUsername.length > 0 && adminPassword.length > 0;
+  const hasClientCredentials =
+    adminClientId.length > 0 && adminClientSecret.length > 0;
+
+  const authMode =
+    configuredMode === "client_credentials"
+      ? hasClientCredentials
+        ? "client_credentials"
+        : null
+      : configuredMode === "password"
+        ? hasPasswordGrant
+          ? "password"
+          : null
+        : hasClientCredentials
+          ? "client_credentials"
+          : hasPasswordGrant
+            ? "password"
+            : null;
+
+  if (!authMode) {
     return null;
   }
 
@@ -830,7 +869,10 @@ export function getKeycloakAdminIdentityServiceFromEnv(
     adminRealm: env["KEYCLOAK_ADMIN_REALM"]?.trim() || "master",
     appRealm,
     baseUrl,
+    authMode,
     adminUsername,
     adminPassword,
+    adminClientId,
+    adminClientSecret,
   });
 }

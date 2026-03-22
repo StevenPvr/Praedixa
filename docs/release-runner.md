@@ -1,6 +1,6 @@
 # Release Runner Scaffold
 
-Ce repo contient maintenant un squelette de release immuable orienté runner Scaleway, sans GitHub-hosted CI.
+Ce repo contient maintenant un chemin de release immuable pilote par GitHub Actions, avec les scripts `scw-release-*` comme primitives versionnees reutilisables.
 
 ## Objectif
 
@@ -8,6 +8,7 @@ Ce repo contient maintenant un squelette de release immuable orienté runner Sca
 - signer un manifest de release
 - déployer staging/prod uniquement depuis ce manifest
 - éviter tout déploiement prod basé sur un workspace local sale
+- garder un workflow GitHub deterministe: le commit du run est la seule source de build, sans inputs manuels capables de changer `ref`, `tag`, `services` ou la promotion
 
 ## Scripts
 
@@ -86,9 +87,9 @@ Ce repo contient maintenant un squelette de release immuable orienté runner Sca
 ## Notes
 
 - Le manifest contient les digests; staging et prod doivent consommer exactement les mêmes images.
-- Le manifest reste la source de verite via `registry_image@sha256:...`; si l'API Scaleway Container refuse encore cette syntaxe, `scw-release-deploy.sh` retombe sur le tag deja signe derive de cette meme reference et journalise explicitement ce fallback fournisseur.
+- Le manifest reste la source de verite via `registry_image@sha256:...`; si l'API Scaleway Container refuse cette reference signee, le deploy doit echouer explicitement.
 - La clé HMAC par défaut vit hors repo: `${HOME}/.praedixa/release-manifest.key`.
 - Cette clé doit être préprovisionnée hors repo avant signature ou vérification; aucun script ne doit créer une nouvelle racine de confiance à la volée.
 - Pour `landing`, ce flow remplace définitivement le legacy `scw-deploy-landing.sh`.
-- Le mapping `service -> container_name` est actuellement embarqué dans le manifest create/deploy. Si vous industrialisez le runner, déplacez ce mapping dans un inventaire d’environnement versionné.
+- Le mapping `service -> container_name` doit maintenant converger vers les outputs state-backed d'`infra/opentofu/environments/*`, pas rester dupliqué dans des scripts ou des runners.
 - `auth` n’est ciblé que pour `prod` dans ce squelette, ce qui reflète l’état courant du repo.

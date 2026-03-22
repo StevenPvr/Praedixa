@@ -1,0 +1,80 @@
+name: Resilience - Evidence
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: resilience-evidence-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SCW_CLI_VERSION: "v2.51.0"
+
+jobs:
+  resilience_evidence:
+    name: Resilience - Backup et monitoring
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: prod
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+
+      - name: Install Scaleway CLI
+        uses: scaleway/action-scw@v0
+        with:
+          version: ${{ env.SCW_CLI_VERSION }}
+
+      - name: Configure Scaleway CLI
+        env:
+          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+          SCW_DEFAULT_ORGANIZATION_ID: ${{ secrets.SCW_DEFAULT_ORGANIZATION_ID }}
+        run: |
+          set -euo pipefail
+          mkdir -p "${HOME}/.config/scw"
+          cat > "${HOME}/.config/scw/config.yaml" <<EOF
+          access_key: ${SCW_ACCESS_KEY}
+          secret_key: ${SCW_SECRET_KEY}
+          default_organization_id: ${SCW_DEFAULT_ORGANIZATION_ID}
+          default_project_id: ${SCW_DEFAULT_PROJECT_ID}
+          default_region: fr-par
+          default_zone: fr-par-1
+          send_telemetry: false
+          EOF
+
+      - name: Collect backup evidence and validate monitoring baseline
+        env:
+          API_INSTANCE_ID: ${{ secrets.SCW_RDB_API_PROD_INSTANCE_ID }}
+          API_DATABASE_NAME: ${{ secrets.SCW_RDB_API_PROD_DATABASE_NAME }}
+          AUTH_INSTANCE_ID: ${{ secrets.SCW_RDB_AUTH_PROD_INSTANCE_ID }}
+          AUTH_DATABASE_NAME: ${{ secrets.SCW_RDB_AUTH_PROD_DATABASE_NAME }}
+        run: |
+          set -euo pipefail
+          mkdir -p .meta/resilience/api .meta/resilience/auth
+          node ./scripts/validate-synthetic-monitoring-baseline.mjs
+          ./scripts/scw/scw-rdb-backup-evidence.sh \
+            --instance-id "${API_INSTANCE_ID}" \
+            --database-name "${API_DATABASE_NAME}" \
+            --output-dir .meta/resilience/api
+          ./scripts/scw/scw-rdb-backup-evidence.sh \
+            --instance-id "${AUTH_INSTANCE_ID}" \
+            --database-name "${AUTH_DATABASE_NAME}" \
+            --output-dir .meta/resilience/auth
+
+      - name: Upload resilience evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: resilience-evidence-${{ github.run_id }}
+          path: .meta/resilience/**
+          retention-days: 30
