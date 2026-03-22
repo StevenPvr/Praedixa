@@ -57,20 +57,22 @@ check "public_hosts_are_https" {
 
 check "private_networks_declared_for_api_and_auth" {
   assert {
-    condition =
+    condition = (
       try(length(local.topology.platform.services.api.staging.private_network_name) > 0, false) &&
       try(length(local.topology.platform.services.api.prod.private_network_name) > 0, false) &&
       try(length(local.topology.platform.services.auth.prod.private_network_name) > 0, false)
+    )
     error_message = "API/Auth services must declare private_network_name."
   }
 }
 
 check "rdb_instances_declared_for_api_and_auth" {
   assert {
-    condition =
+    condition = (
       try(length(local.topology.platform.services.api.staging.rdb_instance_name) > 0, false) &&
       try(length(local.topology.platform.services.api.prod.rdb_instance_name) > 0, false) &&
       try(length(local.topology.platform.services.auth.prod.rdb_instance_name) > 0, false)
+    )
     error_message = "API/Auth services must declare rdb_instance_name."
   }
 }
