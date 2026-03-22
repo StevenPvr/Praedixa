@@ -6896,3 +6896,11 @@
 - `onboarding/README.md` now mentions the local pure helpers so the doc matches the current orchestration shape.
 - Verification:
   - `pnpm --filter @praedixa/admin exec tsc -p tsconfig.json --noEmit`
+
+## Current Pass - 2026-03-22 - Hook Stability And Push Completion
+
+### Review
+
+- Added `scripts/gates/gate-typecheck-all.sh` to surface all TypeScript typing errors before `push`, and wired it into the `pre-push` hook plus `gate-quality-static.sh`.
+- Closed the repo-wide regressions surfaced by the stricter gates across admin/webapp/api/connectors/Python, then committed them in `5ef39e9`.
+- Fixed the long-tail hook failure where Next.js checks dirtied `app-*/next-env.d.ts`: `gate-quality-static.sh` now restores those generated files before exit so a green gate does not leave the worktree dirty and block `git push`.
