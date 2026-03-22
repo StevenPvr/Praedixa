@@ -205,11 +205,11 @@ def disable_rate_limit():
 ### Commandes
 
 ```bash
-pnpm test                           # Tous les tests frontend
+pnpm test                           # Suite racine + tous les workspaces critiques
 pnpm vitest run path/to/file.test.tsx  # Un fichier
 pnpm vitest run -t "test name"      # Par nom
 pnpm test:watch                     # Mode watch
-pnpm test:coverage                  # Avec couverture
+pnpm test:coverage                  # Couverture racine + tests workspace
 ```
 
 ### Utilitaires de mock (`testing/utils/`)

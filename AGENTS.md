@@ -201,6 +201,7 @@ Before a shell ops script relies on env-driven JSON mutation through `python`, `
 Before sending a multiline shell bootstrap through a container `args` array, verify the deployment API preserves it as one argument; newline-split args can silently turn a startup script into a no-op or a stuck rollout.
 Before parallelizing Keycloak admin CLI (`kcadm`) calls, give each workflow its own `--config` file; the shared default `~/.keycloak/kcadm.config` is not concurrency-safe.
 Before consuming a new runtime secret in code, wire it in the same change through local env loaders, runtime secret inventory, deploy/configure scripts, and preflight checks so the deployed service cannot drift from the repo contract.
+Before changing a root monorepo command like `build`, `lint`, `typecheck` or `test`, derive its workspace scope from the actual `app-*` / `packages/*` catalog or validate that catalog in the same change; never rely on a hand-maintained list of current packages.
 Before defaulting a repo-owned Keycloak contract path from a script under `scripts/keycloak`, resolve it from `REPO_ROOT`, not from `SCRIPT_DIR/../infra`, or the helper will silently point at `scripts/infra/...`.
 Before aggregating Vitest projects in the monorepo root, do not mix broad top-level `include` globs with project-specific `include` patterns, or tests can leak across aliases and hang the runner.
 Before chaining a new Alembic migration, copy the real previous `revision` value from the migration header; never infer `down_revision` from the filename.

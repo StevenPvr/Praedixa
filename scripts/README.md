@@ -11,7 +11,9 @@ Boite a outils operationnelle du repo.
 ## Grandes familles
 
 - Developpement local: `dev-*`, `e2e-free-ports.sh`, `check-playwright-chromium.sh`, `install-prek.sh`
-- Gates et securite: `gate-*`, `verify-gate-report.sh`, `audit-ultra-strict-local.sh`, `run-*-audit.sh`, `check-*.py`, `gate.config.yaml`, `security-*.yaml`
+- Gates et securite: `gate-*`, `verify-gate-report.sh`, `audit-ultra-strict-local.sh`, `run-*-audit.sh`, `check-*.py`, `check-*.mjs`, `gate.config.yaml`, `security-*.yaml`, `ci/install-authoritative-toolchain.sh`, `ci/run-authoritative-ci.sh`
+- Garde-fous workspaces: `workspaces/*`, `check-workspace-scripts.mjs`
+- Contrats runtime generes: `runtime-env-contracts.mjs`, `generate-runtime-env-contracts.mjs`, `validate-runtime-env-contracts.mjs`
 - Validation documentaire machine-readable: `validate-*.mjs`, `validate-*.py`
 - Release et deploiement Scaleway: `scw-*`, `release-manifest-*`, `scw-release-*`, `smoke-test-production.sh`, `scw-post-deploy-smoke.sh`
 - Auth / Keycloak: `keycloak-*`
@@ -111,6 +113,8 @@ pnpm gate:verify
 pnpm performance:validate-budgets
 ./scripts/gates/gate-sensitive-security-tests.sh
 ./scripts/gates/gate-quality-static.sh
+node ./scripts/check-workspace-scripts.mjs --task build --task lint --task typecheck
+node ./scripts/check-workspace-scripts.mjs --task test --scope critical-test
 ```
 
 `gate:architecture:frontend` rejoue `dependency-cruiser` sur `app-landing`, `app-webapp`, `app-admin` et `packages/`, puis `knip` et `architecture:ts-guardrails` pour rendre les dependances front/shared et la focalisation des fichiers auditables en local comme en CI.
@@ -122,8 +126,11 @@ pnpm performance:validate-budgets
 `docs:validate:contracts-parity` verifie les contrats critiques deja doubles en TypeScript: schemas DecisionOps JSON -> `packages/shared-types/src/domain/*`, taxonomie admin -> `admin-permissions.ts`, et contrat OpenAPI public -> couche `public-contract` TypeScript.
 `docs:generate:erd` genere un ERD Mermaid semi-automatique depuis `app-api/app/models/*` vers `docs/cto/visuals/schema-public-auto-generated.mmd`.
 `architecture:repo` agrège les deux graphes TypeScript versionnes, `knip`, le baseline guard de taille, le baseline DB, le baseline CTO, la parite schema/doc et la parite contrats/TypeScript; les configs `dependency-cruiser` et `knip` excluent aussi les depots imbriques comme `marketing/presentations-clients/centaurus/` et les artefacts `.open-next/` pour garder un perimetre de scan stable.
+`check-workspace-scripts.mjs` derive le catalogue des workspaces depuis `app-*` et `packages/*`, puis bloque toute absence de script `build` / `lint` / `typecheck` sur le monorepo et toute absence de `test` sur les surfaces critiques. Les scripts racine `pnpm build`, `pnpm lint`, `pnpm typecheck` et `pnpm test` passent donc par un contrat de workspace explicite avant de deleguer a `turbo run ...`.
+`runtime-env-contracts.mjs` derive un contrat runtime machine-readable versionne depuis `docs/deployment/runtime-secrets-inventory.json` et `infra/opentofu/platform-topology.json`. `generate-runtime-env-contracts.mjs` regenere `docs/deployment/runtime-env-contracts.generated.json`, tandis que `validate-runtime-env-contracts.mjs` echoue si ce contrat derive n'est plus aligne avec les deux sources de verite.
 `gate-exhaustive-local.sh` produit un rapport signe pour tous les checks du socle. En mode `manual`, les checks qui peuvent declarer une release "verte" alors que la prod ne build plus ou que les tests/E2E critiques cassent (`gate-quality-static`, `pnpm build`, `pnpm test:coverage`, `@praedixa/api-ts test`, `pytest`, les E2E Playwright critiques) sont maintenant classes `medium`/`high` et bloquants; seuls les controles vraiment consultatifs restent en `low` et peuvent encore sortir en `PASS with warnings`.
 `gate-sensitive-security-tests.sh` rejoue les regressions critiques sur l'isolation `site_id`, le durcissement `CONNECTORS_RUNTIME_URL`, les capabilities des service tokens connecteurs et les validations SSRF/OAuth sortantes. Il est execute par `pre-commit` et `pre-push`.
+`ci/run-authoritative-ci.sh` est le point d'entree CI canonique: il enchaine delta securite, gate exhaustif signe, reverification du rapport, contrat runtime secrets + contrat runtime env genere, puis tests de contrat release pour que GitHub Actions puisse devenir l'arbitre final sans dupliquer la logique de fond dans chaque workflow.
 `gate-typecheck-all.sh` agrege les typechecks TypeScript projet par projet (`workspace references`, `app-landing`, `app-webapp`, `app-admin`, `app-api-ts`, `app-connectors`) pour remonter en une passe toutes les erreurs de type au lieu d'echouer sur le premier sous-projet.
 Le hook `pre-push` appelle maintenant explicitement ce script avant le gate profond, afin de rendre les erreurs TypeScript visibles meme quand un autre controle profond echouerait ensuite.
 `gate-quality-static.sh` centralise les verifications statiques monorepo: lint ESLint sans warnings (`--max-warnings=0`), typecheck TypeScript exhaustif via `gate-typecheck-all.sh`, Ruff et MyPy. Le formatage Prettier est enforce en `pre-commit` sur les fichiers stages.

@@ -5,10 +5,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 source "$SCRIPT_DIR/../lib/json-env.sh"
 source "$SCRIPT_DIR/../lib/local-env.sh"
+source "$SCRIPT_DIR/../lib/scw-topology.sh"
 
 REGION="fr-par"
-CONTAINER_NAME="auth-prod"
-AUTH_HOSTNAME="${AUTH_HOSTNAME:-auth.praedixa.com}"
+CONTAINER_NAME="$(scw_topology_platform_field "auth" "prod" "container_name")"
+AUTH_HOSTNAME="${AUTH_HOSTNAME:-$(scw_topology_first_public_host "auth" "prod")}"
 PRIVATE_NETWORK_ID="${PRIVATE_NETWORK_ID:-}"
 KC_DB_URL_HOST="${KC_DB_URL_HOST:-}"
 KC_DB_URL_PORT="${KC_DB_URL_PORT:-5432}"
@@ -34,6 +35,16 @@ KEYCLOAK_SMTP_SSL="${KEYCLOAK_SMTP_SSL:-false}"
 RESEND_API_KEY="${RESEND_API_KEY:-}"
 RESEND_FROM_EMAIL="${RESEND_FROM_EMAIL:-}"
 RESEND_REPLY_TO_EMAIL="${RESEND_REPLY_TO_EMAIL:-}"
+
+if [ -z "$CONTAINER_NAME" ]; then
+  echo "Missing auth-prod topology definition" >&2
+  exit 1
+fi
+if [ -z "$AUTH_HOSTNAME" ]; then
+  AUTH_HOSTNAME="auth.praedixa.com"
+fi
+AUTH_HOSTNAME="${AUTH_HOSTNAME#https://}"
+AUTH_HOSTNAME="${AUTH_HOSTNAME#http://}"
 
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || {

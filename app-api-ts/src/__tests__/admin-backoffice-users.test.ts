@@ -113,6 +113,22 @@ function createTransactionalService(
     connect: vi.fn(async () => client),
   };
   const service = new AdminBackofficeService(null);
+  const deliveryProofService = {
+    ensureReady: vi.fn(async () => undefined),
+    recordInvitationAttempt: vi.fn(
+      async (_client: unknown, input: { email: string }) => ({
+        provider: "resend",
+        channel: "keycloak_execute_actions_email",
+        delivery: "activation_link",
+        status: "pending",
+        initiatedAt: "2026-03-22T10:00:00.000Z",
+        eventType: null,
+        occurredAt: null,
+        observedAt: null,
+        summary: `Pending provider proof for ${input.email}`,
+      }),
+    ),
+  };
   Reflect.set(
     service as unknown as Record<string, unknown>,
     "pool",
@@ -123,7 +139,19 @@ function createTransactionalService(
     "identityService",
     identityService as unknown,
   );
-  return { service, pool, client, calls, identityService };
+  Reflect.set(
+    service as unknown as Record<string, unknown>,
+    "deliveryProofService",
+    deliveryProofService as unknown,
+  );
+  return {
+    service,
+    pool,
+    client,
+    calls,
+    identityService,
+    deliveryProofService,
+  };
 }
 
 function findAuditCall(calls: QueryCall[]): QueryCall {

@@ -79,6 +79,7 @@ if [[ "$DATABASE_IMPACT" -eq 1 ]]; then
 fi
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "$ROOT_DIR/scripts/lib/scw-topology.sh"
 COMMIT_SHA="$(git -C "$ROOT_DIR" rev-parse "$REF")"
 TMP_DIR="$(mktemp -d)"
 cleanup() {
@@ -151,21 +152,7 @@ SUPPLY_CHAIN_EVIDENCE_JSON="$(
   build_evidence_array "supply-chain" "${SUPPLY_CHAIN_EVIDENCE_PATHS[@]}"
 )"
 
-TARGETS_JSON='{
-  "staging": {
-    "landing": { "region": "fr-par", "container_name": "landing-staging" },
-    "webapp": { "region": "fr-par", "container_name": "webapp-staging" },
-    "admin": { "region": "fr-par", "container_name": "admin-staging" },
-    "api": { "region": "fr-par", "container_name": "api-staging" }
-  },
-  "prod": {
-    "landing": { "region": "fr-par", "container_name": "landing-web" },
-    "webapp": { "region": "fr-par", "container_name": "webapp-prod" },
-    "admin": { "region": "fr-par", "container_name": "admin-prod" },
-    "api": { "region": "fr-par", "container_name": "api-prod" },
-    "auth": { "region": "fr-par", "container_name": "auth-prod" }
-  }
-}'
+TARGETS_JSON="$(scw_topology_targets_json)"
 
 UNSIGNED_PATH="$TMP_DIR/release-manifest-unsigned.json"
 

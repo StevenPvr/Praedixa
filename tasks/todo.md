@@ -6904,3 +6904,28 @@
 - Added `scripts/gates/gate-typecheck-all.sh` to surface all TypeScript typing errors before `push`, and wired it into the `pre-push` hook plus `gate-quality-static.sh`.
 - Closed the repo-wide regressions surfaced by the stricter gates across admin/webapp/api/connectors/Python, then committed them in `5ef39e9`.
 - Fixed the long-tail hook failure where Next.js checks dirtied `app-*/next-env.d.ts`: `gate-quality-static.sh` now restores those generated files before exit so a green gate does not leave the worktree dirty and block `git push`.
+
+## Current Pass - 2026-03-22 - Monorepo Workspace Enforcement
+
+### Review
+
+- Replaced the root manual workspace orchestration for `build`, `lint`, `typecheck` and `test` with Turbo-driven commands guarded by a workspace catalog derived from `app-*` and `packages/*`.
+- Added `scripts/check-workspace-scripts.mjs` plus `scripts/workspaces/catalog.mjs` so the repo now fails fast if a new workspace forgets `build` / `lint` / `typecheck`, or if a critical surface ships without a `test` script.
+- Updated the repo docs (`README.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `scripts/README.md`) and the permanent guardrail in `AGENTS.md` so the new contract is explicit and durable.
+
+## Current Pass - 2026-03-22 - Go-Live Enforcement Layer
+
+### Review
+
+- Added a canonical GitHub workflow authority with `.github/workflows/ci-authoritative.yml` plus `scripts/ci/run-authoritative-ci.sh` so merge governance no longer depends only on local hooks or partial surface workflows.
+- Introduced `infra/opentofu/platform-topology.json` and `scripts/lib/scw-topology.sh` as a declarative topology contract that the Scaleway bootstrap/configure/deploy wrappers now consume instead of re-encoding container and namespace names inline.
+- Generated and versioned `docs/deployment/runtime-env-contracts.generated.json` from the runtime secret inventory and the topology contract, then wired CI validation for that derived runtime contract through `scripts/validate-runtime-env-contracts.mjs`.
+- Verification:
+  - `node --test scripts/__tests__/workspace-scripts.test.mjs scripts/__tests__/validate-runtime-secret-inventory.test.mjs scripts/__tests__/gate-quality-static.test.mjs scripts/__tests__/runtime-env-contracts.test.mjs`
+  - `bash -n scripts/ci/install-authoritative-toolchain.sh scripts/ci/run-authoritative-ci.sh scripts/lib/scw-topology.sh scripts/scw/scw-bootstrap-api.sh scripts/scw/scw-bootstrap-auth.sh scripts/scw/scw-bootstrap-frontends.sh scripts/scw/scw-configure-api-env.sh scripts/scw/scw-configure-auth-env.sh scripts/scw/scw-configure-frontend-env.sh scripts/scw/scw-configure-landing-env.sh scripts/scw/scw-deploy-api.sh scripts/scw/scw-deploy-auth.sh scripts/scw/scw-deploy-frontend.sh scripts/scw/scw-release-manifest-create.sh`
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/ci-authoritative.yml"); puts "yaml-ok"'`
+  - `pnpm workspaces:check:build && pnpm workspaces:check:lint && pnpm workspaces:check:typecheck && pnpm workspaces:check:critical-tests`
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm test`
+  - `pnpm build`

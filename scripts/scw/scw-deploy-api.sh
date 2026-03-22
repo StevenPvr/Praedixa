@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/scw-topology.sh"
+
 if [ "$#" -ne 1 ]; then
   echo "Usage: $0 <staging|prod>" >&2
   exit 1
@@ -10,21 +13,12 @@ ENV="$1"
 REGION="fr-par"
 BUILD_SOURCE="."
 DOCKERFILE="app-api-ts/Dockerfile"
-
-case "$ENV" in
-  staging)
-    NAMESPACE_NAME="api-staging"
-    CONTAINER_NAME="api-staging"
-    ;;
-  prod)
-    NAMESPACE_NAME="api-prod"
-    CONTAINER_NAME="api-prod"
-    ;;
-  *)
-    echo "Unsupported environment: $ENV" >&2
-    exit 1
-    ;;
-esac
+NAMESPACE_NAME="$(scw_topology_platform_field "api" "$ENV" "namespace_name")"
+CONTAINER_NAME="$(scw_topology_platform_field "api" "$ENV" "container_name")"
+if [ -z "$NAMESPACE_NAME" ] || [ -z "$CONTAINER_NAME" ]; then
+  echo "Unsupported api environment from Scaleway topology: $ENV" >&2
+  exit 1
+fi
 
 ensure_clean_git_tree() {
   if [ "${SCW_DEPLOY_ALLOW_DIRTY:-0}" = "1" ]; then

@@ -1,0 +1,170 @@
+{
+  "schema_version": "1",
+  "region": "fr-par",
+  "platform": {
+    "private_networks": {
+      "staging": {
+        "name": "praedixa-stg-pn"
+      },
+      "prod": {
+        "name": "praedixa-prd-pn"
+      }
+    },
+    "rdb_instances": {
+      "api": {
+        "staging": {
+          "name": "praedixa-api-staging"
+        },
+        "prod": {
+          "name": "praedixa-api-prod"
+        }
+      },
+      "auth": {
+        "prod": {
+          "name": "praedixa-auth-prod"
+        }
+      }
+    },
+    "services": {
+      "landing": {
+        "staging": {
+          "namespace_name": "landing-staging",
+          "container_name": "landing-staging",
+          "public_hosts": ["https://staging.praedixa.com"],
+          "scaling": {
+            "min_scale": 0,
+            "max_scale": 2,
+            "cpu_limit": 500,
+            "memory_limit": 1024
+          }
+        },
+        "prod": {
+          "namespace_name": "landing-prod",
+          "container_name": "landing-web",
+          "public_hosts": ["https://praedixa.com", "https://www.praedixa.com"],
+          "scaling": {
+            "min_scale": 1,
+            "max_scale": 3,
+            "cpu_limit": 500,
+            "memory_limit": 1024
+          }
+        }
+      },
+      "webapp": {
+        "staging": {
+          "namespace_name": "webapp-staging",
+          "container_name": "webapp-staging",
+          "oidc_client_id": "praedixa-webapp",
+          "public_hosts": ["https://staging-app.praedixa.com"],
+          "scaling": {
+            "min_scale": 1,
+            "max_scale": 3,
+            "cpu_limit": 1000,
+            "memory_limit": 2048
+          }
+        },
+        "prod": {
+          "namespace_name": "webapp-prod",
+          "container_name": "webapp-prod",
+          "oidc_client_id": "praedixa-webapp",
+          "public_hosts": ["https://app.praedixa.com"],
+          "scaling": {
+            "min_scale": 1,
+            "max_scale": 4,
+            "cpu_limit": 1000,
+            "memory_limit": 2048
+          }
+        }
+      },
+      "admin": {
+        "staging": {
+          "namespace_name": "admin-staging",
+          "container_name": "admin-staging",
+          "oidc_client_id": "praedixa-admin",
+          "public_hosts": ["https://staging-admin.praedixa.com"],
+          "scaling": {
+            "min_scale": 1,
+            "max_scale": 3,
+            "cpu_limit": 1000,
+            "memory_limit": 2048
+          }
+        },
+        "prod": {
+          "namespace_name": "admin-prod",
+          "container_name": "admin-prod",
+          "oidc_client_id": "praedixa-admin",
+          "public_hosts": ["https://admin.praedixa.com"],
+          "scaling": {
+            "min_scale": 1,
+            "max_scale": 3,
+            "cpu_limit": 1000,
+            "memory_limit": 2048
+          }
+        }
+      },
+      "api": {
+        "staging": {
+          "namespace_name": "api-staging",
+          "container_name": "api-staging",
+          "private_network_name": "praedixa-stg-pn",
+          "public_hosts": ["https://staging-api.praedixa.com"],
+          "rdb_instance_name": "praedixa-api-staging",
+          "scaling": {
+            "min_scale": 0,
+            "max_scale": 2,
+            "cpu_limit": 1000,
+            "memory_limit": 2048
+          }
+        },
+        "prod": {
+          "namespace_name": "api-prod",
+          "container_name": "api-prod",
+          "private_network_name": "praedixa-prd-pn",
+          "public_hosts": ["https://api.praedixa.com"],
+          "rdb_instance_name": "praedixa-api-prod",
+          "scaling": {
+            "min_scale": 1,
+            "max_scale": 4,
+            "cpu_limit": 1500,
+            "memory_limit": 3072
+          }
+        }
+      },
+      "auth": {
+        "prod": {
+          "namespace_name": "auth-prod",
+          "container_name": "auth-prod",
+          "private_network_name": "praedixa-prd-pn",
+          "public_hosts": ["https://auth.praedixa.com"],
+          "rdb_instance_name": "praedixa-auth-prod",
+          "scaling": {
+            "min_scale": 1,
+            "max_scale": 2,
+            "cpu_limit": 1000,
+            "memory_limit": 2048
+          }
+        }
+      }
+    }
+  },
+  "prospects": {
+    "centaurus": {
+      "prod": {
+        "namespace_name": "centaurus-prod",
+        "container_name": "centaurus-prospect"
+      }
+    },
+    "greekia": {
+      "prod": {
+        "namespace_name": "greekia-prod",
+        "container_name": "greekia-prospect"
+      }
+    },
+    "skolae": {
+      "prod": {
+        "namespace_name": "skolae-prod",
+        "container_name": "skolae-prospect"
+      }
+    }
+  }
+}

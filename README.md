@@ -85,10 +85,13 @@ pnpm install
 ```bash
 pnpm lint
 pnpm typecheck
+pnpm build
 pnpm test
 ```
 
-`pnpm test` couvre maintenant les suites unitaires/frontend racine ainsi que les runtimes `app-symphony`, `app-api-ts` et `app-connectors`, pour eviter un faux vert monorepo quand un backend casse hors du radar de la commande canonique.
+Les commandes racine `pnpm build`, `pnpm lint` et `pnpm typecheck` derivent maintenant du graphe Turbo/workspaces au lieu d'une enumeration manuelle fragile des packages courants. Avant d'executer la tache, le garde-fou `scripts/check-workspace-scripts.mjs` verifie que chaque workspace declare bien les scripts attendus, ce qui empeche un nouveau package `app-*` ou `packages/*` de rester hors radar du socle par oubli de la liste racine.
+
+`pnpm test` couvre maintenant la suite Vitest racine puis les tests de tous les workspaces du monorepo via `turbo run test`. Le garde-fou workspace bloque aussi toute absence silencieuse de tests sur les surfaces critiques (`app-landing`, `app-webapp`, `app-admin`, `app-api-ts`, `app-connectors`, `app-symphony`, `packages/shared-types`, `packages/telemetry`, `packages/ui`) avant meme de lancer les tests.
 
 Le profil TypeScript du monorepo est maintenant durci au niveau racine: toutes les apps Next.js partagent la meme base stricte (`strict`, `strictNullChecks`, `noUncheckedIndexedAccess`, `noImplicitReturns`, `noImplicitOverride`, `useUnknownInCatchVariables`, `noFallthroughCasesInSwitch`, `noEmitOnError`) et le lint TypeScript est desormais type-aware sur le code source pour attraper les promesses oubliees, les `switch` non exhaustifs et les assertions de type inutiles avant revue.
 

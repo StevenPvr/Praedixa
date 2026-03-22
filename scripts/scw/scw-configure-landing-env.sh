@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/json-env.sh"
+source "$SCRIPT_DIR/../lib/scw-topology.sh"
 
 if [ "$#" -ne 1 ]; then
   echo "Usage: $0 <staging|prod>" >&2
@@ -11,21 +12,12 @@ fi
 
 ENV="$1"
 REGION="fr-par"
-
-case "$ENV" in
-  staging)
-    NAMESPACE_NAME="landing-staging"
-    CONTAINER_NAME="landing-staging"
-    ;;
-  prod)
-    NAMESPACE_NAME="landing-prod"
-    CONTAINER_NAME="landing-web"
-    ;;
-  *)
-    echo "Unsupported environment: $ENV" >&2
-    exit 1
-    ;;
-esac
+NAMESPACE_NAME="$(scw_topology_platform_field "landing" "$ENV" "namespace_name")"
+CONTAINER_NAME="$(scw_topology_platform_field "landing" "$ENV" "container_name")"
+if [ -z "$NAMESPACE_NAME" ] || [ -z "$CONTAINER_NAME" ]; then
+  echo "Unsupported landing environment from Scaleway topology: $ENV" >&2
+  exit 1
+fi
 
 require_non_empty() {
   local value="$1"

@@ -197,19 +197,19 @@ graph LR
     ST --> A
 ```
 
-La commande `pnpm build` execute sequentiellement :
+La commande `pnpm build` ne maintient plus une liste racine ecrite a la main. Elle s'appuie maintenant sur **Turbo** pour rederiver le graphe de build depuis les workspaces et leurs dependances declarees :
 
 ```bash
 # package.json (root)
-pnpm --filter @praedixa/shared-types build  # 1. Types partages
-&& pnpm --filter @praedixa/api-ts build     # 2. API TS
-&& pnpm --filter @praedixa/ui build         # 3. Composants UI
-&& pnpm --filter @praedixa/landing build    # 4. Apps (parallelisable)
-&& pnpm --filter @praedixa/webapp build
-&& pnpm --filter @praedixa/admin build
+pnpm workspaces:check:build
+turbo run build
 ```
 
-**Pourquoi build avant typecheck** : `pnpm typecheck` (alias `tsc --build`) resout les imports depuis les artefacts compiles des packages. Sans build prealable, TypeScript ne trouve pas les declarations de `@praedixa/ui` et `@praedixa/shared-types`.
+Le meme principe vaut desormais pour `pnpm lint` et `pnpm typecheck`, avec un garde-fou `scripts/check-workspace-scripts.mjs` qui echoue si un nouveau workspace `app-*` ou `packages/*` oublie de declarer `build`, `lint` ou `typecheck`. Le root ne peut donc plus devenir vert en oubliant simplement de mettre a jour une liste de `--filter`.
+
+**Pourquoi build avant typecheck** : `pnpm typecheck` orchestre maintenant `turbo run typecheck`, et chaque workspace type-aware continue de resoudre ses imports depuis les artefacts compiles des packages internes. Sans build prealable sur les dependances amont, TypeScript ne trouve pas les declarations de `@praedixa/ui` et `@praedixa/shared-types`.
+
+Le root `pnpm typecheck` delegue maintenant a `turbo run typecheck`, et la tache Turbo `typecheck` depend explicitement de `^build` pour garder cette contrainte de compilation sur les dependances amont sans repasser par une orchestration manuelle.
 
 **Profil de strictesse TS** : la base racine impose maintenant `strict`, `strictNullChecks`, `noUncheckedIndexedAccess`, `noImplicitReturns`, `noImplicitOverride`, `useUnknownInCatchVariables`, `noFallthroughCasesInSwitch` et `noEmitOnError`. Les apps Next (`app-landing`, `app-webapp`, `app-admin`) sont alignees sur cette base commune, et ESLint est type-aware sur les fichiers source pour bloquer notamment les promesses flottantes, les `switch` non exhaustifs et les assertions de type inutiles.
 

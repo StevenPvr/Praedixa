@@ -11,9 +11,10 @@ Le service d'automation agentique interne Symphony n'expose pas de traffic produ
 - `docker-compose.yml` pour la pile locale Docker (PostgreSQL, API, auth Keycloak locale).
 - `camunda/` pour le runtime Camunda 8 local/self-managed epingle et sa procedure d'usage.
 - `auth/` pour les artefacts Keycloak/Scaleway lies a l'authentification.
+- `opentofu/` pour le catalogue declaratif de topologie Scaleway/OpenTofu qui sert maintenant de point d'entree versionne pour namespaces, containers, reseaux prives et cibles runtime.
 - `systemd/` pour les services systemes lies a la data platform Python.
 
-Le deploiement applicatif passe surtout par les scripts de `scripts/`, pas par un outil d'IaC unique dans ce dossier.
+Le deploiement applicatif reste orchestre par les scripts de `scripts/`, mais ils doivent maintenant lire la topologie canonique dans `infra/opentofu/platform-topology.json` au lieu de reencoder localement les noms de namespaces/containers. Le but est de converger vers un vrai socle IaC/OpenTofu pilote par cette source de verite.
 
 ## Workflows utiles
 
@@ -39,10 +40,12 @@ Le Keycloak local est volontairement force en cache `local` mono-noeud dans `inf
 
 - Ne pas committer de secrets ou de mots de passe reels ici.
 - Garder les artefacts d'exploitation alignes avec les scripts `scw-*` et `keycloak-*`.
+- Garder toute nouvelle cible Scaleway alignee avec `infra/opentofu/platform-topology.json` avant de toucher les scripts `scw-*`.
 - Les services lies a la data platform restent cote Python; ne pas les deplacer dans les apps Next/Node.
 
 ## Lire ensuite
 
 - `infra/auth/README.md`
+- `infra/opentofu/README.md`
 - `infra/camunda/README.md`
 - `infra/systemd/README.md`

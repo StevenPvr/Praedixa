@@ -146,9 +146,10 @@ async function waitForBundle(
 }
 
 describeIf("admin onboarding Camunda integration", () => {
-  const setupPool = createSetupPool();
+  let setupPool: Pool;
 
   beforeAll(async () => {
+    setupPool = createSetupPool();
     const config = loadConfig({
       ...process.env,
       NODE_ENV:
@@ -166,8 +167,10 @@ describeIf("admin onboarding Camunda integration", () => {
         .cancelWorkflow(createdProcessInstanceKey)
         .catch(() => undefined);
     }
-    await cleanupSmokeOrganization(setupPool);
-    await setupPool.end();
+    if (setupPool) {
+      await cleanupSmokeOrganization(setupPool);
+      await setupPool.end();
+    }
     const servicePool = getPersistencePool();
     if (servicePool) {
       await servicePool.end();

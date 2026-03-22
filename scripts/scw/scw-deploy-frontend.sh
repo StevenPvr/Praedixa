@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/scw-topology.sh"
+
 if [ "$#" -ne 2 ]; then
   echo "Usage: $0 <webapp|admin> <staging|prod>" >&2
   exit 1
@@ -9,33 +12,25 @@ fi
 APP="$1"
 ENV="$2"
 REGION="fr-par"
-
-case "${APP}:${ENV}" in
-  webapp:staging)
-    NAMESPACE_NAME="webapp-staging"
-    CONTAINER_NAME="webapp-staging"
+NAMESPACE_NAME="$(scw_topology_platform_field "$APP" "$ENV" "namespace_name")"
+CONTAINER_NAME="$(scw_topology_platform_field "$APP" "$ENV" "container_name")"
+case "$APP" in
+  webapp)
     DOCKERFILE="app-webapp/Dockerfile.scaleway"
     ;;
-  webapp:prod)
-    NAMESPACE_NAME="webapp-prod"
-    CONTAINER_NAME="webapp-prod"
-    DOCKERFILE="app-webapp/Dockerfile.scaleway"
-    ;;
-  admin:staging)
-    NAMESPACE_NAME="admin-staging"
-    CONTAINER_NAME="admin-staging"
-    DOCKERFILE="app-admin/Dockerfile.scaleway"
-    ;;
-  admin:prod)
-    NAMESPACE_NAME="admin-prod"
-    CONTAINER_NAME="admin-prod"
+  admin)
     DOCKERFILE="app-admin/Dockerfile.scaleway"
     ;;
   *)
-    echo "Unsupported target: ${APP}:${ENV}" >&2
+    echo "Unsupported app: $APP" >&2
     exit 1
     ;;
 esac
+
+if [ -z "$NAMESPACE_NAME" ] || [ -z "$CONTAINER_NAME" ]; then
+  echo "Unsupported target from Scaleway topology: ${APP}:${ENV}" >&2
+  exit 1
+fi
 
 ensure_clean_git_tree() {
   if [ "${SCW_DEPLOY_ALLOW_DIRTY:-0}" = "1" ]; then

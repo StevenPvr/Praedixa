@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/scw-topology.sh"
+
 REGION="fr-par"
-NAMESPACE_NAME="auth-prod"
-CONTAINER_NAME="auth-prod"
+NAMESPACE_NAME="$(scw_topology_platform_field "auth" "prod" "namespace_name")"
+CONTAINER_NAME="$(scw_topology_platform_field "auth" "prod" "container_name")"
 DOCKERFILE="infra/auth/Dockerfile.scaleway"
 BUILD_SOURCE="."
+
+if [ -z "$NAMESPACE_NAME" ] || [ -z "$CONTAINER_NAME" ]; then
+  echo "Missing auth-prod topology definition" >&2
+  exit 1
+fi
 
 ensure_clean_git_tree() {
   if [ "${SCW_DEPLOY_ALLOW_DIRTY:-0}" = "1" ]; then

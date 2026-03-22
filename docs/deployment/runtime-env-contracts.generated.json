@@ -1,0 +1,346 @@
+{
+  "contract_type": "runtime-env-contracts",
+  "schema_version": "1",
+  "generated_from": {
+    "runtime_secret_inventory": "docs/deployment/runtime-secrets-inventory.json",
+    "platform_topology": "infra/opentofu/platform-topology.json"
+  },
+  "services": [
+    {
+      "service_id": "admin-prod",
+      "environment": "prod",
+      "service": "admin",
+      "owner": "Front admin",
+      "reviewers": ["Platform TS", "Security review", "Infra/DevOps"],
+      "preflight_required": true,
+      "topology": {
+        "region": "fr-par",
+        "namespace_name": "admin-prod",
+        "container_name": "admin-prod",
+        "public_hosts": ["https://admin.praedixa.com"],
+        "private_network_name": null,
+        "rdb_instance_name": null
+      },
+      "runtime_contract": {
+        "public_origin": {
+          "expected_origin": "https://admin.praedixa.com",
+          "env_keys": ["AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN"],
+          "required_in_preflight": true
+        },
+        "required_secret_keys": [
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "RATE_LIMIT_STORAGE_URI"
+        ],
+        "optional_secret_keys": ["AUTH_OIDC_CLIENT_SECRET"],
+        "all_secret_keys": [
+          "AUTH_OIDC_CLIENT_SECRET",
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "RATE_LIMIT_STORAGE_URI"
+        ]
+      },
+      "secret_path_prefix": "/praedixa/prod/admin-prod/runtime",
+      "rotation_sla_days": 90
+    },
+    {
+      "service_id": "admin-staging",
+      "environment": "staging",
+      "service": "admin",
+      "owner": "Front admin",
+      "reviewers": ["Platform TS", "Security review", "Infra/DevOps"],
+      "preflight_required": true,
+      "topology": {
+        "region": "fr-par",
+        "namespace_name": "admin-staging",
+        "container_name": "admin-staging",
+        "public_hosts": ["https://staging-admin.praedixa.com"],
+        "private_network_name": null,
+        "rdb_instance_name": null
+      },
+      "runtime_contract": {
+        "public_origin": {
+          "expected_origin": "https://staging-admin.praedixa.com",
+          "env_keys": ["AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN"],
+          "required_in_preflight": true
+        },
+        "required_secret_keys": [
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "RATE_LIMIT_STORAGE_URI"
+        ],
+        "optional_secret_keys": ["AUTH_OIDC_CLIENT_SECRET"],
+        "all_secret_keys": [
+          "AUTH_OIDC_CLIENT_SECRET",
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "RATE_LIMIT_STORAGE_URI"
+        ]
+      },
+      "secret_path_prefix": "/praedixa/staging/admin-staging/runtime",
+      "rotation_sla_days": 90
+    },
+    {
+      "service_id": "api-prod",
+      "environment": "prod",
+      "service": "api",
+      "owner": "Platform TS",
+      "reviewers": ["Integrations", "Infra/DevOps"],
+      "preflight_required": true,
+      "topology": {
+        "region": "fr-par",
+        "namespace_name": "api-prod",
+        "container_name": "api-prod",
+        "public_hosts": ["https://api.praedixa.com"],
+        "private_network_name": "praedixa-prd-pn",
+        "rdb_instance_name": "praedixa-api-prod"
+      },
+      "runtime_contract": {
+        "public_origin": null,
+        "required_secret_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "DATABASE_URL",
+          "KEYCLOAK_ADMIN_PASSWORD",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_WEBHOOK_SECRET",
+          "SCW_SECRET_KEY"
+        ],
+        "optional_secret_keys": [],
+        "all_secret_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "DATABASE_URL",
+          "KEYCLOAK_ADMIN_PASSWORD",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_WEBHOOK_SECRET",
+          "SCW_SECRET_KEY"
+        ]
+      },
+      "secret_path_prefix": "/praedixa/prod/api-prod/runtime",
+      "rotation_sla_days": 90
+    },
+    {
+      "service_id": "api-staging",
+      "environment": "staging",
+      "service": "api",
+      "owner": "Platform TS",
+      "reviewers": ["Integrations", "Infra/DevOps"],
+      "preflight_required": true,
+      "topology": {
+        "region": "fr-par",
+        "namespace_name": "api-staging",
+        "container_name": "api-staging",
+        "public_hosts": ["https://staging-api.praedixa.com"],
+        "private_network_name": "praedixa-stg-pn",
+        "rdb_instance_name": "praedixa-api-staging"
+      },
+      "runtime_contract": {
+        "public_origin": null,
+        "required_secret_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "DATABASE_URL",
+          "KEYCLOAK_ADMIN_PASSWORD",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_WEBHOOK_SECRET",
+          "SCW_SECRET_KEY"
+        ],
+        "optional_secret_keys": [],
+        "all_secret_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "DATABASE_URL",
+          "KEYCLOAK_ADMIN_PASSWORD",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_WEBHOOK_SECRET",
+          "SCW_SECRET_KEY"
+        ]
+      },
+      "secret_path_prefix": "/praedixa/staging/api-staging/runtime",
+      "rotation_sla_days": 90
+    },
+    {
+      "service_id": "auth-prod",
+      "environment": "prod",
+      "service": "auth",
+      "owner": "Infra/DevOps",
+      "reviewers": ["Security review", "Platform TS"],
+      "preflight_required": true,
+      "topology": {
+        "region": "fr-par",
+        "namespace_name": "auth-prod",
+        "container_name": "auth-prod",
+        "public_hosts": ["https://auth.praedixa.com"],
+        "private_network_name": "praedixa-prd-pn",
+        "rdb_instance_name": "praedixa-auth-prod"
+      },
+      "runtime_contract": {
+        "public_origin": null,
+        "required_secret_keys": [
+          "KC_BOOTSTRAP_ADMIN_PASSWORD",
+          "KC_DB_PASSWORD",
+          "KEYCLOAK_SMTP_PASSWORD"
+        ],
+        "optional_secret_keys": [],
+        "all_secret_keys": [
+          "KC_BOOTSTRAP_ADMIN_PASSWORD",
+          "KC_DB_PASSWORD",
+          "KEYCLOAK_SMTP_PASSWORD"
+        ]
+      },
+      "secret_path_prefix": "/praedixa/prod/auth-prod/runtime",
+      "rotation_sla_days": 90
+    },
+    {
+      "service_id": "landing-prod",
+      "environment": "prod",
+      "service": "landing",
+      "owner": "Front marketing",
+      "reviewers": ["Infra/DevOps", "Security review pour secrets formulaire"],
+      "preflight_required": true,
+      "topology": {
+        "region": "fr-par",
+        "namespace_name": "landing-prod",
+        "container_name": "landing-web",
+        "public_hosts": ["https://praedixa.com", "https://www.praedixa.com"],
+        "private_network_name": null,
+        "rdb_instance_name": null
+      },
+      "runtime_contract": {
+        "public_origin": null,
+        "required_secret_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "CONTACT_FORM_CHALLENGE_SECRET",
+          "LANDING_ASSET_SIGNING_SECRET",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_API_KEY"
+        ],
+        "optional_secret_keys": [],
+        "all_secret_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "CONTACT_FORM_CHALLENGE_SECRET",
+          "LANDING_ASSET_SIGNING_SECRET",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_API_KEY"
+        ]
+      },
+      "secret_path_prefix": "/praedixa/prod/landing-web/runtime",
+      "rotation_sla_days": 90
+    },
+    {
+      "service_id": "landing-staging",
+      "environment": "staging",
+      "service": "landing",
+      "owner": "Front marketing",
+      "reviewers": ["Infra/DevOps", "Security review pour secrets formulaire"],
+      "preflight_required": true,
+      "topology": {
+        "region": "fr-par",
+        "namespace_name": "landing-staging",
+        "container_name": "landing-staging",
+        "public_hosts": ["https://staging.praedixa.com"],
+        "private_network_name": null,
+        "rdb_instance_name": null
+      },
+      "runtime_contract": {
+        "public_origin": null,
+        "required_secret_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "CONTACT_FORM_CHALLENGE_SECRET",
+          "LANDING_ASSET_SIGNING_SECRET",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_API_KEY"
+        ],
+        "optional_secret_keys": [],
+        "all_secret_keys": [
+          "CONTACT_API_INGEST_TOKEN",
+          "CONTACT_FORM_CHALLENGE_SECRET",
+          "LANDING_ASSET_SIGNING_SECRET",
+          "RATE_LIMIT_STORAGE_URI",
+          "RESEND_API_KEY"
+        ]
+      },
+      "secret_path_prefix": "/praedixa/staging/landing-staging/runtime",
+      "rotation_sla_days": 90
+    },
+    {
+      "service_id": "webapp-prod",
+      "environment": "prod",
+      "service": "webapp",
+      "owner": "Front produit",
+      "reviewers": ["Platform TS", "Infra/DevOps"],
+      "preflight_required": true,
+      "topology": {
+        "region": "fr-par",
+        "namespace_name": "webapp-prod",
+        "container_name": "webapp-prod",
+        "public_hosts": ["https://app.praedixa.com"],
+        "private_network_name": null,
+        "rdb_instance_name": null
+      },
+      "runtime_contract": {
+        "public_origin": {
+          "expected_origin": "https://app.praedixa.com",
+          "env_keys": ["AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN"],
+          "required_in_preflight": true
+        },
+        "required_secret_keys": [
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "RATE_LIMIT_STORAGE_URI"
+        ],
+        "optional_secret_keys": ["AUTH_OIDC_CLIENT_SECRET"],
+        "all_secret_keys": [
+          "AUTH_OIDC_CLIENT_SECRET",
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "RATE_LIMIT_STORAGE_URI"
+        ]
+      },
+      "secret_path_prefix": "/praedixa/prod/webapp-prod/runtime",
+      "rotation_sla_days": 90
+    },
+    {
+      "service_id": "webapp-staging",
+      "environment": "staging",
+      "service": "webapp",
+      "owner": "Front produit",
+      "reviewers": ["Platform TS", "Infra/DevOps"],
+      "preflight_required": true,
+      "topology": {
+        "region": "fr-par",
+        "namespace_name": "webapp-staging",
+        "container_name": "webapp-staging",
+        "public_hosts": ["https://staging-app.praedixa.com"],
+        "private_network_name": null,
+        "rdb_instance_name": null
+      },
+      "runtime_contract": {
+        "public_origin": {
+          "expected_origin": "https://staging-app.praedixa.com",
+          "env_keys": ["AUTH_APP_ORIGIN", "NEXT_PUBLIC_APP_ORIGIN"],
+          "required_in_preflight": true
+        },
+        "required_secret_keys": [
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "RATE_LIMIT_STORAGE_URI"
+        ],
+        "optional_secret_keys": ["AUTH_OIDC_CLIENT_SECRET"],
+        "all_secret_keys": [
+          "AUTH_OIDC_CLIENT_SECRET",
+          "AUTH_RATE_LIMIT_KEY_SALT",
+          "AUTH_RATE_LIMIT_REDIS_URL",
+          "AUTH_SESSION_SECRET",
+          "RATE_LIMIT_STORAGE_URI"
+        ]
+      },
+      "secret_path_prefix": "/praedixa/staging/webapp-staging/runtime",
+      "rotation_sla_days": 90
+    }
+  ]
+}

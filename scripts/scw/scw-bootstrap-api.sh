@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/scw-topology.sh"
+
 REGION="fr-par"
 
 require_cmd() {
@@ -81,10 +84,22 @@ ensure_container() {
     region="$REGION" >/dev/null
 }
 
-ensure_namespace "api-staging"
-ensure_namespace "api-prod"
+ensure_namespace "$(scw_topology_platform_field "api" "staging" "namespace_name")"
+ensure_namespace "$(scw_topology_platform_field "api" "prod" "namespace_name")"
 
-ensure_container "api-staging" "api-staging" "0" "2" "1000" "2048"
-ensure_container "api-prod" "api-prod" "1" "4" "1500" "3072"
+ensure_container \
+  "$(scw_topology_platform_field "api" "staging" "namespace_name")" \
+  "$(scw_topology_platform_field "api" "staging" "container_name")" \
+  "$(scw_topology_platform_scaling_field "api" "staging" "min_scale")" \
+  "$(scw_topology_platform_scaling_field "api" "staging" "max_scale")" \
+  "$(scw_topology_platform_scaling_field "api" "staging" "cpu_limit")" \
+  "$(scw_topology_platform_scaling_field "api" "staging" "memory_limit")"
+ensure_container \
+  "$(scw_topology_platform_field "api" "prod" "namespace_name")" \
+  "$(scw_topology_platform_field "api" "prod" "container_name")" \
+  "$(scw_topology_platform_scaling_field "api" "prod" "min_scale")" \
+  "$(scw_topology_platform_scaling_field "api" "prod" "max_scale")" \
+  "$(scw_topology_platform_scaling_field "api" "prod" "cpu_limit")" \
+  "$(scw_topology_platform_scaling_field "api" "prod" "memory_limit")"
 
 echo "Scaleway API bootstrap completed."

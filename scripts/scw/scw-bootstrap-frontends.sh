@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/scw-topology.sh"
+
 REGION="fr-par"
 PROJECT_SUFFIX="14b3676c"
 
@@ -93,19 +96,55 @@ ensure_bucket() {
   scw object bucket create "$name" enable-versioning=true acl=private region="$REGION" >/dev/null
 }
 
-ensure_namespace "webapp-staging"
-ensure_namespace "webapp-prod"
-ensure_namespace "admin-staging"
-ensure_namespace "admin-prod"
-ensure_namespace "landing-staging"
-ensure_namespace "landing-prod"
+ensure_namespace "$(scw_topology_platform_field "webapp" "staging" "namespace_name")"
+ensure_namespace "$(scw_topology_platform_field "webapp" "prod" "namespace_name")"
+ensure_namespace "$(scw_topology_platform_field "admin" "staging" "namespace_name")"
+ensure_namespace "$(scw_topology_platform_field "admin" "prod" "namespace_name")"
+ensure_namespace "$(scw_topology_platform_field "landing" "staging" "namespace_name")"
+ensure_namespace "$(scw_topology_platform_field "landing" "prod" "namespace_name")"
 
-ensure_container "webapp-staging" "webapp-staging" "0" "2" "500" "1024"
-ensure_container "webapp-prod" "webapp-prod" "1" "4" "1000" "2048"
-ensure_container "admin-staging" "admin-staging" "0" "2" "500" "1024"
-ensure_container "admin-prod" "admin-prod" "1" "3" "1000" "2048"
-ensure_container "landing-staging" "landing-staging" "0" "2" "500" "1024"
-ensure_container "landing-prod" "landing-web" "1" "3" "500" "1024"
+ensure_container \
+  "$(scw_topology_platform_field "webapp" "staging" "namespace_name")" \
+  "$(scw_topology_platform_field "webapp" "staging" "container_name")" \
+  "$(scw_topology_platform_scaling_field "webapp" "staging" "min_scale")" \
+  "$(scw_topology_platform_scaling_field "webapp" "staging" "max_scale")" \
+  "$(scw_topology_platform_scaling_field "webapp" "staging" "cpu_limit")" \
+  "$(scw_topology_platform_scaling_field "webapp" "staging" "memory_limit")"
+ensure_container \
+  "$(scw_topology_platform_field "webapp" "prod" "namespace_name")" \
+  "$(scw_topology_platform_field "webapp" "prod" "container_name")" \
+  "$(scw_topology_platform_scaling_field "webapp" "prod" "min_scale")" \
+  "$(scw_topology_platform_scaling_field "webapp" "prod" "max_scale")" \
+  "$(scw_topology_platform_scaling_field "webapp" "prod" "cpu_limit")" \
+  "$(scw_topology_platform_scaling_field "webapp" "prod" "memory_limit")"
+ensure_container \
+  "$(scw_topology_platform_field "admin" "staging" "namespace_name")" \
+  "$(scw_topology_platform_field "admin" "staging" "container_name")" \
+  "$(scw_topology_platform_scaling_field "admin" "staging" "min_scale")" \
+  "$(scw_topology_platform_scaling_field "admin" "staging" "max_scale")" \
+  "$(scw_topology_platform_scaling_field "admin" "staging" "cpu_limit")" \
+  "$(scw_topology_platform_scaling_field "admin" "staging" "memory_limit")"
+ensure_container \
+  "$(scw_topology_platform_field "admin" "prod" "namespace_name")" \
+  "$(scw_topology_platform_field "admin" "prod" "container_name")" \
+  "$(scw_topology_platform_scaling_field "admin" "prod" "min_scale")" \
+  "$(scw_topology_platform_scaling_field "admin" "prod" "max_scale")" \
+  "$(scw_topology_platform_scaling_field "admin" "prod" "cpu_limit")" \
+  "$(scw_topology_platform_scaling_field "admin" "prod" "memory_limit")"
+ensure_container \
+  "$(scw_topology_platform_field "landing" "staging" "namespace_name")" \
+  "$(scw_topology_platform_field "landing" "staging" "container_name")" \
+  "$(scw_topology_platform_scaling_field "landing" "staging" "min_scale")" \
+  "$(scw_topology_platform_scaling_field "landing" "staging" "max_scale")" \
+  "$(scw_topology_platform_scaling_field "landing" "staging" "cpu_limit")" \
+  "$(scw_topology_platform_scaling_field "landing" "staging" "memory_limit")"
+ensure_container \
+  "$(scw_topology_platform_field "landing" "prod" "namespace_name")" \
+  "$(scw_topology_platform_field "landing" "prod" "container_name")" \
+  "$(scw_topology_platform_scaling_field "landing" "prod" "min_scale")" \
+  "$(scw_topology_platform_scaling_field "landing" "prod" "max_scale")" \
+  "$(scw_topology_platform_scaling_field "landing" "prod" "cpu_limit")" \
+  "$(scw_topology_platform_scaling_field "landing" "prod" "memory_limit")"
 
 ensure_bucket "praedixa-stg-client-files-fr-${PROJECT_SUFFIX}"
 ensure_bucket "praedixa-prd-client-files-fr-${PROJECT_SUFFIX}"

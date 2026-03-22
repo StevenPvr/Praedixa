@@ -1,0 +1,3 @@
+bucket = "praedixa-iac-state"
+key    = "platform/staging/terraform.tfstate"
+region = "fr-par"

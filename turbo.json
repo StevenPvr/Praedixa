@@ -14,11 +14,11 @@
       "dependsOn": []
     },
     "typecheck": {
-      "dependsOn": []
+      "dependsOn": ["^build"]
     },
     "test": {
-      "dependsOn": [],
-      "outputs": ["coverage/**"]
+      "dependsOn": ["^build"],
+      "outputs": []
     },
     "clean": {
       "cache": false

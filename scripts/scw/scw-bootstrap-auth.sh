@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/scw-topology.sh"
+
 REGION="fr-par"
 DNS_ZONE="praedixa.com"
-AUTH_HOSTNAME="auth.praedixa.com"
-NAMESPACE_NAME="auth-prod"
-CONTAINER_NAME="auth-prod"
+AUTH_HOSTNAME="${AUTH_HOSTNAME:-$(scw_topology_first_public_host "auth" "prod")}"
+NAMESPACE_NAME="$(scw_topology_platform_field "auth" "prod" "namespace_name")"
+CONTAINER_NAME="$(scw_topology_platform_field "auth" "prod" "container_name")"
+
+AUTH_HOSTNAME="${AUTH_HOSTNAME#https://}"
+AUTH_HOSTNAME="${AUTH_HOSTNAME#http://}"
 
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -65,10 +71,10 @@ ensure_container() {
   scw container container create \
     namespace-id="$ns_id" \
     name="$CONTAINER_NAME" \
-    min-scale=1 \
-    max-scale=2 \
-    memory-limit=2048 \
-    cpu-limit=1000 \
+    min-scale="$(scw_topology_platform_scaling_field "auth" "prod" "min_scale")" \
+    max-scale="$(scw_topology_platform_scaling_field "auth" "prod" "max_scale")" \
+    memory-limit="$(scw_topology_platform_scaling_field "auth" "prod" "memory_limit")" \
+    cpu-limit="$(scw_topology_platform_scaling_field "auth" "prod" "cpu_limit")" \
     port=8080 \
     protocol=http1 \
     privacy=public \

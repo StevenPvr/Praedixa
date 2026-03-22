@@ -1,0 +1,18 @@
+{
+  "schema_version": "1",
+  "required_scripts": ["build", "lint", "typecheck"],
+  "required_test_workspaces": [
+    "app-admin",
+    "app-api-ts",
+    "app-connectors",
+    "app-landing",
+    "app-symphony",
+    "app-webapp",
+    "packages/shared-types",
+    "packages/ui",
+    "packages/telemetry"
+  ],
+  "test_exemptions": {
+    "packages/api-hooks": "library without runtime branch logic; contract stays covered by dependent surfaces"
+  }
+}
